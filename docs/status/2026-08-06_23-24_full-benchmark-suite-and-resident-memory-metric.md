@@ -1,7 +1,7 @@
 # Status Report: Full Benchmark Suite + Resident Memory Metric
 
-**Date:** 2026-08-06 23:24 CEST  
-**Session scope:** Benchmark tools and linter (user-scoped)  
+**Date:** 2026-08-06 23:24 CEST\
+**Session scope:** Benchmark tools and linter (user-scoped)\
 **Prior session context:** `docs/status/2026-08-06_22-45_benchmarks-linter-green-metaengine-daemon.md`
 
 ---

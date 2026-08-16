@@ -29,7 +29,7 @@ designed operator-driven layout planning model, updated TODO_LIST.md
   - The `[]Attachment` vs `[]AttachmentID` insight: it's payload reality, not
     storage intent — the developer is silent on layout
   - Operator priority system (`WriteSpeed`/`ReadSpeed`/`StorageSpace`/`Balanced`)
-    + hierarchy (GLOBAL → Engine → Query)
+    - hierarchy (GLOBAL → Engine → Query)
   - Three planner modes: static, adaptive, benchmark
   - Runtime backend addition + dual-use/migration/backup roles
   - Aggregate boundaries (local child default, shared-by-type opt-in)
@@ -38,12 +38,12 @@ designed operator-driven layout planning model, updated TODO_LIST.md
 
 ### 3. Four design questions resolved via the question tool
 
-| Decision | Choice |
-| --- | --- |
-| Benchmark delivery | Both (CLI + runtime) |
-| Benchmark workload | Both (synthesize + real trace) |
-| Dual-use sync | Role-based (fold pipeline for active, async for backup) |
-| Re-layout trigger | Threshold-based (auto small, confirm large) |
+| Decision           | Choice                                                  |
+| ------------------ | ------------------------------------------------------- |
+| Benchmark delivery | Both (CLI + runtime)                                    |
+| Benchmark workload | Both (synthesize + real trace)                          |
+| Dual-use sync      | Role-based (fold pipeline for active, async for backup) |
+| Re-layout trigger  | Threshold-based (auto small, confirm large)             |
 
 ### 4. TODO_LIST.md updated
 
@@ -74,8 +74,8 @@ designed operator-driven layout planning model, updated TODO_LIST.md
 ### 3. The doc has an unresolved tension
 
 Section 4 says "The developer expresses zero storage intent. Ever." But the
-payload-reality table in the same section shows `[]AttachmentID` *forces*
-normalization — meaning the developer's choice of event payload *does*
+payload-reality table in the same section shows `[]AttachmentID` _forces_
+normalization — meaning the developer's choice of event payload _does_
 constrain the planner. These are reconcilable (the developer expresses domain
 shape, not storage intent; the constraint is a side effect) but the doc doesn't
 make the distinction explicit.
@@ -115,7 +115,7 @@ the README contradicts the code.
 
 I inserted "Phase 6b" between Phase 6 and Phase 7. But Phase 6 is "Auto-
 Projection (the killer feature)" and the new section is about layout planning,
-which is a *different concern* from fold inference. Calling it "6b" implies
+which is a _different concern_ from fold inference. Calling it "6b" implies
 it's a sub-part of auto-projection. It's either a replacement for M9 (which
 was in Phase 6) or it's a new Phase 7 (forcing renumbering). The naming kicks
 ambiguity down the road.
@@ -131,7 +131,7 @@ I changed "Slices → separate collections (struct-composition-driven multi-
 collection)" to "Slice/struct normalization → see Phase 6b." But fold inference
 (generating folds for a single collection) and layout planning (deciding embed
 vs normalize across collections) are different architectural layers. The fold
-inference feature *still doesn't handle slices* — that's a real gap in the
+inference feature _still doesn't handle slices_ — that's a real gap in the
 shipped Infer() code, and I made it sound like Phase 6b resolves it. It
 doesn't. Phase 6b is orthogonal.
 
@@ -159,8 +159,8 @@ doesn't. Phase 6b is orthogonal.
 
 5. **Resolve the "developer expresses zero intent" tension explicitly.** The
    doc should say: the developer expresses domain shape (which constrains what
-   the planner *can* do), but expresses zero storage intent (which *would* tell
-   the planner what it *should* do). These are different.
+   the planner _can_ do), but expresses zero storage intent (which _would_ tell
+   the planner what it _should_ do). These are different.
 
 6. **Specify the WARN LOUDLY mechanism.** Where does the warn go? `Doctor()`?
    `EXPLAIN`? Structured logs? A diagnostic event stream? The doc says "warn"
@@ -257,7 +257,7 @@ unvalidated research feels premature.
 
 ADR-0116 defines a layered auto-projection model (Layer 1 = fold inference,
 done; Layers 2-3 = higher-level automation). Layout planning (embed vs
-normalize, operator priorities) feels like it *is* Layer 3 — but it could also
+normalize, operator priorities) feels like it _is_ Layer 3 — but it could also
 be an orthogonal concern (Layer 1 generates folds; layout planning decides
 physical storage shape). This determines whether the design doc amends ADR-0116
 or stands alone. I can't tell from the ADR text alone which you intended.

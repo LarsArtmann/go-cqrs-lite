@@ -1,8 +1,8 @@
 # Comprehensive Status Report — go-cqrs-lite
 
-**Date:** 2026-04-05 20:23  
-**Commit:** 653ddb3 feat(core): add foundational CQRS components and types  
-**Branch:** master  
+**Date:** 2026-04-05 20:23\
+**Commit:** 653ddb3 feat(core): add foundational CQRS components and types\
+**Branch:** master\
 **Status:** STABLE — All compilation errors fixed, production code deduplicated
 
 ---
@@ -42,8 +42,8 @@
 
 ## B) PARTIALLY DONE ⏳
 
-| Task  | File                                                                    | Status       | Notes                                               |
-| ----- | ----------------------------------------------------------------------- | ------------ | --------------------------------------------------- |
+| Task  | File                                                                    | Status      | Notes                                               |
+| ----- | ----------------------------------------------------------------------- | ----------- | --------------------------------------------------- |
 | 6     | `catalog/asyncapi/exporter.go` addCommand/addEvent/addQuery unification | ⏸️ POSTPONED | Complex, needs careful design to preserve semantics |
 | 7     | `catalog/eventcatalog/exporter.go` MDX frontmatter unification          | ⏸️ POSTPONED | Needs template abstraction                          |
 | 9     | `catalog/yaml/yaml.go` marshalValue extraction                          | ⏸️ POSTPONED | Risk of breaking YAML output                        |
@@ -192,6 +192,6 @@
 
 ---
 
-**Report Generated:** 2026-04-05 20:23  
-**Next Review:** 2026-04-06  
+**Report Generated:** 2026-04-05 20:23\
+**Next Review:** 2026-04-06\
 **Status:** READY FOR INSTRUCTIONS

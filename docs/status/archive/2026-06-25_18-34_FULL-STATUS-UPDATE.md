@@ -129,7 +129,7 @@ All have design documents. None are started — they await consumer signal.
 | **Session 1 fabricated review scores** | "Modularity 9/10" etc. were vibes, not measurements | Acknowledged in brutal-self-review report. Never repeated. |
 | **Session 1 bypassed `nix run` commands** | AGENTS.md says to use nix. Raw `go build` missed check-layers, check-file-size | Session 2+: always used `nix run .#*`. |
 | **Session 1 called storage/memory dep a "critical leak"** | `check-module-layers.sh:46-53` explicitly documents it as an allowed exception | Brutal self-review corrected. TODO_LIST updated. |
-| **`ci` flake app duplicated build/vet/test logic** | 30+ lines of inline go commands with manual `                                  |                                                             | exit 1` instead of calling individual apps | Simplified to `set -e` + single bash block (`ef4c6c7b`) |
+| **`ci` flake app duplicated build/vet/test logic** | 30+ lines of inline go commands with manual `|                                                             | exit 1` instead of calling individual apps | Simplified to `set -e` + single bash block (`ef4c6c7b`) |
 | **ROADMAP.md said "38 modules"** | Updated AGENTS.md to 43 but missed ROADMAP | Fixed (`5fe2dd1d`) |
 | **ADR-0026 claimed "decider/ does NOT compile to WASM"** | Fixed months ago via `//go:build !js` in otel/views.go; ADR never updated | Fixed (`5fe2dd1d`) |
 | **ADR-0026 referenced deleted `wasm/main.go`** | Ghost reference | Replaced with CI job reference (`5fe2dd1d`) |
@@ -164,33 +164,33 @@ All have design documents. None are started — they await consumer signal.
 
 ## F) Top 25 Things to Do Next (sorted by impact/effort)
 
-| #   | Task                                                            | Impact | Effort | Type         |
-| --- | --------------------------------------------------------------- | ------ | ------ | ------------ |
-| 1   | Implement NATS transport adapter (`transport/nats/`)            | H      | L      | Feature      |
-| 2   | Implement Redis transport adapter (`transport/redis/`)          | H      | L      | Feature      |
-| 3   | Implement hot-state cache for decider (`WithHotStateCache`)     | H      | L      | Performance  |
-| 4   | Add secondary indexes to SQLViewStore (DDL generation)          | M      | S      | Feature      |
-| 5   | Add consumer integration test (import from outside workspace)   | M      | M      | Testing      |
-| 6   | Improve codec coverage to >80% (CBOR edge cases)                | M      | S      | Quality      |
-| 7   | Improve kv coverage to >80% (Cache/TypedStore edge cases)       | M      | S      | Quality      |
-| 8   | Implement read-pressure snapshot strategy                       | M      | M      | Performance  |
-| 9   | Add integration test that exercises transport/grpc end-to-end   | M      | M      | Testing      |
-| 10  | File issue on cockroachdb/errors for genproto conflict          | M      | S      | Community    |
-| 11  | Implement event stream compaction (snapshot-based truncation)   | M      | L      | Feature      |
-| 12  | Add property-based tests for decider fold/decide round-trip     | M      | M      | Testing      |
-| 13  | Migrate `encoding/json` v1 → v2 (v4 breaking change)            | M      | L      | Tech debt    |
-| 14  | Add WASM test CI for 7 core modules (already in CI — verify)    | L      | S      | CI           |
-| 15  | Create CQRS-lite dashboard web UI                               | L      | L      | Feature      |
-| 16  | Implement event archival to S3/GCS                              | L      | M      | Feature      |
-| 17  | Implement distributed projection runner (active/active)         | L      | L      | Feature      |
-| 18  | Add automatic migration generator (cqrs-gen extension)          | L      | M      | Feature      |
-| 19  | Evaluate `failsafe-go` to replace custom retry middleware       | L      | S      | Architecture |
-| 20  | Evaluate `gkampitakis/go-snaps` to replace custom golden helper | L      | S      | Architecture |
-| 21  | Document stack preset decision matrix in SKILL.md               | L      | S      | Docs         |
-| 22  | Add benchmark regression tracking (benchstat across commits)    | L      | M      | CI           |
-| 23  | Evaluate `samber/mo` for Option/Result types in error paths     | L      | S      | Architecture |
-| 24  | Add multi-tenant event store support                            | L      | L      | Feature      |
-| 25  | Add performance regression dashboard                            | L      | M      | Tooling      |
+| #  | Task                                                            | Impact | Effort | Type         |
+| -- | --------------------------------------------------------------- | ------ | ------ | ------------ |
+| 1  | Implement NATS transport adapter (`transport/nats/`)            | H      | L      | Feature      |
+| 2  | Implement Redis transport adapter (`transport/redis/`)          | H      | L      | Feature      |
+| 3  | Implement hot-state cache for decider (`WithHotStateCache`)     | H      | L      | Performance  |
+| 4  | Add secondary indexes to SQLViewStore (DDL generation)          | M      | S      | Feature      |
+| 5  | Add consumer integration test (import from outside workspace)   | M      | M      | Testing      |
+| 6  | Improve codec coverage to >80% (CBOR edge cases)                | M      | S      | Quality      |
+| 7  | Improve kv coverage to >80% (Cache/TypedStore edge cases)       | M      | S      | Quality      |
+| 8  | Implement read-pressure snapshot strategy                       | M      | M      | Performance  |
+| 9  | Add integration test that exercises transport/grpc end-to-end   | M      | M      | Testing      |
+| 10 | File issue on cockroachdb/errors for genproto conflict          | M      | S      | Community    |
+| 11 | Implement event stream compaction (snapshot-based truncation)   | M      | L      | Feature      |
+| 12 | Add property-based tests for decider fold/decide round-trip     | M      | M      | Testing      |
+| 13 | Migrate `encoding/json` v1 → v2 (v4 breaking change)            | M      | L      | Tech debt    |
+| 14 | Add WASM test CI for 7 core modules (already in CI — verify)    | L      | S      | CI           |
+| 15 | Create CQRS-lite dashboard web UI                               | L      | L      | Feature      |
+| 16 | Implement event archival to S3/GCS                              | L      | M      | Feature      |
+| 17 | Implement distributed projection runner (active/active)         | L      | L      | Feature      |
+| 18 | Add automatic migration generator (cqrs-gen extension)          | L      | M      | Feature      |
+| 19 | Evaluate `failsafe-go` to replace custom retry middleware       | L      | S      | Architecture |
+| 20 | Evaluate `gkampitakis/go-snaps` to replace custom golden helper | L      | S      | Architecture |
+| 21 | Document stack preset decision matrix in SKILL.md               | L      | S      | Docs         |
+| 22 | Add benchmark regression tracking (benchstat across commits)    | L      | M      | CI           |
+| 23 | Evaluate `samber/mo` for Option/Result types in error paths     | L      | S      | Architecture |
+| 24 | Add multi-tenant event store support                            | L      | L      | Feature      |
+| 25 | Add performance regression dashboard                            | L      | M      | Tooling      |
 
 ---
 

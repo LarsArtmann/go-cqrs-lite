@@ -38,7 +38,7 @@ The feature is **COMPLETE — zero debt remaining.**
 | `api-stability` golden regenerated         | `scheduling/sqlstore` added to modules list, golden matches                                                                         |
 | `cqrs-lint` module catalog                 | `scheduling/sqlstore` added to exclusion list                                                                                       |
 | idempotency/kvstore contract test fix      | Swapped Record/wait order to test non-expired no-op (was testing expired-entry behavior which MemoryStore intentionally overwrites) |
-| Planning doc updated                       | All `⚠️`/`❌` markers → `✅`, divergences marked RESOLVED                                                                           |
+| Planning doc updated                       | All `⚠️`/`❌` markers → `✅`, divergences marked RESOLVED                                                                            |
 | Status report updated                      | All NOT STARTED → RESOLVED with evidence                                                                                            |
 
 ---

@@ -8,18 +8,18 @@
 
 ## Summary Table — All Tasks
 
-| #   | Task                                                                    | Impact   | Effort | Status  | Verification        |
-| --- | ----------------------------------------------------------------------- | -------- | ------ | ------- | ------------------- |
-| 1   | CHANGELOG.md — 6 fixes + test count 55→93                               | Critical | 5min   | ✅ DONE | Text verified       |
-| 2   | FEATURES.md — remove fixed gaps, add new features                       | Critical | 5min   | ✅ DONE | Text verified       |
-| 3   | TODO_LIST.md — close 10 done items, 7 remain open                       | High     | 8min   | ✅ DONE | Text verified       |
-| 4   | benchkit/README.md — DiskSizer, CPU, Repeat, Mixed                      | High     | 10min  | ✅ DONE | Cross-ref verified  |
-| 5   | Pareto plan annotated P1-01–P1-11 DONE, P1-12–14 DEFERRED               | Medium   | 5min   | ✅ DONE | Table added         |
-| 6   | `--repeat N`: Config.Repeat + Result fields + runRepeated               | Critical | 10min  | ✅ DONE | Build passes        |
-| 7   | `--repeat N`: CLI flag on run + compare + report format                 | Critical | 10min  | ✅ DONE | Runtime verified    |
-| 8   | Tests: Repeat (2) + DiskSizerFallback + CPUConsistency + CLI Repeat     | High     | 10min  | ✅ DONE | All pass with -race |
-| 9   | D1 race fix: TestRun_DurationAborts (100K→10K streams, 2s→5s threshold) | Critical | 5min   | ✅ DONE | Passes under -race  |
-| 10  | Full verification: race, vet, doc-check, build, format                  | Critical | 5min   | ✅ DONE | All green           |
+| #  | Task                                                                    | Impact   | Effort | Status  | Verification        |
+| -- | ----------------------------------------------------------------------- | -------- | ------ | ------- | ------------------- |
+| 1  | CHANGELOG.md — 6 fixes + test count 55→93                               | Critical | 5min   | ✅ DONE | Text verified       |
+| 2  | FEATURES.md — remove fixed gaps, add new features                       | Critical | 5min   | ✅ DONE | Text verified       |
+| 3  | TODO_LIST.md — close 10 done items, 7 remain open                       | High     | 8min   | ✅ DONE | Text verified       |
+| 4  | benchkit/README.md — DiskSizer, CPU, Repeat, Mixed                      | High     | 10min  | ✅ DONE | Cross-ref verified  |
+| 5  | Pareto plan annotated P1-01–P1-11 DONE, P1-12–14 DEFERRED               | Medium   | 5min   | ✅ DONE | Table added         |
+| 6  | `--repeat N`: Config.Repeat + Result fields + runRepeated               | Critical | 10min  | ✅ DONE | Build passes        |
+| 7  | `--repeat N`: CLI flag on run + compare + report format                 | Critical | 10min  | ✅ DONE | Runtime verified    |
+| 8  | Tests: Repeat (2) + DiskSizerFallback + CPUConsistency + CLI Repeat     | High     | 10min  | ✅ DONE | All pass with -race |
+| 9  | D1 race fix: TestRun_DurationAborts (100K→10K streams, 2s→5s threshold) | Critical | 5min   | ✅ DONE | Passes under -race  |
+| 10 | Full verification: race, vet, doc-check, build, format                  | Critical | 5min   | ✅ DONE | All green           |
 
 ---
 

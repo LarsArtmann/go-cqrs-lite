@@ -76,8 +76,8 @@ fa7acaa feat(xtypes): integrate strongly-typed branded IDs and simplify type-saf
 
 ### Documentation
 
-| Item              | Status      | Notes                                    |
-| ----------------- | ----------- | ---------------------------------------- |
+| Item              | Status     | Notes                                    |
+| ----------------- | ---------- | ---------------------------------------- |
 | README.md         | ⚠️ Outdated | Missing xtypes section, API reference    |
 | GoDoc comments    | ⚠️ Partial  | Most types documented, needs improvement |
 | Architecture docs | ⚠️ Missing  | No ADRs, no architecture.md              |
@@ -85,16 +85,16 @@ fa7acaa feat(xtypes): integrate strongly-typed branded IDs and simplify type-saf
 
 ### Infrastructure
 
-| Item               | Status     | Notes               |
-| ------------------ | ---------- | ------------------- |
+| Item               | Status    | Notes               |
+| ------------------ | --------- | ------------------- |
 | .golangci-lint.yml | ⚠️ Exists  | May need updates    |
 | CI/CD              | ⚠️ Missing | No GitHub workflows |
 | Makefile           | ⚠️ Missing | No build automation |
 
 ### Core Packages (Intentional Design)
 
-| Package                | Status         | Notes               |
-| ---------------------- | -------------- | ------------------- |
+| Package                | Status        | Notes               |
+| ---------------------- | ------------- | ------------------- |
 | event (string IDs)     | ⚠️ Intentional | Backward compatible |
 | command (string IDs)   | ⚠️ Intentional | Backward compatible |
 | aggregate (string IDs) | ⚠️ Intentional | Backward compatible |
@@ -224,33 +224,33 @@ go clean -modcache
 
 ## F) TOP 25 THINGS TO DO NEXT 📋
 
-| #   | Priority | Task                                       | Impact | Effort | Package    |
-| --- | -------- | ------------------------------------------ | ------ | ------ | ---------- |
-| 1   | 🔴 P0    | Fix Go toolchain cache (`go clean -cache`) | HIGH   | LOW    | infra      |
-| 2   | 🔴 P0    | Commit this status report                  | MED    | LOW    | docs       |
-| 3   | 🔴 P0    | Merge strong-id to master                  | HIGH   | LOW    | git        |
-| 4   | 🟠 P1    | Update README.md with xtypes usage         | HIGH   | LOW    | docs       |
-| 5   | 🟠 P1    | Create `example/user/` working example     | HIGH   | MED    | example    |
-| 6   | 🟠 P1    | Add CI workflow for tests                  | HIGH   | LOW    | .github    |
-| 7   | 🟠 P1    | Add `aggregate/repository.go` interface    | HIGH   | MED    | aggregate  |
-| 8   | 🟡 P2    | Add `query/pagination.go` types            | MED    | LOW    | query      |
-| 9   | 🟡 P2    | Add middleware type definitions            | MED    | LOW    | command    |
-| 10  | 🟡 P2    | Add recovery middleware                    | HIGH   | MED    | middleware |
-| 11  | 🟡 P2    | Add logging middleware                     | MED    | MED    | middleware |
-| 12  | 🟡 P2    | Add validation middleware                  | MED    | MED    | middleware |
-| 13  | 🟡 P2    | Add retry middleware with backoff          | MED    | MED    | middleware |
-| 14  | 🟡 P2    | Add event middleware type                  | MED    | LOW    | event      |
-| 15  | 🟡 P2    | Add integration tests                      | HIGH   | MED    | tests      |
-| 16  | 🟡 P2    | Add coverage tracking                      | MED    | LOW    | tests      |
-| 17  | 🟡 P2    | Add CI workflow for lint                   | MED    | LOW    | .github    |
-| 18  | 🟢 P3    | Create Makefile                            | MED    | LOW    | root       |
-| 19  | 🟢 P3    | Update .golangci.yml                       | MED    | LOW    | root       |
-| 20  | 🟢 P3    | Add benchmarks for ID operations           | LOW    | LOW    | pkg/id     |
-| 21  | 🟢 P3    | Add fuzzing for Parse functions            | MED    | LOW    | pkg/id     |
-| 22  | 🟢 P3    | Add snapshot store interface               | LOW    | MED    | event      |
-| 23  | 🟢 P3    | Create CONTRIBUTING.md                     | LOW    | LOW    | docs       |
-| 24  | 🟢 P3    | Create architecture.md (ADRs)              | MED    | MED    | docs       |
-| 25  | 🟢 P3    | Add GoDoc package examples                 | MED    | LOW    | all        |
+| #  | Priority | Task                                       | Impact | Effort | Package    |
+| -- | -------- | ------------------------------------------ | ------ | ------ | ---------- |
+| 1  | 🔴 P0    | Fix Go toolchain cache (`go clean -cache`) | HIGH   | LOW    | infra      |
+| 2  | 🔴 P0    | Commit this status report                  | MED    | LOW    | docs       |
+| 3  | 🔴 P0    | Merge strong-id to master                  | HIGH   | LOW    | git        |
+| 4  | 🟠 P1    | Update README.md with xtypes usage         | HIGH   | LOW    | docs       |
+| 5  | 🟠 P1    | Create `example/user/` working example     | HIGH   | MED    | example    |
+| 6  | 🟠 P1    | Add CI workflow for tests                  | HIGH   | LOW    | .github    |
+| 7  | 🟠 P1    | Add `aggregate/repository.go` interface    | HIGH   | MED    | aggregate  |
+| 8  | 🟡 P2    | Add `query/pagination.go` types            | MED    | LOW    | query      |
+| 9  | 🟡 P2    | Add middleware type definitions            | MED    | LOW    | command    |
+| 10 | 🟡 P2    | Add recovery middleware                    | HIGH   | MED    | middleware |
+| 11 | 🟡 P2    | Add logging middleware                     | MED    | MED    | middleware |
+| 12 | 🟡 P2    | Add validation middleware                  | MED    | MED    | middleware |
+| 13 | 🟡 P2    | Add retry middleware with backoff          | MED    | MED    | middleware |
+| 14 | 🟡 P2    | Add event middleware type                  | MED    | LOW    | event      |
+| 15 | 🟡 P2    | Add integration tests                      | HIGH   | MED    | tests      |
+| 16 | 🟡 P2    | Add coverage tracking                      | MED    | LOW    | tests      |
+| 17 | 🟡 P2    | Add CI workflow for lint                   | MED    | LOW    | .github    |
+| 18 | 🟢 P3    | Create Makefile                            | MED    | LOW    | root       |
+| 19 | 🟢 P3    | Update .golangci.yml                       | MED    | LOW    | root       |
+| 20 | 🟢 P3    | Add benchmarks for ID operations           | LOW    | LOW    | pkg/id     |
+| 21 | 🟢 P3    | Add fuzzing for Parse functions            | MED    | LOW    | pkg/id     |
+| 22 | 🟢 P3    | Add snapshot store interface               | LOW    | MED    | event      |
+| 23 | 🟢 P3    | Create CONTRIBUTING.md                     | LOW    | LOW    | docs       |
+| 24 | 🟢 P3    | Create architecture.md (ADRs)              | MED    | MED    | docs       |
+| 25 | 🟢 P3    | Add GoDoc package examples                 | MED    | LOW    | all        |
 
 ---
 

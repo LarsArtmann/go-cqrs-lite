@@ -11,39 +11,39 @@
 
 ### A1. Coverage Gaps Closed — 3 Modules Moved Yellow → Green
 
-| #   | Commit     | What                                                                      | Coverage Impact                                        |
-| --- | ---------- | ------------------------------------------------------------------------- | ------------------------------------------------------ |
-| 1   | `496c0909` | `query/errors_test.go` — table test for all 16 error re-export functions  | query **79.0% → 88.1%** (errors.go 0% → 100%)          |
-| 2   | `496c0909` | `pebble/adapter_test.go` — closed-store error branches + prefixUpperBound | pebble **82.9% → 84.5%** (prefixUpperBound 60% → 100%) |
-| 3   | `496c0909` | `event/errors_taxonomy_test.go` — Compose function (last 0% gap)          | event Compose 0% → 100%                                |
-| 4   | `496c0909` | `turso/backend_test.go` — full lifecycle integration test (E4 resolved)   | All 4 stores verified on shared DB                     |
+| # | Commit     | What                                                                      | Coverage Impact                                        |
+| - | ---------- | ------------------------------------------------------------------------- | ------------------------------------------------------ |
+| 1 | `496c0909` | `query/errors_test.go` — table test for all 16 error re-export functions  | query **79.0% → 88.1%** (errors.go 0% → 100%)          |
+| 2 | `496c0909` | `pebble/adapter_test.go` — closed-store error branches + prefixUpperBound | pebble **82.9% → 84.5%** (prefixUpperBound 60% → 100%) |
+| 3 | `496c0909` | `event/errors_taxonomy_test.go` — Compose function (last 0% gap)          | event Compose 0% → 100%                                |
+| 4 | `496c0909` | `turso/backend_test.go` — full lifecycle integration test (E4 resolved)   | All 4 stores verified on shared DB                     |
 
 ### A2. Turso Testability Refactor
 
-| #   | Commit     | What                                                                          | Impact                                                      |
-| --- | ---------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| 5   | `3ed476d1` | Extracted swappable `createSyncDb` factory variable from `OpenSyncWithConfig` | turso **79.1% → 83.3%** (`OpenSyncWithConfig` 16.7% → 100%) |
-| 6   | `3ed476d1` | 3 new factory tests: success path, error wrapping, config option application  | Network-dependent constructor now testable without server   |
+| # | Commit     | What                                                                          | Impact                                                      |
+| - | ---------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| 5 | `3ed476d1` | Extracted swappable `createSyncDb` factory variable from `OpenSyncWithConfig` | turso **79.1% → 83.3%** (`OpenSyncWithConfig` 16.7% → 100%) |
+| 6 | `3ed476d1` | 3 new factory tests: success path, error wrapping, config option application  | Network-dependent constructor now testable without server   |
 
 ### A3. Infrastructure Fixes
 
-| #   | Commit     | What                                                                 | Impact                                                    |
-| --- | ---------- | -------------------------------------------------------------------- | --------------------------------------------------------- |
-| 7   | `f64ae495` | Updated stale API surface golden file (1266 → 1289 exports)          | `cmd/api-stability` test was silently broken — now passes |
-| 8   | `69c34b83` | Status report updated with honest findings about dead defensive code | Doc accuracy                                              |
-| 9   | `4bfdd4a4` | Status report updated with turso factory results                     | Doc accuracy                                              |
+| # | Commit     | What                                                                 | Impact                                                    |
+| - | ---------- | -------------------------------------------------------------------- | --------------------------------------------------------- |
+| 7 | `f64ae495` | Updated stale API surface golden file (1266 → 1289 exports)          | `cmd/api-stability` test was silently broken — now passes |
+| 8 | `69c34b83` | Status report updated with honest findings about dead defensive code | Doc accuracy                                              |
+| 9 | `4bfdd4a4` | Status report updated with turso factory results                     | Doc accuracy                                              |
 
 ### A4. Earlier Today (Pre-Self-Review)
 
-| #   | Commit     | What                                                                          | Impact                                |
-| --- | ---------- | ----------------------------------------------------------------------------- | ------------------------------------- |
-| 10  | `9b4ab792` | Dependency bump: go-error-family v0.4.0, go-branded-id v0.3.1, modules v2.4.0 | Security/freshness                    |
-| 11  | `9b4ab792` | AGENTS.md: corrected reactive bus docs (CommandBus/QueryBus now documented)   | Was actively misleading               |
-| 12  | `9b4ab792` | storage: extracted `errStoreClosed` package-level sentinel                    | Perf — eliminates per-call allocation |
-| 13  | `9b4ab792` | turso: extracted `syncEngine` interface                                       | Testability — coverage 54.5% → 83.3%  |
-| 14  | `6f021475` | turso: `CheckpointScheduler.Stop()` blocks until goroutine exits              | **Critical race fix**                 |
-| 15  | `6f021475` | turso: `OpenTemp()` + migrated all tests from `:memory:`                      | **Eliminated ~20% flaky test rate**   |
-| 16  | `05336146` | go.sum sync across 14 modules after v2.4.0 bump                               | Build integrity                       |
+| #  | Commit     | What                                                                          | Impact                                |
+| -- | ---------- | ----------------------------------------------------------------------------- | ------------------------------------- |
+| 10 | `9b4ab792` | Dependency bump: go-error-family v0.4.0, go-branded-id v0.3.1, modules v2.4.0 | Security/freshness                    |
+| 11 | `9b4ab792` | AGENTS.md: corrected reactive bus docs (CommandBus/QueryBus now documented)   | Was actively misleading               |
+| 12 | `9b4ab792` | storage: extracted `errStoreClosed` package-level sentinel                    | Perf — eliminates per-call allocation |
+| 13 | `9b4ab792` | turso: extracted `syncEngine` interface                                       | Testability — coverage 54.5% → 83.3%  |
+| 14 | `6f021475` | turso: `CheckpointScheduler.Stop()` blocks until goroutine exits              | **Critical race fix**                 |
+| 15 | `6f021475` | turso: `OpenTemp()` + migrated all tests from `:memory:`                      | **Eliminated ~20% flaky test rate**   |
+| 16 | `05336146` | go.sum sync across 14 modules after v2.4.0 bump                               | Build integrity                       |
 
 ---
 
@@ -144,33 +144,33 @@ Consumers have no data to choose between backends. The pebble module has benchma
 
 ## F. Top 25 Things To Do Next
 
-| #   | Task                                                | Impact | Effort | Category   |
-| --- | --------------------------------------------------- | ------ | ------ | ---------- |
-| 1   | **Commit go.mod v2.3.0→v2.4.0 drift** (32 refs)     | High   | 5min   | Fix        |
-| 2   | Add `nix run .#tidy` target for all-module tidy     | High   | 20min  | DX         |
-| 3   | `storage/sql` coverage: test `RunInTx` error paths  | High   | 45min  | Coverage   |
-| 4   | Prometheus metrics exporter                         | High   | 2h     | Feature    |
-| 5   | Structured logging middleware (slog)                | High   | 2h     | Feature    |
-| 6   | Schema registry middleware (ADR-0017)               | High   | 3h     | Feature    |
-| 7   | Pebble vs SQL event store benchmark                 | Medium | 1h     | Benchmark  |
-| 8   | Pebble golden test (CBOR envelope bytes)            | Medium | 1h     | Regression |
-| 9   | Distributed checkpointing (ADR-0018)                | High   | 4h     | Feature    |
-| 10  | Streaming event reads (`StreamLoader`)              | Medium | 2h     | Feature    |
-| 11  | cqrs-gen v2 improvements                            | Medium | 3h     | Tooling    |
-| 12  | MemorySnapshotStore golden test                     | Low    | 30min  | Regression |
-| 13  | Distributed tracing propagation                     | Medium | 3h     | Feature    |
-| 14  | Storage snapshot store edge-case tests              | Medium | 1h     | Coverage   |
-| 15  | Pebble write-error injection tests                  | Medium | 1h     | Coverage   |
-| 16  | gRPC transport adapter                              | High   | 4h     | Feature    |
-| 17  | Documentation site (Hugo/MkDocs)                    | Medium | 4h     | Docs       |
-| 18  | NATS/Redis Stream adapter                           | High   | 4h     | Feature    |
-| 19  | jsonv2 codec experiment                             | Low    | 2h     | Experiment |
-| 20  | Arena allocation experiment                         | Low    | 3h     | Experiment |
-| 21  | WASM target for decider module                      | Medium | 4h     | Experiment |
-| 22  | Deduplicate errors.go across event/command/query    | Low    | 1h     | Refactor   |
-| 23  | Turso `connector.go:Open` error branch test         | Low    | 15min  | Coverage   |
-| 24  | Pebble `pebbleBatch.Close` error path test          | Low    | 15min  | Coverage   |
-| 25  | Add `cmd/api-stability` to standard CI test command | Medium | 10min  | CI         |
+| #  | Task                                                | Impact | Effort | Category   |
+| -- | --------------------------------------------------- | ------ | ------ | ---------- |
+| 1  | **Commit go.mod v2.3.0→v2.4.0 drift** (32 refs)     | High   | 5min   | Fix        |
+| 2  | Add `nix run .#tidy` target for all-module tidy     | High   | 20min  | DX         |
+| 3  | `storage/sql` coverage: test `RunInTx` error paths  | High   | 45min  | Coverage   |
+| 4  | Prometheus metrics exporter                         | High   | 2h     | Feature    |
+| 5  | Structured logging middleware (slog)                | High   | 2h     | Feature    |
+| 6  | Schema registry middleware (ADR-0017)               | High   | 3h     | Feature    |
+| 7  | Pebble vs SQL event store benchmark                 | Medium | 1h     | Benchmark  |
+| 8  | Pebble golden test (CBOR envelope bytes)            | Medium | 1h     | Regression |
+| 9  | Distributed checkpointing (ADR-0018)                | High   | 4h     | Feature    |
+| 10 | Streaming event reads (`StreamLoader`)              | Medium | 2h     | Feature    |
+| 11 | cqrs-gen v2 improvements                            | Medium | 3h     | Tooling    |
+| 12 | MemorySnapshotStore golden test                     | Low    | 30min  | Regression |
+| 13 | Distributed tracing propagation                     | Medium | 3h     | Feature    |
+| 14 | Storage snapshot store edge-case tests              | Medium | 1h     | Coverage   |
+| 15 | Pebble write-error injection tests                  | Medium | 1h     | Coverage   |
+| 16 | gRPC transport adapter                              | High   | 4h     | Feature    |
+| 17 | Documentation site (Hugo/MkDocs)                    | Medium | 4h     | Docs       |
+| 18 | NATS/Redis Stream adapter                           | High   | 4h     | Feature    |
+| 19 | jsonv2 codec experiment                             | Low    | 2h     | Experiment |
+| 20 | Arena allocation experiment                         | Low    | 3h     | Experiment |
+| 21 | WASM target for decider module                      | Medium | 4h     | Experiment |
+| 22 | Deduplicate errors.go across event/command/query    | Low    | 1h     | Refactor   |
+| 23 | Turso `connector.go:Open` error branch test         | Low    | 15min  | Coverage   |
+| 24 | Pebble `pebbleBatch.Close` error path test          | Low    | 15min  | Coverage   |
+| 25 | Add `cmd/api-stability` to standard CI test command | Medium | 10min  | CI         |
 
 ---
 
@@ -204,7 +204,7 @@ The working tree has 14 go.mod files with v2.3.0 → v2.4.0 version bumps. These
 | catalog           | 84.5%    | ✅ Green     |                                           |
 | middleware        | 93.9%    | ✅ Green     |                                           |
 | integration       | 92.3%    | ✅ Green     |                                           |
-| storage           | 82.1%    | ⚠️ Yellow    | SQL error paths, sql/ sub-pkg at 67.4%    |
+| storage           | 82.1%    | ⚠️ Yellow     | SQL error paths, sql/ sub-pkg at 67.4%    |
 | projection        | 90.4%    | ✅ Green     |                                           |
 | signing           | 94.5%    | ✅ Green     |                                           |
 | encryption        | 86.9%    | ✅ Green     |                                           |
@@ -217,6 +217,6 @@ The working tree has 14 go.mod files with v2.3.0 → v2.4.0 version bumps. These
 | listing           | 94.9%    | ✅ Green     |                                           |
 | turso/indexing    | 86.7%    | ✅ Green     |                                           |
 | cmd/cqrs-gen      | 89.8%    | ✅ Green     |                                           |
-| cmd/api-stability | 0.0%     | ℹ️ N/A       | Tool (no library code to cover)           |
+| cmd/api-stability | 0.0%     | ℹ️ N/A        | Tool (no library code to cover)           |
 
 **1 module yellow** (storage at 82.1%). **All 23 library + 2 cmd modules: build ✅, test ✅, lint ✅, race ✅**

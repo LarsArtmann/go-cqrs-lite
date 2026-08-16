@@ -139,43 +139,43 @@
 
 ## f) Up to 50 Things to Get Done Next
 
-| #   | Priority | Task                                                                                               | Est. Time |
-| --- | -------- | -------------------------------------------------------------------------------------------------- | --------- |
-| 1   | P0       | Move `recordErr` from `checkpoint.go` to `otel.go`                                                 | 5 min     |
-| 2   | P0       | Fix `SaveQuery` span — use write-appropriate span                                                  | 5 min     |
-| 3   | P0       | Update `stack/bbolt/go.mod` to use `storage/bbolt/v4 v4.0.0` tag                                   | 10 min    |
-| 4   | P0       | Run `nix run .#verify-fast` to confirm workspace health                                            | 5 min     |
-| 5   | P1       | Update bbolt README — streaming, OTel, interface table                                             | 20 min    |
-| 6   | P1       | Update AGENTS.md bbolt module description                                                          | 10 min    |
-| 7   | P1       | Add CommandStore contract tests (Save/AppendBatch/Load/ReadAll/ReadFrom/duplicate)                 | 30 min    |
-| 8   | P1       | Add QueryStore contract tests (SaveQuery/LoadQueries/ReadAll/ReadFrom/duplicate)                   | 30 min    |
-| 9   | P1       | Add SnapshotStore tests (LoadAtVersion, Delete, stale version rejection)                           | 20 min    |
-| 10  | P1       | Add CheckpointStore tests (overwrite, empty-name validation)                                       | 15 min    |
-| 11  | P1       | Add KVAdapter contract tests (Get/Set/Has/Delete/Batch/Iterator/SetIfAbsent)                       | 40 min    |
-| 12  | P1       | Add same-stream concurrency contention test                                                        | 20 min    |
-| 13  | P1       | Run `nix run .#check-duplication` — verify otel.go clones are accepted                             | 10 min    |
-| 14  | P1       | Run `nix run .#check-coverage` — verify coverage didn't drop                                       | 10 min    |
-| 15  | P2       | Remove dead `skipUntil`/`skipping` from stream iterator                                            | 10 min    |
-| 16  | P2       | Add OTel span emission test (with test tracer provider)                                            | 30 min    |
-| 17  | P2       | Add streaming corruption test (malformed data mid-iteration)                                       | 20 min    |
-| 18  | P2       | Add projectionhost integration test with bbolt                                                     | 40 min    |
-| 19  | P2       | Run `cmd/doc-check` on bbolt README                                                                | 10 min    |
-| 20  | P2       | Update TODO_LIST.md — mark bbolt items done                                                        | 10 min    |
-| 21  | P2       | Update FEATURES.md — add bbolt to feature inventory                                                | 10 min    |
-| 22  | P2       | Consider secondary index for ReadStreamFrom (eventID → journal key)                                | 2 hours   |
-| 23  | P3       | Add bbolt to the example/taskmanager as an alternative backend demo                                | 2 hours   |
-| 24  | P3       | Benchmark bbolt vs pebble vs memory (read latency, write throughput)                               | 2 hours   |
-| 25  | P3       | Add bbolt backup/restore documentation (db.Checkpoint pattern)                                     | 30 min    |
-| 26  | P3       | Fix the broken pre-commit hook (biome/dprint installation)                                         | 1 hour    |
-| 27  | P3       | Add `Backend.HealthCheck` method (like stack.Bundle.HealthCheck)                                   | 30 min    |
-| 28  | P3       | Consider `bbolt.GoRoutineSafeIterator` — current iterator holds a read tx, which blocks the writer | 1 hour    |
-| 29  | P3       | Document bbolt's single-writer model implications for high-write scenarios                         | 30 min    |
-| 30  | P4       | Add bbolt to cqrs-lint module catalog (for adoption scorecard)                                     | 30 min    |
-| 31  | P4       | Add bbolt to the SKILL.md routing table for AI consumers                                           | 15 min    |
-| 32  | P4       | Consider `WithBatchSize` option for AppendBatch in large event sets                                | 2 hours   |
-| 33  | P4       | Add bbolt metrics (key count per bucket, DB file size)                                             | 1 hour    |
-| 34  | P4       | Consider freelist settings for write-heavy workloads                                               | 1 hour    |
-| 35  | P4       | Add `Backend.GracefulShutdown` with drain semantics                                                | 1 hour    |
+| #  | Priority | Task                                                                                               | Est. Time |
+| -- | -------- | -------------------------------------------------------------------------------------------------- | --------- |
+| 1  | P0       | Move `recordErr` from `checkpoint.go` to `otel.go`                                                 | 5 min     |
+| 2  | P0       | Fix `SaveQuery` span — use write-appropriate span                                                  | 5 min     |
+| 3  | P0       | Update `stack/bbolt/go.mod` to use `storage/bbolt/v4 v4.0.0` tag                                   | 10 min    |
+| 4  | P0       | Run `nix run .#verify-fast` to confirm workspace health                                            | 5 min     |
+| 5  | P1       | Update bbolt README — streaming, OTel, interface table                                             | 20 min    |
+| 6  | P1       | Update AGENTS.md bbolt module description                                                          | 10 min    |
+| 7  | P1       | Add CommandStore contract tests (Save/AppendBatch/Load/ReadAll/ReadFrom/duplicate)                 | 30 min    |
+| 8  | P1       | Add QueryStore contract tests (SaveQuery/LoadQueries/ReadAll/ReadFrom/duplicate)                   | 30 min    |
+| 9  | P1       | Add SnapshotStore tests (LoadAtVersion, Delete, stale version rejection)                           | 20 min    |
+| 10 | P1       | Add CheckpointStore tests (overwrite, empty-name validation)                                       | 15 min    |
+| 11 | P1       | Add KVAdapter contract tests (Get/Set/Has/Delete/Batch/Iterator/SetIfAbsent)                       | 40 min    |
+| 12 | P1       | Add same-stream concurrency contention test                                                        | 20 min    |
+| 13 | P1       | Run `nix run .#check-duplication` — verify otel.go clones are accepted                             | 10 min    |
+| 14 | P1       | Run `nix run .#check-coverage` — verify coverage didn't drop                                       | 10 min    |
+| 15 | P2       | Remove dead `skipUntil`/`skipping` from stream iterator                                            | 10 min    |
+| 16 | P2       | Add OTel span emission test (with test tracer provider)                                            | 30 min    |
+| 17 | P2       | Add streaming corruption test (malformed data mid-iteration)                                       | 20 min    |
+| 18 | P2       | Add projectionhost integration test with bbolt                                                     | 40 min    |
+| 19 | P2       | Run `cmd/doc-check` on bbolt README                                                                | 10 min    |
+| 20 | P2       | Update TODO_LIST.md — mark bbolt items done                                                        | 10 min    |
+| 21 | P2       | Update FEATURES.md — add bbolt to feature inventory                                                | 10 min    |
+| 22 | P2       | Consider secondary index for ReadStreamFrom (eventID → journal key)                                | 2 hours   |
+| 23 | P3       | Add bbolt to the example/taskmanager as an alternative backend demo                                | 2 hours   |
+| 24 | P3       | Benchmark bbolt vs pebble vs memory (read latency, write throughput)                               | 2 hours   |
+| 25 | P3       | Add bbolt backup/restore documentation (db.Checkpoint pattern)                                     | 30 min    |
+| 26 | P3       | Fix the broken pre-commit hook (biome/dprint installation)                                         | 1 hour    |
+| 27 | P3       | Add `Backend.HealthCheck` method (like stack.Bundle.HealthCheck)                                   | 30 min    |
+| 28 | P3       | Consider `bbolt.GoRoutineSafeIterator` — current iterator holds a read tx, which blocks the writer | 1 hour    |
+| 29 | P3       | Document bbolt's single-writer model implications for high-write scenarios                         | 30 min    |
+| 30 | P4       | Add bbolt to cqrs-lint module catalog (for adoption scorecard)                                     | 30 min    |
+| 31 | P4       | Add bbolt to the SKILL.md routing table for AI consumers                                           | 15 min    |
+| 32 | P4       | Consider `WithBatchSize` option for AppendBatch in large event sets                                | 2 hours   |
+| 33 | P4       | Add bbolt metrics (key count per bucket, DB file size)                                             | 1 hour    |
+| 34 | P4       | Consider freelist settings for write-heavy workloads                                               | 1 hour    |
+| 35 | P4       | Add `Backend.GracefulShutdown` with drain semantics                                                | 1 hour    |
 
 ---
 

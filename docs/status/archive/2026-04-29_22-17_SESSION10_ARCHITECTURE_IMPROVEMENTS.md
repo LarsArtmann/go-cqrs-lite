@@ -1,8 +1,8 @@
 # Session 10: Architecture Improvements Report
 
-**Date:** 2026-04-29 22:17  
-**Branch:** master  
-**Commits ahead of origin:** 6  
+**Date:** 2026-04-29 22:17\
+**Branch:** master\
+**Commits ahead of origin:** 6\
 **Scope:** improve-codebase-architecture skill execution
 
 ---
@@ -11,7 +11,7 @@
 
 This session applied the `improve-codebase-architecture` skill to deepen modules, eliminate shallow pass-throughs, and improve type safety. **6 commits** across 5 modules. **1 module deleted** (xtypes). **1 orphaned interface integrated** (SnapshotStore). **1 runtime error class eliminated** (HistoryLoader → compile-time Root.LoadEvents).
 
-**Build status:** ALL PASS (14 packages, zero lint issues)  
+**Build status:** ALL PASS (14 packages, zero lint issues)\
 **Coverage delta:** Aggregate dropped from 95.1% → 82.4% (new untested snapshot path)
 
 ---
@@ -37,7 +37,7 @@ This session applied the `improve-codebase-architecture` skill to deepen modules
 
 **What:** Eliminated `HistoryLoader` runtime side-interface. `LoadEvents([]event.Event) error` and `SetVersion(event.Version)` are now required methods on `Root`. `Root` implementations that embed `Core` delegate in one line.
 
-**Before:** Runtime type assertion + verbose error message for missing `HistoryLoader`  
+**Before:** Runtime type assertion + verbose error message for missing `HistoryLoader`\
 **After:** Compile-time enforcement. The `rootWithoutHistoryLoader` test type and its test are deleted because the failure mode is now impossible.
 
 **Impact:** HIGH — entire class of runtime errors eliminated. Developer experience improved.
@@ -94,7 +94,7 @@ Command, Event, and Query all satisfy this implicitly. Enables generic middlewar
 
 **What:** Deleted 37-line `core/internal/testhelpers` pass-through. Migrated 9 test files to import shared `testhelpers` directly. Moved `AssertCallOrder` to shared `testhelpers`.
 
-**Files deleted:** `core/internal/testhelpers/helpers.go`  
+**Files deleted:** `core/internal/testhelpers/helpers.go`\
 **Files modified:** 9 core test packages
 
 **Impact:** MEDIUM — one place for test utilities. No indirection seam that added nothing.
@@ -201,33 +201,33 @@ From the execution plan (`docs/planning/2026-04-29_22-04-IMPROVE_CODEBASE_ARCHIT
 
 ## f) Top #25 Things To Get Done Next
 
-| #   | Task                                          | Module               | Effort | Impact | Priority |
-| --- | --------------------------------------------- | -------------------- | ------ | ------ | -------- |
-| 1   | Snapshot integration tests                    | core/aggregate       | 30min  | HIGH   | P0 🔴    |
-| 2   | Generic ErrorRecovery/ErrorValidation         | middleware           | 45min  | MEDIUM | P1       |
-| 3   | Query generic result types                    | core/query           | 3h     | HIGH   | P1       |
-| 4   | Outbox seam interface + memory adapter        | core/event           | 3h     | HIGH   | P2       |
-| 5   | MemorySnapshotStore deep copy                 | memory               | 15min  | LOW    | P2       |
-| 6   | CatalogBuilder wraps Registry                 | catalog              | 40min  | MEDIUM | P2       |
-| 7   | Remove core→memory replace directive          | core/go.mod          | 30min  | MEDIUM | P2       |
-| 8   | Add `event.Builder` benchmark                 | core/event           | 15min  | LOW    | P3       |
-| 9   | Add `Root.SetVersion` test                    | core/aggregate       | 10min  | LOW    | P3       |
-| 10  | EventRetry context cancellation test          | middleware           | 15min  | LOW    | P3       |
-| 11  | Repository.Save partial failure test          | core/aggregate       | 20min  | MEDIUM | P3       |
-| 12  | Remove stale `replace` from middleware/go.mod | middleware           | 10min  | LOW    | P3       |
-| 13  | Projection module design                      | new module           | 2d     | HIGH   | P4       |
-| 14  | SQL-backed event store                        | new module           | 3d     | HIGH   | P4       |
-| 15  | SQL-backed snapshot store                     | new module           | 1d     | MEDIUM | P4       |
-| 16  | Watermill pub/sub adapter                     | new module           | 2d     | MEDIUM | P4       |
-| 17  | Event upcasting infrastructure                | core/event           | 1d     | MEDIUM | P4       |
-| 18  | Aggregate snapshot scheduling                 | core/aggregate       | 1d     | MEDIUM | P4       |
-| 19  | Command deduplication via idempotency key     | core/command         | 1d     | MEDIUM | P4       |
-| 20  | Event metadata enrichment middleware          | middleware           | 30min  | LOW    | P5       |
-| 21  | AsyncAPI 3.0.0 spec compliance audit          | catalog/asyncapi     | 2h     | LOW    | P5       |
-| 22  | Golden file tests for EventCatalog output     | catalog/eventcatalog | 1h     | LOW    | P5       |
-| 23  | Benchmark suite for aggregate operations      | core/aggregate       | 30min  | LOW    | P5       |
-| 24  | Context propagation through event metadata    | core/event           | 1h     | LOW    | P5       |
-| 25  | OpenTelemetry tracing middleware              | middleware           | 2h     | MEDIUM | P5       |
+| #  | Task                                          | Module               | Effort | Impact | Priority |
+| -- | --------------------------------------------- | -------------------- | ------ | ------ | -------- |
+| 1  | Snapshot integration tests                    | core/aggregate       | 30min  | HIGH   | P0 🔴    |
+| 2  | Generic ErrorRecovery/ErrorValidation         | middleware           | 45min  | MEDIUM | P1       |
+| 3  | Query generic result types                    | core/query           | 3h     | HIGH   | P1       |
+| 4  | Outbox seam interface + memory adapter        | core/event           | 3h     | HIGH   | P2       |
+| 5  | MemorySnapshotStore deep copy                 | memory               | 15min  | LOW    | P2       |
+| 6  | CatalogBuilder wraps Registry                 | catalog              | 40min  | MEDIUM | P2       |
+| 7  | Remove core→memory replace directive          | core/go.mod          | 30min  | MEDIUM | P2       |
+| 8  | Add `event.Builder` benchmark                 | core/event           | 15min  | LOW    | P3       |
+| 9  | Add `Root.SetVersion` test                    | core/aggregate       | 10min  | LOW    | P3       |
+| 10 | EventRetry context cancellation test          | middleware           | 15min  | LOW    | P3       |
+| 11 | Repository.Save partial failure test          | core/aggregate       | 20min  | MEDIUM | P3       |
+| 12 | Remove stale `replace` from middleware/go.mod | middleware           | 10min  | LOW    | P3       |
+| 13 | Projection module design                      | new module           | 2d     | HIGH   | P4       |
+| 14 | SQL-backed event store                        | new module           | 3d     | HIGH   | P4       |
+| 15 | SQL-backed snapshot store                     | new module           | 1d     | MEDIUM | P4       |
+| 16 | Watermill pub/sub adapter                     | new module           | 2d     | MEDIUM | P4       |
+| 17 | Event upcasting infrastructure                | core/event           | 1d     | MEDIUM | P4       |
+| 18 | Aggregate snapshot scheduling                 | core/aggregate       | 1d     | MEDIUM | P4       |
+| 19 | Command deduplication via idempotency key     | core/command         | 1d     | MEDIUM | P4       |
+| 20 | Event metadata enrichment middleware          | middleware           | 30min  | LOW    | P5       |
+| 21 | AsyncAPI 3.0.0 spec compliance audit          | catalog/asyncapi     | 2h     | LOW    | P5       |
+| 22 | Golden file tests for EventCatalog output     | catalog/eventcatalog | 1h     | LOW    | P5       |
+| 23 | Benchmark suite for aggregate operations      | core/aggregate       | 30min  | LOW    | P5       |
+| 24 | Context propagation through event metadata    | core/event           | 1h     | LOW    | P5       |
+| 25 | OpenTelemetry tracing middleware              | middleware           | 2h     | MEDIUM | P5       |
 
 ---
 
@@ -282,23 +282,23 @@ An outbox pattern requires:
 ## Appendix: Module Graph (Post-Cleanup)
 
 ```
-                    ┌─────────────┐
-                    │  testhelpers│
-                    └──────┬──────┘
-                           │
-        ┌──────────────────┼──────────────────┐
-        │                  │                  │
-        ▼                  ▼                  ▼
-   ┌─────────┐       ┌─────────┐       ┌──────────┐
-   │  core   │◄──────│ memory  │       │ middleware│
-   └────┬────┘       └─────────┘       └──────────┘
-        │
-        ├─────────────┬─────────────┐
-        ▼             ▼             ▼
-   ┌─────────┐  ┌──────────┐  ┌──────────┐
-   │ catalog │  │ (future) │  │ (future) │
-   └─────────┘  │ storage  │  │projection│
-                └──────────┘  └──────────┘
+                 ┌─────────────┐
+                 │  testhelpers│
+                 └──────┬──────┘
+                        │
+     ┌──────────────────┼──────────────────┐
+     │                  │                  │
+     ▼                  ▼                  ▼
+┌─────────┐       ┌─────────┐       ┌──────────┐
+│  core   │◄──────│ memory  │       │ middleware│
+└────┬────┘       └─────────┘       └──────────┘
+     │
+     ├─────────────┬─────────────┐
+     ▼             ▼             ▼
+┌─────────┐  ┌──────────┐  ┌──────────┐
+│ catalog │  │ (future) │  │ (future) │
+└─────────┘  │ storage  │  │projection│
+             └──────────┘  └──────────┘
 ```
 
 Modules: **5** (was 6, xtypes deleted)

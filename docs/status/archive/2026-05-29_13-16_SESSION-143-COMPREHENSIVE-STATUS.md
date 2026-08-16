@@ -125,33 +125,33 @@ The project is in **strong health**: 31 test suites all green, coverage 84–100
 
 ## f) Top #25 Things to Get Done Next
 
-| #   | Task                                                            | Impact  | Effort | Type         |
-| --- | --------------------------------------------------------------- | ------- | ------ | ------------ |
-| 1   | **Commit the listing rename** (46 files)                        | 🔴 HIGH | 5 min  | Cleanup      |
-| 2   | **Delete orphan `stream/go.mod` and `example/stream/`**         | 🔴 HIGH | 2 min  | Cleanup      |
-| 3   | **Add `example/*/listing` to .gitignore**                       | 🔴 HIGH | 1 min  | Cleanup      |
-| 4   | **Kill testhelpers→saga circular dep**                          | 🔴 HIGH | 2 hr   | Architecture |
-| 5   | **Review + commit `projection/runner_parallel_test.go`**        | 🟡 MED  | 15 min | Testing      |
-| 6   | **Execute core/event god-package split**                        | 🔴 HIGH | 4 hr   | Architecture |
-| 7   | **Push v1.0.0 tags to remove replace directives**               | 🔴 HIGH | 30 min | Release      |
-| 8   | **PostgreSQL integration tests with testcontainers**            | 🟡 MED  | 3 hr   | Testing      |
-| 9   | **Performance regression CI**                                   | 🟡 MED  | 2 hr   | CI/CD        |
-| 10  | **Rewrite example/user to demonstrate full CQRS stack**         | 🟡 MED  | 3 hr   | Docs         |
-| 11  | **Split large test files** (decider_test.go, runner_test.go)    | 🟡 MED  | 1 hr   | Testing      |
-| 12  | **Increase projection coverage to 95%+**                        | 🟡 MED  | 1 hr   | Testing      |
-| 13  | **Add fuzz tests** (event creation, ID parsing, upcaster chain) | 🟡 MED  | 3 hr   | Testing      |
-| 14  | **Add E2E throughput benchmarks**                               | 🟡 MED  | 2 hr   | Testing      |
-| 15  | **Parallelize CI matrix** — one job per module                  | 🟡 MED  | 2 hr   | CI/CD        |
-| 16  | **Enforce 350-line test file limit via pre-commit**             | 🟢 LOW  | 30 min | Quality      |
-| 17  | **Consolidate docs/status/ — archive session reports**          | 🟢 LOW  | 30 min | Cleanup      |
-| 18  | **Remove `io.Closer` from read-only interfaces** (v2)           | 🟢 LOW  | 2 hr   | Breaking     |
-| 19  | **Add ServerReceivedAt / ServerStoredAt timestamps**            | 🟢 LOW  | 2 hr   | Feature      |
-| 20  | **Add listing module integration tests**                        | 🟢 LOW  | 1 hr   | Testing      |
-| 21  | **Create documentation site** (Docusaurus/MkDocs)               | 🟢 LOW  | 4 hr   | Docs         |
-| 22  | **Add BDD tests for Version, SchemaVersion, OutboxStatus**      | 🟢 LOW  | 1 hr   | Testing      |
-| 23  | **Add gofumpt/goimports to pre-commit hook**                    | 🟢 LOW  | 30 min | Quality      |
-| 24  | **Add stream SQL reader tests**                                 | 🟢 LOW  | 1 hr   | Testing      |
-| 25  | **Benchmark storage backends** (PG vs SQLite vs Pebble)         | 🟢 LOW  | 2 hr   | Perf         |
+| #  | Task                                                            | Impact  | Effort | Type         |
+| -- | --------------------------------------------------------------- | ------- | ------ | ------------ |
+| 1  | **Commit the listing rename** (46 files)                        | 🔴 HIGH | 5 min  | Cleanup      |
+| 2  | **Delete orphan `stream/go.mod` and `example/stream/`**         | 🔴 HIGH | 2 min  | Cleanup      |
+| 3  | **Add `example/*/listing` to .gitignore**                       | 🔴 HIGH | 1 min  | Cleanup      |
+| 4  | **Kill testhelpers→saga circular dep**                          | 🔴 HIGH | 2 hr   | Architecture |
+| 5  | **Review + commit `projection/runner_parallel_test.go`**        | 🟡 MED  | 15 min | Testing      |
+| 6  | **Execute core/event god-package split**                        | 🔴 HIGH | 4 hr   | Architecture |
+| 7  | **Push v1.0.0 tags to remove replace directives**               | 🔴 HIGH | 30 min | Release      |
+| 8  | **PostgreSQL integration tests with testcontainers**            | 🟡 MED  | 3 hr   | Testing      |
+| 9  | **Performance regression CI**                                   | 🟡 MED  | 2 hr   | CI/CD        |
+| 10 | **Rewrite example/user to demonstrate full CQRS stack**         | 🟡 MED  | 3 hr   | Docs         |
+| 11 | **Split large test files** (decider_test.go, runner_test.go)    | 🟡 MED  | 1 hr   | Testing      |
+| 12 | **Increase projection coverage to 95%+**                        | 🟡 MED  | 1 hr   | Testing      |
+| 13 | **Add fuzz tests** (event creation, ID parsing, upcaster chain) | 🟡 MED  | 3 hr   | Testing      |
+| 14 | **Add E2E throughput benchmarks**                               | 🟡 MED  | 2 hr   | Testing      |
+| 15 | **Parallelize CI matrix** — one job per module                  | 🟡 MED  | 2 hr   | CI/CD        |
+| 16 | **Enforce 350-line test file limit via pre-commit**             | 🟢 LOW  | 30 min | Quality      |
+| 17 | **Consolidate docs/status/ — archive session reports**          | 🟢 LOW  | 30 min | Cleanup      |
+| 18 | **Remove `io.Closer` from read-only interfaces** (v2)           | 🟢 LOW  | 2 hr   | Breaking     |
+| 19 | **Add ServerReceivedAt / ServerStoredAt timestamps**            | 🟢 LOW  | 2 hr   | Feature      |
+| 20 | **Add listing module integration tests**                        | 🟢 LOW  | 1 hr   | Testing      |
+| 21 | **Create documentation site** (Docusaurus/MkDocs)               | 🟢 LOW  | 4 hr   | Docs         |
+| 22 | **Add BDD tests for Version, SchemaVersion, OutboxStatus**      | 🟢 LOW  | 1 hr   | Testing      |
+| 23 | **Add gofumpt/goimports to pre-commit hook**                    | 🟢 LOW  | 30 min | Quality      |
+| 24 | **Add stream SQL reader tests**                                 | 🟢 LOW  | 1 hr   | Testing      |
+| 25 | **Benchmark storage backends** (PG vs SQLite vs Pebble)         | 🟢 LOW  | 2 hr   | Perf         |
 
 ---
 
@@ -187,14 +187,14 @@ Since the project hasn't published v1.0.0 tags yet, option 1 (full delete) is th
 | catalog/eventcatalog | 92.8%    | ✅     |
 | catalog/openapi      | 96.2%    | ✅     |
 | middleware           | 94.0%    | ✅     |
-| testhelpers          | 83.7%    | ⚠️     |
+| testhelpers          | 83.7%    | ⚠️      |
 | projection           | 90.4%    | ✅     |
 | signing              | 93.7%    | ✅     |
 | signing/multisig     | 94.2%    | ✅     |
 | storage              | 93.7%    | ✅     |
 | saga                 | 94.6%    | ✅     |
 | watermill            | 94.4%    | ✅     |
-| pebble               | 87.8%    | ⚠️     |
+| pebble               | 87.8%    | ⚠️      |
 | codec                | 100.0%   | ✅     |
 | otel                 | 96.6%    | ✅     |
 | listing              | 94.0%    | ✅     |

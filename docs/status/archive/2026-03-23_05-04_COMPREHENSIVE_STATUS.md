@@ -76,12 +76,12 @@ go-cqrs-lite is a lightweight CQRS library for Go. The **strong-id** feature bra
 
 ### Documentation
 
-| Item              | Status                  | Notes                           |
-| ----------------- | ----------------------- | ------------------------------- |
+| Item              | Status                 | Notes                           |
+| ----------------- | ---------------------- | ------------------------------- |
 | README.md         | ⚠️ Needs xtypes section | Should document strong-id usage |
 | GoDoc comments    | ⚠️ 90% complete         | Most types documented           |
 | Architecture docs | ⚠️ Missing              | No ADRs                         |
-| CONTRIBUTING.md   | ❌ Not started          |                                 |
+| CONTRIBUTING.md   | ❌ Not started         |                                 |
 
 ### Infrastructure
 
@@ -188,33 +188,33 @@ All systems operational:
 
 ## F) TOP 25 THINGS TO DO NEXT 📋
 
-| #   | Priority | Task                                | Impact | Effort | Est.  |
-| --- | -------- | ----------------------------------- | ------ | ------ | ----- |
-| 1   | 🔴 P0    | Merge strong-id to master           | HIGH   | LOW    | 2min  |
-| 2   | 🔴 P0    | Update README.md with xtypes usage  | HIGH   | LOW    | 10min |
-| 3   | 🟠 P1    | Create `.github/workflows/test.yml` | HIGH   | LOW    | 5min  |
-| 4   | 🟠 P1    | Create `.github/workflows/lint.yml` | MED    | LOW    | 5min  |
-| 5   | 🟠 P1    | Create `Makefile`                   | MED    | LOW    | 8min  |
-| 6   | 🟠 P1    | Create `example/user/aggregate.go`  | HIGH   | MED    | 15min |
-| 7   | 🟠 P1    | Create `example/user/commands.go`   | MED    | LOW    | 10min |
-| 8   | 🟠 P1    | Create `example/user/events.go`     | MED    | LOW    | 10min |
-| 9   | 🟠 P1    | Create `example/user/handlers.go`   | MED    | LOW    | 12min |
-| 10  | 🟠 P1    | Create `example/main.go`            | HIGH   | MED    | 12min |
-| 11  | 🟡 P2    | Add `query/pagination.go`           | MED    | LOW    | 8min  |
-| 12  | 🟡 P2    | Add `aggregate/repository.go`       | MED    | MED    | 10min |
-| 13  | 🟡 P2    | Add `command/middleware.go`         | MED    | LOW    | 5min  |
-| 14  | 🟡 P2    | Add `middleware/logging.go`         | MED    | MED    | 10min |
-| 15  | 🟡 P2    | Add `middleware/recovery.go`        | HIGH   | MED    | 10min |
-| 16  | 🟡 P2    | Add `event/middleware.go`           | MED    | LOW    | 5min  |
-| 17  | 🟡 P2    | Add integration tests               | HIGH   | MED    | 15min |
-| 18  | 🟡 P2    | Add coverage tracking               | MED    | LOW    | 5min  |
-| 19  | 🟢 P3    | Create `CONTRIBUTING.md`            | LOW    | LOW    | 8min  |
-| 20  | 🟢 P3    | Create architecture docs            | MED    | MED    | 15min |
-| 21  | 🟢 P3    | Add benchmarks for ID operations    | LOW    | LOW    | 10min |
-| 22  | 🟢 P3    | Add fuzzing for Parse functions     | MED    | LOW    | 10min |
-| 23  | 🟢 P3    | Add snapshot store interface        | LOW    | MED    | 10min |
-| 24  | 🟢 P3    | Add AppendBatch to Store            | LOW    | LOW    | 10min |
-| 25  | 🟢 P3    | Create CODE_OF_CONDUCT.md           | LOW    | LOW    | 3min  |
+| #  | Priority | Task                                | Impact | Effort | Est.  |
+| -- | -------- | ----------------------------------- | ------ | ------ | ----- |
+| 1  | 🔴 P0    | Merge strong-id to master           | HIGH   | LOW    | 2min  |
+| 2  | 🔴 P0    | Update README.md with xtypes usage  | HIGH   | LOW    | 10min |
+| 3  | 🟠 P1    | Create `.github/workflows/test.yml` | HIGH   | LOW    | 5min  |
+| 4  | 🟠 P1    | Create `.github/workflows/lint.yml` | MED    | LOW    | 5min  |
+| 5  | 🟠 P1    | Create `Makefile`                   | MED    | LOW    | 8min  |
+| 6  | 🟠 P1    | Create `example/user/aggregate.go`  | HIGH   | MED    | 15min |
+| 7  | 🟠 P1    | Create `example/user/commands.go`   | MED    | LOW    | 10min |
+| 8  | 🟠 P1    | Create `example/user/events.go`     | MED    | LOW    | 10min |
+| 9  | 🟠 P1    | Create `example/user/handlers.go`   | MED    | LOW    | 12min |
+| 10 | 🟠 P1    | Create `example/main.go`            | HIGH   | MED    | 12min |
+| 11 | 🟡 P2    | Add `query/pagination.go`           | MED    | LOW    | 8min  |
+| 12 | 🟡 P2    | Add `aggregate/repository.go`       | MED    | MED    | 10min |
+| 13 | 🟡 P2    | Add `command/middleware.go`         | MED    | LOW    | 5min  |
+| 14 | 🟡 P2    | Add `middleware/logging.go`         | MED    | MED    | 10min |
+| 15 | 🟡 P2    | Add `middleware/recovery.go`        | HIGH   | MED    | 10min |
+| 16 | 🟡 P2    | Add `event/middleware.go`           | MED    | LOW    | 5min  |
+| 17 | 🟡 P2    | Add integration tests               | HIGH   | MED    | 15min |
+| 18 | 🟡 P2    | Add coverage tracking               | MED    | LOW    | 5min  |
+| 19 | 🟢 P3    | Create `CONTRIBUTING.md`            | LOW    | LOW    | 8min  |
+| 20 | 🟢 P3    | Create architecture docs            | MED    | MED    | 15min |
+| 21 | 🟢 P3    | Add benchmarks for ID operations    | LOW    | LOW    | 10min |
+| 22 | 🟢 P3    | Add fuzzing for Parse functions     | MED    | LOW    | 10min |
+| 23 | 🟢 P3    | Add snapshot store interface        | LOW    | MED    | 10min |
+| 24 | 🟢 P3    | Add AppendBatch to Store            | LOW    | LOW    | 10min |
+| 25 | 🟢 P3    | Create CODE_OF_CONDUCT.md           | LOW    | LOW    | 3min  |
 
 ---
 

@@ -136,33 +136,33 @@ The storage/ module (SQL event store) doesn't know about encryption. A `storage.
 
 Sorted by impact × ease (Pareto):
 
-| #   | Task                                                           | Impact | Effort | Status                               |
-| --- | -------------------------------------------------------------- | ------ | ------ | ------------------------------------ |
-| 1   | Add `StaticKeyResolver` helper (map-based)                     | High   | 10m    | Not started                          |
-| 2   | Verify all examples compile with `go test -run Example`        | Medium | 5m     | Done                                 |
-| 3   | Add `encryption/v2` to CI per-module test matrix               | Medium | 5m     | Partially (api-stability done)       |
-| 4   | Move golden tests to file-based fixtures                       | Medium | 20m    | Not started                          |
-| 5   | Add `encrypted+json` encoding option                           | Medium | 15m    | Deferred (tradeoff accepted)         |
-| 6   | Add versioned ciphertext format (prefix byte for algorithm)    | Medium | 30m    | Not started                          |
-| 7   | Create `example/encryption/` project                           | Medium | 30m    | Not started                          |
-| 8   | Add storage wrapper: `storage.NewEncryptedEventStore`          | High   | 2h     | Not started                          |
-| 9   | Streaming encryption for large payloads                        | High   | 4h     | Not started                          |
-| 10  | Field-level encryption (`encryption/fieldlevel/`)              | High   | 4h     | Not started                          |
-| 11  | Key envelope encryption helper (KMS pattern)                   | Medium | 2h     | Not started                          |
-| 12  | Add `encryption/v2` to `.golangci.yml` depguard allow list     | Low    | 5m     | Not started                          |
-| 13  | Benchmark: compare with encrypt-then-MAC vs AEAD               | Low    | 30m    | Not started                          |
-| 14  | Consider `golang.org/x/crypto/nacl/secretbox` as alternative   | Low    | 30m    | Not started                          |
-| 15  | Add `Ciphertext.UnmarshalFrom(io.Reader)` for streaming decode | Low    | 1h     | Not started                          |
-| 16  | Investigate Google Tink integration                            | Medium | 2h     | Not started                          |
-| 17  | Add encryption to catalog/ schema exporter                     | Low    | 30m    | Not started                          |
-| 18  | Add `encryption/v2` to flake.nix if applicable                 | Low    | 10m    | Not started                          |
-| 19  | Consider `Algorithm()` as method on `Encrypter` interface      | Medium | 20m    | Deferred (Algorithmer is better ISP) |
-| 20  | Add `encryption/v2` to module layer budget in check-layers     | Medium | 5m     | Not started                          |
-| 21  | Add codec wrapper to pkg.go.dev examples in doc.go             | Low    | 10m    | Done (in doc.go)                     |
-| 22  | Add `EncryptionEncoding` documentation to codec/ module        | Low    | 10m    | Done                                 |
-| 23  | Update HTML design review to reflect XChaCha20 addition        | Low    | 15m    | Not started                          |
-| 24  | Consider `errors.Is` for codec wrapper decrypt failures        | Low    | 5m     | Already works via `%w`               |
-| 25  | Push all commits and verify CI passes                          | Medium | 5m     | Done                                 |
+| #  | Task                                                           | Impact | Effort | Status                               |
+| -- | -------------------------------------------------------------- | ------ | ------ | ------------------------------------ |
+| 1  | Add `StaticKeyResolver` helper (map-based)                     | High   | 10m    | Not started                          |
+| 2  | Verify all examples compile with `go test -run Example`        | Medium | 5m     | Done                                 |
+| 3  | Add `encryption/v2` to CI per-module test matrix               | Medium | 5m     | Partially (api-stability done)       |
+| 4  | Move golden tests to file-based fixtures                       | Medium | 20m    | Not started                          |
+| 5  | Add `encrypted+json` encoding option                           | Medium | 15m    | Deferred (tradeoff accepted)         |
+| 6  | Add versioned ciphertext format (prefix byte for algorithm)    | Medium | 30m    | Not started                          |
+| 7  | Create `example/encryption/` project                           | Medium | 30m    | Not started                          |
+| 8  | Add storage wrapper: `storage.NewEncryptedEventStore`          | High   | 2h     | Not started                          |
+| 9  | Streaming encryption for large payloads                        | High   | 4h     | Not started                          |
+| 10 | Field-level encryption (`encryption/fieldlevel/`)              | High   | 4h     | Not started                          |
+| 11 | Key envelope encryption helper (KMS pattern)                   | Medium | 2h     | Not started                          |
+| 12 | Add `encryption/v2` to `.golangci.yml` depguard allow list     | Low    | 5m     | Not started                          |
+| 13 | Benchmark: compare with encrypt-then-MAC vs AEAD               | Low    | 30m    | Not started                          |
+| 14 | Consider `golang.org/x/crypto/nacl/secretbox` as alternative   | Low    | 30m    | Not started                          |
+| 15 | Add `Ciphertext.UnmarshalFrom(io.Reader)` for streaming decode | Low    | 1h     | Not started                          |
+| 16 | Investigate Google Tink integration                            | Medium | 2h     | Not started                          |
+| 17 | Add encryption to catalog/ schema exporter                     | Low    | 30m    | Not started                          |
+| 18 | Add `encryption/v2` to flake.nix if applicable                 | Low    | 10m    | Not started                          |
+| 19 | Consider `Algorithm()` as method on `Encrypter` interface      | Medium | 20m    | Deferred (Algorithmer is better ISP) |
+| 20 | Add `encryption/v2` to module layer budget in check-layers     | Medium | 5m     | Not started                          |
+| 21 | Add codec wrapper to pkg.go.dev examples in doc.go             | Low    | 10m    | Done (in doc.go)                     |
+| 22 | Add `EncryptionEncoding` documentation to codec/ module        | Low    | 10m    | Done                                 |
+| 23 | Update HTML design review to reflect XChaCha20 addition        | Low    | 15m    | Not started                          |
+| 24 | Consider `errors.Is` for codec wrapper decrypt failures        | Low    | 5m     | Already works via `%w`               |
+| 25 | Push all commits and verify CI passes                          | Medium | 5m     | Done                                 |
 
 ## G) Top #1 Question I Cannot Figure Out Myself
 

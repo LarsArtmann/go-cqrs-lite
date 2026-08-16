@@ -118,33 +118,33 @@ The library is in **good shape overall** — all 22 test packages pass, zero TOD
 
 Sorted by impact × effort (highest ROI first):
 
-| #   | Task                                                                                 | Impact | Effort | Category              |
-| --- | ------------------------------------------------------------------------------------ | ------ | ------ | --------------------- |
-| 1   | Fix 6 middleware lint failures (`noinlineerr` + `revive:unused-param` in `retry.go`) | HIGH   | 5min   | Lint Fix              |
-| 2   | Commit or revert uncommitted `outbox_publisher.go` change                            | HIGH   | 2min   | Clean Working Tree    |
-| 3   | Remove all `replace` directives from 6 module `go.mod` files                         | HIGH   | 8min   | Module Hygiene        |
-| 4   | Normalize inter-module version refs (`v0.0.0` → consistent pseudo-version)           | HIGH   | 10min  | Module Hygiene        |
-| 5   | Migrate `gomodguard` → `gomodguard_v2` in `.golangci.yml`                            | MEDIUM | 3min   | Lint Config           |
-| 6   | Run `go work sync` to prune `go.work.sum` (352→~80 lines)                            | MEDIUM | 2min   | Module Hygiene        |
-| 7   | Decide root `go.mod` fate: delete or repurpose with `tool` directive                 | MEDIUM | 5min   | Module Hygiene        |
-| 8   | Split `storage/helpers.go` (423→2 files under 250)                                   | MEDIUM | 10min  | Code Quality          |
-| 9   | Split `storage/pebble_event_store.go` (321→2 files under 250)                        | MEDIUM | 10min  | Code Quality          |
-| 10  | Add `tool` directive for `golangci-lint` in go.mod (Go 1.24+ feature)                | MEDIUM | 8min   | Modernization         |
-| 11  | Improve storage test coverage (85.1% → 90%+)                                         | MEDIUM | 30min  | Test Quality          |
-| 12  | Split `example/todo/cmd/api/main.go` (329 lines)                                     | LOW    | 10min  | Code Quality          |
-| 13  | Split `catalog/asyncapi/exporter.go` (258→2 files)                                   | LOW    | 10min  | Code Quality          |
-| 14  | Decide: should `example/` modules stay in `go.work`?                                 | LOW    | 5min   | Architecture          |
-| 15  | Decide: should `sync` depend on `core`?                                              | LOW    | 5min   | Architecture          |
-| 16  | Add `go 1.26.2` version to `go.work` for consistency                                 | LOW    | 1min   | Consistency           |
-| 17  | Document `sync` module purpose in AGENTS.md                                          | LOW    | 5min   | Documentation         |
-| 18  | Add README.md to `sync/` module                                                      | LOW    | 10min  | Documentation         |
-| 19  | Add integration tests between `sync` and `core` (if applicable)                      | LOW    | 20min  | Test Quality          |
-| 20  | Update FEATURES.md with `sync` module and latest coverage numbers                    | LOW    | 10min  | Documentation         |
-| 21  | Update TODO_LIST.md with current state                                               | LOW    | 10min  | Documentation         |
-| 22  | Consider `io.Closer` removal from store interfaces (breaking change)                 | LOW    | 5min   | Architecture Planning |
-| 23  | Evaluate `IdempotencyKey` auto-generation for `BaseCommand`                          | LOW    | 5min   | API Design            |
-| 24  | Add benchmark for `sync` module operations                                           | LOW    | 10min  | Performance           |
-| 25  | Clean up `go.work.sum` stale entries after `replace` removal                         | LOW    | 2min   | Module Hygiene        |
+| #  | Task                                                                                 | Impact | Effort | Category              |
+| -- | ------------------------------------------------------------------------------------ | ------ | ------ | --------------------- |
+| 1  | Fix 6 middleware lint failures (`noinlineerr` + `revive:unused-param` in `retry.go`) | HIGH   | 5min   | Lint Fix              |
+| 2  | Commit or revert uncommitted `outbox_publisher.go` change                            | HIGH   | 2min   | Clean Working Tree    |
+| 3  | Remove all `replace` directives from 6 module `go.mod` files                         | HIGH   | 8min   | Module Hygiene        |
+| 4  | Normalize inter-module version refs (`v0.0.0` → consistent pseudo-version)           | HIGH   | 10min  | Module Hygiene        |
+| 5  | Migrate `gomodguard` → `gomodguard_v2` in `.golangci.yml`                            | MEDIUM | 3min   | Lint Config           |
+| 6  | Run `go work sync` to prune `go.work.sum` (352→~80 lines)                            | MEDIUM | 2min   | Module Hygiene        |
+| 7  | Decide root `go.mod` fate: delete or repurpose with `tool` directive                 | MEDIUM | 5min   | Module Hygiene        |
+| 8  | Split `storage/helpers.go` (423→2 files under 250)                                   | MEDIUM | 10min  | Code Quality          |
+| 9  | Split `storage/pebble_event_store.go` (321→2 files under 250)                        | MEDIUM | 10min  | Code Quality          |
+| 10 | Add `tool` directive for `golangci-lint` in go.mod (Go 1.24+ feature)                | MEDIUM | 8min   | Modernization         |
+| 11 | Improve storage test coverage (85.1% → 90%+)                                         | MEDIUM | 30min  | Test Quality          |
+| 12 | Split `example/todo/cmd/api/main.go` (329 lines)                                     | LOW    | 10min  | Code Quality          |
+| 13 | Split `catalog/asyncapi/exporter.go` (258→2 files)                                   | LOW    | 10min  | Code Quality          |
+| 14 | Decide: should `example/` modules stay in `go.work`?                                 | LOW    | 5min   | Architecture          |
+| 15 | Decide: should `sync` depend on `core`?                                              | LOW    | 5min   | Architecture          |
+| 16 | Add `go 1.26.2` version to `go.work` for consistency                                 | LOW    | 1min   | Consistency           |
+| 17 | Document `sync` module purpose in AGENTS.md                                          | LOW    | 5min   | Documentation         |
+| 18 | Add README.md to `sync/` module                                                      | LOW    | 10min  | Documentation         |
+| 19 | Add integration tests between `sync` and `core` (if applicable)                      | LOW    | 20min  | Test Quality          |
+| 20 | Update FEATURES.md with `sync` module and latest coverage numbers                    | LOW    | 10min  | Documentation         |
+| 21 | Update TODO_LIST.md with current state                                               | LOW    | 10min  | Documentation         |
+| 22 | Consider `io.Closer` removal from store interfaces (breaking change)                 | LOW    | 5min   | Architecture Planning |
+| 23 | Evaluate `IdempotencyKey` auto-generation for `BaseCommand`                          | LOW    | 5min   | API Design            |
+| 24 | Add benchmark for `sync` module operations                                           | LOW    | 10min  | Performance           |
+| 25 | Clean up `go.work.sum` stale entries after `replace` removal                         | LOW    | 2min   | Module Hygiene        |
 
 ---
 
@@ -188,17 +188,17 @@ This is a **product/design decision** about whether examples are first-class wor
 
 ## go.work Module Inventory
 
-| Module         | In go.work | Has replace                     | Version Refs                     | Notes                   |
-| -------------- | ---------- | ------------------------------- | -------------------------------- | ----------------------- |
-| `core`         | ✅         | — (producer)                    | —                                | Leaf dependency         |
-| `testhelpers`  | ✅         | —                               | `core v1.1.0`                    | Clean                   |
-| `memory`       | ✅         | `core`, `testhelpers`           | `core v1.1.0`                    | replace redundant       |
-| `middleware`   | ✅         | `core`, `testhelpers`           | `core v1.1.0`                    | replace redundant       |
+| Module         | In go.work | Has replace                     | Version Refs                    | Notes                   |
+| -------------- | ---------- | ------------------------------- | ------------------------------- | ----------------------- |
+| `core`         | ✅         | — (producer)                    | —                               | Leaf dependency         |
+| `testhelpers`  | ✅         | —                               | `core v1.1.0`                   | Clean                   |
+| `memory`       | ✅         | `core`, `testhelpers`           | `core v1.1.0`                   | replace redundant       |
+| `middleware`   | ✅         | `core`, `testhelpers`           | `core v1.1.0`                   | replace redundant       |
 | `catalog`      | ✅         | `core`                          | `core v0.0.0` ⚠️                 | Version mismatch        |
-| `projection`   | ✅         | `core`, `memory`, `testhelpers` | `core v1.1.0`                    | replace redundant       |
-| `storage`      | ✅         | `core`, `memory`                | `core v1.1.0`                    | replace redundant       |
+| `projection`   | ✅         | `core`, `memory`, `testhelpers` | `core v1.1.0`                   | replace redundant       |
+| `storage`      | ✅         | `core`, `memory`                | `core v1.1.0`                   | replace redundant       |
 | `integration`  | ✅         | 6 replaces                      | `middleware v0.0.0-000101...` ⚠️ | Most replace directives |
-| `sync`         | ✅         | —                               | Independent                      | No core dep             |
+| `sync`         | ✅         | —                               | Independent                     | No core dep             |
 | `example/user` | ✅         | 4 replaces                      | `catalog v0.0.0` ⚠️              | replace redundant       |
 | `example/todo` | ✅         | `storage`                       | `storage v0.0.0` ⚠️              | Heavy deps              |
 

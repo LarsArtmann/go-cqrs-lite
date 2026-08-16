@@ -154,33 +154,33 @@
 
 Sorted by Impact × Ease (Pareto ordering):
 
-| #   | Item                                                | Impact       | Effort | Type    |
-| --- | --------------------------------------------------- | ------------ | ------ | ------- |
-| 1   | Commit or discard 3 untracked files                 | Hygiene      | 5min   | Cleanup |
-| 2   | Commit or revert example/user changes               | Hygiene      | 5min   | Cleanup |
-| 3   | Fix `catalog/internal/cattest` coverage (0% → 80%+) | Quality      | 15min  | Testing |
-| 4   | Fix `catalog/docserver` coverage (89.9% → 92%+)     | Quality      | 15min  | Testing |
-| 5   | Add `CHANGELOG.md` with conventional commits        | Docs         | 30min  | Process |
-| 6   | Add `Version.SafeSub` with error on negative        | Safety       | 15min  | API     |
-| 7   | Fix `DecodePayloads` double-wrapping                | Quality      | 30min  | Bug     |
-| 8   | Archive old status reports (keep last 5)            | Hygiene      | 10min  | Cleanup |
-| 9   | Add fuzz tests for `event.NewEvent` validation      | Robustness   | 30min  | Testing |
-| 10  | Add fuzz tests for `catalog.SchemaFromType`         | Robustness   | 30min  | Testing |
-| 11  | Commit integration otel test                        | Quality      | 10min  | Testing |
-| 12  | Commit stream benchmark test                        | Quality      | 10min  | Testing |
-| 13  | Record baseline benchmarks for stream module        | CI           | 15min  | Infra   |
-| 14  | Add `ProcessedAt` to CheckpointStore                | Feature      | 30min  | API     |
-| 15  | Add release tagging GitHub Actions workflow         | Process      | 1hr    | CI/CD   |
-| 16  | Write `README.md` for example/saga                  | Docs         | 15min  | Docs    |
-| 17  | Write `README.md` for example/storage               | Docs         | 15min  | Docs    |
-| 18  | Write `README.md` for example/projection            | Docs         | 15min  | Docs    |
-| 19  | Add `event.Context` propagation via metadata        | Feature      | 1hr    | API     |
-| 20  | Design v2 query.Handler generics proposal           | Architecture | 2hr    | Design  |
-| 21  | Add storage backend benchmarks (SQLite vs Postgres) | Perf         | 1hr    | Testing |
-| 22  | Add E2E cross-module benchmark suite                | Perf         | 2hr    | Testing |
-| 23  | Evaluate catch-up projection runner design          | Feature      | 3hr    | Design  |
-| 24  | Add projection parallel processing design doc       | Feature      | 3hr    | Design  |
-| 25  | Plan v1.0.0 release: tag strategy, remove replaces  | Release      | 4hr    | Process |
+| #  | Item                                                | Impact       | Effort | Type    |
+| -- | --------------------------------------------------- | ------------ | ------ | ------- |
+| 1  | Commit or discard 3 untracked files                 | Hygiene      | 5min   | Cleanup |
+| 2  | Commit or revert example/user changes               | Hygiene      | 5min   | Cleanup |
+| 3  | Fix `catalog/internal/cattest` coverage (0% → 80%+) | Quality      | 15min  | Testing |
+| 4  | Fix `catalog/docserver` coverage (89.9% → 92%+)     | Quality      | 15min  | Testing |
+| 5  | Add `CHANGELOG.md` with conventional commits        | Docs         | 30min  | Process |
+| 6  | Add `Version.SafeSub` with error on negative        | Safety       | 15min  | API     |
+| 7  | Fix `DecodePayloads` double-wrapping                | Quality      | 30min  | Bug     |
+| 8  | Archive old status reports (keep last 5)            | Hygiene      | 10min  | Cleanup |
+| 9  | Add fuzz tests for `event.NewEvent` validation      | Robustness   | 30min  | Testing |
+| 10 | Add fuzz tests for `catalog.SchemaFromType`         | Robustness   | 30min  | Testing |
+| 11 | Commit integration otel test                        | Quality      | 10min  | Testing |
+| 12 | Commit stream benchmark test                        | Quality      | 10min  | Testing |
+| 13 | Record baseline benchmarks for stream module        | CI           | 15min  | Infra   |
+| 14 | Add `ProcessedAt` to CheckpointStore                | Feature      | 30min  | API     |
+| 15 | Add release tagging GitHub Actions workflow         | Process      | 1hr    | CI/CD   |
+| 16 | Write `README.md` for example/saga                  | Docs         | 15min  | Docs    |
+| 17 | Write `README.md` for example/storage               | Docs         | 15min  | Docs    |
+| 18 | Write `README.md` for example/projection            | Docs         | 15min  | Docs    |
+| 19 | Add `event.Context` propagation via metadata        | Feature      | 1hr    | API     |
+| 20 | Design v2 query.Handler generics proposal           | Architecture | 2hr    | Design  |
+| 21 | Add storage backend benchmarks (SQLite vs Postgres) | Perf         | 1hr    | Testing |
+| 22 | Add E2E cross-module benchmark suite                | Perf         | 2hr    | Testing |
+| 23 | Evaluate catch-up projection runner design          | Feature      | 3hr    | Design  |
+| 24 | Add projection parallel processing design doc       | Feature      | 3hr    | Design  |
+| 25 | Plan v1.0.0 release: tag strategy, remove replaces  | Release      | 4hr    | Process |
 
 ---
 

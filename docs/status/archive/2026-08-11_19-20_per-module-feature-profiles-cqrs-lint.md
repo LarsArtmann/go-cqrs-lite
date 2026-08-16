@@ -27,37 +27,38 @@ still read the global `ctx.FeatureProfile` instead of evaluating per-module.
 
 ### Infrastructure created
 
-| File | Role | Lines |
-|---|---|---|
-| `module_scope.go` | `moduleScope` struct, `coachingScopes()` iterator, `attributeModule()`, `nonTestFiles()` | 97 |
-| `scan_in.go` | File-slice-scoped scan helpers (`importsPathIn`, `hasCallIn`, `hasSelectorIn`, `firstCallPosIn`, `firstFilePosIn`, `firstFuncDeclPosIn`, `firstCallByNameIn`, `countCallsIn`) | 284 |
+| File              | Role                                                                                                                                                                          | Lines |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| `module_scope.go` | `moduleScope` struct, `coachingScopes()` iterator, `attributeModule()`, `nonTestFiles()`                                                                                      | 97    |
+| `scan_in.go`      | File-slice-scoped scan helpers (`importsPathIn`, `hasCallIn`, `hasSelectorIn`, `firstCallPosIn`, `firstFilePosIn`, `firstFuncDeclPosIn`, `firstCallByNameIn`, `countCallsIn`) | 284   |
 
 ### Rules migrated to per-module evaluation (15 adoption + 3 resilience = 18 total)
 
-| Rule | File | Migration approach |
-|---|---|---|
-| F003 | `f003_f004.go` | `coachingScopes` — HasServer per module |
-| F004 | `f003_f004.go` | `coachingScopes` — HasServer + ServerLocal per module |
-| F007 | `f007_f008.go` | `coachingScopes` — CommandFlow per module |
-| F009 | `f009.go` | `coachingScopes` — HasServer + CommandFlow per module |
-| F012 | `f012_f013.go` | `coachingScopes` — CommandFlow per module |
-| F013 | `f012_f013.go` | `coachingScopes` — HasServer + ServerLocal + HasTransport per module |
-| F017 | `f015_f016_f017.go` | `coachingScopes` — HasAsyncBus per module |
-| F022 | `f022.go` | `coachingScopes` — Store.IsSQL() per module |
-| F023 | `f023_f024_f025.go` | `coachingScopes` — Store.IsSQL() per module |
-| F024 | `f023_f024_f025.go` | `coachingScopes` — Store.IsSQL() per module |
-| F025 | `f023_f024_f025.go` | `coachingScopes` — Store.IsSQL() per module |
-| F026 | `f026.go` | `coachingScopes` — HasMetaengine per module |
-| F027 | `f027_f028_f029.go` | `coachingScopes` — HasServer per module |
-| F028 | `f027_f028_f029.go` | `coachingScopes` — HasServer per module |
-| F029 | `f027_f028_f029.go` | `coachingScopes` — HasServer per module |
-| B029 | `b029.go` | `ProfileForFile(pos.Filename).HasServer` per finding |
-| B030 | `b030.go` | `ProfileForFile(pos.Filename).HasServer` per finding |
-| B031 | `b031.go` | `ProfileForFile(pos.Filename).HasServer` per finding |
+| Rule | File                | Migration approach                                                   |
+| ---- | ------------------- | -------------------------------------------------------------------- |
+| F003 | `f003_f004.go`      | `coachingScopes` — HasServer per module                              |
+| F004 | `f003_f004.go`      | `coachingScopes` — HasServer + ServerLocal per module                |
+| F007 | `f007_f008.go`      | `coachingScopes` — CommandFlow per module                            |
+| F009 | `f009.go`           | `coachingScopes` — HasServer + CommandFlow per module                |
+| F012 | `f012_f013.go`      | `coachingScopes` — CommandFlow per module                            |
+| F013 | `f012_f013.go`      | `coachingScopes` — HasServer + ServerLocal + HasTransport per module |
+| F017 | `f015_f016_f017.go` | `coachingScopes` — HasAsyncBus per module                            |
+| F022 | `f022.go`           | `coachingScopes` — Store.IsSQL() per module                          |
+| F023 | `f023_f024_f025.go` | `coachingScopes` — Store.IsSQL() per module                          |
+| F024 | `f023_f024_f025.go` | `coachingScopes` — Store.IsSQL() per module                          |
+| F025 | `f023_f024_f025.go` | `coachingScopes` — Store.IsSQL() per module                          |
+| F026 | `f026.go`           | `coachingScopes` — HasMetaengine per module                          |
+| F027 | `f027_f028_f029.go` | `coachingScopes` — HasServer per module                              |
+| F028 | `f027_f028_f029.go` | `coachingScopes` — HasServer per module                              |
+| F029 | `f027_f028_f029.go` | `coachingScopes` — HasServer per module                              |
+| B029 | `b029.go`           | `ProfileForFile(pos.Filename).HasServer` per finding                 |
+| B030 | `b030.go`           | `ProfileForFile(pos.Filename).HasServer` per finding                 |
+| B031 | `b031.go`           | `ProfileForFile(pos.Filename).HasServer` per finding                 |
 
 ### Existing scan helpers refactored (delegation, zero duplication)
 
 All ctx-based scan helpers now delegate to the `In` variants:
+
 - `importsPath` -> `importsPathIn`
 - `projectHasCallAny` -> `hasCallIn`
 - `projectHasSelector` -> `hasSelectorIn`
@@ -78,10 +79,10 @@ Dead code removed: `hasSQLStore` (was only used by F022-F025 which now use
 
 ### Tests added
 
-| Test file | Tests | Verifies |
-|---|---|---|
-| `coaching_permodule_test.go` | 5 tests | F003 library suppression, F013 library suppression, F022 store isolation, F003 single-module fallback, `coachingScopes` single-module file count |
-| `b029_b031_permodule_test.go` | 4 tests | B029 library suppression, B029 server-module fires, B031 library suppression, B029 single-module fallback |
+| Test file                     | Tests   | Verifies                                                                                                                                         |
+| ----------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `coaching_permodule_test.go`  | 5 tests | F003 library suppression, F013 library suppression, F022 store isolation, F003 single-module fallback, `coachingScopes` single-module file count |
+| `b029_b031_permodule_test.go` | 4 tests | B029 library suppression, B029 server-module fires, B031 library suppression, B029 single-module fallback                                        |
 
 ### Verification
 

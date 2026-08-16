@@ -111,53 +111,53 @@
 
 ### Critical — Blocks External Consumers
 
-| #   | Task                                                        | Effort |
-| --- | ----------------------------------------------------------- | ------ |
-| 1   | Push release tags to remote                                 | 1 min  |
-| 2   | Update SEC go.mod to new tags                               | 5 min  |
-| 3   | Remove `replace` directives from go.mod (after tags pushed) | 10 min |
+| # | Task                                                        | Effort |
+| - | ----------------------------------------------------------- | ------ |
+| 1 | Push release tags to remote                                 | 1 min  |
+| 2 | Update SEC go.mod to new tags                               | 5 min  |
+| 3 | Remove `replace` directives from go.mod (after tags pushed) | 10 min |
 
 ### High — Customer-Facing
 
-| #   | Task                                                         | Effort |
-| --- | ------------------------------------------------------------ | ------ |
-| 4   | `query.Handler` typed generics migration (breaks `any` rule) | 8h     |
-| 5   | `CatalogMeta` consolidation across event/command/query       | 4h     |
-| 6   | Add `GOWORK=off` CI matrix job                               | 30 min |
-| 7   | Add minimum coverage gate to CI (80%)                        | 15 min |
+| # | Task                                                         | Effort |
+| - | ------------------------------------------------------------ | ------ |
+| 4 | `query.Handler` typed generics migration (breaks `any` rule) | 8h     |
+| 5 | `CatalogMeta` consolidation across event/command/query       | 4h     |
+| 6 | Add `GOWORK=off` CI matrix job                               | 30 min |
+| 7 | Add minimum coverage gate to CI (80%)                        | 15 min |
 
 ### Medium — Quality
 
-| #   | Task                                                        | Effort |
-| --- | ----------------------------------------------------------- | ------ |
-| 8   | Add `WithClock(func() time.Time)` option to NewEvent        | 30 min |
-| 9   | Move schema DDL onto `Dialect` interface                    | 1h     |
-| 10  | `Dialect.FormatTime` → `driver.Valuer`/`sql.Scanner`        | 2h     |
-| 11  | Turso integration test (save→load→delete)                   | 30 min |
-| 12  | Write examples for `NewTypedProjection` and `RegisterTyped` | 30 min |
-| 13  | Document time-travel API in README with examples            | 30 min |
-| 14  | Fix pre-commit hook (gci config, library-policy exemption)  | 1h     |
+| #  | Task                                                        | Effort |
+| -- | ----------------------------------------------------------- | ------ |
+| 8  | Add `WithClock(func() time.Time)` option to NewEvent        | 30 min |
+| 9  | Move schema DDL onto `Dialect` interface                    | 1h     |
+| 10 | `Dialect.FormatTime` → `driver.Valuer`/`sql.Scanner`        | 2h     |
+| 11 | Turso integration test (save→load→delete)                   | 30 min |
+| 12 | Write examples for `NewTypedProjection` and `RegisterTyped` | 30 min |
+| 13 | Document time-travel API in README with examples            | 30 min |
+| 14 | Fix pre-commit hook (gci config, library-policy exemption)  | 1h     |
 
 ### Low — Polish
 
-| #   | Task                                                     | Effort |
-| --- | -------------------------------------------------------- | ------ |
-| 15  | Normalize go.mod version references across workspace     | 30 min |
-| 16  | Split `decider_test.go` (1190 lines) into multiple files | 1h     |
-| 17  | Split `runner_test.go` (1057 lines) into multiple files  | 30 min |
-| 18  | Trim AGENTS.md under 400 lines                           | 2h     |
+| #  | Task                                                     | Effort |
+| -- | -------------------------------------------------------- | ------ |
+| 15 | Normalize go.mod version references across workspace     | 30 min |
+| 16 | Split `decider_test.go` (1190 lines) into multiple files | 1h     |
+| 17 | Split `runner_test.go` (1057 lines) into multiple files  | 30 min |
+| 18 | Trim AGENTS.md under 400 lines                           | 2h     |
 
 ### Future (v2 / Major Effort)
 
-| #   | Task                                                         | Effort |
-| --- | ------------------------------------------------------------ | ------ |
-| 19  | Global `TransactionID` branded type (breaking)               | 22h    |
-| 20  | `Store.ReadBackwards` reverse stream reads                   | 2h     |
-| 21  | Temporal read-only safety (prevent Save after LoadAtVersion) | 2h     |
-| 22  | `ValidAt` bi-temporal metadata + `LoadToValidTime`           | 10h    |
-| 23  | Saga/Process Manager implementation                          | 18h    |
-| 24  | Watermill pub/sub adapter module                             | 8h     |
-| 25  | PostgreSQL integration tests for storage                     | 2h     |
+| #  | Task                                                         | Effort |
+| -- | ------------------------------------------------------------ | ------ |
+| 19 | Global `TransactionID` branded type (breaking)               | 22h    |
+| 20 | `Store.ReadBackwards` reverse stream reads                   | 2h     |
+| 21 | Temporal read-only safety (prevent Save after LoadAtVersion) | 2h     |
+| 22 | `ValidAt` bi-temporal metadata + `LoadToValidTime`           | 10h    |
+| 23 | Saga/Process Manager implementation                          | 18h    |
+| 24 | Watermill pub/sub adapter module                             | 8h     |
+| 25 | PostgreSQL integration tests for storage                     | 2h     |
 
 ---
 

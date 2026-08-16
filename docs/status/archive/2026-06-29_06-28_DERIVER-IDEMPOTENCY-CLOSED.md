@@ -123,48 +123,48 @@ Sorted by **impact/effort** (Pareto order).
 
 ### P0 — Critical (blocks correctness or CI)
 
-| #   | Task                                      | Impact   | Effort | Why                                                             |
-| --- | ----------------------------------------- | -------- | ------ | --------------------------------------------------------------- |
-| 1   | **Stabilize concurrent session workflow** | Critical | 5min   | Use branches or serialize. Prevents commit collision/data loss. |
-| 2   | **Tests for example/projectionhost**      | High     | 30min  | DLQ demo has zero tests — consumer-facing reliability demo.     |
-| 3   | **Tests for example/encryption**          | Medium   | 20min  | Encryption demo has zero tests.                                 |
+| # | Task                                      | Impact   | Effort | Why                                                             |
+| - | ----------------------------------------- | -------- | ------ | --------------------------------------------------------------- |
+| 1 | **Stabilize concurrent session workflow** | Critical | 5min   | Use branches or serialize. Prevents commit collision/data loss. |
+| 2 | **Tests for example/projectionhost**      | High     | 30min  | DLQ demo has zero tests — consumer-facing reliability demo.     |
+| 3 | **Tests for example/encryption**          | Medium   | 20min  | Encryption demo has zero tests.                                 |
 
 ### P1 — High Leverage
 
-| #   | Task                                                                 | Impact | Effort | Why                                                                       |
-| --- | -------------------------------------------------------------------- | ------ | ------ | ------------------------------------------------------------------------- |
-| 4   | **PG integration tests in CI** (GitHub Actions service container)    | High   | 1h     | Scaffold exists at `storage/relational_pg_test.go`. Just needs CI wiring. |
-| 5   | **Storage/ god-package split** (39 files → 8 sub-packages + aliases) | High   | 4h     | Biggest god-package. 15 importers. Type aliases keep backward compat.     |
-| 6   | **Neo4j GraphDriver** (`graph/neo4j/`)                               | High   | 3-4h   | Graph Schema.Indexes ready. Consumer-pulled (DiscordSync).                |
-| 7   | **Durability profiles implementation** (Sync/BatchedSync/Async)      | Medium | 1.5h   | Design done. ADR exists.                                                  |
-| 8   | **Outbox pattern DLQ**                                               | Medium | 2h     | ADR-0042/0043 discuss direction.                                          |
+| # | Task                                                                 | Impact | Effort | Why                                                                       |
+| - | -------------------------------------------------------------------- | ------ | ------ | ------------------------------------------------------------------------- |
+| 4 | **PG integration tests in CI** (GitHub Actions service container)    | High   | 1h     | Scaffold exists at `storage/relational_pg_test.go`. Just needs CI wiring. |
+| 5 | **Storage/ god-package split** (39 files → 8 sub-packages + aliases) | High   | 4h     | Biggest god-package. 15 importers. Type aliases keep backward compat.     |
+| 6 | **Neo4j GraphDriver** (`graph/neo4j/`)                               | High   | 3-4h   | Graph Schema.Indexes ready. Consumer-pulled (DiscordSync).                |
+| 7 | **Durability profiles implementation** (Sync/BatchedSync/Async)      | Medium | 1.5h   | Design done. ADR exists.                                                  |
+| 8 | **Outbox pattern DLQ**                                               | Medium | 2h     | ADR-0042/0043 discuss direction.                                          |
 
 ### P2 — Quality Improvements
 
-| #   | Task                                                | Impact   | Effort | Why                            |
-| --- | --------------------------------------------------- | -------- | ------ | ------------------------------ |
-| 9   | **FTS5 full-text search** for RelationalStore       | Medium   | 2h     | DiscordSync SearchMessages.    |
-| 10  | **Versioned schema migrations** (goose/atlas-style) | Medium   | 2h     | Currently embeds raw .sql DDL. |
-| 11  | **Tests for cmd/doc-check**                         | Medium   | 20min  | Zero tests on a CI tool.       |
-| 12  | **Tests for example/deployer-first-multidb**        | Low      | 30min  | Zero tests.                    |
-| 13  | **Tests for example/deployer-first-heterogeneous**  | Low      | 30min  | Zero tests.                    |
-| 14  | **NATS JetStream transport adapter**                | Medium   | 3h     | ADR-0025.                      |
-| 15  | **DiscordSync → RelationalProjection migration**    | Critical | 2-3h   | Blocked — separate repo.       |
+| #  | Task                                                | Impact   | Effort | Why                            |
+| -- | --------------------------------------------------- | -------- | ------ | ------------------------------ |
+| 9  | **FTS5 full-text search** for RelationalStore       | Medium   | 2h     | DiscordSync SearchMessages.    |
+| 10 | **Versioned schema migrations** (goose/atlas-style) | Medium   | 2h     | Currently embeds raw .sql DDL. |
+| 11 | **Tests for cmd/doc-check**                         | Medium   | 20min  | Zero tests on a CI tool.       |
+| 12 | **Tests for example/deployer-first-multidb**        | Low      | 30min  | Zero tests.                    |
+| 13 | **Tests for example/deployer-first-heterogeneous**  | Low      | 30min  | Zero tests.                    |
+| 14 | **NATS JetStream transport adapter**                | Medium   | 3h     | ADR-0025.                      |
+| 15 | **DiscordSync → RelationalProjection migration**    | Critical | 2-3h   | Blocked — separate repo.       |
 
 ### P3 — Polish
 
-| #   | Task                                       | Impact | Effort  | Why                                                 |
-| --- | ------------------------------------------ | ------ | ------- | --------------------------------------------------- |
-| 16  | **Documentation site** (Docusaurus/MkDocs) | Low    | 4h+     | 54 modules need browsable docs.                     |
-| 17  | **projection.Runner** standalone           | Low    | 30min   | YAGNI — bundle.RunProjections covers common case.   |
-| 18  | **Hot-state cache for decider**            | Low    | Large   | Snapshot+page-cache may suffice. Profile first.     |
-| 19  | **Event redaction middleware**             | Low    | Medium  | Design reviewed.                                    |
-| 20  | **Bi-temporal model** (`ValidAt`)          | Low    | Large   | Niche — finance/HR/healthcare.                      |
-| 21  | **Event-history visualization**            | Low    | Large   | Research doc OPEN.                                  |
-| 22  | **Scheduler expansion**                    | Low    | Large   | scheduling/ already shipped Timer[P] generics.      |
-| 23  | **Graph read API on real driver backends** | Low    | Large   | Cypher abstraction rejected (ADR-0038).             |
-| 24  | **event/ god-package split**               | Low    | 3h      | NOT RECOMMENDED — 197 importers, high blast radius. |
-| 25  | **Transport/grpc genproto fix**            | Medium | Blocked | cockroachdb/errors#79. Pre-existing, weeks old.     |
+| #  | Task                                       | Impact | Effort  | Why                                                 |
+| -- | ------------------------------------------ | ------ | ------- | --------------------------------------------------- |
+| 16 | **Documentation site** (Docusaurus/MkDocs) | Low    | 4h+     | 54 modules need browsable docs.                     |
+| 17 | **projection.Runner** standalone           | Low    | 30min   | YAGNI — bundle.RunProjections covers common case.   |
+| 18 | **Hot-state cache for decider**            | Low    | Large   | Snapshot+page-cache may suffice. Profile first.     |
+| 19 | **Event redaction middleware**             | Low    | Medium  | Design reviewed.                                    |
+| 20 | **Bi-temporal model** (`ValidAt`)          | Low    | Large   | Niche — finance/HR/healthcare.                      |
+| 21 | **Event-history visualization**            | Low    | Large   | Research doc OPEN.                                  |
+| 22 | **Scheduler expansion**                    | Low    | Large   | scheduling/ already shipped Timer[P] generics.      |
+| 23 | **Graph read API on real driver backends** | Low    | Large   | Cypher abstraction rejected (ADR-0038).             |
+| 24 | **event/ god-package split**               | Low    | 3h      | NOT RECOMMENDED — 197 importers, high blast radius. |
+| 25 | **Transport/grpc genproto fix**            | Medium | Blocked | cockroachdb/errors#79. Pre-existing, weeks old.     |
 
 ---
 

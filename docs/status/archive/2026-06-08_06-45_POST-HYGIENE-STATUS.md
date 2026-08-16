@@ -47,7 +47,7 @@
 
 ### Auto-Documentation (FULLY_FUNCTIONAL)
 
-- **catalog** — Registry, SchemaFromType[T](<>), immutable Catalog, validation, rich resource model
+- **catalog** — Registry, SchemaFromType[T](), immutable Catalog, validation, rich resource model
 - **catalog/asyncapi** — AsyncAPI 3.0 YAML/JSON export + golden tests
 - **catalog/d2** — D2 diagram generation with cross-service flows + golden tests
 - **catalog/openapi** — OpenAPI 3.0.3 export + golden tests
@@ -63,7 +63,7 @@
 
 ### Projection & Read Models (FULLY_FUNCTIONAL)
 
-- **projection** — Runner (replay → live), Builder + On[T](<>), HandlerRegistry, dead letter queue, retry with backoff, parallelism option + golden tests
+- **projection** — Runner (replay → live), Builder + On[T](), HandlerRegistry, dead letter queue, retry with backoff, parallelism option + golden tests
 - **listing** — Aggregate listing, tombstone detection, StatusMiddleware, InMemoryAggregateReader, SQL reader
 
 ### Infrastructure (FULLY_FUNCTIONAL)
@@ -215,33 +215,33 @@ LSP reports `pgregory.net/rapid is not in your go.mod file` for command/ and que
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Task                                                   | Impact | Effort | Source         |
-| --- | ------------------------------------------------------ | ------ | ------ | -------------- |
-| 1   | Verify GitHub Actions CI passes for all recent commits | HIGH   | 10min  | 03-41          |
-| 2   | Regenerate benchmark baselines post-hygiene changes    | MEDIUM | 8min   | 03-41          |
-| 3   | Add go-snaps golden tests on signing/ module           | MEDIUM | 10min  | Sprint 6       |
-| 4   | Add go-snaps golden tests on middleware/ module        | MEDIUM | 10min  | Sprint 6       |
-| 5   | Add go-snaps golden tests on storage/ module           | MEDIUM | 10min  | Sprint 6       |
-| 6   | Add go-snaps golden tests on listing/ module           | MEDIUM | 10min  | Sprint 6       |
-| 7   | Add go-snaps golden tests on watermill/ module         | MEDIUM | 10min  | Sprint 6       |
-| 8   | Add go-snaps golden tests on pebble/ module            | MEDIUM | 10min  | Sprint 6       |
-| 9   | Add go-snaps golden tests on codec/ module             | MEDIUM | 10min  | Sprint 6       |
-| 10  | Add go-snaps golden tests on otel/ module              | MEDIUM | 10min  | Sprint 6       |
-| 11  | Add go-snaps golden tests on schema/ module            | MEDIUM | 10min  | Sprint 6       |
-| 12  | Add go-snaps golden tests on snapshot/ module          | MEDIUM | 10min  | Sprint 6       |
-| 13  | Add go-snaps golden tests on memory/ module            | MEDIUM | 10min  | Sprint 6       |
-| 14  | Add go-snaps golden tests on turso/ module             | MEDIUM | 10min  | Sprint 6       |
-| 15  | Bump command/ coverage from 80.5% to 90%+              | MEDIUM | 30min  | Coverage audit |
-| 16  | Add JavaScript SSE client to example/user/             | MEDIUM | 2h     | Sprint 5       |
-| 17  | Add Docker build CI step (linux amd64 + arm64)         | MEDIUM | 2h     | Sprint 4       |
-| 18  | Fix LSP golangci-lint version mismatch                 | LOW    | 1h     | Editor DX      |
-| 19  | Add Playwright setup + health endpoint E2E test        | MEDIUM | 4h     | Sprint 5       |
-| 20  | jsonv2 codec experiment behind build tag               | LOW    | 6h     | Sprint 6       |
-| 21  | Arena allocation experiment in event module            | LOW    | 8h     | Sprint 6       |
-| 22  | Documentation site (Docusaurus/Hugo)                   | LOW    | 20h    | Long-term      |
-| 23  | Outbox pattern implementation                          | HIGH   | 40h    | Future         |
-| 24  | NATS adapter                                           | MEDIUM | 20h    | Future         |
-| 25  | gRPC transport adapter                                 | MEDIUM | 30h    | Future         |
+| #  | Task                                                   | Impact | Effort | Source         |
+| -- | ------------------------------------------------------ | ------ | ------ | -------------- |
+| 1  | Verify GitHub Actions CI passes for all recent commits | HIGH   | 10min  | 03-41          |
+| 2  | Regenerate benchmark baselines post-hygiene changes    | MEDIUM | 8min   | 03-41          |
+| 3  | Add go-snaps golden tests on signing/ module           | MEDIUM | 10min  | Sprint 6       |
+| 4  | Add go-snaps golden tests on middleware/ module        | MEDIUM | 10min  | Sprint 6       |
+| 5  | Add go-snaps golden tests on storage/ module           | MEDIUM | 10min  | Sprint 6       |
+| 6  | Add go-snaps golden tests on listing/ module           | MEDIUM | 10min  | Sprint 6       |
+| 7  | Add go-snaps golden tests on watermill/ module         | MEDIUM | 10min  | Sprint 6       |
+| 8  | Add go-snaps golden tests on pebble/ module            | MEDIUM | 10min  | Sprint 6       |
+| 9  | Add go-snaps golden tests on codec/ module             | MEDIUM | 10min  | Sprint 6       |
+| 10 | Add go-snaps golden tests on otel/ module              | MEDIUM | 10min  | Sprint 6       |
+| 11 | Add go-snaps golden tests on schema/ module            | MEDIUM | 10min  | Sprint 6       |
+| 12 | Add go-snaps golden tests on snapshot/ module          | MEDIUM | 10min  | Sprint 6       |
+| 13 | Add go-snaps golden tests on memory/ module            | MEDIUM | 10min  | Sprint 6       |
+| 14 | Add go-snaps golden tests on turso/ module             | MEDIUM | 10min  | Sprint 6       |
+| 15 | Bump command/ coverage from 80.5% to 90%+              | MEDIUM | 30min  | Coverage audit |
+| 16 | Add JavaScript SSE client to example/user/             | MEDIUM | 2h     | Sprint 5       |
+| 17 | Add Docker build CI step (linux amd64 + arm64)         | MEDIUM | 2h     | Sprint 4       |
+| 18 | Fix LSP golangci-lint version mismatch                 | LOW    | 1h     | Editor DX      |
+| 19 | Add Playwright setup + health endpoint E2E test        | MEDIUM | 4h     | Sprint 5       |
+| 20 | jsonv2 codec experiment behind build tag               | LOW    | 6h     | Sprint 6       |
+| 21 | Arena allocation experiment in event module            | LOW    | 8h     | Sprint 6       |
+| 22 | Documentation site (Docusaurus/Hugo)                   | LOW    | 20h    | Long-term      |
+| 23 | Outbox pattern implementation                          | HIGH   | 40h    | Future         |
+| 24 | NATS adapter                                           | MEDIUM | 20h    | Future         |
+| 25 | gRPC transport adapter                                 | MEDIUM | 30h    | Future         |
 
 ---
 

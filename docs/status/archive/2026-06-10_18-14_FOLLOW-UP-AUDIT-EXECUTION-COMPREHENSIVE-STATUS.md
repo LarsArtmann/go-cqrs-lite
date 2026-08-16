@@ -19,17 +19,17 @@ The codebase is at a **maintenance and polish stage** — no production-blocking
 
 ### Bugs Fixed This Session (Follow-Up Audit)
 
-| #   | Fix                                                                                                           | Severity | Commit     |
-| --- | ------------------------------------------------------------------------------------------------------------- | -------- | ---------- |
-| P1  | `pebble/serialization.go` — swallowed `MarshalMetadataJSON` error on deserialization                          | HIGH     | `fe1e5184` |
-| P2  | `middleware/sse.go` — send-on-closed-channel race between `handleEvent` and `RemoveClient`                    | HIGH     | `b652dd32` |
-| P3  | `middleware/sse.go` — `NewSSEBroker` returned nil on error with no error return                               | HIGH     | `b652dd32` |
-| P4  | `middleware/circuit_breaker.go` — `ErrCircuitBreakerOpen` used bare `errors.New` instead of error taxonomy    | MEDIUM   | `9d407f51` |
-| P5  | `middleware/circuit_breaker.go` — `IsFailure` callback not nil-checked, would panic on nil                    | MEDIUM   | `9d407f51` |
-| P6  | `event/types.go` — `Version.Cmp` manually implemented comparison; simplified to `cmp.Compare`                 | LOW      | `90929f1f` |
-| P7  | `pebble/store.go` — `NewStore(nil, ...)` caused nil pointer dereference; now panics with clear message        | MEDIUM   | `70f05a14` |
-| P8  | `decider/decider.go` — snapshot failures invisible without OTel provider; added `slog.WarnContext` fallback   | MEDIUM   | `230a7177` |
-| P9  | `middleware/retry.go` — `ErrRetryCanceled` sentinel defined but never used; now wraps on context cancellation | MEDIUM   | `72b85174` |
+| #  | Fix                                                                                                           | Severity | Commit     |
+| -- | ------------------------------------------------------------------------------------------------------------- | -------- | ---------- |
+| P1 | `pebble/serialization.go` — swallowed `MarshalMetadataJSON` error on deserialization                          | HIGH     | `fe1e5184` |
+| P2 | `middleware/sse.go` — send-on-closed-channel race between `handleEvent` and `RemoveClient`                    | HIGH     | `b652dd32` |
+| P3 | `middleware/sse.go` — `NewSSEBroker` returned nil on error with no error return                               | HIGH     | `b652dd32` |
+| P4 | `middleware/circuit_breaker.go` — `ErrCircuitBreakerOpen` used bare `errors.New` instead of error taxonomy    | MEDIUM   | `9d407f51` |
+| P5 | `middleware/circuit_breaker.go` — `IsFailure` callback not nil-checked, would panic on nil                    | MEDIUM   | `9d407f51` |
+| P6 | `event/types.go` — `Version.Cmp` manually implemented comparison; simplified to `cmp.Compare`                 | LOW      | `90929f1f` |
+| P7 | `pebble/store.go` — `NewStore(nil, ...)` caused nil pointer dereference; now panics with clear message        | MEDIUM   | `70f05a14` |
+| P8 | `decider/decider.go` — snapshot failures invisible without OTel provider; added `slog.WarnContext` fallback   | MEDIUM   | `230a7177` |
+| P9 | `middleware/retry.go` — `ErrRetryCanceled` sentinel defined but never used; now wraps on context cancellation | MEDIUM   | `72b85174` |
 
 ### Bugs Fixed in Prior Session (Initial 64-Task Execution)
 
@@ -166,48 +166,48 @@ Ranked by impact × effort ratio (highest first):
 
 ### Tier 1: Quick Wins (< 30 min each)
 
-| #   | Task                                | Impact      | Effort  | Why                                  |
-| --- | ----------------------------------- | ----------- | ------- | ------------------------------------ |
-| 1   | Remove command error re-exports     | CLEAN       | LOW     | 90% unused, reduces API surface      |
-| 2   | Fix pebble `varnamelen` lint        | CLEAN       | TRIVIAL | Rename `db` → `database` in NewStore |
-| 3   | Add turso event store wrapper tests | COVERAGE    | LOW     | 28.6% → 80%+                         |
-| 4   | Add otel helper tests               | COVERAGE    | LOW     | 73% → 80%+                           |
-| 5   | Add eventtest/fake_store.go tests   | RELIABILITY | MEDIUM  | 273 lines of untested mock code      |
+| # | Task                                | Impact      | Effort  | Why                                  |
+| - | ----------------------------------- | ----------- | ------- | ------------------------------------ |
+| 1 | Remove command error re-exports     | CLEAN       | LOW     | 90% unused, reduces API surface      |
+| 2 | Fix pebble `varnamelen` lint        | CLEAN       | TRIVIAL | Rename `db` → `database` in NewStore |
+| 3 | Add turso event store wrapper tests | COVERAGE    | LOW     | 28.6% → 80%+                         |
+| 4 | Add otel helper tests               | COVERAGE    | LOW     | 73% → 80%+                           |
+| 5 | Add eventtest/fake_store.go tests   | RELIABILITY | MEDIUM  | 273 lines of untested mock code      |
 
 ### Tier 2: Architecture Improvements (1-3 hours each)
 
-| #   | Task                                 | Impact | Effort | Why                                         |
-| --- | ------------------------------------ | ------ | ------ | ------------------------------------------- |
-| 6   | Move HTTP code out of middleware     | ARCH   | MEDIUM | SSE, healthcheck, metrics_http → transport/ |
-| 7   | Extract eventtest as separate module | ARCH   | LOW    | Break event↔memory cycle                    |
-| 8   | Break memory↔snapshot cycle          | ARCH   | LOW    | Make snapshot depend on event only          |
-| 9   | Extract sql.QueryEngine              | DRY    | HIGH   | Eliminate ~300 lines duplication            |
-| 10  | Break event↔command cycle            | ARCH   | MEDIUM | Move CatalogDispatcher                      |
+| #  | Task                                 | Impact | Effort | Why                                         |
+| -- | ------------------------------------ | ------ | ------ | ------------------------------------------- |
+| 6  | Move HTTP code out of middleware     | ARCH   | MEDIUM | SSE, healthcheck, metrics_http → transport/ |
+| 7  | Extract eventtest as separate module | ARCH   | LOW    | Break event↔memory cycle                    |
+| 8  | Break memory↔snapshot cycle          | ARCH   | LOW    | Make snapshot depend on event only          |
+| 9  | Extract sql.QueryEngine              | DRY    | HIGH   | Eliminate ~300 lines duplication            |
+| 10 | Break event↔command cycle            | ARCH   | MEDIUM | Move CatalogDispatcher                      |
 
 ### Tier 3: Quality & Robustness
 
-| #   | Task                                | Impact      | Effort | Why                                          |
-| --- | ----------------------------------- | ----------- | ------ | -------------------------------------------- |
-| 11  | Add pebble LRU lock eviction        | PERF        | MEDIUM | Unbounded lock map in long-running processes |
-| 12  | Add pebble↔decider integration test | RELIABILITY | MEDIUM | Cross-module coverage                        |
-| 13  | Standardize error message format    | DX          | LOW    | Consistent operation context in all errors   |
-| 14  | Improve module README examples      | DX          | LOW    | Better consumer onboarding                   |
-| 15  | Add pkg.go.dev example coverage     | DX          | MEDIUM | Standard library documentation               |
+| #  | Task                                | Impact      | Effort | Why                                          |
+| -- | ----------------------------------- | ----------- | ------ | -------------------------------------------- |
+| 11 | Add pebble LRU lock eviction        | PERF        | MEDIUM | Unbounded lock map in long-running processes |
+| 12 | Add pebble↔decider integration test | RELIABILITY | MEDIUM | Cross-module coverage                        |
+| 13 | Standardize error message format    | DX          | LOW    | Consistent operation context in all errors   |
+| 14 | Improve module README examples      | DX          | LOW    | Better consumer onboarding                   |
+| 15 | Add pkg.go.dev example coverage     | DX          | MEDIUM | Standard library documentation               |
 
 ### Tier 4: Strategic / Future
 
-| #   | Task                                          | Impact      | Effort    | Why                                  |
-| --- | --------------------------------------------- | ----------- | --------- | ------------------------------------ |
-| 16  | PostgreSQL integration tests (testcontainers) | RELIABILITY | HIGH      | BLOCKED on Docker setup              |
-| 17  | Documentation site (Docusaurus)               | DX          | HIGH      | Centralized docs                     |
-| 18  | Bi-temporal support (ValidAt/LoadToValidTime) | FEATURE     | HIGH      | FUTURE — event sourcing completeness |
-| 19  | HLC (Hybrid Logical Clock) implementation     | FEATURE     | HIGH      | FUTURE — distributed ordering        |
-| 20  | Thin PostgreSQL store adapter (no Watermill)  | FEATURE     | MEDIUM    | FUTURE — reduce Watermill dependency |
-| 21  | Thin NATS bus adapter (no Watermill)          | FEATURE     | MEDIUM    | FUTURE — lightweight alternative     |
-| 22  | Schema migration tool                         | DX          | HIGH      | FUTURE — production readiness        |
-| 23  | Pull-before-push sync protocol                | FEATURE     | HIGH      | FUTURE — offline-first               |
-| 24  | Multi-client test harness                     | TESTING     | HIGH      | FUTURE — distributed testing         |
-| 25  | Distributed consensus (Raft/CRDT overlay)     | FEATURE     | VERY HIGH | FUTURE — enterprise features         |
+| #  | Task                                          | Impact      | Effort    | Why                                  |
+| -- | --------------------------------------------- | ----------- | --------- | ------------------------------------ |
+| 16 | PostgreSQL integration tests (testcontainers) | RELIABILITY | HIGH      | BLOCKED on Docker setup              |
+| 17 | Documentation site (Docusaurus)               | DX          | HIGH      | Centralized docs                     |
+| 18 | Bi-temporal support (ValidAt/LoadToValidTime) | FEATURE     | HIGH      | FUTURE — event sourcing completeness |
+| 19 | HLC (Hybrid Logical Clock) implementation     | FEATURE     | HIGH      | FUTURE — distributed ordering        |
+| 20 | Thin PostgreSQL store adapter (no Watermill)  | FEATURE     | MEDIUM    | FUTURE — reduce Watermill dependency |
+| 21 | Thin NATS bus adapter (no Watermill)          | FEATURE     | MEDIUM    | FUTURE — lightweight alternative     |
+| 22 | Schema migration tool                         | DX          | HIGH      | FUTURE — production readiness        |
+| 23 | Pull-before-push sync protocol                | FEATURE     | HIGH      | FUTURE — offline-first               |
+| 24 | Multi-client test harness                     | TESTING     | HIGH      | FUTURE — distributed testing         |
+| 25 | Distributed consensus (Raft/CRDT overlay)     | FEATURE     | VERY HIGH | FUTURE — enterprise features         |
 
 ---
 

@@ -180,33 +180,33 @@
 
 ## f) TOP 25 THINGS TO GET DONE NEXT (Sorted by Impact/Effort)
 
-| #   | Task                                                                   | Impact                | Effort | Ratio      |
-| --- | ---------------------------------------------------------------------- | --------------------- | ------ | ---------- |
-| 1   | Commit current uncommitted work (7 modified + 7 new files)             | 🔴 Prevents data loss | 2min   | ⭐⭐⭐⭐⭐ |
-| 2   | Update TODO_LIST.md — mark ~25 done items as `[x]`                     | 🟠 Accuracy           | 10min  | ⭐⭐⭐⭐⭐ |
-| 3   | Fix decider → memory layer violation (accept interface, remove import) | 🟡 Architecture       | 10min  | ⭐⭐⭐⭐   |
-| 4   | Fix storage → listing coupling (move AggregateReader to shared)        | 🟡 Architecture       | 12min  | ⭐⭐⭐⭐   |
-| 5   | Add turso connector tests (in-memory SQLite delegation)                | 🟠 Coverage gap       | 15min  | ⭐⭐⭐⭐   |
-| 6   | Accept ctx in projection/health.go IsRunning                           | 🟡 Correctness        | 5min   | ⭐⭐⭐⭐   |
-| 7   | Fix example/user/catalog.go semantic misuse                            | 🟠 API honesty        | 5min   | ⭐⭐⭐⭐   |
-| 8   | Fix example/user/main.go writes eventcatalog to working dir            | 🟠 Side effect        | 5min   | ⭐⭐⭐⭐   |
-| 9   | Add go mod tidy -diff to CI                                            | 🟢 Dep hygiene        | 5min   | ⭐⭐⭐     |
-| 10  | Add govulncheck to CI                                                  | 🟢 Security           | 8min   | ⭐⭐⭐     |
-| 11  | Split decider/decider.go (258L → 2 files)                              | 🟡 File size          | 8min   | ⭐⭐⭐     |
-| 12  | Split catalog/schema/reflect.go (263L → 2 files)                       | 🟡 File size          | 8min   | ⭐⭐⭐     |
-| 13  | Optimize pebble/save.go checkVersion O(n) → O(1)                       | 🟡 Perf               | 12min  | ⭐⭐⭐     |
-| 14  | Increase storage coverage 72.7% → 80%+                                 | 🟠 Coverage           | 15min  | ⭐⭐⭐     |
-| 15  | Increase schema coverage 77.6% → 80%+                                  | 🟡 Coverage           | 10min  | ⭐⭐⭐     |
-| 16  | Increase projection coverage 88.3% → 95%+                              | 🟡 Coverage           | 10min  | ⭐⭐⭐     |
-| 17  | Rewrite example/user for full CQRS showcase                            | 🟡 Consumer value     | 30min  | ⭐⭐       |
-| 18  | Add BDD tests for Version, SchemaVersion, OutboxStatus                 | 🟢 Test quality       | 20min  | ⭐⭐       |
-| 19  | Split integration/event BDD test (479L)                                | 🟡 File size          | 10min  | ⭐⭐       |
-| 20  | Add fuzz tests for event creation, ID parsing                          | 🟢 Robustness         | 12min  | ⭐⭐       |
-| 21  | E2E throughput benchmarks                                              | 🟢 Perf baseline      | 12min  | ⭐⭐       |
-| 22  | Storage backend benchmarks (SQLite vs Pebble)                          | 🟢 Perf comparison    | 10min  | ⭐⭐       |
-| 23  | CI matrix parallelism (per-module jobs)                                | 🟢 CI speed           | 12min  | ⭐⭐       |
-| 24  | Move cross-module test assertions to integration/                      | 🟡 Module cycles      | 20min  | ⭐         |
-| 25  | Optimize listing/in_memory.go — keep only last N events                | 🟢 Memory             | 8min   | ⭐         |
+| #  | Task                                                                   | Impact                | Effort | Ratio      |
+| -- | ---------------------------------------------------------------------- | --------------------- | ------ | ---------- |
+| 1  | Commit current uncommitted work (7 modified + 7 new files)             | 🔴 Prevents data loss | 2min   | ⭐⭐⭐⭐⭐ |
+| 2  | Update TODO_LIST.md — mark ~25 done items as `[x]`                     | 🟠 Accuracy           | 10min  | ⭐⭐⭐⭐⭐ |
+| 3  | Fix decider → memory layer violation (accept interface, remove import) | 🟡 Architecture       | 10min  | ⭐⭐⭐⭐   |
+| 4  | Fix storage → listing coupling (move AggregateReader to shared)        | 🟡 Architecture       | 12min  | ⭐⭐⭐⭐   |
+| 5  | Add turso connector tests (in-memory SQLite delegation)                | 🟠 Coverage gap       | 15min  | ⭐⭐⭐⭐   |
+| 6  | Accept ctx in projection/health.go IsRunning                           | 🟡 Correctness        | 5min   | ⭐⭐⭐⭐   |
+| 7  | Fix example/user/catalog.go semantic misuse                            | 🟠 API honesty        | 5min   | ⭐⭐⭐⭐   |
+| 8  | Fix example/user/main.go writes eventcatalog to working dir            | 🟠 Side effect        | 5min   | ⭐⭐⭐⭐   |
+| 9  | Add go mod tidy -diff to CI                                            | 🟢 Dep hygiene        | 5min   | ⭐⭐⭐     |
+| 10 | Add govulncheck to CI                                                  | 🟢 Security           | 8min   | ⭐⭐⭐     |
+| 11 | Split decider/decider.go (258L → 2 files)                              | 🟡 File size          | 8min   | ⭐⭐⭐     |
+| 12 | Split catalog/schema/reflect.go (263L → 2 files)                       | 🟡 File size          | 8min   | ⭐⭐⭐     |
+| 13 | Optimize pebble/save.go checkVersion O(n) → O(1)                       | 🟡 Perf               | 12min  | ⭐⭐⭐     |
+| 14 | Increase storage coverage 72.7% → 80%+                                 | 🟠 Coverage           | 15min  | ⭐⭐⭐     |
+| 15 | Increase schema coverage 77.6% → 80%+                                  | 🟡 Coverage           | 10min  | ⭐⭐⭐     |
+| 16 | Increase projection coverage 88.3% → 95%+                              | 🟡 Coverage           | 10min  | ⭐⭐⭐     |
+| 17 | Rewrite example/user for full CQRS showcase                            | 🟡 Consumer value     | 30min  | ⭐⭐       |
+| 18 | Add BDD tests for Version, SchemaVersion, OutboxStatus                 | 🟢 Test quality       | 20min  | ⭐⭐       |
+| 19 | Split integration/event BDD test (479L)                                | 🟡 File size          | 10min  | ⭐⭐       |
+| 20 | Add fuzz tests for event creation, ID parsing                          | 🟢 Robustness         | 12min  | ⭐⭐       |
+| 21 | E2E throughput benchmarks                                              | 🟢 Perf baseline      | 12min  | ⭐⭐       |
+| 22 | Storage backend benchmarks (SQLite vs Pebble)                          | 🟢 Perf comparison    | 10min  | ⭐⭐       |
+| 23 | CI matrix parallelism (per-module jobs)                                | 🟢 CI speed           | 12min  | ⭐⭐       |
+| 24 | Move cross-module test assertions to integration/                      | 🟡 Module cycles      | 20min  | ⭐         |
+| 25 | Optimize listing/in_memory.go — keep only last N events                | 🟢 Memory             | 8min   | ⭐         |
 
 ---
 
@@ -250,9 +250,9 @@ This matters because I cannot give an accurate accounting of the commit history,
 | catalog/docserver         | 90.1%     | ✅                |
 | cmd/cqrs-gen              | 89.9%     | ✅                |
 | pebble                    | 88.4%     | ✅                |
-| projection                | 88.3%     | ⚠️ Target 95%+    |
+| projection                | 88.3%     | ⚠️ Target 95%+     |
 | catalog/schema            | 86.1%     | ✅                |
-| event                     | 84.5%     | ⚠️ Could improve  |
+| event                     | 84.5%     | ⚠️ Could improve   |
 | query                     | 97.1%     | ✅                |
 | command                   | 94.9%     | ✅                |
 | dispatcher                | 97.0%     | ✅                |

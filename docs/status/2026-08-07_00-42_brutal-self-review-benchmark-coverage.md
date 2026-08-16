@@ -170,73 +170,73 @@ The initial version used `local skip=false` inside a `for` loop at the top-level
 
 ### CRITICAL (Do First)
 
-| #   | Task                                                                           | Impact   | Effort |
-| --- | ------------------------------------------------------------------------------ | -------- | ------ |
-| 1   | Fix SQLite pragma parity — add `sqlopt.WithOptimizations()` to BOTH benchmarks | CRITICAL | 10min  |
-| 2   | Re-run SQLite CGo comparison with `-benchtime=5x -count=3`                     | CRITICAL | 15min  |
-| 3   | Start PG via `nix run .#integration-pg` + run Postgres benchmark               | CRITICAL | 15min  |
-| 4   | Start MySQL via `nix run .#integration-mysql-nspawn` + run MySQL benchmark     | CRITICAL | 20min  |
-| 5   | Run bench-all.sh in FULL mode (no --quick)                                     | HIGH     | 20min  |
-| 6   | Tag `stack/bbolt/v4.0.0` — it's untagged, blocking external consumers          | HIGH     | 5min   |
-| 7   | Fix bench-all.sh duration display + FAIL detection                             | HIGH     | 10min  |
+| # | Task                                                                           | Impact   | Effort |
+| - | ------------------------------------------------------------------------------ | -------- | ------ |
+| 1 | Fix SQLite pragma parity — add `sqlopt.WithOptimizations()` to BOTH benchmarks | CRITICAL | 10min  |
+| 2 | Re-run SQLite CGo comparison with `-benchtime=5x -count=3`                     | CRITICAL | 15min  |
+| 3 | Start PG via `nix run .#integration-pg` + run Postgres benchmark               | CRITICAL | 15min  |
+| 4 | Start MySQL via `nix run .#integration-mysql-nspawn` + run MySQL benchmark     | CRITICAL | 20min  |
+| 5 | Run bench-all.sh in FULL mode (no --quick)                                     | HIGH     | 20min  |
+| 6 | Tag `stack/bbolt/v4.0.0` — it's untagged, blocking external consumers          | HIGH     | 5min   |
+| 7 | Fix bench-all.sh duration display + FAIL detection                             | HIGH     | 10min  |
 
 ### HIGH
 
-| #   | Task                                                       | Impact | Effort |
-| --- | ---------------------------------------------------------- | ------ | ------ |
-| 8   | Run `nix fmt` on all new files                             | HIGH   | 2min   |
-| 9   | Run benchmarks with `-race`                                | HIGH   | 15min  |
-| 10  | Add JSON output mode to bench-all.sh                       | HIGH   | 20min  |
-| 11  | Fix pre-existing Turso indexing benchmark failure          | HIGH   | 30min  |
-| 12  | Verify api-stability golden                                | HIGH   | 5min   |
-| 13  | Verify mermaid graph renders                               | MEDIUM | 5min   |
-| 14  | Add `--count=N` and `--benchtime=Nx` flags to bench-all.sh | MEDIUM | 10min  |
-| 15  | Add storage-level BBolt benchmarks                         | MEDIUM | 15min  |
-| 16  | Create a `nix run .#bench` target for bench-all.sh         | MEDIUM | 10min  |
-| 17  | Store benchmark results as JSON artifacts                  | MEDIUM | 15min  |
-| 18  | Compare test benchmark results against CLI results         | MEDIUM | 15min  |
+| #  | Task                                                       | Impact | Effort |
+| -- | ---------------------------------------------------------- | ------ | ------ |
+| 8  | Run `nix fmt` on all new files                             | HIGH   | 2min   |
+| 9  | Run benchmarks with `-race`                                | HIGH   | 15min  |
+| 10 | Add JSON output mode to bench-all.sh                       | HIGH   | 20min  |
+| 11 | Fix pre-existing Turso indexing benchmark failure          | HIGH   | 30min  |
+| 12 | Verify api-stability golden                                | HIGH   | 5min   |
+| 13 | Verify mermaid graph renders                               | MEDIUM | 5min   |
+| 14 | Add `--count=N` and `--benchtime=Nx` flags to bench-all.sh | MEDIUM | 10min  |
+| 15 | Add storage-level BBolt benchmarks                         | MEDIUM | 15min  |
+| 16 | Create a `nix run .#bench` target for bench-all.sh         | MEDIUM | 10min  |
+| 17 | Store benchmark results as JSON artifacts                  | MEDIUM | 15min  |
+| 18 | Compare test benchmark results against CLI results         | MEDIUM | 15min  |
 
 ### MEDIUM
 
-| #   | Task                                                             | Impact | Effort |
-| --- | ---------------------------------------------------------------- | ------ | ------ |
-| 19  | Add benchmark regression detection (compare to baseline)         | MEDIUM | 30min  |
-| 20  | Add `-count=3` CoV analysis to status report tables              | MEDIUM | 15min  |
-| 21  | Add concurrent writer benchmark per backend                      | MEDIUM | 30min  |
-| 22  | Add read-heavy (90/10) workload benchmark per backend            | MEDIUM | 30min  |
-| 23  | Add large payload benchmark (1KB, 10KB, 100KB)                   | MEDIUM | 30min  |
-| 24  | Add CBOR vs JSON codec benchmark per backend                     | MEDIUM | 20min  |
-| 25  | Profile DuckDB 8.6s/iter benchmark (why so slow?)                | MEDIUM | 30min  |
-| 26  | Add Soak test per backend (leak detection)                       | MEDIUM | 45min  |
-| 27  | Run benchmarks with `GOMAXPROCS=1` (single-core baseline)        | MEDIUM | 10min  |
-| 28  | Document expected performance characteristics per backend        | MEDIUM | 30min  |
-| 29  | Add benchmark for view store queries (WHERE, ORDER BY, LIMIT)    | MEDIUM | 20min  |
-| 30  | Add benchmark for relational projection (multi-table)            | MEDIUM | 30min  |
-| 31  | Add benchmark for graph projection (node/edge merge)             | MEDIUM | 30min  |
-| 32  | Add benchmark for snapshot save/load per backend                 | MEDIUM | 20min  |
-| 33  | Add network latency benchmark (localhost vs remote PG/MySQL)     | MEDIUM | 30min  |
-| 34  | Add multi-DB SQLite preset benchmark                             | MEDIUM | 15min  |
-| 35  | Add benchmark for full CQRS journey (cmd→event→projection→query) | MEDIUM | 30min  |
+| #  | Task                                                             | Impact | Effort |
+| -- | ---------------------------------------------------------------- | ------ | ------ |
+| 19 | Add benchmark regression detection (compare to baseline)         | MEDIUM | 30min  |
+| 20 | Add `-count=3` CoV analysis to status report tables              | MEDIUM | 15min  |
+| 21 | Add concurrent writer benchmark per backend                      | MEDIUM | 30min  |
+| 22 | Add read-heavy (90/10) workload benchmark per backend            | MEDIUM | 30min  |
+| 23 | Add large payload benchmark (1KB, 10KB, 100KB)                   | MEDIUM | 30min  |
+| 24 | Add CBOR vs JSON codec benchmark per backend                     | MEDIUM | 20min  |
+| 25 | Profile DuckDB 8.6s/iter benchmark (why so slow?)                | MEDIUM | 30min  |
+| 26 | Add Soak test per backend (leak detection)                       | MEDIUM | 45min  |
+| 27 | Run benchmarks with `GOMAXPROCS=1` (single-core baseline)        | MEDIUM | 10min  |
+| 28 | Document expected performance characteristics per backend        | MEDIUM | 30min  |
+| 29 | Add benchmark for view store queries (WHERE, ORDER BY, LIMIT)    | MEDIUM | 20min  |
+| 30 | Add benchmark for relational projection (multi-table)            | MEDIUM | 30min  |
+| 31 | Add benchmark for graph projection (node/edge merge)             | MEDIUM | 30min  |
+| 32 | Add benchmark for snapshot save/load per backend                 | MEDIUM | 20min  |
+| 33 | Add network latency benchmark (localhost vs remote PG/MySQL)     | MEDIUM | 30min  |
+| 34 | Add multi-DB SQLite preset benchmark                             | MEDIUM | 15min  |
+| 35 | Add benchmark for full CQRS journey (cmd→event→projection→query) | MEDIUM | 30min  |
 
 ### LOW (Nice to Have)
 
-| #   | Task                                                                    | Impact | Effort |
-| --- | ----------------------------------------------------------------------- | ------ | ------ |
-| 36  | Add benchmark for transport layer (HTTP SSE, gRPC)                      | LOW    | 30min  |
-| 37  | Add benchmark for catalog/schema generation                             | LOW    | 15min  |
-| 38  | Add benchmark for encryption/signing overhead                           | LOW    | 20min  |
-| 39  | Add benchmark for idempotency middleware overhead                       | LOW    | 15min  |
-| 40  | Add benchmark for OTel tracing overhead                                 | LOW    | 15min  |
-| 41  | Add benchmark for watermill bridge throughput                           | LOW    | 20min  |
-| 42  | Add disk I/O benchmark (HDD vs SSD vs NVMe)                             | LOW    | 30min  |
-| 43  | Add performance budget per backend (max acceptable latency)             | LOW    | 15min  |
-| 44  | Add benchmark for metaengine cross-engine comparison                    | LOW    | 30min  |
-| 45  | Create CI workflow for benchmark regression gate                        | LOW    | 45min  |
-| 46  | Add `--format=markdown` output to bench-all.sh                          | LOW    | 15min  |
-| 47  | Add benchmark trend dashboard (HTML)                                    | LOW    | 60min  |
-| 48  | Add DuckDB storage-level benchmarks (currently only metaengine + stack) | LOW    | 20min  |
-| 49  | Add benchmark for projection throughput per backend                     | LOW    | 20min  |
-| 50  | Add `bench-all.sh` to AGENTS.md documentation                           | LOW    | 5min   |
+| #  | Task                                                                    | Impact | Effort |
+| -- | ----------------------------------------------------------------------- | ------ | ------ |
+| 36 | Add benchmark for transport layer (HTTP SSE, gRPC)                      | LOW    | 30min  |
+| 37 | Add benchmark for catalog/schema generation                             | LOW    | 15min  |
+| 38 | Add benchmark for encryption/signing overhead                           | LOW    | 20min  |
+| 39 | Add benchmark for idempotency middleware overhead                       | LOW    | 15min  |
+| 40 | Add benchmark for OTel tracing overhead                                 | LOW    | 15min  |
+| 41 | Add benchmark for watermill bridge throughput                           | LOW    | 20min  |
+| 42 | Add disk I/O benchmark (HDD vs SSD vs NVMe)                             | LOW    | 30min  |
+| 43 | Add performance budget per backend (max acceptable latency)             | LOW    | 15min  |
+| 44 | Add benchmark for metaengine cross-engine comparison                    | LOW    | 30min  |
+| 45 | Create CI workflow for benchmark regression gate                        | LOW    | 45min  |
+| 46 | Add `--format=markdown` output to bench-all.sh                          | LOW    | 15min  |
+| 47 | Add benchmark trend dashboard (HTML)                                    | LOW    | 60min  |
+| 48 | Add DuckDB storage-level benchmarks (currently only metaengine + stack) | LOW    | 20min  |
+| 49 | Add benchmark for projection throughput per backend                     | LOW    | 20min  |
+| 50 | Add `bench-all.sh` to AGENTS.md documentation                           | LOW    | 5min   |
 
 ---
 

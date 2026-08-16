@@ -1,6 +1,6 @@
 # Session 98 — Comprehensive Status Report
 
-**Date:** 2026-05-25 00:21  
+**Date:** 2026-05-25 00:21\
 **Session focus:** Extract `sync/` module from go-cqrs-lite → go-localsync
 
 ---
@@ -96,30 +96,30 @@ The module was extracted with code and tests but no README.md or CHANGELOG.md of
 
 ### Critical
 
-| #   | Issue                                                        | Why                                                              | Effort |
-| --- | ------------------------------------------------------------ | ---------------------------------------------------------------- | ------ |
-| 1   | `eventcatalog-output/` directory exists in go-cqrs-lite root | Likely a generated artifact that should be gitignored or deleted | 2 min  |
-| 2   | `report/` directory in go-cqrs-lite root                     | Contains jscpd-report.json — should be gitignored                | 2 min  |
-| 3   | FEATURES.md header says "Module count: 12"                   | Stale after sync extraction                                      | 1 min  |
+| # | Issue                                                        | Why                                                              | Effort |
+| - | ------------------------------------------------------------ | ---------------------------------------------------------------- | ------ |
+| 1 | `eventcatalog-output/` directory exists in go-cqrs-lite root | Likely a generated artifact that should be gitignored or deleted | 2 min  |
+| 2 | `report/` directory in go-cqrs-lite root                     | Contains jscpd-report.json — should be gitignored                | 2 min  |
+| 3 | FEATURES.md header says "Module count: 12"                   | Stale after sync extraction                                      | 1 min  |
 
 ### High Impact
 
-| #   | Issue                                               | Why                                                              | Effort |
-| --- | --------------------------------------------------- | ---------------------------------------------------------------- | ------ |
-| 4   | `pkg/sync/` in go-localsync has inline LWW logic    | Should use `pkg/localsync.LWWResolver[T]` instead of reinventing | 30 min |
-| 5   | `pkg/localsync` has no README                       | Consumers won't know it exists                                   | 15 min |
-| 6   | `go-cqrs-lite/example/todo` go.mod has lint warning | `httputil` should be direct dependency, not indirect             | 5 min  |
-| 7   | `testhelpers` coverage at 94.4%                     | Could be 100% with minor test additions                          | 15 min |
-| 8   | `catalog/internal/schemautil` at 84.2%              | Lowest coverage in the project                                   | 20 min |
+| # | Issue                                               | Why                                                              | Effort |
+| - | --------------------------------------------------- | ---------------------------------------------------------------- | ------ |
+| 4 | `pkg/sync/` in go-localsync has inline LWW logic    | Should use `pkg/localsync.LWWResolver[T]` instead of reinventing | 30 min |
+| 5 | `pkg/localsync` has no README                       | Consumers won't know it exists                                   | 15 min |
+| 6 | `go-cqrs-lite/example/todo` go.mod has lint warning | `httputil` should be direct dependency, not indirect             | 5 min  |
+| 7 | `testhelpers` coverage at 94.4%                     | Could be 100% with minor test additions                          | 15 min |
+| 8 | `catalog/internal/schemautil` at 84.2%              | Lowest coverage in the project                                   | 20 min |
 
 ### Medium Impact
 
-| #   | Issue                                                        | Why                                                                                   | Effort |
-| --- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------- | ------ |
-| 9   | Storage at 89.3% coverage                                    | Should target >90%                                                                    | 30 min |
-| 10  | No flake.nix test/lint integration for go-localsync          | go-localsync lacks nix-based CI parity                                                | 1 hr   |
-| 11  | `pkg/localsync` uses `go-error-family` for 4 sentinel errors | Could use stdlib `errors.New` since these are simple sentinels, not classified errors | 10 min |
-| 12  | No benchmark baseline for pkg/localsync                      | Benchmarks exist (from extraction) but no CI regression tracking                      | 30 min |
+| #  | Issue                                                        | Why                                                                                   | Effort |
+| -- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------- | ------ |
+| 9  | Storage at 89.3% coverage                                    | Should target >90%                                                                    | 30 min |
+| 10 | No flake.nix test/lint integration for go-localsync          | go-localsync lacks nix-based CI parity                                                | 1 hr   |
+| 11 | `pkg/localsync` uses `go-error-family` for 4 sentinel errors | Could use stdlib `errors.New` since these are simple sentinels, not classified errors | 10 min |
+| 12 | No benchmark baseline for pkg/localsync                      | Benchmarks exist (from extraction) but no CI regression tracking                      | 30 min |
 
 ---
 

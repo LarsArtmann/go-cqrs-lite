@@ -48,14 +48,14 @@ These are complete, tested, production-quality features with no known issues.
 
 ### Catalog Module (94.4%–96.8% coverage)
 
-| Feature                                                           | Status | Coverage |
-| ----------------------------------------------------------------- | ------ | -------- |
-| Registry — thread-safe, Build() → immutable Catalog               | ✅     | 94.4%    |
-| Schema reflection — SchemaFromType[T](<>) with struct tag support | ✅     | 94.4%    |
-| AsyncAPI 3.0 exporter — YAML + JSON                               | ✅     | 96.8%    |
-| EventCatalog MDX exporter                                         | ✅     | 95.5%    |
-| Catalog adapters — CatalogBuilder, FromDispatcher                 | ✅     | 95.5%    |
-| MessageID extraction — unified from catalog.MessageID()           | ✅     | 94.4%    |
+| Feature                                                         | Status | Coverage |
+| --------------------------------------------------------------- | ------ | -------- |
+| Registry — thread-safe, Build() → immutable Catalog             | ✅     | 94.4%    |
+| Schema reflection — SchemaFromType[T]() with struct tag support | ✅     | 94.4%    |
+| AsyncAPI 3.0 exporter — YAML + JSON                             | ✅     | 96.8%    |
+| EventCatalog MDX exporter                                       | ✅     | 95.5%    |
+| Catalog adapters — CatalogBuilder, FromDispatcher               | ✅     | 95.5%    |
+| MessageID extraction — unified from catalog.MessageID()         | ✅     | 94.4%    |
 
 ### Test Infrastructure
 
@@ -112,11 +112,11 @@ These are complete, tested, production-quality features with no known issues.
 
 ### FEATURES.md
 
-| What's accurate                                  | What's stale                                |
-| ------------------------------------------------ | ------------------------------------------- |
-| Core CQRS features fully accurate                | D2 exporter not yet documented              |
+| What's accurate                                 | What's stale                                |
+| ----------------------------------------------- | ------------------------------------------- |
+| Core CQRS features fully accurate               | D2 exporter not yet documented              |
 | Storage marked ⚠️ PARTIALLY_FUNCTIONAL (correct) | Coverage numbers may need refresh           |
-| io.Closer lifecycle documented                   | Concrete `event.Version` type not mentioned |
+| io.Closer lifecycle documented                  | Concrete `event.Version` type not mentioned |
 
 ### AGENTS.md
 
@@ -191,33 +191,33 @@ These are complete, tested, production-quality features with no known issues.
 
 ## F) Top 25 Next Actions (Ranked)
 
-| #   | Action                                                           | Effort | Impact | Category     |
-| --- | ---------------------------------------------------------------- | ------ | ------ | ------------ |
-| 1   | Fix 4 catalog/d2 lint issues                                     | 5 min  | High   | Hygiene      |
-| 2   | Push 2 unpushed commits to origin                                | 10 sec | High   | Ops          |
-| 3   | Commit or .gitignore the research doc                            | 10 sec | Medium | Hygiene      |
-| 4   | Add example/user smoke test                                      | 15 min | High   | Quality      |
-| 5   | Add example/user to CI lint pipeline                             | 5 min  | Medium | CI           |
-| 6   | Update AGENTS.md with D2, Version, sessions 23-25                | 20 min | Medium | Docs         |
-| 7   | Update FEATURES.md with D2 exporter + coverage                   | 15 min | Medium | Docs         |
-| 8   | Split cattest/helpers.go under 250 lines                         | 15 min | Low    | Code quality |
-| 9   | Add storage error path tests (scanEvents, marshalMetadata)       | 20 min | Medium | Coverage     |
-| 10  | Tag v0.1.0-alpha for core module                                 | 30 min | High   | Release      |
-| 11  | Write ADR: event.Version concrete type                           | 15 min | Medium | Docs         |
-| 12  | Write ADR: io.Closer on lifecycle interfaces                     | 15 min | Medium | Docs         |
-| 13  | Add D2 golden test                                               | 15 min | Low    | Quality      |
-| 14  | Catalog adapters coverage recovery (95.5% → 98%+)                | 20 min | Low    | Coverage     |
-| 15  | Evaluate LiveStore patterns for go-cqrs-lite                     | 1 hr   | TBD    | Research     |
-| 16  | Watermill module skeleton                                        | 2 hr   | Low    | Feature      |
-| 17  | Consider Value() returning text for SQL IDs                      | 30 min | Low    | API          |
-| 18  | Prune old status reports                                         | 10 min | Low    | Docs         |
-| 19  | Add real PostgreSQL integration test                             | 2 hr   | Medium | Quality      |
-| 20  | Move example/user into integration test suite                    | 1 hr   | Low    | Architecture |
-| 21  | Saga design doc review                                           | 1 hr   | Low    | Planning     |
-| 22  | Tag remaining modules (memory, catalog, middleware, storage)     | 30 min | Low    | Release      |
-| 23  | Evaluate go-json-experiment/json stability for v1                | 30 min | Low    | Research     |
-| 24  | Add CONTRIBUTING.md section on adding new modules                | 15 min | Low    | Docs         |
-| 25  | Consider versioned module paths (e.g., /v2) for breaking changes | 1 hr   | Low    | Planning     |
+| #  | Action                                                           | Effort | Impact | Category     |
+| -- | ---------------------------------------------------------------- | ------ | ------ | ------------ |
+| 1  | Fix 4 catalog/d2 lint issues                                     | 5 min  | High   | Hygiene      |
+| 2  | Push 2 unpushed commits to origin                                | 10 sec | High   | Ops          |
+| 3  | Commit or .gitignore the research doc                            | 10 sec | Medium | Hygiene      |
+| 4  | Add example/user smoke test                                      | 15 min | High   | Quality      |
+| 5  | Add example/user to CI lint pipeline                             | 5 min  | Medium | CI           |
+| 6  | Update AGENTS.md with D2, Version, sessions 23-25                | 20 min | Medium | Docs         |
+| 7  | Update FEATURES.md with D2 exporter + coverage                   | 15 min | Medium | Docs         |
+| 8  | Split cattest/helpers.go under 250 lines                         | 15 min | Low    | Code quality |
+| 9  | Add storage error path tests (scanEvents, marshalMetadata)       | 20 min | Medium | Coverage     |
+| 10 | Tag v0.1.0-alpha for core module                                 | 30 min | High   | Release      |
+| 11 | Write ADR: event.Version concrete type                           | 15 min | Medium | Docs         |
+| 12 | Write ADR: io.Closer on lifecycle interfaces                     | 15 min | Medium | Docs         |
+| 13 | Add D2 golden test                                               | 15 min | Low    | Quality      |
+| 14 | Catalog adapters coverage recovery (95.5% → 98%+)                | 20 min | Low    | Coverage     |
+| 15 | Evaluate LiveStore patterns for go-cqrs-lite                     | 1 hr   | TBD    | Research     |
+| 16 | Watermill module skeleton                                        | 2 hr   | Low    | Feature      |
+| 17 | Consider Value() returning text for SQL IDs                      | 30 min | Low    | API          |
+| 18 | Prune old status reports                                         | 10 min | Low    | Docs         |
+| 19 | Add real PostgreSQL integration test                             | 2 hr   | Medium | Quality      |
+| 20 | Move example/user into integration test suite                    | 1 hr   | Low    | Architecture |
+| 21 | Saga design doc review                                           | 1 hr   | Low    | Planning     |
+| 22 | Tag remaining modules (memory, catalog, middleware, storage)     | 30 min | Low    | Release      |
+| 23 | Evaluate go-json-experiment/json stability for v1                | 30 min | Low    | Research     |
+| 24 | Add CONTRIBUTING.md section on adding new modules                | 15 min | Low    | Docs         |
+| 25 | Consider versioned module paths (e.g., /v2) for breaking changes | 1 hr   | Low    | Planning     |
 
 ---
 
@@ -272,14 +272,14 @@ I lean toward **keeping the current pattern** — the lint issue was a process f
 
 ## File Size Watch
 
-| File                                  | Lines   | Limit | Status                     |
-| ------------------------------------- | ------- | ----- | -------------------------- |
-| `core/pkg/id/id_test.go`              | 947     | —     | Test file (no limit)       |
-| `storage/event_store_test.go`         | 923     | —     | Test file                  |
+| File                                  | Lines   | Limit | Status                    |
+| ------------------------------------- | ------- | ----- | ------------------------- |
+| `core/pkg/id/id_test.go`              | 947     | —     | Test file (no limit)      |
+| `storage/event_store_test.go`         | 923     | —     | Test file                 |
 | `catalog/internal/cattest/helpers.go` | **330** | 250   | ⚠️ OVER LIMIT (production) |
-| `catalog/d2/exporter_test.go`         | 286     | —     | Test file                  |
-| `example/user/main.go`                | 180     | 250   | ✅                         |
-| `catalog/d2/exporter.go`              | 200     | 250   | ✅                         |
+| `catalog/d2/exporter_test.go`         | 286     | —     | Test file                 |
+| `example/user/main.go`                | 180     | 250   | ✅                        |
+| `catalog/d2/exporter.go`              | 200     | 250   | ✅                        |
 
 Only 1 production file exceeds 250 lines: `cattest/helpers.go`.
 

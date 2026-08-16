@@ -14,7 +14,7 @@ The **intended** refactor is complete and verified: two methods relocated, impor
 | Build / vet / test              | ✅ All pass                                                                |
 | Formatting                      | ✅ gofumpt + goimports clean                                               |
 | **CI file-size gate**           | ❌ **`sse.go` = 369 lines (>350). Would FAIL `nix run .#check-file-size`** |
-| Rigor / verification discipline | ⚠️ I claimed "Done" without running the project's own size gate            |
+| Rigor / verification discipline | ⚠️ I claimed "Done" without running the project's own size gate             |
 
 ---
 
@@ -125,9 +125,9 @@ Nothing is _broken_ — no compile errors, no test failures, no behavior change.
 
 ## Files Changed This Session
 
-| File                    | Change                                                        | Lines (now)   |
-| ----------------------- | ------------------------------------------------------------- | ------------- |
-| `metaengine/inspect.go` | **Created** — `Inspect()` + `InspectJSON()`                   | 38            |
+| File                    | Change                                                        | Lines (now)  |
+| ----------------------- | ------------------------------------------------------------- | ------------ |
+| `metaengine/inspect.go` | **Created** — `Inspect()` + `InspectJSON()`                   | 38           |
 | `metaengine/sse.go`     | Removed `Inspect()`/`InspectJSON()` + unused `strings` import | 369 ⚠️ (>350) |
 
 ## Verification Run This Session

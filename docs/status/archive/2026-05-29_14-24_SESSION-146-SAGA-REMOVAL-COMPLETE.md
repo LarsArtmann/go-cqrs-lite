@@ -34,7 +34,7 @@ Saga module successfully removed. Storage module is now a clean leaf (core+otel 
 | **Event sourcing**          | Store (Sink/Source ISP split), Journal, SeekableJournal, BackwardsSource               |
 | **SQL storage**             | PostgreSQL + SQLite + Turso: EventStore, SnapshotStore, Outbox, CheckpointStore        |
 | **Embedded storage**        | Pebble key-value event store with async writes                                         |
-| **Projections**             | Replay+live runner, HandlerRegistry, Builder with On[T](<>), parallel processing       |
+| **Projections**             | Replay+live runner, HandlerRegistry, Builder with On[T](), parallel processing         |
 | **Event signing**           | HMAC-SHA256, Ed25519, multisig, verification middleware                                |
 | **24 middleware factories** | Logging, Retry, Recovery, Validation, Metrics, OTel, Circuit Breaker × 3 message types |
 | **Catalog**                 | Registry, AsyncAPI/D2/OpenAPI/EventCatalog exporters                                   |
@@ -63,18 +63,18 @@ Saga module successfully removed. Storage module is now a clean leaf (core+otel 
 
 ## c) NOT STARTED 📐
 
-| #   | Item                                                                                   | Priority | Est |
-| --- | -------------------------------------------------------------------------------------- | -------- | --- |
-| 1   | **core/store coverage** — 28.2% is critically low                                      | HIGH     | 2h  |
-| 2   | **Fix Pebble ScanPrefix test** — only failing test in the repo                         | HIGH     | 30m |
-| 3   | **Fix listing/ compile errors** — references deleted `stream/` package                 | HIGH     | 1h  |
-| 4   | **Rewrite example/user/** — demonstrate full CQRS stack                                | MEDIUM   | 2h  |
-| 5   | **Stream module integration tests**                                                    | MEDIUM   | 1h  |
-| 6   | **Performance regression CI** — benchmark comparison on PRs                            | MEDIUM   | 2h  |
-| 7   | **Fuzz tests** — event creation, ID parsing, schema, DecodePayload                     | MEDIUM   | 3h  |
-| 8   | **BDD tests** — Version, SchemaVersion, OutboxStatus, Pagination                       | LOW      | 2h  |
-| 9   | **Documentation site** — Docusaurus/MkDocs/Hugo                                        | LOW      | 4h  |
-| 10  | **v2 breaking changes** — query.Handler generic, io.Closer removal, event immutability | LOW      | 4h  |
+| #  | Item                                                                                   | Priority | Est |
+| -- | -------------------------------------------------------------------------------------- | -------- | --- |
+| 1  | **core/store coverage** — 28.2% is critically low                                      | HIGH     | 2h  |
+| 2  | **Fix Pebble ScanPrefix test** — only failing test in the repo                         | HIGH     | 30m |
+| 3  | **Fix listing/ compile errors** — references deleted `stream/` package                 | HIGH     | 1h  |
+| 4  | **Rewrite example/user/** — demonstrate full CQRS stack                                | MEDIUM   | 2h  |
+| 5  | **Stream module integration tests**                                                    | MEDIUM   | 1h  |
+| 6  | **Performance regression CI** — benchmark comparison on PRs                            | MEDIUM   | 2h  |
+| 7  | **Fuzz tests** — event creation, ID parsing, schema, DecodePayload                     | MEDIUM   | 3h  |
+| 8  | **BDD tests** — Version, SchemaVersion, OutboxStatus, Pagination                       | LOW      | 2h  |
+| 9  | **Documentation site** — Docusaurus/MkDocs/Hugo                                        | LOW      | 4h  |
+| 10 | **v2 breaking changes** — query.Handler generic, io.Closer removal, event immutability | LOW      | 4h  |
 
 ---
 
@@ -163,7 +163,7 @@ I cannot determine the right call because it depends on the intended architectur
 | core/decider                     | ✅ 100.0%                                         |
 | core/pkg/id                      | ✅ 100.0%                                         |
 | core/pkg/dispatcher              | ✅ 92.2%                                          |
-| **core/store**                   | ⚠️ **28.2%**                                      |
+| **core/store**                   | ⚠️ **28.2%**                                       |
 | memory                           | ✅ 96.6%                                          |
 | catalog                          | ✅ 71.0%                                          |
 | middleware                       | ✅ 94.0%                                          |
@@ -175,7 +175,7 @@ I cannot determine the right call because it depends on the intended architectur
 | watermill                        | ✅ 94.4%                                          |
 | **pebble**                       | ❌ **ScanPrefix FAIL**                            |
 | codec                            | ✅ 100.0%                                         |
-| turso                            | ⚠️ 0.0% (no test files)                           |
+| turso                            | ⚠️ 0.0% (no test files)                            |
 | listing                          | ❌ **COMPILE ERROR** (references deleted stream/) |
 | otel                             | ✅ 96.6%                                          |
 

@@ -24,52 +24,52 @@ In a multi-module workspace (e.g. cqrs-htmx with 19 modules), these workspace-gl
 
 ### 10 rules migrated to per-module evaluation
 
-| Rule | Old pattern | New pattern |
-|---|---|---|
-| **F006** | `importsPath(ctx, ...)` + `hasPIIInEventPayloads(ctx)` | `coachingScopes` + `importsPathIn(sc.files, ...)` + `hasPIIInEventPayloadsIn(ctx.Fset, sc.files)` |
-| **F008** | `eventCount(ctx)` + `projectHasSelector(ctx, ...)` | `eventCountIn(ctx, sc.files)` + `hasSelectorIn(sc.files, ...)` |
-| **F010** | `importsPath(ctx, ...)` + `hasTraversalPatterns(ctx)` | `importsPathIn(sc.files, ...)` + `hasTraversalPatternsIn(ctx.Fset, sc.files)` |
-| **F011** | `projectHasCall(ctx, ...)` + `eventCount(ctx)` + `countSQLExec(ctx)` | `hasCallIn(sc.files, ...)` + `eventCountIn(ctx, sc.files)` + `countSQLExecIn(sc.files)` |
-| **F015** | `usesMetaengine(ctx)` + `countCalls(ctx, ...)` | `importsPathIn(sc.files, ...)` + `countCallsIn(sc.files, ...)` |
-| **F016** | `importsPath(ctx, ...)` + `distinctAggregateCount(ctx)` | `importsPathIn(sc.files, ...)` + `distinctAggregateCountIn(ctx, sc.files)` |
+| Rule     | Old pattern                                                                   | New pattern                                                                                             |
+| -------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **F006** | `importsPath(ctx, ...)` + `hasPIIInEventPayloads(ctx)`                        | `coachingScopes` + `importsPathIn(sc.files, ...)` + `hasPIIInEventPayloadsIn(ctx.Fset, sc.files)`       |
+| **F008** | `eventCount(ctx)` + `projectHasSelector(ctx, ...)`                            | `eventCountIn(ctx, sc.files)` + `hasSelectorIn(sc.files, ...)`                                          |
+| **F010** | `importsPath(ctx, ...)` + `hasTraversalPatterns(ctx)`                         | `importsPathIn(sc.files, ...)` + `hasTraversalPatternsIn(ctx.Fset, sc.files)`                           |
+| **F011** | `projectHasCall(ctx, ...)` + `eventCount(ctx)` + `countSQLExec(ctx)`          | `hasCallIn(sc.files, ...)` + `eventCountIn(ctx, sc.files)` + `countSQLExecIn(sc.files)`                 |
+| **F015** | `usesMetaengine(ctx)` + `countCalls(ctx, ...)`                                | `importsPathIn(sc.files, ...)` + `countCallsIn(sc.files, ...)`                                          |
+| **F016** | `importsPath(ctx, ...)` + `distinctAggregateCount(ctx)`                       | `importsPathIn(sc.files, ...)` + `distinctAggregateCountIn(ctx, sc.files)`                              |
 | **F018** | `usesMetaengine(ctx)` + `firstCallPos(ctx, ...)` + `projectHasCall(ctx, ...)` | `importsPathIn(sc.files, ...)` + `firstCallPosIn(ctx.Fset, sc.files, ...)` + `hasCallIn(sc.files, ...)` |
 | **F019** | `usesMetaengine(ctx)` + `projectHasCall(ctx, ...)` + `firstCallPos(ctx, ...)` | `importsPathIn(sc.files, ...)` + `hasCallIn(sc.files, ...)` + `firstCallPosIn(ctx.Fset, sc.files, ...)` |
-| **F020** | Same as F018 pattern | Same per-module migration |
-| **F021** | `usesMetaengine(ctx)` + `findQueriesWithFolds(ctx)` | `importsPathIn(sc.files, ...)` + `findQueriesWithFoldsIn(ctx.Fset, sc.files)` |
+| **F020** | Same as F018 pattern                                                          | Same per-module migration                                                                               |
+| **F021** | `usesMetaengine(ctx)` + `findQueriesWithFolds(ctx)`                           | `importsPathIn(sc.files, ...)` + `findQueriesWithFoldsIn(ctx.Fset, sc.files)`                           |
 
 ### New `In` variants created (7 functions)
 
-| File | Functions added |
-|---|---|
-| `patterns.go` | `eventCountIn`, `distinctAggregateCountIn`, `hasPIIInEventPayloadsIn`, `hasTraversalPatternsIn` |
-| `f010_f011.go` | `countSQLExecIn` |
-| `f020_f021.go` | `findQueriesWithFoldsIn` |
+| File           | Functions added                                                                                 |
+| -------------- | ----------------------------------------------------------------------------------------------- |
+| `patterns.go`  | `eventCountIn`, `distinctAggregateCountIn`, `hasPIIInEventPayloadsIn`, `hasTraversalPatternsIn` |
+| `f010_f011.go` | `countSQLExecIn`                                                                                |
+| `f020_f021.go` | `findQueriesWithFoldsIn`                                                                        |
 
 All new functions take `(fset *token.FileSet, files []*analyzer.GoFile)` or `(ctx, files)` instead of the full workspace `ctx.GoFiles`.
 
 ### Dead code removed (11 ctx-wrapper functions)
 
-| Function | File | Status |
-|---|---|---|
-| `usesMetaengine(ctx)` | `helpers.go` | Removed — replaced by inline `importsPathIn(sc.files, ...)` |
-| `countCalls(ctx, ...)` | `f015_f016_f017.go` | Removed — was only caller; `countCallsIn` used directly |
-| `distinctAggregateCount(ctx)` | `patterns.go` | Removed — `distinctAggregateCountIn` replaces it |
-| `hasPIIInEventPayloads(ctx)` | `patterns.go` | Removed — `hasPIIInEventPayloadsIn` replaces it |
-| `hasTraversalPatterns(ctx)` | `patterns.go` | Removed — `hasTraversalPatternsIn` replaces it |
-| `importsPath(ctx)` | `helpers.go` | Removed — all callers now use `importsPathIn` directly |
-| `projectHasSelector(ctx)` | `helpers.go` | Removed — all callers now use `hasSelectorIn` directly |
-| `firstManualFilterPos(ctx)` | `f023_f024_f025.go` | Removed — `firstManualFilterPosIn` was already used |
-| `firstManualPaginationPos(ctx)` | `f023_f024_f025.go` | Removed |
-| `firstManualAggregationPos(ctx)` | `f023_f024_f025.go` | Removed |
-| `firstCallByName(ctx)` | `helpers.go` | Removed |
+| Function                         | File                | Status                                                      |
+| -------------------------------- | ------------------- | ----------------------------------------------------------- |
+| `usesMetaengine(ctx)`            | `helpers.go`        | Removed — replaced by inline `importsPathIn(sc.files, ...)` |
+| `countCalls(ctx, ...)`           | `f015_f016_f017.go` | Removed — was only caller; `countCallsIn` used directly     |
+| `distinctAggregateCount(ctx)`    | `patterns.go`       | Removed — `distinctAggregateCountIn` replaces it            |
+| `hasPIIInEventPayloads(ctx)`     | `patterns.go`       | Removed — `hasPIIInEventPayloadsIn` replaces it             |
+| `hasTraversalPatterns(ctx)`      | `patterns.go`       | Removed — `hasTraversalPatternsIn` replaces it              |
+| `importsPath(ctx)`               | `helpers.go`        | Removed — all callers now use `importsPathIn` directly      |
+| `projectHasSelector(ctx)`        | `helpers.go`        | Removed — all callers now use `hasSelectorIn` directly      |
+| `firstManualFilterPos(ctx)`      | `f023_f024_f025.go` | Removed — `firstManualFilterPosIn` was already used         |
+| `firstManualPaginationPos(ctx)`  | `f023_f024_f025.go` | Removed                                                     |
+| `firstManualAggregationPos(ctx)` | `f023_f024_f025.go` | Removed                                                     |
+| `firstCallByName(ctx)`           | `helpers.go`        | Removed                                                     |
 
 ### Tests added (27 total)
 
-| Test file | Tests | Covers |
-|---|---|---|
+| Test file                                           | Tests    | Covers                                                                                                     |
+| --------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
 | `coaching_permodule_extra_test.go` (NEW, 551 lines) | 18 tests | F004, F006, F007, F008, F009, F010, F012, F015, F016, F017, F018, F023, F024, F025, F026, F027, F028, F029 |
-| `b029_b031_permodule_test.go` (extended) | +1 test | B030 (circuit breaker library suppression) |
-| `integration_multimodule_test.go` (NEW, 140 lines) | 2 tests | Real `BuildContext` loader: profile partitioning + file attribution |
+| `b029_b031_permodule_test.go` (extended)            | +1 test  | B030 (circuit breaker library suppression)                                                                 |
+| `integration_multimodule_test.go` (NEW, 140 lines)  | 2 tests  | Real `BuildContext` loader: profile partitioning + file attribution                                        |
 
 ### Verification
 
@@ -89,12 +89,12 @@ All new functions take `(fset *token.FileSet, files []*analyzer.GoFile)` or `(ct
 
 These 4 rules still read workspace-global `ctx` helpers:
 
-| Rule | File | Global helpers still used |
-|---|---|---|
-| F001 | `f001.go` | `eventCount(ctx)`, `firstFuncDeclPos(ctx, ...)` |
-| F002 | `f002_f005.go` | `eventCount(ctx)`, `projectHasCall(ctx, ...)`, `firstFilePos(ctx)` |
-| F005 | `f002_f005.go` | Same as F002 |
-| F014 | `f014.go` | `projectHasCall(ctx, ...)`, `firstCallPos(ctx, ...)`, `firstFilePos(ctx)` |
+| Rule | File           | Global helpers still used                                                 |
+| ---- | -------------- | ------------------------------------------------------------------------- |
+| F001 | `f001.go`      | `eventCount(ctx)`, `firstFuncDeclPos(ctx, ...)`                           |
+| F002 | `f002_f005.go` | `eventCount(ctx)`, `projectHasCall(ctx, ...)`, `firstFilePos(ctx)`        |
+| F005 | `f002_f005.go` | Same as F002                                                              |
+| F014 | `f014.go`      | `projectHasCall(ctx, ...)`, `firstCallPos(ctx, ...)`, `firstFilePos(ctx)` |
 
 **Why not migrated:** These rules don't reference `ctx.FeatureProfile` and their cross-module leakage risk was not flagged in the original feedback. F001 (no catalog) and F002/F005 (no schema versioning) are project-level coaching rules — their counts may genuinely need to be workspace-wide (the schema version decision applies to all events in the workspace). F014 (KV cache) is a similar adoption-coaching rule.
 
@@ -148,7 +148,7 @@ All changes compiled, all tests passed, no files exceeded CI limits, no dead cod
 
 ### 1. The `grep ctx.FeatureProfile` audit was always the wrong approach
 
-The prior session's audit looked for `ctx.FeatureProfile` references. This session's audit looked for workspace-global helper calls (`importsPath(ctx`, `countCalls(ctx`, etc.). Both are **proxies** for the real question: *"does this rule scan files outside the module it's coaching?"* The right audit is a data-flow check: for each finding emitted, trace whether the evidence came from the same module as the finding's file position. No static grep can answer this.
+The prior session's audit looked for `ctx.FeatureProfile` references. This session's audit looked for workspace-global helper calls (`importsPath(ctx`, `countCalls(ctx`, etc.). Both are **proxies** for the real question: _"does this rule scan files outside the module it's coaching?"_ The right audit is a data-flow check: for each finding emitted, trace whether the evidence came from the same module as the finding's file position. No static grep can answer this.
 
 **Fix:** Add a test harness that runs every coaching rule against a synthetic 3-module workspace where module A has the trigger signal, module B has the adoption-suppression import, and module C has neither. Assert each rule fires exactly once (for module A only). The `coaching_permodule_extra_test.go` file does this for 18 rules; it should cover ALL coaching rules (F001–F029).
 

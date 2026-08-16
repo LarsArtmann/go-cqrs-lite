@@ -152,48 +152,48 @@ The `schema_version` column migration was **incomplete** when committed. The `re
 
 ### HIGH IMPACT, LOW EFFORT (Do First)
 
-| #   | Task                                                                              | Effort | Impact                               |
-| --- | --------------------------------------------------------------------------------- | ------ | ------------------------------------ |
-| 1   | Fix pre-commit hook permissions (`chmod +x`)                                      | 5 min  | HIGH — catches issues before push    |
-| 2   | Update `gomodguard` → `gomodguard_v2` in `.golangci.yml`                          | 10 min | MEDIUM — removes deprecation noise   |
-| 3   | Add CI check for golden file drift (fail if `-update` changes files)              | 30 min | HIGH — prevents silent test failures |
-| 4   | Verify CI runs storage tests explicitly                                           | 10 min | HIGH — prevents broken master        |
-| 5   | Update `AGENTS.md` Known Issues section (remove stale entries, add current state) | 30 min | MEDIUM — keeps memory accurate       |
-| 6   | Add `Registry.SetServiceMeta` test to `catalog/registry_test.go`                  | 15 min | LOW — covers new public method       |
+| # | Task                                                                              | Effort | Impact                               |
+| - | --------------------------------------------------------------------------------- | ------ | ------------------------------------ |
+| 1 | Fix pre-commit hook permissions (`chmod +x`)                                      | 5 min  | HIGH — catches issues before push    |
+| 2 | Update `gomodguard` → `gomodguard_v2` in `.golangci.yml`                          | 10 min | MEDIUM — removes deprecation noise   |
+| 3 | Add CI check for golden file drift (fail if `-update` changes files)              | 30 min | HIGH — prevents silent test failures |
+| 4 | Verify CI runs storage tests explicitly                                           | 10 min | HIGH — prevents broken master        |
+| 5 | Update `AGENTS.md` Known Issues section (remove stale entries, add current state) | 30 min | MEDIUM — keeps memory accurate       |
+| 6 | Add `Registry.SetServiceMeta` test to `catalog/registry_test.go`                  | 15 min | LOW — covers new public method       |
 
 ### HIGH IMPACT, MEDIUM EFFORT
 
-| #   | Task                                                                                            | Effort | Impact                                 |
-| --- | ----------------------------------------------------------------------------------------------- | ------ | -------------------------------------- |
-| 7   | **#11: Implement Watermill thin adapter** (`WatermillBus`)                                      | 4-6h   | HIGH — unblocks production deployments |
-| 8   | Add Watermill integration test with in-memory subscriber                                        | 2h     | HIGH — proves the adapter works        |
-| 9   | Increase `storage` coverage to 90%+ (Pebble/Turso paths)                                        | 4h     | MEDIUM — closes #10 permanently        |
-| 10  | Increase `example/user` coverage to 70%+ (extract testable functions from main)                 | 2h     | MEDIUM — library trustworthiness       |
-| 11  | Add `event.Bus` adapter using Go channels (for single-process production use without Watermill) | 2h     | MEDIUM — zero-dependency alternative   |
-| 12  | Saga/process manager design doc and implementation plan                                         | 3h     | HIGH — unlocks complex workflows       |
-| 13  | `query.Handler` typed generics migration (see `docs/planning/QUERY_HANDLER_GENERICS.md`)        | 4h     | MEDIUM — eliminates `any` return type  |
+| #  | Task                                                                                            | Effort | Impact                                 |
+| -- | ----------------------------------------------------------------------------------------------- | ------ | -------------------------------------- |
+| 7  | **#11: Implement Watermill thin adapter** (`WatermillBus`)                                      | 4-6h   | HIGH — unblocks production deployments |
+| 8  | Add Watermill integration test with in-memory subscriber                                        | 2h     | HIGH — proves the adapter works        |
+| 9  | Increase `storage` coverage to 90%+ (Pebble/Turso paths)                                        | 4h     | MEDIUM — closes #10 permanently        |
+| 10 | Increase `example/user` coverage to 70%+ (extract testable functions from main)                 | 2h     | MEDIUM — library trustworthiness       |
+| 11 | Add `event.Bus` adapter using Go channels (for single-process production use without Watermill) | 2h     | MEDIUM — zero-dependency alternative   |
+| 12 | Saga/process manager design doc and implementation plan                                         | 3h     | HIGH — unlocks complex workflows       |
+| 13 | `query.Handler` typed generics migration (see `docs/planning/QUERY_HANDLER_GENERICS.md`)        | 4h     | MEDIUM — eliminates `any` return type  |
 
 ### MEDIUM IMPACT, MEDIUM EFFORT
 
-| #   | Task                                                                            | Effort | Impact                                      |
-| --- | ------------------------------------------------------------------------------- | ------ | ------------------------------------------- |
-| 14  | Consolidate `CatalogMeta` across event/command/query packages                   | 3h     | MEDIUM — eliminates near-identical types    |
-| 15  | Add `TransactionalStore` integration test (real PostgreSQL with testcontainers) | 3h     | MEDIUM — proves atomic save+outbox          |
-| 16  | Add `event.Projection` integration test with real projection runner             | 2h     | MEDIUM — end-to-end projection verification |
-| 17  | Create `docs/GETTING_STARTED.md` — step-by-step guide for new consumers         | 2h     | HIGH — library adoption                     |
-| 18  | Add `io.Closer` removal from interfaces — deferred design decision              | 4h     | LOW — API cleanup (breaking)                |
-| 19  | Benchmark `CatalogBuilder` vs `Registry` after deduplication refactor           | 1h     | LOW — verify no perf regression             |
-| 20  | Add versioned documentation site (Docusaurus/MkDocs)                            | 6h     | HIGH — professional library presence        |
+| #  | Task                                                                            | Effort | Impact                                      |
+| -- | ------------------------------------------------------------------------------- | ------ | ------------------------------------------- |
+| 14 | Consolidate `CatalogMeta` across event/command/query packages                   | 3h     | MEDIUM — eliminates near-identical types    |
+| 15 | Add `TransactionalStore` integration test (real PostgreSQL with testcontainers) | 3h     | MEDIUM — proves atomic save+outbox          |
+| 16 | Add `event.Projection` integration test with real projection runner             | 2h     | MEDIUM — end-to-end projection verification |
+| 17 | Create `docs/GETTING_STARTED.md` — step-by-step guide for new consumers         | 2h     | HIGH — library adoption                     |
+| 18 | Add `io.Closer` removal from interfaces — deferred design decision              | 4h     | LOW — API cleanup (breaking)                |
+| 19 | Benchmark `CatalogBuilder` vs `Registry` after deduplication refactor           | 1h     | LOW — verify no perf regression             |
+| 20 | Add versioned documentation site (Docusaurus/MkDocs)                            | 6h     | HIGH — professional library presence        |
 
 ### LOWER PRIORITY
 
-| #   | Task                                                                | Effort | Impact                                  |
-| --- | ------------------------------------------------------------------- | ------ | --------------------------------------- |
-| 21  | Migrate `example/user/` to use `storage/` module with SQLite        | 3h     | MEDIUM — shows real persistence         |
-| 22  | Add OpenTelemetry tracing to dispatchers and repositories           | 4h     | MEDIUM — production observability       |
-| 23  | Create `contrib/` directory for community extensions                | 1h     | LOW — ecosystem growth                  |
-| 24  | Add changelog automation (conventional commits → CHANGELOG.md)      | 2h     | MEDIUM — release management             |
-| 25  | Write ADR for Watermill integration (Option A vs Option B decision) | 1h     | MEDIUM — records architectural decision |
+| #  | Task                                                                | Effort | Impact                                  |
+| -- | ------------------------------------------------------------------- | ------ | --------------------------------------- |
+| 21 | Migrate `example/user/` to use `storage/` module with SQLite        | 3h     | MEDIUM — shows real persistence         |
+| 22 | Add OpenTelemetry tracing to dispatchers and repositories           | 4h     | MEDIUM — production observability       |
+| 23 | Create `contrib/` directory for community extensions                | 1h     | LOW — ecosystem growth                  |
+| 24 | Add changelog automation (conventional commits → CHANGELOG.md)      | 2h     | MEDIUM — release management             |
+| 25 | Write ADR for Watermill integration (Option A vs Option B decision) | 1h     | MEDIUM — records architectural decision |
 
 ---
 

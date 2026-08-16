@@ -164,33 +164,33 @@ Multi-module Go CQRS library with 22 modules. Deduplication sprint at threshold 
 
 ## F) TOP #25 THINGS TO DO NEXT
 
-| #   | Task                                                                  | Impact | Effort | Module              |
-| --- | --------------------------------------------------------------------- | ------ | ------ | ------------------- |
-| 1   | Fix projection test build error (remove `*` from `*event.Projection`) | HIGH   | 5min   | projection          |
-| 2   | Fix core/query BDD table parameter mismatch                           | HIGH   | 5min   | core/query          |
-| 3   | Fix core/decider snapshot test failures                               | HIGH   | 30min  | core/decider        |
-| 4   | Migrate remaining `event.JSONCodec` → `codec.JSONCodec` in test files | MED    | 10min  | core/decider        |
-| 5   | Publish v1.0.0 tags to eliminate `replace` directives                 | HIGH   | 60min  | all                 |
-| 6   | Add CI coverage threshold gate (e.g., 80%)                            | MED    | 30min  | CI                  |
-| 7   | Write top-level README with quickstart guide                          | MED    | 60min  | docs                |
-| 8   | Create CHANGELOG.md from session history                              | MED    | 30min  | docs                |
-| 9   | Add godoc badges to module READMEs                                    | LOW    | 15min  | docs                |
-| 10  | Verify all 5 example apps build and run                               | MED    | 30min  | example/\*          |
-| 11  | Add stream module to CI test matrix                                   | MED    | 10min  | CI                  |
-| 12  | Create CONTRIBUTING.md                                                | LOW    | 30min  | docs                |
-| 13  | Add integration test for snapshot round-trip                          | MED    | 20min  | core/decider        |
-| 14  | Lint: fix embedded struct field spacing                               | LOW    | 5min   | core/pkg/dispatcher |
-| 15  | Lint: fix nlreturn violations (2 files)                               | LOW    | 5min   | core/\*             |
-| 16  | Verify catalog LSP false positives resolve after restart              | LOW    | 2min   | catalog             |
-| 17  | Add `cqrs-gen` CLI usage documentation                                | LOW    | 30min  | cmd/cqrs-gen        |
-| 18  | Add storage module migration guide (PG/SQLite/Turso)                  | MED    | 60min  | docs                |
-| 19  | Add saga module usage examples                                        | MED    | 30min  | docs                |
-| 20  | Review stream module API surface and completeness                     | MED    | 60min  | stream              |
-| 21  | Add OpenTelemetry integration example                                 | LOW    | 30min  | docs                |
-| 22  | Add signing module usage guide                                        | LOW    | 20min  | docs                |
-| 23  | Watermill adapter: verify API surface, add tests                      | MED    | 60min  | watermill           |
-| 24  | Consider extracting `WithDescription[T]` shared option                | LOW    | 15min  | catalog             |
-| 25  | Add PR template with test/checklist requirements                      | LOW    | 15min  | CI                  |
+| #  | Task                                                                  | Impact | Effort | Module              |
+| -- | --------------------------------------------------------------------- | ------ | ------ | ------------------- |
+| 1  | Fix projection test build error (remove `*` from `*event.Projection`) | HIGH   | 5min   | projection          |
+| 2  | Fix core/query BDD table parameter mismatch                           | HIGH   | 5min   | core/query          |
+| 3  | Fix core/decider snapshot test failures                               | HIGH   | 30min  | core/decider        |
+| 4  | Migrate remaining `event.JSONCodec` → `codec.JSONCodec` in test files | MED    | 10min  | core/decider        |
+| 5  | Publish v1.0.0 tags to eliminate `replace` directives                 | HIGH   | 60min  | all                 |
+| 6  | Add CI coverage threshold gate (e.g., 80%)                            | MED    | 30min  | CI                  |
+| 7  | Write top-level README with quickstart guide                          | MED    | 60min  | docs                |
+| 8  | Create CHANGELOG.md from session history                              | MED    | 30min  | docs                |
+| 9  | Add godoc badges to module READMEs                                    | LOW    | 15min  | docs                |
+| 10 | Verify all 5 example apps build and run                               | MED    | 30min  | example/\*          |
+| 11 | Add stream module to CI test matrix                                   | MED    | 10min  | CI                  |
+| 12 | Create CONTRIBUTING.md                                                | LOW    | 30min  | docs                |
+| 13 | Add integration test for snapshot round-trip                          | MED    | 20min  | core/decider        |
+| 14 | Lint: fix embedded struct field spacing                               | LOW    | 5min   | core/pkg/dispatcher |
+| 15 | Lint: fix nlreturn violations (2 files)                               | LOW    | 5min   | core/\*             |
+| 16 | Verify catalog LSP false positives resolve after restart              | LOW    | 2min   | catalog             |
+| 17 | Add `cqrs-gen` CLI usage documentation                                | LOW    | 30min  | cmd/cqrs-gen        |
+| 18 | Add storage module migration guide (PG/SQLite/Turso)                  | MED    | 60min  | docs                |
+| 19 | Add saga module usage examples                                        | MED    | 30min  | docs                |
+| 20 | Review stream module API surface and completeness                     | MED    | 60min  | stream              |
+| 21 | Add OpenTelemetry integration example                                 | LOW    | 30min  | docs                |
+| 22 | Add signing module usage guide                                        | LOW    | 20min  | docs                |
+| 23 | Watermill adapter: verify API surface, add tests                      | MED    | 60min  | watermill           |
+| 24 | Consider extracting `WithDescription[T]` shared option                | LOW    | 15min  | catalog             |
+| 25 | Add PR template with test/checklist requirements                      | LOW    | 15min  | CI                  |
 
 ---
 

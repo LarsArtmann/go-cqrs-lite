@@ -138,33 +138,33 @@
 
 ## f) Top #25 Things to Get Done Next
 
-| #   | Task                                                          | Module           | Impact       | Effort  | Pareto   |
-| --- | ------------------------------------------------------------- | ---------------- | ------------ | ------- | -------- |
-| 1   | Push v1.0.0 tags to remote                                    | all              | **Critical** | 5m      | 1% → 51% |
-| 2   | Remove `replace` directives from all `go.mod` files           | all              | **Critical** | 1h      | 1% → 51% |
-| 3   | Dry-run `go get` from scratch module                          | external         | **Critical** | 30m     | 1% → 51% |
-| 4   | Add PostgreSQL integration test (testcontainers)              | storage          | High         | 2h      | 20%      |
-| 5   | Add Watermill subscriber integration test                     | watermill        | Medium       | 45m     | 20%      |
-| 6   | Add `catalog/openapi` golden test                             | catalog/openapi  | Low          | 30m     | 20%      |
-| 7   | Add OpenTelemetry span attribute assertions                   | middleware       | Low          | 30m     | 20%      |
-| 8   | Split `core/decider/decider_test.go` (1182→<350)              | core/decider     | Medium       | 1h      | 20%      |
-| 9   | Split `storage/pebble_event_store_test.go` (422→<350)         | storage          | Medium       | 30m     | 20%      |
-| 10  | Fix Pebble cross-process concurrency documentation            | storage          | Medium       | 15m     | 20%      |
-| 11  | Add `catalog` enum/default struct tag support                 | catalog          | Medium       | 2h      | 20%      |
-| 12  | Make AsyncAPI servers configurable                            | catalog/asyncapi | Low          | 30m     | 20%      |
-| 13  | Storage SQL error/rollback deep tests                         | storage          | Medium       | 1h      | 20%      |
-| 14  | Add benchmarks for core modules                               | all              | Low          | 2h      | 20%      |
-| 15  | Add Saga metrics via `MetricsRecorder`                        | saga             | Low          | 30m     | 20%      |
-| 16  | Add example/todo tests                                        | example          | Low          | 1h      | 20%      |
-| 17  | Remove `example/todo` external dep (`httputil`)               | example          | Low          | 30m     | 20%      |
-| 18  | Add `event.Context` propagation helpers                       | core/event       | Medium       | 45m     | 20%      |
-| 19  | Schema registry design document                               | docs             | Medium       | 2h      | 20%      |
-| 20  | Consumer trial — import saga/watermill into real project      | external         | **Critical** | ongoing | 20%      |
-| 21  | Validate CI coverage-gate job actually runs in GitHub Actions | CI               | High         | 30m     | 20%      |
-| 22  | Add `catalog/d2` cross-service connection test                | catalog/d2       | Low          | 30m     | 20%      |
-| 23  | Trim AGENTS.md from ~400→<300 lines                           | docs             | Low          | 30m     | 5%       |
-| 24  | Split testhelpers/fakes.go (342→per-fake)                     | testhelpers      | Low          | 15m     | 5%       |
-| 25  | Add -race to CI test commands                                 | CI               | Low          | 5m      | 5%       |
+| #  | Task                                                          | Module           | Impact       | Effort  | Pareto   |
+| -- | ------------------------------------------------------------- | ---------------- | ------------ | ------- | -------- |
+| 1  | Push v1.0.0 tags to remote                                    | all              | **Critical** | 5m      | 1% → 51% |
+| 2  | Remove `replace` directives from all `go.mod` files           | all              | **Critical** | 1h      | 1% → 51% |
+| 3  | Dry-run `go get` from scratch module                          | external         | **Critical** | 30m     | 1% → 51% |
+| 4  | Add PostgreSQL integration test (testcontainers)              | storage          | High         | 2h      | 20%      |
+| 5  | Add Watermill subscriber integration test                     | watermill        | Medium       | 45m     | 20%      |
+| 6  | Add `catalog/openapi` golden test                             | catalog/openapi  | Low          | 30m     | 20%      |
+| 7  | Add OpenTelemetry span attribute assertions                   | middleware       | Low          | 30m     | 20%      |
+| 8  | Split `core/decider/decider_test.go` (1182→<350)              | core/decider     | Medium       | 1h      | 20%      |
+| 9  | Split `storage/pebble_event_store_test.go` (422→<350)         | storage          | Medium       | 30m     | 20%      |
+| 10 | Fix Pebble cross-process concurrency documentation            | storage          | Medium       | 15m     | 20%      |
+| 11 | Add `catalog` enum/default struct tag support                 | catalog          | Medium       | 2h      | 20%      |
+| 12 | Make AsyncAPI servers configurable                            | catalog/asyncapi | Low          | 30m     | 20%      |
+| 13 | Storage SQL error/rollback deep tests                         | storage          | Medium       | 1h      | 20%      |
+| 14 | Add benchmarks for core modules                               | all              | Low          | 2h      | 20%      |
+| 15 | Add Saga metrics via `MetricsRecorder`                        | saga             | Low          | 30m     | 20%      |
+| 16 | Add example/todo tests                                        | example          | Low          | 1h      | 20%      |
+| 17 | Remove `example/todo` external dep (`httputil`)               | example          | Low          | 30m     | 20%      |
+| 18 | Add `event.Context` propagation helpers                       | core/event       | Medium       | 45m     | 20%      |
+| 19 | Schema registry design document                               | docs             | Medium       | 2h      | 20%      |
+| 20 | Consumer trial — import saga/watermill into real project      | external         | **Critical** | ongoing | 20%      |
+| 21 | Validate CI coverage-gate job actually runs in GitHub Actions | CI               | High         | 30m     | 20%      |
+| 22 | Add `catalog/d2` cross-service connection test                | catalog/d2       | Low          | 30m     | 20%      |
+| 23 | Trim AGENTS.md from ~400→<300 lines                           | docs             | Low          | 30m     | 5%       |
+| 24 | Split testhelpers/fakes.go (342→per-fake)                     | testhelpers      | Low          | 15m     | 5%       |
+| 25 | Add -race to CI test commands                                 | CI               | Low          | 5m      | 5%       |
 
 ---
 

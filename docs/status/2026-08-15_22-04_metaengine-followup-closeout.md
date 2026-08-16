@@ -9,6 +9,7 @@
 ## a) FULLY DONE (verified GREEN this session)
 
 ### 1. Script-key mangling — ROOT-CAUSED and durably fixed (4th occurrence was live in tree)
+
 - Working tree had `LAYER[storage / memory]`-style corruption AGAIN (whitespace-only diff vs HEAD, confirmed via `tr -d` comparison).
 - **Root cause found:** the buildflow pre-commit hook runs `shfmt` on staged `.sh` files; shfmt formats unquoted slashed subscripts (`LAYER[storage/memory]`) as arithmetic expressions (`LAYER[storage / memory]`), silently disabling layer/budget enforcement for every multi-segment module.
 - **Fix:** quoted every slashed map key (`LAYER["storage/memory"]=4`). Verified empirically: shfmt leaves quoted subscripts untouched; bash semantics identical (`key-check: 95.7`). Both scripts re-run GREEN (`Module layer check passed`, coverage all `ok`).
@@ -16,30 +17,36 @@
 - AGENTS.md footgun bullet rewritten with the root cause and the quoting rule.
 
 ### 2. MariaDB numeric-safe ORDER BY + keyset cursors (retrospective item 3)
+
 - Probe-first (docker, both servers): confirmed MariaDB text-sorts bare `JSON_EXTRACT` ("10" < "2"), and validated the fix BEFORE shipping: dual key `CAST(JSON_EXTRACT(...) AS DECIMAL(65,10))` + `JSON_UNQUOTE(...)` tiebreak sorts numbers numerically AND preserves lexical order for text (text casts to 0, tiebreak decides). MySQL result identical.
 - `jsonSortExprs` (dual key on MariaDB, single JSON-typed key on MySQL) + `jsonCursorExpr` (cursor-type-matched predicate: numeric → DECIMAL cast, else unquoted text) wired into `pushdown.go` AND `explain.go`.
 - Tests: DB-free rendering tests (exact SQL strings, MySQL-unchanged regression) + live `TestMySQLPushdownMapScan_MultiDigitSortPagination` (2/3/9/10/100 through full keyset pagination + text-order check). **GREEN on MySQL 8.4 AND MariaDB 11.8.**
 - TODO_LIST "known limitation" note updated to FIXED.
 
 ### 3. mysqlengine CTE capability probe + iterative fallback (retrospective item 4)
+
 - `probeRecursiveCTE` at construction (same pattern as sqliteengine); `GraphNeighbors` dispatches CTE vs iterative BFS over the indexed `meta_graph_edges` adjacency. MySQL 5.7 / MariaDB <10.2 now degrade gracefully instead of Error-1064-ing every graph read.
 - `TestGraphCTEProbeEnabledOnModernServers` + `TestGraphNeighbors_IterativeMatchesCTE` (forced-fallback parity on cycle+diamond graph) — GREEN on both servers.
 - pgengine: documented WHY no probe is needed (WITH RECURSIVE since PG 8.4, 2009).
 
 ### 4. Docs the previous session forgot (retrospective item 5)
+
 - **CHANGELOG.md**: full Unreleased section for all 4 shipped ADT capabilities (MariaDB dialect, numeric-safe sort, LSM vector search, native graph dispatch + SQLite CTE).
 - **FEATURES.md**: stale engine rows updated (pebble/bbolt vector, pg/mysql graph, mysqlengine dialect).
 - **pgengine/README.md**: GraphBackend section, graph+vector rows in cost table, honest degraded-vector note.
 - **AGENTS.md**: MariaDB JSON dialect footgun bullet (empirically verified facts preserved).
 
 ### 5. Coverage rebalance — NOT NEEDED (resolved itself)
+
 - Retrospective claimed metaengine 83.3% doc vs 48.9% actual. Reality: the concurrent session's tests lifted it to 83.5% — full `check-coverage.sh` GREEN, no rebaseline required. (Lesson re-confirmed: status reports are point-in-time.)
 
 ### 6. Race + verification (retrospective items 1, 7)
+
 - mysqlengine `-race -count=3` scoped to changed paths: GREEN. Full `-race` on fresh DB: GREEN (the `-count=3` full-suite failures were pre-existing shared-collection accumulation on one server — values doubled/tripled — NOT a race; documented harness constraint).
 - **Full `nix run .#verify` GREEN (exit 0)** — build + vet + test + race + lint + doc-check + doc-assertions + duplication, exclusive run per AGENTS.md.
 
 ### 7. Fixed-on-sight: concurrent session's RED breakage (blocking the gate)
+
 - `storage/sql/where.go:49` — 2-value call in 3-value return (compile break): fixed.
 - `storage/view/count.go:49` — `:=` redeclare: fixed.
 - `storage/sql/validate.go` — untracked (invisible to nix flake build): staged.
@@ -47,9 +54,11 @@
 - API golden regenerated (their 3 new `storage/sql` exports had drifted).
 
 ### 8. irohengine/quic convergence flake — diagnosed and fixed
+
 - `TestQuicConvergenceSuite/LogConvergence` failed under verify-gate load (order-sensitive exact-sequence assertion); passed standalone 2× (incl. -race). Root cause: per-op QUIC streams apply concurrently on the receiver — the transport guarantees eventual delivery, NOT cross-op order. `sameLogTail` now compares as unordered multiset with rationale comment. quic `-count=3` GREEN, loopback `-count=3` GREEN.
 
 ### 9. Duplication baseline
+
 - 2 new cross-module engine clone groups (mysql/pg graph + pushdown tails — dep-isolation pattern, same precedent as 4d0f1f546) baselined via `art-dupl baseline`; check GREEN (0 new, baseline 99).
 
 ---
@@ -86,6 +95,7 @@
 ## f) NEXT — up to 50 ranked items
 
 **Commit & release hygiene**
+
 1. Commit this session's work (selective paths: mysqlengine/*, pgengine, scripts, docs, irohengine, storage fixes).
 2. Then `nix run .#vulncheck` + `#check-arch` (verify covers them partially; standalone per-module builds catch pin drift).
 3. Review the daemon's auto-commit of the tree if it lands before manual commit — ensure no WIP entanglement.
@@ -163,17 +173,17 @@
 
 ## Verification Evidence (this session)
 
-| Gate | Result |
-|---|---|
-| `go build ./...` (workspace, jsonv2) | GREEN |
-| mysqlengine tests, MySQL 8.4 + MariaDB 11.8 (fresh DBs) | GREEN ×2 |
-| mysqlengine `-race -count=3` (scoped) + `-race` full | GREEN |
-| api-stability meta-tests (post normalizeLayerKey + golden regen) | GREEN |
-| `bash scripts/check-module-layers.sh` | GREEN |
-| `bash scripts/check-coverage.sh` | GREEN (all ok) |
-| storage module tests + lint | GREEN / 0 findings |
-| irohengine + quic×3 + loopback×3 | GREEN |
-| `art-dupl check` (baseline 99) | GREEN |
-| `nix run .#verify` | **GREEN (exit 0, 22:06 CEST)** |
+| Gate                                                             | Result                         |
+| ---------------------------------------------------------------- | ------------------------------ |
+| `go build ./...` (workspace, jsonv2)                             | GREEN                          |
+| mysqlengine tests, MySQL 8.4 + MariaDB 11.8 (fresh DBs)          | GREEN ×2                       |
+| mysqlengine `-race -count=3` (scoped) + `-race` full             | GREEN                          |
+| api-stability meta-tests (post normalizeLayerKey + golden regen) | GREEN                          |
+| `bash scripts/check-module-layers.sh`                            | GREEN                          |
+| `bash scripts/check-coverage.sh`                                 | GREEN (all ok)                 |
+| storage module tests + lint                                      | GREEN / 0 findings             |
+| irohengine + quic×3 + loopback×3                                 | GREEN                          |
+| `art-dupl check` (baseline 99)                                   | GREEN                          |
+| `nix run .#verify`                                               | **GREEN (exit 0, 22:06 CEST)** |
 
 **Cleanup NOT yet done (deliberately — docker servers still useful for pending items 7–8):** mysql8-test, mariadb11-test, pg-test containers; `/tmp/mysql-head` worktree; `/tmp/sqlprobe`.

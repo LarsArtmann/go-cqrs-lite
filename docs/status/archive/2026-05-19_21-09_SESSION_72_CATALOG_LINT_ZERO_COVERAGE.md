@@ -133,33 +133,33 @@ The user asked "serviceID string <-- why is it not using github.com/larsartmann/
 
 Sorted by Impact/Effort (Pareto):
 
-| #   | Task                                                    | Impact | Effort | Module      |
-| --- | ------------------------------------------------------- | ------ | ------ | ----------- |
-| 1   | Commit current changes (this session)                   | HIGH   | 2min   | —           |
-| 2   | Add Dialect unit tests in storage/                      | MEDIUM | 1h     | storage     |
-| 3   | Improve `catalog/openapi` coverage (83.9→95%+)          | MEDIUM | 30min  | catalog     |
-| 4   | Fix golden test comparison (semantic vs string)         | MEDIUM | 2h     | catalog     |
-| 5   | Add `type ServiceID string` branded types (v2 planning) | HIGH   | 4h     | catalog     |
-| 6   | Add `StringID[T]` to core/pkg/id for non-ULID branding  | HIGH   | 1h     | core        |
-| 7   | Update AGENTS.md with session 72 changes                | LOW    | 15min  | —           |
-| 8   | Storage coverage 86.9→90%+                              | MEDIUM | 2h     | storage     |
-| 9   | `Version`/`SchemaVersion` → `uint` migration            | MEDIUM | 1.5h   | core        |
-| 10  | Investigate `testhelpers` 0% coverage                   | LOW    | 30min  | testhelpers |
-| 11  | `catalog/internal/cattest` 0% coverage                  | LOW    | 1h     | catalog     |
-| 12  | Watermill module research + thin adapter                | HIGH   | 20h    | new         |
-| 13  | `SubscriptionScope` type for wildcard                   | LOW    | 1h     | core        |
-| 14  | PostgreSQL integration tests for storage                | MEDIUM | 4h     | storage     |
-| 15  | `example/user` migration to storage module              | MEDIUM | 3h     | example     |
-| 16  | CONTRIBUTING.md                                         | MEDIUM | 1h     | —           |
-| 17  | Tag `v0.1.0-alpha`                                      | HIGH   | 30min  | —           |
-| 18  | Module version standardization                          | MEDIUM | 30min  | —           |
-| 19  | `go-error-family` v0.1.0 publish                        | HIGH   | 5min   | external    |
-| 20  | `io.Closer` removal from interfaces                     | MEDIUM | 4h     | core        |
-| 21  | `CatalogMeta` consolidation across 3 packages           | MEDIUM | 3h     | core        |
-| 22  | `query.Handler` typed generics migration                | MEDIUM | 4h     | core        |
-| 23  | Saga/Process Manager design doc → implementation        | HIGH   | 18h    | new         |
-| 24  | Pre-commit hook permissions fix (`chmod +x`)            | LOW    | 1min   | —           |
-| 25  | CI golden file drift detection                          | MEDIUM | 30min  | CI          |
+| #  | Task                                                    | Impact | Effort | Module      |
+| -- | ------------------------------------------------------- | ------ | ------ | ----------- |
+| 1  | Commit current changes (this session)                   | HIGH   | 2min   | —           |
+| 2  | Add Dialect unit tests in storage/                      | MEDIUM | 1h     | storage     |
+| 3  | Improve `catalog/openapi` coverage (83.9→95%+)          | MEDIUM | 30min  | catalog     |
+| 4  | Fix golden test comparison (semantic vs string)         | MEDIUM | 2h     | catalog     |
+| 5  | Add `type ServiceID string` branded types (v2 planning) | HIGH   | 4h     | catalog     |
+| 6  | Add `StringID[T]` to core/pkg/id for non-ULID branding  | HIGH   | 1h     | core        |
+| 7  | Update AGENTS.md with session 72 changes                | LOW    | 15min  | —           |
+| 8  | Storage coverage 86.9→90%+                              | MEDIUM | 2h     | storage     |
+| 9  | `Version`/`SchemaVersion` → `uint` migration            | MEDIUM | 1.5h   | core        |
+| 10 | Investigate `testhelpers` 0% coverage                   | LOW    | 30min  | testhelpers |
+| 11 | `catalog/internal/cattest` 0% coverage                  | LOW    | 1h     | catalog     |
+| 12 | Watermill module research + thin adapter                | HIGH   | 20h    | new         |
+| 13 | `SubscriptionScope` type for wildcard                   | LOW    | 1h     | core        |
+| 14 | PostgreSQL integration tests for storage                | MEDIUM | 4h     | storage     |
+| 15 | `example/user` migration to storage module              | MEDIUM | 3h     | example     |
+| 16 | CONTRIBUTING.md                                         | MEDIUM | 1h     | —           |
+| 17 | Tag `v0.1.0-alpha`                                      | HIGH   | 30min  | —           |
+| 18 | Module version standardization                          | MEDIUM | 30min  | —           |
+| 19 | `go-error-family` v0.1.0 publish                        | HIGH   | 5min   | external    |
+| 20 | `io.Closer` removal from interfaces                     | MEDIUM | 4h     | core        |
+| 21 | `CatalogMeta` consolidation across 3 packages           | MEDIUM | 3h     | core        |
+| 22 | `query.Handler` typed generics migration                | MEDIUM | 4h     | core        |
+| 23 | Saga/Process Manager design doc → implementation        | HIGH   | 18h    | new         |
+| 24 | Pre-commit hook permissions fix (`chmod +x`)            | LOW    | 1min   | —           |
+| 25 | CI golden file drift detection                          | MEDIUM | 30min  | CI          |
 
 ---
 

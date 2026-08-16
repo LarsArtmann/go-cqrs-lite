@@ -82,18 +82,18 @@ I sent 3 parallel sub-agents to analyze 10 reports in detail (item-by-item, with
 
 ## e) WHAT WE SHOULD IMPROVE
 
-| #   | Improvement                                                                                                                                                         | Priority     |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| 1   | **Commit manually before the daemon grabs changes** — the daemon interleaves unrelated work into single commits, destroying provenance                              | **CRITICAL** |
-| 2   | **Run `nix run .#verify` (full gate), not just `verify-fast`** — the AGENTS.md "stale GREEN" warning exists for exactly this scenario                               | **CRITICAL** |
-| 3   | **Read files before editing** — the edit tool requires prior View; I wasted a round trip by batch-multiediting unread files                                         | **HIGH**     |
-| 4   | **Don't use sub-agents for annotation** — they can't edit files, so the analysis round-trips through text output, doubling the work                                 | **HIGH**     |
-| 5   | **Investigate test failures, don't dismiss them** — "pre-existing and unrelated" is an assumption, not a verification                                               | **HIGH**     |
-| 6   | **Check `git status` before pushing** — I pushed while AGENTS.md had uncommitted daemon changes layered on top                                                      | **MEDIUM**   |
-| 7   | **Update CONTRIBUTING.md when adding CLI features** — JSONC/explain/scorecard are user-facing but undocumented in the contributor guide                             | **MEDIUM**   |
-| 8   | **Verify markdown renders** — strikethrough in table cells (`~~text~~`) can fail on some markdown renderers; spot-check on GitHub                                   | **MEDIUM**   |
-| 9   | **Track plan and self-review files** — I wrote `docs/planning/2026-08-04_07-43_*.md` and `docs/status/2026-08-04_07-40_*.md` but never verified they were committed | **LOW**      |
-| 10  | **Batch-add footers with grep guard** — adding footers via bash loop without checking file content first risks duplicate or malformed footers                       | **LOW**      |
+| #  | Improvement                                                                                                                                                         | Priority     |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| 1  | **Commit manually before the daemon grabs changes** — the daemon interleaves unrelated work into single commits, destroying provenance                              | **CRITICAL** |
+| 2  | **Run `nix run .#verify` (full gate), not just `verify-fast`** — the AGENTS.md "stale GREEN" warning exists for exactly this scenario                               | **CRITICAL** |
+| 3  | **Read files before editing** — the edit tool requires prior View; I wasted a round trip by batch-multiediting unread files                                         | **HIGH**     |
+| 4  | **Don't use sub-agents for annotation** — they can't edit files, so the analysis round-trips through text output, doubling the work                                 | **HIGH**     |
+| 5  | **Investigate test failures, don't dismiss them** — "pre-existing and unrelated" is an assumption, not a verification                                               | **HIGH**     |
+| 6  | **Check `git status` before pushing** — I pushed while AGENTS.md had uncommitted daemon changes layered on top                                                      | **MEDIUM**   |
+| 7  | **Update CONTRIBUTING.md when adding CLI features** — JSONC/explain/scorecard are user-facing but undocumented in the contributor guide                             | **MEDIUM**   |
+| 8  | **Verify markdown renders** — strikethrough in table cells (`~~text~~`) can fail on some markdown renderers; spot-check on GitHub                                   | **MEDIUM**   |
+| 9  | **Track plan and self-review files** — I wrote `docs/planning/2026-08-04_07-43_*.md` and `docs/status/2026-08-04_07-40_*.md` but never verified they were committed | **LOW**      |
+| 10 | **Batch-add footers with grep guard** — adding footers via bash loop without checking file content first risks duplicate or malformed footers                       | **LOW**      |
 
 ---
 

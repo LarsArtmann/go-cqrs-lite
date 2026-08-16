@@ -139,33 +139,33 @@ Nothing. All code compiles, all 22 existing test packages pass, no regressions i
 
 Ranked by impact × effort:
 
-| #   | Task                                                    | Effort | Impact     |
-| --- | ------------------------------------------------------- | ------ | ---------- |
-| 1   | MemoryStore `LoadToVersion` tests                       | 10min  | ⭐⭐⭐⭐   |
-| 2   | MemoryStore `LoadToTimestamp` tests                     | 8min   | ⭐⭐⭐⭐   |
-| 3   | MemoryStore `LoadAllFromPosition` tests                 | 10min  | ⭐⭐⭐⭐   |
-| 4   | SQLEventStore `LoadToVersion` tests                     | 10min  | ⭐⭐⭐⭐   |
-| 5   | SQLEventStore `LoadToTimestamp` tests                   | 8min   | ⭐⭐⭐⭐   |
-| 6   | SQLEventStore `LoadAllFromPosition` tests               | 8min   | ⭐⭐⭐⭐   |
-| 7   | `decider.Repository.LoadAtVersion` method               | 8min   | ⭐⭐⭐⭐⭐ |
-| 8   | `decider.Repository.LoadAtTime` method                  | 8min   | ⭐⭐⭐⭐   |
-| 9   | Decider `LoadAtVersion`/`LoadAtTime` tests              | 10min  | ⭐⭐⭐⭐   |
-| 10  | `aggregate.Repository.LoadAtVersion` (interface + impl) | 10min  | ⭐⭐⭐⭐   |
-| 11  | Aggregate `LoadAtVersion` tests                         | 8min   | ⭐⭐⭐     |
-| 12  | Auto-detect `PositionalLoader` in projection Runner     | 5min   | ⭐⭐⭐⭐⭐ |
-| 13  | Rewrite `Runner.replay()` with position-based loading   | 10min  | ⭐⭐⭐⭐⭐ |
-| 14  | Keep `filterEvents()` as fallback                       | 3min   | ⭐⭐⭐     |
-| 15  | Test: position-based replay                             | 10min  | ⭐⭐⭐⭐⭐ |
-| 16  | Test: fallback to LoadAll                               | 8min   | ⭐⭐⭐⭐   |
-| 17  | Add timestamp index to SQL DDL                          | 5min   | ⭐⭐⭐⭐   |
-| 18  | PebbleStore `LoadToVersion` tests                       | 8min   | ⭐⭐       |
-| 19  | FakeStore `LoadToVersion`/`LoadToTimestamp` tests       | 5min   | ⭐⭐⭐     |
-| 20  | Integration test: LoadToVersion + decider end-to-end    | 8min   | ⭐⭐⭐     |
-| 21  | Update `AGENTS.md`                                      | 5min   | ⭐⭐⭐     |
-| 22  | Update `FEATURES.md`                                    | 5min   | ⭐⭐⭐     |
-| 23  | Full lint check                                         | 5min   | ⭐⭐⭐⭐   |
-| 24  | Commit everything                                       | 5min   | ⭐⭐⭐     |
-| 25  | Clean up plan doc (mark completed items)                | 3min   | ⭐⭐       |
+| #  | Task                                                    | Effort | Impact     |
+| -- | ------------------------------------------------------- | ------ | ---------- |
+| 1  | MemoryStore `LoadToVersion` tests                       | 10min  | ⭐⭐⭐⭐   |
+| 2  | MemoryStore `LoadToTimestamp` tests                     | 8min   | ⭐⭐⭐⭐   |
+| 3  | MemoryStore `LoadAllFromPosition` tests                 | 10min  | ⭐⭐⭐⭐   |
+| 4  | SQLEventStore `LoadToVersion` tests                     | 10min  | ⭐⭐⭐⭐   |
+| 5  | SQLEventStore `LoadToTimestamp` tests                   | 8min   | ⭐⭐⭐⭐   |
+| 6  | SQLEventStore `LoadAllFromPosition` tests               | 8min   | ⭐⭐⭐⭐   |
+| 7  | `decider.Repository.LoadAtVersion` method               | 8min   | ⭐⭐⭐⭐⭐ |
+| 8  | `decider.Repository.LoadAtTime` method                  | 8min   | ⭐⭐⭐⭐   |
+| 9  | Decider `LoadAtVersion`/`LoadAtTime` tests              | 10min  | ⭐⭐⭐⭐   |
+| 10 | `aggregate.Repository.LoadAtVersion` (interface + impl) | 10min  | ⭐⭐⭐⭐   |
+| 11 | Aggregate `LoadAtVersion` tests                         | 8min   | ⭐⭐⭐     |
+| 12 | Auto-detect `PositionalLoader` in projection Runner     | 5min   | ⭐⭐⭐⭐⭐ |
+| 13 | Rewrite `Runner.replay()` with position-based loading   | 10min  | ⭐⭐⭐⭐⭐ |
+| 14 | Keep `filterEvents()` as fallback                       | 3min   | ⭐⭐⭐     |
+| 15 | Test: position-based replay                             | 10min  | ⭐⭐⭐⭐⭐ |
+| 16 | Test: fallback to LoadAll                               | 8min   | ⭐⭐⭐⭐   |
+| 17 | Add timestamp index to SQL DDL                          | 5min   | ⭐⭐⭐⭐   |
+| 18 | PebbleStore `LoadToVersion` tests                       | 8min   | ⭐⭐       |
+| 19 | FakeStore `LoadToVersion`/`LoadToTimestamp` tests       | 5min   | ⭐⭐⭐     |
+| 20 | Integration test: LoadToVersion + decider end-to-end    | 8min   | ⭐⭐⭐     |
+| 21 | Update `AGENTS.md`                                      | 5min   | ⭐⭐⭐     |
+| 22 | Update `FEATURES.md`                                    | 5min   | ⭐⭐⭐     |
+| 23 | Full lint check                                         | 5min   | ⭐⭐⭐⭐   |
+| 24 | Commit everything                                       | 5min   | ⭐⭐⭐     |
+| 25 | Clean up plan doc (mark completed items)                | 3min   | ⭐⭐       |
 
 ---
 

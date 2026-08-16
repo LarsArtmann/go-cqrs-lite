@@ -92,6 +92,7 @@ remain (verified via grep). The file points to CHANGELOG for completed work.
 **Done:** 1 of ~33 reports archived (`2026-08-11_04-04_verify-green-and-lint-cleanup.md`).
 
 **Not done:** The remaining ~32 `2026-08-1*.md` reports still need:
+
 - Inline strikethrough annotation for resolved items.
 - Archival (`git mv` to `docs/status/archive/`) for fully-done reports.
 

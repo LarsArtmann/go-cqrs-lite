@@ -1,8 +1,8 @@
 # Comprehensive Status Report — go-cqrs-lite
 
-**Date:** 2026-04-08 19:45  
-**Commit:** ffaafe1 docs: update README with xtypes usage and mark all TODO items complete  
-**Branch:** master  
+**Date:** 2026-04-08 19:45\
+**Commit:** ffaafe1 docs: update README with xtypes usage and mark all TODO items complete\
+**Branch:** master\
 **Status:** ALL TODO_ITEMS COMPLETE — Production Ready, 15/15 TODO_LIST items shipped
 
 ---
@@ -154,33 +154,33 @@ The `.golangci.yaml` exists but the `depguard` configuration flags all inter-pac
 
 ### From ROADMAP.md
 
-| #   | Item                                              | Priority |
-| --- | ------------------------------------------------- | -------- |
-| 1   | Re-run `buildflow --semantic --fix`               | Low      |
-| 2   | Update `.golangci.yml` (fix depguard config)      | Medium   |
-| 3   | Document testing approach in AGENTS.md            | Low      |
-| 4   | Create architecture docs                          | Low      |
-| 5   | Create CONTRIBUTING.md (exists but minimal)       | Low      |
-| 6   | Create CODE_OF_CONDUCT.md (exists but minimal)    | Low      |
-| 7   | Add GoDoc package examples (`Example*` functions) | Medium   |
-| 8   | Add coverage tracking (codecov/coveralls)         | Medium   |
-| 9   | Add error assertion tests                         | Low      |
+| # | Item                                              | Priority |
+| - | ------------------------------------------------- | -------- |
+| 1 | Re-run `buildflow --semantic --fix`               | Low      |
+| 2 | Update `.golangci.yml` (fix depguard config)      | Medium   |
+| 3 | Document testing approach in AGENTS.md            | Low      |
+| 4 | Create architecture docs                          | Low      |
+| 5 | Create CONTRIBUTING.md (exists but minimal)       | Low      |
+| 6 | Create CODE_OF_CONDUCT.md (exists but minimal)    | Low      |
+| 7 | Add GoDoc package examples (`Example*` functions) | Medium   |
+| 8 | Add coverage tracking (codecov/coveralls)         | Medium   |
+| 9 | Add error assertion tests                         | Low      |
 
 ### Not on Any List Yet
 
-| #   | Item                                                     | Impact                                  |
-| --- | -------------------------------------------------------- | --------------------------------------- |
-| 10  | `EventRetry()` tests                                     | HIGH — 0% coverage on exported function |
-| 11  | `QueryValidation()` tests                                | HIGH — 0% coverage on exported function |
-| 12  | `example/user/` update to use new xtypes/middleware/repo | Medium                                  |
-| 13  | SQL/database event store implementation                  | Future                                  |
-| 14  | Projection/read-model support                            | Future                                  |
-| 15  | Saga/process manager support                             | Future                                  |
-| 16  | Context propagation through middleware chain             | Future                                  |
-| 17  | OpenTelemetry integration                                | Future                                  |
-| 18  | Event upcasting/schema evolution                         | Future                                  |
-| 19  | Dead letter queue for failed events                      | Future                                  |
-| 20  | Health check endpoints                                   | Future                                  |
+| #  | Item                                                     | Impact                                  |
+| -- | -------------------------------------------------------- | --------------------------------------- |
+| 10 | `EventRetry()` tests                                     | HIGH — 0% coverage on exported function |
+| 11 | `QueryValidation()` tests                                | HIGH — 0% coverage on exported function |
+| 12 | `example/user/` update to use new xtypes/middleware/repo | Medium                                  |
+| 13 | SQL/database event store implementation                  | Future                                  |
+| 14 | Projection/read-model support                            | Future                                  |
+| 15 | Saga/process manager support                             | Future                                  |
+| 16 | Context propagation through middleware chain             | Future                                  |
+| 17 | OpenTelemetry integration                                | Future                                  |
+| 18 | Event upcasting/schema evolution                         | Future                                  |
+| 19 | Dead letter queue for failed events                      | Future                                  |
+| 20 | Health check endpoints                                   | Future                                  |
 
 ---
 
@@ -250,33 +250,33 @@ The `.golangci.yaml` depguard rules flag ALL inter-package imports within the pr
 
 Sorted by **impact × urgency / effort**:
 
-| #   | Item                                                 | Package           | Effort | Impact | Rationale                                          |
-| --- | ---------------------------------------------------- | ----------------- | ------ | ------ | -------------------------------------------------- |
-| 1   | Add tests for `EventRetry()`                         | middleware        | 30min  | HIGH   | 0% coverage on exported function                   |
-| 2   | Add tests for `QueryValidation()`                    | middleware        | 15min  | HIGH   | 0% coverage on exported function                   |
-| 3   | Fix `.golangci.yaml` depguard config                 | config            | 15min  | HIGH   | Eliminates ~40 false positive warnings             |
-| 4   | Add pre-commit hook (`go test ./...`)                | infra             | 10min  | HIGH   | Prevents shipping broken code                      |
-| 5   | Add error path tests for aggregate repo              | aggregate         | 1hr    | MEDIUM | Gets coverage from 75% → 85%+                      |
-| 6   | Add tests for `Parse*` ID variants                   | pkg/id            | 30min  | MEDIUM | 5 exported Parse functions untested                |
-| 7   | Update `example/user/` to use xtypes+repo+middleware | example           | 2hr    | MEDIUM | Canonical example should showcase all features     |
-| 8   | Add `EventLogging` error path test                   | middleware        | 15min  | MEDIUM | Missing error coverage                             |
-| 9   | Add `EventRecovery` no-panic test                    | middleware        | 15min  | MEDIUM | Missing success path coverage                      |
-| 10  | Add godoc to `catalog/yaml.Marshal`                  | catalog/yaml      | 5min   | LOW    | Only exported function missing doc                 |
-| 11  | Name `Root.Apply` parameter per `inamedparam`        | aggregate         | 2min   | LOW    | One-line fix                                       |
-| 12  | Add godoc to `RetryConfig` fields                    | middleware        | 10min  | LOW    | Exported fields need docs                          |
-| 13  | Add GoDoc `Example*` functions                       | all               | 3hr    | MEDIUM | Improves pkg.go.dev experience                     |
-| 14  | Add `event.Format()` unknown verb test               | pkg/id            | 10min  | LOW    | Edge case coverage                                 |
-| 15  | Add CI pipeline verification                         | infra             | 30min  | MEDIUM | README claims GitHub Actions but may not exist     |
-| 16  | Write ADR for branded types decision                 | docs              | 30min  | LOW    | Key architectural decision undocumented            |
-| 17  | Write ADR for custom YAML marshaler                  | docs              | 30min  | LOW    | Key architectural decision undocumented            |
-| 18  | Add integration test error scenarios                 | aggregate         | 1hr    | MEDIUM | Only happy path tested currently                   |
-| 19  | Explore generic middleware to reduce duplication     | middleware        | 3hr    | MEDIUM | 5 files × 2 variants = 10 functions of duplication |
-| 20  | Add coverage tracking (codecov)                      | infra             | 1hr    | MEDIUM | Prevent coverage regressions                       |
-| 21  | Verify/fix `example/user/` compiles                  | example           | 15min  | MEDIUM | Has separate go.mod, may be stale                  |
-| 22  | Add `catalog/yaml.Marshal` edge case tests           | catalog/yaml      | 30min  | LOW    | Special chars, unsupported types                   |
-| 23  | Document testing approach in AGENTS.md               | docs              | 30min  | LOW    | ROADMAP item                                       |
-| 24  | Add error assertion helper tests                     | internal/testutil | 30min  | LOW    | ROADMAP item                                       |
-| 25  | Re-run `buildflow --semantic --fix`                  | tooling           | 15min  | LOW    | ROADMAP item, catches lint drift                   |
+| #  | Item                                                 | Package           | Effort | Impact | Rationale                                          |
+| -- | ---------------------------------------------------- | ----------------- | ------ | ------ | -------------------------------------------------- |
+| 1  | Add tests for `EventRetry()`                         | middleware        | 30min  | HIGH   | 0% coverage on exported function                   |
+| 2  | Add tests for `QueryValidation()`                    | middleware        | 15min  | HIGH   | 0% coverage on exported function                   |
+| 3  | Fix `.golangci.yaml` depguard config                 | config            | 15min  | HIGH   | Eliminates ~40 false positive warnings             |
+| 4  | Add pre-commit hook (`go test ./...`)                | infra             | 10min  | HIGH   | Prevents shipping broken code                      |
+| 5  | Add error path tests for aggregate repo              | aggregate         | 1hr    | MEDIUM | Gets coverage from 75% → 85%+                      |
+| 6  | Add tests for `Parse*` ID variants                   | pkg/id            | 30min  | MEDIUM | 5 exported Parse functions untested                |
+| 7  | Update `example/user/` to use xtypes+repo+middleware | example           | 2hr    | MEDIUM | Canonical example should showcase all features     |
+| 8  | Add `EventLogging` error path test                   | middleware        | 15min  | MEDIUM | Missing error coverage                             |
+| 9  | Add `EventRecovery` no-panic test                    | middleware        | 15min  | MEDIUM | Missing success path coverage                      |
+| 10 | Add godoc to `catalog/yaml.Marshal`                  | catalog/yaml      | 5min   | LOW    | Only exported function missing doc                 |
+| 11 | Name `Root.Apply` parameter per `inamedparam`        | aggregate         | 2min   | LOW    | One-line fix                                       |
+| 12 | Add godoc to `RetryConfig` fields                    | middleware        | 10min  | LOW    | Exported fields need docs                          |
+| 13 | Add GoDoc `Example*` functions                       | all               | 3hr    | MEDIUM | Improves pkg.go.dev experience                     |
+| 14 | Add `event.Format()` unknown verb test               | pkg/id            | 10min  | LOW    | Edge case coverage                                 |
+| 15 | Add CI pipeline verification                         | infra             | 30min  | MEDIUM | README claims GitHub Actions but may not exist     |
+| 16 | Write ADR for branded types decision                 | docs              | 30min  | LOW    | Key architectural decision undocumented            |
+| 17 | Write ADR for custom YAML marshaler                  | docs              | 30min  | LOW    | Key architectural decision undocumented            |
+| 18 | Add integration test error scenarios                 | aggregate         | 1hr    | MEDIUM | Only happy path tested currently                   |
+| 19 | Explore generic middleware to reduce duplication     | middleware        | 3hr    | MEDIUM | 5 files × 2 variants = 10 functions of duplication |
+| 20 | Add coverage tracking (codecov)                      | infra             | 1hr    | MEDIUM | Prevent coverage regressions                       |
+| 21 | Verify/fix `example/user/` compiles                  | example           | 15min  | MEDIUM | Has separate go.mod, may be stale                  |
+| 22 | Add `catalog/yaml.Marshal` edge case tests           | catalog/yaml      | 30min  | LOW    | Special chars, unsupported types                   |
+| 23 | Document testing approach in AGENTS.md               | docs              | 30min  | LOW    | ROADMAP item                                       |
+| 24 | Add error assertion helper tests                     | internal/testutil | 30min  | LOW    | ROADMAP item                                       |
+| 25 | Re-run `buildflow --semantic --fix`                  | tooling           | 15min  | LOW    | ROADMAP item, catches lint drift                   |
 
 ---
 

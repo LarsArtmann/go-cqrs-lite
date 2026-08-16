@@ -119,14 +119,14 @@
 
 ### Code Duplication (6 remaining clone groups)
 
-| #   | Files                                                          | Severity | Actionable?                                          |
-| --- | -------------------------------------------------------------- | -------- | ---------------------------------------------------- |
-| 1   | storage/event_store_load.go (LoadFromVersion vs LoadToVersion) | Low      | Yes — parameterize operator                          |
-| 2   | middleware/circuit_breaker.go vs middleware/middleware.go      | Low      | Acceptable — config validation pattern               |
-| 3   | command/dispatcher.go vs query/dispatcher.go                   | Low      | Acceptable — same pattern, different types           |
-| 4   | catalog/validate.go (validateDomain vs validateChannel)        | Low      | Could use generics, but only 2 occurrences           |
-| 5   | encryption/aesgcm.go vs encryption/xchacha20.go                | Medium   | Acceptable — algorithm differences justify structure |
-| 6   | storage/command_store_load.go (LoadFromVersion vs LoadAll)     | Low      | Yes — parameterize WHERE clause                      |
+| # | Files                                                          | Severity | Actionable?                                          |
+| - | -------------------------------------------------------------- | -------- | ---------------------------------------------------- |
+| 1 | storage/event_store_load.go (LoadFromVersion vs LoadToVersion) | Low      | Yes — parameterize operator                          |
+| 2 | middleware/circuit_breaker.go vs middleware/middleware.go      | Low      | Acceptable — config validation pattern               |
+| 3 | command/dispatcher.go vs query/dispatcher.go                   | Low      | Acceptable — same pattern, different types           |
+| 4 | catalog/validate.go (validateDomain vs validateChannel)        | Low      | Could use generics, but only 2 occurrences           |
+| 5 | encryption/aesgcm.go vs encryption/xchacha20.go                | Medium   | Acceptable — algorithm differences justify structure |
+| 6 | storage/command_store_load.go (LoadFromVersion vs LoadAll)     | Low      | Yes — parameterize WHERE clause                      |
 
 ---
 
@@ -233,33 +233,33 @@
 
 Sorted by **impact × (1/effort)** — highest ROI first.
 
-| #   | Task                                                           | Impact                      | Effort | Priority |
-| --- | -------------------------------------------------------------- | --------------------------- | ------ | -------- |
-| 1   | Fix flaky `turso/indexing/TestApplyWAL` test                   | High (CI signal)            | 30min  | 🔴       |
-| 2   | Add SQLite test artifacts to `.gitignore`                      | Medium (clean repo)         | 5min   | 🔴       |
-| 3   | Add example binaries to `.buildflow.yml` excludes              | Medium (commit hygiene)     | 5min   | 🔴       |
-| 4   | Update README.md with encryption module section                | High (discoverability)      | 30min  | 🔴       |
-| 5   | Update README.md with turso module section                     | High (discoverability)      | 30min  | 🔴       |
-| 6   | Parameterize SQL load helpers (eliminate 2 clone groups)       | Medium (dedup)              | 1hr    | 🟡       |
-| 7   | Add golden tests for signing module                            | Medium (regression safety)  | 1hr    | 🟡       |
-| 8   | Add golden tests for storage module                            | Medium (regression safety)  | 1hr    | 🟡       |
-| 9   | Fix ADR-0005 numbering gap                                     | Low (clarity)               | 15min  | 🟡       |
-| 10  | Add `example/encryption/` standalone example                   | Medium (adoption)           | 2hr    | 🟡       |
-| 11  | Add PostgreSQL integration tests via testcontainers            | High (correctness)          | 4hr    | 🟡       |
-| 12  | Add property-based tests for catalog/ schema reflection        | Medium (robustness)         | 2hr    | 🟡       |
-| 13  | Parameterize command_store_load.go helpers                     | Low (dedup)                 | 30min  | 🟢       |
-| 14  | Add golden tests for pebble module                             | Medium (persistence safety) | 1hr    | 🟢       |
-| 15  | Document CBOR usage patterns in codec/README.md                | Low (DX)                    | 30min  | 🟢       |
-| 16  | Add `WithLogger` consistency audit across all middleware       | Low (polish)                | 30min  | 🟢       |
-| 17  | Evaluate CoreDetEncOptions vs CanonicalEncOptions for CBOR     | Low (correctness)           | 1hr    | 🟢       |
-| 18  | Add Outbox pattern design doc                                  | Medium (future feature)     | 2hr    | 🟢       |
-| 19  | Add schema registry design doc                                 | Medium (future feature)     | 2hr    | 🟢       |
-| 20  | Create documentation site (Docusaurus/MkDocs)                  | Medium (adoption)           | 4hr    | 🟢       |
-| 21  | Add streaming event reads without materializing full slice     | Medium (performance)        | 4hr    | 🟢       |
-| 22  | Add distributed checkpointing for projections                  | Medium (scalability)        | 1d+    | 🟢       |
-| 23  | Add `cqrs-gen v2` with struct tag scanning                     | Low (DX)                    | 4hr    | 🟢       |
-| 24  | Add gRPC transport adapter                                     | Low (ecosystem)             | 1d     | 🟢       |
-| 25  | Split `catalog.Message` into Message+MessageMeta (v3 breaking) | Medium (type safety)        | v3     | ⚪       |
+| #  | Task                                                           | Impact                      | Effort | Priority |
+| -- | -------------------------------------------------------------- | --------------------------- | ------ | -------- |
+| 1  | Fix flaky `turso/indexing/TestApplyWAL` test                   | High (CI signal)            | 30min  | 🔴       |
+| 2  | Add SQLite test artifacts to `.gitignore`                      | Medium (clean repo)         | 5min   | 🔴       |
+| 3  | Add example binaries to `.buildflow.yml` excludes              | Medium (commit hygiene)     | 5min   | 🔴       |
+| 4  | Update README.md with encryption module section                | High (discoverability)      | 30min  | 🔴       |
+| 5  | Update README.md with turso module section                     | High (discoverability)      | 30min  | 🔴       |
+| 6  | Parameterize SQL load helpers (eliminate 2 clone groups)       | Medium (dedup)              | 1hr    | 🟡       |
+| 7  | Add golden tests for signing module                            | Medium (regression safety)  | 1hr    | 🟡       |
+| 8  | Add golden tests for storage module                            | Medium (regression safety)  | 1hr    | 🟡       |
+| 9  | Fix ADR-0005 numbering gap                                     | Low (clarity)               | 15min  | 🟡       |
+| 10 | Add `example/encryption/` standalone example                   | Medium (adoption)           | 2hr    | 🟡       |
+| 11 | Add PostgreSQL integration tests via testcontainers            | High (correctness)          | 4hr    | 🟡       |
+| 12 | Add property-based tests for catalog/ schema reflection        | Medium (robustness)         | 2hr    | 🟡       |
+| 13 | Parameterize command_store_load.go helpers                     | Low (dedup)                 | 30min  | 🟢       |
+| 14 | Add golden tests for pebble module                             | Medium (persistence safety) | 1hr    | 🟢       |
+| 15 | Document CBOR usage patterns in codec/README.md                | Low (DX)                    | 30min  | 🟢       |
+| 16 | Add `WithLogger` consistency audit across all middleware       | Low (polish)                | 30min  | 🟢       |
+| 17 | Evaluate CoreDetEncOptions vs CanonicalEncOptions for CBOR     | Low (correctness)           | 1hr    | 🟢       |
+| 18 | Add Outbox pattern design doc                                  | Medium (future feature)     | 2hr    | 🟢       |
+| 19 | Add schema registry design doc                                 | Medium (future feature)     | 2hr    | 🟢       |
+| 20 | Create documentation site (Docusaurus/MkDocs)                  | Medium (adoption)           | 4hr    | 🟢       |
+| 21 | Add streaming event reads without materializing full slice     | Medium (performance)        | 4hr    | 🟢       |
+| 22 | Add distributed checkpointing for projections                  | Medium (scalability)        | 1d+    | 🟢       |
+| 23 | Add `cqrs-gen v2` with struct tag scanning                     | Low (DX)                    | 4hr    | 🟢       |
+| 24 | Add gRPC transport adapter                                     | Low (ecosystem)             | 1d     | 🟢       |
+| 25 | Split `catalog.Message` into Message+MessageMeta (v3 breaking) | Medium (type safety)        | v3     | ⚪       |
 
 ---
 

@@ -161,33 +161,33 @@ The driver accepts both. But if Turso ever drops `libsql://` support, our test s
 
 Ranked by impact × urgency:
 
-| #   | Task                                                                                                                                                   | Impact | Effort  | Module                |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------- | --------------------- |
-| 1   | **Commit the Turso docs sweep** — this work is uncommitted                                                                                             | High   | 5min    | repo-wide             |
-| 2   | **Review and commit/finish the pre-existing dedup/SSE work** in the working tree                                                                       | High   | Unknown | transport/http, dedup |
-| 3   | **Set up Turso sync CI** — run `TestNewSync_Contract` against a free Turso Cloud instance in GitHub Actions                                            | High   | 2h      | stack/turso, CI       |
-| 4   | **Add `archive/README.md` disclaimer** about historical terminology                                                                                    | Low    | 5min    | docs/status/archive   |
-| 5   | **Audit other vendor references for staleness** — PebbleDB, Watermill, OTel versions                                                                   | Medium | 1h      | repo-wide             |
-| 6   | **Convert STORAGE_GUIDE.md code blocks to runnable examples** where possible                                                                           | Medium | 2h      | docs/                 |
-| 7   | **Run `nix run .#lint`** on the changed Go files to verify formatting                                                                                  | Medium | 5min    | repo-wide             |
-| 8   | **Run `nix run .#test`** full suite to ensure nothing else broke                                                                                       | High   | 10min   | repo-wide             |
-| 9   | **Check if `tursogo` has breaking changes in v0.7+** — we're on v0.6.1                                                                                 | Medium | 30min   | storage/turso         |
-| 10  | **Document the Turso Database vs LibSQL distinction** in a short ADR                                                                                   | Medium | 1h      | docs/adr/             |
-| 11  | **Update `docs/adr/0029-storage-consolidation.md`** — still says "Turso (LibSQL)"                                                                      | Low    | 5min    | docs/adr/             |
-| 12  | **Sweep for "SQLite" references** — the Turso Database engine is SQLite-compatible but distinct                                                        | Low    | 30min   | repo-wide             |
-| 13  | **Add a dependency-upgrade checklist** to AGENTS.md or CONTRIBUTING                                                                                    | Medium | 30min   | process               |
-| 14  | **Verify `turso.Open()` examples in SKILL.md** are all using `DbPath` correctly                                                                        | Low    | 15min   | skill docs            |
-| 15  | **Run `cmd/api-stability`** to check if the API surface changed                                                                                        | Medium | 5min    | cmd/api-stability     |
-| 16  | **Consider extracting a `turso.DatabaseType` enum** (LibSQL vs Turso Database) if the distinction matters for users                                    | Low    | 2h      | storage/turso         |
-| 17  | **Test `NewSync` with `https://` URL** end-to-end (not just `libsql://`)                                                                               | Medium | 1h      | stack/turso           |
-| 18  | **Audit `docs/research/2026-05-27_HONKER_TURSO_WATERMILL_SQLITE_RESEARCH.md`** — describes Turso as "built on libSQL"                                  | Low    | 10min   | docs/research/        |
-| 19  | **Check if the `ConfigurePool` comment is still accurate** — does the Turso Database engine still serialize writes through one connection?             | Medium | 1h      | storage/turso         |
-| 20  | **Add integration test for `https://` sync URLs** (currently only `libsql://` in test data)                                                            | Low    | 30min   | storage/turso         |
-| 21  | **Review whether `OpenInMemory` resource-limit warning is still needed** with the new engine                                                           | Low    | 1h      | storage/turso         |
-| 22  | **Update `docs/DOMAIN_LANGUAGE.md`** to add "Turso Database" as a distinct term from "LibSQL"                                                          | Low    | 15min   | docs/                 |
-| 23  | **Check Turso SDK changelog** for any deprecation warnings we should address                                                                           | Medium | 30min   | storage/turso         |
-| 24  | **Run `nix fmt`** to ensure formatting is clean after all edits                                                                                        | Medium | 2min    | repo-wide             |
-| 25  | **Consider a "Terminology" section in AGENTS.md** documenting: Turso Database (new engine) vs LibSQL (legacy) vs `libsql://` (URL scheme, still valid) | Low    | 20min   | AGENTS.md             |
+| #  | Task                                                                                                                                                   | Impact | Effort  | Module                |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------- | --------------------- |
+| 1  | **Commit the Turso docs sweep** — this work is uncommitted                                                                                             | High   | 5min    | repo-wide             |
+| 2  | **Review and commit/finish the pre-existing dedup/SSE work** in the working tree                                                                       | High   | Unknown | transport/http, dedup |
+| 3  | **Set up Turso sync CI** — run `TestNewSync_Contract` against a free Turso Cloud instance in GitHub Actions                                            | High   | 2h      | stack/turso, CI       |
+| 4  | **Add `archive/README.md` disclaimer** about historical terminology                                                                                    | Low    | 5min    | docs/status/archive   |
+| 5  | **Audit other vendor references for staleness** — PebbleDB, Watermill, OTel versions                                                                   | Medium | 1h      | repo-wide             |
+| 6  | **Convert STORAGE_GUIDE.md code blocks to runnable examples** where possible                                                                           | Medium | 2h      | docs/                 |
+| 7  | **Run `nix run .#lint`** on the changed Go files to verify formatting                                                                                  | Medium | 5min    | repo-wide             |
+| 8  | **Run `nix run .#test`** full suite to ensure nothing else broke                                                                                       | High   | 10min   | repo-wide             |
+| 9  | **Check if `tursogo` has breaking changes in v0.7+** — we're on v0.6.1                                                                                 | Medium | 30min   | storage/turso         |
+| 10 | **Document the Turso Database vs LibSQL distinction** in a short ADR                                                                                   | Medium | 1h      | docs/adr/             |
+| 11 | **Update `docs/adr/0029-storage-consolidation.md`** — still says "Turso (LibSQL)"                                                                      | Low    | 5min    | docs/adr/             |
+| 12 | **Sweep for "SQLite" references** — the Turso Database engine is SQLite-compatible but distinct                                                        | Low    | 30min   | repo-wide             |
+| 13 | **Add a dependency-upgrade checklist** to AGENTS.md or CONTRIBUTING                                                                                    | Medium | 30min   | process               |
+| 14 | **Verify `turso.Open()` examples in SKILL.md** are all using `DbPath` correctly                                                                        | Low    | 15min   | skill docs            |
+| 15 | **Run `cmd/api-stability`** to check if the API surface changed                                                                                        | Medium | 5min    | cmd/api-stability     |
+| 16 | **Consider extracting a `turso.DatabaseType` enum** (LibSQL vs Turso Database) if the distinction matters for users                                    | Low    | 2h      | storage/turso         |
+| 17 | **Test `NewSync` with `https://` URL** end-to-end (not just `libsql://`)                                                                               | Medium | 1h      | stack/turso           |
+| 18 | **Audit `docs/research/2026-05-27_HONKER_TURSO_WATERMILL_SQLITE_RESEARCH.md`** — describes Turso as "built on libSQL"                                  | Low    | 10min   | docs/research/        |
+| 19 | **Check if the `ConfigurePool` comment is still accurate** — does the Turso Database engine still serialize writes through one connection?             | Medium | 1h      | storage/turso         |
+| 20 | **Add integration test for `https://` sync URLs** (currently only `libsql://` in test data)                                                            | Low    | 30min   | storage/turso         |
+| 21 | **Review whether `OpenInMemory` resource-limit warning is still needed** with the new engine                                                           | Low    | 1h      | storage/turso         |
+| 22 | **Update `docs/DOMAIN_LANGUAGE.md`** to add "Turso Database" as a distinct term from "LibSQL"                                                          | Low    | 15min   | docs/                 |
+| 23 | **Check Turso SDK changelog** for any deprecation warnings we should address                                                                           | Medium | 30min   | storage/turso         |
+| 24 | **Run `nix fmt`** to ensure formatting is clean after all edits                                                                                        | Medium | 2min    | repo-wide             |
+| 25 | **Consider a "Terminology" section in AGENTS.md** documenting: Turso Database (new engine) vs LibSQL (legacy) vs `libsql://` (URL scheme, still valid) | Low    | 20min   | AGENTS.md             |
 
 ---
 

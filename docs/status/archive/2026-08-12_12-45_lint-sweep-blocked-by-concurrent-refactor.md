@@ -37,20 +37,20 @@ The user asked to run `golangci-lint run --fix ./...` in every folder with a `go
 
 ### Files I edited (verified via `git diff` after my edits)
 
-| File | Action | Status after session |
-|---|---|---|
-| `cmd/cqrs-bench/layout.go` | `enc.SetIndent("", "  ")` → `jsontext.NewEncoder(w, jsontext.WithIndent("  "))` | Survives — in `a6613ef0d` |
-| `metaengine/layout_matrix_test.go` | Removed redundant `layout, priority := layout, priority` shadow | Survives — in `a6613ef0d` |
-| `metaengine/sqliteengine/graph.go` | `defer rows.Close()` → `defer func() { _ = rows.Close() }()` | **DELETED** — file no longer exists post-refactor; fix moot |
-| `.golangci.yml` | Added `codec/alias.go` exclusion (gochecknoglobals + wrapcheck) | **REVERTED** — pre-commit hook or auto-process restored original |
-| `middleware/test_helpers_test.go` | Added `NewTestIdempotencyStore(tb)` + `NewBenchIdempotencyStore(b, sweepInterval)` helpers; added `idempotency` and `time` imports | Captured in `a6613ef0d` (was in working tree) |
-| `middleware/idempotency_test.go` | 10× `idempotency.NewMemoryStore(0) + defer Close()` → `NewTestIdempotencyStore(t)` | Captured in `a6613ef0d` |
-| `middleware/idempotency_nil_test.go` | Same swap; removed `idempotency` import | Captured in `a6613ef0d` |
-| `middleware/idempotency_pipeline_bench_test.go` | 2× `idempotency.NewMemoryStore(5 * time.Minute)` → `NewBenchIdempotencyStore(b, 5*time.Minute)` | Captured in `a6613ef0d` |
-| `middleware/middleware_bdd_test.go` | 8× swap to `middleware.NewTestIdempotencyStore(GinkgoT())` | Captured in `a6613ef0d` |
-| `go.work` | Removed `./metaengine/bboltengine`, `./metaengine/mysqlengine`, `./metaengine/tursoengine`, `./storage/backuptest` references | Captured in `a6613ef0d` (the deleted modules) |
-| `flake.nix` | Same removals from `testModules` list | Captured in `a6613ef0d` |
-| `cmd/api-stability/main.go` | Removed `"metaengine/mysqlengine"`, `"metaengine/tursoengine"`, `"metaengine/bboltengine"`, `"storage/backuptest"` from `modules` slice | Captured in `a6613ef0d` |
+| File                                            | Action                                                                                                                                  | Status after session                                             |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `cmd/cqrs-bench/layout.go`                      | `enc.SetIndent("", "  ")` → `jsontext.NewEncoder(w, jsontext.WithIndent("  "))`                                                         | Survives — in `a6613ef0d`                                        |
+| `metaengine/layout_matrix_test.go`              | Removed redundant `layout, priority := layout, priority` shadow                                                                         | Survives — in `a6613ef0d`                                        |
+| `metaengine/sqliteengine/graph.go`              | `defer rows.Close()` → `defer func() { _ = rows.Close() }()`                                                                            | **DELETED** — file no longer exists post-refactor; fix moot      |
+| `.golangci.yml`                                 | Added `codec/alias.go` exclusion (gochecknoglobals + wrapcheck)                                                                         | **REVERTED** — pre-commit hook or auto-process restored original |
+| `middleware/test_helpers_test.go`               | Added `NewTestIdempotencyStore(tb)` + `NewBenchIdempotencyStore(b, sweepInterval)` helpers; added `idempotency` and `time` imports      | Captured in `a6613ef0d` (was in working tree)                    |
+| `middleware/idempotency_test.go`                | 10× `idempotency.NewMemoryStore(0) + defer Close()` → `NewTestIdempotencyStore(t)`                                                      | Captured in `a6613ef0d`                                          |
+| `middleware/idempotency_nil_test.go`            | Same swap; removed `idempotency` import                                                                                                 | Captured in `a6613ef0d`                                          |
+| `middleware/idempotency_pipeline_bench_test.go` | 2× `idempotency.NewMemoryStore(5 * time.Minute)` → `NewBenchIdempotencyStore(b, 5*time.Minute)`                                         | Captured in `a6613ef0d`                                          |
+| `middleware/middleware_bdd_test.go`             | 8× swap to `middleware.NewTestIdempotencyStore(GinkgoT())`                                                                              | Captured in `a6613ef0d`                                          |
+| `go.work`                                       | Removed `./metaengine/bboltengine`, `./metaengine/mysqlengine`, `./metaengine/tursoengine`, `./storage/backuptest` references           | Captured in `a6613ef0d` (the deleted modules)                    |
+| `flake.nix`                                     | Same removals from `testModules` list                                                                                                   | Captured in `a6613ef0d`                                          |
+| `cmd/api-stability/main.go`                     | Removed `"metaengine/mysqlengine"`, `"metaengine/tursoengine"`, `"metaengine/bboltengine"`, `"storage/backuptest"` from `modules` slice | Captured in `a6613ef0d`                                          |
 
 ### Files I did NOT touch
 
@@ -200,7 +200,6 @@ The current state (`7942a61bb`) is one commit ahead of upstream `2b72de54f` and 
 I did **not** achieve the user's goal of zero lint issues. The session started well: identified the 5 real findings, applied fixes, got lint down to 0 on all modules I touched. Then the concurrent refactor destabilized everything and I burned ~15 minutes reapplying fixes that kept getting reverted. The user saw this and stopped me. They asked me to commit the staged state so we could "recover from there" — meaning recover from the post-commit state, not pre-commit. I did that. The lint goal is now deferred to the next session.
 
 The session was a casualty of multi-agent collision, not of bad intent on either side. The right thing to do earlier was to stop, document, and ask.
-
 
 ---
 

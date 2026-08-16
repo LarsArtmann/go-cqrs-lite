@@ -105,15 +105,15 @@ Works in workspace mode because Go resolves by directory, not package name. **Wi
 
 **Status:** 30% done. Interface designed, memory backend written. But:
 
-| Issue                                                     | Status                                                                                        |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `core/store/backend.go` (interface)                       | ✅ Staged                                                                                     |
+| Issue                                                     | Status                                                                                       |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `core/store/backend.go` (interface)                       | ✅ Staged                                                                                    |
 | `memory/backend.go` (in-memory impl)                      | ⚠️ Untracked, NOT staged                                                                      |
 | `pebble/backend.go` (pebble impl)                         | ⚠️ Untracked, NOT staged                                                                      |
 | `storage/sql_aggregate_reader.go`                         | ⚠️ Untracked, NOT staged, **BROKEN** (references `listing` package which is `package stream`) |
-| No tests for `core/store`                                 | ❌ Missing                                                                                    |
-| No go.mod for `core/store` (it's a sub-package of `core`) | ✅ Correct                                                                                    |
-| No documentation in AGENTS.md                             | ❌ Missing                                                                                    |
+| No tests for `core/store`                                 | ❌ Missing                                                                                   |
+| No go.mod for `core/store` (it's a sub-package of `core`) | ✅ Correct                                                                                   |
+| No documentation in AGENTS.md                             | ❌ Missing                                                                                   |
 
 ### 3. Projection Parallel Processing — PARTIAL
 
@@ -212,33 +212,33 @@ The untracked file `storage/sql_aggregate_reader.go` imports `github.com/larsart
 
 ## F) Top #25 Things to Do Next
 
-| #   | Priority | Task                                                               | Impact                | Effort |
-| --- | -------- | ------------------------------------------------------------------ | --------------------- | ------ |
-| 1   | 🔴 P0    | Complete `stream` → `listing` package rename (all declarations)    | Fixes CI              | 30min  |
-| 2   | 🔴 P0    | Delete ghost `stream/` and `example/stream/` directories           | Cleanup               | 5min   |
-| 3   | 🔴 P0    | Fix `storage/sql_aggregate_reader.go` broken build                 | Fixes race tests      | 1hr    |
-| 4   | 🔴 P0    | Split staging area into focused commits                            | Git hygiene           | 15min  |
-| 5   | 🟡 P1    | Write tests for `core/store.Backend` interface                     | Quality               | 2hr    |
-| 6   | 🟡 P1    | Stage and test `memory/backend.go` + `pebble/backend.go`           | Feature complete      | 2hr    |
-| 7   | 🟡 P1    | Fix AGENTS.md duplicate sagatest line + update module tree         | Docs accuracy         | 10min  |
-| 8   | 🟡 P1    | Restart gopls to clear stale `stream_test` diagnostics             | DX                    | 1min   |
-| 9   | 🟡 P1    | Run `go work sync` to fix `example/listing/go.mod` missing require | Module health         | 2min   |
-| 10  | 🟡 P1    | Update `listing/doc.go` to say "Package listing"                   | Naming                | 2min   |
-| 11  | 🟢 P2    | Add `listing` integration tests with `storage` module              | Coverage              | 4hr    |
-| 12  | 🟢 P2    | Implement `query.Handler` generic typed return (`any` → `T`)       | Type safety           | 3hr    |
-| 13  | 🟢 P2    | Remove `io.Closer` from core interfaces                            | ISP purity            | 4hr    |
-| 14  | 🟢 P2    | Add PostgreSQL integration tests (testcontainers)                  | Coverage              | 6hr    |
-| 15  | 🟢 P2    | Benchmark storage backends (PG vs SQLite vs Pebble)                | Performance           | 4hr    |
-| 16  | 🟢 P2    | Split `core/event` god-package into sub-packages                   | Maintainability       | 8hr    |
-| 17  | 🟢 P2    | Add catalog diff/breaking-change detection                         | Developer tooling     | 8hr    |
-| 18  | 🟢 P2    | High-level test utilities (AggregateTester, ProjectionTester)      | Developer experience  | 6hr    |
-| 19  | 🟢 P2    | Schema registry — JSON Schema middleware for events                | Validation            | 6hr    |
-| 20  | ⚪ P3    | Global `TransactionID` branded type                                | Cross-aggregate       | 3hr    |
-| 21  | ⚪ P3    | Performance regression CI — benchmark comparison per PR            | CI quality            | 4hr    |
-| 22  | ⚪ P3    | Add fuzz tests for event creation, ID parsing, upcaster chain      | Robustness            | 4hr    |
-| 23  | ⚪ P3    | Documentation site (Docusaurus/MkDocs/Hugo)                        | Discoverability       | 8hr    |
-| 24  | ⚪ P3    | Thin PostgreSQL store adapter (no Watermill)                       | Independence          | 8hr    |
-| 25  | ⚪ P3    | Thin NATS bus adapter (no Watermill)                               | Transport flexibility | 8hr    |
+| #  | Priority | Task                                                               | Impact                | Effort |
+| -- | -------- | ------------------------------------------------------------------ | --------------------- | ------ |
+| 1  | 🔴 P0    | Complete `stream` → `listing` package rename (all declarations)    | Fixes CI              | 30min  |
+| 2  | 🔴 P0    | Delete ghost `stream/` and `example/stream/` directories           | Cleanup               | 5min   |
+| 3  | 🔴 P0    | Fix `storage/sql_aggregate_reader.go` broken build                 | Fixes race tests      | 1hr    |
+| 4  | 🔴 P0    | Split staging area into focused commits                            | Git hygiene           | 15min  |
+| 5  | 🟡 P1    | Write tests for `core/store.Backend` interface                     | Quality               | 2hr    |
+| 6  | 🟡 P1    | Stage and test `memory/backend.go` + `pebble/backend.go`           | Feature complete      | 2hr    |
+| 7  | 🟡 P1    | Fix AGENTS.md duplicate sagatest line + update module tree         | Docs accuracy         | 10min  |
+| 8  | 🟡 P1    | Restart gopls to clear stale `stream_test` diagnostics             | DX                    | 1min   |
+| 9  | 🟡 P1    | Run `go work sync` to fix `example/listing/go.mod` missing require | Module health         | 2min   |
+| 10 | 🟡 P1    | Update `listing/doc.go` to say "Package listing"                   | Naming                | 2min   |
+| 11 | 🟢 P2    | Add `listing` integration tests with `storage` module              | Coverage              | 4hr    |
+| 12 | 🟢 P2    | Implement `query.Handler` generic typed return (`any` → `T`)       | Type safety           | 3hr    |
+| 13 | 🟢 P2    | Remove `io.Closer` from core interfaces                            | ISP purity            | 4hr    |
+| 14 | 🟢 P2    | Add PostgreSQL integration tests (testcontainers)                  | Coverage              | 6hr    |
+| 15 | 🟢 P2    | Benchmark storage backends (PG vs SQLite vs Pebble)                | Performance           | 4hr    |
+| 16 | 🟢 P2    | Split `core/event` god-package into sub-packages                   | Maintainability       | 8hr    |
+| 17 | 🟢 P2    | Add catalog diff/breaking-change detection                         | Developer tooling     | 8hr    |
+| 18 | 🟢 P2    | High-level test utilities (AggregateTester, ProjectionTester)      | Developer experience  | 6hr    |
+| 19 | 🟢 P2    | Schema registry — JSON Schema middleware for events                | Validation            | 6hr    |
+| 20 | ⚪ P3    | Global `TransactionID` branded type                                | Cross-aggregate       | 3hr    |
+| 21 | ⚪ P3    | Performance regression CI — benchmark comparison per PR            | CI quality            | 4hr    |
+| 22 | ⚪ P3    | Add fuzz tests for event creation, ID parsing, upcaster chain      | Robustness            | 4hr    |
+| 23 | ⚪ P3    | Documentation site (Docusaurus/MkDocs/Hugo)                        | Discoverability       | 8hr    |
+| 24 | ⚪ P3    | Thin PostgreSQL store adapter (no Watermill)                       | Independence          | 8hr    |
+| 25 | ⚪ P3    | Thin NATS bus adapter (no Watermill)                               | Transport flexibility | 8hr    |
 
 ---
 

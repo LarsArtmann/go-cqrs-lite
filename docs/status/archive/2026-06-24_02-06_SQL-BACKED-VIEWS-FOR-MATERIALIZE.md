@@ -165,33 +165,33 @@ The work introduced a **3-layer capability architecture** that decouples Materia
 
 Sorted by **impact / effort ratio** (highest first).
 
-| #   | Task                                                                                 | Impact      | Effort | Ratio      |
-| --- | ------------------------------------------------------------------------------------ | ----------- | ------ | ---------- |
-| 1   | **Add `stack.WithSQLViewModels[V,K](mapper)` Bundle option**                         | 🟠 High     | Small  | ⭐⭐⭐⭐⭐ |
-| 2   | **Write integration test: SQLViewStore + Materialize + real SQLite**                 | 🟠 High     | Small  | ⭐⭐⭐⭐⭐ |
-| 3   | **Migrate SEC to `stack/sqlite` with SQLViewStore** (fixes prod data-loss bug)       | 🔴 Critical | Medium | ⭐⭐⭐⭐⭐ |
-| 4   | **Add `Count(ctx, policy)` to ViewStore/TombstoneQuerier**                           | 🟡 Medium   | Small  | ⭐⭐⭐⭐⭐ |
-| 5   | **Benchmark: KV blob vs SQL columns** (Set/Get/Query/Scan)                           | 🟡 Medium   | Small  | ⭐⭐⭐⭐   |
-| 6   | **Migrate DiscordSync projection to `stack.Materialize` + SQLViewStore**             | 🟠 High     | Medium | ⭐⭐⭐⭐   |
-| 7   | **Add `NewTursoViewStore` constructor** (parity with SQLite/Postgres)                | 🟢 Low      | Tiny   | ⭐⭐⭐⭐⭐ |
-| 8   | **Add concurrent Set+Query race test**                                               | 🟡 Medium   | Small  | ⭐⭐⭐⭐   |
-| 9   | **Consider structured filter API** (replace raw SQL in ViewQuery.Where)              | 🟡 Medium   | Medium | ⭐⭐⭐⭐   |
-| 10  | **Migrate usermgmt to `stack/sqlite`**                                               | 🟠 High     | Medium | ⭐⭐⭐⭐   |
-| 11  | **Add index creation support to ViewMapper** (`Indexes []IndexSpec`)                 | 🟡 Medium   | Small  | ⭐⭐⭐⭐   |
-| 12  | **Add batch upsert to SQLViewStore** (for projection replay throughput)              | 🟡 Medium   | Medium | ⭐⭐⭐     |
-| 13  | **Write ViewStore contract test suite** (like contracttest for Bundle)               | 🟡 Medium   | Medium | ⭐⭐⭐     |
-| 14  | **Add reflection-based mapper generation** (struct tags → ViewColumn/ScanRow)        | 🟢 Low      | Medium | ⭐⭐⭐     |
-| 15  | **Add `ViewStore.DeleteAll(ctx)` for projection resets**                             | 🟢 Low      | Tiny   | ⭐⭐⭐⭐⭐ |
-| 16  | **Verify Postgres contract test runs in CI** (check build tags — from prior session) | 🟠 High     | Tiny   | ⭐⭐⭐⭐⭐ |
-| 17  | **Promote CatchUpSubscriber as canonical projection pattern** (SKILL.md)             | 🟠 High     | Small  | ⭐⭐⭐⭐   |
-| 18  | **Add Turso sync test in CI**                                                        | 🟡 Medium   | Large  | ⭐⭐⭐     |
-| 19  | **Write automated doc cross-reference CI check**                                     | 🟡 Medium   | Medium | ⭐⭐⭐⭐   |
-| 20  | **Add `stack.Bundle.Debug()` standalone section in SKILL.md**                        | 🟡 Medium   | Tiny   | ⭐⭐⭐⭐⭐ |
-| 21  | **Consider branded DSN types** for compile-time safety                               | 🟢 Low      | Small  | ⭐⭐       |
-| 22  | **Split `storage/view_store_query_test.go` (335 lines)** proactively                 | 🟢 Low      | Small  | ⭐⭐⭐     |
-| 23  | **Add multi-DB benchmark** (single-DB vs multi-DB from prior session)                | 🟡 Medium   | Small  | ⭐⭐⭐⭐   |
-| 24  | **Review if `stack.Bundle` needs a `SessionStore` field**                            | 🟡 Medium   | Medium | ⭐⭐⭐     |
-| 25  | **Consider gRPC transport adapter** (ADR-0025 accepted)                              | 🟡 Medium   | Large  | ⭐⭐       |
+| #  | Task                                                                                 | Impact      | Effort | Ratio      |
+| -- | ------------------------------------------------------------------------------------ | ----------- | ------ | ---------- |
+| 1  | **Add `stack.WithSQLViewModels[V,K](mapper)` Bundle option**                         | 🟠 High     | Small  | ⭐⭐⭐⭐⭐ |
+| 2  | **Write integration test: SQLViewStore + Materialize + real SQLite**                 | 🟠 High     | Small  | ⭐⭐⭐⭐⭐ |
+| 3  | **Migrate SEC to `stack/sqlite` with SQLViewStore** (fixes prod data-loss bug)       | 🔴 Critical | Medium | ⭐⭐⭐⭐⭐ |
+| 4  | **Add `Count(ctx, policy)` to ViewStore/TombstoneQuerier**                           | 🟡 Medium   | Small  | ⭐⭐⭐⭐⭐ |
+| 5  | **Benchmark: KV blob vs SQL columns** (Set/Get/Query/Scan)                           | 🟡 Medium   | Small  | ⭐⭐⭐⭐   |
+| 6  | **Migrate DiscordSync projection to `stack.Materialize` + SQLViewStore**             | 🟠 High     | Medium | ⭐⭐⭐⭐   |
+| 7  | **Add `NewTursoViewStore` constructor** (parity with SQLite/Postgres)                | 🟢 Low      | Tiny   | ⭐⭐⭐⭐⭐ |
+| 8  | **Add concurrent Set+Query race test**                                               | 🟡 Medium   | Small  | ⭐⭐⭐⭐   |
+| 9  | **Consider structured filter API** (replace raw SQL in ViewQuery.Where)              | 🟡 Medium   | Medium | ⭐⭐⭐⭐   |
+| 10 | **Migrate usermgmt to `stack/sqlite`**                                               | 🟠 High     | Medium | ⭐⭐⭐⭐   |
+| 11 | **Add index creation support to ViewMapper** (`Indexes []IndexSpec`)                 | 🟡 Medium   | Small  | ⭐⭐⭐⭐   |
+| 12 | **Add batch upsert to SQLViewStore** (for projection replay throughput)              | 🟡 Medium   | Medium | ⭐⭐⭐     |
+| 13 | **Write ViewStore contract test suite** (like contracttest for Bundle)               | 🟡 Medium   | Medium | ⭐⭐⭐     |
+| 14 | **Add reflection-based mapper generation** (struct tags → ViewColumn/ScanRow)        | 🟢 Low      | Medium | ⭐⭐⭐     |
+| 15 | **Add `ViewStore.DeleteAll(ctx)` for projection resets**                             | 🟢 Low      | Tiny   | ⭐⭐⭐⭐⭐ |
+| 16 | **Verify Postgres contract test runs in CI** (check build tags — from prior session) | 🟠 High     | Tiny   | ⭐⭐⭐⭐⭐ |
+| 17 | **Promote CatchUpSubscriber as canonical projection pattern** (SKILL.md)             | 🟠 High     | Small  | ⭐⭐⭐⭐   |
+| 18 | **Add Turso sync test in CI**                                                        | 🟡 Medium   | Large  | ⭐⭐⭐     |
+| 19 | **Write automated doc cross-reference CI check**                                     | 🟡 Medium   | Medium | ⭐⭐⭐⭐   |
+| 20 | **Add `stack.Bundle.Debug()` standalone section in SKILL.md**                        | 🟡 Medium   | Tiny   | ⭐⭐⭐⭐⭐ |
+| 21 | **Consider branded DSN types** for compile-time safety                               | 🟢 Low      | Small  | ⭐⭐       |
+| 22 | **Split `storage/view_store_query_test.go` (335 lines)** proactively                 | 🟢 Low      | Small  | ⭐⭐⭐     |
+| 23 | **Add multi-DB benchmark** (single-DB vs multi-DB from prior session)                | 🟡 Medium   | Small  | ⭐⭐⭐⭐   |
+| 24 | **Review if `stack.Bundle` needs a `SessionStore` field**                            | 🟡 Medium   | Medium | ⭐⭐⭐     |
+| 25 | **Consider gRPC transport adapter** (ADR-0025 accepted)                              | 🟡 Medium   | Large  | ⭐⭐       |
 
 ---
 

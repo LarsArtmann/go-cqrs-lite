@@ -1,9 +1,9 @@
 # Comprehensive Status Report — 2026-05-21 16:45
 
-**Project:** go-cqrs-lite  
-**Type:** CQRS/Event Sourcing Library/SDK for Go  
-**Date:** 2026-05-21 16:45  
-**Branch:** master  
+**Project:** go-cqrs-lite\
+**Type:** CQRS/Event Sourcing Library/SDK for Go\
+**Date:** 2026-05-21 16:45\
+**Branch:** master\
 **Last 10 commits:**
 
 - `b0b3939` chore: refresh golden fixtures + fix MemorySnapshotStore deep copy
@@ -134,27 +134,27 @@ This session started with deep reflection (READ, UNDERSTAND, RESEARCH, REFLECT) 
 
 ### Tier 1: Quick Wins (≤1h)
 
-| #   | Item                                                       | Impact | Effort |
-| --- | ---------------------------------------------------------- | ------ | ------ |
-| 1   | Reconcile TODO_LIST.md — remove verified done items        | High   | 1h     |
-| 2   | Update FEATURES.md coverage numbers                        | Medium | 30m    |
-| 3   | Trim AGENTS.md — extract session history to docs/sessions/ | Medium | 1h     |
+| # | Item                                                       | Impact | Effort |
+| - | ---------------------------------------------------------- | ------ | ------ |
+| 1 | Reconcile TODO_LIST.md — remove verified done items        | High   | 1h     |
+| 2 | Update FEATURES.md coverage numbers                        | Medium | 30m    |
+| 3 | Trim AGENTS.md — extract session history to docs/sessions/ | Medium | 1h     |
 
 ### Tier 2: Foundation (1-3h)
 
-| #   | Item                                   | Impact | Effort |
-| --- | -------------------------------------- | ------ | ------ |
-| 4   | Add Clock interface + WithClock option | High   | 1h     |
-| 5   | Add SubscriptionScope enum             | Medium | 1h     |
-| 6   | Fix replace directives in go.mod       | High   | 2h     |
+| # | Item                                   | Impact | Effort |
+| - | -------------------------------------- | ------ | ------ |
+| 4 | Add Clock interface + WithClock option | High   | 1h     |
+| 5 | Add SubscriptionScope enum             | Medium | 1h     |
+| 6 | Fix replace directives in go.mod       | High   | 2h     |
 
 ### Tier 3: Quality (3-6h)
 
-| #   | Item                                          | Impact | Effort |
-| --- | --------------------------------------------- | ------ | ------ |
-| 7   | PostgreSQL integration tests (testcontainers) | High   | 4h     |
-| 8   | Fix catalog/adapters coverage (66.7% → 90%+)  | Medium | 2h     |
-| 9   | GOWORK=off CI verification                    | Medium | 1h     |
+| # | Item                                          | Impact | Effort |
+| - | --------------------------------------------- | ------ | ------ |
+| 7 | PostgreSQL integration tests (testcontainers) | High   | 4h     |
+| 8 | Fix catalog/adapters coverage (66.7% → 90%+)  | Medium | 2h     |
+| 9 | GOWORK=off CI verification                    | Medium | 1h     |
 
 ---
 

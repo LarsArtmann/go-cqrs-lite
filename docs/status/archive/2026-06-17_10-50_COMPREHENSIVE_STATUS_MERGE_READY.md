@@ -122,33 +122,33 @@ The `consolidate-catalog` branch is **fully merge-ready**. All major work items 
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Task                                             | Impact | Effort | Priority |
-| --- | ------------------------------------------------ | ------ | ------ | -------- |
-| 1   | Merge `consolidate-catalog` → `master`           | 5      | 1      | P0       |
-| 2   | Tag v2.4.0 release                               | 5      | 1      | P0       |
-| 3   | Pebble coverage → 85%+                           | 3      | 2      | P1       |
-| 4   | Pebble golden test (CBOR envelope)               | 3      | 2      | P1       |
-| 5   | Performance baseline update                      | 3      | 1      | P1       |
-| 6   | Schema registry validation middleware (ADR-0017) | 5      | 5      | P1       |
-| 7   | Prometheus metrics exporter                      | 4      | 4      | P1       |
-| 8   | Structured logging middleware (`slog`)           | 4      | 3      | P1       |
-| 9   | PostgreSQL CI verification (run on GH Actions)   | 4      | 1      | P1       |
-| 10  | Distributed tracing propagation                  | 4      | 5      | P1       |
-| 11  | Distributed checkpointing (ADR-0018)             | 4      | 6      | P2       |
-| 12  | MemorySnapshotStore golden test                  | 3      | 2      | P2       |
-| 13  | cqrs-gen v2 (struct-tag scanning)                | 3      | 5      | P2       |
-| 14  | Extract kv.ContractTester pattern                | 3      | 2      | P2       |
-| 15  | Reactive bus docs in AGENTS.md                   | 2      | 1      | P2       |
-| 16  | gRPC transport adapter                           | 3      | 6      | P3       |
-| 17  | NATS/Redis Stream adapter                        | 3      | 6      | P3       |
-| 18  | Streaming event reads                            | 3      | 5      | P3       |
-| 19  | Documentation site                               | 3      | 5      | P3       |
-| 20  | WASM target for decider                          | 3      | 5      | P3       |
-| 21  | Event stream compaction                          | 2      | 4      | P3       |
-| 22  | Multi-tenant event store                         | 2      | 4      | P3       |
-| 23  | v3 breaking changes                              | 4      | 15     | P4       |
-| 24  | v4 breaking changes                              | 3      | 6      | P4       |
-| 25  | CQRS dashboard web UI                            | 2      | 8      | P4       |
+| #  | Task                                             | Impact | Effort | Priority |
+| -- | ------------------------------------------------ | ------ | ------ | -------- |
+| 1  | Merge `consolidate-catalog` → `master`           | 5      | 1      | P0       |
+| 2  | Tag v2.4.0 release                               | 5      | 1      | P0       |
+| 3  | Pebble coverage → 85%+                           | 3      | 2      | P1       |
+| 4  | Pebble golden test (CBOR envelope)               | 3      | 2      | P1       |
+| 5  | Performance baseline update                      | 3      | 1      | P1       |
+| 6  | Schema registry validation middleware (ADR-0017) | 5      | 5      | P1       |
+| 7  | Prometheus metrics exporter                      | 4      | 4      | P1       |
+| 8  | Structured logging middleware (`slog`)           | 4      | 3      | P1       |
+| 9  | PostgreSQL CI verification (run on GH Actions)   | 4      | 1      | P1       |
+| 10 | Distributed tracing propagation                  | 4      | 5      | P1       |
+| 11 | Distributed checkpointing (ADR-0018)             | 4      | 6      | P2       |
+| 12 | MemorySnapshotStore golden test                  | 3      | 2      | P2       |
+| 13 | cqrs-gen v2 (struct-tag scanning)                | 3      | 5      | P2       |
+| 14 | Extract kv.ContractTester pattern                | 3      | 2      | P2       |
+| 15 | Reactive bus docs in AGENTS.md                   | 2      | 1      | P2       |
+| 16 | gRPC transport adapter                           | 3      | 6      | P3       |
+| 17 | NATS/Redis Stream adapter                        | 3      | 6      | P3       |
+| 18 | Streaming event reads                            | 3      | 5      | P3       |
+| 19 | Documentation site                               | 3      | 5      | P3       |
+| 20 | WASM target for decider                          | 3      | 5      | P3       |
+| 21 | Event stream compaction                          | 2      | 4      | P3       |
+| 22 | Multi-tenant event store                         | 2      | 4      | P3       |
+| 23 | v3 breaking changes                              | 4      | 15     | P4       |
+| 24 | v4 breaking changes                              | 3      | 6      | P4       |
+| 25 | CQRS dashboard web UI                            | 2      | 8      | P4       |
 
 ---
 

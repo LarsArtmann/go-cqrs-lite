@@ -1,7 +1,7 @@
 # SESSION 145 — Comprehensive Status Report
 
-**Date**: 2026-05-29 14:11 CEST  
-**Branch**: master  
+**Date**: 2026-05-29 14:11 CEST\
+**Branch**: master\
 **HEAD**: `d3af14d` — Add saga-pattern example, remove migration scripts, improve pebble backend
 
 ---
@@ -168,33 +168,33 @@ This caused several cycles of "write file → verify → find it reverted → re
 
 ## f) Top 25 Things to Do Next
 
-| #   | Priority     | Item                                                                                                               |
-| --- | ------------ | ------------------------------------------------------------------------------------------------------------------ |
-| 1   | **CRITICAL** | Restore SQL test files to `storage/` (migrate from git history)                                                    |
-| 2   | **HIGH**     | Add SQL dialect support to `aggregate_projection.go` and `sql_aggregate_reader.go`                                 |
-| 3   | **HIGH**     | Update root `README.md` to reference `listing/` instead of `stream/`                                               |
-| 4   | **HIGH**     | Update `FEATURES.md` to reference `listing/`                                                                       |
-| 5   | **HIGH**     | Fix pre-existing `pebble` ScanPrefix test failure                                                                  |
-| 6   | **MEDIUM**   | Write ADR for `stream/` → `listing/` rename                                                                        |
-| 7   | **MEDIUM**   | Update `listing/README.md` to reference `storage/` for SQL usage                                                   |
-| 8   | **MEDIUM**   | Rename `listing/stream_bdd_suite_test.go` → `listing/listing_bdd_suite_test.go`                                    |
-| 9   | **MEDIUM**   | Update `listing/doc.go` comments (still says "Package stream")                                                     |
-| 10  | **MEDIUM**   | Clean up `go.work.sum` stale entries                                                                               |
-| 11  | **MEDIUM**   | Add `storage/` section to `storage/README.md` for AggregateProjection + SQLAggregateReader                         |
-| 12  | **MEDIUM**   | Add godoc examples to `listing/` (e.g., `ExampleNewBuilder`)                                                       |
-| 13  | **MEDIUM**   | Fix `watermill/SubscriberAdapter` shared-channel issue                                                             |
-| 14  | **MEDIUM**   | Add README.md to `watermill/` module                                                                               |
-| 15  | **MEDIUM**   | Deduplicate `detectStatusFromMetadata()` — use `core/event.DetectTombstone`                                        |
-| 16  | **LOW**      | Update `docs/DOMAIN_LANGUAGE.md` to reference `listing/`                                                           |
-| 17  | **LOW**      | Update `docs/MIGRATION_v1.md` to reference `listing/`                                                              |
-| 18  | **LOW**      | Update `docs/modularization/PROPOSAL.md` and `EXECUTION_PLAN.md`                                                   |
-| 19  | **LOW**      | Add `listing/` to `ci.yml` per-module coverage loop                                                                |
-| 20  | **LOW**      | Consider renaming `listing.AggregateRef` → `listing.AggregateListing` to avoid collision with `event.AggregateRef` |
-| 21  | **LOW**      | Add benchmarks for `SQLAggregateReader` in `storage/`                                                              |
-| 22  | **LOW**      | Update `example/listing/main.go` to show SQL path via `storage/`                                                   |
-| 23  | **LOW**      | Update `TODO_LIST.md` to reference `listing/`                                                                      |
-| 24  | **LOW**      | Clean up `listing/cover.out` (leftover from testing)                                                               |
-| 25  | **LOW**      | Verify `flake.nix` test command includes `listing/` and not `stream/`                                              |
+| #  | Priority     | Item                                                                                                               |
+| -- | ------------ | ------------------------------------------------------------------------------------------------------------------ |
+| 1  | **CRITICAL** | Restore SQL test files to `storage/` (migrate from git history)                                                    |
+| 2  | **HIGH**     | Add SQL dialect support to `aggregate_projection.go` and `sql_aggregate_reader.go`                                 |
+| 3  | **HIGH**     | Update root `README.md` to reference `listing/` instead of `stream/`                                               |
+| 4  | **HIGH**     | Update `FEATURES.md` to reference `listing/`                                                                       |
+| 5  | **HIGH**     | Fix pre-existing `pebble` ScanPrefix test failure                                                                  |
+| 6  | **MEDIUM**   | Write ADR for `stream/` → `listing/` rename                                                                        |
+| 7  | **MEDIUM**   | Update `listing/README.md` to reference `storage/` for SQL usage                                                   |
+| 8  | **MEDIUM**   | Rename `listing/stream_bdd_suite_test.go` → `listing/listing_bdd_suite_test.go`                                    |
+| 9  | **MEDIUM**   | Update `listing/doc.go` comments (still says "Package stream")                                                     |
+| 10 | **MEDIUM**   | Clean up `go.work.sum` stale entries                                                                               |
+| 11 | **MEDIUM**   | Add `storage/` section to `storage/README.md` for AggregateProjection + SQLAggregateReader                         |
+| 12 | **MEDIUM**   | Add godoc examples to `listing/` (e.g., `ExampleNewBuilder`)                                                       |
+| 13 | **MEDIUM**   | Fix `watermill/SubscriberAdapter` shared-channel issue                                                             |
+| 14 | **MEDIUM**   | Add README.md to `watermill/` module                                                                               |
+| 15 | **MEDIUM**   | Deduplicate `detectStatusFromMetadata()` — use `core/event.DetectTombstone`                                        |
+| 16 | **LOW**      | Update `docs/DOMAIN_LANGUAGE.md` to reference `listing/`                                                           |
+| 17 | **LOW**      | Update `docs/MIGRATION_v1.md` to reference `listing/`                                                              |
+| 18 | **LOW**      | Update `docs/modularization/PROPOSAL.md` and `EXECUTION_PLAN.md`                                                   |
+| 19 | **LOW**      | Add `listing/` to `ci.yml` per-module coverage loop                                                                |
+| 20 | **LOW**      | Consider renaming `listing.AggregateRef` → `listing.AggregateListing` to avoid collision with `event.AggregateRef` |
+| 21 | **LOW**      | Add benchmarks for `SQLAggregateReader` in `storage/`                                                              |
+| 22 | **LOW**      | Update `example/listing/main.go` to show SQL path via `storage/`                                                   |
+| 23 | **LOW**      | Update `TODO_LIST.md` to reference `listing/`                                                                      |
+| 24 | **LOW**      | Clean up `listing/cover.out` (leftover from testing)                                                               |
+| 25 | **LOW**      | Verify `flake.nix` test command includes `listing/` and not `stream/`                                              |
 
 ---
 

@@ -120,68 +120,68 @@ Read 80+ docs/status and docs/planning files from `docs/*/2026-06*`. Verified ev
 
 ### Documentation
 
-| #   | Task                                              | Effort |
-| --- | ------------------------------------------------- | ------ |
-| 1   | Add godoc examples for `listing/` package         | 20 min |
-| 2   | Document CBOR usage patterns in `codec/README.md` | 20 min |
-| 3   | Add README section linking to `docs/benchmarks/`  | 10 min |
+| # | Task                                              | Effort |
+| - | ------------------------------------------------- | ------ |
+| 1 | Add godoc examples for `listing/` package         | 20 min |
+| 2 | Document CBOR usage patterns in `codec/README.md` | 20 min |
+| 3 | Add README section linking to `docs/benchmarks/`  | 10 min |
 
 ### Code Quality
 
-| #   | Task                                                          | Effort |
-| --- | ------------------------------------------------------------- | ------ |
-| 4   | Add tests for `cmd/api-stability` (0% coverage)               | 30 min |
-| 5   | Add `query.BasicQuery` metadata (correlation/tracing context) | 30 min |
-| 6   | Clean test deps from 12 production go.mod files               | 2 hr   |
-| 7   | Fix 31 `nolint:errcheck` in defer `.Close()` calls            | 1 hr   |
-| 8   | Reduce 36 nolint suppressions in `catalog/`                   | 45 min |
+| # | Task                                                          | Effort |
+| - | ------------------------------------------------------------- | ------ |
+| 4 | Add tests for `cmd/api-stability` (0% coverage)               | 30 min |
+| 5 | Add `query.BasicQuery` metadata (correlation/tracing context) | 30 min |
+| 6 | Clean test deps from 12 production go.mod files               | 2 hr   |
+| 7 | Fix 31 `nolint:errcheck` in defer `.Close()` calls            | 1 hr   |
+| 8 | Reduce 36 nolint suppressions in `catalog/`                   | 45 min |
 
 ### Encryption Module
 
-| #   | Task                                              | Effort |
-| --- | ------------------------------------------------- | ------ |
-| 9   | Add `StaticKeyResolver` helper (map-based)        | 10 min |
-| 10  | Add versioned ciphertext format (prefix byte)     | 30 min |
-| 11  | Add `example/encryption/` project                 | 30 min |
-| 12  | Add `storage.NewEncryptedEventStore` wrapper      | 2 hr   |
-| 13  | Field-level encryption (`encryption/fieldlevel/`) | 4 hr   |
+| #  | Task                                              | Effort |
+| -- | ------------------------------------------------- | ------ |
+| 9  | Add `StaticKeyResolver` helper (map-based)        | 10 min |
+| 10 | Add versioned ciphertext format (prefix byte)     | 30 min |
+| 11 | Add `example/encryption/` project                 | 30 min |
+| 12 | Add `storage.NewEncryptedEventStore` wrapper      | 2 hr   |
+| 13 | Field-level encryption (`encryption/fieldlevel/`) | 4 hr   |
 
 ### Turso Indexing (Deferred)
 
-| #   | Task                                     | Effort |
-| --- | ---------------------------------------- | ------ |
-| 14  | Comparison report generator (CLI tool)   | 2 hr   |
-| 15  | Hooks API (`WithIndexingHooks`)          | 1 hr   |
-| 16  | Schema evolution/migration integration   | 1 hr   |
-| 17  | Health check integration with `listing/` | 1 hr   |
+| #  | Task                                     | Effort |
+| -- | ---------------------------------------- | ------ |
+| 14 | Comparison report generator (CLI tool)   | 2 hr   |
+| 15 | Hooks API (`WithIndexingHooks`)          | 1 hr   |
+| 16 | Schema evolution/migration integration   | 1 hr   |
+| 17 | Health check integration with `listing/` | 1 hr   |
 
 ### CI & DevEx
 
-| #   | Task                                       | Effort |
-| --- | ------------------------------------------ | ------ |
-| 18  | Docker build CI step (linux/amd64 + arm64) | 30 min |
-| 19  | Playwright E2E tests for `example/user/`   | 4 hr   |
-| 20  | Add `go vulncheck` to CI                   | 30 min |
-| 21  | Benchmark regression detection gate        | 2 hr   |
+| #  | Task                                       | Effort |
+| -- | ------------------------------------------ | ------ |
+| 18 | Docker build CI step (linux/amd64 + arm64) | 30 min |
+| 19 | Playwright E2E tests for `example/user/`   | 4 hr   |
+| 20 | Add `go vulncheck` to CI                   | 30 min |
+| 21 | Benchmark regression detection gate        | 2 hr   |
 
 ### Phantom Types (Superb Types Sprint leftovers)
 
-| #   | Task                                                    | Effort |
-| --- | ------------------------------------------------------- | ------ |
-| 22  | Add `String()` + `IsZero()` to 17 catalog phantom types | 30 min |
-| 23  | Add `Int()` to `example/todo/domain.Priority`           | 5 min  |
-| 24  | Bool→Enum conversions (7 locations)                     | 2 hr   |
-| 25  | Split `catalog.Message` into Message+MessageMeta        | 30 min |
+| #  | Task                                                    | Effort |
+| -- | ------------------------------------------------------- | ------ |
+| 22 | Add `String()` + `IsZero()` to 17 catalog phantom types | 30 min |
+| 23 | Add `Int()` to `example/todo/domain.Priority`           | 5 min  |
+| 24 | Bool→Enum conversions (7 locations)                     | 2 hr   |
+| 25 | Split `catalog.Message` into Message+MessageMeta        | 30 min |
 
 ### Strategic / v2 Breaking Changes
 
-| #   | Task                                           | Effort | Note              |
-| --- | ---------------------------------------------- | ------ | ----------------- |
-| 26  | Remove `io.Closer` from core interfaces        | 4 hr   | ADR-0010 accepted |
-| 27  | Add global `TransactionID` branded type        | TBD    | ADR needed        |
-| 28  | Split `event.Store` into Writer/Reader/Deleter | 8 hr   | Breaking          |
-| 29  | Move HTTP code from middleware → `transport/`  | 8 hr   | Breaking          |
-| 30  | Make event Core truly immutable                | 4 hr   | opts shallow-copy |
+| #  | Task                                           | Effort | Note              |
+| -- | ---------------------------------------------- | ------ | ----------------- |
+| 26 | Remove `io.Closer` from core interfaces        | 4 hr   | ADR-0010 accepted |
+| 27 | Add global `TransactionID` branded type        | TBD    | ADR needed        |
+| 28 | Split `event.Store` into Writer/Reader/Deleter | 8 hr   | Breaking          |
+| 29 | Move HTTP code from middleware → `transport/`  | 8 hr   | Breaking          |
+| 30 | Make event Core truly immutable                | 4 hr   | opts shallow-copy |
 
 ---
 

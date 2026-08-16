@@ -174,33 +174,33 @@ All 52 are in **test files only** — zero in production code. Breakdown:
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #   | Priority | Item                                               | Effort | Impact                     |
-| --- | -------- | -------------------------------------------------- | ------ | -------------------------- |
-| 1   | 🔴       | Fix all 52 lint issues (tests only)                | 1h     | Trust signal               |
-| 2   | 🔴       | Tag `v0.1.0-alpha` for all modules                 | 30m    | Enables version pinning    |
-| 3   | 🔴       | Real PostgreSQL integration tests (testcontainers) | 4h     | Proves SQL works           |
-| 4   | 🟡       | Projection dead-letter mechanism                   | 3h     | Production readiness       |
-| 5   | 🟡       | Storage options (table prefix, logger, pool)       | 2h     | Configurability            |
-| 6   | 🟡       | Register storage/projection errors in taxonomy     | 1h     | Consistent error handling  |
-| 7   | 🟡       | Example app smoke test                             | 1h     | Proves demo works          |
-| 8   | 🟡       | BDD tests for command, query, event modules        | 3h     | User-focused coverage      |
-| 9   | 🟡       | BDD tests for middleware module                    | 2h     | User-focused coverage      |
-| 10  | 🟡       | BDD tests for catalog modules                      | 3h     | User-focused coverage      |
-| 11  | 🟢       | Benchmark suite (event, dispatcher, store)         | 2h     | Performance visibility     |
-| 12  | 🟢       | Fix `query.Handler` returns `any`                  | 2h     | API correctness (breaking) |
-| 13  | 🟢       | Event signing / HMAC verification                  | 4h     | Integrity guarantees       |
-| 14  | 🟢       | Saga/Process Manager implementation                | 8h     | Orchestration support      |
-| 15  | 🟢       | Watermill adapter module                           | 6h     | Kafka/NATS integration     |
-| 16  | 🟢       | Storage DDL abstractions (multi-DB)                | 4h     | MySQL/SQLite support       |
-| 17  | 🟢       | Event upcasting migration path in storage          | 3h     | Schema evolution           |
-| 18  | 🟢       | Multi-tenant event store support                   | 6h     | SaaS use case              |
-| 19  | 🟢       | Documentation site (MkDocs/Hugo)                   | 4h     | Discoverability            |
-| 20  | 🟢       | Projection batch processing                        | 2h     | Throughput                 |
-| 21  | 🟢       | Projection backpressure / rate limiting            | 3h     | Stability under load       |
-| 22  | 🟢       | Client-side event metadata convention docs         | 1h     | Offline-first enablement   |
-| 23  | 🟢       | Connection pool configuration guide for storage    | 1h     | Operational docs           |
-| 24  | 🟢       | godoc for all exported symbols (remaining ~20)     | 2h     | API documentation          |
-| 25  | 🟢       | CI pipeline for tagged releases (goreleaser)       | 3h     | Automated publishing       |
+| #  | Priority | Item                                               | Effort | Impact                     |
+| -- | -------- | -------------------------------------------------- | ------ | -------------------------- |
+| 1  | 🔴       | Fix all 52 lint issues (tests only)                | 1h     | Trust signal               |
+| 2  | 🔴       | Tag `v0.1.0-alpha` for all modules                 | 30m    | Enables version pinning    |
+| 3  | 🔴       | Real PostgreSQL integration tests (testcontainers) | 4h     | Proves SQL works           |
+| 4  | 🟡       | Projection dead-letter mechanism                   | 3h     | Production readiness       |
+| 5  | 🟡       | Storage options (table prefix, logger, pool)       | 2h     | Configurability            |
+| 6  | 🟡       | Register storage/projection errors in taxonomy     | 1h     | Consistent error handling  |
+| 7  | 🟡       | Example app smoke test                             | 1h     | Proves demo works          |
+| 8  | 🟡       | BDD tests for command, query, event modules        | 3h     | User-focused coverage      |
+| 9  | 🟡       | BDD tests for middleware module                    | 2h     | User-focused coverage      |
+| 10 | 🟡       | BDD tests for catalog modules                      | 3h     | User-focused coverage      |
+| 11 | 🟢       | Benchmark suite (event, dispatcher, store)         | 2h     | Performance visibility     |
+| 12 | 🟢       | Fix `query.Handler` returns `any`                  | 2h     | API correctness (breaking) |
+| 13 | 🟢       | Event signing / HMAC verification                  | 4h     | Integrity guarantees       |
+| 14 | 🟢       | Saga/Process Manager implementation                | 8h     | Orchestration support      |
+| 15 | 🟢       | Watermill adapter module                           | 6h     | Kafka/NATS integration     |
+| 16 | 🟢       | Storage DDL abstractions (multi-DB)                | 4h     | MySQL/SQLite support       |
+| 17 | 🟢       | Event upcasting migration path in storage          | 3h     | Schema evolution           |
+| 18 | 🟢       | Multi-tenant event store support                   | 6h     | SaaS use case              |
+| 19 | 🟢       | Documentation site (MkDocs/Hugo)                   | 4h     | Discoverability            |
+| 20 | 🟢       | Projection batch processing                        | 2h     | Throughput                 |
+| 21 | 🟢       | Projection backpressure / rate limiting            | 3h     | Stability under load       |
+| 22 | 🟢       | Client-side event metadata convention docs         | 1h     | Offline-first enablement   |
+| 23 | 🟢       | Connection pool configuration guide for storage    | 1h     | Operational docs           |
+| 24 | 🟢       | godoc for all exported symbols (remaining ~20)     | 2h     | API documentation          |
+| 25 | 🟢       | CI pipeline for tagged releases (goreleaser)       | 3h     | Automated publishing       |
 
 ---
 

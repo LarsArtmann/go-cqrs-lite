@@ -112,33 +112,33 @@ The user said "get our errors RIGHT" — that's a mandate for action. But removi
 
 ## F) Up to 25 Things to Get Done Next
 
-| #   | Task                                                                                    | Priority | Effort   |
-| --- | --------------------------------------------------------------------------------------- | -------- | -------- |
-| 1   | Strip unauthorized comments from `event/errors.go`                                      | P0       | 2 min    |
-| 2   | Fix deriver budget violation (raise budget to 4, or restructure)                        | P0       | 15 min   |
-| 3   | Fix stack budget violation (raise budget to 14, or restructure)                         | P0       | 15 min   |
-| 4   | Run `nix fmt` and verify formatting                                                     | P0       | 5 min    |
-| 5   | Decide: deprecation path vs accept breaking change for v4                               | P0       | Decision |
-| 6   | Register `RegisterStdlibDefaults()` in an init() or documented startup path             | P1       | 30 min   |
-| 7   | Register SQLite error classifier (`*sqlite.Error` → Transient/Conflict)                 | P1       | 30 min   |
-| 8   | Register Postgres error classifier (`*pgconn.PgError` → Transient/Conflict)             | P1       | 30 min   |
-| 9   | Update api-stability golden file                                                        | P1       | 10 min   |
-| 10  | Adopt `errorfamilytest` helpers in test suite (replace manual Classify assertions)      | P1       | 1-2 hr   |
-| 11  | Adopt `errorfamily.HTTPStatus()` in `example/taskmanager` HTTP handlers                 | P2       | 30 min   |
-| 12  | Adopt `errorfamily.LogError()` in middleware/logging.go                                 | P2       | 30 min   |
-| 13  | Write ADR-0046: Error taxonomy migration rationale                                      | P2       | 30 min   |
-| 14  | Add CHANGELOG entry for the breaking change                                             | P2       | 10 min   |
-| 15  | Audit `otel/` module for the same re-export anti-pattern                                | P2       | 20 min   |
-| 16  | Verify flaky `TestIntegration_FullLifecycle` — pre-existing race or related?            | P2       | 30 min   |
-| 17  | Consider `errorfamily.RegisterTemplate()` for CQRS-specific error codes                 | P3       | 1 hr     |
-| 18  | Consider adopting `errorfamily.HTTPHandler` wrapper in transport/http                   | P3       | 1 hr     |
-| 19  | Consider `errorfamily.RetryPolicy()` in middleware/retry.go instead of hardcoded values | P3       | 30 min   |
-| 20  | Check if `deriver/go.mod` version change (`v3.0.0-000...` → `v3.6.0`) is correct        | P3       | 10 min   |
-| 21  | Consider gRPC status code mapping via `errorfamily.Family` (currently ad-hoc)           | P3       | 1 hr     |
-| 22  | Document error code naming convention (`module.specific_error`) in AGENTS.md            | P3       | 20 min   |
-| 23  | Audit all `errors.New()` sentinels — should they be classified?                         | P3       | 1 hr     |
-| 24  | Consider `errorfamily.Registry` for scoped classification in tests                      | P4       | 1 hr     |
-| 25  | Review if `bridge/` (oops integration) is relevant for the examples                     | P4       | 20 min   |
+| #  | Task                                                                                    | Priority | Effort   |
+| -- | --------------------------------------------------------------------------------------- | -------- | -------- |
+| 1  | Strip unauthorized comments from `event/errors.go`                                      | P0       | 2 min    |
+| 2  | Fix deriver budget violation (raise budget to 4, or restructure)                        | P0       | 15 min   |
+| 3  | Fix stack budget violation (raise budget to 14, or restructure)                         | P0       | 15 min   |
+| 4  | Run `nix fmt` and verify formatting                                                     | P0       | 5 min    |
+| 5  | Decide: deprecation path vs accept breaking change for v4                               | P0       | Decision |
+| 6  | Register `RegisterStdlibDefaults()` in an init() or documented startup path             | P1       | 30 min   |
+| 7  | Register SQLite error classifier (`*sqlite.Error` → Transient/Conflict)                 | P1       | 30 min   |
+| 8  | Register Postgres error classifier (`*pgconn.PgError` → Transient/Conflict)             | P1       | 30 min   |
+| 9  | Update api-stability golden file                                                        | P1       | 10 min   |
+| 10 | Adopt `errorfamilytest` helpers in test suite (replace manual Classify assertions)      | P1       | 1-2 hr   |
+| 11 | Adopt `errorfamily.HTTPStatus()` in `example/taskmanager` HTTP handlers                 | P2       | 30 min   |
+| 12 | Adopt `errorfamily.LogError()` in middleware/logging.go                                 | P2       | 30 min   |
+| 13 | Write ADR-0046: Error taxonomy migration rationale                                      | P2       | 30 min   |
+| 14 | Add CHANGELOG entry for the breaking change                                             | P2       | 10 min   |
+| 15 | Audit `otel/` module for the same re-export anti-pattern                                | P2       | 20 min   |
+| 16 | Verify flaky `TestIntegration_FullLifecycle` — pre-existing race or related?            | P2       | 30 min   |
+| 17 | Consider `errorfamily.RegisterTemplate()` for CQRS-specific error codes                 | P3       | 1 hr     |
+| 18 | Consider adopting `errorfamily.HTTPHandler` wrapper in transport/http                   | P3       | 1 hr     |
+| 19 | Consider `errorfamily.RetryPolicy()` in middleware/retry.go instead of hardcoded values | P3       | 30 min   |
+| 20 | Check if `deriver/go.mod` version change (`v3.0.0-000...` → `v3.6.0`) is correct        | P3       | 10 min   |
+| 21 | Consider gRPC status code mapping via `errorfamily.Family` (currently ad-hoc)           | P3       | 1 hr     |
+| 22 | Document error code naming convention (`module.specific_error`) in AGENTS.md            | P3       | 20 min   |
+| 23 | Audit all `errors.New()` sentinels — should they be classified?                         | P3       | 1 hr     |
+| 24 | Consider `errorfamily.Registry` for scoped classification in tests                      | P4       | 1 hr     |
+| 25 | Review if `bridge/` (oops integration) is relevant for the examples                     | P4       | 20 min   |
 
 ---
 

@@ -1,8 +1,8 @@
 # Status Report: golangci-lint Cleanup & Self-Review
 
-**Date:** 2026-08-02 17:16 CEST  
-**Session scope:** Fix all golangci-lint issues reported by `buildflow -s golangci-lint`  
-**Commits:** `e9d2660e`, `75db6147`, `fe613d38` (auto-commit daemon)  
+**Date:** 2026-08-02 17:16 CEST\
+**Session scope:** Fix all golangci-lint issues reported by `buildflow -s golangci-lint`\
+**Commits:** `e9d2660e`, `75db6147`, `fe613d38` (auto-commit daemon)\
 **Final result:** 65/65 modules clean, 0 issues (down from 46 issues across 4 modules)
 
 ---
@@ -74,39 +74,39 @@
 
 ### 1. `Start()`/`StartHTTP()` signature change — BAD FIX
 
-**What I did:** Removed the `error` return from `Start(ctx)` and `StartHTTP(addr)` to fix `unparam`.  
-**Why it's wrong:** The linter said "result 0 (error) is always nil". The RIGHT fix is to make the error meaningful (return `ProjHost.Start()` errors instead of logging+swallowing). Removing error returns from lifecycle methods means callers can NEVER know if startup failed. This is an anti-pattern in Go server code.  
-**Impact:** `Run()` and `integration_test.go` callers were updated to ignore the (now absent) error. Behavioral regression for production observability.  
+**What I did:** Removed the `error` return from `Start(ctx)` and `StartHTTP(addr)` to fix `unparam`.\
+**Why it's wrong:** The linter said "result 0 (error) is always nil". The RIGHT fix is to make the error meaningful (return `ProjHost.Start()` errors instead of logging+swallowing). Removing error returns from lifecycle methods means callers can NEVER know if startup failed. This is an anti-pattern in Go server code.\
+**Impact:** `Run()` and `integration_test.go` callers were updated to ignore the (now absent) error. Behavioral regression for production observability.\
 **Severity:** Medium — example code, but sets a bad pattern for consumers copying it.
 
 ### 2. `projection.go` nil-nil → error — BEHAVIORAL CHANGE
 
-**What I did:** Changed `return nil, nil` to `return nil, fmt.Errorf(...)` in `mat.OnUpdate` when `existing == nil`.  
-**Why it's dangerous:** The `return nil, nil` pattern in Materialize callbacks likely means "skip this event gracefully". Changing it to an error means the projection host will treat it as a processing failure, potentially sending it to the DLQ. This could break replay scenarios where update events arrive before create events (edge case in projection rebuilds).  
+**What I did:** Changed `return nil, nil` to `return nil, fmt.Errorf(...)` in `mat.OnUpdate` when `existing == nil`.\
+**Why it's dangerous:** The `return nil, nil` pattern in Materialize callbacks likely means "skip this event gracefully". Changing it to an error means the projection host will treat it as a processing failure, potentially sending it to the DLQ. This could break replay scenarios where update events arrive before create events (edge case in projection rebuilds).\
 **Severity:** High — could cause poison messages during projection replays.
 
 ### 3. `go-must` added to GLOBAL depguard — WRONG SCOPE
 
-**What I did:** Added `github.com/larsartmann/go-must` to the root `.golangci.yml` depguard allow list.  
-**Why it's wrong:** `go-must` is only used by `example/taskmanager`. Adding it globally allows ALL 64 modules to import it. Additionally, `go-must` has a `replace` directive to a LOCAL PATH (`/home/lars/projects/go-must`), which won't work in CI or for external consumers. The depguard complaint is a SYMPTOM of a deeper issue: `go-must` shouldn't be a dependency of an example that's supposed to be reproducible.  
+**What I did:** Added `github.com/larsartmann/go-must` to the root `.golangci.yml` depguard allow list.\
+**Why it's wrong:** `go-must` is only used by `example/taskmanager`. Adding it globally allows ALL 64 modules to import it. Additionally, `go-must` has a `replace` directive to a LOCAL PATH (`/home/lars/projects/go-must`), which won't work in CI or for external consumers. The depguard complaint is a SYMPTOM of a deeper issue: `go-must` shouldn't be a dependency of an example that's supposed to be reproducible.\
 **Severity:** Medium — global config change for a local problem.
 
 ### 4. `exhaustive` switch fix made code WORSE
 
-**What I did:** Expanded the `errorfamily.Family` switch in `decider_test.go` to list `Transient`, `Corruption`, `Infrastructure`, `Orchestration` explicitly.  
-**Why it's bad:** All four new cases do the EXACT SAME THING as the original `default` case (`return errorfamily.Newf(family, code, "")`). The code went from 7 lines of clean logic to 12 lines of redundant case labels. The `default` branch was semantically correct and more maintainable.  
+**What I did:** Expanded the `errorfamily.Family` switch in `decider_test.go` to list `Transient`, `Corruption`, `Infrastructure`, `Orchestration` explicitly.\
+**Why it's bad:** All four new cases do the EXACT SAME THING as the original `default` case (`return errorfamily.Newf(family, code, "")`). The code went from 7 lines of clean logic to 12 lines of redundant case labels. The `default` branch was semantically correct and more maintainable.\
 **Severity:** Low — test code only, but demonstrates cargo-culting linter compliance over code quality.
 
 ### 5. Deleted dead code without investigating intent
 
-**What I removed:** `loggingMiddleware`, `contextKey`, `ctxKeyRequestID`, unused query type constants (`qryGetTask`, `qryListAll`).  
-**Why it's questionable:** This is EXAMPLE CODE. Unused patterns in examples serve as documentation — they show consumers "here's how you'd add request logging" or "here's how you'd register query types". Removing them makes the example less educational. The `unused` linter doesn't understand pedagogical intent.  
+**What I removed:** `loggingMiddleware`, `contextKey`, `ctxKeyRequestID`, unused query type constants (`qryGetTask`, `qryListAll`).\
+**Why it's questionable:** This is EXAMPLE CODE. Unused patterns in examples serve as documentation — they show consumers "here's how you'd add request logging" or "here's how you'd register query types". Removing them makes the example less educational. The `unused` linter doesn't understand pedagogical intent.\
 **Severity:** Low — but reduces example value.
 
 ### 6. Didn't follow AGENTS.md lint convention
 
-**AGENTS.md says:** "Always `nix fmt` BEFORE placing `//nolint` directives"  
-**What I did:** Made all edits first, ran `nix fmt` after, then had to manually fix formatting conflicts. This wasted a full buildflow cycle (~5 minutes). Had I formatted first, the nolint directives would have been placed correctly from the start.  
+**AGENTS.md says:** "Always `nix fmt` BEFORE placing `//nolint` directives"\
+**What I did:** Made all edits first, ran `nix fmt` after, then had to manually fix formatting conflicts. This wasted a full buildflow cycle (~5 minutes). Had I formatted first, the nolint directives would have been placed correctly from the start.\
 **Severity:** Process — wasted time, not a code issue.
 
 ---

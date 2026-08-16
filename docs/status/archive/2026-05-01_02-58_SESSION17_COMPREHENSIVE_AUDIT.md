@@ -60,22 +60,22 @@ These are production-quality with no known issues:
 | ------------------------------ | ----------- | ------------------------------------------------------------------ |
 | Zero tests                     | 🔴 CRITICAL | No unit, integration, or benchmark tests                           |
 | Close() closes shared \*sql.DB | 🔴 HIGH     | Will break every other component using the same DB connection pool |
-| 3 functions >30 lines          | ⚠️          | Save (73), AppendBatch (52), scanEvents (64)                       |
-| File is 369 lines              | ⚠️          | Over 250-line limit                                                |
-| Hardcoded PostgreSQL           | ⚠️          | `$1` placeholders, BYTEA, JSONB — no dialect abstraction           |
+| 3 functions >30 lines          | ⚠️           | Save (73), AppendBatch (52), scanEvents (64)                       |
+| File is 369 lines              | ⚠️           | Over 250-line limit                                                |
+| Hardcoded PostgreSQL           | ⚠️           | `$1` placeholders, BYTEA, JSONB — no dialect abstraction           |
 | No batch INSERT optimization   | LOW         | Each event is a separate INSERT within transaction                 |
 
 **Verdict:** FEATURES.md should update from BROKEN → PARTIALLY_FUNCTIONAL.
 
 ### B2. Projection Runner — `core/event/runner.go`
 
-| Feature                | Status     |
-| ---------------------- | ---------- |
-| Projection interface   | ✅         |
-| ProjectionFunc adapter | ✅         |
+| Feature                | Status    |
+| ---------------------- | --------- |
+| Projection interface   | ✅        |
+| ProjectionFunc adapter | ✅        |
 | InMemoryRunner         | ⚠️ Partial |
-| CheckpointStore        | ✅         |
-| Event type filtering   | ✅         |
+| CheckpointStore        | ✅        |
+| Event type filtering   | ✅        |
 
 **Gaps:**
 
@@ -177,33 +177,33 @@ FEATURES.md still lists storage metadata as "silently discarded" and codec as "u
 
 Sorted by **impact ÷ effort** (highest ROI first):
 
-| #   | Task                                                                                              | Impact | Effort | Category         |
-| --- | ------------------------------------------------------------------------------------------------- | ------ | ------ | ---------------- |
-| 1   | Fix FuzzParse case-sensitivity bug in `core/pkg/id`                                               | HIGH   | LOW    | Bug fix          |
-| 2   | Update FEATURES.md: storage BROKEN → PARTIALLY_FUNCTIONAL, remove stale claims                    | HIGH   | LOW    | Docs             |
-| 3   | Archive 4 stale root-level markdown files to `docs/archive/`                                      | MEDIUM | LOW    | Cleanup          |
-| 4   | Add `LifecycleMixin` + `Close()` to `MemoryOutboxStore` and `MemoryCheckpointStore`               | MEDIUM | LOW    | Consistency      |
-| 5   | Make inline `errors.New` in `memory/bus.go` and `core/query/query.go` into sentinel vars          | LOW    | LOW    | Code quality     |
-| 6   | Split `storage/event_store.go` (369→<250 lines) — extract scanner, metadata helpers               | MEDIUM | LOW    | File limits      |
-| 7   | Validate `MemoryStore.Save` rejects empty event slices                                            | MEDIUM | LOW    | Bug fix          |
-| 8   | Add nil-check in `NewRepository` for `store` and `bus` params                                     | MEDIUM | LOW    | Safety           |
-| 9   | Fix snapshot error swallowing in `loadEvents` — log/propagate snapshot store errors               | MEDIUM | LOW    | Bug fix          |
-| 10  | Add `context.Context` doc to MemoryStore methods (all ignored)                                    | LOW    | LOW    | Docs             |
-| 11  | Split `core/aggregate/repository.go` (274→<250 lines)                                             | LOW    | LOW    | File limits      |
-| 12  | Refactor functions >30 lines: `NewEvent` (67→<30), `Exporter.Export` (54→<30)                     | MEDIUM | MEDIUM | Code quality     |
-| 13  | Add integration tests for `storage/` with testcontainers-go + PostgreSQL                          | HIGH   | HIGH   | Testing          |
-| 14  | Fix `SQLEventStore.Close()` — don't close shared `*sql.DB`                                        | HIGH   | MEDIUM | Bug fix          |
-| 15  | Add `SnapshotAware` interface to segregate `ApplySnapshot` from `Root`                            | MEDIUM | MEDIUM | Architecture     |
-| 16  | Fix `EventSourcedRepository.Save` publish failure — mark committed before publish or add recovery | HIGH   | HIGH   | Bug fix          |
-| 17  | Add `Close()` + `Use()` to `event.Bus` interface (breaking change — coordinate)                   | HIGH   | HIGH   | Architecture     |
-| 18  | Unify `ErrDispatcherClosed` across packages — shared base error with domain-specific wrappers     | MEDIUM | MEDIUM | Consistency      |
-| 19  | Add duplicate registration guard to `InMemoryRunner.Register`                                     | LOW    | LOW    | Safety           |
-| 20  | Add `HasHandler(cmdType) bool` to command/query dispatchers                                       | MEDIUM | LOW    | API completeness |
-| 21  | Update `example/user/main.go` — add bus subscription, `defer Close()`, constants for event types  | MEDIUM | LOW    | Example          |
-| 22  | Add `Reset(ctx) error` to `Projection` interface for rebuild-from-scratch                         | MEDIUM | MEDIUM | API completeness |
-| 23  | Address `query.Handler` `any` cascade — explore generic `Handler[T]` pattern                      | HIGH   | HIGH   | Architecture     |
-| 24  | Add `LoadByVersionRange` to `event.Store` for partial replay                                      | MEDIUM | MEDIUM | API completeness |
-| 25  | Tag v0.1.0 releases for stable modules (core, memory, middleware, catalog)                        | HIGH   | MEDIUM | Release          |
+| #  | Task                                                                                              | Impact | Effort | Category         |
+| -- | ------------------------------------------------------------------------------------------------- | ------ | ------ | ---------------- |
+| 1  | Fix FuzzParse case-sensitivity bug in `core/pkg/id`                                               | HIGH   | LOW    | Bug fix          |
+| 2  | Update FEATURES.md: storage BROKEN → PARTIALLY_FUNCTIONAL, remove stale claims                    | HIGH   | LOW    | Docs             |
+| 3  | Archive 4 stale root-level markdown files to `docs/archive/`                                      | MEDIUM | LOW    | Cleanup          |
+| 4  | Add `LifecycleMixin` + `Close()` to `MemoryOutboxStore` and `MemoryCheckpointStore`               | MEDIUM | LOW    | Consistency      |
+| 5  | Make inline `errors.New` in `memory/bus.go` and `core/query/query.go` into sentinel vars          | LOW    | LOW    | Code quality     |
+| 6  | Split `storage/event_store.go` (369→<250 lines) — extract scanner, metadata helpers               | MEDIUM | LOW    | File limits      |
+| 7  | Validate `MemoryStore.Save` rejects empty event slices                                            | MEDIUM | LOW    | Bug fix          |
+| 8  | Add nil-check in `NewRepository` for `store` and `bus` params                                     | MEDIUM | LOW    | Safety           |
+| 9  | Fix snapshot error swallowing in `loadEvents` — log/propagate snapshot store errors               | MEDIUM | LOW    | Bug fix          |
+| 10 | Add `context.Context` doc to MemoryStore methods (all ignored)                                    | LOW    | LOW    | Docs             |
+| 11 | Split `core/aggregate/repository.go` (274→<250 lines)                                             | LOW    | LOW    | File limits      |
+| 12 | Refactor functions >30 lines: `NewEvent` (67→<30), `Exporter.Export` (54→<30)                     | MEDIUM | MEDIUM | Code quality     |
+| 13 | Add integration tests for `storage/` with testcontainers-go + PostgreSQL                          | HIGH   | HIGH   | Testing          |
+| 14 | Fix `SQLEventStore.Close()` — don't close shared `*sql.DB`                                        | HIGH   | MEDIUM | Bug fix          |
+| 15 | Add `SnapshotAware` interface to segregate `ApplySnapshot` from `Root`                            | MEDIUM | MEDIUM | Architecture     |
+| 16 | Fix `EventSourcedRepository.Save` publish failure — mark committed before publish or add recovery | HIGH   | HIGH   | Bug fix          |
+| 17 | Add `Close()` + `Use()` to `event.Bus` interface (breaking change — coordinate)                   | HIGH   | HIGH   | Architecture     |
+| 18 | Unify `ErrDispatcherClosed` across packages — shared base error with domain-specific wrappers     | MEDIUM | MEDIUM | Consistency      |
+| 19 | Add duplicate registration guard to `InMemoryRunner.Register`                                     | LOW    | LOW    | Safety           |
+| 20 | Add `HasHandler(cmdType) bool` to command/query dispatchers                                       | MEDIUM | LOW    | API completeness |
+| 21 | Update `example/user/main.go` — add bus subscription, `defer Close()`, constants for event types  | MEDIUM | LOW    | Example          |
+| 22 | Add `Reset(ctx) error` to `Projection` interface for rebuild-from-scratch                         | MEDIUM | MEDIUM | API completeness |
+| 23 | Address `query.Handler` `any` cascade — explore generic `Handler[T]` pattern                      | HIGH   | HIGH   | Architecture     |
+| 24 | Add `LoadByVersionRange` to `event.Store` for partial replay                                      | MEDIUM | MEDIUM | API completeness |
+| 25 | Tag v0.1.0 releases for stable modules (core, memory, middleware, catalog)                        | HIGH   | MEDIUM | Release          |
 
 ---
 

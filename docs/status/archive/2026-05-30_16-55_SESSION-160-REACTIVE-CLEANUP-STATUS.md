@@ -1,8 +1,8 @@
 # Status Report — Session 160
 
-**Date:** 2026-05-30 16:55  
-**Branch:** master  
-**Commits since last status:** 5 (4a02bbe → ecf88ac)  
+**Date:** 2026-05-30 16:55\
+**Branch:** master\
+**Commits since last status:** 5 (4a02bbe → ecf88ac)\
 **Working tree:** CLEAN
 
 ---
@@ -72,8 +72,8 @@ go-cqrs-lite is a **library/SDK** (not an application) with 28 Go modules in a w
 
 ### Reactive Integration — Still Room for Improvement
 
-| Item                                                                  | Status                     | Note                                                                                                                                                                                                                                                                                                                                                         |
-| --------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Item                                                                  | Status                    | Note                                                                                                                                                                                                                                                                                                                                                         |
+| --------------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **All reactive exports have zero production consumers**               | ⚠️ By design (library SDK) | Every reactive export (`EventBus`, `CommandBus`, `QueryBus`, `FilterEventType`, `Map`, `ScanState`, `Tap`, `HandlerToObserver`, `ReplayFilter`, `Observable`) is tested but never used by internal production code. This is **correct for a library** — consumers import what they need. But it means the reactive layer is unproven in real usage patterns. |
 | **No bridge between traditional `event.Bus` and reactive `EventBus`** | ⚠️ Intentional gap         | Two completely separate paradigms coexist. No adapter connects them. Consumers choose one.                                                                                                                                                                                                                                                                   |
 | **Command/Query reactive files are near-identical**                   | ⚠️ Acceptable              | 25 lines each, wrapping different domain types. Duplication is minimal and the types are incompatible.                                                                                                                                                                                                                                                       |
@@ -197,33 +197,33 @@ go-cqrs-lite is a **library/SDK** (not an application) with 28 Go modules in a w
 
 Sorted by impact/effort ratio (highest first):
 
-| #   | Item                                                                                           | Impact      | Effort | Type     |
-| --- | ---------------------------------------------------------------------------------------------- | ----------- | ------ | -------- |
-| 1   | **Push v1.0.0 tags** — unblocks removing replace directives, CI matrix, testcontainers         | 🔴 Critical | 30min  | Infra    |
-| 2   | **Remove replace directives** — clean go.mod files for consumers                               | 🔴 Critical | 1hr    | Cleanup  |
-| 3   | **Write reactive integration test** — prove EventBus → HandlerToObserver flow works end-to-end | 🟡 High     | 2hr    | Testing  |
-| 4   | **Fix flaky `TestRecordError_SetsErrorStatus`** in otel — add proper sync/timeout              | 🟡 High     | 30min  | Bugfix   |
-| 5   | **Split runner_test.go** (~1057L) — improve maintainability                                    | 🟡 High     | 2hr    | Testing  |
-| 6   | **Increase projection coverage to 95%+** — currently 89.6%                                     | 🟡 High     | 3hr    | Testing  |
-| 7   | **Add catch-up projection runner** — start-from-checkpoint → replay → live-switch              | 🟡 High     | 1d     | Feature  |
-| 8   | **Write ADR-0008 for reactive integration** — why samber/ro, what operators, what contract     | 🟠 Medium   | 1hr    | Docs     |
-| 9   | **Write reactive usage guide** — `docs/REACTIVE_GUIDE.md` with realistic examples              | 🟠 Medium   | 3hr    | Docs     |
-| 10  | **PostgreSQL integration tests with testcontainers** — currently go-sqlmock only               | 🟠 Medium   | 1d     | Testing  |
-| 11  | **Increase storage coverage** — currently 72.7%, lowest in the project                         | 🟠 Medium   | 4hr    | Testing  |
-| 12  | **Rewrite example/user/** — demonstrate full CQRS stack including reactive                     | 🟠 Medium   | 1d     | Example  |
-| 13  | **Add example/user/ smoke test** — `TestExampleRuns`                                           | 🟠 Medium   | 1hr    | Testing  |
-| 14  | **BDD tests for value types** — Version, SchemaVersion, OutboxStatus, Pagination               | 🟠 Medium   | 3hr    | Testing  |
-| 15  | **Parallelize CI matrix** — one job per module                                                 | 🟠 Medium   | 2hr    | Infra    |
-| 16  | **Storage backend benchmarks** — PG vs SQLite vs Pebble comparison                             | 🟠 Medium   | 4hr    | Testing  |
-| 17  | **Fuzz tests** — event creation, ID parsing, schema reflection                                 | 🟢 Low      | 1d     | Testing  |
-| 18  | **Performance regression CI** — benchmark comparison on each PR                                | 🟢 Low      | 4hr    | Infra    |
-| 19  | **gofumpt/goimports in pre-commit** — format enforcement                                       | 🟢 Low      | 30min  | Infra    |
-| 20  | **350-line test file limit** — pre-commit enforcement                                          | 🟢 Low      | 1hr    | Infra    |
-| 21  | **v2: Fix `query.Handler` returns `any`** → generic `TypedHandler[T]`                          | 🟢 v2       | 4hr    | Breaking |
-| 22  | **v2: `io.Closer` removal** from core interfaces                                               | 🟢 v2       | 2hr    | Breaking |
-| 23  | **v2: Global `TransactionID` branded type**                                                    | 🟢 v2       | 2hr    | Feature  |
-| 24  | **Stream module integration + SQL reader tests**                                               | 🟢 Low      | 4hr    | Testing  |
-| 25  | **E2E throughput benchmarks**                                                                  | 🟢 Low      | 4hr    | Testing  |
+| #  | Item                                                                                           | Impact      | Effort | Type     |
+| -- | ---------------------------------------------------------------------------------------------- | ----------- | ------ | -------- |
+| 1  | **Push v1.0.0 tags** — unblocks removing replace directives, CI matrix, testcontainers         | 🔴 Critical | 30min  | Infra    |
+| 2  | **Remove replace directives** — clean go.mod files for consumers                               | 🔴 Critical | 1hr    | Cleanup  |
+| 3  | **Write reactive integration test** — prove EventBus → HandlerToObserver flow works end-to-end | 🟡 High     | 2hr    | Testing  |
+| 4  | **Fix flaky `TestRecordError_SetsErrorStatus`** in otel — add proper sync/timeout              | 🟡 High     | 30min  | Bugfix   |
+| 5  | **Split runner_test.go** (~1057L) — improve maintainability                                    | 🟡 High     | 2hr    | Testing  |
+| 6  | **Increase projection coverage to 95%+** — currently 89.6%                                     | 🟡 High     | 3hr    | Testing  |
+| 7  | **Add catch-up projection runner** — start-from-checkpoint → replay → live-switch              | 🟡 High     | 1d     | Feature  |
+| 8  | **Write ADR-0008 for reactive integration** — why samber/ro, what operators, what contract     | 🟠 Medium   | 1hr    | Docs     |
+| 9  | **Write reactive usage guide** — `docs/REACTIVE_GUIDE.md` with realistic examples              | 🟠 Medium   | 3hr    | Docs     |
+| 10 | **PostgreSQL integration tests with testcontainers** — currently go-sqlmock only               | 🟠 Medium   | 1d     | Testing  |
+| 11 | **Increase storage coverage** — currently 72.7%, lowest in the project                         | 🟠 Medium   | 4hr    | Testing  |
+| 12 | **Rewrite example/user/** — demonstrate full CQRS stack including reactive                     | 🟠 Medium   | 1d     | Example  |
+| 13 | **Add example/user/ smoke test** — `TestExampleRuns`                                           | 🟠 Medium   | 1hr    | Testing  |
+| 14 | **BDD tests for value types** — Version, SchemaVersion, OutboxStatus, Pagination               | 🟠 Medium   | 3hr    | Testing  |
+| 15 | **Parallelize CI matrix** — one job per module                                                 | 🟠 Medium   | 2hr    | Infra    |
+| 16 | **Storage backend benchmarks** — PG vs SQLite vs Pebble comparison                             | 🟠 Medium   | 4hr    | Testing  |
+| 17 | **Fuzz tests** — event creation, ID parsing, schema reflection                                 | 🟢 Low      | 1d     | Testing  |
+| 18 | **Performance regression CI** — benchmark comparison on each PR                                | 🟢 Low      | 4hr    | Infra    |
+| 19 | **gofumpt/goimports in pre-commit** — format enforcement                                       | 🟢 Low      | 30min  | Infra    |
+| 20 | **350-line test file limit** — pre-commit enforcement                                          | 🟢 Low      | 1hr    | Infra    |
+| 21 | **v2: Fix `query.Handler` returns `any`** → generic `TypedHandler[T]`                          | 🟢 v2       | 4hr    | Breaking |
+| 22 | **v2: `io.Closer` removal** from core interfaces                                               | 🟢 v2       | 2hr    | Breaking |
+| 23 | **v2: Global `TransactionID` branded type**                                                    | 🟢 v2       | 2hr    | Feature  |
+| 24 | **Stream module integration + SQL reader tests**                                               | 🟢 Low      | 4hr    | Testing  |
+| 25 | **E2E throughput benchmarks**                                                                  | 🟢 Low      | 4hr    | Testing  |
 
 ---
 

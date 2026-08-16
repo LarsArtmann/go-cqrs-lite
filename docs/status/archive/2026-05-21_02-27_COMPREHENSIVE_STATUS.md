@@ -9,50 +9,50 @@
 
 ## Project Vital Signs
 
-| Metric                        | Value                                                                                                                         | Status         |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| Total LOC                     | 47,144 (15,682 production + 31,462 test)                                                                                      | ✅ Healthy     |
-| Production Files              | 178                                                                                                                           | ✅             |
-| Test Files                    | 127                                                                                                                           | ✅             |
-| Benchmark Functions           | 59 across 13 files                                                                                                            | ✅             |
-| Go Modules                    | 12 (root, core, memory, catalog, middleware, testhelpers, projection, storage, sync, integration, example/todo, example/user) | ✅             |
-| Sentinel Errors               | ~35 classified errors across 7 modules                                                                                        | ✅             |
-| Compile-time Interface Checks | 29 `var _` assertions                                                                                                         | ✅             |
-| All Tests                     | 32/32 packages PASS (including -race)                                                                                         | ✅             |
+| Metric                        | Value                                                                                                                         | Status        |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| Total LOC                     | 47,144 (15,682 production + 31,462 test)                                                                                      | ✅ Healthy    |
+| Production Files              | 178                                                                                                                           | ✅            |
+| Test Files                    | 127                                                                                                                           | ✅            |
+| Benchmark Functions           | 59 across 13 files                                                                                                            | ✅            |
+| Go Modules                    | 12 (root, core, memory, catalog, middleware, testhelpers, projection, storage, sync, integration, example/todo, example/user) | ✅            |
+| Sentinel Errors               | ~35 classified errors across 7 modules                                                                                        | ✅            |
+| Compile-time Interface Checks | 29 `var _` assertions                                                                                                         | ✅            |
+| All Tests                     | 32/32 packages PASS (including -race)                                                                                         | ✅            |
 | Lint                          | 5 issues (all in core/pkg/dispatcher — golines, noinlineerr, perfsprint)                                                      | ⚠️ Minor       |
-| Race Detector                 | 0 races                                                                                                                       | ✅             |
+| Race Detector                 | 0 races                                                                                                                       | ✅            |
 | File Size Compliance          | All production files ≤263 lines (max: testhelpers/fake_store.go at 263, over 250 limit)                                       | ⚠️ 1 violation |
 
 ---
 
 ## Test Coverage by Module
 
-| Package                    | Coverage | Trend                                            |
-| -------------------------- | -------- | ------------------------------------------------ |
-| `core/query`               | 100.0%   | ✅ Stable                                        |
-| `core/pkg/dispatcher`      | 100.0%   | ✅ Stable                                        |
-| `middleware`               | 100.0%   | ✅ Stable                                        |
-| `memory`                   | 99.6%    | ✅ Stable                                        |
-| `core/pkg/id`              | 97.8%    | ✅ Stable                                        |
-| `catalog/adapters`         | 97.1%    | ✅ Stable                                        |
-| `catalog/asyncapi`         | 97.1%    | ✅ Stable                                        |
-| `catalog/d2`               | 97.6%    | ✅ Stable                                        |
-| `catalog/openapi`          | 98.1%    | ↑ Was 97.9%                                      |
-| `core/aggregate`           | 95.9%    | ↑ Was 95.5%                                      |
-| `catalog/eventcatalog`     | 95.8%    | ✅ Stable                                        |
-| `core/command`             | 94.7%    | ✅ Stable                                        |
-| `projection`               | 93.9%    | ↑ Was 93.6%                                      |
-| `sync`                     | 92.2%    | ✅ Stable                                        |
-| `catalog`                  | 91.2%    | ✅ Stable                                        |
-| `catalog/docserver`        | 91.0%    | ✅ Stable                                        |
-| `core/decider`             | 93.3%    | ↓ Was 95.0% (errorfamily migration added paths)  |
-| `core/event`               | 89.1%    | ↓ Was 94.4% (errorfamily migration added paths)  |
-| `storage`                  | 88.3%    | ↓ Was 88.1%                                      |
-| `example/todo/domain`      | 100.0%   | ✅                                               |
-| `example/todo/queries`     | 81.8%    | ✅                                               |
-| `example/todo/projections` | 78.9%    | ✅                                               |
-| `example/todo/commands`    | 68.4%    | ✅                                               |
-| `example/todo/aggregate`   | 88.6%    | ✅                                               |
+| Package                    | Coverage | Trend                                           |
+| -------------------------- | -------- | ----------------------------------------------- |
+| `core/query`               | 100.0%   | ✅ Stable                                       |
+| `core/pkg/dispatcher`      | 100.0%   | ✅ Stable                                       |
+| `middleware`               | 100.0%   | ✅ Stable                                       |
+| `memory`                   | 99.6%    | ✅ Stable                                       |
+| `core/pkg/id`              | 97.8%    | ✅ Stable                                       |
+| `catalog/adapters`         | 97.1%    | ✅ Stable                                       |
+| `catalog/asyncapi`         | 97.1%    | ✅ Stable                                       |
+| `catalog/d2`               | 97.6%    | ✅ Stable                                       |
+| `catalog/openapi`          | 98.1%    | ↑ Was 97.9%                                     |
+| `core/aggregate`           | 95.9%    | ↑ Was 95.5%                                     |
+| `catalog/eventcatalog`     | 95.8%    | ✅ Stable                                       |
+| `core/command`             | 94.7%    | ✅ Stable                                       |
+| `projection`               | 93.9%    | ↑ Was 93.6%                                     |
+| `sync`                     | 92.2%    | ✅ Stable                                       |
+| `catalog`                  | 91.2%    | ✅ Stable                                       |
+| `catalog/docserver`        | 91.0%    | ✅ Stable                                       |
+| `core/decider`             | 93.3%    | ↓ Was 95.0% (errorfamily migration added paths) |
+| `core/event`               | 89.1%    | ↓ Was 94.4% (errorfamily migration added paths) |
+| `storage`                  | 88.3%    | ↓ Was 88.1%                                     |
+| `example/todo/domain`      | 100.0%   | ✅                                              |
+| `example/todo/queries`     | 81.8%    | ✅                                              |
+| `example/todo/projections` | 78.9%    | ✅                                              |
+| `example/todo/commands`    | 68.4%    | ✅                                              |
+| `example/todo/aggregate`   | 88.6%    | ✅                                              |
 | `example/todo/cmd/api`     | 41.9%    | ⚠️ Low                                           |
 | `example/todo/storage`     | 29.2%    | ⚠️ Low                                           |
 | `example/user`             | 42.7%    | ⚠️ Low                                           |
@@ -261,33 +261,33 @@
 
 ## f) TOP 25 THINGS TO DO NEXT (Ranked by Impact × Feasibility)
 
-| #   | Task                                                                               | Impact | Effort      | Category       |
-| --- | ---------------------------------------------------------------------------------- | ------ | ----------- | -------------- |
-| 1   | **Fix 5 remaining lint issues** in `core/pkg/dispatcher`                           | HIGH   | LOW (30min) | Quality        |
-| 2   | **Decide fate of `sync/` module** — delete, integrate, or mark EXPERIMENTAL        | HIGH   | MED (2h)    | Architecture   |
-| 3   | **Add `core/event` tests for Wrap\*/WrapFrom paths** — restore 94%+ coverage       | HIGH   | MED (2h)    | Testing        |
-| 4   | **Remove cargo cult `goexperiment.arenas` and `goexperiment.simd`** from flake.nix | MED    | LOW (5min)  | Cleanup        |
-| 5   | **Delete empty `example/todo/handler/` directory**                                 | LOW    | LOW (1min)  | Cleanup        |
-| 6   | **Wire library middleware into `example/todo`** — replace custom loggingMiddleware | MED    | MED (3h)    | Examples       |
-| 7   | **Add `govulncheck` to CI pipeline**                                               | HIGH   | MED (2h)    | Security       |
-| 8   | **Consolidate 3x `CatalogMeta`** — extract shared base type                        | MED    | MED (3h)    | Dedup          |
-| 9   | **Split `testhelpers/fake_store.go`** (263→<250 lines)                             | LOW    | LOW (15min) | Quality        |
-| 10  | **Decide fate of `catalog/docserver/`** — delete or find consumer                  | MED    | MED (1h)    | Architecture   |
-| 11  | **Add `doc.go` to core, projection, sync**                                         | MED    | LOW (30min) | Documentation  |
-| 12  | **Build OTel metrics adapter** for `MetricsRecorder`                               | MED    | MED (4h)    | Observability  |
-| 13  | **Add storage time-travel SQL test coverage**                                      | MED    | MED (2h)    | Testing        |
-| 14  | **Add benchmark regression tracking in CI**                                        | MED    | MED (3h)    | CI/CD          |
-| 15  | **Set up release automation** (goreleaser + tag-based versioning)                  | MED    | HIGH (6h)   | DevOps         |
-| 16  | **Clean up CHANGELOG.md** — merge duplicate sections, update Unreleased            | LOW    | LOW (30min) | Documentation  |
-| 17  | **Migrate query.Handler to typed** — complete TypedHandler migration plan          | MED    | HIGH (8h)   | API            |
-| 18  | **Implement Saga/Process Manager** — design doc exists, 18h estimate               | HIGH   | HIGH (18h)  | Feature        |
-| 19  | **Wrap remaining bare `errors.New` sentinels** with errorfamily constructors       | LOW    | MED (3h)    | Error Handling |
-| 20  | **Add example/todo coverage** for cmd/api and storage                              | LOW    | MED (2h)    | Testing        |
-| 21  | **Remove `io.Closer` from store interfaces** — breaking but correct                | MED    | HIGH (4h)   | API            |
-| 22  | **Add `RegisterClassification` for remaining edge-case sentinels**                 | LOW    | LOW (1h)    | Error Handling |
-| 23  | **Build client-side event store** for offline-first                                | HIGH   | HIGH (40h)  | Feature        |
-| 24  | **Add event signing/verification**                                                 | MED    | HIGH (20h)  | Security       |
-| 25  | **Clarify InMemoryRunner vs projection.Runner relationship** in docs               | LOW    | LOW (1h)    | Documentation  |
+| #  | Task                                                                               | Impact | Effort      | Category       |
+| -- | ---------------------------------------------------------------------------------- | ------ | ----------- | -------------- |
+| 1  | **Fix 5 remaining lint issues** in `core/pkg/dispatcher`                           | HIGH   | LOW (30min) | Quality        |
+| 2  | **Decide fate of `sync/` module** — delete, integrate, or mark EXPERIMENTAL        | HIGH   | MED (2h)    | Architecture   |
+| 3  | **Add `core/event` tests for Wrap\*/WrapFrom paths** — restore 94%+ coverage       | HIGH   | MED (2h)    | Testing        |
+| 4  | **Remove cargo cult `goexperiment.arenas` and `goexperiment.simd`** from flake.nix | MED    | LOW (5min)  | Cleanup        |
+| 5  | **Delete empty `example/todo/handler/` directory**                                 | LOW    | LOW (1min)  | Cleanup        |
+| 6  | **Wire library middleware into `example/todo`** — replace custom loggingMiddleware | MED    | MED (3h)    | Examples       |
+| 7  | **Add `govulncheck` to CI pipeline**                                               | HIGH   | MED (2h)    | Security       |
+| 8  | **Consolidate 3x `CatalogMeta`** — extract shared base type                        | MED    | MED (3h)    | Dedup          |
+| 9  | **Split `testhelpers/fake_store.go`** (263→<250 lines)                             | LOW    | LOW (15min) | Quality        |
+| 10 | **Decide fate of `catalog/docserver/`** — delete or find consumer                  | MED    | MED (1h)    | Architecture   |
+| 11 | **Add `doc.go` to core, projection, sync**                                         | MED    | LOW (30min) | Documentation  |
+| 12 | **Build OTel metrics adapter** for `MetricsRecorder`                               | MED    | MED (4h)    | Observability  |
+| 13 | **Add storage time-travel SQL test coverage**                                      | MED    | MED (2h)    | Testing        |
+| 14 | **Add benchmark regression tracking in CI**                                        | MED    | MED (3h)    | CI/CD          |
+| 15 | **Set up release automation** (goreleaser + tag-based versioning)                  | MED    | HIGH (6h)   | DevOps         |
+| 16 | **Clean up CHANGELOG.md** — merge duplicate sections, update Unreleased            | LOW    | LOW (30min) | Documentation  |
+| 17 | **Migrate query.Handler to typed** — complete TypedHandler migration plan          | MED    | HIGH (8h)   | API            |
+| 18 | **Implement Saga/Process Manager** — design doc exists, 18h estimate               | HIGH   | HIGH (18h)  | Feature        |
+| 19 | **Wrap remaining bare `errors.New` sentinels** with errorfamily constructors       | LOW    | MED (3h)    | Error Handling |
+| 20 | **Add example/todo coverage** for cmd/api and storage                              | LOW    | MED (2h)    | Testing        |
+| 21 | **Remove `io.Closer` from store interfaces** — breaking but correct                | MED    | HIGH (4h)   | API            |
+| 22 | **Add `RegisterClassification` for remaining edge-case sentinels**                 | LOW    | LOW (1h)    | Error Handling |
+| 23 | **Build client-side event store** for offline-first                                | HIGH   | HIGH (40h)  | Feature        |
+| 24 | **Add event signing/verification**                                                 | MED    | HIGH (20h)  | Security       |
+| 25 | **Clarify InMemoryRunner vs projection.Runner relationship** in docs               | LOW    | LOW (1h)    | Documentation  |
 
 ---
 

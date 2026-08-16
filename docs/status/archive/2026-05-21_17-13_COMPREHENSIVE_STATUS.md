@@ -19,12 +19,12 @@ This session focused on **documentation hygiene** — reconciling the TODO list 
 
 ### This Session
 
-| #   | Task                        | Detail                                                                                                                                                                                          |
-| --- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | TODO_LIST.md reconciliation | 63 stale items marked `[x]` with evidence. Each verified against actual code: panic recovery, error returns, type migrations, file splits, error classification, API changes, deep copies, etc. |
-| 2   | FEATURES.md coverage update | 17 coverage numbers updated from actual test run. 6 packages added to Module Maturity Matrix (sync, projection, catalog/openapi, catalog/docserver). Module count corrected 11→12.              |
-| 3   | AGENTS.md trim              | 896→537 lines. Session history (Sessions 20–86) extracted to `docs/sessions/SESSION_HISTORY.md`. Milestone summary table retained. Coverage table updated.                                      |
-| 4   | Full verification           | 24/24 test packages pass. All 11 modules + 2 examples build. Zero lint in core, catalog, middleware. Golden tests pass.                                                                         |
+| # | Task                        | Detail                                                                                                                                                                                          |
+| - | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | TODO_LIST.md reconciliation | 63 stale items marked `[x]` with evidence. Each verified against actual code: panic recovery, error returns, type migrations, file splits, error classification, API changes, deep copies, etc. |
+| 2 | FEATURES.md coverage update | 17 coverage numbers updated from actual test run. 6 packages added to Module Maturity Matrix (sync, projection, catalog/openapi, catalog/docserver). Module count corrected 11→12.              |
+| 3 | AGENTS.md trim              | 896→537 lines. Session history (Sessions 20–86) extracted to `docs/sessions/SESSION_HISTORY.md`. Milestone summary table retained. Coverage table updated.                                      |
+| 4 | Full verification           | 24/24 test packages pass. All 11 modules + 2 examples build. Zero lint in core, catalog, middleware. Golden tests pass.                                                                         |
 
 ### Verified From Previous Sessions (Marked Done This Session)
 
@@ -48,12 +48,12 @@ This session focused on **documentation hygiene** — reconciling the TODO list 
 
 ## b) PARTIALLY DONE ⚠️
 
-| #   | Item                           | What's Done                                           | What's Missing                                                                                    |
-| --- | ------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 1   | CatalogMeta consolidation      | `Catalogable` and `CatalogCore` deleted               | `CatalogMeta` still exists in 3 packages (event, command, query) — blocked on dispatcher refactor |
-| 2   | filterEvents O(n) optimization | `filterByTypes` helper exists                         | Still uses `slices.Contains` (O(n×m)), not set-based lookup                                       |
-| 3   | Lint across all modules        | core=0, catalog=0, middleware=0 issues                | storage, memory, projection, sync not linted with golangci-lint                                   |
-| 4   | Error classification           | 38 sentinels classified, `RegisterClassification` API | Still uses `init()` side effects, not explicit setup                                              |
+| # | Item                           | What's Done                                           | What's Missing                                                                                    |
+| - | ------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 1 | CatalogMeta consolidation      | `Catalogable` and `CatalogCore` deleted               | `CatalogMeta` still exists in 3 packages (event, command, query) — blocked on dispatcher refactor |
+| 2 | filterEvents O(n) optimization | `filterByTypes` helper exists                         | Still uses `slices.Contains` (O(n×m)), not set-based lookup                                       |
+| 3 | Lint across all modules        | core=0, catalog=0, middleware=0 issues                | storage, memory, projection, sync not linted with golangci-lint                                   |
+| 4 | Error classification           | 38 sentinels classified, `RegisterClassification` API | Still uses `init()` side effects, not explicit setup                                              |
 
 ---
 
@@ -61,37 +61,37 @@ This session focused on **documentation hygiene** — reconciling the TODO list 
 
 ### High-Impact Items With Zero Progress
 
-| #   | Item                                | Why Important                                                | Effort |
-| --- | ----------------------------------- | ------------------------------------------------------------ | ------ |
-| 1   | PostgreSQL integration tests        | Most common deployment target, untested with real DB         | 3h     |
-| 2   | Remove go.mod replace directives    | Blocks independent module publishing                         | 2h     |
-| 3   | GOWORK=off CI verification          | Version drift goes undetected                                | 1h     |
-| 4   | Clock interface (`WithClock`)       | Deterministic testing without time.Now() monkey-patching     | 1h     |
-| 5   | SubscriptionScope enum              | Replaces `nil = all` in EventTypes() with explicit semantics | 1h     |
-| 6   | Pebble optimistic concurrency       | Concurrent writes silently overwrite                         | 2h     |
-| 7   | Outbox transaction co-participation | Save + outbox in separate transactions                       | 3h     |
-| 8   | Circuit breaker middleware          | Resilience pattern for production use                        | 3h     |
-| 9   | Saga/Process Manager                | Design doc exists, no implementation                         | 8h+    |
-| 10  | Watermill module                    | Real message broker integration                              | 8h+    |
-| 11  | CONTRIBUTING.md                     | No contributor guidelines exist                              | 2h     |
-| 12  | CONTEXT.md with domain glossary     | No shared vocabulary doc                                     | 1h     |
-| 13  | docs/adr/ directory                 | No architecture decision records                             | 2h     |
-| 14  | Module READMEs                      | No per-module documentation                                  | 3h     |
-| 15  | Release tags                        | 8 tags LOCAL ONLY, blocks external consumers                 | 1h     |
+| #  | Item                                | Why Important                                                | Effort |
+| -- | ----------------------------------- | ------------------------------------------------------------ | ------ |
+| 1  | PostgreSQL integration tests        | Most common deployment target, untested with real DB         | 3h     |
+| 2  | Remove go.mod replace directives    | Blocks independent module publishing                         | 2h     |
+| 3  | GOWORK=off CI verification          | Version drift goes undetected                                | 1h     |
+| 4  | Clock interface (`WithClock`)       | Deterministic testing without time.Now() monkey-patching     | 1h     |
+| 5  | SubscriptionScope enum              | Replaces `nil = all` in EventTypes() with explicit semantics | 1h     |
+| 6  | Pebble optimistic concurrency       | Concurrent writes silently overwrite                         | 2h     |
+| 7  | Outbox transaction co-participation | Save + outbox in separate transactions                       | 3h     |
+| 8  | Circuit breaker middleware          | Resilience pattern for production use                        | 3h     |
+| 9  | Saga/Process Manager                | Design doc exists, no implementation                         | 8h+    |
+| 10 | Watermill module                    | Real message broker integration                              | 8h+    |
+| 11 | CONTRIBUTING.md                     | No contributor guidelines exist                              | 2h     |
+| 12 | CONTEXT.md with domain glossary     | No shared vocabulary doc                                     | 1h     |
+| 13 | docs/adr/ directory                 | No architecture decision records                             | 2h     |
+| 14 | Module READMEs                      | No per-module documentation                                  | 3h     |
+| 15 | Release tags                        | 8 tags LOCAL ONLY, blocks external consumers                 | 1h     |
 
 ---
 
 ## d) TOTALLY FUCKED UP 💀
 
-| #   | Issue                                  | Severity | Detail                                                                                                                                                                    |
-| --- | -------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `query.Handler` returns `any`          | HIGH     | Violates project's own "no any" rule. `DispatchTyped[T]` is a workaround but the core API is wrong. Breaking change to fix.                                               |
-| 2   | Pre-commit hook broken                 | MEDIUM   | BuildFlow fails on pre-existing issues. Forces `--no-verify` for every commit. CI should catch what the hook can't.                                                       |
-| 3   | Replace directives in all go.mod files | MEDIUM   | Every module has `replace` directives pointing to local paths. Prevents `go get` from any external consumer. 10 of 12 go.mod files affected.                              |
-| 4   | `core/event` coverage dropped to 89.1% | MEDIUM   | Was 94.4% in docs (stale). Actual is 89.1%. The god-package has grown — new types (Version arithmetic, error taxonomy, ContextEnricher) added without proportional tests. |
-| 5   | `testhelpers` at 10.5% coverage        | LOW      | Test utility package barely tested. Not critical (it's for tests), but zero trust that helpers work correctly.                                                            |
-| 6   | `catalog/internal/cattest` at 0%       | LOW      | 454 lines, zero tests, no external imports. Dead code masquerading as a package.                                                                                          |
-| 7   | AGENTS.md still 537 lines              | LOW      | Target was <400 lines. Session history extracted but the architecture/conventions section is verbose.                                                                     |
+| # | Issue                                  | Severity | Detail                                                                                                                                                                    |
+| - | -------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `query.Handler` returns `any`          | HIGH     | Violates project's own "no any" rule. `DispatchTyped[T]` is a workaround but the core API is wrong. Breaking change to fix.                                               |
+| 2 | Pre-commit hook broken                 | MEDIUM   | BuildFlow fails on pre-existing issues. Forces `--no-verify` for every commit. CI should catch what the hook can't.                                                       |
+| 3 | Replace directives in all go.mod files | MEDIUM   | Every module has `replace` directives pointing to local paths. Prevents `go get` from any external consumer. 10 of 12 go.mod files affected.                              |
+| 4 | `core/event` coverage dropped to 89.1% | MEDIUM   | Was 94.4% in docs (stale). Actual is 89.1%. The god-package has grown — new types (Version arithmetic, error taxonomy, ContextEnricher) added without proportional tests. |
+| 5 | `testhelpers` at 10.5% coverage        | LOW      | Test utility package barely tested. Not critical (it's for tests), but zero trust that helpers work correctly.                                                            |
+| 6 | `catalog/internal/cattest` at 0%       | LOW      | 454 lines, zero tests, no external imports. Dead code masquerading as a package.                                                                                          |
+| 7 | AGENTS.md still 537 lines              | LOW      | Target was <400 lines. Session history extracted but the architecture/conventions section is verbose.                                                                     |
 
 ---
 
@@ -127,33 +127,33 @@ This session focused on **documentation hygiene** — reconciling the TODO list 
 
 Sorted by **Impact × Urgency / Effort**:
 
-| #   | Task                                                           | Impact   | Effort | Category     |
-| --- | -------------------------------------------------------------- | -------- | ------ | ------------ |
-| 1   | Remove go.mod replace directives → enable `go get`             | CRITICAL | 2h     | Publishing   |
-| 2   | Push release tags to remote (8 tags LOCAL ONLY)                | CRITICAL | 30min  | Publishing   |
-| 3   | Fix pre-commit hook (gci config) or remove it                  | HIGH     | 1h     | DX           |
-| 4   | Add Clock interface + `WithClock` option                       | HIGH     | 1h     | Testing      |
-| 5   | Add GOWORK=off CI job to catch version drift                   | HIGH     | 1h     | CI           |
-| 6   | Add PostgreSQL integration tests (testcontainers)              | HIGH     | 3h     | Quality      |
-| 7   | Fix Pebble Store optimistic concurrency                        | HIGH     | 2h     | Correctness  |
-| 8   | Fix outbox transaction co-participation                        | HIGH     | 3h     | Correctness  |
-| 9   | Fix HandleParallel channel drain on cancellation               | HIGH     | 30min  | Leak fix     |
-| 10  | Increase `core/event` coverage 89.1% → 93%+                    | HIGH     | 2h     | Coverage     |
-| 11  | Split `core/event` god-package into sub-packages               | HIGH     | 4h     | Architecture |
-| 12  | Add CONTRIBUTING.md                                            | MEDIUM   | 2h     | Docs         |
-| 13  | Add docs/adr/ with first 3 ADRs                                | MEDIUM   | 2h     | Docs         |
-| 14  | Add SubscriptionScope enum                                     | MEDIUM   | 1h     | Type safety  |
-| 15  | Replace `init()` error registration with explicit setup        | MEDIUM   | 2h     | API hygiene  |
-| 16  | Delete `catalog/internal/cattest` (0% coverage, 0 imports)     | MEDIUM   | 30min  | Dead code    |
-| 17  | Fix `storage/dialect.go` `any` usage                           | MEDIUM   | 30min  | Convention   |
-| 18  | Add storage benchmarks (PG vs SQLite vs Pebble)                | MEDIUM   | 3h     | Performance  |
-| 19  | Formally deprecate aggregate package                           | MEDIUM   | 30min  | API clarity  |
-| 20  | Wire example/user/ to use catalog-aware constructors           | MEDIUM   | 1h     | Example      |
-| 21  | Normalize go.mod versions across workspace                     | MEDIUM   | 1h     | Hygiene      |
-| 22  | Add minimum coverage gate to CI (80%)                          | LOW      | 30min  | CI           |
-| 23  | Extend lint to all modules (storage, memory, projection, sync) | LOW      | 2h     | Quality      |
-| 24  | Create CONTEXT.md with domain glossary                         | LOW      | 1h     | Docs         |
-| 25  | Add Saga design doc review + implementation start              | LOW      | 8h+    | Feature      |
+| #  | Task                                                           | Impact   | Effort | Category     |
+| -- | -------------------------------------------------------------- | -------- | ------ | ------------ |
+| 1  | Remove go.mod replace directives → enable `go get`             | CRITICAL | 2h     | Publishing   |
+| 2  | Push release tags to remote (8 tags LOCAL ONLY)                | CRITICAL | 30min  | Publishing   |
+| 3  | Fix pre-commit hook (gci config) or remove it                  | HIGH     | 1h     | DX           |
+| 4  | Add Clock interface + `WithClock` option                       | HIGH     | 1h     | Testing      |
+| 5  | Add GOWORK=off CI job to catch version drift                   | HIGH     | 1h     | CI           |
+| 6  | Add PostgreSQL integration tests (testcontainers)              | HIGH     | 3h     | Quality      |
+| 7  | Fix Pebble Store optimistic concurrency                        | HIGH     | 2h     | Correctness  |
+| 8  | Fix outbox transaction co-participation                        | HIGH     | 3h     | Correctness  |
+| 9  | Fix HandleParallel channel drain on cancellation               | HIGH     | 30min  | Leak fix     |
+| 10 | Increase `core/event` coverage 89.1% → 93%+                    | HIGH     | 2h     | Coverage     |
+| 11 | Split `core/event` god-package into sub-packages               | HIGH     | 4h     | Architecture |
+| 12 | Add CONTRIBUTING.md                                            | MEDIUM   | 2h     | Docs         |
+| 13 | Add docs/adr/ with first 3 ADRs                                | MEDIUM   | 2h     | Docs         |
+| 14 | Add SubscriptionScope enum                                     | MEDIUM   | 1h     | Type safety  |
+| 15 | Replace `init()` error registration with explicit setup        | MEDIUM   | 2h     | API hygiene  |
+| 16 | Delete `catalog/internal/cattest` (0% coverage, 0 imports)     | MEDIUM   | 30min  | Dead code    |
+| 17 | Fix `storage/dialect.go` `any` usage                           | MEDIUM   | 30min  | Convention   |
+| 18 | Add storage benchmarks (PG vs SQLite vs Pebble)                | MEDIUM   | 3h     | Performance  |
+| 19 | Formally deprecate aggregate package                           | MEDIUM   | 30min  | API clarity  |
+| 20 | Wire example/user/ to use catalog-aware constructors           | MEDIUM   | 1h     | Example      |
+| 21 | Normalize go.mod versions across workspace                     | MEDIUM   | 1h     | Hygiene      |
+| 22 | Add minimum coverage gate to CI (80%)                          | LOW      | 30min  | CI           |
+| 23 | Extend lint to all modules (storage, memory, projection, sync) | LOW      | 2h     | Quality      |
+| 24 | Create CONTEXT.md with domain glossary                         | LOW      | 1h     | Docs         |
+| 25 | Add Saga design doc review + implementation start              | LOW      | 8h+    | Feature      |
 
 ---
 
@@ -209,16 +209,16 @@ My recommendation is **option 1** — keep `any` and document the `DispatchTyped
 | `core/pkg/id`                 | 97.8%    | ✅           |
 | `core/aggregate`              | 95.9%    | ✅           |
 | `catalog/d2`                  | 95.0%    | ✅           |
-| `core/command`                | 94.7%    | ⚠️ was 100%  |
+| `core/command`                | 94.7%    | ⚠️ was 100%   |
 | `catalog/openapi`             | 94.4%    | ✅           |
 | `projection`                  | 93.9%    | ✅           |
 | `sync`                        | 92.2%    | ✅           |
 | `catalog/eventcatalog`        | 91.3%    | ✅           |
 | `catalog/docserver`           | 91.0%    | ✅           |
-| `catalog`                     | 90.5%    | ⚠️ was 94.4% |
+| `catalog`                     | 90.5%    | ⚠️ was 94.4%  |
 | `catalog/asyncapi`            | 93.7%    | ✅           |
-| `core/decider`                | 93.3%    | ⚠️ was 95.0% |
-| `core/event`                  | 89.1%    | ⚠️ was 94.4% |
+| `core/decider`                | 93.3%    | ⚠️ was 95.0%  |
+| `core/event`                  | 89.1%    | ⚠️ was 94.4%  |
 | `storage`                     | 88.1%    | ✅           |
 | `catalog/internal/schemautil` | 84.2%    | —            |
 | `catalog/internal/caseutil`   | 76.5%    | —            |

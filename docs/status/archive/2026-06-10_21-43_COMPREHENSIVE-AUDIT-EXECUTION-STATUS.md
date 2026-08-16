@@ -48,28 +48,28 @@
 
 ### Coverage by Module
 
-| Module           | Coverage | Status                |
-| ---------------- | -------- | --------------------- |
-| decider          | 100.0%   | ✅                    |
-| dispatcher       | 98.0%    | ✅                    |
-| memory           | 98.2%    | ✅                    |
-| command          | 97.2%    | ✅                    |
-| catalog          | 95.9%    | ✅                    |
-| middleware       | 95.7%    | ✅                    |
-| id               | 96.4%    | ✅                    |
-| listing          | 94.9%    | ✅                    |
-| signing          | 94.1%    | ✅                    |
-| signing/multisig | 94.2%    | ✅                    |
-| query            | 94.3%    | ✅                    |
-| watermill        | 94.3%    | ✅                    |
-| codec            | 93.3%    | ✅                    |
-| snapshot         | 92.3%    | ✅                    |
-| projection       | 91.4%    | ✅                    |
-| event            | 89.6%    | ✅                    |
-| schema           | 89.7%    | ✅                    |
-| storage          | 86.8%    | ✅                    |
-| pebble           | 86.4%    | ✅                    |
-| catalog/schema   | 86.0%    | ✅                    |
+| Module           | Coverage | Status               |
+| ---------------- | -------- | -------------------- |
+| decider          | 100.0%   | ✅                   |
+| dispatcher       | 98.0%    | ✅                   |
+| memory           | 98.2%    | ✅                   |
+| command          | 97.2%    | ✅                   |
+| catalog          | 95.9%    | ✅                   |
+| middleware       | 95.7%    | ✅                   |
+| id               | 96.4%    | ✅                   |
+| listing          | 94.9%    | ✅                   |
+| signing          | 94.1%    | ✅                   |
+| signing/multisig | 94.2%    | ✅                   |
+| query            | 94.3%    | ✅                   |
+| watermill        | 94.3%    | ✅                   |
+| codec            | 93.3%    | ✅                   |
+| snapshot         | 92.3%    | ✅                   |
+| projection       | 91.4%    | ✅                   |
+| event            | 89.6%    | ✅                   |
+| schema           | 89.7%    | ✅                   |
+| storage          | 86.8%    | ✅                   |
+| pebble           | 86.4%    | ✅                   |
+| catalog/schema   | 86.0%    | ✅                   |
 | otel             | 73.0%    | ⚠️ Low                |
 | event/eventtest  | 17.8%    | ⚠️ Low (test helpers) |
 | storage/sql      | 25.2%    | ⚠️ Low                |
@@ -169,33 +169,33 @@ Nothing is partially done. All items that were started were completed.
 
 Sorted by **impact × effort** (highest impact/lowest effort first):
 
-| #   | Item                                                                                       | Impact                               | Effort | Category       |
-| --- | ------------------------------------------------------------------------------------------ | ------------------------------------ | ------ | -------------- |
-| 1   | Fix `fmt.Errorf` wrapping classified errors in memory/store_load.go:111                    | 🔴 Bug (silent `errors.Is` breakage) | 5 min  | error handling |
-| 2   | Fix `fmt.Errorf` wrapping classified errors in memory/command_store.go:196                 | 🔴 Bug                               | 5 min  | error handling |
-| 3   | Fix `pebble/save.go:77,82` — use `event.WrapCorruption` instead of `fmt.Errorf`            | 🟡 Medium                            | 5 min  | error handling |
-| 4   | Fix `storage/aggregate_projection.go:40` — use `event.WrapRejection`                       | 🟡 Medium                            | 5 min  | error handling |
-| 5   | Deprecate `storage/options.go` dead API (`NewSQLEventStoreWithOptions` etc.)               | 🟡 Medium                            | 5 min  | API surface    |
-| 6   | Add `IsZero()` + `ParseType()` to `command.Type`                                           | 🟢 Low                               | 15 min | type safety    |
-| 7   | Add `IsZero()` + `ParseType()` to `query.Type`                                             | 🟢 Low                               | 15 min | type safety    |
-| 8   | Add `doc.go` to `integration/` module                                                      | 🟢 Low                               | 5 min  | consistency    |
-| 9   | Add direct tests for `storage/sql/query_engine.go`                                         | 🟡 Medium                            | 30 min | coverage       |
-| 10  | Add direct tests for `storage/sql/helpers.go`                                              | 🟡 Medium                            | 30 min | coverage       |
-| 11  | Improve `otel/` coverage (73% → 85%+)                                                      | 🟡 Medium                            | 30 min | coverage       |
-| 12  | Audit dead re-exports in `storage/doc.go` — deprecate or remove unused ones                | 🟢 Low                               | 15 min | API surface    |
-| 13  | Add `MetadataKey` validation or `ParseMetadataKey()`                                       | 🟢 Low                               | 20 min | type safety    |
-| 14  | Add `event.TypeOf[T]()` convenience function (derive type name from Go struct)             | 🟢 Low                               | 30 min | DX             |
-| 15  | Consider `catalog.UserID` naming collision with `id.UserID`                                | 🟢 Low                               | 10 min | naming         |
-| 16  | Add typed metadata accessors (`IsTombstone()`, `ClientOccurredAt()`)                       | 🟢 Low                               | 30 min | DX             |
-| 17  | Improve `turso/` coverage (28.6% → 60%+)                                                   | 🟡 Medium                            | 60 min | coverage       |
-| 18  | Consider deprecating pebble `config.go` convenience API (only used in own tests)           | 🟢 Low                               | 15 min | API surface    |
-| 19  | Add `SchemaVersion.Add()` method                                                           | 🟢 Low                               | 5 min  | completeness   |
-| 20  | Add `Version.MarshalJSON`/`UnmarshalJSON`                                                  | 🟢 Low                               | 15 min | serialization  |
-| 21  | Add `SchemaVersion.MarshalJSON`/`UnmarshalJSON`                                            | 🟢 Low                               | 15 min | serialization  |
-| 22  | Consider `catalog.ServiceID` etc. using branded `id.Of[T]` pattern                         | 🟢 Low                               | 45 min | type safety    |
-| 23  | Add `MetadataKey` registry for cross-package extension point enforcement                   | 🟢 Low                               | 30 min | type safety    |
-| 24  | Extract `eventtest` helpers used across packages into shared testutil                      | 🟢 Low                               | 60 min | organization   |
-| 25  | Investigate `event/eventtest` 17.8% coverage — is it test helpers that should be excluded? | 🟢 Low                               | 15 min | coverage       |
+| #  | Item                                                                                       | Impact                               | Effort | Category       |
+| -- | ------------------------------------------------------------------------------------------ | ------------------------------------ | ------ | -------------- |
+| 1  | Fix `fmt.Errorf` wrapping classified errors in memory/store_load.go:111                    | 🔴 Bug (silent `errors.Is` breakage) | 5 min  | error handling |
+| 2  | Fix `fmt.Errorf` wrapping classified errors in memory/command_store.go:196                 | 🔴 Bug                               | 5 min  | error handling |
+| 3  | Fix `pebble/save.go:77,82` — use `event.WrapCorruption` instead of `fmt.Errorf`            | 🟡 Medium                            | 5 min  | error handling |
+| 4  | Fix `storage/aggregate_projection.go:40` — use `event.WrapRejection`                       | 🟡 Medium                            | 5 min  | error handling |
+| 5  | Deprecate `storage/options.go` dead API (`NewSQLEventStoreWithOptions` etc.)               | 🟡 Medium                            | 5 min  | API surface    |
+| 6  | Add `IsZero()` + `ParseType()` to `command.Type`                                           | 🟢 Low                               | 15 min | type safety    |
+| 7  | Add `IsZero()` + `ParseType()` to `query.Type`                                             | 🟢 Low                               | 15 min | type safety    |
+| 8  | Add `doc.go` to `integration/` module                                                      | 🟢 Low                               | 5 min  | consistency    |
+| 9  | Add direct tests for `storage/sql/query_engine.go`                                         | 🟡 Medium                            | 30 min | coverage       |
+| 10 | Add direct tests for `storage/sql/helpers.go`                                              | 🟡 Medium                            | 30 min | coverage       |
+| 11 | Improve `otel/` coverage (73% → 85%+)                                                      | 🟡 Medium                            | 30 min | coverage       |
+| 12 | Audit dead re-exports in `storage/doc.go` — deprecate or remove unused ones                | 🟢 Low                               | 15 min | API surface    |
+| 13 | Add `MetadataKey` validation or `ParseMetadataKey()`                                       | 🟢 Low                               | 20 min | type safety    |
+| 14 | Add `event.TypeOf[T]()` convenience function (derive type name from Go struct)             | 🟢 Low                               | 30 min | DX             |
+| 15 | Consider `catalog.UserID` naming collision with `id.UserID`                                | 🟢 Low                               | 10 min | naming         |
+| 16 | Add typed metadata accessors (`IsTombstone()`, `ClientOccurredAt()`)                       | 🟢 Low                               | 30 min | DX             |
+| 17 | Improve `turso/` coverage (28.6% → 60%+)                                                   | 🟡 Medium                            | 60 min | coverage       |
+| 18 | Consider deprecating pebble `config.go` convenience API (only used in own tests)           | 🟢 Low                               | 15 min | API surface    |
+| 19 | Add `SchemaVersion.Add()` method                                                           | 🟢 Low                               | 5 min  | completeness   |
+| 20 | Add `Version.MarshalJSON`/`UnmarshalJSON`                                                  | 🟢 Low                               | 15 min | serialization  |
+| 21 | Add `SchemaVersion.MarshalJSON`/`UnmarshalJSON`                                            | 🟢 Low                               | 15 min | serialization  |
+| 22 | Consider `catalog.ServiceID` etc. using branded `id.Of[T]` pattern                         | 🟢 Low                               | 45 min | type safety    |
+| 23 | Add `MetadataKey` registry for cross-package extension point enforcement                   | 🟢 Low                               | 30 min | type safety    |
+| 24 | Extract `eventtest` helpers used across packages into shared testutil                      | 🟢 Low                               | 60 min | organization   |
+| 25 | Investigate `event/eventtest` 17.8% coverage — is it test helpers that should be excluded? | 🟢 Low                               | 15 min | coverage       |
 
 ---
 

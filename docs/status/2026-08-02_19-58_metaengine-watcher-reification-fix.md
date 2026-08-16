@@ -1,7 +1,7 @@
 # Status Report: Metaengine Watcher Reification Fix
 
-**Date:** 2026-08-02 19:58+02:00  
-**Session Focus:** Fix `Watcher[V]` typed channel bug + SQLite engine silent type assertion failures in `metaengine/`.  
+**Date:** 2026-08-02 19:58+02:00\
+**Session Focus:** Fix `Watcher[V]` typed channel bug + SQLite engine silent type assertion failures in `metaengine/`.\
 **Relevant Commits:**
 
 - `264a4cc5` — `feat(metaengine): implement DuckDB LayoutPlanner and fix watcher reification`
@@ -93,7 +93,7 @@ Added `metaengine/watcher_typesafe_test.go` covering:
 
 ## d) TOTALLY FUCKED UP
 
-Nothing in this session was totally fucked up.  
+Nothing in this session was totally fucked up.\
 However, an honest observation: the **initial test file used a non-existent helper `newSQLiteDB`**, which would have caused a compile error. I caught it before running tests and replaced it with inline `sql.Open("sqlite", ":memory:")`. This was a minor drafting mistake, not a systemic issue, but it shows the value of compiling immediately after writing tests.
 
 Another risk: the **auto-commit daemon committed the watcher fix together with unrelated DuckDB LayoutPlanner work** in the same commit (`264a4cc5`). This is not a code bug, but it reduces commit granularity and makes bisecting or reverting the watcher fix harder. The work itself is correct, but the commit history is less clean than ideal.
@@ -193,13 +193,13 @@ Only `metaengine` tests were run. The project rule says `nix run .#verify` is th
 
 ## g) Questions I Cannot Figure Out Myself
 
-1. **Should delete notifications be opt-in or the default?**  
+1. **Should delete notifications be opt-in or the default?**\
    The fix now always delivers the zero value of `V` on `MapDelete`. This changes observable behavior. Do we want a `Watcher` option (e.g., `WithSkipDeletes`) to preserve the old silent-drop behavior for consumers that do not care about deletions?
 
-2. **What is the intended semantics of `ServeSSE` for deleted values?**  
+2. **What is the intended semantics of `ServeSSE` for deleted values?**\
    With this fix, a delete will emit an SSE event carrying the zero value of `V`. Should SSE instead skip deletes, send a special tombstone event, or is the zero-value event the desired contract?
 
-3. **Do we need to bump the `metaengine/v4` module version or update the api-stability golden?**  
+3. **Do we need to bump the `metaengine/v4` module version or update the api-stability golden?**\
    The public API signatures did not change, but the observable behavior of `Watch` and `WatchWithSeq` did. I cannot determine from the repo alone whether this is treated as a patch-level bug fix or requires a minor version bump and golden-file regeneration.
 
 ---

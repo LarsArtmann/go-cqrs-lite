@@ -59,15 +59,15 @@ Today's session resolved the **entire P0 backlog**: migrated catalog from `gopkg
 
 ### Remaining golangci-lint Issues (7 total — all minor)
 
-| #   | File                            | Linter      | Severity | Description                                             | Est |
-| --- | ------------------------------- | ----------- | -------- | ------------------------------------------------------- | --- |
-| 1   | `projection/runner_live.go:8`   | depguard    | Low      | `golang.org/x/sync/errgroup` not in allow list          | 2m  |
-| 2   | `storage/example_test.go:19`    | errcheck    | Low      | `db.Close()` return value unchecked                     | 1m  |
-| 3   | `listing/in_memory.go:27`       | exhaustruct | Low      | `InMemoryAggregateReader` missing `mu`, `cached` fields | 3m  |
-| 4   | `signing/payload.go:60`         | gosec G115  | Low      | int→uint32 overflow in binary write                     | 5m  |
-| 5   | `pebble/journal.go:108`         | noinlineerr | Style    | inline error handling in if statement                   | 2m  |
-| 6   | `middleware/example_test.go:17` | varnamelen  | Style    | variable `mw` too short                                 | 1m  |
-| 7   | `listing/middleware.go:82`      | wrapcheck   | Low      | `Publisher.Publish` error not wrapped                   | 2m  |
+| # | File                            | Linter      | Severity | Description                                             | Est |
+| - | ------------------------------- | ----------- | -------- | ------------------------------------------------------- | --- |
+| 1 | `projection/runner_live.go:8`   | depguard    | Low      | `golang.org/x/sync/errgroup` not in allow list          | 2m  |
+| 2 | `storage/example_test.go:19`    | errcheck    | Low      | `db.Close()` return value unchecked                     | 1m  |
+| 3 | `listing/in_memory.go:27`       | exhaustruct | Low      | `InMemoryAggregateReader` missing `mu`, `cached` fields | 3m  |
+| 4 | `signing/payload.go:60`         | gosec G115  | Low      | int→uint32 overflow in binary write                     | 5m  |
+| 5 | `pebble/journal.go:108`         | noinlineerr | Style    | inline error handling in if statement                   | 2m  |
+| 6 | `middleware/example_test.go:17` | varnamelen  | Style    | variable `mw` too short                                 | 1m  |
+| 7 | `listing/middleware.go:82`      | wrapcheck   | Low      | `Publisher.Publish` error not wrapped                   | 2m  |
 
 **None are bugs. None affect production. All are ≤5 min fixes.**
 
@@ -145,48 +145,48 @@ Ranked by **impact × effort** (Pareto ordering):
 
 ### P0 — Quick Wins (≤30 min each, high impact)
 
-| #   | Task                                                           | Module         | Est | Impact              |
-| --- | -------------------------------------------------------------- | -------------- | --- | ------------------- |
-| 1   | Fix remaining 7 golangci-lint issues                           | multiple       | 20m | Zero lint warnings  |
-| 2   | Add `errgroup` to depguard allow list                          | .golangci.yml  | 1m  | Depguard clean      |
-| 3   | Suppress `go-structure-linter` for multi-module repos          | .buildflow.yml | 5m  | Clean pre-commit    |
-| 4   | Add `InMemoryAggregateReader` to exhaustruct exclude           | .golangci.yml  | 2m  | False positive gone |
-| 5   | Fix `npm-update` buildflow failure (skip when no package.json) | .buildflow.yml | 5m  | Clean buildflow     |
+| # | Task                                                           | Module         | Est | Impact              |
+| - | -------------------------------------------------------------- | -------------- | --- | ------------------- |
+| 1 | Fix remaining 7 golangci-lint issues                           | multiple       | 20m | Zero lint warnings  |
+| 2 | Add `errgroup` to depguard allow list                          | .golangci.yml  | 1m  | Depguard clean      |
+| 3 | Suppress `go-structure-linter` for multi-module repos          | .buildflow.yml | 5m  | Clean pre-commit    |
+| 4 | Add `InMemoryAggregateReader` to exhaustruct exclude           | .golangci.yml  | 2m  | False positive gone |
+| 5 | Fix `npm-update` buildflow failure (skip when no package.json) | .buildflow.yml | 5m  | Clean buildflow     |
 
 ### P1 — Quality Improvements (1-4 hours each)
 
-| #   | Task                                          | Module            | Est | Impact                     |
-| --- | --------------------------------------------- | ----------------- | --- | -------------------------- |
-| 6   | Add storage benchmarks (PG vs SQLite)         | storage           | 2h  | Performance visibility     |
-| 7   | Add projection replay benchmarks              | projection        | 2h  | Regression detection       |
-| 8   | Run API stability check in CI                 | cmd/api-stability | 2h  | Breaking change protection |
-| 9   | Add middleware composition example/guide      | middleware        | 1h  | Consumer DX                |
-| 10  | Add catalog usage guide with examples         | catalog           | 2h  | Consumer adoption          |
-| 11  | Add event upcasting example (v1→v2 migration) | example/          | 1h  | Schema evolution DX        |
-| 12  | Storage production guide (pooling, migration) | docs/             | 1h  | Operations DX              |
+| #  | Task                                          | Module            | Est | Impact                     |
+| -- | --------------------------------------------- | ----------------- | --- | -------------------------- |
+| 6  | Add storage benchmarks (PG vs SQLite)         | storage           | 2h  | Performance visibility     |
+| 7  | Add projection replay benchmarks              | projection        | 2h  | Regression detection       |
+| 8  | Run API stability check in CI                 | cmd/api-stability | 2h  | Breaking change protection |
+| 9  | Add middleware composition example/guide      | middleware        | 1h  | Consumer DX                |
+| 10 | Add catalog usage guide with examples         | catalog           | 2h  | Consumer adoption          |
+| 11 | Add event upcasting example (v1→v2 migration) | example/          | 1h  | Schema evolution DX        |
+| 12 | Storage production guide (pooling, migration) | docs/             | 1h  | Operations DX              |
 
 ### P2 — Feature Work (4-8 hours each)
 
-| #   | Task                                          | Module         | Est | Impact             |
-| --- | --------------------------------------------- | -------------- | --- | ------------------ |
-| 13  | Snapshot compression (gzip option)            | snapshot       | 4h  | Storage efficiency |
-| 14  | Turso integration test (embedded libSQL)      | turso          | 4h  | Reliability        |
-| 15  | Watermill integration test (in-process)       | watermill      | 4h  | Reliability        |
-| 16  | Remove `gopkg.in/yaml.v3` from all go.sum     | all            | 2h  | Dependency hygiene |
-| 17  | Add `go-faster/yaml` to shared dep validation | library-policy | 1h  | Policy alignment   |
-| 18  | cqrs-gen: support query handler generation    | cmd/cqrs-gen   | 4h  | Feature parity     |
-| 19  | Storage: add connection pool metrics          | storage        | 3h  | Observability      |
-| 20  | Projection: add checkpoint metrics            | projection     | 3h  | Observability      |
+| #  | Task                                          | Module         | Est | Impact             |
+| -- | --------------------------------------------- | -------------- | --- | ------------------ |
+| 13 | Snapshot compression (gzip option)            | snapshot       | 4h  | Storage efficiency |
+| 14 | Turso integration test (embedded libSQL)      | turso          | 4h  | Reliability        |
+| 15 | Watermill integration test (in-process)       | watermill      | 4h  | Reliability        |
+| 16 | Remove `gopkg.in/yaml.v3` from all go.sum     | all            | 2h  | Dependency hygiene |
+| 17 | Add `go-faster/yaml` to shared dep validation | library-policy | 1h  | Policy alignment   |
+| 18 | cqrs-gen: support query handler generation    | cmd/cqrs-gen   | 4h  | Feature parity     |
+| 19 | Storage: add connection pool metrics          | storage        | 3h  | Observability      |
+| 20 | Projection: add checkpoint metrics            | projection     | 3h  | Observability      |
 
 ### P3 — Strategic (1+ day each)
 
-| #   | Task                                             | Module    | Est | Impact            |
-| --- | ------------------------------------------------ | --------- | --- | ----------------- |
-| 21  | Hosted documentation site (pkg.go.dev + custom)  | docs/     | 2d  | Discoverability   |
-| 22  | v3 planning ADRs                                 | docs/adr/ | 1d  | Strategic clarity |
-| 23  | Remove replace directives for consumers          | all       | 1d  | Simpler imports   |
-| 24  | Add GopherJS/WASM compatibility tests            | ci        | 2d  | Platform reach    |
-| 25  | Performance regression CI (benchstat comparison) | ci        | 1d  | Quality gate      |
+| #  | Task                                             | Module    | Est | Impact            |
+| -- | ------------------------------------------------ | --------- | --- | ----------------- |
+| 21 | Hosted documentation site (pkg.go.dev + custom)  | docs/     | 2d  | Discoverability   |
+| 22 | v3 planning ADRs                                 | docs/adr/ | 1d  | Strategic clarity |
+| 23 | Remove replace directives for consumers          | all       | 1d  | Simpler imports   |
+| 24 | Add GopherJS/WASM compatibility tests            | ci        | 2d  | Platform reach    |
+| 25 | Performance regression CI (benchstat comparison) | ci        | 1d  | Quality gate      |
 
 ---
 
@@ -210,7 +210,7 @@ Context: The linter suggests moving public code to `pkg/` and private code to `i
 | Test coverage             | 84.5% statements                                | ✅     |
 | Go LOC                    | 69,997                                          | —      |
 | Workspace modules         | 30 (22 lib + 6 example + 1 integration + 1 cmd) | ✅     |
-| golangci-lint issues      | 7 (all minor/style)                             | ⚠️     |
+| golangci-lint issues      | 7 (all minor/style)                             | ⚠️      |
 | library-policy violations | 0                                               | ✅     |
 | buildflow pre-commit      | PASSED (11/11 + npm-update skip)                | ✅     |
 | Open CVEs                 | 0                                               | ✅     |

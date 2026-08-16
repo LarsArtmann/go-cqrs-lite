@@ -150,33 +150,33 @@
 
 ## f) Top 25 Things to Do Next (sorted by impact/work ratio)
 
-| #   | Task                                                   | Impact | Work             | Ratio |
-| --- | ------------------------------------------------------ | ------ | ---------------- | ----- |
-| 1   | Commit `RecordEvent` rename                            | High   | Zero             | ∞     |
-| 2   | Remove duplicated `Lifecycle` methods                  | Medium | Tiny             | ★★★★★ |
-| 3   | Fix `Register()` error semantics (ErrDispatcherClosed) | Medium | Tiny             | ★★★★★ |
-| 4   | Standardize errors: `event/event.go`                   | Medium | Small            | ★★★★  |
-| 5   | Standardize errors: `event/types.go`                   | Medium | Small            | ★★★★  |
-| 6   | Standardize errors: `xtypes/event.go`                  | Medium | Small            | ★★★★  |
-| 7   | Fix `query.Handler` to accept `context.Context`        | High   | Small            | ★★★★  |
-| 8   | Fix `query.Handler` type alias → type definition       | High   | Tiny             | ★★★★  |
-| 9   | Add `aggregate.Repository` interface                   | High   | Medium           | ★★★   |
-| 10  | Remove duplicated state in `TypedAggregate`            | Medium | Small            | ★★★   |
-| 11  | Fix `TypedCommand` to implement `command.Command`      | Medium | Small            | ★★★   |
-| 12  | Deduplicate validation in `EventBuilder.Build()`       | Low    | Small            | ★★    |
-| 13  | Add integration test (full CQRS roundtrip)             | High   | Medium           | ★★    |
-| 14  | Add benchmarks (ID, dispatcher, store)                 | Medium | Medium           | ★★    |
-| 15  | Add `middleware/logging.go`                            | Medium | Small            | ★★    |
-| 16  | Add `middleware/recovery.go`                           | Medium | Small            | ★★    |
-| 17  | Make `Command.AggregateID()` optional                  | High   | Large            | ★     |
-| 18  | Make `Root.ID()` return `id.AggregateID`               | High   | Large (breaking) | ★     |
-| 19  | Make `Event.AggregateID()` return typed ID             | High   | Large (breaking) | ★     |
-| 20  | Add `middleware/tracing.go`                            | Low    | Medium           | ★     |
-| 21  | Add `middleware/metrics.go`                            | Low    | Medium           | ★     |
-| 22  | Add typed command dispatcher helper                    | Low    | Small            | ★     |
-| 23  | Improve `catalog/yaml` coverage (79.8% → 90%+)         | Low    | Small            | ★     |
-| 24  | Improve `catalog/eventcatalog` coverage (86.4% → 90%+) | Low    | Small            | ★     |
-| 25  | Add Go doc examples (`Example*` test functions)        | Low    | Medium           | ★     |
+| #  | Task                                                   | Impact | Work             | Ratio |
+| -- | ------------------------------------------------------ | ------ | ---------------- | ----- |
+| 1  | Commit `RecordEvent` rename                            | High   | Zero             | ∞     |
+| 2  | Remove duplicated `Lifecycle` methods                  | Medium | Tiny             | ★★★★★ |
+| 3  | Fix `Register()` error semantics (ErrDispatcherClosed) | Medium | Tiny             | ★★★★★ |
+| 4  | Standardize errors: `event/event.go`                   | Medium | Small            | ★★★★  |
+| 5  | Standardize errors: `event/types.go`                   | Medium | Small            | ★★★★  |
+| 6  | Standardize errors: `xtypes/event.go`                  | Medium | Small            | ★★★★  |
+| 7  | Fix `query.Handler` to accept `context.Context`        | High   | Small            | ★★★★  |
+| 8  | Fix `query.Handler` type alias → type definition       | High   | Tiny             | ★★★★  |
+| 9  | Add `aggregate.Repository` interface                   | High   | Medium           | ★★★   |
+| 10 | Remove duplicated state in `TypedAggregate`            | Medium | Small            | ★★★   |
+| 11 | Fix `TypedCommand` to implement `command.Command`      | Medium | Small            | ★★★   |
+| 12 | Deduplicate validation in `EventBuilder.Build()`       | Low    | Small            | ★★    |
+| 13 | Add integration test (full CQRS roundtrip)             | High   | Medium           | ★★    |
+| 14 | Add benchmarks (ID, dispatcher, store)                 | Medium | Medium           | ★★    |
+| 15 | Add `middleware/logging.go`                            | Medium | Small            | ★★    |
+| 16 | Add `middleware/recovery.go`                           | Medium | Small            | ★★    |
+| 17 | Make `Command.AggregateID()` optional                  | High   | Large            | ★     |
+| 18 | Make `Root.ID()` return `id.AggregateID`               | High   | Large (breaking) | ★     |
+| 19 | Make `Event.AggregateID()` return typed ID             | High   | Large (breaking) | ★     |
+| 20 | Add `middleware/tracing.go`                            | Low    | Medium           | ★     |
+| 21 | Add `middleware/metrics.go`                            | Low    | Medium           | ★     |
+| 22 | Add typed command dispatcher helper                    | Low    | Small            | ★     |
+| 23 | Improve `catalog/yaml` coverage (79.8% → 90%+)         | Low    | Small            | ★     |
+| 24 | Improve `catalog/eventcatalog` coverage (86.4% → 90%+) | Low    | Small            | ★     |
+| 25 | Add Go doc examples (`Example*` test functions)        | Low    | Medium           | ★     |
 
 ---
 

@@ -162,33 +162,33 @@ These TODO items were analyzed but deferred (not actionable this session):
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Priority | Item                                                                                                        | Impact | Effort |
-| --- | -------- | ----------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | 🔴       | Storage coverage 86.9% → 90%+ (error path tests with go-sqlmock)                                            | High   | Medium |
-| 2   | 🔴       | Add `-race` to CI pipeline                                                                                  | High   | Low    |
-| 3   | 🔴       | Add minimum 80% coverage gate to CI                                                                         | High   | Low    |
-| 4   | 🔴       | Fix example/todo broken build (cqrs-htmx dep)                                                               | Medium | Low    |
-| 5   | 🟡       | GOWORK=off CI matrix job — catch module isolation breaks                                                    | High   | Low    |
-| 6   | 🟡       | Extract error classification to standalone package (5 modules import event just for RegisterClassification) | High   | Medium |
-| 7   | 🟡       | testhelpers coverage 64.6% → 80%+ (FakeStore Save/Load/Delete, setters)                                     | Medium | Low    |
-| 8   | 🟡       | Add concurrent access tests for MemoryBus, MemoryStore, MemoryOutbox, MemorySnapshot                        | Medium | Medium |
-| 9   | 🟡       | Replace `init()` error registration with explicit setup                                                     | Medium | Medium |
-| 10  | 🟡       | Fix outbox transaction co-participation (design ADR first)                                                  | High   | High   |
-| 11  | 🟡       | Add projection.Runner.Close() real implementation + tests                                                   | Medium | Low    |
-| 12  | 🟡       | Add slog.Warn for corrupt Pebble IDs in deserialization                                                     | Low    | Low    |
-| 13  | 🟡       | Normalize go.mod version references across workspace                                                        | Medium | Low    |
-| 14  | 🟡       | Move test deps (memory, testhelpers) out of core's production go.mod                                        | Medium | Medium |
-| 15  | 🟡       | Add go.work sync CI check                                                                                   | Medium | Low    |
-| 16  | 🟢       | Split large test files (decider_test.go ~1200L, runner_test.go ~1057L)                                      | Low    | Medium |
-| 17  | 🟢       | Document time-travel API in README/AGENTS.md                                                                | Medium | Low    |
-| 18  | 🟢       | Create CONTRIBUTING.md with architecture guidelines                                                         | Low    | Medium |
-| 19  | 🟢       | Create docs/adr/ with ADR-0001 (Decider), ADR-0002 (Error taxonomy), ADR-0003 (Multi-module)                | Low    | Medium |
-| 20  | 🟢       | Write CHANGELOG.md — 93 sessions with no tracking                                                           | Low    | Medium |
-| 21  | 🟢       | Build thin PostgreSQL store adapter (no Watermill)                                                          | High   | High   |
-| 22  | 🟢       | Add EventRetry middleware tests (if not already at 100%)                                                    | Low    | Low    |
-| 23  | 🟢       | Consolidate MemoryBus handler storage (single map with sentinel key)                                        | Low    | Low    |
-| 24  | 🟢       | Trim AGENTS.md from 576 → <400 lines                                                                        | Low    | Medium |
-| 25  | 🟢       | Add catalog diff/breaking-change detection tool                                                             | Medium | High   |
+| #  | Priority | Item                                                                                                        | Impact | Effort |
+| -- | -------- | ----------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1  | 🔴       | Storage coverage 86.9% → 90%+ (error path tests with go-sqlmock)                                            | High   | Medium |
+| 2  | 🔴       | Add `-race` to CI pipeline                                                                                  | High   | Low    |
+| 3  | 🔴       | Add minimum 80% coverage gate to CI                                                                         | High   | Low    |
+| 4  | 🔴       | Fix example/todo broken build (cqrs-htmx dep)                                                               | Medium | Low    |
+| 5  | 🟡       | GOWORK=off CI matrix job — catch module isolation breaks                                                    | High   | Low    |
+| 6  | 🟡       | Extract error classification to standalone package (5 modules import event just for RegisterClassification) | High   | Medium |
+| 7  | 🟡       | testhelpers coverage 64.6% → 80%+ (FakeStore Save/Load/Delete, setters)                                     | Medium | Low    |
+| 8  | 🟡       | Add concurrent access tests for MemoryBus, MemoryStore, MemoryOutbox, MemorySnapshot                        | Medium | Medium |
+| 9  | 🟡       | Replace `init()` error registration with explicit setup                                                     | Medium | Medium |
+| 10 | 🟡       | Fix outbox transaction co-participation (design ADR first)                                                  | High   | High   |
+| 11 | 🟡       | Add projection.Runner.Close() real implementation + tests                                                   | Medium | Low    |
+| 12 | 🟡       | Add slog.Warn for corrupt Pebble IDs in deserialization                                                     | Low    | Low    |
+| 13 | 🟡       | Normalize go.mod version references across workspace                                                        | Medium | Low    |
+| 14 | 🟡       | Move test deps (memory, testhelpers) out of core's production go.mod                                        | Medium | Medium |
+| 15 | 🟡       | Add go.work sync CI check                                                                                   | Medium | Low    |
+| 16 | 🟢       | Split large test files (decider_test.go ~1200L, runner_test.go ~1057L)                                      | Low    | Medium |
+| 17 | 🟢       | Document time-travel API in README/AGENTS.md                                                                | Medium | Low    |
+| 18 | 🟢       | Create CONTRIBUTING.md with architecture guidelines                                                         | Low    | Medium |
+| 19 | 🟢       | Create docs/adr/ with ADR-0001 (Decider), ADR-0002 (Error taxonomy), ADR-0003 (Multi-module)                | Low    | Medium |
+| 20 | 🟢       | Write CHANGELOG.md — 93 sessions with no tracking                                                           | Low    | Medium |
+| 21 | 🟢       | Build thin PostgreSQL store adapter (no Watermill)                                                          | High   | High   |
+| 22 | 🟢       | Add EventRetry middleware tests (if not already at 100%)                                                    | Low    | Low    |
+| 23 | 🟢       | Consolidate MemoryBus handler storage (single map with sentinel key)                                        | Low    | Low    |
+| 24 | 🟢       | Trim AGENTS.md from 576 → <400 lines                                                                        | Low    | Medium |
+| 25 | 🟢       | Add catalog diff/breaking-change detection tool                                                             | Medium | High   |
 
 ---
 

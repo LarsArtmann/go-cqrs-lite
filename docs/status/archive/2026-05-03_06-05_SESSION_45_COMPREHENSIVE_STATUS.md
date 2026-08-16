@@ -1,14 +1,14 @@
 # Session 45 — Comprehensive Status Report
 
-**Date:** 2026-05-03 06:05  
-**Branch:** `master`  
-**Commits since Session 42:** 7  
-**Test suites:** 21 packages, ALL PASS (incl. `-race`)  
-**Total LOC:** 30,681 Go (10,156 production + 20,525 test)  
-**Production functions:** 588  
-**Lint:** 46 pre-existing issues (0 from recent sessions)  
-**go vet:** clean  
-**TODOs/FIXMEs:** 0  
+**Date:** 2026-05-03 06:05\
+**Branch:** `master`\
+**Commits since Session 42:** 7\
+**Test suites:** 21 packages, ALL PASS (incl. `-race`)\
+**Total LOC:** 30,681 Go (10,156 production + 20,525 test)\
+**Production functions:** 588\
+**Lint:** 46 pre-existing issues (0 from recent sessions)\
+**go vet:** clean\
+**TODOs/FIXMEs:** 0\
 **Files over 250 lines:** 0 (production)
 
 ---
@@ -210,48 +210,48 @@ Ranked by impact × effort (Pareto — highest impact first):
 
 ### CRITICAL (blocks production reliability)
 
-| #   | Task                                    | Effort | Impact   | Detail                                                                                     |
-| --- | --------------------------------------- | ------ | -------- | ------------------------------------------------------------------------------------------ |
-| 1   | **Outbox transaction co-participation** | LARGE  | CRITICAL | `SQLOutbox.Append` must run inside `SQLEventStore.Save`'s tx. Requires interface decision. |
-| 2   | **Design ADR for tx co-participation**  | SMALL  | HIGH     | Document the decision before implementing. Which of the 3 options?                         |
+| # | Task                                    | Effort | Impact   | Detail                                                                                     |
+| - | --------------------------------------- | ------ | -------- | ------------------------------------------------------------------------------------------ |
+| 1 | **Outbox transaction co-participation** | LARGE  | CRITICAL | `SQLOutbox.Append` must run inside `SQLEventStore.Save`'s tx. Requires interface decision. |
+| 2 | **Design ADR for tx co-participation**  | SMALL  | HIGH     | Document the decision before implementing. Which of the 3 options?                         |
 
 ### HIGH (library quality, significant improvement)
 
-| #   | Task                                     | Effort | Impact | Detail                                                                                                                          |
-| --- | ---------------------------------------- | ------ | ------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| 3   | **Fix all 46 lint issues**               | SMALL  | HIGH   | 1 hour: errcheck (11), perfsprint (8), wsl_v5 (8), nlreturn (6), noinlineerr (6), revive (3), err113 (2). All mechanical fixes. |
-| 4   | **Increase projection coverage to 95%+** | MEDIUM | HIGH   | Add replay error tests, checkpoint save tests, context cancellation, Close, WithLogger.                                         |
-| 5   | **Increase storage coverage to 95%+**    | SMALL  | HIGH   | Add scanOutboxEntries errors, reconstructOutboxEvent edge cases, OutboxSchema test.                                             |
-| 6   | **Register aggregate sentinels**         | SMALL  | MEDIUM | `init()` in `core/aggregate/errors.go` calling `RegisterClassification`.                                                        |
-| 7   | **Register projection sentinels**        | SMALL  | MEDIUM | `init()` in `projection/errors.go` calling `RegisterClassification`.                                                            |
-| 8   | **Cover zero-coverage functions**        | SMALL  | MEDIUM | `LoadAll` test, `OutboxSchema` test, `WithLogger` test, `Close` tests.                                                          |
+| # | Task                                     | Effort | Impact | Detail                                                                                                                          |
+| - | ---------------------------------------- | ------ | ------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| 3 | **Fix all 46 lint issues**               | SMALL  | HIGH   | 1 hour: errcheck (11), perfsprint (8), wsl_v5 (8), nlreturn (6), noinlineerr (6), revive (3), err113 (2). All mechanical fixes. |
+| 4 | **Increase projection coverage to 95%+** | MEDIUM | HIGH   | Add replay error tests, checkpoint save tests, context cancellation, Close, WithLogger.                                         |
+| 5 | **Increase storage coverage to 95%+**    | SMALL  | HIGH   | Add scanOutboxEntries errors, reconstructOutboxEvent edge cases, OutboxSchema test.                                             |
+| 6 | **Register aggregate sentinels**         | SMALL  | MEDIUM | `init()` in `core/aggregate/errors.go` calling `RegisterClassification`.                                                        |
+| 7 | **Register projection sentinels**        | SMALL  | MEDIUM | `init()` in `projection/errors.go` calling `RegisterClassification`.                                                            |
+| 8 | **Cover zero-coverage functions**        | SMALL  | MEDIUM | `LoadAll` test, `OutboxSchema` test, `WithLogger` test, `Close` tests.                                                          |
 
 ### MEDIUM (polish, developer experience)
 
-| #   | Task                                         | Effort | Impact | Detail                                                         |
-| --- | -------------------------------------------- | ------ | ------ | -------------------------------------------------------------- |
-| 9   | **Increase aggregate coverage to 95%+**      | SMALL  | MEDIUM | `NewCore` validation errors, `loadFromStore` error paths.      |
-| 10  | **Increase memory coverage to 95%+**         | SMALL  | MEDIUM | `LoadAll` test, `LoadAtVersion` edge case, `Ack` edge case.    |
-| 11  | **Increase decider coverage to 95%+**        | SMALL  | MEDIUM | `loadFromSnapshot` 86.4% → 95%, `saveSnapshot` 85.7% → 95%.    |
-| 12  | **Extract shared `opError` helper**          | SMALL  | MEDIUM | Deduplicate identical function in aggregate + decider.         |
-| 13  | **Add `CHANGELOG.md`**                       | SMALL  | MEDIUM | Track changes per session for release notes.                   |
-| 14  | **Refactor `validateEventParams` (51L)**     | SMALL  | LOW    | Split 4 validation blocks into focused functions.              |
-| 15  | **Add outbox integration test**              | MEDIUM | MEDIUM | Full cycle: Append → PollPending → Publish → Ack with sqlmock. |
-| 16  | **Tag `v0.1.0-alpha`**                       | SMALL  | MEDIUM | All core modules are stable enough for early adopters.         |
-| 17  | **Add godoc to `storage/outbox.go`**         | SMALL  | LOW    | Missing doc comments on exported functions.                    |
-| 18  | **Add `OutboxSchema` to `storage.Schema()`** | SMALL  | LOW    | Currently only returns events table DDL.                       |
-| 19  | **Add context cancellation to `SQLOutbox`**  | SMALL  | LOW    | Currently ignores `ctx.Err()`.                                 |
-| 20  | **Refactor long catalog exporter functions** | MEDIUM | LOW    | `asyncapi.Export` 62L, `d2.writeCrossServiceConnections` 60L.  |
+| #  | Task                                         | Effort | Impact | Detail                                                         |
+| -- | -------------------------------------------- | ------ | ------ | -------------------------------------------------------------- |
+| 9  | **Increase aggregate coverage to 95%+**      | SMALL  | MEDIUM | `NewCore` validation errors, `loadFromStore` error paths.      |
+| 10 | **Increase memory coverage to 95%+**         | SMALL  | MEDIUM | `LoadAll` test, `LoadAtVersion` edge case, `Ack` edge case.    |
+| 11 | **Increase decider coverage to 95%+**        | SMALL  | MEDIUM | `loadFromSnapshot` 86.4% → 95%, `saveSnapshot` 85.7% → 95%.    |
+| 12 | **Extract shared `opError` helper**          | SMALL  | MEDIUM | Deduplicate identical function in aggregate + decider.         |
+| 13 | **Add `CHANGELOG.md`**                       | SMALL  | MEDIUM | Track changes per session for release notes.                   |
+| 14 | **Refactor `validateEventParams` (51L)**     | SMALL  | LOW    | Split 4 validation blocks into focused functions.              |
+| 15 | **Add outbox integration test**              | MEDIUM | MEDIUM | Full cycle: Append → PollPending → Publish → Ack with sqlmock. |
+| 16 | **Tag `v0.1.0-alpha`**                       | SMALL  | MEDIUM | All core modules are stable enough for early adopters.         |
+| 17 | **Add godoc to `storage/outbox.go`**         | SMALL  | LOW    | Missing doc comments on exported functions.                    |
+| 18 | **Add `OutboxSchema` to `storage.Schema()`** | SMALL  | LOW    | Currently only returns events table DDL.                       |
+| 19 | **Add context cancellation to `SQLOutbox`**  | SMALL  | LOW    | Currently ignores `ctx.Err()`.                                 |
+| 20 | **Refactor long catalog exporter functions** | MEDIUM | LOW    | `asyncapi.Export` 62L, `d2.writeCrossServiceConnections` 60L.  |
 
 ### LOW (nice-to-have, long-term)
 
-| #   | Task                              | Effort | Impact | Detail                                                       |
-| --- | --------------------------------- | ------ | ------ | ------------------------------------------------------------ |
-| 21  | **Add benchmarks**                | MEDIUM | LOW    | Decider operations, outbox throughput, event store save.     |
-| 22  | **Create `CONTRIBUTING.md`**      | SMALL  | LOW    | Document module structure and contribution guidelines.       |
-| 23  | **Evaluate SQLite/Turso support** | MEDIUM | LOW    | User mentioned. Assess effort for `storage/sqlite/` variant. |
-| 24  | **Saga / Process Manager design** | LARGE  | LOW    | `docs/planning/SAGA_DESIGN.md` exists. Complex feature.      |
-| 25  | **Watermill module**              | LARGE  | LOW    | Pub/sub adapter for Kafka, NATS. Large scope.                |
+| #  | Task                              | Effort | Impact | Detail                                                       |
+| -- | --------------------------------- | ------ | ------ | ------------------------------------------------------------ |
+| 21 | **Add benchmarks**                | MEDIUM | LOW    | Decider operations, outbox throughput, event store save.     |
+| 22 | **Create `CONTRIBUTING.md`**      | SMALL  | LOW    | Document module structure and contribution guidelines.       |
+| 23 | **Evaluate SQLite/Turso support** | MEDIUM | LOW    | User mentioned. Assess effort for `storage/sqlite/` variant. |
+| 24 | **Saga / Process Manager design** | LARGE  | LOW    | `docs/planning/SAGA_DESIGN.md` exists. Complex feature.      |
+| 25 | **Watermill module**              | LARGE  | LOW    | Pub/sub adapter for Kafka, NATS. Large scope.                |
 
 ---
 
@@ -289,13 +289,13 @@ This is an **interface-breaking decision** that I cannot make without understand
 | `catalog/asyncapi`     | 95.9%     | >95%   | —          | ✅     |
 | `catalog/eventcatalog` | 95.6%     | >95%   | —          | ✅     |
 | `catalog/adapters`     | 95.5%     | >95%   | —          | ✅     |
-| `core/decider`         | 94.3%     | >95%   | +16.9%     | ⚠️     |
-| `catalog`              | 94.4%     | >95%   | —          | ⚠️     |
-| `core/aggregate`       | 93.2%     | >95%   | —          | ⚠️     |
-| `storage`              | 92.0%     | >95%   | —          | ⚠️     |
-| `memory`               | 91.9%     | >95%   | —          | ⚠️     |
-| `projection`           | 88.8%     | >95%   | -1.3%      | ⚠️     |
-| **Total**              | **90.9%** | >95%   | —          | ⚠️     |
+| `core/decider`         | 94.3%     | >95%   | +16.9%     | ⚠️      |
+| `catalog`              | 94.4%     | >95%   | —          | ⚠️      |
+| `core/aggregate`       | 93.2%     | >95%   | —          | ⚠️      |
+| `storage`              | 92.0%     | >95%   | —          | ⚠️      |
+| `memory`               | 91.9%     | >95%   | —          | ⚠️      |
+| `projection`           | 88.8%     | >95%   | -1.3%      | ⚠️      |
+| **Total**              | **90.9%** | >95%   | —          | ⚠️      |
 
 ### Module Dependency Graph
 
@@ -348,7 +348,7 @@ core (independently publishable)
 | noinlineerr | 6     | decider, aggregate, outbox tests             | ✅ Yes            |
 | nlreturn    | 6     | decider package                              | ✅ Yes            |
 | revive      | 3     | decider tests (unused params)                | ✅ Yes            |
-| err113      | 2     | decider `opError`, runner panic recovery     | ⚠️ Intentional    |
+| err113      | 2     | decider `opError`, runner panic recovery     | ⚠️ Intentional     |
 | exhaustruct | 1     | event/errors.go (false positive)             | ❌ False positive |
 | golines     | 1     | decider test                                 | ✅ Yes            |
 | modernize   | 1     | decider test (WaitGroup.Go)                  | ✅ Yes            |

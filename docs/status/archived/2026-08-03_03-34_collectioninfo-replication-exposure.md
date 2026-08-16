@@ -18,29 +18,29 @@
 
 ### P2: CollectionInfo Replication Exposure (report items 4, 5)
 
-| #   | Task                                                 | File(s)                               | Evidence                                                                                                                        |
-| --- | ---------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| M1  | `CollectionInfo` gains `Replication` field           | `metaengine/store.go`                 | `Replication Replication` — topology from engine profile                                                                        |
-| M2  | `CollectionInfo` gains `ReplicationLagMs` field      | `metaengine/store.go`                 | `ReplicationLagMs int64` — milliseconds (int64, not Duration, for JSON v2 compatibility)                                        |
-| M3  | `CollectionInfo` gains `NetworkRTTMs` field          | `metaengine/store.go`                 | `NetworkRTTMs int64`                                                                                                            |
-| M4  | `Collections()` wires new fields from engine profile | `metaengine/store.go`                 | Uses `profile.Replication`, `profile.EffectiveReplicationLag().Milliseconds()`, `.EffectiveNetworkRTT().Milliseconds()`         |
-| M5  | 2 tests pinning CollectionInfo behavior              | `metaengine/rule_replication_test.go` | `TestCollections_ExposesReplicationFields` (replicated engine) + `TestCollections_ZeroReplicationForLocalEngine` (local engine) |
+| #  | Task                                                 | File(s)                               | Evidence                                                                                                                        |
+| -- | ---------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| M1 | `CollectionInfo` gains `Replication` field           | `metaengine/store.go`                 | `Replication Replication` — topology from engine profile                                                                        |
+| M2 | `CollectionInfo` gains `ReplicationLagMs` field      | `metaengine/store.go`                 | `ReplicationLagMs int64` — milliseconds (int64, not Duration, for JSON v2 compatibility)                                        |
+| M3 | `CollectionInfo` gains `NetworkRTTMs` field          | `metaengine/store.go`                 | `NetworkRTTMs int64`                                                                                                            |
+| M4 | `Collections()` wires new fields from engine profile | `metaengine/store.go`                 | Uses `profile.Replication`, `profile.EffectiveReplicationLag().Milliseconds()`, `.EffectiveNetworkRTT().Milliseconds()`         |
+| M5 | 2 tests pinning CollectionInfo behavior              | `metaengine/rule_replication_test.go` | `TestCollections_ExposesReplicationFields` (replicated engine) + `TestCollections_ZeroReplicationForLocalEngine` (local engine) |
 
 **Design decision:** Used `int64` milliseconds instead of `time.Duration` for the lag/RTT fields. `time.Duration` has no default JSON v2 representation (`json: cannot marshal from Go time.Duration`). The first iteration used `time.Duration` and broke `TestInspectJSON_ValidJSON`. Caught immediately by running the full test suite. Consistent with `SerializablePlan.LatencyMs` (`float64` ms).
 
 ### P2: ExplainPlan + Doctor Replication Output (report items 8, 9)
 
-| #   | Task                                           | File(s)                               | Evidence                                                                                                                                                        |
-| --- | ---------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| M6  | `ExplainPlan()` shows replication on engines   | `metaengine/explain.go`               | Replicated engine lines now end with ` replication=X, lag=Y, rtt=Z`                                                                                             |
-| M7  | `Doctor()` gains `--- Replication ---` section | `metaengine/explain.go`               | Lists each replicated collection with mode/lag/RTT, or `none` if local-only                                                                                     |
-| M8  | 3 tests pinning Explain/Doctor behavior        | `metaengine/rule_replication_test.go` | `TestExplainPlan_ShowsReplicationForReplicatedEngine`, `TestDoctor_ShowsReplicationSectionForReplicatedEngine`, `TestDoctor_NoReplicationSectionForLocalEngine` |
+| #  | Task                                           | File(s)                               | Evidence                                                                                                                                                        |
+| -- | ---------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M6 | `ExplainPlan()` shows replication on engines   | `metaengine/explain.go`               | Replicated engine lines now end with `replication=X, lag=Y, rtt=Z`                                                                                              |
+| M7 | `Doctor()` gains `--- Replication ---` section | `metaengine/explain.go`               | Lists each replicated collection with mode/lag/RTT, or `none` if local-only                                                                                     |
+| M8 | 3 tests pinning Explain/Doctor behavior        | `metaengine/rule_replication_test.go` | `TestExplainPlan_ShowsReplicationForReplicatedEngine`, `TestDoctor_ShowsReplicationSectionForReplicatedEngine`, `TestDoctor_NoReplicationSectionForLocalEngine` |
 
 ### Documentation
 
-| #   | Task                          | File        | Evidence                                                      |
-| --- | ----------------------------- | ----------- | ------------------------------------------------------------- |
-| D1  | AGENTS.md replication comment | `AGENTS.md` | Updated to mention CollectionInfo/ExplainPlan/Doctor exposure |
+| #  | Task                          | File        | Evidence                                                      |
+| -- | ----------------------------- | ----------- | ------------------------------------------------------------- |
+| D1 | AGENTS.md replication comment | `AGENTS.md` | Updated to mention CollectionInfo/ExplainPlan/Doctor exposure |
 
 ### Quality Gates (ALL PASSED)
 

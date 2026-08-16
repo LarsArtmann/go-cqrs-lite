@@ -14,17 +14,17 @@ The session shipped a `CommandBus` + protocol + adapters inside `watermill/`, co
 
 ### Current Gate Status
 
-| Gate                                | Status      | Notes                                                                                                   |
-| ----------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------- |
-| `nix run .#build`                   | ✅ PASS     | All workspace + orphan modules                                                                          |
-| `nix run .#test` (watermill)        | ✅ PASS     | 49 tests, race-clean, 1.07s                                                                             |
-| `nix run .#vet`                     | ✅ PASS     | Zero issues                                                                                             |
-| `nix run .#check-layers`            | ✅ PASS     | Module layer + dependency budget enforcement                                                            |
-| `nix run .#check-file-size`         | ✅ PASS     | All hand-written files ≤ 350 lines                                                                      |
+| Gate                                | Status     | Notes                                                                                                   |
+| ----------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------- |
+| `nix run .#build`                   | ✅ PASS    | All workspace + orphan modules                                                                          |
+| `nix run .#test` (watermill)        | ✅ PASS    | 49 tests, race-clean, 1.07s                                                                             |
+| `nix run .#vet`                     | ✅ PASS    | Zero issues                                                                                             |
+| `nix run .#check-layers`            | ✅ PASS    | Module layer + dependency budget enforcement                                                            |
+| `nix run .#check-file-size`         | ✅ PASS    | All hand-written files ≤ 350 lines                                                                      |
 | `nix run .#lint`                    | ⚠️ 8 issues | 5 pre-existing (id, transport/grpc, stack); 1 from uncommitted storage change; 2 from uncommitted stack |
-| `nix run .#coverage`                | ✅ 78.7%    | Workspace total (core modules 81-98%)                                                                   |
-| API stability (`cmd/api-stability`) | ✅ PASS     | Golden file verified                                                                                    |
-| BuildFlow pre-commit                | ✅ PASS     | golangci-lint, gitleaks, gofumpt, d2-fmt — all pass on committed code                                   |
+| `nix run .#coverage`                | ✅ 78.7%   | Workspace total (core modules 81-98%)                                                                   |
+| API stability (`cmd/api-stability`) | ✅ PASS    | Golden file verified                                                                                    |
+| BuildFlow pre-commit                | ✅ PASS    | golangci-lint, gitleaks, gofumpt, d2-fmt — all pass on committed code                                   |
 
 ### Key Metrics
 
@@ -128,33 +128,33 @@ The session shipped a `CommandBus` + protocol + adapters inside `watermill/`, co
 
 ## F) Top 25 Things to Do Next (sorted by impact/effort)
 
-| #   | Task                                                                   | Impact | Effort | Type          |
-| --- | ---------------------------------------------------------------------- | ------ | ------ | ------------- |
-| 1   | Commit or delete the `graph/` ghost module                             | H      | S      | Ghost system  |
-| 2   | Update ROADMAP.md: remove transport/nats, transport/redis; fix count   | H      | XS     | Docs          |
-| 3   | Update TODO_LIST.md: mark genproto conflict resolved, update grpc      | H      | XS     | Docs          |
-| 4   | Fix 5 pre-existing lint issues (id, transport/grpc, stack)             | M      | S      | Quality       |
-| 5   | Investigate 3 uncommitted changes (STORAGE_GUIDE, sqlite_helpers)      | M      | S      | Investigation |
-| 6   | Unify metadata error handling (events vs commands in watermill/)       | M      | M      | Consistency   |
-| 7   | Resolve command ID split-brain (Command interface vs PersistedCommand) | M      | L      | Type safety   |
-| 8   | Add integration test: watermill command bridge + NATS plugin (mock)    | M      | M      | Testing       |
-| 9   | Improve codec coverage to >80% (CBOR edge cases)                       | M      | S      | Quality       |
-| 10  | Improve kv coverage to >80% (Cache/TypedStore edge cases)              | M      | S      | Quality       |
-| 11  | Add consumer integration test (import from outside workspace)          | M      | M      | Testing       |
-| 12  | Add secondary indexes to SQLViewStore (DDL generation)                 | M      | S      | Feature       |
-| 13  | Surface Pebble Checkpoint (backup) from stack presets                  | M      | S      | Operability   |
-| 14  | Surface graceful shutdown from stack presets                           | M      | S      | Operability   |
-| 15  | Implement hot-state cache for decider (`WithHotStateCache`)            | M      | L      | Performance   |
-| 16  | Implement read-pressure snapshot strategy                              | M      | M      | Performance   |
-| 17  | Add property-based tests for decider fold/decide round-trip            | M      | M      | Testing       |
-| 18  | Add integration test that exercises transport/grpc end-to-end          | M      | M      | Testing       |
-| 19  | Implement event stream compaction (snapshot-based truncation)          | L      | L      | Feature       |
-| 20  | Migrate `encoding/json` v1 → v2 (v4 breaking change)                   | L      | L      | Tech debt     |
-| 21  | Create CQRS-lite dashboard web UI                                      | L      | L      | Feature       |
-| 22  | Implement event archival to S3/GCS                                     | L      | M      | Feature       |
-| 23  | Implement distributed projection runner (active/active)                | L      | L      | Feature       |
-| 24  | Add benchmark regression tracking (benchstat across commits)           | L      | M      | CI            |
-| 25  | Document stack preset decision matrix in SKILL.md                      | L      | S      | Docs          |
+| #  | Task                                                                   | Impact | Effort | Type          |
+| -- | ---------------------------------------------------------------------- | ------ | ------ | ------------- |
+| 1  | Commit or delete the `graph/` ghost module                             | H      | S      | Ghost system  |
+| 2  | Update ROADMAP.md: remove transport/nats, transport/redis; fix count   | H      | XS     | Docs          |
+| 3  | Update TODO_LIST.md: mark genproto conflict resolved, update grpc      | H      | XS     | Docs          |
+| 4  | Fix 5 pre-existing lint issues (id, transport/grpc, stack)             | M      | S      | Quality       |
+| 5  | Investigate 3 uncommitted changes (STORAGE_GUIDE, sqlite_helpers)      | M      | S      | Investigation |
+| 6  | Unify metadata error handling (events vs commands in watermill/)       | M      | M      | Consistency   |
+| 7  | Resolve command ID split-brain (Command interface vs PersistedCommand) | M      | L      | Type safety   |
+| 8  | Add integration test: watermill command bridge + NATS plugin (mock)    | M      | M      | Testing       |
+| 9  | Improve codec coverage to >80% (CBOR edge cases)                       | M      | S      | Quality       |
+| 10 | Improve kv coverage to >80% (Cache/TypedStore edge cases)              | M      | S      | Quality       |
+| 11 | Add consumer integration test (import from outside workspace)          | M      | M      | Testing       |
+| 12 | Add secondary indexes to SQLViewStore (DDL generation)                 | M      | S      | Feature       |
+| 13 | Surface Pebble Checkpoint (backup) from stack presets                  | M      | S      | Operability   |
+| 14 | Surface graceful shutdown from stack presets                           | M      | S      | Operability   |
+| 15 | Implement hot-state cache for decider (`WithHotStateCache`)            | M      | L      | Performance   |
+| 16 | Implement read-pressure snapshot strategy                              | M      | M      | Performance   |
+| 17 | Add property-based tests for decider fold/decide round-trip            | M      | M      | Testing       |
+| 18 | Add integration test that exercises transport/grpc end-to-end          | M      | M      | Testing       |
+| 19 | Implement event stream compaction (snapshot-based truncation)          | L      | L      | Feature       |
+| 20 | Migrate `encoding/json` v1 → v2 (v4 breaking change)                   | L      | L      | Tech debt     |
+| 21 | Create CQRS-lite dashboard web UI                                      | L      | L      | Feature       |
+| 22 | Implement event archival to S3/GCS                                     | L      | M      | Feature       |
+| 23 | Implement distributed projection runner (active/active)                | L      | L      | Feature       |
+| 24 | Add benchmark regression tracking (benchstat across commits)           | L      | M      | CI            |
+| 25 | Document stack preset decision matrix in SKILL.md                      | L      | S      | Docs          |
 
 ---
 

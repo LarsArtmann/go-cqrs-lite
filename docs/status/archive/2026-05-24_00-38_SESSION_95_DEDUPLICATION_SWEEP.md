@@ -1,7 +1,7 @@
 # Session 95 — Code Deduplication Sweep
 
-**Date:** 2026-05-24 00:38 CEST  
-**Branch:** master  
+**Date:** 2026-05-24 00:38 CEST\
+**Branch:** master\
 **Status:** All 26 test packages pass, zero lint, 90.2% total coverage
 
 ---
@@ -63,10 +63,10 @@ Every production-code clone group was reviewed and determined to be architectura
 
 | Target                                               | File                  | Count                                   | Why Not Done |
 | ---------------------------------------------------- | --------------------- | --------------------------------------- | ------------ |
-| `core/aggregate/aggregate_test.go` version asserts   | 9 clones, 3-line span | Low impact (3-line idiom)               |
-| `projection/builder_test.go` event.New + error check | 5 clones, 7-line span | Different event types/versions per call |
-| `sync/conflict_test.go` Conflict struct literals     | 5 clones, 6-line span | Different vector clock values per test  |
-| `example/user/main_test.go` error family asserts     | 3 clones, 8-line span | Cross-module, only 3 occurrences        |
+| `core/aggregate/aggregate_test.go` version asserts   | 9 clones, 3-line span | Low impact (3-line idiom)               |              |
+| `projection/builder_test.go` event.New + error check | 5 clones, 7-line span | Different event types/versions per call |              |
+| `sync/conflict_test.go` Conflict struct literals     | 5 clones, 6-line span | Different vector clock values per test  |              |
+| `example/user/main_test.go` error family asserts     | 3 clones, 8-line span | Cross-module, only 3 occurrences        |              |
 
 ---
 

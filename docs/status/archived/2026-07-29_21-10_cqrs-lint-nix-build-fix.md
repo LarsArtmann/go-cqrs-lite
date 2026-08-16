@@ -87,43 +87,43 @@ tags), while `pipeline` correctly stays pseudo (normalized by mkPreparedSource).
 
 ### Critical Reflection — What I Forgot This Session
 
-1.  **I didn't update AGENTS.md with the gotcha.** This is exactly the kind of
-    non-obvious, hard-to-discover behavior that AGENTS.md exists for. A future
-    session hitting the same pseudo-version bug would waste 15+ minutes
-    re-diagnosing it. **This should be the first follow-up.**
+1. **I didn't update AGENTS.md with the gotcha.** This is exactly the kind of
+   non-obvious, hard-to-discover behavior that AGENTS.md exists for. A future
+   session hitting the same pseudo-version bug would waste 15+ minutes
+   re-diagnosing it. **This should be the first follow-up.**
 
-2.  **I didn't investigate the daemon's role.** The auto-commit daemon
-    (`566e482f`, `e19b6e4a`) may have introduced the pseudo-version by running
-    `go mod tidy` in a context where the local `replace` was active. If so, this
-    will recur every time the daemon bumps deps. I should have checked the
-    daemon's behavior and documented the risk.
+2. **I didn't investigate the daemon's role.** The auto-commit daemon
+   (`566e482f`, `e19b6e4a`) may have introduced the pseudo-version by running
+   `go mod tidy` in a context where the local `replace` was active. If so, this
+   will recur every time the daemon bumps deps. I should have checked the
+   daemon's behavior and documented the risk.
 
-3.  **The commit message is generic.** The daemon committed as "chore(cmd/cqrs-lint):
-    update Go module dependencies" — which doesn't mention the pseudo-version fix.
-    A reviewer scanning history would not know this fixed a broken Nix build.
+3. **The commit message is generic.** The daemon committed as "chore(cmd/cqrs-lint):
+   update Go module dependencies" — which doesn't mention the pseudo-version fix.
+   A reviewer scanning history would not know this fixed a broken Nix build.
 
-4.  **I didn't run the broader verification gate.** I built `.#cqrs-lint`
-    specifically but did not run `nix run .#build` or `nix flake check` to
-    confirm nothing else broke. The AGENTS.md explicitly warns against "stale
-    GREEN" claims. While my change is isolated to cqrs-lint's go.mod, running
-    the broader gate would have been more rigorous.
+4. **I didn't run the broader verification gate.** I built `.#cqrs-lint`
+   specifically but did not run `nix run .#build` or `nix flake check` to
+   confirm nothing else broke. The AGENTS.md explicitly warns against "stale
+   GREEN" claims. While my change is isolated to cqrs-lint's go.mod, running
+   the broader gate would have been more rigorous.
 
-5.  **I didn't check if go-finding's `pipeline` submodule could also be moved to
-    a real version.** It works as-is (mkPreparedSource normalizes it), but
-    having a real version there too would be more consistent and less fragile.
+5. **I didn't check if go-finding's `pipeline` submodule could also be moved to
+   a real version.** It works as-is (mkPreparedSource normalizes it), but
+   having a real version there too would be more consistent and less fragile.
 
 ### Architectural / Process Improvements
 
-6.  **mkPreparedSource should normalize main-dep pseudo-versions too**, not just
-    sub-modules. The asymmetry is a design gap in `go-nix-helpers`. A one-line
-    fix to the normalizer would prevent this entire class of bug.
+6. **mkPreparedSource should normalize main-dep pseudo-versions too**, not just
+   sub-modules. The asymmetry is a design gap in `go-nix-helpers`. A one-line
+   fix to the normalizer would prevent this entire class of bug.
 
-7.  **A pre-commit or CI check should detect `v0.0.0-00010101000000` in go.mod
-    files.** This pseudo-version is NEVER valid in a committed go.mod. A simple
-    grep check would catch it before it breaks a build.
+7. **A pre-commit or CI check should detect `v0.0.0-00010101000000` in go.mod
+   files.** This pseudo-version is NEVER valid in a committed go.mod. A simple
+   grep check would catch it before it breaks a build.
 
-8.  **The daemon should run `GOWORK=off go build` after dep bumps**, per the
-    AGENTS.md warning about the daemon breaking builds (`85ac81f1` precedent).
+8. **The daemon should run `GOWORK=off go build` after dep bumps**, per the
+   AGENTS.md warning about the daemon breaking builds (`85ac81f1` precedent).
 
 ---
 
@@ -131,27 +131,27 @@ tags), while `pipeline` correctly stays pseudo (normalized by mkPreparedSource).
 
 ### Immediate (this session's follow-ups)
 
-1.  **Add the mkPreparedSource pseudo-version gotcha to AGENTS.md** — document
-    that main deps need real versions, only sub-modules are auto-normalized.
-2.  **Add a CI/grep check for `v0.0.0-00010101000000` in all go.mod files** —
-    fail fast before the Nix build.
-3.  **Investigate whether the daemon introduced the pseudo-version** — check
-    `git log -p` on `cmd/cqrs-lint/go.mod` around commits `566e482f`/`e19b6e4a`.
-4.  **Fix mkPreparedSource to normalize main-dep pseudo-versions** — upstream
-    fix in `go-nix-helpers` repo (one-line addition to the normalizer script).
-5.  **Move `go-finding/pipeline` to a real version (`pipeline/v1.4.1`)** for
-    consistency, even though it's currently handled by the normalizer.
+1. **Add the mkPreparedSource pseudo-version gotcha to AGENTS.md** — document
+   that main deps need real versions, only sub-modules are auto-normalized.
+2. **Add a CI/grep check for `v0.0.0-00010101000000` in all go.mod files** —
+   fail fast before the Nix build.
+3. **Investigate whether the daemon introduced the pseudo-version** — check
+   `git log -p` on `cmd/cqrs-lint/go.mod` around commits `566e482f`/`e19b6e4a`.
+4. **Fix mkPreparedSource to normalize main-dep pseudo-versions** — upstream
+   fix in `go-nix-helpers` repo (one-line addition to the normalizer script).
+5. **Move `go-finding/pipeline` to a real version (`pipeline/v1.4.1`)** for
+   consistency, even though it's currently handled by the normalizer.
 
 ### cqrs-lint module health
 
-6.  **Run `nix run .#lint` on cqrs-lint specifically** — confirm golangci-lint
-    passes (I only ran `go vet`).
-7.  **Run cqrs-lint against the example projects** — `example/taskmanager`,
-    `example/getting-started` — as a real-world smoke test of the binary.
-8.  **Check cqrs-lint coverage** — run `go test -cover` and verify it meets the
-    repo's >80% standard for core packages.
-9.  **Verify cqrs-lint is in the api-stability modules list** — AGENTS.md says
-    every directory with a go.mod must be in the list; confirm cqrs-lint is there.
+6. **Run `nix run .#lint` on cqrs-lint specifically** — confirm golangci-lint
+   passes (I only ran `go vet`).
+7. **Run cqrs-lint against the example projects** — `example/taskmanager`,
+   `example/getting-started` — as a real-world smoke test of the binary.
+8. **Check cqrs-lint coverage** — run `go test -cover` and verify it meets the
+   repo's >80% standard for core packages.
+9. **Verify cqrs-lint is in the api-stability modules list** — AGENTS.md says
+   every directory with a go.mod must be in the list; confirm cqrs-lint is there.
 10. **Regenerate api-stability golden if cqrs-lint's API surface changed** —
     unlikely this session, but worth checking.
 
@@ -189,7 +189,7 @@ tags), while `pipeline` correctly stays pseudo (normalized by mkPreparedSource).
 
 22. **Audit ALL go.mod files for local `replace` directives** — any `/home/...`
     or `../...` replaces are dev-machine leaks that break hermetic builds.
-23. _*Check if the daemon's dep-bump commits affect other cmd/* modules_* —
+23. __Check if the daemon's dep-bump commits affect other cmd/_ modules_* —
     `cqrs-gen`, `cqrs-bench`, `api-stability`, `doc-check` may have similar
     issues.
 24. **Verify `go.work` is consistent** — all 59 modules wired correctly after
@@ -236,20 +236,20 @@ tags), while `pipeline` correctly stays pseudo (normalized by mkPreparedSource).
 
 ## 8. g) Questions I CANNOT Figure Out Myself
 
-1.  **Did the auto-commit daemon introduce the `go-finding` pseudo-version?**
-    I can see the commits (`566e482f`, `e19b6e4a`) but I don't know the daemon's
-    exact logic or whether it runs `go mod tidy` with local replaces active.
-    Should I investigate the daemon's source, or is this known/expected behavior?
+1. **Did the auto-commit daemon introduce the `go-finding` pseudo-version?**
+   I can see the commits (`566e482f`, `e19b6e4a`) but I don't know the daemon's
+   exact logic or whether it runs `go mod tidy` with local replaces active.
+   Should I investigate the daemon's source, or is this known/expected behavior?
 
-2.  **Should `mkPreparedSource` normalize main-dep pseudo-versions (upstream
-    fix in go-nix-helpers), or should we enforce real versions in go.mod via a
-    CI check instead?** Both approaches work; the upstream fix is more robust
-    but requires changing a shared library used by multiple repos.
+2. **Should `mkPreparedSource` normalize main-dep pseudo-versions (upstream
+   fix in go-nix-helpers), or should we enforce real versions in go.mod via a
+   CI check instead?** Both approaches work; the upstream fix is more robust
+   but requires changing a shared library used by multiple repos.
 
-3.  **Is `go-finding` intended to stay as a private (GOPRIVATE) dependency, or
-    should it be published publicly?** If public, the entire mkPreparedSource
-    complexity for cqrs-lint goes away. This is a product/packaging decision I
-    can't make.
+3. **Is `go-finding` intended to stay as a private (GOPRIVATE) dependency, or
+   should it be published publicly?** If public, the entire mkPreparedSource
+   complexity for cqrs-lint goes away. This is a product/packaging decision I
+   can't make.
 
 ---
 

@@ -18,45 +18,45 @@ This session delivered 26 commits across 168 files: built the Turso preset from 
 
 ## a) FULLY DONE ✓
 
-| #   | Item                                                     | Evidence                                                                                 |
-| --- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| 1   | **`stack/turso` preset built from scratch**              | 9 files, 17 test functions, contract suite wired. `New()`, `NewSync()`, all options.     |
-| 2   | **SQLite preset.go split under 350 lines**               | Was 370 lines → now 267 lines. Multi-DB functions extracted to `multidb.go`.             |
-| 3   | **Turso preset.go split under 350 lines**                | Was 378 lines → now 298 lines. Backend functions extracted to `backend.go`.              |
-| 4   | **`synchronous=NORMAL` in `SQLiteEnableWAL`**            | 3-10x WAL write throughput improvement. Applied to both SQLite and Turso presets.        |
-| 5   | **Turso WAL default + `WithoutWAL()`**                   | Turso now defaults to WAL mode (parity with SQLite).                                     |
-| 6   | **SQLite `WithOptimizations()`**                         | `cache_size=-65536`, `temp_store=MEMORY`, `mmap_size=256MB`.                             |
-| 7   | **`storage.SQLiteApplyOptimizations()`**                 | Public function for production PRAGMAs, usable outside presets.                          |
-| 8   | **`stack/turso` added to flake testModules**             | `nix run .#test` now tests Turso (was silently skipped).                                 |
-| 9   | **`deployer-first-multidb` added to flake examplePaths** | Now covered by nix test/build.                                                           |
-| 10  | **`.gitignore` updated for example binaries**            | Added `deployer-first*` entries (near-miss: 14MB binary was about to be committed).      |
-| 11  | **Shared `MultiCloser`/`FuncCloser` in `stack`**         | Extracted from 3 identical `closers.go` files (postgres, sqlite, turso).                 |
-| 12  | **`Bundle.Debug()` method**                              | Prints which capability fields are set (✓/✗) for wiring diagnostics.                     |
-| 13  | **`Bundle.Debug()` test**                                | `TestBundle_Debug_ShowsCapabilities` in `stack/bundle_test.go`.                          |
-| 14  | **Multi-DB example**                                     | `example/deployer-first-multidb/` — runnable end-to-end 3-database split demo.           |
-| 15  | **`nix run .#check-file-size`**                          | Local mirror of the CI 350-line file-size gate.                                          |
-| 16  | **ADRs 0024-0032 added to docs/README.md**               | Index table complete (was jumping from 0023 to 0033).                                    |
-| 17  | **Turso options documented in PRESETS.md**               | `WithOptimizations`, `WithForeignKeys`, `WithoutWAL` all documented with option table.   |
-| 18  | **SQLite options documented in PRESETS.md**              | `WithForeignKeys`, `WithoutWAL`, `WithOptimizations`, multi-DB split.                    |
-| 19  | **`sqlite/doc.go` documents `WithOptimizations`**        | Package doc updated.                                                                     |
-| 20  | **`turso/doc.go` documents `WithoutWAL`**                | Package doc updated.                                                                     |
-| 21  | **CHANGELOG.md updated**                                 | All 9 new entries listed under `[Unreleased]`.                                           |
-| 22  | **README.md for multi-DB example**                       | Topology diagram + comparison with single-DB example.                                    |
-| 23  | **Error-path tests**                                     | Bad DSN, `WithoutAutoMigrate` (verifies schema NOT created), `WithoutWAL` — 7 new tests. |
-| 24  | **Postgres multi-DB split**                              | `WithEventDB`/`WithQueryDB`/`WithViewDB` for Postgres preset.                            |
-| 25  | **Postgres multi-DB contract test**                      | `RunMultiDBSuite` wired (requires `POSTGRES_TEST_DSN`).                                  |
-| 26  | **Multi-DB contract test suite**                         | `contracttest.RunMultiDBSuite` — reusable routing proof for any preset.                  |
-| 27  | **Migration guide**                                      | `docs/MIGRATION_TO_STACK.md` — step-by-step from hand-wired to presets.                  |
-| 28  | **ADR-0033**                                             | Multi-database split design rationale.                                                   |
-| 29  | **ADR-0034**                                             | Session store boundary (application-layer, not CQRS infra).                              |
-| 30  | **Postgres lint fixes**                                  | 3 `varnamelen` warnings fixed in `multidb_test.go`.                                      |
-| 31  | **11 phantom doc references fixed**                      | `Bundle.Repository` → `Repository` etc. across stack files.                              |
-| 32  | **`WithForeignKeys()` for SQLite preset**                | Opt-in referential integrity.                                                            |
-| 33  | **`WithForeignKeys()` for Turso preset**                 | Same option, same semantics.                                                             |
-| 34  | **`WithSyncOptions()` for Turso preset**                 | Passthrough to sync client config.                                                       |
-| 35  | **`NewSync` multi-DB rejection**                         | Returns explicit error when multi-DB options passed to sync mode.                        |
-| 36  | **All stack tests pass with `-race`**                    | 79 test functions across 7 stack modules — all green.                                    |
-| 37  | **Zero files over 350 lines**                            | Verified by `nix run .#check-file-size`.                                                 |
+| #  | Item                                                     | Evidence                                                                                 |
+| -- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 1  | **`stack/turso` preset built from scratch**              | 9 files, 17 test functions, contract suite wired. `New()`, `NewSync()`, all options.     |
+| 2  | **SQLite preset.go split under 350 lines**               | Was 370 lines → now 267 lines. Multi-DB functions extracted to `multidb.go`.             |
+| 3  | **Turso preset.go split under 350 lines**                | Was 378 lines → now 298 lines. Backend functions extracted to `backend.go`.              |
+| 4  | **`synchronous=NORMAL` in `SQLiteEnableWAL`**            | 3-10x WAL write throughput improvement. Applied to both SQLite and Turso presets.        |
+| 5  | **Turso WAL default + `WithoutWAL()`**                   | Turso now defaults to WAL mode (parity with SQLite).                                     |
+| 6  | **SQLite `WithOptimizations()`**                         | `cache_size=-65536`, `temp_store=MEMORY`, `mmap_size=256MB`.                             |
+| 7  | **`storage.SQLiteApplyOptimizations()`**                 | Public function for production PRAGMAs, usable outside presets.                          |
+| 8  | **`stack/turso` added to flake testModules**             | `nix run .#test` now tests Turso (was silently skipped).                                 |
+| 9  | **`deployer-first-multidb` added to flake examplePaths** | Now covered by nix test/build.                                                           |
+| 10 | **`.gitignore` updated for example binaries**            | Added `deployer-first*` entries (near-miss: 14MB binary was about to be committed).      |
+| 11 | **Shared `MultiCloser`/`FuncCloser` in `stack`**         | Extracted from 3 identical `closers.go` files (postgres, sqlite, turso).                 |
+| 12 | **`Bundle.Debug()` method**                              | Prints which capability fields are set (✓/✗) for wiring diagnostics.                     |
+| 13 | **`Bundle.Debug()` test**                                | `TestBundle_Debug_ShowsCapabilities` in `stack/bundle_test.go`.                          |
+| 14 | **Multi-DB example**                                     | `example/deployer-first-multidb/` — runnable end-to-end 3-database split demo.           |
+| 15 | **`nix run .#check-file-size`**                          | Local mirror of the CI 350-line file-size gate.                                          |
+| 16 | **ADRs 0024-0032 added to docs/README.md**               | Index table complete (was jumping from 0023 to 0033).                                    |
+| 17 | **Turso options documented in PRESETS.md**               | `WithOptimizations`, `WithForeignKeys`, `WithoutWAL` all documented with option table.   |
+| 18 | **SQLite options documented in PRESETS.md**              | `WithForeignKeys`, `WithoutWAL`, `WithOptimizations`, multi-DB split.                    |
+| 19 | **`sqlite/doc.go` documents `WithOptimizations`**        | Package doc updated.                                                                     |
+| 20 | **`turso/doc.go` documents `WithoutWAL`**                | Package doc updated.                                                                     |
+| 21 | **CHANGELOG.md updated**                                 | All 9 new entries listed under `[Unreleased]`.                                           |
+| 22 | **README.md for multi-DB example**                       | Topology diagram + comparison with single-DB example.                                    |
+| 23 | **Error-path tests**                                     | Bad DSN, `WithoutAutoMigrate` (verifies schema NOT created), `WithoutWAL` — 7 new tests. |
+| 24 | **Postgres multi-DB split**                              | `WithEventDB`/`WithQueryDB`/`WithViewDB` for Postgres preset.                            |
+| 25 | **Postgres multi-DB contract test**                      | `RunMultiDBSuite` wired (requires `POSTGRES_TEST_DSN`).                                  |
+| 26 | **Multi-DB contract test suite**                         | `contracttest.RunMultiDBSuite` — reusable routing proof for any preset.                  |
+| 27 | **Migration guide**                                      | `docs/MIGRATION_TO_STACK.md` — step-by-step from hand-wired to presets.                  |
+| 28 | **ADR-0033**                                             | Multi-database split design rationale.                                                   |
+| 29 | **ADR-0034**                                             | Session store boundary (application-layer, not CQRS infra).                              |
+| 30 | **Postgres lint fixes**                                  | 3 `varnamelen` warnings fixed in `multidb_test.go`.                                      |
+| 31 | **11 phantom doc references fixed**                      | `Bundle.Repository` → `Repository` etc. across stack files.                              |
+| 32 | **`WithForeignKeys()` for SQLite preset**                | Opt-in referential integrity.                                                            |
+| 33 | **`WithForeignKeys()` for Turso preset**                 | Same option, same semantics.                                                             |
+| 34 | **`WithSyncOptions()` for Turso preset**                 | Passthrough to sync client config.                                                       |
+| 35 | **`NewSync` multi-DB rejection**                         | Returns explicit error when multi-DB options passed to sync mode.                        |
+| 36 | **All stack tests pass with `-race`**                    | 79 test functions across 7 stack modules — all green.                                    |
+| 37 | **Zero files over 350 lines**                            | Verified by `nix run .#check-file-size`.                                                 |
 
 ---
 
@@ -134,33 +134,33 @@ This session delivered 26 commits across 168 files: built the Turso preset from 
 
 Sorted by **impact / effort ratio** (highest first).
 
-| #   | Task                                                                                     | Impact      | Effort | Ratio      |
-| --- | ---------------------------------------------------------------------------------------- | ----------- | ------ | ---------- |
-| 1   | **Update SKILL.md with `WithOptimizations`, `WithoutWAL`, `WithForeignKeys`, `Debug()`** | 🟠 High     | Small  | ⭐⭐⭐⭐⭐ |
-| 2   | **Migrate SEC to `stack/sqlite`** (fixes prod data-loss bug)                             | 🔴 Critical | Medium | ⭐⭐⭐⭐⭐ |
-| 3   | **Split `pg_listener.go` (343 lines) proactively**                                       | 🟡 Medium   | Small  | ⭐⭐⭐⭐⭐ |
-| 4   | **Verify Postgres contract test runs in CI** (check build tags)                          | 🟠 High     | Tiny   | ⭐⭐⭐⭐⭐ |
-| 5   | **Split `watermill/event_bus.go` (343 lines) proactively**                               | 🟡 Medium   | Small  | ⭐⭐⭐⭐   |
-| 6   | **Migrate DiscordSync to `stack/`**                                                      | 🟠 High     | Medium | ⭐⭐⭐⭐   |
-| 7   | **Migrate usermgmt to `stack/sqlite`**                                                   | 🟠 High     | Medium | ⭐⭐⭐⭐   |
-| 8   | **Promote CatchUpSubscriber as canonical projection pattern** (SKILL.md + example)       | 🟠 High     | Small  | ⭐⭐⭐⭐   |
-| 9   | **Write automated doc cross-reference CI check** (catch phantom refs)                    | 🟡 Medium   | Medium | ⭐⭐⭐⭐   |
-| 10  | **Add Turso sync test in CI** (mock server or testcontainers)                            | 🟡 Medium   | Large  | ⭐⭐⭐     |
-| 11  | **Add bench: single-DB vs multi-DB**                                                     | 🟢 Low      | Small  | ⭐⭐⭐     |
-| 12  | **Extract shared multi-DB builder** (evaluate stack→storage dep tradeoff)                | 🟡 Medium   | Medium | ⭐⭐⭐     |
-| 13  | **Split `watermill/catchup_subscriber.go` (303 lines)**                                  | 🟢 Low      | Small  | ⭐⭐⭐     |
-| 14  | **Split `watermill/protocol.go` (304 lines)**                                            | 🟢 Low      | Small  | ⭐⭐⭐     |
-| 15  | **Split `turso/indexing/auto.go` (329 lines)**                                           | 🟢 Low      | Small  | ⭐⭐⭐     |
-| 16  | **Audit consumer projects for other SDK gaps**                                           | 🟡 Medium   | Medium | ⭐⭐⭐     |
-| 17  | **Consider `stack.Materialize` support for SQL-backed views** (not just KV)              | 🟡 Medium   | Large  | ⭐⭐       |
-| 18  | **Add `go generate` for preset boilerplate**                                             | 🟢 Low      | Large  | ⭐         |
-| 19  | **Consider branded DSN types** for compile-time safety                                   | 🟢 Low      | Small  | ⭐⭐       |
-| 20  | **Add `stack.Bundle.Debug()` to SKILL.md examples**                                      | 🟡 Medium   | Tiny   | ⭐⭐⭐⭐⭐ |
-| 21  | **Review if multi-DB should support custom store-to-DB routing**                         | 🟢 Low      | Large  | ⭐         |
-| 22  | **Consider gRPC transport adapter** (ADR-0025 accepted)                                  | 🟡 Medium   | Large  | ⭐⭐       |
-| 23  | **Consider columnar/graph DB recommendation doc** for advanced read models               | 🟢 Low      | Medium | ⭐⭐       |
-| 24  | **Review whether `stack.Bundle` needs a `SessionStore` field**                           | 🟡 Medium   | Medium | ⭐⭐⭐     |
-| 25  | **Add Turso multi-DB persistence-across-reopen test to contract suite**                  | 🟡 Medium   | Small  | ⭐⭐⭐     |
+| #  | Task                                                                                     | Impact      | Effort | Ratio      |
+| -- | ---------------------------------------------------------------------------------------- | ----------- | ------ | ---------- |
+| 1  | **Update SKILL.md with `WithOptimizations`, `WithoutWAL`, `WithForeignKeys`, `Debug()`** | 🟠 High     | Small  | ⭐⭐⭐⭐⭐ |
+| 2  | **Migrate SEC to `stack/sqlite`** (fixes prod data-loss bug)                             | 🔴 Critical | Medium | ⭐⭐⭐⭐⭐ |
+| 3  | **Split `pg_listener.go` (343 lines) proactively**                                       | 🟡 Medium   | Small  | ⭐⭐⭐⭐⭐ |
+| 4  | **Verify Postgres contract test runs in CI** (check build tags)                          | 🟠 High     | Tiny   | ⭐⭐⭐⭐⭐ |
+| 5  | **Split `watermill/event_bus.go` (343 lines) proactively**                               | 🟡 Medium   | Small  | ⭐⭐⭐⭐   |
+| 6  | **Migrate DiscordSync to `stack/`**                                                      | 🟠 High     | Medium | ⭐⭐⭐⭐   |
+| 7  | **Migrate usermgmt to `stack/sqlite`**                                                   | 🟠 High     | Medium | ⭐⭐⭐⭐   |
+| 8  | **Promote CatchUpSubscriber as canonical projection pattern** (SKILL.md + example)       | 🟠 High     | Small  | ⭐⭐⭐⭐   |
+| 9  | **Write automated doc cross-reference CI check** (catch phantom refs)                    | 🟡 Medium   | Medium | ⭐⭐⭐⭐   |
+| 10 | **Add Turso sync test in CI** (mock server or testcontainers)                            | 🟡 Medium   | Large  | ⭐⭐⭐     |
+| 11 | **Add bench: single-DB vs multi-DB**                                                     | 🟢 Low      | Small  | ⭐⭐⭐     |
+| 12 | **Extract shared multi-DB builder** (evaluate stack→storage dep tradeoff)                | 🟡 Medium   | Medium | ⭐⭐⭐     |
+| 13 | **Split `watermill/catchup_subscriber.go` (303 lines)**                                  | 🟢 Low      | Small  | ⭐⭐⭐     |
+| 14 | **Split `watermill/protocol.go` (304 lines)**                                            | 🟢 Low      | Small  | ⭐⭐⭐     |
+| 15 | **Split `turso/indexing/auto.go` (329 lines)**                                           | 🟢 Low      | Small  | ⭐⭐⭐     |
+| 16 | **Audit consumer projects for other SDK gaps**                                           | 🟡 Medium   | Medium | ⭐⭐⭐     |
+| 17 | **Consider `stack.Materialize` support for SQL-backed views** (not just KV)              | 🟡 Medium   | Large  | ⭐⭐       |
+| 18 | **Add `go generate` for preset boilerplate**                                             | 🟢 Low      | Large  | ⭐         |
+| 19 | **Consider branded DSN types** for compile-time safety                                   | 🟢 Low      | Small  | ⭐⭐       |
+| 20 | **Add `stack.Bundle.Debug()` to SKILL.md examples**                                      | 🟡 Medium   | Tiny   | ⭐⭐⭐⭐⭐ |
+| 21 | **Review if multi-DB should support custom store-to-DB routing**                         | 🟢 Low      | Large  | ⭐         |
+| 22 | **Consider gRPC transport adapter** (ADR-0025 accepted)                                  | 🟡 Medium   | Large  | ⭐⭐       |
+| 23 | **Consider columnar/graph DB recommendation doc** for advanced read models               | 🟢 Low      | Medium | ⭐⭐       |
+| 24 | **Review whether `stack.Bundle` needs a `SessionStore` field**                           | 🟡 Medium   | Medium | ⭐⭐⭐     |
+| 25 | **Add Turso multi-DB persistence-across-reopen test to contract suite**                  | 🟡 Medium   | Small  | ⭐⭐⭐     |
 
 ---
 

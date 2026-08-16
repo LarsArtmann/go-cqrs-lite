@@ -41,8 +41,8 @@ BuildFlow identified **3 categories of issues**: error context problems, missing
 
 ## B) PARTIALLY DONE ⚠️
 
-| Task                       | Status        | Blocker                                    |
-| -------------------------- | ------------- | ------------------------------------------ |
+| Task                       | Status       | Blocker                                    |
+| -------------------------- | ------------ | ------------------------------------------ |
 | **Code Duplication Fixes** | ⚠️ IDENTIFIED | 8 clone groups found, not yet refactored   |
 | **Test Verification**      | ⚠️ BLOCKED    | Go cache corruption prevented test runs    |
 | **BuildFlow Re-run**       | ⚠️ BLOCKED    | Cannot verify fixes until Go cache rebuilt |
@@ -109,33 +109,33 @@ BuildFlow identified **3 categories of issues**: error context problems, missing
 
 ## F) TOP 25 THINGS TO DO NEXT
 
-| #   | Task                                           | Priority | Effort | Impact            |
-| --- | ---------------------------------------------- | -------- | ------ | ----------------- |
-| 1   | Wait for Go cache rebuild, run tests           | CRITICAL | 5min   | Verifies all work |
-| 2   | Re-run buildflow --semantic --fix              | CRITICAL | 2min   | Confirms fixes    |
-| 3   | Commit current changes                         | HIGH     | 2min   | Preserves work    |
-| 4   | Refactor event With\* methods (7 duplicates)   | MEDIUM   | 15min  | Reduces 7 clones  |
-| 5   | Extract Close() pattern to shared utility      | LOW      | 10min  | Reduces 4 clones  |
-| 6   | Add .golangci-lint.yml configuration           | MEDIUM   | 5min   | Better linting    |
-| 7   | Run full test suite with coverage              | HIGH     | 3min   | Quality assurance |
-| 8   | Fix test duplications in command_test.go       | LOW      | 10min  | Cleaner tests     |
-| 9   | Fix test duplications in memory_bus_test.go    | LOW      | 10min  | Cleaner tests     |
-| 10  | Add gci import formatter                       | LOW      | 2min   | Better imports    |
-| 11  | Consider phantom type for AggregateID          | LOW      | 30min  | Type safety       |
-| 12  | Consider phantom type for EventType            | LOW      | 30min  | Type safety       |
-| 13  | Consider phantom type for CorrelationID        | LOW      | 20min  | Type safety       |
-| 14  | Rename aggregate.Base to something descriptive | LOW      | 15min  | Better naming     |
-| 15  | Rename command.BaseCommand                     | LOW      | 15min  | Better naming     |
-| 16  | Rename event.BaseEvent                         | LOW      | 15min  | Better naming     |
-| 17  | Rename query.BaseQuery                         | LOW      | 15min  | Better naming     |
-| 18  | Extract DispatcherMixin for shared fields      | LOW      | 20min  | Composition       |
-| 19  | Add fuzz tests (none found)                    | LOW      | 30min  | Better testing    |
-| 20  | Update documentation with error patterns       | MEDIUM   | 10min  | Better docs       |
-| 21  | Add error handling examples to README          | LOW      | 10min  | Better onboarding |
-| 22  | Review and update TODO_LIST.md                 | LOW      | 5min   | Project tracking  |
-| 23  | Add pre-commit hooks                           | LOW      | 10min  | Quality gate      |
-| 24  | Consider adding benchmarks                     | LOW      | 20min  | Performance       |
-| 25  | Add integration tests                          | MEDIUM   | 30min  | End-to-end        |
+| #  | Task                                           | Priority | Effort | Impact            |
+| -- | ---------------------------------------------- | -------- | ------ | ----------------- |
+| 1  | Wait for Go cache rebuild, run tests           | CRITICAL | 5min   | Verifies all work |
+| 2  | Re-run buildflow --semantic --fix              | CRITICAL | 2min   | Confirms fixes    |
+| 3  | Commit current changes                         | HIGH     | 2min   | Preserves work    |
+| 4  | Refactor event With\* methods (7 duplicates)   | MEDIUM   | 15min  | Reduces 7 clones  |
+| 5  | Extract Close() pattern to shared utility      | LOW      | 10min  | Reduces 4 clones  |
+| 6  | Add .golangci-lint.yml configuration           | MEDIUM   | 5min   | Better linting    |
+| 7  | Run full test suite with coverage              | HIGH     | 3min   | Quality assurance |
+| 8  | Fix test duplications in command_test.go       | LOW      | 10min  | Cleaner tests     |
+| 9  | Fix test duplications in memory_bus_test.go    | LOW      | 10min  | Cleaner tests     |
+| 10 | Add gci import formatter                       | LOW      | 2min   | Better imports    |
+| 11 | Consider phantom type for AggregateID          | LOW      | 30min  | Type safety       |
+| 12 | Consider phantom type for EventType            | LOW      | 30min  | Type safety       |
+| 13 | Consider phantom type for CorrelationID        | LOW      | 20min  | Type safety       |
+| 14 | Rename aggregate.Base to something descriptive | LOW      | 15min  | Better naming     |
+| 15 | Rename command.BaseCommand                     | LOW      | 15min  | Better naming     |
+| 16 | Rename event.BaseEvent                         | LOW      | 15min  | Better naming     |
+| 17 | Rename query.BaseQuery                         | LOW      | 15min  | Better naming     |
+| 18 | Extract DispatcherMixin for shared fields      | LOW      | 20min  | Composition       |
+| 19 | Add fuzz tests (none found)                    | LOW      | 30min  | Better testing    |
+| 20 | Update documentation with error patterns       | MEDIUM   | 10min  | Better docs       |
+| 21 | Add error handling examples to README          | LOW      | 10min  | Better onboarding |
+| 22 | Review and update TODO_LIST.md                 | LOW      | 5min   | Project tracking  |
+| 23 | Add pre-commit hooks                           | LOW      | 10min  | Quality gate      |
+| 24 | Consider adding benchmarks                     | LOW      | 20min  | Performance       |
+| 25 | Add integration tests                          | MEDIUM   | 30min  | End-to-end        |
 
 ---
 

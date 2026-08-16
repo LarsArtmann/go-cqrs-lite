@@ -10,17 +10,17 @@
 
 ### Phase 1–3 (M1–M9): The 20% delivering 80% of value — COMPLETE
 
-| ID  | Task               | Key Changes                                                                                                                                               |
-| --- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| M1  | Verify gate truth  | `nix run .#verify` GREEN. Stale GREEN pattern broken.                                                                                                     |
-| M2  | 5 correctness bugs | DecodeFloatResults guard, 10× context.Background→ctx, DuckDB 6× lookupPlan, mustSQLiteEngine fixed (returns real SQLite engine), zombie functions deleted |
-| M3  | Quick doc fixes    | Pebbleengine README (7→6 backends), FOUR-TIER-MODEL artifacts deleted                                                                                     |
-| M4  | Irohengine tests   | TestMapDeleteLWWConvergence, TestGracefulShutdown_InflightOps — 3× stable                                                                                 |
-| M5  | CI quick wins      | --fail-on-stale-suppressions flag, duckdb+turso in VM matrix, C025 suppressed                                                                             |
-| M6  | OTel + metaengine  | Span attributes in projectionadapter.Handle(), ApplyLayoutPlan on SQLite engine                                                                           |
-| M7  | DeferClose         | Production close_helper.go in pebble, 12 sites replaced, duplicate test helper removed                                                                    |
-| M8  | EXCEPTIONS audit   | 1 dead entry removed (snapshot→storage/memory), 9 verified valid                                                                                          |
-| M9  | Misc cleanup       | bbolt TestBackupRestore_FullLifecycle passes                                                                                                              |
+| ID | Task               | Key Changes                                                                                                                                               |
+| -- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1 | Verify gate truth  | `nix run .#verify` GREEN. Stale GREEN pattern broken.                                                                                                     |
+| M2 | 5 correctness bugs | DecodeFloatResults guard, 10× context.Background→ctx, DuckDB 6× lookupPlan, mustSQLiteEngine fixed (returns real SQLite engine), zombie functions deleted |
+| M3 | Quick doc fixes    | Pebbleengine README (7→6 backends), FOUR-TIER-MODEL artifacts deleted                                                                                     |
+| M4 | Irohengine tests   | TestMapDeleteLWWConvergence, TestGracefulShutdown_InflightOps — 3× stable                                                                                 |
+| M5 | CI quick wins      | --fail-on-stale-suppressions flag, duckdb+turso in VM matrix, C025 suppressed                                                                             |
+| M6 | OTel + metaengine  | Span attributes in projectionadapter.Handle(), ApplyLayoutPlan on SQLite engine                                                                           |
+| M7 | DeferClose         | Production close_helper.go in pebble, 12 sites replaced, duplicate test helper removed                                                                    |
+| M8 | EXCEPTIONS audit   | 1 dead entry removed (snapshot→storage/memory), 9 verified valid                                                                                          |
+| M9 | Misc cleanup       | bbolt TestBackupRestore_FullLifecycle passes                                                                                                              |
 
 ### Phase 4–6 (M10–M18): Infrastructure and features — MOSTLY COMPLETE
 
@@ -178,7 +178,7 @@ Nothing — each task is either complete or not started.
    "after remaining false-positive fixes are shipped" but the 10 new rules ARE the remaining
    fixes. Tag before (v4.5.1 patch) or after (v4.6.0 feature)?
 
-3. _*For M10 (run cqrs-lint against real consumers): the repos are private (LarsArtmann/*
+3. __For M10 (run cqrs-lint against real consumers): the repos are private (LarsArtmann/_
    organization). Should I skip this task or do you want to provide access/clone them locally
    first?_*
 

@@ -1,8 +1,8 @@
 # Comprehensive Status Report: go-cqrs-lite
 
-**Date:** 2026-05-26 04:44 CEST  
-**Session:** 103  
-**Branch:** master  
+**Date:** 2026-05-26 04:44 CEST\
+**Session:** 103\
+**Branch:** master\
 **Commits ahead of origin:** 5 (sessions 101-103)
 
 ---
@@ -144,43 +144,43 @@ Phase 3 of the Pareto execution plan (20% → 80%) is **substantially complete**
 
 ### v1.0 Blockers (Must Have)
 
-| #   | Task                              | Effort | Impact                                |
-| --- | --------------------------------- | ------ | ------------------------------------- |
-| 1   | **Tag v1.0.0 release**            | 5m     | HIGH — signals stability              |
-| 2   | **Watermill round-trip test**     | 30m    | HIGH — fixes 28.6% coverage           |
-| 3   | **Saga coverage: 70.5% → 85%**    | 60m    | MEDIUM — compensation + timeout tests |
-| 4   | **Fix Watermill `toEvent` codec** | 90m    | HIGH — production-ready serialization |
-| 5   | **Saga integration example**      | 60m    | MEDIUM — demonstrate real workflow    |
+| # | Task                              | Effort | Impact                                |
+| - | --------------------------------- | ------ | ------------------------------------- |
+| 1 | **Tag v1.0.0 release**            | 5m     | HIGH — signals stability              |
+| 2 | **Watermill round-trip test**     | 30m    | HIGH — fixes 28.6% coverage           |
+| 3 | **Saga coverage: 70.5% → 85%**    | 60m    | MEDIUM — compensation + timeout tests |
+| 4 | **Fix Watermill `toEvent` codec** | 90m    | HIGH — production-ready serialization |
+| 5 | **Saga integration example**      | 60m    | MEDIUM — demonstrate real workflow    |
 
 ### v1.1 Features (Should Have)
 
-| #   | Task                                       | Effort | Impact                                     |
-| --- | ------------------------------------------ | ------ | ------------------------------------------ |
-| 6   | **Code generation tool (`cmd/cqrs-gen`)**  | 4h     | VERY HIGH — typed dispatchers, no `any`    |
-| 7   | **Event upcasting integration test**       | 45m    | MEDIUM — validate VersionedStore           |
-| 8   | **StreamLoader for SQL stores**            | 2h     | MEDIUM — cursor-based `sql.Rows` iteration |
-| 9   | **Saga observability (metrics + tracing)** | 90m    | MEDIUM — production readiness              |
-| 10  | **Outbox poller / relay**                  | 2h     | HIGH — background outbox delivery          |
-| 11  | **Catalog coverage: 92.8% → 95%+**         | 45m    | LOW — diminishing returns                  |
-| 12  | **Storage coverage: 89.4% → 92%+**         | 60m    | LOW — error paths                          |
-| 13  | **Projection Builder fluent API tests**    | 60m    | MEDIUM — `projection.Builder` untested     |
-| 14  | **Middleware OpenTelemetry span tests**    | 45m    | MEDIUM — tracing verification              |
-| 15  | **Query pagination integration test**      | 30m    | LOW — already unit tested                  |
+| #  | Task                                       | Effort | Impact                                     |
+| -- | ------------------------------------------ | ------ | ------------------------------------------ |
+| 6  | **Code generation tool (`cmd/cqrs-gen`)**  | 4h     | VERY HIGH — typed dispatchers, no `any`    |
+| 7  | **Event upcasting integration test**       | 45m    | MEDIUM — validate VersionedStore           |
+| 8  | **StreamLoader for SQL stores**            | 2h     | MEDIUM — cursor-based `sql.Rows` iteration |
+| 9  | **Saga observability (metrics + tracing)** | 90m    | MEDIUM — production readiness              |
+| 10 | **Outbox poller / relay**                  | 2h     | HIGH — background outbox delivery          |
+| 11 | **Catalog coverage: 92.8% → 95%+**         | 45m    | LOW — diminishing returns                  |
+| 12 | **Storage coverage: 89.4% → 92%+**         | 60m    | LOW — error paths                          |
+| 13 | **Projection Builder fluent API tests**    | 60m    | MEDIUM — `projection.Builder` untested     |
+| 14 | **Middleware OpenTelemetry span tests**    | 45m    | MEDIUM — tracing verification              |
+| 15 | **Query pagination integration test**      | 30m    | LOW — already unit tested                  |
 
 ### v1.2+ Features (Nice to Have)
 
-| #   | Task                                         | Effort | Impact                         |
-| --- | -------------------------------------------- | ------ | ------------------------------ |
-| 16  | **Event schema registry**                    | 3h     | HIGH — JSON Schema validation  |
-| 17  | **Snapshot compression**                     | 60m    | LOW — gzip snapshots           |
-| 18  | **Dead letter queue for failed projections** | 2h     | MEDIUM — resilience            |
-| 19  | **Multi-tenant event store**                 | 3h     | MEDIUM — `tenant_id` column    |
-| 20  | **Event archive / cold storage**             | 4h     | LOW — old events to S3         |
-| 21  | **gRPC command/query gateway**               | 4h     | MEDIUM — transport layer       |
-| 22  | **WebSocket live event streaming**           | 3h     | MEDIUM — real-time projections |
-| 23  | **Benchmark suite**                          | 2h     | LOW — performance baselines    |
-| 24  | **Fuzz testing for event store**             | 2h     | MEDIUM — find edge cases       |
-| 25  | **Complete ADR documentation**               | 2h     | LOW — architecture decisions   |
+| #  | Task                                         | Effort | Impact                         |
+| -- | -------------------------------------------- | ------ | ------------------------------ |
+| 16 | **Event schema registry**                    | 3h     | HIGH — JSON Schema validation  |
+| 17 | **Snapshot compression**                     | 60m    | LOW — gzip snapshots           |
+| 18 | **Dead letter queue for failed projections** | 2h     | MEDIUM — resilience            |
+| 19 | **Multi-tenant event store**                 | 3h     | MEDIUM — `tenant_id` column    |
+| 20 | **Event archive / cold storage**             | 4h     | LOW — old events to S3         |
+| 21 | **gRPC command/query gateway**               | 4h     | MEDIUM — transport layer       |
+| 22 | **WebSocket live event streaming**           | 3h     | MEDIUM — real-time projections |
+| 23 | **Benchmark suite**                          | 2h     | LOW — performance baselines    |
+| 24 | **Fuzz testing for event store**             | 2h     | MEDIUM — find edge cases       |
+| 25 | **Complete ADR documentation**               | 2h     | LOW — architecture decisions   |
 
 ---
 

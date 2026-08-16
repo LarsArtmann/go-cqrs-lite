@@ -23,15 +23,15 @@
 
 ### Session 102 — Quality Sweep
 
-| #   | Change                                                                                  | Commit    |
-| --- | --------------------------------------------------------------------------------------- | --------- |
-| 1   | Added `report/` to `.gitignore`, removed stale 4.7MB binary                             | `1336f4c` |
-| 2   | Fixed 2 `noinlineerr` lint issues (command/query Dispatch)                              | `4af18c0` |
-| 3   | Extracted shared `event.StreamKey()` — eliminated duplicate `streamKey`/`fakeStreamKey` | `a2570d8` |
-| 4   | Split `catalog/registry.go` (370→259 lines) into 3 files                                | `33ab7ad` |
-| 5   | Corrected FEATURES.md jitter claim: `crypto/rand` → `math/rand/v2`                      | `9edcd41` |
-| 6   | Split `catalog/eventcatalog/exporter.go` (303→213 lines) into 2 files                   | `1a81ee7` |
-| 7   | Trimmed AGENTS.md from 580→370 lines, extracted historical sections                     | `8b64822` |
+| # | Change                                                                                  | Commit    |
+| - | --------------------------------------------------------------------------------------- | --------- |
+| 1 | Added `report/` to `.gitignore`, removed stale 4.7MB binary                             | `1336f4c` |
+| 2 | Fixed 2 `noinlineerr` lint issues (command/query Dispatch)                              | `4af18c0` |
+| 3 | Extracted shared `event.StreamKey()` — eliminated duplicate `streamKey`/`fakeStreamKey` | `a2570d8` |
+| 4 | Split `catalog/registry.go` (370→259 lines) into 3 files                                | `33ab7ad` |
+| 5 | Corrected FEATURES.md jitter claim: `crypto/rand` → `math/rand/v2`                      | `9edcd41` |
+| 6 | Split `catalog/eventcatalog/exporter.go` (303→213 lines) into 2 files                   | `1a81ee7` |
+| 7 | Trimmed AGENTS.md from 580→370 lines, extracted historical sections                     | `8b64822` |
 
 ### Test Results (22/22 packages pass)
 

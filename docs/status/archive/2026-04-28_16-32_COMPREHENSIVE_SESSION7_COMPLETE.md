@@ -240,33 +240,33 @@ The codebase is in its cleanest state ever:
 
 Priority-sorted by **impact × effort⁻¹**:
 
-| #   | Task                                                                   | Effort | Impact   | Module                |
-| --- | ---------------------------------------------------------------------- | ------ | -------- | --------------------- |
-| 1   | **Evaluate samber/ro, samber/do, and other samber libs**               | 2-3 hr | HIGH     | Planning              |
-| 2   | **Design storage module (Phase 5)** — schema, sqlc, interface          | 1 day  | HIGH     | storage/              |
-| 3   | **Add integration test across all modules** — full CQRS flow           | 2 hr   | HIGH     | testhelpers/          |
-| 4   | **Add golden-file tests for catalog exports** (AsyncAPI, EventCatalog) | 1 hr   | MEDIUM   | catalog/              |
-| 5   | **Split `cattest/helpers.go`** (450 lines → ~180 + ~180)               | 30 min | MEDIUM   | catalog/              |
-| 6   | **Add benchmarks** for dispatch, event creation, ID generation         | 1 hr   | MEDIUM   | core/                 |
-| 7   | **Tag v0.1.0-alpha releases** for all 6 modules                        | 30 min | MEDIUM   | Release               |
-| 8   | **Write getting-started guide** with working example                   | 2 hr   | HIGH     | docs/                 |
-| 9   | **Add working example app** (simple user CRUD with event sourcing)     | 2 hr   | MEDIUM   | example/              |
-| 10  | **Implement persistent event store** (Phase 5 core)                    | 3 days | CRITICAL | storage/              |
-| 11  | **Add BaseDispatcher direct tests** (75.4% → 100%)                     | 30 min | LOW      | core/pkg/dispatcher/  |
-| 12  | **Improve eventcatalog coverage** (89.7% → 95%+)                       | 1 hr   | MEDIUM   | catalog/eventcatalog/ |
-| 13  | **Add OpenTelemetry metrics middleware**                               | 2 hr   | HIGH     | middleware/           |
-| 14  | **Remove stale replace directives** in middleware/xtypes go.mod        | 5 min  | LOW      | Build                 |
-| 15  | **Fix naming inconsistency** — EventCatalogMeta → CatalogMeta          | 30 min | LOW      | xtypes/               |
-| 16  | **Add health check interface** for Store/Bus/Dispatcher                | 1 hr   | MEDIUM   | core/                 |
-| 17  | **Add graceful shutdown** — drain in-flight ops on Close()             | 2 hr   | MEDIUM   | core/                 |
-| 18  | **Implement Watermill module** (Phase 6)                               | 3 days | HIGH     | watermill/            |
-| 19  | **Implement projection module** (Phase 7)                              | 2 days | HIGH     | projection/           |
-| 20  | **Add fuzz tests** for command types, event types, schemas             | 1 hr   | LOW      | core/                 |
-| 21  | **Implement SQL snapshot store** (Phase 8)                             | 1 day  | MEDIUM   | sqlsnapshot/          |
-| 22  | **Add CI badge + pkg.go.dev links** to README                          | 15 min | LOW      | docs/                 |
-| 23  | **Add aggregate saga/process manager** pattern                         | 2 days | HIGH     | core/                 |
-| 24  | **Clean up status report archive** (41 reports, many stale)            | 30 min | LOW      | docs/status/          |
-| 25  | **Add CONTRIBUTING.md** review guidelines, PR template                 | 1 hr   | LOW      | docs/                 |
+| #  | Task                                                                   | Effort | Impact   | Module                |
+| -- | ---------------------------------------------------------------------- | ------ | -------- | --------------------- |
+| 1  | **Evaluate samber/ro, samber/do, and other samber libs**               | 2-3 hr | HIGH     | Planning              |
+| 2  | **Design storage module (Phase 5)** — schema, sqlc, interface          | 1 day  | HIGH     | storage/              |
+| 3  | **Add integration test across all modules** — full CQRS flow           | 2 hr   | HIGH     | testhelpers/          |
+| 4  | **Add golden-file tests for catalog exports** (AsyncAPI, EventCatalog) | 1 hr   | MEDIUM   | catalog/              |
+| 5  | **Split `cattest/helpers.go`** (450 lines → ~180 + ~180)               | 30 min | MEDIUM   | catalog/              |
+| 6  | **Add benchmarks** for dispatch, event creation, ID generation         | 1 hr   | MEDIUM   | core/                 |
+| 7  | **Tag v0.1.0-alpha releases** for all 6 modules                        | 30 min | MEDIUM   | Release               |
+| 8  | **Write getting-started guide** with working example                   | 2 hr   | HIGH     | docs/                 |
+| 9  | **Add working example app** (simple user CRUD with event sourcing)     | 2 hr   | MEDIUM   | example/              |
+| 10 | **Implement persistent event store** (Phase 5 core)                    | 3 days | CRITICAL | storage/              |
+| 11 | **Add BaseDispatcher direct tests** (75.4% → 100%)                     | 30 min | LOW      | core/pkg/dispatcher/  |
+| 12 | **Improve eventcatalog coverage** (89.7% → 95%+)                       | 1 hr   | MEDIUM   | catalog/eventcatalog/ |
+| 13 | **Add OpenTelemetry metrics middleware**                               | 2 hr   | HIGH     | middleware/           |
+| 14 | **Remove stale replace directives** in middleware/xtypes go.mod        | 5 min  | LOW      | Build                 |
+| 15 | **Fix naming inconsistency** — EventCatalogMeta → CatalogMeta          | 30 min | LOW      | xtypes/               |
+| 16 | **Add health check interface** for Store/Bus/Dispatcher                | 1 hr   | MEDIUM   | core/                 |
+| 17 | **Add graceful shutdown** — drain in-flight ops on Close()             | 2 hr   | MEDIUM   | core/                 |
+| 18 | **Implement Watermill module** (Phase 6)                               | 3 days | HIGH     | watermill/            |
+| 19 | **Implement projection module** (Phase 7)                              | 2 days | HIGH     | projection/           |
+| 20 | **Add fuzz tests** for command types, event types, schemas             | 1 hr   | LOW      | core/                 |
+| 21 | **Implement SQL snapshot store** (Phase 8)                             | 1 day  | MEDIUM   | sqlsnapshot/          |
+| 22 | **Add CI badge + pkg.go.dev links** to README                          | 15 min | LOW      | docs/                 |
+| 23 | **Add aggregate saga/process manager** pattern                         | 2 days | HIGH     | core/                 |
+| 24 | **Clean up status report archive** (41 reports, many stale)            | 30 min | LOW      | docs/status/          |
+| 25 | **Add CONTRIBUTING.md** review guidelines, PR template                 | 1 hr   | LOW      | docs/                 |
 
 ---
 

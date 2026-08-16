@@ -98,6 +98,7 @@
 ## f) NEXT — up to 50, ordered by leverage
 
 **Release (blocked on g1):**
+
 1. Tag engines v4.0.2 (sqlite/badger/pebble/pg) + watermill/v4.5.0 (annotated, via scripts/tag-release.sh). <- OPEN. awaiting user approval - TODO_LIST 'Release / Tagging' + ROADMAP 'Open Questions' #1
 2. Drop the 5 temporary replaces in system/go.mod; re-verify system standalone (GOWORK=off). <- OPEN. gated on the engine tags - TODO_LIST 'Release / Tagging'
 3. `go mod tidy` sweep of the ~49 stale indirect shim refs; verify no-diff in go.sum noise. <- OPEN. TODO_LIST 'Release / Tagging' (~49 stale indirect refs)
@@ -164,7 +165,6 @@
 - dgraphengine vs live Dgraph: 24/24 PASS (/tmp/dgraph-fixed2.log)
 - watermill Redis roundtrip vs live Redis: PASS (/tmp/redis-verify.log)
 - `verify-docs.sh`: PASS (re-run after the CHANGELOG addition in this review)
-
 
 ---
 

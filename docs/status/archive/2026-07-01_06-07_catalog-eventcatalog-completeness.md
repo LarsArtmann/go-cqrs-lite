@@ -148,33 +148,33 @@ Nothing. No broken builds, no failing tests, no data loss. The linter (golines) 
 
 ## f) Top 25 Things to Do Next (sorted by impact/effort)
 
-| #   | Task                                                                                                 | Impact    | Effort | Category   |
-| --- | ---------------------------------------------------------------------------------------------------- | --------- | ------ | ---------- |
-| 1   | Add BaseConfig to Message/Entity/Channel/Agent/DataStore                                             | 🟠 High   | 2h     | Feature    |
-| 2   | Golden test catalog: add entities, agents, data products, data stores, flows, teams, users           | 🟠 High   | 1h     | Testing    |
-| 3   | Regenerate ALL golden files with enriched catalog                                                    | 🟠 High   | 30m    | Testing    |
-| 4   | Message sends/receives with `fields` and `to`/`from`                                                 | 🟠 High   | 2h     | Feature    |
-| 5   | simple.Builder: add AddCustomDoc helper                                                              | 🟡 Med    | 15m    | Feature    |
-| 6   | Split frontmatter_types.go by resource type                                                          | 🟡 Med    | 1h     | Refactor   |
-| 7   | Short-circuit `toBaseConfig()` when empty                                                            | 🟡 Med    | 30m    | Perf       |
-| 8   | Entity property rendering in D2 tooltip: show references/relationTypes                               | 🟡 Med    | 30m    | Feature    |
-| 9   | Agent D2 edges: readsFrom/writesTo data stores                                                       | 🟡 Med    | 30m    | Feature    |
-| 10  | AsyncAPI: deduplicate shared `ensureMessage` between service and agent paths                         | 🟡 Med    | 1h     | Refactor   |
-| 11  | OpenAPI: entity schemas as `$ref` in message schemas (not just standalone)                           | 🟡 Med    | 1h     | Feature    |
-| 12  | YAML round-trip test for all new frontmatter types                                                   | 🟡 Med    | 1h     | Testing    |
-| 13  | Benchmark: EventCatalog export with full catalog (all resource types)                                | 🟡 Med    | 30m    | Testing    |
-| 14  | Channel `examples` on parameters                                                                     | ⚪ Low    | 30m    | Feature    |
-| 15  | Team `members` as User objects (not just IDs)                                                        | ⚪ Low    | 1h     | Feature    |
-| 16  | Entity properties: `height` and `menu` on custom flow nodes                                          | ⚪ Low    | 30m    | Feature    |
-| 17  | doc-check validation for README examples                                                             | ⚪ Low    | 30m    | Tooling    |
-| 18  | EventCatalog config.js: add `generators` support                                                     | ⚪ Low    | 2h     | Feature    |
-| 19  | D2: render DataProduct input/output edges to services (not just raw IDs)                             | ⚪ Low    | 1h     | Feature    |
-| 20  | D2: domain-to-entity containment edges                                                               | ⚪ Low    | 30m    | Feature    |
-| 21  | llms-full.txt generation (EC generates this; we only do llms.txt)                                    | ⚪ Low    | 1h     | Feature    |
-| 22  | EventCatalog `schemas` field with `$ref` support (external schema files)                             | ⚪ Low    | 1h     | Feature    |
-| 23  | Per-resource `editUrl` support (currently only on Service/Domain)                                    | ⚪ Low    | 30m    | Feature    |
-| 24  | llms.txt: include entity properties and ubiquitous language                                          | ⚪ Low    | 30m    | Feature    |
-| 25  | Integration: verify generated EventCatalog builds with actual EC CLI (`npx @eventcatalog/cli build`) | 🟢 Polish | 2h     | Validation |
+| #  | Task                                                                                                 | Impact    | Effort | Category   |
+| -- | ---------------------------------------------------------------------------------------------------- | --------- | ------ | ---------- |
+| 1  | Add BaseConfig to Message/Entity/Channel/Agent/DataStore                                             | 🟠 High   | 2h     | Feature    |
+| 2  | Golden test catalog: add entities, agents, data products, data stores, flows, teams, users           | 🟠 High   | 1h     | Testing    |
+| 3  | Regenerate ALL golden files with enriched catalog                                                    | 🟠 High   | 30m    | Testing    |
+| 4  | Message sends/receives with `fields` and `to`/`from`                                                 | 🟠 High   | 2h     | Feature    |
+| 5  | simple.Builder: add AddCustomDoc helper                                                              | 🟡 Med    | 15m    | Feature    |
+| 6  | Split frontmatter_types.go by resource type                                                          | 🟡 Med    | 1h     | Refactor   |
+| 7  | Short-circuit `toBaseConfig()` when empty                                                            | 🟡 Med    | 30m    | Perf       |
+| 8  | Entity property rendering in D2 tooltip: show references/relationTypes                               | 🟡 Med    | 30m    | Feature    |
+| 9  | Agent D2 edges: readsFrom/writesTo data stores                                                       | 🟡 Med    | 30m    | Feature    |
+| 10 | AsyncAPI: deduplicate shared `ensureMessage` between service and agent paths                         | 🟡 Med    | 1h     | Refactor   |
+| 11 | OpenAPI: entity schemas as `$ref` in message schemas (not just standalone)                           | 🟡 Med    | 1h     | Feature    |
+| 12 | YAML round-trip test for all new frontmatter types                                                   | 🟡 Med    | 1h     | Testing    |
+| 13 | Benchmark: EventCatalog export with full catalog (all resource types)                                | 🟡 Med    | 30m    | Testing    |
+| 14 | Channel `examples` on parameters                                                                     | ⚪ Low    | 30m    | Feature    |
+| 15 | Team `members` as User objects (not just IDs)                                                        | ⚪ Low    | 1h     | Feature    |
+| 16 | Entity properties: `height` and `menu` on custom flow nodes                                          | ⚪ Low    | 30m    | Feature    |
+| 17 | doc-check validation for README examples                                                             | ⚪ Low    | 30m    | Tooling    |
+| 18 | EventCatalog config.js: add `generators` support                                                     | ⚪ Low    | 2h     | Feature    |
+| 19 | D2: render DataProduct input/output edges to services (not just raw IDs)                             | ⚪ Low    | 1h     | Feature    |
+| 20 | D2: domain-to-entity containment edges                                                               | ⚪ Low    | 30m    | Feature    |
+| 21 | llms-full.txt generation (EC generates this; we only do llms.txt)                                    | ⚪ Low    | 1h     | Feature    |
+| 22 | EventCatalog `schemas` field with `$ref` support (external schema files)                             | ⚪ Low    | 1h     | Feature    |
+| 23 | Per-resource `editUrl` support (currently only on Service/Domain)                                    | ⚪ Low    | 30m    | Feature    |
+| 24 | llms.txt: include entity properties and ubiquitous language                                          | ⚪ Low    | 30m    | Feature    |
+| 25 | Integration: verify generated EventCatalog builds with actual EC CLI (`npx @eventcatalog/cli build`) | 🟢 Polish | 2h     | Validation |
 
 ---
 

@@ -74,7 +74,7 @@
 
 ## B) PARTIALLY DONE
 
-- **Full-length verification**: the *long* metaengine suite ran fully once
+- **Full-length verification**: the _long_ metaengine suite ran fully once
   (before the vector-helper extraction); after the extraction I ran the two
   engine module suites + targeted vector/trace/shared tests + verify-fast's
   short-mode race — never the full 135s suite again. Risk: low (extraction is
@@ -100,7 +100,7 @@
 
 1. **I wrote the exact bug AGENTS.md warns about.** My dependent-module build
    loop piped through `head`/`echo` and printed `BUILD-OK cmd/cqrs-bench`
-   *while the build had failed* — the "Exit codes after pipes lie" gotcha,
+   _while the build had failed_ — the "Exit codes after pipes lie" gotcha,
    committed to memory docs by a prior session, reproduced by me from scratch.
    I only caught it because the compile error was visible above the OK. The
    loop's exit handling was wrong, not just cosmetically.
@@ -136,7 +136,7 @@
 4. **Test the test helper changes too** — my dedup change to
    `sharedTypesInResult` (per-field → per-type) altered diagnostic output
    contract; the old tests happened to pass either way. Contract tests on
-   diagnostic *shape* would have caught a wrong-version dedup.
+   diagnostic _shape_ would have caught a wrong-version dedup.
 5. **docs gates**: doc-check requires the jsonv2 tag but AGENTS.md (until I
    fixed it) documented the bare command — copy-paste from docs failed for
    anyone. Doc commands must be runnable verbatim.
@@ -144,6 +144,7 @@
 ## F) UP TO 50 NEXT THINGS
 
 **Close out this feature (quick wins)**
+
 1. FEATURES.md: add layout-roles rows (roles, replication, promote, trace,
    shared collections, fold locks) under metaengine section.
 2. SKILL.md decision matrix + modules.md metaengine row: mention
@@ -160,73 +161,73 @@
 **Replication hardening (v1.1)**
 8. Public tunables: `WithReplicationBuffer/Retries/OpTimeout` (consts today).
 9. `ReplicationStatus` → `Doctor()` integration (surface shadow lag/stale
-   in `--- Replication ---` section).
+in `--- Replication ---` section).
 10. PromoteEngine with catch-up verification: refuse if `Applied` <
-    EventLog count (currently trusts drain).
+EventLog count (currently trusts drain).
 11. Optional Verify diff of shadow mirrors vs primary (open question §G).
 12. DemoteEngine (Active→Backup) for planned retirements (open question §G).
 13. Compute/write split in `applyFold*` so fold locks don't span engine I/O
-    (hung shadow can stall primaries ≤3s today — documented trade-off).
+(hung shadow can stall primaries ≤3s today — documented trade-off).
 14. Replication metrics: OTel counters (applied, retries, stale halts).
 15. Cross-process/durable replication (design doc §3.5) — needs WAL/journal
-    consensus, out of v1 scope.
+consensus, out of v1 scope.
 16. `Backfill` integration with role add: auto-backfill on
-   `AddEngine(WithEngineRole(Migration))` (today: manual runbook).
+`AddEngine(WithEngineRole(Migration))` (today: manual runbook).
 17. Fenced promote: `PromoteEngine(ctx, name, WithMinCaughtUp(n))`.
 18. Replicator surge protection: adaptive buffer or backpressure signal
-    instead of stale+halt cliff at 1024.
+instead of stale+halt cliff at 1024.
 
 **Trace/calibration**
 19. Trace rotation/size caps for long-running production recording.
 20. `TraceStats` → percentile latencies (P50/P95/P99) per name, not just counts.
 21. Replay with time fidelity (respect recorded inter-op gaps optionally).
 22. cqrs-bench `trace` subcommand: record → replay → compare plans
-    (calibrate planner against real workloads).
+(calibrate planner against real workloads).
 23. Trace schema v2 when payloads/keys needed (keep JSON-round-trip-unsafe
-    values out; encode via registered codecs instead).
+values out; encode via registered codecs instead).
 
 **Planner/rules**
 24. `shared-collection` rule: match nested fields (depth >1) — today
-    top-level only (documented).
+top-level only (documented).
 25. `WithSharedCollection` by FQN (`pkg.TypeName`) to disambiguate same-name
-    types across packages.
+types across packages.
 26. Physical shared-child materialization (normalize is forced but the
-    shared collection isn't built — scoring-level only, per design doc §6).
+shared collection isn't built — scoring-level only, per design doc §6).
 27. WARN spanning-collections: include estimated duplicate-storage cost.
 
 **Pin/standalone hygiene (this session's evidence)**
 28. Pin-drift meta-test (TODO 🔥 exists) — this session added 2 more data
-    points; implement it.
+points; implement it.
 29. `#verify-standalone` nix app or CI leg (TODO exists).
 30. Repo-wide stale-pin sweep (TODO 🔥 exists; needs user policy sign-off).
 31. Consider `go.work` `replace`-mirroring script: generate temporary
-    replaces into consumer go.mod files from a single source of truth.
+replaces into consumer go.mod files from a single source of truth.
 
 **Gate/process**
 32. Daemon pre-commit `go build ./...` hook.
 33. CI leg: `art-dupl` check on PRs (today only local `#check-duplication`).
 34. Baseline review ritual: `.art-dupl-baseline.json` diffs called out in
-    PR review (it silently grows otherwise).
+PR review (it silently grows otherwise).
 35. `check-file-size` (350-line app, exists, unwired) — wire it or delete it;
-    store.go is ~750 grandfathered.
+store.go is ~750 grandfathered.
 36. Exit-code discipline: scripts/ CI must use `set -o pipefail` (my D.1 bug
-    is the third instance of this class in repo history).
+is the third instance of this class in repo history).
 
 **Engine/vector follow-ups**
 37. `TopKNearest`: partial-select (heap) instead of full sort for large N.
 38. `DecodeVectorJSON` → binary encoding for embeddings (JSON is 3-5× larger).
 39. mysql/pg `graph.go`: shared recursive-CTE query builder if a third SQL
-    engine appears (baselined for 2, dedup at 3 — repo rule of thumb).
+engine appears (baselined for 2, dedup at 3 — repo rule of thumb).
 40. duckdbengine vector/graph parity tests vs pebble/bbolt now that helpers
-    are shared (`adttest` matrix may already cover — verify).
+are shared (`adttest` matrix may already cover — verify).
 
 **Docs**
 41. METAENGINE-LAYOUT-ROLES.md: add "Implemented 2026-08-15" status header
-    linking to CHANGELOG/tests (it reads as proposal-only).
+linking to CHANGELOG/tests (it reads as proposal-only).
 42. Readmodels/advanced references: cross-link §2.20 from the metaengine
-    sections.
+sections.
 43. Session-mistakes pattern: add "pipes lie" + "gates before claims" to
-    AGENTS.md Cross-Cutting Lessons (D.1/D.2 here).
+AGENTS.md Cross-Cutting Lessons (D.1/D.2 here).
 
 ## G) UP TO 3 QUESTIONS (cannot answer myself)
 

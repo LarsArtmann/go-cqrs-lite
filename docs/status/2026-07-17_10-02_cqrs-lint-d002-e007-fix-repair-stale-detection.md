@@ -359,98 +359,98 @@ be resolved by tagging go-finding and updating the dependency.
 
 ### Critical — resolve the go-finding dependency
 
-| #   | Task                                                        | Impact   | Effort |
-| --- | ----------------------------------------------------------- | -------- | ------ |
-| 1   | Commit + tag go-finding v1.2.1 / pipeline v0.2.0            | CRITICAL | S      |
-| 2   | Remove replace directives, bump go-finding dep in cqrs-lint | CRITICAL | S      |
-| 3   | Verify build works without replace directives               | CRITICAL | XS     |
+| # | Task                                                        | Impact   | Effort |
+| - | ----------------------------------------------------------- | -------- | ------ |
+| 1 | Commit + tag go-finding v1.2.1 / pipeline v0.2.0            | CRITICAL | S      |
+| 2 | Remove replace directives, bump go-finding dep in cqrs-lint | CRITICAL | S      |
+| 3 | Verify build works without replace directives               | CRITICAL | XS     |
 
 ### High — version bump + docs
 
-| #   | Task                                                                                  | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------- | ------ | ------ |
-| 4   | Bump cqrs-lint version to 0.2.2                                                       | HIGH   | XS     |
-| 5   | Update CHANGELOG.md with v0.2.2 changes                                               | HIGH   | S      |
-| 6   | Update README.md: D002 per-struct, E007 no "Request", stale suppression, --fix repair | HIGH   | S      |
-| 7   | Update catalog_extra.go: D002 description "Struct mixes" not "File mixes"             | HIGH   | XS     |
-| 8   | Update D002 rule documentation in README rules table                                  | HIGH   | XS     |
+| # | Task                                                                                  | Impact | Effort |
+| - | ------------------------------------------------------------------------------------- | ------ | ------ |
+| 4 | Bump cqrs-lint version to 0.2.2                                                       | HIGH   | XS     |
+| 5 | Update CHANGELOG.md with v0.2.2 changes                                               | HIGH   | S      |
+| 6 | Update README.md: D002 per-struct, E007 no "Request", stale suppression, --fix repair | HIGH   | S      |
+| 7 | Update catalog_extra.go: D002 description "Struct mixes" not "File mixes"             | HIGH   | XS     |
+| 8 | Update D002 rule documentation in README rules table                                  | HIGH   | XS     |
 
 ### High — stale suppression improvements
 
-| #   | Task                                                                       | Impact | Effort |
-| --- | -------------------------------------------------------------------------- | ------ | ------ |
-| 9   | Add stale suppressions to JSON output as `stale_suppressions` array        | HIGH   | S      |
-| 10  | Add stale suppressions to SARIF output                                     | MEDIUM | S      |
-| 11  | Consider making stale suppression a Warning-severity finding (S002)        | MEDIUM | M      |
-| 12  | Test stale detection on all 17 consumer projects — find all stale comments | MEDIUM | S      |
+| #  | Task                                                                       | Impact | Effort |
+| -- | -------------------------------------------------------------------------- | ------ | ------ |
+| 9  | Add stale suppressions to JSON output as `stale_suppressions` array        | HIGH   | S      |
+| 10 | Add stale suppressions to SARIF output                                     | MEDIUM | S      |
+| 11 | Consider making stale suppression a Warning-severity finding (S002)        | MEDIUM | M      |
+| 12 | Test stale detection on all 17 consumer projects — find all stale comments | MEDIUM | S      |
 
 ### High — auto-fix improvements
 
-| #   | Task                                                                      | Impact | Effort |
-| --- | ------------------------------------------------------------------------- | ------ | ------ |
-| 13  | C003 fix: add `fmt` import when missing (AST-level or import-block aware) | HIGH   | M      |
-| 14  | Test `--fix` on all projects with fixable findings (C001, C003, C006)     | HIGH   | S      |
-| 15  | Add `--fix-dry-run` output showing what would change (diff-style)         | MEDIUM | M      |
-| 16  | C001 fix: verify on real project with missing-commit bug                  | MEDIUM | S      |
-| 17  | Document known auto-fix limitations (import addition, multi-file fixes)   | LOW    | S      |
+| #  | Task                                                                      | Impact | Effort |
+| -- | ------------------------------------------------------------------------- | ------ | ------ |
+| 13 | C003 fix: add `fmt` import when missing (AST-level or import-block aware) | HIGH   | M      |
+| 14 | Test `--fix` on all projects with fixable findings (C001, C003, C006)     | HIGH   | S      |
+| 15 | Add `--fix-dry-run` output showing what would change (diff-style)         | MEDIUM | M      |
+| 16 | C001 fix: verify on real project with missing-commit bug                  | MEDIUM | S      |
+| 17 | Document known auto-fix limitations (import addition, multi-file fixes)   | LOW    | S      |
 
 ### Medium — rule improvements
 
-| #   | Task                                                                               | Impact | Effort |
-| --- | ---------------------------------------------------------------------------------- | ------ | ------ |
-| 18  | Add `IsQueryRegistered` to CQRSRegistry (separate from command tracking)           | MEDIUM | S      |
-| 19  | Rename `CommandTypesRegistered` to `TypesRegistered` to reflect query+command      | MEDIUM | XS     |
-| 20  | D002: verify `ExtractJSONTag` strips options before camelCase check                | MEDIUM | XS     |
-| 21  | E007: add test for `*Query` type that IS registered (closure-based)                | MEDIUM | S      |
-| 22  | C008: add confidence based on field name (Price/Amount = high, Rate/Ratio = lower) | MEDIUM | S      |
-| 23  | A001/A004: verify suggestions work for all patterns found in real projects         | MEDIUM | S      |
-| 24  | E005: verify 7 findings on KeyCountdown are real (unregistered command handlers)   | MEDIUM | S      |
+| #  | Task                                                                               | Impact | Effort |
+| -- | ---------------------------------------------------------------------------------- | ------ | ------ |
+| 18 | Add `IsQueryRegistered` to CQRSRegistry (separate from command tracking)           | MEDIUM | S      |
+| 19 | Rename `CommandTypesRegistered` to `TypesRegistered` to reflect query+command      | MEDIUM | XS     |
+| 20 | D002: verify `ExtractJSONTag` strips options before camelCase check                | MEDIUM | XS     |
+| 21 | E007: add test for `*Query` type that IS registered (closure-based)                | MEDIUM | S      |
+| 22 | C008: add confidence based on field name (Price/Amount = high, Rate/Ratio = lower) | MEDIUM | S      |
+| 23 | A001/A004: verify suggestions work for all patterns found in real projects         | MEDIUM | S      |
+| 24 | E005: verify 7 findings on KeyCountdown are real (unregistered command handlers)   | MEDIUM | S      |
 
 ### Medium — DX features
 
-| #   | Task                                                                                       | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------ | ------ | ------ |
-| 25  | Add `--stats` flag — rule hit rates, severity distribution, timings                        | MEDIUM | S      |
-| 26  | Add `--baseline` flag — compare findings against baseline, only report NEW                 | MEDIUM | M      |
-| 27  | Add diff-aware mode (`--since-commit`) — only lint changed files                           | MEDIUM | M      |
-| 28  | Add `cqrs-lint explain RULE` — detailed rule docs with examples                            | LOW    | M      |
-| 29  | Add GitHub PR comment output format — markdown table for review UIs                        | LOW    | S      |
-| 30  | Add `--ci` flag — opinionated CI defaults (non-zero exit on Warning+, SARIF)               | LOW    | S      |
-| 31  | Add `--fail-on warning` flag (answered: current "Error+ = exit 1" is fine, but add option) | LOW    | S      |
-| 32  | Make MaxIterations configurable via flag or config                                         | LOW    | XS     |
+| #  | Task                                                                                       | Impact | Effort |
+| -- | ------------------------------------------------------------------------------------------ | ------ | ------ |
+| 25 | Add `--stats` flag — rule hit rates, severity distribution, timings                        | MEDIUM | S      |
+| 26 | Add `--baseline` flag — compare findings against baseline, only report NEW                 | MEDIUM | M      |
+| 27 | Add diff-aware mode (`--since-commit`) — only lint changed files                           | MEDIUM | M      |
+| 28 | Add `cqrs-lint explain RULE` — detailed rule docs with examples                            | LOW    | M      |
+| 29 | Add GitHub PR comment output format — markdown table for review UIs                        | LOW    | S      |
+| 30 | Add `--ci` flag — opinionated CI defaults (non-zero exit on Warning+, SARIF)               | LOW    | S      |
+| 31 | Add `--fail-on warning` flag (answered: current "Error+ = exit 1" is fine, but add option) | LOW    | S      |
+| 32 | Make MaxIterations configurable via flag or config                                         | LOW    | XS     |
 
 ### Lower — architecture
 
-| #   | Task                                                                             | Impact | Effort |
-| --- | -------------------------------------------------------------------------------- | ------ | ------ |
-| 33  | Extract `FindingPipeline` struct — replace free-function chain with named stages | LOW    | M      |
-| 34  | Make health score weights tunable via config                                     | LOW    | S      |
-| 35  | Add per-rule Info sub-cap (some rules are noisier than others)                   | LOW    | M      |
-| 36  | Property-based tests with `rapid` for filter functions                           | LOW    | S      |
-| 37  | Add benchmark for `filterSuppressed` on large finding sets                       | LOW    | XS     |
-| 38  | Cache package loading across runs (daemon mode or file cache)                    | LOW    | L      |
+| #  | Task                                                                             | Impact | Effort |
+| -- | -------------------------------------------------------------------------------- | ------ | ------ |
+| 33 | Extract `FindingPipeline` struct — replace free-function chain with named stages | LOW    | M      |
+| 34 | Make health score weights tunable via config                                     | LOW    | S      |
+| 35 | Add per-rule Info sub-cap (some rules are noisier than others)                   | LOW    | M      |
+| 36 | Property-based tests with `rapid` for filter functions                           | LOW    | S      |
+| 37 | Add benchmark for `filterSuppressed` on large finding sets                       | LOW    | XS     |
+| 38 | Cache package loading across runs (daemon mode or file cache)                    | LOW    | L      |
 
 ### Lower — output and integration
 
-| #   | Task                                                                                | Impact | Effort |
-| --- | ----------------------------------------------------------------------------------- | ------ | ------ |
-| 39  | Add JUnit XML output format for Jenkins                                             | LOW    | S      |
-| 40  | Add HTML report output (styled findings dashboard)                                  | LOW    | M      |
-| 41  | Add `--threads N` flag for parallel detector execution control                      | LOW    | S      |
-| 42  | Support `.cqrs-lint.toml` config (in addition to JSON)                              | LOW    | S      |
-| 43  | Add rule severity override in config (`"rules": {"C007": {"severity": "warning"}}`) | LOW    | M      |
-| 44  | Add `cqrs-lint diff` command — compare two runs, show new/resolved                  | LOW    | M      |
-| 45  | Add detector coverage report — which rules fired on this project                    | LOW    | S      |
+| #  | Task                                                                                | Impact | Effort |
+| -- | ----------------------------------------------------------------------------------- | ------ | ------ |
+| 39 | Add JUnit XML output format for Jenkins                                             | LOW    | S      |
+| 40 | Add HTML report output (styled findings dashboard)                                  | LOW    | M      |
+| 41 | Add `--threads N` flag for parallel detector execution control                      | LOW    | S      |
+| 42 | Support `.cqrs-lint.toml` config (in addition to JSON)                              | LOW    | S      |
+| 43 | Add rule severity override in config (`"rules": {"C007": {"severity": "warning"}}`) | LOW    | M      |
+| 44 | Add `cqrs-lint diff` command — compare two runs, show new/resolved                  | LOW    | M      |
+| 45 | Add detector coverage report — which rules fired on this project                    | LOW    | S      |
 
 ### Research / validation
 
-| #   | Task                                                                           | Impact | Effort |
-| --- | ------------------------------------------------------------------------------ | ------ | ------ |
-| 46  | Review remaining 3 E007 findings on KeyCountdown — are they real?              | MEDIUM | S      |
-| 47  | Test `.cqrs-lint.json` config loading on a real project                        | MEDIUM | S      |
-| 48  | Run linter on a project after fixing findings — verify score improves          | LOW    | S      |
-| 49  | Create a "golden" test project with known anti-patterns for regression testing | LOW    | M      |
-| 50  | Profile detector timings — which detectors are slowest?                        | LOW    | S      |
+| #  | Task                                                                           | Impact | Effort |
+| -- | ------------------------------------------------------------------------------ | ------ | ------ |
+| 46 | Review remaining 3 E007 findings on KeyCountdown — are they real?              | MEDIUM | S      |
+| 47 | Test `.cqrs-lint.json` config loading on a real project                        | MEDIUM | S      |
+| 48 | Run linter on a project after fixing findings — verify score improves          | LOW    | S      |
+| 49 | Create a "golden" test project with known anti-patterns for regression testing | LOW    | M      |
+| 50 | Profile detector timings — which detectors are slowest?                        | LOW    | S      |
 
 ---
 

@@ -1,7 +1,7 @@
 # Comprehensive Status Report: Journal Naming Migration
 
-**Date:** 2026-05-28 11:05  
-**Branch:** master  
+**Date:** 2026-05-28 11:05\
+**Branch:** master\
 **Commits since last status:** 5 (Journal naming migration complete)
 
 ---
@@ -122,33 +122,33 @@ The backward-compat tests (`LoadAll` vs `ReadAll`) trigger `dupl` linter warning
 
 ## f) Top #25 Things to Get Done Next
 
-| #   | Task                                                                             | Module      | Impact | Effort | Priority |
-| --- | -------------------------------------------------------------------------------- | ----------- | ------ | ------ | -------- |
-| 1   | Update research docs (v1–v4, Foundation Plan) to use `Journal`/`SeekableJournal` | docs        | Medium | Medium | P2       |
-| 2   | Add explicit `Journal`/`SeekableJournal` assertions to `FakeStore`               | testhelpers | Low    | 5min   | P3       |
-| 3   | Implement `StreamableJournal` — cursor-based streaming reads                     | core        | High   | High   | P1       |
-| 4   | Implement `FilterableJournal` — `ReadByType`, `ReadByAggregate`                  | core        | Medium | Medium | P2       |
-| 5   | Rename `BackwardsLoader` → `BackwardsSource` / `ReversedJournal`                 | core        | Medium | Medium | P2       |
-| 6   | Split `Store` into `Sink` + `Source` + `Journal` (ISP)                           | core        | High   | High   | P1       |
-| 7   | Add `io.Closer` to `Journal` optionally (implementations decide)                 | core        | Low    | Low    | P4       |
-| 8   | Document `Journal` usage patterns in README/AGENTS.md                            | docs        | Medium | Low    | P2       |
-| 9   | Add `ReadFrom` benchmark to `storage/sqlite_bench_test.go`                       | storage     | Low    | Low    | P4       |
-| 10  | Fix catalog golden test drift                                                    | catalog     | Low    | Medium | P3       |
-| 11  | Remove `makeBenchmarkEvent` dead code from signing tests                         | signing     | Low    | 5min   | P4       |
-| 12  | Add `Journal` example to `example/` directory                                    | example     | Medium | Medium | P3       |
-| 13  | Consider `CountableJournal` for metrics/observability                            | core        | Low    | Medium | P4       |
-| 14  | Consider `ArchivableJournal` for cold storage migration                          | core        | Medium | High   | P3       |
-| 15  | Update `SESSION_HISTORY.md` with cross-references to new names                   | docs        | Low    | Low    | P4       |
-| 16  | Verify `watermill` module doesn't reference old names                            | watermill   | Low    | 5min   | P4       |
-| 17  | Verify `saga` module doesn't reference old names                                 | saga        | Low    | 5min   | P4       |
-| 18  | Add `Journal` interface to module graph in AGENTS.md                             | docs        | Low    | 5min   | P4       |
-| 19  | Update go doc comments on `Journal`/`SeekableJournal` with usage examples        | core        | Medium | Low    | P3       |
-| 20  | Push release tags to remote (BLOCKED — requires manual `git push --tags`)        | all         | High   | 5min   | P0       |
-| 21  | Remove `replace` directives from `go.mod` files after tag push                   | all         | High   | Low    | P0       |
-| 22  | Bump `testhelpers` to v1.2.0 after tag push                                      | testhelpers | Medium | 5min   | P1       |
-| 23  | Add `Journal`/`SeekableJournal` to public API compatibility tests                | integration | Medium | Medium | P2       |
-| 24  | Consider streaming `ReadFrom` with `iter.Seq` (Go 1.23+) instead of `[]Event`    | core        | High   | High   | P1       |
-| 25  | Add property-based tests for `ReadFrom` position semantics                       | memory      | Medium | Medium | P3       |
+| #  | Task                                                                             | Module      | Impact | Effort | Priority |
+| -- | -------------------------------------------------------------------------------- | ----------- | ------ | ------ | -------- |
+| 1  | Update research docs (v1–v4, Foundation Plan) to use `Journal`/`SeekableJournal` | docs        | Medium | Medium | P2       |
+| 2  | Add explicit `Journal`/`SeekableJournal` assertions to `FakeStore`               | testhelpers | Low    | 5min   | P3       |
+| 3  | Implement `StreamableJournal` — cursor-based streaming reads                     | core        | High   | High   | P1       |
+| 4  | Implement `FilterableJournal` — `ReadByType`, `ReadByAggregate`                  | core        | Medium | Medium | P2       |
+| 5  | Rename `BackwardsLoader` → `BackwardsSource` / `ReversedJournal`                 | core        | Medium | Medium | P2       |
+| 6  | Split `Store` into `Sink` + `Source` + `Journal` (ISP)                           | core        | High   | High   | P1       |
+| 7  | Add `io.Closer` to `Journal` optionally (implementations decide)                 | core        | Low    | Low    | P4       |
+| 8  | Document `Journal` usage patterns in README/AGENTS.md                            | docs        | Medium | Low    | P2       |
+| 9  | Add `ReadFrom` benchmark to `storage/sqlite_bench_test.go`                       | storage     | Low    | Low    | P4       |
+| 10 | Fix catalog golden test drift                                                    | catalog     | Low    | Medium | P3       |
+| 11 | Remove `makeBenchmarkEvent` dead code from signing tests                         | signing     | Low    | 5min   | P4       |
+| 12 | Add `Journal` example to `example/` directory                                    | example     | Medium | Medium | P3       |
+| 13 | Consider `CountableJournal` for metrics/observability                            | core        | Low    | Medium | P4       |
+| 14 | Consider `ArchivableJournal` for cold storage migration                          | core        | Medium | High   | P3       |
+| 15 | Update `SESSION_HISTORY.md` with cross-references to new names                   | docs        | Low    | Low    | P4       |
+| 16 | Verify `watermill` module doesn't reference old names                            | watermill   | Low    | 5min   | P4       |
+| 17 | Verify `saga` module doesn't reference old names                                 | saga        | Low    | 5min   | P4       |
+| 18 | Add `Journal` interface to module graph in AGENTS.md                             | docs        | Low    | 5min   | P4       |
+| 19 | Update go doc comments on `Journal`/`SeekableJournal` with usage examples        | core        | Medium | Low    | P3       |
+| 20 | Push release tags to remote (BLOCKED — requires manual `git push --tags`)        | all         | High   | 5min   | P0       |
+| 21 | Remove `replace` directives from `go.mod` files after tag push                   | all         | High   | Low    | P0       |
+| 22 | Bump `testhelpers` to v1.2.0 after tag push                                      | testhelpers | Medium | 5min   | P1       |
+| 23 | Add `Journal`/`SeekableJournal` to public API compatibility tests                | integration | Medium | Medium | P2       |
+| 24 | Consider streaming `ReadFrom` with `iter.Seq` (Go 1.23+) instead of `[]Event`    | core        | High   | High   | P1       |
+| 25 | Add property-based tests for `ReadFrom` position semantics                       | memory      | Medium | Medium | P3       |
 
 ---
 

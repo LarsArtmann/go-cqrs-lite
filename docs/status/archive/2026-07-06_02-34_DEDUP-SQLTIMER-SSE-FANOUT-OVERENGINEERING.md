@@ -198,33 +198,33 @@ Other agents were running simultaneously and committed: a deps bump (`da5d26d4`)
 
 ## f) Up to 25 things we should get done next
 
-| #   | Priority | Task                                                                              | Impact                                   |
-| --- | -------- | --------------------------------------------------------------------------------- | ---------------------------------------- |
-| 1   | **P0**   | **Fix the build error in `sse.go:390`** (missing return in sendToClient)          | CI is red — nothing ships                |
-| 2   | **P0**   | **Run `go mod tidy` in watermill, storage, transport/http**                       | All 3 modules can't test                 |
-| 3   | **P0**   | **Update `docs/api_surface.txt`** (add ReplayMetrics + RecordReplay)              | api-stability check fails                |
-| 4   | **P1**   | **Decide: revert fanoutPolicy or fix it?** — recommend revert to 5-line send      | Removes 100+ lines of over-engineering   |
-| 5   | **P1**   | Split `sse.go` to ≤350 lines (extract options, client, fanout)                    | CI compliance                            |
-| 6   | **P1**   | Split `catchup_subscriber.go` to ≤350 lines                                       | CI compliance                            |
-| 7   | **P1**   | Investigate uncommitted changes from concurrent agents (9 files)                  | Reconcile concurrent edits               |
-| 8   | **P2**   | Add `dedup.Ring` benchmark (`BenchmarkRing_Add`, `BenchmarkRing_Has`)             | Performance characterization             |
-| 9   | **P2**   | Add rapid-based property test for `dedup.Ring` (beyond the manual invariant test) | Edge case coverage                       |
-| 10  | **P2**   | Add `dedupRing.Len()` to SSE replay OTel span attributes                          | Replay diagnostics                       |
-| 11  | **P2**   | SSE + offline client reconnection example in `example/`                           | Usage demo                               |
-| 12  | **P2**   | SSE replay backfill endpoint (REST complement to SSE)                             | Alternative catch-up for non-SSE clients |
-| 13  | **P3**   | Per-event-type SSE filtering (`?types=user.*` query param)                        | Bandwidth                                |
-| 14  | **P3**   | SSE authentication middleware example                                             | Security                                 |
-| 15  | **P3**   | Connection draining on `broker.Close()` with grace period                         | Clean shutdown                           |
-| 16  | **P3**   | SSE `retry:` field auto-tuning based on client lag                                | UX                                       |
-| 17  | **P3**   | SSE compression (gzip + `Content-Encoding: gzip`)                                 | Bandwidth                                |
-| 18  | **P3**   | WebSocket transport alongside SSE                                                 | Bidirectional needs                      |
-| 19  | **P3**   | `SSEBroker.Stats()` method (per-client dropped count, buffered depth)             | Debugging                                |
-| 20  | **P4**   | Document SQLTimerStore in AGENTS.md Key Patterns section                          | Discoverability                          |
-| 21  | **P4**   | Add SQLTimerStore to stack presets (one-call wiring)                              | Consumer convenience                     |
-| 22  | **P4**   | Pebble-backed TimerStore (embedded KV timer persistence)                          | Embedded deployments                     |
-| 23  | **P4**   | Add `dedup/` module to FEATURES.md and TODO_LIST.md                               | Documentation freshness                  |
-| 24  | **P5**   | Explore reducing transport/http dep count (currently 6 direct after dedup)        | Dependency hygiene                       |
-| 25  | **P5**   | Consider whether `dedup/` belongs in `kv/` instead (conceptual fit)               | Module identity                          |
+| #  | Priority | Task                                                                              | Impact                                   |
+| -- | -------- | --------------------------------------------------------------------------------- | ---------------------------------------- |
+| 1  | **P0**   | **Fix the build error in `sse.go:390`** (missing return in sendToClient)          | CI is red — nothing ships                |
+| 2  | **P0**   | **Run `go mod tidy` in watermill, storage, transport/http**                       | All 3 modules can't test                 |
+| 3  | **P0**   | **Update `docs/api_surface.txt`** (add ReplayMetrics + RecordReplay)              | api-stability check fails                |
+| 4  | **P1**   | **Decide: revert fanoutPolicy or fix it?** — recommend revert to 5-line send      | Removes 100+ lines of over-engineering   |
+| 5  | **P1**   | Split `sse.go` to ≤350 lines (extract options, client, fanout)                    | CI compliance                            |
+| 6  | **P1**   | Split `catchup_subscriber.go` to ≤350 lines                                       | CI compliance                            |
+| 7  | **P1**   | Investigate uncommitted changes from concurrent agents (9 files)                  | Reconcile concurrent edits               |
+| 8  | **P2**   | Add `dedup.Ring` benchmark (`BenchmarkRing_Add`, `BenchmarkRing_Has`)             | Performance characterization             |
+| 9  | **P2**   | Add rapid-based property test for `dedup.Ring` (beyond the manual invariant test) | Edge case coverage                       |
+| 10 | **P2**   | Add `dedupRing.Len()` to SSE replay OTel span attributes                          | Replay diagnostics                       |
+| 11 | **P2**   | SSE + offline client reconnection example in `example/`                           | Usage demo                               |
+| 12 | **P2**   | SSE replay backfill endpoint (REST complement to SSE)                             | Alternative catch-up for non-SSE clients |
+| 13 | **P3**   | Per-event-type SSE filtering (`?types=user.*` query param)                        | Bandwidth                                |
+| 14 | **P3**   | SSE authentication middleware example                                             | Security                                 |
+| 15 | **P3**   | Connection draining on `broker.Close()` with grace period                         | Clean shutdown                           |
+| 16 | **P3**   | SSE `retry:` field auto-tuning based on client lag                                | UX                                       |
+| 17 | **P3**   | SSE compression (gzip + `Content-Encoding: gzip`)                                 | Bandwidth                                |
+| 18 | **P3**   | WebSocket transport alongside SSE                                                 | Bidirectional needs                      |
+| 19 | **P3**   | `SSEBroker.Stats()` method (per-client dropped count, buffered depth)             | Debugging                                |
+| 20 | **P4**   | Document SQLTimerStore in AGENTS.md Key Patterns section                          | Discoverability                          |
+| 21 | **P4**   | Add SQLTimerStore to stack presets (one-call wiring)                              | Consumer convenience                     |
+| 22 | **P4**   | Pebble-backed TimerStore (embedded KV timer persistence)                          | Embedded deployments                     |
+| 23 | **P4**   | Add `dedup/` module to FEATURES.md and TODO_LIST.md                               | Documentation freshness                  |
+| 24 | **P5**   | Explore reducing transport/http dep count (currently 6 direct after dedup)        | Dependency hygiene                       |
+| 25 | **P5**   | Consider whether `dedup/` belongs in `kv/` instead (conceptual fit)               | Module identity                          |
 
 ---
 

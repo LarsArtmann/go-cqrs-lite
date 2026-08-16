@@ -19,29 +19,29 @@ Session 155 was a **deep audit and quality sweep** following the core/ dissoluti
 
 ### Critical Bugs Fixed
 
-| #   | Issue                                                                                                                                                                                  | Fix                                                                              | Commit                 |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------- |
-| 1   | **4 go.mod files had stale `core v1.6.0 // indirect`** — root cause of ALL 39 LSP errors across the workspace. Build worked via go.work but gopls couldn't resolve the phantom module. | Removed from `snapshot/`, `decider/`, `command/`, `query/` go.mod files          | `7009769`              |
-| 2   | **`ImmutableEvent.Context()` returned immediately-cancelled context** — `defer cancel()` fired after return, giving callers a useless cancelled context even for future deadlines      | Removed the cancel call; context auto-expires at deadline via internal timer     | `ace23f7a`             |
-| 3   | **Snapshot error codes used `event.*` prefix** instead of `snapshot.*` after extraction                                                                                                | Changed to `snapshot.not_found`, `snapshot.store_closed`, `snapshot.save_failed` | `5507e1f2`, `5fd95fae` |
+| # | Issue                                                                                                                                                                                  | Fix                                                                              | Commit                 |
+| - | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------- |
+| 1 | **4 go.mod files had stale `core v1.6.0 // indirect`** — root cause of ALL 39 LSP errors across the workspace. Build worked via go.work but gopls couldn't resolve the phantom module. | Removed from `snapshot/`, `decider/`, `command/`, `query/` go.mod files          | `7009769`              |
+| 2 | **`ImmutableEvent.Context()` returned immediately-cancelled context** — `defer cancel()` fired after return, giving callers a useless cancelled context even for future deadlines      | Removed the cancel call; context auto-expires at deadline via internal timer     | `ace23f7a`             |
+| 3 | **Snapshot error codes used `event.*` prefix** instead of `snapshot.*` after extraction                                                                                                | Changed to `snapshot.not_found`, `snapshot.store_closed`, `snapshot.save_failed` | `5507e1f2`, `5fd95fae` |
 
 ### Architecture Improvements
 
-| #   | Change                                                                                                                | Impact                                                                                                                                                                        | Commit     |
-| --- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| 4   | **`VersionedStore` now embeds `event.Store`** — was only wrapping Load/LoadFromVersion, not usable as a drop-in Store | Consumers can use it anywhere `event.Store` is expected; Save/AppendBatch/Close delegate automatically via embedding. Added LoadToVersion and LoadToTimestamp with upcasting. | `9af0e91f` |
-| 5   | **Replaced `go-faster/yaml` with `gopkg.in/yaml.v3`** in catalog/                                                     | Eliminates 3 transitive dependencies (go-faster/errors, go-faster/jx, segmentio/asm). yaml.v3 was already in dep tree via testify.                                            | `a2e09f60` |
-| 6   | **Added `AggregateRef.IsZero()` and `Validate()`**                                                                    | Prevents zero-value refs from silently passing to Store operations                                                                                                            | `e143e248` |
+| # | Change                                                                                                                | Impact                                                                                                                                                                        | Commit     |
+| - | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 4 | **`VersionedStore` now embeds `event.Store`** — was only wrapping Load/LoadFromVersion, not usable as a drop-in Store | Consumers can use it anywhere `event.Store` is expected; Save/AppendBatch/Close delegate automatically via embedding. Added LoadToVersion and LoadToTimestamp with upcasting. | `9af0e91f` |
+| 5 | **Replaced `go-faster/yaml` with `gopkg.in/yaml.v3`** in catalog/                                                     | Eliminates 3 transitive dependencies (go-faster/errors, go-faster/jx, segmentio/asm). yaml.v3 was already in dep tree via testify.                                            | `a2e09f60` |
+| 6 | **Added `AggregateRef.IsZero()` and `Validate()`**                                                                    | Prevents zero-value refs from silently passing to Store operations                                                                                                            | `e143e248` |
 
 ### Quality & Testing
 
-| #   | Item                                       | Detail                                                                                      | Commit                 |
-| --- | ------------------------------------------ | ------------------------------------------------------------------------------------------- | ---------------------- |
-| 7   | **HandlerToObserver test coverage**        | Added tests for handler invocation and context pass-through                                 | `45b78be7`             |
-| 8   | **Event package lint: 29 → 0 issues**      | Fixed nlreturn, unused-parameter, gci formatting                                            | `e1f74349` + formatter |
-| 9   | **Storage README stale refs fixed**        | Duplicate `## Components` header, `event.Snapshot` → `snapshot.Snapshot`, dep table updated | `1360f466`             |
-| 10  | **Dissolution proposals marked COMPLETED** | Both HTML proposals updated                                                                 | `4babf2fe`             |
-| 11  | **CHANGELOG.md updated**                   | All session 154 changes documented                                                          | `4babf2fe`             |
+| #  | Item                                       | Detail                                                                                      | Commit                 |
+| -- | ------------------------------------------ | ------------------------------------------------------------------------------------------- | ---------------------- |
+| 7  | **HandlerToObserver test coverage**        | Added tests for handler invocation and context pass-through                                 | `45b78be7`             |
+| 8  | **Event package lint: 29 → 0 issues**      | Fixed nlreturn, unused-parameter, gci formatting                                            | `e1f74349` + formatter |
+| 9  | **Storage README stale refs fixed**        | Duplicate `## Components` header, `event.Snapshot` → `snapshot.Snapshot`, dep table updated | `1360f466`             |
+| 10 | **Dissolution proposals marked COMPLETED** | Both HTML proposals updated                                                                 | `4babf2fe`             |
+| 11 | **CHANGELOG.md updated**                   | All session 154 changes documented                                                          | `4babf2fe`             |
 
 ### Decisions Made
 
@@ -66,23 +66,23 @@ Session 155 was a **deep audit and quality sweep** following the core/ dissoluti
 
 These items were identified during the audit but not executed:
 
-| #   | Item                                                                                                                         | Impact                 | Effort                          |
-| --- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------------------------- |
-| 1   | **`Snapshot.Encoding` field** — no encoding metadata on snapshots, codec changes could make old snapshots unreadable         | High (future-proofing) | Medium (20+ call sites)         |
-| 2   | **`Snapshot.State` defensive copy** — `[]byte` field is mutable, caller can mutate after Save                                | Low                    | Tiny                            |
-| 3   | **`Command` interface missing `AggregateType()`** — handlers can't route to aggregate types without out-of-band knowledge    | Medium                 | Small                           |
-| 4   | **`VersionedStore.Upcast()` couples to `*ImmutableEvent`** — breaks for custom Event implementations                         | Medium                 | Small                           |
-| 5   | **Event interface has 11 methods** (interfacebloat lint) — consider splitting read-only accessors from mutation              | Low                    | Large                           |
-| 6   | **`Metadata` struct uses `omitempty` on nested struct fields** (modernize lint) — no effect, should use `omitzero` or remove | Low                    | Tiny                            |
-| 7   | **`query.DispatchTyped` wraps errors twice** — creates deeply nested error chains                                            | Low                    | Tiny                            |
-| 8   | **`CheckVersionConflict` takes `int` not `Version`** — inconsistent with typed approach                                      | Low                    | Tiny                            |
-| 9   | **Add `Unsubscribe` to event.Bus** — handlers are permanent once registered                                                  | Medium                 | Medium                          |
-| 10  | **Pagination on `EventSource.Load`** — forces full materialization for large aggregates                                      | High                   | Large                           |
-| 11  | **Dedicated `Position` type for `SeekableJournal.ReadFrom`** — currently uses `id.EventID` as position                       | Low                    | Small                           |
-| 12  | **`turso/` module has no tests**                                                                                             | Medium                 | Medium                          |
-| 13  | **`storage/sql/` has no tests** (subpackage)                                                                                 | Low                    | Small                           |
-| 14  | **oklog/ulid v1+v2 version conflict in watermill**                                                                           | Low (Cosmetic)         | Can't fix (watermill brings v1) |
-| 15  | **Inconsistent placeholder versions in example/ go.mod files**                                                               | Low                    | Tiny                            |
+| #  | Item                                                                                                                         | Impact                 | Effort                          |
+| -- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------------------------- |
+| 1  | **`Snapshot.Encoding` field** — no encoding metadata on snapshots, codec changes could make old snapshots unreadable         | High (future-proofing) | Medium (20+ call sites)         |
+| 2  | **`Snapshot.State` defensive copy** — `[]byte` field is mutable, caller can mutate after Save                                | Low                    | Tiny                            |
+| 3  | **`Command` interface missing `AggregateType()`** — handlers can't route to aggregate types without out-of-band knowledge    | Medium                 | Small                           |
+| 4  | **`VersionedStore.Upcast()` couples to `*ImmutableEvent`** — breaks for custom Event implementations                         | Medium                 | Small                           |
+| 5  | **Event interface has 11 methods** (interfacebloat lint) — consider splitting read-only accessors from mutation              | Low                    | Large                           |
+| 6  | **`Metadata` struct uses `omitempty` on nested struct fields** (modernize lint) — no effect, should use `omitzero` or remove | Low                    | Tiny                            |
+| 7  | **`query.DispatchTyped` wraps errors twice** — creates deeply nested error chains                                            | Low                    | Tiny                            |
+| 8  | **`CheckVersionConflict` takes `int` not `Version`** — inconsistent with typed approach                                      | Low                    | Tiny                            |
+| 9  | **Add `Unsubscribe` to event.Bus** — handlers are permanent once registered                                                  | Medium                 | Medium                          |
+| 10 | **Pagination on `EventSource.Load`** — forces full materialization for large aggregates                                      | High                   | Large                           |
+| 11 | **Dedicated `Position` type for `SeekableJournal.ReadFrom`** — currently uses `id.EventID` as position                       | Low                    | Small                           |
+| 12 | **`turso/` module has no tests**                                                                                             | Medium                 | Medium                          |
+| 13 | **`storage/sql/` has no tests** (subpackage)                                                                                 | Low                    | Small                           |
+| 14 | **oklog/ulid v1+v2 version conflict in watermill**                                                                           | Low (Cosmetic)         | Can't fix (watermill brings v1) |
+| 15 | **Inconsistent placeholder versions in example/ go.mod files**                                                               | Low                    | Tiny                            |
 
 ---
 

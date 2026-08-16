@@ -31,21 +31,21 @@
 
 ### Per-Package Coverage (Production)
 
-| Package                | Coverage | Status                               |
-| ---------------------- | -------- | ------------------------------------ |
-| `core/command`         | 97.6%    | ✅                                   |
-| `core/event`           | 97.3%    | ✅                                   |
-| `core/query`           | 100.0%   | ✅                                   |
-| `core/pkg/dispatcher`  | 100.0%   | ✅                                   |
-| `core/pkg/id`          | 100.0%   | ✅                                   |
-| `core/aggregate`       | 92.9%    | ✅                                   |
-| `middleware`           | 99.4%    | ✅                                   |
-| `catalog/d2`           | 97.7%    | ✅                                   |
-| `catalog/asyncapi`     | 95.9%    | ✅                                   |
-| `catalog/eventcatalog` | 95.6%    | ✅                                   |
-| `catalog/adapters`     | 95.5%    | ✅                                   |
-| `catalog`              | 94.4%    | ✅                                   |
-| `storage`              | 93.1%    | ✅                                   |
+| Package                | Coverage | Status                              |
+| ---------------------- | -------- | ----------------------------------- |
+| `core/command`         | 97.6%    | ✅                                  |
+| `core/event`           | 97.3%    | ✅                                  |
+| `core/query`           | 100.0%   | ✅                                  |
+| `core/pkg/dispatcher`  | 100.0%   | ✅                                  |
+| `core/pkg/id`          | 100.0%   | ✅                                  |
+| `core/aggregate`       | 92.9%    | ✅                                  |
+| `middleware`           | 99.4%    | ✅                                  |
+| `catalog/d2`           | 97.7%    | ✅                                  |
+| `catalog/asyncapi`     | 95.9%    | ✅                                  |
+| `catalog/eventcatalog` | 95.6%    | ✅                                  |
+| `catalog/adapters`     | 95.5%    | ✅                                  |
+| `catalog`              | 94.4%    | ✅                                  |
+| `storage`              | 93.1%    | ✅                                  |
 | `memory`               | 91.9%    | ⚠️ (missing godoc tests not counted) |
 | `projection`           | 85.8%    | ⚠️ (dead options pull down coverage) |
 
@@ -147,33 +147,33 @@
 
 Sorted by (impact × customer_value) / effort:
 
-| #   | Task                                                                                                  | Impact | Effort | Type      |
-| --- | ----------------------------------------------------------------------------------------------------- | ------ | ------ | --------- |
-| 1   | Remove dead `WithBatchSize`, `WithBatchWindow`, `WithConcurrency` options + fields from `projection/` | HIGH   | LOW    | Dead code |
-| 2   | Remove 5 unused error sentinels from `projection/errors.go`                                           | HIGH   | LOW    | Dead code |
-| 3   | Remove unused `FakeCheckpointStore` from `testhelpers/`                                               | MED    | LOW    | Dead code |
-| 4   | Add godoc to all 6 exported symbols in `projection/runner.go`                                         | HIGH   | LOW    | Docs      |
-| 5   | Add godoc to `memory/bus.go` (7 exported symbols)                                                     | HIGH   | MED    | Docs      |
-| 6   | Add godoc to `memory/store.go` (8 exported symbols)                                                   | HIGH   | MED    | Docs      |
-| 7   | Add godoc to `memory/snapshot.go` (all exported symbols)                                              | HIGH   | MED    | Docs      |
-| 8   | Add godoc to `memory/checkpoint.go` + `memory/outbox.go`                                              | MED    | LOW    | Docs      |
-| 9   | Add godoc to `catalog/eventcatalog/exporter.go` (3 symbols)                                           | MED    | LOW    | Docs      |
-| 10  | Add godoc to all 12 exported types in `catalog/asyncapi/types.go`                                     | MED    | MED    | Docs      |
-| 11  | Add godoc to `projection/errors.go` (remaining sentinels)                                             | MED    | LOW    | Docs      |
-| 12  | Add godoc to `aggregate/errors.go`, `command/errors.go`, `query/errors.go`                            | MED    | LOW    | Docs      |
-| 13  | Add `Is(error) bool` to `*event.Error` for `errors.Is` support                                        | MED    | LOW    | Type      |
-| 14  | Add `String()` to `event.Type`, `event.AggregateType`                                                 | MED    | LOW    | Type      |
-| 15  | Add `String()` to `command.Type`, `query.Type`                                                        | MED    | LOW    | Type      |
-| 16  | Add compile-time `var _ io.Closer` for `*projection.Runner`                                           | MED    | LOW    | Type      |
-| 17  | Add compile-time `var _ io.Closer` for `*OutboxPublisher`                                             | LOW    | LOW    | Type      |
-| 18  | Migrate `projection/errors.go` sentinels to taxonomy wrappers                                         | MED    | MED    | Taxonomy  |
-| 19  | Migrate `aggregate/errors.go` sentinels to taxonomy wrappers                                          | MED    | LOW    | Taxonomy  |
-| 20  | Migrate `command/errors.go` + `query/errors.go` sentinels                                             | MED    | LOW    | Taxonomy  |
-| 21  | Migrate `storage/errors.go` sentinel to taxonomy wrapper                                              | MED    | LOW    | Taxonomy  |
-| 22  | Add tests for `event.Builder` (7 methods, zero coverage)                                              | MED    | MED    | Test      |
-| 23  | Add tests for `CatalogCore` / `MustNewCatalogCore` (3 packages)                                       | MED    | LOW    | Test      |
-| 24  | Add tests for `CompositeEnricher` / `EnrichEvent`                                                     | MED    | MED    | Test      |
-| 25  | Split `testhelpers/helpers.go` (293 lines → under 250)                                                | MED    | MED    | Refactor  |
+| #  | Task                                                                                                  | Impact | Effort | Type      |
+| -- | ----------------------------------------------------------------------------------------------------- | ------ | ------ | --------- |
+| 1  | Remove dead `WithBatchSize`, `WithBatchWindow`, `WithConcurrency` options + fields from `projection/` | HIGH   | LOW    | Dead code |
+| 2  | Remove 5 unused error sentinels from `projection/errors.go`                                           | HIGH   | LOW    | Dead code |
+| 3  | Remove unused `FakeCheckpointStore` from `testhelpers/`                                               | MED    | LOW    | Dead code |
+| 4  | Add godoc to all 6 exported symbols in `projection/runner.go`                                         | HIGH   | LOW    | Docs      |
+| 5  | Add godoc to `memory/bus.go` (7 exported symbols)                                                     | HIGH   | MED    | Docs      |
+| 6  | Add godoc to `memory/store.go` (8 exported symbols)                                                   | HIGH   | MED    | Docs      |
+| 7  | Add godoc to `memory/snapshot.go` (all exported symbols)                                              | HIGH   | MED    | Docs      |
+| 8  | Add godoc to `memory/checkpoint.go` + `memory/outbox.go`                                              | MED    | LOW    | Docs      |
+| 9  | Add godoc to `catalog/eventcatalog/exporter.go` (3 symbols)                                           | MED    | LOW    | Docs      |
+| 10 | Add godoc to all 12 exported types in `catalog/asyncapi/types.go`                                     | MED    | MED    | Docs      |
+| 11 | Add godoc to `projection/errors.go` (remaining sentinels)                                             | MED    | LOW    | Docs      |
+| 12 | Add godoc to `aggregate/errors.go`, `command/errors.go`, `query/errors.go`                            | MED    | LOW    | Docs      |
+| 13 | Add `Is(error) bool` to `*event.Error` for `errors.Is` support                                        | MED    | LOW    | Type      |
+| 14 | Add `String()` to `event.Type`, `event.AggregateType`                                                 | MED    | LOW    | Type      |
+| 15 | Add `String()` to `command.Type`, `query.Type`                                                        | MED    | LOW    | Type      |
+| 16 | Add compile-time `var _ io.Closer` for `*projection.Runner`                                           | MED    | LOW    | Type      |
+| 17 | Add compile-time `var _ io.Closer` for `*OutboxPublisher`                                             | LOW    | LOW    | Type      |
+| 18 | Migrate `projection/errors.go` sentinels to taxonomy wrappers                                         | MED    | MED    | Taxonomy  |
+| 19 | Migrate `aggregate/errors.go` sentinels to taxonomy wrappers                                          | MED    | LOW    | Taxonomy  |
+| 20 | Migrate `command/errors.go` + `query/errors.go` sentinels                                             | MED    | LOW    | Taxonomy  |
+| 21 | Migrate `storage/errors.go` sentinel to taxonomy wrapper                                              | MED    | LOW    | Taxonomy  |
+| 22 | Add tests for `event.Builder` (7 methods, zero coverage)                                              | MED    | MED    | Test      |
+| 23 | Add tests for `CatalogCore` / `MustNewCatalogCore` (3 packages)                                       | MED    | LOW    | Test      |
+| 24 | Add tests for `CompositeEnricher` / `EnrichEvent`                                                     | MED    | MED    | Test      |
+| 25 | Split `testhelpers/helpers.go` (293 lines → under 250)                                                | MED    | MED    | Refactor  |
 
 ---
 

@@ -63,11 +63,11 @@
 | Duplication                                                         | Locations                                                                  | Severity | Fixable?                                                      |
 | ------------------------------------------------------------------- | -------------------------------------------------------------------------- | -------- | ------------------------------------------------------------- |
 | **`SnapshotStrategy` interface + `EveryNEvents` + `everyN` struct** | `core/aggregate/options.go:10-31` ↔ `core/decider/options.go:13-31`        | HIGH     | ✅ Extract to `core/event/snapshot.go` or `core/pkg/snapshot` |
-| **`publishChanges` method**                                         | `core/aggregate/repository.go:104-123` ↔ `core/decider/decider.go:218-237` | MEDIUM   | ⚠️ Signature differs slightly (method receivers)              |
+| **`publishChanges` method**                                         | `core/aggregate/repository.go:104-123` ↔ `core/decider/decider.go:218-237` | MEDIUM   | ⚠️ Signature differs slightly (method receivers)               |
 | **`shouldSnapshot` method**                                         | `core/aggregate/repository.go:214-219` ↔ `core/decider/options.go:70-78`   | MEDIUM   | ✅ Same logic, different params                               |
-| **`saveSnapshot` method**                                           | `core/aggregate/repository.go:221-245` ↔ `core/decider/options.go:80-104`  | MEDIUM   | ⚠️ aggregate uses `Root` interface; decider uses generics     |
-| **`CatalogMeta` struct**                                            | `core/event`, `core/command`, `core/query` (3 packages)                    | LOW      | ⚠️ `event.CatalogMeta` has extra `AggregateType` field        |
-| **`CatalogCore` + `Catalogable` pattern**                           | Same 3 packages                                                            | LOW      | ⚠️ Same structure, different embedded types                   |
+| **`saveSnapshot` method**                                           | `core/aggregate/repository.go:221-245` ↔ `core/decider/options.go:80-104`  | MEDIUM   | ⚠️ aggregate uses `Root` interface; decider uses generics      |
+| **`CatalogMeta` struct**                                            | `core/event`, `core/command`, `core/query` (3 packages)                    | LOW      | ⚠️ `event.CatalogMeta` has extra `AggregateType` field         |
+| **`CatalogCore` + `Catalogable` pattern**                           | Same 3 packages                                                            | LOW      | ⚠️ Same structure, different embedded types                    |
 | **`opError` helper**                                                | `core/aggregate/repository.go:66-68` ↔ `core/decider/decider.go:239-243`   | LOW      | ✅ Slightly different signatures                              |
 
 ### Publisher/Subscriber — Unused in Practice
@@ -184,48 +184,48 @@ Ranked by impact × effort:
 
 ### HIGH IMPACT, SMALL EFFORT (Do first)
 
-| #   | Task                                                                 | Effort | Impact | Detail                                                                       |
-| --- | -------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------------------------------------- |
-| 1   | **Extract `SnapshotStrategy` to `core/event/snapshot_strategy.go`**  | SMALL  | HIGH   | Eliminate 22-line verbatim duplication between aggregate and decider         |
-| 2   | **Fix all 46 lint issues**                                           | SMALL  | HIGH   | Mechanical: errcheck, perfsprint, wsl_v5, nlreturn, noinlineerr, revive      |
-| 3   | **Use `event.Publisher` in repos, `event.Subscriber` in projection** | SMALL  | HIGH   | Make ISP split real — repos can only publish, projections can only subscribe |
-| 4   | **Register aggregate sentinels**                                     | SMALL  | MEDIUM | `init()` in `core/aggregate/errors.go`                                       |
-| 5   | **Register projection sentinels**                                    | SMALL  | MEDIUM | `init()` in `projection/errors.go`                                           |
-| 6   | **Register storage sentinels**                                       | SMALL  | MEDIUM | `init()` in `storage/errors.go`                                              |
-| 7   | **Test `MemoryStore.LoadAll`**                                       | SMALL  | MEDIUM | 0% → tested                                                                  |
-| 8   | **Test `projection.Runner.Close()` and `WithLogger`**                | SMALL  | MEDIUM | 0% → tested                                                                  |
-| 9   | **Fix root `go.mod` module path**                                    | SMALL  | LOW    | Uppercase → lowercase                                                        |
-| 10  | **Remove or test `OutboxSchema`**                                    | SMALL  | LOW    | Dead code or tested                                                          |
+| #  | Task                                                                 | Effort | Impact | Detail                                                                       |
+| -- | -------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------------------------------------- |
+| 1  | **Extract `SnapshotStrategy` to `core/event/snapshot_strategy.go`**  | SMALL  | HIGH   | Eliminate 22-line verbatim duplication between aggregate and decider         |
+| 2  | **Fix all 46 lint issues**                                           | SMALL  | HIGH   | Mechanical: errcheck, perfsprint, wsl_v5, nlreturn, noinlineerr, revive      |
+| 3  | **Use `event.Publisher` in repos, `event.Subscriber` in projection** | SMALL  | HIGH   | Make ISP split real — repos can only publish, projections can only subscribe |
+| 4  | **Register aggregate sentinels**                                     | SMALL  | MEDIUM | `init()` in `core/aggregate/errors.go`                                       |
+| 5  | **Register projection sentinels**                                    | SMALL  | MEDIUM | `init()` in `projection/errors.go`                                           |
+| 6  | **Register storage sentinels**                                       | SMALL  | MEDIUM | `init()` in `storage/errors.go`                                              |
+| 7  | **Test `MemoryStore.LoadAll`**                                       | SMALL  | MEDIUM | 0% → tested                                                                  |
+| 8  | **Test `projection.Runner.Close()` and `WithLogger`**                | SMALL  | MEDIUM | 0% → tested                                                                  |
+| 9  | **Fix root `go.mod` module path**                                    | SMALL  | LOW    | Uppercase → lowercase                                                        |
+| 10 | **Remove or test `OutboxSchema`**                                    | SMALL  | LOW    | Dead code or tested                                                          |
 
 ### HIGH IMPACT, MEDIUM EFFORT
 
-| #   | Task                                       | Effort | Impact | Detail                                                      |
-| --- | ------------------------------------------ | ------ | ------ | ----------------------------------------------------------- |
-| 11  | **Increase `projection` coverage to 95%+** | MEDIUM | HIGH   | `replay` at 73.3%, `collectResults` at 73.3%                |
-| 12  | **Increase `storage` coverage to 95%+**    | MEDIUM | HIGH   | `scanOutboxEntries` 75%, `reconstructOutboxEvent` 76.9%     |
-| 13  | **Increase `aggregate` coverage to 95%+**  | MEDIUM | HIGH   | `NewCore` 60%, `loadFromStore` 75%                          |
-| 14  | **Deduplicate `publishChanges`**           | MEDIUM | MEDIUM | Extract to shared helper in `core/event`                    |
-| 15  | **Deduplicate `saveSnapshot`**             | MEDIUM | MEDIUM | aggregate uses `Root`, decider uses generics — needs design |
+| #  | Task                                       | Effort | Impact | Detail                                                      |
+| -- | ------------------------------------------ | ------ | ------ | ----------------------------------------------------------- |
+| 11 | **Increase `projection` coverage to 95%+** | MEDIUM | HIGH   | `replay` at 73.3%, `collectResults` at 73.3%                |
+| 12 | **Increase `storage` coverage to 95%+**    | MEDIUM | HIGH   | `scanOutboxEntries` 75%, `reconstructOutboxEvent` 76.9%     |
+| 13 | **Increase `aggregate` coverage to 95%+**  | MEDIUM | HIGH   | `NewCore` 60%, `loadFromStore` 75%                          |
+| 14 | **Deduplicate `publishChanges`**           | MEDIUM | MEDIUM | Extract to shared helper in `core/event`                    |
+| 15 | **Deduplicate `saveSnapshot`**             | MEDIUM | MEDIUM | aggregate uses `Root`, decider uses generics — needs design |
 
 ### MEDIUM IMPACT, MEDIUM EFFORT
 
-| #   | Task                                      | Effort | Impact | Detail                                                         |
-| --- | ----------------------------------------- | ------ | ------ | -------------------------------------------------------------- |
-| 16  | **Add outbox integration test**           | MEDIUM | MEDIUM | Full cycle: Append → PollPending → Publish → Ack               |
-| 17  | **Remove redundant `replace` directives** | SMALL  | LOW    | `go.work` handles resolution                                   |
-| 18  | **Tag `v0.1.0-alpha`**                    | SMALL  | MEDIUM | All modules stable enough for early adopters                   |
-| 19  | **Add `CHANGELOG.md`**                    | SMALL  | MEDIUM | 46 sessions of changes                                         |
-| 20  | **Refactor long functions**               | MEDIUM | LOW    | `validateEventParams` 50L, `collectResults` 41L, `Execute` 45L |
+| #  | Task                                      | Effort | Impact | Detail                                                         |
+| -- | ----------------------------------------- | ------ | ------ | -------------------------------------------------------------- |
+| 16 | **Add outbox integration test**           | MEDIUM | MEDIUM | Full cycle: Append → PollPending → Publish → Ack               |
+| 17 | **Remove redundant `replace` directives** | SMALL  | LOW    | `go.work` handles resolution                                   |
+| 18 | **Tag `v0.1.0-alpha`**                    | SMALL  | MEDIUM | All modules stable enough for early adopters                   |
+| 19 | **Add `CHANGELOG.md`**                    | SMALL  | MEDIUM | 46 sessions of changes                                         |
+| 20 | **Refactor long functions**               | MEDIUM | LOW    | `validateEventParams` 50L, `collectResults` 41L, `Execute` 45L |
 
 ### LARGE EFFORT (Plan carefully)
 
-| #   | Task                                    | Effort | Impact   | Detail                            |
-| --- | --------------------------------------- | ------ | -------- | --------------------------------- |
-| 21  | **Outbox transaction co-participation** | LARGE  | CRITICAL | Needs interface decision first    |
-| 22  | **`query.Handler` → generics**          | LARGE  | HIGH     | Breaking API change               |
-| 23  | **Benchmarks**                          | MEDIUM | LOW      | Zero performance benchmarks exist |
-| 24  | **Saga / Process Manager**              | LARGE  | LOW      | Complex feature                   |
-| 25  | **Watermill module**                    | LARGE  | LOW      | Pub/sub adapter                   |
+| #  | Task                                    | Effort | Impact   | Detail                            |
+| -- | --------------------------------------- | ------ | -------- | --------------------------------- |
+| 21 | **Outbox transaction co-participation** | LARGE  | CRITICAL | Needs interface decision first    |
+| 22 | **`query.Handler` → generics**          | LARGE  | HIGH     | Breaking API change               |
+| 23 | **Benchmarks**                          | MEDIUM | LOW      | Zero performance benchmarks exist |
+| 24 | **Saga / Process Manager**              | LARGE  | LOW      | Complex feature                   |
+| 25 | **Watermill module**                    | LARGE  | LOW      | Pub/sub adapter                   |
 
 ---
 
@@ -258,12 +258,12 @@ The right answer is probably `core/event/snapshot_strategy.go` — it's a 30-lin
 | `catalog/asyncapi`     | 95.9%     | >95%   | ✅     |
 | `catalog/eventcatalog` | 95.6%     | >95%   | ✅     |
 | `catalog/adapters`     | 95.5%     | >95%   | ✅     |
-| `catalog`              | 94.4%     | >95%   | ⚠️     |
-| `core/aggregate`       | 93.2%     | >95%   | ⚠️     |
-| `storage`              | 92.0%     | >95%   | ⚠️     |
-| `memory`               | 91.9%     | >95%   | ⚠️     |
-| `projection`           | 89.7%     | >95%   | ⚠️     |
-| **Total**              | **90.9%** | >95%   | ⚠️     |
+| `catalog`              | 94.4%     | >95%   | ⚠️      |
+| `core/aggregate`       | 93.2%     | >95%   | ⚠️      |
+| `storage`              | 92.0%     | >95%   | ⚠️      |
+| `memory`               | 91.9%     | >95%   | ⚠️      |
+| `projection`           | 89.7%     | >95%   | ⚠️      |
+| **Total**              | **90.9%** | >95%   | ⚠️      |
 
 ### Duplication Heatmap
 

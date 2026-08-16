@@ -164,48 +164,48 @@
 
 ### Tier 1: Critical (Do First)
 
-| #   | Task                                                           | Impact | Effort | Why                                                            |
-| --- | -------------------------------------------------------------- | ------ | ------ | -------------------------------------------------------------- |
-| 1   | **Add 8 missing modules to CI matrix**                         | 🔴     | 10min  | 8 modules have zero CI coverage — untested code rots           |
-| 2   | **Fix BuildFlow timeout (increase budget or exclude grpc)**    | 🔴     | 20min  | Every commit bypasses pre-commit safety net                    |
-| 3   | **Remove `toAnySlice` from ViewStore public surface**          | 🔴     | 30min  | Dual query API is confusing; pick structured `ViewFilter` only |
-| 4   | **Add Postgres testcontainer to CI**                           | 🔴     | 2h     | stack/postgres 0% coverage — production path untested          |
-| 5   | **Fix gopls infertypeargs warnings** (9 unnecessary type args) | 🟡     | 15min  | Clean diagnostics = faster IDE experience                      |
+| # | Task                                                           | Impact | Effort | Why                                                            |
+| - | -------------------------------------------------------------- | ------ | ------ | -------------------------------------------------------------- |
+| 1 | **Add 8 missing modules to CI matrix**                         | 🔴     | 10min  | 8 modules have zero CI coverage — untested code rots           |
+| 2 | **Fix BuildFlow timeout (increase budget or exclude grpc)**    | 🔴     | 20min  | Every commit bypasses pre-commit safety net                    |
+| 3 | **Remove `toAnySlice` from ViewStore public surface**          | 🔴     | 30min  | Dual query API is confusing; pick structured `ViewFilter` only |
+| 4 | **Add Postgres testcontainer to CI**                           | 🔴     | 2h     | stack/postgres 0% coverage — production path untested          |
+| 5 | **Fix gopls infertypeargs warnings** (9 unnecessary type args) | 🟡     | 15min  | Clean diagnostics = faster IDE experience                      |
 
 ### Tier 2: High Value
 
-| #   | Task                                                        | Impact | Effort | Why                                                     |
-| --- | ----------------------------------------------------------- | ------ | ------ | ------------------------------------------------------- |
-| 6   | **Turso view store integration test**                       | 🟡     | 1h     | Constructor exists, untested                            |
-| 7   | **Run doc-check as CI gate step**                           | 🟡     | 30min  | Prevents stale docs from shipping                       |
-| 8   | **Fix `unparam` + `gocognit` warnings in doc-check**        | 🟡     | 20min  | Code quality on the tool itself                         |
-| 9   | **README.md refresh** — new features, gRPC, SQL views       | 🟡     | 45min  | First impression for new consumers                      |
-| 10  | **transport/grpc event pub/sub**                            | 🟡     | 3h     | ADR-0025 says events; only commands+queries implemented |
-| 11  | **Add `stack/turso` view model integration test**           | 🟡     | 1h     | Preset untested with SQL views                          |
-| 12  | **Consolidate ViewStore query API** — deprecate raw `Where` | 🟡     | 2h     | Clean API surface, remove confusion                     |
+| #  | Task                                                        | Impact | Effort | Why                                                     |
+| -- | ----------------------------------------------------------- | ------ | ------ | ------------------------------------------------------- |
+| 6  | **Turso view store integration test**                       | 🟡     | 1h     | Constructor exists, untested                            |
+| 7  | **Run doc-check as CI gate step**                           | 🟡     | 30min  | Prevents stale docs from shipping                       |
+| 8  | **Fix `unparam` + `gocognit` warnings in doc-check**        | 🟡     | 20min  | Code quality on the tool itself                         |
+| 9  | **README.md refresh** — new features, gRPC, SQL views       | 🟡     | 45min  | First impression for new consumers                      |
+| 10 | **transport/grpc event pub/sub**                            | 🟡     | 3h     | ADR-0025 says events; only commands+queries implemented |
+| 11 | **Add `stack/turso` view model integration test**           | 🟡     | 1h     | Preset untested with SQL views                          |
+| 12 | **Consolidate ViewStore query API** — deprecate raw `Where` | 🟡     | 2h     | Clean API surface, remove confusion                     |
 
 ### Tier 3: Important
 
-| #   | Task                                                           | Impact | Effort | Why                                                     |
-| --- | -------------------------------------------------------------- | ------ | ------ | ------------------------------------------------------- |
-| 13  | **Benchmarks in CI (stack/bench)**                             | 🟢     | 30min  | Performance regression detection                        |
-| 14  | **v3 tag release**                                             | 🟢     | 1h     | All major features landed; consumers need a version pin |
-| 15  | **Hot-State cache for decider**                                | 🟢     | 4h     | 100+ cmd/sec aggregates benefit                         |
-| 16  | **NATS transport adapter**                                     | 🟢     | 6h     | Multi-service message bus support                       |
-| 17  | **Redis transport adapter**                                    | 🟢     | 6h     | Multi-service message bus support                       |
-| 18  | **Fix doc-check false-positive warnings** (pebble, turso dirs) | 🟢     | 20min  | Noisy output reduces trust in the tool                  |
-| 19  | **Add `kv/viewstoretest` to CI**                               | 🟢     | 10min  | Contract test suite exists, no CI gate                  |
+| #  | Task                                                           | Impact | Effort | Why                                                     |
+| -- | -------------------------------------------------------------- | ------ | ------ | ------------------------------------------------------- |
+| 13 | **Benchmarks in CI (stack/bench)**                             | 🟢     | 30min  | Performance regression detection                        |
+| 14 | **v3 tag release**                                             | 🟢     | 1h     | All major features landed; consumers need a version pin |
+| 15 | **Hot-State cache for decider**                                | 🟢     | 4h     | 100+ cmd/sec aggregates benefit                         |
+| 16 | **NATS transport adapter**                                     | 🟢     | 6h     | Multi-service message bus support                       |
+| 17 | **Redis transport adapter**                                    | 🟢     | 6h     | Multi-service message bus support                       |
+| 18 | **Fix doc-check false-positive warnings** (pebble, turso dirs) | 🟢     | 20min  | Noisy output reduces trust in the tool                  |
+| 19 | **Add `kv/viewstoretest` to CI**                               | 🟢     | 10min  | Contract test suite exists, no CI gate                  |
 
 ### Tier 4: Polish
 
-| #   | Task                                               | Impact | Effort | Why                                               |
-| --- | -------------------------------------------------- | ------ | ------ | ------------------------------------------------- |
-| 20  | **Read-pressure snapshot strategy**                | 🟢     | 4h     | Snapshot based on load frequency, not just writes |
-| 21  | **Documentation site (MkDocs/Docusaurus)**         | 🟢     | 4h     | Better discoverability than raw markdown          |
-| 22  | **PostgreSQL testcontainers in integration tests** | 🟢     | 3h     | Real PG testing without manual DSN                |
-| 23  | **API stability check as CI gate**                 | 🟢     | 30min  | Prevent breaking changes                          |
-| 24  | **Consumer migration: cqrs-htmx**                  | 🟢     | 4h     | Deferred per ADR-0034                             |
-| 25  | **Jsonv2 codec experiment stabilization**          | 🟢     | 2h     | Pending Go stdlib stabilization                   |
+| #  | Task                                               | Impact | Effort | Why                                               |
+| -- | -------------------------------------------------- | ------ | ------ | ------------------------------------------------- |
+| 20 | **Read-pressure snapshot strategy**                | 🟢     | 4h     | Snapshot based on load frequency, not just writes |
+| 21 | **Documentation site (MkDocs/Docusaurus)**         | 🟢     | 4h     | Better discoverability than raw markdown          |
+| 22 | **PostgreSQL testcontainers in integration tests** | 🟢     | 3h     | Real PG testing without manual DSN                |
+| 23 | **API stability check as CI gate**                 | 🟢     | 30min  | Prevent breaking changes                          |
+| 24 | **Consumer migration: cqrs-htmx**                  | 🟢     | 4h     | Deferred per ADR-0034                             |
+| 25 | **Jsonv2 codec experiment stabilization**          | 🟢     | 2h     | Pending Go stdlib stabilization                   |
 
 ---
 

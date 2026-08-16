@@ -95,33 +95,33 @@ These were considered but deferred for scope/time:
 
 ## f) Top 25 Things to Get Done Next
 
-| #   | Task                                                                         | Impact   | Effort |
-| --- | ---------------------------------------------------------------------------- | -------- | ------ |
-| 1   | Fix CBOR codec — investigate `CloneEvent`/`NewEvent` encoding stamp conflict | Critical | M      |
-| 2   | Add graph projection for task dependencies (BLOCKS edges)                    | High     | M      |
-| 3   | Add deriver integration test (verify auto-assign fires)                      | High     | S      |
-| 4   | Update taskmanager README with all new features                              | High     | S      |
-| 5   | Add catalog generation (AsyncAPI + D2 export)                                | Medium   | M      |
-| 6   | Add encryption demo (XChaCha20 codec wrapper)                                | Medium   | S      |
-| 7   | Add scheduling demo (auto-archive after deadline)                            | Medium   | S      |
-| 8   | Add idempotency to command handlers                                          | Medium   | XS     |
-| 9   | Add Prometheus `/metrics` endpoint                                           | Medium   | XS     |
-| 10  | Add gRPC transport option                                                    | Low      | M      |
-| 11  | Add health check verifying event store connectivity                          | Low      | XS     |
-| 12  | Add input validation depth (priority bounds, max-length)                     | Low      | S      |
-| 13  | Add consistent JSON response envelope                                        | Low      | S      |
-| 14  | Make Start() accept configurable HTTP address                                | Low      | XS     |
-| 15  | Add `TombstonePolicy.IncludeTombstoned` list option demo                     | Low      | XS     |
-| 16  | Add OTel stdout exporter toggle via env var                                  | Low      | XS     |
-| 17  | Add command audit trail demo (command store)                                 | Low      | S      |
-| 18  | Add query audit trail demo (query store)                                     | Low      | S      |
-| 19  | Add multi-DB SQLite preset demo (separate DBs)                               | Low      | S      |
-| 20  | Add relayer/rebirth cycle demo (tombstone → active)                          | Low      | S      |
-| 21  | Add Watermill CatchUpSubscriber vs ProjectionHost comparison doc             | Low      | S      |
-| 22  | Add Dockerfile for containerized deployment                                  | Low      | XS     |
-| 23  | Add integration test for SSE endpoint                                        | Low      | S      |
-| 24  | Add integration test for snapshot loading                                    | Low      | S      |
-| 25  | Add benchmark test for projection throughput                                 | Low      | M      |
+| #  | Task                                                                         | Impact   | Effort |
+| -- | ---------------------------------------------------------------------------- | -------- | ------ |
+| 1  | Fix CBOR codec — investigate `CloneEvent`/`NewEvent` encoding stamp conflict | Critical | M      |
+| 2  | Add graph projection for task dependencies (BLOCKS edges)                    | High     | M      |
+| 3  | Add deriver integration test (verify auto-assign fires)                      | High     | S      |
+| 4  | Update taskmanager README with all new features                              | High     | S      |
+| 5  | Add catalog generation (AsyncAPI + D2 export)                                | Medium   | M      |
+| 6  | Add encryption demo (XChaCha20 codec wrapper)                                | Medium   | S      |
+| 7  | Add scheduling demo (auto-archive after deadline)                            | Medium   | S      |
+| 8  | Add idempotency to command handlers                                          | Medium   | XS     |
+| 9  | Add Prometheus `/metrics` endpoint                                           | Medium   | XS     |
+| 10 | Add gRPC transport option                                                    | Low      | M      |
+| 11 | Add health check verifying event store connectivity                          | Low      | XS     |
+| 12 | Add input validation depth (priority bounds, max-length)                     | Low      | S      |
+| 13 | Add consistent JSON response envelope                                        | Low      | S      |
+| 14 | Make Start() accept configurable HTTP address                                | Low      | XS     |
+| 15 | Add `TombstonePolicy.IncludeTombstoned` list option demo                     | Low      | XS     |
+| 16 | Add OTel stdout exporter toggle via env var                                  | Low      | XS     |
+| 17 | Add command audit trail demo (command store)                                 | Low      | S      |
+| 18 | Add query audit trail demo (query store)                                     | Low      | S      |
+| 19 | Add multi-DB SQLite preset demo (separate DBs)                               | Low      | S      |
+| 20 | Add relayer/rebirth cycle demo (tombstone → active)                          | Low      | S      |
+| 21 | Add Watermill CatchUpSubscriber vs ProjectionHost comparison doc             | Low      | S      |
+| 22 | Add Dockerfile for containerized deployment                                  | Low      | XS     |
+| 23 | Add integration test for SSE endpoint                                        | Low      | S      |
+| 24 | Add integration test for snapshot loading                                    | Low      | S      |
+| 25 | Add benchmark test for projection throughput                                 | Low      | M      |
 
 ---
 

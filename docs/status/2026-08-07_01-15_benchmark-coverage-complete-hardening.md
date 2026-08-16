@@ -117,26 +117,26 @@ Ran 4 key benchmarks (`Memory`, `SQLite`, `SQLiteCGo`, `BBolt`) with `-race -ben
 
 ## g) Complete Task Summary
 
-| #   | Task                                         | Impact   | Status                       |
-| --- | -------------------------------------------- | -------- | ---------------------------- |
-| 1   | Fix SQLite pragma parity (both benchmarks)   | CRITICAL | ✅ DONE                      |
-| 2   | Fix bench-all.sh duration display            | HIGH     | ✅ DONE                      |
-| 3   | Fix bench-all.sh FAIL detection (exit codes) | HIGH     | ✅ DONE                      |
-| 4   | Fix bench-all.sh slow module matching        | HIGH     | ✅ DONE                      |
-| 5   | Add `--count` flag to bench-all.sh           | MEDIUM   | ✅ DONE                      |
-| 6   | Add `--benchtime` flag to bench-all.sh       | MEDIUM   | ✅ DONE                      |
-| 7   | Add Dgraph benchmarks (5 benchmarks)         | HIGH     | ✅ DONE                      |
-| 8   | `nix fmt` on all files                       | HIGH     | ✅ DONE                      |
-| 9   | Build + vet verification                     | CRITICAL | ✅ DONE                      |
-| 10  | SQLite CGo comparison at 5x/3-count          | CRITICAL | ✅ DONE                      |
-| 11  | All embedded benchmarks at 3x/3-count        | HIGH     | ✅ DONE                      |
-| 12  | Race detection on benchmark code             | HIGH     | ✅ DONE                      |
-| 13  | Tag `stack/bbolt/v4.0.0`                     | HIGH     | ✅ DONE                      |
-| 14  | Verify api-stability golden                  | HIGH     | ✅ DONE                      |
-| 15  | Run bench-all.sh FULL mode (41 modules)      | HIGH     | ✅ DONE                      |
-| 16  | Postgres benchmark against real server       | CRITICAL | ✅ DONE                      |
-| 17  | MySQL benchmark against real server          | CRITICAL | ⚠️ BLOCKED (no MySQL server) |
-| 18  | Write final status report                    | —        | ✅ DONE                      |
+| #  | Task                                         | Impact   | Status                      |
+| -- | -------------------------------------------- | -------- | --------------------------- |
+| 1  | Fix SQLite pragma parity (both benchmarks)   | CRITICAL | ✅ DONE                     |
+| 2  | Fix bench-all.sh duration display            | HIGH     | ✅ DONE                     |
+| 3  | Fix bench-all.sh FAIL detection (exit codes) | HIGH     | ✅ DONE                     |
+| 4  | Fix bench-all.sh slow module matching        | HIGH     | ✅ DONE                     |
+| 5  | Add `--count` flag to bench-all.sh           | MEDIUM   | ✅ DONE                     |
+| 6  | Add `--benchtime` flag to bench-all.sh       | MEDIUM   | ✅ DONE                     |
+| 7  | Add Dgraph benchmarks (5 benchmarks)         | HIGH     | ✅ DONE                     |
+| 8  | `nix fmt` on all files                       | HIGH     | ✅ DONE                     |
+| 9  | Build + vet verification                     | CRITICAL | ✅ DONE                     |
+| 10 | SQLite CGo comparison at 5x/3-count          | CRITICAL | ✅ DONE                     |
+| 11 | All embedded benchmarks at 3x/3-count        | HIGH     | ✅ DONE                     |
+| 12 | Race detection on benchmark code             | HIGH     | ✅ DONE                     |
+| 13 | Tag `stack/bbolt/v4.0.0`                     | HIGH     | ✅ DONE                     |
+| 14 | Verify api-stability golden                  | HIGH     | ✅ DONE                     |
+| 15 | Run bench-all.sh FULL mode (41 modules)      | HIGH     | ✅ DONE                     |
+| 16 | Postgres benchmark against real server       | CRITICAL | ✅ DONE                     |
+| 17 | MySQL benchmark against real server          | CRITICAL | ⚠️ BLOCKED (no MySQL server) |
+| 18 | Write final status report                    | —        | ✅ DONE                     |
 
 ---
 

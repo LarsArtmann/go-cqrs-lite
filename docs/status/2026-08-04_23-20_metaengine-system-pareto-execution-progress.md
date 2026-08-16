@@ -10,20 +10,20 @@
 
 ### Phase 1 — SQLite Unlocked (3 tasks — CRITICAL PATH)
 
-| #   | Task                                                                    | Status | Verification                                                        |
-| --- | ----------------------------------------------------------------------- | ------ | ------------------------------------------------------------------- |
-| T1  | Replace `createEngine()` with `createEngineFromDriver()` in constructor | DONE   | Build passes, all tests pass                                        |
-| T2  | Register SQLite driver in `init()` + add `modernc.org/sqlite` dep       | DONE   | `TestSystem_SQLiteDriverRegistered` passes                          |
-| T3  | Auto-detect serialization for non-Memory engines                        | DONE   | `TestSystem_SQLiteFullCQRSRoundtrip` proves events decode correctly |
+| #  | Task                                                                    | Status | Verification                                                        |
+| -- | ----------------------------------------------------------------------- | ------ | ------------------------------------------------------------------- |
+| T1 | Replace `createEngine()` with `createEngineFromDriver()` in constructor | DONE   | Build passes, all tests pass                                        |
+| T2 | Register SQLite driver in `init()` + add `modernc.org/sqlite` dep       | DONE   | `TestSystem_SQLiteDriverRegistered` passes                          |
+| T3 | Auto-detect serialization for non-Memory engines                        | DONE   | `TestSystem_SQLiteFullCQRSRoundtrip` proves events decode correctly |
 
 **Impact:** SQLite is now usable through System for the first time. Previously only Memory worked. The entire driver registry pattern (which existed as dead code) is now live.
 
 ### Phase 2 — Proven E2E (2 tasks)
 
-| #   | Task                                           | Status | Verification                                                                                       |
-| --- | ---------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------- |
-| T4  | SQLite-through-System integration test         | DONE   | 5 tests: full roundtrip, optimistic concurrency, journal, persistence (restart), driver registered |
-| T5  | Projection E2E test (command→event→projection) | DONE   | 2 tests: Memory + SQLite, proving projection host processes events into metaengine store           |
+| #  | Task                                           | Status | Verification                                                                                       |
+| -- | ---------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------- |
+| T4 | SQLite-through-System integration test         | DONE   | 5 tests: full roundtrip, optimistic concurrency, journal, persistence (restart), driver registered |
+| T5 | Projection E2E test (command→event→projection) | DONE   | 2 tests: Memory + SQLite, proving projection host processes events into metaengine store           |
 
 **Impact:** The system now has proven end-to-end CQRS flow through SQLite with persistence across restarts. Both source-of-truth and projection layers are verified.
 

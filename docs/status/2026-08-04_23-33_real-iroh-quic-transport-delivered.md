@@ -189,48 +189,48 @@ The relay mode has a `relaySeen` set to prevent echo loops, but there's no gener
 
 ## f) Up to 50 Things to Get Done Next
 
-| #   | Priority     | Task                                                                                   | Effort  |
-| --- | ------------ | -------------------------------------------------------------------------------------- | ------- |
-| 1   | **CRITICAL** | Add `metaengine/irohengine` + `metaengine/irohengine/quic` to flake.nix `testModules`  | 5min    |
-| 2   | **CRITICAL** | Add `system` to flake.nix `testModules` (pre-existing miss)                            | 5min    |
-| 3   | **CRITICAL** | Re-run `nix run .#verify` and get exit code 0                                          | 10min   |
-| 4   | **CRITICAL** | Run `nix run .#lint` on quic module, fix all findings                                  | 20min   |
-| 5   | **HIGH**     | Update AGENTS.md: add quic module, fix module count (65→68), add QuicTransport pattern | 15min   |
-| 6   | **HIGH**     | Replace `select {}` in demo with signal handling (SIGINT/SIGTERM)                      | 10min   |
-| 7   | **HIGH**     | Add op-level dedup (seen-set keyed by op.ID, not just relay)                           | 15min   |
-| 8   | **HIGH**     | Replace JSON encoding with CBOR (preserves int64, more compact)                        | 20min   |
-| 9   | **HIGH**     | Add CGo requirement note to flake.nix devShell (Rust toolchain for iroh-go)            | 10min   |
-| 10  | **MEDIUM**   | Add connection health check (ping/pong heartbeat or stream-error detection)            | 30min   |
-| 11  | **MEDIUM**   | Add auto-reconnect with exponential backoff                                            | 30min   |
-| 12  | **MEDIUM**   | Add a large-scale convergence test (1000 ops, verify all converge)                     | 20min   |
-| 13  | **MEDIUM**   | Add a partition recovery test (kill connection, write, reconnect, verify)              | 20min   |
-| 14  | **MEDIUM**   | Fix RTT display: show "sub-microsecond (localhost)" instead of "0s"                    | 10min   |
-| 15  | **MEDIUM**   | Add `nix run .#iroh-demo` flake app output                                             | 15min   |
-| 16  | **MEDIUM**   | Add depguard allowlist entry for `git.coopcloud.tech/decentral1se/iroh-go`             | 5min    |
-| 17  | **MEDIUM**   | Add quic module to CI GOWORK=off per-module test matrix                                | 15min   |
-| 18  | **MEDIUM**   | Add CI job that runs QUIC tests with CGO_ENABLED=1                                     | 15min   |
-| 19  | **LOW**      | Add tc netem shell script for real network shaping demo                                | 20min   |
-| 20  | **LOW**      | Add asciinema recording of multi-process demo                                          | 15min   |
-| 21  | **LOW**      | Add TUI dashboard (tview or bubbletea) showing live node state                         | 60min   |
-| 22  | **LOW**      | Add OTel distributed tracing across QUIC nodes                                         | 40min   |
-| 23  | **LOW**      | Add Docker compose file for 2-container CI demo                                        | 30min   |
-| 24  | **LOW**      | Explore iroh-docs CRDT integration (Rust sidecar)                                      | 120min+ |
-| 25  | **LOW**      | Add QUIC datagram mode for small ops (faster than BiStream)                            | 40min   |
-| 26  | **LOW**      | Add multi-relay topology test (A→relay→B, A→relay→C, B→relay→C)                        | 30min   |
-| 27  | **LOW**      | Add WireGuard/Tailscale integration for cross-network demo                             | 60min   |
-| 28  | **LOW**      | Add benchmark: QUIC datagrams vs BiStreams vs in-process                               | 30min   |
-| 29  | **LOW**      | Add per-node LatencyCollector (currently shared at Network level for in-process)       | 20min   |
-| 30  | **LOW**      | Add connection pooling (reuse BiStreams instead of opening new per op)                 | 40min   |
-| 31  | **LOW**      | Add batch publish (send multiple ops in one BiStream)                                  | 30min   |
-| 32  | **LOW**      | Add compression (zstd) for large WriteOps                                              | 20min   |
-| 33  | **LOW**      | Add TLS certificate pinning for production deployments                                 | 30min   |
-| 34  | **LOW**      | Add peer discovery via mDNS (local network)                                            | 40min   |
-| 35  | **LOW**      | Add node ID-based authorization (allowlist of public keys)                             | 20min   |
-| 36  | **LOW**      | Add WriteOp version field for forward compatibility                                    | 10min   |
-| 37  | **LOW**      | Add protocol version negotiation on connect                                            | 15min   |
-| 38  | **LOW**      | Add metrics export (Prometheus) for QUIC transport                                     | 30min   |
-| 39  | **LOW**      | Add structured logging (slog) for transport events                                     | 20min   |
-| 40  | **LOW**      | Add fuzzing tests for the QUIC stream decoder                                          | 30min   |
+| #  | Priority     | Task                                                                                   | Effort  |
+| -- | ------------ | -------------------------------------------------------------------------------------- | ------- |
+| 1  | **CRITICAL** | Add `metaengine/irohengine` + `metaengine/irohengine/quic` to flake.nix `testModules`  | 5min    |
+| 2  | **CRITICAL** | Add `system` to flake.nix `testModules` (pre-existing miss)                            | 5min    |
+| 3  | **CRITICAL** | Re-run `nix run .#verify` and get exit code 0                                          | 10min   |
+| 4  | **CRITICAL** | Run `nix run .#lint` on quic module, fix all findings                                  | 20min   |
+| 5  | **HIGH**     | Update AGENTS.md: add quic module, fix module count (65→68), add QuicTransport pattern | 15min   |
+| 6  | **HIGH**     | Replace `select {}` in demo with signal handling (SIGINT/SIGTERM)                      | 10min   |
+| 7  | **HIGH**     | Add op-level dedup (seen-set keyed by op.ID, not just relay)                           | 15min   |
+| 8  | **HIGH**     | Replace JSON encoding with CBOR (preserves int64, more compact)                        | 20min   |
+| 9  | **HIGH**     | Add CGo requirement note to flake.nix devShell (Rust toolchain for iroh-go)            | 10min   |
+| 10 | **MEDIUM**   | Add connection health check (ping/pong heartbeat or stream-error detection)            | 30min   |
+| 11 | **MEDIUM**   | Add auto-reconnect with exponential backoff                                            | 30min   |
+| 12 | **MEDIUM**   | Add a large-scale convergence test (1000 ops, verify all converge)                     | 20min   |
+| 13 | **MEDIUM**   | Add a partition recovery test (kill connection, write, reconnect, verify)              | 20min   |
+| 14 | **MEDIUM**   | Fix RTT display: show "sub-microsecond (localhost)" instead of "0s"                    | 10min   |
+| 15 | **MEDIUM**   | Add `nix run .#iroh-demo` flake app output                                             | 15min   |
+| 16 | **MEDIUM**   | Add depguard allowlist entry for `git.coopcloud.tech/decentral1se/iroh-go`             | 5min    |
+| 17 | **MEDIUM**   | Add quic module to CI GOWORK=off per-module test matrix                                | 15min   |
+| 18 | **MEDIUM**   | Add CI job that runs QUIC tests with CGO_ENABLED=1                                     | 15min   |
+| 19 | **LOW**      | Add tc netem shell script for real network shaping demo                                | 20min   |
+| 20 | **LOW**      | Add asciinema recording of multi-process demo                                          | 15min   |
+| 21 | **LOW**      | Add TUI dashboard (tview or bubbletea) showing live node state                         | 60min   |
+| 22 | **LOW**      | Add OTel distributed tracing across QUIC nodes                                         | 40min   |
+| 23 | **LOW**      | Add Docker compose file for 2-container CI demo                                        | 30min   |
+| 24 | **LOW**      | Explore iroh-docs CRDT integration (Rust sidecar)                                      | 120min+ |
+| 25 | **LOW**      | Add QUIC datagram mode for small ops (faster than BiStream)                            | 40min   |
+| 26 | **LOW**      | Add multi-relay topology test (A→relay→B, A→relay→C, B→relay→C)                        | 30min   |
+| 27 | **LOW**      | Add WireGuard/Tailscale integration for cross-network demo                             | 60min   |
+| 28 | **LOW**      | Add benchmark: QUIC datagrams vs BiStreams vs in-process                               | 30min   |
+| 29 | **LOW**      | Add per-node LatencyCollector (currently shared at Network level for in-process)       | 20min   |
+| 30 | **LOW**      | Add connection pooling (reuse BiStreams instead of opening new per op)                 | 40min   |
+| 31 | **LOW**      | Add batch publish (send multiple ops in one BiStream)                                  | 30min   |
+| 32 | **LOW**      | Add compression (zstd) for large WriteOps                                              | 20min   |
+| 33 | **LOW**      | Add TLS certificate pinning for production deployments                                 | 30min   |
+| 34 | **LOW**      | Add peer discovery via mDNS (local network)                                            | 40min   |
+| 35 | **LOW**      | Add node ID-based authorization (allowlist of public keys)                             | 20min   |
+| 36 | **LOW**      | Add WriteOp version field for forward compatibility                                    | 10min   |
+| 37 | **LOW**      | Add protocol version negotiation on connect                                            | 15min   |
+| 38 | **LOW**      | Add metrics export (Prometheus) for QUIC transport                                     | 30min   |
+| 39 | **LOW**      | Add structured logging (slog) for transport events                                     | 20min   |
+| 40 | **LOW**      | Add fuzzing tests for the QUIC stream decoder                                          | 30min   |
 
 ---
 

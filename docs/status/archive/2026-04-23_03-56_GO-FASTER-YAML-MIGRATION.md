@@ -70,30 +70,30 @@ The project is in **strong shape**. All 101 Go files (5,755 LOC production + 8,3
 
 ### High-Value Features (from TODO_LIST.md and project review)
 
-| #   | Item                                               | Priority |
-| --- | -------------------------------------------------- | -------- |
-| 1   | Breaking: `Root.ID()` → `id.AggregateID`           | HIGH     |
-| 2   | Breaking: `Event.AggregateID()` → `id.AggregateID` | HIGH     |
-| 3   | Breaking: Make `Command.AggregateID()` optional    | HIGH     |
-| 4   | Fix `query.Handler` to accept `context.Context`    | MEDIUM   |
-| 5   | PostgreSQL event store implementation              | MEDIUM   |
-| 6   | Projection/read-model support                      | MEDIUM   |
-| 7   | Saga/process manager support                       | LOW      |
-| 8   | gRPC/HTTP transport adapters                       | LOW      |
-| 9   | CLI tool for catalog generation                    | LOW      |
-| 10  | CI/CD workflows (`.github/workflows/`)             | MEDIUM   |
+| #  | Item                                               | Priority |
+| -- | -------------------------------------------------- | -------- |
+| 1  | Breaking: `Root.ID()` → `id.AggregateID`           | HIGH     |
+| 2  | Breaking: `Event.AggregateID()` → `id.AggregateID` | HIGH     |
+| 3  | Breaking: Make `Command.AggregateID()` optional    | HIGH     |
+| 4  | Fix `query.Handler` to accept `context.Context`    | MEDIUM   |
+| 5  | PostgreSQL event store implementation              | MEDIUM   |
+| 6  | Projection/read-model support                      | MEDIUM   |
+| 7  | Saga/process manager support                       | LOW      |
+| 8  | gRPC/HTTP transport adapters                       | LOW      |
+| 9  | CLI tool for catalog generation                    | LOW      |
+| 10 | CI/CD workflows (`.github/workflows/`)             | MEDIUM   |
 
 ### Infrastructure / Process
 
-| #   | Item                                      |
-| --- | ----------------------------------------- |
-| 11  | `.github/workflows/test.yml` + `lint.yml` |
-| 12  | Coverage tracking (codecov/coveralls)     |
-| 13  | Pre-commit hooks                          |
-| 14  | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`   |
-| 15  | `CHANGELOG.md` review/update              |
-| 16  | Architecture documentation                |
-| 17  | GoDoc package examples                    |
+| #  | Item                                      |
+| -- | ----------------------------------------- |
+| 11 | `.github/workflows/test.yml` + `lint.yml` |
+| 12 | Coverage tracking (codecov/coveralls)     |
+| 13 | Pre-commit hooks                          |
+| 14 | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`   |
+| 15 | `CHANGELOG.md` review/update              |
+| 16 | Architecture documentation                |
+| 17 | GoDoc package examples                    |
 
 ---
 
@@ -141,53 +141,53 @@ The project is in **strong shape**. All 101 Go files (5,755 LOC production + 8,3
 
 ### Breaking Changes (Bundle into v2)
 
-| #   | Task                                           | Impact                                |
-| --- | ---------------------------------------------- | ------------------------------------- |
-| 1   | `query.Handler` accepts `context.Context`      | Fixes #1 consistency gap              |
-| 2   | `Root.ID()` returns `id.AggregateID`           | Type safety across aggregate boundary |
-| 3   | `Event.AggregateID()` returns `id.AggregateID` | Consistency with Root.ID()            |
-| 4   | Make `Command.AggregateID()` optional          | Not all commands target aggregates    |
+| # | Task                                           | Impact                                |
+| - | ---------------------------------------------- | ------------------------------------- |
+| 1 | `query.Handler` accepts `context.Context`      | Fixes #1 consistency gap              |
+| 2 | `Root.ID()` returns `id.AggregateID`           | Type safety across aggregate boundary |
+| 3 | `Event.AggregateID()` returns `id.AggregateID` | Consistency with Root.ID()            |
+| 4 | Make `Command.AggregateID()` optional          | Not all commands target aggregates    |
 
 ### Bug Fixes & Safety
 
-| #   | Task                                         | Impact                             |
-| --- | -------------------------------------------- | ---------------------------------- |
-| 5   | Fix `registry.Build()` shared backing array  | Data corruption risk               |
-| 6   | Fix `MemoryStore.LoadFromVersion` slice copy | Prevents mutation of stored events |
-| 7   | Fix `MemoryBus.Subscribe` nil handler check  | Defensive programming              |
-| 8   | Fix asyncapi component message key collision | Namespace commands/events          |
+| # | Task                                         | Impact                             |
+| - | -------------------------------------------- | ---------------------------------- |
+| 5 | Fix `registry.Build()` shared backing array  | Data corruption risk               |
+| 6 | Fix `MemoryStore.LoadFromVersion` slice copy | Prevents mutation of stored events |
+| 7 | Fix `MemoryBus.Subscribe` nil handler check  | Defensive programming              |
+| 8 | Fix asyncapi component message key collision | Namespace commands/events          |
 
 ### Code Quality
 
-| #   | Task                                                | Impact                                |
-| --- | --------------------------------------------------- | ------------------------------------- |
-| 9   | Update AGENTS.md (remove `catalog/yaml` references) | Keeps documentation accurate          |
-| 10  | Regenerate `TODO_LIST.md`                           | Stale items clutter planning          |
-| 11  | Fix 44+ linter warnings                             | Production readiness                  |
-| 12  | Remove dead `pkg/errors` package                    | Reduce noise                          |
-| 13  | Improve `catalog/adapters` test coverage to 80%+    | 66% → 80%+                            |
-| 14  | Improve `aggregate` test coverage to 85%+           | 77% → 85%+                            |
-| 15  | Fix `time.Time` schema generation                   | `{type:"string", format:"date-time"}` |
+| #  | Task                                                | Impact                                |
+| -- | --------------------------------------------------- | ------------------------------------- |
+| 9  | Update AGENTS.md (remove `catalog/yaml` references) | Keeps documentation accurate          |
+| 10 | Regenerate `TODO_LIST.md`                           | Stale items clutter planning          |
+| 11 | Fix 44+ linter warnings                             | Production readiness                  |
+| 12 | Remove dead `pkg/errors` package                    | Reduce noise                          |
+| 13 | Improve `catalog/adapters` test coverage to 80%+    | 66% → 80%+                            |
+| 14 | Improve `aggregate` test coverage to 85%+           | 77% → 85%+                            |
+| 15 | Fix `time.Time` schema generation                   | `{type:"string", format:"date-time"}` |
 
 ### Features
 
-| #   | Task                                              | Impact                 |
-| --- | ------------------------------------------------- | ---------------------- |
-| 16  | PostgreSQL event store                            | Real-world persistence |
-| 17  | Projection/read-model support                     | CQRS query side        |
-| 18  | Event upcasting/schema evolution                  | Long-lived events      |
-| 19  | Add `enum`/`default` struct tag support to Schema | Richer catalog schemas |
-| 20  | CLI tool for catalog generation                   | Developer experience   |
+| #  | Task                                              | Impact                 |
+| -- | ------------------------------------------------- | ---------------------- |
+| 16 | PostgreSQL event store                            | Real-world persistence |
+| 17 | Projection/read-model support                     | CQRS query side        |
+| 18 | Event upcasting/schema evolution                  | Long-lived events      |
+| 19 | Add `enum`/`default` struct tag support to Schema | Richer catalog schemas |
+| 20 | CLI tool for catalog generation                   | Developer experience   |
 
 ### Infrastructure
 
-| #   | Task                                   | Impact                          |
-| --- | -------------------------------------- | ------------------------------- |
-| 21  | CI workflows (test + lint)             | Automated quality gate          |
-| 22  | Coverage tracking (codecov)            | Visibility into coverage trends |
-| 23  | Pre-commit hooks                       | Catch issues before push        |
-| 24  | CONTRIBUTING.md + CODE_OF_CONDUCT.md   | Open source readiness           |
-| 25  | Architecture documentation (ADR-style) | Knowledge preservation          |
+| #  | Task                                   | Impact                          |
+| -- | -------------------------------------- | ------------------------------- |
+| 21 | CI workflows (test + lint)             | Automated quality gate          |
+| 22 | Coverage tracking (codecov)            | Visibility into coverage trends |
+| 23 | Pre-commit hooks                       | Catch issues before push        |
+| 24 | CONTRIBUTING.md + CODE_OF_CONDUCT.md   | Open source readiness           |
+| 25 | Architecture documentation (ADR-style) | Knowledge preservation          |
 
 ---
 

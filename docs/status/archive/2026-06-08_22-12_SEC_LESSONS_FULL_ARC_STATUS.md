@@ -17,13 +17,13 @@ Build: ✅ | Tests: ✅ 39/39 packages | Lint: ✅ 0 issues | Module layers: ✅
 
 |                                     | Metric                                                                 | Value |
 | ----------------------------------- | ---------------------------------------------------------------------- | ----- |
-| **Sprint 1 (Trust & Docs)**         | 100% complete                                                          |
-| **Sprint 2 (Operational)**          | 100% complete                                                          |
-| **Sprint 3 (Testing Rigor)**        | 95% complete (golden tests + PBTs across all core modules)             |
-| **Sprint 4 (CI & Deployment)**      | 40% complete (gosec + module-layers in CI; benchmark script created)   |
-| **Sprint 5 (Consumer Experience)**  | 50% complete (catalog-server, SSE client, config, dual-store examples) |
-| **Sprint 6 (Polish & Experiments)** | 10% (listing JSON refactor)                                            |
-| **Overall completion**              | ~70% of 90 planned tasks                                               |
+| **Sprint 1 (Trust & Docs)**         | 100% complete                                                          |       |
+| **Sprint 2 (Operational)**          | 100% complete                                                          |       |
+| **Sprint 3 (Testing Rigor)**        | 95% complete (golden tests + PBTs across all core modules)             |       |
+| **Sprint 4 (CI & Deployment)**      | 40% complete (gosec + module-layers in CI; benchmark script created)   |       |
+| **Sprint 5 (Consumer Experience)**  | 50% complete (catalog-server, SSE client, config, dual-store examples) |       |
+| **Sprint 6 (Polish & Experiments)** | 10% (listing JSON refactor)                                            |       |
+| **Overall completion**              | ~70% of 90 planned tasks                                               |       |
 
 ---
 
@@ -244,13 +244,13 @@ My recommendation: Option 1 (flag-based). It demonstrates production-ready HTTP 
 
 ## Verification Summary
 
-| Gate                     | Status    | Details                                           |
-| ------------------------ | --------- | ------------------------------------------------- |
-| `nix run .#build`        | ✅ PASS   | All modules compile                               |
-| `nix run .#test`         | ✅ PASS   | 37/37 test packages OK, 2 no-test packages        |
-| `nix run .#lint`         | ✅ PASS   | 0 issues across 22 modules                        |
-| `nix run .#check-layers` | ✅ PASS   | Module layer check passed                         |
-| `nix fmt`                | ✅ PASS   | Format check clean                                |
+| Gate                     | Status   | Details                                           |
+| ------------------------ | -------- | ------------------------------------------------- |
+| `nix run .#build`        | ✅ PASS  | All modules compile                               |
+| `nix run .#test`         | ✅ PASS  | 37/37 test packages OK, 2 no-test packages        |
+| `nix run .#lint`         | ✅ PASS  | 0 issues across 22 modules                        |
+| `nix run .#check-layers` | ✅ PASS  | Module layer check passed                         |
+| `nix fmt`                | ✅ PASS  | Format check clean                                |
 | Git working tree         | ⚠️ 1 file | `snapshot/store.go` has unstaged JSON tag changes |
 
 ## Commit History This Arc (16 commits)

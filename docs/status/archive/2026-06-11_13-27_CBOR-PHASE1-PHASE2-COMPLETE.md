@@ -82,53 +82,53 @@ Nothing. Clean implementation. No bugs, no lying docs, no split brains.
 
 ### Cross-project (pre-existing, not CBOR-related)
 
-| #   | Issue                                                    | Module   | Effort |
-| --- | -------------------------------------------------------- | -------- | ------ |
-| 1   | `storage/` has 58+ LSP errors (Dialect, DB, CheckClosed) | storage  | 30min  |
-| 2   | Catalog `unconvert` lint issue                           | catalog  | 2min   |
-| 3   | Compiled binaries in `example/` dirs                     | examples | 5min   |
-| 4   | `turso/doc.go` missing package comment                   | turso    | 2min   |
-| 5   | Hardcoded `"json"` strings in storage test mocks         | storage  | 10min  |
+| # | Issue                                                    | Module   | Effort |
+| - | -------------------------------------------------------- | -------- | ------ |
+| 1 | `storage/` has 58+ LSP errors (Dialect, DB, CheckClosed) | storage  | 30min  |
+| 2 | Catalog `unconvert` lint issue                           | catalog  | 2min   |
+| 3 | Compiled binaries in `example/` dirs                     | examples | 5min   |
+| 4 | `turso/doc.go` missing package comment                   | turso    | 2min   |
+| 5 | Hardcoded `"json"` strings in storage test mocks         | storage  | 10min  |
 
 ### CBOR integration gaps (optional polish)
 
-| #   | Item                                                                  | Effort |
-| --- | --------------------------------------------------------------------- | ------ |
-| 6   | Add CBORCodec to `integration/` cross-module tests                    | 15min  |
-| 7   | Verify pebble/ stores CBOR payloads correctly with signing middleware | 10min  |
-| 8   | Verify encryption/ wraps CBOR payloads through CBOR Pebble envelope   | 10min  |
-| 9   | Add CBOR to `projection/` builder integration test                    | 10min  |
-| 10  | Document CBOR in `docs/DOMAIN_LANGUAGE.md`                            | 10min  |
+| #  | Item                                                                  | Effort |
+| -- | --------------------------------------------------------------------- | ------ |
+| 6  | Add CBORCodec to `integration/` cross-module tests                    | 15min  |
+| 7  | Verify pebble/ stores CBOR payloads correctly with signing middleware | 10min  |
+| 8  | Verify encryption/ wraps CBOR payloads through CBOR Pebble envelope   | 10min  |
+| 9  | Add CBOR to `projection/` builder integration test                    | 10min  |
+| 10 | Document CBOR in `docs/DOMAIN_LANGUAGE.md`                            | 10min  |
 
 ## f) Top #25 Things To Get Done Next
 
-| #   | Task                                                                                        | Impact   | Effort | Module      |
-| --- | ------------------------------------------------------------------------------------------- | -------- | ------ | ----------- |
-| 1   | Push `353c7df7` to origin/master                                                            | Critical | 1min   | infra       |
-| 2   | Fix 58 LSP errors in `storage/` (Dialect, DB, CheckClosed)                                  | Critical | 30min  | storage     |
-| 3   | Remove compiled binaries from `example/` dirs                                               | High     | 5min   | examples    |
-| 4   | Fix catalog `unconvert` lint                                                                | Medium   | 2min   | catalog     |
-| 5   | Add `turso/doc.go` package comment                                                          | Medium   | 2min   | turso       |
-| 6   | Add CBORCodec to `integration/` cross-module tests                                          | High     | 15min  | integration |
-| 7   | Verify signing produces stable signatures with CBOR Pebble envelopes                        | High     | 10min  | signing     |
-| 8   | Verify encryption wraps CBOR through CBOR Pebble envelope                                   | High     | 10min  | encryption  |
-| 9   | Add CBOR to `projection/` builder integration test                                          | Medium   | 10min  | projection  |
-| 10  | Replace hardcoded `"json"` strings in storage test mocks                                    | Medium   | 10min  | storage     |
-| 11  | Add `nix run .#check-layers` to verify CBOR dep budgets                                     | Medium   | 5min   | infra       |
-| 12  | Document CBOR in `docs/DOMAIN_LANGUAGE.md`                                                  | Medium   | 10min  | docs        |
-| 13  | Add CBOR example to `catalog/` schema generation                                            | Low      | 15min  | catalog     |
-| 14  | Add `APIstability` golden file check for CBORCodec + Pebble exports                         | Medium   | 10min  | cmd         |
-| 15  | Write README section about CBOR adoption                                                    | Medium   | 30min  | docs        |
-| 16  | Add `cbor:"-"` field omission test                                                          | Low      | 3min   | codec       |
-| 17  | Golden test for CBOR time encoding                                                          | Low      | 5min   | codec       |
-| 18  | Size comparison benchmark (CBOR vs JSON for []byte payloads)                                | Low      | 10min  | codec       |
-| 19  | Add CBOR to `watermill/` protocol adapter test                                              | Low      | 10min  | watermill   |
-| 20  | Evaluate CBOR for pebble envelope serialization (Phase 2 done — evaluate if Phase 3 needed) | Low      | 30min  | pebble      |
-| 21  | Add CBOR to `memory/` round-trip test                                                       | Low      | 5min   | memory      |
-| 22  | Clean up `docs/status/` — 20+ reports from one day                                          | Low      | 5min   | docs        |
-| 23  | Document `DupMapKeyEnforcedAPF` behavior in cbor.go                                         | Low      | 3min   | codec       |
-| 24  | Add CBOR to `go.work` sum verification                                                      | Low      | 3min   | infra       |
-| 25  | Archive completed status reports to `docs/status/archive/`                                  | Low      | 5min   | docs        |
+| #  | Task                                                                                        | Impact   | Effort | Module      |
+| -- | ------------------------------------------------------------------------------------------- | -------- | ------ | ----------- |
+| 1  | Push `353c7df7` to origin/master                                                            | Critical | 1min   | infra       |
+| 2  | Fix 58 LSP errors in `storage/` (Dialect, DB, CheckClosed)                                  | Critical | 30min  | storage     |
+| 3  | Remove compiled binaries from `example/` dirs                                               | High     | 5min   | examples    |
+| 4  | Fix catalog `unconvert` lint                                                                | Medium   | 2min   | catalog     |
+| 5  | Add `turso/doc.go` package comment                                                          | Medium   | 2min   | turso       |
+| 6  | Add CBORCodec to `integration/` cross-module tests                                          | High     | 15min  | integration |
+| 7  | Verify signing produces stable signatures with CBOR Pebble envelopes                        | High     | 10min  | signing     |
+| 8  | Verify encryption wraps CBOR through CBOR Pebble envelope                                   | High     | 10min  | encryption  |
+| 9  | Add CBOR to `projection/` builder integration test                                          | Medium   | 10min  | projection  |
+| 10 | Replace hardcoded `"json"` strings in storage test mocks                                    | Medium   | 10min  | storage     |
+| 11 | Add `nix run .#check-layers` to verify CBOR dep budgets                                     | Medium   | 5min   | infra       |
+| 12 | Document CBOR in `docs/DOMAIN_LANGUAGE.md`                                                  | Medium   | 10min  | docs        |
+| 13 | Add CBOR example to `catalog/` schema generation                                            | Low      | 15min  | catalog     |
+| 14 | Add `APIstability` golden file check for CBORCodec + Pebble exports                         | Medium   | 10min  | cmd         |
+| 15 | Write README section about CBOR adoption                                                    | Medium   | 30min  | docs        |
+| 16 | Add `cbor:"-"` field omission test                                                          | Low      | 3min   | codec       |
+| 17 | Golden test for CBOR time encoding                                                          | Low      | 5min   | codec       |
+| 18 | Size comparison benchmark (CBOR vs JSON for []byte payloads)                                | Low      | 10min  | codec       |
+| 19 | Add CBOR to `watermill/` protocol adapter test                                              | Low      | 10min  | watermill   |
+| 20 | Evaluate CBOR for pebble envelope serialization (Phase 2 done — evaluate if Phase 3 needed) | Low      | 30min  | pebble      |
+| 21 | Add CBOR to `memory/` round-trip test                                                       | Low      | 5min   | memory      |
+| 22 | Clean up `docs/status/` — 20+ reports from one day                                          | Low      | 5min   | docs        |
+| 23 | Document `DupMapKeyEnforcedAPF` behavior in cbor.go                                         | Low      | 3min   | codec       |
+| 24 | Add CBOR to `go.work` sum verification                                                      | Low      | 3min   | infra       |
+| 25 | Archive completed status reports to `docs/status/archive/`                                  | Low      | 5min   | docs        |
 
 ## g) Top #1 Question I Cannot Figure Out Myself
 

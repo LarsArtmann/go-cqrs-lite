@@ -1,9 +1,9 @@
 # Error Family Taxonomy Adoption — Status Report
 
-**Date:** 2026-07-02 04:40 UTC  
-**Branch:** master  
-**Base:** a79edf16 (v3.5.0 release)  
-**Working tree:** CLEAN  
+**Date:** 2026-07-02 04:40 UTC\
+**Branch:** master\
+**Base:** a79edf16 (v3.5.0 release)\
+**Working tree:** CLEAN\
 **Quality gate:** ALL GREEN (build + test + api-stability)
 
 ---

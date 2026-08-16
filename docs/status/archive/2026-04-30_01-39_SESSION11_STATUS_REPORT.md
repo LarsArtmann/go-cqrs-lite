@@ -272,33 +272,33 @@ Examples were removed in session 9 (81+ LSP false positives). They should be res
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Task                                                   | Effort | Impact   | Tier |
-| --- | ------------------------------------------------------ | ------ | -------- | ---- |
-| 1   | **Delete dead `evtest` package**                       | 5min   | HIGH     | 1    |
-| 2   | **Test `ensureMetadata` when metadata already exists** | 5min   | MEDIUM   | 1    |
-| 3   | **Test `Metadata()` nil metadata path**                | 5min   | MEDIUM   | 1    |
-| 4   | **Test `loadEvents` snapshot error branch**            | 8min   | MEDIUM   | 1    |
-| 5   | **Test `DefaultRetryConfig.IsRetryable`**              | 5min   | LOW      | 1    |
-| 6   | **Test `collectionSchema` uncovered branches**         | 8min   | MEDIUM   | 1    |
-| 7   | **Test `goTypeToJSON` uncovered branches**             | 10min  | MEDIUM   | 1    |
-| 8   | **Create `storage/` directory + `go.mod`**             | 5min   | CRITICAL | 3    |
-| 9   | **Add `storage/` to `go.work`**                        | 2min   | CRITICAL | 3    |
-| 10  | **Write PostgreSQL event store schema**                | 10min  | CRITICAL | 3    |
-| 11  | **Write sqlc queries (Save, Load, LoadFromVersion)**   | 12min  | CRITICAL | 3    |
-| 12  | **Create `sqlc.yaml` config**                          | 10min  | HIGH     | 3    |
-| 13  | **Run `sqlc generate`**                                | 5min   | HIGH     | 3    |
-| 14  | **Implement `event.Store` SQL adapter**                | 12min  | CRITICAL | 3    |
-| 15  | **Implement transactional outbox**                     | 12min  | CRITICAL | 3    |
-| 16  | **Add `Codec` interface to core**                      | 10min  | HIGH     | 2    |
-| 17  | **Add `Upcaster` interface to core**                   | 10min  | HIGH     | 2    |
-| 18  | **Add `Projection` interface to core**                 | 12min  | HIGH     | 2    |
-| 19  | **Add `CheckpointStore` interface**                    | 8min   | HIGH     | 2    |
-| 20  | **Create `watermill/` directory + `go.mod`**           | 5min   | HIGH     | 4    |
-| 21  | **Implement `event.Bus` via Watermill**                | 12min  | HIGH     | 4    |
-| 22  | **Fix `MemorySnapshotStore` deep copy**                | 8min   | LOW      | 7    |
-| 23  | **Tag `core/v1.0.0`**                                  | 3min   | HIGH     | 8    |
-| 24  | **Tag `memory/v1.0.0`**                                | 3min   | HIGH     | 8    |
-| 25  | **Write storage module design doc**                    | 10min  | MEDIUM   | 8    |
+| #  | Task                                                   | Effort | Impact   | Tier |
+| -- | ------------------------------------------------------ | ------ | -------- | ---- |
+| 1  | **Delete dead `evtest` package**                       | 5min   | HIGH     | 1    |
+| 2  | **Test `ensureMetadata` when metadata already exists** | 5min   | MEDIUM   | 1    |
+| 3  | **Test `Metadata()` nil metadata path**                | 5min   | MEDIUM   | 1    |
+| 4  | **Test `loadEvents` snapshot error branch**            | 8min   | MEDIUM   | 1    |
+| 5  | **Test `DefaultRetryConfig.IsRetryable`**              | 5min   | LOW      | 1    |
+| 6  | **Test `collectionSchema` uncovered branches**         | 8min   | MEDIUM   | 1    |
+| 7  | **Test `goTypeToJSON` uncovered branches**             | 10min  | MEDIUM   | 1    |
+| 8  | **Create `storage/` directory + `go.mod`**             | 5min   | CRITICAL | 3    |
+| 9  | **Add `storage/` to `go.work`**                        | 2min   | CRITICAL | 3    |
+| 10 | **Write PostgreSQL event store schema**                | 10min  | CRITICAL | 3    |
+| 11 | **Write sqlc queries (Save, Load, LoadFromVersion)**   | 12min  | CRITICAL | 3    |
+| 12 | **Create `sqlc.yaml` config**                          | 10min  | HIGH     | 3    |
+| 13 | **Run `sqlc generate`**                                | 5min   | HIGH     | 3    |
+| 14 | **Implement `event.Store` SQL adapter**                | 12min  | CRITICAL | 3    |
+| 15 | **Implement transactional outbox**                     | 12min  | CRITICAL | 3    |
+| 16 | **Add `Codec` interface to core**                      | 10min  | HIGH     | 2    |
+| 17 | **Add `Upcaster` interface to core**                   | 10min  | HIGH     | 2    |
+| 18 | **Add `Projection` interface to core**                 | 12min  | HIGH     | 2    |
+| 19 | **Add `CheckpointStore` interface**                    | 8min   | HIGH     | 2    |
+| 20 | **Create `watermill/` directory + `go.mod`**           | 5min   | HIGH     | 4    |
+| 21 | **Implement `event.Bus` via Watermill**                | 12min  | HIGH     | 4    |
+| 22 | **Fix `MemorySnapshotStore` deep copy**                | 8min   | LOW      | 7    |
+| 23 | **Tag `core/v1.0.0`**                                  | 3min   | HIGH     | 8    |
+| 24 | **Tag `memory/v1.0.0`**                                | 3min   | HIGH     | 8    |
+| 25 | **Write storage module design doc**                    | 10min  | MEDIUM   | 8    |
 
 ---
 

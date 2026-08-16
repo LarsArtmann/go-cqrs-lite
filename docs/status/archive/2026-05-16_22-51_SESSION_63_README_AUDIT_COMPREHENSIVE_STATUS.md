@@ -1,8 +1,8 @@
 # Comprehensive Status Report — 2026-05-16
 
-**Date:** 2026-05-16 22:51 CEST  
-**Session:** Emergency README Audit + Status Update  
-**Branch:** master (clean)  
+**Date:** 2026-05-16 22:51 CEST\
+**Session:** Emergency README Audit + Status Update\
+**Branch:** master (clean)\
 **Last Commit:** `18e1f32` - docs(readme): comprehensive README audit and fixes
 
 ---
@@ -51,8 +51,8 @@
 
 ### B) PARTIALLY DONE ⚠️
 
-| Item                 | Status     | Gap                                                       |
-| -------------------- | ---------- | --------------------------------------------------------- |
+| Item                 | Status    | Gap                                                       |
+| -------------------- | --------- | --------------------------------------------------------- |
 | Core Dependencies    | ⚠️ PARTIAL | go-error-family not in workspace go.sum for some modules  |
 | storage              | ⚠️ 85.1%   | Coverage dropped from 93.1% → 85.1% (needs investigation) |
 | core/event           | ⚠️ 93.9%   | Dropped from 94.4%                                        |
@@ -98,20 +98,20 @@
 
 ### Infrastructure Modules
 
-| Module               | Coverage | Tests | Status             |
-| -------------------- | -------- | ----- | ------------------ |
-| memory               | 99.5%    | ✅    | ✅ STABLE          |
+| Module               | Coverage | Tests | Status            |
+| -------------------- | -------- | ----- | ----------------- |
+| memory               | 99.5%    | ✅    | ✅ STABLE         |
 | catalog              | 94.4%    | ✅    | ⚠️ GOLDEN FAILURES |
-| catalog/asyncapi     | 93.9%    | ⚠️    | ⚠️ GOLDEN FAILURES |
-| catalog/d2           | 97.6%    | ✅    | ✅ STABLE          |
-| catalog/eventcatalog | 95.7%    | ⚠️    | ⚠️ GOLDEN FAILURES |
-| catalog/adapters     | 100.0%   | ✅    | ✅ STABLE          |
-| middleware           | 100.0%   | ✅    | ✅ STABLE          |
-| projection           | 98.3%    | ✅    | ✅ STABLE          |
+| catalog/asyncapi     | 93.9%    | ⚠️     | ⚠️ GOLDEN FAILURES |
+| catalog/d2           | 97.6%    | ✅    | ✅ STABLE         |
+| catalog/eventcatalog | 95.7%    | ⚠️     | ⚠️ GOLDEN FAILURES |
+| catalog/adapters     | 100.0%   | ✅    | ✅ STABLE         |
+| middleware           | 100.0%   | ✅    | ✅ STABLE         |
+| projection           | 98.3%    | ✅    | ✅ STABLE         |
 | storage              | 85.1%    | ✅    | ⚠️ COVERAGE DROP   |
-| testhelpers          | N/A      | N/A   | ✅ STABLE          |
-| integration          | N/A      | ✅    | ✅ STABLE          |
-| example/user         | N/A      | N/A   | ✅ DEMO            |
+| testhelpers          | N/A      | N/A   | ✅ STABLE         |
+| integration          | N/A      | ✅    | ✅ STABLE         |
+| example/user         | N/A      | N/A   | ✅ DEMO           |
 
 ---
 
@@ -156,33 +156,33 @@
 
 ## TOP #25 THINGS TO GET DONE NEXT
 
-| #   | Item                                        | Priority | Effort | Impact |
-| --- | ------------------------------------------- | -------- | ------ | ------ |
-| 1   | Fix LSP workspace errors (285 gopls errors) | P0       | 2h     | HIGH   |
-| 2   | Fix golden test failures (3 tests)          | P0       | 1h     | HIGH   |
-| 3   | Recover storage coverage (85.1% → 93%+)     | P0       | 3h     | HIGH   |
-| 4   | Tag go-error-family v0.1.0                  | P1       | 30m    | HIGH   |
-| 5   | Remove stale replace directives             | P1       | 1h     | MEDIUM |
-| 6   | Verify example/user runs correctly          | P1       | 1h     | MEDIUM |
-| 7   | Generate API docs for all modules           | P1       | 1h     | MEDIUM |
-| 8   | Update CHANGELOG.md                         | P2       | 30m    | LOW    |
-| 9   | Review CONTRIBUTING.md                      | P2       | 30m    | LOW    |
-| 10  | Expand fuzzing tests                        | P2       | 2h     | MEDIUM |
-| 11  | Add more benchmarks                         | P2       | 2h     | LOW    |
-| 12  | core/event coverage recovery                | P1       | 2h     | MEDIUM |
-| 13  | core/decider coverage recovery              | P1       | 2h     | MEDIUM |
-| 14  | core/pkg/id coverage recovery               | P1       | 1h     | LOW    |
-| 15  | Update FEATURES.md                          | P2       | 1h     | LOW    |
-| 16  | Sync module review                          | P2       | 2h     | LOW    |
-| 17  | Storage module audit                        | P1       | 3h     | HIGH   |
-| 18  | Add Turso integration tests                 | P2       | 2h     | MEDIUM |
-| 19  | Add Pebble integration tests                | P2       | 2h     | MEDIUM |
-| 20  | Review TODO_LIST.md                         | P2       | 1h     | LOW    |
-| 21  | Public API documentation                    | P1       | 2h     | HIGH   |
-| 22  | Module versioning audit                     | P2       | 1h     | MEDIUM |
-| 23  | Dependency audit                            | P1       | 1h     | MEDIUM |
-| 24  | Error message consistency                   | P2       | 2h     | LOW    |
-| 25  | Performance optimization                    | P3       | 4h     | LOW    |
+| #  | Item                                        | Priority | Effort | Impact |
+| -- | ------------------------------------------- | -------- | ------ | ------ |
+| 1  | Fix LSP workspace errors (285 gopls errors) | P0       | 2h     | HIGH   |
+| 2  | Fix golden test failures (3 tests)          | P0       | 1h     | HIGH   |
+| 3  | Recover storage coverage (85.1% → 93%+)     | P0       | 3h     | HIGH   |
+| 4  | Tag go-error-family v0.1.0                  | P1       | 30m    | HIGH   |
+| 5  | Remove stale replace directives             | P1       | 1h     | MEDIUM |
+| 6  | Verify example/user runs correctly          | P1       | 1h     | MEDIUM |
+| 7  | Generate API docs for all modules           | P1       | 1h     | MEDIUM |
+| 8  | Update CHANGELOG.md                         | P2       | 30m    | LOW    |
+| 9  | Review CONTRIBUTING.md                      | P2       | 30m    | LOW    |
+| 10 | Expand fuzzing tests                        | P2       | 2h     | MEDIUM |
+| 11 | Add more benchmarks                         | P2       | 2h     | LOW    |
+| 12 | core/event coverage recovery                | P1       | 2h     | MEDIUM |
+| 13 | core/decider coverage recovery              | P1       | 2h     | MEDIUM |
+| 14 | core/pkg/id coverage recovery               | P1       | 1h     | LOW    |
+| 15 | Update FEATURES.md                          | P2       | 1h     | LOW    |
+| 16 | Sync module review                          | P2       | 2h     | LOW    |
+| 17 | Storage module audit                        | P1       | 3h     | HIGH   |
+| 18 | Add Turso integration tests                 | P2       | 2h     | MEDIUM |
+| 19 | Add Pebble integration tests                | P2       | 2h     | MEDIUM |
+| 20 | Review TODO_LIST.md                         | P2       | 1h     | LOW    |
+| 21 | Public API documentation                    | P1       | 2h     | HIGH   |
+| 22 | Module versioning audit                     | P2       | 1h     | MEDIUM |
+| 23 | Dependency audit                            | P1       | 1h     | MEDIUM |
+| 24 | Error message consistency                   | P2       | 2h     | LOW    |
+| 25 | Performance optimization                    | P3       | 4h     | LOW    |
 
 ---
 

@@ -11,12 +11,14 @@
 ## a) FULLY DONE
 
 ### 1. API Stability Goldens Regenerated
+
 - `docs/api_surface.txt` updated: 3992 exports.
 - Verified with `api-stability` check: **3992 exports OK**.
 - Meta-tests (`TestEveryGoModDirIsInModulesList`, `TestEveryGoModDirIsInTestModules`) pass.
 - Captured both the rename symbols and daemon-added exports (`DefaultRoutingHysteresis`, `CheckRouting`, `StartAutoReplan`).
 
 ### 2. TombstonePolicy → DeletePolicy Rename (listing/ + stack/)
+
 - **listing/types.go**: `TombstonePolicy` → `DeletePolicy`, consts `TombstoneExclude/Include/Only` → `DeleteExclude/Include/Only`, `ListOptions.Tombstone` field → `ListOptions.DeletePolicy`.
 - **listing/builder.go**: `Tombstone` references updated, comments cleaned.
 - **listing/in_memory.go**: `applyTombstonePolicy` → `applyDeletePolicy`, call site updated.
@@ -33,12 +35,14 @@
 - Zero remaining references to old names in Go source (`rg` verified).
 
 ### 3. Migration Guide Rewritten
+
 - `docs/migration/tombstone-to-domain-events.md` — **complete rewrite**.
 - Old guide had critical doc/code drift: said API was "deprecated" when it's actually **removed**, said `OnTombstone` triggered by metadata when it's triggered by **event-type matching**.
 - New guide accurately covers all three patterns: metaengine (`metaengine.Remove`), stack.Materialize (`DeleteTypes`/`OnTombstone`), listing (`WithDeleteTypes`/`DeletePolicy`).
 - Includes accurate API mapping table with old→new names.
 
 ### 4. Documentation Updated (12 files)
+
 - `AGENTS.md` — Internal contract #11 (tombstone→deletion-as-domain-events), module map (listing row).
 - `.agents/skills/go-cqrs-lite/references/advanced.md` — `Active | Tombstoned` → `Active | Deleted`.
 - `.agents/skills/go-cqrs-lite/references/core.md` — Decision matrix: `event (tombstone metadata)` → `listing (event-type detection)`.
@@ -52,6 +56,7 @@
 - `cmd/cqrs-lint/README.md` — F001 rule name and description updated (`no-tombstone-softdelete` → `no-domain-delete-event`).
 
 ### 5. Verification
+
 - **doc-check**: 695 references valid across 42 packages.
 - **API stability**: 3992 exports verified.
 - **Tests**: listing, stack, storage, kv, api-stability meta-tests — all pass.
@@ -62,15 +67,18 @@
 ## b) PARTIALLY DONE
 
 ### nix run .#verify NOT RUN
+
 - The full CI gate (`nix run .#verify` = build + vet + test + race + lint + doc-check + doc-assertions) was **not executed**.
 - Only per-module `go test` was run for directly-affected modules.
 - **Impact:** Cannot claim "stale GREEN" — need the full gate before any release.
 
 ### nix fmt NOT RUN
+
 - Formatting not applied to changed files.
 - Could cause lint failures in the full gate (e.g., golines line-length reformatting, nolint position drift).
 
 ### Test Coverage — Incomplete Sweep
+
 - Only tested the 4 modules I directly touched (listing, stack, storage, kv).
 - Did NOT run the full 82-module test sweep.
 - Other modules that import `stack.FilterDeleted` or `listing.DeletePolicy` may have test files I missed (though `rg` confirmed no Go source references remain).
@@ -115,7 +123,7 @@ Nothing this session. All edits were clean, tests passed, no reverts needed.
 
 ### Doc Drift Risks
 
-10. **The `Tombstone` concept name persists** in `kv.TombstoneQuerier`, `AutoMapperWithTombstone`, `TombstoneColumn`, `IsTombstoned()`, `OnTombstone`. These are the *storage/SQL filtering mechanism* — separate from the deleted metadata tombstone. But the naming overlap is confusing. A future cleanup could rename these to `DeleteQuerier`, `AutoMapperWithDeleteColumn`, etc.
+10. **The `Tombstone` concept name persists** in `kv.TombstoneQuerier`, `AutoMapperWithTombstone`, `TombstoneColumn`, `IsTombstoned()`, `OnTombstone`. These are the _storage/SQL filtering mechanism_ — separate from the deleted metadata tombstone. But the naming overlap is confusing. A future cleanup could rename these to `DeleteQuerier`, `AutoMapperWithDeleteColumn`, etc.
 
 ---
 
@@ -205,6 +213,7 @@ type TombstonePolicy = DeletePolicy
 ### Q3: What should happen to the `metadata/` module?
 
 After ADR-0111/0114, only `CustomData[K]` and `MergeCustomMaps` remain in `metadata/`. Should it be:
+
 - (a) Kept as-is (it still serves a purpose for typed custom metadata).
 - (b) Moved into `event/` or `record/` and the module deleted.
 - (c) Deferred to a future cleanup session.

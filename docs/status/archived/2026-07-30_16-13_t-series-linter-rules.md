@@ -1,6 +1,6 @@
 # Status Report — T-Series Linter Rules (Testing & Quality)
 
-**Date:** 2026-07-30 16:13  
+**Date:** 2026-07-30 16:13\
 **Session scope:** Implement T001-T008 testing-quality rules in `cmd/cqrs-lint/`
 
 ---

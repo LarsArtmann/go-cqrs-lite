@@ -12,23 +12,23 @@
 
 ### Session 21–22 Work
 
-| #   | Item                                        | Detail                                                                                                                                                   | Commit                        |
-| --- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| 1   | **FuzzParse case-sensitivity fix**          | Roundtrip test now uses `Parse(String())` instead of comparing against raw input. ULID's Crockford Base32 normalization no longer causes false failures. | `b3b5336`                     |
-| 2   | **io.Closer on all 4 lifecycle interfaces** | `event.Store`, `event.Bus`, `event.SnapshotStore`, `event.Outbox` all embed `io.Closer`. Consumers can `defer io.Closer.Close()` generically.            | Prior sessions                |
-| 3   | **All fakes implement Close()**             | `FakeStore`, `FakeBus`, `FakeSnapshotStore`, `FakeOutbox`, `MemoryOutboxStore` all have `Close()`                                                        | Prior sessions + this session |
-| 4   | **Remove dead SQLEventStoreOption**         | No concrete options existed — dead API surface removed. `NewSQLEventStore` now takes only `*sql.DB`.                                                     | `e0d3365`                     |
-| 5   | **Storage package doc fixed**               | "compatible with any SQL database" → "DDL targets PostgreSQL (BYTEA, JSONB)"                                                                             | `e0d3365`                     |
-| 6   | **Duplicate INSERT extracted to constant**  | `insertEventSQL` constant replaces two identical strings in Save/AppendBatch                                                                             | `9eff88e`                     |
-| 7   | **testhelpers/fakes.go split**              | 354 lines → 5 files (143, 108, 67, 45, 21 lines). All under 250-line limit.                                                                              | `9d2ad81`                     |
-| 8   | **Planning docs rewritten**                 | Session 18 plans rewritten with library/SDK mindset (not application mindset)                                                                            | `5ad1d85`                     |
-| 9   | **FEATURES.md storage section fixed**       | 🔴 BROKEN → ⚠️ PARTIALLY_FUNCTIONAL. Removed 5 stale "critical issues" that were already fixed.                                                          | `5ab307f`                     |
-| 10  | **FEATURES.md upcaster bug removed**        | `>=` → `==` was already fixed in session 16 but FEATURES.md still documented it                                                                          | `5ab307f`                     |
-| 11  | **AGENTS.md library/SDK header**            | Added unmissable block at top with table comparing wrong vs correct evaluation lens                                                                      | `3af3a71`                     |
-| 12  | **testhelpers added to CI**                 | Added to `flake.nix` testModules for test/vet/lint/coverage                                                                                              | `b028c0e`                     |
-| 13  | **Stale binary deleted**                    | `example/user/user` (9.8MB) removed from repo                                                                                                            | `b028c0e`                     |
-| 14  | **Docs updated**                            | Coverage numbers, io.Closer lifecycle, storage status all current                                                                                        | `106763d`                     |
-| 15  | **Lint config updated**                     | `.golangci.yml` exhaustruct exclusion updated for split fake files                                                                                       | `a58eb86`                     |
+| #  | Item                                        | Detail                                                                                                                                                   | Commit                        |
+| -- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| 1  | **FuzzParse case-sensitivity fix**          | Roundtrip test now uses `Parse(String())` instead of comparing against raw input. ULID's Crockford Base32 normalization no longer causes false failures. | `b3b5336`                     |
+| 2  | **io.Closer on all 4 lifecycle interfaces** | `event.Store`, `event.Bus`, `event.SnapshotStore`, `event.Outbox` all embed `io.Closer`. Consumers can `defer io.Closer.Close()` generically.            | Prior sessions                |
+| 3  | **All fakes implement Close()**             | `FakeStore`, `FakeBus`, `FakeSnapshotStore`, `FakeOutbox`, `MemoryOutboxStore` all have `Close()`                                                        | Prior sessions + this session |
+| 4  | **Remove dead SQLEventStoreOption**         | No concrete options existed — dead API surface removed. `NewSQLEventStore` now takes only `*sql.DB`.                                                     | `e0d3365`                     |
+| 5  | **Storage package doc fixed**               | "compatible with any SQL database" → "DDL targets PostgreSQL (BYTEA, JSONB)"                                                                             | `e0d3365`                     |
+| 6  | **Duplicate INSERT extracted to constant**  | `insertEventSQL` constant replaces two identical strings in Save/AppendBatch                                                                             | `9eff88e`                     |
+| 7  | **testhelpers/fakes.go split**              | 354 lines → 5 files (143, 108, 67, 45, 21 lines). All under 250-line limit.                                                                              | `9d2ad81`                     |
+| 8  | **Planning docs rewritten**                 | Session 18 plans rewritten with library/SDK mindset (not application mindset)                                                                            | `5ad1d85`                     |
+| 9  | **FEATURES.md storage section fixed**       | 🔴 BROKEN → ⚠️ PARTIALLY_FUNCTIONAL. Removed 5 stale "critical issues" that were already fixed.                                                           | `5ab307f`                     |
+| 10 | **FEATURES.md upcaster bug removed**        | `>=` → `==` was already fixed in session 16 but FEATURES.md still documented it                                                                          | `5ab307f`                     |
+| 11 | **AGENTS.md library/SDK header**            | Added unmissable block at top with table comparing wrong vs correct evaluation lens                                                                      | `3af3a71`                     |
+| 12 | **testhelpers added to CI**                 | Added to `flake.nix` testModules for test/vet/lint/coverage                                                                                              | `b028c0e`                     |
+| 13 | **Stale binary deleted**                    | `example/user/user` (9.8MB) removed from repo                                                                                                            | `b028c0e`                     |
+| 14 | **Docs updated**                            | Coverage numbers, io.Closer lifecycle, storage status all current                                                                                        | `106763d`                     |
+| 15 | **Lint config updated**                     | `.golangci.yml` exhaustruct exclusion updated for split fake files                                                                                       | `a58eb86`                     |
 
 ### Prior Sessions (confirmed still good)
 
@@ -114,33 +114,33 @@
 
 Sorted by (consumer trust impact × effort):
 
-| #   | Task                                                          | Module     | Impact   | Effort |
-| --- | ------------------------------------------------------------- | ---------- | -------- | ------ |
-| 1   | Write SQLCheckpointStore tests                                | storage    | CRITICAL | 30min  |
-| 2   | Write SQLSnapshotStore tests                                  | storage    | CRITICAL | 45min  |
-| 3   | Verify storage coverage > 90% after checkpoint/snapshot tests | storage    | HIGH     | 5min   |
-| 4   | Add `example/user` to CI test/lint (not just build)           | CI         | MEDIUM   | 10min  |
-| 5   | Add `example/user/main_test.go` smoke test                    | example    | MEDIUM   | 45min  |
-| 6   | Consolidate `CatalogBuilder` on top of `Registry`             | catalog    | HIGH     | 90min  |
-| 7   | Split `cattest/helpers.go` (330 lines) under 250              | catalog    | LOW      | 20min  |
-| 8   | Document `Close()` DB ownership pattern in storage godoc      | storage    | MEDIUM   | 10min  |
-| 9   | Consider concrete `type Version int` (breaking)               | core/event | HIGH     | 60min  |
-| 10  | Consider `io.Closer` on `CheckpointStore`                     | core/event | LOW      | 15min  |
-| 11  | Add `io.Closer` on `CheckpointStore` + update fakes           | all        | MEDIUM   | 20min  |
-| 12  | Watermill pub/sub module (Kafka, NATS)                        | new module | HIGH     | 4hr    |
-| 13  | Outbox background publisher goroutine                         | core       | MEDIUM   | 2hr    |
-| 14  | Tag v0.1.0 for all modules                                    | git        | LOW      | 60min  |
-| 15  | Add `CONTRIBUTING.md` section on `io.Closer` pattern          | docs       | LOW      | 10min  |
-| 16  | Add integration test with real PostgreSQL (testcontainers)    | storage    | HIGH     | 2hr    |
-| 17  | Add benchmarks for storage operations                         | storage    | LOW      | 30min  |
-| 18  | Consider saga/process manager design                          | new module | HIGH     | 8hr+   |
-| 19  | Add `event.Bus` middleware support (like command/query)       | core/event | MEDIUM   | 2hr    |
-| 20  | Add retry policy support to Outbox publisher                  | core       | MEDIUM   | 1hr    |
-| 21  | Add health check interface for stores                         | core       | LOW      | 1hr    |
-| 22  | Add context timeout example to godoc                          | docs       | LOW      | 15min  |
-| 23  | Add OpenTelemetry tracing to storage module                   | storage    | MEDIUM   | 1hr    |
-| 24  | Add `event.Streamer` for real-time event streaming            | core       | MEDIUM   | 2hr    |
-| 25  | Add generated API docs (godoc -> static site)                 | docs       | LOW      | 2hr    |
+| #  | Task                                                          | Module     | Impact   | Effort |
+| -- | ------------------------------------------------------------- | ---------- | -------- | ------ |
+| 1  | Write SQLCheckpointStore tests                                | storage    | CRITICAL | 30min  |
+| 2  | Write SQLSnapshotStore tests                                  | storage    | CRITICAL | 45min  |
+| 3  | Verify storage coverage > 90% after checkpoint/snapshot tests | storage    | HIGH     | 5min   |
+| 4  | Add `example/user` to CI test/lint (not just build)           | CI         | MEDIUM   | 10min  |
+| 5  | Add `example/user/main_test.go` smoke test                    | example    | MEDIUM   | 45min  |
+| 6  | Consolidate `CatalogBuilder` on top of `Registry`             | catalog    | HIGH     | 90min  |
+| 7  | Split `cattest/helpers.go` (330 lines) under 250              | catalog    | LOW      | 20min  |
+| 8  | Document `Close()` DB ownership pattern in storage godoc      | storage    | MEDIUM   | 10min  |
+| 9  | Consider concrete `type Version int` (breaking)               | core/event | HIGH     | 60min  |
+| 10 | Consider `io.Closer` on `CheckpointStore`                     | core/event | LOW      | 15min  |
+| 11 | Add `io.Closer` on `CheckpointStore` + update fakes           | all        | MEDIUM   | 20min  |
+| 12 | Watermill pub/sub module (Kafka, NATS)                        | new module | HIGH     | 4hr    |
+| 13 | Outbox background publisher goroutine                         | core       | MEDIUM   | 2hr    |
+| 14 | Tag v0.1.0 for all modules                                    | git        | LOW      | 60min  |
+| 15 | Add `CONTRIBUTING.md` section on `io.Closer` pattern          | docs       | LOW      | 10min  |
+| 16 | Add integration test with real PostgreSQL (testcontainers)    | storage    | HIGH     | 2hr    |
+| 17 | Add benchmarks for storage operations                         | storage    | LOW      | 30min  |
+| 18 | Consider saga/process manager design                          | new module | HIGH     | 8hr+   |
+| 19 | Add `event.Bus` middleware support (like command/query)       | core/event | MEDIUM   | 2hr    |
+| 20 | Add retry policy support to Outbox publisher                  | core       | MEDIUM   | 1hr    |
+| 21 | Add health check interface for stores                         | core       | LOW      | 1hr    |
+| 22 | Add context timeout example to godoc                          | docs       | LOW      | 15min  |
+| 23 | Add OpenTelemetry tracing to storage module                   | storage    | MEDIUM   | 1hr    |
+| 24 | Add `event.Streamer` for real-time event streaming            | core       | MEDIUM   | 2hr    |
+| 25 | Add generated API docs (godoc -> static site)                 | docs       | LOW      | 2hr    |
 
 ---
 
@@ -162,28 +162,28 @@ This affects every storage consumer and can't be decided without understanding t
 
 ## Current Coverage
 
-| Package                | Coverage | Change                                       |
-| ---------------------- | -------- | -------------------------------------------- |
-| `core/command`         | 100.0%   | —                                            |
-| `core/query`           | 100.0%   | —                                            |
-| `core/event`           | 96.5%    | +0.2% (from example_test fix)                |
-| `core/aggregate`       | 95.9%    | —                                            |
-| `core/pkg/id`          | 100.0%   | — (FuzzParse fixed)                          |
-| `core/pkg/dispatcher`  | 100.0%   | —                                            |
-| `memory`               | 98.5%    | -0.5%                                        |
-| `catalog`              | 94.4%    | —                                            |
-| `catalog/adapters`     | 98.8%    | —                                            |
-| `catalog/asyncapi`     | 96.8%    | -1.1%                                        |
-| `catalog/eventcatalog` | 95.5%    | —                                            |
-| `middleware`           | 99.4%    | —                                            |
+| Package                | Coverage | Change                                      |
+| ---------------------- | -------- | ------------------------------------------- |
+| `core/command`         | 100.0%   | —                                           |
+| `core/query`           | 100.0%   | —                                           |
+| `core/event`           | 96.5%    | +0.2% (from example_test fix)               |
+| `core/aggregate`       | 95.9%    | —                                           |
+| `core/pkg/id`          | 100.0%   | — (FuzzParse fixed)                         |
+| `core/pkg/dispatcher`  | 100.0%   | —                                           |
+| `memory`               | 98.5%    | -0.5%                                       |
+| `catalog`              | 94.4%    | —                                           |
+| `catalog/adapters`     | 98.8%    | —                                           |
+| `catalog/asyncapi`     | 96.8%    | -1.1%                                       |
+| `catalog/eventcatalog` | 95.5%    | —                                           |
+| `middleware`           | 99.4%    | —                                           |
 | `storage`              | 63.5%    | ⚠️ (event store 96%, checkpoint/snapshot 0%) |
 
 ## File Size Check (production Go files > 250 lines)
 
-| File                                  | Lines | Status  |
-| ------------------------------------- | ----- | ------- |
+| File                                  | Lines | Status |
+| ------------------------------------- | ----- | ------ |
 | `catalog/internal/cattest/helpers.go` | 330   | ⚠️ OVER |
-| All other files                       | < 250 | ✅      |
+| All other files                       | < 250 | ✅     |
 
 ## io.Closer Interface Status
 

@@ -118,33 +118,33 @@ No example/ project demonstrating encryption usage. The existing examples in `ex
 
 Sorted by impact × ease (Pareto):
 
-| #   | Task                                                                                | Impact | Effort |
-| --- | ----------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | Add `encryption/v2` to `go.work` if not present                                     | High   | 1m     |
-| 2   | Update README.md with algorithm ID and key ID examples                              | Medium | 10m    |
-| 3   | Add `EncryptionEncoding` documentation to codec/ module                             | Medium | 10m    |
-| 4   | Verify all examples in doc.go compile (`go test -run Example`)                      | Medium | 5m     |
-| 5   | Add `Algorithm` method to `Encrypter` interface (or document why not)               | Medium | 20m    |
-| 6   | Add `encoding` field to `EncryptionEncoding` to carry inner codec info              | Medium | 15m    |
-| 7   | Consider `encrypted+json` encoding string instead of just `encrypted`               | Medium | 10m    |
-| 8   | Add key resolver interface `type KeyResolver func(keyID string) (Decrypter, error)` | High   | 30m    |
-| 9   | Document key rotation pattern in README                                             | Medium | 15m    |
-| 10  | Add `encryption/v2` to CI per-module test matrix (buildflow.yml)                    | Medium | 5m     |
-| 11  | Add `nix run .#check-layers` for encryption module                                  | Medium | 5m     |
-| 12  | Create `example/encryption/` demonstrating full sign+encrypt flow                   | High   | 30m    |
-| 13  | Add storage wrapper: `storage.EncryptedEventStore`                                  | High   | 2h     |
-| 14  | Streaming encryption for large payloads (io.Reader/io.Writer)                       | High   | 4h     |
-| 15  | Field-level encryption (`encryption/fieldlevel/`)                                   | High   | 4h     |
-| 16  | Key envelope encryption helper (KMS pattern)                                        | Medium | 2h     |
-| 17  | Add `encryption/v2` to `cmd/api-stability/` golden file                             | Medium | 10m    |
-| 18  | Benchmark: compare with encrypt-then-MAC vs AEAD                                    | Low    | 30m    |
-| 19  | Consider `crypto/cipher.Stream` for streaming mode                                  | Low    | 1h     |
-| 20  | Add versioned ciphertext format (prefix byte for algorithm)                         | Medium | 30m    |
-| 21  | Consider using `golang.org/x/crypto/nacl/secretbox` as alternative                  | Low    | 30m    |
-| 22  | Add `Ciphertext.UnmarshalFrom(io.Reader)` for streaming decode                      | Low    | 1h     |
-| 23  | Investigate `google/tink` for key management integration                            | Medium | 2h     |
-| 24  | Add `encryption/v2` to `catalog/` schema exporter                                   | Low    | 30m    |
-| 25  | Push all commits and verify CI passes                                               | Medium | 5m     |
+| #  | Task                                                                                | Impact | Effort |
+| -- | ----------------------------------------------------------------------------------- | ------ | ------ |
+| 1  | Add `encryption/v2` to `go.work` if not present                                     | High   | 1m     |
+| 2  | Update README.md with algorithm ID and key ID examples                              | Medium | 10m    |
+| 3  | Add `EncryptionEncoding` documentation to codec/ module                             | Medium | 10m    |
+| 4  | Verify all examples in doc.go compile (`go test -run Example`)                      | Medium | 5m     |
+| 5  | Add `Algorithm` method to `Encrypter` interface (or document why not)               | Medium | 20m    |
+| 6  | Add `encoding` field to `EncryptionEncoding` to carry inner codec info              | Medium | 15m    |
+| 7  | Consider `encrypted+json` encoding string instead of just `encrypted`               | Medium | 10m    |
+| 8  | Add key resolver interface `type KeyResolver func(keyID string) (Decrypter, error)` | High   | 30m    |
+| 9  | Document key rotation pattern in README                                             | Medium | 15m    |
+| 10 | Add `encryption/v2` to CI per-module test matrix (buildflow.yml)                    | Medium | 5m     |
+| 11 | Add `nix run .#check-layers` for encryption module                                  | Medium | 5m     |
+| 12 | Create `example/encryption/` demonstrating full sign+encrypt flow                   | High   | 30m    |
+| 13 | Add storage wrapper: `storage.EncryptedEventStore`                                  | High   | 2h     |
+| 14 | Streaming encryption for large payloads (io.Reader/io.Writer)                       | High   | 4h     |
+| 15 | Field-level encryption (`encryption/fieldlevel/`)                                   | High   | 4h     |
+| 16 | Key envelope encryption helper (KMS pattern)                                        | Medium | 2h     |
+| 17 | Add `encryption/v2` to `cmd/api-stability/` golden file                             | Medium | 10m    |
+| 18 | Benchmark: compare with encrypt-then-MAC vs AEAD                                    | Low    | 30m    |
+| 19 | Consider `crypto/cipher.Stream` for streaming mode                                  | Low    | 1h     |
+| 20 | Add versioned ciphertext format (prefix byte for algorithm)                         | Medium | 30m    |
+| 21 | Consider using `golang.org/x/crypto/nacl/secretbox` as alternative                  | Low    | 30m    |
+| 22 | Add `Ciphertext.UnmarshalFrom(io.Reader)` for streaming decode                      | Low    | 1h     |
+| 23 | Investigate `google/tink` for key management integration                            | Medium | 2h     |
+| 24 | Add `encryption/v2` to `catalog/` schema exporter                                   | Low    | 30m    |
+| 25 | Push all commits and verify CI passes                                               | Medium | 5m     |
 
 ## G) Top #1 Question I Cannot Figure Out Myself
 

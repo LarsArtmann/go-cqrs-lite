@@ -23,21 +23,21 @@ Completed all 13 actionable items from the codec/CBOR integration status report.
 
 ## a) FULLY DONE ✅
 
-| #   | What                                                            | Module(s)                 | Impact |
-| --- | --------------------------------------------------------------- | ------------------------- | ------ |
-| 1   | **`event.DefaultCodec`** — mutable package var                  | `event/`                  | HIGH   |
-| 2   | **`stack.WithEventCodec()`** + `Bundle.EventCodec()`            | `stack/`                  | HIGH   |
-| 3   | **`codec.AutoDetect()`** — sniff JSON/CBOR from raw bytes       | `codec/`                  | MED    |
-| 4   | **`codec.Size()`** — compare JSON vs CBOR payload sizes         | `codec/`                  | LOW    |
-| 5   | **`keyasint` CBOR example** — integer keys (CWT pattern)        | `codec/`                  | LOW    |
-| 6   | **Schema validator encrypted/unknown encoding tests**           | `schema/`                 | MED    |
-| 7   | **Codec default asymmetry table in AGENTS.md**                  | `AGENTS.md`               | HIGH   |
-| 8   | **CBOR adoption in deployer-first example**                     | `example/deployer-first/` | MED    |
-| 9   | **gRPC `WithCodec()` option** — server + client codec injection | `transport/grpc/`         | MED    |
-| 10  | **Encryption encoding preservation fix** (bug found + fixed)    | `encryption/`             | HIGH   |
-| 11  | **`encryption.NewCodec` doc warning**                           | `encryption/`             | MED    |
-| 12  | **JSON→CBOR migration guide**                                   | `docs/migration/`         | HIGH   |
-| 13  | **ADR-0044: Blind store encoding stamps** (design doc for v4)   | `docs/adr/`               | HIGH   |
+| #  | What                                                            | Module(s)                 | Impact |
+| -- | --------------------------------------------------------------- | ------------------------- | ------ |
+| 1  | **`event.DefaultCodec`** — mutable package var                  | `event/`                  | HIGH   |
+| 2  | **`stack.WithEventCodec()`** + `Bundle.EventCodec()`            | `stack/`                  | HIGH   |
+| 3  | **`codec.AutoDetect()`** — sniff JSON/CBOR from raw bytes       | `codec/`                  | MED    |
+| 4  | **`codec.Size()`** — compare JSON vs CBOR payload sizes         | `codec/`                  | LOW    |
+| 5  | **`keyasint` CBOR example** — integer keys (CWT pattern)        | `codec/`                  | LOW    |
+| 6  | **Schema validator encrypted/unknown encoding tests**           | `schema/`                 | MED    |
+| 7  | **Codec default asymmetry table in AGENTS.md**                  | `AGENTS.md`               | HIGH   |
+| 8  | **CBOR adoption in deployer-first example**                     | `example/deployer-first/` | MED    |
+| 9  | **gRPC `WithCodec()` option** — server + client codec injection | `transport/grpc/`         | MED    |
+| 10 | **Encryption encoding preservation fix** (bug found + fixed)    | `encryption/`             | HIGH   |
+| 11 | **`encryption.NewCodec` doc warning**                           | `encryption/`             | MED    |
+| 12 | **JSON→CBOR migration guide**                                   | `docs/migration/`         | HIGH   |
+| 13 | **ADR-0044: Blind store encoding stamps** (design doc for v4)   | `docs/adr/`               | HIGH   |
 
 ### Test Coverage
 
@@ -140,48 +140,48 @@ Updated from 1791 → **1796 exports** (5 new public symbols):
 
 ### Quick Wins (< 15 min)
 
-| #   | Task                                                            | Impact | Risk |
-| --- | --------------------------------------------------------------- | ------ | ---- |
-| 1   | Document `event.DefaultCodec` concurrency contract (set-once)   | MED    | none |
-| 2   | Add `RegisterCommandService` `WithCodec` param for API symmetry | LOW    | none |
-| 3   | Rename `configForServer` to `configWithOptions` in grpc/options | LOW    | none |
-| 4   | Add `codec.AutoDetect` test for single-byte inputs              | LOW    | none |
-| 5   | Add CBOR adoption to `example/todo` (second example)            | LOW    | none |
+| # | Task                                                            | Impact | Risk |
+| - | --------------------------------------------------------------- | ------ | ---- |
+| 1 | Document `event.DefaultCodec` concurrency contract (set-once)   | MED    | none |
+| 2 | Add `RegisterCommandService` `WithCodec` param for API symmetry | LOW    | none |
+| 3 | Rename `configForServer` to `configWithOptions` in grpc/options | LOW    | none |
+| 4 | Add `codec.AutoDetect` test for single-byte inputs              | LOW    | none |
+| 5 | Add CBOR adoption to `example/todo` (second example)            | LOW    | none |
 
 ### Medium Effort (30-60 min)
 
-| #   | Task                                                            | Impact | Risk |
-| --- | --------------------------------------------------------------- | ------ | ---- |
-| 6   | Add `stack.WithSnapshotCodec()` for bundle-level snapshot codec | MED    | none |
-| 7   | Add `stack.WithCommandCodec()` / `stack.WithQueryCodec()`       | MED    | none |
-| 8   | Write migration script: scan KV store, re-encode JSON→CBOR      | MED    | data |
-| 9   | Add `event.DefaultCodec` test: concurrent reads are safe        | MED    | none |
-| 10  | Add `codec.AutoDetect` benchmark — overhead vs manual dispatch  | LOW    | none |
-| 11  | Add CBOR to `example/user` (the most basic example)             | LOW    | none |
-| 12  | Add gRPC codec integration test (server CBOR, client CBOR)      | MED    | none |
-| 13  | Refactor `codec.Size()` to avoid the `cborSize` helper          | LOW    | none |
+| #  | Task                                                            | Impact | Risk |
+| -- | --------------------------------------------------------------- | ------ | ---- |
+| 6  | Add `stack.WithSnapshotCodec()` for bundle-level snapshot codec | MED    | none |
+| 7  | Add `stack.WithCommandCodec()` / `stack.WithQueryCodec()`       | MED    | none |
+| 8  | Write migration script: scan KV store, re-encode JSON→CBOR      | MED    | data |
+| 9  | Add `event.DefaultCodec` test: concurrent reads are safe        | MED    | none |
+| 10 | Add `codec.AutoDetect` benchmark — overhead vs manual dispatch  | LOW    | none |
+| 11 | Add CBOR to `example/user` (the most basic example)             | LOW    | none |
+| 12 | Add gRPC codec integration test (server CBOR, client CBOR)      | MED    | none |
+| 13 | Refactor `codec.Size()` to avoid the `cborSize` helper          | LOW    | none |
 
 ### Larger Effort (1-4 hours)
 
-| #   | Task                                                                | Impact | Risk          |
-| --- | ------------------------------------------------------------------- | ------ | ------------- |
-| 14  | Implement blind store envelope wrapper (ADR-0044) in feature branch | HIGH   | breaking      |
-| 15  | Add composite encoding `"cbor+encrypted"` to `encryption.Codec`     | MED    | schema change |
-| 16  | Add `codec.Detect(data) (codec.Codec, error)` returning a codec     | MED    | none          |
-| 17  | Add `event.EnsureCodec(c)` — set DefaultCodec if still JSON         | LOW    | behavioral    |
-| 18  | Add stack-level codec propagation: one option sets all 5 layers     | MED    | none          |
-| 19  | Benchmark: CBOR vs JSON for full event roundtrip (New→Save→Load)    | MED    | none          |
-| 20  | Add `codec.DiagnoseJSON(data)` for side-by-side JSON+CBOR debug     | LOW    | none          |
-| 21  | Add CBOR codec to all remaining examples                            | LOW    | none          |
-| 22  | Write ADR for `event.DefaultCodec` mutable-global pattern           | LOW    | docs          |
+| #  | Task                                                                | Impact | Risk          |
+| -- | ------------------------------------------------------------------- | ------ | ------------- |
+| 14 | Implement blind store envelope wrapper (ADR-0044) in feature branch | HIGH   | breaking      |
+| 15 | Add composite encoding `"cbor+encrypted"` to `encryption.Codec`     | MED    | schema change |
+| 16 | Add `codec.Detect(data) (codec.Codec, error)` returning a codec     | MED    | none          |
+| 17 | Add `event.EnsureCodec(c)` — set DefaultCodec if still JSON         | LOW    | behavioral    |
+| 18 | Add stack-level codec propagation: one option sets all 5 layers     | MED    | none          |
+| 19 | Benchmark: CBOR vs JSON for full event roundtrip (New→Save→Load)    | MED    | none          |
+| 20 | Add `codec.DiagnoseJSON(data)` for side-by-side JSON+CBOR debug     | LOW    | none          |
+| 21 | Add CBOR codec to all remaining examples                            | LOW    | none          |
+| 22 | Write ADR for `event.DefaultCodec` mutable-global pattern           | LOW    | docs          |
 
 ### v4 Preparation
 
-| #   | Task                                                 | Impact | Risk        |
-| --- | ---------------------------------------------------- | ------ | ----------- |
-| 23  | Implement v4 blind store envelope (ADR-0044)         | HIGH   | v4 breaking |
-| 24  | Flip `event.DefaultCodec` default to CBORCodec       | HIGH   | v4 breaking |
-| 25  | Design codec negotiation protocol for gRPC transport | MED    | protocol    |
+| #  | Task                                                 | Impact | Risk        |
+| -- | ---------------------------------------------------- | ------ | ----------- |
+| 23 | Implement v4 blind store envelope (ADR-0044)         | HIGH   | v4 breaking |
+| 24 | Flip `event.DefaultCodec` default to CBORCodec       | HIGH   | v4 breaking |
+| 25 | Design codec negotiation protocol for gRPC transport | MED    | protocol    |
 
 ---
 

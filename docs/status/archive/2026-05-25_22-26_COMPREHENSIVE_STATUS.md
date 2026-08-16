@@ -136,43 +136,43 @@ One minor regression: `catalog` coverage dropped from 96.8% → 96.4% due to new
 
 ### High Impact (1% → 51%)
 
-| #   | Task                                                                            | Why                                           |
-| --- | ------------------------------------------------------------------------------- | --------------------------------------------- |
-| 1   | **Remove `DeriveAggregateID`** — YAGNI, zero callers                            | Cleaner API, removes dead code                |
-| 2   | **Unexport `AggregateMarker`** + clean `example/todo`                           | API consistency, removes misleading embedding |
-| 3   | **Scan branded IDs directly from SQL** — eliminate 4 intermediate string parses | Type safety, less code                        |
-| 4   | **Raise eventcatalog coverage to >90%** — test new resource generators          | Reliability                                   |
-| 5   | **Update AGENTS.md** — fluent APIs, branded types, coverage numbers             | Knowledge preservation                        |
+| # | Task                                                                            | Why                                           |
+| - | ------------------------------------------------------------------------------- | --------------------------------------------- |
+| 1 | **Remove `DeriveAggregateID`** — YAGNI, zero callers                            | Cleaner API, removes dead code                |
+| 2 | **Unexport `AggregateMarker`** + clean `example/todo`                           | API consistency, removes misleading embedding |
+| 3 | **Scan branded IDs directly from SQL** — eliminate 4 intermediate string parses | Type safety, less code                        |
+| 4 | **Raise eventcatalog coverage to >90%** — test new resource generators          | Reliability                                   |
+| 5 | **Update AGENTS.md** — fluent APIs, branded types, coverage numbers             | Knowledge preservation                        |
 
 ### Medium Impact (4% → 64%)
 
-| #   | Task                                                                            | Why                                         |
-| --- | ------------------------------------------------------------------------------- | ------------------------------------------- |
-| 6   | **Add Pebble serialization round-trip tests** — verify branded IDs survive JSON | Bug prevention                              |
-| 7   | **Add `DataStoreOption` fluent API**                                            | API consistency with Service/Domain/Channel |
-| 8   | **Add `FlowOption` fluent API**                                                 | API consistency                             |
-| 9   | **Update `example/user` to use all fluent APIs**                                | Documentation via example                   |
-| 10  | **Add storage error path tests** — 89.3% → >92%                                 | Reliability                                 |
-| 11  | **Add integration test for outbox with branded IDs**                            | Bug prevention                              |
-| 12  | **Add `catalog/schemautil` tests** — 84.2% → >90%                               | Coverage                                    |
-| 13  | **Document auto-derive producers/consumers** in godoc                           | Usability                                   |
-| 14  | **Push all commits to origin**                                                  | Collaboration                               |
-| 15  | **Run `nix run .#lint`**                                                        | Quality gate                                |
+| #  | Task                                                                            | Why                                         |
+| -- | ------------------------------------------------------------------------------- | ------------------------------------------- |
+| 6  | **Add Pebble serialization round-trip tests** — verify branded IDs survive JSON | Bug prevention                              |
+| 7  | **Add `DataStoreOption` fluent API**                                            | API consistency with Service/Domain/Channel |
+| 8  | **Add `FlowOption` fluent API**                                                 | API consistency                             |
+| 9  | **Update `example/user` to use all fluent APIs**                                | Documentation via example                   |
+| 10 | **Add storage error path tests** — 89.3% → >92%                                 | Reliability                                 |
+| 11 | **Add integration test for outbox with branded IDs**                            | Bug prevention                              |
+| 12 | **Add `catalog/schemautil` tests** — 84.2% → >90%                               | Coverage                                    |
+| 13 | **Document auto-derive producers/consumers** in godoc                           | Usability                                   |
+| 14 | **Push all commits to origin**                                                  | Collaboration                               |
+| 15 | **Run `nix run .#lint`**                                                        | Quality gate                                |
 
 ### Lower Impact (polish & future)
 
-| #   | Task                                                | Why                          |
-| --- | --------------------------------------------------- | ---------------------------- |
-| 16  | **Add EventCatalog changelog generation**           | Feature completeness         |
-| 17  | **Add EventCatalog diagram generation**             | Feature completeness         |
-| 18  | **Add `MsgExamples` MessageOption**                 | Feature completeness         |
-| 19  | **Add `ServiceFlows` option**                       | Feature completeness         |
-| 20  | **Add `DomainFlows` option**                        | Feature completeness         |
-| 21  | **Benchmark Pebble serialization with branded IDs** | Performance verification     |
-| 22  | **Audit all `.String()` calls on branded IDs**      | Find unnecessary conversions |
-| 23  | **Add `go vet` + `staticcheck` to CI**              | Quality                      |
-| 24  | **Fix `./sync/...` stale pattern in flake.nix**     | Clean CI                     |
-| 25  | **Add godoc examples for all option functions**     | Discoverability              |
+| #  | Task                                                | Why                          |
+| -- | --------------------------------------------------- | ---------------------------- |
+| 16 | **Add EventCatalog changelog generation**           | Feature completeness         |
+| 17 | **Add EventCatalog diagram generation**             | Feature completeness         |
+| 18 | **Add `MsgExamples` MessageOption**                 | Feature completeness         |
+| 19 | **Add `ServiceFlows` option**                       | Feature completeness         |
+| 20 | **Add `DomainFlows` option**                        | Feature completeness         |
+| 21 | **Benchmark Pebble serialization with branded IDs** | Performance verification     |
+| 22 | **Audit all `.String()` calls on branded IDs**      | Find unnecessary conversions |
+| 23 | **Add `go vet` + `staticcheck` to CI**              | Quality                      |
+| 24 | **Fix `./sync/...` stale pattern in flake.nix**     | Clean CI                     |
+| 25 | **Add godoc examples for all option functions**     | Discoverability              |
 
 ---
 

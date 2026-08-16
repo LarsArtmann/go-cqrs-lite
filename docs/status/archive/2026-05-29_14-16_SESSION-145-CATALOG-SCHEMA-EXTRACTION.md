@@ -57,13 +57,13 @@ ok  catalog/openapi  ok  catalog/schema
 
 After extracting `schema/`, the root still contains:
 
-| Concern                  | Files                                                                                                  | Lines | Could Extract?                                                 |
-| ------------------------ | ------------------------------------------------------------------------------------------------------ | ----- | -------------------------------------------------------------- |
-| **Types (IDs, structs)** | `types.go`, `types_helpers.go`, `types_resources.go`                                                   | ~365  | ❌ Foundation — must stay                                      |
+| Concern                  | Files                                                                                                  | Lines | Could Extract?                                                |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ | ----- | ------------------------------------------------------------- |
+| **Types (IDs, structs)** | `types.go`, `types_helpers.go`, `types_resources.go`                                                   | ~365  | ❌ Foundation — must stay                                     |
 | **Registry**             | `registry.go`, `registry_build.go`, `registry_copy.go`, `registry_helpers.go`, `registry_resources.go` | ~679  | ⚠️ Internal copy helpers can't move (access unexported fields) |
 | **Builder + Config**     | `build.go`, `message_config.go`, `channel_config.go`, `domain_config.go`, `service_config.go`          | ~390  | ⚠️ Primary API — moving would break ergonomics                 |
 | **Validation**           | `validate.go`                                                                                          | 165   | ⚠️ Method on Catalog, not easily extractable                   |
-| **Misc**                 | `id_parse.go`, `walk.go`, `exporter.go`, `doc.go`, `schema.go`                                         | ~280  | ❌ Too small or re-exports                                     |
+| **Misc**                 | `id_parse.go`, `walk.go`, `exporter.go`, `doc.go`, `schema.go`                                         | ~280  | ❌ Too small or re-exports                                    |
 
 The remaining 19 files are tightly coupled — they form the core catalog builder API. Further extraction would require API-breaking changes or excessive type aliases.
 
@@ -144,33 +144,33 @@ The git index has pre-existing staged changes (pebble/backend.go, storage/sql_ag
 
 ## f) Top #25 Things to Get Done Next
 
-| #   | Priority | Task                                                                     | Effort |
-| --- | -------- | ------------------------------------------------------------------------ | ------ |
-| 1   | 🔴 P0    | Fix Pebble `ScanPrefix` test failure                                     | S      |
-| 2   | 🔴 P0    | Commit the staged pebble/storage/example/saga changes properly           | S      |
-| 3   | 🔴 P0    | Finish and commit the EventStore adapter (`core/store/eventstore.go`)    | M      |
-| 4   | 🟡 P1    | Migrate 4 schema test files from `catalog/` root to `catalog/schema/`    | S      |
-| 5   | 🟡 P1    | Add README.md to `catalog/schema/`                                       | S      |
-| 6   | 🟡 P1    | Investigate and fix turso module build                                   | S      |
-| 7   | 🟡 P1    | Run full integration test suite and verify cross-module compat           | S      |
-| 8   | 🟡 P1    | Audit all `replace` directives across go.mod files for consistency       | M      |
-| 9   | 🟡 P1    | Commit AGENTS.md update (module count 22→21, saga removal)               | S      |
-| 10  | 🟡 P1    | Commit flake.nix update (saga-pattern example)                           | S      |
-| 11  | 🟢 P2    | Add coverage report for `catalog/schema/` sub-package                    | S      |
-| 12  | 🟢 P2    | Consider extracting `catalog/internal/cattest/` to public test helper    | M      |
-| 13  | 🟢 P2    | Add `catalog/schema/` doc.go with package overview                       | S      |
-| 14  | 🟢 P2    | Review catalog `registry_copy.go` for necessity (321 lines of copy code) | M      |
-| 15  | 🟢 P2    | Add benchmark tests for `schema.FromType[T]()` reflection                | S      |
-| 16  | 🟢 P2    | Review `cmd/cqrs-gen` module — missing from go.work?                     | S      |
-| 17  | 🟢 P2    | Add `catalog/schema` to AGENTS.md module listing                         | S      |
-| 18  | 🟢 P2    | Clean up git staging area (unrelated staged changes)                     | S      |
-| 19  | 🟢 P2    | Verify `example/saga-pattern/` builds and runs correctly                 | S      |
-| 20  | 🟢 P2    | Add catalog schema examples to `example_test.go`                         | S      |
-| 21  | 🔵 P3    | Publish v0.1.0 tags to eliminate `replace` directive blocker             | L      |
-| 22  | 🔵 P3    | Add OpenAPI 3.1 output support to `catalog/openapi/`                     | M      |
-| 23  | 🔵 P3    | Consider `catalog/schema/` supporting custom struct tag parsers          | M      |
-| 24  | 🔵 P3    | Add JSON Schema validation (draft-07/2020-12) to `catalog/schema/`       | L      |
-| 25  | 🔵 P3    | Full code quality scan (lint, dupl, vet) across all modules              | M      |
+| #  | Priority | Task                                                                     | Effort |
+| -- | -------- | ------------------------------------------------------------------------ | ------ |
+| 1  | 🔴 P0    | Fix Pebble `ScanPrefix` test failure                                     | S      |
+| 2  | 🔴 P0    | Commit the staged pebble/storage/example/saga changes properly           | S      |
+| 3  | 🔴 P0    | Finish and commit the EventStore adapter (`core/store/eventstore.go`)    | M      |
+| 4  | 🟡 P1    | Migrate 4 schema test files from `catalog/` root to `catalog/schema/`    | S      |
+| 5  | 🟡 P1    | Add README.md to `catalog/schema/`                                       | S      |
+| 6  | 🟡 P1    | Investigate and fix turso module build                                   | S      |
+| 7  | 🟡 P1    | Run full integration test suite and verify cross-module compat           | S      |
+| 8  | 🟡 P1    | Audit all `replace` directives across go.mod files for consistency       | M      |
+| 9  | 🟡 P1    | Commit AGENTS.md update (module count 22→21, saga removal)               | S      |
+| 10 | 🟡 P1    | Commit flake.nix update (saga-pattern example)                           | S      |
+| 11 | 🟢 P2    | Add coverage report for `catalog/schema/` sub-package                    | S      |
+| 12 | 🟢 P2    | Consider extracting `catalog/internal/cattest/` to public test helper    | M      |
+| 13 | 🟢 P2    | Add `catalog/schema/` doc.go with package overview                       | S      |
+| 14 | 🟢 P2    | Review catalog `registry_copy.go` for necessity (321 lines of copy code) | M      |
+| 15 | 🟢 P2    | Add benchmark tests for `schema.FromType[T]()` reflection                | S      |
+| 16 | 🟢 P2    | Review `cmd/cqrs-gen` module — missing from go.work?                     | S      |
+| 17 | 🟢 P2    | Add `catalog/schema` to AGENTS.md module listing                         | S      |
+| 18 | 🟢 P2    | Clean up git staging area (unrelated staged changes)                     | S      |
+| 19 | 🟢 P2    | Verify `example/saga-pattern/` builds and runs correctly                 | S      |
+| 20 | 🟢 P2    | Add catalog schema examples to `example_test.go`                         | S      |
+| 21 | 🔵 P3    | Publish v0.1.0 tags to eliminate `replace` directive blocker             | L      |
+| 22 | 🔵 P3    | Add OpenAPI 3.1 output support to `catalog/openapi/`                     | M      |
+| 23 | 🔵 P3    | Consider `catalog/schema/` supporting custom struct tag parsers          | M      |
+| 24 | 🔵 P3    | Add JSON Schema validation (draft-07/2020-12) to `catalog/schema/`       | L      |
+| 25 | 🔵 P3    | Full code quality scan (lint, dupl, vet) across all modules              | M      |
 
 ---
 

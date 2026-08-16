@@ -9,6 +9,7 @@
 ## a) FULLY DONE
 
 ### 1. BUG: `--strict` hard-fail on load errors
+
 **Status**: ~~Functionally complete. Two uncommitted fixes remain (see c).~~ ✅ FULLY COMMITTED — `isStrictMode` and `loadErrorCount` are in the codebase (`run.go:225`, `output_grouping.go:55`). See CHANGELOG `[Unreleased]`.
 
 - **`run.go:225`** — Added `isStrictMode(cfg)` helper that checks both `cfg.StrictLoad` AND `cfg.StrictMode` (cmdguard's built-in `--strict` flag, short `-s`). The `handleLoadErrors` function now calls `isStrictMode()` instead of checking only `cfg.StrictLoad`.
@@ -17,6 +18,7 @@
 - **Smoke-tested**: `--strict` flag now works without panic (resolves cmdguard flag collision).
 
 ### 2. UX: `exclude` glob pattern — path globs now work
+
 **Status**: Fully done. Committed by auto-commit daemon in `1551bd396`.
 
 - **`filters.go:209-310`** — Rewrote `filterByExcludedPaths` to use new `matchExcludePattern()` function supporting three matching modes:
@@ -27,6 +29,7 @@
 - **`output_test.go`** — Added `TestFilterByExcludedPaths_DoubleStarGlob` (9 subtests covering `**` at start/middle/end), `TestFilterByExcludedPaths_BackwardCompatSubstrings`.
 
 ### 3. FEATURE: Suppression-drift detection
+
 **Status**: Fully done. Committed by auto-commit daemon in `515b50bbf`.
 
 - **`pkg/suppression/stale.go:226-337`** — Added `AuditSuppressions()` function, `SuppressionAuditEntry` struct, and `AuditStatus` enum (`AuditActive`, `AuditStale`, `AuditUnknownRule`). Collects ALL inline suppressions and cross-references them with findings + known rule IDs.
@@ -36,6 +39,7 @@
 - **Smoke-tested**: `cqrs-lint doctor --audit-suppressions` correctly shows 2 suppressions (1 active, 1 stale) on cqrs-lint itself.
 
 ### 4. Minor: Doctor suggested config for multi-module
+
 **Status**: Fully done. Committed by auto-commit daemon in `515b50bbf`.
 
 - **`doctor.go:346-568`** — `renderDoctorSuggestedConfig` now detects multi-module workspaces (`len(actx.FeatureProfiles) > 1`) and calls `mergeMostPermissiveProfile()` to compute the union of all per-module profiles. Prints "Multi-module workspace: using the MOST PERMISSIVE profile" warning instead of the standard copy-paste text.
@@ -46,6 +50,7 @@
 ## b) PARTIALLY DONE
 
 ### Uncommitted fixes for `--strict` flag collision
+
 **Status**: 2 files modified but NOT committed (`main.go`, `run.go`).
 
 The auto-commit daemon committed an intermediate version of my work where I added a `Strict bool` field with `flag:"strict"` to `AppConfig` — which collides with cmdguard.Config's existing `StrictMode` field (same flag name). I discovered and fixed this, but the fix is in the working tree only:
@@ -71,6 +76,7 @@ Without this fix, `cqrs-lint --help` panics with `cqrs-lint flag redefined: stri
 ## d) TOTALLY FUCKED UP
 
 ### `--strict` flag collision shipped in a daemon commit
+
 **Severity**: High — breaks `cqrs-lint --help` with a panic.
 
 Commit `515b50bbf` (committed by the auto-commit daemon) contains the broken `Strict bool` field with `flag:"strict"` that collides with the inherited `cmdguard.Config.StrictMode` field. Anyone building from that commit gets a panic on every invocation. My fix exists in the working tree but hasn't been committed yet.
@@ -78,6 +84,7 @@ Commit `515b50bbf` (committed by the auto-commit daemon) contains the broken `St
 **What I should have done**: Before adding a new flag field, checked the embedded `cmdguard.Config` struct for existing flag names. I discovered the collision only when I tried to build the binary for a smoke test.
 
 ### doctor.go is 568 lines (exceeds 350-line internal limit)
+
 **Status**: Pre-existing issue worsened by my additions.
 
 `doctor.go` was already 471 lines before this session. I added ~100 lines of `mergeMostPermissiveProfile` logic to it, pushing it to 568. The AGENTS.md states "Max 350 lines/file (CI-enforced)." I put the audit logic in a separate `doctor_audit.go` (132 lines) but the profile-merge logic went into `doctor.go` because it's tightly coupled to `renderDoctorSuggestedConfig`. Should have been extracted to `doctor_profile.go` or similar.
@@ -98,12 +105,14 @@ Commit `515b50bbf` (committed by the auto-commit daemon) contains the broken `St
 ## f) Up to 50 Things to Get Done Next
 
 ### Critical (blocks shipping)
+
 ~~1. **Commit the `--strict` flag collision fix** (main.go + run.go) — the binary is broken without it~~ done - committed (banner at top of this report confirms; CHANGELOG [Unreleased])
 ~~2. **Extract `mergeMostPermissiveProfile` + helpers from doctor.go** into `doctor_profile.go` to get under 350 lines~~ done - doctor.go split into doctor/doctor_profile/doctor_suppressions (2026-08-14)
 ~~3. **Regenerate api-surface golden** — `cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" main.go -update` (may need build-tag fix first)~~ done - golden current (4133 exports, green in every verify)
 ~~4. **Run `nix run .#verify`** — full verification gate (build + vet + test + race + lint + doc-check)~~ done at 5f2198189 (three fully-green verifies since)
 
 ### Tests
+
 ~~5. **Write integration test for `--strict` hard-fail** — create a testdata fixture with a compile error, verify exit code is non-zero~~ done - strict tests in run_test.go / run_severity_test.go
 ~~6. **Write integration test for `--strict-load` hard-fail** — same scenario, verify the specific error message~~ done - same
 ~~7. **Write test for `outputFindings` with `loadErrorCount > 0`** — verify the INCOMPLETE banner appears and "Clean!" does not~~ done - loadErrorCount tests in run_test.go
@@ -115,6 +124,7 @@ Commit `515b50bbf` (committed by the auto-commit daemon) contains the broken `St
 13. **Test `--audit-suppressions` with unknown-rule suppressions** — verify typo detection
 
 ### Documentation
+
 ~~14. **Add CHANGELOG entries** for all 4 fixes (strict-fail, exclude glob, suppression audit, multi-module doctor)~~ done - CHANGELOG/ROADMAP [Unreleased] document --strict, exclude globs, suppression-drift audit, multi-module doctor
 15. **Update cqrs-lint README.md** — document `--strict` flag, `**` glob patterns, `doctor --audit-suppressions`
 16. **Update explain.go** — add `--audit-suppressions` to the doctor section
@@ -122,6 +132,7 @@ Commit `515b50bbf` (committed by the auto-commit daemon) contains the broken `St
 18. **Update `.agents/skills/go-cqrs-lite/references/` if any recipe references cqrs-lint** — check for glob/exclude docs
 
 ### Robustness
+
 19. **Handle `**` at the start of a pattern followed by a literal segment** — e.g. `**/vendor/*.go` should match `vendor/foo.go` (zero segments consumed by `**`)
 20. **Handle multiple `**` in one pattern** — e.g. `src/**/gen/**/*.go` — current recursive matcher may not handle this correctly
 21. **Add path normalization for `matchExcludePattern`** — convert `\` to `/` on Windows before matching
@@ -131,15 +142,17 @@ Commit `515b50bbf` (committed by the auto-commit daemon) contains the broken `St
 25. **Consider exit code for `--audit-suppressions`** when stale suppressions are found — should it exit non-zero?
 
 ### Feedback Item Follow-ups
+
 26. **Implement "Option B" from feedback item 1** — the full banner with skipped-file count (currently shows package count, not file count: "1 package(s) failed to load (79 files skipped)")
 27. **Count and display skipped files** — the WARNING line says "1 package(s) failed to load" but doesn't say how many files were skipped
 28. **Add `cqrs-lint doctor --audit-suppressions --fix`** — auto-remove stale suppression comments <- OPEN. TODO_LIST 'cqrs-lint' Wishlist (--doctor --fix)
-~~29. **Add suppression "reason drift" detection** (feedback item 3, bullet 4) — flag comments referencing code patterns that no longer exist~~ done - stale-suppression detection shipped (doctor_audit.go; 'suppression-drift audit' in ROADMAP highlights)
-30. **Add suppression "age" tracking** — show when a suppression was first added (via git blame) for audit context
-~~31. **Support per-module `.cqrs-lint.json`** (feedback item 4, option 3) — monorepo inheritance for feature profiles~~ done - per-module .cqrs-lint.json supported (pkg/analyzer/rules_config.go)
-32. **Add `doctor` warning when pinning workspace profile** — explicitly state which sub-module findings will be silenced
+    ~~29. **Add suppression "reason drift" detection** (feedback item 3, bullet 4) — flag comments referencing code patterns that no longer exist~~ done - stale-suppression detection shipped (doctor_audit.go; 'suppression-drift audit' in ROADMAP highlights)
+29. **Add suppression "age" tracking** — show when a suppression was first added (via git blame) for audit context
+    ~~31. **Support per-module `.cqrs-lint.json`** (feedback item 4, option 3) — monorepo inheritance for feature profiles~~ done - per-module .cqrs-lint.json supported (pkg/analyzer/rules_config.go)
+30. **Add `doctor` warning when pinning workspace profile** — explicitly state which sub-module findings will be silenced
 
 ### Code Quality
+
 ~~33. **Run `nix fmt`** on all changed files — ensure gofumpt + goimports compliance~~ done - lint 76/76 clean since 444be10a7
 ~~34. **Run `nix run .#lint`** — golangci-lint may catch issues (gosec, depguard, etc.)~~ done - same
 ~~35. **Check depguard allow-list** — the new `io` import in `doctor_audit.go` and `finding` import in `doctor.go` need to be in the allow list (if enforced)~~ done - lint clean; depguard green
@@ -149,6 +162,7 @@ Commit `515b50bbf` (committed by the auto-commit daemon) contains the broken `St
 ~~39. **Verify the `art-dupl-baseline.json`** doesn't need updating for the new glob-matching code~~ done - baseline re-pinned 92->97; gate green
 
 ### Polish
+
 40. **Color the audit status labels** — `ACTIVE` in green, `STALE` in yellow, `UNKNOWN` in red
 41. **Add `--audit-suppressions --format json`** for CI tooling
 42. **Show the total suppression count in the normal `doctor` output** (not just `--audit-suppressions`)
@@ -158,6 +172,7 @@ Commit `515b50bbf` (committed by the auto-commit daemon) contains the broken `St
 46. **Test the `INCOMPLETE ANALYSIS` banner with `--format sarif`** — SARIF should include load errors as run warnings
 
 ### Architecture
+
 47. **Consider a `LoadError` finding type** — represent load errors as first-class findings so they flow through the normal output pipeline
 48. **Consider making `--strict` the default in CI mode** — detect CI environment and enable strict mode automatically
 49. **Consider a `--audit-suppressions --stale-only` flag** — only show stale/unknown, hide active suppressions for cleaner CI output
@@ -168,14 +183,16 @@ Commit `515b50bbf` (committed by the auto-commit daemon) contains the broken `St
 ## g) Questions I Cannot Answer Myself
 
 ### Q1: Should `--strict` be the same as `--strict-load`, or should it also enforce stricter finding thresholds?
+
 cmdguard's `--strict` (`StrictMode`) is described as "Enable strict mode validation." I wired it to fail on load errors (same as `--strict-load`). But "strict mode" in other linters (e.g., golangci-lint) often means "treat warnings as errors" or "show more findings." Should `--strict` also raise `--min-severity` to `error`, or should it remain a pure alias for `--strict-load`?
 
 ### Q2: Should `doctor --audit-suppressions` exit non-zero when stale suppressions are found?
+
 This determines whether it can be used as a CI gate. The normal lint run exits non-zero on error-severity findings. Should the audit command do the same for stale suppressions, or always exit 0 (advisory)? (Note: `--fail-on-stale-suppressions` already exists as a flag on the main `cqrs-lint` command, but `doctor` is a subcommand with its own exit-code semantics.)
 
 ### Q3: The auto-commit daemon committed intermediate (broken) versions of my work. Should I force-push/amend, or just commit the fix on top?
-Commit `515b50bbf` contains the `flag:"strict"` collision that panics on `--help`. The fix is in my working tree. Since the AGENTS.md says "NEVER force push" and "NEVER git reset," the only option seems to be a follow-up commit. But if this were a published tag, the broken commit would be a problem. What's the policy for fixing broken daemon commits?
 
+Commit `515b50bbf` contains the `flag:"strict"` collision that panics on `--help`. The fix is in my working tree. Since the AGENTS.md says "NEVER force push" and "NEVER git reset," the only option seems to be a follow-up commit. But if this were a published tag, the broken commit would be a problem. What's the policy for fixing broken daemon commits?
 
 ---
 

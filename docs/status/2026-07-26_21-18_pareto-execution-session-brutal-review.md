@@ -10,51 +10,51 @@
 
 ### Wave 1 — The 1% + 4% (5 tasks)
 
-| #   | Task                                          | Verification                                                                                                          |
-| --- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Fix ADR-0069 index gap**                    | Added to `docs/README.md` + `docs/adr/README.md`. CI check added to `scripts/verify-docs.sh` preventing future drift. |
-| 2   | **Fix 5 benchkit timing tests**               | Added race-aware guard for `TestRun_AnalyticalJournalScans`. All tests pass under `-race -count=3`.                   |
-| 3   | **Run `nix run .#verify` GREEN**              | Build + vet + test + race + lint + API stability + doc-check (948 refs) — all pass.                                   |
-| 4   | **Fix benchkit per-module build**             | Updated stale `storage/pebble`, `listing`, `scheduling` deps from v4.0.3 → v4.1.0 in benchkit/go.mod.                 |
-| 5   | **Tag `metaengine/projectionadapter/v4.0.0`** | Tag created locally. **NOT pushed to origin** (see section d).                                                        |
+| # | Task                                          | Verification                                                                                                          |
+| - | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| 1 | **Fix ADR-0069 index gap**                    | Added to `docs/README.md` + `docs/adr/README.md`. CI check added to `scripts/verify-docs.sh` preventing future drift. |
+| 2 | **Fix 5 benchkit timing tests**               | Added race-aware guard for `TestRun_AnalyticalJournalScans`. All tests pass under `-race -count=3`.                   |
+| 3 | **Run `nix run .#verify` GREEN**              | Build + vet + test + race + lint + API stability + doc-check (948 refs) — all pass.                                   |
+| 4 | **Fix benchkit per-module build**             | Updated stale `storage/pebble`, `listing`, `scheduling` deps from v4.0.3 → v4.1.0 in benchkit/go.mod.                 |
+| 5 | **Tag `metaengine/projectionadapter/v4.0.0`** | Tag created locally. **NOT pushed to origin** (see section d).                                                        |
 
 ### Wave 2 — High-impact (7 tasks)
 
-| #   | Task                                            | Verification                                                                           |
-| --- | ----------------------------------------------- | -------------------------------------------------------------------------------------- |
-| 6   | **Document `otel.WithoutGlobalRegistration()`** | Added to AGENTS.md OTel section.                                                       |
-| 7   | **Fix `#vulncheck` nix app**                    | Changed from stdin (`-mode=source`) to `./...` pattern.                                |
-| 8   | **Fix dead Codec test**                         | Replaced dead branch in `soak_test.go` with dedicated `TestConfig_CodecRoundTrip`.     |
-| 9   | **Real gocognit fix**                           | Extracted `queryMessageCol` helper from `TestSinkUpsert`. Removed `//nolint:gocognit`. |
-| 10  | **Investigate v4.0.4 tags**                     | Tree content verified — both candidate commits share same message. Tags are correct.   |
-| 11  | **Verify metaengine coverage**                  | Ran `go test -cover`: 85.0%. Updated FEATURES.md from 87.7% → 85.0%.                   |
-| 18  | **Fix CHANGELOG 56→58**                         | Fixed two stale "56" references in CHANGELOG.md.                                       |
+| #  | Task                                            | Verification                                                                           |
+| -- | ----------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 6  | **Document `otel.WithoutGlobalRegistration()`** | Added to AGENTS.md OTel section.                                                       |
+| 7  | **Fix `#vulncheck` nix app**                    | Changed from stdin (`-mode=source`) to `./...` pattern.                                |
+| 8  | **Fix dead Codec test**                         | Replaced dead branch in `soak_test.go` with dedicated `TestConfig_CodecRoundTrip`.     |
+| 9  | **Real gocognit fix**                           | Extracted `queryMessageCol` helper from `TestSinkUpsert`. Removed `//nolint:gocognit`. |
+| 10 | **Investigate v4.0.4 tags**                     | Tree content verified — both candidate commits share same message. Tags are correct.   |
+| 11 | **Verify metaengine coverage**                  | Ran `go test -cover`: 85.0%. Updated FEATURES.md from 87.7% → 85.0%.                   |
+| 18 | **Fix CHANGELOG 56→58**                         | Fixed two stale "56" references in CHANGELOG.md.                                       |
 
 ### Wave 3 — Medium impact (8 tasks)
 
-| #   | Task                                       | Verification                                                                                                                                   |
-| --- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 13  | **Property test for idempotency.Store**    | 4 rapid-based tests: Record idempotency, concurrent CheckAndRecord, key independence, TTL expiry. **Only tested MemoryStore** (see section d). |
-| 15  | **Audit tag-release.sh**                   | Script already has pipefail, `--dry-run`, single-module scoping. No changes needed.                                                            |
-| 16  | **Annotate historical files**              | Annotated 6 of ~10 files (see section b).                                                                                                      |
-| 17  | **Auto-generate ADR index**                | CI check added to `verify-docs.sh` comparing ADR file count vs index rows.                                                                     |
-| 22  | **Run `#check-layers`**                    | Module layer check passed.                                                                                                                     |
-| 23  | **Run `#check-arch` / `#check-isolation`** | All architecture + isolation checks passed.                                                                                                    |
-| 25  | **Document 75→72 clone reduction**         | Added summary to `docs/dedup-acceptance.md`.                                                                                                   |
-| 28  | **Move release-fix doc**                   | `git mv docs/release-fix-2026-07-25.md docs/status/`                                                                                           |
-| 29  | **Annotate SKILL-RESTRUCTURE-BRUTAL**      | Resolution section added.                                                                                                                      |
+| #  | Task                                       | Verification                                                                                                                                   |
+| -- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 13 | **Property test for idempotency.Store**    | 4 rapid-based tests: Record idempotency, concurrent CheckAndRecord, key independence, TTL expiry. **Only tested MemoryStore** (see section d). |
+| 15 | **Audit tag-release.sh**                   | Script already has pipefail, `--dry-run`, single-module scoping. No changes needed.                                                            |
+| 16 | **Annotate historical files**              | Annotated 6 of ~10 files (see section b).                                                                                                      |
+| 17 | **Auto-generate ADR index**                | CI check added to `verify-docs.sh` comparing ADR file count vs index rows.                                                                     |
+| 22 | **Run `#check-layers`**                    | Module layer check passed.                                                                                                                     |
+| 23 | **Run `#check-arch` / `#check-isolation`** | All architecture + isolation checks passed.                                                                                                    |
+| 25 | **Document 75→72 clone reduction**         | Added summary to `docs/dedup-acceptance.md`.                                                                                                   |
+| 28 | **Move release-fix doc**                   | `git mv docs/release-fix-2026-07-25.md docs/status/`                                                                                           |
+| 29 | **Annotate SKILL-RESTRUCTURE-BRUTAL**      | Resolution section added.                                                                                                                      |
 
 ### Wave 4 — Polish (11 tasks)
 
-| #   | Task                                          | Verification                                                                               |
-| --- | --------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| 21  | **Scoped nix fmt guidance**                   | Added to AGENTS.md Lint Conventions.                                                       |
-| 26  | **storage/internal/errwrap audit**            | Already documented as declined in TODO_LIST (ADR-0069 per-module helpers).                 |
-| 30  | **Concurrent FoldUpdate + ExecuteTyped test** | `TestConcurrentExecuteTypedUnderWritePressure` — 50 writers + 20 readers under race.       |
-| 31  | **Non-struct FoldUpdate test on SQLite**      | `TestNonStructFoldUpdateSQLite` — int counter on SQLite engine.                            |
-| 33  | **LogTail/GraphNeighbors cross-engine test**  | `TestCrossEngineLogTailParity` + `TestCrossEngineGraphNeighborsParity` — memory vs SQLite. |
-| 40  | **Split slow/fast test suites**               | Added `testing.Short()` skips to 5 benchkit soak tests (35s → 0.05s in short mode).        |
-| 44  | **Merge/rebase branch c9ccdd6e**              | Commit already in master. No action needed.                                                |
+| #  | Task                                          | Verification                                                                               |
+| -- | --------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 21 | **Scoped nix fmt guidance**                   | Added to AGENTS.md Lint Conventions.                                                       |
+| 26 | **storage/internal/errwrap audit**            | Already documented as declined in TODO_LIST (ADR-0069 per-module helpers).                 |
+| 30 | **Concurrent FoldUpdate + ExecuteTyped test** | `TestConcurrentExecuteTypedUnderWritePressure` — 50 writers + 20 readers under race.       |
+| 31 | **Non-struct FoldUpdate test on SQLite**      | `TestNonStructFoldUpdateSQLite` — int counter on SQLite engine.                            |
+| 33 | **LogTail/GraphNeighbors cross-engine test**  | `TestCrossEngineLogTailParity` + `TestCrossEngineGraphNeighborsParity` — memory vs SQLite. |
+| 40 | **Split slow/fast test suites**               | Added `testing.Short()` skips to 5 benchkit soak tests (35s → 0.05s in short mode).        |
+| 44 | **Merge/rebase branch c9ccdd6e**              | Commit already in master. No action needed.                                                |
 
 ### Infrastructure change (user-requested)
 
@@ -78,28 +78,28 @@
 
 ## c) NOT STARTED (17 tasks)
 
-| #   | Task                                                     | Why not started                                                                                                                                         |
-| --- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 12  | **Cut v4.2.0 release**                                   | Requires user approval for tag push. CHANGELOG has 260+ lines of `[Unreleased]`. This is the single highest-impact remaining task.                      |
-| 14  | **Move 3-way contract test to integration/**             | Assessed: integration module would need 2 new module deps (idempotency/kvstore + idempotency/sqlstore) for a minor smell fix. Deferred — risk > reward. |
-| 19  | **Recurring lint-sweep**                                 | Daemon commit hygiene — needs daemon config change, out of scope for code changes.                                                                      |
-| 20  | **Triage daemon commit messages**                        | Same as #19 — daemon config.                                                                                                                            |
-| 24  | **Hand-edit 2 HTML dashboards**                          | PARETO-EXECUTION-STATUS.html, cqrs-ecosystem-audit.html — stale hero sections. Not started.                                                             |
-| 27  | **Investigate dependabot alert**                         | `gh api` returned no results — likely auth issue. Cannot access.                                                                                        |
-| 32  | **Cursor round-trip test for non-numeric keys**          | Identified as needed but not written.                                                                                                                   |
-| 34  | **Promote wrapInfraOrOK to storage/sql, signing, codec** | Found 20+ call sites in storage/sql alone. Large refactor. Not started.                                                                                 |
-| 35  | **spannedRead helper in pebble**                         | 4+ clone groups identified. Not started.                                                                                                                |
-| 36  | **filterDetectors extraction in cqrs-lint**              | Shared by multiple rules. Not started.                                                                                                                  |
-| 37  | **Stack preset stackpreset builder**                     | Parallel boilerplate across presets. Not started.                                                                                                       |
-| 38  | **Test infra helpers**                                   | eventtest.NewTestStreamID, catalogtest, storagetest, codectest. Not started.                                                                            |
-| 39  | **art-dupl CI gate**                                     | Golden file + fail-on-new-groups. Not started.                                                                                                          |
-| 41  | **Parallel verify**                                      | Run independent module tests concurrently. Not started.                                                                                                 |
-| 42  | **Soak test metaengine SQLite**                          | Multi-hour load test. Not started.                                                                                                                      |
-| 43  | **cqrs-bench workload for metaengine**                   | End-to-end Apply → ExecuteTyped. Not started.                                                                                                           |
-| 45  | **Audit accepted clone groups**                          | Verify 72 groups genuinely acceptable. Not started.                                                                                                     |
-| 46  | **--semantic -t 3 art-dupl run**                         | Deeper duplication surface. Not started.                                                                                                                |
-| 47  | **Write TestTagContentMatchesChangelog meta-test**       | Not started.                                                                                                                                            |
-| 48  | **Turso sync 4-way deep look**                           | Not started.                                                                                                                                            |
+| #  | Task                                                     | Why not started                                                                                                                                         |
+| -- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 12 | **Cut v4.2.0 release**                                   | Requires user approval for tag push. CHANGELOG has 260+ lines of `[Unreleased]`. This is the single highest-impact remaining task.                      |
+| 14 | **Move 3-way contract test to integration/**             | Assessed: integration module would need 2 new module deps (idempotency/kvstore + idempotency/sqlstore) for a minor smell fix. Deferred — risk > reward. |
+| 19 | **Recurring lint-sweep**                                 | Daemon commit hygiene — needs daemon config change, out of scope for code changes.                                                                      |
+| 20 | **Triage daemon commit messages**                        | Same as #19 — daemon config.                                                                                                                            |
+| 24 | **Hand-edit 2 HTML dashboards**                          | PARETO-EXECUTION-STATUS.html, cqrs-ecosystem-audit.html — stale hero sections. Not started.                                                             |
+| 27 | **Investigate dependabot alert**                         | `gh api` returned no results — likely auth issue. Cannot access.                                                                                        |
+| 32 | **Cursor round-trip test for non-numeric keys**          | Identified as needed but not written.                                                                                                                   |
+| 34 | **Promote wrapInfraOrOK to storage/sql, signing, codec** | Found 20+ call sites in storage/sql alone. Large refactor. Not started.                                                                                 |
+| 35 | **spannedRead helper in pebble**                         | 4+ clone groups identified. Not started.                                                                                                                |
+| 36 | **filterDetectors extraction in cqrs-lint**              | Shared by multiple rules. Not started.                                                                                                                  |
+| 37 | **Stack preset stackpreset builder**                     | Parallel boilerplate across presets. Not started.                                                                                                       |
+| 38 | **Test infra helpers**                                   | eventtest.NewTestStreamID, catalogtest, storagetest, codectest. Not started.                                                                            |
+| 39 | **art-dupl CI gate**                                     | Golden file + fail-on-new-groups. Not started.                                                                                                          |
+| 41 | **Parallel verify**                                      | Run independent module tests concurrently. Not started.                                                                                                 |
+| 42 | **Soak test metaengine SQLite**                          | Multi-hour load test. Not started.                                                                                                                      |
+| 43 | **cqrs-bench workload for metaengine**                   | End-to-end Apply → ExecuteTyped. Not started.                                                                                                           |
+| 45 | **Audit accepted clone groups**                          | Verify 72 groups genuinely acceptable. Not started.                                                                                                     |
+| 46 | **--semantic -t 3 art-dupl run**                         | Deeper duplication surface. Not started.                                                                                                                |
+| 47 | **Write TestTagContentMatchesChangelog meta-test**       | Not started.                                                                                                                                            |
+| 48 | **Turso sync 4-way deep look**                           | Not started.                                                                                                                                            |
 
 ---
 

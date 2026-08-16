@@ -18,26 +18,26 @@ Replaced the cross-cutting `testhelpers/` module (29→28 modules) with a scoped
 
 ## A) FULLY DONE
 
-| #   | Item                                  | Details                                                                                                                   |
-| --- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Created `event/eventtest/`            | 7 files: `doc.go`, `fake_store.go`, `fake_bus.go`, `fake_snapshot.go`, `event_helpers.go`, `handlers.go`, `assertions.go` |
-| 2   | Migrated all 45 test files            | Bulk import replacement from `testhelpers` → `event/eventtest` across 12 packages                                         |
-| 3   | Inlined command handler stubs         | `command/test_helpers_test.go` (noop, callback, append)                                                                   |
-| 4   | Inlined query handler stubs           | `query/test_helpers_test.go` (failing)                                                                                    |
-| 5   | Inlined integration handler stubs     | `integration/command/test_helpers_test.go`, `integration/query/test_helpers_test.go`                                      |
-| 6   | Inlined middleware handler stubs      | `middleware/test_helpers_test.go` (merged with existing test types)                                                       |
-| 7   | Deleted `testhelpers/`                | 12 files removed (~1,200 lines of library code + ~600 lines of tests)                                                     |
-| 8   | Updated `go.work`                     | Removed `testhelpers` entry                                                                                               |
-| 9   | Updated all `go.mod` files            | Removed `testhelpers` from require and replace directives across 16 modules                                               |
-| 10  | Updated `flake.nix`                   | Removed `testhelpers` from lint/build/test module lists                                                                   |
-| 11  | Updated CI workflows                  | Removed from `ci.yml` and `release.yml` module loops                                                                      |
-| 12  | Updated `scripts/go-mod-graph-local/` | Removed testhelpers case                                                                                                  |
-| 13  | Updated `cmd/api-stability/main.go`   | Changed module reference                                                                                                  |
-| 14  | Updated `AGENTS.md`                   | Module count 29→28, removed all testhelpers references, added eventtest                                                   |
-| 15  | Formatted all files                   | `nix fmt` fixed 45 files                                                                                                  |
-| 16  | `go mod tidy` on all 28 modules       | Clean dependency graphs                                                                                                   |
-| 17  | Full test suite passes                | 34/34 test suites green                                                                                                   |
-| 18  | Full lint passes                      | 22/22 modules zero issues                                                                                                 |
+| #  | Item                                  | Details                                                                                                                   |
+| -- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Created `event/eventtest/`            | 7 files: `doc.go`, `fake_store.go`, `fake_bus.go`, `fake_snapshot.go`, `event_helpers.go`, `handlers.go`, `assertions.go` |
+| 2  | Migrated all 45 test files            | Bulk import replacement from `testhelpers` → `event/eventtest` across 12 packages                                         |
+| 3  | Inlined command handler stubs         | `command/test_helpers_test.go` (noop, callback, append)                                                                   |
+| 4  | Inlined query handler stubs           | `query/test_helpers_test.go` (failing)                                                                                    |
+| 5  | Inlined integration handler stubs     | `integration/command/test_helpers_test.go`, `integration/query/test_helpers_test.go`                                      |
+| 6  | Inlined middleware handler stubs      | `middleware/test_helpers_test.go` (merged with existing test types)                                                       |
+| 7  | Deleted `testhelpers/`                | 12 files removed (~1,200 lines of library code + ~600 lines of tests)                                                     |
+| 8  | Updated `go.work`                     | Removed `testhelpers` entry                                                                                               |
+| 9  | Updated all `go.mod` files            | Removed `testhelpers` from require and replace directives across 16 modules                                               |
+| 10 | Updated `flake.nix`                   | Removed `testhelpers` from lint/build/test module lists                                                                   |
+| 11 | Updated CI workflows                  | Removed from `ci.yml` and `release.yml` module loops                                                                      |
+| 12 | Updated `scripts/go-mod-graph-local/` | Removed testhelpers case                                                                                                  |
+| 13 | Updated `cmd/api-stability/main.go`   | Changed module reference                                                                                                  |
+| 14 | Updated `AGENTS.md`                   | Module count 29→28, removed all testhelpers references, added eventtest                                                   |
+| 15 | Formatted all files                   | `nix fmt` fixed 45 files                                                                                                  |
+| 16 | `go mod tidy` on all 28 modules       | Clean dependency graphs                                                                                                   |
+| 17 | Full test suite passes                | 34/34 test suites green                                                                                                   |
+| 18 | Full lint passes                      | 22/22 modules zero issues                                                                                                 |
 
 ---
 
@@ -49,12 +49,12 @@ Nothing partially done. All items in scope are fully complete.
 
 ## C) NOT STARTED
 
-| #   | Item                                    | Notes                                                                                                                                                                                                   |
-| --- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `event/eventtest/` self-tests           | Currently 0% coverage — no `*_test.go` files yet. The old `testhelpers` had extensive tests.                                                                                                            |
-| 2   | `GOWORK=off` per-module CI verification | The `query` module's `go mod tidy` fails under `GOWORK=off` because `event/eventtest` doesn't exist in the published `event@v1.7.1`. CI runs per-module with `GOWORK=off`, so a version bump is needed. |
-| 3   | Example module test verification        | `example/todo`, `example/user`, etc. were updated but not explicitly tested with `go test`.                                                                                                             |
-| 4   | `storage/` test coverage drop           | 72.7% — the lowest coverage module. Pre-existing, not caused by this change.                                                                                                                            |
+| # | Item                                    | Notes                                                                                                                                                                                                   |
+| - | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `event/eventtest/` self-tests           | Currently 0% coverage — no `*_test.go` files yet. The old `testhelpers` had extensive tests.                                                                                                            |
+| 2 | `GOWORK=off` per-module CI verification | The `query` module's `go mod tidy` fails under `GOWORK=off` because `event/eventtest` doesn't exist in the published `event@v1.7.1`. CI runs per-module with `GOWORK=off`, so a version bump is needed. |
+| 3 | Example module test verification        | `example/todo`, `example/user`, etc. were updated but not explicitly tested with `go test`.                                                                                                             |
+| 4 | `storage/` test coverage drop           | 72.7% — the lowest coverage module. Pre-existing, not caused by this change.                                                                                                                            |
 
 ---
 
@@ -170,8 +170,8 @@ What's the preferred approach?
 | memory                    | 99.0%     | ✅     |
 | otel                      | N/A       | ✅     |
 | pebble                    | covered   | ✅     |
-| **storage**               | **72.7%** | ⚠️     |
-| **schema**                | **77.4%** | ⚠️     |
+| **storage**               | **72.7%** | ⚠️      |
+| **schema**                | **77.4%** | ⚠️      |
 
 ## Lint Results
 

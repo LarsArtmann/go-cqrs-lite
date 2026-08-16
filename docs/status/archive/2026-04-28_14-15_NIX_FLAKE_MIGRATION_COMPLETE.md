@@ -1,9 +1,9 @@
 # Comprehensive Status Report — go-cqrs-lite
 
-**Date:** 2026-04-28 14:15  
-**Reporter:** Crush (AI Engineering Partner)  
-**Session Focus:** Makefile → Nix Flakes migration + full system health check  
-**Git Branch:** master  
+**Date:** 2026-04-28 14:15\
+**Reporter:** Crush (AI Engineering Partner)\
+**Session Focus:** Makefile → Nix Flakes migration + full system health check\
+**Git Branch:** master\
 **Last Commit:** `09e0b2b` — fix(core,memory): defensive copies, consistent nolint, clean up constructors
 
 ---
@@ -203,33 +203,33 @@ This mismatch causes `go mod tidy` to flag them. The fix is either (a) run `go m
 
 ## f) Top #25 Things To Get Done Next
 
-| #   | Priority | Item                                           | Module                | Effort | Impact                   |
-| --- | -------- | ---------------------------------------------- | --------------------- | ------ | ------------------------ |
-| 1   | 🔴 P0    | Fix example `go.mod` tidy drift                | `example/`            | 5min   | Clean gopls              |
-| 2   | 🔴 P0    | Add `testhelpers` to test/coverage apps        | `flake.nix`           | 5min   | Completeness             |
-| 3   | 🔴 P0    | Resolve `go-composable-business-types` privacy | Repo                  | 30min  | Nix purity               |
-| 4   | 🟡 P1    | Boost `core/command` test coverage to >85%     | `core/command`        | 2h     | Quality                  |
-| 5   | 🟡 P1    | Add `EventRetry` middleware tests              | `middleware/`         | 1h     | Parity                   |
-| 6   | 🟡 P1    | Boost `pkg/id` coverage to >85%                | `core/pkg/id`         | 1h     | Quality                  |
-| 7   | 🟡 P1    | Boost `pkg/dispatcher` coverage to >85%        | `core/pkg/dispatcher` | 1.5h   | Quality                  |
-| 8   | 🟡 P1    | Add `testhelpers/` tests to CI/coverage        | `testhelpers/`        | 30min  | Completeness             |
-| 9   | 🟢 P2    | SQL event store (`storage/` module)            | New                   | 2d     | **BLOCKER** for prod use |
-| 10  | 🟢 P2    | Design projection interface                    | New                   | 1d     | Architecture             |
-| 11  | 🟢 P2    | OpenTelemetry tracing middleware               | `middleware/`         | 4h     | Observability            |
-| 12  | 🟢 P2    | Tag v0.1.0 release                             | Repo                  | 30min  | Milestone                |
-| 13  | 🟢 P2    | Archive old status reports                     | `docs/status/`        | 30min  | Hygiene                  |
-| 14  | 🟢 P2    | Resolve `TypedCommand.Command()` validation    | `xtypes/`             | 2h     | API design               |
-| 15  | 🔵 P3    | SQL-backed snapshot store                      | New                   | 1d     | Feature parity           |
-| 16  | 🔵 P3    | Watermill pub/sub adapter                      | New                   | 2d     | Integration              |
-| 17  | 🔵 P3    | Projection/read-model implementation           | New                   | 3d     | Feature                  |
-| 18  | 🔵 P3    | gRPC transport adapter                         | New                   | 2d     | Transport                |
-| 19  | 🔵 P3    | HTTP transport adapter                         | New                   | 2d     | Transport                |
-| 20  | 🔵 P3    | Event upcasting/schema evolution               | `core/event`          | 3d     | Long-term                |
-| 21  | 🔵 P3    | Saga/process manager                           | New                   | 5d     | Advanced                 |
-| 22  | 🔵 P3    | Dead letter queue                              | `middleware/`         | 2d     | Resilience               |
-| 23  | 🔵 P3    | Health check endpoints                         | New                   | 1d     | Ops                      |
-| 24  | 🔵 P3    | E-commerce example                             | `example/`            | 3d     | Documentation            |
-| 25  | 🔵 P3    | Metrics endpoint example                       | `example/`            | 1d     | Documentation            |
+| #  | Priority | Item                                           | Module                | Effort | Impact                   |
+| -- | -------- | ---------------------------------------------- | --------------------- | ------ | ------------------------ |
+| 1  | 🔴 P0    | Fix example `go.mod` tidy drift                | `example/`            | 5min   | Clean gopls              |
+| 2  | 🔴 P0    | Add `testhelpers` to test/coverage apps        | `flake.nix`           | 5min   | Completeness             |
+| 3  | 🔴 P0    | Resolve `go-composable-business-types` privacy | Repo                  | 30min  | Nix purity               |
+| 4  | 🟡 P1    | Boost `core/command` test coverage to >85%     | `core/command`        | 2h     | Quality                  |
+| 5  | 🟡 P1    | Add `EventRetry` middleware tests              | `middleware/`         | 1h     | Parity                   |
+| 6  | 🟡 P1    | Boost `pkg/id` coverage to >85%                | `core/pkg/id`         | 1h     | Quality                  |
+| 7  | 🟡 P1    | Boost `pkg/dispatcher` coverage to >85%        | `core/pkg/dispatcher` | 1.5h   | Quality                  |
+| 8  | 🟡 P1    | Add `testhelpers/` tests to CI/coverage        | `testhelpers/`        | 30min  | Completeness             |
+| 9  | 🟢 P2    | SQL event store (`storage/` module)            | New                   | 2d     | **BLOCKER** for prod use |
+| 10 | 🟢 P2    | Design projection interface                    | New                   | 1d     | Architecture             |
+| 11 | 🟢 P2    | OpenTelemetry tracing middleware               | `middleware/`         | 4h     | Observability            |
+| 12 | 🟢 P2    | Tag v0.1.0 release                             | Repo                  | 30min  | Milestone                |
+| 13 | 🟢 P2    | Archive old status reports                     | `docs/status/`        | 30min  | Hygiene                  |
+| 14 | 🟢 P2    | Resolve `TypedCommand.Command()` validation    | `xtypes/`             | 2h     | API design               |
+| 15 | 🔵 P3    | SQL-backed snapshot store                      | New                   | 1d     | Feature parity           |
+| 16 | 🔵 P3    | Watermill pub/sub adapter                      | New                   | 2d     | Integration              |
+| 17 | 🔵 P3    | Projection/read-model implementation           | New                   | 3d     | Feature                  |
+| 18 | 🔵 P3    | gRPC transport adapter                         | New                   | 2d     | Transport                |
+| 19 | 🔵 P3    | HTTP transport adapter                         | New                   | 2d     | Transport                |
+| 20 | 🔵 P3    | Event upcasting/schema evolution               | `core/event`          | 3d     | Long-term                |
+| 21 | 🔵 P3    | Saga/process manager                           | New                   | 5d     | Advanced                 |
+| 22 | 🔵 P3    | Dead letter queue                              | `middleware/`         | 2d     | Resilience               |
+| 23 | 🔵 P3    | Health check endpoints                         | New                   | 1d     | Ops                      |
+| 24 | 🔵 P3    | E-commerce example                             | `example/`            | 3d     | Documentation            |
+| 25 | 🔵 P3    | Metrics endpoint example                       | `example/`            | 1d     | Documentation            |
 
 ---
 

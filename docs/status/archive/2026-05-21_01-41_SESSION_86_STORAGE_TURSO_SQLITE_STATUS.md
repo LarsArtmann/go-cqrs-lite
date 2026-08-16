@@ -17,14 +17,14 @@ Deep audit and improvement of the `storage` module's SQLite and Turso persistent
 
 ### Session 86 Executed Changes
 
-| #   | Change                                                                                                   | Files                                       | Impact                     |
-| --- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------- | -------------------------- |
-| 1   | Added `TursoSyncDB.Close()` — was missing, callers had no way to release the database connection         | `turso_connector.go`                        | API completeness           |
-| 2   | Added `TursoInitSchema(ctx, db)` — convenience wrapper for `SQLiteInitSchema`                            | `turso_connector.go`                        | Developer experience       |
-| 3   | Added 5 `NewTurso*` constructors: EventStore, SnapshotStore, Outbox, CheckpointStore, TransactionalStore | `turso_connector.go` (+47 lines)            | End-user discoverability   |
-| 4   | Rewrote `turso_connector_test.go`: 3 → 25 tests covering all stores, time-travel, metadata, concurrency  | `turso_connector_test.go` (153→880 lines)   | Test quality               |
-| 5   | Added 6 real-DB benchmarks: SQLite (Save/Load/LoadAll/LoadToVersion) + Turso (Save/Load)                 | `sqlite_bench_test.go` (new, 263 lines)     | Performance visibility     |
-| 6   | Added godoc to `SQLiteCheckpointSchema`, `SQLiteSnapshotSchema`, `SQLiteOutboxSchema`                    | `checkpoint.go`, `snapshot.go`, `outbox.go` | Documentation completeness |
+| # | Change                                                                                                   | Files                                       | Impact                     |
+| - | -------------------------------------------------------------------------------------------------------- | ------------------------------------------- | -------------------------- |
+| 1 | Added `TursoSyncDB.Close()` — was missing, callers had no way to release the database connection         | `turso_connector.go`                        | API completeness           |
+| 2 | Added `TursoInitSchema(ctx, db)` — convenience wrapper for `SQLiteInitSchema`                            | `turso_connector.go`                        | Developer experience       |
+| 3 | Added 5 `NewTurso*` constructors: EventStore, SnapshotStore, Outbox, CheckpointStore, TransactionalStore | `turso_connector.go` (+47 lines)            | End-user discoverability   |
+| 4 | Rewrote `turso_connector_test.go`: 3 → 25 tests covering all stores, time-travel, metadata, concurrency  | `turso_connector_test.go` (153→880 lines)   | Test quality               |
+| 5 | Added 6 real-DB benchmarks: SQLite (Save/Load/LoadAll/LoadToVersion) + Turso (Save/Load)                 | `sqlite_bench_test.go` (new, 263 lines)     | Performance visibility     |
+| 6 | Added godoc to `SQLiteCheckpointSchema`, `SQLiteSnapshotSchema`, `SQLiteOutboxSchema`                    | `checkpoint.go`, `snapshot.go`, `outbox.go` | Documentation completeness |
 
 ### Storage Module — Persistent Backends (End-User Choice at Deployment)
 
@@ -204,43 +204,43 @@ The `testhelpers` package has 10.5% coverage. This is **by design** — test hel
 
 ### Storage Completion (items 1-8)
 
-| #   | Task                                                         | Effort | Impact |
-| --- | ------------------------------------------------------------ | ------ | ------ |
-| 1   | Add `SQLiteEnableWAL(db)` helper                             | 15 min | HIGH   |
-| 2   | Add `OpenSQLite(path)` + `OpenSQLiteInMemory()` constructors | 15 min | HIGH   |
-| 3   | Add `ConfigureSQLitePool(db)` + `ConfigureTursoPool(db)`     | 15 min | HIGH   |
-| 4   | Add `PostgresInitSchema(ctx, db)` convenience function       | 10 min | MEDIUM |
-| 5   | Add storage backend guide (`docs/STORAGE_GUIDE.md`)          | 2h     | HIGH   |
-| 6   | PostgreSQL integration tests with testcontainers             | 4h     | HIGH   |
-| 7   | Turso sync live tests (local sync server)                    | 3h     | HIGH   |
-| 8   | Benchmark comparison: SQLite vs Turso vs Pebble              | 1h     | MEDIUM |
+| # | Task                                                         | Effort | Impact |
+| - | ------------------------------------------------------------ | ------ | ------ |
+| 1 | Add `SQLiteEnableWAL(db)` helper                             | 15 min | HIGH   |
+| 2 | Add `OpenSQLite(path)` + `OpenSQLiteInMemory()` constructors | 15 min | HIGH   |
+| 3 | Add `ConfigureSQLitePool(db)` + `ConfigureTursoPool(db)`     | 15 min | HIGH   |
+| 4 | Add `PostgresInitSchema(ctx, db)` convenience function       | 10 min | MEDIUM |
+| 5 | Add storage backend guide (`docs/STORAGE_GUIDE.md`)          | 2h     | HIGH   |
+| 6 | PostgreSQL integration tests with testcontainers             | 4h     | HIGH   |
+| 7 | Turso sync live tests (local sync server)                    | 3h     | HIGH   |
+| 8 | Benchmark comparison: SQLite vs Turso vs Pebble              | 1h     | MEDIUM |
 
 ### Turso Sync Polish (items 9-13)
 
-| #   | Task                                                      | Effort | Impact |
-| --- | --------------------------------------------------------- | ------ | ------ |
-| 9   | Options pattern for `OpenTursoSync`                       | 30 min | MEDIUM |
-| 10  | Add `WithBusyTimeout` option for Turso connections        | 15 min | MEDIUM |
-| 11  | Add `WithPartialSync` option for large databases          | 30 min | MEDIUM |
-| 12  | Turso sync + OutboxPublisher integration pattern          | 2h     | HIGH   |
-| 13  | Document sync strategies (per-write vs batch vs periodic) | 1h     | MEDIUM |
+| #  | Task                                                      | Effort | Impact |
+| -- | --------------------------------------------------------- | ------ | ------ |
+| 9  | Options pattern for `OpenTursoSync`                       | 30 min | MEDIUM |
+| 10 | Add `WithBusyTimeout` option for Turso connections        | 15 min | MEDIUM |
+| 11 | Add `WithPartialSync` option for large databases          | 30 min | MEDIUM |
+| 12 | Turso sync + OutboxPublisher integration pattern          | 2h     | HIGH   |
+| 13 | Document sync strategies (per-write vs batch vs periodic) | 1h     | MEDIUM |
 
 ### Project-Wide (items 14-25)
 
-| #   | Task                                                          | Effort | Impact |
-| --- | ------------------------------------------------------------- | ------ | ------ |
-| 14  | Fix `testhelpers` coverage (currently 10.5%)                  | 1h     | LOW    |
-| 15  | Add `integration/storage/` cross-module integration tests     | 2h     | MEDIUM |
-| 16  | Example app: show Turso sync deployment pattern               | 2h     | HIGH   |
-| 17  | Update `example/user/` to demonstrate storage backend choice  | 1h     | MEDIUM |
-| 18  | Add `StorageBackend` enum + `NewEventStoreFromConfig` factory | 1h     | HIGH   |
-| 19  | Pebble store: add benchmarks matching SQLite/Turso            | 30 min | LOW    |
-| 20  | Schema migration: detect version mismatch, warn/error         | 2h     | MEDIUM |
-| 21  | Add `nix run .#bench` for comprehensive benchmarking          | 30 min | LOW    |
-| 22  | Update AGENTS.md with storage backend documentation           | 15 min | MEDIUM |
-| 23  | Review `core/event` god-package (12 concerns, ~75 exports)    | 4h     | HIGH   |
-| 24  | Consolidate `CatalogMeta` across 3 packages                   | 2h     | MEDIUM |
-| 25  | Add `io.Closer` removal plan for interfaces                   | 1h     | LOW    |
+| #  | Task                                                          | Effort | Impact |
+| -- | ------------------------------------------------------------- | ------ | ------ |
+| 14 | Fix `testhelpers` coverage (currently 10.5%)                  | 1h     | LOW    |
+| 15 | Add `integration/storage/` cross-module integration tests     | 2h     | MEDIUM |
+| 16 | Example app: show Turso sync deployment pattern               | 2h     | HIGH   |
+| 17 | Update `example/user/` to demonstrate storage backend choice  | 1h     | MEDIUM |
+| 18 | Add `StorageBackend` enum + `NewEventStoreFromConfig` factory | 1h     | HIGH   |
+| 19 | Pebble store: add benchmarks matching SQLite/Turso            | 30 min | LOW    |
+| 20 | Schema migration: detect version mismatch, warn/error         | 2h     | MEDIUM |
+| 21 | Add `nix run .#bench` for comprehensive benchmarking          | 30 min | LOW    |
+| 22 | Update AGENTS.md with storage backend documentation           | 15 min | MEDIUM |
+| 23 | Review `core/event` god-package (12 concerns, ~75 exports)    | 4h     | HIGH   |
+| 24 | Consolidate `CatalogMeta` across 3 packages                   | 2h     | MEDIUM |
+| 25 | Add `io.Closer` removal plan for interfaces                   | 1h     | LOW    |
 
 ---
 

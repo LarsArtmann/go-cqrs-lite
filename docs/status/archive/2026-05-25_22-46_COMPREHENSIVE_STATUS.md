@@ -165,33 +165,33 @@ Both docs have open items noting they're stale (Session 72). Missing entries for
 
 ## F) Top #25 Things We Should Get Done Next
 
-| #   | Priority    | Task                                                                  | Impact                                      | Effort   |
-| --- | ----------- | --------------------------------------------------------------------- | ------------------------------------------- | -------- |
-| 1   | 🔴 CRITICAL | **Push 12 commits to origin** (`git push`)                            | Prevents data loss                          | 1 min    |
-| 2   | 🔴 HIGH     | Fix per-module isolated builds (`go mod tidy` each module)            | Consumers can't `go get` individual modules | 30 min   |
-| 3   | 🔴 HIGH     | Recover eventcatalog coverage to >90%                                 | Quality gate                                | 1-2 hrs  |
-| 4   | 🟡 MEDIUM   | Remove `DeriveAggregateID` (pending user approval)                    | YAGNI cleanup                               | 15 min   |
-| 5   | 🟡 MEDIUM   | Unexport `AggregateMarker`, update example/todo                       | API surface reduction                       | 15 min   |
-| 6   | 🟡 MEDIUM   | Update `cattest/builders.go` to accept branded types                  | API consistency                             | 30 min   |
-| 7   | 🟡 MEDIUM   | Update AGENTS.md with current coverage numbers                        | Documentation freshness                     | 30 min   |
-| 8   | 🟡 MEDIUM   | Triage TODO_LIST.md — prune stale, deduplicate, prioritize top 20     | Noise reduction                             | 1 hr     |
-| 9   | 🟡 MEDIUM   | Fix Pebble Store optimistic concurrency in Save                       | Data safety                                 | 1-2 hrs  |
-| 10  | 🟡 MEDIUM   | Fix Outbox transaction co-participation                               | Data consistency                            | 2-3 hrs  |
-| 11  | 🟡 MEDIUM   | Fix `collectResults` goroutine leak in projection/runner.go           | Resource leak                               | 1 hr     |
-| 12  | 🟡 MEDIUM   | Fix OutboxPublisher split-brain (cancel non-nil after Close)          | Correctness                                 | 30 min   |
-| 13  | 🟡 MEDIUM   | Fix storage/dialect.go `any` usage (3 methods)                        | Type safety                                 | 30 min   |
-| 14  | 🟡 MEDIUM   | Fix asyncapi exporter missing CommandMessage case                     | Feature completeness                        | 30 min   |
-| 15  | 🟢 LOW      | Registry deterministic Build() (sort map iteration)                   | Test reliability                            | 30 min   |
-| 16  | 🟢 LOW      | Fix FuzzParse case-sensitivity roundtrip                              | Edge case correctness                       | 1 hr     |
-| 17  | 🟢 LOW      | Add slog.Warn for corrupt IDs in Pebble deserialization               | Observability                               | 15 min   |
-| 18  | 🟢 LOW      | Update FEATURES.md — add openapi, docserver, dialect, recent sessions | Documentation                               | 1 hr     |
-| 19  | 🟢 LOW      | Design OwnerRef union type for Owners []string                        | Type safety                                 | 1 hr     |
-| 20  | 🟢 LOW      | Fix 2 lint issues (noinlineerr in core/command, core/query)           | Zero lint                                   | 15 min   |
-| 21  | 🟢 LOW      | Add catalog diff/breaking-change detection tool                       | API evolution safety                        | 3-4 hrs  |
-| 22  | 🟢 LOW      | Query handler generics (TypedHandler[T] returning T, error)           | Type safety (breaking change)               | 4-8 hrs  |
-| 23  | 🟢 LOW      | High-level test utilities (AggregateTester, ProjectionTester)         | Consumer DX                                 | 4-8 hrs  |
-| 24  | 📐 PLANNED  | Saga/orchestration pattern implementation                             | Feature expansion                           | 1-2 days |
-| 25  | 📐 PLANNED  | Publish go-composable-business-types as Go module                     | External adoption                           | 1-2 days |
+| #  | Priority    | Task                                                                  | Impact                                      | Effort   |
+| -- | ----------- | --------------------------------------------------------------------- | ------------------------------------------- | -------- |
+| 1  | 🔴 CRITICAL | **Push 12 commits to origin** (`git push`)                            | Prevents data loss                          | 1 min    |
+| 2  | 🔴 HIGH     | Fix per-module isolated builds (`go mod tidy` each module)            | Consumers can't `go get` individual modules | 30 min   |
+| 3  | 🔴 HIGH     | Recover eventcatalog coverage to >90%                                 | Quality gate                                | 1-2 hrs  |
+| 4  | 🟡 MEDIUM   | Remove `DeriveAggregateID` (pending user approval)                    | YAGNI cleanup                               | 15 min   |
+| 5  | 🟡 MEDIUM   | Unexport `AggregateMarker`, update example/todo                       | API surface reduction                       | 15 min   |
+| 6  | 🟡 MEDIUM   | Update `cattest/builders.go` to accept branded types                  | API consistency                             | 30 min   |
+| 7  | 🟡 MEDIUM   | Update AGENTS.md with current coverage numbers                        | Documentation freshness                     | 30 min   |
+| 8  | 🟡 MEDIUM   | Triage TODO_LIST.md — prune stale, deduplicate, prioritize top 20     | Noise reduction                             | 1 hr     |
+| 9  | 🟡 MEDIUM   | Fix Pebble Store optimistic concurrency in Save                       | Data safety                                 | 1-2 hrs  |
+| 10 | 🟡 MEDIUM   | Fix Outbox transaction co-participation                               | Data consistency                            | 2-3 hrs  |
+| 11 | 🟡 MEDIUM   | Fix `collectResults` goroutine leak in projection/runner.go           | Resource leak                               | 1 hr     |
+| 12 | 🟡 MEDIUM   | Fix OutboxPublisher split-brain (cancel non-nil after Close)          | Correctness                                 | 30 min   |
+| 13 | 🟡 MEDIUM   | Fix storage/dialect.go `any` usage (3 methods)                        | Type safety                                 | 30 min   |
+| 14 | 🟡 MEDIUM   | Fix asyncapi exporter missing CommandMessage case                     | Feature completeness                        | 30 min   |
+| 15 | 🟢 LOW      | Registry deterministic Build() (sort map iteration)                   | Test reliability                            | 30 min   |
+| 16 | 🟢 LOW      | Fix FuzzParse case-sensitivity roundtrip                              | Edge case correctness                       | 1 hr     |
+| 17 | 🟢 LOW      | Add slog.Warn for corrupt IDs in Pebble deserialization               | Observability                               | 15 min   |
+| 18 | 🟢 LOW      | Update FEATURES.md — add openapi, docserver, dialect, recent sessions | Documentation                               | 1 hr     |
+| 19 | 🟢 LOW      | Design OwnerRef union type for Owners []string                        | Type safety                                 | 1 hr     |
+| 20 | 🟢 LOW      | Fix 2 lint issues (noinlineerr in core/command, core/query)           | Zero lint                                   | 15 min   |
+| 21 | 🟢 LOW      | Add catalog diff/breaking-change detection tool                       | API evolution safety                        | 3-4 hrs  |
+| 22 | 🟢 LOW      | Query handler generics (TypedHandler[T] returning T, error)           | Type safety (breaking change)               | 4-8 hrs  |
+| 23 | 🟢 LOW      | High-level test utilities (AggregateTester, ProjectionTester)         | Consumer DX                                 | 4-8 hrs  |
+| 24 | 📐 PLANNED  | Saga/orchestration pattern implementation                             | Feature expansion                           | 1-2 days |
+| 25 | 📐 PLANNED  | Publish go-composable-business-types as Go module                     | External adoption                           | 1-2 days |
 
 ---
 

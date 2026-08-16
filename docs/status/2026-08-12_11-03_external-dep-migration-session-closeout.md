@@ -100,10 +100,10 @@
 ### Critical / Blocking
 
 1. Add `dprint`, `go-licenses`, `vulnix` to flake devShell so the pre-commit hook works <- OPEN. TODO_LIST 'Code Quality' (Infrastructure polish - devShell tools)
-~~2. Fix `record/v4@v4.1.0` → `id.ActorID` type mismatch (blocks GOWORK=off builds)~~ done - record/v4.2.0 tagged; GOWORK=off builds green since the 94261a568 wave
-~~3. Run `nix run .#verify` to get full verification gate results~~ done at 5f2198189 (three fully-green verifies since)
-~~4. Run cqrs-lint integration tests to verify the new ImportHints produce correct coaching~~ done - cqrs-lint suite 17/17 green repeatedly since 444be10a7
-~~5. Investigate and fix depguard warnings for go-codec in storage/pebble, transport/http, system/integration~~ done - lint 76/76 modules clean since 444be10a7; warnings gone
+   ~~2. Fix `record/v4@v4.1.0` → `id.ActorID` type mismatch (blocks GOWORK=off builds)~~ done - record/v4.2.0 tagged; GOWORK=off builds green since the 94261a568 wave
+   ~~3. Run `nix run .#verify` to get full verification gate results~~ done at 5f2198189 (three fully-green verifies since)
+   ~~4. Run cqrs-lint integration tests to verify the new ImportHints produce correct coaching~~ done - cqrs-lint suite 17/17 green repeatedly since 444be10a7
+   ~~5. Investigate and fix depguard warnings for go-codec in storage/pebble, transport/http, system/integration~~ done - lint 76/76 modules clean since 444be10a7; warnings gone
 
 ### Migration cleanup
 
@@ -126,10 +126,10 @@
 19. Audit `flightrecorder/` consumers before removing the shim <- NOT-DO - same: deleted at 5127039da
 20. Plan a deprecation timeline (how many releases before removal?) <- NOT-DO - deletion executed instead (ADR-0128, 5127039da)
 21. Add `// Deprecated:` comments to all shim exports that don't have them <- NOT-DO - shims deleted; nothing to deprecate
-~~22. Verify go-retry v0.3.1 tag exists and is published~~ done - external tags resolve; builds green
-~~23. Verify go-flightrecorder v0.2.0 tag exists and is published~~ done - external tags resolve; builds green
-~~24. Verify go-codec v0.1.0 tag exists and is published~~ done - external tags resolve; builds green
-~~25. Verify go-idempotency v0.1.2 tag exists and is published~~ done - external tags resolve; builds green
+    ~~22. Verify go-retry v0.3.1 tag exists and is published~~ done - external tags resolve; builds green
+    ~~23. Verify go-flightrecorder v0.2.0 tag exists and is published~~ done - external tags resolve; builds green
+    ~~24. Verify go-codec v0.1.0 tag exists and is published~~ done - external tags resolve; builds green
+    ~~25. Verify go-idempotency v0.1.2 tag exists and is published~~ done - external tags resolve; builds green
 
 ### Quality / Testing
 
@@ -183,7 +183,6 @@ The BuildFlow pre-commit hook is permanently broken without them, forcing `--no-
 ### Q3: Is the depguard "go-codec not allowed from list 'main'" warning in storage/pebble, transport/http, etc. a real issue or a BuildFlow false positive?
 
 The `.golangci.yml` Main rule explicitly allows `github.com/larsartmann/go-codec`. The BuildFlow pre-commit output shows warnings for modules that import it. This could be: (a) BuildFlow running golangci-lint with a different config resolution path per module, (b) a stale cache, or (c) a real depguard issue I don't understand. I need to know if you've seen this pattern before.
-
 
 ---
 

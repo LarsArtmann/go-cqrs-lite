@@ -7,66 +7,66 @@
 
 ## a) FULLY DONE
 
-| #   | Item                                      | Details                                                                                                                                                                                          |
-| --- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | **`scripts/test-integration.sh` written** | 300-line aggregator script with strategy auto-detection per database. Detects: external DSN, ephemeral nixpkgs PG, systemd-nspawn, Docker testcontainers, QEMU VM.                               |
-| 2   | **Capability detection**                  | `has_nix_pg`, `has_docker`, `has_nspawn`, `has_kvm`, `is_linux` — each tested and verified.                                                                                                      |
-| 3   | **Strategy selection per DB**             | PG: external → ephemeral → testcontainers → VM. MySQL: external → nspawn → testcontainers → VM. Independent detection per database.                                                              |
-| 4   | **CLI flags**                             | `--pg-only`, `--mysql-only`, `--strategy={auto,testcontainers,vm}`, `--list` (dry-run), `--help`, `--` pass-through.                                                                             |
-| 5   | **flake.nix app**                         | `nix run .#test-integration` wired with `pkgs.postgresql` in runtimeInputs (needed for ephemeral strategy). Verified builds and runs.                                                            |
-| 6   | **TODO_LIST.md**                          | M48 marked `[x]`.                                                                                                                                                                                |
-| 7   | **AGENTS.md**                             | Quick Reference "Int. All" row updated to mention `nix run .#test-integration` as the primary command.                                                                                           |
-| 8   | **Dry-run verified**                      | `--list` output tested in multiple combinations: auto-detect, `--pg-only --strategy=vm`, `--mysql-only --strategy=testcontainers`, `DATABASE_URL` external override. All produce correct output. |
-| 9   | **Bash syntax**                           | `bash -n` passes.                                                                                                                                                                                |
+| # | Item                                      | Details                                                                                                                                                                                          |
+| - | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 | **`scripts/test-integration.sh` written** | 300-line aggregator script with strategy auto-detection per database. Detects: external DSN, ephemeral nixpkgs PG, systemd-nspawn, Docker testcontainers, QEMU VM.                               |
+| 2 | **Capability detection**                  | `has_nix_pg`, `has_docker`, `has_nspawn`, `has_kvm`, `is_linux` — each tested and verified.                                                                                                      |
+| 3 | **Strategy selection per DB**             | PG: external → ephemeral → testcontainers → VM. MySQL: external → nspawn → testcontainers → VM. Independent detection per database.                                                              |
+| 4 | **CLI flags**                             | `--pg-only`, `--mysql-only`, `--strategy={auto,testcontainers,vm}`, `--list` (dry-run), `--help`, `--` pass-through.                                                                             |
+| 5 | **flake.nix app**                         | `nix run .#test-integration` wired with `pkgs.postgresql` in runtimeInputs (needed for ephemeral strategy). Verified builds and runs.                                                            |
+| 6 | **TODO_LIST.md**                          | M48 marked `[x]`.                                                                                                                                                                                |
+| 7 | **AGENTS.md**                             | Quick Reference "Int. All" row updated to mention `nix run .#test-integration` as the primary command.                                                                                           |
+| 8 | **Dry-run verified**                      | `--list` output tested in multiple combinations: auto-detect, `--pg-only --strategy=vm`, `--mysql-only --strategy=testcontainers`, `DATABASE_URL` external override. All produce correct output. |
+| 9 | **Bash syntax**                           | `bash -n` passes.                                                                                                                                                                                |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| #   | Item                              | What's missing                                                                                                                                                                                                          |
-| --- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **`--strategy` flag**             | Only supports `auto`, `testcontainers`, `vm`. Missing `ephemeral`, `nspawn`, `external` as explicit force options. `--strategy=ephemeral` silently falls through to `auto` because the case statement doesn't match it. |
-| 2   | **End-to-end test run**           | Only `--list` dry-run was verified. Never ran actual integration tests through the aggregator (e.g., ephemeral PG path delegating to `ephemeral-pg.sh`). The delegation code paths are untested.                        |
-| 3   | **`integration-all` refactoring** | The existing `integration-all` flake.nix app still has inline logic (`ephemeral-pg.sh                                                                                                                                   |     | echo`+`vm-mysql-nspawn.sh |     | vm-mysql.sh |     | echo`). Could now delegate to `test-integration.sh` instead. Left as-is. |
+| # | Item                              | What's missing                                                                                                                                                                                                          |
+| - | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **`--strategy` flag**             | Only supports `auto`, `testcontainers`, `vm`. Missing `ephemeral`, `nspawn`, `external` as explicit force options. `--strategy=ephemeral` silently falls through to `auto` because the case statement doesn't match it. |
+| 2 | **End-to-end test run**           | Only `--list` dry-run was verified. Never ran actual integration tests through the aggregator (e.g., ephemeral PG path delegating to `ephemeral-pg.sh`). The delegation code paths are untested.                        |
+| 3 | **`integration-all` refactoring** | The existing `integration-all` flake.nix app still has inline logic (`ephemeral-pg.sh                                                                                                                                   |
 
 ---
 
 ## c) NOT STARTED
 
-| #   | Item                                                                                                                       |
-| --- | -------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **CI integration** — No GitHub Actions workflow change to use `test-integration.sh`. The CI still uses individual scripts. |
-| 2   | **FEATURES.md update** — Integration testing section not updated to mention the aggregator.                                |
-| 3   | **CONTRIBUTING.md** — No mention of the one-command aggregator for new contributors.                                       |
-| 4   | **README.md** — Not updated with the `nix run .#test-integration` quickstart.                                              |
-| 5   | **`nix fmt` verification** — Never ran `nix fmt` to verify flake.nix formatting after the edit.                            |
+| # | Item                                                                                                                       |
+| - | -------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **CI integration** — No GitHub Actions workflow change to use `test-integration.sh`. The CI still uses individual scripts. |
+| 2 | **FEATURES.md update** — Integration testing section not updated to mention the aggregator.                                |
+| 3 | **CONTRIBUTING.md** — No mention of the one-command aggregator for new contributors.                                       |
+| 4 | **README.md** — Not updated with the `nix run .#test-integration` quickstart.                                              |
+| 5 | **`nix fmt` verification** — Never ran `nix fmt` to verify flake.nix formatting after the edit.                            |
 
 ---
 
 ## d) TOTALLY FUCKED UP
 
-| #   | Issue                                          | Impact                                                                                                                                                                                                                                                                                                                                                                                |
-| --- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **`--strategy=ephemeral` is silently ignored** | The case statement `--strategy=auto\|--strategy=testcontainers\|--strategy=vm` doesn't match `ephemeral`, `nspawn`, or `external`. Passing `--strategy=ephemeral` falls through to the catch-all `*` case which puts it in `EXTRA_ARGS` and sets `STRATEGY="auto"`. The user gets auto-detection instead of the forced strategy they asked for. **This is a silent correctness bug.** |
-| 2   | **`--pg-only --mysql-only` doesn't error**     | Both flags together should be contradictory (or at least should run both), but `--mysql-only` simply overrides `--pg-only` to false, so you get MySQL-only. Not documented, surprising behavior.                                                                                                                                                                                      |
-| 3   | **No test for the script itself**              | Zero automated verification that the script works. Only manual `--list` dry-runs. No CI guard that the detection logic matches reality.                                                                                                                                                                                                                                               |
+| # | Issue                                          | Impact                                                                                                                                                                                                                                                                                                                                                                                |
+| - | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **`--strategy=ephemeral` is silently ignored** | The case statement `--strategy=auto\|--strategy=testcontainers\|--strategy=vm` doesn't match `ephemeral`, `nspawn`, or `external`. Passing `--strategy=ephemeral` falls through to the catch-all `*` case which puts it in `EXTRA_ARGS` and sets `STRATEGY="auto"`. The user gets auto-detection instead of the forced strategy they asked for. **This is a silent correctness bug.** |
+| 2 | **`--pg-only --mysql-only` doesn't error**     | Both flags together should be contradictory (or at least should run both), but `--mysql-only` simply overrides `--pg-only` to false, so you get MySQL-only. Not documented, surprising behavior.                                                                                                                                                                                      |
+| 3 | **No test for the script itself**              | Zero automated verification that the script works. Only manual `--list` dry-runs. No CI guard that the detection logic matches reality.                                                                                                                                                                                                                                               |
 
 ---
 
 ## e) WHAT WE SHOULD IMPROVE
 
-| #   | Improvement                                                                                                                                                           | Priority |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| 1   | **Fix `--strategy` to accept all values** — `ephemeral`, `nspawn`, `external` must be valid forced strategies, not silently swallowed.                                | HIGH     |
-| 2   | **Actually run the tests** — Verify the ephemeral PG delegation works end-to-end by running `bash scripts/test-integration.sh --pg-only` against the real test suite. | HIGH     |
-| 3   | **Refactor `integration-all`** — Replace its inline logic with a call to `test-integration.sh`. Single source of truth.                                               | MEDIUM   |
-| 4   | **Error on contradictory flags** — `--pg-only --mysql-only` should error, not silently pick one.                                                                      | LOW      |
-| 5   | **Add `--no-mysql` / `--no-pg` flags** — More intuitive than `--pg-only`/`--mysql-only` when you want "everything except X".                                          | LOW      |
-| 6   | **Run `nix fmt`** — Verify formatting compliance after flake.nix edit.                                                                                                | MEDIUM   |
-| 7   | **Detection tests** — A simple CI script that runs `test-integration.sh --list` and asserts the output matches expected capabilities.                                 | MEDIUM   |
-| 8   | **Document strategy selection matrix** — In CONTRIBUTING.md or a comment block, explain when each strategy is chosen and why.                                         | LOW      |
-| 9   | **`--keep-alive` support** — Pass through to the VM scripts for interactive debugging. The underlying scripts support it but the aggregator doesn't forward it.       | LOW      |
-| 10  | **Verbose mode** — `--verbose` flag that shows which exact `go test` command is being run in each module.                                                             | LOW      |
+| #  | Improvement                                                                                                                                                           | Priority |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 1  | **Fix `--strategy` to accept all values** — `ephemeral`, `nspawn`, `external` must be valid forced strategies, not silently swallowed.                                | HIGH     |
+| 2  | **Actually run the tests** — Verify the ephemeral PG delegation works end-to-end by running `bash scripts/test-integration.sh --pg-only` against the real test suite. | HIGH     |
+| 3  | **Refactor `integration-all`** — Replace its inline logic with a call to `test-integration.sh`. Single source of truth.                                               | MEDIUM   |
+| 4  | **Error on contradictory flags** — `--pg-only --mysql-only` should error, not silently pick one.                                                                      | LOW      |
+| 5  | **Add `--no-mysql` / `--no-pg` flags** — More intuitive than `--pg-only`/`--mysql-only` when you want "everything except X".                                          | LOW      |
+| 6  | **Run `nix fmt`** — Verify formatting compliance after flake.nix edit.                                                                                                | MEDIUM   |
+| 7  | **Detection tests** — A simple CI script that runs `test-integration.sh --list` and asserts the output matches expected capabilities.                                 | MEDIUM   |
+| 8  | **Document strategy selection matrix** — In CONTRIBUTING.md or a comment block, explain when each strategy is chosen and why.                                         | LOW      |
+| 9  | **`--keep-alive` support** — Pass through to the VM scripts for interactive debugging. The underlying scripts support it but the aggregator doesn't forward it.       | LOW      |
+| 10 | **Verbose mode** — `--verbose` flag that shows which exact `go test` command is being run in each module.                                                             | LOW      |
 
 ---
 

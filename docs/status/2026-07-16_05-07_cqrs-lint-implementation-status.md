@@ -189,20 +189,20 @@ The `rules` subcommand lists 61 rules, but README.md says "52 rules across 6 cat
 
 > **Previously had 7 issues. ALL are now RESOLVED. New issues discovered in P2/P3 session.**
 
-| #   | Issue                                          | Severity   | Status                                                                                                                         |
-| --- | ---------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | ~~CI violations: 3 files exceed 350 lines~~    | ~~High~~   | **FIXED** — All files split. 77 Go files, all under 350 lines.                                                                 |
-| 2   | ~~Suppression filter fundamentally broken~~    | ~~High~~   | **FIXED** — Rewritten to read actual source files with line cache.                                                             |
-| 3   | ~~`_ = sel` dead code~~                        | ~~Low~~    | **FIXED** — Removed.                                                                                                           |
-| 4   | ~~C010 detector name-matching bug~~            | ~~Medium~~ | **FIXED** — Receiver prefix stripped before matching.                                                                          |
-| 5   | ~~Test quality is uneven~~                     | ~~High~~   | **FIXED** — 18 smoke tests upgraded to behavioral assertions (C011, C002, C010, S001-S003, D003, E002, E003, D005, B013-B015). |
-| 6   | ~~`commands.go` still uses `os.Exit(1)`~~      | ~~Medium~~ | **FIXED** — Now returns errors; callers in `main()` handle exit.                                                               |
-| 7   | ~~`extraRulesNew()` terrible name~~            | ~~Low~~    | **FIXED** — Renamed to `extraRulesBatch2()`.                                                                                   |
-| 8   | ~~`filterBySeverity` alphabetical comparison~~ | ~~High~~   | **FIXED** — Was completely broken (`"critical" < "error"` alphabetically). Now uses `Severity.Compare()`.                      |
-| 9   | ~~`hasErrors` same alphabetical bug~~          | ~~High~~   | **FIXED** — Now uses `Severity.Compare(SeverityError) >= 0`.                                                                   |
-| 10  | **NEW: README + AGENTS.md say "52 rules"**     | **High**   | Documentation drift — the `rules` command lists 61 but the README and AGENTS.md still say 52. Not yet fixed.                   |
-| 11  | **NEW: `init` config template key mismatch**   | **Medium** | Template uses `min_severity` (underscore) but struct tags use `min-severity` (hyphen). Generated config may not load.          |
-| 12  | **NEW: Test code duplicates production code**  | **Low**    | `health_test.go` has `healthGrade()` and `main_test.go` has `deduplicate()` that copy instead of testing the real functions.   |
+| #  | Issue                                          | Severity   | Status                                                                                                                         |
+| -- | ---------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| 1  | ~~CI violations: 3 files exceed 350 lines~~    | ~~High~~   | **FIXED** — All files split. 77 Go files, all under 350 lines.                                                                 |
+| 2  | ~~Suppression filter fundamentally broken~~    | ~~High~~   | **FIXED** — Rewritten to read actual source files with line cache.                                                             |
+| 3  | ~~`_ = sel` dead code~~                        | ~~Low~~    | **FIXED** — Removed.                                                                                                           |
+| 4  | ~~C010 detector name-matching bug~~            | ~~Medium~~ | **FIXED** — Receiver prefix stripped before matching.                                                                          |
+| 5  | ~~Test quality is uneven~~                     | ~~High~~   | **FIXED** — 18 smoke tests upgraded to behavioral assertions (C011, C002, C010, S001-S003, D003, E002, E003, D005, B013-B015). |
+| 6  | ~~`commands.go` still uses `os.Exit(1)`~~      | ~~Medium~~ | **FIXED** — Now returns errors; callers in `main()` handle exit.                                                               |
+| 7  | ~~`extraRulesNew()` terrible name~~            | ~~Low~~    | **FIXED** — Renamed to `extraRulesBatch2()`.                                                                                   |
+| 8  | ~~`filterBySeverity` alphabetical comparison~~ | ~~High~~   | **FIXED** — Was completely broken (`"critical" < "error"` alphabetically). Now uses `Severity.Compare()`.                      |
+| 9  | ~~`hasErrors` same alphabetical bug~~          | ~~High~~   | **FIXED** — Now uses `Severity.Compare(SeverityError) >= 0`.                                                                   |
+| 10 | **NEW: README + AGENTS.md say "52 rules"**     | **High**   | Documentation drift — the `rules` command lists 61 but the README and AGENTS.md still say 52. Not yet fixed.                   |
+| 11 | **NEW: `init` config template key mismatch**   | **Medium** | Template uses `min_severity` (underscore) but struct tags use `min-severity` (hyphen). Generated config may not load.          |
+| 12 | **NEW: Test code duplicates production code**  | **Low**    | `health_test.go` has `healthGrade()` and `main_test.go` has `deduplicate()` that copy instead of testing the real functions.   |
 
 ---
 

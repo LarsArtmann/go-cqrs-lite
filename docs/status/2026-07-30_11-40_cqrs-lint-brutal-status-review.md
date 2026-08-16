@@ -20,7 +20,7 @@
 1. **D005 trailing-dot FP fixed** — `parseVersionParts` now strips trailing `.,` via `TrimRight`. Regression test with 5 sub-cases in `d005_internal_test.go`.
    - ⚠️ NOTE: My original fix stripped `.,;:!?` but the daemon committed only `.,`. The test covers all punctuation variants but the code only handles period and comma. Semicolons, colons, exclamation marks, and question marks would still produce FPs.
 
-2. _*C009 exported Must* FP fixed_* — `isMustFunc` now checks both `must` and `Must` prefixes. Regression test added (`TestC009_NoFindingInExportedMustFunc`).
+2. __C009 exported Must_ FP fixed_* — `isMustFunc` now checks both `must` and `Must` prefixes. Regression test added (`TestC009_NoFindingInExportedMustFunc`).
 
 3. **C006 enhanced** — Now catches three patterns: `event.Version(x.Int()+1)` (auto-fix), `event.Version(ver+1)` (suggest), `event.NewEvent(..., ver+1, ...)` (suggest). Tests added for all three forms.
 

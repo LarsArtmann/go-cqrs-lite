@@ -200,33 +200,33 @@ This is a 39-line indirect dependency chain for what should be a simple example 
 
 **Sorted by impact × effort (highest first):**
 
-| #   | Task                                                       | Impact | Effort | Type         |
-| --- | ---------------------------------------------------------- | ------ | ------ | ------------ |
-| 1   | Fix example/todo build (cqrs-htmx API break)               | HIGH   | S      | Fix          |
-| 2   | Trim example/todo dependency tree                          | HIGH   | M      | Cleanup      |
-| 3   | Split core/event/event.go under 250 lines                  | MEDIUM | S      | Convention   |
-| 4   | Fix catalog/eventcatalog/exporter.go under 250 lines       | LOW    | XS     | Convention   |
-| 5   | Bump module versions after API surface changes             | MEDIUM | S      | Release      |
-| 6   | Add schemautil coverage (84.2% → 90%+)                     | MEDIUM | M      | Testing      |
-| 7   | Add storage Pebble error path tests (89.3% → 93%+)         | MEDIUM | M      | Testing      |
-| 8   | Add eventcatalog coverage (91.3% → 94%+)                   | LOW    | S      | Testing      |
-| 9   | Add docserver coverage (90.1% → 93%+)                      | LOW    | S      | Testing      |
-| 10  | Review and clean up nolint directives (32 files)           | LOW    | M      | Cleanup      |
-| 11  | Remove deprecated IdempotencyKey or set removal timeline   | LOW    | XS     | API          |
-| 12  | Update README to show decider pattern                      | MEDIUM | S      | Docs         |
-| 13  | Add decider coverage (93.6% → 96%+)                        | LOW    | M      | Testing      |
-| 14  | Add event coverage (93.8% → 96%+)                          | LOW    | M      | Testing      |
-| 15  | Create CHANGELOG.md                                        | LOW    | S      | Docs         |
-| 16  | Add benchmark suite for core modules                       | MEDIUM | M      | Testing      |
-| 17  | Discuss `sync` module rename with owner                    | LOW    | XS     | Decision     |
-| 18  | Evaluate query.Handler generic redesign                    | MEDIUM | L      | Architecture |
-| 19  | Add fuzz tests for ID parsing and event marshaling         | MEDIUM | M      | Testing      |
-| 20  | Consider event.Store ISP split into finer interfaces       | HIGH   | L      | Architecture |
-| 21  | Extract example/user and example/todo to separate repos    | MEDIUM | M      | Structure    |
-| 22  | Add Go examples (testable ExampleXxx functions)            | LOW    | M      | Docs         |
-| 23  | Review catalog dead exports (MakeEvent, AssertEqual, etc.) | LOW    | S      | Cleanup      |
-| 24  | Add integration test for OutboxPublisher with real timing  | LOW    | M      | Testing      |
-| 25  | Evaluate MemoryBus RLock-during-handler fix                | LOW    | M      | Design       |
+| #  | Task                                                       | Impact | Effort | Type         |
+| -- | ---------------------------------------------------------- | ------ | ------ | ------------ |
+| 1  | Fix example/todo build (cqrs-htmx API break)               | HIGH   | S      | Fix          |
+| 2  | Trim example/todo dependency tree                          | HIGH   | M      | Cleanup      |
+| 3  | Split core/event/event.go under 250 lines                  | MEDIUM | S      | Convention   |
+| 4  | Fix catalog/eventcatalog/exporter.go under 250 lines       | LOW    | XS     | Convention   |
+| 5  | Bump module versions after API surface changes             | MEDIUM | S      | Release      |
+| 6  | Add schemautil coverage (84.2% → 90%+)                     | MEDIUM | M      | Testing      |
+| 7  | Add storage Pebble error path tests (89.3% → 93%+)         | MEDIUM | M      | Testing      |
+| 8  | Add eventcatalog coverage (91.3% → 94%+)                   | LOW    | S      | Testing      |
+| 9  | Add docserver coverage (90.1% → 93%+)                      | LOW    | S      | Testing      |
+| 10 | Review and clean up nolint directives (32 files)           | LOW    | M      | Cleanup      |
+| 11 | Remove deprecated IdempotencyKey or set removal timeline   | LOW    | XS     | API          |
+| 12 | Update README to show decider pattern                      | MEDIUM | S      | Docs         |
+| 13 | Add decider coverage (93.6% → 96%+)                        | LOW    | M      | Testing      |
+| 14 | Add event coverage (93.8% → 96%+)                          | LOW    | M      | Testing      |
+| 15 | Create CHANGELOG.md                                        | LOW    | S      | Docs         |
+| 16 | Add benchmark suite for core modules                       | MEDIUM | M      | Testing      |
+| 17 | Discuss `sync` module rename with owner                    | LOW    | XS     | Decision     |
+| 18 | Evaluate query.Handler generic redesign                    | MEDIUM | L      | Architecture |
+| 19 | Add fuzz tests for ID parsing and event marshaling         | MEDIUM | M      | Testing      |
+| 20 | Consider event.Store ISP split into finer interfaces       | HIGH   | L      | Architecture |
+| 21 | Extract example/user and example/todo to separate repos    | MEDIUM | M      | Structure    |
+| 22 | Add Go examples (testable ExampleXxx functions)            | LOW    | M      | Docs         |
+| 23 | Review catalog dead exports (MakeEvent, AssertEqual, etc.) | LOW    | S      | Cleanup      |
+| 24 | Add integration test for OutboxPublisher with real timing  | LOW    | M      | Testing      |
+| 25 | Evaluate MemoryBus RLock-during-handler fix                | LOW    | M      | Design       |
 
 ---
 
@@ -282,7 +282,7 @@ The alternative is to fix `cqrs-htmx` and keep examples here, but that creates a
 | Vet        | ✅ Clean                                     |
 | Format     | ✅ Clean (gofumpt)                           |
 | Build      | ❌ example/todo broken (cqrs-htmx API break) |
-| File sizes | ⚠️ 2 files over 250 lines                    |
+| File sizes | ⚠️ 2 files over 250 lines                     |
 | TODOs      | ✅ 0 TODO/FIXME/HACK markers                 |
 | Deprecated | 2 items (aggregate package, IdempotencyKey)  |
 
@@ -304,7 +304,7 @@ The alternative is to fix `cqrs-htmx` and keep examples here, but that creates a
 | Session | Key Achievement                                                                                                                        |
 | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | 89      | API surface reduction: ~60 exports removed, 89.3→92.1% coverage                                                                        |
-| 90      | Projection builder On[T](<>), IsReplay, event.New, ExecuteWithResult, DeriveAggregateID                                                |
+| 90      | Projection builder On[T](), IsReplay, event.New, ExecuteWithResult, DeriveAggregateID                                                  |
 | 92      | Query typed bookend docs, example/todo typed handlers + Pagination                                                                     |
 | 93      | Zero lint across 10 modules, decider dual-wrap fix, registry deterministic Build                                                       |
 | 94      | gci v2 fix, orphaned go.mod replace, testhelpers 64.6→80.3%, caseutil 76.5→100%                                                        |

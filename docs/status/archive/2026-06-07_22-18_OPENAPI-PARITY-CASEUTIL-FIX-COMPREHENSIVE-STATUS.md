@@ -150,48 +150,48 @@ Ranked by **impact × effort**:
 
 ### P0 — Quick Wins (≤30 min)
 
-| #   | Task                                       | Module          | Est | Impact               |
-| --- | ------------------------------------------ | --------------- | --- | -------------------- |
-| 1   | Fix `example/listing` compilation conflict | example/listing | 10m | CI green             |
-| 2   | Add OpenAPI YAML golden test               | catalog/openapi | 10m | Parity with asyncapi |
-| 3   | Add `TestSchemaJSONToYAML`                 | catalog/schema  | 10m | Coverage gap closed  |
-| 4   | Add catalog root `String()` tests          | catalog         | 10m | Coverage honesty     |
-| 5   | Add `TestDocument_MarshalJSON` direct test | catalog/openapi | 10m | Coverage honesty     |
+| # | Task                                       | Module          | Est | Impact               |
+| - | ------------------------------------------ | --------------- | --- | -------------------- |
+| 1 | Fix `example/listing` compilation conflict | example/listing | 10m | CI green             |
+| 2 | Add OpenAPI YAML golden test               | catalog/openapi | 10m | Parity with asyncapi |
+| 3 | Add `TestSchemaJSONToYAML`                 | catalog/schema  | 10m | Coverage gap closed  |
+| 4 | Add catalog root `String()` tests          | catalog         | 10m | Coverage honesty     |
+| 5 | Add `TestDocument_MarshalJSON` direct test | catalog/openapi | 10m | Coverage honesty     |
 
 ### P1 — Quality (1-4 hours)
 
-| #   | Task                                               | Module            | Est | Impact                     |
-| --- | -------------------------------------------------- | ----------------- | --- | -------------------------- |
-| 6   | Populate `MediaType.Example` from message examples | catalog/openapi   | 1h  | Better OpenAPI output      |
-| 7   | Extract query params for GET operations            | catalog/openapi   | 2h  | More realistic API specs   |
-| 8   | Test docserver YAML error branches                 | catalog/docserver | 1h  | Coverage + reliability     |
-| 9   | Add storage benchmarks (PG vs SQLite)              | storage           | 2h  | Performance visibility     |
-| 10  | Add projection replay benchmarks                   | projection        | 2h  | Regression detection       |
-| 11  | OpenAPI schema deduplication ($ref reuse)          | catalog/openapi   | 3h  | Cleaner output             |
-| 12  | Run API stability check in CI                      | cmd/api-stability | 2h  | Breaking change protection |
+| #  | Task                                               | Module            | Est | Impact                     |
+| -- | -------------------------------------------------- | ----------------- | --- | -------------------------- |
+| 6  | Populate `MediaType.Example` from message examples | catalog/openapi   | 1h  | Better OpenAPI output      |
+| 7  | Extract query params for GET operations            | catalog/openapi   | 2h  | More realistic API specs   |
+| 8  | Test docserver YAML error branches                 | catalog/docserver | 1h  | Coverage + reliability     |
+| 9  | Add storage benchmarks (PG vs SQLite)              | storage           | 2h  | Performance visibility     |
+| 10 | Add projection replay benchmarks                   | projection        | 2h  | Regression detection       |
+| 11 | OpenAPI schema deduplication ($ref reuse)          | catalog/openapi   | 3h  | Cleaner output             |
+| 12 | Run API stability check in CI                      | cmd/api-stability | 2h  | Breaking change protection |
 
 ### P2 — Features (4-8 hours)
 
-| #   | Task                                             | Module          | Est | Impact                  |
-| --- | ------------------------------------------------ | --------------- | --- | ----------------------- |
-| 13  | Support PUT/PATCH/DELETE in OpenAPI exporter     | catalog/openapi | 4h  | Full REST coverage      |
-| 14  | OpenAPI security scheme generation               | catalog/openapi | 4h  | Production-ready specs  |
-| 15  | Add event webhook semantics (not REST endpoints) | catalog/openapi | 4h  | Correct async semantics |
-| 16  | Turso integration test (embedded libSQL)         | turso           | 4h  | Reliability             |
-| 17  | Watermill integration test (in-process broker)   | watermill       | 4h  | Reliability             |
-| 18  | Snapshot compression (gzip option)               | snapshot        | 4h  | Storage efficiency      |
-| 19  | cqrs-gen: query handler generation               | cmd/cqrs-gen    | 4h  | Feature parity          |
-| 20  | Storage connection pool metrics                  | storage         | 3h  | Observability           |
+| #  | Task                                             | Module          | Est | Impact                  |
+| -- | ------------------------------------------------ | --------------- | --- | ----------------------- |
+| 13 | Support PUT/PATCH/DELETE in OpenAPI exporter     | catalog/openapi | 4h  | Full REST coverage      |
+| 14 | OpenAPI security scheme generation               | catalog/openapi | 4h  | Production-ready specs  |
+| 15 | Add event webhook semantics (not REST endpoints) | catalog/openapi | 4h  | Correct async semantics |
+| 16 | Turso integration test (embedded libSQL)         | turso           | 4h  | Reliability             |
+| 17 | Watermill integration test (in-process broker)   | watermill       | 4h  | Reliability             |
+| 18 | Snapshot compression (gzip option)               | snapshot        | 4h  | Storage efficiency      |
+| 19 | cqrs-gen: query handler generation               | cmd/cqrs-gen    | 4h  | Feature parity          |
+| 20 | Storage connection pool metrics                  | storage         | 3h  | Observability           |
 
 ### P3 — Strategic (1+ day)
 
-| #   | Task                                            | Module    | Est | Impact            |
-| --- | ----------------------------------------------- | --------- | --- | ----------------- |
-| 21  | Hosted documentation site (docserver deploy)    | docs/     | 2d  | Discoverability   |
-| 22  | v3 planning ADRs                                | docs/adr/ | 1d  | Strategic clarity |
-| 23  | AsyncAPI/OpenAPI exporter interface unification | catalog/  | 2d  | Code reuse        |
-| 24  | Remove replace directives for consumers         | all       | 1d  | Simpler imports   |
-| 25  | Performance regression CI (benchstat)           | ci        | 1d  | Quality gate      |
+| #  | Task                                            | Module    | Est | Impact            |
+| -- | ----------------------------------------------- | --------- | --- | ----------------- |
+| 21 | Hosted documentation site (docserver deploy)    | docs/     | 2d  | Discoverability   |
+| 22 | v3 planning ADRs                                | docs/adr/ | 1d  | Strategic clarity |
+| 23 | AsyncAPI/OpenAPI exporter interface unification | catalog/  | 2d  | Code reuse        |
+| 24 | Remove replace directives for consumers         | all       | 1d  | Simpler imports   |
+| 25 | Performance regression CI (benchstat)           | ci        | 1d  | Quality gate      |
 
 ---
 

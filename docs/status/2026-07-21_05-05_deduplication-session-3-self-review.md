@@ -16,13 +16,13 @@
 
 ### Extractions implemented, built, and tested this session
 
-| #   | Helper                                               | File                            | Replaced                                                                  | Group |
-| --- | ---------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------- | ----- |
-| 1   | `execPragmas(ctx, db, pragmas, errCode)`             | `storage/sqlite_helpers.go:36`  | for-loop in `SQLiteEnableWAL` + `SQLiteApplyOptimizations`                | 15    |
-| 2   | `requireID[ID ~string](id, name, prefix, label)`     | `catalog/validate.go:213`       | empty-ID check in 5 validators (domain/channel/entity/data product/agent) | 18    |
-| 3   | `closeAndWrap(db, code, msg)`                        | `storage/pebble/helpers.go:162` | `KVAdapter.Close` + `Backend.Close` db-close+wrap                         | 17    |
-| 4   | `event.NewTypeSet(types []Type) map[Type]struct{}`   | `event/event.go:30`             | `listing.makeTypeSet` + `projectionhost.buildTypeSet` loop bodies         | 33    |
-| 5   | `WallTime.todaysOccurrence(ref time.Time) time.Time` | `event/time_types.go:194`       | date construction in `NextOccurrence` + `PreviousOccurrence`              | 12    |
+| # | Helper                                               | File                            | Replaced                                                                  | Group |
+| - | ---------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------- | ----- |
+| 1 | `execPragmas(ctx, db, pragmas, errCode)`             | `storage/sqlite_helpers.go:36`  | for-loop in `SQLiteEnableWAL` + `SQLiteApplyOptimizations`                | 15    |
+| 2 | `requireID[ID ~string](id, name, prefix, label)`     | `catalog/validate.go:213`       | empty-ID check in 5 validators (domain/channel/entity/data product/agent) | 18    |
+| 3 | `closeAndWrap(db, code, msg)`                        | `storage/pebble/helpers.go:162` | `KVAdapter.Close` + `Backend.Close` db-close+wrap                         | 17    |
+| 4 | `event.NewTypeSet(types []Type) map[Type]struct{}`   | `event/event.go:30`             | `listing.makeTypeSet` + `projectionhost.buildTypeSet` loop bodies         | 33    |
+| 5 | `WallTime.todaysOccurrence(ref time.Time) time.Time` | `event/time_types.go:194`       | date construction in `NextOccurrence` + `PreviousOccurrence`              | 12    |
 
 - Every extraction preserves the original `errorfamily` error codes and message text.
 - `gofmt -l` clean on all 21 changed files.

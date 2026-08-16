@@ -142,18 +142,18 @@ codec_batch.go:41   create event → WrapFrom
 
 ## F. TOP 10 NEXT TASKS (sorted by impact/effort)
 
-| #   | Task                                   | Effort | Impact |
-| --- | -------------------------------------- | ------ | ------ |
-| 1   | Replace 15 remaining core/event wraps  | 30min  | HIGH   |
-| 2   | Replace 69 storage wraps               | 90min  | HIGH   |
-| 3   | Replace 15 memory wraps                | 20min  | MED    |
-| 4   | Replace 10 projection wraps            | 15min  | MED    |
-| 5   | Replace 23 catalog wraps               | 30min  | LOW    |
-| 6   | Replace 6 core/aggregate wraps         | 10min  | MED    |
-| 7   | Replace 4 core/command + 4 query wraps | 15min  | MED    |
-| 8   | Add WithContext to storage errors      | 20min  | MED    |
-| 9   | Deprecate aggregate package            | 10min  | MED    |
-| 10  | Brand OutboxID                         | 20min  | MED    |
+| #  | Task                                   | Effort | Impact |
+| -- | -------------------------------------- | ------ | ------ |
+| 1  | Replace 15 remaining core/event wraps  | 30min  | HIGH   |
+| 2  | Replace 69 storage wraps               | 90min  | HIGH   |
+| 3  | Replace 15 memory wraps                | 20min  | MED    |
+| 4  | Replace 10 projection wraps            | 15min  | MED    |
+| 5  | Replace 23 catalog wraps               | 30min  | LOW    |
+| 6  | Replace 6 core/aggregate wraps         | 10min  | MED    |
+| 7  | Replace 4 core/command + 4 query wraps | 15min  | MED    |
+| 8  | Add WithContext to storage errors      | 20min  | MED    |
+| 9  | Deprecate aggregate package            | 10min  | MED    |
+| 10 | Brand OutboxID                         | 20min  | MED    |
 
 ---
 

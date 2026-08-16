@@ -1,7 +1,7 @@
 # Status Report: Pebble & Turso Module Extraction — COMPLETE
 
-**Date:** 2026-05-29 12:33  
-**Session:** 140 continuation (post-extraction cleanup)  
+**Date:** 2026-05-29 12:33\
+**Session:** 140 continuation (post-extraction cleanup)\
 **Branch:** master (ahead of origin by 2 commits)
 
 ---
@@ -153,33 +153,33 @@
 
 ## f) Top #25 Things to Get Done Next
 
-| #   | Task                                                     | Impact    | Effort | Pareto Score |
-| --- | -------------------------------------------------------- | --------- | ------ | ------------ |
-| 1   | Fix `event_context_test.go` (implement or delete)        | 🔴 High   | 15 min | 13.3         |
-| 2   | Fix `go mod tidy` on `pebble/` + `turso/`                | 🔴 High   | 10 min | 20.0         |
-| 3   | Add `README.md` for `pebble/`                            | 🟡 Medium | 15 min | 8.0          |
-| 4   | Add `README.md` for `turso/`                             | 🟡 Medium | 10 min | 10.0         |
-| 5   | Extract shared `reconstructEvent`/`marshalMetadata`      | 🟡 Medium | 20 min | 6.0          |
-| 6   | Verify `GOWORK=off` builds for all modules               | 🟡 Medium | 15 min | 8.0          |
-| 7   | Move `go-sqlmock` to test-only in `storage/go.mod`       | 🟡 Medium | 10 min | 10.0         |
-| 8   | Remove `SQLBackend`                                      | 🟡 Medium | 20 min | 5.0          |
-| 9   | Extract test helpers to `testhelpers/` module            | 🟡 Medium | 30 min | 4.0          |
-| 10  | Add basic Turso connector tests                          | 🟢 Low    | 15 min | 4.0          |
-| 11  | Fix `pebble/config.go` factory completion                | 🟢 Low    | 10 min | 4.0          |
-| 12  | Rename `pebble` package to avoid name collision          | 🟢 Low    | 20 min | 2.0          |
-| 13  | Consider `turso` returning interfaces not concrete types | 🟢 Low    | 15 min | 2.7          |
-| 14  | Add `pebble` benchmarks for time-travel ops              | 🟢 Low    | 20 min | 2.0          |
-| 15  | Document `Dialect` interface in `storage/README.md`      | 🟢 Low    | 10 min | 3.0          |
-| 16  | Audit `storage/` for remaining god-package smells        | 🟢 Low    | 30 min | 1.7          |
-| 17  | Consider `checkpoint/` sub-package extraction            | 🟢 Low    | 20 min | 2.0          |
-| 18  | Consider `snapshot/` sub-package extraction              | 🟢 Low    | 20 min | 2.0          |
-| 19  | Add `outbox/` sub-package extraction                     | 🟢 Low    | 30 min | 1.3          |
-| 20  | Verify external consumer import paths still work         | 🟢 Low    | 15 min | 2.7          |
-| 21  | Add `pebble` CI job to GitHub Actions                    | 🟢 Low    | 20 min | 2.0          |
-| 22  | Add `turso` CI job to GitHub Actions                     | 🟢 Low    | 20 min | 2.0          |
-| 23  | Review `flake.nix` for new module support                | 🟢 Low    | 15 min | 2.7          |
-| 24  | Add `doc.go` to all packages missing one                 | 🟢 Low    | 30 min | 1.3          |
-| 25  | Benchmark `pebble` vs `storage` performance              | 🟢 Low    | 30 min | 1.3          |
+| #  | Task                                                     | Impact    | Effort | Pareto Score |
+| -- | -------------------------------------------------------- | --------- | ------ | ------------ |
+| 1  | Fix `event_context_test.go` (implement or delete)        | 🔴 High   | 15 min | 13.3         |
+| 2  | Fix `go mod tidy` on `pebble/` + `turso/`                | 🔴 High   | 10 min | 20.0         |
+| 3  | Add `README.md` for `pebble/`                            | 🟡 Medium | 15 min | 8.0          |
+| 4  | Add `README.md` for `turso/`                             | 🟡 Medium | 10 min | 10.0         |
+| 5  | Extract shared `reconstructEvent`/`marshalMetadata`      | 🟡 Medium | 20 min | 6.0          |
+| 6  | Verify `GOWORK=off` builds for all modules               | 🟡 Medium | 15 min | 8.0          |
+| 7  | Move `go-sqlmock` to test-only in `storage/go.mod`       | 🟡 Medium | 10 min | 10.0         |
+| 8  | Remove `SQLBackend`                                      | 🟡 Medium | 20 min | 5.0          |
+| 9  | Extract test helpers to `testhelpers/` module            | 🟡 Medium | 30 min | 4.0          |
+| 10 | Add basic Turso connector tests                          | 🟢 Low    | 15 min | 4.0          |
+| 11 | Fix `pebble/config.go` factory completion                | 🟢 Low    | 10 min | 4.0          |
+| 12 | Rename `pebble` package to avoid name collision          | 🟢 Low    | 20 min | 2.0          |
+| 13 | Consider `turso` returning interfaces not concrete types | 🟢 Low    | 15 min | 2.7          |
+| 14 | Add `pebble` benchmarks for time-travel ops              | 🟢 Low    | 20 min | 2.0          |
+| 15 | Document `Dialect` interface in `storage/README.md`      | 🟢 Low    | 10 min | 3.0          |
+| 16 | Audit `storage/` for remaining god-package smells        | 🟢 Low    | 30 min | 1.7          |
+| 17 | Consider `checkpoint/` sub-package extraction            | 🟢 Low    | 20 min | 2.0          |
+| 18 | Consider `snapshot/` sub-package extraction              | 🟢 Low    | 20 min | 2.0          |
+| 19 | Add `outbox/` sub-package extraction                     | 🟢 Low    | 30 min | 1.3          |
+| 20 | Verify external consumer import paths still work         | 🟢 Low    | 15 min | 2.7          |
+| 21 | Add `pebble` CI job to GitHub Actions                    | 🟢 Low    | 20 min | 2.0          |
+| 22 | Add `turso` CI job to GitHub Actions                     | 🟢 Low    | 20 min | 2.0          |
+| 23 | Review `flake.nix` for new module support                | 🟢 Low    | 15 min | 2.7          |
+| 24 | Add `doc.go` to all packages missing one                 | 🟢 Low    | 30 min | 1.3          |
+| 25 | Benchmark `pebble` vs `storage` performance              | 🟢 Low    | 30 min | 1.3          |
 
 ---
 

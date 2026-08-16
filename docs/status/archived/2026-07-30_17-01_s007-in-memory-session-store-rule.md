@@ -13,38 +13,38 @@ S007 is **fully implemented, tested, and documented**. The rule fires correctly,
 
 ## a) FULLY DONE
 
-| #   | Item                                                                                                                                                         | Verification                                                                      |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| 1   | **S007 detector** (`security/s007.go`, 130 lines)                                                                                                            | Compiles, vet clean, 7 tests pass with `-race`                                    |
-| 2   | **Two-signal conjunction heuristic** — `inmemory`/`memory` AND (`session` OR (`token`+`store`))                                                              | Tested against false positives: CQRS event store, rate limiter bucket, test files |
-| 3   | **HasServer gating** — suppressed for CLIs/batch/test contexts                                                                                               | `TestS007_SuppressedWithoutServer` confirms                                       |
-| 4   | **Registration** — `register.go`, `catalog_extra.go` (S007 RuleInfo), `meta_test.go` (count→117)                                                             | `TestAllDetectorsInstantiate` passes, `TestCatalogCountMatchesRegister` passes    |
-| 5   | **Catalog entry** — S007 in `securityRules()` with Warning/Medium severity                                                                                   | Visible in `cqrs-lint rules` CLI output                                           |
-| 6   | **7 unit tests** — positive (call+composite), no-server gate, test-file skip, event-store FP guard, token-bucket FP guard, empty-input                       | All pass with `-race -count=1`                                                    |
-| 7   | **Documentation** — README (117 rules, security table with S007 row), AGENTS.md (117/9 categories), IMPROVEMENT_IDEAS (S007 struck through, summary updated) | Doc-check passes                                                                  |
-| 8   | **Formatting** — `gofumpt` + `goimports` clean on all S007 files                                                                                             | `gofumpt -l` / `goimports -l` return empty                                        |
-| 9   | **Fixed pre-existing T-series formatting** — `testrules/rules_test.go` was flagged by gofumpt/goimports; ran both `-w`                                       | `gofumpt -l pkg/rules/testrules/` now clean                                       |
-| 10  | **Corrected stale rule counts** — discovered the real count is **117** (not 113 or 105); performance had 5 rules not 2, security now has 4                   | Verified via `grep -c` on RegisterAll + catalog                                   |
+| #  | Item                                                                                                                                                         | Verification                                                                      |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| 1  | **S007 detector** (`security/s007.go`, 130 lines)                                                                                                            | Compiles, vet clean, 7 tests pass with `-race`                                    |
+| 2  | **Two-signal conjunction heuristic** — `inmemory`/`memory` AND (`session` OR (`token`+`store`))                                                              | Tested against false positives: CQRS event store, rate limiter bucket, test files |
+| 3  | **HasServer gating** — suppressed for CLIs/batch/test contexts                                                                                               | `TestS007_SuppressedWithoutServer` confirms                                       |
+| 4  | **Registration** — `register.go`, `catalog_extra.go` (S007 RuleInfo), `meta_test.go` (count→117)                                                             | `TestAllDetectorsInstantiate` passes, `TestCatalogCountMatchesRegister` passes    |
+| 5  | **Catalog entry** — S007 in `securityRules()` with Warning/Medium severity                                                                                   | Visible in `cqrs-lint rules` CLI output                                           |
+| 6  | **7 unit tests** — positive (call+composite), no-server gate, test-file skip, event-store FP guard, token-bucket FP guard, empty-input                       | All pass with `-race -count=1`                                                    |
+| 7  | **Documentation** — README (117 rules, security table with S007 row), AGENTS.md (117/9 categories), IMPROVEMENT_IDEAS (S007 struck through, summary updated) | Doc-check passes                                                                  |
+| 8  | **Formatting** — `gofumpt` + `goimports` clean on all S007 files                                                                                             | `gofumpt -l` / `goimports -l` return empty                                        |
+| 9  | **Fixed pre-existing T-series formatting** — `testrules/rules_test.go` was flagged by gofumpt/goimports; ran both `-w`                                       | `gofumpt -l pkg/rules/testrules/` now clean                                       |
+| 10 | **Corrected stale rule counts** — discovered the real count is **117** (not 113 or 105); performance had 5 rules not 2, security now has 4                   | Verified via `grep -c` on RegisterAll + catalog                                   |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| #   | Item                        | Status                                                   | What remains                                                                        |
-| --- | --------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| 1   | **`nix run .#verify`**      | Build ✓, Vet ✓, Test ✓ (except soak), Race ✓ (cqrs-lint) | Lint step fails on **9 pre-existing issues** (see below); API-stability not reached |
-| 2   | **`nix run .#verify-fast`** | Started, lint output captured                            | Lint step fails on same 9 pre-existing issues                                       |
+| # | Item                        | Status                                                   | What remains                                                                        |
+| - | --------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 1 | **`nix run .#verify`**      | Build ✓, Vet ✓, Test ✓ (except soak), Race ✓ (cqrs-lint) | Lint step fails on **9 pre-existing issues** (see below); API-stability not reached |
+| 2 | **`nix run .#verify-fast`** | Started, lint output captured                            | Lint step fails on same 9 pre-existing issues                                       |
 
 ---
 
 ## c) NOT STARTED
 
-| #   | Item                                     | Why                                                        |
-| --- | ---------------------------------------- | ---------------------------------------------------------- |
-| 1   | Fix the 9 pre-existing lint issues       | Out of S007 scope but blocks verify gate — see section (e) |
-| 2   | S004 (PII field-level encryption)        | Separate improvement idea (#54)                            |
-| 3   | S005 (event signing disabled by default) | Separate improvement idea (#55)                            |
-| 4   | S006 (financial data without encryption) | Separate improvement idea (#56)                            |
+| # | Item                                     | Why                                                        |
+| - | ---------------------------------------- | ---------------------------------------------------------- |
+| 1 | Fix the 9 pre-existing lint issues       | Out of S007 scope but blocks verify gate — see section (e) |
+| 2 | S004 (PII field-level encryption)        | Separate improvement idea (#54)                            |
+| 3 | S005 (event signing disabled by default) | Separate improvement idea (#55)                            |
+| 4 | S006 (financial data without encryption) | Separate improvement idea (#56)                            |
 
 ---
 
@@ -52,10 +52,10 @@ S007 is **fully implemented, tested, and documented**. The rule fires correctly,
 
 Nothing in S007 itself. However:
 
-| #   | Issue                                                                                                                                                                                                                                                                                                                                            | Impact                                                                                                                                           |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | **Auto-commit daemon modified unrelated files** — `CONTRIBUTING.md`, `FEATURES.md`, `docs/STORAGE_GUIDE.md` show as modified in git status but I never touched them                                                                                                                                                                              | Working tree has unexpected changes; these are from the daemon, not this session's S007 work                                                     |
-| 2   | **Docs were already badly stale before this session** — AGENTS.md said "105 rules / 8 categories", README said "113 rules", IMPROVEMENT_IDEAS said "113 rules", but the actual count was already 117 (performance had silently grown from 2→5 rules). The T-series session apparently didn't fix AGENTS.md at all (it was at 105, not even 113). | Multiple doc files had inconsistent counts. Fixed AGENTS.md/README/IMPROVEMENT_IDEAS to 117, but **other files may still reference old counts**. |
+| # | Issue                                                                                                                                                                                                                                                                                                                                            | Impact                                                                                                                                           |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 | **Auto-commit daemon modified unrelated files** — `CONTRIBUTING.md`, `FEATURES.md`, `docs/STORAGE_GUIDE.md` show as modified in git status but I never touched them                                                                                                                                                                              | Working tree has unexpected changes; these are from the daemon, not this session's S007 work                                                     |
+| 2 | **Docs were already badly stale before this session** — AGENTS.md said "105 rules / 8 categories", README said "113 rules", IMPROVEMENT_IDEAS said "113 rules", but the actual count was already 117 (performance had silently grown from 2→5 rules). The T-series session apparently didn't fix AGENTS.md at all (it was at 105, not even 113). | Multiple doc files had inconsistent counts. Fixed AGENTS.md/README/IMPROVEMENT_IDEAS to 117, but **other files may still reference old counts**. |
 
 ---
 
@@ -65,29 +65,29 @@ Nothing in S007 itself. However:
 
 These are the exact lint failures from `nix run .#lint` on `cmd/cqrs-lint`:
 
-| #   | Rule               | File                                                      | Issue                                           | Fix                                                                          |
-| --- | ------------------ | --------------------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------- |
-| 1   | `gci`              | (unidentified — need to trace)                            | Import ordering                                 | Run `gci write`                                                              |
-| 2   | `gochecknoglobals` | `catalog.go` (`allRulesCache`)                            | Global var                                      | Add `//nolint:gochecknoglobals` — it's a `sync.OnceValue` cache, intentional |
-| 3   | `gochecknoglobals` | `performance/p009.go:17` (`eventPayloadSuffixes`)         | Global slice                                    | Add `//nolint:gochecknoglobals` or make it a function-local                  |
-| 4   | `gochecknoglobals` | `register.go:232` (`ruleCategoryCache`)                   | Global var                                      | Add `//nolint:gochecknoglobals` — it's a `sync.OnceValue` cache, intentional |
-| 5   | `gochecknoglobals` | `testrules/t007_t008.go:52` (`productionStoreSubstrings`) | Global slice                                    | Add `//nolint:gochecknoglobals` or make it a function-local                  |
-| 6   | `golines`          | `version/v006.go:94`                                      | Line too long                                   | Run `golines` or break manually                                              |
-| 7   | `modernize`        | `version/gomod.go:51`                                     | `HasPrefix+TrimPrefix` → `CutPrefix`            | Replace with `strings.CutPrefix`                                             |
-| 8   | `modernize`        | `suppression/parser.go:177`                               | `strings.Split` → `strings.SplitSeq`            | Replace with `strings.SplitSeq`                                              |
-| 9   | `unparam`          | `testrules/helpers.go:164`                                | `severity` param always receives `SeverityInfo` | Remove the parameter or make it vary                                         |
+| # | Rule               | File                                                      | Issue                                           | Fix                                                                          |
+| - | ------------------ | --------------------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------- |
+| 1 | `gci`              | (unidentified — need to trace)                            | Import ordering                                 | Run `gci write`                                                              |
+| 2 | `gochecknoglobals` | `catalog.go` (`allRulesCache`)                            | Global var                                      | Add `//nolint:gochecknoglobals` — it's a `sync.OnceValue` cache, intentional |
+| 3 | `gochecknoglobals` | `performance/p009.go:17` (`eventPayloadSuffixes`)         | Global slice                                    | Add `//nolint:gochecknoglobals` or make it a function-local                  |
+| 4 | `gochecknoglobals` | `register.go:232` (`ruleCategoryCache`)                   | Global var                                      | Add `//nolint:gochecknoglobals` — it's a `sync.OnceValue` cache, intentional |
+| 5 | `gochecknoglobals` | `testrules/t007_t008.go:52` (`productionStoreSubstrings`) | Global slice                                    | Add `//nolint:gochecknoglobals` or make it a function-local                  |
+| 6 | `golines`          | `version/v006.go:94`                                      | Line too long                                   | Run `golines` or break manually                                              |
+| 7 | `modernize`        | `version/gomod.go:51`                                     | `HasPrefix+TrimPrefix` → `CutPrefix`            | Replace with `strings.CutPrefix`                                             |
+| 8 | `modernize`        | `suppression/parser.go:177`                               | `strings.Split` → `strings.SplitSeq`            | Replace with `strings.SplitSeq`                                              |
+| 9 | `unparam`          | `testrules/helpers.go:164`                                | `severity` param always receives `SeverityInfo` | Remove the parameter or make it vary                                         |
 
 **These are all from the T-series session or older code. Fixing them is ~15 minutes of mechanical work.**
 
 ### Other Improvements
 
-| #   | Improvement                                                                                                                                                                                                                                                                                                                      | Rationale                                                                                          |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| 1   | **Lint gate was already RED before this session** — the T-series session committed code that fails lint (gochecknoglobals, unparam). The "Stale GREEN" anti-pattern documented in AGENTS.md strikes again.                                                                                                                       | The verify gate is only useful if run to completion every session                                  |
-| 2   | **API-surface golden doesn't track internal detector symbols** — the earlier T-series context claimed the golden was stale (missing 8 T-series symbols), but regeneration produced zero diff. The golden only tracks `cmd/cqrs-lint`'s top-level exports (`ComputeHealthScore`, `AppConfig`, etc.), not `pkg/rules/*` detectors. | The earlier session's "3 CI-breaking issues" list was partially wrong — the golden was never stale |
-| 3   | **350-line file limit excludes `_test.go`** — the T-series `rules_test.go` (597 lines) does NOT violate CI. The earlier session's concern about "needs splitting" was unfounded.                                                                                                                                                 | Verified in `flake.nix:451`: `find . -name "*.go" -not -name "*_test.go"`                          |
-| 4   | **benchkit soak tests are chronically flaky** — 3 tests (`TestRunSoak_Memory`, `TestRunSoak_TrendsPopulated`, `TestRunSoakJSON_RoundTrip`) fail when the machine is under load. They expect >=2 iterations in 5s but get 1.                                                                                                      | These should use `testing.Short()` skip or longer time budgets                                     |
-| 5   | **README/IMPROVEMENT_IDEAS performance counts are stale** — performance has 5 rules (P001, P007, P008, P009, +1 more) but docs say "2". I fixed the headline to 117 total but didn't audit per-category performance accuracy.                                                                                                    | Run `grep -c` per category and update all tables                                                   |
+| # | Improvement                                                                                                                                                                                                                                                                                                                      | Rationale                                                                                          |
+| - | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| 1 | **Lint gate was already RED before this session** — the T-series session committed code that fails lint (gochecknoglobals, unparam). The "Stale GREEN" anti-pattern documented in AGENTS.md strikes again.                                                                                                                       | The verify gate is only useful if run to completion every session                                  |
+| 2 | **API-surface golden doesn't track internal detector symbols** — the earlier T-series context claimed the golden was stale (missing 8 T-series symbols), but regeneration produced zero diff. The golden only tracks `cmd/cqrs-lint`'s top-level exports (`ComputeHealthScore`, `AppConfig`, etc.), not `pkg/rules/*` detectors. | The earlier session's "3 CI-breaking issues" list was partially wrong — the golden was never stale |
+| 3 | **350-line file limit excludes `_test.go`** — the T-series `rules_test.go` (597 lines) does NOT violate CI. The earlier session's concern about "needs splitting" was unfounded.                                                                                                                                                 | Verified in `flake.nix:451`: `find . -name "*.go" -not -name "*_test.go"`                          |
+| 4 | **benchkit soak tests are chronically flaky** — 3 tests (`TestRunSoak_Memory`, `TestRunSoak_TrendsPopulated`, `TestRunSoakJSON_RoundTrip`) fail when the machine is under load. They expect >=2 iterations in 5s but get 1.                                                                                                      | These should use `testing.Short()` skip or longer time budgets                                     |
+| 5 | **README/IMPROVEMENT_IDEAS performance counts are stale** — performance has 5 rules (P001, P007, P008, P009, +1 more) but docs say "2". I fixed the headline to 117 total but didn't audit per-category performance accuracy.                                                                                                    | Run `grep -c` per category and update all tables                                                   |
 
 ---
 

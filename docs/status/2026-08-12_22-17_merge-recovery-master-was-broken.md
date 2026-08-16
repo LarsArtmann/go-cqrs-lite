@@ -67,9 +67,9 @@ this session did not resolve.
    - `mysqlengine` — **FAILS** (published `record/v4@v4.1.0` references removed `id.ActorID`)
    - `tursoengine` — **FAILS** (needs `go mod tidy`, then likely same record issue)
    - `backuptest` — **FAILS** (same `record/v4@v4.1.0` issue)
-   These fail because the published `record/v4@v4.1.0` artifact is stale — it references `id.ActorID`
-   which master's `record/` no longer exports. The workspace build works (uses local `record/`), but
-   standalone per-module builds would fail in CI.
+     These fail because the published `record/v4@v4.1.0` artifact is stale — it references `id.ActorID`
+     which master's `record/` no longer exports. The workspace build works (uses local `record/`), but
+     standalone per-module builds would fail in CI.
 3. **Pre-existing system test failure** — `system.TestEventBus_HandlerIndependence` fails
    deterministically (handler2 not called after handler1 errors). Confirmed the test file is
    identical on both branches. **But I did NOT verify the test fails on a clean master checkout**
@@ -123,6 +123,7 @@ Store fields) and leave master's other deletions in place. That would require ma
 The published `record/v4@v4.1.0` tag references `id.ActorID` (a type master removed from the
 `record` module). Any module that depends on `record/v4` via the module proxy (not workspace)
 will fail to build standalone. This means:
+
 - `metaengine/mysqlengine` — broken standalone
 - `metaengine/tursoengine` — broken standalone
 - `storage/backuptest` — broken standalone
@@ -164,6 +165,7 @@ my regression, not pre-existing.
 ## f) Up to 50 Things to Do Next
 
 ### Critical (blocks CI / correctness)
+
 ~~1. Run `go test ./... -tags "goexperiment.jsonv2"` — full test suite, catalog ALL failures~~ done at 5f2198189 - 239 ok packages, 0 FAIL; cataloged across the 08-14/15 sessions
 ~~2. Verify `TestEventBus_HandlerIndependence` on clean master via `git worktree`~~ done - fixed for real at 1b4e79b78 (errors.Join handler independence); pre-existing-ness confirmed by the 01-02 review
 ~~3. Fix or retract the poisoned `record/v4@v4.1.0` tag~~ done - record/v4.2.0 published (flattened string types); stale replaces removed by the 20-46 session
@@ -173,6 +175,7 @@ my regression, not pre-existing.
 ~~7. Verify GOWORK=off builds for all 79 modules (CI does this)~~ done - standalone green since the tag wave
 
 ### High priority (merge hygiene)
+
 ~~8. Commit the 2 unstaged middleware formatter files~~ done - daemon committed; lint clean since
 ~~9. Run `cmd/doc-check` — verify no broken import paths in docs~~ done - doc-check green (797 refs)
 ~~10. Run `nix run .#check-arch` — dependency budget enforcement~~ done - green inside #verify since (layer keys repaired)
@@ -183,6 +186,7 @@ my regression, not pre-existing.
 15. If keeping master's direction: surgically extract only what system/ needs <- NOT-DO - decision was (a) keep the full restored version; surgical extraction moot
 
 ### Medium priority (tech debt exposed)
+
 ~~16. Fix `TestEventBus_HandlerIndependence` — watermill handler isolation bug~~ done at 1b4e79b78 (watermill errors.Join)
 ~~17. Complete the codec extraction (all consumers → `go-codec` directly) OR document the alias as permanent~~ done - completed: all consumers on go-codec directly; shims deleted (5127039da, ADR-0128)
 ~~18. Add CI gate: master must pass `go build ./...` before merge~~ done - ci.yml gates build/vet/test/lint/race (known: the Benchmarks job is red - tracked)
@@ -195,6 +199,7 @@ my regression, not pre-existing.
 ~~25. Check if any restored engine module has stale `replace` directives~~ done - replace-directive audit done by the 20-46 session (dead ones removed; 5 temporary engine replaces tracked in TODO_LIST)
 
 ### Lower priority (cleanup)
+
 ~~26. Review `go.work` for orphaned entries~~ done - cleaned at 2e9a2fc28; meta-tests enforce
 27. Run `nix flake check` — flake-level validation
 ~~28. Tag `record/v4` with a new version if the type change is intentional~~ done - record/v4.2.0 published
@@ -240,7 +245,6 @@ my regression, not pre-existing.
    locally but not pushed. The 2 unstaged files and the GOWORK=off build failures mean the branch
    is not CI-ready. Do you want me to push as-is, fix the GOWORK=off issues first, or leave it for
    you to handle?
-
 
 ---
 

@@ -139,53 +139,53 @@ No broken builds, no failing tests, no data loss, no security issues.
 
 ### Tier 1: Quick Wins (30 min each)
 
-| #   | Item                                                           | Impact                | Effort |
-| --- | -------------------------------------------------------------- | --------------------- | ------ |
-| 1   | Add `.gitignore` rules for SQLite/Pebble test artifacts        | Prevents future leaks | 5 min  |
-| 2   | Add `VectorClock.String()` fmt.Stringer                        | Debugging quality     | 15 min |
-| 3   | Validate inputs in `NewOperation`                              | Correctness           | 15 min |
-| 4   | Unexport `LWWResolver.Tiebreaker`, add `WithTiebreaker` option | API design            | 20 min |
-| 5   | Add `buildTags` tests in catalog/asyncapi (62.5→90%+)          | Coverage              | 15 min |
+| # | Item                                                           | Impact                | Effort |
+| - | -------------------------------------------------------------- | --------------------- | ------ |
+| 1 | Add `.gitignore` rules for SQLite/Pebble test artifacts        | Prevents future leaks | 5 min  |
+| 2 | Add `VectorClock.String()` fmt.Stringer                        | Debugging quality     | 15 min |
+| 3 | Validate inputs in `NewOperation`                              | Correctness           | 15 min |
+| 4 | Unexport `LWWResolver.Tiebreaker`, add `WithTiebreaker` option | API design            | 20 min |
+| 5 | Add `buildTags` tests in catalog/asyncapi (62.5→90%+)          | Coverage              | 15 min |
 
 ### Tier 2: Coverage Pushes (1-2 hours each)
 
-| #   | Item                                                           | Impact      | Effort |
-| --- | -------------------------------------------------------------- | ----------- | ------ |
-| 6   | testhelpers assertions coverage 79.7→90%                       | Trust       | 1 hr   |
-| 7   | catalog/docserver coverage 90.1→93%                            | Quality     | 1 hr   |
-| 8   | catalog/schemautil coverage 84.2→90%                           | Quality     | 30 min |
-| 9   | storage: Add Pebble corrupt-data error path tests              | Robustness  | 1 hr   |
-| 10  | storage: Add `Close` with ownDB for outbox/checkpoint/snapshot | Consistency | 30 min |
+| #  | Item                                                           | Impact      | Effort |
+| -- | -------------------------------------------------------------- | ----------- | ------ |
+| 6  | testhelpers assertions coverage 79.7→90%                       | Trust       | 1 hr   |
+| 7  | catalog/docserver coverage 90.1→93%                            | Quality     | 1 hr   |
+| 8  | catalog/schemautil coverage 84.2→90%                           | Quality     | 30 min |
+| 9  | storage: Add Pebble corrupt-data error path tests              | Robustness  | 1 hr   |
+| 10 | storage: Add `Close` with ownDB for outbox/checkpoint/snapshot | Consistency | 30 min |
 
 ### Tier 3: Architecture Improvements (2-4 hours each)
 
-| #   | Item                                                                         | Impact               | Effort |
-| --- | ---------------------------------------------------------------------------- | -------------------- | ------ |
-| 11  | Split `core/decider/decider_test.go` (1170 lines → 2-3 files)                | Maintainability      | 1 hr   |
-| 12  | Add CI golden test drift detection                                           | Prevents regressions | 2 hr   |
-| 13  | Document `sync` package stdlib shadowing in README                           | Developer experience | 30 min |
-| 14  | Add `fmt.Stringer` to `Operation[T]` and `Conflict[T]`                       | Debugging            | 30 min |
-| 15  | Add `SyncMessage` type routing utility for `SyncResponse[T]` deserialization | API completeness     | 2 hr   |
+| #  | Item                                                                         | Impact               | Effort |
+| -- | ---------------------------------------------------------------------------- | -------------------- | ------ |
+| 11 | Split `core/decider/decider_test.go` (1170 lines → 2-3 files)                | Maintainability      | 1 hr   |
+| 12 | Add CI golden test drift detection                                           | Prevents regressions | 2 hr   |
+| 13 | Document `sync` package stdlib shadowing in README                           | Developer experience | 30 min |
+| 14 | Add `fmt.Stringer` to `Operation[T]` and `Conflict[T]`                       | Debugging            | 30 min |
+| 15 | Add `SyncMessage` type routing utility for `SyncResponse[T]` deserialization | API completeness     | 2 hr   |
 
 ### Tier 4: Feature Work (4-8 hours each)
 
-| #   | Item                                                             | Impact         | Effort |
-| --- | ---------------------------------------------------------------- | -------------- | ------ |
-| 16  | Plan `integration/aggregate/` migration to decider               | Debt reduction | 4 hr   |
-| 17  | Add Watermill integration module (planned in AGENTS.md)          | Feature        | 8 hr   |
-| 18  | Add PostgreSQL integration tests (real DB, not mocks)            | Confidence     | 4 hr   |
-| 19  | Add example/ app with HTTP transport                             | Demo quality   | 4 hr   |
-| 20  | Create versioned migration plan for `core/aggregate` deprecation | Roadmap        | 2 hr   |
+| #  | Item                                                             | Impact         | Effort |
+| -- | ---------------------------------------------------------------- | -------------- | ------ |
+| 16 | Plan `integration/aggregate/` migration to decider               | Debt reduction | 4 hr   |
+| 17 | Add Watermill integration module (planned in AGENTS.md)          | Feature        | 8 hr   |
+| 18 | Add PostgreSQL integration tests (real DB, not mocks)            | Confidence     | 4 hr   |
+| 19 | Add example/ app with HTTP transport                             | Demo quality   | 4 hr   |
+| 20 | Create versioned migration plan for `core/aggregate` deprecation | Roadmap        | 2 hr   |
 
 ### Tier 5: Polish & Documentation (1-2 hours each)
 
-| #   | Item                                                | Impact               | Effort |
-| --- | --------------------------------------------------- | -------------------- | ------ |
-| 21  | Update README.md with current architecture diagram  | Presentation         | 1 hr   |
-| 22  | Add Go doc examples for `decider.ExecuteWithResult` | Discoverability      | 30 min |
-| 23  | Add Go doc examples for `projection.Builder.On[T]`  | Discoverability      | 30 min |
-| 24  | Write ADR for sync package naming decision          | Documentation        | 1 hr   |
-| 25  | Add benchmark suite for storage module              | Performance baseline | 2 hr   |
+| #  | Item                                                | Impact               | Effort |
+| -- | --------------------------------------------------- | -------------------- | ------ |
+| 21 | Update README.md with current architecture diagram  | Presentation         | 1 hr   |
+| 22 | Add Go doc examples for `decider.ExecuteWithResult` | Discoverability      | 30 min |
+| 23 | Add Go doc examples for `projection.Builder.On[T]`  | Discoverability      | 30 min |
+| 24 | Write ADR for sync package naming decision          | Documentation        | 1 hr   |
+| 25 | Add benchmark suite for storage module              | Performance baseline | 2 hr   |
 
 ---
 

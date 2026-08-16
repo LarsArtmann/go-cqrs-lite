@@ -14,19 +14,19 @@ Continued execution of the Session 74 audit findings. Fixed 3 correctness bugs a
 
 ### Bugs Fixed
 
-| #   | Module             | Fix                                                                                                                                                                                              | Severity | Commit    |
-| --- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | --------- |
-| 1   | `storage/pebble`   | Added optimistic concurrency check in `Save()` — loads existing events, returns `ErrVersionConflict` if count doesn't match `expectedVersion`. Aligns Pebble with MemoryStore and SQLEventStore. | CRITICAL | `26acfa4` |
-| 2   | `middleware/retry` | Added `timer.Stop()` after normal `timer.C` fire path. Previously only context cancellation stopped the timer, leaking timer resources.                                                          | HIGH     | `ad8cd8b` |
-| 3   | `core/decider`     | `saveSnapshotAfterEvents` now returns early on fold error instead of continuing to encode partial state. The fold error is logged via `opError`.                                                 | HIGH     | `b1833e2` |
+| # | Module             | Fix                                                                                                                                                                                              | Severity | Commit    |
+| - | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | --------- |
+| 1 | `storage/pebble`   | Added optimistic concurrency check in `Save()` — loads existing events, returns `ErrVersionConflict` if count doesn't match `expectedVersion`. Aligns Pebble with MemoryStore and SQLEventStore. | CRITICAL | `26acfa4` |
+| 2 | `middleware/retry` | Added `timer.Stop()` after normal `timer.C` fire path. Previously only context cancellation stopped the timer, leaking timer resources.                                                          | HIGH     | `ad8cd8b` |
+| 3 | `core/decider`     | `saveSnapshotAfterEvents` now returns early on fold error instead of continuing to encode partial state. The fold error is logged via `opError`.                                                 | HIGH     | `b1833e2` |
 
 ### Safety Improvements
 
-| #   | Module                 | Fix                                                                                                                                                | Commit    |
-| --- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 4   | `sync`                 | `NewLWWResolver` panics with clear message on nil `TimestampFunc` — prevents nil dereference at Resolve time.                                      | `b1833e2` |
-| 5   | `core/event`           | `OutboxPublisher.publishPending` logs `slog.Warn` instead of silently swallowing errors. Keeps background loop running but provides observability. | `b1833e2` |
-| 6   | `catalog/eventcatalog` | Fixed `wsl_v5` and `golines` lint issues.                                                                                                          | `b1833e2` |
+| # | Module                 | Fix                                                                                                                                                | Commit    |
+| - | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 4 | `sync`                 | `NewLWWResolver` panics with clear message on nil `TimestampFunc` — prevents nil dereference at Resolve time.                                      | `b1833e2` |
+| 5 | `core/event`           | `OutboxPublisher.publishPending` logs `slog.Warn` instead of silently swallowing errors. Keeps background loop running but provides observability. | `b1833e2` |
+| 6 | `catalog/eventcatalog` | Fixed `wsl_v5` and `golines` lint issues.                                                                                                          | `b1833e2` |
 
 ### Style
 

@@ -1,11 +1,11 @@
 # Status Report: WAL Unification Execution (Phases 1–4 of 7)
 
-| Field     | Value                                      |
-| --------- | ------------------------------------------ |
-| Date      | 2026-08-14 14:59                           |
-| Author    | Crush session (Lars-supervised)            |
-| Scope     | `docs/planning/2026-08-14_11-27_WAL-UNIFICATION.md` + STORE-MIDDLEWARE-SIMPLIFICATION |
-| Verdict   | **GREEN for Phases 1–4. Phases 5–7 NOT STARTED. One gate deliberately deferred.** |
+| Field   | Value                                                                                 |
+| ------- | ------------------------------------------------------------------------------------- |
+| Date    | 2026-08-14 14:59                                                                      |
+| Author  | Crush session (Lars-supervised)                                                       |
+| Scope   | `docs/planning/2026-08-14_11-27_WAL-UNIFICATION.md` + STORE-MIDDLEWARE-SIMPLIFICATION |
+| Verdict | **GREEN for Phases 1–4. Phases 5–7 NOT STARTED. One gate deliberately deferred.**     |
 
 ## Executive Summary
 
@@ -147,7 +147,7 @@ recorded so future sessions don't re-trip:
    until `cd cmd/api-stability && GOWORK=off go run main.go -update` runs.
 2. Run `nix fmt` before adding any `//nolint` lines in the new files.
 3. Add direct unit tests for `LogStore` error paths (nil `NewNotFound` guard,
-  duplicate suffix formatting) — currently covered only indirectly.
+   duplicate suffix formatting) — currently covered only indirectly.
 4. Consider extracting the thrice-duplicated `brandedString` helper
    (event/command/query asrecord.go) into `record` (zero-dep-safe) if
    `check-duplication` flags the third copy.

@@ -42,6 +42,7 @@
 ### Versioning and tagging — NOT STARTED (intentionally)
 
 The proposal suggests tagging `metadata/v4 v4.4.0`, `event/v4 v4.6.0`, `command/v4 v4.6.0`. I did NOT tag because:
+
 - Policy: never tag/push without explicit instruction.
 - **Dependency chain problem**: `event/go.mod`, `command/go.mod`, and `query/go.mod` all require `metadata/v4 v4.3.0` (the old version without `ActorID`). In `GOWORK=off` mode (per-module isolation), `go test` would fail because the published v4.3.0 tag doesn't have the `ActorID` field. The workspace tests pass because `go.work` resolves to local source. This is fine for development but the release sequence must be: tag metadata first → bump go.mod in event/command/query → tag those.
 
@@ -152,9 +153,9 @@ Nothing. No errors, no reverts, no broken state. All changes compile and pass te
 33. Update `.agents/skills/go-cqrs-lite/references/core.md` with `WithActor` in the options section. <- OPEN. TODO_LIST 'WithActor Hardening' (Document WithActor in skill references)
 34. Update `.agents/skills/go-cqrs-lite/references/recipes.md` if actor-chain patterns are referenced. <- OPEN. TODO_LIST 'WithActor Hardening' (same item)
 35. Update `.agents/skills/go-cqrs-lite/references/modules.md` if `Tracing` fields are listed. <- OPEN. TODO_LIST 'WithActor Hardening' (same item - modules.md Tracing fields)
-~~36. Run `cmd/doc-check` to verify docs are consistent.~~ done - doc-check green (797 refs) since the sweep
-37. Consider adding a "Actor chain audit trail" recipe to `recipes.md`. <- OPEN. TODO_LIST 'WithActor Hardening' (recipes lane)
-38. Update `docs/DOMAIN_LANGUAGE.md` if "Actor" / "Effective Identity" terms should be formalized. <- OPEN. WithActor Hardening lane - not yet ticketed individually
+    ~~36. Run `cmd/doc-check` to verify docs are consistent.~~ done - doc-check green (797 refs) since the sweep
+36. Consider adding a "Actor chain audit trail" recipe to `recipes.md`. <- OPEN. TODO_LIST 'WithActor Hardening' (recipes lane)
+37. Update `docs/DOMAIN_LANGUAGE.md` if "Actor" / "Effective Identity" terms should be formalized. <- OPEN. WithActor Hardening lane - not yet ticketed individually
 
 ### Hardening
 
@@ -181,6 +182,7 @@ Nothing. No errors, no reverts, no broken state. All changes compile and pass te
 ### Q1: Should I proceed with the release tag sequence now?
 
 The implementation is complete and tested, but the per-module `GOWORK=off` tests will fail until metadata is tagged and event/command/query go.mod files are bumped. Should I:
+
 - **(a)** Tag metadata v4.4.0 now, bump consumers, tag them too?
 - **(b)** Wait for you to review the diff first?
 - **(c)** Leave it uncommitted for now?
@@ -194,7 +196,6 @@ Currently `CorrelationID`, `CausationID`, `UserID`, `RequestID` serialize as emp
 ### Q3: Is there a reason `record.CommonMetadata.ActorID` is a plain `string` while `metadata.Tracing.ActorID` is `id.ActorID`?
 
 `record/record.go:38` defines `ActorID string` (plain string). My change makes `metadata.Tracing.ActorID` use the branded `id.ActorID` type. This creates a type split: the "new" Record-based world uses plain strings, the "old" event/command metadata world uses branded types. I don't know if this is intentional (Record is the future direction) or an oversight that should be aligned.
-
 
 ---
 

@@ -23,20 +23,20 @@
 
 ### 3. Mutability Leak Fixes — 12 issues sealed
 
-| #   | Leak                                                       | Module     | Fix                                       |
-| --- | ---------------------------------------------------------- | ---------- | ----------------------------------------- |
-| 1   | `PersistedCommand.Metadata()` returns shared map           | command    | → `c.metadata.Clone()`                    |
-| 2   | `BasicCommand.Metadata()` returns shared map               | command    | → `c.metadata.Clone()`                    |
-| 3   | `getRefsUnsorted()` returns internal cache slice           | listing    | → `slices.Clone(cached)`                  |
-| 4   | `projectionFunc.EventTypes()` returns internal slice       | event      | → `slices.Clone(p.eventTypes)`            |
-| 5   | `NewProjection` stores caller's slice directly             | event      | → `slices.Clone(eventTypes)` on intake    |
-| 6   | `builtProjection.EventTypes()` returns internal slice      | projection | → `slices.Clone(p.eventTypes)`            |
-| 7   | `Builder.Build()` shares eventTypes with builder           | projection | → `slices.Clone(types)` on build          |
-| 8   | `WithCommandMetadata(m)` stores caller's Metadata map      | command    | → `m.Clone()` on intake                   |
-| 9   | `builder.WithPayload(payload)` stores caller's bytes       | event      | → `slices.Clone(payload)` on intake       |
-| 10  | `MultiSignature.Get()` returns pointer into internal slice | signing    | → return copy of entry                    |
-| 11  | `MarkTombstone`/`MarkRebirth` double-clone via NewEvent    | event      | → construct ImmutableEvent directly       |
-| 12  | `copyWithMetadata` normalizes encoding ""→"json"           | event      | → `encodingForCopy()` preserves raw field |
+| #  | Leak                                                       | Module     | Fix                                       |
+| -- | ---------------------------------------------------------- | ---------- | ----------------------------------------- |
+| 1  | `PersistedCommand.Metadata()` returns shared map           | command    | → `c.metadata.Clone()`                    |
+| 2  | `BasicCommand.Metadata()` returns shared map               | command    | → `c.metadata.Clone()`                    |
+| 3  | `getRefsUnsorted()` returns internal cache slice           | listing    | → `slices.Clone(cached)`                  |
+| 4  | `projectionFunc.EventTypes()` returns internal slice       | event      | → `slices.Clone(p.eventTypes)`            |
+| 5  | `NewProjection` stores caller's slice directly             | event      | → `slices.Clone(eventTypes)` on intake    |
+| 6  | `builtProjection.EventTypes()` returns internal slice      | projection | → `slices.Clone(p.eventTypes)`            |
+| 7  | `Builder.Build()` shares eventTypes with builder           | projection | → `slices.Clone(types)` on build          |
+| 8  | `WithCommandMetadata(m)` stores caller's Metadata map      | command    | → `m.Clone()` on intake                   |
+| 9  | `builder.WithPayload(payload)` stores caller's bytes       | event      | → `slices.Clone(payload)` on intake       |
+| 10 | `MultiSignature.Get()` returns pointer into internal slice | signing    | → return copy of entry                    |
+| 11 | `MarkTombstone`/`MarkRebirth` double-clone via NewEvent    | event      | → construct ImmutableEvent directly       |
+| 12 | `copyWithMetadata` normalizes encoding ""→"json"           | event      | → `encodingForCopy()` preserves raw field |
 
 ### 4. Clone Consolidation
 
@@ -162,33 +162,33 @@
 
 Sorted by Impact × Effort (Pareto):
 
-| #   | Priority | Task                                                                     | Impact          | Effort |
-| --- | -------- | ------------------------------------------------------------------------ | --------------- | ------ |
-| 1   | P0       | Fix buildflow pre-commit hook panic (report upstream or add fallback)    | DX              | M      |
-| 2   | P1       | Add benchmark regression detection in CI (compare against baseline)      | Perf safety     | M      |
-| 3   | P1       | Document the `PayloadReadOnly` trust contract more prominently (doc.go?) | Consumer safety | S      |
-| 4   | P1       | Add module-level README for `event/` mentioning `PayloadReadOnly`        | DX              | S      |
-| 5   | P1       | Evaluate removing `Signature.Bytes()` clone (benchmark first)            | Micro-perf      | S      |
-| 6   | P2       | Add fuzz tests for metadata JSON serialization roundtrip                 | Robustness      | S      |
-| 7   | P2       | Add fuzz tests for signing roundtrip (sign → serialize → verify)         | Robustness      | M      |
-| 8   | P2       | Add `go:generate` target for running immutability audits via script      | DX              | M      |
-| 9   | P2       | Property-based test for `Clone()` roundtrip with full field comparison   | Test rigor      | S      |
-| 10  | P2       | Integration test: tombstone roundtrip through MemoryStore                | Test coverage   | S      |
-| 11  | P2       | Benchmark `MarkTombstone`/`MarkRebirth` before/after optimization        | Visibility      | S      |
-| 12  | P3       | Add allocation profiling to CI (`-allocspace`)                           | Visibility      | M      |
-| 13  | P3       | Consider `sync.Pool` for event payload buffers in hot paths              | Perf (GC)       | M      |
-| 14  | P3       | Review `example/` modules for mutability issues                          | Safety          | M      |
-| 15  | P3       | Consider `io.Reader` for payload streaming (large payloads)              | Architecture    | L      |
-| 16  | P3       | Evaluate `[]byte` → `string` for immutable payloads where possible       | Perf            | L      |
-| 17  | P4       | Profile real-world event processing pipeline end-to-end                  | Visibility      | L      |
-| 18  | P4       | Consider `unsafe.String`/`unsafe.Slice` for zero-copy JSON interop       | Perf (advanced) | L      |
-| 19  | P4       | Add `PooledEvent` type for high-throughput scenarios                     | Perf            | L      |
-| 20  | P4       | Evaluate `golang.org/x/exp/constraints` for type-safe payload generics   | DX              | M      |
-| 21  | P4       | Evaluate `google/uuid` vs `oklog/ulid` for event ID generation perf      | Perf            | M      |
-| 22  | P5       | Write ADR for defensive clone vs trust-based API design philosophy       | Documentation   | S      |
-| 23  | P5       | Consider `copier` or `deepcopy` library for complex struct cloning       | DX              | M      |
-| 24  | P5       | Document `NewSliceStream`/`SliceFromVersion` shared-slice contract       | Documentation   | S      |
-| 25  | P5       | Consider unexported `payloadAccessor` interface for compile-time safety  | Architecture    | M      |
+| #  | Priority | Task                                                                     | Impact          | Effort |
+| -- | -------- | ------------------------------------------------------------------------ | --------------- | ------ |
+| 1  | P0       | Fix buildflow pre-commit hook panic (report upstream or add fallback)    | DX              | M      |
+| 2  | P1       | Add benchmark regression detection in CI (compare against baseline)      | Perf safety     | M      |
+| 3  | P1       | Document the `PayloadReadOnly` trust contract more prominently (doc.go?) | Consumer safety | S      |
+| 4  | P1       | Add module-level README for `event/` mentioning `PayloadReadOnly`        | DX              | S      |
+| 5  | P1       | Evaluate removing `Signature.Bytes()` clone (benchmark first)            | Micro-perf      | S      |
+| 6  | P2       | Add fuzz tests for metadata JSON serialization roundtrip                 | Robustness      | S      |
+| 7  | P2       | Add fuzz tests for signing roundtrip (sign → serialize → verify)         | Robustness      | M      |
+| 8  | P2       | Add `go:generate` target for running immutability audits via script      | DX              | M      |
+| 9  | P2       | Property-based test for `Clone()` roundtrip with full field comparison   | Test rigor      | S      |
+| 10 | P2       | Integration test: tombstone roundtrip through MemoryStore                | Test coverage   | S      |
+| 11 | P2       | Benchmark `MarkTombstone`/`MarkRebirth` before/after optimization        | Visibility      | S      |
+| 12 | P3       | Add allocation profiling to CI (`-allocspace`)                           | Visibility      | M      |
+| 13 | P3       | Consider `sync.Pool` for event payload buffers in hot paths              | Perf (GC)       | M      |
+| 14 | P3       | Review `example/` modules for mutability issues                          | Safety          | M      |
+| 15 | P3       | Consider `io.Reader` for payload streaming (large payloads)              | Architecture    | L      |
+| 16 | P3       | Evaluate `[]byte` → `string` for immutable payloads where possible       | Perf            | L      |
+| 17 | P4       | Profile real-world event processing pipeline end-to-end                  | Visibility      | L      |
+| 18 | P4       | Consider `unsafe.String`/`unsafe.Slice` for zero-copy JSON interop       | Perf (advanced) | L      |
+| 19 | P4       | Add `PooledEvent` type for high-throughput scenarios                     | Perf            | L      |
+| 20 | P4       | Evaluate `golang.org/x/exp/constraints` for type-safe payload generics   | DX              | M      |
+| 21 | P4       | Evaluate `google/uuid` vs `oklog/ulid` for event ID generation perf      | Perf            | M      |
+| 22 | P5       | Write ADR for defensive clone vs trust-based API design philosophy       | Documentation   | S      |
+| 23 | P5       | Consider `copier` or `deepcopy` library for complex struct cloning       | DX              | M      |
+| 24 | P5       | Document `NewSliceStream`/`SliceFromVersion` shared-slice contract       | Documentation   | S      |
+| 25 | P5       | Consider unexported `payloadAccessor` interface for compile-time safety  | Architecture    | M      |
 
 ---
 

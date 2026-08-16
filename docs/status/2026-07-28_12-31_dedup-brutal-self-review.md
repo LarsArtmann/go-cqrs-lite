@@ -12,17 +12,17 @@
 
 ### Extractions applied (7 files changed, 9 helpers added)
 
-| #   | Extraction                    | Module                                     | Sites | Verified |
-| --- | ----------------------------- | ------------------------------------------ | ----- | -------- |
-| 1   | `Bundle.readModelCodec`       | stack/accessors.go                         | 2     | ✅ -race |
-| 2   | `lintutil.AppendBuild`        | cmd/cqrs-lint (new pkg + 5 files)          | 5     | ✅ -race |
-| 3   | `errContainsAny`              | storage/turso/indexing                     | 2     | ✅ -race |
-| 4   | `withOutput`                  | cmd/cqrs-bench/output.go                   | 4     | ✅ -race |
-| 5   | `wrapInfraOrOK`               | storage/turso (errors.go + sync.go)        | 3     | ✅ -race |
-| 6   | `wrapInfraBytes`              | encryption (errors.go + cose.go + hkdf.go) | 3     | ✅ -race |
-| 7   | `unmarshalJSONString`         | event (date.go + time_types.go)            | 2     | ✅ -race |
-| 8   | `sliceIteratorOrErr`          | storage/memory/stream.go                   | 4     | ✅ -race |
-| 9   | `mergeKnows` + `knowsEdgeRef` | graph/graphtest/contract.go                | 5     | ✅ -race |
+| # | Extraction                    | Module                                     | Sites | Verified |
+| - | ----------------------------- | ------------------------------------------ | ----- | -------- |
+| 1 | `Bundle.readModelCodec`       | stack/accessors.go                         | 2     | ✅ -race |
+| 2 | `lintutil.AppendBuild`        | cmd/cqrs-lint (new pkg + 5 files)          | 5     | ✅ -race |
+| 3 | `errContainsAny`              | storage/turso/indexing                     | 2     | ✅ -race |
+| 4 | `withOutput`                  | cmd/cqrs-bench/output.go                   | 4     | ✅ -race |
+| 5 | `wrapInfraOrOK`               | storage/turso (errors.go + sync.go)        | 3     | ✅ -race |
+| 6 | `wrapInfraBytes`              | encryption (errors.go + cose.go + hkdf.go) | 3     | ✅ -race |
+| 7 | `unmarshalJSONString`         | event (date.go + time_types.go)            | 2     | ✅ -race |
+| 8 | `sliceIteratorOrErr`          | storage/memory/stream.go                   | 4     | ✅ -race |
+| 9 | `mergeKnows` + `knowsEdgeRef` | graph/graphtest/contract.go                | 5     | ✅ -race |
 
 All 8 touched modules pass `go test -race -count=1` cleanly.
 

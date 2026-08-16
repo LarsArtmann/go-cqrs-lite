@@ -176,58 +176,58 @@
 
 ### Tier 1: Truth & Trust (fix documentation lies) — 30 min
 
-| #   | Task                                                      | Impact | Effort |
-| --- | --------------------------------------------------------- | ------ | ------ |
-| 1   | Fix TODO_LIST.md "zero benchmarks" → "26 benchmarks"      | HIGH   | 2 min  |
-| 2   | Fix FEATURES.md coverage numbers to match actual          | HIGH   | 10 min |
-| 3   | Add ISP Publisher/Subscriber to FEATURES.md Event table   | HIGH   | 5 min  |
-| 4   | Add decider package to FEATURES.md Module Maturity Matrix | HIGH   | 3 min  |
-| 5   | Fix FEATURES.md "Last audited" date to 2026-05-03         | HIGH   | 1 min  |
+| # | Task                                                      | Impact | Effort |
+| - | --------------------------------------------------------- | ------ | ------ |
+| 1 | Fix TODO_LIST.md "zero benchmarks" → "26 benchmarks"      | HIGH   | 2 min  |
+| 2 | Fix FEATURES.md coverage numbers to match actual          | HIGH   | 10 min |
+| 3 | Add ISP Publisher/Subscriber to FEATURES.md Event table   | HIGH   | 5 min  |
+| 4 | Add decider package to FEATURES.md Module Maturity Matrix | HIGH   | 3 min  |
+| 5 | Fix FEATURES.md "Last audited" date to 2026-05-03         | HIGH   | 1 min  |
 
 ### Tier 2: Fill Performance Gaps — 2 hours
 
-| #   | Task                                                                        | Impact | Effort |
-| --- | --------------------------------------------------------------------------- | ------ | ------ |
-| 6   | Add `core/decider/benchmark_test.go` (Execute, Load, Fold)                  | MEDIUM | 45 min |
-| 7   | Add `projection/benchmark_test.go` (Runner dispatch)                        | MEDIUM | 30 min |
-| 8   | Add `middleware/benchmark_test.go` (logging, retry, recovery)               | LOW    | 30 min |
-| 9   | Add `core/event/benchmark_test.go` (PublishChanges, SaveSnapshot, Classify) | LOW    | 15 min |
+| # | Task                                                                        | Impact | Effort |
+| - | --------------------------------------------------------------------------- | ------ | ------ |
+| 6 | Add `core/decider/benchmark_test.go` (Execute, Load, Fold)                  | MEDIUM | 45 min |
+| 7 | Add `projection/benchmark_test.go` (Runner dispatch)                        | MEDIUM | 30 min |
+| 8 | Add `middleware/benchmark_test.go` (logging, retry, recovery)               | LOW    | 30 min |
+| 9 | Add `core/event/benchmark_test.go` (PublishChanges, SaveSnapshot, Classify) | LOW    | 15 min |
 
 ### Tier 3: Fix Technical Debt — 30 min
 
-| #   | Task                                                    | Impact | Effort |
-| --- | ------------------------------------------------------- | ------ | ------ |
-| 10  | Investigate memory/projection go.mod ginkgo direct deps | MEDIUM | 10 min |
-| 11  | Fix CHANGELOG.md duplicate "### Changed" sections       | MEDIUM | 5 min  |
-| 12  | Verify `core/event` coverage gap (93.6% → target 95%+)  | MEDIUM | 15 min |
+| #  | Task                                                    | Impact | Effort |
+| -- | ------------------------------------------------------- | ------ | ------ |
+| 10 | Investigate memory/projection go.mod ginkgo direct deps | MEDIUM | 10 min |
+| 11 | Fix CHANGELOG.md duplicate "### Changed" sections       | MEDIUM | 5 min  |
+| 12 | Verify `core/event` coverage gap (93.6% → target 95%+)  | MEDIUM | 15 min |
 
 ### Tier 4: Future-Looking Design — 4 hours
 
-| #   | Task                                                 | Impact | Effort  |
-| --- | ---------------------------------------------------- | ------ | ------- |
-| 13  | Design outbox transaction co-participation API (doc) | MEDIUM | 2 hours |
-| 14  | Design `query.Handler` generics migration plan (doc) | MEDIUM | 2 hours |
+| #  | Task                                                 | Impact | Effort  |
+| -- | ---------------------------------------------------- | ------ | ------- |
+| 13 | Design outbox transaction co-participation API (doc) | MEDIUM | 2 hours |
+| 14 | Design `query.Handler` generics migration plan (doc) | MEDIUM | 2 hours |
 
 ### Tier 5: Planning & Release — 1 hour
 
-| #   | Task                                                       | Impact | Effort |
-| --- | ---------------------------------------------------------- | ------ | ------ |
-| 15  | Review SAGA_DESIGN.md and add concrete implementation plan | LOW    | 30 min |
-| 16  | Update AGENTS.md Known Issues section                      | LOW    | 15 min |
-| 17  | Tag `v0.1.0-alpha`                                         | LOW    | 5 min  |
-| 18  | Update Session 49 entry in AGENTS.md                       | LOW    | 10 min |
+| #  | Task                                                       | Impact | Effort |
+| -- | ---------------------------------------------------------- | ------ | ------ |
+| 15 | Review SAGA_DESIGN.md and add concrete implementation plan | LOW    | 30 min |
+| 16 | Update AGENTS.md Known Issues section                      | LOW    | 15 min |
+| 17 | Tag `v0.1.0-alpha`                                         | LOW    | 5 min  |
+| 18 | Update Session 49 entry in AGENTS.md                       | LOW    | 10 min |
 
 ### Tier 6: Long-Term Improvements
 
-| #   | Task                                                      | Impact | Effort   |
-| --- | --------------------------------------------------------- | ------ | -------- |
-| 19  | Consolidate `CatalogMeta` across event/command/query      | LOW    | 2 hours  |
-| 20  | Add PostgreSQL integration tests for `storage` module     | HIGH   | 4 hours  |
-| 21  | Design Watermill adapter module                           | LOW    | 8 hours  |
-| 22  | Implement Saga/Process Manager from SAGA_DESIGN.md        | MEDIUM | 16 hours |
-| 23  | Add `example/user` to showcase ISP + error classification | LOW    | 2 hours  |
-| 24  | Create CONTRIBUTING.md with architecture guidelines       | LOW    | 2 hours  |
-| 25  | Remove replace directives from go.mod (publish modules)   | LOW    | 1 hour   |
+| #  | Task                                                      | Impact | Effort   |
+| -- | --------------------------------------------------------- | ------ | -------- |
+| 19 | Consolidate `CatalogMeta` across event/command/query      | LOW    | 2 hours  |
+| 20 | Add PostgreSQL integration tests for `storage` module     | HIGH   | 4 hours  |
+| 21 | Design Watermill adapter module                           | LOW    | 8 hours  |
+| 22 | Implement Saga/Process Manager from SAGA_DESIGN.md        | MEDIUM | 16 hours |
+| 23 | Add `example/user` to showcase ISP + error classification | LOW    | 2 hours  |
+| 24 | Create CONTRIBUTING.md with architecture guidelines       | LOW    | 2 hours  |
+| 25 | Remove replace directives from go.mod (publish modules)   | LOW    | 1 hour   |
 
 ---
 

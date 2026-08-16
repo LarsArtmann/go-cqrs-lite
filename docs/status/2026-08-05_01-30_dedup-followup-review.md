@@ -9,16 +9,16 @@
 
 ### 8 production-code extractions shipped (all tests green per-module)
 
-| #   | Module                          | Clone eliminated                                                             | Helper extracted                                           |
-| --- | ------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| 1   | `cmd/cqrs-lint/pkg/rules`       | c013 + c035 + lintutil all duplicated `base := filePath` + path-strip        | `lintutil.BaseFileName(filePath)`                          |
-| 2   | `metaengine`                    | 3 identical Vector/Search/Spatial ExecuteTyped wrappers                      | `executeSliceResult[R](ctx, store, input)`                 |
-| 3   | `metaengine/pebbleengine`       | 5 prefix-iterator creation sites (stream_log ×3, scan_count, seq_seeding ×3) | `(*pebbleEngine).newPrefixIter(prefix)`                    |
-| 4   | `cmd/cqrs-lint`                 | 8 manually-computed section headers in explain.go                            | `writeSectionHeader(b, title)`                             |
-| 5   | `cmd/cqrs-lint/pkg/suppression` | 2 identical file-loading boilerplate (filePath + cache + lines)              | `loadFindingLines(cache, finding)` + `findingLines` struct |
-| 6   | `system`                        | LoadFromTimestamp + LoadToTimestamp shared load+filter loop                  | `(*CommandAdapter).loadFiltered(ctx, ref, keep)`           |
-| 7   | `benchkit`                      | 2 identical metaengine setup (engine+plan+sampleCount)                       | `(*runner).setupMemoryMetaEngineStore(args...)`            |
-| 8   | Baseline + gate                 | Updated `.art-dupl-baseline.json` to reflect new state                       | `art-dupl check` → 0 new clones                            |
+| # | Module                          | Clone eliminated                                                             | Helper extracted                                           |
+| - | ------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| 1 | `cmd/cqrs-lint/pkg/rules`       | c013 + c035 + lintutil all duplicated `base := filePath` + path-strip        | `lintutil.BaseFileName(filePath)`                          |
+| 2 | `metaengine`                    | 3 identical Vector/Search/Spatial ExecuteTyped wrappers                      | `executeSliceResult[R](ctx, store, input)`                 |
+| 3 | `metaengine/pebbleengine`       | 5 prefix-iterator creation sites (stream_log ×3, scan_count, seq_seeding ×3) | `(*pebbleEngine).newPrefixIter(prefix)`                    |
+| 4 | `cmd/cqrs-lint`                 | 8 manually-computed section headers in explain.go                            | `writeSectionHeader(b, title)`                             |
+| 5 | `cmd/cqrs-lint/pkg/suppression` | 2 identical file-loading boilerplate (filePath + cache + lines)              | `loadFindingLines(cache, finding)` + `findingLines` struct |
+| 6 | `system`                        | LoadFromTimestamp + LoadToTimestamp shared load+filter loop                  | `(*CommandAdapter).loadFiltered(ctx, ref, keep)`           |
+| 7 | `benchkit`                      | 2 identical metaengine setup (engine+plan+sampleCount)                       | `(*runner).setupMemoryMetaEngineStore(args...)`            |
+| 8 | Baseline + gate                 | Updated `.art-dupl-baseline.json` to reflect new state                       | `art-dupl check` → 0 new clones                            |
 
 ### Clone classification: all 40 remaining groups catalogued
 

@@ -1,7 +1,7 @@
 # Comprehensive Status Report — Session 62
 
-**Date:** 2026-05-13 11:23  
-**Session Focus:** Migrate go-cqrs-lite error taxonomy to extracted `go-error-family` library  
+**Date:** 2026-05-13 11:23\
+**Session Focus:** Migrate go-cqrs-lite error taxonomy to extracted `go-error-family` library\
 **Status:** ✅ Migration complete, all tests pass, zero lint
 
 ---
@@ -71,12 +71,12 @@ Eliminated duplicated `ErrProjectionPanicked` sentinel — `runner.go:130` had i
 
 ## b) PARTIALLY DONE
 
-| Item                                                 | Status                | Blocker                                                                                                                                                                          |
-| ---------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `go-error-family` published as versioned module      | ❌ Not published      | No git tags on `go-error-family`; version is `v0.0.0` everywhere                                                                                                                 |
+| Item                                                 | Status               | Blocker                                                                                                                                                                          |
+| ---------------------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `go-error-family` published as versioned module      | ❌ Not published     | No git tags on `go-error-family`; version is `v0.0.0` everywhere                                                                                                                 |
 | Modules outside `core/` use `Classify`/`IsRetryable` | ⚠️ Via transitive dep | They transitively depend on `core/event` so it works, but they don't directly import `go-error-family`                                                                           |
 | Review `go-error-family` for public API completeness | ⚠️ Pending            | The library has `agent/`, `diagnose/`, `report/` packages that need review; this session only touched `classify.go`, `constructors.go`, `error.go`, `family.go`, `interfaces.go` |
-| Fix pre-existing catalog golden test failures        | ❌ Still failing      | `catalog/asyncapi` and `catalog/eventcatalog` golden tests mismatch on indentation/format — pre-existing issue across 3 test cases                                               |
+| Fix pre-existing catalog golden test failures        | ❌ Still failing     | `catalog/asyncapi` and `catalog/eventcatalog` golden tests mismatch on indentation/format — pre-existing issue across 3 test cases                                               |
 
 ---
 
@@ -97,10 +97,10 @@ Eliminated duplicated `ErrProjectionPanicked` sentinel — `runner.go:130` had i
 
 ## d) TOTALLY FUCKED UP!
 
-| Issue                            | Severity     | Detail                                                                                                                                                                                                                                                                                            |
-| -------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Issue                            | Severity    | Detail                                                                                                                                                                                                                                                                                            |
+| -------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `gomodguard` deprecation warning | ⚠️ Annoyance | golangci-lint v2 deprecated `gomodguard` in favor of `gomodguard_v2`, but our LSP server doesn't support `gomodguard_v2` yet. We use `gomodguard` which still works but prints a deprecation warning on every lint run.                                                                           |
-| Catalog golden test drift        | Low          | `TestGolden_AsyncAPIYAML`, `TestGolden_EventCatalog_Config`, `TestGolden_EventCatalog_PackageJSON` fail on trailing-space/format differences. These have been regenerating periodically but keep drifting. Root cause: go-faster/yaml or go-json indentation difference between CI and local nix. |
+| Catalog golden test drift        | Low         | `TestGolden_AsyncAPIYAML`, `TestGolden_EventCatalog_Config`, `TestGolden_EventCatalog_PackageJSON` fail on trailing-space/format differences. These have been regenerating periodically but keep drifting. Root cause: go-faster/yaml or go-json indentation difference between CI and local nix. |
 | LSP chaos                        | ⚠️ Noise     | The `gopls go mod tidy` errors on `integration/event/classify_test.go` (missing transitive deps like pebble) are persistent false positives. These don't affect actual builds.                                                                                                                    |
 
 ---
@@ -141,33 +141,33 @@ Eliminated duplicated `ErrProjectionPanicked` sentinel — `runner.go:130` had i
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Task                                                                     | Effort | Impact    | Risk                         |
-| --- | ------------------------------------------------------------------------ | ------ | --------- | ---------------------------- |
-| 1   | **Tag `go-error-family` v0.1.0**                                         | 5 min  | Very High | Zero                         |
-| 2   | **Remove local replace directive**                                       | 5 min  | High      | Zero                         |
-| 3   | **Fix catalog golden test drift**                                        | 2h     | Medium    | Low                          |
-| 4   | **Add `json.Marshaler` + `json.Unmarshaler` to `go-error-family.Error`** | 1h     | High      | Low                          |
-| 5   | **Add `go-error-family` to nix flake CI**                                | 1h     | Medium    | Low                          |
-| 6   | **Write `go-error-family` README with examples**                         | 2h     | High      | Zero                         |
-| 7   | **Audit `go-error-family` test coverage**                                | 3h     | Medium    | Low                          |
-| 8   | **Add `Error.ContextKeys()` method**                                     | 15 min | Low       | Zero                         |
-| 9   | **Profile `Classify` performance**                                       | 1h     | Low       | Zero                         |
-| 10  | **`CatalogMeta` tri-package consolidation**                              | 4h     | Medium    | Medium (breaking if changed) |
-| 11  | **`io.Closer` removal from store/bus interfaces**                        | 3h     | Medium    | Medium (breaking)            |
-| 12  | **`HandleParallel` early-return on context cancellation**                | 2h     | Medium    | Low                          |
-| 13  | **Add `sync` module to AGENTS.md documentation**                         | 1h     | Low       | Zero                         |
-| 14  | **Go 1.26.3 upgrade**                                                    | 30 min | Low       | Low                          |
-| 15  | **Evaluate `gomodguard_v2` migration**                                   | 30 min | Low       | Low                          |
-| 16  | **Add `errors.CauseChain(error) []error` to `go-error-family`**          | 1h     | Medium    | Zero                         |
-| 17  | **Remove `cockroachdb/errors` from `integration/go.mod`**                | 30 min | Medium    | Low                          |
-| 18  | **Add `go-error-family` Agent package tests**                            | 4h     | Medium    | Medium                       |
-| 19  | **Add PostgreSQL diagnostic rule tests**                                 | 2h     | Low       | Low                          |
-| 20  | **Document `go-error-family` BSD exit code usage**                       | 30 min | Low       | Zero                         |
-| 21  | **Add `Family.MarshalJSON` / `UnmarshalJSON`**                           | 1h     | Medium    | Zero                         |
-| 22  | **Consolidate `errors_taxonomy_test.go` into `errors_test.go`**          | 1h     | Low       | Zero                         |
-| 23  | **Add integration test: `go-error-family.Classify` on `pgx` errors**     | 2h     | Medium    | Low                          |
-| 24  | **Add `Error.Is(target *Error)` that also matches by code only**         | 30 min | Medium    | Zero                         |
-| 25  | **Write ADR: Why we extracted error taxonomy**                           | 1h     | Medium    | Zero                         |
+| #  | Task                                                                     | Effort | Impact    | Risk                         |
+| -- | ------------------------------------------------------------------------ | ------ | --------- | ---------------------------- |
+| 1  | **Tag `go-error-family` v0.1.0**                                         | 5 min  | Very High | Zero                         |
+| 2  | **Remove local replace directive**                                       | 5 min  | High      | Zero                         |
+| 3  | **Fix catalog golden test drift**                                        | 2h     | Medium    | Low                          |
+| 4  | **Add `json.Marshaler` + `json.Unmarshaler` to `go-error-family.Error`** | 1h     | High      | Low                          |
+| 5  | **Add `go-error-family` to nix flake CI**                                | 1h     | Medium    | Low                          |
+| 6  | **Write `go-error-family` README with examples**                         | 2h     | High      | Zero                         |
+| 7  | **Audit `go-error-family` test coverage**                                | 3h     | Medium    | Low                          |
+| 8  | **Add `Error.ContextKeys()` method**                                     | 15 min | Low       | Zero                         |
+| 9  | **Profile `Classify` performance**                                       | 1h     | Low       | Zero                         |
+| 10 | **`CatalogMeta` tri-package consolidation**                              | 4h     | Medium    | Medium (breaking if changed) |
+| 11 | **`io.Closer` removal from store/bus interfaces**                        | 3h     | Medium    | Medium (breaking)            |
+| 12 | **`HandleParallel` early-return on context cancellation**                | 2h     | Medium    | Low                          |
+| 13 | **Add `sync` module to AGENTS.md documentation**                         | 1h     | Low       | Zero                         |
+| 14 | **Go 1.26.3 upgrade**                                                    | 30 min | Low       | Low                          |
+| 15 | **Evaluate `gomodguard_v2` migration**                                   | 30 min | Low       | Low                          |
+| 16 | **Add `errors.CauseChain(error) []error` to `go-error-family`**          | 1h     | Medium    | Zero                         |
+| 17 | **Remove `cockroachdb/errors` from `integration/go.mod`**                | 30 min | Medium    | Low                          |
+| 18 | **Add `go-error-family` Agent package tests**                            | 4h     | Medium    | Medium                       |
+| 19 | **Add PostgreSQL diagnostic rule tests**                                 | 2h     | Low       | Low                          |
+| 20 | **Document `go-error-family` BSD exit code usage**                       | 30 min | Low       | Zero                         |
+| 21 | **Add `Family.MarshalJSON` / `UnmarshalJSON`**                           | 1h     | Medium    | Zero                         |
+| 22 | **Consolidate `errors_taxonomy_test.go` into `errors_test.go`**          | 1h     | Low       | Zero                         |
+| 23 | **Add integration test: `go-error-family.Classify` on `pgx` errors**     | 2h     | Medium    | Low                          |
+| 24 | **Add `Error.Is(target *Error)` that also matches by code only**         | 30 min | Medium    | Zero                         |
+| 25 | **Write ADR: Why we extracted error taxonomy**                           | 1h     | Medium    | Zero                         |
 
 ---
 

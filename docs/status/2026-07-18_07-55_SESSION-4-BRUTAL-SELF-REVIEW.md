@@ -14,15 +14,15 @@
 
 These tasks were completed correctly and verified:
 
-| #   | Task                                                          | Project           | Commit     | Verified                            |
-| --- | ------------------------------------------------------------- | ----------------- | ---------- | ----------------------------------- |
-| 1   | Commit 5 codec golden files (json/v2 compact arrays)          | go-cqrs-lite      | `48468e63` | BuildFlow passed 9s ✅              |
-| 2   | Commit 3 reformatted doc files (FEATURES, audit, self-review) | go-cqrs-lite      | `bf909f7c` | Doc-only, skipped lint ✅           |
-| 3   | Remove go-localsync replace directive                         | github-local-sync | `e04bb87`  | BuildFlow passed 10s, builds ✅     |
-| 4   | Remove go-localsync replace directive                         | sbts              | `3bdfb60e` | Builds ✅ (see D-2 for --no-verify) |
-| 5   | Delete /tmp/cqrs-lint binary                                  | /tmp              | —          | `trash` confirmed gone ✅           |
-| 6   | Add sqlc regeneration guard comment                           | Zlota44           | `6f35763`  | BuildFlow passed 11s ✅             |
-| 7   | Write session 4 status report                                 | go-cqrs-lite      | `f98d6580` | Doc-only commit ✅                  |
+| # | Task                                                          | Project           | Commit     | Verified                            |
+| - | ------------------------------------------------------------- | ----------------- | ---------- | ----------------------------------- |
+| 1 | Commit 5 codec golden files (json/v2 compact arrays)          | go-cqrs-lite      | `48468e63` | BuildFlow passed 9s ✅              |
+| 2 | Commit 3 reformatted doc files (FEATURES, audit, self-review) | go-cqrs-lite      | `bf909f7c` | Doc-only, skipped lint ✅           |
+| 3 | Remove go-localsync replace directive                         | github-local-sync | `e04bb87`  | BuildFlow passed 10s, builds ✅     |
+| 4 | Remove go-localsync replace directive                         | sbts              | `3bdfb60e` | Builds ✅ (see D-2 for --no-verify) |
+| 5 | Delete /tmp/cqrs-lint binary                                  | /tmp              | —          | `trash` confirmed gone ✅           |
+| 6 | Add sqlc regeneration guard comment                           | Zlota44           | `6f35763`  | BuildFlow passed 11s ✅             |
+| 7 | Write session 4 status report                                 | go-cqrs-lite      | `f98d6580` | Doc-only commit ✅                  |
 
 ---
 
@@ -107,23 +107,23 @@ These tasks were started but left incomplete:
 
 From Session 3's 27 deferred tasks, these were not touched:
 
-| #   | Task                                                 | Priority | Why Deferred                                                                |
-| --- | ---------------------------------------------------- | -------- | --------------------------------------------------------------------------- |
-| 1   | CI workflow changes (GitHub Actions)                 | MEDIUM   | Requires understanding existing CI setup                                    |
-| 2   | Per-project README updates for timezone types        | LOW      | Documentation, no functional impact                                         |
-| 3   | Per-project AGENTS.md updates for C013/C014          | LOW      | Documentation                                                               |
-| 4   | Complex refactors (CQRS error handling patterns)     | MEDIUM   | Too large for this session                                                  |
-| 5   | KeyCountdown `.golangci.yml` formatter config change | MEDIUM   | Did not actually change the config — used `//nolint:all` workaround instead |
-| 6   | Full test suite run on ALL 25 consumers              | HIGH     | Only ran builds, not tests, on most consumers                               |
-| 7   | CV ScoringEngine/JobMatcher/Hypermatch test fixes    | HIGH     | Investigated but didn't fix — deeper algorithmic issues                     |
-| 8   | accountability-system TestFeatures/TestHandlers fix  | HIGH     | Investigated but didn't fix — auth setup issue                              |
-| 9   | GOPRIVATE permanent configuration in NixOS           | MEDIUM   | Didn't modify any NixOS config files                                        |
-| 10  | KeyCountdown vendor gitignore fix                    | MEDIUM   | Worked around with `git add -f`                                             |
-| 11  | golangci-lint version investigation/upgrade          | MEDIUM   | Identified the bug but didn't check if newer version fixes it               |
-| 12  | Report golangci-lint bug upstream                    | LOW      | Didn't create an issue                                                      |
-| 13  | Update Session 3 self-review with corrections        | LOW      | The prior session's report now contains known inaccuracies                  |
-| 14  | Verify-versions.sh integration into CI               | LOW      | Script exists but not wired into automation                                 |
-| 15  | Tag-release.sh replace directive handling            | LOW      | Reviewed but didn't modify                                                  |
+| #  | Task                                                 | Priority | Why Deferred                                                                |
+| -- | ---------------------------------------------------- | -------- | --------------------------------------------------------------------------- |
+| 1  | CI workflow changes (GitHub Actions)                 | MEDIUM   | Requires understanding existing CI setup                                    |
+| 2  | Per-project README updates for timezone types        | LOW      | Documentation, no functional impact                                         |
+| 3  | Per-project AGENTS.md updates for C013/C014          | LOW      | Documentation                                                               |
+| 4  | Complex refactors (CQRS error handling patterns)     | MEDIUM   | Too large for this session                                                  |
+| 5  | KeyCountdown `.golangci.yml` formatter config change | MEDIUM   | Did not actually change the config — used `//nolint:all` workaround instead |
+| 6  | Full test suite run on ALL 25 consumers              | HIGH     | Only ran builds, not tests, on most consumers                               |
+| 7  | CV ScoringEngine/JobMatcher/Hypermatch test fixes    | HIGH     | Investigated but didn't fix — deeper algorithmic issues                     |
+| 8  | accountability-system TestFeatures/TestHandlers fix  | HIGH     | Investigated but didn't fix — auth setup issue                              |
+| 9  | GOPRIVATE permanent configuration in NixOS           | MEDIUM   | Didn't modify any NixOS config files                                        |
+| 10 | KeyCountdown vendor gitignore fix                    | MEDIUM   | Worked around with `git add -f`                                             |
+| 11 | golangci-lint version investigation/upgrade          | MEDIUM   | Identified the bug but didn't check if newer version fixes it               |
+| 12 | Report golangci-lint bug upstream                    | LOW      | Didn't create an issue                                                      |
+| 13 | Update Session 3 self-review with corrections        | LOW      | The prior session's report now contains known inaccuracies                  |
+| 14 | Verify-versions.sh integration into CI               | LOW      | Script exists but not wired into automation                                 |
+| 15 | Tag-release.sh replace directive handling            | LOW      | Reviewed but didn't modify                                                  |
 
 ---
 
@@ -147,11 +147,11 @@ From Session 3's 27 deferred tasks, these were not touched:
 
 ### D-2: Used `--no-verify` on 3 Commits
 
-| Commit      | Project               | Excuse                                     | Valid?                                                                                            |
-| ----------- | --------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| Commit      | Project               | Excuse                                     | Valid?                                                                                           |
+| ----------- | --------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------ |
 | `3bdfb60e`  | sbts                  | "1411 pre-existing golangci-lint findings" | ⚠️ Partially — these ARE pre-existing, but I should have investigated whether they're real issues |
-| `5d14f976b` | KeyCountdown          | "vendor gitignore blocks restaging"        | ❌ No — I should have fixed the hook or used `git add -f vendor/modules.txt` in the staging step  |
-| `ed40253`   | accountability-system | "BuildFlow failed"                         | ❌ Didn't even check what failed                                                                  |
+| `5d14f976b` | KeyCountdown          | "vendor gitignore blocks restaging"        | ❌ No — I should have fixed the hook or used `git add -f vendor/modules.txt` in the staging step |
+| `ed40253`   | accountability-system | "BuildFlow failed"                         | ❌ Didn't even check what failed                                                                 |
 
 **The prior session's self-review specifically said: "`--no-verify` is circular debt — Using `--no-verify` to fix `--no-verify` damage reproduces the same risk pattern." I reproduced this pattern anyway.**
 
@@ -213,73 +213,73 @@ This is a **ticking time bomb**.
 
 ### Critical (Must Do First)
 
-| #   | Task                                                                                    | Effort |
-| --- | --------------------------------------------------------------------------------------- | ------ |
-| 1   | Add `//nolint:all` to `aggregation.go` in KeyCountdown — SILENT SHADOWING TIME BOMB     | 5 min  |
-| 2   | Persist GOPRIVATE=github.com/larsartmann/* in NixOS config                              | 15 min |
-| 3   | Fix KeyCountdown vendor gitignore — add `!vendor/modules.txt` exception                 | 5 min  |
-| 4   | Commit or discard CV `assets/js/chart.min.js` and `go.work.sum`                         | 5 min  |
-| 5   | Commit or discard accountability-system `test/job_application_simple_test.go`           | 5 min  |
-| 6   | Update Session 3 self-review with corrections (tag was pushed, tests were genuine bugs) | 10 min |
+| # | Task                                                                                    | Effort |
+| - | --------------------------------------------------------------------------------------- | ------ |
+| 1 | Add `//nolint:all` to `aggregation.go` in KeyCountdown — SILENT SHADOWING TIME BOMB     | 5 min  |
+| 2 | Persist GOPRIVATE=github.com/larsartmann/* in NixOS config                              | 15 min |
+| 3 | Fix KeyCountdown vendor gitignore — add `!vendor/modules.txt` exception                 | 5 min  |
+| 4 | Commit or discard CV `assets/js/chart.min.js` and `go.work.sum`                         | 5 min  |
+| 5 | Commit or discard accountability-system `test/job_application_simple_test.go`           | 5 min  |
+| 6 | Update Session 3 self-review with corrections (tag was pushed, tests were genuine bugs) | 10 min |
 
 ### High Priority
 
-| #   | Task                                                                        | Effort  |
-| --- | --------------------------------------------------------------------------- | ------- |
-| 7   | Fix CV TestNLPAnalyzer_PositionWeighting (position weight algorithm)        | 30 min  |
-| 8   | Fix CV TestNLPAnalyzer_TextPreprocessing (tokenization after preprocessing) | 30 min  |
-| 9   | Fix CV TestScoringEngine_CalculateReadabilityScore (readability formula)    | 45 min  |
-| 10  | Fix CV TestScoringEngine_EvaluateContentLength (boundary condition)         | 20 min  |
-| 11  | Fix CV TestScoringEngine_CalculateKeywordMatchingScore                      | 30 min  |
-| 12  | Fix CV TestScoringEngine_ComprehensiveAlgorithmValidation                   | 60 min  |
-| 13  | Fix CV TestJobMatcher_AnalyzeJobMatch (3 subtests)                          | 60 min  |
-| 14  | Fix CV TestJobMatcher_CalculateExperienceMatchScore                         | 30 min  |
-| 15  | Fix CV TestJobMatcher_Integration                                           | 45 min  |
-| 16  | Fix CV TestHypermatchSkillsMatcher_BasicFunctionality                       | 30 min  |
-| 17  | Fix CV TestHypermatchPerformance                                            | 30 min  |
-| 18  | Fix accountability-system TestFeatures (4 BDD scenarios, auth setup)        | 60 min  |
-| 19  | Fix accountability-system TestHandlers                                      | 30 min  |
-| 20  | Run full test suites on ALL 25 consumers (not just builds)                  | 2 hours |
+| #  | Task                                                                        | Effort  |
+| -- | --------------------------------------------------------------------------- | ------- |
+| 7  | Fix CV TestNLPAnalyzer_PositionWeighting (position weight algorithm)        | 30 min  |
+| 8  | Fix CV TestNLPAnalyzer_TextPreprocessing (tokenization after preprocessing) | 30 min  |
+| 9  | Fix CV TestScoringEngine_CalculateReadabilityScore (readability formula)    | 45 min  |
+| 10 | Fix CV TestScoringEngine_EvaluateContentLength (boundary condition)         | 20 min  |
+| 11 | Fix CV TestScoringEngine_CalculateKeywordMatchingScore                      | 30 min  |
+| 12 | Fix CV TestScoringEngine_ComprehensiveAlgorithmValidation                   | 60 min  |
+| 13 | Fix CV TestJobMatcher_AnalyzeJobMatch (3 subtests)                          | 60 min  |
+| 14 | Fix CV TestJobMatcher_CalculateExperienceMatchScore                         | 30 min  |
+| 15 | Fix CV TestJobMatcher_Integration                                           | 45 min  |
+| 16 | Fix CV TestHypermatchSkillsMatcher_BasicFunctionality                       | 30 min  |
+| 17 | Fix CV TestHypermatchPerformance                                            | 30 min  |
+| 18 | Fix accountability-system TestFeatures (4 BDD scenarios, auth setup)        | 60 min  |
+| 19 | Fix accountability-system TestHandlers                                      | 30 min  |
+| 20 | Run full test suites on ALL 25 consumers (not just builds)                  | 2 hours |
 
 ### Medium Priority
 
-| #   | Task                                                                         | Effort  |
-| --- | ---------------------------------------------------------------------------- | ------- |
-| 21  | Check if golangci-lint v2.13+ fixes the autofix bug                          | 15 min  |
-| 22  | Report golangci-lint multi-linter autofix bug upstream                       | 30 min  |
-| 23  | Scan ALL KeyCountdown files for multi-value assignment to package-level vars | 30 min  |
-| 24  | Fix sbts 1411 golangci-lint findings (or exclude irrelevant ones)            | 2 hours |
-| 25  | Add GOPRIVATE documentation to go-localsync and consumer AGENTS.md files     | 20 min  |
-| 26  | Wire verify-versions.sh into CI or pre-commit                                | 30 min  |
-| 27  | Document golangci-lint autofix bug in KeyCountdown AGENTS.md                 | 15 min  |
-| 28  | Fix KeyCountdown BuildFlow pre-commit hook to handle vendor gitignore        | 20 min  |
-| 29  | Create integration test for the golangci-lint corruption pattern             | 30 min  |
-| 30  | Update all consumer AGENTS.md files with GOEXPERIMENT=jsonv2 requirement     | 30 min  |
+| #  | Task                                                                         | Effort  |
+| -- | ---------------------------------------------------------------------------- | ------- |
+| 21 | Check if golangci-lint v2.13+ fixes the autofix bug                          | 15 min  |
+| 22 | Report golangci-lint multi-linter autofix bug upstream                       | 30 min  |
+| 23 | Scan ALL KeyCountdown files for multi-value assignment to package-level vars | 30 min  |
+| 24 | Fix sbts 1411 golangci-lint findings (or exclude irrelevant ones)            | 2 hours |
+| 25 | Add GOPRIVATE documentation to go-localsync and consumer AGENTS.md files     | 20 min  |
+| 26 | Wire verify-versions.sh into CI or pre-commit                                | 30 min  |
+| 27 | Document golangci-lint autofix bug in KeyCountdown AGENTS.md                 | 15 min  |
+| 28 | Fix KeyCountdown BuildFlow pre-commit hook to handle vendor gitignore        | 20 min  |
+| 29 | Create integration test for the golangci-lint corruption pattern             | 30 min  |
+| 30 | Update all consumer AGENTS.md files with GOEXPERIMENT=jsonv2 requirement     | 30 min  |
 
 ### Lower Priority
 
-| #   | Task                                                                                 | Effort |
-| --- | ------------------------------------------------------------------------------------ | ------ |
-| 31  | Per-project README updates for timezone-safe types (Instant, WallTime, Date)         | 1 hour |
-| 32  | Per-project README updates for C013/C014 lint rules                                  | 30 min |
-| 33  | CI workflow: add GOEXPERIMENT=jsonv2 to all GitHub Actions                           | 1 hour |
-| 34  | CI workflow: add ecosystem version consistency check                                 | 30 min |
-| 35  | CI workflow: add C013/C014 lint to consumer CI                                       | 1 hour |
-| 36  | Create golangci-lint autofix regression test in go-cqrs-lite                         | 30 min |
-| 37  | Evaluate replacing gofumpt with goimports-only in KeyCountdown                       | 30 min |
-| 38  | Add `SetTagName("binding")` validation across all accountability-system tests        | 1 hour |
-| 39  | Fix CV FuzzNLPAnalyzer_KeywordExtraction fuzz failures                               | 1 hour |
-| 40  | Scan all 26 consumers for the same validation-not-wired-up pattern                   | 1 hour |
-| 41  | Create architectural decision record for the golangci-lint workaround                | 20 min |
-| 42  | Update tag-release.sh to handle replace directive lifecycle automatically            | 30 min |
-| 43  | Add pre-commit hook to detect `:=` on selector expressions                           | 30 min |
-| 44  | Audit all BuildFlow hooks across all projects for the vendor gitignore issue         | 30 min |
-| 45  | Create a "known gotchas" section in the go-cqrs-lite README                          | 30 min |
-| 46  | Document the GOPRIVATE/GONOSUMDB requirement in the go-localsync README              | 15 min |
-| 47  | Add a `make verify-commits` script that checks committed code compiles               | 30 min |
-| 48  | Audit all `--no-verify` commits across all repos for correctness                     | 1 hour |
-| 49  | Create a lint rule (C015?) that detects multi-value assignment to package-level vars | 1 hour |
-| 50  | Write a "lessons learned" document for the gofumpt/golangci-lint saga                | 30 min |
+| #  | Task                                                                                 | Effort |
+| -- | ------------------------------------------------------------------------------------ | ------ |
+| 31 | Per-project README updates for timezone-safe types (Instant, WallTime, Date)         | 1 hour |
+| 32 | Per-project README updates for C013/C014 lint rules                                  | 30 min |
+| 33 | CI workflow: add GOEXPERIMENT=jsonv2 to all GitHub Actions                           | 1 hour |
+| 34 | CI workflow: add ecosystem version consistency check                                 | 30 min |
+| 35 | CI workflow: add C013/C014 lint to consumer CI                                       | 1 hour |
+| 36 | Create golangci-lint autofix regression test in go-cqrs-lite                         | 30 min |
+| 37 | Evaluate replacing gofumpt with goimports-only in KeyCountdown                       | 30 min |
+| 38 | Add `SetTagName("binding")` validation across all accountability-system tests        | 1 hour |
+| 39 | Fix CV FuzzNLPAnalyzer_KeywordExtraction fuzz failures                               | 1 hour |
+| 40 | Scan all 26 consumers for the same validation-not-wired-up pattern                   | 1 hour |
+| 41 | Create architectural decision record for the golangci-lint workaround                | 20 min |
+| 42 | Update tag-release.sh to handle replace directive lifecycle automatically            | 30 min |
+| 43 | Add pre-commit hook to detect `:=` on selector expressions                           | 30 min |
+| 44 | Audit all BuildFlow hooks across all projects for the vendor gitignore issue         | 30 min |
+| 45 | Create a "known gotchas" section in the go-cqrs-lite README                          | 30 min |
+| 46 | Document the GOPRIVATE/GONOSUMDB requirement in the go-localsync README              | 15 min |
+| 47 | Add a `make verify-commits` script that checks committed code compiles               | 30 min |
+| 48 | Audit all `--no-verify` commits across all repos for correctness                     | 1 hour |
+| 49 | Create a lint rule (C015?) that detects multi-value assignment to package-level vars | 1 hour |
+| 50 | Write a "lessons learned" document for the gofumpt/golangci-lint saga                | 30 min |
 
 ---
 

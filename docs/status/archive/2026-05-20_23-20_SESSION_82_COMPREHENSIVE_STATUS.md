@@ -103,43 +103,43 @@ The only close call: the `noinlineerr` linter caught the refactored `deserialize
 
 ### Critical / High Impact (1-10)
 
-| #   | Item                                                                                                    | Why                                                                                                                         | Effort  |
-| --- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
-| 1   | **Tag all modules (v1.4.0 for core, v1.2.0 for memory, etc.)**                                          | Eliminates ALL replace directives. Unblocks downstream consumers.                                                           | small   |
-| 2   | **PostgreSQL integration tests for storage**                                                            | go-sqlmock can't catch real SQL dialect issues. Storage is the riskiest module (87.6% coverage).                            | medium  |
-| 3   | **Consolidate testhelpers fakes with memory implementations**                                           | FakeStore/FakeBus are diverging from MemoryStore/MemoryBus. Shared test suites would catch this.                            | medium  |
-| 4   | **CI pipeline hardening** — golden file auto-refresh, `go test -race`, coverage gates                   | Prevents golden drift and race conditions from landing on master.                                                           | small   |
-| 5   | **Add `event.Context` propagation** — thread `ctx` through `NewEvent`, `PublishChanges`, etc.           | Enables tracing/cancellation in event pipeline. Currently `time.Now()` and ID generation ignore context.                    | medium  |
-| 6   | **Decider Execute dual `%w` wrapping** — `fmt.Errorf("...: %w; %w", err1, err2)`                        | Technically works in Go 1.20+ but surprising. Split into two errors or use `errors.Join`.                                   | trivial |
-| 7   | **Unify ErrNilBus sentinels** — 3 independent sentinels across memory/decider/projection                | Each has different context. Consider shared `event.ErrNilBus` or accept as-is.                                              | small   |
-| 8   | **Storage SQLEventStore error classification** — register sentinels with `event.RegisterClassification` | Currently storage errors aren't classified. `ErrOptimisticConcurrency` → Conflict, `ErrAggregateNotFound` → Rejection, etc. | small   |
-| 9   | **Add BDD tests for storage module** — Ginkgo/Gomega tests for event store lifecycle                    | Storage has the lowest coverage (87.6%). BDD would cover edge cases better.                                                 | medium  |
-| 10  | **Add BDD tests for sync module** — VectorClock, ConflictResolver, LWWResolver                          | Sync module is new and under-tested. BDD would validate concurrent scenarios.                                               | medium  |
+| #  | Item                                                                                                    | Why                                                                                                                         | Effort  |
+| -- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 1  | **Tag all modules (v1.4.0 for core, v1.2.0 for memory, etc.)**                                          | Eliminates ALL replace directives. Unblocks downstream consumers.                                                           | small   |
+| 2  | **PostgreSQL integration tests for storage**                                                            | go-sqlmock can't catch real SQL dialect issues. Storage is the riskiest module (87.6% coverage).                            | medium  |
+| 3  | **Consolidate testhelpers fakes with memory implementations**                                           | FakeStore/FakeBus are diverging from MemoryStore/MemoryBus. Shared test suites would catch this.                            | medium  |
+| 4  | **CI pipeline hardening** — golden file auto-refresh, `go test -race`, coverage gates                   | Prevents golden drift and race conditions from landing on master.                                                           | small   |
+| 5  | **Add `event.Context` propagation** — thread `ctx` through `NewEvent`, `PublishChanges`, etc.           | Enables tracing/cancellation in event pipeline. Currently `time.Now()` and ID generation ignore context.                    | medium  |
+| 6  | **Decider Execute dual `%w` wrapping** — `fmt.Errorf("...: %w; %w", err1, err2)`                        | Technically works in Go 1.20+ but surprising. Split into two errors or use `errors.Join`.                                   | trivial |
+| 7  | **Unify ErrNilBus sentinels** — 3 independent sentinels across memory/decider/projection                | Each has different context. Consider shared `event.ErrNilBus` or accept as-is.                                              | small   |
+| 8  | **Storage SQLEventStore error classification** — register sentinels with `event.RegisterClassification` | Currently storage errors aren't classified. `ErrOptimisticConcurrency` → Conflict, `ErrAggregateNotFound` → Rejection, etc. | small   |
+| 9  | **Add BDD tests for storage module** — Ginkgo/Gomega tests for event store lifecycle                    | Storage has the lowest coverage (87.6%). BDD would cover edge cases better.                                                 | medium  |
+| 10 | **Add BDD tests for sync module** — VectorClock, ConflictResolver, LWWResolver                          | Sync module is new and under-tested. BDD would validate concurrent scenarios.                                               | medium  |
 
 ### Medium Impact (11-20)
 
-| #   | Item                                                                                                               | Why                                                                                                      | Effort  |
-| --- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- | ------- |
-| 11  | **example/todo simplify** — remove cqrs-htmx, casbin, prometheus deps                                              | Reduce external attack surface. Example should be minimal.                                               | medium  |
-| 12  | **CatalogMeta shared base** — extract common Name/Version/Summary fields                                           | Even though event has AggregateType, a shared base struct reduces 3× duplication.                        | small   |
-| 13  | **Add benchmarks for storage DDL path** — measure Schema() overhead                                                | DDL generation is now on interface. Should be zero alloc.                                                | trivial |
-| 14  | **Projection Runner structured error wrapping** — wrap handler errors with projection name                         | Currently errors from handlers lose context about which projection failed.                               | small   |
-| 15  | **Add `event.Store.BatchLoad(ctx, []AggregateRef) map[string][]Event`**                                            | For bulk state reconstruction (e.g., list view projections). Avoids N+1 queries.                         | medium  |
-| 16  | **Storage: add `LoadAllFromTimestamp` to event.Store interface**                                                   | Symmetric with `LoadToTimestamp`. Currently only `LoadAllFromPosition` exists.                           | small   |
-| 17  | **Middleware: add `WithLogger` to all middleware constructors**                                                    | Logging middleware uses `slog` directly. Retry/recovery/validation should accept logger for consistency. | small   |
-| 18  | **Add `event.Event.Clone()` method** — defensive copy for mutation safety                                          | Currently consumers must be careful not to mutate event payloads. Clone() makes this safe.               | trivial |
-| 19  | **Add `decider.Decider[State].MustExecute` — panic variant of Execute**                                            | Consistent with `MustNew*` pattern. Useful in bootstrapping/tests.                                       | trivial |
-| 20  | **Add `catalog.SchemaFromType[T]()` tests for edge cases** — embedded unexported, circular refs, time.Time, []byte | Schema reflection has no edge-case tests. Could break on complex types.                                  | small   |
+| #  | Item                                                                                                               | Why                                                                                                      | Effort  |
+| -- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- | ------- |
+| 11 | **example/todo simplify** — remove cqrs-htmx, casbin, prometheus deps                                              | Reduce external attack surface. Example should be minimal.                                               | medium  |
+| 12 | **CatalogMeta shared base** — extract common Name/Version/Summary fields                                           | Even though event has AggregateType, a shared base struct reduces 3× duplication.                        | small   |
+| 13 | **Add benchmarks for storage DDL path** — measure Schema() overhead                                                | DDL generation is now on interface. Should be zero alloc.                                                | trivial |
+| 14 | **Projection Runner structured error wrapping** — wrap handler errors with projection name                         | Currently errors from handlers lose context about which projection failed.                               | small   |
+| 15 | **Add `event.Store.BatchLoad(ctx, []AggregateRef) map[string][]Event`**                                            | For bulk state reconstruction (e.g., list view projections). Avoids N+1 queries.                         | medium  |
+| 16 | **Storage: add `LoadAllFromTimestamp` to event.Store interface**                                                   | Symmetric with `LoadToTimestamp`. Currently only `LoadAllFromPosition` exists.                           | small   |
+| 17 | **Middleware: add `WithLogger` to all middleware constructors**                                                    | Logging middleware uses `slog` directly. Retry/recovery/validation should accept logger for consistency. | small   |
+| 18 | **Add `event.Event.Clone()` method** — defensive copy for mutation safety                                          | Currently consumers must be careful not to mutate event payloads. Clone() makes this safe.               | trivial |
+| 19 | **Add `decider.Decider[State].MustExecute` — panic variant of Execute**                                            | Consistent with `MustNew*` pattern. Useful in bootstrapping/tests.                                       | trivial |
+| 20 | **Add `catalog.SchemaFromType[T]()` tests for edge cases** — embedded unexported, circular refs, time.Time, []byte | Schema reflection has no edge-case tests. Could break on complex types.                                  | small   |
 
 ### Lower Impact / Future (21-25)
 
-| #   | Item                                                                                       | Why                                                                            | Effort  |
-| --- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ | ------- |
-| 21  | **Saga/Process Manager implementation** — design is done in `docs/planning/SAGA_DESIGN.md` | Full saga orchestration is the last major missing feature.                     | large   |
-| 22  | **Pebble store compaction/config tuning** — expose Pebble options                          | Currently hardcoded. Production use needs compaction tuning.                   | medium  |
-| 23  | **Add `event.Outbox.Ack(ctx, []EventID) error` batch variant**                             | More efficient than individual acks for high-throughput scenarios.             | small   |
-| 24  | **Add `projection.Runner.WithMetrics(metrics.ProjectionMetrics)` option**                  | Currently no observability into projection lag/throughput.                     | medium  |
-| 25  | **Storage: add SQLite WAL mode configuration** — `PRAGMA journal_mode=WAL`                 | WAL mode is significantly faster for concurrent read/write. Should be default. | trivial |
+| #  | Item                                                                                       | Why                                                                            | Effort  |
+| -- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ | ------- |
+| 21 | **Saga/Process Manager implementation** — design is done in `docs/planning/SAGA_DESIGN.md` | Full saga orchestration is the last major missing feature.                     | large   |
+| 22 | **Pebble store compaction/config tuning** — expose Pebble options                          | Currently hardcoded. Production use needs compaction tuning.                   | medium  |
+| 23 | **Add `event.Outbox.Ack(ctx, []EventID) error` batch variant**                             | More efficient than individual acks for high-throughput scenarios.             | small   |
+| 24 | **Add `projection.Runner.WithMetrics(metrics.ProjectionMetrics)` option**                  | Currently no observability into projection lag/throughput.                     | medium  |
+| 25 | **Storage: add SQLite WAL mode configuration** — `PRAGMA journal_mode=WAL`                 | WAL mode is significantly faster for concurrent read/write. Should be default. | trivial |
 
 ---
 

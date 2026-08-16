@@ -173,37 +173,37 @@ tree right now), and `example/taskmanager` (SSE migration, uncommitted).
 
 ## Verification Matrix (final state this session)
 
-| Gate | Result | Notes |
-| --- | --- | --- |
-| storage/sql + storage modules | ✅ 3× race | incl. eventstore, readmodel, relational, view |
-| system + integration + examples | ✅ 3× race | after DSN isolation fix |
-| event / memory / metadata / command / query | ✅ race | ginkgo forbids -count>1 |
-| cqrs-lint unit | ✅ 17/17 | S010/F005 modernized |
-| api-stability golden + meta-tests | ✅ | 4132 exports |
-| doc-check | ✅ | 797 refs / 44 pkgs |
-| nix fmt | ✅ | applied before nolint placement |
-| full `#lint` | ✅ | after cache clean + f030 fix |
-| `#verify` | ⚠️ test stage only | 2 taskmanager goldens — concurrent session |
-| `#build` | ✅ | transient verify race re-ran clean |
-| check-arch | ❌ pre-existing | 94 catalog gaps, ticketed |
-| check-duplication | ⏳ | pending LoadStream + baseline update |
-| check-coverage | ⏳ | not yet run this session |
+| Gate                                        | Result            | Notes                                         |
+| ------------------------------------------- | ----------------- | --------------------------------------------- |
+| storage/sql + storage modules               | ✅ 3× race        | incl. eventstore, readmodel, relational, view |
+| system + integration + examples             | ✅ 3× race        | after DSN isolation fix                       |
+| event / memory / metadata / command / query | ✅ race           | ginkgo forbids -count>1                       |
+| cqrs-lint unit                              | ✅ 17/17          | S010/F005 modernized                          |
+| api-stability golden + meta-tests           | ✅                | 4132 exports                                  |
+| doc-check                                   | ✅                | 797 refs / 44 pkgs                            |
+| nix fmt                                     | ✅                | applied before nolint placement               |
+| full `#lint`                                | ✅                | after cache clean + f030 fix                  |
+| `#verify`                                   | ⚠️ test stage only | 2 taskmanager goldens — concurrent session    |
+| `#build`                                    | ✅                | transient verify race re-ran clean            |
+| check-arch                                  | ❌ pre-existing   | 94 catalog gaps, ticketed                     |
+| check-duplication                           | ⏳                | pending LoadStream + baseline update          |
+| check-coverage                              | ⏳                | not yet run this session                      |
 
 ---
 
 ## Next Steps (ordered)
 
 ~~1. Finish `LoadStream`: migrate EventAdapter.Load + CommandAdapter.Load onto~~ done - EventAdapter.Load + CommandAdapter.Load delegate to AdapterCore.LoadStream; system 3x -race green (see Close-Out Addendum below; landed via 875bb689b)
-   it; run system tests 3× race.
+it; run system tests 3× race.
 ~~2. `nix run .#check-duplication`; judge remaining groups (accept intentional~~ done at 875bb689b - 10 groups judged, 1 consolidated, 9 accepted; baseline re-pinned 92->97
-   parallels); `art-dupl baseline . --threshold 3 --semantic` to re-pin.
+parallels); `art-dupl baseline . --threshold 3 --semantic` to re-pin.
 ~~3. `nix run .#check-coverage`.~~ done at 875bb689b - gate itself was broken since baf2fb1f0 (false GREEN 3 days); repaired + EXPECTED refreshed
 ~~4. Re-run `nix run .#verify` once the concurrent session's example/taskmanager~~ done at 5f2198189 - first fully green verify after the wave; three GREENs since
-   work lands (their goldens regenerate on their side, or with
-   CQRS_LINT_UPDATE_GOLDEN=1 if the C015 is intentional).
+work lands (their goldens regenerate on their side, or with
+CQRS_LINT_UPDATE_GOLDEN=1 if the C015 is intentional).
 5. Optional (deferred): `DecorateJournal` for `VersionedSeekableJournal`; <- OPEN. TODO_LIST 'Code Quality' (DecorateJournal + brandedString items, both deferred deliberately)
-   extracting `brandedString` into `record` (pending — the asrecord clone
-   pair is larger than the helper, so helper extraction alone won't clear it).
+extracting `brandedString` into `record` (pending — the asrecord clone
+pair is larger than the helper, so helper extraction alone won't clear it).
 
 ## Decisions Made Autonomously (user was unavailable)
 
@@ -222,12 +222,12 @@ tree right now), and `example/taskmanager` (SSE migration, uncommitted).
 
 All four "Next Steps" above are DONE. WAL Unification is closed.
 
-| Item | Outcome |
-| ---- | ------- |
-| `LoadStream` migration | `EventAdapter.Load` + `CommandAdapter.Load` now delegate to `AdapterCore.LoadStream`; system tests 3× `-race` green (118 tests) |
-| `#check-duplication` | 10 new groups judged: 1 harmful clone consolidated (`verifyEventParam`/`verifyRecordEventParam` → `verifyTypedParam` in `metaengine/fold.go`, error text preserved), 9 intentional accepted (cross-engine parity tests, test setup boilerplate, idiomatic locks, Dgraph query strings, asrecord structural adapters, insert-vs-update + On/OnRecord parallels). Baseline re-pinned: 92 → 97 groups |
-| `#check-coverage` | Gate had been BROKEN since `baf2fb1f0` (2026-08-11): `storage / memory` key (spaces) crashed the `tr ' ' '\n'` loop under `set -u` AND broke the `./$mod/...` path; the loop-piped-to-`sort` pattern also silently dropped DRIFT counting (subshell). Fixed all three; removed stale `[codec]=69.2` (module has no tests since extraction); refreshed EXPECTED to actuals (metaengine 83.3, schema 92.2 improvements). Gate green |
-| `#verify` | Full GREEN after three fixes: benchkit hang-thresholds raised to flat 30s (the `raceEnabled` branch was mis-modeled — parallel verify load inflates wall-clock in the non-race phase too; 14s observed vs 5s ceiling), and `.go-arch-lint.yml` codec component/deps removed (dangling after the concurrent session deleted `codec/` in `1ff2b53d0`) |
+| Item                   | Outcome                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LoadStream` migration | `EventAdapter.Load` + `CommandAdapter.Load` now delegate to `AdapterCore.LoadStream`; system tests 3× `-race` green (118 tests)                                                                                                                                                                                                                                                                                                   |
+| `#check-duplication`   | 10 new groups judged: 1 harmful clone consolidated (`verifyEventParam`/`verifyRecordEventParam` → `verifyTypedParam` in `metaengine/fold.go`, error text preserved), 9 intentional accepted (cross-engine parity tests, test setup boilerplate, idiomatic locks, Dgraph query strings, asrecord structural adapters, insert-vs-update + On/OnRecord parallels). Baseline re-pinned: 92 → 97 groups                                |
+| `#check-coverage`      | Gate had been BROKEN since `baf2fb1f0` (2026-08-11): `storage / memory` key (spaces) crashed the `tr ' ' '\n'` loop under `set -u` AND broke the `./$mod/...` path; the loop-piped-to-`sort` pattern also silently dropped DRIFT counting (subshell). Fixed all three; removed stale `[codec]=69.2` (module has no tests since extraction); refreshed EXPECTED to actuals (metaengine 83.3, schema 92.2 improvements). Gate green |
+| `#verify`              | Full GREEN after three fixes: benchkit hang-thresholds raised to flat 30s (the `raceEnabled` branch was mis-modeled — parallel verify load inflates wall-clock in the non-race phase too; 14s observed vs 5s ceiling), and `.go-arch-lint.yml` codec component/deps removed (dangling after the concurrent session deleted `codec/` in `1ff2b53d0`)                                                                               |
 
 Plan doc `2026-08-14_11-27_WAL-UNIFICATION.md` now carries an EXECUTED status
 banner (incl. the task-29 deviation: SQL event-store insert deliberately NOT
@@ -235,7 +235,6 @@ moved onto `Inserter[T]` — it already owns cached templates + batched inserts)
 
 Deferred items (unchanged, see Next Steps 5): `DecorateJournal` for
 `VersionedSeekableJournal`; `brandedString` extraction.
-
 
 ## Resolution (2026-08-15, docs-health pass)
 

@@ -156,48 +156,48 @@ Sorted by **impact/effort** (Pareto order).
 
 ### P0 — Critical
 
-| #   | Task                                                                                | Impact   | Effort |
-| --- | ----------------------------------------------------------------------------------- | -------- | ------ |
-| 1   | **Finish storage/ split** — extract event/command/query store clusters              | High     | 3h     |
-| 2   | **Tests for example/projectionhost** — consumer-facing reliability demo, zero tests | High     | 30min  |
-| 3   | **Stabilize concurrent session workflow** — use branches or serialize               | Critical | 5min   |
+| # | Task                                                                                | Impact   | Effort |
+| - | ----------------------------------------------------------------------------------- | -------- | ------ |
+| 1 | **Finish storage/ split** — extract event/command/query store clusters              | High     | 3h     |
+| 2 | **Tests for example/projectionhost** — consumer-facing reliability demo, zero tests | High     | 30min  |
+| 3 | **Stabilize concurrent session workflow** — use branches or serialize               | Critical | 5min   |
 
 ### P1 — High Leverage
 
-| #   | Task                                                                           | Impact   | Effort  |
-| --- | ------------------------------------------------------------------------------ | -------- | ------- |
-| 4   | **PG integration tests in CI** — scaffold exists, needs service container      | High     | 1h      |
-| 5   | **Neo4j GraphDriver** (`graph/neo4j/`) — Schema.Indexes ready, consumer-pulled | High     | 3-4h    |
-| 6   | **Durability profiles** — design done, ADR exists                              | Medium   | 1.5h    |
-| 7   | **Outbox pattern DLQ** — ADR-0042/0043 discuss direction                       | Medium   | 2h      |
-| 8   | **DiscordSync → RelationalProjection** — now that relational/ is extracted     | Critical | Blocked |
+| # | Task                                                                           | Impact   | Effort  |
+| - | ------------------------------------------------------------------------------ | -------- | ------- |
+| 4 | **PG integration tests in CI** — scaffold exists, needs service container      | High     | 1h      |
+| 5 | **Neo4j GraphDriver** (`graph/neo4j/`) — Schema.Indexes ready, consumer-pulled | High     | 3-4h    |
+| 6 | **Durability profiles** — design done, ADR exists                              | Medium   | 1.5h    |
+| 7 | **Outbox pattern DLQ** — ADR-0042/0043 discuss direction                       | Medium   | 2h      |
+| 8 | **DiscordSync → RelationalProjection** — now that relational/ is extracted     | Critical | Blocked |
 
 ### P2 — Quality
 
-| #   | Task                                                       | Impact | Effort |
-| --- | ---------------------------------------------------------- | ------ | ------ |
-| 9   | **FTS5 full-text search** for RelationalStore              | Medium | 2h     |
-| 10  | **Versioned schema migrations** (goose/atlas)              | Medium | 2h     |
-| 11  | **Tests for cmd/doc-check** — CI tool, zero tests          | Medium | 20min  |
-| 12  | **Tests for example/encryption** — crypto demo, zero tests | Medium | 20min  |
-| 13  | **Tests for example/deployer-first-multidb**               | Low    | 30min  |
-| 14  | **Tests for example/deployer-first-heterogeneous**         | Low    | 30min  |
-| 15  | **NATS JetStream transport adapter**                       | Medium | 3h     |
+| #  | Task                                                       | Impact | Effort |
+| -- | ---------------------------------------------------------- | ------ | ------ |
+| 9  | **FTS5 full-text search** for RelationalStore              | Medium | 2h     |
+| 10 | **Versioned schema migrations** (goose/atlas)              | Medium | 2h     |
+| 11 | **Tests for cmd/doc-check** — CI tool, zero tests          | Medium | 20min  |
+| 12 | **Tests for example/encryption** — crypto demo, zero tests | Medium | 20min  |
+| 13 | **Tests for example/deployer-first-multidb**               | Low    | 30min  |
+| 14 | **Tests for example/deployer-first-heterogeneous**         | Low    | 30min  |
+| 15 | **NATS JetStream transport adapter**                       | Medium | 3h     |
 
 ### P3 — Polish / Long-Term
 
-| #   | Task                                            | Impact | Effort                                       |
-| --- | ----------------------------------------------- | ------ | -------------------------------------------- |
-| 16  | **Documentation site** (Docusaurus/MkDocs)      | Low    | 4h+                                          |
-| 17  | **Hot-state cache for decider** — profile first | Low    | Large                                        |
-| 18  | **Event redaction middleware**                  | Low    | Medium                                       |
-| 19  | **Bi-temporal model** (`ValidAt`)               | Low    | Large                                        |
-| 20  | **Event-history visualization**                 | Low    | Large                                        |
-| 21  | **Scheduler expansion**                         | Low    | Large                                        |
-| 22  | **Graph read API on real backends**             | Low    | Large                                        |
-| 23  | **Event/ split**                                | None   | **DO NOT DO** — 469 importers, high coupling |
-| 24  | **Transport/grpc genproto fix**                 | Medium | Blocked (cockroachdb/errors#79)              |
-| 25  | **v4 major version cut**                        | None   | **DO NOT DO** — v4-WISHLIST tracks triggers  |
+| #  | Task                                            | Impact | Effort                                       |
+| -- | ----------------------------------------------- | ------ | -------------------------------------------- |
+| 16 | **Documentation site** (Docusaurus/MkDocs)      | Low    | 4h+                                          |
+| 17 | **Hot-state cache for decider** — profile first | Low    | Large                                        |
+| 18 | **Event redaction middleware**                  | Low    | Medium                                       |
+| 19 | **Bi-temporal model** (`ValidAt`)               | Low    | Large                                        |
+| 20 | **Event-history visualization**                 | Low    | Large                                        |
+| 21 | **Scheduler expansion**                         | Low    | Large                                        |
+| 22 | **Graph read API on real backends**             | Low    | Large                                        |
+| 23 | **Event/ split**                                | None   | **DO NOT DO** — 469 importers, high coupling |
+| 24 | **Transport/grpc genproto fix**                 | Medium | Blocked (cockroachdb/errors#79)              |
+| 25 | **v4 major version cut**                        | None   | **DO NOT DO** — v4-WISHLIST tracks triggers  |
 
 ---
 

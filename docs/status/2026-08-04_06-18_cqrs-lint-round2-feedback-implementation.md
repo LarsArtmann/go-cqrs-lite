@@ -111,7 +111,7 @@ Nothing catastrophic. But three concrete misses, in severity order:
 
 ### Minor bug I noticed but didn't fix: multi-line raw string literals
 
-- `commentTextStart` resets its `inBacktick`/`inDouble` state per line. A raw string literal spanning multiple lines (`` `...``) that contains `//cqrs-lint:ignore` on a continuation line would be false-matched on that continuation line (the state doesn't carry across lines). Edge case; no real consumer hits this today, but it's a correctness gap vs a true Go lexer.
+- `commentTextStart` resets its `inBacktick`/`inDouble` state per line. A raw string literal spanning multiple lines (`` `... ``) that contains `//cqrs-lint:ignore` on a continuation line would be false-matched on that continuation line (the state doesn't carry across lines). Edge case; no real consumer hits this today, but it's a correctness gap vs a true Go lexer.
 
 ---
 

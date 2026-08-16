@@ -130,33 +130,33 @@ None. All identified issues resolved.
 
 ## F) TOP #25 THINGS TO DO NEXT
 
-| #   | Task                                                      | Impact | Effort | Module       |
-| --- | --------------------------------------------------------- | ------ | ------ | ------------ |
-| 1   | Add binaries to `.gitignore`                              | HIGH   | 2min   | root         |
-| 2   | Fix pre-commit hook: add post-migration compile check     | HIGH   | 30min  | CI           |
-| 3   | Publish v1.0.0 tags (eliminate replace directives)        | HIGH   | 60min  | all          |
-| 4   | Write top-level README with quickstart guide              | MED    | 60min  | docs         |
-| 5   | Create CHANGELOG.md from session history                  | MED    | 30min  | docs         |
-| 6   | Fix `SliceFromVersion` to use version-field filtering     | MED    | 60min  | core/event   |
-| 7   | Document snapshot contract (events must exist)            | MED    | 15min  | core/decider |
-| 8   | Add CI coverage threshold gate (80%)                      | MED    | 30min  | CI           |
-| 9   | Create CONTRIBUTING.md                                    | LOW    | 30min  | docs         |
-| 10  | Fix catalog lint: exhaustruct on Flow/FlowStep            | LOW    | 10min  | catalog      |
-| 11  | Fix catalog lint: goconst on "1.0.0"                      | LOW    | 5min   | catalog      |
-| 12  | Fix catalog lint: mnd magic number in builders            | LOW    | 5min   | catalog      |
-| 13  | Add godoc badges to module READMEs                        | LOW    | 15min  | docs         |
-| 14  | Verify all 5 example apps build and run                   | MED    | 30min  | example/\*   |
-| 15  | Add storage module migration guide                        | MED    | 60min  | docs         |
-| 16  | Add saga module usage examples                            | MED    | 30min  | docs         |
-| 17  | Review stream module API completeness                     | MED    | 60min  | stream       |
-| 18  | Watermill adapter: verify API surface, add tests          | MED    | 60min  | watermill    |
-| 19  | Add OpenTelemetry integration example                     | LOW    | 30min  | docs         |
-| 20  | Add signing module usage guide                            | LOW    | 20min  | docs         |
-| 21  | Consider `catalog.WithDescription[T]()` shared option     | LOW    | 15min  | catalog      |
-| 22  | Add PR template with checklist requirements               | LOW    | 15min  | CI           |
-| 23  | Remove remaining deprecated aliases from `event/store.go` | LOW    | 10min  | core/event   |
-| 24  | Add `cqrs-gen` CLI usage documentation                    | LOW    | 30min  | cmd/cqrs-gen |
-| 25  | Add integration test for snapshot round-trip              | MED    | 20min  | core/decider |
+| #  | Task                                                      | Impact | Effort | Module       |
+| -- | --------------------------------------------------------- | ------ | ------ | ------------ |
+| 1  | Add binaries to `.gitignore`                              | HIGH   | 2min   | root         |
+| 2  | Fix pre-commit hook: add post-migration compile check     | HIGH   | 30min  | CI           |
+| 3  | Publish v1.0.0 tags (eliminate replace directives)        | HIGH   | 60min  | all          |
+| 4  | Write top-level README with quickstart guide              | MED    | 60min  | docs         |
+| 5  | Create CHANGELOG.md from session history                  | MED    | 30min  | docs         |
+| 6  | Fix `SliceFromVersion` to use version-field filtering     | MED    | 60min  | core/event   |
+| 7  | Document snapshot contract (events must exist)            | MED    | 15min  | core/decider |
+| 8  | Add CI coverage threshold gate (80%)                      | MED    | 30min  | CI           |
+| 9  | Create CONTRIBUTING.md                                    | LOW    | 30min  | docs         |
+| 10 | Fix catalog lint: exhaustruct on Flow/FlowStep            | LOW    | 10min  | catalog      |
+| 11 | Fix catalog lint: goconst on "1.0.0"                      | LOW    | 5min   | catalog      |
+| 12 | Fix catalog lint: mnd magic number in builders            | LOW    | 5min   | catalog      |
+| 13 | Add godoc badges to module READMEs                        | LOW    | 15min  | docs         |
+| 14 | Verify all 5 example apps build and run                   | MED    | 30min  | example/\*   |
+| 15 | Add storage module migration guide                        | MED    | 60min  | docs         |
+| 16 | Add saga module usage examples                            | MED    | 30min  | docs         |
+| 17 | Review stream module API completeness                     | MED    | 60min  | stream       |
+| 18 | Watermill adapter: verify API surface, add tests          | MED    | 60min  | watermill    |
+| 19 | Add OpenTelemetry integration example                     | LOW    | 30min  | docs         |
+| 20 | Add signing module usage guide                            | LOW    | 20min  | docs         |
+| 21 | Consider `catalog.WithDescription[T]()` shared option     | LOW    | 15min  | catalog      |
+| 22 | Add PR template with checklist requirements               | LOW    | 15min  | CI           |
+| 23 | Remove remaining deprecated aliases from `event/store.go` | LOW    | 10min  | core/event   |
+| 24 | Add `cqrs-gen` CLI usage documentation                    | LOW    | 30min  | cmd/cqrs-gen |
+| 25 | Add integration test for snapshot round-trip              | MED    | 20min  | core/decider |
 
 ---
 

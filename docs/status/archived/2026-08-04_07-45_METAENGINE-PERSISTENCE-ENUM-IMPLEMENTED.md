@@ -273,7 +273,7 @@ messages be amended, or is this expected daemon behavior that we accept?**
 
 The working tree shows `M docs/planning/metaengine-redesign.md` with 125
 lines added. The git status at session start already showed this as modified
-(` M docs/planning/metaengine-redesign.md`). I did NOT touch this file. It
+(`M docs/planning/metaengine-redesign.md`). I did NOT touch this file. It
 appears to be a pre-existing change from another session or the user. **Should
 I investigate this diff, or is it expected work from another session?**
 

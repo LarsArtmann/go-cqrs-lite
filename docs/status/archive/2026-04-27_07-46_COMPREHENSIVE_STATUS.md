@@ -63,24 +63,24 @@
 
 ### go-cqrs-lite (from AGENTS.md migration plan)
 
-| #   | Item                                                                               | Priority |
-| --- | ---------------------------------------------------------------------------------- | -------- |
-| 1   | Phase 5: Storage module (sqlc event store)                                         | Planned  |
-| 2   | Phase 6: Watermill module (pub/sub)                                                | Planned  |
-| 3   | Phase 7: Projection module (samber/ro internally)                                  | Planned  |
-| 4   | Phase 8: Snapshot module (SQL-backed)                                              | Planned  |
-| 5   | Phase 9: Test utilities module                                                     | Planned  |
-| 6   | Phase 10: Tag releases                                                             | Planned  |
-| 7   | `example/user/` module extraction                                                  | Planned  |
-| 8   | Fix `go.work` version mismatch (1.26 vs 1.26.0)                                    | LOW      |
-| 9   | Fix `toDotAddress` number handling ("Get3DView" → "get.3.d.view" vs "get.3d.view") | LOW      |
+| # | Item                                                                               | Priority |
+| - | ---------------------------------------------------------------------------------- | -------- |
+| 1 | Phase 5: Storage module (sqlc event store)                                         | Planned  |
+| 2 | Phase 6: Watermill module (pub/sub)                                                | Planned  |
+| 3 | Phase 7: Projection module (samber/ro internally)                                  | Planned  |
+| 4 | Phase 8: Snapshot module (SQL-backed)                                              | Planned  |
+| 5 | Phase 9: Test utilities module                                                     | Planned  |
+| 6 | Phase 10: Tag releases                                                             | Planned  |
+| 7 | `example/user/` module extraction                                                  | Planned  |
+| 8 | Fix `go.work` version mismatch (1.26 vs 1.26.0)                                    | LOW      |
+| 9 | Fix `toDotAddress` number handling ("Get3DView" → "get.3.d.view" vs "get.3d.view") | LOW      |
 
 ### go-website-template
 
-| #   | Item                                            | Priority |
-| --- | ----------------------------------------------- | -------- |
-| 1   | Commit the uncommitted test/handler refactoring | HIGH     |
-| 2   | Run tests + lint on the uncommitted changes     | HIGH     |
+| # | Item                                            | Priority |
+| - | ----------------------------------------------- | -------- |
+| 1 | Commit the uncommitted test/handler refactoring | HIGH     |
+| 2 | Run tests + lint on the uncommitted changes     | HIGH     |
 
 ---
 
@@ -124,33 +124,33 @@
 
 Sorted by impact/urgency/effort:
 
-| #   | Task                                                        | Project | Impact   | Effort | Rationale                                                                                                             |
-| --- | ----------------------------------------------------------- | ------- | -------- | ------ | --------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Fix broken `NewWithPrefix` references in test files**     | cqrs    | CRITICAL | 5min   | `benchmark_test.go:15` and `id_test.go:31` call deleted function. Must be compile errors. Investigate why tests pass. |
-| 2   | **Commit go-website-template changes**                      | website | HIGH     | 2min   | 5 modified + 1 new file. Don't lose work.                                                                             |
-| 3   | **Publish `go-composable-business-types` as Go module**     | cbid    | CRITICAL | 1hr    | Without this, nobody can use go-cqrs-lite externally. Tag v0.1.0.                                                     |
-| 4   | **Add `ULID()` tests**                                      | cqrs    | MED      | 10min  | 0% coverage, exported function                                                                                        |
-| 5   | **Add `Get()` tests**                                       | cqrs    | MED      | 10min  | 0% coverage, exported function                                                                                        |
-| 6   | **Add `ParseCausationID`/`MustParseCausationID` tests**     | cqrs    | MED      | 10min  | 0% coverage                                                                                                           |
-| 7   | **Add `ParseCorrelationID`/`MustParseCorrelationID` tests** | cqrs    | MED      | 10min  | 0% coverage                                                                                                           |
-| 8   | **Add `ParseEventID` tests**                                | cqrs    | MED      | 5min   | 0% coverage (MustParseEventID at 100%)                                                                                |
-| 9   | **Add `ParseRequestID`/`MustParseRequestID` tests**         | cqrs    | MED      | 10min  | 0% coverage                                                                                                           |
-| 10  | **Add `ParseUserID` tests**                                 | cqrs    | MED      | 5min   | 0% coverage (MustParseUserID at 100%)                                                                                 |
-| 11  | **Add `QueryLogging` tests**                                | cqrs    | MED      | 15min  | 0% coverage                                                                                                           |
-| 12  | **Add `QueryMetrics` tests**                                | cqrs    | MED      | 15min  | 0% coverage                                                                                                           |
-| 13  | **Add `QueryRecovery` tests**                               | cqrs    | MED      | 15min  | 0% coverage                                                                                                           |
-| 14  | **Add `QueryRetry` tests**                                  | cqrs    | MED      | 20min  | 0% coverage                                                                                                           |
-| 15  | **Add `QueryValidation` tests**                             | cqrs    | MED      | 10min  | 0% coverage                                                                                                           |
-| 16  | **Add `EventRetry` tests**                                  | cqrs    | MED      | 15min  | 0% coverage                                                                                                           |
-| 17  | **Add `event.WithMetadata` tests**                          | cqrs    | LOW      | 10min  | 0% coverage, exported Option                                                                                          |
-| 18  | **Fix `go.work` version mismatch**                          | cqrs    | LOW      | 5min   | go.work says `go 1.26`, modules say `go 1.26.0`                                                                       |
-| 19  | **Fix `toDotAddress` number handling**                      | cqrs    | LOW      | 15min  | "Get3DView" → "get.3.d.view" should be "get.3d.view"                                                                  |
-| 20  | **Add `BaseDispatcher` tests**                              | cqrs    | MED      | 20min  | 0% coverage on 6 exported functions                                                                                   |
-| 21  | **Add `CatalogDispatcher` tests**                           | cqrs    | MED      | 20min  | 0% coverage on 5 exported functions                                                                                   |
-| 22  | **Investigate `MemorySnapshotStore.Close` 0% coverage**     | cqrs    | LOW      | 10min  | `Close()` at line 125 untested                                                                                        |
-| 23  | **Phase 5: Storage module (sqlc)**                          | cqrs    | HIGH     | LARGE  | Next major feature — SQL event store                                                                                  |
-| 24  | **Phase 6: Watermill module**                               | cqrs    | HIGH     | LARGE  | Pub/sub integration                                                                                                   |
-| 25  | **Clean up docs/status/** — archive old reports             | cqrs    | LOW      | 5min   | 33 status reports accumulated                                                                                         |
+| #  | Task                                                        | Project | Impact   | Effort | Rationale                                                                                                             |
+| -- | ----------------------------------------------------------- | ------- | -------- | ------ | --------------------------------------------------------------------------------------------------------------------- |
+| 1  | **Fix broken `NewWithPrefix` references in test files**     | cqrs    | CRITICAL | 5min   | `benchmark_test.go:15` and `id_test.go:31` call deleted function. Must be compile errors. Investigate why tests pass. |
+| 2  | **Commit go-website-template changes**                      | website | HIGH     | 2min   | 5 modified + 1 new file. Don't lose work.                                                                             |
+| 3  | **Publish `go-composable-business-types` as Go module**     | cbid    | CRITICAL | 1hr    | Without this, nobody can use go-cqrs-lite externally. Tag v0.1.0.                                                     |
+| 4  | **Add `ULID()` tests**                                      | cqrs    | MED      | 10min  | 0% coverage, exported function                                                                                        |
+| 5  | **Add `Get()` tests**                                       | cqrs    | MED      | 10min  | 0% coverage, exported function                                                                                        |
+| 6  | **Add `ParseCausationID`/`MustParseCausationID` tests**     | cqrs    | MED      | 10min  | 0% coverage                                                                                                           |
+| 7  | **Add `ParseCorrelationID`/`MustParseCorrelationID` tests** | cqrs    | MED      | 10min  | 0% coverage                                                                                                           |
+| 8  | **Add `ParseEventID` tests**                                | cqrs    | MED      | 5min   | 0% coverage (MustParseEventID at 100%)                                                                                |
+| 9  | **Add `ParseRequestID`/`MustParseRequestID` tests**         | cqrs    | MED      | 10min  | 0% coverage                                                                                                           |
+| 10 | **Add `ParseUserID` tests**                                 | cqrs    | MED      | 5min   | 0% coverage (MustParseUserID at 100%)                                                                                 |
+| 11 | **Add `QueryLogging` tests**                                | cqrs    | MED      | 15min  | 0% coverage                                                                                                           |
+| 12 | **Add `QueryMetrics` tests**                                | cqrs    | MED      | 15min  | 0% coverage                                                                                                           |
+| 13 | **Add `QueryRecovery` tests**                               | cqrs    | MED      | 15min  | 0% coverage                                                                                                           |
+| 14 | **Add `QueryRetry` tests**                                  | cqrs    | MED      | 20min  | 0% coverage                                                                                                           |
+| 15 | **Add `QueryValidation` tests**                             | cqrs    | MED      | 10min  | 0% coverage                                                                                                           |
+| 16 | **Add `EventRetry` tests**                                  | cqrs    | MED      | 15min  | 0% coverage                                                                                                           |
+| 17 | **Add `event.WithMetadata` tests**                          | cqrs    | LOW      | 10min  | 0% coverage, exported Option                                                                                          |
+| 18 | **Fix `go.work` version mismatch**                          | cqrs    | LOW      | 5min   | go.work says `go 1.26`, modules say `go 1.26.0`                                                                       |
+| 19 | **Fix `toDotAddress` number handling**                      | cqrs    | LOW      | 15min  | "Get3DView" → "get.3.d.view" should be "get.3d.view"                                                                  |
+| 20 | **Add `BaseDispatcher` tests**                              | cqrs    | MED      | 20min  | 0% coverage on 6 exported functions                                                                                   |
+| 21 | **Add `CatalogDispatcher` tests**                           | cqrs    | MED      | 20min  | 0% coverage on 5 exported functions                                                                                   |
+| 22 | **Investigate `MemorySnapshotStore.Close` 0% coverage**     | cqrs    | LOW      | 10min  | `Close()` at line 125 untested                                                                                        |
+| 23 | **Phase 5: Storage module (sqlc)**                          | cqrs    | HIGH     | LARGE  | Next major feature — SQL event store                                                                                  |
+| 24 | **Phase 6: Watermill module**                               | cqrs    | HIGH     | LARGE  | Pub/sub integration                                                                                                   |
+| 25 | **Clean up docs/status/** — archive old reports             | cqrs    | LOW      | 5min   | 33 status reports accumulated                                                                                         |
 
 ---
 

@@ -196,7 +196,7 @@ Commit `8b41f658` has message `"ore(metaengine): add ADR 0094..."` — the `ch` 
 18. T19: Add runtime.MemStats.TotalAlloc delta measurement
 19. T19: Run soak test 3× with -race, document variance
 20. T20: Design typed Watcher[V] interface
-21. T20: Implement WatchTyped[V](<>) on Store (new method, keep chan any)
+21. T20: Implement WatchTyped[V]() on Store (new method, keep chan any)
 22. T20: Update dx.go reifyWatcherValue for typed path
 23. T20: Write TestWatcher_TypedChannel_NoAssertion
 24. T21: Write TestSSE_ReconnectWithSQLite end-to-end

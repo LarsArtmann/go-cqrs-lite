@@ -17,18 +17,18 @@
 
 ## a) FULLY DONE
 
-| #   | Item                                                                        | Evidence                                                       |
-| --- | --------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| 1   | **A033 detector** — branded-id string roundtrip (`id.Parse[T](x.String())`) | 4 tests pass; import-alias resolved via `QualifierResolvesTo`  |
-| 2   | **C037 detector** — snapshot/event codec mismatch                           | 5 tests pass; handles `IndexExpr` + `IndexListExpr` generics   |
-| 3   | Catalog entries A033 + C037                                                 | `catalog.go` updated; `TestCatalogCountMatchesRegister` passes |
-| 4   | meta_test count 179 → 181                                                   | `TestAllDetectorsInstantiate` passes                           |
-| 5   | README headline + table rows A032/A033                                      | `TestReadmeRuleCountMatchesCatalog` passes                     |
-| 6   | All 5 metaengine engines build standalone                                   | `GOWORK=off go build` clean for core/pebble/pg/duckdb          |
-| 7   | metaengine core + pebble + pg parity tests pass                             | `adttest.RunMatrix` green (pg via testcontainers, 41s)         |
-| 8   | TODO_LIST metaengine section corrected (5 engines reality)                  | Removed stale pgengine/duckdbengine-as-open                    |
-| 9   | Pareto plan rows L1.22 / L1.26 / L1.39 marked done                          | `IMPROVEMENT_IDEAS.md` items 143/175 struck                    |
-| 10  | Self-lint check: A033/C037 fire 0 findings on linter's own code             | `go run . .` confirmed; `TestFilterLibrarySelfLint` passes     |
+| #  | Item                                                                        | Evidence                                                       |
+| -- | --------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| 1  | **A033 detector** — branded-id string roundtrip (`id.Parse[T](x.String())`) | 4 tests pass; import-alias resolved via `QualifierResolvesTo`  |
+| 2  | **C037 detector** — snapshot/event codec mismatch                           | 5 tests pass; handles `IndexExpr` + `IndexListExpr` generics   |
+| 3  | Catalog entries A033 + C037                                                 | `catalog.go` updated; `TestCatalogCountMatchesRegister` passes |
+| 4  | meta_test count 179 → 181                                                   | `TestAllDetectorsInstantiate` passes                           |
+| 5  | README headline + table rows A032/A033                                      | `TestReadmeRuleCountMatchesCatalog` passes                     |
+| 6  | All 5 metaengine engines build standalone                                   | `GOWORK=off go build` clean for core/pebble/pg/duckdb          |
+| 7  | metaengine core + pebble + pg parity tests pass                             | `adttest.RunMatrix` green (pg via testcontainers, 41s)         |
+| 8  | TODO_LIST metaengine section corrected (5 engines reality)                  | Removed stale pgengine/duckdbengine-as-open                    |
+| 9  | Pareto plan rows L1.22 / L1.26 / L1.39 marked done                          | `IMPROVEMENT_IDEAS.md` items 143/175 struck                    |
+| 10 | Self-lint check: A033/C037 fire 0 findings on linter's own code             | `go run . .` confirmed; `TestFilterLibrarySelfLint` passes     |
 
 ---
 
@@ -62,15 +62,15 @@ Reality: **181 rules, 14 Open rows**. I created a doc-internal contradiction (he
 
 ## c) NOT STARTED
 
-| #   | Item                                                       | Why it matters                                                                                                                                                                                                                 |
-| --- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| c1  | `nix run .#verify` / `#verify-fast`                        | The ONLY source of truth for project-wide green. Not run once.                                                                                                                                                                 |
-| c2  | `api-stability` golden regen                               | Added 2 exported symbols (`NewA033Detector`, `NewC037Detector`). AGENTS.md: "regenerate in the same edit." Verified the tool may not track detector ctors individually — but I did not confirm that, so the gate _might_ fail. |
-| c3  | `doc-check` on AGENTS.md / docs                            | I edited tracking docs; never ran `cmd/doc-check` to verify import paths still resolve.                                                                                                                                        |
-| c4  | `nix fmt` on the whole module                              | Ran gofumpt/goimports on my 4 new files only. AGENTS.md: "Always `nix fmt` BEFORE placing `//nolint` directives." My `//nolint:ireturn` comments could be misplaced by golines.                                                |
-| c5  | Cross-engine ADT parity **across all 5** in one matrix run | I tested core/pebble/pg individually. I did NOT run a single assertion that all 5 engines agree on all 7 ADTs simultaneously.                                                                                                  |
-| c6  | Recount TODO_LIST backlog                                  | "~17" was a guess. Should be derived from the Pareto plan's Open rows, not eyeballed.                                                                                                                                          |
-| c7  | Update Pareto plan header (175→181, ~29→14)                | See b2 — split-brain left in place.                                                                                                                                                                                            |
+| #  | Item                                                       | Why it matters                                                                                                                                                                                                                 |
+| -- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| c1 | `nix run .#verify` / `#verify-fast`                        | The ONLY source of truth for project-wide green. Not run once.                                                                                                                                                                 |
+| c2 | `api-stability` golden regen                               | Added 2 exported symbols (`NewA033Detector`, `NewC037Detector`). AGENTS.md: "regenerate in the same edit." Verified the tool may not track detector ctors individually — but I did not confirm that, so the gate _might_ fail. |
+| c3 | `doc-check` on AGENTS.md / docs                            | I edited tracking docs; never ran `cmd/doc-check` to verify import paths still resolve.                                                                                                                                        |
+| c4 | `nix fmt` on the whole module                              | Ran gofumpt/goimports on my 4 new files only. AGENTS.md: "Always `nix fmt` BEFORE placing `//nolint` directives." My `//nolint:ireturn` comments could be misplaced by golines.                                                |
+| c5 | Cross-engine ADT parity **across all 5** in one matrix run | I tested core/pebble/pg individually. I did NOT run a single assertion that all 5 engines agree on all 7 ADTs simultaneously.                                                                                                  |
+| c6 | Recount TODO_LIST backlog                                  | "~17" was a guess. Should be derived from the Pareto plan's Open rows, not eyeballed.                                                                                                                                          |
+| c7 | Update Pareto plan header (175→181, ~29→14)                | See b2 — split-brain left in place.                                                                                                                                                                                            |
 
 ---
 

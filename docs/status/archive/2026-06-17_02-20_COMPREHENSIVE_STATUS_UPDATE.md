@@ -1,8 +1,8 @@
 # Comprehensive Status Update — 2026-06-17 02:20 CEST
 
-**Project:** go-cqrs-lite  
-**Branch:** consolidate-catalog  
-**Date:** 2026-06-17 02:20:28 CEST  
+**Project:** go-cqrs-lite\
+**Branch:** consolidate-catalog\
+**Date:** 2026-06-17 02:20:28 CEST\
 **Reporter:** Crush (automated status report)
 
 ---
@@ -211,9 +211,9 @@ The interfaces currently look consumer-facing, but there is no consumer document
 ?? query/reactive_test.go
 ```
 
-**Test status:** 41/41 packages pass in normal mode.  
-**Lint status:** 0 issues.  
-**Race status:** `turso/indexing` failures pre-existing.  
+**Test status:** 41/41 packages pass in normal mode.\
+**Lint status:** 0 issues.\
+**Race status:** `turso/indexing` failures pre-existing.\
 **Layer check:** Passes.
 
 ---

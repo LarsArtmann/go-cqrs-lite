@@ -172,33 +172,33 @@ The 16 remaining bare `return err` fall into three categories:
 
 ## F) Top 25 Things to Do Next
 
-| #   | Task                                                    | Impact | Effort | Type         |
-| --- | ------------------------------------------------------- | ------ | ------ | ------------ |
-| 1   | Fix or remove example/todo (cqrs-htmx break)            | HIGH   | S      | Fix/Remove   |
-| 2   | Split core/event/event.go under 250 lines               | MEDIUM | S      | Convention   |
-| 3   | Add TursoSyncDB tests (0% → 70%+)                       | MEDIUM | M      | Testing      |
-| 4   | Add event metadata mergeFrom tests (61% → 90%+)         | LOW    | S      | Testing      |
-| 5   | Add storage parseBrandedID tests (50% → 90%+)           | LOW    | S      | Testing      |
-| 6   | Add storage scanEvent/scanOutbox tests (75-78% → 90%+)  | MEDIUM | M      | Testing      |
-| 7   | Add schemautil coverage (84.2% → 90%+)                  | MEDIUM | M      | Testing      |
-| 8   | Update README to show decider pattern                   | MEDIUM | S      | Docs         |
-| 9   | Create CHANGELOG.md                                     | LOW    | S      | Docs         |
-| 10  | Add benchmark suite for core modules                    | MEDIUM | M      | Testing      |
-| 11  | Discuss `sync` module rename with owner                 | LOW    | XS     | Decision     |
-| 12  | Evaluate query.Handler generic redesign                 | MEDIUM | L      | Architecture |
-| 13  | Add Go ExampleXxx functions for godoc                   | LOW    | M      | Docs         |
-| 14  | Add collectResults coverage (73% → 90%+)                | LOW    | S      | Testing      |
-| 15  | Add WithMetadata/WithCustom coverage (60-67% → 90%+)    | LOW    | S      | Testing      |
-| 16  | Add publishPending coverage (67% → 90%+)                | LOW    | S      | Testing      |
-| 17  | Add filterEvents coverage (73% → 90%+)                  | LOW    | S      | Testing      |
-| 18  | Extract example/user and example/todo to separate repos | MEDIUM | M      | Structure    |
-| 19  | Consider event.Store ISP split                          | HIGH   | L      | Architecture |
-| 20  | Add fuzz tests for ID parsing and event marshaling      | MEDIUM | M      | Testing      |
-| 21  | Review nolint directives (35 in production code)        | LOW    | M      | Cleanup      |
-| 22  | Add NegativeCounterError.String() method                | LOW    | XS     | API          |
-| 23  | Add Operation.String() test (0% coverage)               | LOW    | XS     | Testing      |
-| 24  | Version bump audit across all modules                   | MEDIUM | S      | Release      |
-| 25  | Add catalog usage examples                              | LOW    | S      | Docs         |
+| #  | Task                                                    | Impact | Effort | Type         |
+| -- | ------------------------------------------------------- | ------ | ------ | ------------ |
+| 1  | Fix or remove example/todo (cqrs-htmx break)            | HIGH   | S      | Fix/Remove   |
+| 2  | Split core/event/event.go under 250 lines               | MEDIUM | S      | Convention   |
+| 3  | Add TursoSyncDB tests (0% → 70%+)                       | MEDIUM | M      | Testing      |
+| 4  | Add event metadata mergeFrom tests (61% → 90%+)         | LOW    | S      | Testing      |
+| 5  | Add storage parseBrandedID tests (50% → 90%+)           | LOW    | S      | Testing      |
+| 6  | Add storage scanEvent/scanOutbox tests (75-78% → 90%+)  | MEDIUM | M      | Testing      |
+| 7  | Add schemautil coverage (84.2% → 90%+)                  | MEDIUM | M      | Testing      |
+| 8  | Update README to show decider pattern                   | MEDIUM | S      | Docs         |
+| 9  | Create CHANGELOG.md                                     | LOW    | S      | Docs         |
+| 10 | Add benchmark suite for core modules                    | MEDIUM | M      | Testing      |
+| 11 | Discuss `sync` module rename with owner                 | LOW    | XS     | Decision     |
+| 12 | Evaluate query.Handler generic redesign                 | MEDIUM | L      | Architecture |
+| 13 | Add Go ExampleXxx functions for godoc                   | LOW    | M      | Docs         |
+| 14 | Add collectResults coverage (73% → 90%+)                | LOW    | S      | Testing      |
+| 15 | Add WithMetadata/WithCustom coverage (60-67% → 90%+)    | LOW    | S      | Testing      |
+| 16 | Add publishPending coverage (67% → 90%+)                | LOW    | S      | Testing      |
+| 17 | Add filterEvents coverage (73% → 90%+)                  | LOW    | S      | Testing      |
+| 18 | Extract example/user and example/todo to separate repos | MEDIUM | M      | Structure    |
+| 19 | Consider event.Store ISP split                          | HIGH   | L      | Architecture |
+| 20 | Add fuzz tests for ID parsing and event marshaling      | MEDIUM | M      | Testing      |
+| 21 | Review nolint directives (35 in production code)        | LOW    | M      | Cleanup      |
+| 22 | Add NegativeCounterError.String() method                | LOW    | XS     | API          |
+| 23 | Add Operation.String() test (0% coverage)               | LOW    | XS     | Testing      |
+| 24 | Version bump audit across all modules                   | MEDIUM | S      | Release      |
+| 25 | Add catalog usage examples                              | LOW    | S      | Docs         |
 
 ---
 

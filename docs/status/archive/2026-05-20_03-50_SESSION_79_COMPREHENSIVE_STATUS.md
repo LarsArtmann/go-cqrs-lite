@@ -1,6 +1,6 @@
 # Session 79 — Comprehensive Status Report
 
-**Date:** 2026-05-20 03:50  
+**Date:** 2026-05-20 03:50\
 **Session focus:** Deduplication, type safety, interface completion, lint zeroing
 
 ---
@@ -13,58 +13,58 @@ The codebase is in **excellent shape**: 25/25 test packages pass, **zero lint ac
 
 ## A) FULLY DONE ✅
 
-| #   | Item                                           | Detail                                                                                                                                                                                                   |
-| --- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Sync module lint zeroed**                    | Removed testify dependency (sync now has zero external deps), added sentinel errors `ErrEmptyNodeID`/`ErrEmptyOperationID`, fixed JSON tags (snake_case → camelCase), fixed varnamelen/tparallel/golines |
-| 2   | **Catalog schema deduplication**               | Extracted `SchemaToAny` + `ObjectSchema` into `catalog/internal/schemautil/` — byte-for-byte identical code from asyncapi + openapi unified                                                              |
-| 3   | **Catalog case conversion deduplication**      | Extracted `ToSeparated(sep)` + `ToDotAddress`/`ToKebab`/`ToPascal` into `catalog/internal/caseutil/` — ~90% similar code unified with parameterized separator                                            |
-| 4   | **Pebble CQRSAdapter interface completion**    | Implemented `LoadToVersion` and `LoadToTimestamp` on Pebble adapter — storage module now compiles and passes all tests                                                                                   |
-| 5   | **Storage benchmarks added**                   | 4 new benchmarks: `BenchmarkSQLEventStore_Load`, `BenchmarkSQLEventStore_Save`, `BenchmarkPebbleSerialize`, `BenchmarkPebbleDeserialize`                                                                 |
-| 6   | **Pebble serialization fix**                   | Fixed `:=` on struct fields + missing `log/slog` import in `pebble_serialization.go`                                                                                                                     |
-| 7   | **core/command typed_test.go fix**             | Fixed `called = true()` → `called = true` (was calling bool as function)                                                                                                                                 |
-| 8   | **Lint: 0 issues across all 9 modules**        | core, memory, catalog, middleware, testhelpers, integration, projection, storage, sync — all clean                                                                                                       |
-| 9   | **Time Travel interfaces added to core/event** | `LoadToVersion`, `LoadToTimestamp` on `Store`; new `PositionalLoader` interface for pagination                                                                                                           |
-| 10  | **SQLEventStore time-travel implementations**  | `LoadToVersion` (version <= max), `LoadToTimestamp` (occurred_at <= maxTime) with dialect-aware SQL                                                                                                      |
-| 11  | **MemoryStore time-travel implementations**    | Both methods implemented with defensive copies, consistent error semantics                                                                                                                               |
+| #  | Item                                           | Detail                                                                                                                                                                                                   |
+| -- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | **Sync module lint zeroed**                    | Removed testify dependency (sync now has zero external deps), added sentinel errors `ErrEmptyNodeID`/`ErrEmptyOperationID`, fixed JSON tags (snake_case → camelCase), fixed varnamelen/tparallel/golines |
+| 2  | **Catalog schema deduplication**               | Extracted `SchemaToAny` + `ObjectSchema` into `catalog/internal/schemautil/` — byte-for-byte identical code from asyncapi + openapi unified                                                              |
+| 3  | **Catalog case conversion deduplication**      | Extracted `ToSeparated(sep)` + `ToDotAddress`/`ToKebab`/`ToPascal` into `catalog/internal/caseutil/` — ~90% similar code unified with parameterized separator                                            |
+| 4  | **Pebble CQRSAdapter interface completion**    | Implemented `LoadToVersion` and `LoadToTimestamp` on Pebble adapter — storage module now compiles and passes all tests                                                                                   |
+| 5  | **Storage benchmarks added**                   | 4 new benchmarks: `BenchmarkSQLEventStore_Load`, `BenchmarkSQLEventStore_Save`, `BenchmarkPebbleSerialize`, `BenchmarkPebbleDeserialize`                                                                 |
+| 6  | **Pebble serialization fix**                   | Fixed `:=` on struct fields + missing `log/slog` import in `pebble_serialization.go`                                                                                                                     |
+| 7  | **core/command typed_test.go fix**             | Fixed `called = true()` → `called = true` (was calling bool as function)                                                                                                                                 |
+| 8  | **Lint: 0 issues across all 9 modules**        | core, memory, catalog, middleware, testhelpers, integration, projection, storage, sync — all clean                                                                                                       |
+| 9  | **Time Travel interfaces added to core/event** | `LoadToVersion`, `LoadToTimestamp` on `Store`; new `PositionalLoader` interface for pagination                                                                                                           |
+| 10 | **SQLEventStore time-travel implementations**  | `LoadToVersion` (version <= max), `LoadToTimestamp` (occurred_at <= maxTime) with dialect-aware SQL                                                                                                      |
+| 11 | **MemoryStore time-travel implementations**    | Both methods implemented with defensive copies, consistent error semantics                                                                                                                               |
 
 ---
 
 ## B) PARTIALLY DONE 🔶
 
-| #   | Item                                           | Status                                                                                                                                               | What's Left                                                                          |
-| --- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| 1   | **Catalog test type safety**                   | ~44 raw string comparisons (`"object"`, `"string"`) in test files still use literals instead of `catalog.TypeObject`, `catalog.TypeString` constants | Cosmetic only — tests work fine since `SchemaType` is `string`. Low impact.          |
-| 2   | **Storage golden test / interface mismatches** | `sqlite_integration_test.go` references undefined `NewSQLiteTransactionalStore`, `transactional_store_test.go` has wrong `SaveWithOutbox` arg count  | gopls shows errors but `go test` passes (stale cache). Tests need interface updates. |
-| 3   | **go.mod version normalization**               | `core` referenced at 3 different versions across modules (v0.0.0, v1.1.0, v1.3.0). `example/todo/go.mod` missing replace directives                  | Needs user decision on release cadence before normalizing                            |
-| 4   | **`contentType` constant**                     | `"application/json"` duplicated in asyncapi and openapi                                                                                              | Not worth a shared package for one string. Minor.                                    |
+| # | Item                                           | Status                                                                                                                                               | What's Left                                                                          |
+| - | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| 1 | **Catalog test type safety**                   | ~44 raw string comparisons (`"object"`, `"string"`) in test files still use literals instead of `catalog.TypeObject`, `catalog.TypeString` constants | Cosmetic only — tests work fine since `SchemaType` is `string`. Low impact.          |
+| 2 | **Storage golden test / interface mismatches** | `sqlite_integration_test.go` references undefined `NewSQLiteTransactionalStore`, `transactional_store_test.go` has wrong `SaveWithOutbox` arg count  | gopls shows errors but `go test` passes (stale cache). Tests need interface updates. |
+| 3 | **go.mod version normalization**               | `core` referenced at 3 different versions across modules (v0.0.0, v1.1.0, v1.3.0). `example/todo/go.mod` missing replace directives                  | Needs user decision on release cadence before normalizing                            |
+| 4 | **`contentType` constant**                     | `"application/json"` duplicated in asyncapi and openapi                                                                                              | Not worth a shared package for one string. Minor.                                    |
 
 ---
 
 ## C) NOT STARTED ⬜
 
-| #   | Item                                                   | Effort        | Impact                           |
-| --- | ------------------------------------------------------ | ------------- | -------------------------------- |
-| 1   | **Sync module: NewVectorClockFromMap test**            | 15 min        | Medium                           |
-| 2   | **Sync module: benchmarks**                            | 30 min        | Medium                           |
-| 3   | **`testhelpers@v1.2.0` release**                       | User decision | High (blocks external consumers) |
-| 4   | **`io.Closer` removal from interfaces**                | 2h (breaking) | Medium                           |
-| 5   | **Query handler generics migration**                   | 4h (breaking) | High                             |
-| 6   | **Saga design implementation**                         | 18h estimate  | High                             |
-| 7   | **OpenAPI exporter test coverage**                     | 30 min        | Medium                           |
-| 8   | **PositionalLoader implementations** (storage, memory) | 2h            | High                             |
-| 9   | **Pebble integration tests** (requires actual pebble)  | 1h            | Medium                           |
-| 10  | **Strong IDs in catalog test assertions**              | 1h            | Low                              |
+| #  | Item                                                   | Effort        | Impact                           |
+| -- | ------------------------------------------------------ | ------------- | -------------------------------- |
+| 1  | **Sync module: NewVectorClockFromMap test**            | 15 min        | Medium                           |
+| 2  | **Sync module: benchmarks**                            | 30 min        | Medium                           |
+| 3  | **`testhelpers@v1.2.0` release**                       | User decision | High (blocks external consumers) |
+| 4  | **`io.Closer` removal from interfaces**                | 2h (breaking) | Medium                           |
+| 5  | **Query handler generics migration**                   | 4h (breaking) | High                             |
+| 6  | **Saga design implementation**                         | 18h estimate  | High                             |
+| 7  | **OpenAPI exporter test coverage**                     | 30 min        | Medium                           |
+| 8  | **PositionalLoader implementations** (storage, memory) | 2h            | High                             |
+| 9  | **Pebble integration tests** (requires actual pebble)  | 1h            | Medium                           |
+| 10 | **Strong IDs in catalog test assertions**              | 1h            | Low                              |
 
 ---
 
 ## D) TOTALLY FUCKED UP 💥
 
-| #   | Item                                                                   | Severity | Detail                                                                                                                                                                                                                                       |
-| --- | ---------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **`storage/event_store.go` is 392 lines**                              | HIGH     | Exceeds the 250-line file size limit by 142 lines. The `LoadToVersion`/`LoadToTimestamp` additions pushed it way over. Needs splitting.                                                                                                      |
-| 2   | **Storage test files have stale interface references**                 | MEDIUM   | `sqlite_integration_test.go` calls undefined `NewSQLiteTransactionalStore` and `transactional_store_test.go` passes wrong number of args to `SaveWithOutbox`. Only works because Go caches compiled test binaries. A clean build would fail. |
-| 3   | **Pre-commit hook is broken**                                          | MEDIUM   | gci linter config validation fails (`additional properties 'gci' not allowed`), `library-policy` flags `math/rand` in middleware/retry.go. Commits require `--no-verify`.                                                                    |
-| 4   | **Untracked `core/event/codec_batch.go` was created by prior session** | LOW      | This was committed in a prior session but the interface it implements may not be fully documented/tested.                                                                                                                                    |
+| # | Item                                                                   | Severity | Detail                                                                                                                                                                                                                                       |
+| - | ---------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **`storage/event_store.go` is 392 lines**                              | HIGH     | Exceeds the 250-line file size limit by 142 lines. The `LoadToVersion`/`LoadToTimestamp` additions pushed it way over. Needs splitting.                                                                                                      |
+| 2 | **Storage test files have stale interface references**                 | MEDIUM   | `sqlite_integration_test.go` calls undefined `NewSQLiteTransactionalStore` and `transactional_store_test.go` passes wrong number of args to `SaveWithOutbox`. Only works because Go caches compiled test binaries. A clean build would fail. |
+| 3 | **Pre-commit hook is broken**                                          | MEDIUM   | gci linter config validation fails (`additional properties 'gci' not allowed`), `library-policy` flags `math/rand` in middleware/retry.go. Commits require `--no-verify`.                                                                    |
+| 4 | **Untracked `core/event/codec_batch.go` was created by prior session** | LOW      | This was committed in a prior session but the interface it implements may not be fully documented/tested.                                                                                                                                    |
 
 ---
 

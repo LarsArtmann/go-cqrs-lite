@@ -9,19 +9,19 @@ Removed **~38 → 2 actual clones** (~95% reduction in instance count).
 
 ### ✅ FULLY DONE (11 of 13)
 
-| #   | Group                                                               | Before                | After                                                         | Technique                                       |
-| --- | ------------------------------------------------------------------- | --------------------- | ------------------------------------------------------------- | ----------------------------------------------- |
-| 1   | pg_testcontainer_test.go (projectionhost vs scheduling/sqlstore)    | 2 files × 132 lines   | Shared `testutil/pgtestcontainer` module                      | New Go module + per-package wrapper             |
-| 7   | Key encoding helpers (badgerengine.go vs pebbleengine.go)           | ~60 lines duplicated  | `metaengine/v4/keycodec` package                              | New sub-package + var aliases to `keycodec.X`   |
-| 3   | Engine Scan tests (duckdbengine vs pgengine)                        | 2 × 103 lines         | `enginetest.RunScanBackendTest`                               | New `metaengine/v4/enginetest` sub-package      |
-| 13  | Watcher Replay tests (duckdbengine vs pgengine)                     | 2 × 57 lines          | `enginetest.RunWatcherReplayTest[V]`                          | Generic helper with `WatcherReplaySetup[V]`     |
-| 8   | pgTestDSN helpers (metaengine/pgengine vs stack/postgres)           | 2 × 130 lines         | `pgtestcontainer.DSN`                                         | Module-level `pgtestcontainer`                  |
-| 10  | TestMain container setup (metaengine/pgengine vs stack/postgres)    | 2 × 50 lines          | `pgtestcontainer.TestMain`                                    | Module-level `pgtestcontainer`                  |
-| 5   | DuckDB pushdown tests setup                                         | 5 × 16 lines          | `newDuckDBPushdown` + `enginetest.RunPushdownTest`            | New helper + shared run-loop                    |
-| 6   | Postgres pushdown tests setup                                       | 5 × 16 lines          | `newPostgresPushdown` + `enginetest.RunPushdownTest`          | New helper + shared run-loop                    |
-| 9   | StreamLog + AtomicAppender tests (duckdbengine vs pebbleengine)     | 2 × 60 + 2 × 30 lines | `enginetest.RunStreamLogBackendTest`, `RunAtomicAppenderTest` | Two new shared helpers                          |
-| 11  | Iroh QUIC 2-node preamble (5 occurrences in transport_test.go)      | 5 × 8 lines           | `quicCluster` struct + `newQuicCluster(t)`                    | Local helper with cleanup via t.Cleanup         |
-| 12  | FlightRecorder test setup (5 occurrences in flightrecorder_test.go) | 5 × 14 lines          | `newFRTestRecorder(t) (*safeBuffer, *Recorder)`               | Local helper that returns both buf and recorder |
+| #  | Group                                                               | Before                | After                                                         | Technique                                       |
+| -- | ------------------------------------------------------------------- | --------------------- | ------------------------------------------------------------- | ----------------------------------------------- |
+| 1  | pg_testcontainer_test.go (projectionhost vs scheduling/sqlstore)    | 2 files × 132 lines   | Shared `testutil/pgtestcontainer` module                      | New Go module + per-package wrapper             |
+| 7  | Key encoding helpers (badgerengine.go vs pebbleengine.go)           | ~60 lines duplicated  | `metaengine/v4/keycodec` package                              | New sub-package + var aliases to `keycodec.X`   |
+| 3  | Engine Scan tests (duckdbengine vs pgengine)                        | 2 × 103 lines         | `enginetest.RunScanBackendTest`                               | New `metaengine/v4/enginetest` sub-package      |
+| 13 | Watcher Replay tests (duckdbengine vs pgengine)                     | 2 × 57 lines          | `enginetest.RunWatcherReplayTest[V]`                          | Generic helper with `WatcherReplaySetup[V]`     |
+| 8  | pgTestDSN helpers (metaengine/pgengine vs stack/postgres)           | 2 × 130 lines         | `pgtestcontainer.DSN`                                         | Module-level `pgtestcontainer`                  |
+| 10 | TestMain container setup (metaengine/pgengine vs stack/postgres)    | 2 × 50 lines          | `pgtestcontainer.TestMain`                                    | Module-level `pgtestcontainer`                  |
+| 5  | DuckDB pushdown tests setup                                         | 5 × 16 lines          | `newDuckDBPushdown` + `enginetest.RunPushdownTest`            | New helper + shared run-loop                    |
+| 6  | Postgres pushdown tests setup                                       | 5 × 16 lines          | `newPostgresPushdown` + `enginetest.RunPushdownTest`          | New helper + shared run-loop                    |
+| 9  | StreamLog + AtomicAppender tests (duckdbengine vs pebbleengine)     | 2 × 60 + 2 × 30 lines | `enginetest.RunStreamLogBackendTest`, `RunAtomicAppenderTest` | Two new shared helpers                          |
+| 11 | Iroh QUIC 2-node preamble (5 occurrences in transport_test.go)      | 5 × 8 lines           | `quicCluster` struct + `newQuicCluster(t)`                    | Local helper with cleanup via t.Cleanup         |
+| 12 | FlightRecorder test setup (5 occurrences in flightrecorder_test.go) | 5 × 14 lines          | `newFRTestRecorder(t) (*safeBuffer, *Recorder)`               | Local helper that returns both buf and recorder |
 
 ### ⚠️ NOT STARTED (2 of 13 — left for next session)
 

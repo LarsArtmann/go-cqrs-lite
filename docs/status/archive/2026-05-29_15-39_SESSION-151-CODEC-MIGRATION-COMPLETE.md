@@ -232,33 +232,33 @@ Trivial but sloppy. Needs renumbering.
 
 Ranked by impact x urgency (Pareto order):
 
-| #   | Task                                                                                      | Impact   | Effort | Category |
-| --- | ----------------------------------------------------------------------------------------- | -------- | ------ | -------- |
-| 1   | Fix gopls diagnostics — complete or revert parallel session's AggregateRef/store refactor | CRITICAL | 2h     | Fix      |
-| 2   | Update FEATURES.md — add codec, command.Store, listing; remove saga/stream                | HIGH     | 30min  | Docs     |
-| 3   | Write CHANGELOG.md — entries for Sessions 135-151                                         | HIGH     | 1h     | Docs     |
-| 4   | Archive old status reports — move 50+ files to docs/status/archive/                       | MEDIUM   | 10min  | Cleanup  |
-| 5   | Renumber ADR-0007 duplicate → ADR-0008                                                    | LOW      | 5min   | Docs     |
-| 6   | Fix pre-commit hook / buildflow config                                                    | MEDIUM   | 1h     | Fix      |
-| 7   | Implement `MemoryCommandStore` in memory/ module                                          | HIGH     | 2h     | Feature  |
-| 8   | Implement `SQLCommandStore` in storage/ module                                            | HIGH     | 4h     | Feature  |
-| 9   | Update listing/README.md — stream → listing                                               | LOW      | 10min  | Docs     |
-| 10  | Add turso module tests                                                                    | MEDIUM   | 2h     | Testing  |
-| 11  | Command Journal + SeekableCommandJournal interfaces                                       | MEDIUM   | 1h     | Feature  |
-| 12  | Command Outbox interface + SQL implementation                                             | MEDIUM   | 3h     | Feature  |
-| 13  | Split core/event god-package into sub-packages                                            | HIGH     | 8h     | Refactor |
-| 14  | Execute core/ dissolution proposal (if accepted)                                          | HIGH     | 16h    | Refactor |
-| 15  | Clean self-referencing replace directives (7 modules)                                     | LOW      | 30min  | Cleanup  |
-| 16  | Push v1.0.0 tags — unblock replace directive removal                                      | HIGH     | 30min  | Release  |
-| 17  | Remove replace directives after v1.0.0 tags                                               | MEDIUM   | 1h     | Cleanup  |
-| 18  | Add command.Store to integration tests                                                    | MEDIUM   | 2h     | Testing  |
-| 19  | Add high-level test utilities (AggregateTester, ProjectionTester)                         | LOW      | 6h     | Feature  |
-| 20  | Add catalog diff / breaking-change detection tool                                         | LOW      | 4h     | Feature  |
-| 21  | Add code-generated typed command handlers (cqrs-gen)                                      | LOW      | 4h     | Feature  |
-| 22  | Add Pebble command store implementation                                                   | LOW      | 3h     | Feature  |
-| 23  | Add .github/ISSUE_TEMPLATE and CONTRIBUTING.md                                            | LOW      | 1h     | Docs     |
-| 24  | Investigate and document event upcasting workflow with codec                              | MEDIUM   | 2h     | Feature  |
-| 25  | Add codec-aware benchmarks (JSON vs Raw encoding perf)                                    | LOW      | 1h     | Testing  |
+| #  | Task                                                                                      | Impact   | Effort | Category |
+| -- | ----------------------------------------------------------------------------------------- | -------- | ------ | -------- |
+| 1  | Fix gopls diagnostics — complete or revert parallel session's AggregateRef/store refactor | CRITICAL | 2h     | Fix      |
+| 2  | Update FEATURES.md — add codec, command.Store, listing; remove saga/stream                | HIGH     | 30min  | Docs     |
+| 3  | Write CHANGELOG.md — entries for Sessions 135-151                                         | HIGH     | 1h     | Docs     |
+| 4  | Archive old status reports — move 50+ files to docs/status/archive/                       | MEDIUM   | 10min  | Cleanup  |
+| 5  | Renumber ADR-0007 duplicate → ADR-0008                                                    | LOW      | 5min   | Docs     |
+| 6  | Fix pre-commit hook / buildflow config                                                    | MEDIUM   | 1h     | Fix      |
+| 7  | Implement `MemoryCommandStore` in memory/ module                                          | HIGH     | 2h     | Feature  |
+| 8  | Implement `SQLCommandStore` in storage/ module                                            | HIGH     | 4h     | Feature  |
+| 9  | Update listing/README.md — stream → listing                                               | LOW      | 10min  | Docs     |
+| 10 | Add turso module tests                                                                    | MEDIUM   | 2h     | Testing  |
+| 11 | Command Journal + SeekableCommandJournal interfaces                                       | MEDIUM   | 1h     | Feature  |
+| 12 | Command Outbox interface + SQL implementation                                             | MEDIUM   | 3h     | Feature  |
+| 13 | Split core/event god-package into sub-packages                                            | HIGH     | 8h     | Refactor |
+| 14 | Execute core/ dissolution proposal (if accepted)                                          | HIGH     | 16h    | Refactor |
+| 15 | Clean self-referencing replace directives (7 modules)                                     | LOW      | 30min  | Cleanup  |
+| 16 | Push v1.0.0 tags — unblock replace directive removal                                      | HIGH     | 30min  | Release  |
+| 17 | Remove replace directives after v1.0.0 tags                                               | MEDIUM   | 1h     | Cleanup  |
+| 18 | Add command.Store to integration tests                                                    | MEDIUM   | 2h     | Testing  |
+| 19 | Add high-level test utilities (AggregateTester, ProjectionTester)                         | LOW      | 6h     | Feature  |
+| 20 | Add catalog diff / breaking-change detection tool                                         | LOW      | 4h     | Feature  |
+| 21 | Add code-generated typed command handlers (cqrs-gen)                                      | LOW      | 4h     | Feature  |
+| 22 | Add Pebble command store implementation                                                   | LOW      | 3h     | Feature  |
+| 23 | Add .github/ISSUE_TEMPLATE and CONTRIBUTING.md                                            | LOW      | 1h     | Docs     |
+| 24 | Investigate and document event upcasting workflow with codec                              | MEDIUM   | 2h     | Feature  |
+| 25 | Add codec-aware benchmarks (JSON vs Raw encoding perf)                                    | LOW      | 1h     | Testing  |
 
 ---
 

@@ -10,18 +10,18 @@
 
 ### Code & Infrastructure Changes (committed by daemon)
 
-| #   | Change                                                                                                                   | File(s)                                                                       | Verification                                                         |
-| --- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| 1   | **Pareto plan closed** — final audit header, all 51 L1-items status updated, summary statistics reconciled (75 → 3 open) | `docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md` | Re-read all sections; statuses match codebase reality                |
-| 2   | **TODO_LIST.md updated** — "~14 remaining" replaced with closed status; self-lint CI item marked done                    | `TODO_LIST.md`                                                                | Verified lines 235-241, 313-314                                      |
-| 3   | **CI self-lint gate (L1.15)** — new `cqrs-lint-self-lint` job in ci.yml                                                  | `.github/workflows/ci.yml`                                                    | Ran locally: `cd cmd/cqrs-lint && go run . . --strict-load` → exit 0 |
-| 4   | **Parallel safety test (L1.23)** — runs all 192 detectors concurrently under `-race`                                     | `cmd/cqrs-lint/pkg/rules/parallel_safety_test.go`                             | Passes with `-race -count=1`                                         |
-| 5   | **DOC/OBS/RES/DI category evaluation** — all 4 categories evaluated, 80-90% covered, closed with coverage matrix         | Pareto plan Phase 9                                                           | Sub-agent verified each rule exists in codebase                      |
-| 6   | **E006/E005 orphan detection review** — reviewed scanner + detector code                                                 | Confirmed fold-aware (no regression needed)                                   | —                                                                    |
-| 7   | **A015 review** — confirmed map-typed global detection already shipped                                                   | `cmd/cqrs-lint/pkg/rules/api/a015.go`                                         | `isMapTypedGlobal` + `IncDecStmt` present                            |
-| 8   | **Documentation check** — AGENTS.md (192 rules), FEATURES.md both current                                                | —                                                                             | No changes needed                                                    |
-| 9   | **Build + vet + test** — all 17 cqrs-lint packages pass with `-race`                                                     | —                                                                             | `go build`, `go vet`, `go test -race` all exit 0                     |
-| 10  | **Previous session's status report** — written and committed                                                             | `docs/status/2026-08-08_11-11_PARETO-PLAN-AUDIT-SESSION-CRITIQUE.md`          | —                                                                    |
+| #  | Change                                                                                                                   | File(s)                                                                       | Verification                                                         |
+| -- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| 1  | **Pareto plan closed** — final audit header, all 51 L1-items status updated, summary statistics reconciled (75 → 3 open) | `docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md` | Re-read all sections; statuses match codebase reality                |
+| 2  | **TODO_LIST.md updated** — "~14 remaining" replaced with closed status; self-lint CI item marked done                    | `TODO_LIST.md`                                                                | Verified lines 235-241, 313-314                                      |
+| 3  | **CI self-lint gate (L1.15)** — new `cqrs-lint-self-lint` job in ci.yml                                                  | `.github/workflows/ci.yml`                                                    | Ran locally: `cd cmd/cqrs-lint && go run . . --strict-load` → exit 0 |
+| 4  | **Parallel safety test (L1.23)** — runs all 192 detectors concurrently under `-race`                                     | `cmd/cqrs-lint/pkg/rules/parallel_safety_test.go`                             | Passes with `-race -count=1`                                         |
+| 5  | **DOC/OBS/RES/DI category evaluation** — all 4 categories evaluated, 80-90% covered, closed with coverage matrix         | Pareto plan Phase 9                                                           | Sub-agent verified each rule exists in codebase                      |
+| 6  | **E006/E005 orphan detection review** — reviewed scanner + detector code                                                 | Confirmed fold-aware (no regression needed)                                   | —                                                                    |
+| 7  | **A015 review** — confirmed map-typed global detection already shipped                                                   | `cmd/cqrs-lint/pkg/rules/api/a015.go`                                         | `isMapTypedGlobal` + `IncDecStmt` present                            |
+| 8  | **Documentation check** — AGENTS.md (192 rules), FEATURES.md both current                                                | —                                                                             | No changes needed                                                    |
+| 9  | **Build + vet + test** — all 17 cqrs-lint packages pass with `-race`                                                     | —                                                                             | `go build`, `go vet`, `go test -race` all exit 0                     |
+| 10 | **Previous session's status report** — written and committed                                                             | `docs/status/2026-08-08_11-11_PARETO-PLAN-AUDIT-SESSION-CRITIQUE.md`          | —                                                                    |
 
 ### Daemon Commits (3 commits this session)
 
@@ -101,14 +101,14 @@ The TODO_LIST.md has `--fail-on-stale-suppressions` as an open item, but I didn'
 
 ## 5. What We Should Improve
 
-| #   | Improvement                                                                                         | Impact   |
-| --- | --------------------------------------------------------------------------------------------------- | -------- |
-| 1   | **Run `go build` after every daemon commit** — the daemon can corrupt files during commit           | High     |
-| 2   | **Pull genuinely-missing rules into TODO_LIST.md** — 10 ideas are marooned in a closed planning doc | Medium   |
-| 3   | **Add `--min-severity warning` to self-lint CI job** — or document that warnings are OK             | Medium   |
-| 4   | **Multi-file fixture for parallel safety test** — exercise sync.Map contention patterns             | Low      |
-| 5   | **Run doc-check on updated planning docs** — verify no broken references after edits                | Low      |
-| 6   | **Stack audit headers in reverse chronological order** — newest first in planning docs              | Cosmetic |
+| # | Improvement                                                                                         | Impact   |
+| - | --------------------------------------------------------------------------------------------------- | -------- |
+| 1 | **Run `go build` after every daemon commit** — the daemon can corrupt files during commit           | High     |
+| 2 | **Pull genuinely-missing rules into TODO_LIST.md** — 10 ideas are marooned in a closed planning doc | Medium   |
+| 3 | **Add `--min-severity warning` to self-lint CI job** — or document that warnings are OK             | Medium   |
+| 4 | **Multi-file fixture for parallel safety test** — exercise sync.Map contention patterns             | Low      |
+| 5 | **Run doc-check on updated planning docs** — verify no broken references after edits                | Low      |
+| 6 | **Stack audit headers in reverse chronological order** — newest first in planning docs              | Cosmetic |
 
 ---
 
@@ -116,64 +116,64 @@ The TODO_LIST.md has `--fail-on-stale-suppressions` as an open item, but I didn'
 
 ### Tier 1: Directly from this session's gaps
 
-| #   | Task                                                                                                                     | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------ | ------ |
-| 1   | Pull the 10 genuinely-missing DOC/OBS/RES/DI rules into TODO_LIST.md as individual backlog items                         | 10 min |
-| 2   | Check if `--fail-on-stale-suppressions` CLI flag exists; if not, add it (DetectStaleSuppressions is already implemented) | 30 min |
-| 3   | Add `--min-severity warning` to the CI self-lint job OR add an inline suppression for the known C025 warning in init.go  | 10 min |
-| 4   | Run `nix run .#verify-fast` to validate the full gate passes after session changes                                       | 5 min  |
-| 5   | Run `cmd/doc-check` on the updated Pareto plan                                                                           | 5 min  |
-| 6   | Verify daemon commit `c2b678dba` didn't corrupt any files (build + test)                                                 | 5 min  |
+| # | Task                                                                                                                     | Effort |
+| - | ------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 1 | Pull the 10 genuinely-missing DOC/OBS/RES/DI rules into TODO_LIST.md as individual backlog items                         | 10 min |
+| 2 | Check if `--fail-on-stale-suppressions` CLI flag exists; if not, add it (DetectStaleSuppressions is already implemented) | 30 min |
+| 3 | Add `--min-severity warning` to the CI self-lint job OR add an inline suppression for the known C025 warning in init.go  | 10 min |
+| 4 | Run `nix run .#verify-fast` to validate the full gate passes after session changes                                       | 5 min  |
+| 5 | Run `cmd/doc-check` on the updated Pareto plan                                                                           | 5 min  |
+| 6 | Verify daemon commit `c2b678dba` didn't corrupt any files (build + test)                                                 | 5 min  |
 
 ### Tier 2: cqrs-lint improvements from TODO_LIST.md
 
-| #   | Task                                                                     | Effort  |
-| --- | ------------------------------------------------------------------------ | ------- |
-| 7   | Pin GitHub Actions to commit SHAs (72+ unpinned actions)                 | 90 min  |
-| 8   | Add go-arch-lint config for `cmd/cqrs-lint` (16 production source files) | 90 min  |
-| 9   | Audit remaining 10 EXCEPTIONS entries for dead rules                     | 60 min  |
-| 10  | Consider rewriting `check-module-layers.sh` as `cmd/check-layers`        | 120 min |
-| 11  | Tag cqrs-lint v4.6.0 with CI self-lint job + parallel safety test        | 30 min  |
+| #  | Task                                                                     | Effort  |
+| -- | ------------------------------------------------------------------------ | ------- |
+| 7  | Pin GitHub Actions to commit SHAs (72+ unpinned actions)                 | 90 min  |
+| 8  | Add go-arch-lint config for `cmd/cqrs-lint` (16 production source files) | 90 min  |
+| 9  | Audit remaining 10 EXCEPTIONS entries for dead rules                     | 60 min  |
+| 10 | Consider rewriting `check-module-layers.sh` as `cmd/check-layers`        | 120 min |
+| 11 | Tag cqrs-lint v4.6.0 with CI self-lint job + parallel safety test        | 30 min  |
 
 ### Tier 3: Genuinely-missing individual rules (from DOC/OBS/RES/DI evaluation)
 
-| #   | Task                                                                      | Effort |
-| --- | ------------------------------------------------------------------------- | ------ |
-| 12  | RES: Missing retry middleware on bus/dispatcher (absent, not manual)      | 90 min |
-| 13  | RES: Circuit breaker detection (entirely absent from linter)              | 90 min |
-| 14  | RES: Missing DLQ config on projectionhost                                 | 90 min |
-| 15  | DOC: Stale catalog entries (catalog → deleted events, reverse of E004)    | 60 min |
-| 16  | DOC: AsyncAPI/OpenAPI generation freshness                                | 60 min |
-| 17  | OBS: Missing OTel SDK initialization (usage ≠ setup)                      | 90 min |
-| 18  | OBS: Missing slog.SetDefault                                              | 60 min |
-| 19  | DI: Optimistic concurrency / expected-version precondition on Save/Append | 90 min |
+| #  | Task                                                                      | Effort |
+| -- | ------------------------------------------------------------------------- | ------ |
+| 12 | RES: Missing retry middleware on bus/dispatcher (absent, not manual)      | 90 min |
+| 13 | RES: Circuit breaker detection (entirely absent from linter)              | 90 min |
+| 14 | RES: Missing DLQ config on projectionhost                                 | 90 min |
+| 15 | DOC: Stale catalog entries (catalog → deleted events, reverse of E004)    | 60 min |
+| 16 | DOC: AsyncAPI/OpenAPI generation freshness                                | 60 min |
+| 17 | OBS: Missing OTel SDK initialization (usage ≠ setup)                      | 90 min |
+| 18 | OBS: Missing slog.SetDefault                                              | 60 min |
+| 19 | DI: Optimistic concurrency / expected-version precondition on Save/Append | 90 min |
 
 ### Tier 4: Test quality improvements
 
-| #   | Task                                                                                | Effort |
-| --- | ----------------------------------------------------------------------------------- | ------ |
-| 20  | Upgrade parallel safety test with multi-file fixture (3-5 files, cross-package)     | 30 min |
-| 21  | Add SourceLine concurrent access test (trigger sync.Map lineCache under contention) | 30 min |
-| 22  | Add benchmark for all 192 detectors (p99 latency on 10K-LOC corpus)                 | 60 min |
-| 23  | Add stale suppression detection test                                                | 15 min |
+| #  | Task                                                                                | Effort |
+| -- | ----------------------------------------------------------------------------------- | ------ |
+| 20 | Upgrade parallel safety test with multi-file fixture (3-5 files, cross-package)     | 30 min |
+| 21 | Add SourceLine concurrent access test (trigger sync.Map lineCache under contention) | 30 min |
+| 22 | Add benchmark for all 192 detectors (p99 latency on 10K-LOC corpus)                 | 60 min |
+| 23 | Add stale suppression detection test                                                | 15 min |
 
 ### Tier 5: CI hardening
 
-| #   | Task                                                                    | Effort |
-| --- | ----------------------------------------------------------------------- | ------ |
-| 24  | Add `--fail-on-stale-suppressions` as a CI step                         | 30 min |
-| 25  | Add CI check for API-version drift (verify symbols at tag)              | 60 min |
-| 26  | Add `cqrs-lint scorecard --scorecard-threshold 50` as a CI quality gate | 30 min |
-| 27  | Add SARIF upload from self-lint job to GitHub Code Scanning             | 15 min |
+| #  | Task                                                                    | Effort |
+| -- | ----------------------------------------------------------------------- | ------ |
+| 24 | Add `--fail-on-stale-suppressions` as a CI step                         | 30 min |
+| 25 | Add CI check for API-version drift (verify symbols at tag)              | 60 min |
+| 26 | Add `cqrs-lint scorecard --scorecard-threshold 50` as a CI quality gate | 30 min |
+| 27 | Add SARIF upload from self-lint job to GitHub Code Scanning             | 15 min |
 
 ### Tier 6: Documentation cleanup
 
-| #   | Task                                                                              | Effort |
-| --- | --------------------------------------------------------------------------------- | ------ |
-| 28  | Archive the Pareto plan to `docs/planning/archive/` (it's closed)                 | 5 min  |
-| 29  | Clean up the stacked audit headers in the Pareto plan (keep only the final one)   | 10 min |
-| 30  | Update CHANGELOG.md with the CI self-lint job + parallel safety test additions    | 10 min |
-| 31  | Add the `--fail-on-stale-suppressions` flag to FEATURES.md if it gets implemented | 5 min  |
+| #  | Task                                                                              | Effort |
+| -- | --------------------------------------------------------------------------------- | ------ |
+| 28 | Archive the Pareto plan to `docs/planning/archive/` (it's closed)                 | 5 min  |
+| 29 | Clean up the stacked audit headers in the Pareto plan (keep only the final one)   | 10 min |
+| 30 | Update CHANGELOG.md with the CI self-lint job + parallel safety test additions    | 10 min |
+| 31 | Add the `--fail-on-stale-suppressions` flag to FEATURES.md if it gets implemented | 5 min  |
 
 ### Tier 7: Broader project health (from TODO_LIST.md)
 

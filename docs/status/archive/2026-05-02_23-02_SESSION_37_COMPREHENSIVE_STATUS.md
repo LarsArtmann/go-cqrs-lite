@@ -1,7 +1,7 @@
 # Session 37 — Comprehensive Status Report
 
-**Date:** 2026-05-02 23:02  
-**Branch:** master (clean, up to date with origin)  
+**Date:** 2026-05-02 23:02\
+**Branch:** master (clean, up to date with origin)\
 **Sessions elapsed:** 37 (Sessions 33–37 in this conversation series)
 
 ---
@@ -230,33 +230,33 @@ The 5 `exhaustruct` warnings on `Error` constructors are technically correct —
 
 Sorted by impact × effort (highest first):
 
-| #   | Task                                                                           | Effort | Impact | Module                                                               |
-| --- | ------------------------------------------------------------------------------ | ------ | ------ | -------------------------------------------------------------------- |
-| 1   | Fix README CI badges (point to ci.yml)                                         | 5 min  | HIGH   | docs                                                                 |
-| 2   | Add package-level godoc to 7 packages                                          | 30 min | HIGH   | memory, projection, testhelpers, catalog, adapters, d2, eventcatalog |
-| 3   | Add godoc to 13 catalog adapter/d2 exports                                     | 20 min | MEDIUM | catalog                                                              |
-| 4   | Fix 43 lint issues in core (or configure away)                                 | 1 hr   | MEDIUM | core                                                                 |
-| 5   | Extend lint to all 9 production modules                                        | 1 hr   | HIGH   | all                                                                  |
-| 6   | Refactor `scanEvents` (76→<30 lines)                                           | 30 min | MEDIUM | storage                                                              |
-| 7   | Refactor `SQLEventStore.Save` (71→<30 lines)                                   | 30 min | MEDIUM | storage                                                              |
-| 8   | Refactor `HandleParallel` (66→<30 lines)                                       | 30 min | MEDIUM | core/event                                                           |
-| 9   | Add `//nolint:exhaustruct` to Error constructors                               | 5 min  | LOW    | core/event                                                           |
-| 10  | Add `var _ SnapshotStrategy` compile-time check                                | 2 min  | LOW    | core/aggregate                                                       |
-| 11  | Add tests for testhelpers package                                              | 1 hr   | MEDIUM | testhelpers                                                          |
-| 12  | Consolidate CatalogMeta (3→1 struct)                                           | 2 hr   | MEDIUM | catalog + core                                                       |
-| 13  | Fix `Root.LoadEvents` vs `Core.LoadFromHistory` boilerplate                    | 2 hr   | MEDIUM | core/aggregate                                                       |
-| 14  | Add godoc to 8 `id.Of[T]` encoding methods                                     | 15 min | LOW    | core/pkg/id                                                          |
-| 15  | Error taxonomy for downstream packages (design decision)                       | 3 hr   | HIGH   | cross-cutting                                                        |
-| 16  | Implement offline-first metadata options (WithClientTimezone, WithCausationID) | 2 hr   | MEDIUM | core/event                                                           |
-| 17  | Write superb example app (from planning doc)                                   | 3 hr   | HIGH   | example                                                              |
-| 18  | Add benchmarks for command, query, aggregate, middleware                       | 2 hr   | LOW    | core, middleware                                                     |
-| 19  | Storage module production readiness docs                                       | 1 hr   | MEDIUM | storage                                                              |
-| 20  | Auto-render D2 diagrams in CI                                                  | 1 hr   | LOW    | CI                                                                   |
-| 21  | Investigate and fix `query.Handler` any return type                            | 3 hr   | MEDIUM | core/query                                                           |
-| 22  | Saga/Process manager design implementation                                     | 1 week | HIGH   | new module                                                           |
-| 23  | Watermill integration module                                                   | 1 week | MEDIUM | new module                                                           |
-| 24  | README overhaul — add architecture diagram, real-world examples                | 2 hr   | HIGH   | docs                                                                 |
-| 25  | Add Go doc examples (`Example*` test functions) for key APIs                   | 3 hr   | MEDIUM | core                                                                 |
+| #  | Task                                                                           | Effort | Impact | Module                                                               |
+| -- | ------------------------------------------------------------------------------ | ------ | ------ | -------------------------------------------------------------------- |
+| 1  | Fix README CI badges (point to ci.yml)                                         | 5 min  | HIGH   | docs                                                                 |
+| 2  | Add package-level godoc to 7 packages                                          | 30 min | HIGH   | memory, projection, testhelpers, catalog, adapters, d2, eventcatalog |
+| 3  | Add godoc to 13 catalog adapter/d2 exports                                     | 20 min | MEDIUM | catalog                                                              |
+| 4  | Fix 43 lint issues in core (or configure away)                                 | 1 hr   | MEDIUM | core                                                                 |
+| 5  | Extend lint to all 9 production modules                                        | 1 hr   | HIGH   | all                                                                  |
+| 6  | Refactor `scanEvents` (76→<30 lines)                                           | 30 min | MEDIUM | storage                                                              |
+| 7  | Refactor `SQLEventStore.Save` (71→<30 lines)                                   | 30 min | MEDIUM | storage                                                              |
+| 8  | Refactor `HandleParallel` (66→<30 lines)                                       | 30 min | MEDIUM | core/event                                                           |
+| 9  | Add `//nolint:exhaustruct` to Error constructors                               | 5 min  | LOW    | core/event                                                           |
+| 10 | Add `var _ SnapshotStrategy` compile-time check                                | 2 min  | LOW    | core/aggregate                                                       |
+| 11 | Add tests for testhelpers package                                              | 1 hr   | MEDIUM | testhelpers                                                          |
+| 12 | Consolidate CatalogMeta (3→1 struct)                                           | 2 hr   | MEDIUM | catalog + core                                                       |
+| 13 | Fix `Root.LoadEvents` vs `Core.LoadFromHistory` boilerplate                    | 2 hr   | MEDIUM | core/aggregate                                                       |
+| 14 | Add godoc to 8 `id.Of[T]` encoding methods                                     | 15 min | LOW    | core/pkg/id                                                          |
+| 15 | Error taxonomy for downstream packages (design decision)                       | 3 hr   | HIGH   | cross-cutting                                                        |
+| 16 | Implement offline-first metadata options (WithClientTimezone, WithCausationID) | 2 hr   | MEDIUM | core/event                                                           |
+| 17 | Write superb example app (from planning doc)                                   | 3 hr   | HIGH   | example                                                              |
+| 18 | Add benchmarks for command, query, aggregate, middleware                       | 2 hr   | LOW    | core, middleware                                                     |
+| 19 | Storage module production readiness docs                                       | 1 hr   | MEDIUM | storage                                                              |
+| 20 | Auto-render D2 diagrams in CI                                                  | 1 hr   | LOW    | CI                                                                   |
+| 21 | Investigate and fix `query.Handler` any return type                            | 3 hr   | MEDIUM | core/query                                                           |
+| 22 | Saga/Process manager design implementation                                     | 1 week | HIGH   | new module                                                           |
+| 23 | Watermill integration module                                                   | 1 week | MEDIUM | new module                                                           |
+| 24 | README overhaul — add architecture diagram, real-world examples                | 2 hr   | HIGH   | docs                                                                 |
+| 25 | Add Go doc examples (`Example*` test functions) for key APIs                   | 3 hr   | MEDIUM | core                                                                 |
 
 ---
 

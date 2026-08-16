@@ -33,7 +33,7 @@ func sortedQueryNames(queries map[string]queryMeta) []string {
 Added `layoutExplainAnnotation(pc, profile, queryName)` pure function that returns `" layout=Embed(Balanced)"`-style tags. Called once per query in the ExplainPlan loop. Now operators see:
 
 ```
-  find_task: map via memory (O(1)) layout=Embed(Balanced)
+find_task: map via memory (O(1)) layout=Embed(Balanced)
 ```
 
 **Design decision:** Made `layoutExplainAnnotation` a pure function (not a Store method) because ExplainPlan already holds `s.mu.RLock()`. A method would need to re-acquire the lock → deadlock. The pure function takes `*PriorityConfig` and `EngineProfile` directly and is safe to call under a held read lock.
@@ -64,21 +64,22 @@ This is the test that should have existed when ConfirmRebuild was first written.
 **File:** `metaengine/layout_followup_test.go`
 
 Two tests for the new annotation:
+
 1. Default plan includes `layout=` and `Balanced` in output
 2. After SetPriority(WriteSpeed), annotation reflects `WriteSpeed` and `Normalize`
 
 ### 6. All verification gates green ✅
 
-| Gate | Result |
-|------|--------|
-| `go build -tags "goexperiment.jsonv2" ./metaengine/...` | PASS |
-| `go vet -tags "goexperiment.jsonv2" ./metaengine/...` | PASS |
-| `go test` (205 specs) | PASS (0.032s) |
-| `go test -race` (full suite) | PASS (85s) |
-| API stability (4085 exports) | PASS |
-| Doc-check (724 refs, 44 packages) | PASS |
-| Duplication check | 5 pre-existing clones (none from this session) |
-| `gofumpt` + `goimports` | Applied to all 4 changed files |
+| Gate                                                    | Result                                         |
+| ------------------------------------------------------- | ---------------------------------------------- |
+| `go build -tags "goexperiment.jsonv2" ./metaengine/...` | PASS                                           |
+| `go vet -tags "goexperiment.jsonv2" ./metaengine/...`   | PASS                                           |
+| `go test` (205 specs)                                   | PASS (0.032s)                                  |
+| `go test -race` (full suite)                            | PASS (85s)                                     |
+| API stability (4085 exports)                            | PASS                                           |
+| Doc-check (724 refs, 44 packages)                       | PASS                                           |
+| Duplication check                                       | 5 pre-existing clones (none from this session) |
+| `gofumpt` + `goimports`                                 | Applied to all 4 changed files                 |
 
 ### 7. Documentation updated ✅
 
@@ -97,7 +98,7 @@ Nothing is partially done this session. All 5 planned items were completed fully
 
 ### Intentionally Deferred
 
-1. **Unify `priorityFactor` and `SelectLayout`** — These answer *different* questions. `priorityFactor` (in `planner.go`) adjusts read-cost estimates for engine routing — it penalizes high complexity under ReadSpeed. `SelectLayout` (in `layout_scoring.go`) scores embed-vs-normalize tradeoffs based on write/storage costs. Both use `Priority.Weights()` as the common input, but they operate on different cost dimensions. Forcing them into one function would be a false unification — the routing decision and the layout decision are legitimately separate concerns. Deferred, not abandoned — if the cost model evolves to share a common cost structure, they could converge naturally.
+1. **Unify `priorityFactor` and `SelectLayout`** — These answer _different_ questions. `priorityFactor` (in `planner.go`) adjusts read-cost estimates for engine routing — it penalizes high complexity under ReadSpeed. `SelectLayout` (in `layout_scoring.go`) scores embed-vs-normalize tradeoffs based on write/storage costs. Both use `Priority.Weights()` as the common input, but they operate on different cost dimensions. Forcing them into one function would be a false unification — the routing decision and the layout decision are legitimately separate concerns. Deferred, not abandoned — if the cost model evolves to share a common cost structure, they could converge naturally.
 
 2. **`Store.ClearQuery(ctx, queryName)` API** — Would enable safe `ConfirmRebuild` for non-idempotent projections (clear first, then replay). Requires a new optional Engine capability interface (`CollectionDropper` or similar) — no engine currently exposes `DropCollection`/`Clear`/`Truncate`. This is a substantial feature (new interface + 9 engine implementations + tests), not a quick fix. The current behavior (refuse non-idempotent folds in ConfirmRebuild) is safe.
 

@@ -5,19 +5,19 @@
 
 ## Completed
 
-| #   | Task                                        | Result                                                                  |
-| --- | ------------------------------------------- | ----------------------------------------------------------------------- |
-| 1   | Fix `.golangci.yml` for v2                  | gci settings moved from `linters.settings` to `formatters.settings`     |
-| 2   | Fix buildflow library-policy false positive | Created `.buildflow.yml` with `todo_severity: error`                    |
-| 3   | Clock field in `event.Core`                 | Kept — 8B overhead enables `WithClock` option pattern                   |
-| 4   | Remove orphaned replace in `catalog/go.mod` | Removed dead `replace core => ../core` (no `require` entry)             |
-| 5   | Replace directives in `core/go.mod`         | Verified NOT orphaned — `memory` and `testhelpers` are in `require`     |
-| 6   | Fix stale/duplicate TODOs in `TODO_LIST.md` | 7 items marked DONE, 3 duplicates removed                               |
-| 7   | CI formatting check                         | Already present (`nix fmt -- --fail-on-change`)                         |
-| 8   | testhelpers coverage                        | 64.6% → 80.3% (FailingQuery, Panic\*, FakeStore setters)                |
-| 9   | caseutil coverage                           | 76.5% → 100.0% (edge cases: digits, spaces, unicode, consecutive upper) |
-| 10  | schemautil coverage                         | 84.2% — max reachable (json.Marshal error paths unreachable)            |
-| 11  | docserver.go panic                          | Extracted `mustStaticFS()` Must-pattern helper                          |
+| #  | Task                                        | Result                                                                  |
+| -- | ------------------------------------------- | ----------------------------------------------------------------------- |
+| 1  | Fix `.golangci.yml` for v2                  | gci settings moved from `linters.settings` to `formatters.settings`     |
+| 2  | Fix buildflow library-policy false positive | Created `.buildflow.yml` with `todo_severity: error`                    |
+| 3  | Clock field in `event.Core`                 | Kept — 8B overhead enables `WithClock` option pattern                   |
+| 4  | Remove orphaned replace in `catalog/go.mod` | Removed dead `replace core => ../core` (no `require` entry)             |
+| 5  | Replace directives in `core/go.mod`         | Verified NOT orphaned — `memory` and `testhelpers` are in `require`     |
+| 6  | Fix stale/duplicate TODOs in `TODO_LIST.md` | 7 items marked DONE, 3 duplicates removed                               |
+| 7  | CI formatting check                         | Already present (`nix fmt -- --fail-on-change`)                         |
+| 8  | testhelpers coverage                        | 64.6% → 80.3% (FailingQuery, Panic\*, FakeStore setters)                |
+| 9  | caseutil coverage                           | 76.5% → 100.0% (edge cases: digits, spaces, unicode, consecutive upper) |
+| 10 | schemautil coverage                         | 84.2% — max reachable (json.Marshal error paths unreachable)            |
+| 11 | docserver.go panic                          | Extracted `mustStaticFS()` Must-pattern helper                          |
 
 ## Deferred
 

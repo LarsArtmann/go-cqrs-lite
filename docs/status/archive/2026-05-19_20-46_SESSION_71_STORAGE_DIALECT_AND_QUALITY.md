@@ -114,33 +114,33 @@ Nothing this session. Clean execution, no regressions, no broken builds.
 
 ## F) Top 25 Things We Should Get Done Next
 
-| #   | Task                                                              | Impact | Effort |
-| --- | ----------------------------------------------------------------- | ------ | ------ |
-| 1   | Zero catalog lint (75 issues)                                     | HIGH   | 2-3h   |
-| 2   | Investigate catalog/adapters 66.7% coverage drop                  | HIGH   | 30min  |
-| 3   | Add storage dialect-specific unit tests (SQLite path)             | MEDIUM | 1h     |
-| 4   | Delete deprecated `Catalogable`/`CatalogCore`/`CatalogMeta` types | MEDIUM | 1h     |
-| 5   | Update `adapters_test.go` to stop using deprecated types          | MEDIUM | 30min  |
-| 6   | Split `core/decider/decider_test.go` (1146 lines)                 | LOW    | 1h     |
-| 7   | Split `projection/runner_test.go` (1057 lines)                    | LOW    | 1h     |
-| 8   | Add `Dialect` unit tests in `storage/`                            | MEDIUM | 30min  |
-| 9   | Verify all `example/user/` still compiles with current APIs       | LOW    | 15min  |
-| 10  | Add `OutboxPublisher` exhaustive switch test for `publisherIdle`  | LOW    | 15min  |
-| 11  | Clean up `catalog/docserver/` whitespace (wsl_v5: 12 issues)      | LOW    | 30min  |
-| 12  | Fix `catalog/docserver/` varnamelen (`w` → `writer`)              | LOW    | 15min  |
-| 13  | Fix `catalog/openapi/exporter.go` exhaustruct issues              | MEDIUM | 30min  |
-| 14  | Fix `catalog/docserver_test.go` noctx (9 issues)                  | LOW    | 20min  |
-| 15  | Add `go.faster/yaml` version pin check                            | LOW    | 10min  |
-| 16  | Consider `SubscriptionScope` type instead of nil-means-all        | LOW    | 1h     |
-| 17  | Document Dialect interface in AGENTS.md                           | LOW    | 15min  |
-| 18  | Add benchmark for dialect-based stores                            | LOW    | 30min  |
-| 19  | Update storage module docs for dialect pattern                    | LOW    | 30min  |
-| 20  | Consider shared test helpers for dialect stores                   | LOW    | 30min  |
-| 21  | Remove `catalog/internal/cattest` deprecated usage                | LOW    | 15min  |
-| 22  | Fix `catalog/auto_name.go` if-else to switch (gocritic)           | LOW    | 5min   |
-| 23  | Fix `catalog/auto_name.go` HasSuffix+TrimSuffix → CutSuffix       | LOW    | 5min   |
-| 24  | Add integration test for SQLite dialect transactional store       | MEDIUM | 30min  |
-| 25  | Update TODO_LIST.md with current status                           | LOW    | 15min  |
+| #  | Task                                                              | Impact | Effort |
+| -- | ----------------------------------------------------------------- | ------ | ------ |
+| 1  | Zero catalog lint (75 issues)                                     | HIGH   | 2-3h   |
+| 2  | Investigate catalog/adapters 66.7% coverage drop                  | HIGH   | 30min  |
+| 3  | Add storage dialect-specific unit tests (SQLite path)             | MEDIUM | 1h     |
+| 4  | Delete deprecated `Catalogable`/`CatalogCore`/`CatalogMeta` types | MEDIUM | 1h     |
+| 5  | Update `adapters_test.go` to stop using deprecated types          | MEDIUM | 30min  |
+| 6  | Split `core/decider/decider_test.go` (1146 lines)                 | LOW    | 1h     |
+| 7  | Split `projection/runner_test.go` (1057 lines)                    | LOW    | 1h     |
+| 8  | Add `Dialect` unit tests in `storage/`                            | MEDIUM | 30min  |
+| 9  | Verify all `example/user/` still compiles with current APIs       | LOW    | 15min  |
+| 10 | Add `OutboxPublisher` exhaustive switch test for `publisherIdle`  | LOW    | 15min  |
+| 11 | Clean up `catalog/docserver/` whitespace (wsl_v5: 12 issues)      | LOW    | 30min  |
+| 12 | Fix `catalog/docserver/` varnamelen (`w` → `writer`)              | LOW    | 15min  |
+| 13 | Fix `catalog/openapi/exporter.go` exhaustruct issues              | MEDIUM | 30min  |
+| 14 | Fix `catalog/docserver_test.go` noctx (9 issues)                  | LOW    | 20min  |
+| 15 | Add `go.faster/yaml` version pin check                            | LOW    | 10min  |
+| 16 | Consider `SubscriptionScope` type instead of nil-means-all        | LOW    | 1h     |
+| 17 | Document Dialect interface in AGENTS.md                           | LOW    | 15min  |
+| 18 | Add benchmark for dialect-based stores                            | LOW    | 30min  |
+| 19 | Update storage module docs for dialect pattern                    | LOW    | 30min  |
+| 20 | Consider shared test helpers for dialect stores                   | LOW    | 30min  |
+| 21 | Remove `catalog/internal/cattest` deprecated usage                | LOW    | 15min  |
+| 22 | Fix `catalog/auto_name.go` if-else to switch (gocritic)           | LOW    | 5min   |
+| 23 | Fix `catalog/auto_name.go` HasSuffix+TrimSuffix → CutSuffix       | LOW    | 5min   |
+| 24 | Add integration test for SQLite dialect transactional store       | MEDIUM | 30min  |
+| 25 | Update TODO_LIST.md with current status                           | LOW    | 15min  |
 
 ---
 

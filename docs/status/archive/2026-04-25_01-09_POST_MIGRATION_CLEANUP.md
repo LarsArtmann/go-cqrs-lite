@@ -178,53 +178,53 @@ The `xtypes` and `middleware` packages have **zero production consumers** — no
 
 ### HIGH IMPACT, LOW EFFORT (Do These First)
 
-| #   | Action                                                             | Effort | Impact | Why                           |
-| --- | ------------------------------------------------------------------ | ------ | ------ | ----------------------------- |
-| 1   | Remove stale `replace memory` from middleware/xtypes go.mod        | 5 min  | LOW    | Clean deps                    |
-| 2   | Remove `query.Result[T]` (dead code)                               | 5 min  | LOW    | No callers                    |
-| 3   | Remove unused error sentinels or wire them into validation         | 15 min | MEDIUM | Dead code confuses readers    |
-| 4   | Add `.golangci.yml` with `unused`, `deadcode` linters              | 15 min | MEDIUM | Catch dead code automatically |
-| 5   | Clean up stale `docs/status/2026-04-25_STATUS.md` (orphaned draft) | 2 min  | LOW    | Housekeeping                  |
+| # | Action                                                             | Effort | Impact | Why                           |
+| - | ------------------------------------------------------------------ | ------ | ------ | ----------------------------- |
+| 1 | Remove stale `replace memory` from middleware/xtypes go.mod        | 5 min  | LOW    | Clean deps                    |
+| 2 | Remove `query.Result[T]` (dead code)                               | 5 min  | LOW    | No callers                    |
+| 3 | Remove unused error sentinels or wire them into validation         | 15 min | MEDIUM | Dead code confuses readers    |
+| 4 | Add `.golangci.yml` with `unused`, `deadcode` linters              | 15 min | MEDIUM | Catch dead code automatically |
+| 5 | Clean up stale `docs/status/2026-04-25_STATUS.md` (orphaned draft) | 2 min  | LOW    | Housekeeping                  |
 
 ### HIGH IMPACT, MEDIUM EFFORT (Next Sprint)
 
-| #   | Action                                                                    | Effort | Impact | Why                                     |
-| --- | ------------------------------------------------------------------------- | ------ | ------ | --------------------------------------- |
-| 6   | Write integration example using middleware + xtypes + core + memory       | 2h     | HIGH   | First real validation of API ergonomics |
-| 7   | Add Go doc `Example*` test functions for command, event, query, aggregate | 2h     | HIGH   | pkg.go.dev discoverability              |
-| 8   | Define `Projection` interface in `core/projection/`                       | 1h     | HIGH   | Foundation for Phase 7                  |
-| 9   | Write `CONTRIBUTING.md` for multi-module workflow                         | 1h     | MEDIUM | Onboarding                              |
-| 10  | Add CI badges + Go Reference badge to README                              | 30 min | MEDIUM | Professional appearance                 |
-| 11  | Remove or reduce `//nolint:err113` directives (use sentinel errors)       | 30 min | LOW    | Code quality                            |
-| 12  | Add `golangci-lint` to CI with proper config                              | 30 min | MEDIUM | Automated quality gate                  |
+| #  | Action                                                                    | Effort | Impact | Why                                     |
+| -- | ------------------------------------------------------------------------- | ------ | ------ | --------------------------------------- |
+| 6  | Write integration example using middleware + xtypes + core + memory       | 2h     | HIGH   | First real validation of API ergonomics |
+| 7  | Add Go doc `Example*` test functions for command, event, query, aggregate | 2h     | HIGH   | pkg.go.dev discoverability              |
+| 8  | Define `Projection` interface in `core/projection/`                       | 1h     | HIGH   | Foundation for Phase 7                  |
+| 9  | Write `CONTRIBUTING.md` for multi-module workflow                         | 1h     | MEDIUM | Onboarding                              |
+| 10 | Add CI badges + Go Reference badge to README                              | 30 min | MEDIUM | Professional appearance                 |
+| 11 | Remove or reduce `//nolint:err113` directives (use sentinel errors)       | 30 min | LOW    | Code quality                            |
+| 12 | Add `golangci-lint` to CI with proper config                              | 30 min | MEDIUM | Automated quality gate                  |
 
 ### HIGH IMPACT, HIGH EFFORT (Major Features)
 
-| #   | Action                                                               | Effort   | Impact   | Why                                 |
-| --- | -------------------------------------------------------------------- | -------- | -------- | ----------------------------------- |
-| 13  | **Phase 5: Storage module** (sqlc PostgreSQL event store)            | 2-3 days | CRITICAL | First real persistence layer        |
-| 14  | **Phase 6: Watermill module** (pub/sub integrations)                 | 2-3 days | CRITICAL | Production-grade event distribution |
-| 15  | **Phase 7: Projection module** (event handlers → SQL tables)         | 2-3 days | HIGH     | Read-model generation               |
-| 16  | **Phase 8: Snapshot module** (SQL-backed snapshots)                  | 1-2 days | MEDIUM   | Aggregate load performance          |
-| 17  | Write comprehensive integration test suite (core + memory + storage) | 1 day    | HIGH     | Confidence in module interactions   |
+| #  | Action                                                               | Effort   | Impact   | Why                                 |
+| -- | -------------------------------------------------------------------- | -------- | -------- | ----------------------------------- |
+| 13 | **Phase 5: Storage module** (sqlc PostgreSQL event store)            | 2-3 days | CRITICAL | First real persistence layer        |
+| 14 | **Phase 6: Watermill module** (pub/sub integrations)                 | 2-3 days | CRITICAL | Production-grade event distribution |
+| 15 | **Phase 7: Projection module** (event handlers → SQL tables)         | 2-3 days | HIGH     | Read-model generation               |
+| 16 | **Phase 8: Snapshot module** (SQL-backed snapshots)                  | 1-2 days | MEDIUM   | Aggregate load performance          |
+| 17 | Write comprehensive integration test suite (core + memory + storage) | 1 day    | HIGH     | Confidence in module interactions   |
 
 ### MEDIUM IMPACT, VARIOUS EFFORT
 
-| #   | Action                                                                 | Effort | Impact | Why                              |
-| --- | ---------------------------------------------------------------------- | ------ | ------ | -------------------------------- |
-| 18  | Add benchmarks for command/query dispatch, middleware chains           | 2h     | MEDIUM | Performance regression detection |
-| 19  | Define `Upcaster` interface in `core/upcasting/` (from migration plan) | 1h     | MEDIUM | Event schema evolution           |
-| 20  | Extract `testutil` into standalone module (Phase 9)                    | 2h     | LOW    | Reduce core test dep surface     |
-| 21  | Write formal CHANGELOG.md                                              | 1h     | MEDIUM | Release tracking                 |
-| 22  | Add `example/ecommerce/` full-stack example (all modules)              | 4h     | HIGH   | "Kitchen sink" demo              |
-| 23  | Investigate `go 1.26 ignore` directive for examples/ in go.work        | 30 min | LOW    | Clean `go test ./...`            |
+| #  | Action                                                                 | Effort | Impact | Why                              |
+| -- | ---------------------------------------------------------------------- | ------ | ------ | -------------------------------- |
+| 18 | Add benchmarks for command/query dispatch, middleware chains           | 2h     | MEDIUM | Performance regression detection |
+| 19 | Define `Upcaster` interface in `core/upcasting/` (from migration plan) | 1h     | MEDIUM | Event schema evolution           |
+| 20 | Extract `testutil` into standalone module (Phase 9)                    | 2h     | LOW    | Reduce core test dep surface     |
+| 21 | Write formal CHANGELOG.md                                              | 1h     | MEDIUM | Release tracking                 |
+| 22 | Add `example/ecommerce/` full-stack example (all modules)              | 4h     | HIGH   | "Kitchen sink" demo              |
+| 23 | Investigate `go 1.26 ignore` directive for examples/ in go.work        | 30 min | LOW    | Clean `go test ./...`            |
 
 ### LOW PRIORITY
 
-| #   | Action                                                            | Effort | Impact | Why                 |
-| --- | ----------------------------------------------------------------- | ------ | ------ | ------------------- |
-| 24  | Phase 10: Tag v0.1.0 releases for each module                     | 1h     | MEDIUM | Semantic versioning |
-| 25  | Add fuzz targets for event parsing, ID parsing, schema reflection | 2h     | LOW    | Edge case coverage  |
+| #  | Action                                                            | Effort | Impact | Why                 |
+| -- | ----------------------------------------------------------------- | ------ | ------ | ------------------- |
+| 24 | Phase 10: Tag v0.1.0 releases for each module                     | 1h     | MEDIUM | Semantic versioning |
+| 25 | Add fuzz targets for event parsing, ID parsing, schema reflection | 2h     | LOW    | Edge case coverage  |
 
 ---
 

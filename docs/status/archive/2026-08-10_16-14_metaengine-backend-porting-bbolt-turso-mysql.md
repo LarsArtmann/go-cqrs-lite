@@ -24,6 +24,7 @@ coverage categories, no skill docs update, and no calibration benchmarks. Detail
 ## a) FULLY DONE
 
 ### `metaengine/bboltengine/` — KV engine (B+tree)
+
 - [x] `go.mod` with `go.etcd.io/bbolt v1.5.0` dependency
 - [x] `engine.go` — struct, `NewBboltEngine(dir)`, `NewBboltEngineFromDB(db)`, Profile,
       Close, HealthCheck, keycodec aliases, compile-time assertions for 10 interfaces
@@ -41,6 +42,7 @@ coverage categories, no skill docs update, and no calibration benchmarks. Detail
 - [x] `go vet` clean, `go build` clean
 
 ### `metaengine/tursoengine/` — libSQL engine (SQLite wire-compatible)
+
 - [x] `go.mod` with `turso.tech/database/tursogo v0.7.2` + sqliteengine replace
 - [x] `register.go` — `New(dsn)` opens via tursogo driver, delegates to
       `sqliteengine.NewSQLiteEngine(db)`, `RegisterDriver("turso", ...)`
@@ -50,6 +52,7 @@ coverage categories, no skill docs update, and no calibration benchmarks. Detail
 - [x] go.work, flake.nix, api-stability registered
 
 ### `metaengine/mysqlengine/` — SQL engine (MySQL dialect)
+
 - [x] `go.mod` with `github.com/go-sql-driver/mysql v1.10.0`
 - [x] `engine.go` — struct, `New(dsn)`, `NewFromDB(db)`, DDL with MySQL-specific types
       (VARCHAR(255) PK, JSON columns, AUTO_INCREMENT, backtick-escaped `key`), Profile,
@@ -67,6 +70,7 @@ coverage categories, no skill docs update, and no calibration benchmarks. Detail
 - [x] go.work, flake.nix, api-stability registered
 
 ### Module Registration
+
 - [x] `go.work` — all 3 modules added in alphabetical position
 - [x] `flake.nix` testModules — all 3 added (feeds both `#test` and `#lint`)
 - [x] `cmd/api-stability/main.go` modules slice — all 3 added
@@ -79,6 +83,7 @@ coverage categories, no skill docs update, and no calibration benchmarks. Detail
 ## b) PARTIALLY DONE
 
 ### bboltengine
+
 - **Compile-time assertions incomplete**: Has `HealthChecker` method but NO `_ metaengine.HealthChecker = (*bboltEngine)(nil)` assertion. Also missing `StreamingScan` assertion (has the method, no assertion).
 - **No persistence test**: badgerengine and pebbleengine both have `persistence_test.go` verifying data survives Close+reopen. bboltengine doesn't.
 - **No disk-backed test**: pebbleengine has `disk_backed_test.go` verifying on-disk operation. bboltengine doesn't.
@@ -86,6 +91,7 @@ coverage categories, no skill docs update, and no calibration benchmarks. Detail
 - **No calibration benchmark**: badgerengine/pebbleengine have `calibration_bench_test.go` for cost model calibration. bboltengine uses estimates (5000 ns/op) without measurement.
 
 ### mysqlengine
+
 - **Missing `Calibratable` compile-time assertion**: Has `SetCalibration` method but no `_ metaengine.Calibratable = (*mysqlEngine)(nil)` assertion.
 - **Missing `HealthChecker` compile-time assertion**: Has `HealthCheck` method but no assertion.
 - **No integration test coverage**: ADT matrix, healthcheck, and profile tests all skip without `MYSQL_TEST_DSN`. No MySQL nix integration test exists (unlike pgengine which has testcontainers + nix VM).
@@ -94,6 +100,7 @@ coverage categories, no skill docs update, and no calibration benchmarks. Detail
 - **No pushdown test**: pgengine has `pushdown_test.go` testing JSONB WHERE/ORDER BY pushdown. mysqlengine doesn't.
 
 ### tursoengine
+
 - **No record stamp test**: sqliteengine has one, tursoengine should too (though it delegates to sqliteengine, the import path differs).
 - **No soak test**: sqliteengine and badgerengine have soak tests.
 - **No healthcheck test**: The engine delegates to sqliteengine, but the test should verify HealthChecker is satisfiable through the tursoengine import.
@@ -134,6 +141,7 @@ engines. But there are real quality gaps that would fail `nix run .#verify`:
 ## e) WHAT WE SHOULD IMPROVE
 
 ### Code Quality
+
 1. **Add missing compile-time assertions**: mysqlengine needs `Calibratable` + `HealthChecker`;
    bboltengine needs `HealthChecker` + `StreamingScan`.
 2. **Run `nix fmt`** before any `//nolint` placement, then verify nolint positions survive.
@@ -143,6 +151,7 @@ engines. But there are real quality gaps that would fail `nix run .#verify`:
 6. **Add bboltengine persistence/restart-safety tests** matching pebbleengine coverage.
 
 ### Architecture
+
 7. **Consider extracting shared SQL engine helpers** — mysqlengine/backends.go, scan.go,
    stream_log.go, transaction.go are 80%+ identical to pgengine equivalents. The
    `//art-dupl:accept cross-module SQL engine pattern` comments acknowledge this, but a
@@ -155,6 +164,7 @@ engines. But there are real quality gaps that would fail `nix run .#verify`:
    identical. This means wrapping the engine to override Profile().
 
 ### Testing
+
 10. **Add MySQL integration test infrastructure** — either testcontainers (like pgengine)
     or nix-based (like storage layer). Currently zero integration coverage.
 11. **Add calibration benchmarks** for all 3 engines — cost models are guesses/estimates.
@@ -162,6 +172,7 @@ engines. But there are real quality gaps that would fail `nix run .#verify`:
     pgengine's test style).
 
 ### Documentation
+
 13. **Update SKILL.md** with the 3 new engines in the module map and decision matrix.
 14. **Update `references/modules.md`** with per-module entries.
 15. **Add MySQL-specific gotchas** to AGENTS.md (JSON path syntax, `key` reserved word,
@@ -172,6 +183,7 @@ engines. But there are real quality gaps that would fail `nix run .#verify`:
 ## f) Up to 50 Things to Get Done Next
 
 #### P0 — CI-blocking (would fail `nix run .#verify`)
+
 1. Run `nix fmt` on all 3 new modules
 2. Run `nix run .#lint` and fix all lint findings
 3. Run `nix run .#check-duplication` and update `.art-dupl-baseline.json`
@@ -184,6 +196,7 @@ engines. But there are real quality gaps that would fail `nix run .#verify`:
 10. Run full `nix run .#verify` gate
 
 #### P1 — Completeness gaps
+
 11. Add bboltengine `persistence_test.go` (data survives Close+reopen)
 12. Add bboltengine `restart_safety_test.go` (seq counters survive restart)
 13. Add bboltengine `disk_backed_test.go` (on-disk operation)
@@ -197,6 +210,7 @@ engines. But there are real quality gaps that would fail `nix run .#verify`:
 21. Add tursoengine `healthcheck_test.go`
 
 #### P2 — Documentation
+
 22. Update `SKILL.md` module map with 3 new engines
 23. Update `references/modules.md` with per-module entries
 24. Update `references/recipes.md` with engine selection guidance
@@ -206,6 +220,7 @@ engines. But there are real quality gaps that would fail `nix run .#verify`:
 28. Document tursoengine delegation pattern (why it's thin)
 
 #### P3 — Integration testing
+
 29. Add MySQL testcontainer support (like pgengine's testcontainer_test.go)
 30. Add `nix run .#integration-mysql-metaengine` (metaengine-specific MySQL test)
 31. Wire mysqlengine ADT matrix to use testcontainers when available
@@ -215,6 +230,7 @@ engines. But there are real quality gaps that would fail `nix run .#verify`:
 35. Add cross-engine parity test including all 3 new engines simultaneously
 
 #### P4 — Architecture improvements
+
 36. Extract shared SQL engine helpers into `metaengine/sqldsl` or similar
 37. Extract shared KV seq seeding into `metaengine/kvseq` package
 38. Override tursoengine Profile() to return "turso" instead of "sqlite"
@@ -225,6 +241,7 @@ engines. But there are real quality gaps that would fail `nix run .#verify`:
 43. Consider mysqlengine MapUpdater (atomic RMW via SELECT FOR UPDATE)
 
 #### P5 — Polish
+
 44. Add `const MySQLNsPerWrite` (currently only Op and Read)
 45. Add `const BboltNsPerWrite` usage in Profile (currently set but not differentiated)
 46. Add doc.go for each new engine package (package-level docs exist but could be richer)
@@ -238,6 +255,7 @@ engines. But there are real quality gaps that would fail `nix run .#verify`:
 ## g) Questions (things I genuinely cannot determine)
 
 ### Q1: Should mysqlengine implement SetBackend, MultimapBackend, and LogBackend?
+
 pgengine does NOT implement these (only MapBackend, CounterBackend, ScanBackend, PushdownScan,
 LayoutPlanner, StreamLogBackend, AtomicAppender, Transactional). I matched pgengine parity.
 But sqliteengine DOES implement SetBackend/MultimapBackend/LogBackend. Should mysqlengine
@@ -248,12 +266,14 @@ the MySQL DDL. My decision was "match pgengine" but I'm not sure if pgengine is 
 minimal or just not yet complete.
 
 ### Q2: Should tursoengine override Profile() to return "turso"?
+
 Currently tursoengine delegates entirely to sqliteengine, so `Profile().Name` returns "sqlite".
 This is technically correct (same cost profile) but operationally misleading — an operator
 querying registered engines would see "turso" in the driver list but "sqlite" in the profile.
 Should I wrap the engine to override just the Name field? This adds complexity for cosmetic benefit.
 
 ### Q3: Is the pre-existing `enginetest/record_stamp.go` compile error known?
+
 The file references `id.NewSystemActor` (undefined) and uses `id.NewCorrelationID()` as a
 string when it returns a struct type. This breaks all engines' record_stamp tests in
 `GOWORK=off` mode (standalone module builds). In workspace mode the workspace go.mod

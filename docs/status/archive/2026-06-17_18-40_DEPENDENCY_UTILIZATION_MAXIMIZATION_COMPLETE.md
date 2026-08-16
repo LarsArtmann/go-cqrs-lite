@@ -124,48 +124,48 @@ Sorted by impact × effort ratio:
 
 ### High Impact, Low Effort (do first)
 
-| #   | Task                                                                                                                                                    | Impact                                         | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ------ |
-| 1   | **`go mod tidy` in all modules** (command, decider, encryption, event, id, query)                                                                       | Unblocks gopls, CI                             | 5m     |
-| 2   | **Commit pre-existing changes** (`.buildflow.yml`, `flake.lock`, `pebble/journal.go`, `turso/indexing/example_test.go`, `doc.go`, `CODE_OF_CONDUCT.md`) | Clean working tree                             | 5m     |
-| 3   | **CBOR `toarray` documentation** — add doc example showing consumers how to use `cbor:",toarray"` on their payloads                                     | 30-40% smaller events for consumers who opt in | 15m    |
-| 4   | **Add `gomega.ConsistOf` / `MatchJSON` to existing tests** — replace manual slice comparison boilerplate                                                | Cleaner tests, better failure messages         | 30m    |
-| 5   | **Watermill Router spike** — evaluate if Router can replace projection wiring in example/todo                                                           | Potential architecture simplification          | 1h     |
+| # | Task                                                                                                                                                    | Impact                                         | Effort |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ------ |
+| 1 | **`go mod tidy` in all modules** (command, decider, encryption, event, id, query)                                                                       | Unblocks gopls, CI                             | 5m     |
+| 2 | **Commit pre-existing changes** (`.buildflow.yml`, `flake.lock`, `pebble/journal.go`, `turso/indexing/example_test.go`, `doc.go`, `CODE_OF_CONDUCT.md`) | Clean working tree                             | 5m     |
+| 3 | **CBOR `toarray` documentation** — add doc example showing consumers how to use `cbor:",toarray"` on their payloads                                     | 30-40% smaller events for consumers who opt in | 15m    |
+| 4 | **Add `gomega.ConsistOf` / `MatchJSON` to existing tests** — replace manual slice comparison boilerplate                                                | Cleaner tests, better failure messages         | 30m    |
+| 5 | **Watermill Router spike** — evaluate if Router can replace projection wiring in example/todo                                                           | Potential architecture simplification          | 1h     |
 
 ### High Impact, Medium Effort
 
-| #   | Task                                                                                                   | Impact                              | Effort |
-| --- | ------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------ |
-| 6   | **samber/ro BufferTime for projection batching** — batch events by time window before handler dispatch | Fewer DB writes, better throughput  | 2h     |
-| 7   | **samber/ro GroupBy for aggregate routing** — route events by aggregate type in the reactive pipeline  | Cleaner event routing               | 2h     |
-| 8   | **rapid state machine testing** for decider — generate command sequences, verify aggregate invariants  | Catches ordering bugs               | 3h     |
-| 9   | **Pebble `db.NewSnapshot()` for consistent reads** — point-in-time snapshots for journal reads         | Eliminates read-write inconsistency | 3h     |
-| 10  | **OTel baggage propagation** — propagate correlation IDs across service boundaries                     | Cross-service tracing               | 3h     |
-| 11  | **CBOR `MarshalToBuffer` for zero-alloc encoding** — reuse buffers in hot paths                        | Reduced GC pressure                 | 2h     |
-| 12  | **Concurrent singleflight benchmark** — A/B comparison with/without singleflight                       | Proves performance benefit          | 1h     |
-| 13  | **Watermill middleware chain** — replace custom retry/DLQ with Watermill's built-in                    | Less custom code                    | 3h     |
+| #  | Task                                                                                                   | Impact                              | Effort |
+| -- | ------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------ |
+| 6  | **samber/ro BufferTime for projection batching** — batch events by time window before handler dispatch | Fewer DB writes, better throughput  | 2h     |
+| 7  | **samber/ro GroupBy for aggregate routing** — route events by aggregate type in the reactive pipeline  | Cleaner event routing               | 2h     |
+| 8  | **rapid state machine testing** for decider — generate command sequences, verify aggregate invariants  | Catches ordering bugs               | 3h     |
+| 9  | **Pebble `db.NewSnapshot()` for consistent reads** — point-in-time snapshots for journal reads         | Eliminates read-write inconsistency | 3h     |
+| 10 | **OTel baggage propagation** — propagate correlation IDs across service boundaries                     | Cross-service tracing               | 3h     |
+| 11 | **CBOR `MarshalToBuffer` for zero-alloc encoding** — reuse buffers in hot paths                        | Reduced GC pressure                 | 2h     |
+| 12 | **Concurrent singleflight benchmark** — A/B comparison with/without singleflight                       | Proves performance benefit          | 1h     |
+| 13 | **Watermill middleware chain** — replace custom retry/DLQ with Watermill's built-in                    | Less custom code                    | 3h     |
 
 ### Medium Impact, Various Effort
 
-| #   | Task                                                                                                  | Impact                       | Effort |
-| --- | ----------------------------------------------------------------------------------------------------- | ---------------------------- | ------ |
-| 14  | **`WithLoadCoalescing(false)` option** — let consumers disable singleflight when using external cache | API flexibility              | 30m    |
-| 15  | **OTel Views for custom metric aggregation** — enable CQRS-specific dashboard views                   | Better observability         | 2h     |
-| 16  | **rapid generators per module** — module-specific event/command generators in testutil                | Reusable test infrastructure | 2h     |
-| 17  | **Pebble `CompactionFilter` for TTL expiry** — automatic event retention                              | Storage management           | 3h     |
-| 18  | **Pebble `db.DeleteRange` for retention** — bulk delete old events                                    | Storage management           | 2h     |
-| 19  | **samber/ro RetryWithConfig** — retry transient store failures reactively                             | Resilience                   | 2h     |
-| 20  | **gomega custom matchers** — `HaveEventCount(n)`, `HaveAggregateVersion(v)`                           | Test readability             | 1h     |
+| #  | Task                                                                                                  | Impact                       | Effort |
+| -- | ----------------------------------------------------------------------------------------------------- | ---------------------------- | ------ |
+| 14 | **`WithLoadCoalescing(false)` option** — let consumers disable singleflight when using external cache | API flexibility              | 30m    |
+| 15 | **OTel Views for custom metric aggregation** — enable CQRS-specific dashboard views                   | Better observability         | 2h     |
+| 16 | **rapid generators per module** — module-specific event/command generators in testutil                | Reusable test infrastructure | 2h     |
+| 17 | **Pebble `CompactionFilter` for TTL expiry** — automatic event retention                              | Storage management           | 3h     |
+| 18 | **Pebble `db.DeleteRange` for retention** — bulk delete old events                                    | Storage management           | 2h     |
+| 19 | **samber/ro RetryWithConfig** — retry transient store failures reactively                             | Resilience                   | 2h     |
+| 20 | **gomega custom matchers** — `HaveEventCount(n)`, `HaveAggregateVersion(v)`                           | Test readability             | 1h     |
 
 ### Lower Priority
 
-| #   | Task                                                                          | Impact               | Effort |
-| --- | ----------------------------------------------------------------------------- | -------------------- | ------ |
-| 21  | **Pebble `db.Checkpoint` for backups** — point-in-time DB snapshots           | Disaster recovery    | 2h     |
-| 22  | **Pebble `db.Ingest` for bulk load** — sstable ingestion for data migration   | Fast bulk imports    | 3h     |
-| 23  | **CBOR `TagSet` for custom type tags** — typed CBOR encoding for domain types | Type safety          | 2h     |
-| 24  | **OTel Exemplars** — link metrics to traces                                   | Debugging            | 2h     |
-| 25  | **Ginkgo DescribeTable for table-driven BDD** — replace manual test loops     | Test maintainability | 1h     |
+| #  | Task                                                                          | Impact               | Effort |
+| -- | ----------------------------------------------------------------------------- | -------------------- | ------ |
+| 21 | **Pebble `db.Checkpoint` for backups** — point-in-time DB snapshots           | Disaster recovery    | 2h     |
+| 22 | **Pebble `db.Ingest` for bulk load** — sstable ingestion for data migration   | Fast bulk imports    | 3h     |
+| 23 | **CBOR `TagSet` for custom type tags** — typed CBOR encoding for domain types | Type safety          | 2h     |
+| 24 | **OTel Exemplars** — link metrics to traces                                   | Debugging            | 2h     |
+| 25 | **Ginkgo DescribeTable for table-driven BDD** — replace manual test loops     | Test maintainability | 1h     |
 
 ---
 

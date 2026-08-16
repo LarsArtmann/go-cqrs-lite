@@ -169,33 +169,33 @@ Nothing truly broken. Honest assessment:
 
 ## F) Top #25 Things We Should Get Done Next
 
-| #   | Priority    | Task                                                                        | Impact                                | Effort   |
-| --- | ----------- | --------------------------------------------------------------------------- | ------------------------------------- | -------- |
-| 1   | 🔴 CRITICAL | Fix per-module isolated builds (`go mod tidy` each module)                  | Consumers can't `go get` individually | 30 min   |
-| 2   | 🟡 MEDIUM   | Recover eventcatalog coverage to >90%                                       | Quality gate                          | 1-2 hrs  |
-| 3   | 🟡 MEDIUM   | Deprecate `DeriveAggregateID` with `// Deprecated:` comment                 | API hygiene (semver-safe)             | 5 min    |
-| 4   | 🟡 MEDIUM   | Fix example/todo `TodoMarker` embedding (misleading backing type)           | Type honesty                          | 15 min   |
-| 5   | 🟡 MEDIUM   | Triage TODO_LIST.md — prune stale, deduplicate, prioritize top 25           | Noise reduction                       | 1 hr     |
-| 6   | 🟡 MEDIUM   | Fix Pebble Store optimistic concurrency in Save                             | Data safety                           | 1-2 hrs  |
-| 7   | 🟡 MEDIUM   | Fix Outbox transaction co-participation                                     | Data consistency                      | 2-3 hrs  |
-| 8   | 🟡 MEDIUM   | Fix `collectResults` goroutine leak in projection/runner.go                 | Resource leak                         | 1 hr     |
-| 9   | 🟡 MEDIUM   | Fix OutboxPublisher split-brain (cancel non-nil after Close)                | Correctness                           | 30 min   |
-| 10  | 🟡 MEDIUM   | Fix storage/dialect.go `any` usage (3 methods)                              | Type safety                           | 30 min   |
-| 11  | 🟡 MEDIUM   | Fix asyncapi exporter missing CommandMessage case                           | Feature completeness                  | 30 min   |
-| 12  | 🟢 LOW      | Registry deterministic Build() (sort map iteration)                         | Test reliability                      | 30 min   |
-| 13  | 🟢 LOW      | Fix FuzzParse case-sensitivity roundtrip                                    | Edge case correctness                 | 1 hr     |
-| 14  | 🟢 LOW      | Add slog.Warn for corrupt IDs in Pebble deserialization                     | Observability                         | 15 min   |
-| 15  | 🟢 LOW      | Update FEATURES.md — add openapi, docserver, dialect, recent sessions       | Documentation                         | 1 hr     |
-| 16  | 🟢 LOW      | Design `OwnerRef` union type for Owners []string                            | Type safety                           | 1 hr     |
-| 17  | 🟢 LOW      | Design `RefKind` discriminator for Ref.ID polymorphism                      | Type safety                           | 1 hr     |
-| 18  | 🟢 LOW      | Fix 2 lint issues (noinlineerr in core/command, core/query)                 | Zero lint                             | 15 min   |
-| 19  | 🟢 LOW      | Fix BuildFlow pre-commit hook false positive (ToDotAddress matched as TODO) | Developer experience                  | 15 min   |
-| 20  | 🟢 LOW      | Brand FlowStep.ID as FlowStepLabel (clarify it's not an entity ID)          | Naming clarity                        | 10 min   |
-| 21  | 🟢 LOW      | Add catalog diff/breaking-change detection tool                             | API evolution safety                  | 3-4 hrs  |
-| 22  | 🟢 LOW      | Query handler generics (TypedHandler[T] returning T, error)                 | Type safety (breaking)                | 4-8 hrs  |
-| 23  | 🟢 LOW      | High-level test utilities (AggregateTester, ProjectionTester)               | Consumer DX                           | 4-8 hrs  |
-| 24  | 📐 PLANNED  | Saga/orchestration pattern implementation                                   | Feature expansion                     | 1-2 days |
-| 25  | 📐 PLANNED  | Publish go-composable-business-types as Go module                           | External adoption                     | 1-2 days |
+| #  | Priority    | Task                                                                        | Impact                                | Effort   |
+| -- | ----------- | --------------------------------------------------------------------------- | ------------------------------------- | -------- |
+| 1  | 🔴 CRITICAL | Fix per-module isolated builds (`go mod tidy` each module)                  | Consumers can't `go get` individually | 30 min   |
+| 2  | 🟡 MEDIUM   | Recover eventcatalog coverage to >90%                                       | Quality gate                          | 1-2 hrs  |
+| 3  | 🟡 MEDIUM   | Deprecate `DeriveAggregateID` with `// Deprecated:` comment                 | API hygiene (semver-safe)             | 5 min    |
+| 4  | 🟡 MEDIUM   | Fix example/todo `TodoMarker` embedding (misleading backing type)           | Type honesty                          | 15 min   |
+| 5  | 🟡 MEDIUM   | Triage TODO_LIST.md — prune stale, deduplicate, prioritize top 25           | Noise reduction                       | 1 hr     |
+| 6  | 🟡 MEDIUM   | Fix Pebble Store optimistic concurrency in Save                             | Data safety                           | 1-2 hrs  |
+| 7  | 🟡 MEDIUM   | Fix Outbox transaction co-participation                                     | Data consistency                      | 2-3 hrs  |
+| 8  | 🟡 MEDIUM   | Fix `collectResults` goroutine leak in projection/runner.go                 | Resource leak                         | 1 hr     |
+| 9  | 🟡 MEDIUM   | Fix OutboxPublisher split-brain (cancel non-nil after Close)                | Correctness                           | 30 min   |
+| 10 | 🟡 MEDIUM   | Fix storage/dialect.go `any` usage (3 methods)                              | Type safety                           | 30 min   |
+| 11 | 🟡 MEDIUM   | Fix asyncapi exporter missing CommandMessage case                           | Feature completeness                  | 30 min   |
+| 12 | 🟢 LOW      | Registry deterministic Build() (sort map iteration)                         | Test reliability                      | 30 min   |
+| 13 | 🟢 LOW      | Fix FuzzParse case-sensitivity roundtrip                                    | Edge case correctness                 | 1 hr     |
+| 14 | 🟢 LOW      | Add slog.Warn for corrupt IDs in Pebble deserialization                     | Observability                         | 15 min   |
+| 15 | 🟢 LOW      | Update FEATURES.md — add openapi, docserver, dialect, recent sessions       | Documentation                         | 1 hr     |
+| 16 | 🟢 LOW      | Design `OwnerRef` union type for Owners []string                            | Type safety                           | 1 hr     |
+| 17 | 🟢 LOW      | Design `RefKind` discriminator for Ref.ID polymorphism                      | Type safety                           | 1 hr     |
+| 18 | 🟢 LOW      | Fix 2 lint issues (noinlineerr in core/command, core/query)                 | Zero lint                             | 15 min   |
+| 19 | 🟢 LOW      | Fix BuildFlow pre-commit hook false positive (ToDotAddress matched as TODO) | Developer experience                  | 15 min   |
+| 20 | 🟢 LOW      | Brand FlowStep.ID as FlowStepLabel (clarify it's not an entity ID)          | Naming clarity                        | 10 min   |
+| 21 | 🟢 LOW      | Add catalog diff/breaking-change detection tool                             | API evolution safety                  | 3-4 hrs  |
+| 22 | 🟢 LOW      | Query handler generics (TypedHandler[T] returning T, error)                 | Type safety (breaking)                | 4-8 hrs  |
+| 23 | 🟢 LOW      | High-level test utilities (AggregateTester, ProjectionTester)               | Consumer DX                           | 4-8 hrs  |
+| 24 | 📐 PLANNED  | Saga/orchestration pattern implementation                                   | Feature expansion                     | 1-2 days |
+| 25 | 📐 PLANNED  | Publish go-composable-business-types as Go module                           | External adoption                     | 1-2 days |
 
 ---
 

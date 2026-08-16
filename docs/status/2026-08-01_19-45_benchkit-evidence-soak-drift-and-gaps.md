@@ -316,10 +316,10 @@ I wrote a `cmd_deep_bench/main.go`, ran it, then deleted it. The results are in 
 | `nix run .#verify`                                         | ❌ NEVER RUN                            |
 | `stack/bench` compiles                                     | ✅ GREEN (before soak.go edits)         |
 | `cmd/cqrs-bench` compiles                                  | ❌ Pre-existing break                   |
-| File line counts (max 350)                                 | ⚠️ soak.go at 360 lines                 |
+| File line counts (max 350)                                 | ⚠️ soak.go at 360 lines                  |
 | Deep benchmark executed                                    | ✅ memory vs sqlite vs pebble, Repeat=5 |
 | API surface golden                                         | ✅ Regenerated (3088 exports)           |
-| gofumpt formatting                                         | ⚠️ soak.go changes not formatted        |
+| gofumpt formatting                                         | ⚠️ soak.go changes not formatted         |
 
 ---
 

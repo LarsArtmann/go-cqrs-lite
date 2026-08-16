@@ -57,27 +57,27 @@ All previously-missing modules now have comprehensive READMEs with correct code 
 
 Every bug was caught by auditing code examples against actual source code, then verified with doc-check.
 
-| #   | Module           | Bug                                                        | Fix Applied                                        |
-| --- | ---------------- | ---------------------------------------------------------- | -------------------------------------------------- |
-| 1   | `deriver`        | `command.New(type, id, payload)` wrong signature           | `cqrscommand.New(type, streamID)` + error handling |
-| 2   | `scenario`       | `Given[t, State]` lowercase type param                     | `Given[Cmd, State]` with real types                |
-| 3   | `id`             | Self-referencing idtest link                               | `idtest/doc.go`                                    |
-| 4   | `snapshot`       | `AggregateID`/`AggregateType` field names                  | `StreamID`/`StreamType`                            |
-| 5   | `snapshot`       | `SaveTyped`/`LoadTyped` don't exist                        | `Save`/`Load` with `TypedSnapshot`                 |
-| 6   | `snapshot`       | `EveryNEvents(100)` returns error tuple                    | `strategy, _ := EveryNEvents(100)`                 |
-| 7   | `decider`        | Same EveryNEvents inline issue                             | Same fix                                           |
-| 8   | `kv`             | All raw KV calls missing `ctx`                             | Added `context.Background()`                       |
-| 9   | `kv`             | `SetTyped`/`GetTyped` don't exist                          | `Set(ctx, id, &T{})`/`Get(ctx, id)`                |
-| 10  | `storage/pebble` | `WithSyncWrites()` wrong name                              | `WithKVSyncWrites()`                               |
-| 11  | `storage/pebble` | KV calls missing ctx + manual wiring wrong                 | Fixed both                                         |
-| 12  | `stack`          | `EventBus()`, `Repository()`, `AsProjection()` don't exist | Fixed to actual API                                |
-| 13  | `stack/sqlite`   | `WithJournalMode`/`WithBusyTimeout` don't exist            | `WithOptimizations`/`WithForeignKeys`              |
-| 14  | `stack/pebble`   | `DefaultOptionsWithLogging` wrong package                  | Import from `storage/pebble`                       |
-| 15  | `stack/postgres` | `NewPgxListenerFromDSN` missing ctx                        | Added `ctx` parameter                              |
-| 16  | `transport/grpc` | Command service doesn't accept options                     | Query-only codec example                           |
-| 17  | `eventtest`      | `SaveFn` signature wrong                                   | Fixed to actual `event.SaveFunc`                   |
-| 18  | `retry`          | Missing `"log"` import                                     | Added                                              |
-| 19  | `dedup`          | Missing `"fmt"` import                                     | Added                                              |
+| #  | Module           | Bug                                                        | Fix Applied                                        |
+| -- | ---------------- | ---------------------------------------------------------- | -------------------------------------------------- |
+| 1  | `deriver`        | `command.New(type, id, payload)` wrong signature           | `cqrscommand.New(type, streamID)` + error handling |
+| 2  | `scenario`       | `Given[t, State]` lowercase type param                     | `Given[Cmd, State]` with real types                |
+| 3  | `id`             | Self-referencing idtest link                               | `idtest/doc.go`                                    |
+| 4  | `snapshot`       | `AggregateID`/`AggregateType` field names                  | `StreamID`/`StreamType`                            |
+| 5  | `snapshot`       | `SaveTyped`/`LoadTyped` don't exist                        | `Save`/`Load` with `TypedSnapshot`                 |
+| 6  | `snapshot`       | `EveryNEvents(100)` returns error tuple                    | `strategy, _ := EveryNEvents(100)`                 |
+| 7  | `decider`        | Same EveryNEvents inline issue                             | Same fix                                           |
+| 8  | `kv`             | All raw KV calls missing `ctx`                             | Added `context.Background()`                       |
+| 9  | `kv`             | `SetTyped`/`GetTyped` don't exist                          | `Set(ctx, id, &T{})`/`Get(ctx, id)`                |
+| 10 | `storage/pebble` | `WithSyncWrites()` wrong name                              | `WithKVSyncWrites()`                               |
+| 11 | `storage/pebble` | KV calls missing ctx + manual wiring wrong                 | Fixed both                                         |
+| 12 | `stack`          | `EventBus()`, `Repository()`, `AsProjection()` don't exist | Fixed to actual API                                |
+| 13 | `stack/sqlite`   | `WithJournalMode`/`WithBusyTimeout` don't exist            | `WithOptimizations`/`WithForeignKeys`              |
+| 14 | `stack/pebble`   | `DefaultOptionsWithLogging` wrong package                  | Import from `storage/pebble`                       |
+| 15 | `stack/postgres` | `NewPgxListenerFromDSN` missing ctx                        | Added `ctx` parameter                              |
+| 16 | `transport/grpc` | Command service doesn't accept options                     | Query-only codec example                           |
+| 17 | `eventtest`      | `SaveFn` signature wrong                                   | Fixed to actual `event.SaveFunc`                   |
+| 18 | `retry`          | Missing `"log"` import                                     | Added                                              |
+| 19 | `dedup`          | Missing `"fmt"` import                                     | Added                                              |
 
 ### Cross-File Cleanup
 

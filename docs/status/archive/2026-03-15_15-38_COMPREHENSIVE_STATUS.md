@@ -212,48 +212,48 @@ The LSP (gopls) reports errors for files that were deleted in this session:
 
 ### Tier 1: Critical for v1.0 (Do First)
 
-| #   | Task                                 | Impact | Effort | Why                            |
-| --- | ------------------------------------ | ------ | ------ | ------------------------------ |
-| 1   | Push commit to origin                | HIGH   | 1min   | Code is ready, just needs push |
-| 2   | Create .github/workflows/test.yml    | HIGH   | 5min   | Prevent regressions            |
-| 3   | Create .github/workflows/lint.yml    | HIGH   | 5min   | Code quality enforcement       |
-| 4   | Add aggregate Repository interface   | HIGH   | 10min  | Complete Phase 1.2.2           |
-| 5   | Create example/user/ working example | HIGH   | 45min  | User onboarding                |
+| # | Task                                 | Impact | Effort | Why                            |
+| - | ------------------------------------ | ------ | ------ | ------------------------------ |
+| 1 | Push commit to origin                | HIGH   | 1min   | Code is ready, just needs push |
+| 2 | Create .github/workflows/test.yml    | HIGH   | 5min   | Prevent regressions            |
+| 3 | Create .github/workflows/lint.yml    | HIGH   | 5min   | Code quality enforcement       |
+| 4 | Add aggregate Repository interface   | HIGH   | 10min  | Complete Phase 1.2.2           |
+| 5 | Create example/user/ working example | HIGH   | 45min  | User onboarding                |
 
 ### Tier 2: Important for Production (Do Soon)
 
-| #   | Task                            | Impact | Effort | Why                      |
-| --- | ------------------------------- | ------ | ------ | ------------------------ |
-| 6   | Improve aggregate tests to 80%+ | MEDIUM | 15min  | Quality assurance        |
-| 7   | Add integration tests           | MEDIUM | 30min  | Catch cross-package bugs |
-| 8   | Create middleware/logging.go    | MEDIUM | 10min  | Production observability |
-| 9   | Create middleware/recovery.go   | MEDIUM | 10min  | Production stability     |
-| 10  | Update README API reference     | MEDIUM | 15min  | Accurate documentation   |
+| #  | Task                            | Impact | Effort | Why                      |
+| -- | ------------------------------- | ------ | ------ | ------------------------ |
+| 6  | Improve aggregate tests to 80%+ | MEDIUM | 15min  | Quality assurance        |
+| 7  | Add integration tests           | MEDIUM | 30min  | Catch cross-package bugs |
+| 8  | Create middleware/logging.go    | MEDIUM | 10min  | Production observability |
+| 9  | Create middleware/recovery.go   | MEDIUM | 10min  | Production stability     |
+| 10 | Update README API reference     | MEDIUM | 15min  | Accurate documentation   |
 
 ### Tier 3: Nice to Have (Do Eventually)
 
-| #   | Task                            | Impact | Effort | Why                     |
-| --- | ------------------------------- | ------ | ------ | ----------------------- |
-| 11  | Create Makefile                 | LOW    | 8min   | Developer convenience   |
-| 12  | Create .golangci.yml            | LOW    | 5min   | Consistent linting      |
-| 13  | Add GoDoc to all exports        | LOW    | 15min  | godoc.org display       |
-| 14  | Create middleware/validation.go | LOW    | 10min  | Input validation        |
-| 15  | Create middleware/retry.go      | LOW    | 12min  | Resilience              |
-| 16  | Create middleware/metrics.go    | LOW    | 12min  | Observability           |
-| 17  | Add badges to README            | LOW    | 3min   | Professional appearance |
-| 18  | Create CODE_OF_CONDUCT.md       | LOW    | 3min   | Community standards     |
-| 19  | Create CONTRIBUTING.md          | LOW    | 8min   | Contribution process    |
-| 20  | Create docs/architecture.md     | LOW    | 12min  | Design documentation    |
+| #  | Task                            | Impact | Effort | Why                     |
+| -- | ------------------------------- | ------ | ------ | ----------------------- |
+| 11 | Create Makefile                 | LOW    | 8min   | Developer convenience   |
+| 12 | Create .golangci.yml            | LOW    | 5min   | Consistent linting      |
+| 13 | Add GoDoc to all exports        | LOW    | 15min  | godoc.org display       |
+| 14 | Create middleware/validation.go | LOW    | 10min  | Input validation        |
+| 15 | Create middleware/retry.go      | LOW    | 12min  | Resilience              |
+| 16 | Create middleware/metrics.go    | LOW    | 12min  | Observability           |
+| 17 | Add badges to README            | LOW    | 3min   | Professional appearance |
+| 18 | Create CODE_OF_CONDUCT.md       | LOW    | 3min   | Community standards     |
+| 19 | Create CONTRIBUTING.md          | LOW    | 8min   | Contribution process    |
+| 20 | Create docs/architecture.md     | LOW    | 12min  | Design documentation    |
 
 ### Tier 4: Future Enhancements (Defer)
 
-| #   | Task                           | Impact | Effort | Why                      |
-| --- | ------------------------------ | ------ | ------ | ------------------------ |
-| 21  | Add Snapshot support           | LOW    | 20min  | Performance optimization |
-| 22  | PostgreSQL event store adapter | LOW    | 2h+    | Persistence option       |
-| 23  | SQLite event store adapter     | LOW    | 2h+    | Persistence option       |
-| 24  | Redis event bus adapter        | LOW    | 2h+    | Distributed systems      |
-| 25  | NATS event bus adapter         | LOW    | 2h+    | Event streaming          |
+| #  | Task                           | Impact | Effort | Why                      |
+| -- | ------------------------------ | ------ | ------ | ------------------------ |
+| 21 | Add Snapshot support           | LOW    | 20min  | Performance optimization |
+| 22 | PostgreSQL event store adapter | LOW    | 2h+    | Persistence option       |
+| 23 | SQLite event store adapter     | LOW    | 2h+    | Persistence option       |
+| 24 | Redis event bus adapter        | LOW    | 2h+    | Distributed systems      |
+| 25 | NATS event bus adapter         | LOW    | 2h+    | Event streaming          |
 
 ---
 

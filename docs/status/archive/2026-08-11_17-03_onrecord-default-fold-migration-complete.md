@@ -12,14 +12,14 @@
 
 ### M2 core: OnRecord is now the default fold constructor (committed)
 
-| Item | Evidence | Scope |
-| --- | --- | --- |
-| **metaengine test migration (27 fold calls)** | `166b6e384` | 8 test files: `boundary_keys_test.go`, `exhaustiveness_test.go`, `memory_versioned_test.go`, `features_test.go`, `features2_test.go`, `features4_test.go`, `watcher_typesafe_test.go`, `spike_batch_atomicity_test.go` — all `On(`/`OnTyped(` rewritten to `OnRecord(`/`OnRecordTyped(` with `_ record.Record` first param |
+| Item                                          | Evidence    | Scope                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| --------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **metaengine test migration (27 fold calls)** | `166b6e384` | 8 test files: `boundary_keys_test.go`, `exhaustiveness_test.go`, `memory_versioned_test.go`, `features_test.go`, `features2_test.go`, `features4_test.go`, `watcher_typesafe_test.go`, `spike_batch_atomicity_test.go` — all `On(`/`OnTyped(` rewritten to `OnRecord(`/`OnRecordTyped(` with `_ record.Record` first param                                                                                                    |
 | **cwrs-lint detector fix (THE critical one)** | `166b6e384` | F019/F021 detectors only matched `On`/`OnTyped` by name → a consumer migrating to `OnRecordTyped` would silently lose write-amplification + missing-volume-hint detection. Added `isFoldConstructor()` helper (`helpers.go:39`) and wired all 4 names into F019 (`f018_f019.go:70`), F021 per-query + fallback (`f020_f021.go`), migrated 20 fixtures (`f018_f021_test.go`), F025 suggestion string (`f023_f024_f025.go:128`) |
-| **Go doc comments / godoc** | `771b9f346` | `auto_fold.go`, `fold.go`, `query.go`, `types.go`, `projectionadapter/typed_decoder.go` — examples now show `OnRecord(...)` with `_ record.Record`; `On`/`OnTyped` carry `Deprecated:` godoc (fold.go:270, 283) |
-| **Living markdown docs (~60 call sites)** | `771b9f346` | `recipes.md`, `metaengine/{README,COOKBOOK,MIGRATION}.md`, `dgraphengine/README.md`, `docs/MIGRATION-kv-to-metaengine.md`, `docs/planning/event-query-model.md` (25 sites incl. stale `metaengine.Metadata` examples rewritten to `rec.MetaData`), `docs/planning/meta-engine-layered-architecture.md`, `docs/design/v5-consumer-api.md`, `docs/migration/tombstone-to-domain-events.md`, ADRs 0082/0085/0092 |
-| **Deprecation guard tests** | `64a367ef2` | `on_test.go` — 3 new specs proving deprecated `On`/`OnTyped` still classify insert/typed/remove folds during the transition |
-| **TODO_LIST.md** | `771b9f346` | Phase 5 M2 item marked `[x] DONE 2026-08-11` |
+| **Go doc comments / godoc**                   | `771b9f346` | `auto_fold.go`, `fold.go`, `query.go`, `types.go`, `projectionadapter/typed_decoder.go` — examples now show `OnRecord(...)` with `_ record.Record`; `On`/`OnTyped` carry `Deprecated:` godoc (fold.go:270, 283)                                                                                                                                                                                                               |
+| **Living markdown docs (~60 call sites)**     | `771b9f346` | `recipes.md`, `metaengine/{README,COOKBOOK,MIGRATION}.md`, `dgraphengine/README.md`, `docs/MIGRATION-kv-to-metaengine.md`, `docs/planning/event-query-model.md` (25 sites incl. stale `metaengine.Metadata` examples rewritten to `rec.MetaData`), `docs/planning/meta-engine-layered-architecture.md`, `docs/design/v5-consumer-api.md`, `docs/migration/tombstone-to-domain-events.md`, ADRs 0082/0085/0092                 |
+| **Deprecation guard tests**                   | `64a367ef2` | `on_test.go` — 3 new specs proving deprecated `On`/`OnTyped` still classify insert/typed/remove folds during the transition                                                                                                                                                                                                                                                                                                   |
+| **TODO_LIST.md**                              | `771b9f346` | Phase 5 M2 item marked `[x] DONE 2026-08-11`                                                                                                                                                                                                                                                                                                                                                                                  |
 
 ### Verification gates (all pass)
 
@@ -55,11 +55,11 @@
 
 ### Phase 6: Auto-Projection (the killer feature) — verbatim from TODO_LIST.md
 
-| Task | Why not started | Priority |
-| --- | --- | --- |
-| **Run `nix run .#verify` for fold inference** — fix `nix fmt`, line-count (`query.go` > 350), lint, arch, dedup, coverage, race | Deprioritized — M2 took this session | HIGH (blocks Infer() gating) |
-| **Fold inference override API** — consumer overrides an explicit `OnRecord` fold per event/query pair; replaces (not supplements) generated fold | Designed (see archived status report b) but the type-switch-ordering bug made it non-functional; never re-fixed | HIGH |
-| **Fold inference gaps** — `[]Struct` fields, `InferFromNamedEvents()`, sort inference, composite keys, filter ops beyond `FilterEq` | Not started | MEDIUM |
+| Task                                                                                                                                             | Why not started                                                                                                 | Priority                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| **Run `nix run .#verify` for fold inference** — fix `nix fmt`, line-count (`query.go` > 350), lint, arch, dedup, coverage, race                  | Deprioritized — M2 took this session                                                                            | HIGH (blocks Infer() gating) |
+| **Fold inference override API** — consumer overrides an explicit `OnRecord` fold per event/query pair; replaces (not supplements) generated fold | Designed (see archived status report b) but the type-switch-ordering bug made it non-functional; never re-fixed | HIGH                         |
+| **Fold inference gaps** — `[]Struct` fields, `InferFromNamedEvents()`, sort inference, composite keys, filter ops beyond `FilterEq`              | Not started                                                                                                     | MEDIUM                       |
 
 ### Other TODO_LIST phases (context, not touched this session)
 
@@ -73,12 +73,12 @@ Phase 7+ (scheduling, encryption polish, transport hardening), M13 calibration b
 
 **The honest truth: these were failing on clean HEAD before I touched anything. I verified this with `git stash` → test → `git stash pop`.**
 
-| Spec | File:Line |
-| --- | --- |
-| Re-layout trigger (ADR-0124 §11) ReplanLayout — "returns empty diffs when priority matches current layout (Balanced/Embed)" | `relayout_test.go:49` |
-| Re-layout trigger (ADR-0124 §11) ReplanLayout — "returns empty diffs with nil priority config" | `relayout_test.go:103` |
-| Layout planning follow-ups (ADR-0124 Phase 6b) SetPriority — "changes the resolved layout in GetLayoutInfo" | `layout_followup_test.go:72` |
-| Layout planning follow-ups LayoutWarnings — "emits no warnings when Embed is selected (Balanced on KV)" | `layout_followup_test.go:103` |
+| Spec                                                                                                                        | File:Line                     |
+| --------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| Re-layout trigger (ADR-0124 §11) ReplanLayout — "returns empty diffs when priority matches current layout (Balanced/Embed)" | `relayout_test.go:49`         |
+| Re-layout trigger (ADR-0124 §11) ReplanLayout — "returns empty diffs with nil priority config"                              | `relayout_test.go:103`        |
+| Layout planning follow-ups (ADR-0124 Phase 6b) SetPriority — "changes the resolved layout in GetLayoutInfo"                 | `layout_followup_test.go:72`  |
+| Layout planning follow-ups LayoutWarnings — "emits no warnings when Embed is selected (Balanced on KV)"                     | `layout_followup_test.go:103` |
 | Layout planning follow-ups End-to-end layout migration — "plans, applies, re-plans layout, confirms rebuild, verifies data" | `layout_followup_test.go:512` |
 
 - **Severity:** Blocks the metaengine module from being GREEN. Not blocking development (memory, system, stack all pass), but no `nix run .#verify` can succeed with these.
@@ -111,30 +111,35 @@ Phase 7+ (scheduling, encryption polish, transport hardening), M13 calibration b
 ## f) Up to 50 things we should get done next
 
 ### Immediate (block everything)
+
 1. **Investigate and fix the 5 layout-test failures** (`relayout_test.go`, `layout_followup_test.go`) — compare against ADR-0124 + `cda48b41d` (KV/LSM re-score). This is THE blocker for a GREEN metaengine.
 2. **Run `nix run .#verify`** end-to-end once #1 lands — closes the "verification deferred" loop from the commit message.
 3. **Audit `event-query-model.md` metadata examples** — `rec.MetaData.Timestamp` doesn't exist on `record.CommonMetadata`; fix or mark aspirational. (Docs-health VERIFY mode.)
 4. **Re-run `cd cmd/api-stability && GOWORK=off go run main.go -update`** — verify golden was regenerated after the doc-comment changes (I ran the check; it passed with 4093 exports, but confirm no silent drift).
 
 ### Deprecation / migration completeness
+
 5. **Add a `metaengine/deprecated_test.go`** that asserts `On`/`OnTyped` panics say "Deprecated" or at least reference `OnRecord`, so the transition message surfaces to consumers.
 6. **Write the v5 migration checklist item**: "remove `On`/`OnTyped` + their `onFold`/`verifyEventParam` internals + delete the 3 deprecation-guard specs." Put a date/issue tracker entry on it.
 7. **Consider SA1019-lint exclusion re-addition** for `On`/`OnTyped` call sites in examples that intentionally demonstrate the legacy path (currently any consumer demo hits lint noise).
 8. **grep the whole repo for `metaengine\.On\(` in `.go` files once more after #verify** to confirm zero non-doc references (I found only fold.go error strings + doc comments; verify nothing regressed).
 
 ### Engineering de-risking (from archived report learnings)
+
 9. **Save the fold-migration AST tool to `scripts/` or `cmd/migrate-onrecord/`** — the archived report flagged it as lost. Future API migrations (v5 deletions) will need it again.
 10. **Add a parity test** `onFold`-vs-`onRecordFold` that iterates all 9 fold kinds and asserts both classify identically (prevents the classification-drift class of bug).
 11. **Add a structural guard** (comment or test) that `isFoldConstructor()` in cwrs-lint stays in sync when new fold constructors are added.
 12. **Consider centralizing fold-constructor name lists** (metaengine source-of-truth exported, cwrs-lint imports it) instead of duplicate switch statements.
 
 ### Phase 6 (auto-projection killer feature)
+
 13. **Fix the override API type-switch ordering** — `case overrideFold:` must precede `case Fold:` in `query.go` (the bug the 2026-08-11 05:48 archived report identified as a 2-min fix but never landed).
 14. **Run `nix run .#verify` for fold inference** — fix `nix fmt`, `query.go` line-count (>350 limit), lint, arch, dedup, coverage, race. (TODO_LIST Phase 6 item 1.)
 15. **Fold inference override API** — `Infer(samples..., overrides...)` variadic design (cleaner than the wrapper type; the archived report's suggestion #6).
 16. **Fold inference gaps** — `[]Struct` fields in event types, `InferFromNamedEvents()`, sort inference, composite keys, filter ops beyond `FilterEq`.
 
 ### Metaengine strategic
+
 17. **M13: Run calibration benchmarks** vs baseline after the KV/LSM re-score.
 18. **M17: Add bbolt persistence/restart_safety/disk_backed tests** (match pebbleengine coverage).
 19. **M18: Wire pgtestcontainer per-test-database isolation** for PG engine integration tests.
@@ -144,6 +149,7 @@ Phase 7+ (scheduling, encryption polish, transport hardening), M13 calibration b
 23. **M22: Redis Streams + NATS JetStream roundtrip tests** (ES transport integration).
 
 ### Doc/health debt
+
 24. **Update CHANGELOG.md** with the OnRecord migration (session changes).
 25. **Run docs-health VERIFY mode** on the fold-related skill references (`recipes.md`, `core.md`, `modules.md`) to catch any drifted examples.
 26. **Annotate the archived 2026-08-11_05-48 status report** — M2 is now DONE, mark it (docs-health ANNOTATE, appendix-only).
@@ -151,6 +157,7 @@ Phase 7+ (scheduling, encryption polish, transport hardening), M13 calibration b
 28. **Update `.agents/skills/` session-milestones doc** (`docs/sessions/SESSION_MILESTONES.md`) with this session's outcome.
 
 ### Release readiness
+
 29. **Record v4 tag for record-aware fold API** (M6) — check `git tag -l 'record/v4*'`, tag via `scripts/tag-release.sh`.
 30. **Vulncheck pass** (`nix run .#vulncheck`) — per-module standalone build catches version-sequence breaks.
 31. **`nix run .#check-arch`** — dependency budget enforcement after any go.mod churn.
@@ -158,6 +165,7 @@ Phase 7+ (scheduling, encryption polish, transport hardening), M13 calibration b
 33. **`nix run .#check-duplication`** — no-new-clones gate after the fold.go doc edits.
 
 ### Housekeeping / polish
+
 34. **Verify `go.work` still lists all 79 modules** after any treefmt churn.
 35. **Run `nix fmt`** on the whole repo once (the daemon may have formatted incrementally; a full pass confirms canonical state).
 36. **Confirm example builds in CI** — `example/taskmanager` uses `OnRecordTyped` fully; ensure the ci.yml GOWORK=off per-module path compiles it.
@@ -166,6 +174,7 @@ Phase 7+ (scheduling, encryption polish, transport hardening), M13 calibration b
 39. **Reconcile `docs/status/2026-08-11_16-17_docs-health-pareto-plan-execution.md`** (untracked at session start) — determine if its checklist items are now stale given M2 landed.
 
 ### Long-horizon (ROADMAP fuel — not commitments)
+
 40. **v5 consumer-api design doc review** — the migrated `event-query-model.md` metadata examples are aspirational; align with actual `record.CommonMetadata`.
 41. **Explore `_ record.Record` ergonomics** — could a variadic/generic sugar remove the `_` boilerplate on the 90% of folds that ignore the record?
 42. **Consider record-first fold default in codegen** — `cmd/cqrs-gen` typed handler registration should emit `OnRecordTyped(...)` signatures.

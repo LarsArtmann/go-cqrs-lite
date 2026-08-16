@@ -1,6 +1,6 @@
 # Comprehensive Status Report — go-cqrs-lite
 
-**Date:** 2026-06-10 03:28  
+**Date:** 2026-06-10 03:28\
 **Session:** Full Audit — code-quality-scan, full-code-review, architecture-review, architecture-visualization, docs-freshness-check, naming-review, improve-codebase-architecture, go-modularize, features-audit, todo-list-builder
 
 ---
@@ -103,33 +103,33 @@ event ← snapshot ← memory (production: memory implements snapshot interfaces
 
 Sorted by: **Impact × (1 / Work)** — highest first.
 
-| #   | Task                                                                           | Impact | Work  | Score      | Module                     |
-| --- | ------------------------------------------------------------------------------ | ------ | ----- | ---------- | -------------------------- |
-| 1   | **Fix README.md broken badges** (ci.yml, Go Reference)                         | HIGH   | 15min | ⭐⭐⭐⭐⭐ | README                     |
-| 2   | **Remove command error re-exports** (dead API surface, ~60 lines)              | HIGH   | 30min | ⭐⭐⭐⭐⭐ | command                    |
-| 3   | **Rename `WithNewCodec` → `WithCodec`** (misleading name)                      | MED    | 10min | ⭐⭐⭐⭐   | event                      |
-| 4   | **Rename `ErrNilBus` → `ErrNilPublisher`** (lying name)                        | MED    | 15min | ⭐⭐⭐⭐   | decider, projection        |
-| 5   | **Add `IsReplay(ctx) bool` getter** (write-only context value)                 | MED    | 15min | ⭐⭐⭐⭐   | event                      |
-| 6   | **Make `dispatcher.Lifecycle` unexported** (exposes mutex)                     | HIGH   | 30min | ⭐⭐⭐⭐   | dispatcher                 |
-| 7   | **Fix AggregateProjection hardcoded `?` placeholders** (Postgres incompatible) | HIGH   | 30min | ⭐⭐⭐⭐   | storage                    |
-| 8   | **Remove `StreamKey` free function** (duplicates method)                       | LOW    | 10min | ⭐⭐⭐     | event                      |
-| 9   | **Remove `Map`/`ScanState`/`Tap` reactive wrappers** (dead public API)         | LOW    | 15min | ⭐⭐⭐     | event                      |
-| 10  | **Consolidate `listRefsFromStatus` into listing/**                             | MED    | 30min | ⭐⭐⭐     | listing, storage           |
-| 11  | **Extract `sql.QueryEngine[T]`** (eliminate ~300 lines duplication)            | HIGH   | 2hr   | ⭐⭐⭐     | storage                    |
-| 12  | **Move HTTP code from middleware/** (SSE, healthcheck, metrics_http)           | MED    | 1hr   | ⭐⭐⭐     | middleware                 |
-| 13  | **Extract eventtest as separate module** (isolate test deps from event)        | HIGH   | 2hr   | ⭐⭐⭐     | event                      |
-| 14  | **Add metadata to query.BasicQuery** (tracing support)                         | MED    | 1hr   | ⭐⭐       | query                      |
-| 15  | **Fix README.md import paths** (add /v2 suffix)                                | MED    | 30min | ⭐⭐       | README                     |
-| 16  | **Fix pebble unbounded lock map** (memory leak in long-running)                | MED    | 1hr   | ⭐⭐       | pebble                     |
-| 17  | **Fix projection Runner.Close() graceful shutdown**                            | MED    | 1hr   | ⭐⭐       | projection                 |
-| 18  | **Unify `ErrDispatcherClosed` across packages** (ADR-0011 exists)              | HIGH   | 2hr   | ⭐⭐       | dispatcher, command, query |
-| 19  | **Fix `decider/load.go` double-wrapping** (fmt.Errorf + event.Wrap)            | MED    | 30min | ⭐⭐       | decider                    |
-| 20  | **Clean test deps from production go.mod** (12 modules)                        | MED    | 3hr   | ⭐⭐       | 12 modules                 |
-| 21  | **Implement ADR-0010** (remove io.Closer from interfaces)                      | HIGH   | 4hr   | ⭐⭐       | event, snapshot, command   |
-| 22  | **Fix `command.Metadata` split-brain** (type alias of event.Metadata)          | MED    | 2hr   | ⭐         | command                    |
-| 23  | **Add pebble Journal/SeekableJournal** (feature gap vs Memory/SQL)             | MED    | 3hr   | ⭐         | pebble                     |
-| 24  | **Fix `NewMetadata()` no-op** (returns zero-value, Custom map is nil)          | LOW    | 15min | ⭐         | event                      |
-| 25  | **Add PostgreSQL integration tests for storage** (currently go-sqlmock only)   | HIGH   | 4hr   | ⭐         | storage                    |
+| #  | Task                                                                           | Impact | Work  | Score      | Module                     |
+| -- | ------------------------------------------------------------------------------ | ------ | ----- | ---------- | -------------------------- |
+| 1  | **Fix README.md broken badges** (ci.yml, Go Reference)                         | HIGH   | 15min | ⭐⭐⭐⭐⭐ | README                     |
+| 2  | **Remove command error re-exports** (dead API surface, ~60 lines)              | HIGH   | 30min | ⭐⭐⭐⭐⭐ | command                    |
+| 3  | **Rename `WithNewCodec` → `WithCodec`** (misleading name)                      | MED    | 10min | ⭐⭐⭐⭐   | event                      |
+| 4  | **Rename `ErrNilBus` → `ErrNilPublisher`** (lying name)                        | MED    | 15min | ⭐⭐⭐⭐   | decider, projection        |
+| 5  | **Add `IsReplay(ctx) bool` getter** (write-only context value)                 | MED    | 15min | ⭐⭐⭐⭐   | event                      |
+| 6  | **Make `dispatcher.Lifecycle` unexported** (exposes mutex)                     | HIGH   | 30min | ⭐⭐⭐⭐   | dispatcher                 |
+| 7  | **Fix AggregateProjection hardcoded `?` placeholders** (Postgres incompatible) | HIGH   | 30min | ⭐⭐⭐⭐   | storage                    |
+| 8  | **Remove `StreamKey` free function** (duplicates method)                       | LOW    | 10min | ⭐⭐⭐     | event                      |
+| 9  | **Remove `Map`/`ScanState`/`Tap` reactive wrappers** (dead public API)         | LOW    | 15min | ⭐⭐⭐     | event                      |
+| 10 | **Consolidate `listRefsFromStatus` into listing/**                             | MED    | 30min | ⭐⭐⭐     | listing, storage           |
+| 11 | **Extract `sql.QueryEngine[T]`** (eliminate ~300 lines duplication)            | HIGH   | 2hr   | ⭐⭐⭐     | storage                    |
+| 12 | **Move HTTP code from middleware/** (SSE, healthcheck, metrics_http)           | MED    | 1hr   | ⭐⭐⭐     | middleware                 |
+| 13 | **Extract eventtest as separate module** (isolate test deps from event)        | HIGH   | 2hr   | ⭐⭐⭐     | event                      |
+| 14 | **Add metadata to query.BasicQuery** (tracing support)                         | MED    | 1hr   | ⭐⭐       | query                      |
+| 15 | **Fix README.md import paths** (add /v2 suffix)                                | MED    | 30min | ⭐⭐       | README                     |
+| 16 | **Fix pebble unbounded lock map** (memory leak in long-running)                | MED    | 1hr   | ⭐⭐       | pebble                     |
+| 17 | **Fix projection Runner.Close() graceful shutdown**                            | MED    | 1hr   | ⭐⭐       | projection                 |
+| 18 | **Unify `ErrDispatcherClosed` across packages** (ADR-0011 exists)              | HIGH   | 2hr   | ⭐⭐       | dispatcher, command, query |
+| 19 | **Fix `decider/load.go` double-wrapping** (fmt.Errorf + event.Wrap)            | MED    | 30min | ⭐⭐       | decider                    |
+| 20 | **Clean test deps from production go.mod** (12 modules)                        | MED    | 3hr   | ⭐⭐       | 12 modules                 |
+| 21 | **Implement ADR-0010** (remove io.Closer from interfaces)                      | HIGH   | 4hr   | ⭐⭐       | event, snapshot, command   |
+| 22 | **Fix `command.Metadata` split-brain** (type alias of event.Metadata)          | MED    | 2hr   | ⭐         | command                    |
+| 23 | **Add pebble Journal/SeekableJournal** (feature gap vs Memory/SQL)             | MED    | 3hr   | ⭐         | pebble                     |
+| 24 | **Fix `NewMetadata()` no-op** (returns zero-value, Custom map is nil)          | LOW    | 15min | ⭐         | event                      |
+| 25 | **Add PostgreSQL integration tests for storage** (currently go-sqlmock only)   | HIGH   | 4hr   | ⭐         | storage                    |
 
 ## g) Top #1 Question I Can NOT Figure Out Myself
 

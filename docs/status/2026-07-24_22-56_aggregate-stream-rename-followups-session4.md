@@ -282,7 +282,7 @@ ADRs are immutable decision records. ADR-0001 references `AggregateRef` and `cor
 | Historical docs annotated       | 2 files    | ✅ Done              |
 | Module READMEs remaining        | ~19 files  | ❌ Not started (P0)  |
 | Living docs remaining           | ~18 files  | ❌ Not started (P1)  |
-| AGGREGATE-CONCEPT-ANALYSIS body | 1 file     | ⚠️ Half-done (P2)    |
+| AGGREGATE-CONCEPT-ANALYSIS body | 1 file     | ⚠️ Half-done (P2)     |
 | Historical docs to annotate     | ~60+ files | ❌ Not started (P3)  |
 | Test files to verify            | ~20 files  | ❌ Not verified (P4) |
 

@@ -97,33 +97,33 @@ These are genuinely functional with compile-time assertions and tests.
 
 ### Design decisions with zero implementation
 
-| #   | Decision/Feature                                                  | Design ref  | Status                                                 |
-| --- | ----------------------------------------------------------------- | ----------- | ------------------------------------------------------ |
-| 1   | `StreamReadAsOf` / `StreamReadAsOfVersion` on StreamLogBackend    | §5.6, §10.1 | Zero matches in entire codebase                        |
-| 2   | `SnapshotBackend` in metaengine (engines implement it)            | D12         | Only in `system/snapshot.go`. No engine implements it. |
-| 3   | `PlanDiff(prev, current)` engine                                  | §9.5        | Not started                                            |
-| 4   | `PlanFingerprint(plan)` canonical hash                            | §9.5        | Not started                                            |
-| 5   | `Manifest` type (pinned golden plan persistence)                  | §9.3        | Not started                                            |
-| 6   | `SCREAM` severity level on Diagnostics                            | §9.4        | Not started (only WARN+OVERRIDE + ADVISORY used)       |
-| 7   | Cross-deploy comparison (prior plan awareness)                    | §9.4        | Not started                                            |
-| 8   | HTTP admin runtime config (hot-reload + graceful restart)         | §7.3        | Not started                                            |
-| 9   | koanf integration (YAML + env merge)                              | §4.7, §7.2  | Not started (stub)                                     |
-| 10  | Bus driver registrations (gochannel, nats, redis)                 | §7.5        | Not started (registry empty)                           |
-| 11  | Pebble StreamLogBackend implementation                            | §10.1       | Not started (0 of 5 methods)                           |
-| 12  | DuckDB StreamLogBackend implementation                            | §10.1       | Not started (0 of 5 methods)                           |
-| 13  | Postgres StreamLogBackend implementation                          | §10.1       | Not started (0 of 5 methods)                           |
-| 14  | Iroh StreamLogBackend implementation                              | §10.1       | Not started (0 of 5 methods)                           |
-| 15  | samber/do DI scopes (per-instance lifecycle isolation)            | §3.7, §10.5 | Not started                                            |
-| 16  | `EngineProfile.NativeTemporal` flag                               | §5.6        | Not started                                            |
-| 17  | Planner auto-detection of temporal query intent (AsOf field)      | §5.6        | Not started                                            |
-| 18  | `ExecuteAsOf` on SQLite, Postgres, DuckDB, Pebble engines         | §5.6        | Memory-only                                            |
-| 19  | System.Verify() method (cross-scope consistency)                  | §8.3        | Not started                                            |
-| 20  | System.Plan() method (combined plan across instances)             | §8.3        | Not started                                            |
-| 21  | System.Explain() method (human-readable explanation)              | §8.3        | Placeholder only                                       |
-| 22  | Projection E2E test (command → host.Start → projection updated)   | —           | Not started                                            |
-| 23  | SQLite-through-System integration test                            | —           | Not started                                            |
-| 24  | Codec defaults (CBOR default in system)                           | §10.8       | Not started                                            |
-| 25  | Named engine sharing (connection pool as samber/do named service) | §10.10      | Not started                                            |
+| #  | Decision/Feature                                                  | Design ref  | Status                                                 |
+| -- | ----------------------------------------------------------------- | ----------- | ------------------------------------------------------ |
+| 1  | `StreamReadAsOf` / `StreamReadAsOfVersion` on StreamLogBackend    | §5.6, §10.1 | Zero matches in entire codebase                        |
+| 2  | `SnapshotBackend` in metaengine (engines implement it)            | D12         | Only in `system/snapshot.go`. No engine implements it. |
+| 3  | `PlanDiff(prev, current)` engine                                  | §9.5        | Not started                                            |
+| 4  | `PlanFingerprint(plan)` canonical hash                            | §9.5        | Not started                                            |
+| 5  | `Manifest` type (pinned golden plan persistence)                  | §9.3        | Not started                                            |
+| 6  | `SCREAM` severity level on Diagnostics                            | §9.4        | Not started (only WARN+OVERRIDE + ADVISORY used)       |
+| 7  | Cross-deploy comparison (prior plan awareness)                    | §9.4        | Not started                                            |
+| 8  | HTTP admin runtime config (hot-reload + graceful restart)         | §7.3        | Not started                                            |
+| 9  | koanf integration (YAML + env merge)                              | §4.7, §7.2  | Not started (stub)                                     |
+| 10 | Bus driver registrations (gochannel, nats, redis)                 | §7.5        | Not started (registry empty)                           |
+| 11 | Pebble StreamLogBackend implementation                            | §10.1       | Not started (0 of 5 methods)                           |
+| 12 | DuckDB StreamLogBackend implementation                            | §10.1       | Not started (0 of 5 methods)                           |
+| 13 | Postgres StreamLogBackend implementation                          | §10.1       | Not started (0 of 5 methods)                           |
+| 14 | Iroh StreamLogBackend implementation                              | §10.1       | Not started (0 of 5 methods)                           |
+| 15 | samber/do DI scopes (per-instance lifecycle isolation)            | §3.7, §10.5 | Not started                                            |
+| 16 | `EngineProfile.NativeTemporal` flag                               | §5.6        | Not started                                            |
+| 17 | Planner auto-detection of temporal query intent (AsOf field)      | §5.6        | Not started                                            |
+| 18 | `ExecuteAsOf` on SQLite, Postgres, DuckDB, Pebble engines         | §5.6        | Memory-only                                            |
+| 19 | System.Verify() method (cross-scope consistency)                  | §8.3        | Not started                                            |
+| 20 | System.Plan() method (combined plan across instances)             | §8.3        | Not started                                            |
+| 21 | System.Explain() method (human-readable explanation)              | §8.3        | Placeholder only                                       |
+| 22 | Projection E2E test (command → host.Start → projection updated)   | —           | Not started                                            |
+| 23 | SQLite-through-System integration test                            | —           | Not started                                            |
+| 24 | Codec defaults (CBOR default in system)                           | §10.8       | Not started                                            |
+| 25 | Named engine sharing (connection pool as samber/do named service) | §10.10      | Not started                                            |
 
 ---
 

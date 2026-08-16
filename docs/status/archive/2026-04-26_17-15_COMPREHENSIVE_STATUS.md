@@ -139,33 +139,33 @@ go build ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/...  �
 
 ## E. TOP #25 THINGS TO GET DONE NEXT
 
-| #   | Item                                                                    | Priority | Effort | Category       |
-| --- | ----------------------------------------------------------------------- | -------- | ------ | -------------- |
-| 1   | Commit id.go/id_test.go bug fixes (MarshalJSON, UnmarshalBinary)        | 🔴 NOW   | 5min   | Bug Fix        |
-| 2   | Fix `NewWithPrefix` — implement prefix or delete function               | 🔴 HIGH  | 30min  | Architecture   |
-| 3   | Publish `go-composable-business-types` or inline ULID logic             | 🔴 HIGH  | 2h     | Infrastructure |
-| 4   | Split `id.go` under 250 lines → `id_encoding.go`                        | 🟡 MED   | 15min  | Code Quality   |
-| 5   | Fix `nilnil` lint in `Value()` properly                                 | 🟡 MED   | 10min  | Lint           |
-| 6   | Replace magic number 16 with `ulidBinarySize` constant                  | 🟡 MED   | 5min   | Lint           |
-| 7   | Fix 6 `golines` formatting issues in test files                         | 🟡 MED   | 15min  | Lint           |
-| 8   | Fix 4 `wsl_v5` formatting issues in id_test.go                          | 🟡 MED   | 10min  | Lint           |
-| 9   | Restore `core/pkg/id` coverage to 85%+                                  | 🟡 MED   | 30min  | Testing        |
-| 10  | Add `EventRetry` tests in middleware                                    | 🟡 MED   | 30min  | Testing        |
-| 11  | Fix `example/user` module (blocked by go-composable-business-types)     | 🟡 MED   | 30min  | Migration      |
-| 12  | Consider `Value()` returning text (26-char) instead of binary (16-byte) | 🟡 MED   | 1h     | Architecture   |
-| 13  | Add `t.Parallel()` to BDD suite tests (3 `paralleltest` issues)         | 🟢 LOW   | 10min  | Lint           |
-| 14  | Delete or implement `event/store_config.go`                             | 🟢 LOW   | 15min  | Cleanup        |
-| 15  | Fix `go.work` version mismatch (1.26 vs 1.26.0)                         | 🟢 LOW   | 5min   | Config         |
-| 16  | Fix `toDotAddress` number handling bug                                  | 🟢 LOW   | 1h     | Bug            |
-| 17  | Add performance benchmarks for event store                              | 🟢 LOW   | 1h     | Performance    |
-| 18  | Phase 5: Storage module (sqlc event store)                              | 🔴 HIGH  | 4-8h   | Migration      |
-| 19  | Phase 6: Watermill module (pub/sub)                                     | 🟡 MED   | 4-8h   | Migration      |
-| 20  | Phase 7: Projection module (samber/ro)                                  | 🟡 MED   | 4-8h   | Migration      |
-| 21  | Phase 8: Snapshot module (SQL-backed)                                   | 🟡 MED   | 4h     | Migration      |
-| 22  | Phase 9: Test utilities module                                          | 🟡 MED   | 2h     | Migration      |
-| 23  | Phase 10: Tag releases                                                  | 🟡 MED   | 1h     | Release        |
-| 24  | Update README with full migration status                                | 🟢 LOW   | 15min  | Docs           |
-| 25  | Add `goimports`/`gofumpt` to CI pipeline                                | 🟢 LOW   | 30min  | CI             |
+| #  | Item                                                                    | Priority | Effort | Category       |
+| -- | ----------------------------------------------------------------------- | -------- | ------ | -------------- |
+| 1  | Commit id.go/id_test.go bug fixes (MarshalJSON, UnmarshalBinary)        | 🔴 NOW   | 5min   | Bug Fix        |
+| 2  | Fix `NewWithPrefix` — implement prefix or delete function               | 🔴 HIGH  | 30min  | Architecture   |
+| 3  | Publish `go-composable-business-types` or inline ULID logic             | 🔴 HIGH  | 2h     | Infrastructure |
+| 4  | Split `id.go` under 250 lines → `id_encoding.go`                        | 🟡 MED   | 15min  | Code Quality   |
+| 5  | Fix `nilnil` lint in `Value()` properly                                 | 🟡 MED   | 10min  | Lint           |
+| 6  | Replace magic number 16 with `ulidBinarySize` constant                  | 🟡 MED   | 5min   | Lint           |
+| 7  | Fix 6 `golines` formatting issues in test files                         | 🟡 MED   | 15min  | Lint           |
+| 8  | Fix 4 `wsl_v5` formatting issues in id_test.go                          | 🟡 MED   | 10min  | Lint           |
+| 9  | Restore `core/pkg/id` coverage to 85%+                                  | 🟡 MED   | 30min  | Testing        |
+| 10 | Add `EventRetry` tests in middleware                                    | 🟡 MED   | 30min  | Testing        |
+| 11 | Fix `example/user` module (blocked by go-composable-business-types)     | 🟡 MED   | 30min  | Migration      |
+| 12 | Consider `Value()` returning text (26-char) instead of binary (16-byte) | 🟡 MED   | 1h     | Architecture   |
+| 13 | Add `t.Parallel()` to BDD suite tests (3 `paralleltest` issues)         | 🟢 LOW   | 10min  | Lint           |
+| 14 | Delete or implement `event/store_config.go`                             | 🟢 LOW   | 15min  | Cleanup        |
+| 15 | Fix `go.work` version mismatch (1.26 vs 1.26.0)                         | 🟢 LOW   | 5min   | Config         |
+| 16 | Fix `toDotAddress` number handling bug                                  | 🟢 LOW   | 1h     | Bug            |
+| 17 | Add performance benchmarks for event store                              | 🟢 LOW   | 1h     | Performance    |
+| 18 | Phase 5: Storage module (sqlc event store)                              | 🔴 HIGH  | 4-8h   | Migration      |
+| 19 | Phase 6: Watermill module (pub/sub)                                     | 🟡 MED   | 4-8h   | Migration      |
+| 20 | Phase 7: Projection module (samber/ro)                                  | 🟡 MED   | 4-8h   | Migration      |
+| 21 | Phase 8: Snapshot module (SQL-backed)                                   | 🟡 MED   | 4h     | Migration      |
+| 22 | Phase 9: Test utilities module                                          | 🟡 MED   | 2h     | Migration      |
+| 23 | Phase 10: Tag releases                                                  | 🟡 MED   | 1h     | Release        |
+| 24 | Update README with full migration status                                | 🟢 LOW   | 15min  | Docs           |
+| 25 | Add `goimports`/`gofumpt` to CI pipeline                                | 🟢 LOW   | 30min  | CI             |
 
 ---
 

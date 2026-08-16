@@ -85,16 +85,16 @@
 
 ## D. Totally Fucked Up 🔴 (and what we did about it)
 
-| #   | What happened                                                                     | Impact                                                                                                                                                                | Fix                                                                                               |
-| --- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 1   | **Materialize data corruption bug** (shipped in `98ebd0b3`, fixed in `72538df7`)  | Any DB error (connection drop, decode failure) silently triggered OnCreate, overwriting real data. Tests didn't catch it because fake store only returns ErrNotFound. | Fixed with `errors.Is(err, kv.ErrNotFound)` check. Added test that injects non-ErrNotFound error. |
-| 2   | **Version.Add underflow** (introduced in `c7df1c79`, fixed in `72538df7`)         | `Add(n int)` accepted negatives which silently wrapped to `MaxUint64` after the uint64 change. Latent footgun.                                                        | Changed to `Add(n uint)`. Type system now prevents negative input at compile time.                |
-| 3   | **Dead WithEventDB/WithQueryDB** (shipped in deployer-first, fixed in `dcd350af`) | Options set config fields that `newBundle()` never read. Deployers thought they were getting DB separation; they weren't.                                             | Added `openSecondaryStores()` helper that actually opens separate backends.                       |
-| 4   | **V3_MIGRATION.md lies** (shipped in `382bd875`, fixed in `72538df7`)             | Example didn't compile (`memory.NewMemoryBus()` deleted). Ghost-code lie (`pg_bus` is live).                                                                          | Replaced with working example. Corrected ghost-code table.                                        |
-| 5   | **TransactionID ghost type** (shipped in `02f7eaa8`, deleted in `11056d4a`)       | Type existed with zero consumers. TODO marked it `[x]` done. Pure lie.                                                                                                | Deleted the file. Updated TODO_LIST.md.                                                           |
-| 6   | **Docs wipe** (`f276873a`, restored in `9c544d6f`)                                | 564 docs deleted by directory pattern without verifying staleness.                                                                                                    | All restored. BuildFlow pre-commit hook fixed (was breaking on filenames with spaces).            |
-| 7   | **io.Closer removal attempt** (reverted same session)                             | Would have replaced typed `io.Closer` with `any` + defensive type assertions. Verschlimmbessern.                                                                      | Correctly stopped. ADR-0010 stays Proposed.                                                       |
-| 8   | **readmodel half-applied ADR** (ADR-0032, fixed in `c4d0ffcd`)                    | Destination types created in kv/ but source module not deleted → 6 clone groups of pure duplication.                                                                  | Completed the merge: deleted readmodel/ entirely.                                                 |
+| # | What happened                                                                     | Impact                                                                                                                                                                | Fix                                                                                               |
+| - | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 1 | **Materialize data corruption bug** (shipped in `98ebd0b3`, fixed in `72538df7`)  | Any DB error (connection drop, decode failure) silently triggered OnCreate, overwriting real data. Tests didn't catch it because fake store only returns ErrNotFound. | Fixed with `errors.Is(err, kv.ErrNotFound)` check. Added test that injects non-ErrNotFound error. |
+| 2 | **Version.Add underflow** (introduced in `c7df1c79`, fixed in `72538df7`)         | `Add(n int)` accepted negatives which silently wrapped to `MaxUint64` after the uint64 change. Latent footgun.                                                        | Changed to `Add(n uint)`. Type system now prevents negative input at compile time.                |
+| 3 | **Dead WithEventDB/WithQueryDB** (shipped in deployer-first, fixed in `dcd350af`) | Options set config fields that `newBundle()` never read. Deployers thought they were getting DB separation; they weren't.                                             | Added `openSecondaryStores()` helper that actually opens separate backends.                       |
+| 4 | **V3_MIGRATION.md lies** (shipped in `382bd875`, fixed in `72538df7`)             | Example didn't compile (`memory.NewMemoryBus()` deleted). Ghost-code lie (`pg_bus` is live).                                                                          | Replaced with working example. Corrected ghost-code table.                                        |
+| 5 | **TransactionID ghost type** (shipped in `02f7eaa8`, deleted in `11056d4a`)       | Type existed with zero consumers. TODO marked it `[x]` done. Pure lie.                                                                                                | Deleted the file. Updated TODO_LIST.md.                                                           |
+| 6 | **Docs wipe** (`f276873a`, restored in `9c544d6f`)                                | 564 docs deleted by directory pattern without verifying staleness.                                                                                                    | All restored. BuildFlow pre-commit hook fixed (was breaking on filenames with spaces).            |
+| 7 | **io.Closer removal attempt** (reverted same session)                             | Would have replaced typed `io.Closer` with `any` + defensive type assertions. Verschlimmbessern.                                                                      | Correctly stopped. ADR-0010 stays Proposed.                                                       |
+| 8 | **readmodel half-applied ADR** (ADR-0032, fixed in `c4d0ffcd`)                    | Destination types created in kv/ but source module not deleted → 6 clone groups of pure duplication.                                                                  | Completed the merge: deleted readmodel/ entirely.                                                 |
 
 ---
 
@@ -116,33 +116,33 @@
 
 ## F. Top 25 Things to Get Done Next
 
-| #   | Task                                                                     | Impact    | Effort   | Phase |
-| --- | ------------------------------------------------------------------------ | --------- | -------- | ----- |
-| 1   | **Migrate example/todo to Materialize + Watermill Router**               | Critical  | 30min    | 5     |
-| 2   | **Migrate example/user to Materialize + Watermill Router**               | High      | 25min    | 5     |
-| 3   | **Update cqrs-gen to emit Materialize code**                             | Medium    | 20min    | 5     |
-| 4   | **Remove ProjectionRunner from stack/ accessors + bundle**               | High      | 15min    | 5     |
-| 5   | **Delete projection/ module entirely** (1343 LOC)                        | Critical  | 20min    | 5     |
-| 6   | **command.Metadata own struct** (embeds Tracing, no alias)               | High      | 25min    | 6     |
-| 7   | **query.Metadata own struct** (embeds Tracing, no CausationID)           | High      | 25min    | 6     |
-| 8   | **Update storage scan helpers for new Metadata**                         | High      | 15min    | 6     |
-| 9   | Update FEATURES.md with watermill.EventBus, Materialize, etc.            | Medium    | 15min    | 7     |
-| 10  | Update ROADMAP.md with completed work                                    | Low       | 15min    | 7     |
-| 11  | Fix CBOR fuzz test (duplicate map key -17)                               | Medium    | 30min-2h | —     |
-| 12  | Fix PgxListener race condition (concurrent Close)                        | Medium    | 45min    | —     |
-| 13  | Add rapid property tests for Version arithmetic                          | Medium    | 20min    | —     |
-| 14  | Move indexing advisor to storage/sql/ (Theme F3)                         | Low       | 30min    | —     |
-| 15  | Consider extracting FakeBus to syncbus module                            | Low       | 1h       | —     |
-| 16  | encoding/json/v2 migration                                               | Low       | 2h       | —     |
-| 17  | Event concrete struct (ADR: make Event a struct, remove type-assertions) | High (v3) | 2-3 days | —     |
-| 18  | Decider rename Fold→Apply                                                | Low (v3)  | 1 day    | —     |
-| 19  | SecurityEnvelope typed struct (9 string-key concepts)                    | Medium    | 2h       | —     |
-| 20  | Replace remaining flaky time.Sleep calls (top 10)                        | Medium    | 2h       | —     |
-| 21  | Add stack/contracttest validation for all 4 presets                      | Medium    | 30min    | —     |
-| 22  | Consumer migration test: memory.NewMemoryBus → watermill.EventBus        | Medium    | 1h       | —     |
-| 23  | Consider go-cache/otter for subscriber dedup                             | Low       | 1h       | —     |
-| 24  | Example: watermill.EventBus with NATS backend                            | Low       | 2h       | —     |
-| 25  | v3.0.0 release planning doc (what actually breaks)                       | High      | 1h       | —     |
+| #  | Task                                                                     | Impact    | Effort   | Phase |
+| -- | ------------------------------------------------------------------------ | --------- | -------- | ----- |
+| 1  | **Migrate example/todo to Materialize + Watermill Router**               | Critical  | 30min    | 5     |
+| 2  | **Migrate example/user to Materialize + Watermill Router**               | High      | 25min    | 5     |
+| 3  | **Update cqrs-gen to emit Materialize code**                             | Medium    | 20min    | 5     |
+| 4  | **Remove ProjectionRunner from stack/ accessors + bundle**               | High      | 15min    | 5     |
+| 5  | **Delete projection/ module entirely** (1343 LOC)                        | Critical  | 20min    | 5     |
+| 6  | **command.Metadata own struct** (embeds Tracing, no alias)               | High      | 25min    | 6     |
+| 7  | **query.Metadata own struct** (embeds Tracing, no CausationID)           | High      | 25min    | 6     |
+| 8  | **Update storage scan helpers for new Metadata**                         | High      | 15min    | 6     |
+| 9  | Update FEATURES.md with watermill.EventBus, Materialize, etc.            | Medium    | 15min    | 7     |
+| 10 | Update ROADMAP.md with completed work                                    | Low       | 15min    | 7     |
+| 11 | Fix CBOR fuzz test (duplicate map key -17)                               | Medium    | 30min-2h | —     |
+| 12 | Fix PgxListener race condition (concurrent Close)                        | Medium    | 45min    | —     |
+| 13 | Add rapid property tests for Version arithmetic                          | Medium    | 20min    | —     |
+| 14 | Move indexing advisor to storage/sql/ (Theme F3)                         | Low       | 30min    | —     |
+| 15 | Consider extracting FakeBus to syncbus module                            | Low       | 1h       | —     |
+| 16 | encoding/json/v2 migration                                               | Low       | 2h       | —     |
+| 17 | Event concrete struct (ADR: make Event a struct, remove type-assertions) | High (v3) | 2-3 days | —     |
+| 18 | Decider rename Fold→Apply                                                | Low (v3)  | 1 day    | —     |
+| 19 | SecurityEnvelope typed struct (9 string-key concepts)                    | Medium    | 2h       | —     |
+| 20 | Replace remaining flaky time.Sleep calls (top 10)                        | Medium    | 2h       | —     |
+| 21 | Add stack/contracttest validation for all 4 presets                      | Medium    | 30min    | —     |
+| 22 | Consumer migration test: memory.NewMemoryBus → watermill.EventBus        | Medium    | 1h       | —     |
+| 23 | Consider go-cache/otter for subscriber dedup                             | Low       | 1h       | —     |
+| 24 | Example: watermill.EventBus with NATS backend                            | Low       | 2h       | —     |
+| 25 | v3.0.0 release planning doc (what actually breaks)                       | High      | 1h       | —     |
 
 ---
 

@@ -211,48 +211,48 @@ The new `encryption/` module is in `go.work` but not in `flake.nix` `testModules
 
 ### Immediate (this session or next)
 
-| #   | Task                                           | Impact | Effort | Module      |
-| --- | ---------------------------------------------- | ------ | ------ | ----------- |
-| 1   | Add `testdata/golden/**` to treefmt excludes   | HIGH   | 1 min  | flake.nix   |
-| 2   | Add `encryption` to `testModules` in flake.nix | HIGH   | 2 min  | flake.nix   |
-| 3   | Tag v2.2.1 release with unreleased changes     | HIGH   | 5 min  | git tags    |
-| 4   | Archive old status reports (>Jun 5 → archive/) | MEDIUM | 2 min  | docs/status |
-| 5   | Verify CI workflow matches current flake.nix   | HIGH   | 5 min  | .github     |
-| 6   | Add encryption module README.md                | LOW    | 10 min | encryption/ |
+| # | Task                                           | Impact | Effort | Module      |
+| - | ---------------------------------------------- | ------ | ------ | ----------- |
+| 1 | Add `testdata/golden/**` to treefmt excludes   | HIGH   | 1 min  | flake.nix   |
+| 2 | Add `encryption` to `testModules` in flake.nix | HIGH   | 2 min  | flake.nix   |
+| 3 | Tag v2.2.1 release with unreleased changes     | HIGH   | 5 min  | git tags    |
+| 4 | Archive old status reports (>Jun 5 → archive/) | MEDIUM | 2 min  | docs/status |
+| 5 | Verify CI workflow matches current flake.nix   | HIGH   | 5 min  | .github     |
+| 6 | Add encryption module README.md                | LOW    | 10 min | encryption/ |
 
 ### Short-term (this week)
 
-| #   | Task                                                     | Impact | Effort | Module     |
-| --- | -------------------------------------------------------- | ------ | ------ | ---------- |
-| 7   | Tier A1: `SchemaVersion.Add()` method                    | HIGH   | 5 min  | event      |
-| 8   | Tier A2: `SchemaVersion.Cmp()` method                    | HIGH   | 5 min  | event      |
-| 9   | Tier A3: `Version` JSON marshal/unmarshal                | HIGH   | 10 min | event      |
-| 10  | Tier A4: `SchemaVersion` arithmetic helpers              | MEDIUM | 8 min  | event      |
-| 11  | Tier B1: storage/sql coverage 34%→50%                    | HIGH   | 60 min | storage    |
-| 12  | Tier C1: New method tests for event                      | MEDIUM | 10 min | event      |
-| 13  | Sprint 1 from branching flow: fix gracefulshutdown panic | HIGH   | 15 min | middleware |
-| 14  | Sprint 1: 4 error context loss fixes                     | MEDIUM | 30 min | multiple   |
-| 15  | Sprint 1: 2 strong-id fixes                              | MEDIUM | 15 min | middleware |
+| #  | Task                                                     | Impact | Effort | Module     |
+| -- | -------------------------------------------------------- | ------ | ------ | ---------- |
+| 7  | Tier A1: `SchemaVersion.Add()` method                    | HIGH   | 5 min  | event      |
+| 8  | Tier A2: `SchemaVersion.Cmp()` method                    | HIGH   | 5 min  | event      |
+| 9  | Tier A3: `Version` JSON marshal/unmarshal                | HIGH   | 10 min | event      |
+| 10 | Tier A4: `SchemaVersion` arithmetic helpers              | MEDIUM | 8 min  | event      |
+| 11 | Tier B1: storage/sql coverage 34%→50%                    | HIGH   | 60 min | storage    |
+| 12 | Tier C1: New method tests for event                      | MEDIUM | 10 min | event      |
+| 13 | Sprint 1 from branching flow: fix gracefulshutdown panic | HIGH   | 15 min | middleware |
+| 14 | Sprint 1: 4 error context loss fixes                     | MEDIUM | 30 min | multiple   |
+| 15 | Sprint 1: 2 strong-id fixes                              | MEDIUM | 15 min | middleware |
 
 ### Medium-term (next 2 weeks)
 
-| #   | Task                                              | Impact | Effort | Module     |
-| --- | ------------------------------------------------- | ------ | ------ | ---------- |
-| 16  | Tier B2: otel coverage 73%→85%                    | MEDIUM | 30 min | otel       |
-| 17  | Tier B3: turso coverage 29%→50%                   | MEDIUM | 45 min | turso      |
-| 18  | Tier D1: Docker multi-arch build                  | MEDIUM | 20 min | flake.nix  |
-| 19  | Tier E1: godoc examples for decider               | MEDIUM | 10 min | decider    |
-| 20  | Tier E2: godoc examples for projection            | MEDIUM | 10 min | projection |
-| 21  | Tier E3: godoc examples for signing               | MEDIUM | 10 min | signing    |
-| 22  | Document immutability contract on Event interface | HIGH   | 15 min | event      |
-| 23  | Key management design for encryption module       | HIGH   | 60 min | encryption |
+| #  | Task                                              | Impact | Effort | Module     |
+| -- | ------------------------------------------------- | ------ | ------ | ---------- |
+| 16 | Tier B2: otel coverage 73%→85%                    | MEDIUM | 30 min | otel       |
+| 17 | Tier B3: turso coverage 29%→50%                   | MEDIUM | 45 min | turso      |
+| 18 | Tier D1: Docker multi-arch build                  | MEDIUM | 20 min | flake.nix  |
+| 19 | Tier E1: godoc examples for decider               | MEDIUM | 10 min | decider    |
+| 20 | Tier E2: godoc examples for projection            | MEDIUM | 10 min | projection |
+| 21 | Tier E3: godoc examples for signing               | MEDIUM | 10 min | signing    |
+| 22 | Document immutability contract on Event interface | HIGH   | 15 min | event      |
+| 23 | Key management design for encryption module       | HIGH   | 60 min | encryption |
 
 ### Longer-term
 
-| #   | Task                                                                | Impact    | Effort | Module     |
-| --- | ------------------------------------------------------------------- | --------- | ------ | ---------- |
-| 24  | Encryption key rotation + envelope encryption                       | HIGH      | 4 hr   | encryption |
-| 25  | v3 breaking changes (Store split, TransactionID, io.Closer removal) | VERY HIGH | 12 hr  | core       |
+| #  | Task                                                                | Impact    | Effort | Module     |
+| -- | ------------------------------------------------------------------- | --------- | ------ | ---------- |
+| 24 | Encryption key rotation + envelope encryption                       | HIGH      | 4 hr   | encryption |
+| 25 | v3 breaking changes (Store split, TransactionID, io.Closer removal) | VERY HIGH | 12 hr  | core       |
 
 ---
 

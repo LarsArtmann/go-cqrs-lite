@@ -12,20 +12,21 @@
 
 All 6 feedback documents in `docs/feedback/new/` were read in full, verified against source code, and triaged:
 
-| Document | Verdict | Review Doc |
-| --- | --- | --- |
-| KeyHolderAI cqrs-lint (08-05) | Already fully fixed (prior session) | ✅ Existed |
-| cqrs-htmx cqrs-lint r2 (08-04) | Already fully fixed (prior session) | ✅ Existed |
-| DiscordSync cqrs-lint r2 (08-04) | All issues already fixed in codebase | ✅ Created |
-| DiscordSync read/write census (08-08) | Decisions confirmed; docs completed | ✅ Created |
-| file-renamer circuitbreaker/dlq (08-09) | No modules needed; FAQ exists | ✅ Created |
-| file-renamer TOCTOU race (08-13) | **Real bug — fixed this session** | ✅ Created |
+| Document                                | Verdict                              | Review Doc |
+| --------------------------------------- | ------------------------------------ | ---------- |
+| KeyHolderAI cqrs-lint (08-05)           | Already fully fixed (prior session)  | ✅ Existed |
+| cqrs-htmx cqrs-lint r2 (08-04)          | Already fully fixed (prior session)  | ✅ Existed |
+| DiscordSync cqrs-lint r2 (08-04)        | All issues already fixed in codebase | ✅ Created |
+| DiscordSync read/write census (08-08)   | Decisions confirmed; docs completed  | ✅ Created |
+| file-renamer circuitbreaker/dlq (08-09) | No modules needed; FAQ exists        | ✅ Created |
+| file-renamer TOCTOU race (08-13)        | **Real bug — fixed this session**    | ✅ Created |
 
 ### TOCTOU Race Fix (projectionhost)
 
 **Root cause:** Events published between journal drain and `SubscribeAll` registration were permanently lost with non-blocking subscribers (e.g., `system/v4`'s in-process bus).
 
 **Fix implemented (Option A from feedback):**
+
 - `processLive` now calls `SubscribeAll` first, then runs a catch-up drain
 - `drainCatchUp` reads events from the journal position where the initial drain ended
 - `handleMu` mutex serializes event processing between catch-up drain and live handler callback
@@ -33,6 +34,7 @@ All 6 feedback documents in `docs/feedback/new/` were read in full, verified aga
 - `WorkerLive` moved to after catch-up drain completion
 
 **Tests added:**
+
 - `TestHost_CatchUpDrain_PicksUpEventsPublishedDuringSubscribeWindow` — deterministic race regression test
 - `TestHost_CatchUpDrain_LiveDeliveryWorksAfterCatchUp` — verifies live delivery works post-catch-up
 - Both pass 30 iterations under `-race`
@@ -69,6 +71,7 @@ All 6 feedback documents in `docs/feedback/new/` were read in full, verified aga
 **Result:** Consumers polling `host.Status()` for `WorkerLive` will NEVER see it during operation for blocking subscribers. The original code set `WorkerLive` BEFORE `SubscribeAll`, so it was visible throughout the live phase.
 
 **The fix:** Move `w.setStatus(WorkerLive)` BEFORE `SubscribeAll`. The catch-up drain closes the race regardless of status ordering. Setting WorkerLive before SubscribeAll is honest because:
+
 - For non-blocking subscribers: callback is about to be registered, catch-up drain will close any gap
 - For blocking subscribers: the callback IS being registered (SubscribeAll is blocking while delivering events via callback)
 
@@ -221,7 +224,6 @@ The CatchUpSubscriber uses a fundamentally different architecture (channel-based
 ### 3. The `system/v4` module has pre-existing build errors (`metaengine.Priority`, `metaengine.NamedSample` undefined in standalone build). Should I fix these, or are they known/expected?
 
 These errors prevent `cd system && GOWORK=off go build` from succeeding, but workspace mode (`go build ./system/...`) works fine. The consumer (file-and-image-renamer) imports `system/v4`, so these errors may affect them. I can't tell if this is a known issue from a recent refactor or an actual breakage.
-
 
 ---
 

@@ -18,23 +18,23 @@ Moved `setStatus(WorkerLive)` back before `SubscribeAll` in `processLive`. The c
 
 **Root causes (3 categories):**
 
-| Category | Root Cause | Modules Affected |
-| --- | --- | --- |
-| Version pins | go.mod pinned old tags missing new types | metaengine/enginetest, system, example/taskmanager |
-| Codec extraction | `codec/v4.3.0` lacked type aliases to `go-codec` | benchkit, schema, transport/grpc, transport/http, system |
-| Missing tags | `commandlifecycle`, `commandlifecycle/projections`, `testutil/pgtestcontainer` never tagged | Cascading failures in system, example/taskmanager, metaengine/*engine |
+| Category         | Root Cause                                                                                  | Modules Affected                                                      |
+| ---------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Version pins     | go.mod pinned old tags missing new types                                                    | metaengine/enginetest, system, example/taskmanager                    |
+| Codec extraction | `codec/v4.3.0` lacked type aliases to `go-codec`                                            | benchkit, schema, transport/grpc, transport/http, system              |
+| Missing tags     | `commandlifecycle`, `commandlifecycle/projections`, `testutil/pgtestcontainer` never tagged | Cascading failures in system, example/taskmanager, metaengine/*engine |
 
 **Fix: Created and pushed 7 new module tags:**
 
-| Tag | Purpose |
-| --- | --- |
-| `codec/v4.4.0` | Type aliases: `codec.Encoding = go-codec.Encoding` etc. |
-| `id/v4.4.0` | ActorID taxonomy: `NewSystemActor`, `NewUserActor`, `NewBotActor` |
-| `metaengine/v4.10.0` | `Priority`, `NamedSample`, ADTStreamLog in AllADTs |
-| `system/v4.4.0` | `ProjectionDeclaration`, `RawQuery`, updated deps |
-| `commandlifecycle/v4.0.0` | First release (ADR-0117) |
-| `commandlifecycle/projections/v4.0.0` | First release (DLQ/retry/failure projections) |
-| `testutil/pgtestcontainer/v4.0.0` | First release (shared PG testcontainer helpers) |
+| Tag                                   | Purpose                                                           |
+| ------------------------------------- | ----------------------------------------------------------------- |
+| `codec/v4.4.0`                        | Type aliases: `codec.Encoding = go-codec.Encoding` etc.           |
+| `id/v4.4.0`                           | ActorID taxonomy: `NewSystemActor`, `NewUserActor`, `NewBotActor` |
+| `metaengine/v4.10.0`                  | `Priority`, `NamedSample`, ADTStreamLog in AllADTs                |
+| `system/v4.4.0`                       | `ProjectionDeclaration`, `RawQuery`, updated deps                 |
+| `commandlifecycle/v4.0.0`             | First release (ADR-0117)                                          |
+| `commandlifecycle/projections/v4.0.0` | First release (DLQ/retry/failure projections)                     |
+| `testutil/pgtestcontainer/v4.0.0`     | First release (shared PG testcontainer helpers)                   |
 
 **Updated go.mod/go.sum in ~20 modules** to require the new versions.
 
@@ -144,9 +144,9 @@ The prior session's WorkerLive regression was fixed cleanly this session. No new
 ### Medium Priority (from feedback, explicitly approved)
 
 8. **Implement DuckDB `AggregateReader`** — push GROUP BY to columnar SQL <- OPEN. TODO_LIST 'Metaengine' (DuckDB aggregation pushdown)
-~~9. **Refactor `drainCatchUp` + `process()` to share drain loop** — eliminate ~60 lines duplication~~ done at 1b4e79b78 (worker_drain.go shared processEvent/handleProcessEventError)
-10. **Design metaengine cross-projection JOIN ADR** <- OPEN. deferred to a dedicated ADR; not yet ticketed
-~~11. **Fix 3 pre-existing doc-check failures** (advanced.md, readmodels.md)~~ done - fixed by the 12-40 session (tombstone renames)
+   ~~9. **Refactor `drainCatchUp` + `process()` to share drain loop** — eliminate ~60 lines duplication~~ done at 1b4e79b78 (worker_drain.go shared processEvent/handleProcessEventError)
+9. **Design metaengine cross-projection JOIN ADR** <- OPEN. deferred to a dedicated ADR; not yet ticketed
+   ~~11. **Fix 3 pre-existing doc-check failures** (advanced.md, readmodels.md)~~ done - fixed by the 12-40 session (tombstone renames)
 
 ### Release & Infrastructure
 
@@ -160,9 +160,9 @@ The prior session's WorkerLive regression was fixed cleanly this session. No new
 
 17. **Update projectionhost `host.go` Start() doc comment** — still says "not a live stream consumer"
 18. **Document catch-up drain pattern in SKILL.md recipes** <- OPEN. TODO_LIST 'Docs Honesty' (recipes item)
-~~19. **Move reviewed feedback docs** — they're committed but still in `new/` directory~~ done - 5/6 moved at triage; the TOCTOU doc moves in this docs-health pass (2026-08-15)
-20. **Add `WithoutViewAutoMigrate` to SKILL.md recipes** — only in README now <- OPEN. TODO_LIST 'Docs Honesty' (recipes item)
-21. **Document `Increment` non-clamping philosophy in SKILL.md FAQ** <- OPEN. TODO_LIST 'Docs Honesty' (recipes item)
+    ~~19. **Move reviewed feedback docs** — they're committed but still in `new/` directory~~ done - 5/6 moved at triage; the TOCTOU doc moves in this docs-health pass (2026-08-15)
+19. **Add `WithoutViewAutoMigrate` to SKILL.md recipes** — only in README now <- OPEN. TODO_LIST 'Docs Honesty' (recipes item)
+20. **Document `Increment` non-clamping philosophy in SKILL.md FAQ** <- OPEN. TODO_LIST 'Docs Honesty' (recipes item)
 
 ### cqrs-lint Wishlist
 
@@ -196,7 +196,6 @@ The system bus (`system/bus.go` → `watermill.EventBus`) dispatches to typed ha
 ### 3. Should I push the local `id/v4.4.0` and `metaengine/v4.10.0` tags?
 
 These were created last session and are listed as pushed in the terminal output the user shared. But `git push --tags` may have pushed ALL tags including these. I need to verify they're on the remote — if not, consumers can't resolve them.
-
 
 ---
 

@@ -24,12 +24,12 @@
 
 ### 1% → 51% of Value (ALL COMPLETE)
 
-| #   | Task                                                      | Commit                    | Status |
-| --- | --------------------------------------------------------- | ------------------------- | ------ |
-| P1  | `NewEvent` accepts `event.Version` not `int`              | `8c10def` (prior session) | DONE   |
-| P2  | `SchemaVersion` strong type with `ParseSchemaVersion`     | `8c10def` (prior session) | DONE   |
-| P3  | `OutboxStatus` enum + replace 8 `'pending'` magic strings | `ae086e6`                 | DONE   |
-| P4  | Middleware error classification (4 sentinels) + tests     | `ae086e6`                 | DONE   |
+| #  | Task                                                      | Commit                    | Status |
+| -- | --------------------------------------------------------- | ------------------------- | ------ |
+| P1 | `NewEvent` accepts `event.Version` not `int`              | `8c10def` (prior session) | DONE   |
+| P2 | `SchemaVersion` strong type with `ParseSchemaVersion`     | `8c10def` (prior session) | DONE   |
+| P3 | `OutboxStatus` enum + replace 8 `'pending'` magic strings | `ae086e6`                 | DONE   |
+| P4 | Middleware error classification (4 sentinels) + tests     | `ae086e6`                 | DONE   |
 
 ### 4% → 64% of Value (PARTIALLY COMPLETE)
 
@@ -65,18 +65,18 @@
 
 ## c) NOT STARTED
 
-| #   | Task                                                                                      | Priority | Effort | Impact                                            |
-| --- | ----------------------------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------- |
-| 1   | Split `pebble_event_store.go` (448→<250 lines)                                            | HIGH     | 30min  | Only file over 370-line limit                     |
-| 2   | Split `aggregate/repository.go` (279→<250 lines)                                          | MEDIUM   | 15min  | File size compliance                              |
-| 3   | Split `decider/decider.go` (265→<250 lines)                                               | MEDIUM   | 15min  | File size compliance                              |
-| 4   | Unify `CatalogMeta` (3 structs → 1 shared)                                                | MEDIUM   | 30min  | ~60 lines saved, 2 identical + 1 with extra field |
-| 5   | BDD tests for type safety (Version, SchemaVersion, OutboxStatus, uint Pagination, NodeID) | MEDIUM   | 60min  | Verify new constraints                            |
-| 6   | Delete/simplify `cattest` internal package (454 lines, 0% coverage)                       | LOW      | 20min  | Dead weight — no direct tests                     |
-| 7   | `storage/helpers.go` (423 lines) split                                                    | LOW      | 20min  | Large file but under 370                          |
-| 8   | Update `AGENTS.md` with all type changes from this session                                | HIGH     | 10min  | Stale documentation                               |
-| 9   | Fix 2 golines lint issues (outbox SQL constants)                                          | HIGH     | 5min   | Formatting                                        |
-| 10  | SQL dialect abstraction (12→7 files in storage)                                           | LOW      | 90min  | ~250 lines saved but high risk                    |
+| #  | Task                                                                                      | Priority | Effort | Impact                                            |
+| -- | ----------------------------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------- |
+| 1  | Split `pebble_event_store.go` (448→<250 lines)                                            | HIGH     | 30min  | Only file over 370-line limit                     |
+| 2  | Split `aggregate/repository.go` (279→<250 lines)                                          | MEDIUM   | 15min  | File size compliance                              |
+| 3  | Split `decider/decider.go` (265→<250 lines)                                               | MEDIUM   | 15min  | File size compliance                              |
+| 4  | Unify `CatalogMeta` (3 structs → 1 shared)                                                | MEDIUM   | 30min  | ~60 lines saved, 2 identical + 1 with extra field |
+| 5  | BDD tests for type safety (Version, SchemaVersion, OutboxStatus, uint Pagination, NodeID) | MEDIUM   | 60min  | Verify new constraints                            |
+| 6  | Delete/simplify `cattest` internal package (454 lines, 0% coverage)                       | LOW      | 20min  | Dead weight — no direct tests                     |
+| 7  | `storage/helpers.go` (423 lines) split                                                    | LOW      | 20min  | Large file but under 370                          |
+| 8  | Update `AGENTS.md` with all type changes from this session                                | HIGH     | 10min  | Stale documentation                               |
+| 9  | Fix 2 golines lint issues (outbox SQL constants)                                          | HIGH     | 5min   | Formatting                                        |
+| 10 | SQL dialect abstraction (12→7 files in storage)                                           | LOW      | 90min  | ~250 lines saved but high risk                    |
 
 ---
 
@@ -111,33 +111,33 @@ Nothing is actually broken. All 21 test packages pass, code compiles, and the on
 
 Ranked by impact × effort (highest first):
 
-| #   | Task                                                                              | Impact | Effort | Category     |
-| --- | --------------------------------------------------------------------------------- | ------ | ------ | ------------ |
-| 1   | Fix 2 golines lint issues (outbox SQL constant formatting)                        | HIGH   | 5min   | Lint         |
-| 2   | Wire `RetryConfig.Validate()` into CommandRetry/EventRetry/QueryRetry             | HIGH   | 10min  | Bug          |
-| 3   | Fix OutboxPublisher split-brain (state enum + Close resets)                       | HIGH   | 25min  | Bug          |
-| 4   | Update AGENTS.md with all session 65 changes                                      | HIGH   | 10min  | Docs         |
-| 5   | Update plan status to IN_PROGRESS/COMPLETED                                       | HIGH   | 5min   | Planning     |
-| 6   | Split `pebble_event_store.go` (448→<250)                                          | HIGH   | 30min  | Quality      |
-| 7   | Add test: Start→Close→Start lifecycle for OutboxPublisher                         | HIGH   | 10min  | Tests        |
-| 8   | Add test: RetryConfig.Validate() rejects invalid configs                          | MEDIUM | 10min  | Tests        |
-| 9   | Split `aggregate/repository.go` (279→<250)                                        | MEDIUM | 15min  | Quality      |
-| 10  | Split `decider/decider.go` (265→<250)                                             | MEDIUM | 15min  | Quality      |
-| 11  | Unify CatalogMeta (3 structs → 1 shared + alias)                                  | MEDIUM | 30min  | DRY          |
-| 12  | Add BDD tests for Version/SchemaVersion type safety                               | MEDIUM | 15min  | Tests        |
-| 13  | Add BDD tests for uint Pagination                                                 | MEDIUM | 10min  | Tests        |
-| 14  | Add BDD tests for NodeID branded type                                             | MEDIUM | 10min  | Tests        |
-| 15  | Add BDD tests for OutboxStatus enum                                               | MEDIUM | 10min  | Tests        |
-| 16  | Add BDD tests for SyncMessageType                                                 | LOW    | 10min  | Tests        |
-| 17  | Simplify/cleanup cattest package (454 lines, 0% coverage)                         | LOW    | 20min  | Cleanup      |
-| 18  | Split `storage/helpers.go` (423→<250)                                             | LOW    | 20min  | Quality      |
-| 19  | Consider SQL dialect abstraction for storage (PG/SQLite/Pebble)                   | LOW    | 90min  | Architecture |
-| 20  | Add `example/user/` usage of new types (NodeID, uint pagination)                  | LOW    | 15min  | Docs         |
-| 21  | Add doc comments to new types (NodeID, SyncMessageType, OutboxStatus)             | LOW    | 10min  | Docs         |
-| 22  | Review `storage/outbox.go:125` — `outboxEvent.Version` is still bare `int`        | LOW    | 10min  | Type Safety  |
-| 23  | Consider `SchemaVersion` on `outboxEvent` struct for JSON roundtrip               | LOW    | 5min   | Type Safety  |
-| 24  | Add `NodeID` validation to `VectorClock.Increment` (currently accepts any string) | LOW    | 15min  | Type Safety  |
-| 25  | Update `FEATURES.md` with new type-safety features                                | LOW    | 10min  | Docs         |
+| #  | Task                                                                              | Impact | Effort | Category     |
+| -- | --------------------------------------------------------------------------------- | ------ | ------ | ------------ |
+| 1  | Fix 2 golines lint issues (outbox SQL constant formatting)                        | HIGH   | 5min   | Lint         |
+| 2  | Wire `RetryConfig.Validate()` into CommandRetry/EventRetry/QueryRetry             | HIGH   | 10min  | Bug          |
+| 3  | Fix OutboxPublisher split-brain (state enum + Close resets)                       | HIGH   | 25min  | Bug          |
+| 4  | Update AGENTS.md with all session 65 changes                                      | HIGH   | 10min  | Docs         |
+| 5  | Update plan status to IN_PROGRESS/COMPLETED                                       | HIGH   | 5min   | Planning     |
+| 6  | Split `pebble_event_store.go` (448→<250)                                          | HIGH   | 30min  | Quality      |
+| 7  | Add test: Start→Close→Start lifecycle for OutboxPublisher                         | HIGH   | 10min  | Tests        |
+| 8  | Add test: RetryConfig.Validate() rejects invalid configs                          | MEDIUM | 10min  | Tests        |
+| 9  | Split `aggregate/repository.go` (279→<250)                                        | MEDIUM | 15min  | Quality      |
+| 10 | Split `decider/decider.go` (265→<250)                                             | MEDIUM | 15min  | Quality      |
+| 11 | Unify CatalogMeta (3 structs → 1 shared + alias)                                  | MEDIUM | 30min  | DRY          |
+| 12 | Add BDD tests for Version/SchemaVersion type safety                               | MEDIUM | 15min  | Tests        |
+| 13 | Add BDD tests for uint Pagination                                                 | MEDIUM | 10min  | Tests        |
+| 14 | Add BDD tests for NodeID branded type                                             | MEDIUM | 10min  | Tests        |
+| 15 | Add BDD tests for OutboxStatus enum                                               | MEDIUM | 10min  | Tests        |
+| 16 | Add BDD tests for SyncMessageType                                                 | LOW    | 10min  | Tests        |
+| 17 | Simplify/cleanup cattest package (454 lines, 0% coverage)                         | LOW    | 20min  | Cleanup      |
+| 18 | Split `storage/helpers.go` (423→<250)                                             | LOW    | 20min  | Quality      |
+| 19 | Consider SQL dialect abstraction for storage (PG/SQLite/Pebble)                   | LOW    | 90min  | Architecture |
+| 20 | Add `example/user/` usage of new types (NodeID, uint pagination)                  | LOW    | 15min  | Docs         |
+| 21 | Add doc comments to new types (NodeID, SyncMessageType, OutboxStatus)             | LOW    | 10min  | Docs         |
+| 22 | Review `storage/outbox.go:125` — `outboxEvent.Version` is still bare `int`        | LOW    | 10min  | Type Safety  |
+| 23 | Consider `SchemaVersion` on `outboxEvent` struct for JSON roundtrip               | LOW    | 5min   | Type Safety  |
+| 24 | Add `NodeID` validation to `VectorClock.Increment` (currently accepts any string) | LOW    | 15min  | Type Safety  |
+| 25 | Update `FEATURES.md` with new type-safety features                                | LOW    | 10min  | Docs         |
 
 ---
 

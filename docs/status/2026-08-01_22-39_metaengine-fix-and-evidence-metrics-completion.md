@@ -69,7 +69,7 @@
 - **benchkit/phases.go:** 1 `wsl_v5`.
 - **benchkit/report.go:** `gocognit` 36 → extracted `printMetaEngineSection` + `printResourcesSection` helpers. Result: `PrintReport` complexity dropped from 36 to well under 25.
 - **benchkit/sweep.go:** Removed unused `formatFloatOrDash` function.
-- _*benchkit/phases_metaengine*.go:_* Fixed `err113` (dynamic errors → sentinel wrapping), `nilerr` (cancelled context returns nil), `contextcheck` (NewSQLiteEngine has no ctx param), `modernize` (if/min/max), `S1016` (struct literal → type conversion), `gci` (import ordering), `gofumpt` (formatting), `wsl_v5` (whitespace).
+- __benchkit/phases_metaengine_.go:_* Fixed `err113` (dynamic errors → sentinel wrapping), `nilerr` (cancelled context returns nil), `contextcheck` (NewSQLiteEngine has no ctx param), `modernize` (if/min/max), `S1016` (struct literal → type conversion), `gci` (import ordering), `gofumpt` (formatting), `wsl_v5` (whitespace).
 - **benchkit/report_comparison.go:** `nlreturn` (break with no blank line before).
 - **Result:** `nix run .#lint` reports **0 issues** across all 64 modules.
 

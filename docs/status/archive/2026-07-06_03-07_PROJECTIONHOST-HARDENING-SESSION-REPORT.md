@@ -135,53 +135,53 @@ The task asked for `docs/planning/<YYYY-MM-DD_HH-MM_SUPERB-NAME>.md` with a merm
 
 ### Critical (correctness + coverage holes)
 
-| #   | Task                                                                            | Impact   | Effort |
-| --- | ------------------------------------------------------------------------------- | -------- | ------ |
-| 1   | Tests for SSE parallel fanout (WithParallelFanout dispatch, worker pool sizing) | Critical | 45min  |
-| 2   | Tests for SSE dropOldest policy (eviction behavior, dropped counter)            | Critical | 30min  |
-| 3   | Test for projectionhost OTel span names/attributes (verify tracer is wired)     | High     | 30min  |
-| 4   | Test dedup.Ring eviction at projectionhost replay→live boundary (>1024 events)  | High     | 30min  |
-| 5   | Fix `sendToClient` unreachable return — use default case or panic               | Medium   | 5min   |
-| 6   | Revert the Verschlimmbesserung on WithDedupRingCapacity/WithReplayByteBudget    | Medium   | 10min  |
+| # | Task                                                                            | Impact   | Effort |
+| - | ------------------------------------------------------------------------------- | -------- | ------ |
+| 1 | Tests for SSE parallel fanout (WithParallelFanout dispatch, worker pool sizing) | Critical | 45min  |
+| 2 | Tests for SSE dropOldest policy (eviction behavior, dropped counter)            | Critical | 30min  |
+| 3 | Test for projectionhost OTel span names/attributes (verify tracer is wired)     | High     | 30min  |
+| 4 | Test dedup.Ring eviction at projectionhost replay→live boundary (>1024 events)  | High     | 30min  |
+| 5 | Fix `sendToClient` unreachable return — use default case or panic               | Medium   | 5min   |
+| 6 | Revert the Verschlimmbesserung on WithDedupRingCapacity/WithReplayByteBudget    | Medium   | 10min  |
 
 ### High value (production readiness)
 
-| #   | Task                                                                         | Impact | Effort |
-| --- | ---------------------------------------------------------------------------- | ------ | ------ |
-| 7   | `Pause(ctx, name)` / `Resume(ctx, name)` — maintenance window support        | High   | 60min  |
-| 8   | `WithTracer(trace.Tracer)` option — injectable tracer for projectionhost     | Medium | 20min  |
-| 9   | projectionhost README.md update with all new features + examples             | Medium | 30min  |
-| 10  | SKILL.md `references/modules.md` update for projectionhost new API           | Medium | 15min  |
-| 11  | Run `cmd/doc-check` to verify AGENTS.md import paths after edits             | Medium | 5min   |
-| 12  | `projectionhost.WithDedupRingCapacity` option — let consumers tune ring size | Low    | 15min  |
+| #  | Task                                                                         | Impact | Effort |
+| -- | ---------------------------------------------------------------------------- | ------ | ------ |
+| 7  | `Pause(ctx, name)` / `Resume(ctx, name)` — maintenance window support        | High   | 60min  |
+| 8  | `WithTracer(trace.Tracer)` option — injectable tracer for projectionhost     | Medium | 20min  |
+| 9  | projectionhost README.md update with all new features + examples             | Medium | 30min  |
+| 10 | SKILL.md `references/modules.md` update for projectionhost new API           | Medium | 15min  |
+| 11 | Run `cmd/doc-check` to verify AGENTS.md import paths after edits             | Medium | 5min   |
+| 12 | `projectionhost.WithDedupRingCapacity` option — let consumers tune ring size | Low    | 15min  |
 
 ### SSE / transport hardening
 
-| #   | Task                                                                                   | Impact | Effort |
-| --- | -------------------------------------------------------------------------------------- | ------ | ------ |
-| 13  | SSE `Stats()` method — expose per-client dropped count, connected clients, fanout mode | Medium | 30min  |
-| 14  | SSE integration test: 100+ concurrent clients with parallel fanout                     | Medium | 45min  |
-| 15  | SSE test: dropOldest evicts oldest under sustained pressure                            | Medium | 30min  |
-| 16  | SSE test: byte budget mid-batch stop delivers correct partial count                    | Medium | 20min  |
+| #  | Task                                                                                   | Impact | Effort |
+| -- | -------------------------------------------------------------------------------------- | ------ | ------ |
+| 13 | SSE `Stats()` method — expose per-client dropped count, connected clients, fanout mode | Medium | 30min  |
+| 14 | SSE integration test: 100+ concurrent clients with parallel fanout                     | Medium | 45min  |
+| 15 | SSE test: dropOldest evicts oldest under sustained pressure                            | Medium | 30min  |
+| 16 | SSE test: byte budget mid-batch stop delivers correct partial count                    | Medium | 20min  |
 
 ### Code quality debt
 
-| #   | Task                                                                      | Impact | Effort |
-| --- | ------------------------------------------------------------------------- | ------ | ------ |
-| 17  | Remove redundant nolint directives where code fix is trivial              | Low    | 15min  |
-| 18  | Consolidate the fragmented projectionhost commits — squash if not pushed  | Low    | 10min  |
-| 19  | Add `//go:generate` directive to update api_surface.txt after API changes | Low    | 15min  |
-| 20  | Verify `go.work` includes the `dedup` module correctly (was auto-added)   | Low    | 5min   |
+| #  | Task                                                                      | Impact | Effort |
+| -- | ------------------------------------------------------------------------- | ------ | ------ |
+| 17 | Remove redundant nolint directives where code fix is trivial              | Low    | 15min  |
+| 18 | Consolidate the fragmented projectionhost commits — squash if not pushed  | Low    | 10min  |
+| 19 | Add `//go:generate` directive to update api_surface.txt after API changes | Low    | 15min  |
+| 20 | Verify `go.work` includes the `dedup` module correctly (was auto-added)   | Low    | 5min   |
 
 ### Documentation + planning
 
-| #   | Task                                                                           | Impact | Effort |
-| --- | ------------------------------------------------------------------------------ | ------ | ------ |
-| 21  | Update FEATURES.md with projectionhost hardening features                      | Low    | 15min  |
-| 22  | ADR for projectionhost OTel tracing convention (span names, attributes)        | Low    | 20min  |
-| 23  | Update `docs/planning/` — mark projectionhost hardening plan as DONE           | Low    | 5min   |
-| 24  | Clean up auto-generated planning docs (architecture layers, idempotency merge) | Low    | 10min  |
-| 25  | Status report for SSE hardening session (docs/status/)                         | Low    | 15min  |
+| #  | Task                                                                           | Impact | Effort |
+| -- | ------------------------------------------------------------------------------ | ------ | ------ |
+| 21 | Update FEATURES.md with projectionhost hardening features                      | Low    | 15min  |
+| 22 | ADR for projectionhost OTel tracing convention (span names, attributes)        | Low    | 20min  |
+| 23 | Update `docs/planning/` — mark projectionhost hardening plan as DONE           | Low    | 5min   |
+| 24 | Clean up auto-generated planning docs (architecture layers, idempotency merge) | Low    | 10min  |
+| 25 | Status report for SSE hardening session (docs/status/)                         | Low    | 15min  |
 
 ---
 

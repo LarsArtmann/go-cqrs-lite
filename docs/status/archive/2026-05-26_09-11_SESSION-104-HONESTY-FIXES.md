@@ -110,33 +110,33 @@
 
 ## f) Top #25 Things to Get Done Next
 
-| #   | Task                                                     | Module               | Impact       | Effort  | Pareto   |
-| --- | -------------------------------------------------------- | -------------------- | ------------ | ------- | -------- |
-| 1   | Remove `replace` directives from all `go.mod` files      | all                  | **Critical** | 1h      | 1% → 51% |
-| 2   | Dry-run `go get` from scratch module                     | external             | **Critical** | 30m     | 1% → 51% |
-| 3   | Add PostgreSQL integration test (testcontainers)         | storage              | High         | 2h      | 20%      |
-| 4   | Add cqrs-gen CLI test via `exec.Command`                 | cmd/cqrs-gen         | Medium       | 30m     | 4%       |
-| 5   | Add Watermill subscriber integration test                | watermill            | Medium       | 45m     | 20%      |
-| 6   | Add `catalog/d2` golden test                             | catalog/d2           | Low          | 30m     | 20%      |
-| 7   | Add `SchemaToAny` marshal-failure test                   | catalog/schemautil   | Low          | 10m     | 20%      |
-| 8   | Add context cancellation to `SQLOutbox` methods          | storage              | Medium       | 30m     | 20%      |
-| 9   | Fix PebbleStore optimistic concurrency                   | storage              | Medium       | 1h      | 20%      |
-| 10  | Add `GOWORK=off` CI matrix job                           | CI                   | Medium       | 30m     | 20%      |
-| 11  | Add minimum coverage gate (80%) to CI                    | CI                   | Medium       | 15m     | 20%      |
-| 12  | Add OpenTelemetry span attribute assertions              | middleware           | Low          | 30m     | 20%      |
-| 13  | Add `catalog` enum/default struct tag support            | catalog              | Medium       | 2h      | 20%      |
-| 14  | Make AsyncAPI servers configurable                       | catalog/asyncapi     | Low          | 30m     | 20%      |
-| 15  | Add `event.Event.Clone()` defensive copy method          | core/event           | Medium       | 30m     | 20%      |
-| 16  | Storage SQL error/rollback deep tests                    | storage              | Medium       | 1h      | 20%      |
-| 17  | Add `eventcatalog` writer split (408→3 files)            | catalog/eventcatalog | Low          | 1h      | 20%      |
-| 18  | Add benchmarks for core modules                          | all                  | Low          | 2h      | 20%      |
-| 19  | Add Saga metrics via `MetricsRecorder`                   | saga                 | Low          | 30m     | 20%      |
-| 20  | Add example/todo tests                                   | example              | Low          | 1h      | 20%      |
-| 21  | Remove `example/todo` external dep (`httputil`)          | example              | Low          | 30m     | 20%      |
-| 22  | Add `event.Context` propagation helpers                  | core/event           | Medium       | 45m     | 20%      |
-| 23  | Schema registry design document                          | docs                 | Medium       | 2h      | 20%      |
-| 24  | Consumer trial — import saga/watermill into real project | external             | **Critical** | ongoing | 20%      |
-| 25  | Update AGENTS.md with Session 104 learnings              | docs                 | Low          | 15m     | 20%      |
+| #  | Task                                                     | Module               | Impact       | Effort  | Pareto   |
+| -- | -------------------------------------------------------- | -------------------- | ------------ | ------- | -------- |
+| 1  | Remove `replace` directives from all `go.mod` files      | all                  | **Critical** | 1h      | 1% → 51% |
+| 2  | Dry-run `go get` from scratch module                     | external             | **Critical** | 30m     | 1% → 51% |
+| 3  | Add PostgreSQL integration test (testcontainers)         | storage              | High         | 2h      | 20%      |
+| 4  | Add cqrs-gen CLI test via `exec.Command`                 | cmd/cqrs-gen         | Medium       | 30m     | 4%       |
+| 5  | Add Watermill subscriber integration test                | watermill            | Medium       | 45m     | 20%      |
+| 6  | Add `catalog/d2` golden test                             | catalog/d2           | Low          | 30m     | 20%      |
+| 7  | Add `SchemaToAny` marshal-failure test                   | catalog/schemautil   | Low          | 10m     | 20%      |
+| 8  | Add context cancellation to `SQLOutbox` methods          | storage              | Medium       | 30m     | 20%      |
+| 9  | Fix PebbleStore optimistic concurrency                   | storage              | Medium       | 1h      | 20%      |
+| 10 | Add `GOWORK=off` CI matrix job                           | CI                   | Medium       | 30m     | 20%      |
+| 11 | Add minimum coverage gate (80%) to CI                    | CI                   | Medium       | 15m     | 20%      |
+| 12 | Add OpenTelemetry span attribute assertions              | middleware           | Low          | 30m     | 20%      |
+| 13 | Add `catalog` enum/default struct tag support            | catalog              | Medium       | 2h      | 20%      |
+| 14 | Make AsyncAPI servers configurable                       | catalog/asyncapi     | Low          | 30m     | 20%      |
+| 15 | Add `event.Event.Clone()` defensive copy method          | core/event           | Medium       | 30m     | 20%      |
+| 16 | Storage SQL error/rollback deep tests                    | storage              | Medium       | 1h      | 20%      |
+| 17 | Add `eventcatalog` writer split (408→3 files)            | catalog/eventcatalog | Low          | 1h      | 20%      |
+| 18 | Add benchmarks for core modules                          | all                  | Low          | 2h      | 20%      |
+| 19 | Add Saga metrics via `MetricsRecorder`                   | saga                 | Low          | 30m     | 20%      |
+| 20 | Add example/todo tests                                   | example              | Low          | 1h      | 20%      |
+| 21 | Remove `example/todo` external dep (`httputil`)          | example              | Low          | 30m     | 20%      |
+| 22 | Add `event.Context` propagation helpers                  | core/event           | Medium       | 45m     | 20%      |
+| 23 | Schema registry design document                          | docs                 | Medium       | 2h      | 20%      |
+| 24 | Consumer trial — import saga/watermill into real project | external             | **Critical** | ongoing | 20%      |
+| 25 | Update AGENTS.md with Session 104 learnings              | docs                 | Low          | 15m     | 20%      |
 
 ---
 
@@ -195,7 +195,7 @@ This requires a human decision. I recommend **A** — the dry-run is low-risk an
 | storage              | 89.6%     | ✅             |
 | **saga**             | **93.8%** | ✅ (was 80.3%) |
 | watermill            | 89.6%     | ✅             |
-| **cmd/cqrs-gen**     | **70.8%** | ⚠️ (was 46.1%) |
+| **cmd/cqrs-gen**     | **70.8%** | ⚠️ (was 46.1%)  |
 
 ---
 

@@ -205,43 +205,43 @@
 
 ### HIGH (consumer-blocking or correctness)
 
-| #   | Task                                                                            | Impact          | Effort |
-| --- | ------------------------------------------------------------------------------- | --------------- | ------ |
-| 1   | Wire `check-replace-directives.sh` into CI workflow                             | Safety          | 10m    |
-| 2   | Add CHANGELOG.md entry for PebbleBackend, SQLBackend, reactive buses, turso fix | Release notes   | 15m    |
-| 3   | Populate TODO_LIST.md with Tier 5 actionable items                              | Planning        | 10m    |
-| 4   | Integration test: pebble + projection Runner (replay + live)                    | E2E safety      | 2hr    |
-| 5   | Integration test: pebble SnapshotStore + decider Repository                     | E2E safety      | 1hr    |
-| 6   | Fix turso test flakiness (SQLite parallel test isolation)                       | CI stability    | 30m    |
-| 7   | Add PostgreSQL CI service container to ci.yml                                   | Real DB testing | 1hr    |
-| 8   | Refactor turso/indexing globals to init() to clear lint                         | Lint hygiene    | 15m    |
+| # | Task                                                                            | Impact          | Effort |
+| - | ------------------------------------------------------------------------------- | --------------- | ------ |
+| 1 | Wire `check-replace-directives.sh` into CI workflow                             | Safety          | 10m    |
+| 2 | Add CHANGELOG.md entry for PebbleBackend, SQLBackend, reactive buses, turso fix | Release notes   | 15m    |
+| 3 | Populate TODO_LIST.md with Tier 5 actionable items                              | Planning        | 10m    |
+| 4 | Integration test: pebble + projection Runner (replay + live)                    | E2E safety      | 2hr    |
+| 5 | Integration test: pebble SnapshotStore + decider Repository                     | E2E safety      | 1hr    |
+| 6 | Fix turso test flakiness (SQLite parallel test isolation)                       | CI stability    | 30m    |
+| 7 | Add PostgreSQL CI service container to ci.yml                                   | Real DB testing | 1hr    |
+| 8 | Refactor turso/indexing globals to init() to clear lint                         | Lint hygiene    | 15m    |
 
 ### MEDIUM (DX + completeness)
 
-| #   | Task                                                     | Impact                   | Effort |
-| --- | -------------------------------------------------------- | ------------------------ | ------ |
-| 9   | Increase pebble coverage 83.9% → 85%+                    | Confidence               | 1hr    |
-| 10  | Add pebble golden test for CBOR envelope encoding        | Regression safety        | 30m    |
-| 11  | Benchmark pebble Save with/without OTel overhead         | Verify no regression     | 30m    |
-| 12  | Add MemorySnapshotStore golden test (baseline)           | Regression safety        | 30m    |
-| 13  | Benchmark pebble vs SQL store (Save 100 events)          | Data-driven comparison   | 1hr    |
-| 14  | Add reactive CommandBus test suite                       | Test reactive extensions | 30m    |
-| 15  | Add reactive QueryBus test suite                         | Test reactive extensions | 30m    |
-| 16  | Schema registry implementation (ADR-0017 → Accepted)     | Correctness validation   | 6hr    |
-| 17  | Prometheus metrics exporter (replace MetricsRecorder)    | Observability            | 4hr    |
-| 18  | Structured logging middleware (configurable slog levels) | Observability            | 4hr    |
+| #  | Task                                                     | Impact                   | Effort |
+| -- | -------------------------------------------------------- | ------------------------ | ------ |
+| 9  | Increase pebble coverage 83.9% → 85%+                    | Confidence               | 1hr    |
+| 10 | Add pebble golden test for CBOR envelope encoding        | Regression safety        | 30m    |
+| 11 | Benchmark pebble Save with/without OTel overhead         | Verify no regression     | 30m    |
+| 12 | Add MemorySnapshotStore golden test (baseline)           | Regression safety        | 30m    |
+| 13 | Benchmark pebble vs SQL store (Save 100 events)          | Data-driven comparison   | 1hr    |
+| 14 | Add reactive CommandBus test suite                       | Test reactive extensions | 30m    |
+| 15 | Add reactive QueryBus test suite                         | Test reactive extensions | 30m    |
+| 16 | Schema registry implementation (ADR-0017 → Accepted)     | Correctness validation   | 6hr    |
+| 17 | Prometheus metrics exporter (replace MetricsRecorder)    | Observability            | 4hr    |
+| 18 | Structured logging middleware (configurable slog levels) | Observability            | 4hr    |
 
 ### LOWER (nice-to-have, long-term)
 
-| #   | Task                                      | Impact        | Effort |
-| --- | ----------------------------------------- | ------------- | ------ |
-| 19  | gRPC transport adapter                    | Interop       | 6hr    |
-| 20  | NATS/Redis Stream adapter                 | Interop       | 6hr    |
-| 21  | Streaming event reads (StreamLoader)      | Scale         | 6hr    |
-| 22  | Documentation site (Docusaurus/MkDocs)    | DX            | 8hr    |
-| 23  | cqrs-gen v2 with struct tag scanning      | DX            | 8hr    |
-| 24  | Distributed tracing span propagation      | Observability | 4hr    |
-| 25  | Distributed checkpointing for projections | Scale         | 6hr    |
+| #  | Task                                      | Impact        | Effort |
+| -- | ----------------------------------------- | ------------- | ------ |
+| 19 | gRPC transport adapter                    | Interop       | 6hr    |
+| 20 | NATS/Redis Stream adapter                 | Interop       | 6hr    |
+| 21 | Streaming event reads (StreamLoader)      | Scale         | 6hr    |
+| 22 | Documentation site (Docusaurus/MkDocs)    | DX            | 8hr    |
+| 23 | cqrs-gen v2 with struct tag scanning      | DX            | 8hr    |
+| 24 | Distributed tracing span propagation      | Observability | 4hr    |
+| 25 | Distributed checkpointing for projections | Scale         | 6hr    |
 
 ---
 

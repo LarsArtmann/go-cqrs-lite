@@ -134,43 +134,43 @@ From TODO_LIST.md and broader backlog:
 
 ### Tier 1: HIGH IMPACT (1-5)
 
-| #   | Task                                                     | Est.  | Impact                                            |
-| --- | -------------------------------------------------------- | ----- | ------------------------------------------------- |
-| 1   | Turso test coverage: 28.6% → 80%+                        | 45min | CRITICAL — 2nd storage backend with minimal tests |
-| 2   | SQL Journal (ReadAll + ReadFrom) for storage/            | 45min | HIGH — parity with MemoryStore and Pebble         |
-| 3   | Pebble EventStream (LoadStream) implementation           | 20min | HIGH — completes Pebble as Store alternative      |
-| 4   | STORAGE_GUIDE.md update for Pebble Journal               | 10min | HIGH — docs must reflect new capability           |
-| 5   | Listing CacheInvalidationMiddleware event type filtering | 15min | MEDIUM — avoid unnecessary cache rebuilds         |
+| # | Task                                                     | Est.  | Impact                                            |
+| - | -------------------------------------------------------- | ----- | ------------------------------------------------- |
+| 1 | Turso test coverage: 28.6% → 80%+                        | 45min | CRITICAL — 2nd storage backend with minimal tests |
+| 2 | SQL Journal (ReadAll + ReadFrom) for storage/            | 45min | HIGH — parity with MemoryStore and Pebble         |
+| 3 | Pebble EventStream (LoadStream) implementation           | 20min | HIGH — completes Pebble as Store alternative      |
+| 4 | STORAGE_GUIDE.md update for Pebble Journal               | 10min | HIGH — docs must reflect new capability           |
+| 5 | Listing CacheInvalidationMiddleware event type filtering | 15min | MEDIUM — avoid unnecessary cache rebuilds         |
 
 ### Tier 2: MEDIUM IMPACT (6-15)
 
-| #   | Task                                                 | Est.  | Impact                                          |
-| --- | ---------------------------------------------------- | ----- | ----------------------------------------------- |
-| 6   | Pebble LoadBackwards (BackwardsSource)               | 20min | MEDIUM — completes interface compliance         |
-| 7   | Pebble coverage: 86.5% → 90%+                        | 15min | MEDIUM — match other modules                    |
-| 8   | Listing usage example in example/                    | 20min | MEDIUM — discoverability                        |
-| 9   | Pebble journal key simplification (eventID-only)     | 15min | MEDIUM — cleaner design with ULID               |
-| 10  | Event New() — eliminate probe allocation entirely    | 20min | MEDIUM — per-alloc optimization                 |
-| 11  | Turso Journal implementation                         | 30min | MEDIUM — consistent interface across all stores |
-| 12  | Storage SQL tests for Journal                        | 20min | MEDIUM — verify cross-backend correctness       |
-| 13  | MemoryStore Journal tests — cross-aggregate ReadFrom | 10min | MEDIUM — verify global ordering correctness     |
-| 14  | Integration test: Pebble as Journal for Projection   | 15min | MEDIUM — verify real-world usage                |
-| 15  | API stability golden file update for v2.1.0          | 10min | MEDIUM — prevent accidental API breaks          |
+| #  | Task                                                 | Est.  | Impact                                          |
+| -- | ---------------------------------------------------- | ----- | ----------------------------------------------- |
+| 6  | Pebble LoadBackwards (BackwardsSource)               | 20min | MEDIUM — completes interface compliance         |
+| 7  | Pebble coverage: 86.5% → 90%+                        | 15min | MEDIUM — match other modules                    |
+| 8  | Listing usage example in example/                    | 20min | MEDIUM — discoverability                        |
+| 9  | Pebble journal key simplification (eventID-only)     | 15min | MEDIUM — cleaner design with ULID               |
+| 10 | Event New() — eliminate probe allocation entirely    | 20min | MEDIUM — per-alloc optimization                 |
+| 11 | Turso Journal implementation                         | 30min | MEDIUM — consistent interface across all stores |
+| 12 | Storage SQL tests for Journal                        | 20min | MEDIUM — verify cross-backend correctness       |
+| 13 | MemoryStore Journal tests — cross-aggregate ReadFrom | 10min | MEDIUM — verify global ordering correctness     |
+| 14 | Integration test: Pebble as Journal for Projection   | 15min | MEDIUM — verify real-world usage                |
+| 15 | API stability golden file update for v2.1.0          | 10min | MEDIUM — prevent accidental API breaks          |
 
 ### Tier 3: LOWER IMPACT (16-25)
 
-| #   | Task                                                  | Est.  | Impact                             |
-| --- | ----------------------------------------------------- | ----- | ---------------------------------- |
-| 16  | TransactionID branded type                            | 20min | v2 — cross-aggregate consistency   |
-| 17  | io.Closer removal from core interfaces                | 30min | v2 — cleaner ISP                   |
-| 18  | Catalog diff tool                                     | 60min | FUTURE — API surface monitoring    |
-| 19  | High-level test utilities (AggregateTester)           | 45min | FUTURE — DX improvement            |
-| 20  | Server-side timestamps                                | 30min | FUTURE — consistency guarantee     |
-| 21  | Transactional projection contract                     | 45min | FUTURE — read-your-writes          |
-| 22  | Pebble compaction/merge operator for snapshots        | 30min | FUTURE — performance               |
-| 23  | Filter/Predicate types for event/query                | 20min | FUTURE — type-safe filtering       |
-| 24  | Benchmarks for Pebble Journal ReadAll/ReadFrom        | 15min | LOW — performance characterization |
-| 25  | LSP hint cleanup (WaitGroup.Go, fmtappendf, rangeint) | 10min | LOW — code modernization           |
+| #  | Task                                                  | Est.  | Impact                             |
+| -- | ----------------------------------------------------- | ----- | ---------------------------------- |
+| 16 | TransactionID branded type                            | 20min | v2 — cross-aggregate consistency   |
+| 17 | io.Closer removal from core interfaces                | 30min | v2 — cleaner ISP                   |
+| 18 | Catalog diff tool                                     | 60min | FUTURE — API surface monitoring    |
+| 19 | High-level test utilities (AggregateTester)           | 45min | FUTURE — DX improvement            |
+| 20 | Server-side timestamps                                | 30min | FUTURE — consistency guarantee     |
+| 21 | Transactional projection contract                     | 45min | FUTURE — read-your-writes          |
+| 22 | Pebble compaction/merge operator for snapshots        | 30min | FUTURE — performance               |
+| 23 | Filter/Predicate types for event/query                | 20min | FUTURE — type-safe filtering       |
+| 24 | Benchmarks for Pebble Journal ReadAll/ReadFrom        | 15min | LOW — performance characterization |
+| 25 | LSP hint cleanup (WaitGroup.Go, fmtappendf, rangeint) | 10min | LOW — code modernization           |
 
 ---
 

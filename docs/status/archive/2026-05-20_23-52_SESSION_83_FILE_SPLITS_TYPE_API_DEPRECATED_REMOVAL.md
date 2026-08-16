@@ -1,8 +1,8 @@
 # Session 83 — Post-Reflection Execution: File Splits, Type API, Deprecated API Removal
 
-**Date:** 2026-05-20 23:52  
-**Branch:** master  
-**Commits:** 9 (`9cd9f65..472df2e`)  
+**Date:** 2026-05-20 23:52\
+**Branch:** master\
+**Commits:** 9 (`9cd9f65..472df2e`)\
 **Pushed:** yes
 
 ---
@@ -75,18 +75,18 @@ All planned tasks are complete.
 
 These items were identified in the reflection but deferred (not in the session 83 plan):
 
-| #   | Item                                                     | Effort | Impact | Notes                                                                                               |
-| --- | -------------------------------------------------------- | ------ | ------ | --------------------------------------------------------------------------------------------------- |
-| 1   | `query.Handler` returns `any` — violates "no any" rule   | HIGH   | HIGH   | Design doc exists: `docs/planning/QUERY_HANDLER_GENERICS.md`. `DispatchTyped[T]` is the workaround. |
-| 2   | `CatalogMeta` duplication across event/command/query     | LOW    | MEDIUM | `event.CatalogMeta` has extra `AggregateType` field; no clean shared location.                      |
-| 3   | `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW    | LOW    | Every aggregate must implement both; documented in Known Issues.                                    |
-| 4   | `MemoryBus.Publish` holds RLock during handler execution | LOW    | LOW    | Acceptable for test utility.                                                                        |
-| 5   | `io.Closer` removal from interfaces                      | MEDIUM | MEDIUM | Breaking change, needs focused design session.                                                      |
-| 6   | `testhelpers` coverage at 10.5%                          | LOW    | LOW    | Test helpers — low priority by definition.                                                          |
-| 7   | `storage` coverage at 88.1% (lowest real package)        | MEDIUM | MEDIUM | Error paths and edge cases in SQL stores.                                                           |
-| 8   | `catalog/docserver` at 91.0%                             | LOW    | LOW    | Missing some error paths.                                                                           |
-| 9   | `sync` coverage at 92.0%                                 | LOW    | MEDIUM | New module, needs more tests for `Operation` serialization, `Conflict` resolution edge cases.       |
-| 10  | AGENTS.md at 864 lines (structure linter says max 377)   | MEDIUM | LOW    | Extract session history to separate file?                                                           |
+| #  | Item                                                     | Effort | Impact | Notes                                                                                               |
+| -- | -------------------------------------------------------- | ------ | ------ | --------------------------------------------------------------------------------------------------- |
+| 1  | `query.Handler` returns `any` — violates "no any" rule   | HIGH   | HIGH   | Design doc exists: `docs/planning/QUERY_HANDLER_GENERICS.md`. `DispatchTyped[T]` is the workaround. |
+| 2  | `CatalogMeta` duplication across event/command/query     | LOW    | MEDIUM | `event.CatalogMeta` has extra `AggregateType` field; no clean shared location.                      |
+| 3  | `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW    | LOW    | Every aggregate must implement both; documented in Known Issues.                                    |
+| 4  | `MemoryBus.Publish` holds RLock during handler execution | LOW    | LOW    | Acceptable for test utility.                                                                        |
+| 5  | `io.Closer` removal from interfaces                      | MEDIUM | MEDIUM | Breaking change, needs focused design session.                                                      |
+| 6  | `testhelpers` coverage at 10.5%                          | LOW    | LOW    | Test helpers — low priority by definition.                                                          |
+| 7  | `storage` coverage at 88.1% (lowest real package)        | MEDIUM | MEDIUM | Error paths and edge cases in SQL stores.                                                           |
+| 8  | `catalog/docserver` at 91.0%                             | LOW    | LOW    | Missing some error paths.                                                                           |
+| 9  | `sync` coverage at 92.0%                                 | LOW    | MEDIUM | New module, needs more tests for `Operation` serialization, `Conflict` resolution edge cases.       |
+| 10 | AGENTS.md at 864 lines (structure linter says max 377)   | MEDIUM | LOW    | Extract session history to separate file?                                                           |
 
 ---
 
@@ -130,53 +130,53 @@ Sorted by impact × effort (Pareto principle):
 
 ### HIGH IMPACT, LOW EFFORT (Do First)
 
-| #   | Task                                                                             | Est   | Impact                                       |
-| --- | -------------------------------------------------------------------------------- | ----- | -------------------------------------------- |
-| 1   | Fix pre-commit hook (BuildFlow) or remove it                                     | 30min | Stop requiring `--no-verify`                 |
-| 2   | Add `Version(n)` constructor alongside `Version` type                            | 15min | Eliminate `event.Version(len(events))` casts |
-| 3   | Replace remaining `version == 0` with `version.IsZero()`                         | 10min | Consistency                                  |
-| 4   | Add `sync` tests for `Operation` serialization round-trip                        | 20min | Coverage 92→95%+                             |
-| 5   | Add `sync` tests for `LWWResolver` edge cases (equal timestamps, nil tiebreaker) | 15min | Coverage boost                               |
-| 6   | Extract AGENTS.md session history to `docs/sessions/`                            | 30min | AGENTS.md → 500 lines                        |
+| # | Task                                                                             | Est   | Impact                                       |
+| - | -------------------------------------------------------------------------------- | ----- | -------------------------------------------- |
+| 1 | Fix pre-commit hook (BuildFlow) or remove it                                     | 30min | Stop requiring `--no-verify`                 |
+| 2 | Add `Version(n)` constructor alongside `Version` type                            | 15min | Eliminate `event.Version(len(events))` casts |
+| 3 | Replace remaining `version == 0` with `version.IsZero()`                         | 10min | Consistency                                  |
+| 4 | Add `sync` tests for `Operation` serialization round-trip                        | 20min | Coverage 92→95%+                             |
+| 5 | Add `sync` tests for `LWWResolver` edge cases (equal timestamps, nil tiebreaker) | 15min | Coverage boost                               |
+| 6 | Extract AGENTS.md session history to `docs/sessions/`                            | 30min | AGENTS.md → 500 lines                        |
 
 ### HIGH IMPACT, MEDIUM EFFORT
 
-| #   | Task                                                                     | Est   | Impact                          |
-| --- | ------------------------------------------------------------------------ | ----- | ------------------------------- |
-| 7   | Implement `TypedHandler[T]` migration for `query.Handler`                | 4h    | Eliminate `any` from public API |
-| 8   | Add `storage` error-path tests (tx begin, commit, scan)                  | 2h    | Coverage 88→93%+                |
-| 9   | Add fuzz tests for `ParseSource`, `ParseIPAddress`, `ParseVersion`       | 1h    | Robustness                      |
-| 10  | Add CI golden file consistency check                                     | 30min | Prevent drift                   |
-| 11  | Consolidate `CatalogMeta` into single type with optional `AggregateType` | 1h    | Eliminate triplication          |
-| 12  | Add `io.Closer` removal plan + deprecation cycle                         | 2h    | Simpler interfaces              |
+| #  | Task                                                                     | Est   | Impact                          |
+| -- | ------------------------------------------------------------------------ | ----- | ------------------------------- |
+| 7  | Implement `TypedHandler[T]` migration for `query.Handler`                | 4h    | Eliminate `any` from public API |
+| 8  | Add `storage` error-path tests (tx begin, commit, scan)                  | 2h    | Coverage 88→93%+                |
+| 9  | Add fuzz tests for `ParseSource`, `ParseIPAddress`, `ParseVersion`       | 1h    | Robustness                      |
+| 10 | Add CI golden file consistency check                                     | 30min | Prevent drift                   |
+| 11 | Consolidate `CatalogMeta` into single type with optional `AggregateType` | 1h    | Eliminate triplication          |
+| 12 | Add `io.Closer` removal plan + deprecation cycle                         | 2h    | Simpler interfaces              |
 
 ### MEDIUM IMPACT, LOW EFFORT
 
-| #   | Task                                                                             | Est   | Impact                             |
-| --- | -------------------------------------------------------------------------------- | ----- | ---------------------------------- |
-| 13  | Add `catalog/docserver` error path tests                                         | 30min | Coverage 91→95%                    |
-| 14  | Add `String()` to all remaining named types (`event.Type`, `command.Type`, etc.) | 15min | Already done — verify completeness |
-| 15  | Add `IsZero()` to `AggregateType`, `Type` string types                           | 10min | Consistency                        |
-| 16  | Benchmark regression CI thresholds                                               | 1h    | Performance guardrails             |
-| 17  | Add `example/user` tests                                                         | 30min | Example quality                    |
+| #  | Task                                                                             | Est   | Impact                             |
+| -- | -------------------------------------------------------------------------------- | ----- | ---------------------------------- |
+| 13 | Add `catalog/docserver` error path tests                                         | 30min | Coverage 91→95%                    |
+| 14 | Add `String()` to all remaining named types (`event.Type`, `command.Type`, etc.) | 15min | Already done — verify completeness |
+| 15 | Add `IsZero()` to `AggregateType`, `Type` string types                           | 10min | Consistency                        |
+| 16 | Benchmark regression CI thresholds                                               | 1h    | Performance guardrails             |
+| 17 | Add `example/user` tests                                                         | 30min | Example quality                    |
 
 ### MEDIUM IMPACT, MEDIUM EFFORT
 
-| #   | Task                                                             | Est | Impact               |
-| --- | ---------------------------------------------------------------- | --- | -------------------- |
-| 18  | Design `Saga` orchestration (design doc exists)                  | 8h  | Major feature        |
-| 19  | Add `storage/watermill` module for production message broker     | 8h  | Production readiness |
-| 20  | Implement offline-first sync protocol design (docs exist)        | 16h | Major feature        |
-| 21  | Add `core/pkg/errors` public package for consumer error handling | 4h  | Better DX            |
+| #  | Task                                                             | Est | Impact               |
+| -- | ---------------------------------------------------------------- | --- | -------------------- |
+| 18 | Design `Saga` orchestration (design doc exists)                  | 8h  | Major feature        |
+| 19 | Add `storage/watermill` module for production message broker     | 8h  | Production readiness |
+| 20 | Implement offline-first sync protocol design (docs exist)        | 16h | Major feature        |
+| 21 | Add `core/pkg/errors` public package for consumer error handling | 4h  | Better DX            |
 
 ### LOW PRIORITY
 
-| #   | Task                                            | Est | Impact               |
-| --- | ----------------------------------------------- | --- | -------------------- |
-| 22  | Nix flake migration (replace justfile remnants) | 4h  | Build system hygiene |
-| 23  | Add OpenTelemetry tracing middleware            | 2h  | Observability        |
-| 24  | Add event signing/verification                  | 4h  | Security             |
-| 25  | Add WASM/JS SDK bindings                        | 16h | Platform expansion   |
+| #  | Task                                            | Est | Impact               |
+| -- | ----------------------------------------------- | --- | -------------------- |
+| 22 | Nix flake migration (replace justfile remnants) | 4h  | Build system hygiene |
+| 23 | Add OpenTelemetry tracing middleware            | 2h  | Observability        |
+| 24 | Add event signing/verification                  | 4h  | Security             |
+| 25 | Add WASM/JS SDK bindings                        | 16h | Platform expansion   |
 
 ---
 

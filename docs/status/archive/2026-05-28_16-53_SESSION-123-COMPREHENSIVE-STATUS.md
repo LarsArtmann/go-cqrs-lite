@@ -76,33 +76,33 @@ Session 123 executed the deferred action list from Session 122's status report. 
 
 ### Session 123 Work (this session)
 
-| #   | Item                                                       | Files                                                           | Commit    |
-| --- | ---------------------------------------------------------- | --------------------------------------------------------------- | --------- |
-| 1   | Rename `signing_test.go` → `test_helpers_test.go`          | `signing/test_helpers_test.go`                                  | `0cc39d8` |
-| 2   | Move `TestEmptyPayloadEvent` to `hmac_test.go`             | `signing/hmac_test.go`, `signing/signature_test.go` (372L→346L) | `0cc39d8` |
-| 3   | Commit stream module + tombstone tests + AGENTS.md updates | 18 files, +1496/-39                                             | `0cc39d8` |
-| 4   | Apply oxfmt formatting to docs                             | `FEATURES.md`, status report                                    | `8a50053` |
-| 5   | Update TODO_LIST.md                                        | Marked 6 items done, added 2 new                                | `81984fa` |
-| 6   | Fix golden fixtures broken by oxfmt                        | `catalog/testdata/golden/*`                                     | `6332fbf` |
+| # | Item                                                       | Files                                                           | Commit    |
+| - | ---------------------------------------------------------- | --------------------------------------------------------------- | --------- |
+| 1 | Rename `signing_test.go` → `test_helpers_test.go`          | `signing/test_helpers_test.go`                                  | `0cc39d8` |
+| 2 | Move `TestEmptyPayloadEvent` to `hmac_test.go`             | `signing/hmac_test.go`, `signing/signature_test.go` (372L→346L) | `0cc39d8` |
+| 3 | Commit stream module + tombstone tests + AGENTS.md updates | 18 files, +1496/-39                                             | `0cc39d8` |
+| 4 | Apply oxfmt formatting to docs                             | `FEATURES.md`, status report                                    | `8a50053` |
+| 5 | Update TODO_LIST.md                                        | Marked 6 items done, added 2 new                                | `81984fa` |
+| 6 | Fix golden fixtures broken by oxfmt                        | `catalog/testdata/golden/*`                                     | `6332fbf` |
 
 ### Session 122 Work
 
-| #   | Item                                          | Status                                    |
-| --- | --------------------------------------------- | ----------------------------------------- |
-| 1   | Fix `ErrNilEvent` undefined in `tombstone.go` | Done — replaced with `NewRejection` calls |
-| 2   | Split `signing_test.go` (1028L → 5 files)     | Done — max 346L                           |
-| 3   | Split `multisig_test.go` (1275L → 8 files)    | Done — max 314L                           |
-| 4   | Cross-module signing integration tests        | Done — 2 tests in `integration/signing/`  |
-| 5   | Fix 3 golden test fixture failures            | Done — YAML indentation change            |
+| # | Item                                          | Status                                    |
+| - | --------------------------------------------- | ----------------------------------------- |
+| 1 | Fix `ErrNilEvent` undefined in `tombstone.go` | Done — replaced with `NewRejection` calls |
+| 2 | Split `signing_test.go` (1028L → 5 files)     | Done — max 346L                           |
+| 3 | Split `multisig_test.go` (1275L → 8 files)    | Done — max 314L                           |
+| 4 | Cross-module signing integration tests        | Done — 2 tests in `integration/signing/`  |
+| 5 | Fix 3 golden test fixture failures            | Done — YAML indentation change            |
 
 ### Session 120-121 Work
 
-| #   | Item                                  | Status                                   |
-| --- | ------------------------------------- | ---------------------------------------- |
-| 1   | Signing architecture ADR              | Done — `docs/signing-architecture.md`    |
-| 2   | HMAC + Ed25519 + VerifyAll benchmarks | Done — `signing/benchmark_test.go`       |
-| 3   | Stream module scaffold                | Done — 979L, 11 .go files, tests pass    |
-| 4   | Tombstone soft-delete support         | Done — `core/event/tombstone.go` + tests |
+| # | Item                                  | Status                                   |
+| - | ------------------------------------- | ---------------------------------------- |
+| 1 | Signing architecture ADR              | Done — `docs/signing-architecture.md`    |
+| 2 | HMAC + Ed25519 + VerifyAll benchmarks | Done — `signing/benchmark_test.go`       |
+| 3 | Stream module scaffold                | Done — 979L, 11 .go files, tests pass    |
+| 4 | Tombstone soft-delete support         | Done — `core/event/tombstone.go` + tests |
 
 ### Historical Completions (Sessions 99-119)
 
@@ -148,54 +148,54 @@ Session 123 executed the deferred action list from Session 122's status report. 
 
 ### HIGH Priority
 
-| #   | Item                                      | Effort | Notes                                       |
-| --- | ----------------------------------------- | ------ | ------------------------------------------- |
-| 1   | Push signing v1.0.0 tag                   | 1 min  | `git tag signing/v1.0.0 && git push --tags` |
-| 2   | Split `decider_test.go` (1182L)           | 2 hrs  | Largest test file, needs 4+ focused files   |
-| 3   | Split `runner_test.go` (1159L)            | 2 hrs  | Second largest, needs 4+ focused files      |
-| 4   | Fix `example/user/go.mod` signing version | 5 min  | v1.6.0 → v1.0.0 after tag push              |
-| 5   | Push 4 local commits to origin            | 1 min  | `git push`                                  |
+| # | Item                                      | Effort | Notes                                       |
+| - | ----------------------------------------- | ------ | ------------------------------------------- |
+| 1 | Push signing v1.0.0 tag                   | 1 min  | `git tag signing/v1.0.0 && git push --tags` |
+| 2 | Split `decider_test.go` (1182L)           | 2 hrs  | Largest test file, needs 4+ focused files   |
+| 3 | Split `runner_test.go` (1159L)            | 2 hrs  | Second largest, needs 4+ focused files      |
+| 4 | Fix `example/user/go.mod` signing version | 5 min  | v1.6.0 → v1.0.0 after tag push              |
+| 5 | Push 4 local commits to origin            | 1 min  | `git push`                                  |
 
 ### MEDIUM Priority
 
-| #   | Item                                      | Effort  | Notes                                |
-| --- | ----------------------------------------- | ------- | ------------------------------------ |
-| 6   | Split `id_test.go` (1022L)                | 1.5 hrs | 3+ focused files                     |
-| 7   | Split `event_store_test.go` (967L)        | 1.5 hrs | Per-feature test files               |
-| 8   | Stream SQL reader tests                   | 2 hrs   | `sql_reader.go` has no test coverage |
-| 9   | Stream projection reader tests            | 1.5 hrs | `projection.go` has no test coverage |
-| 10  | Stream coverage to 80%+                   | 3 hrs   | Currently 58.6%                      |
-| 11  | Add stream integration tests              | 2 hrs   | Cross-module: event→stream pipeline  |
-| 12  | Add `go.mod` replace for memory in stream | 5 min   | Missing `replace` directive          |
-| 13  | Standardize all go.mod versions           | 30 min  | After tag push                       |
+| #  | Item                                      | Effort  | Notes                                |
+| -- | ----------------------------------------- | ------- | ------------------------------------ |
+| 6  | Split `id_test.go` (1022L)                | 1.5 hrs | 3+ focused files                     |
+| 7  | Split `event_store_test.go` (967L)        | 1.5 hrs | Per-feature test files               |
+| 8  | Stream SQL reader tests                   | 2 hrs   | `sql_reader.go` has no test coverage |
+| 9  | Stream projection reader tests            | 1.5 hrs | `projection.go` has no test coverage |
+| 10 | Stream coverage to 80%+                   | 3 hrs   | Currently 58.6%                      |
+| 11 | Add stream integration tests              | 2 hrs   | Cross-module: event→stream pipeline  |
+| 12 | Add `go.mod` replace for memory in stream | 5 min   | Missing `replace` directive          |
+| 13 | Standardize all go.mod versions           | 30 min  | After tag push                       |
 
 ### LOW Priority
 
-| #   | Item                                       | Effort | Notes                      |
-| --- | ------------------------------------------ | ------ | -------------------------- |
-| 14  | Split `event_test.go` (794L)               | 1 hr   | Per-feature files          |
-| 15  | Add fuzz tests for event/ID/schema         | 3 hrs  | Multiple packages          |
-| 16  | BDD tests for Version, SchemaVersion, etc. | 2 hrs  | Ginkgo-based               |
-| 17  | Catalog schemautil coverage (84.2%)        | 1 hr   | Lowest in catalog          |
-| 18  | Testhelpers coverage (82.1%)               | 1 hr   | Second lowest              |
-| 19  | Add E2E throughput benchmarks              | 3 hrs  | Cross-module perf          |
-| 20  | Enforce 350L limit in pre-commit hook      | 1 hr   | Auto-check file sizes      |
-| 21  | Performance regression CI                  | 3 hrs  | Benchmark comparison on PR |
-| 22  | Add gofumpt/goimports to pre-commit hook   | 30 min | Already in BuildFlow       |
-| 23  | Rewrite example/user/ to demo full stack   | 4 hrs  | Comprehensive example      |
-| 24  | Add example/user/ smoke test               | 1 hr   | TestExampleRuns            |
-| 25  | Parallelize CI matrix (per-module jobs)    | 3 hrs  | Speed up CI                |
+| #  | Item                                       | Effort | Notes                      |
+| -- | ------------------------------------------ | ------ | -------------------------- |
+| 14 | Split `event_test.go` (794L)               | 1 hr   | Per-feature files          |
+| 15 | Add fuzz tests for event/ID/schema         | 3 hrs  | Multiple packages          |
+| 16 | BDD tests for Version, SchemaVersion, etc. | 2 hrs  | Ginkgo-based               |
+| 17 | Catalog schemautil coverage (84.2%)        | 1 hr   | Lowest in catalog          |
+| 18 | Testhelpers coverage (82.1%)               | 1 hr   | Second lowest              |
+| 19 | Add E2E throughput benchmarks              | 3 hrs  | Cross-module perf          |
+| 20 | Enforce 350L limit in pre-commit hook      | 1 hr   | Auto-check file sizes      |
+| 21 | Performance regression CI                  | 3 hrs  | Benchmark comparison on PR |
+| 22 | Add gofumpt/goimports to pre-commit hook   | 30 min | Already in BuildFlow       |
+| 23 | Rewrite example/user/ to demo full stack   | 4 hrs  | Comprehensive example      |
+| 24 | Add example/user/ smoke test               | 1 hr   | TestExampleRuns            |
+| 25 | Parallelize CI matrix (per-module jobs)    | 3 hrs  | Speed up CI                |
 
 ### BLOCKED
 
-| #   | Item                                                     | Blocker                       |
-| --- | -------------------------------------------------------- | ----------------------------- |
-| —   | Remove `replace` directives from go.mod files            | Requires tag push first       |
-| —   | Standardize integration/go.mod + catalog/go.mod versions | Requires tag push first       |
-| —   | Move example/todo to own repo                            | Requires manual repo creation |
-| —   | Change LICENSE from proprietary to MIT/Apache            | Requires owner decision       |
-| —   | Create go-branded-id v0.2.0                              | Different repo                |
-| —   | Extract shared golangci.yml to library-policy            | Different repo                |
+| # | Item                                                     | Blocker                       |
+| - | -------------------------------------------------------- | ----------------------------- |
+| — | Remove `replace` directives from go.mod files            | Requires tag push first       |
+| — | Standardize integration/go.mod + catalog/go.mod versions | Requires tag push first       |
+| — | Move example/todo to own repo                            | Requires manual repo creation |
+| — | Change LICENSE from proprietary to MIT/Apache            | Requires owner decision       |
+| — | Create go-branded-id v0.2.0                              | Different repo                |
+| — | Extract shared golangci.yml to library-policy            | Different repo                |
 
 ---
 
@@ -273,53 +273,53 @@ The `testhelpers` module is imported by nearly every other test module. Its 82.1
 
 ### Tier 1: Quick Wins (under 30 minutes)
 
-| #   | Item                                          | Why                                      |
-| --- | --------------------------------------------- | ---------------------------------------- |
-| 1   | **Push 4 local commits to origin**            | `git push` — 4 commits not yet on remote |
-| 2   | **Push signing v1.0.0 tag**                   | Code is ready, one command away          |
-| 3   | **Fix `example/user/go.mod` signing version** | After tag push: v1.6.0 → v1.0.0          |
-| 4   | **Add memory replace to stream/go.mod**       | Missing `replace` directive              |
-| 5   | **Add golden test protection to BuildFlow**   | Prevent 4th golden fixture break         |
+| # | Item                                          | Why                                      |
+| - | --------------------------------------------- | ---------------------------------------- |
+| 1 | **Push 4 local commits to origin**            | `git push` — 4 commits not yet on remote |
+| 2 | **Push signing v1.0.0 tag**                   | Code is ready, one command away          |
+| 3 | **Fix `example/user/go.mod` signing version** | After tag push: v1.6.0 → v1.0.0          |
+| 4 | **Add memory replace to stream/go.mod**       | Missing `replace` directive              |
+| 5 | **Add golden test protection to BuildFlow**   | Prevent 4th golden fixture break         |
 
 ### Tier 2: Test File Splits (1-2 hours each)
 
-| #   | Item                                    | Current Size | Target Files     |
-| --- | --------------------------------------- | ------------ | ---------------- |
-| 6   | **Split `decider_test.go`**             | 1182L        | 4+ focused files |
-| 7   | **Split `runner_test.go` (projection)** | 1159L        | 4+ focused files |
-| 8   | **Split `id_test.go`**                  | 1022L        | 3+ focused files |
-| 9   | **Split `event_store_test.go`**         | 967L         | 3+ focused files |
-| 10  | **Split `event_test.go`**               | 794L         | 3+ focused files |
+| #  | Item                                    | Current Size | Target Files     |
+| -- | --------------------------------------- | ------------ | ---------------- |
+| 6  | **Split `decider_test.go`**             | 1182L        | 4+ focused files |
+| 7  | **Split `runner_test.go` (projection)** | 1159L        | 4+ focused files |
+| 8  | **Split `id_test.go`**                  | 1022L        | 3+ focused files |
+| 9  | **Split `event_store_test.go`**         | 967L         | 3+ focused files |
+| 10 | **Split `event_test.go`**               | 794L         | 3+ focused files |
 
 ### Tier 3: Stream Module (2-3 hours)
 
-| #   | Item                            | Why                                  |
-| --- | ------------------------------- | ------------------------------------ |
-| 11  | **Add SQL reader tests**        | Zero coverage on sql_reader.go       |
-| 12  | **Add projection reader tests** | Zero Coverage on projection.go       |
-| 13  | **Stream coverage → 80%+**      | Currently 58.6%, minimum viable      |
-| 14  | **Stream integration tests**    | Cross-module event→stream pipeline   |
-| 15  | **Stream README.md**            | Usage examples and API documentation |
+| #  | Item                            | Why                                  |
+| -- | ------------------------------- | ------------------------------------ |
+| 11 | **Add SQL reader tests**        | Zero coverage on sql_reader.go       |
+| 12 | **Add projection reader tests** | Zero Coverage on projection.go       |
+| 13 | **Stream coverage → 80%+**      | Currently 58.6%, minimum viable      |
+| 14 | **Stream integration tests**    | Cross-module event→stream pipeline   |
+| 15 | **Stream README.md**            | Usage examples and API documentation |
 
 ### Tier 4: Quality & Coverage (1-3 hours each)
 
-| #   | Item                                      | Why                                       |
-| --- | ----------------------------------------- | ----------------------------------------- |
-| 16  | **Add fuzz tests for ID parsing**         | High-value: parsing is security-sensitive |
-| 17  | **Add fuzz tests for schema reflection**  | Complex logic, many edge cases            |
-| 18  | **Improve catalog/schemautil coverage**   | 84.2% → 90%+                              |
-| 19  | **Improve testhelpers coverage**          | 82.1% → 90%+                              |
-| 20  | **Enforce 350L limit in pre-commit hook** | Automated enforcement > manual            |
+| #  | Item                                      | Why                                       |
+| -- | ----------------------------------------- | ----------------------------------------- |
+| 16 | **Add fuzz tests for ID parsing**         | High-value: parsing is security-sensitive |
+| 17 | **Add fuzz tests for schema reflection**  | Complex logic, many edge cases            |
+| 18 | **Improve catalog/schemautil coverage**   | 84.2% → 90%+                              |
+| 19 | **Improve testhelpers coverage**          | 82.1% → 90%+                              |
+| 20 | **Enforce 350L limit in pre-commit hook** | Automated enforcement > manual            |
 
 ### Tier 5: Infrastructure (2-4 hours each)
 
-| #   | Item                                               | Why                                  |
-| --- | -------------------------------------------------- | ------------------------------------ |
-| 21  | **Standardize all go.mod versions after tag push** | Remove version confusion             |
-| 22  | **Add BDD tests for core types**                   | Version, SchemaVersion, OutboxStatus |
-| 23  | **Performance regression CI**                      | Catch perf regressions before merge  |
-| 24  | **Rewrite example/user/ to demo full stack**       | Better onboarding for consumers      |
-| 25  | **Add example/user/ smoke test**                   | Prevent example rot                  |
+| #  | Item                                               | Why                                  |
+| -- | -------------------------------------------------- | ------------------------------------ |
+| 21 | **Standardize all go.mod versions after tag push** | Remove version confusion             |
+| 22 | **Add BDD tests for core types**                   | Version, SchemaVersion, OutboxStatus |
+| 23 | **Performance regression CI**                      | Catch perf regressions before merge  |
+| 24 | **Rewrite example/user/ to demo full stack**       | Better onboarding for consumers      |
+| 25 | **Add example/user/ smoke test**                   | Prevent example rot                  |
 
 ---
 
@@ -377,19 +377,19 @@ Arguments for pausing:
 | Module              | Coverage | Max Test File | Test Files | Production Files | Health               |
 | ------------------- | -------- | ------------- | ---------- | ---------------- | -------------------- |
 | core/command        | 92.5%    | 350L          | 6          | 6                | 🟢 Good              |
-| core/decider        | 91.1%    | 1182L ⚠️      | 3          | 4                | 🟡 Test split needed |
+| core/decider        | 91.1%    | 1182L ⚠️       | 3          | 4                | 🟡 Test split needed |
 | core/event          | 92.7%    | 794L          | 12         | 14               | 🟡 Test split needed |
 | core/pkg/dispatcher | 100.0%   | 140L          | 1          | 1                | 🟢 Good              |
-| core/pkg/id         | 100.0%   | 1022L ⚠️      | 1          | 3                | 🟡 Test split needed |
+| core/pkg/id         | 100.0%   | 1022L ⚠️       | 1          | 3                | 🟡 Test split needed |
 | core/query          | 96.8%    | 300L          | 3          | 3                | 🟢 Good              |
 | memory              | 99.6%    | 579L          | 3          | 7                | 🟢 Good              |
 | catalog             | 96.3%    | 604L          | 12         | 12               | 🟢 Good              |
 | middleware          | 93.7%    | 250L          | 5          | 6                | 🟢 Good              |
 | testhelpers         | 82.1%    | 300L          | 6          | 7                | 🟡 Coverage          |
 | integration         | N/A      | 447L          | 5          | 0                | 🟢 Good              |
-| projection          | 96.0%    | 1159L ⚠️      | 3          | 4                | 🟡 Test split needed |
+| projection          | 96.0%    | 1159L ⚠️       | 3          | 4                | 🟡 Test split needed |
 | signing             | 93.9%    | 346L          | 16         | 8                | 🟢 Good              |
-| storage             | 89.9%    | 967L ⚠️       | 12         | 14               | 🟡 Test split needed |
+| storage             | 89.9%    | 967L ⚠️        | 12         | 14               | 🟡 Test split needed |
 | saga                | 93.4%    | 280L          | 4          | 5                | 🟢 Good              |
 | stream              | 58.6%    | 200L          | 2          | 7                | 🔴 Needs work        |
 | watermill           | 94.4%    | 150L          | 1          | 2                | 🟢 Good              |

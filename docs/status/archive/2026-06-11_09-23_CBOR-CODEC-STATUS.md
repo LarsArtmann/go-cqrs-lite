@@ -135,33 +135,33 @@
 
 ## f) Top #25 Things To Get Done Next
 
-| #   | Task                                               | Impact | Effort | Priority |
-| --- | -------------------------------------------------- | ------ | ------ | -------- |
-| 1   | Fix `cborEncMode` error handling (init+panic)      | High   | 2 min  | **P0**   |
-| 2   | Add `ExampleCBORCodec`                             | Medium | 3 min  | **P0**   |
-| 3   | Add `TestCBORCodec_Decode_EmptyData`               | Medium | 2 min  | **P0**   |
-| 4   | Add `time.Time` round-trip test                    | High   | 3 min  | **P0**   |
-| 5   | Add `[]byte` field test                            | High   | 3 min  | **P0**   |
-| 6   | Fix fuzz test to use pure CBOR corpus              | Medium | 5 min  | **P1**   |
-| 7   | Add side-by-side JSON vs CBOR benchmark            | Medium | 5 min  | **P1**   |
-| 8   | Add end-to-end event creation test                 | High   | 10 min | **P1**   |
-| 9   | Add `DecMode` configuration                        | Medium | 10 min | **P1**   |
-| 10  | Document CBOR in codec/README.md                   | Medium | 10 min | **P1**   |
-| 11  | Evaluate CoreDet vs Canonical default              | High   | 15 min | **P2**   |
-| 12  | Add CBOR example to `example/`                     | Medium | 20 min | **P2**   |
-| 13  | Property-based determinism test (rapid)            | High   | 15 min | **P2**   |
-| 14  | Complex struct round-trip test                     | Medium | 5 min  | **P2**   |
-| 15  | Allocation benchmark comparison                    | Medium | 10 min | **P2**   |
-| 16  | Add `TestCBORCodec_Slice`                          | Low    | 2 min  | **P3**   |
-| 17  | Add `TestCBORCodec_NestedStruct`                   | Low    | 3 min  | **P3**   |
-| 18  | Document CBOR determinism for signing              | Medium | 10 min | **P3**   |
-| 19  | Verify encryption codec works with CBOR            | Medium | 5 min  | **P3**   |
-| 20  | Add `TestCBORCodec_Interface` (any type)           | Low    | 3 min  | **P3**   |
-| 21  | Consider CBOR streaming encoder for large payloads | Low    | 30 min | **P4**   |
-| 22  | Investigate CBOR tag support for domain types      | Low    | 45 min | **P4**   |
-| 23  | Add CBOR to `event/codec_test.go` integration      | Medium | 10 min | **P4**   |
-| 24  | Write ADR for CBOR choice over msgpack/FlatBuffers | Low    | 30 min | **P4**   |
-| 25  | Add `CBORCodec` to `eventtest` golden assertions   | Low    | 10 min | **P4**   |
+| #  | Task                                               | Impact | Effort | Priority |
+| -- | -------------------------------------------------- | ------ | ------ | -------- |
+| 1  | Fix `cborEncMode` error handling (init+panic)      | High   | 2 min  | **P0**   |
+| 2  | Add `ExampleCBORCodec`                             | Medium | 3 min  | **P0**   |
+| 3  | Add `TestCBORCodec_Decode_EmptyData`               | Medium | 2 min  | **P0**   |
+| 4  | Add `time.Time` round-trip test                    | High   | 3 min  | **P0**   |
+| 5  | Add `[]byte` field test                            | High   | 3 min  | **P0**   |
+| 6  | Fix fuzz test to use pure CBOR corpus              | Medium | 5 min  | **P1**   |
+| 7  | Add side-by-side JSON vs CBOR benchmark            | Medium | 5 min  | **P1**   |
+| 8  | Add end-to-end event creation test                 | High   | 10 min | **P1**   |
+| 9  | Add `DecMode` configuration                        | Medium | 10 min | **P1**   |
+| 10 | Document CBOR in codec/README.md                   | Medium | 10 min | **P1**   |
+| 11 | Evaluate CoreDet vs Canonical default              | High   | 15 min | **P2**   |
+| 12 | Add CBOR example to `example/`                     | Medium | 20 min | **P2**   |
+| 13 | Property-based determinism test (rapid)            | High   | 15 min | **P2**   |
+| 14 | Complex struct round-trip test                     | Medium | 5 min  | **P2**   |
+| 15 | Allocation benchmark comparison                    | Medium | 10 min | **P2**   |
+| 16 | Add `TestCBORCodec_Slice`                          | Low    | 2 min  | **P3**   |
+| 17 | Add `TestCBORCodec_NestedStruct`                   | Low    | 3 min  | **P3**   |
+| 18 | Document CBOR determinism for signing              | Medium | 10 min | **P3**   |
+| 19 | Verify encryption codec works with CBOR            | Medium | 5 min  | **P3**   |
+| 20 | Add `TestCBORCodec_Interface` (any type)           | Low    | 3 min  | **P3**   |
+| 21 | Consider CBOR streaming encoder for large payloads | Low    | 30 min | **P4**   |
+| 22 | Investigate CBOR tag support for domain types      | Low    | 45 min | **P4**   |
+| 23 | Add CBOR to `event/codec_test.go` integration      | Medium | 10 min | **P4**   |
+| 24 | Write ADR for CBOR choice over msgpack/FlatBuffers | Low    | 30 min | **P4**   |
+| 25 | Add `CBORCodec` to `eventtest` golden assertions   | Low    | 10 min | **P4**   |
 
 ---
 

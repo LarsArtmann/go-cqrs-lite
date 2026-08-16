@@ -1,8 +1,8 @@
 # Comprehensive Status Report
 
-**Date:** Thu May 21 06:25:05 PM CEST 2026  
-**Branch:** master  
-**Last Commit:** de89ff5 docs: comprehensive TODO reconciliation, coverage update, and AGENTS.md trim  
+**Date:** Thu May 21 06:25:05 PM CEST 2026\
+**Branch:** master\
+**Last Commit:** de89ff5 docs: comprehensive TODO reconciliation, coverage update, and AGENTS.md trim\
 **Previous Status:** 2026-05-21_16-02_COMPREHENSIVE_STATUS.md
 
 ---

@@ -8,45 +8,45 @@
 
 ## a) FULLY DONE ✓
 
-| #   | Task                                          | Evidence                                                                                                                                                                                     |
-| --- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | D006: catalog/internal/cattest/schemas.go     | Suppressed with justification (test helper, errors consumed by test code)                                                                                                                    |
-| 2   | D006: cmd/cqrs-bench/factory.go (2 findings)  | Migrated to `errorfamily.Newf(Rejection, ...)`, promoted errorfamily from indirect→direct dep                                                                                                |
-| 3   | D006: stack/accessors.go                      | Migrated to `errorfamily.NewRejection(...)`, promoted errorfamily from indirect→direct dep, removed unused `errors` import                                                                   |
-| 4   | C015 rule improvement: `isInErrorCleanup`     | New function detects if-blocks with return statements (error-cleanup idiom). Eliminates false positives in cleanup paths.                                                                    |
-| 5   | C015 rule improvement: `isInCleanupCallback`  | New function detects anonymous functions (FuncLit) where Close error can't propagate. Covers `t.Cleanup(func(){...})` and cleanup closures.                                                  |
-| 6   | C015: 6 remaining findings suppressed         | Each with inline `//cqrs-lint:ignore(C015)` + reason comment (benchkit teardown, file close helper, rows.Close helper, pebble closer)                                                        |
-| 7   | C001 false positive: SQLKVStore.Batch         | Suppressed — tx returned via kv.Batch interface, committed in sqlKVBatch.Commit()                                                                                                            |
-| 8   | Nix: test-grpc build tag                      | Was failing (`encoding/json/v2: build constraints exclude all Go files`). Fixed: added `-tags "goexperiment.jsonv2"`.                                                                        |
-| 9   | Nix: check-wasm build tag                     | Was failing (same root cause). Fixed: added build tag to all 7 wasm module builds.                                                                                                           |
-| 10  | Nix: ci app grpc + api-stability build tags   | Fixed: both steps now use the build tag.                                                                                                                                                     |
-| 11  | Nix: ci app `go run main.go` → `go run .` bug | **Pre-existing bug found during self-review**: `go run main.go` only compiles main.go, missing `collectExports` defined in another file. Fixed to `go run .` — ci app now passes end-to-end. |
-| 12  | modernize: `slices.Backward` in C015          | Replaced backward for-loop with `slices.Backward(ancestors)` per modernize linter.                                                                                                           |
-| 13  | Coverage gate (`nix run .#check-coverage`)    | GREEN — all 12 tracked modules within ±2.0% tolerance.                                                                                                                                       |
-| 14  | `nix flake check`                             | GREEN — all checks passed (treefmt + build).                                                                                                                                                 |
-| 15  | `nix run .#ci` end-to-end                     | GREEN — build + vet + test + layers + api-stability + grpc. (Only verified after self-review forced it — see §d.)                                                                            |
-| 16  | Final `nix run .#verify`                      | GREEN — build + vet + test + race + lint + api-stability + doc-check (947 refs).                                                                                                             |
+| #  | Task                                          | Evidence                                                                                                                                                                                     |
+| -- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | D006: catalog/internal/cattest/schemas.go     | Suppressed with justification (test helper, errors consumed by test code)                                                                                                                    |
+| 2  | D006: cmd/cqrs-bench/factory.go (2 findings)  | Migrated to `errorfamily.Newf(Rejection, ...)`, promoted errorfamily from indirect→direct dep                                                                                                |
+| 3  | D006: stack/accessors.go                      | Migrated to `errorfamily.NewRejection(...)`, promoted errorfamily from indirect→direct dep, removed unused `errors` import                                                                   |
+| 4  | C015 rule improvement: `isInErrorCleanup`     | New function detects if-blocks with return statements (error-cleanup idiom). Eliminates false positives in cleanup paths.                                                                    |
+| 5  | C015 rule improvement: `isInCleanupCallback`  | New function detects anonymous functions (FuncLit) where Close error can't propagate. Covers `t.Cleanup(func(){...})` and cleanup closures.                                                  |
+| 6  | C015: 6 remaining findings suppressed         | Each with inline `//cqrs-lint:ignore(C015)` + reason comment (benchkit teardown, file close helper, rows.Close helper, pebble closer)                                                        |
+| 7  | C001 false positive: SQLKVStore.Batch         | Suppressed — tx returned via kv.Batch interface, committed in sqlKVBatch.Commit()                                                                                                            |
+| 8  | Nix: test-grpc build tag                      | Was failing (`encoding/json/v2: build constraints exclude all Go files`). Fixed: added `-tags "goexperiment.jsonv2"`.                                                                        |
+| 9  | Nix: check-wasm build tag                     | Was failing (same root cause). Fixed: added build tag to all 7 wasm module builds.                                                                                                           |
+| 10 | Nix: ci app grpc + api-stability build tags   | Fixed: both steps now use the build tag.                                                                                                                                                     |
+| 11 | Nix: ci app `go run main.go` → `go run .` bug | **Pre-existing bug found during self-review**: `go run main.go` only compiles main.go, missing `collectExports` defined in another file. Fixed to `go run .` — ci app now passes end-to-end. |
+| 12 | modernize: `slices.Backward` in C015          | Replaced backward for-loop with `slices.Backward(ancestors)` per modernize linter.                                                                                                           |
+| 13 | Coverage gate (`nix run .#check-coverage`)    | GREEN — all 12 tracked modules within ±2.0% tolerance.                                                                                                                                       |
+| 14 | `nix flake check`                             | GREEN — all checks passed (treefmt + build).                                                                                                                                                 |
+| 15 | `nix run .#ci` end-to-end                     | GREEN — build + vet + test + layers + api-stability + grpc. (Only verified after self-review forced it — see §d.)                                                                            |
+| 16 | Final `nix run .#verify`                      | GREEN — build + vet + test + race + lint + api-stability + doc-check (947 refs).                                                                                                             |
 
 ---
 
 ## b) PARTIALLY DONE ⚠️
 
-| #   | Task                    | What's done                                        | What's missing                                                                                                                                                                               |
-| --- | ----------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | C015 rule improvement   | 66→0 findings, 3 new suppression functions         | **NO UNIT TESTS** for `isInErrorCleanup`, `isInCleanupCallback`, `isSuppressedClose`. The existing C015 tests (if any) don't cover these paths. A future refactor could break them silently. |
-| 2   | Nix app build-tag audit | Fixed test-grpc, check-wasm, ci (3 apps)           | Did NOT write a meta-test that verifies all Nix apps include the build tag. The fix is reactive — the next app added without `${tagFlags}` will silently break.                              |
-| 3   | D006 fixes              | All 4 findings resolved (3 migrated, 1 suppressed) | Did NOT add tests verifying the new `errorfamily.NewRejection/Newf` errors classify correctly (e.g., `errorfamily.IsRejection(err)` returns true).                                           |
+| # | Task                    | What's done                                        | What's missing                                                                                                                                                                               |
+| - | ----------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | C015 rule improvement   | 66→0 findings, 3 new suppression functions         | **NO UNIT TESTS** for `isInErrorCleanup`, `isInCleanupCallback`, `isSuppressedClose`. The existing C015 tests (if any) don't cover these paths. A future refactor could break them silently. |
+| 2 | Nix app build-tag audit | Fixed test-grpc, check-wasm, ci (3 apps)           | Did NOT write a meta-test that verifies all Nix apps include the build tag. The fix is reactive — the next app added without `${tagFlags}` will silently break.                              |
+| 3 | D006 fixes              | All 4 findings resolved (3 migrated, 1 suppressed) | Did NOT add tests verifying the new `errorfamily.NewRejection/Newf` errors classify correctly (e.g., `errorfamily.IsRejection(err)` returns true).                                           |
 
 ---
 
 ## c) NOT STARTED ✗
 
-| #   | Task                                              | Why deferred                                                                                                                                                                     |
-| --- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Document C015 suppression heuristics in AGENTS.md | The 3 suppression contexts (defer, error-cleanup, cleanup-callback) are a new pattern that developers need to understand. Not documented anywhere except the rule's doc comment. |
-| 2   | Update cqrs-lint README C015 description          | The README still describes the old behavior (defer-only suppression). The rule now has 3 suppression contexts.                                                                   |
-| 3   | Write C015 unit tests                             | No test file exists at all (`c015_test.go` does not exist). All 3 new functions + the original detection logic are completely untested.                                          |
-| 4   | Meta-test: verify all Nix apps use build tags     | Could grep `flake.nix` for `go` commands without `${tagFlags}` or `-tags`. Not done.                                                                                             |
+| # | Task                                              | Why deferred                                                                                                                                                                     |
+| - | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Document C015 suppression heuristics in AGENTS.md | The 3 suppression contexts (defer, error-cleanup, cleanup-callback) are a new pattern that developers need to understand. Not documented anywhere except the rule's doc comment. |
+| 2 | Update cqrs-lint README C015 description          | The README still describes the old behavior (defer-only suppression). The rule now has 3 suppression contexts.                                                                   |
+| 3 | Write C015 unit tests                             | No test file exists at all (`c015_test.go` does not exist). All 3 new functions + the original detection logic are completely untested.                                          |
+| 4 | Meta-test: verify all Nix apps use build tags     | Could grep `flake.nix` for `go` commands without `${tagFlags}` or `-tags`. Not done.                                                                                             |
 
 ---
 
@@ -249,12 +249,12 @@ Currently `verify` runs build+vet+test+race+lint+api-stability+doc-check but NOT
 
 ## Session Fuckup Count: 4
 
-| #   | Fuckup                                                                               | Severity | Fixable?                                |
-| --- | ------------------------------------------------------------------------------------ | -------- | --------------------------------------- |
-| F1  | Never ran `nix run .#ci` until self-review (found pre-existing `go run main.go` bug) | HIGH     | Done (fixed `go run .`)                 |
-| F2  | C015 suppression heuristics have ZERO test coverage                                  | HIGH     | Yes (write c015_test.go)                |
-| F3  | `isInCleanupCallback` is dangerously broad (suppresses goroutines)                   | MEDIUM   | Yes (narrow to cleanup patterns)        |
-| F4  | 3 rounds of format/lint fixes (imports introduced out of order)                      | LOW      | Process fix (run nix fmt before verify) |
+| #  | Fuckup                                                                               | Severity | Fixable?                                |
+| -- | ------------------------------------------------------------------------------------ | -------- | --------------------------------------- |
+| F1 | Never ran `nix run .#ci` until self-review (found pre-existing `go run main.go` bug) | HIGH     | Done (fixed `go run .`)                 |
+| F2 | C015 suppression heuristics have ZERO test coverage                                  | HIGH     | Yes (write c015_test.go)                |
+| F3 | `isInCleanupCallback` is dangerously broad (suppresses goroutines)                   | MEDIUM   | Yes (narrow to cleanup patterns)        |
+| F4 | 3 rounds of format/lint fixes (imports introduced out of order)                      | LOW      | Process fix (run nix fmt before verify) |
 
 ---
 

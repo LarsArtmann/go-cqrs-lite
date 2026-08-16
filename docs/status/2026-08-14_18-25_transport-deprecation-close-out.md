@@ -164,11 +164,11 @@ session's changes).
 ~~1. Confirm `verify-fast` exit 0 after the depguard fix (run was in flight).~~ done at 5f2198189 (full verify GREEN later that night; three GREENs since)
 ~~2. Commit the close-out delta (daemon already has partial: d8c73be0a).~~ done - daemon-committed as d8c73be0a + fe017c06a
 ~~3. Re-run cqrs-lint suite once more after config fix (config affects lint~~ done - cqrs-lint 17/17; lint 76/76 modules clean in every verify since 444be10a7
-   rules globally — low risk, cheap check).
+rules globally — low risk, cheap check).
 
 **P1 — inherited P0s (unchanged, from 16:00 report):**
 4. Fix release chain: re-tag `id` v4.4.0 (missing `actor_id.go`), re-tag <- **NOT-DO - premise stale: id/v4.4.0 contains actor_id.go (verified via git tag --contains). Downstream re-tags track in TODO_LIST 'Release / Tagging'.**
-   dependents, bump 66 go.mods; unblocks GOWORK=off taskmanager build (c.1).
+dependents, bump 66 go.mods; unblocks GOWORK=off taskmanager build (c.1).
 5. Engine capability conformance test (plan-time Supports-vs-implemented). <- OPEN. TODO_LIST 'Metaengine' (Engine capability conformance test)
 ~~6. Dgraph CounterBackend DQL colon bug + JournalReadFrom off-by-one.~~ done at 5127039da (counter rework) + 7c0a62c98 (JournalReadFrom positional)
 7. ADR-0114 tombstone/DeletePolicy reconciliation. <- OPEN. TODO_LIST 'Docs Honesty' (ADR-0114 tombstone reconciliation)
@@ -176,15 +176,15 @@ session's changes).
 
 **P2 — this session's follow-ups:**
 9. Wire Redis roundtrip into CI/nix (ephemeral script + test, like <- OPEN. TODO_LIST 'Code Quality' (Wire broker tests into CI - #integration-redis)
-   integration-pg).
+integration-pg).
 10. Depguard prefix-shadow meta-test (allow-list hygiene).
 11. Vacuous-test audit for pre-fix `BuildContextWithTypes` users.
 12. F030 extension: codec/retry deprecated re-export coaching (after <- NOT-DO - codec/retry shells deleted at 5127039da (ADR-0128); nothing left to coach on
-    deprecation-policy unification).
+deprecation-policy unification).
 13. Teach E005 `system.RegisterCommand`; regenerate taskmanager golden <- OPEN. TODO_LIST 'cqrs-lint' (E005 + taskmanager golden item)
-    (kills 10 enshrined false positives).
+(kills 10 enshrined false positives).
 14. Final v4.x tags of transport/http + transport/grpc with deprecation <- OPEN. TODO_LIST 'Release / Tagging' (transport v4.x patches) + v5 section
-    notices (prereq for v5 deletion, per TODO_LIST).
+notices (prereq for v5 deletion, per TODO_LIST).
 15. v5 migration guide (transport section now has real recipes to link). <- OPEN. TODO_LIST 'v5 Unification Phase 8' (migration guide)
 
 **P3 — systemic (from 16:00 report, still open):**
@@ -194,8 +194,8 @@ session's changes).
 19. Planner cost model fixes (branching^depth, volume default, selectivity). <- OPEN. TODO_LIST 'Correctness Defect Sweep' (Planner cost model)
 20. FilterOp/column allowlists; ORDER BY quoting; DSN leaks in turso errors. <- OPEN. TODO_LIST 'Correctness Defect Sweep' (SQL injection surface)
 21. Core defects: singleflight leader-ctx, per-handler command middleware, <- OPEN. TODO_LIST 'Correctness Defect Sweep' (Core defects)
-    query audit fake RequestIDs, Pagination.Offset underflow, kv.Cache shared
-    *T, TypedQueryStore JSON decode, ghost event.ErrBinaryNotFound.
+query audit fake RequestIDs, Pagination.Offset underflow, kv.Cache shared
+*T, TypedQueryStore JSON decode, ghost event.ErrBinaryNotFound.
 ~~22. Deprecation-story unification (codec/retry/idempotency/flightrecorder).~~ done - resolved by ADR-0128 deletion; policy documented (5127039da)
 23. Bench consolidation to benchkit+cqrs-bench; CI regression breach-fail. <- OPEN. TODO_LIST 'Code Quality' (One bench system)
 24. storage/backuptest wiring or deletion; bbolt backup tests. <- OPEN. TODO_LIST 'Code Quality' (storage/backuptest: wire or delete)
@@ -235,26 +235,25 @@ session's changes).
 
 ## h) Verification state at write time (FINAL)
 
-| Gate | Status |
-| --- | --- |
-| taskmanager suite (workspace) | ✅ ok |
-| SSE integration test (real server) | ✅ pass |
-| cqrs-lint suite (17 pkgs) | ✅ ok |
-| Redis roundtrip vs real broker | ✅ pass |
-| api-stability (4133, regen for parallel session's LoadStream) | ✅ ok |
-| doc-check (797 refs) | ✅ ok |
-| gofmt / vet | ✅ clean |
-| system `-short -race` (after mutex fix) | ✅ ok |
-| `verify-fast` legs: build/vet/test/race/lint | ✅ all pass |
-| `verify-fast` `check-arch` leg | ❌ pre-existing catalog-coverage gap (TODO_LIST-owned, fails on master) |
+| Gate                                                          | Status                                                                  |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| taskmanager suite (workspace)                                 | ✅ ok                                                                   |
+| SSE integration test (real server)                            | ✅ pass                                                                 |
+| cqrs-lint suite (17 pkgs)                                     | ✅ ok                                                                   |
+| Redis roundtrip vs real broker                                | ✅ pass                                                                 |
+| api-stability (4133, regen for parallel session's LoadStream) | ✅ ok                                                                   |
+| doc-check (797 refs)                                          | ✅ ok                                                                   |
+| gofmt / vet                                                   | ✅ clean                                                                |
+| system `-short -race` (after mutex fix)                       | ✅ ok                                                                   |
+| `verify-fast` legs: build/vet/test/race/lint                  | ✅ all pass                                                             |
+| `verify-fast` `check-arch` leg                                | ❌ pre-existing catalog-coverage gap (TODO_LIST-owned, fails on master) |
 
 Working tree at report time (uncommitted, all this session): `.golangci.yml`
 (depguard fix), `docs/api_surface.txt` (4133 regen),
 `system/system_hardening_test.go` (race fix), this report. Everything else
 was daemon-committed (`d8c73be0a`, `fe017c06a`).
 
-*Report ends. Waiting for instructions.*
-
+_Report ends. Waiting for instructions._
 
 ## Resolution (2026-08-15, docs-health pass)
 

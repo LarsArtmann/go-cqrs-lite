@@ -114,48 +114,48 @@ The only remaining uncommitted change is `docs/modularization/PROPOSAL.md` which
 
 ### Tier 1: Fix Now (high impact, low effort)
 
-| #   | Task                                                               | Impact | Effort |
-| --- | ------------------------------------------------------------------ | ------ | ------ |
-| 1   | Restore or commit `docs/modularization/PROPOSAL.md`                | MEDIUM | 5 min  |
-| 2   | Create ROADMAP.md with v1.0.0 release criteria                     | HIGH   | 30 min |
-| 3   | Create CHANGELOG.md summarizing sessions 100–148                   | HIGH   | 30 min |
-| 4   | Update TODO_LIST.md (mark AggregateRef, Checkpoint, multisig done) | MEDIUM | 15 min |
-| 5   | Full FEATURES.md re-audit                                          | MEDIUM | 30 min |
+| # | Task                                                               | Impact | Effort |
+| - | ------------------------------------------------------------------ | ------ | ------ |
+| 1 | Restore or commit `docs/modularization/PROPOSAL.md`                | MEDIUM | 5 min  |
+| 2 | Create ROADMAP.md with v1.0.0 release criteria                     | HIGH   | 30 min |
+| 3 | Create CHANGELOG.md summarizing sessions 100–148                   | HIGH   | 30 min |
+| 4 | Update TODO_LIST.md (mark AggregateRef, Checkpoint, multisig done) | MEDIUM | 15 min |
+| 5 | Full FEATURES.md re-audit                                          | MEDIUM | 30 min |
 
 ### Tier 2: Pebble Completeness
 
-| #   | Task                                                          | Impact | Effort |
-| --- | ------------------------------------------------------------- | ------ | ------ |
-| 6   | PebbleCheckpointStore                                         | HIGH   | LOW    |
-| 7   | PebbleSnapshotStore                                           | HIGH   | LOW    |
-| 8   | PebbleBackwardsSource (reverse iteration on aggregate prefix) | MEDIUM | LOW    |
-| 9   | PebbleOutbox (pending queue with poll/ack)                    | HIGH   | MEDIUM |
-| 10  | PebbleJournal (ReadAll — full scan + sort)                    | MEDIUM | MEDIUM |
-| 11  | PebbleSeekableJournal (ReadFrom — secondary index)            | MEDIUM | HIGH   |
-| 12  | Unified PebbleBackend facade                                  | MEDIUM | LOW    |
+| #  | Task                                                          | Impact | Effort |
+| -- | ------------------------------------------------------------- | ------ | ------ |
+| 6  | PebbleCheckpointStore                                         | HIGH   | LOW    |
+| 7  | PebbleSnapshotStore                                           | HIGH   | LOW    |
+| 8  | PebbleBackwardsSource (reverse iteration on aggregate prefix) | MEDIUM | LOW    |
+| 9  | PebbleOutbox (pending queue with poll/ack)                    | HIGH   | MEDIUM |
+| 10 | PebbleJournal (ReadAll — full scan + sort)                    | MEDIUM | MEDIUM |
+| 11 | PebbleSeekableJournal (ReadFrom — secondary index)            | MEDIUM | HIGH   |
+| 12 | Unified PebbleBackend facade                                  | MEDIUM | LOW    |
 
 ### Tier 3: New Capabilities
 
-| #   | Task                                                      | Impact | Effort |
-| --- | --------------------------------------------------------- | ------ | ------ |
-| 13  | Design CommandStore interface in `core/command/`          | HIGH   | MEDIUM |
-| 14  | Implement CommandStore on memory + pebble + SQL           | HIGH   | MEDIUM |
-| 15  | Design ProjectionStore / ReadModelStore                   | HIGH   | MEDIUM |
-| 16  | Implement KVStore[T] generic for typed read model storage | MEDIUM | MEDIUM |
-| 17  | listing/ SQLAggregateReader                               | MEDIUM | MEDIUM |
+| #  | Task                                                      | Impact | Effort |
+| -- | --------------------------------------------------------- | ------ | ------ |
+| 13 | Design CommandStore interface in `core/command/`          | HIGH   | MEDIUM |
+| 14 | Implement CommandStore on memory + pebble + SQL           | HIGH   | MEDIUM |
+| 15 | Design ProjectionStore / ReadModelStore                   | HIGH   | MEDIUM |
+| 16 | Implement KVStore[T] generic for typed read model storage | MEDIUM | MEDIUM |
+| 17 | listing/ SQLAggregateReader                               | MEDIUM | MEDIUM |
 
 ### Tier 4: Architecture & Quality
 
-| #   | Task                                                      | Impact | Effort             |
-| --- | --------------------------------------------------------- | ------ | ------------------ |
-| 18  | core/event god-package split (12 clusters → sub-packages) | HIGH   | HIGH               |
-| 19  | io.Closer removal from core interfaces                    | MEDIUM | MEDIUM             |
-| 20  | Fix flaky projection BDD test (timing-sensitive)          | LOW    | MEDIUM             |
-| 21  | Consolidate 63 status reports into architectural docs     | LOW    | HIGH               |
-| 22  | Verify flake.nix module list                              | MEDIUM | 10 min             |
-| 23  | Verify ci.yml module list                                 | MEDIUM | 10 min             |
-| 24  | Push v1.0.0 tags to remove replace directives             | HIGH   | LOW (irreversible) |
-| 25  | Clean up unused test helper functions (6 gopls warnings)  | LOW    | LOW                |
+| #  | Task                                                      | Impact | Effort             |
+| -- | --------------------------------------------------------- | ------ | ------------------ |
+| 18 | core/event god-package split (12 clusters → sub-packages) | HIGH   | HIGH               |
+| 19 | io.Closer removal from core interfaces                    | MEDIUM | MEDIUM             |
+| 20 | Fix flaky projection BDD test (timing-sensitive)          | LOW    | MEDIUM             |
+| 21 | Consolidate 63 status reports into architectural docs     | LOW    | HIGH               |
+| 22 | Verify flake.nix module list                              | MEDIUM | 10 min             |
+| 23 | Verify ci.yml module list                                 | MEDIUM | 10 min             |
+| 24 | Push v1.0.0 tags to remove replace directives             | HIGH   | LOW (irreversible) |
+| 25 | Clean up unused test helper functions (6 gopls warnings)  | LOW    | LOW                |
 
 ---
 

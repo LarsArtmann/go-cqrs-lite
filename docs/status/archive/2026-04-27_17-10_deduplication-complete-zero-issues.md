@@ -127,33 +127,33 @@ However, two architectural decisions are worth noting:
 
 Sorted by impact × urgency / effort:
 
-| #   | What                                                                  | Impact   | Effort  | Category |
-| --- | --------------------------------------------------------------------- | -------- | ------- | -------- |
-| 1   | Commit pending lint fixes and push to origin                          | Critical | Trivial | Ship     |
-| 2   | Update `Makefile` to include `testhelpers/` in build/test targets     | High     | Trivial | Infra    |
-| 3   | Verify CI workflows work with tracked `go.work`                       | High     | Small   | CI       |
-| 4   | Write status report (this document)                                   | Medium   | Done    | Docs     |
-| 5   | Add `EventRetry` tests (middleware coverage)                          | High     | Small   | Testing  |
-| 6   | Bump `pkg/id` coverage 73% → 80%+                                     | Medium   | Small   | Testing  |
-| 7   | Bump `aggregate` coverage 77% → 80%+                                  | Medium   | Small   | Testing  |
-| 8   | Bump `internal/dispatcher` coverage 77% → 80%+                        | Medium   | Small   | Testing  |
-| 9   | Fix `toDotAddress` number handling ("Get3DView" bug)                  | Low      | Trivial | Bugfix   |
-| 10  | Migrate `core/internal/testhelpers` callers to shared module directly | Medium   | Small   | Cleanup  |
-| 11  | Delete `core/internal/testhelpers` shim after migration               | Medium   | Trivial | Cleanup  |
-| 12  | Phase 5: Storage module (sqlc event store)                            | High     | Large   | Feature  |
-| 13  | Phase 6: Watermill module (pub/sub)                                   | High     | Large   | Feature  |
-| 14  | Phase 7: Projection module (samber/ro)                                | Medium   | Large   | Feature  |
-| 15  | Phase 8: Snapshot module (SQL-backed)                                 | Medium   | Medium  | Feature  |
-| 16  | Phase 10: Tag v0.1.0 releases for all modules                         | High     | Small   | Release  |
-| 17  | Update CONTRIBUTING.md with testhelpers workflow                      | Low      | Trivial | Docs     |
-| 18  | Add `go.work.sum` note to CONTRIBUTING.md                             | Low      | Trivial | Docs     |
-| 19  | Investigate `xtypes.TypedCommand.Command()` allocation                | Low      | Small   | Perf     |
-| 20  | Consider `MemoryBus.Publish` RLock scope reduction                    | Low      | Medium  | Perf     |
-| 21  | Consolidate `cattest` helpers with shared testhelpers                 | Low      | Medium  | Cleanup  |
-| 22  | Add integration test that uses all modules together                   | Medium   | Medium  | Testing  |
-| 23  | Resolve stale replace directives in middleware/xtypes go.mod          | Low      | Small   | Cleanup  |
-| 24  | Add `EventMetrics` test coverage                                      | Medium   | Small   | Testing  |
-| 25  | Evaluate `go-json-experiment/json` v2 API stability for v1.0          | Low      | Small   | Risk     |
+| #  | What                                                                  | Impact   | Effort  | Category |
+| -- | --------------------------------------------------------------------- | -------- | ------- | -------- |
+| 1  | Commit pending lint fixes and push to origin                          | Critical | Trivial | Ship     |
+| 2  | Update `Makefile` to include `testhelpers/` in build/test targets     | High     | Trivial | Infra    |
+| 3  | Verify CI workflows work with tracked `go.work`                       | High     | Small   | CI       |
+| 4  | Write status report (this document)                                   | Medium   | Done    | Docs     |
+| 5  | Add `EventRetry` tests (middleware coverage)                          | High     | Small   | Testing  |
+| 6  | Bump `pkg/id` coverage 73% → 80%+                                     | Medium   | Small   | Testing  |
+| 7  | Bump `aggregate` coverage 77% → 80%+                                  | Medium   | Small   | Testing  |
+| 8  | Bump `internal/dispatcher` coverage 77% → 80%+                        | Medium   | Small   | Testing  |
+| 9  | Fix `toDotAddress` number handling ("Get3DView" bug)                  | Low      | Trivial | Bugfix   |
+| 10 | Migrate `core/internal/testhelpers` callers to shared module directly | Medium   | Small   | Cleanup  |
+| 11 | Delete `core/internal/testhelpers` shim after migration               | Medium   | Trivial | Cleanup  |
+| 12 | Phase 5: Storage module (sqlc event store)                            | High     | Large   | Feature  |
+| 13 | Phase 6: Watermill module (pub/sub)                                   | High     | Large   | Feature  |
+| 14 | Phase 7: Projection module (samber/ro)                                | Medium   | Large   | Feature  |
+| 15 | Phase 8: Snapshot module (SQL-backed)                                 | Medium   | Medium  | Feature  |
+| 16 | Phase 10: Tag v0.1.0 releases for all modules                         | High     | Small   | Release  |
+| 17 | Update CONTRIBUTING.md with testhelpers workflow                      | Low      | Trivial | Docs     |
+| 18 | Add `go.work.sum` note to CONTRIBUTING.md                             | Low      | Trivial | Docs     |
+| 19 | Investigate `xtypes.TypedCommand.Command()` allocation                | Low      | Small   | Perf     |
+| 20 | Consider `MemoryBus.Publish` RLock scope reduction                    | Low      | Medium  | Perf     |
+| 21 | Consolidate `cattest` helpers with shared testhelpers                 | Low      | Medium  | Cleanup  |
+| 22 | Add integration test that uses all modules together                   | Medium   | Medium  | Testing  |
+| 23 | Resolve stale replace directives in middleware/xtypes go.mod          | Low      | Small   | Cleanup  |
+| 24 | Add `EventMetrics` test coverage                                      | Medium   | Small   | Testing  |
+| 25 | Evaluate `go-json-experiment/json` v2 API stability for v1.0          | Low      | Small   | Risk     |
 
 ---
 

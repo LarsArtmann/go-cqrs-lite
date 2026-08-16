@@ -79,18 +79,18 @@
 
 ## c) Not Started
 
-| #   | Item                                      | Priority | Effort |
-| --- | ----------------------------------------- | -------- | ------ |
-| 1   | Transactional outbox (atomic save+outbox) | HIGH     | 8h     |
-| 2   | Saga/process manager implementation       | MEDIUM   | 18h    |
-| 3   | PostgreSQL integration tests for storage  | MEDIUM   | 4h     |
-| 4   | `CatalogMeta` consolidation               | LOW      | 2h     |
-| 5   | Projection replay→live gap fix            | MEDIUM   | 6h     |
-| 6   | Memory concurrent publish benchmark       | LOW      | 1h     |
-| 7   | Storage `insertEvents` bulk INSERT        | LOW      | 2h     |
-| 8   | CONTRIBUTING.md                           | LOW      | 2h     |
-| 9   | Tag `v0.1.0-alpha`                        | LOW      | 0.5h   |
-| 10  | CI race detector + coverage threshold     | LOW      | 1h     |
+| #  | Item                                      | Priority | Effort |
+| -- | ----------------------------------------- | -------- | ------ |
+| 1  | Transactional outbox (atomic save+outbox) | HIGH     | 8h     |
+| 2  | Saga/process manager implementation       | MEDIUM   | 18h    |
+| 3  | PostgreSQL integration tests for storage  | MEDIUM   | 4h     |
+| 4  | `CatalogMeta` consolidation               | LOW      | 2h     |
+| 5  | Projection replay→live gap fix            | MEDIUM   | 6h     |
+| 6  | Memory concurrent publish benchmark       | LOW      | 1h     |
+| 7  | Storage `insertEvents` bulk INSERT        | LOW      | 2h     |
+| 8  | CONTRIBUTING.md                           | LOW      | 2h     |
+| 9  | Tag `v0.1.0-alpha`                        | LOW      | 0.5h   |
+| 10 | CI race detector + coverage threshold     | LOW      | 1h     |
 
 ---
 
@@ -118,33 +118,33 @@ Nothing is fundamentally broken. One known flaky test:
 
 ## f) Top 25 Next Items
 
-| #   | Item                                                    | Impact | Effort | Category    |
-| --- | ------------------------------------------------------- | ------ | ------ | ----------- |
-| 1   | Transactional outbox (`TransactionalStore`)             | HIGH   | 8h     | Feature     |
-| 2   | Projection hybrid replay (subscribe-then-replay)        | HIGH   | 6h     | Correctness |
-| 3   | PostgreSQL integration tests                            | HIGH   | 4h     | Quality     |
-| 4   | Storage bulk INSERT (`unnest()` or multi-value)         | MEDIUM | 2h     | Performance |
-| 5   | Memory concurrent publish benchmark                     | MEDIUM | 1h     | Performance |
-| 6   | Saga/process manager implementation                     | MEDIUM | 18h    | Feature     |
-| 7   | `CatalogMeta` consolidation across 3 packages           | LOW    | 2h     | Cleanup     |
-| 8   | CI race detector + coverage threshold gate              | LOW    | 1h     | CI          |
-| 9   | CONTRIBUTING.md with architecture guidelines            | LOW    | 2h     | Docs        |
-| 10  | Tag `v0.1.0-alpha` first public release                 | LOW    | 0.5h   | Release     |
-| 11  | Example/user integration test                           | LOW    | 2h     | Quality     |
-| 12  | `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch    | LOW    | 1h     | Cleanup     |
-| 13  | `CHANGELOG.md` update for v0.2.0                        | LOW    | 1h     | Docs        |
-| 14  | Event upcaster integration test                         | LOW    | 1h     | Quality     |
-| 15  | `event.Bus.Use()` middleware chain test                 | LOW    | 0.5h   | Quality     |
-| 16  | API stability audit for pre-release                     | MEDIUM | 2h     | Quality     |
-| 17  | Performance regression CI check                         | LOW    | 2h     | CI          |
-| 18  | `projection.Runner.WithRetry` default config validation | LOW    | 0.5h   | Fix         |
-| 19  | Connection pool metrics for storage                     | LOW    | 2h     | Feature     |
-| 20  | Go doc audit for newly added symbols                    | LOW    | 1h     | Docs        |
-| 21  | `decider` example in README                             | LOW    | 1h     | Docs        |
-| 22  | Catalog AsyncAPI 3.0 schema validation                  | LOW    | 1h     | Quality     |
-| 23  | `MemoryBus.Publish` RLock scope reduction               | LOW    | 2h     | Performance |
-| 24  | Flaky test fix: `TestRunner_WildcardProjection`         | LOW    | 1h     | Fix         |
-| 25  | Offline-first metadata conventions doc                  | LOW    | 1h     | Docs        |
+| #  | Item                                                    | Impact | Effort | Category    |
+| -- | ------------------------------------------------------- | ------ | ------ | ----------- |
+| 1  | Transactional outbox (`TransactionalStore`)             | HIGH   | 8h     | Feature     |
+| 2  | Projection hybrid replay (subscribe-then-replay)        | HIGH   | 6h     | Correctness |
+| 3  | PostgreSQL integration tests                            | HIGH   | 4h     | Quality     |
+| 4  | Storage bulk INSERT (`unnest()` or multi-value)         | MEDIUM | 2h     | Performance |
+| 5  | Memory concurrent publish benchmark                     | MEDIUM | 1h     | Performance |
+| 6  | Saga/process manager implementation                     | MEDIUM | 18h    | Feature     |
+| 7  | `CatalogMeta` consolidation across 3 packages           | LOW    | 2h     | Cleanup     |
+| 8  | CI race detector + coverage threshold gate              | LOW    | 1h     | CI          |
+| 9  | CONTRIBUTING.md with architecture guidelines            | LOW    | 2h     | Docs        |
+| 10 | Tag `v0.1.0-alpha` first public release                 | LOW    | 0.5h   | Release     |
+| 11 | Example/user integration test                           | LOW    | 2h     | Quality     |
+| 12 | `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch    | LOW    | 1h     | Cleanup     |
+| 13 | `CHANGELOG.md` update for v0.2.0                        | LOW    | 1h     | Docs        |
+| 14 | Event upcaster integration test                         | LOW    | 1h     | Quality     |
+| 15 | `event.Bus.Use()` middleware chain test                 | LOW    | 0.5h   | Quality     |
+| 16 | API stability audit for pre-release                     | MEDIUM | 2h     | Quality     |
+| 17 | Performance regression CI check                         | LOW    | 2h     | CI          |
+| 18 | `projection.Runner.WithRetry` default config validation | LOW    | 0.5h   | Fix         |
+| 19 | Connection pool metrics for storage                     | LOW    | 2h     | Feature     |
+| 20 | Go doc audit for newly added symbols                    | LOW    | 1h     | Docs        |
+| 21 | `decider` example in README                             | LOW    | 1h     | Docs        |
+| 22 | Catalog AsyncAPI 3.0 schema validation                  | LOW    | 1h     | Quality     |
+| 23 | `MemoryBus.Publish` RLock scope reduction               | LOW    | 2h     | Performance |
+| 24 | Flaky test fix: `TestRunner_WildcardProjection`         | LOW    | 1h     | Fix         |
+| 25 | Offline-first metadata conventions doc                  | LOW    | 1h     | Docs        |
 
 ---
 

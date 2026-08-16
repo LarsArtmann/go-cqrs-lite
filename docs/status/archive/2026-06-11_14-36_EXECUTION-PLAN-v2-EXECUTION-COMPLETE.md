@@ -1,9 +1,9 @@
 # Status Report — Execution Plan v2 Execution Complete
 
-**Date:** 2026-06-11 14:36 CEST  
-**Reporter:** AI Execution Agent  
-**Scope:** go-cqrs-lite v2 — Comprehensive execution of `docs/planning/2026-06-10_22-00_COMPREHENSIVE-EXECUTION-PLAN-v2.md`  
-**Branch:** master  
+**Date:** 2026-06-11 14:36 CEST\
+**Reporter:** AI Execution Agent\
+**Scope:** go-cqrs-lite v2 — Comprehensive execution of `docs/planning/2026-06-10_22-00_COMPREHENSIVE-EXECUTION-PLAN-v2.md`\
+**Branch:** master\
 **HEAD:** `20948cea` — "docs(event): update FEATURES.md with verified feature inventory..."
 
 ---
@@ -347,33 +347,33 @@ This should either be:
 
 Sorted by Impact × (1/Effort) × Customer Value:
 
-| #   | Task                                                  | Module       | Est.  | Impact | Why                                                        |
-| --- | ----------------------------------------------------- | ------------ | ----- | ------ | ---------------------------------------------------------- |
-| 1   | Close GitHub Issue #11 (Watermill already exists)     | GitHub       | 2min  | HIGH   | Prevents confusion for external contributors               |
-| 2   | Add `reports/` to `.gitignore`                        | repo         | 2min  | MED    | Clean working tree, prevent accidental commits             |
-| 3   | Restart gopls / clear stale cache                     | tooling      | 5min  | MED    | Eliminates 216 false-positive IDE errors in catalog/       |
-| 4   | Add godoc example: `decider` Execute + Load           | decider      | 10min | HIGH   | Most complex module, no runnable examples on pkg.go.dev    |
-| 5   | Add godoc example: `projection` Runner + Builder      | projection   | 10min | HIGH   | Complex replay+live API, hardest to learn without examples |
-| 6   | Add godoc example: `signing` HMAC + Ed25519           | signing      | 8min  | HIGH   | Security-critical, easy to misconfigure                    |
-| 7   | Add godoc example: `schema` Upcaster + VersionedStore | schema       | 8min  | MED    | Schema evolution is a hard topic                           |
-| 8   | Add godoc example: `listing` List + StatusMiddleware  | listing      | 8min  | MED    | Newest module, no usage examples yet                       |
-| 9   | Add `nolint` justification audit                      | all          | 12min | MED    | Ensure every suppression has documented reason             |
-| 10  | Add per-module `go vet` CI step                       | CI           | 12min | LOW    | Defense in depth                                           |
-| 11  | Add Docker build CI (linux/amd64 + arm64)             | CI           | 12min | MED    | Multi-arch verification                                    |
-| 12  | Test `LoadWithSpan` error branches                    | storage/sql  | 10min | MED    | Brings coverage from 85.6% → 90%+                          |
-| 13  | Add turso SyncDB mock tests                           | turso        | 15min | LOW    | Requires mocking tursoclient — complex                     |
-| 14  | Property-based tests for event batching               | event        | 12min | MED    | rapid fuzzing for edge cases                               |
-| 15  | Add `ServerReceivedAt` timestamp support              | event        | 20min | LOW    | Offline-first capability (Z21)                             |
-| 16  | Catalog breaking-change detection tool                | catalog      | 2hr   | MED    | Automated API diff for consumers                           |
-| 17  | Design `transport/` module (v3)                       | architecture | 4hr   | HIGH   | Decouple HTTP from middleware                              |
-| 18  | Remove `io.Closer` from core interfaces               | v3 breaking  | 4hr   | HIGH   | ADR-0010 approved, needs implementation                    |
-| 19  | Make event Core truly immutable                       | v3 breaking  | 2hr   | HIGH   | Prevents accidental mutation                               |
-| 20  | Split `event.Store` into Writer/Reader/Deleter        | v3 breaking  | 3hr   | HIGH   | Cleaner ISP                                                |
-| 21  | Add bi-temporal support (`ValidAt`)                   | event        | 3hr   | MED    | Time-travel queries (Z3)                                   |
-| 22  | Extract shared golangci.yml policy                    | repo         | 1hr   | LOW    | Y6 — standardize across repos                              |
-| 23  | PostgreSQL integration tests (testcontainers)         | storage/sql  | 3hr   | MED    | Y2 — real database testing                                 |
-| 24  | Add `AggregateTester` fluent API                      | eventtest    | 4hr   | LOW    | Z2 — consumer-facing test utilities                        |
-| 25  | Documentation site (Docusaurus/MkDocs)                | docs         | 8hr   | LOW    | Z19 — long-term adoption driver                            |
+| #  | Task                                                  | Module       | Est.  | Impact | Why                                                        |
+| -- | ----------------------------------------------------- | ------------ | ----- | ------ | ---------------------------------------------------------- |
+| 1  | Close GitHub Issue #11 (Watermill already exists)     | GitHub       | 2min  | HIGH   | Prevents confusion for external contributors               |
+| 2  | Add `reports/` to `.gitignore`                        | repo         | 2min  | MED    | Clean working tree, prevent accidental commits             |
+| 3  | Restart gopls / clear stale cache                     | tooling      | 5min  | MED    | Eliminates 216 false-positive IDE errors in catalog/       |
+| 4  | Add godoc example: `decider` Execute + Load           | decider      | 10min | HIGH   | Most complex module, no runnable examples on pkg.go.dev    |
+| 5  | Add godoc example: `projection` Runner + Builder      | projection   | 10min | HIGH   | Complex replay+live API, hardest to learn without examples |
+| 6  | Add godoc example: `signing` HMAC + Ed25519           | signing      | 8min  | HIGH   | Security-critical, easy to misconfigure                    |
+| 7  | Add godoc example: `schema` Upcaster + VersionedStore | schema       | 8min  | MED    | Schema evolution is a hard topic                           |
+| 8  | Add godoc example: `listing` List + StatusMiddleware  | listing      | 8min  | MED    | Newest module, no usage examples yet                       |
+| 9  | Add `nolint` justification audit                      | all          | 12min | MED    | Ensure every suppression has documented reason             |
+| 10 | Add per-module `go vet` CI step                       | CI           | 12min | LOW    | Defense in depth                                           |
+| 11 | Add Docker build CI (linux/amd64 + arm64)             | CI           | 12min | MED    | Multi-arch verification                                    |
+| 12 | Test `LoadWithSpan` error branches                    | storage/sql  | 10min | MED    | Brings coverage from 85.6% → 90%+                          |
+| 13 | Add turso SyncDB mock tests                           | turso        | 15min | LOW    | Requires mocking tursoclient — complex                     |
+| 14 | Property-based tests for event batching               | event        | 12min | MED    | rapid fuzzing for edge cases                               |
+| 15 | Add `ServerReceivedAt` timestamp support              | event        | 20min | LOW    | Offline-first capability (Z21)                             |
+| 16 | Catalog breaking-change detection tool                | catalog      | 2hr   | MED    | Automated API diff for consumers                           |
+| 17 | Design `transport/` module (v3)                       | architecture | 4hr   | HIGH   | Decouple HTTP from middleware                              |
+| 18 | Remove `io.Closer` from core interfaces               | v3 breaking  | 4hr   | HIGH   | ADR-0010 approved, needs implementation                    |
+| 19 | Make event Core truly immutable                       | v3 breaking  | 2hr   | HIGH   | Prevents accidental mutation                               |
+| 20 | Split `event.Store` into Writer/Reader/Deleter        | v3 breaking  | 3hr   | HIGH   | Cleaner ISP                                                |
+| 21 | Add bi-temporal support (`ValidAt`)                   | event        | 3hr   | MED    | Time-travel queries (Z3)                                   |
+| 22 | Extract shared golangci.yml policy                    | repo         | 1hr   | LOW    | Y6 — standardize across repos                              |
+| 23 | PostgreSQL integration tests (testcontainers)         | storage/sql  | 3hr   | MED    | Y2 — real database testing                                 |
+| 24 | Add `AggregateTester` fluent API                      | eventtest    | 4hr   | LOW    | Z2 — consumer-facing test utilities                        |
+| 25 | Documentation site (Docusaurus/MkDocs)                | docs         | 8hr   | LOW    | Z19 — long-term adoption driver                            |
 
 ---
 

@@ -83,33 +83,33 @@ See section e) — Top 25 improvements below.
 
 Sorted by **impact × effort** (1 = highest priority):
 
-| #   | Task                                                                                                               | Impact | Effort | Category     |
-| --- | ------------------------------------------------------------------------------------------------------------------ | ------ | ------ | ------------ |
-| 1   | Add `Message` interface to `command`/`event`/`query` with `Type() string` — enables compile-time middleware safety | HIGH   | MED    | Architecture |
-| 2   | Write status report to `AGENTS.md` about generic middleware pattern for future sessions                            | HIGH   | LOW    | Docs         |
-| 3   | Add event + query benchmark tests                                                                                  | MED    | LOW    | Testing      |
-| 4   | Verify existing query tests check result values, not just errors                                                   | MED    | LOW    | Testing      |
-| 5   | Remove `CommandValidator`/`EventValidator`/`QueryValidator` — use generic `func(M) error` in public API            | MED    | LOW    | Cleanup      |
-| 6   | Update package doc comment in `middleware.go` to describe generic pattern                                          | MED    | LOW    | Docs         |
-| 7   | Consider `middleware` example in `example/` showing both old API and new generic API                               | MED    | MED    | Docs         |
-| 8   | Investigate `AsQuery` per-call allocation — can we restructure to apply once?                                      | MED    | MED    | Perf         |
-| 9   | Remove explicit type args where LSP suggests (infertypeargs)                                                       | LOW    | LOW    | Cleanup      |
-| 10  | Consider shared `Type` type across command/event/query (DRY the `type Type string` definitions)                    | HIGH   | HIGH   | Architecture |
-| 11  | Add `NewPublishTracing` generic for event publish middleware (currently special-cased)                             | LOW    | LOW    | Feature      |
-| 12  | Add `NewPublishMetrics` / `NewPublishLogging` for event publish path                                               | LOW    | MED    | Feature      |
-| 13  | Rate limiter middleware (generic)                                                                                  | MED    | MED    | Feature      |
-| 14  | Timeout middleware (generic) — `context.WithTimeout` per handler                                                   | MED    | LOW    | Feature      |
-| 15  | Deduplication middleware (idempotency key check)                                                                   | MED    | HIGH   | Feature      |
-| 16  | Bulkhead middleware (concurrency limiter per type)                                                                 | MED    | MED    | Feature      |
-| 17  | Health check middleware                                                                                            | LOW    | LOW    | Feature      |
-| 18  | Propagate context through `logWithContext` — currently uses `logger.Info` not `logger.InfoContext`                 | MED    | LOW    | Bug          |
-| 19  | Consider structured logging fields standardization (consistent key names across all middleware)                    | LOW    | MED    | Consistency  |
-| 20  | Add `middleware.Handler[M]` to `AGENTS.md` Key Patterns section                                                    | MED    | LOW    | Docs         |
-| 21  | Consider `Middleware[M]` composition helper — `Chain[M](...Middleware[M]) Middleware[M]`                           | MED    | LOW    | Feature      |
-| 22  | Explore if Go 1.26+ type inference improvements make `AsCommand`/`AsEvent` unnecessary                             | LOW    | LOW    | Research     |
-| 23  | API stability test for middleware — verify exported symbols haven't changed                                        | MED    | LOW    | CI           |
-| 24  | Consider moving `OTelMetricsRecorder` to `otel/` module (separation of concerns)                                   | LOW    | MED    | Architecture |
-| 25  | Add circuit breaker state change hooks/callbacks for observability                                                 | LOW    | MED    | Feature      |
+| #  | Task                                                                                                               | Impact | Effort | Category     |
+| -- | ------------------------------------------------------------------------------------------------------------------ | ------ | ------ | ------------ |
+| 1  | Add `Message` interface to `command`/`event`/`query` with `Type() string` — enables compile-time middleware safety | HIGH   | MED    | Architecture |
+| 2  | Write status report to `AGENTS.md` about generic middleware pattern for future sessions                            | HIGH   | LOW    | Docs         |
+| 3  | Add event + query benchmark tests                                                                                  | MED    | LOW    | Testing      |
+| 4  | Verify existing query tests check result values, not just errors                                                   | MED    | LOW    | Testing      |
+| 5  | Remove `CommandValidator`/`EventValidator`/`QueryValidator` — use generic `func(M) error` in public API            | MED    | LOW    | Cleanup      |
+| 6  | Update package doc comment in `middleware.go` to describe generic pattern                                          | MED    | LOW    | Docs         |
+| 7  | Consider `middleware` example in `example/` showing both old API and new generic API                               | MED    | MED    | Docs         |
+| 8  | Investigate `AsQuery` per-call allocation — can we restructure to apply once?                                      | MED    | MED    | Perf         |
+| 9  | Remove explicit type args where LSP suggests (infertypeargs)                                                       | LOW    | LOW    | Cleanup      |
+| 10 | Consider shared `Type` type across command/event/query (DRY the `type Type string` definitions)                    | HIGH   | HIGH   | Architecture |
+| 11 | Add `NewPublishTracing` generic for event publish middleware (currently special-cased)                             | LOW    | LOW    | Feature      |
+| 12 | Add `NewPublishMetrics` / `NewPublishLogging` for event publish path                                               | LOW    | MED    | Feature      |
+| 13 | Rate limiter middleware (generic)                                                                                  | MED    | MED    | Feature      |
+| 14 | Timeout middleware (generic) — `context.WithTimeout` per handler                                                   | MED    | LOW    | Feature      |
+| 15 | Deduplication middleware (idempotency key check)                                                                   | MED    | HIGH   | Feature      |
+| 16 | Bulkhead middleware (concurrency limiter per type)                                                                 | MED    | MED    | Feature      |
+| 17 | Health check middleware                                                                                            | LOW    | LOW    | Feature      |
+| 18 | Propagate context through `logWithContext` — currently uses `logger.Info` not `logger.InfoContext`                 | MED    | LOW    | Bug          |
+| 19 | Consider structured logging fields standardization (consistent key names across all middleware)                    | LOW    | MED    | Consistency  |
+| 20 | Add `middleware.Handler[M]` to `AGENTS.md` Key Patterns section                                                    | MED    | LOW    | Docs         |
+| 21 | Consider `Middleware[M]` composition helper — `Chain[M](...Middleware[M]) Middleware[M]`                           | MED    | LOW    | Feature      |
+| 22 | Explore if Go 1.26+ type inference improvements make `AsCommand`/`AsEvent` unnecessary                             | LOW    | LOW    | Research     |
+| 23 | API stability test for middleware — verify exported symbols haven't changed                                        | MED    | LOW    | CI           |
+| 24 | Consider moving `OTelMetricsRecorder` to `otel/` module (separation of concerns)                                   | LOW    | MED    | Architecture |
+| 25 | Add circuit breaker state change hooks/callbacks for observability                                                 | LOW    | MED    | Feature      |
 
 ---
 

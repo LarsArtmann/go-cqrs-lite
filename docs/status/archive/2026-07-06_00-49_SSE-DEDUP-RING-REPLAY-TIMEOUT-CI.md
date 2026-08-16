@@ -130,33 +130,33 @@ First: added 9 new exports (`DefaultSSEReplayLimit`, `SSEReplayIncompleteEvent`,
 
 ## f) Up to 25 things we should get done next
 
-| #   | Priority | Task                                                             | Impact                                |
-| --- | -------- | ---------------------------------------------------------------- | ------------------------------------- |
-| 1   | **P1**   | Port batched streaming to `CatchUpSubscriber.replayPhase`        | Bounds memory for large journals      |
-| 2   | **P2**   | Implement `SQLTimerStore` in `scheduling/`                       | Durable deadlines, production-ready   |
-| 3   | **P2**   | Promote `delayedJournal` test helper to `eventtest`/`testutil`   | Reusable context-cancellation testing |
-| 4   | **P2**   | Add SSE replay integration test with real `MemoryStore`          | Catches store-specific replay bugs    |
-| 5   | **P2**   | Fix `watermill/go.mod` tidy issue (`schema/v4` zero-revision)    | Clean `go mod tidy` without `-e`      |
-| 6   | **P3**   | Add SSE replay metrics as OTel instruments                       | Dashboard-ready observability         |
-| 7   | **P3**   | Document SSE vs CatchUpSubscriber decision matrix in SKILL.md    | Consumer guidance                     |
-| 8   | **P3**   | Add `example/` showing SSE + offline client reconnection         | Usage demo                            |
-| 9   | **P3**   | Byte-budget replay batching (replace fixed `sseReplayBatchSize`) | Memory safety for large payloads      |
-| 10  | **P3**   | Extract dedupRing to shared package (resolve duplication)        | DRY — currently in 2 modules          |
-| 11  | **P4**   | Investigate `handleEvent` fanout via worker pool                 | Performance at scale                  |
-| 12  | **P4**   | Add backpressure: when client channel full, drop oldest          | Prevents slow-client memory bloat     |
-| 13  | **P4**   | Add `SSEBroker.Stats()` per-client lag                           | Debugging                             |
-| 14  | **P4**   | Consider WebSocket transport alongside SSE                       | Bidirectional needs                   |
-| 15  | **P4**   | SSE `RemoveClient` channel lifecycle (close with guard)          | Reduces channel accumulation          |
-| 16  | **P5**   | SSE compression (gzip + `Content-Encoding: gzip`)                | Bandwidth                             |
-| 17  | **P5**   | Per-event-type SSE filtering (`user.*` subscription)             | Bandwidth                             |
-| 18  | **P5**   | SSE authentication middleware example                            | Security                              |
-| 19  | **P5**   | Connection draining on `broker.Close()` with grace period        | Clean shutdown                        |
-| 20  | **P5**   | SSE `retry:` field auto-tuning                                   | UX                                    |
-| 21  | **P5**   | `dedupRing` benchmark (Add/Has under contention)                 | Performance characterization          |
-| 22  | **P5**   | Configurable `sseDedupRingCapacity` via option                   | Tunability                            |
-| 23  | **P5**   | Add `dedupRing.Len()` to OTel span                               | Replay diagnostics                    |
-| 24  | **P5**   | Property-based test for dedupRing (rapid)                        | Edge case coverage                    |
-| 25  | **P5**   | SSE replay backfill endpoint (REST complement to SSE)            | Alternative catch-up path             |
+| #  | Priority | Task                                                             | Impact                                |
+| -- | -------- | ---------------------------------------------------------------- | ------------------------------------- |
+| 1  | **P1**   | Port batched streaming to `CatchUpSubscriber.replayPhase`        | Bounds memory for large journals      |
+| 2  | **P2**   | Implement `SQLTimerStore` in `scheduling/`                       | Durable deadlines, production-ready   |
+| 3  | **P2**   | Promote `delayedJournal` test helper to `eventtest`/`testutil`   | Reusable context-cancellation testing |
+| 4  | **P2**   | Add SSE replay integration test with real `MemoryStore`          | Catches store-specific replay bugs    |
+| 5  | **P2**   | Fix `watermill/go.mod` tidy issue (`schema/v4` zero-revision)    | Clean `go mod tidy` without `-e`      |
+| 6  | **P3**   | Add SSE replay metrics as OTel instruments                       | Dashboard-ready observability         |
+| 7  | **P3**   | Document SSE vs CatchUpSubscriber decision matrix in SKILL.md    | Consumer guidance                     |
+| 8  | **P3**   | Add `example/` showing SSE + offline client reconnection         | Usage demo                            |
+| 9  | **P3**   | Byte-budget replay batching (replace fixed `sseReplayBatchSize`) | Memory safety for large payloads      |
+| 10 | **P3**   | Extract dedupRing to shared package (resolve duplication)        | DRY — currently in 2 modules          |
+| 11 | **P4**   | Investigate `handleEvent` fanout via worker pool                 | Performance at scale                  |
+| 12 | **P4**   | Add backpressure: when client channel full, drop oldest          | Prevents slow-client memory bloat     |
+| 13 | **P4**   | Add `SSEBroker.Stats()` per-client lag                           | Debugging                             |
+| 14 | **P4**   | Consider WebSocket transport alongside SSE                       | Bidirectional needs                   |
+| 15 | **P4**   | SSE `RemoveClient` channel lifecycle (close with guard)          | Reduces channel accumulation          |
+| 16 | **P5**   | SSE compression (gzip + `Content-Encoding: gzip`)                | Bandwidth                             |
+| 17 | **P5**   | Per-event-type SSE filtering (`user.*` subscription)             | Bandwidth                             |
+| 18 | **P5**   | SSE authentication middleware example                            | Security                              |
+| 19 | **P5**   | Connection draining on `broker.Close()` with grace period        | Clean shutdown                        |
+| 20 | **P5**   | SSE `retry:` field auto-tuning                                   | UX                                    |
+| 21 | **P5**   | `dedupRing` benchmark (Add/Has under contention)                 | Performance characterization          |
+| 22 | **P5**   | Configurable `sseDedupRingCapacity` via option                   | Tunability                            |
+| 23 | **P5**   | Add `dedupRing.Len()` to OTel span                               | Replay diagnostics                    |
+| 24 | **P5**   | Property-based test for dedupRing (rapid)                        | Edge case coverage                    |
+| 25 | **P5**   | SSE replay backfill endpoint (REST complement to SSE)            | Alternative catch-up path             |
 
 ---
 

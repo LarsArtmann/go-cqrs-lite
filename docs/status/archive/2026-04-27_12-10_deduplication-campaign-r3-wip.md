@@ -1,8 +1,8 @@
 # Status Report: Deduplication Campaign — Round 3 (WIP)
 
-**Generated:** 2026-04-27_12-10  
-**Author:** Crush AI (Lars' Senior Engineering Partner)  
-**Branch:** master (up to date with origin, UNCOMMITTED changes in working tree)  
+**Generated:** 2026-04-27_12-10\
+**Author:** Crush AI (Lars' Senior Engineering Partner)\
+**Branch:** master (up to date with origin, UNCOMMITTED changes in working tree)\
 **Goal:** `art-dupl --semantic --sort total-tokens -t 27` → **ZERO** clone groups
 
 ---
@@ -118,48 +118,48 @@ The `testhelpers/go.mod` currently has `github.com/larsartmann/go-cqrs-lite/midd
 
 ### High Impact, Low Effort (do first)
 
-| #   | Task                                                                         | Impact                           | Effort            |
-| --- | ---------------------------------------------------------------------------- | -------------------------------- | ----------------- |
-| 1   | Commit current R3 changes (shared testhelpers module)                        | Eliminates 2 cross-module groups | DONE, just commit |
-| 2   | Clean up `testhelpers/go.mod` — remove stale middleware replace + dependency | Clean module graph               | 2 min             |
-| 3   | Add `./testhelpers` to `go.work`                                             | Correct workspace config         | 1 min             |
-| 4   | Run `make lint` — verify no lint errors                                      | Quality gate                     | 2 min             |
-| 5   | Extract `queryHandler(result, callOrder)` in `query_bdd_test.go`             | Eliminates Group #3              | 5 min             |
+| # | Task                                                                         | Impact                           | Effort            |
+| - | ---------------------------------------------------------------------------- | -------------------------------- | ----------------- |
+| 1 | Commit current R3 changes (shared testhelpers module)                        | Eliminates 2 cross-module groups | DONE, just commit |
+| 2 | Clean up `testhelpers/go.mod` — remove stale middleware replace + dependency | Clean module graph               | 2 min             |
+| 3 | Add `./testhelpers` to `go.work`                                             | Correct workspace config         | 1 min             |
+| 4 | Run `make lint` — verify no lint errors                                      | Quality gate                     | 2 min             |
+| 5 | Extract `queryHandler(result, callOrder)` in `query_bdd_test.go`             | Eliminates Group #3              | 5 min             |
 
 ### Medium Impact, Low Effort
 
-| #   | Task                                                                   | Impact                                                                    | Effort        |
-| --- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------- |
-| 6   | Update `AGENTS.md` — document testhelpers module                       | Documentation                                                             | 5 min         |
-| 7   | Remove outdated `docs/status/` reports                                 | Housekeeping                                                              | 1 min         |
-| 8   | Verify `go mod tidy` in all modules is clean                           | Module health                                                             | 3 min         |
-| 9   | Consider raising art-dupl threshold to 30 for test files               | Remaining groups at 30: 2                                                 | Decision      |
-| 10  | Add `TestLogger` to shared `testhelpers` WITHOUT middleware dependency | Would need to define `Logger` interface in `core` instead of `middleware` | Architectural |
+| #  | Task                                                                   | Impact                                                                    | Effort        |
+| -- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------- |
+| 6  | Update `AGENTS.md` — document testhelpers module                       | Documentation                                                             | 5 min         |
+| 7  | Remove outdated `docs/status/` reports                                 | Housekeeping                                                              | 1 min         |
+| 8  | Verify `go mod tidy` in all modules is clean                           | Module health                                                             | 3 min         |
+| 9  | Consider raising art-dupl threshold to 30 for test files               | Remaining groups at 30: 2                                                 | Decision      |
+| 10 | Add `TestLogger` to shared `testhelpers` WITHOUT middleware dependency | Would need to define `Logger` interface in `core` instead of `middleware` | Architectural |
 
 ### Medium Impact, Medium Effort
 
-| #   | Task                                                                                                  | Impact                                        | Effort                   |
-| --- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------ |
-| 11  | Move `middleware.Logger` interface to `core`                                                          | Enables sharing TestLogger everywhere         | Refactoring              |
-| 12  | Move `middleware.MetricsRecorder` interface to `core`                                                 | Enables sharing TestMetrics as interface impl | Refactoring              |
-| 13  | `query_bdd_test.go`: extract `registerConstHandler(qType, result)`                                    | Eliminates Groups #1+#2                       | Readability tradeoff     |
-| 14  | `core/internal/testhelpers`: remove entirely, update all imports to use shared `testhelpers` directly | Removes indirection layer                     | Large search-and-replace |
-| 15  | Add `TestValidator` to shared testhelpers for validation middleware tests                             | Test consistency                              | 5 min                    |
+| #  | Task                                                                                                  | Impact                                        | Effort                   |
+| -- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------ |
+| 11 | Move `middleware.Logger` interface to `core`                                                          | Enables sharing TestLogger everywhere         | Refactoring              |
+| 12 | Move `middleware.MetricsRecorder` interface to `core`                                                 | Enables sharing TestMetrics as interface impl | Refactoring              |
+| 13 | `query_bdd_test.go`: extract `registerConstHandler(qType, result)`                                    | Eliminates Groups #1+#2                       | Readability tradeoff     |
+| 14 | `core/internal/testhelpers`: remove entirely, update all imports to use shared `testhelpers` directly | Removes indirection layer                     | Large search-and-replace |
+| 15 | Add `TestValidator` to shared testhelpers for validation middleware tests                             | Test consistency                              | 5 min                    |
 
 ### Lower Impact, Higher Effort
 
-| #   | Task                                                   | Impact                         | Effort   |
-| --- | ------------------------------------------------------ | ------------------------------ | -------- |
-| 16  | Create `Makefile` target for art-dupl with threshold   | CI integration                 | 5 min    |
-| 17  | Add art-dupl to CI pipeline (GitHub Actions)           | Continuous quality             | 15 min   |
-| 18  | Publish `go-composable-business-types` v0.1.0 to proxy | Removes all replace directives | External |
-| 19  | Tag all modules as v0.1.0                              | Proper versioning              | External |
-| 20  | Storage module (Phase 5 from migration plan)           | New functionality              | Large    |
-| 21  | Watermill module (Phase 6)                             | New functionality              | Large    |
-| 22  | Projection module (Phase 7)                            | New functionality              | Large    |
-| 23  | Snapshot module (Phase 8)                              | New functionality              | Large    |
-| 24  | Test utilities module (Phase 9)                        | May supersede testhelpers      | Large    |
-| 25  | Tag releases (Phase 10)                                | Release                        | External |
+| #  | Task                                                   | Impact                         | Effort   |
+| -- | ------------------------------------------------------ | ------------------------------ | -------- |
+| 16 | Create `Makefile` target for art-dupl with threshold   | CI integration                 | 5 min    |
+| 17 | Add art-dupl to CI pipeline (GitHub Actions)           | Continuous quality             | 15 min   |
+| 18 | Publish `go-composable-business-types` v0.1.0 to proxy | Removes all replace directives | External |
+| 19 | Tag all modules as v0.1.0                              | Proper versioning              | External |
+| 20 | Storage module (Phase 5 from migration plan)           | New functionality              | Large    |
+| 21 | Watermill module (Phase 6)                             | New functionality              | Large    |
+| 22 | Projection module (Phase 7)                            | New functionality              | Large    |
+| 23 | Snapshot module (Phase 8)                              | New functionality              | Large    |
+| 24 | Test utilities module (Phase 9)                        | May supersede testhelpers      | Large    |
+| 25 | Tag releases (Phase 10)                                | Release                        | External |
 
 ---
 

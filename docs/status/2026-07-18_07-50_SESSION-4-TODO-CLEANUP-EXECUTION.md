@@ -22,12 +22,12 @@ Executed all immediate cleanup tasks and high-priority test fixes from Session 3
 
 ### Immediate Cleanup (4 tasks)
 
-| #   | Task                         | Project                 | Key Finding                                                                                                          |
-| --- | ---------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| 1   | Commit 8 uncommitted files   | go-cqrs-lite            | Golden files (json/v2 format), FEATURES.md table alignment, status doc reformatting                                  |
-| 2   | Remove replace directives    | github-local-sync, sbts | Tag v0.4.0 was **already pushed** to remote — prior session's note was wrong                                         |
-| 3   | Delete /tmp/cqrs-lint binary | /tmp                    | 20MB binary removed via `trash`                                                                                      |
-| 4   | GOPRIVATE configuration fix  | github-local-sync, sbts | `go-localsync` is private but NOT in GOPRIVATE — required `GOPRIVATE=github.com/larsartmann/*` for module resolution |
+| # | Task                         | Project                 | Key Finding                                                                                                          |
+| - | ---------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| 1 | Commit 8 uncommitted files   | go-cqrs-lite            | Golden files (json/v2 format), FEATURES.md table alignment, status doc reformatting                                  |
+| 2 | Remove replace directives    | github-local-sync, sbts | Tag v0.4.0 was **already pushed** to remote — prior session's note was wrong                                         |
+| 3 | Delete /tmp/cqrs-lint binary | /tmp                    | 20MB binary removed via `trash`                                                                                      |
+| 4 | GOPRIVATE configuration fix  | github-local-sync, sbts | `go-localsync` is private but NOT in GOPRIVATE — required `GOPRIVATE=github.com/larsartmann/*` for module resolution |
 
 ### Commits
 
@@ -82,12 +82,12 @@ Executed all immediate cleanup tasks and high-priority test fixes from Session 3
 
 **Actual:** Tests fail in isolation too. Four root causes:
 
-| #   | Root Cause                                                                               | Fix                                                                                 |
-| --- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| 1   | `"go"` is a stop word — filtered out before technical skills check                       | `isValidTerm` now checks `isTechnicalTerm` before the stop word filter              |
-| 2   | Multi-word phrases ("machine learning") never extracted — tokenizer splits on whitespace | `extractTerms` now checks consecutive word pairs against the technical skills regex |
-| 3   | Terms with zero positions (stemming artifacts) survived TF-IDF                           | `buildKeywordContexts` now skips terms where `findWordPositions` returns empty      |
-| 4   | `findWordPositions` only matched single words — couldn't find multi-word phrases         | Now checks consecutive word pairs for multi-word phrase matching                    |
+| # | Root Cause                                                                               | Fix                                                                                 |
+| - | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 1 | `"go"` is a stop word — filtered out before technical skills check                       | `isValidTerm` now checks `isTechnicalTerm` before the stop word filter              |
+| 2 | Multi-word phrases ("machine learning") never extracted — tokenizer splits on whitespace | `extractTerms` now checks consecutive word pairs against the technical skills regex |
+| 3 | Terms with zero positions (stemming artifacts) survived TF-IDF                           | `buildKeywordContexts` now skips terms where `findWordPositions` returns empty      |
+| 4 | `findWordPositions` only matched single words — couldn't find multi-word phrases         | Now checks consecutive word pairs for multi-word phrase matching                    |
 
 **Test expectation fix:** `cloud_platforms` test expected "gcp" from text "Google Cloud Platform" — changed text to use "GCP" directly.
 

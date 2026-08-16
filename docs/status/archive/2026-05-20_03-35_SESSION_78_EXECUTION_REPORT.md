@@ -9,51 +9,51 @@
 
 ### Phase 1: Critical Bug Fixes ✅
 
-| #   | Task               | Status     | Detail                                                       |
-| --- | ------------------ | ---------- | ------------------------------------------------------------ |
-| 1   | Retry timer leak   | ⏭️ Skipped | Already handled — timer.Stop() on both paths (line 109, 114) |
-| 2   | Nil codec snapshot | ✅ Fixed   | `trySnapshot` now returns early when codec is nil            |
-| 3   | Pebble concurrency | ⏭️ Skipped | Already implemented at lines 59-75                           |
-| 4   | Dual %w wrapping   | ⏭️ Skipped | Go 1.20+ supports multiple %w — not a bug                    |
-| 5   | LWW nil guard      | ⏭️ Skipped | Already exists at conflict.go:42                             |
-| 6   | SchemaFromType nil | ⏭️ Skipped | Already handled at schema_reflect.go:11                      |
+| # | Task               | Status    | Detail                                                       |
+| - | ------------------ | --------- | ------------------------------------------------------------ |
+| 1 | Retry timer leak   | ⏭️ Skipped | Already handled — timer.Stop() on both paths (line 109, 114) |
+| 2 | Nil codec snapshot | ✅ Fixed  | `trySnapshot` now returns early when codec is nil            |
+| 3 | Pebble concurrency | ⏭️ Skipped | Already implemented at lines 59-75                           |
+| 4 | Dual %w wrapping   | ⏭️ Skipped | Go 1.20+ supports multiple %w — not a bug                    |
+| 5 | LWW nil guard      | ⏭️ Skipped | Already exists at conflict.go:42                             |
+| 6 | SchemaFromType nil | ⏭️ Skipped | Already handled at schema_reflect.go:11                      |
 
 **Verdict:** 4 of 6 TODO items were stale (already fixed in earlier sessions). Only 1 real bug found and fixed.
 
 ### Phase 2: Consumer API Improvements ✅
 
-| #   | Task                                           | Status            | Files                                      |
-| --- | ---------------------------------------------- | ----------------- | ------------------------------------------ |
-| 7   | `command.TypedHandler[T]` + `RegisterTyped[T]` | ✅ Shipped        | `core/command/typed.go`                    |
-| 8   | TypedHandler tests                             | ✅ Shipped        | `core/command/typed_test.go` (4 tests)     |
-| 9   | `query.TypedHandler[T]`                        | ⏭️ Already exists | `core/query/query.go:52`                   |
-| 10  | `event.NewEvents` batch helper                 | ✅ Shipped        | `core/event/codec_batch.go`                |
-| 11  | `event.DecodePayloads` batch helper            | ✅ Shipped        | `core/event/codec_batch.go`                |
-| 12  | `event.MustNewEvents`                          | ✅ Shipped        | `core/event/codec_batch.go`                |
-| 13  | Batch codec tests                              | ✅ Shipped        | `core/event/codec_batch_test.go` (7 tests) |
-| 14  | `event.NewTypedProjection[T]`                  | ✅ Shipped        | `core/event/projection.go`                 |
-| 15  | Clock injection                                | ⏭️ Already exists | `event.WithOccurredAt(time.Time)` option   |
+| #  | Task                                           | Status           | Files                                      |
+| -- | ---------------------------------------------- | ---------------- | ------------------------------------------ |
+| 7  | `command.TypedHandler[T]` + `RegisterTyped[T]` | ✅ Shipped       | `core/command/typed.go`                    |
+| 8  | TypedHandler tests                             | ✅ Shipped       | `core/command/typed_test.go` (4 tests)     |
+| 9  | `query.TypedHandler[T]`                        | ⏭️ Already exists | `core/query/query.go:52`                   |
+| 10 | `event.NewEvents` batch helper                 | ✅ Shipped       | `core/event/codec_batch.go`                |
+| 11 | `event.DecodePayloads` batch helper            | ✅ Shipped       | `core/event/codec_batch.go`                |
+| 12 | `event.MustNewEvents`                          | ✅ Shipped       | `core/event/codec_batch.go`                |
+| 13 | Batch codec tests                              | ✅ Shipped       | `core/event/codec_batch_test.go` (7 tests) |
+| 14 | `event.NewTypedProjection[T]`                  | ✅ Shipped       | `core/event/projection.go`                 |
+| 15 | Clock injection                                | ⏭️ Already exists | `event.WithOccurredAt(time.Time)` option   |
 
 ### Phase 3: Observability ✅
 
-| #   | Task                       | Status            | Detail                                                        |
-| --- | -------------------------- | ----------------- | ------------------------------------------------------------- |
-| 16  | Pebble corrupt ID warnings | ✅ Shipped        | `storage/pebble_serialization.go` — slog.Warn on parse errors |
-| 17  | OutboxPublisher logging    | ⏭️ Already exists | `core/event/outbox_publisher.go:224`                          |
-| 18  | Duplicate projection check | ✅ Shipped        | `projection/runner.go` + `ErrDuplicateProjection` sentinel    |
+| #  | Task                       | Status           | Detail                                                        |
+| -- | -------------------------- | ---------------- | ------------------------------------------------------------- |
+| 16 | Pebble corrupt ID warnings | ✅ Shipped       | `storage/pebble_serialization.go` — slog.Warn on parse errors |
+| 17 | OutboxPublisher logging    | ⏭️ Already exists | `core/event/outbox_publisher.go:224`                          |
+| 18 | Duplicate projection check | ✅ Shipped       | `projection/runner.go` + `ErrDuplicateProjection` sentinel    |
 
 ### Phase 6: Documentation ✅
 
-| #   | Task                     | Status     | Detail                                          |
-| --- | ------------------------ | ---------- | ----------------------------------------------- |
-| 19  | Getting-started README   | ✅ Shipped | "Your First CQRS App (5 minutes)" section       |
-| 20  | Updated Commands section | ✅ Shipped | Shows RegisterTyped pattern, no type assertions |
+| #  | Task                     | Status     | Detail                                          |
+| -- | ------------------------ | ---------- | ----------------------------------------------- |
+| 19 | Getting-started README   | ✅ Shipped | "Your First CQRS App (5 minutes)" section       |
+| 20 | Updated Commands section | ✅ Shipped | Shows RegisterTyped pattern, no type assertions |
 
 ### Phase 5: Architecture Cleanup ✅
 
-| #   | Task                        | Status     | Detail                                          |
-| --- | --------------------------- | ---------- | ----------------------------------------------- |
-| 21  | catalog/internal/schemautil | ✅ Shipped | Pre-commit hook extracted shared schema helpers |
+| #  | Task                        | Status     | Detail                                          |
+| -- | --------------------------- | ---------- | ----------------------------------------------- |
+| 21 | catalog/internal/schemautil | ✅ Shipped | Pre-commit hook extracted shared schema helpers |
 
 ---
 

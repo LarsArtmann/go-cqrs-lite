@@ -94,33 +94,33 @@
 
 ## F) TOP 25 NEXT STEPS (sorted by impact/effort)
 
-| #   | Task                                                                                                 | Impact | Effort          |
-| --- | ---------------------------------------------------------------------------------------------------- | ------ | --------------- |
-| 1   | Decide v2 vs v3 versioning for breaking changes                                                      | HIGH   | 0 (decision)    |
-| 2   | Add error-family classification tests (Classify(ErrNilDatabase) == Rejection)                        | HIGH   | 15min           |
-| 3   | Write panic policy section in AGENTS.md (when panics ARE acceptable)                                 | HIGH   | 20min           |
-| 4   | V3 migration appendix for zero-panic signature changes                                               | MED    | 30min           |
-| 5   | Rename remaining lowercase `mustXxx` test helpers                                                    | LOW    | 45min           |
-| 6   | Add `errors.Is` examples to SKILL.md for each new sentinel                                           | MED    | 15min           |
-| 7   | Consider `Version.SubOrZero` / `Version.DecrementOrZero` convenience methods                         | LOW    | 20min           |
-| 8   | Audit all error codes for naming consistency (pebble.nil_database vs event.nil_database)             | MED    | 15min           |
-| 9   | Add godoc examples for `Version.Decrement` error handling                                            | LOW    | 10min           |
-| 10  | Consider adding `ErrNilLogger` for pebble constructors (currently nil logger is allowed)             | LOW    | 10min           |
-| 11  | Update docs/index.md quick start to use new error-returning signatures                               | MED    | 10min           |
-| 12  | Add integration test that exercises the full error chain (classify → retry decision)                 | MED    | 30min           |
-| 13  | Consider `sync.OnceValues` (plural) for future multi-value lazy init needs                           | LOW    | 0 (awareness)   |
-| 14  | Audit `command/errors.go` and `query/errors.go` for any remaining plain `errors.New`                 | MED    | 10min           |
-| 15  | Add `go-error-family` to the dependency budget docs                                                  | LOW    | 5min            |
-| 16  | Document the codec `sync.OnceValue` pattern as a reusable recipe                                     | LOW    | 10min           |
-| 17  | Consider structured error fields instead of `fmt.Errorf` string interpolation                        | LOW    | 30min           |
-| 18  | Add benchmark for error allocation in hot paths (Version.Sub in projection)                          | LOW    | 20min           |
-| 19  | Consider `errors.Join` for multi-error scenarios (Go 1.20+)                                          | LOW    | 0 (awareness)   |
-| 20  | Audit example/todo for any remaining non-error-handling patterns                                     | LOW    | 15min           |
-| 21  | Add CI check that `errorfamily.Classify` returns non-Transient for all sentinels                     | MED    | 40min           |
-| 22  | Consider `Result[T]` type for fallible operations (Go 2 proposal style)                              | LOW    | 0 (exploration) |
-| 23  | Document error wrapping convention in AGENTS.md (when to `%w`, when to raw)                          | MED    | 15min           |
-| 24  | Add `go generate`-able error code registry from sentinel definitions                                 | LOW    | 60min           |
-| 25  | Consider automatic retry-policy based on error family (e.g., middleware that retries Transient only) | LOW    | 90min           |
+| #  | Task                                                                                                 | Impact | Effort          |
+| -- | ---------------------------------------------------------------------------------------------------- | ------ | --------------- |
+| 1  | Decide v2 vs v3 versioning for breaking changes                                                      | HIGH   | 0 (decision)    |
+| 2  | Add error-family classification tests (Classify(ErrNilDatabase) == Rejection)                        | HIGH   | 15min           |
+| 3  | Write panic policy section in AGENTS.md (when panics ARE acceptable)                                 | HIGH   | 20min           |
+| 4  | V3 migration appendix for zero-panic signature changes                                               | MED    | 30min           |
+| 5  | Rename remaining lowercase `mustXxx` test helpers                                                    | LOW    | 45min           |
+| 6  | Add `errors.Is` examples to SKILL.md for each new sentinel                                           | MED    | 15min           |
+| 7  | Consider `Version.SubOrZero` / `Version.DecrementOrZero` convenience methods                         | LOW    | 20min           |
+| 8  | Audit all error codes for naming consistency (pebble.nil_database vs event.nil_database)             | MED    | 15min           |
+| 9  | Add godoc examples for `Version.Decrement` error handling                                            | LOW    | 10min           |
+| 10 | Consider adding `ErrNilLogger` for pebble constructors (currently nil logger is allowed)             | LOW    | 10min           |
+| 11 | Update docs/index.md quick start to use new error-returning signatures                               | MED    | 10min           |
+| 12 | Add integration test that exercises the full error chain (classify → retry decision)                 | MED    | 30min           |
+| 13 | Consider `sync.OnceValues` (plural) for future multi-value lazy init needs                           | LOW    | 0 (awareness)   |
+| 14 | Audit `command/errors.go` and `query/errors.go` for any remaining plain `errors.New`                 | MED    | 10min           |
+| 15 | Add `go-error-family` to the dependency budget docs                                                  | LOW    | 5min            |
+| 16 | Document the codec `sync.OnceValue` pattern as a reusable recipe                                     | LOW    | 10min           |
+| 17 | Consider structured error fields instead of `fmt.Errorf` string interpolation                        | LOW    | 30min           |
+| 18 | Add benchmark for error allocation in hot paths (Version.Sub in projection)                          | LOW    | 20min           |
+| 19 | Consider `errors.Join` for multi-error scenarios (Go 1.20+)                                          | LOW    | 0 (awareness)   |
+| 20 | Audit example/todo for any remaining non-error-handling patterns                                     | LOW    | 15min           |
+| 21 | Add CI check that `errorfamily.Classify` returns non-Transient for all sentinels                     | MED    | 40min           |
+| 22 | Consider `Result[T]` type for fallible operations (Go 2 proposal style)                              | LOW    | 0 (exploration) |
+| 23 | Document error wrapping convention in AGENTS.md (when to `%w`, when to raw)                          | MED    | 15min           |
+| 24 | Add `go generate`-able error code registry from sentinel definitions                                 | LOW    | 60min           |
+| 25 | Consider automatic retry-policy based on error family (e.g., middleware that retries Transient only) | LOW    | 90min           |
 
 ---
 

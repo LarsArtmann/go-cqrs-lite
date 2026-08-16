@@ -162,43 +162,43 @@ The project's own convention is 250 lines max. Most violations are in test files
 
 ### Tier 1 — High Impact (structural)
 
-| #   | Task                                                                                                                                                                                                                                           | Effort | Impact                                                |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------- |
-| 1   | **Split `core/event` into sub-packages** (store, bus, snapshot, outbox, projection, upcaster) with backward-compat aliases                                                                                                                     | Large  | Fixes the god-package, improves ISP for all consumers |
-| 2   | **Complete `stream → listing` rename** — commit the staged changes                                                                                                                                                                             | Medium | Removes dead `stream/` module, cleans up go.work      |
-| 3   | **Split top-5 longest test files** — `memory/store_test.go` (659), `catalog/eventcatalog/exporter_test.go` (527), `testhelpers/fake_store_test.go` (502), `cmd/cqrs-gen/main_test.go` (500), `catalog/eventcatalog/exporter_new_test.go` (483) | Medium | Gets largest files under 250-line limit               |
-| 4   | **Split top-9 longest production files** under 250 lines                                                                                                                                                                                       | Medium | Enforces project convention                           |
-| 5   | **Commit `core/store/backend.go`** or remove it — don't leave experimental code untracked                                                                                                                                                      | Small  | Clean git state                                       |
+| # | Task                                                                                                                                                                                                                                           | Effort | Impact                                                |
+| - | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------- |
+| 1 | **Split `core/event` into sub-packages** (store, bus, snapshot, outbox, projection, upcaster) with backward-compat aliases                                                                                                                     | Large  | Fixes the god-package, improves ISP for all consumers |
+| 2 | **Complete `stream → listing` rename** — commit the staged changes                                                                                                                                                                             | Medium | Removes dead `stream/` module, cleans up go.work      |
+| 3 | **Split top-5 longest test files** — `memory/store_test.go` (659), `catalog/eventcatalog/exporter_test.go` (527), `testhelpers/fake_store_test.go` (502), `cmd/cqrs-gen/main_test.go` (500), `catalog/eventcatalog/exporter_new_test.go` (483) | Medium | Gets largest files under 250-line limit               |
+| 4 | **Split top-9 longest production files** under 250 lines                                                                                                                                                                                       | Medium | Enforces project convention                           |
+| 5 | **Commit `core/store/backend.go`** or remove it — don't leave experimental code untracked                                                                                                                                                      | Small  | Clean git state                                       |
 
 ### Tier 2 — Broad Value (quality)
 
-| #   | Task                                                                                                                                                                | Effort | Impact                      |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------- |
-| 6   | **Add tests for `saga/sagatest`** — currently `[no test files]`                                                                                                     | Small  | Coverage gap                |
-| 7   | **Add tests for `core/store`** — currently `[no test files]` (if kept)                                                                                              | Small  | Coverage gap                |
-| 8   | **Remove 7 self-referencing replace directives** — investigate if they're truly needed with go.work                                                                 | Small  | Cleaner go.mod files        |
-| 9   | **Standardize all internal module versions** to a single version (currently mix of `v0.0.0-000…`, `v1.0.0`, `v1.6.0`)                                               | Small  | Version consistency         |
-| 10  | **Extract inline test doubles in `core/`** to remove `memory` from `core/go.mod`                                                                                    | Medium | Core has zero internal deps |
-| 11  | **Add `listing/` tests to CI per-module job** — CI config only lists old module names                                                                               | Small  | CI coverage                 |
-| 12  | **Update `docs/modularization/MODULE_ASSESSMENT.md`** — it incorrectly says "core has zero internal deps in production code" but core depends on `codec` and `otel` | Small  | Accurate docs               |
-| 13  | **Review and commit `cmd/api-stability/main.go`** changes                                                                                                           | Small  | Don't lose work             |
-| 14  | **Fix `nix run .#lint` warnings** — unused functions in storage tests                                                                                               | Small  | Clean lint                  |
-| 15  | **Add `CODEOWNERS`** or module ownership docs                                                                                                                       | Small  | Governance                  |
+| #  | Task                                                                                                                                                                | Effort | Impact                      |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------- |
+| 6  | **Add tests for `saga/sagatest`** — currently `[no test files]`                                                                                                     | Small  | Coverage gap                |
+| 7  | **Add tests for `core/store`** — currently `[no test files]` (if kept)                                                                                              | Small  | Coverage gap                |
+| 8  | **Remove 7 self-referencing replace directives** — investigate if they're truly needed with go.work                                                                 | Small  | Cleaner go.mod files        |
+| 9  | **Standardize all internal module versions** to a single version (currently mix of `v0.0.0-000…`, `v1.0.0`, `v1.6.0`)                                               | Small  | Version consistency         |
+| 10 | **Extract inline test doubles in `core/`** to remove `memory` from `core/go.mod`                                                                                    | Medium | Core has zero internal deps |
+| 11 | **Add `listing/` tests to CI per-module job** — CI config only lists old module names                                                                               | Small  | CI coverage                 |
+| 12 | **Update `docs/modularization/MODULE_ASSESSMENT.md`** — it incorrectly says "core has zero internal deps in production code" but core depends on `codec` and `otel` | Small  | Accurate docs               |
+| 13 | **Review and commit `cmd/api-stability/main.go`** changes                                                                                                           | Small  | Don't lose work             |
+| 14 | **Fix `nix run .#lint` warnings** — unused functions in storage tests                                                                                               | Small  | Clean lint                  |
+| 15 | **Add `CODEOWNERS`** or module ownership docs                                                                                                                       | Small  | Governance                  |
 
 ### Tier 3 — Polish (long-term health)
 
-| #   | Task                                                                                                   | Effort | Impact                            |
-| --- | ------------------------------------------------------------------------------------------------------ | ------ | --------------------------------- |
-| 16  | **Create `docs/adr/` for module structure decisions** — document why 24 modules, why replace+go.work   | Small  | Knowledge preservation            |
-| 17  | **Generate a visual D2 dependency graph** from actual go.mod data                                      | Small  | Architecture visibility           |
-| 18  | **Add per-module `README.md`** for the 5 biggest modules (core, storage, catalog, signing, middleware) | Medium | Discoverability                   |
-| 19  | **Extract `catalog/schema.go` (352 lines) reflection logic** into `catalog/schema/` sub-package        | Medium | Reduces catalog root package size |
-| 20  | **Split `storage/saga_store.go` (269 lines)** — exceeds 250-line limit                                 | Small  | Convention compliance             |
-| 21  | **Split `storage/outbox.go` (261 lines)** — exceeds 250-line limit                                     | Small  | Convention compliance             |
-| 22  | **Add `go work vendor`** support for offline builds                                                    | Small  | Reproducibility                   |
-| 23  | **Investigate removing `scripts/go-mod-graph-local`** — is it still needed?                            | Small  | Dead code removal                 |
-| 24  | **Add integration test for `listing` module** — renamed from stream, needs fresh validation            | Medium | Confidence in rename              |
-| 25  | **Plan v1.0.0 release** — define the stability contract for all 24 modules                             | Large  | Production readiness              |
+| #  | Task                                                                                                   | Effort | Impact                            |
+| -- | ------------------------------------------------------------------------------------------------------ | ------ | --------------------------------- |
+| 16 | **Create `docs/adr/` for module structure decisions** — document why 24 modules, why replace+go.work   | Small  | Knowledge preservation            |
+| 17 | **Generate a visual D2 dependency graph** from actual go.mod data                                      | Small  | Architecture visibility           |
+| 18 | **Add per-module `README.md`** for the 5 biggest modules (core, storage, catalog, signing, middleware) | Medium | Discoverability                   |
+| 19 | **Extract `catalog/schema.go` (352 lines) reflection logic** into `catalog/schema/` sub-package        | Medium | Reduces catalog root package size |
+| 20 | **Split `storage/saga_store.go` (269 lines)** — exceeds 250-line limit                                 | Small  | Convention compliance             |
+| 21 | **Split `storage/outbox.go` (261 lines)** — exceeds 250-line limit                                     | Small  | Convention compliance             |
+| 22 | **Add `go work vendor`** support for offline builds                                                    | Small  | Reproducibility                   |
+| 23 | **Investigate removing `scripts/go-mod-graph-local`** — is it still needed?                            | Small  | Dead code removal                 |
+| 24 | **Add integration test for `listing` module** — renamed from stream, needs fresh validation            | Medium | Confidence in rename              |
+| 25 | **Plan v1.0.0 release** — define the stability contract for all 24 modules                             | Large  | Production readiness              |
 
 ---
 

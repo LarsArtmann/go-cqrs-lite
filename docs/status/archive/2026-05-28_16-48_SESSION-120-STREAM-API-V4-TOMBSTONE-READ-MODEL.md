@@ -125,33 +125,33 @@ No regressions. No broken tests. No compilation errors. All 29 packages pass.
 
 ## F) Top #25 Things to Do Next
 
-| #   | Priority | Task                                                                         | Est   | Impact                   |
-| --- | -------- | ---------------------------------------------------------------------------- | ----- | ------------------------ |
-| 1   | **P0**   | Sink/Source decomposition — define interfaces, update Store                  | 30min | Architectural foundation |
-| 2   | **P0**   | Remove `Delete` from all 4 store implementations                             | 30min | Immutability enforcement |
-| 3   | **P0**   | Update all tests that call `Delete`                                          | 20min | Test suite health        |
-| 4   | **P0**   | Rename `BackwardsLoader` → `BackwardsSource` + alias                         | 10min | Naming consistency       |
-| 5   | **P0**   | Rename `TransactionalStore` → `TransactionalSink` + alias                    | 10min | Naming consistency       |
-| 6   | **P0**   | Add `var _` assertions for all interface implementations                     | 10min | Compile-time safety      |
-| 7   | **P1**   | Fix SQL injection risk in `projection.go` and `sql_reader.go`                | 15min | Security                 |
-| 8   | **P1**   | Fix `AggregateProjection` tombstone detection (accumulate per aggregate)     | 20min | Correctness              |
-| 9   | **P1**   | Add `MemoryStore` fast path to `InMemoryAggregateReader`                     | 15min | Performance              |
-| 10  | **P1**   | Write `stream/projection_test.go` with real SQLite                           | 15min | Test coverage            |
-| 11  | **P1**   | Write `stream/sql_reader_test.go` with real SQLite                           | 15min | Test coverage            |
-| 12  | **P1**   | Write `stream/builder_test.go` — unit tests for ListBuilder                  | 10min | Test coverage            |
-| 13  | **P1**   | Update `example/user` to show tombstone middleware pattern                   | 15min | Consumer education       |
-| 14  | **P2**   | Move `stream` test dependency on `memory` to `testhelpers`                   | 10min | Dependency hygiene       |
-| 15  | **P2**   | Design `stream/EventReader` for cross-stream event queries                   | 30min | Feature completeness     |
-| 16  | **P2**   | Add `AggregateProjection.Recount()` for reconciliation                       | 15min | Ops tooling              |
-| 17  | **P2**   | Archive v1-v3 proposals, mark v4 as partially implemented                    | 5min  | Doc hygiene              |
-| 18  | **P2**   | Add `WithClock` option to `StatusMiddleware` for deterministic tests         | 10min | Testability              |
-| 19  | **P2**   | Document `TombstoneUndetermined` semantics in README                         | 5min  | Clarity                  |
-| 20  | **P2**   | Add benchmarks for `InMemoryAggregateReader` at scale                        | 10min | Performance baseline     |
-| 21  | **P3**   | Design crypto-shredding module for GDPR                                      | 60min | Compliance               |
-| 22  | **P3**   | Add `EventReader` + `ReadOptions` for time-range queries                     | 30min | Feature completeness     |
-| 23  | **P3**   | Add integration test: full pipeline (bus → middleware → projection → reader) | 20min | E2E confidence           |
-| 24  | **P3**   | Update `FEATURES.md` with stream module                                      | 5min  | Doc freshness            |
-| 25  | **P3**   | Run `nix run .#lint` and fix any issues                                      | 10min | Code quality             |
+| #  | Priority | Task                                                                         | Est   | Impact                   |
+| -- | -------- | ---------------------------------------------------------------------------- | ----- | ------------------------ |
+| 1  | **P0**   | Sink/Source decomposition — define interfaces, update Store                  | 30min | Architectural foundation |
+| 2  | **P0**   | Remove `Delete` from all 4 store implementations                             | 30min | Immutability enforcement |
+| 3  | **P0**   | Update all tests that call `Delete`                                          | 20min | Test suite health        |
+| 4  | **P0**   | Rename `BackwardsLoader` → `BackwardsSource` + alias                         | 10min | Naming consistency       |
+| 5  | **P0**   | Rename `TransactionalStore` → `TransactionalSink` + alias                    | 10min | Naming consistency       |
+| 6  | **P0**   | Add `var _` assertions for all interface implementations                     | 10min | Compile-time safety      |
+| 7  | **P1**   | Fix SQL injection risk in `projection.go` and `sql_reader.go`                | 15min | Security                 |
+| 8  | **P1**   | Fix `AggregateProjection` tombstone detection (accumulate per aggregate)     | 20min | Correctness              |
+| 9  | **P1**   | Add `MemoryStore` fast path to `InMemoryAggregateReader`                     | 15min | Performance              |
+| 10 | **P1**   | Write `stream/projection_test.go` with real SQLite                           | 15min | Test coverage            |
+| 11 | **P1**   | Write `stream/sql_reader_test.go` with real SQLite                           | 15min | Test coverage            |
+| 12 | **P1**   | Write `stream/builder_test.go` — unit tests for ListBuilder                  | 10min | Test coverage            |
+| 13 | **P1**   | Update `example/user` to show tombstone middleware pattern                   | 15min | Consumer education       |
+| 14 | **P2**   | Move `stream` test dependency on `memory` to `testhelpers`                   | 10min | Dependency hygiene       |
+| 15 | **P2**   | Design `stream/EventReader` for cross-stream event queries                   | 30min | Feature completeness     |
+| 16 | **P2**   | Add `AggregateProjection.Recount()` for reconciliation                       | 15min | Ops tooling              |
+| 17 | **P2**   | Archive v1-v3 proposals, mark v4 as partially implemented                    | 5min  | Doc hygiene              |
+| 18 | **P2**   | Add `WithClock` option to `StatusMiddleware` for deterministic tests         | 10min | Testability              |
+| 19 | **P2**   | Document `TombstoneUndetermined` semantics in README                         | 5min  | Clarity                  |
+| 20 | **P2**   | Add benchmarks for `InMemoryAggregateReader` at scale                        | 10min | Performance baseline     |
+| 21 | **P3**   | Design crypto-shredding module for GDPR                                      | 60min | Compliance               |
+| 22 | **P3**   | Add `EventReader` + `ReadOptions` for time-range queries                     | 30min | Feature completeness     |
+| 23 | **P3**   | Add integration test: full pipeline (bus → middleware → projection → reader) | 20min | E2E confidence           |
+| 24 | **P3**   | Update `FEATURES.md` with stream module                                      | 5min  | Doc freshness            |
+| 25 | **P3**   | Run `nix run .#lint` and fix any issues                                      | 10min | Code quality             |
 
 ---
 

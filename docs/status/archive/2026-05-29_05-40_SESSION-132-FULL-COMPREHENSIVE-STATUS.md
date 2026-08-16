@@ -184,33 +184,33 @@ The project is in **excellent shape**. 30/30 test packages pass (one pre-existin
 
 **Sorted by: Impact × Effort⁻¹ (highest ROI first)**
 
-| #   | Task                                                 | Impact      | Effort | Module               | Type          |
-| --- | ---------------------------------------------------- | ----------- | ------ | -------------------- | ------------- |
-| 1   | **Tag v1.0.0 and remove `replace` directives**       | 🔴 Critical | M      | all                  | Release       |
-| 2   | **Fix chaos test flakiness**                         | 🔴 High     | S      | integration          | Bug           |
-| 3   | **Remove `core/aggregate` deprecated package**       | 🟠 High     | S      | core                 | Cleanup       |
-| 4   | **Remove deprecated storage/memory methods**         | 🟠 High     | S      | storage, memory      | Cleanup       |
-| 5   | **Remove deprecated `core/event` symbols**           | 🟠 High     | S      | core/event           | Cleanup       |
-| 6   | **Split `projection/runner.go` (<250 lines)**        | 🟡 Medium   | S      | projection           | Quality       |
-| 7   | **Add OTel spans to PebbleEventStore (7 methods)**   | 🟡 Medium   | M      | storage              | Observability |
-| 8   | **Add OTel spans to TursoSyncDB (4 methods)**        | 🟡 Medium   | S      | storage              | Observability |
-| 9   | **Add span to `SQLSnapshotStore.Delete`**            | 🟡 Medium   | S      | storage              | Observability |
-| 10  | **Add OTel integration tests for new storage spans** | 🟡 Medium   | M      | integration, storage | Testing       |
-| 11  | **Add ADR-0008 for OTel instrumentation pattern**    | 🟡 Medium   | S      | docs                 | Documentation |
-| 12  | **Trim `core/event/event.go` to ≤250 lines**         | 🟢 Low      | S      | core/event           | Quality       |
-| 13  | **Add signing module OTel spans**                    | 🟢 Low      | M      | signing              | Observability |
-| 14  | **Fix gopls workspace false positives**              | 🟢 Low      | L      | tooling              | DX            |
-| 15  | **Add `ProcessedAt` to CheckpointStore**             | 🟢 Low      | S      | storage              | Feature       |
-| 16  | **Event context propagation**                        | 🟢 Low      | M      | core/event           | Feature       |
-| 17  | **Wire example/user to catalog constructors**        | 🟢 Low      | S      | example              | DX            |
-| 18  | **Build catch-up projection runner**                 | 🟢 Low      | L      | projection           | Feature       |
-| 19  | **Background polling for InMemoryRunner**            | 🟢 Low      | M      | core/event           | Feature       |
-| 20  | **Archive old status reports (keep last 10)**        | 🟢 Low      | S      | docs                 | Hygiene       |
-| 21  | **Consolidate stale planning docs**                  | 🟢 Low      | S      | docs                 | Hygiene       |
-| 22  | **Generate API surface docs automatically**          | 🟢 Low      | M      | docs                 | Documentation |
-| 23  | **Add projection coverage to 95%+**                  | 🟢 Low      | M      | projection           | Testing       |
-| 24  | **Add consumer quickstart guide (README)**           | 🟢 Low      | M      | docs                 | DX            |
-| 25  | **Benchmark suite for critical paths**               | 🟢 Low      | M      | core, storage        | Performance   |
+| #  | Task                                                 | Impact      | Effort | Module               | Type          |
+| -- | ---------------------------------------------------- | ----------- | ------ | -------------------- | ------------- |
+| 1  | **Tag v1.0.0 and remove `replace` directives**       | 🔴 Critical | M      | all                  | Release       |
+| 2  | **Fix chaos test flakiness**                         | 🔴 High     | S      | integration          | Bug           |
+| 3  | **Remove `core/aggregate` deprecated package**       | 🟠 High     | S      | core                 | Cleanup       |
+| 4  | **Remove deprecated storage/memory methods**         | 🟠 High     | S      | storage, memory      | Cleanup       |
+| 5  | **Remove deprecated `core/event` symbols**           | 🟠 High     | S      | core/event           | Cleanup       |
+| 6  | **Split `projection/runner.go` (<250 lines)**        | 🟡 Medium   | S      | projection           | Quality       |
+| 7  | **Add OTel spans to PebbleEventStore (7 methods)**   | 🟡 Medium   | M      | storage              | Observability |
+| 8  | **Add OTel spans to TursoSyncDB (4 methods)**        | 🟡 Medium   | S      | storage              | Observability |
+| 9  | **Add span to `SQLSnapshotStore.Delete`**            | 🟡 Medium   | S      | storage              | Observability |
+| 10 | **Add OTel integration tests for new storage spans** | 🟡 Medium   | M      | integration, storage | Testing       |
+| 11 | **Add ADR-0008 for OTel instrumentation pattern**    | 🟡 Medium   | S      | docs                 | Documentation |
+| 12 | **Trim `core/event/event.go` to ≤250 lines**         | 🟢 Low      | S      | core/event           | Quality       |
+| 13 | **Add signing module OTel spans**                    | 🟢 Low      | M      | signing              | Observability |
+| 14 | **Fix gopls workspace false positives**              | 🟢 Low      | L      | tooling              | DX            |
+| 15 | **Add `ProcessedAt` to CheckpointStore**             | 🟢 Low      | S      | storage              | Feature       |
+| 16 | **Event context propagation**                        | 🟢 Low      | M      | core/event           | Feature       |
+| 17 | **Wire example/user to catalog constructors**        | 🟢 Low      | S      | example              | DX            |
+| 18 | **Build catch-up projection runner**                 | 🟢 Low      | L      | projection           | Feature       |
+| 19 | **Background polling for InMemoryRunner**            | 🟢 Low      | M      | core/event           | Feature       |
+| 20 | **Archive old status reports (keep last 10)**        | 🟢 Low      | S      | docs                 | Hygiene       |
+| 21 | **Consolidate stale planning docs**                  | 🟢 Low      | S      | docs                 | Hygiene       |
+| 22 | **Generate API surface docs automatically**          | 🟢 Low      | M      | docs                 | Documentation |
+| 23 | **Add projection coverage to 95%+**                  | 🟢 Low      | M      | projection           | Testing       |
+| 24 | **Add consumer quickstart guide (README)**           | 🟢 Low      | M      | docs                 | DX            |
+| 25 | **Benchmark suite for critical paths**               | 🟢 Low      | M      | core, storage        | Performance   |
 
 ---
 

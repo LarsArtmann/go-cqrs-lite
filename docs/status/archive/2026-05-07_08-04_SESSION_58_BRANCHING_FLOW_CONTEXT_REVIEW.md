@@ -20,49 +20,49 @@
 
 ### ✅ FULLY DONE
 
-| #   | Task                                                                 | Status  | Evidence                                                 |
-| --- | -------------------------------------------------------------------- | ------- | -------------------------------------------------------- |
-| 1   | Fix `modernize` backward loop in `core/pkg/dispatcher/dispatcher.go` | ✅ Done | Use `slices.Backward()` iterator                         |
-| 2   | Fix `modernize` backward loop in `memory/bus.go`                     | ✅ Done | Use `slices.Backward()` iterator                         |
-| 3   | Fix `wsl_v5` whitespace in `core/event/outbox_publisher.go`          | ✅ Done | Added blank line before `close(p.done)`                  |
-| 4   | Fix `nestif` complexity (5) in `core/aggregate/repository.go`        | ✅ Done | Extracted `persistDirect()` helper, early return pattern |
-| 5   | Fix `noinlineerr` inline error in `core/aggregate/repository.go`     | ✅ Done | Replaced `if err := ...` with separate assignment        |
-| 6   | Fix `gochecknoinits` in `core/event/errors_taxonomy.go`              | ✅ Done | Added `//nolint:gochecknoinits` directive                |
-| 7   | Update golden test files (asyncapi.yaml)                             | ✅ Done | Regenerated via `-update`                                |
-| 8   | Update golden test files (eventcatalog-config.js)                    | ✅ Done | Regenerated via `-update`                                |
-| 9   | Update golden test files (package.json)                              | ✅ Done | Regenerated via `-update`                                |
-| 10  | All tests pass                                                       | ✅ Done | 22/22 packages                                           |
-| 11  | All race detector tests pass                                         | ✅ Done | `nix run .#test-race` clean                              |
-| 12  | Context propagation review complete                                  | ✅ Done | All patterns correct throughout                          |
+| #  | Task                                                                 | Status  | Evidence                                                 |
+| -- | -------------------------------------------------------------------- | ------- | -------------------------------------------------------- |
+| 1  | Fix `modernize` backward loop in `core/pkg/dispatcher/dispatcher.go` | ✅ Done | Use `slices.Backward()` iterator                         |
+| 2  | Fix `modernize` backward loop in `memory/bus.go`                     | ✅ Done | Use `slices.Backward()` iterator                         |
+| 3  | Fix `wsl_v5` whitespace in `core/event/outbox_publisher.go`          | ✅ Done | Added blank line before `close(p.done)`                  |
+| 4  | Fix `nestif` complexity (5) in `core/aggregate/repository.go`        | ✅ Done | Extracted `persistDirect()` helper, early return pattern |
+| 5  | Fix `noinlineerr` inline error in `core/aggregate/repository.go`     | ✅ Done | Replaced `if err := ...` with separate assignment        |
+| 6  | Fix `gochecknoinits` in `core/event/errors_taxonomy.go`              | ✅ Done | Added `//nolint:gochecknoinits` directive                |
+| 7  | Update golden test files (asyncapi.yaml)                             | ✅ Done | Regenerated via `-update`                                |
+| 8  | Update golden test files (eventcatalog-config.js)                    | ✅ Done | Regenerated via `-update`                                |
+| 9  | Update golden test files (package.json)                              | ✅ Done | Regenerated via `-update`                                |
+| 10 | All tests pass                                                       | ✅ Done | 22/22 packages                                           |
+| 11 | All race detector tests pass                                         | ✅ Done | `nix run .#test-race` clean                              |
+| 12 | Context propagation review complete                                  | ✅ Done | All patterns correct throughout                          |
 
 ### ⚠️ PARTIALLY DONE
 
-| #   | Task                           | Status     | Notes                                                                 |
-| --- | ------------------------------ | ---------- | --------------------------------------------------------------------- |
-| 1   | Golden tests                   | ✅ Updated | These were stale from session 52's go-faster/yaml indentation changes |
-| 2   | storage coverage 94.8% → 83.8% | ⚠️ Dropped | Pebble store added in session 56 (44b2b47) without tests              |
+| # | Task                           | Status     | Notes                                                                 |
+| - | ------------------------------ | ---------- | --------------------------------------------------------------------- |
+| 1 | Golden tests                   | ✅ Updated | These were stale from session 52's go-faster/yaml indentation changes |
+| 2 | storage coverage 94.8% → 83.8% | ⚠️ Dropped  | Pebble store added in session 56 (44b2b47) without tests              |
 
 ### ⚠️ PRE-EXISTING (Not This Session)
 
-| #   | File                                  | Issue                                                  | Count |
-| --- | ------------------------------------- | ------------------------------------------------------ | ----- |
-| 1   | `catalog/asyncapi/exporter.go`        | `exhaustive` — missing `CommandMessage` case           | 1     |
-| 2   | `catalog/asyncapi/exporter.go`        | `goconst` — "3.0.0" repeated 3×                        | 1     |
-| 3   | `catalog/asyncapi/exporter.go`        | `goconst` — "application/json" repeated 3×             | 1     |
-| 4   | `catalog/asyncapi/exporter.go`        | `goconst` — "object" repeated 8×                       | 1     |
-| 5   | `catalog/asyncapi/helpers.go`         | `goconst` — "object" repeated 8×                       | 1     |
-| 6   | `catalog/internal/cattest/catalog.go` | `goconst` — "1.0.0" repeated 4×                        | 1     |
-| 7   | `catalog/eventcatalog/exporter.go`    | `nonamedreturns` — named return in `collectMessageIDs` | 1     |
+| # | File                                  | Issue                                                  | Count |
+| - | ------------------------------------- | ------------------------------------------------------ | ----- |
+| 1 | `catalog/asyncapi/exporter.go`        | `exhaustive` — missing `CommandMessage` case           | 1     |
+| 2 | `catalog/asyncapi/exporter.go`        | `goconst` — "3.0.0" repeated 3×                        | 1     |
+| 3 | `catalog/asyncapi/exporter.go`        | `goconst` — "application/json" repeated 3×             | 1     |
+| 4 | `catalog/asyncapi/exporter.go`        | `goconst` — "object" repeated 8×                       | 1     |
+| 5 | `catalog/asyncapi/helpers.go`         | `goconst` — "object" repeated 8×                       | 1     |
+| 6 | `catalog/internal/cattest/catalog.go` | `goconst` — "1.0.0" repeated 4×                        | 1     |
+| 7 | `catalog/eventcatalog/exporter.go`    | `nonamedreturns` — named return in `collectMessageIDs` | 1     |
 
 **Total pre-existing: 7 issues** (introduced before session 58)
 
 ### ❌ NOT STARTED
 
-| #   | Task                                       | Reason                                                             |
-| --- | ------------------------------------------ | ------------------------------------------------------------------ |
-| 1   | Pre-existing catalog lint issues (7 items) | Out of scope for branching-flow review                             |
-| 2   | storage coverage gap (83.8%)               | Pebble store tests needed — separate session                       |
-| 3   | CommandMessage exhaustive switch           | AsyncAPI exporter doesn't handle commands — design decision needed |
+| # | Task                                       | Reason                                                             |
+| - | ------------------------------------------ | ------------------------------------------------------------------ |
+| 1 | Pre-existing catalog lint issues (7 items) | Out of scope for branching-flow review                             |
+| 2 | storage coverage gap (83.8%)               | Pebble store tests needed — separate session                       |
+| 3 | CommandMessage exhaustive switch           | AsyncAPI exporter doesn't handle commands — design decision needed |
 
 ### ❌ TOTALLY FUCKED UP
 
@@ -79,24 +79,24 @@
 
 ### Coverage Summary
 
-| Module                 | Coverage  | Status                  |
-| ---------------------- | --------- | ----------------------- |
-| `core/command`         | 100.0%    | ✅ Target met           |
-| `core/query`           | 100.0%    | ✅ Target met           |
-| `core/pkg/dispatcher`  | 100.0%    | ✅ Target met           |
-| `core/pkg/id`          | 100.0%    | ✅ Target met           |
-| `catalog/adapters`     | 100.0%    | ✅ Target met           |
-| `middleware`           | 100.0%    | ✅ Target met           |
-| `memory`               | 99.5%     | ✅ Near target          |
-| `projection`           | 98.3%     | ✅ Near target          |
-| `catalog/d2`           | 97.6%     | ✅ Near target          |
-| `catalog/asyncapi`     | 95.8%     | ✅ Near target          |
-| `catalog/eventcatalog` | 95.6%     | ✅ Near target          |
-| `catalog`              | 94.4%     | ✅ Near target          |
-| `core/event`           | 94.5%     | ✅ Near target          |
-| `core/decider`         | 92.7%     | ✅ Near target          |
+| Module                 | Coverage  | Status                 |
+| ---------------------- | --------- | ---------------------- |
+| `core/command`         | 100.0%    | ✅ Target met          |
+| `core/query`           | 100.0%    | ✅ Target met          |
+| `core/pkg/dispatcher`  | 100.0%    | ✅ Target met          |
+| `core/pkg/id`          | 100.0%    | ✅ Target met          |
+| `catalog/adapters`     | 100.0%    | ✅ Target met          |
+| `middleware`           | 100.0%    | ✅ Target met          |
+| `memory`               | 99.5%     | ✅ Near target         |
+| `projection`           | 98.3%     | ✅ Near target         |
+| `catalog/d2`           | 97.6%     | ✅ Near target         |
+| `catalog/asyncapi`     | 95.8%     | ✅ Near target         |
+| `catalog/eventcatalog` | 95.6%     | ✅ Near target         |
+| `catalog`              | 94.4%     | ✅ Near target         |
+| `core/event`           | 94.5%     | ✅ Near target         |
+| `core/decider`         | 92.7%     | ✅ Near target         |
 | `core/aggregate`       | 92.1%     | ⚠️ Below 95%            |
-| `storage`              | 83.8%     | ❌ Needs attention      |
+| `storage`              | 83.8%     | ❌ Needs attention     |
 | **Total**              | **84.0%** | ⚠️ Excludes testhelpers |
 
 ### Lint Summary
@@ -105,7 +105,7 @@
 | ------------ | ------ | ---------------- |
 | `core`       | **0**  | ✅ Was 5 → now 0 |
 | `memory`     | **0**  | ✅ Was 1 → now 0 |
-| `catalog`    | **7**  | ⚠️ Pre-existing  |
+| `catalog`    | **7**  | ⚠️ Pre-existing   |
 | `middleware` | **0**  | ✅ Clean         |
 | `storage`    | **0**  | ✅ Clean         |
 | `projection` | **0**  | ✅ Clean         |
@@ -162,33 +162,33 @@ memory/bus.go                                 |   5 +-
 
 ## Top 25 Things to Get Done Next
 
-| #   | Priority    | Item                                                             | Impact                              | Effort |
-| --- | ----------- | ---------------------------------------------------------------- | ----------------------------------- | ------ |
-| 1   | 🔴 CRITICAL | Add storage Pebble tests (83.8% → 95%+)                          | Recover dropped coverage            | High   |
-| 2   | 🔴 CRITICAL | Fix `catalog/asyncapi/exporter.go` missing `CommandMessage` case | Prevents command export to AsyncAPI | Low    |
-| 3   | 🔴 CRITICAL | Fix 5× `goconst` in `catalog/asyncapi/`                          | Code quality, maintainability       | Low    |
-| 4   | 🟠 HIGH     | Fix `nonamedreturns` in `catalog/eventcatalog/exporter.go`       | Code quality                        | Low    |
-| 5   | 🟠 HIGH     | Fix `core/aggregate` coverage 92.1% → 95%+                       | Coverage target                     | Medium |
-| 6   | 🟠 HIGH     | Add PostgreSQL integration tests                                 | Real DB verification                | High   |
-| 7   | 🟠 HIGH     | Add concurrent Execute tests for `decider.Repository`            | Race condition detection            | Medium |
-| 8   | 🟡 MEDIUM   | Add `IdempotencyKey` auto-generation helper                      | DX improvement                      | Medium |
-| 9   | 🟡 MEDIUM   | Add `ContextEnricher` wiring to `decider.Repository`             | Trace propagation                   | Medium |
-| 10  | 🟡 MEDIUM   | Add `ContextEnricher` wiring to `aggregate.Repository`           | Trace propagation                   | Medium |
-| 11  | 🟡 MEDIUM   | Document outbox partial-failure contract                         | Consumer understanding              | Low    |
-| 12  | 🟡 MEDIUM   | Add `WithLogger` option to `OutboxPublisher`                     | Observability                       | Low    |
-| 13  | 🟡 MEDIUM   | Add benchmark for `decider.Repository.Execute` concurrent        | Performance baseline                | Medium |
-| 14  | 🟢 LOW      | Update gomodguard → gomodguard_v2                                | Remove deprecation warning          | Low    |
-| 15  | 🟢 LOW      | Add `String()` method to all error sentinels                     | Debugging DX                        | Low    |
-| 16  | 🟢 LOW      | Add `Unwrap()` to `aggregate` errors                             | Error chain support                 | Low    |
-| 17  | 🟢 LOW      | Review `CatalogMeta` duplication across packages                 | Architecture cleanup                | Medium |
-| 18  | 🟢 LOW      | Add `Close()` implementation to `MemorySnapshotStore`            | Lifecycle consistency               | Low    |
-| 19  | 🟢 LOW      | Add `Close()` implementation to `MemoryBus`                      | Lifecycle consistency               | Low    |
-| 20  | 🟢 LOW      | Document `MemoryBus` handler ordering guarantee                  | Consumer understanding              | Low    |
-| 21  | 🟢 LOW      | Add `slog.Logger` field to `OutboxPublisher`                     | Structured logging                  | Low    |
-| 22  | 🟢 LOW      | Add `WithPollInterval`/`WithBatchSize` validation                | Fail-fast on bad config             | Low    |
-| 23  | 🟢 LOW      | Review `PebbleEventStore` API completeness                       | New feature quality                 | Medium |
-| 24  | 🟢 LOW      | Add `LoadFromVersion` test for Pebble                            | Feature coverage                    | Medium |
-| 25  | 🟢 LOW      | Add `Delete` test for Pebble                                     | Feature coverage                    | Medium |
+| #  | Priority    | Item                                                             | Impact                              | Effort |
+| -- | ----------- | ---------------------------------------------------------------- | ----------------------------------- | ------ |
+| 1  | 🔴 CRITICAL | Add storage Pebble tests (83.8% → 95%+)                          | Recover dropped coverage            | High   |
+| 2  | 🔴 CRITICAL | Fix `catalog/asyncapi/exporter.go` missing `CommandMessage` case | Prevents command export to AsyncAPI | Low    |
+| 3  | 🔴 CRITICAL | Fix 5× `goconst` in `catalog/asyncapi/`                          | Code quality, maintainability       | Low    |
+| 4  | 🟠 HIGH     | Fix `nonamedreturns` in `catalog/eventcatalog/exporter.go`       | Code quality                        | Low    |
+| 5  | 🟠 HIGH     | Fix `core/aggregate` coverage 92.1% → 95%+                       | Coverage target                     | Medium |
+| 6  | 🟠 HIGH     | Add PostgreSQL integration tests                                 | Real DB verification                | High   |
+| 7  | 🟠 HIGH     | Add concurrent Execute tests for `decider.Repository`            | Race condition detection            | Medium |
+| 8  | 🟡 MEDIUM   | Add `IdempotencyKey` auto-generation helper                      | DX improvement                      | Medium |
+| 9  | 🟡 MEDIUM   | Add `ContextEnricher` wiring to `decider.Repository`             | Trace propagation                   | Medium |
+| 10 | 🟡 MEDIUM   | Add `ContextEnricher` wiring to `aggregate.Repository`           | Trace propagation                   | Medium |
+| 11 | 🟡 MEDIUM   | Document outbox partial-failure contract                         | Consumer understanding              | Low    |
+| 12 | 🟡 MEDIUM   | Add `WithLogger` option to `OutboxPublisher`                     | Observability                       | Low    |
+| 13 | 🟡 MEDIUM   | Add benchmark for `decider.Repository.Execute` concurrent        | Performance baseline                | Medium |
+| 14 | 🟢 LOW      | Update gomodguard → gomodguard_v2                                | Remove deprecation warning          | Low    |
+| 15 | 🟢 LOW      | Add `String()` method to all error sentinels                     | Debugging DX                        | Low    |
+| 16 | 🟢 LOW      | Add `Unwrap()` to `aggregate` errors                             | Error chain support                 | Low    |
+| 17 | 🟢 LOW      | Review `CatalogMeta` duplication across packages                 | Architecture cleanup                | Medium |
+| 18 | 🟢 LOW      | Add `Close()` implementation to `MemorySnapshotStore`            | Lifecycle consistency               | Low    |
+| 19 | 🟢 LOW      | Add `Close()` implementation to `MemoryBus`                      | Lifecycle consistency               | Low    |
+| 20 | 🟢 LOW      | Document `MemoryBus` handler ordering guarantee                  | Consumer understanding              | Low    |
+| 21 | 🟢 LOW      | Add `slog.Logger` field to `OutboxPublisher`                     | Structured logging                  | Low    |
+| 22 | 🟢 LOW      | Add `WithPollInterval`/`WithBatchSize` validation                | Fail-fast on bad config             | Low    |
+| 23 | 🟢 LOW      | Review `PebbleEventStore` API completeness                       | New feature quality                 | Medium |
+| 24 | 🟢 LOW      | Add `LoadFromVersion` test for Pebble                            | Feature coverage                    | Medium |
+| 25 | 🟢 LOW      | Add `Delete` test for Pebble                                     | Feature coverage                    | Medium |
 
 ---
 
@@ -240,17 +240,17 @@ case QueryMessage:
 
 ## Metrics Snapshot
 
-| Metric                    | Value            | Trend               |
-| ------------------------- | ---------------- | ------------------- |
-| Total Go files            | 222              | —                   |
-| Total LOC                 | ~35,842          | —                   |
-| Total test packages       | 22               | —                   |
-| Lint issues (core/memory) | **0**            | ✅ ↓                |
-| Lint issues (catalog)     | 7 (pre-existing) | —                   |
+| Metric                    | Value            | Trend              |
+| ------------------------- | ---------------- | ------------------ |
+| Total Go files            | 222              | —                  |
+| Total LOC                 | ~35,842          | —                  |
+| Total test packages       | 22               | —                  |
+| Lint issues (core/memory) | **0**            | ✅ ↓               |
+| Lint issues (catalog)     | 7 (pre-existing) | —                  |
 | Coverage (total)          | 84.0%            | ⚠️ ↓ (storage drop) |
-| Coverage (core)           | ~95%             | ✅ Stable           |
-| Race detector issues      | 0                | ✅ Clean            |
-| Modules ≥95% coverage     | 11               | ✅ Stable           |
+| Coverage (core)           | ~95%             | ✅ Stable          |
+| Race detector issues      | 0                | ✅ Clean           |
+| Modules ≥95% coverage     | 11               | ✅ Stable          |
 
 ---
 

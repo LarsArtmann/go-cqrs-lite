@@ -252,7 +252,7 @@ What's the right pattern? Is it just "accept that test-only deps pollute the dep
 | Tests passing       | All (with 1 broken test in catalog/ since deleted) |
 | Build status        | ✅ `nix run .#build` passes                        |
 | Test status         | ✅ `nix run .#test` passes                         |
-| Lint status         | ⚠️ 46 issues (mostly in new code)                  |
+| Lint status         | ⚠️ 46 issues (mostly in new code)                   |
 | Plan completion     | ~40% of 90 tasks                                   |
 
 ---

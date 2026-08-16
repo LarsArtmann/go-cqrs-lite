@@ -1,7 +1,7 @@
 # Status Report: Retry Module Deprecation & Session Wrap-Up
 
-**Date:** 2026-08-07 21:23  
-**Session:** Continuation of the cqrs-lint self-lint session  
+**Date:** 2026-08-07 21:23\
+**Session:** Continuation of the cqrs-lint self-lint session\
 **Scope:** Deprecated the `retry/` re-export shim, migrated `middleware/` to import `go-retry` directly, then self-reviewed.
 
 ---

@@ -169,48 +169,48 @@ These were NOT made by this session and NOT committed. They appeared and disappe
 
 ### Tier 1: REDO THE LOST WORK (commit after each batch!)
 
-| #   | Task                                                                     | Impact | Effort | Approach                                             |
-| --- | ------------------------------------------------------------------------ | ------ | ------ | ---------------------------------------------------- |
-| 1   | **Batch-replace `Redis → Redis/ValKey` in 22 planning/status .md files** | H      | XS     | `perl -pi -e` one-liner + commit immediately         |
-| 2   | **Batch-replace in ~20 archive .md files**                               | M      | XS     | Same approach, separate commit                       |
-| 3   | **Re-edit 5 source `.go` files** (graph.go, kv.go, store.go, doc.go × 2) | H      | S      | Hand-edit + `go build` + commit                      |
-| 4   | **Re-edit AGENTS.md** (2 code-comment annotations)                       | H      | XS     | Hand-edit + commit                                   |
-| 5   | **Re-edit FEATURES.md** (transport adapters row)                         | M      | XS     | Hand-edit + commit                                   |
-| 6   | **Re-edit DOMAIN_LANGUAGE.md** (2 table rows)                            | M      | XS     | Hand-edit + commit                                   |
-| 7   | **Re-edit CHANGELOG.md** (3 entries)                                     | L      | XS     | Hand-edit + commit                                   |
-| 8   | **Re-edit INFRASTRUCTURE_RECOMMENDATIONS.md** (2 sections)               | H      | S      | Hand-edit + commit — this is the deployer-facing doc |
-| 9   | **Re-edit 7 research docs**                                              | M      | S      | Batch hand-edit + commit                             |
-| 10  | **Re-edit 3 ADRs + design docs**                                         | M      | S      | Hand-edit + commit                                   |
-| 11  | **Re-edit 2 READMEs** (graph/, idempotency/)                             | L      | XS     | Hand-edit + commit                                   |
-| 12  | **Re-edit skill references/advanced.md**                                 | L      | XS     | Hand-edit + run doc-check + commit                   |
+| #  | Task                                                                     | Impact | Effort | Approach                                             |
+| -- | ------------------------------------------------------------------------ | ------ | ------ | ---------------------------------------------------- |
+| 1  | **Batch-replace `Redis → Redis/ValKey` in 22 planning/status .md files** | H      | XS     | `perl -pi -e` one-liner + commit immediately         |
+| 2  | **Batch-replace in ~20 archive .md files**                               | M      | XS     | Same approach, separate commit                       |
+| 3  | **Re-edit 5 source `.go` files** (graph.go, kv.go, store.go, doc.go × 2) | H      | S      | Hand-edit + `go build` + commit                      |
+| 4  | **Re-edit AGENTS.md** (2 code-comment annotations)                       | H      | XS     | Hand-edit + commit                                   |
+| 5  | **Re-edit FEATURES.md** (transport adapters row)                         | M      | XS     | Hand-edit + commit                                   |
+| 6  | **Re-edit DOMAIN_LANGUAGE.md** (2 table rows)                            | M      | XS     | Hand-edit + commit                                   |
+| 7  | **Re-edit CHANGELOG.md** (3 entries)                                     | L      | XS     | Hand-edit + commit                                   |
+| 8  | **Re-edit INFRASTRUCTURE_RECOMMENDATIONS.md** (2 sections)               | H      | S      | Hand-edit + commit — this is the deployer-facing doc |
+| 9  | **Re-edit 7 research docs**                                              | M      | S      | Batch hand-edit + commit                             |
+| 10 | **Re-edit 3 ADRs + design docs**                                         | M      | S      | Hand-edit + commit                                   |
+| 11 | **Re-edit 2 READMEs** (graph/, idempotency/)                             | L      | XS     | Hand-edit + commit                                   |
+| 12 | **Re-edit skill references/advanced.md**                                 | L      | XS     | Hand-edit + run doc-check + commit                   |
 
 ### Tier 2: Related improvements noticed during the pass
 
-| #   | Task                                                                               | Impact | Effort | Notes                                                                                              |
-| --- | ---------------------------------------------------------------------------------- | ------ | ------ | -------------------------------------------------------------------------------------------------- |
-| 13  | **Investigate go.mod/go.sum drift** (go 1.26.3→1.26.4, go-error-family bump)       | M      | S      | 23 modules affected; appeared/disappeared between turns                                            |
-| 14  | **Add ValKey to SKILL.md module decision matrix**                                  | M      | S      | The AI consumer guide doesn't mention ValKey at all                                                |
-| 15  | **Add ValKey to the broker plugin recipe** in `watermill/doc.go` section heading   | L      | XS     | Currently says "Broker Backends (NATS, Redis, Kafka)"                                              |
-| 16  | **Consider a `docs/EDITORIAL_STANCE.md`**                                          | L      | M      | Centralize the Redis/ValKey stance so every doc can link to it instead of repeating the blockquote |
-| 17  | **Add ValKey mention to `cmd/cqrs-gen` templates** if they generate doc references | L      | S      | Check if code generator outputs any Redis references                                               |
+| #  | Task                                                                               | Impact | Effort | Notes                                                                                              |
+| -- | ---------------------------------------------------------------------------------- | ------ | ------ | -------------------------------------------------------------------------------------------------- |
+| 13 | **Investigate go.mod/go.sum drift** (go 1.26.3→1.26.4, go-error-family bump)       | M      | S      | 23 modules affected; appeared/disappeared between turns                                            |
+| 14 | **Add ValKey to SKILL.md module decision matrix**                                  | M      | S      | The AI consumer guide doesn't mention ValKey at all                                                |
+| 15 | **Add ValKey to the broker plugin recipe** in `watermill/doc.go` section heading   | L      | XS     | Currently says "Broker Backends (NATS, Redis, Kafka)"                                              |
+| 16 | **Consider a `docs/EDITORIAL_STANCE.md`**                                          | L      | M      | Centralize the Redis/ValKey stance so every doc can link to it instead of repeating the blockquote |
+| 17 | **Add ValKey mention to `cmd/cqrs-gen` templates** if they generate doc references | L      | S      | Check if code generator outputs any Redis references                                               |
 
 ### Tier 3: From the truth-reconciliation plan (intersection)
 
-| #   | Task                                                                   | Impact | Effort | Notes                                                              |
-| --- | ---------------------------------------------------------------------- | ------ | ------ | ------------------------------------------------------------------ |
-| 18  | **Truth-reconcile ROADMAP.md** (module count, transport section)       | H      | XS     | Also needs ValKey — combine both passes                            |
-| 19  | **Truth-reconcile TODO_LIST.md** (stale genproto reference)            | H      | XS     | Already touched for ValKey — combine                               |
-| 20  | **Truth-reconcile FEATURES.md** (transport adapters row is stale)      | M      | XS     | Already touched for ValKey — combine                               |
-| 21  | **Remove dead `docs/design/transport-redis.md` or mark as superseded** | M      | XS     | The design doc describes a module that will never ship as designed |
+| #  | Task                                                                   | Impact | Effort | Notes                                                              |
+| -- | ---------------------------------------------------------------------- | ------ | ------ | ------------------------------------------------------------------ |
+| 18 | **Truth-reconcile ROADMAP.md** (module count, transport section)       | H      | XS     | Also needs ValKey — combine both passes                            |
+| 19 | **Truth-reconcile TODO_LIST.md** (stale genproto reference)            | H      | XS     | Already touched for ValKey — combine                               |
+| 20 | **Truth-reconcile FEATURES.md** (transport adapters row is stale)      | M      | XS     | Already touched for ValKey — combine                               |
+| 21 | **Remove dead `docs/design/transport-redis.md` or mark as superseded** | M      | XS     | The design doc describes a module that will never ship as designed |
 
 ### Tier 4: Structural improvements
 
-| #   | Task                                                                                     | Impact | Effort | Notes                                                            |
-| --- | ---------------------------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------------------------- |
-| 22  | **Add a CI lint that detects Redis mentions without ValKey**                             | L      | M      | Grep-based check; prevents editorial drift                       |
-| 23  | **Consolidate the "not a fan of Redis" stance into a single canonical paragraph**        | L      | S      | Currently reworded ~10 different ways across docs                |
-| 24  | **Evaluate whether ValKey should get its own transport adapter design doc**              | L      | M      | `docs/design/transport-valkey.md` — or just rename the Redis one |
-| 25  | **Run `nix run .#lint` + `nix run .#test`** to confirm no regressions from the full pass | H      | S      | Should be done after the redo is complete                        |
+| #  | Task                                                                                     | Impact | Effort | Notes                                                            |
+| -- | ---------------------------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------------------------- |
+| 22 | **Add a CI lint that detects Redis mentions without ValKey**                             | L      | M      | Grep-based check; prevents editorial drift                       |
+| 23 | **Consolidate the "not a fan of Redis" stance into a single canonical paragraph**        | L      | S      | Currently reworded ~10 different ways across docs                |
+| 24 | **Evaluate whether ValKey should get its own transport adapter design doc**              | L      | M      | `docs/design/transport-valkey.md` — or just rename the Redis one |
+| 25 | **Run `nix run .#lint` + `nix run .#test`** to confirm no regressions from the full pass | H      | S      | Should be done after the redo is complete                        |
 
 ---
 

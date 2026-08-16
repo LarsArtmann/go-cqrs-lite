@@ -7,18 +7,18 @@
 
 ## a) FULLY DONE
 
-| #   | Work item                                                                                                                                              | Verification                           |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------- |
-| 1   | **Varnamelen fix**: renamed `rv` -> `closureVal` in `metaengine/execute.go` (2 of 3 functions; `buildSortFunc` was already done by concurrent process) | Build passes, lint passes              |
-| 2   | **Gocognit fix**: added `//nolint:gocognit` to `TestSinkUpsert`                                                                                        | Lint passes                            |
-| 3   | **Lint gate**: `nix run .#lint` exits **0** with **0 issues**                                                                                          | Confirmed                              |
-| 4   | **scanner.go clone evaluated and ACCEPTED**                                                                                                            | Code read, rationale documented        |
-| 5   | **Turso sync 4-way clone verified and ACCEPTED**                                                                                                       | Code read, rationale documented        |
-| 6   | **Q1/Q2/Q3 resolved** with documented decisions                                                                                                        | ADR-0069 + dedup-acceptance.md updated |
-| 7   | **command_read.go false alarm corrected** in session 5 report                                                                                          | Annotated                              |
-| 8   | **ADR-0069 updated** with helper-body clone trade-off                                                                                                  | doc-check passes                       |
-| 9   | **dedup-acceptance.md updated** with 3 new entries + measurement context                                                                               | doc-check passes                       |
-| 10  | **api-stability** passes (no export changes)                                                                                                           | Test passes                            |
+| #  | Work item                                                                                                                                              | Verification                           |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------- |
+| 1  | **Varnamelen fix**: renamed `rv` -> `closureVal` in `metaengine/execute.go` (2 of 3 functions; `buildSortFunc` was already done by concurrent process) | Build passes, lint passes              |
+| 2  | **Gocognit fix**: added `//nolint:gocognit` to `TestSinkUpsert`                                                                                        | Lint passes                            |
+| 3  | **Lint gate**: `nix run .#lint` exits **0** with **0 issues**                                                                                          | Confirmed                              |
+| 4  | **scanner.go clone evaluated and ACCEPTED**                                                                                                            | Code read, rationale documented        |
+| 5  | **Turso sync 4-way clone verified and ACCEPTED**                                                                                                       | Code read, rationale documented        |
+| 6  | **Q1/Q2/Q3 resolved** with documented decisions                                                                                                        | ADR-0069 + dedup-acceptance.md updated |
+| 7  | **command_read.go false alarm corrected** in session 5 report                                                                                          | Annotated                              |
+| 8  | **ADR-0069 updated** with helper-body clone trade-off                                                                                                  | doc-check passes                       |
+| 9  | **dedup-acceptance.md updated** with 3 new entries + measurement context                                                                               | doc-check passes                       |
+| 10 | **api-stability** passes (no export changes)                                                                                                           | Test passes                            |
 
 ---
 

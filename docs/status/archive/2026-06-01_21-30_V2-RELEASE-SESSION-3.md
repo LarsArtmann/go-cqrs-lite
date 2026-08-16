@@ -36,30 +36,30 @@ None — all tasks undertaken this session were completed.
 
 ### High-impact / Medium-effort (should do before v2)
 
-| #   | Item                                                                         | Impact    | Effort    |
-| --- | ---------------------------------------------------------------------------- | --------- | --------- |
-| 1   | Add ReplayFilter tests (event/reactive.go) — zero coverage, stateful closure | 🔴 High   | 🟢 Small  |
-| 2   | Add schema versioned_store tests (LoadToVersion, LoadToTimestamp)            | 🟡 Medium | 🟢 Small  |
-| 3   | Add event DecodePayloads edge case tests                                     | 🟢 Low    | 🟢 Small  |
-| 4   | Increase projection coverage to 95%+                                         | 🟡 Medium | 🟡 Medium |
-| 5   | turso connector tests via in-memory SQLite                                   | 🟡 Medium | 🟡 Medium |
+| # | Item                                                                         | Impact    | Effort    |
+| - | ---------------------------------------------------------------------------- | --------- | --------- |
+| 1 | Add ReplayFilter tests (event/reactive.go) — zero coverage, stateful closure | 🔴 High   | 🟢 Small  |
+| 2 | Add schema versioned_store tests (LoadToVersion, LoadToTimestamp)            | 🟡 Medium | 🟢 Small  |
+| 3 | Add event DecodePayloads edge case tests                                     | 🟢 Low    | 🟢 Small  |
+| 4 | Increase projection coverage to 95%+                                         | 🟡 Medium | 🟡 Medium |
+| 5 | turso connector tests via in-memory SQLite                                   | 🟡 Medium | 🟡 Medium |
 
 ### Lower-priority / Post-v2
 
-| #   | Item                                                                     |
-| --- | ------------------------------------------------------------------------ |
-| 6   | Parallelize CI matrix — one job per module                               |
-| 7   | Benchmark storage backends (PG vs SQLite vs Pebble)                      |
-| 8   | Performance regression CI                                                |
-| 9   | Add gofumpt/goimports to pre-commit hook                                 |
-| 10  | Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination types |
-| 11  | Add fuzz tests                                                           |
-| 12  | Add E2E throughput benchmarks                                            |
-| 13  | Split large test files (decider_test.go ~1200L, runner_test.go ~1057L)   |
-| 14  | Enforce 350-line limit via pre-commit hook                               |
-| 15  | memory/ — extract withRLock/withLock helper                              |
-| 16  | listing/in_memory.go — ReadAll on every List (no caching)                |
-| 17  | event/ module cycles — move cross-module test assertions to integration/ |
+| #  | Item                                                                     |
+| -- | ------------------------------------------------------------------------ |
+| 6  | Parallelize CI matrix — one job per module                               |
+| 7  | Benchmark storage backends (PG vs SQLite vs Pebble)                      |
+| 8  | Performance regression CI                                                |
+| 9  | Add gofumpt/goimports to pre-commit hook                                 |
+| 10 | Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination types |
+| 11 | Add fuzz tests                                                           |
+| 12 | Add E2E throughput benchmarks                                            |
+| 13 | Split large test files (decider_test.go ~1200L, runner_test.go ~1057L)   |
+| 14 | Enforce 350-line limit via pre-commit hook                               |
+| 15 | memory/ — extract withRLock/withLock helper                              |
+| 16 | listing/in_memory.go — ReadAll on every List (no caching)                |
+| 17 | event/ module cycles — move cross-module test assertions to integration/ |
 
 ---
 
@@ -119,7 +119,7 @@ None — all tasks undertaken this session were completed.
 | cmd/cqrs-gen         | 89.9%     | ✅                                                                     |
 | pebble               | 88.4%     | ✅                                                                     |
 | catalog/schema       | 86.1%     | ✅                                                                     |
-| **event**            | **84.5%** | ⚠️ Below 85% — reactive.go operators untested                          |
+| **event**            | **84.5%** | ⚠️ Below 85% — reactive.go operators untested                           |
 | **schema**           | **77.6%** | 🔴 Below 80% — versioned_store time-travel untested                    |
 | **storage**          | **72.7%** | 🔴 Below 80% — options, aggregate_reader, stream, projection uncovered |
 | **turso**            | **0%**    | 🔴 No tests at all                                                     |

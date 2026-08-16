@@ -26,7 +26,7 @@ Each test covers the specific FP scenario from the elimination session, verifyin
 | A005 | `api/a005_regression_test.go`                | `TestA005_NoFindingForNonEventBus`                    | ErrorBus.SubscribeAll ≠ event.Bus.SubscribeAll (type-aware)    |
 | C027 | `correctness/c027_regression_test.go` (NEW)  | `TestC027_NoFindingForNonEventBus`                    | ErrorBus.Subscribe ≠ event.Bus.Subscribe (type-aware)          |
 | C027 | `correctness/c027_regression_test.go`        | `TestC027_DetectsEventBusSubscribeWithProjectionHost` | Real event.Bus.Subscribe alongside projectionhost = finding    |
-| D005 | `consistency/d005_internal_test.go`          | `TestExtractCQRSVersion_SkipsCodeBlocks`              | Code blocks skipped (` ``` ` fences tracked)                   |
+| D005 | `consistency/d005_internal_test.go`          | `TestExtractCQRSVersion_SkipsCodeBlocks`              | Code blocks skipped (`` ``` `` fences tracked)                 |
 | D005 | `consistency/d005_internal_test.go`          | `TestExtractCQRSVersion_SkipsImportPaths`             | `/v4.2.0` in import paths skipped                              |
 | D005 | `consistency/d005_internal_test.go`          | `TestExtractCQRSVersion_SkipsPseudoVersions`          | `-0.` pseudo-versions skipped                                  |
 | B029 | `resilience/b029_b031_test.go`               | `TestB029_NoFindingForNonCQRSBus`                     | `errorBus.Notify()` ≠ CQRS bus (no Use/Publish/Subscribe)      |

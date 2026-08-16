@@ -295,6 +295,7 @@ All 15 items that were started were fully completed.
 The change subtracts RTT from the scan-pattern fallback cost in `NsForRead`. It's in the wrong layer (should be in `estimateCost`) and is a semantic change to a widely-called function. However, the underlying problem is real: `estimateCost` adds RTT once per query, while `NsForRead` includes per-read network overhead, so the total double-counts network for scans.
 
 **Options:**
+
 - (a) Revert the NsForRead change, accept the overestimation, and fix it properly later in estimateCost.
 - (b) Keep it as-is with a comment documenting the tradeoff.
 - (c) Move the amortization to estimateCost now (requires knowing which NsForRead calls are for per-row cost vs total query cost).

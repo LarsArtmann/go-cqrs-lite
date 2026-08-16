@@ -1,8 +1,8 @@
 # Session 77 — Comprehensive Status Report
 
-**Date:** 2026-05-20 03:05  
-**Session:** 77 (continuation from Sessions 74-76)  
-**Commits this session:** 8  
+**Date:** 2026-05-20 03:05\
+**Session:** 77 (continuation from Sessions 74-76)\
+**Commits this session:** 8\
 **Total commits since May 1:** 434
 
 ---
@@ -15,16 +15,16 @@ The go-cqrs-lite library is in its **healthiest state ever**: zero lint across a
 
 ## A) FULLY DONE ✓
 
-| #   | Task                                                                                                                                                                                                                                                                                | Commit    | Impact                                         |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------------------------------------------- |
-| 1   | **Split event.go** (284→220 lines): extract Metadata+mergeFrom+NewMetadata to metadata.go                                                                                                                                                                                           | `16b5d98` | Eliminates last production file over 250 lines |
-| 2   | **Zero storage lint** (16→0 issues): extract eventColumnCount/baseEventOpts constants, wrap long ParseTime lines, exclude mnd for SQL positional params, fix nolintlint/err113                                                                                                      | `127e6ea` | Storage module now lint-clean                  |
-| 3   | **Zero middleware lint** (2→0): replaced deprecated `command.CatalogMeta` with `command.New`                                                                                                                                                                                        | `c4bc5c0` | All modules lint-clean                         |
-| 4   | **SchemaType branded type**: `Schema.Type` and `Property.Type` now `catalog.SchemaType` with 7 exported constants (TypeString, TypeObject, TypeInteger, TypeNumber, TypeBoolean, TypeArray, TypeNull). Replaced unexported `jsonType*` constants. Updated ~15 sites across catalog. | `dc90ebc` | Compile-time type safety for JSON Schema types |
-| 5   | **Example/todo split**: main.go (472→235 lines) → 3 files (main, handlers, middleware)                                                                                                                                                                                              | `69d658b` | No example file over 250 lines                 |
-| 6   | **Catalog id_parse tests**: rewritten with stdlib (no testify dependency)                                                                                                                                                                                                           | `c4bc5c0` | Removed unnecessary test dependency            |
-| 7   | **Integration test fixes**: command_test.go, query_test.go updated for typed APIs                                                                                                                                                                                                   | earlier   | Build consistency                              |
-| 8   | **Pre-commit hook fixes**: wsl, staticcheck, err113, golines across storage/catalog/middleware                                                                                                                                                                                      | `c4bc5c0` | CI-friendly                                    |
+| # | Task                                                                                                                                                                                                                                                                                | Commit    | Impact                                         |
+| - | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------------------------------------------- |
+| 1 | **Split event.go** (284→220 lines): extract Metadata+mergeFrom+NewMetadata to metadata.go                                                                                                                                                                                           | `16b5d98` | Eliminates last production file over 250 lines |
+| 2 | **Zero storage lint** (16→0 issues): extract eventColumnCount/baseEventOpts constants, wrap long ParseTime lines, exclude mnd for SQL positional params, fix nolintlint/err113                                                                                                      | `127e6ea` | Storage module now lint-clean                  |
+| 3 | **Zero middleware lint** (2→0): replaced deprecated `command.CatalogMeta` with `command.New`                                                                                                                                                                                        | `c4bc5c0` | All modules lint-clean                         |
+| 4 | **SchemaType branded type**: `Schema.Type` and `Property.Type` now `catalog.SchemaType` with 7 exported constants (TypeString, TypeObject, TypeInteger, TypeNumber, TypeBoolean, TypeArray, TypeNull). Replaced unexported `jsonType*` constants. Updated ~15 sites across catalog. | `dc90ebc` | Compile-time type safety for JSON Schema types |
+| 5 | **Example/todo split**: main.go (472→235 lines) → 3 files (main, handlers, middleware)                                                                                                                                                                                              | `69d658b` | No example file over 250 lines                 |
+| 6 | **Catalog id_parse tests**: rewritten with stdlib (no testify dependency)                                                                                                                                                                                                           | `c4bc5c0` | Removed unnecessary test dependency            |
+| 7 | **Integration test fixes**: command_test.go, query_test.go updated for typed APIs                                                                                                                                                                                                   | earlier   | Build consistency                              |
+| 8 | **Pre-commit hook fixes**: wsl, staticcheck, err113, golines across storage/catalog/middleware                                                                                                                                                                                      | `c4bc5c0` | CI-friendly                                    |
 
 ### Current Quality Metrics
 
@@ -75,17 +75,17 @@ The go-cqrs-lite library is in its **healthiest state ever**: zero lint across a
 
 ## C) NOT STARTED ○
 
-| #   | Task                                                                         | Priority | Effort |
-| --- | ---------------------------------------------------------------------------- | -------- | ------ |
-| 1   | Storage benchmarks (only module without any)                                 | Medium   | 2h     |
-| 2   | Deduplicate `schemaToAny`/`objectSchema` into `catalog/internal/schemautil/` | Medium   | 1h     |
-| 3   | Deduplicate `toDotAddress`/`toKebab` into `catalog/internal/caseutil/`       | Medium   | 1h     |
-| 4   | Trim AGENTS.md from 837 to ≤377 lines (go-structure-linter warning)          | Low      | 2h     |
-| 5   | Sync module tests and coverage                                               | Medium   | 4h     |
-| 6   | Publish `testhelpers@v1.2.0` (fixes `int` → `event.Version` breaking change) | High     | 30min  |
-| 7   | Move coverage.out to coverage/ directory                                     | Low      | 10min  |
-| 8   | Add `storage` benchmarks for EventStore, SnapshotStore, Outbox               | Medium   | 2h     |
-| 9   | Investigate `core/decider` coverage drop (93.6% → was 95.0%)                 | Low      | 1h     |
+| # | Task                                                                         | Priority | Effort |
+| - | ---------------------------------------------------------------------------- | -------- | ------ |
+| 1 | Storage benchmarks (only module without any)                                 | Medium   | 2h     |
+| 2 | Deduplicate `schemaToAny`/`objectSchema` into `catalog/internal/schemautil/` | Medium   | 1h     |
+| 3 | Deduplicate `toDotAddress`/`toKebab` into `catalog/internal/caseutil/`       | Medium   | 1h     |
+| 4 | Trim AGENTS.md from 837 to ≤377 lines (go-structure-linter warning)          | Low      | 2h     |
+| 5 | Sync module tests and coverage                                               | Medium   | 4h     |
+| 6 | Publish `testhelpers@v1.2.0` (fixes `int` → `event.Version` breaking change) | High     | 30min  |
+| 7 | Move coverage.out to coverage/ directory                                     | Low      | 10min  |
+| 8 | Add `storage` benchmarks for EventStore, SnapshotStore, Outbox               | Medium   | 2h     |
+| 9 | Investigate `core/decider` coverage drop (93.6% → was 95.0%)                 | Low      | 1h     |
 
 ---
 
@@ -139,33 +139,33 @@ Nothing is totally fucked up. The codebase is clean.
 
 ## F) Top 25 Things We Should Get Done Next
 
-| #   | Task                                                                          | Impact | Effort | Category      |
-| --- | ----------------------------------------------------------------------------- | ------ | ------ | ------------- |
-| 1   | **Publish `testhelpers@v1.2.0`** — unblocks external consumers                | HIGH   | 30min  | Release       |
-| 2   | **Deduplicate `schemaToAny`/`objectSchema`** → `catalog/internal/schemautil/` | MED    | 1h     | Dedup         |
-| 3   | **Deduplicate `toDotAddress`/`toKebab`** → `catalog/internal/caseutil/`       | MED    | 1h     | Dedup         |
-| 4   | **Add storage benchmarks** (Save, Load, Snapshot, Outbox)                     | MED    | 2h     | Perf          |
-| 5   | **Add sync module tests + coverage**                                          | HIGH   | 4h     | Quality       |
-| 6   | **Trim AGENTS.md to ≤377 lines** (extract session history to archive)         | LOW    | 2h     | Cleanup       |
-| 7   | **Investigate `NewSQLiteTransactionalStore` gopls errors**                    | LOW    | 30min  | DX            |
-| 8   | **Add `catalog/docserver` integration test**                                  | MED    | 2h     | Quality       |
-| 9   | **Fix pre-commit hook false positives** (go-structure-linter config)          | LOW    | 1h     | DX            |
-| 10  | **`query.Handler` typed generics migration** (per design doc)                 | HIGH   | 8h     | Breaking      |
-| 11  | **Redesign dispatcher catalog integration** to unblock CatalogMeta deletion   | HIGH   | 16h    | Architecture  |
-| 12  | **Add `storage` Turso integration tests**                                     | MED    | 4h     | Quality       |
-| 13  | **`Dialect.FormatTime` → `driver.Valuer`**                                    | LOW    | 2h     | Type Safety   |
-| 14  | **Split large test files** (decider_test 1190, runner_test 1057)              | LOW    | 3h     | Cleanup       |
-| 15  | **Add `sync/` benchmarks**                                                    | MED    | 1h     | Perf          |
-| 16  | **Add `catalog/openapi` round-trip test**                                     | LOW    | 1h     | Quality       |
-| 17  | **Create `docs/planning/SYNC_MODULE_ROADMAP.md`**                             | MED    | 2h     | Docs          |
-| 18  | **Add example/todo integration test**                                         | LOW    | 2h     | Quality       |
-| 19  | **Move coverage.out to coverage/ directory**                                  | LOW    | 10min  | Cleanup       |
-| 20  | **Add `io.Closer` removal design doc** (deferred from Session 55)             | LOW    | 1h     | Planning      |
-| 21  | **Add Saga design implementation** (per `docs/planning/SAGA_DESIGN.md`)       | MED    | 18h    | Feature       |
-| 22  | **Explore Pebble backend for embedded storage**                               | LOW    | 4h     | Feature       |
-| 23  | **Add `event.GlobalLoader` to Turso store**                                   | MED    | 2h     | Feature       |
-| 24  | **Write `docs/planning/QUERY_HANDLER_GENERICS.md` implementation**            | MED    | 8h     | Feature       |
-| 25  | **Add OpenTelemetry tracing to storage layer**                                | LOW    | 4h     | Observability |
+| #  | Task                                                                          | Impact | Effort | Category      |
+| -- | ----------------------------------------------------------------------------- | ------ | ------ | ------------- |
+| 1  | **Publish `testhelpers@v1.2.0`** — unblocks external consumers                | HIGH   | 30min  | Release       |
+| 2  | **Deduplicate `schemaToAny`/`objectSchema`** → `catalog/internal/schemautil/` | MED    | 1h     | Dedup         |
+| 3  | **Deduplicate `toDotAddress`/`toKebab`** → `catalog/internal/caseutil/`       | MED    | 1h     | Dedup         |
+| 4  | **Add storage benchmarks** (Save, Load, Snapshot, Outbox)                     | MED    | 2h     | Perf          |
+| 5  | **Add sync module tests + coverage**                                          | HIGH   | 4h     | Quality       |
+| 6  | **Trim AGENTS.md to ≤377 lines** (extract session history to archive)         | LOW    | 2h     | Cleanup       |
+| 7  | **Investigate `NewSQLiteTransactionalStore` gopls errors**                    | LOW    | 30min  | DX            |
+| 8  | **Add `catalog/docserver` integration test**                                  | MED    | 2h     | Quality       |
+| 9  | **Fix pre-commit hook false positives** (go-structure-linter config)          | LOW    | 1h     | DX            |
+| 10 | **`query.Handler` typed generics migration** (per design doc)                 | HIGH   | 8h     | Breaking      |
+| 11 | **Redesign dispatcher catalog integration** to unblock CatalogMeta deletion   | HIGH   | 16h    | Architecture  |
+| 12 | **Add `storage` Turso integration tests**                                     | MED    | 4h     | Quality       |
+| 13 | **`Dialect.FormatTime` → `driver.Valuer`**                                    | LOW    | 2h     | Type Safety   |
+| 14 | **Split large test files** (decider_test 1190, runner_test 1057)              | LOW    | 3h     | Cleanup       |
+| 15 | **Add `sync/` benchmarks**                                                    | MED    | 1h     | Perf          |
+| 16 | **Add `catalog/openapi` round-trip test**                                     | LOW    | 1h     | Quality       |
+| 17 | **Create `docs/planning/SYNC_MODULE_ROADMAP.md`**                             | MED    | 2h     | Docs          |
+| 18 | **Add example/todo integration test**                                         | LOW    | 2h     | Quality       |
+| 19 | **Move coverage.out to coverage/ directory**                                  | LOW    | 10min  | Cleanup       |
+| 20 | **Add `io.Closer` removal design doc** (deferred from Session 55)             | LOW    | 1h     | Planning      |
+| 21 | **Add Saga design implementation** (per `docs/planning/SAGA_DESIGN.md`)       | MED    | 18h    | Feature       |
+| 22 | **Explore Pebble backend for embedded storage**                               | LOW    | 4h     | Feature       |
+| 23 | **Add `event.GlobalLoader` to Turso store**                                   | MED    | 2h     | Feature       |
+| 24 | **Write `docs/planning/QUERY_HANDLER_GENERICS.md` implementation**            | MED    | 8h     | Feature       |
+| 25 | **Add OpenTelemetry tracing to storage layer**                                | LOW    | 4h     | Observability |
 
 ---
 

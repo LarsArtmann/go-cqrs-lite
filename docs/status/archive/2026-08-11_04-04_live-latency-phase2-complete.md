@@ -137,6 +137,7 @@
 Nothing. No regressions, no broken builds, no data loss, no API breakages.
 
 **One issue found and fixed during development** (not a fuckup, but worth recording):
+
 - **Replan deadlock** — Initial `Store.Replan` held the write lock for the entire duration. The `liveLatencyRule.Apply()` method calls `ctx.Store.mu.RLock()` → self-deadlock. The test suite caught it immediately (10-minute timeout). Fixed with the three-phase locking pattern (assign under lock → run rules without lock → atomic swap under lock). This mirrors how `Plan()` already works.
 
 ---

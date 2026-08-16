@@ -13,49 +13,49 @@ Stale gopls diagnostics from prior sessions remain visible but are not real erro
 
 ## A) FULLY DONE
 
-| #   | Item                                                          | Evidence                                                        |
-| --- | ------------------------------------------------------------- | --------------------------------------------------------------- |
-| 1   | Stream module BDD tests (93.5% coverage)                      | 23 BDD specs, SQL reader + projection + integration             |
-| 2   | Core types BDD (Version, SchemaVersion, CheckVersionConflict) | 17 BDD specs + internal parseSchemaVersion test                 |
-| 3   | go.mod version standardization                                | All 21 modules now v1.6.0, 0 mismatches                         |
-| 4   | Performance regression CI                                     | Benchmark job in ci.yml, 21-baseline benchmarks                 |
-| 5   | example/user smoke tests                                      | TestFullStack_WithSigning, TestFullStack_DuplicateUserRejection |
-| 6   | example/user README                                           | Expanded with Quick Start, module diagram, test table           |
-| 7   | BDD test description polish                                   | ~60 vague It strings improved across command, event suites      |
-| 8   | Storage test file split                                       | 663-line monolith → 4 focused files                             |
-| 9   | OTel error recording                                          | SQLEventStore.Save version check now records errors on span     |
+| # | Item                                                          | Evidence                                                        |
+| - | ------------------------------------------------------------- | --------------------------------------------------------------- |
+| 1 | Stream module BDD tests (93.5% coverage)                      | 23 BDD specs, SQL reader + projection + integration             |
+| 2 | Core types BDD (Version, SchemaVersion, CheckVersionConflict) | 17 BDD specs + internal parseSchemaVersion test                 |
+| 3 | go.mod version standardization                                | All 21 modules now v1.6.0, 0 mismatches                         |
+| 4 | Performance regression CI                                     | Benchmark job in ci.yml, 21-baseline benchmarks                 |
+| 5 | example/user smoke tests                                      | TestFullStack_WithSigning, TestFullStack_DuplicateUserRejection |
+| 6 | example/user README                                           | Expanded with Quick Start, module diagram, test table           |
+| 7 | BDD test description polish                                   | ~60 vague It strings improved across command, event suites      |
+| 8 | Storage test file split                                       | 663-line monolith → 4 focused files                             |
+| 9 | OTel error recording                                          | SQLEventStore.Save version check now records errors on span     |
 
 ## B) PARTIALLY DONE
 
-| #   | Item                         | What's Missing                                               |
-| --- | ---------------------------- | ------------------------------------------------------------ |
-| 1   | otel module                  | Has tracing helpers, 0% test coverage. No docs.              |
-| 2   | testhelpers coverage (79.8%) | Below 80% gate — needs a few more tests                      |
-| 3   | Signing module BDD           | Has unit tests (93.9%) but no BDD suite                      |
-| 4   | Event type model consistency | 3 Parse functions bypass error taxonomy (see E below)        |
-| 5   | Benchmark baseline in CI     | Runs but baseline file not yet on remote (requires tag push) |
+| # | Item                         | What's Missing                                               |
+| - | ---------------------------- | ------------------------------------------------------------ |
+| 1 | otel module                  | Has tracing helpers, 0% test coverage. No docs.              |
+| 2 | testhelpers coverage (79.8%) | Below 80% gate — needs a few more tests                      |
+| 3 | Signing module BDD           | Has unit tests (93.9%) but no BDD suite                      |
+| 4 | Event type model consistency | 3 Parse functions bypass error taxonomy (see E below)        |
+| 5 | Benchmark baseline in CI     | Runs but baseline file not yet on remote (requires tag push) |
 
 ## C) NOT STARTED
 
-| #   | Item                                              | Notes                                                |
-| --- | ------------------------------------------------- | ---------------------------------------------------- |
-| 1   | Deprecated Store interface cleanup                | GlobalLoader→Journal aliases still present           |
-| 2   | Version.Sub safety (negative overflow)            | No guard, silently produces negatives                |
-| 3   | Event Stringer/GoString for debugging             | ImmutableEvent has no fmt.Stringer                   |
-| 4   | Codec ContentType() method                        | No content-type negotiation for multi-format brokers |
-| 5   | Outbox Nack/DeadLetter for poison messages        | Only Append/PollPending/Ack                          |
-| 6   | Streaming/chunked Journal.ReadAll                 | Loads all events into memory — OOM risk              |
-| 7   | Metadata.Validate() and .Clone()                  | No validation, Clone logic duplicated                |
-| 8   | ErrNilPayload sentinel cleanup                    | Defined but never used — dead code                   |
-| 9   | DecodePayloads double-wrapping fix                | Corruption wraps Corruption                          |
-| 10  | example/saga, example/storage, example/projection | All 0% test coverage                                 |
+| #  | Item                                              | Notes                                                |
+| -- | ------------------------------------------------- | ---------------------------------------------------- |
+| 1  | Deprecated Store interface cleanup                | GlobalLoader→Journal aliases still present           |
+| 2  | Version.Sub safety (negative overflow)            | No guard, silently produces negatives                |
+| 3  | Event Stringer/GoString for debugging             | ImmutableEvent has no fmt.Stringer                   |
+| 4  | Codec ContentType() method                        | No content-type negotiation for multi-format brokers |
+| 5  | Outbox Nack/DeadLetter for poison messages        | Only Append/PollPending/Ack                          |
+| 6  | Streaming/chunked Journal.ReadAll                 | Loads all events into memory — OOM risk              |
+| 7  | Metadata.Validate() and .Clone()                  | No validation, Clone logic duplicated                |
+| 8  | ErrNilPayload sentinel cleanup                    | Defined but never used — dead code                   |
+| 9  | DecodePayloads double-wrapping fix                | Corruption wraps Corruption                          |
+| 10 | example/saga, example/storage, example/projection | All 0% test coverage                                 |
 
 ## D) TOTALLY FUCKED UP
 
-| #   | Issue                                      | Severity | Details                                                                                                    |
-| --- | ------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------- |
-| 1   | Stale gopls diagnostics                    | Low      | 14 phantom errors from prior file versions. LSP restart didn't clear them. Not real — builds pass.         |
-| 2   | Pre-commit hook: go-structure-linter fails | Low      | 4 MEDIUM warnings (root go.sum empty, no pkg/internal dirs). These are by design (multi-module workspace). |
+| # | Issue                                      | Severity | Details                                                                                                    |
+| - | ------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------- |
+| 1 | Stale gopls diagnostics                    | Low      | 14 phantom errors from prior file versions. LSP restart didn't clear them. Not real — builds pass.         |
+| 2 | Pre-commit hook: go-structure-linter fails | Low      | 4 MEDIUM warnings (root go.sum empty, no pkg/internal dirs). These are by design (multi-module workspace). |
 
 ---
 

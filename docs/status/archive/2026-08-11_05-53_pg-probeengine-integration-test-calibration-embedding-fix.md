@@ -13,10 +13,10 @@
 
 **File:** `metaengine/pgengine/probe_live_test.go` (2 tests, both PASS with `-race`)
 
-| Test | What it proves |
-| --- | --- |
-| `TestProbeEngine_RealPostgres_LiveRTT` | Real PG testcontainer + `ProbeEngine` → `GetEngineStats` shows fresh live RTT with real samples. Verifies: pre-probe stale state, post-probe `HasLiveRTT`/`Samples > 0`/`!Stale`, `MeasuredRTT.EWMA > 0` and `< 50ms`, `FormatLiveLatency` renders `"rtt=live"` with `"n="`, `HasLiveRead` via `TransactMeasurer`, `Failures() == 0`. |
-| `TestProbeEngine_RealPostgres_StaleAfterStop` | After `Stop()` + stale-after window, measurement transitions to `Stale = true`. |
+| Test                                          | What it proves                                                                                                                                                                                                                                                                                                                        |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TestProbeEngine_RealPostgres_LiveRTT`        | Real PG testcontainer + `ProbeEngine` → `GetEngineStats` shows fresh live RTT with real samples. Verifies: pre-probe stale state, post-probe `HasLiveRTT`/`Samples > 0`/`!Stale`, `MeasuredRTT.EWMA > 0` and `< 50ms`, `FormatLiveLatency` renders `"rtt=live"` with `"n="`, `HasLiveRead` via `TransactMeasurer`, `Failures() == 0`. |
+| `TestProbeEngine_RealPostgres_StaleAfterStop` | After `Stop()` + stale-after window, measurement transitions to `Stale = true`.                                                                                                                                                                                                                                                       |
 
 Tests use the existing `pgtestcontainer` harness (Docker → `postgres:16-alpine`), `t.Parallel()`, short probe interval (15ms) for fast warmup, 10s timeout.
 
@@ -25,6 +25,7 @@ Tests use the existing `pgtestcontainer` harness (Docker → `postgres:16-alpine
 **File:** `metaengine/pgengine/engine.go`
 
 **Bug:** `pgEngine` used a **named field** `cal metaengine.Calibration` instead of **embedding** it. This meant:
+
 - `*pgEngine` never satisfied `metaengine.TrackerHost` (no promoted `SetRTTTracker`/`SetReadTracker`)
 - `*pgEngine` never satisfied `liveLatencyReporter` (no promoted `LiveLatency()`)
 - `ProbeEngine` silently couldn't install trackers → `GetEngineStats` never saw live data
@@ -47,6 +48,7 @@ Tests use the existing `pgtestcontainer` harness (Docker → `postgres:16-alpine
 ### Same embedding bug in dgraphengine + badgerengine (KNOWN, NOT FIXED)
 
 Discovered but explicitly deferred:
+
 - `metaengine/dgraphengine/engine.go` — named field `cal metaengine.Calibration` (same bug)
 - `metaengine/badgerengine/engine.go` — named field `cal metaengine.Calibration` (same bug)
 
@@ -185,6 +187,7 @@ The initial framing was "just write an integration test." The test failed immedi
 ### 1. Should I fix dgraphengine + badgerengine embedding in this same session/branch?
 
 The same bug exists in at least 2 other engines. Fixing them is a 5-minute mechanical change each, but:
+
 - dgraphengine integration tests need a Dgraph testcontainer (heavier setup)
 - badgerengine is local (no network), so `ProbeEngine` would no-op anyway (`IsRemote` guard)
 - Should these be separate commits/PRs or batched with the pgengine fix?

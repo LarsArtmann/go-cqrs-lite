@@ -151,7 +151,7 @@ The generic function `seedCollectionSeqs(tag, target)` already existed at line 6
 
 5. **Extract a `deferClose(closer io.Closer)` helper** in metaengine core (or a shared `metaengine/internal/closer` package) — eliminates the `defer func() { _ = x.Close() }()` boilerplate across sqlite/pg/duckdb/pebble engines.
 6. **Audit all `// Deprecated` comments** — the gocritic linter catches the format, but there may be other deprecated fields/types that should use `// Deprecated:` correctly.
-7. **Review the `cmd/cqrs-lint/doctor.go` errcheck pattern** — 22 `fmt.Fprintf` calls all needed `_, _ = ` prefixes. Consider a `writeLine(w, format, args...)` helper that ignores the error internally (CLI output to stdout/stderr — the error is never actionable).
+7. **Review the `cmd/cqrs-lint/doctor.go` errcheck pattern** — 22 `fmt.Fprintf` calls all needed `_, _ =` prefixes. Consider a `writeLine(w, format, args...)` helper that ignores the error internally (CLI output to stdout/stderr — the error is never actionable).
 8. **Consider `omitzero` audit across all modules** — the modernize linter flags `omitempty` on nested structs. A repo-wide audit would catch remaining cases.
 9. **The `categoryPriority` global in module_catalog.go** — consider converting to a function (`func categoryPriority(c ModuleCategory) int`) to avoid the `gochecknoglobals` nolint.
 10. **Review the `joinStrings` pattern** — check if other adttest files use string concatenation in loops.
@@ -231,4 +231,4 @@ Three metaengine engines (sqlite, pg, duckdb) each have this pattern. They're se
 
 ### Q3: Should the `cmd/cqrs-lint/doctor.go` `fmt.Fprint*` calls get a blanket errcheck exclusion?
 
-22 of the 31 errcheck fixes were in doctor.go — all `fmt.Fprintf`/`fmt.Fprintln` calls writing CLI output to an `io.Writer`. The return values (bytes written, error) are never actionable in this context. The `.golangci.yml` already excludes errcheck for `_test.go` files. Should we add a per-file exclusion for doctor.go (and diagnostics.go), or is the `_, _ = ` prefix the right long-term pattern?
+22 of the 31 errcheck fixes were in doctor.go — all `fmt.Fprintf`/`fmt.Fprintln` calls writing CLI output to an `io.Writer`. The return values (bytes written, error) are never actionable in this context. The `.golangci.yml` already excludes errcheck for `_test.go` files. Should we add a per-file exclusion for doctor.go (and diagnostics.go), or is the `_, _ =` prefix the right long-term pattern?

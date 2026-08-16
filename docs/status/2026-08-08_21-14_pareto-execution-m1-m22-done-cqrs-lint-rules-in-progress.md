@@ -9,17 +9,17 @@
 
 ### M1–M9 (Quick wins — prior batch)
 
-| ID  | What                                                                                                                                                                                 |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| M1  | Verify gate GREEN (`nix run .#verify` completed — stale GREEN pattern broken)                                                                                                        |
-| M2  | 5 correctness bugs fixed (DecodeFloatResults guard, 10× context.Background→ctx, DuckDB 6× lookupPlan, mustSQLiteEngine fixed to return real SQLite engine, zombie functions deleted) |
-| M3  | Pebbleengine README fixed (7→6 backends), FOUR-TIER-MODEL.d2/.svg deleted                                                                                                            |
-| M4  | TestMapDeleteLWWConvergence + TestGracefulShutdown_InflightOps (3× stable, -race clean)                                                                                              |
-| M5  | --fail-on-stale-suppressions flag implemented + C025 suppressed + duckdb/turso in VM matrix                                                                                          |
-| M6  | OTel span attributes on projectionadapter.Handle() + ApplyLayoutPlan on SQLite engine                                                                                                |
-| M7  | Production deferClose helper in pebble (12 sites replaced, duplicate test helper deleted)                                                                                            |
-| M8  | 1 dead EXCEPTIONS entry removed (snapshot→storage/memory)                                                                                                                            |
-| M9  | bbolt TestBackupRestore_FullLifecycle (using tx.WriteTo)                                                                                                                             |
+| ID | What                                                                                                                                                                                 |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| M1 | Verify gate GREEN (`nix run .#verify` completed — stale GREEN pattern broken)                                                                                                        |
+| M2 | 5 correctness bugs fixed (DecodeFloatResults guard, 10× context.Background→ctx, DuckDB 6× lookupPlan, mustSQLiteEngine fixed to return real SQLite engine, zombie functions deleted) |
+| M3 | Pebbleengine README fixed (7→6 backends), FOUR-TIER-MODEL.d2/.svg deleted                                                                                                            |
+| M4 | TestMapDeleteLWWConvergence + TestGracefulShutdown_InflightOps (3× stable, -race clean)                                                                                              |
+| M5 | --fail-on-stale-suppressions flag implemented + C025 suppressed + duckdb/turso in VM matrix                                                                                          |
+| M6 | OTel span attributes on projectionadapter.Handle() + ApplyLayoutPlan on SQLite engine                                                                                                |
+| M7 | Production deferClose helper in pebble (12 sites replaced, duplicate test helper deleted)                                                                                            |
+| M8 | 1 dead EXCEPTIONS entry removed (snapshot→storage/memory)                                                                                                                            |
+| M9 | bbolt TestBackupRestore_FullLifecycle (using tx.WriteTo)                                                                                                                             |
 
 ### M10–M22 (Infrastructure — this batch)
 

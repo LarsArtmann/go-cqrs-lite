@@ -91,14 +91,14 @@ is still the real schema for non-core fields.
 
 ## c) NOT STARTED
 
-| #   | Task                                                                                               | ADR  | Effort   | Type         |
-| --- | -------------------------------------------------------------------------------------------------- | ---- | -------- | ------------ |
-| 1   | **Kill metadata aliases** — `command.Metadata = event.Metadata`, `query.Metadata = event.Metadata` | 0031 | 65min    | Type safety  |
-| 2   | **Remove io.Closer from interfaces** — `event.Store`, `snapshot.SnapshotStore`, `command.Store`    | 0010 | 40min    | Cleanliness  |
-| 3   | **Delete `event/reactive*.go`** — 343 LOC, zero production consumers                               | —    | 15min    | Dead code    |
-| 4   | **Event→concrete struct** — Interface→struct, remove type-assertions                               | —    | 2-3 days | Architecture |
-| 5   | **Move HTTP→transport/** — SSE, healthcheck, metrics_http                                          | 0025 | 1 day    | Architecture |
-| 6   | **Decider Fold→Apply rename** — Name lies                                                          | —    | 30min    | Naming       |
+| # | Task                                                                                               | ADR  | Effort   | Type         |
+| - | -------------------------------------------------------------------------------------------------- | ---- | -------- | ------------ |
+| 1 | **Kill metadata aliases** — `command.Metadata = event.Metadata`, `query.Metadata = event.Metadata` | 0031 | 65min    | Type safety  |
+| 2 | **Remove io.Closer from interfaces** — `event.Store`, `snapshot.SnapshotStore`, `command.Store`    | 0010 | 40min    | Cleanliness  |
+| 3 | **Delete `event/reactive*.go`** — 343 LOC, zero production consumers                               | —    | 15min    | Dead code    |
+| 4 | **Event→concrete struct** — Interface→struct, remove type-assertions                               | —    | 2-3 days | Architecture |
+| 5 | **Move HTTP→transport/** — SSE, healthcheck, metrics_http                                          | 0025 | 1 day    | Architecture |
+| 6 | **Decider Fold→Apply rename** — Name lies                                                          | —    | 30min    | Naming       |
 
 ---
 
@@ -179,33 +179,33 @@ is still the real schema for non-core fields.
 
 Sorted by impact/effort (Pareto order).
 
-| #   | Task                                                                                            | Impact | Effort        | Type         |
-| --- | ----------------------------------------------------------------------------------------------- | ------ | ------------- | ------------ |
-| 1   | **Kill metadata aliases** (ADR-0031) — make `command.Metadata` and `query.Metadata` own structs | High   | 65min         | Type safety  |
-| 2   | **Delete `event/reactive*.go`** — 343 LOC dead code, zero consumers                             | Medium | 15min         | Cleanup      |
-| 3   | **Add multi-event ordering integration test** (5+ events through EventBus)                      | High   | 30min         | Test         |
-| 4   | **EventBusOption for GoChannel config** — tune buffer/throughput                                | Medium | 20min         | Feature      |
-| 5   | **Decider Fold→Apply rename** — the name lies                                                   | Medium | 30min         | Naming       |
-| 6   | **Remove io.Closer from interfaces** (ADR-0010)                                                 | Medium | 40min         | Cleanliness  |
-| 7   | **Add retry helper for direct-consumption path** (no Router needed)                             | High   | 40min         | Feature      |
-| 8   | **Update FEATURES.md** with deployer-first architecture                                         | Medium | 15min         | Docs         |
-| 9   | **Update SKILL.md** consumer guide                                                              | Medium | 20min         | Docs         |
-| 10  | **Add `-race` to example/deployer-first tests**                                                 | Medium | 5min          | Test         |
-| 11  | **Add Watermill Router vs direct-consumption decision guide**                                   | Medium | 15min         | Docs         |
-| 12  | **Enrich CBOR fuzz corpus** with real event payloads                                            | Low    | 15min         | Test         |
-| 13  | **Add EventBus benchmark** (throughput with BlockPublishUntilSubscriberAck)                     | Medium | 20min         | Perf         |
-| 14  | **Make Event concrete struct** (ADR-0001 Phase 7)                                               | High   | 2-3 days      | Architecture |
-| 15  | **Move HTTP→transport/** (ADR-0025)                                                             | Medium | 1 day         | Architecture |
-| 16  | **Fix `eventOptions` pointer leak**                                                             | Low    | 30min         | Cleanliness  |
-| 17  | **Add `SecurityEnvelope` typed metadata field**                                                 | Medium | 30min         | Type safety  |
-| 18  | **Consolidate `deployer_first_test.go`** (stack/ vs example/)                                   | Low    | 15min         | Cleanup      |
-| 19  | **Add `.gitignore` for example binaries**                                                       | Low    | 5min          | Cleanup      |
-| 20  | **Review all ADR statuses** for accuracy                                                        | Low    | 10min         | Docs         |
-| 21  | **Document the CatchUpSubscriber startup pattern**                                              | Medium | 10min         | Docs         |
-| 22  | **Add SQLite auto-indexing advisor** to preset (from turso/)                                    | Low    | 30min         | Feature      |
-| 23  | **Audit `event.Projection` interface usage** in examples                                        | Low    | 15min         | Cleanup      |
-| 24  | **Property-based test for Materialize tombstone lifecycle**                                     | Medium | 30min         | Test         |
-| 25  | **gRPC / NATS / Redis transport adapters**                                                      | High   | 3-5 days each | Feature      |
+| #  | Task                                                                                            | Impact | Effort        | Type         |
+| -- | ----------------------------------------------------------------------------------------------- | ------ | ------------- | ------------ |
+| 1  | **Kill metadata aliases** (ADR-0031) — make `command.Metadata` and `query.Metadata` own structs | High   | 65min         | Type safety  |
+| 2  | **Delete `event/reactive*.go`** — 343 LOC dead code, zero consumers                             | Medium | 15min         | Cleanup      |
+| 3  | **Add multi-event ordering integration test** (5+ events through EventBus)                      | High   | 30min         | Test         |
+| 4  | **EventBusOption for GoChannel config** — tune buffer/throughput                                | Medium | 20min         | Feature      |
+| 5  | **Decider Fold→Apply rename** — the name lies                                                   | Medium | 30min         | Naming       |
+| 6  | **Remove io.Closer from interfaces** (ADR-0010)                                                 | Medium | 40min         | Cleanliness  |
+| 7  | **Add retry helper for direct-consumption path** (no Router needed)                             | High   | 40min         | Feature      |
+| 8  | **Update FEATURES.md** with deployer-first architecture                                         | Medium | 15min         | Docs         |
+| 9  | **Update SKILL.md** consumer guide                                                              | Medium | 20min         | Docs         |
+| 10 | **Add `-race` to example/deployer-first tests**                                                 | Medium | 5min          | Test         |
+| 11 | **Add Watermill Router vs direct-consumption decision guide**                                   | Medium | 15min         | Docs         |
+| 12 | **Enrich CBOR fuzz corpus** with real event payloads                                            | Low    | 15min         | Test         |
+| 13 | **Add EventBus benchmark** (throughput with BlockPublishUntilSubscriberAck)                     | Medium | 20min         | Perf         |
+| 14 | **Make Event concrete struct** (ADR-0001 Phase 7)                                               | High   | 2-3 days      | Architecture |
+| 15 | **Move HTTP→transport/** (ADR-0025)                                                             | Medium | 1 day         | Architecture |
+| 16 | **Fix `eventOptions` pointer leak**                                                             | Low    | 30min         | Cleanliness  |
+| 17 | **Add `SecurityEnvelope` typed metadata field**                                                 | Medium | 30min         | Type safety  |
+| 18 | **Consolidate `deployer_first_test.go`** (stack/ vs example/)                                   | Low    | 15min         | Cleanup      |
+| 19 | **Add `.gitignore` for example binaries**                                                       | Low    | 5min          | Cleanup      |
+| 20 | **Review all ADR statuses** for accuracy                                                        | Low    | 10min         | Docs         |
+| 21 | **Document the CatchUpSubscriber startup pattern**                                              | Medium | 10min         | Docs         |
+| 22 | **Add SQLite auto-indexing advisor** to preset (from turso/)                                    | Low    | 30min         | Feature      |
+| 23 | **Audit `event.Projection` interface usage** in examples                                        | Low    | 15min         | Cleanup      |
+| 24 | **Property-based test for Materialize tombstone lifecycle**                                     | Medium | 30min         | Test         |
+| 25 | **gRPC / NATS / Redis transport adapters**                                                      | High   | 3-5 days each | Feature      |
 
 ---
 

@@ -1,8 +1,8 @@
 # Comprehensive Status Report — go-cqrs-lite
 
-> **Date:** 2026-06-03 11:41  
-> **Session:** 144 (Performance Optimization + Housekeeping)  
-> **Branch:** master  
+> **Date:** 2026-06-03 11:41\
+> **Session:** 144 (Performance Optimization + Housekeeping)\
+> **Branch:** master\
 > **Commits Ahead of Origin:** 0 (all pushed)
 
 ---
@@ -27,11 +27,11 @@
 
 ### Performance Optimizations (3 major)
 
-| #   | Change                                                                                                              | Files                                                                | Impact                                                              |
-| --- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| 1   | **MemoryStore global log** — replaced O(n log n) `collectAllSorted()` with append-only `globalLog` + `eventIDIndex` | `memory/store.go`, `memory/store_load.go`                            | ReadAll: 98μs→3.3μs (-96%), 12→1 alloc. ReadFrom: O(1) index lookup |
-| 2   | **Listing projection cache** — `InMemoryAggregateReader` caches sorted `[]AggregateStatus`, rebuilds on first call  | `listing/in_memory.go`                                               | List: 840ms→33ms (-96%), 809MB→165MB, 1M→10K allocs                 |
-| 3   | **ImmutableEvent slim-down** — moved `clock`/`newCodec`/`deadline` (48B) to `*eventOptions` pointer                 | `event/event.go`, `event_construct.go`, `event_new.go`, `options.go` | 336B→304B per event (-10%)                                          |
+| # | Change                                                                                                              | Files                                                                | Impact                                                              |
+| - | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| 1 | **MemoryStore global log** — replaced O(n log n) `collectAllSorted()` with append-only `globalLog` + `eventIDIndex` | `memory/store.go`, `memory/store_load.go`                            | ReadAll: 98μs→3.3μs (-96%), 12→1 alloc. ReadFrom: O(1) index lookup |
+| 2 | **Listing projection cache** — `InMemoryAggregateReader` caches sorted `[]AggregateStatus`, rebuilds on first call  | `listing/in_memory.go`                                               | List: 840ms→33ms (-96%), 809MB→165MB, 1M→10K allocs                 |
+| 3 | **ImmutableEvent slim-down** — moved `clock`/`newCodec`/`deadline` (48B) to `*eventOptions` pointer                 | `event/event.go`, `event_construct.go`, `event_new.go`, `options.go` | 336B→304B per event (-10%)                                          |
 
 ### Benchmarks Added (4 modules, 10 benchmarks)
 
@@ -44,14 +44,14 @@
 
 ### Housekeeping (6 items)
 
-| #   | Task                                                      | Status  |
-| --- | --------------------------------------------------------- | ------- |
-| 1   | ADR numbering fix: 0007→0009                              | ✅ Done |
-| 2   | `integration/go.mod` tidy (codec/v2 + snapshot/v2 direct) | ✅ Done |
-| 3   | Remove deprecated `otel.TraceIDLogger`                    | ✅ Done |
-| 4   | Remove deprecated `query.ErrQueryNotSupported`            | ✅ Done |
-| 5   | Rewrite `CONTRIBUTING.md` for actual project              | ✅ Done |
-| 6   | Update `docs/benchmarks/README.md` with all results       | ✅ Done |
+| # | Task                                                      | Status  |
+| - | --------------------------------------------------------- | ------- |
+| 1 | ADR numbering fix: 0007→0009                              | ✅ Done |
+| 2 | `integration/go.mod` tidy (codec/v2 + snapshot/v2 direct) | ✅ Done |
+| 3 | Remove deprecated `otel.TraceIDLogger`                    | ✅ Done |
+| 4 | Remove deprecated `query.ErrQueryNotSupported`            | ✅ Done |
+| 5 | Rewrite `CONTRIBUTING.md` for actual project              | ✅ Done |
+| 6 | Update `docs/benchmarks/README.md` with all results       | ✅ Done |
 
 ### Tests Added (1 module, 14 tests)
 
@@ -85,38 +85,38 @@
 
 ### From Original Plan (Phase C + D)
 
-| #   | Task                                                                                       | Impact                        | Effort |
-| --- | ------------------------------------------------------------------------------------------ | ----------------------------- | ------ |
-| C1  | MemoryStore deduplication: store events ONLY in globalLog, use index for per-stream lookup | **2× memory reduction**       | 20min  |
-| C2  | Listing cache auto-invalidation via atomic counter                                         | Correctness + performance     | 10min  |
-| C3  | `findCodecOption` elimination — cache default codec                                        | 1 alloc per `New()`           | 10min  |
-| C4  | `sync.Pool` for `ImmutableEvent` construction                                              | Reduce GC pressure            | 15min  |
-| C5  | api-stability tests                                                                        | Untested guard tool           | 10min  |
-| C6  | `Option` as interface (v3)                                                                 | Eliminates func closure alloc | 20min  |
-| D1  | Reactive `AggregateReader` (subscribe to bus)                                              | Real-time listing             | 15min  |
-| D2  | Compact `Metadata` representation                                                          | Reduce 152B per event         | 20min  |
-| D3  | Evaluate faster JSON codec (`goccy/go-json`)                                               | Potential 2-3× JSON speedup   | 15min  |
+| #  | Task                                                                                       | Impact                        | Effort |
+| -- | ------------------------------------------------------------------------------------------ | ----------------------------- | ------ |
+| C1 | MemoryStore deduplication: store events ONLY in globalLog, use index for per-stream lookup | **2× memory reduction**       | 20min  |
+| C2 | Listing cache auto-invalidation via atomic counter                                         | Correctness + performance     | 10min  |
+| C3 | `findCodecOption` elimination — cache default codec                                        | 1 alloc per `New()`           | 10min  |
+| C4 | `sync.Pool` for `ImmutableEvent` construction                                              | Reduce GC pressure            | 15min  |
+| C5 | api-stability tests                                                                        | Untested guard tool           | 10min  |
+| C6 | `Option` as interface (v3)                                                                 | Eliminates func closure alloc | 20min  |
+| D1 | Reactive `AggregateReader` (subscribe to bus)                                              | Real-time listing             | 15min  |
+| D2 | Compact `Metadata` representation                                                          | Reduce 152B per event         | 20min  |
+| D3 | Evaluate faster JSON codec (`goccy/go-json`)                                               | Potential 2-3× JSON speedup   | 15min  |
 
 ### From TODO_LIST.md (Still Open)
 
-| #   | Item                                                  | Source              |
-| --- | ----------------------------------------------------- | ------------------- |
-| 1   | `pebble/config.go` backward-compat aliases (20 lines) | Session 140 review  |
-| 2   | `query.TypedHandler[T]` takes `Query` not `T`         | Session 140 review  |
-| 3   | `ROADMAP.md` creation                                 | Documentation gap   |
-| 4   | `CHANGELOG.md` update                                 | 2 days behind       |
-| 5   | Outbox Pattern design doc                             | FEATURES.md planned |
-| 6   | Schema Registry design doc                            | FEATURES.md planned |
+| # | Item                                                  | Source              |
+| - | ----------------------------------------------------- | ------------------- |
+| 1 | `pebble/config.go` backward-compat aliases (20 lines) | Session 140 review  |
+| 2 | `query.TypedHandler[T]` takes `Query` not `T`         | Session 140 review  |
+| 3 | `ROADMAP.md` creation                                 | Documentation gap   |
+| 4 | `CHANGELOG.md` update                                 | 2 days behind       |
+| 5 | Outbox Pattern design doc                             | FEATURES.md planned |
+| 6 | Schema Registry design doc                            | FEATURES.md planned |
 
 ---
 
 ## d) TOTALLY FUCKED UP
 
-| #   | Issue                                | Severity | Root Cause                                                                                                     |
-| --- | ------------------------------------ | -------- | -------------------------------------------------------------------------------------------------------------- |
-| 1   | **BuildFlow pre-commit hook broken** | HIGH     | `build_mode: full` runs heavy checks, missing `scripts`/`docs` excludes, no actual git hook plumbing installed |
-| 2   | **ADR 0005 missing**                 | LOW      | Gap in sequence — skipped during creation                                                                      |
-| 3   | **turso coverage at 28.6%**          | MEDIUM   | SyncDB methods (Push/Pull/Checkpoint) untested — require remote server                                         |
+| # | Issue                                | Severity | Root Cause                                                                                                     |
+| - | ------------------------------------ | -------- | -------------------------------------------------------------------------------------------------------------- |
+| 1 | **BuildFlow pre-commit hook broken** | HIGH     | `build_mode: full` runs heavy checks, missing `scripts`/`docs` excludes, no actual git hook plumbing installed |
+| 2 | **ADR 0005 missing**                 | LOW      | Gap in sequence — skipped during creation                                                                      |
+| 3 | **turso coverage at 28.6%**          | MEDIUM   | SyncDB methods (Push/Pull/Checkpoint) untested — require remote server                                         |
 
 **Note:** Item #1 was intentionally deferred per user request. All other items are acceptable technical debt.
 

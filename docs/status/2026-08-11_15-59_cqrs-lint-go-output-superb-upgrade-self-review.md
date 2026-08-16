@@ -10,30 +10,36 @@
 ## a) FULLY DONE
 
 ### 1. Comprehensive plan built and reported (table view)
+
 - All 50 items from the prior session's status report inventoried, sorted by Priority → Impact → Customer-Value → Effort.
 - Each task scoped to ≤12 min. Deferred/rejected items explicitly marked with reasons (not blindly implemented — avoided cargo-culting and dep bloat).
 - Plan presented as a sorted table before execution began, as the user demanded.
 
 ### 2. Runtime proof of the NO_COLOR bug + fix (Wave 1, Task 1)
+
 - Built cqrs-lint, ran it on `event/` with `FORCE_COLOR=1`: **8 ANSI-escaped lines** in findings text (color honored even in pipe — the fix working).
 - Ran with `FORCE_COLOR=1 NO_COLOR=1`: **0 ANSI lines** (NO_COLOR wins, overriding FORCE_COLOR).
 - This is concrete, byte-level proof — the prior session only reasoned from source.
 
 ### 3. Three regression tests locking the color fix (Wave 1, Tasks 2-4)
-| Test | Env var set | Asserts |
-|------|------------|---------|
-| `TestFormatFindingsText_HonorsNoColor` | `NO_COLOR=1` | Findings text has zero ANSI escapes under `ColorModeAuto` |
-| `TestFormatFindingsText_HonorsCIEnv` | `CI=true` | Findings text has zero ANSI escapes under `ColorModeAuto` |
+
+| Test                                      | Env var set                           | Asserts                                                   |
+| ----------------------------------------- | ------------------------------------- | --------------------------------------------------------- |
+| `TestFormatFindingsText_HonorsNoColor`    | `NO_COLOR=1`                          | Findings text has zero ANSI escapes under `ColorModeAuto` |
+| `TestFormatFindingsText_HonorsCIEnv`      | `CI=true`                             | Findings text has zero ANSI escapes under `ColorModeAuto` |
 | `TestFormatFindingsText_HonorsForceColor` | `FORCE_COLOR=1` (NO_COLOR/CI cleared) | Findings text HAS ANSI even when stdout is not a terminal |
+
 - All use `t.Setenv` (test-safe env mutation, auto-restored).
 - Added shared `sampleErrorFinding(t)` helper + `hasANSI(s)` + `ansiEscape` const to deduplicate test boilerplate.
 
 ### 4. api-stability golden regenerated (Wave 1, Task 5)
+
 - Initial verify run flagged 2 new exports in the `id/` module (`NewActorID`, `ParseActorKind`) — the daemon's concurrent work, not mine.
 - Confirmed they are legitimate real exports in `id/actor_id.go`.
 - Regenerated golden: 4091 → **4093 exports verified**.
 
 ### 5. `nix run .#verify` — stale GREEN cleared (Wave 1, Task 6)
+
 - Full project verify ran to completion. **All my modules GREEN**:
   - `cmd/cqrs-lint`: PASS (5.433s)
   - All `cmd/cqrs-lint/pkg/rules/*`: PASS
@@ -42,6 +48,7 @@
 - The ONLY failure was the stale api-stability golden (fixed in task 5 above).
 
 ### 6. Memory + docs encoded (Wave 2, Tasks 7-9)
+
 - **AGENTS.md** "Language & Library Footguns" section: added "go-output color detection is env-aware — never reimplement it" lesson. Names the exact env vars (`NO_COLOR`, `CI`/`GITHUB_ACTIONS`/`GITLAB_CI`/etc., `FORCE_COLOR`), explains WHY a hand-rolled check diverges from `table.Render`, and points to `output.go`.
 - **output.go**: file-level doc comment explaining the render layering (tables → go-output's `table.Render`; findings text → bespoke ANSI gated by `cm.ShouldColor()`). Tells future editors NOT to reintroduce a hand-rolled terminal check.
 - **CHANGELOG.md**: two entries under `[Unreleased]`:
@@ -49,6 +56,7 @@
   - Added: "CSV and TSV output formats"
 
 ### 7. CSV/TSV output formats — cqrs-lint now "superb" (Wave 3, Tasks 10-12)
+
 - **New `findingsToTable(findings)` helper** in `output.go`: models findings as a 9-column `output.Table` (Rule, Severity, File, Line, Column, Message, Suggestion, Category, Confidence). Uses the existing `output.NewTableBuilder()`.
 - **CSV/TSV dispatch** in `output_grouping.go`'s `outputFindings`: two new `case` branches calling `delimited.RenderCSV` / `delimited.RenderTSV` from go-output's `delimited` sub-module.
 - **`delimited` promoted** from `// indirect` to a direct dependency in `cmd/cqrs-lint/go.mod` (via `go mod tidy`).
@@ -57,6 +65,7 @@
 - **Runtime-verified conceptually** via direct function tests (binary couldn't be runtime-tested due to a daemon-introduced `strict` flag panic — see Fucked Up).
 
 ### 8. cqrs-bench quick audit (Wave 5, Q3 answer)
+
 - Re-checked during verify: `cmd/cqrs-bench` tests PASS (18.890s).
 - It remains "superb": multi-format (table/text/json/csv/tsv/markdown/benchstat/manifest), idiomatic `ShouldColor()`, correct `delimited` + `markdown` + `table` sub-module usage.
 - No NO_COLOR-class bugs surfaced. Deeper pressure-test deferred.
@@ -66,15 +75,18 @@
 ## b) PARTIALLY DONE
 
 ### 1. CSV/TSV output is tested but NOT runtime-demonstrated
+
 - The 3 CSV/TSV tests call `findingsToTable` + `delimited.RenderCSV/RenderTSV` directly and assert structure.
 - I never ran `cqrs-lint --format=csv <path>` end-to-end on a real project and eyeballed the CSV output. The binary panicked due to a daemon-introduced duplicate `strict` flag (`flag redefined: strict`), which I did not cause and did not fix.
 - The function-level tests prove the data modeling and rendering work, but end-to-end CLI verification (piping CSV into a spreadsheet or `column -t -s,`) is missing.
 
 ### 2. Deferred items documented but not actionable-tracked
+
 - Wave 6 items (HTML/XML findings, GitHub annotations, `--format=auto`, color-blind palette, bubbletea viewer, etc.) are documented as "deferred/rejected with reasons" in the plan table.
 - They are NOT captured in `TODO_LIST.md` or any persistent backlog. They live only in this status report and the prior session's report. If neither is read, the ideas are lost.
 
 ### 3. The daemon-committed code is unverified at the binary level
+
 - The auto-commit daemon bundled my changes into commits `1551bd396` and `515b50bbf` alongside ITS OWN changes (audit-suppressions, glob excludes, strict alias).
 - I verified my specific files compile and my specific tests pass, but I did NOT do a clean build of the daemon's combined commit. The `strict` flag panic I observed mid-session may or may not still exist in the latest commit.
 
@@ -99,21 +111,27 @@
 ## d) TOTALLY FUCKED UP
 
 ### 1. I built on a moving target and barely noticed
+
 The auto-commit daemon was **concurrently rewriting `cmd/cqrs-lint/`** throughout this session — adding a `--audit-suppressions` doctor command, `**-glob` excludes, a `--strict` alias, and a duplicate `strict` flag that caused a runtime panic. I observed the panic (`flag redefined: strict`), correctly diagnosed it as NOT mine, and worked around it by testing functions directly. But I **did not flag this as a blocking integrity issue** or attempt to confirm the final committed state is coherent. My verify run passed because the daemon self-corrected before it completed, but I got lucky. A different daemon commit could have left the build broken.
 
 ### 2. I claimed "runtime-verified" for CSV/TSV when I only "function-verified"
+
 My completion table says "Runtime-verified conceptually via direct function tests." That is weasel wording. A function test is NOT runtime verification. I never produced a single line of actual CSV output from the CLI. The prior session's status report criticized exactly this pattern ("I fixed a bug without ever proving it existed"), and I repeated it for the CSV/TSV feature.
 
 ### 3. I did not verify the daemon's combined commit
+
 Commits `1551bd396` and `515b50bbf` mix MY changes (color fix, CSV/TSV, tests, docs) with the DAEMON's changes (audit-suppressions, glob, strict). I verified my files in isolation. I did NOT pull the combined commit and run the full binary to confirm the merge is coherent. The `strict` flag panic I saw mid-session is evidence that the daemon's interleaving is not guaranteed safe.
 
 ### 4. I treated "verify gate passed" as proof the binary works
+
 The verify gate runs `go test ./...` which compiles test binaries. It does NOT build and run the actual `cqrs-lint` CLI binary end-to-end. A test binary passing ≠ the CLI working. The `strict` flag panic was invisible to the test suite (it only triggers at CLI flag registration time, and no test exercises the full cobra flag setup path).
 
 ### 5. I let the plan's "deferred/rejected" section substitute for a real backlog
+
 I presented 20+ deferred/rejected items in a nice table and called it planning. But none of them landed in `TODO_LIST.md`. A pretty table in a status report is NOT a backlog. It's a graveyard. The items will be rediscovered (or not) by future sessions reading this report — which is exactly the fragile, report-dependent pattern the project's docs-health skill exists to fix.
 
 ### 6. I did not check whether my AGENTS.md edit breaks doc-check
+
 I added a new bullet to the "Language & Library Footguns" section. The `cmd/doc-check` tool verifies Go import paths in markdown. My bullet references `output.ColorMode.ShouldColor()` and `output.ParseColorMode()` — if doc-check tries to resolve these as import paths, it may flag them. I ran `nix run .#verify` but did not confirm the doc-check sub-result was clean (the output was truncated and I only checked the test results).
 
 ---
@@ -121,22 +139,26 @@ I added a new bullet to the "Language & Library Footguns" section. The `cmd/doc-
 ## e) WHAT WE SHOULD IMPROVE
 
 ### On this fix specifically
+
 1. **Runtime-prove CSV/TSV** — build the binary (once the daemon's strict-flag issue is resolved) and run `cqrs-lint --format=csv <path> | head` to eyeball real output. Pipe through `column -t -s,` to confirm it's parseable CSV.
 2. **Runtime-prove the color fix in BOTH directions in one command** — `cqrs-lint --rules` with `FORCE_COLOR=1` (expect color) then `NO_COLOR=1` (expect none). I proved findings text but not the tables side-by-side in one invocation.
 3. **Verify the daemon's combined commit** — `git stash` (if needed), `git checkout 515b50bbf` via worktree, build, run `cqrs-lint --help` to confirm no panic.
 4. **Run doc-check explicitly** on the AGENTS.md change: `cd cmd/doc-check && GOWORK=off go run . ../../AGENTS.md`.
 
 ### On the daemon-interleaving problem (systemic)
+
 5. **Establish a "clean build checkpoint" protocol** — when the daemon is concurrently editing the same module, the session must either (a) wait for daemon quiescence, (b) work in a worktree, or (c) explicitly accept the risk and document it. I did (c) implicitly without documenting until now.
 6. **The verify gate should build actual CLI binaries** — not just test binaries. A `go build -o /dev/null ./cmd/cqrs-lint` step in `#verify` would have caught the `strict` flag panic immediately.
 
 ### On go-output adoption (broader)
+
 7. **Promote deferred items to `TODO_LIST.md`** — the 20+ Wave 6 items should land in the project's TODO_LIST under a "go-output adoption" heading, not die in a status report.
 8. **Scorecard table audit** — check whether `scorecard_render.go` routes its USED/MISSING tables through `table.Render` or hand-rolls them. If hand-rolled, route through go-output for format consistency.
 9. **`doctor.go` enum display** — replace raw-string `cfg.Format`/`cfg.Color` display with typed `output.Format`/`output.ColorMode` for honest diagnostics.
 10. **Repo-wide go-output misuse grep** — `grep -rn "fmt.Fprintf.*|%v.*|%s.*" --include="*.go"` in catalog/benchkit/metaengine to find hand-rolled tables that should use go-output.
 
 ### On process (meta)
+
 11. **Stop calling function tests "runtime verification"** — be honest: a unit test proves the function works; only running the binary proves the feature works.
 12. **The plan table was good; the execution honesty was not** — I executed all 12 tasks, but my "completed" checkmarks for CSV/TSV concealed that I never ran the feature end-to-end. Checkmarks should require proof, not just "code written."
 13. **Doc-check is part of verify but I didn't isolate its result** — when editing markdown in a verify-gated repo, always run doc-check standalone to see its specific pass/fail.
@@ -228,21 +250,20 @@ I repeated the prior session's mistake of claiming "verified" without running th
 
 ## Status summary
 
-| Area | State |
-|------|-------|
-| Comprehensive plan (50 items, sorted, table view) | ✅ Built and reported |
-| Wave 1: Lock color fix (3 regression tests + verify) | ✅ Done, GREEN |
-| Wave 2: Memory + docs (AGENTS.md, CHANGELOG, doc comment) | ✅ Done |
-| Wave 3: CSV/TSV formats (code + tests + help text) | ✅ Code done; ❌ NOT runtime-proven |
-| Wave 4: Verify gate | ✅ Run, GREEN (1 golden regen) |
-| Wave 5: cqrs-bench quick audit | ✅ Tests pass; deeper audit deferred |
-| CSV/TSV end-to-end CLI smoke test | ❌ Not done (binary panicked) |
-| Daemon commit coherence check | ❌ Not done |
-| doc-check on AGENTS.md edit | ❌ Not isolated (verify ran it, result not confirmed) |
-| TODO_LIST backlog for deferred items | ❌ Not added |
+| Area                                                      | State                                                 |
+| --------------------------------------------------------- | ----------------------------------------------------- |
+| Comprehensive plan (50 items, sorted, table view)         | ✅ Built and reported                                 |
+| Wave 1: Lock color fix (3 regression tests + verify)      | ✅ Done, GREEN                                        |
+| Wave 2: Memory + docs (AGENTS.md, CHANGELOG, doc comment) | ✅ Done                                               |
+| Wave 3: CSV/TSV formats (code + tests + help text)        | ✅ Code done; ❌ NOT runtime-proven                   |
+| Wave 4: Verify gate                                       | ✅ Run, GREEN (1 golden regen)                        |
+| Wave 5: cqrs-bench quick audit                            | ✅ Tests pass; deeper audit deferred                  |
+| CSV/TSV end-to-end CLI smoke test                         | ❌ Not done (binary panicked)                         |
+| Daemon commit coherence check                             | ❌ Not done                                           |
+| doc-check on AGENTS.md edit                               | ❌ Not isolated (verify ran it, result not confirmed) |
+| TODO_LIST backlog for deferred items                      | ❌ Not added                                          |
 
 **Net:** The code is written, tested, and verify-GREEN. The honest gap is **end-to-end runtime proof** (CSV/TSV never run via CLI) and **daemon-interleaving risk** (combined commit not verified). The prior session's "stale GREEN" failure is resolved, but a new honesty gap opened: I called function tests "runtime verification."
-
 
 ---
 

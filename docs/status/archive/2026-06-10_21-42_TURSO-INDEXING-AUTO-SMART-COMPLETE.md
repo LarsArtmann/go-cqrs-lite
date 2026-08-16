@@ -1,8 +1,8 @@
 # Comprehensive Status Report: Turso Auto-Smart Indexing
 
-**Date:** 2026-06-10 21:42 UTC  
-**Branch:** master  
-**Commit Base:** 6e6e5498 (docs(status): add comprehensive zero-lint completion report)  
+**Date:** 2026-06-10 21:42 UTC\
+**Branch:** master\
+**Commit Base:** 6e6e5498 (docs(status): add comprehensive zero-lint completion report)\
 **Session Focus:** turso/indexing sub-package — auto-smart index management for CQRS workloads
 
 ---
@@ -169,33 +169,33 @@ Examples are present but module needs to be tagged for consumers to see the new 
 
 ## f) Top #25 Things We Should Get Done Next!
 
-| #   | Priority    | Task                                                                   | Module         | Effort  |
-| --- | ----------- | ---------------------------------------------------------------------- | -------------- | ------- |
-| 1   | 🔴 CRITICAL | Benchmark indexed vs unindexed `ReadFrom`                              | turso          | 30 min  |
-| 2   | 🔴 CRITICAL | Add `indexing/README.md`                                               | turso/indexing | 20 min  |
-| 3   | 🔴 CRITICAL | Tag v2.2.1 with turso/indexing                                         | repo           | 10 min  |
-| 4   | 🟡 HIGH     | Real Turso sync integration tests (build-tagged)                       | turso          | 2 hrs   |
-| 5   | 🟡 HIGH     | Index usage statistics (`sqlite_stat1` reader)                         | turso/indexing | 1.5 hrs |
-| 6   | 🟡 HIGH     | Cleanup unused indexes helper                                          | turso/indexing | 1 hr    |
-| 7   | 🟡 HIGH     | Cover `isUnsupportedPragma` in unit test                               | turso/indexing | 15 min  |
-| 8   | 🟡 HIGH     | Fix 5 remaining `perfsprint` lint issues                               | turso/indexing | 20 min  |
-| 9   | 🟡 HIGH     | Fix 6 `varnamelen` in tests (rename `db` → `database` where practical) | turso/indexing | 30 min  |
-| 10  | 🟢 MEDIUM   | `listing` integration: validate indexes before aggregate reads         | listing        | 2 hrs   |
-| 11  | 🟢 MEDIUM   | WAL checkpoint scheduling helper                                       | turso          | 1 hr    |
-| 12  | 🟢 MEDIUM   | Add `indexing.BenchmarkAdvisor_MissingIndexes`                         | turso/indexing | 30 min  |
-| 13  | 🟢 MEDIUM   | Document index trade-offs (write amplification vs read speed)          | docs           | 45 min  |
-| 14  | 🟢 MEDIUM   | `projection` integration: auto-apply CQRS indexes on runner start      | projection     | 1.5 hrs |
-| 15  | 🟢 MEDIUM   | `storage/sql` EXPLAIN output parser (extract estimated cost)           | storage/sql    | 2 hrs   |
-| 16  | 🟢 MEDIUM   | Add `Index.RecommendationConfidence` score (0-1)                       | turso/indexing | 1 hr    |
-| 17  | 🟢 MEDIUM   | `catalog` auto-document indexes in OpenAPI/EventCatalog output         | catalog        | 3 hrs   |
-| 18  | 🟢 MEDIUM   | CI job: run `ApplyCQRSIndexes` + verify with `EXPLAIN`                 | .github        | 1 hr    |
-| 19  | 🟢 MEDIUM   | `middleware` metrics for index creation events                         | middleware     | 1 hr    |
-| 20  | 🟢 MEDIUM   | `example/turso-indexing` usage demo                                    | examples       | 2 hrs   |
-| 21  | 🟢 LOW      | Index partial covering (INCLUDE columns) for SQLite 3.35+              | turso/indexing | 2 hrs   |
-| 22  | 🟢 LOW      | Multi-column index cardinality estimator                               | turso/indexing | 3 hrs   |
-| 23  | 🟢 LOW      | `indexing.DryRun` mode that prints DDL without executing               | turso/indexing | 30 min  |
-| 24  | 🟢 LOW      | `indexing.Rollback(ctx, appliedIndexes)` for migrations                | turso/indexing | 1 hr    |
-| 25  | 🟢 LOW      | Publish ADR: "Why we ship pre-calculated CQRS indexes"                 | docs/adr       | 1 hr    |
+| #  | Priority    | Task                                                                   | Module         | Effort  |
+| -- | ----------- | ---------------------------------------------------------------------- | -------------- | ------- |
+| 1  | 🔴 CRITICAL | Benchmark indexed vs unindexed `ReadFrom`                              | turso          | 30 min  |
+| 2  | 🔴 CRITICAL | Add `indexing/README.md`                                               | turso/indexing | 20 min  |
+| 3  | 🔴 CRITICAL | Tag v2.2.1 with turso/indexing                                         | repo           | 10 min  |
+| 4  | 🟡 HIGH     | Real Turso sync integration tests (build-tagged)                       | turso          | 2 hrs   |
+| 5  | 🟡 HIGH     | Index usage statistics (`sqlite_stat1` reader)                         | turso/indexing | 1.5 hrs |
+| 6  | 🟡 HIGH     | Cleanup unused indexes helper                                          | turso/indexing | 1 hr    |
+| 7  | 🟡 HIGH     | Cover `isUnsupportedPragma` in unit test                               | turso/indexing | 15 min  |
+| 8  | 🟡 HIGH     | Fix 5 remaining `perfsprint` lint issues                               | turso/indexing | 20 min  |
+| 9  | 🟡 HIGH     | Fix 6 `varnamelen` in tests (rename `db` → `database` where practical) | turso/indexing | 30 min  |
+| 10 | 🟢 MEDIUM   | `listing` integration: validate indexes before aggregate reads         | listing        | 2 hrs   |
+| 11 | 🟢 MEDIUM   | WAL checkpoint scheduling helper                                       | turso          | 1 hr    |
+| 12 | 🟢 MEDIUM   | Add `indexing.BenchmarkAdvisor_MissingIndexes`                         | turso/indexing | 30 min  |
+| 13 | 🟢 MEDIUM   | Document index trade-offs (write amplification vs read speed)          | docs           | 45 min  |
+| 14 | 🟢 MEDIUM   | `projection` integration: auto-apply CQRS indexes on runner start      | projection     | 1.5 hrs |
+| 15 | 🟢 MEDIUM   | `storage/sql` EXPLAIN output parser (extract estimated cost)           | storage/sql    | 2 hrs   |
+| 16 | 🟢 MEDIUM   | Add `Index.RecommendationConfidence` score (0-1)                       | turso/indexing | 1 hr    |
+| 17 | 🟢 MEDIUM   | `catalog` auto-document indexes in OpenAPI/EventCatalog output         | catalog        | 3 hrs   |
+| 18 | 🟢 MEDIUM   | CI job: run `ApplyCQRSIndexes` + verify with `EXPLAIN`                 | .github        | 1 hr    |
+| 19 | 🟢 MEDIUM   | `middleware` metrics for index creation events                         | middleware     | 1 hr    |
+| 20 | 🟢 MEDIUM   | `example/turso-indexing` usage demo                                    | examples       | 2 hrs   |
+| 21 | 🟢 LOW      | Index partial covering (INCLUDE columns) for SQLite 3.35+              | turso/indexing | 2 hrs   |
+| 22 | 🟢 LOW      | Multi-column index cardinality estimator                               | turso/indexing | 3 hrs   |
+| 23 | 🟢 LOW      | `indexing.DryRun` mode that prints DDL without executing               | turso/indexing | 30 min  |
+| 24 | 🟢 LOW      | `indexing.Rollback(ctx, appliedIndexes)` for migrations                | turso/indexing | 1 hr    |
+| 25 | 🟢 LOW      | Publish ADR: "Why we ship pre-calculated CQRS indexes"                 | docs/adr       | 1 hr    |
 
 ---
 

@@ -179,43 +179,43 @@ The `.git/hooks/pre-commit` fix (60s → 300s) lives only in the local `.git/hoo
 
 ### Tier 1: Critical (highest leverage, low effort)
 
-| #   | Task                                                                 | Impact   | Effort | Why                                                          |
-| --- | -------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------------------ |
-| 1   | **Finish Row column-name validation** (B1/E2)                        | Medium   | 15min  | Catches typos before SQL; half-done                          |
-| 2   | **Document the `go.work` genproto replace** (E1)                     | Low      | 5min   | Future maintainability                                       |
-| 3   | **Add `projection.Builder` typed helper** (E3)                       | High     | 1h     | Highest-leverage DX improvement for projection consumers     |
-| 4   | **Migrate DiscordSync's projection layer** to `RelationalProjection` | Critical | 2-3h   | Validates the entire relational tier against a real consumer |
-| 5   | **Commit the BuildFlow hook config** or document install (E5)        | Low      | 15min  | Onboarding                                                   |
+| # | Task                                                                 | Impact   | Effort | Why                                                          |
+| - | -------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------------------ |
+| 1 | **Finish Row column-name validation** (B1/E2)                        | Medium   | 15min  | Catches typos before SQL; half-done                          |
+| 2 | **Document the `go.work` genproto replace** (E1)                     | Low      | 5min   | Future maintainability                                       |
+| 3 | **Add `projection.Builder` typed helper** (E3)                       | High     | 1h     | Highest-leverage DX improvement for projection consumers     |
+| 4 | **Migrate DiscordSync's projection layer** to `RelationalProjection` | Critical | 2-3h   | Validates the entire relational tier against a real consumer |
+| 5 | **Commit the BuildFlow hook config** or document install (E5)        | Low      | 15min  | Onboarding                                                   |
 
 ### Tier 2: High-value improvements
 
-| #   | Task                                                                      | Impact | Effort | Why                                     |
-| --- | ------------------------------------------------------------------------- | ------ | ------ | --------------------------------------- |
-| 6   | **Write `example/graph-demo/`** (E4/C10)                                  | Medium | 1h     | First real consumer of graph tier       |
-| 7   | **Migrate DiscordSync's query layer** to `RelationalStore`                | High   | 2h     | Eliminates ~500 LOC hand-written SQL    |
-| 8   | **Add PostgreSQL integration tests** for relational tier (testcontainers) | High   | 1h     | Tested on SQLite only; PG path unproven |
-| 9   | **God-package split: storage/** (38 files → sub-packages)                 | High   | 4h+    | Largest god-package                     |
-| 10  | **God-package split: event/** (30 files → sub-packages)                   | High   | 3h+    | Core module                             |
-| 11  | **Add `RelationalStore` JOIN support or denormalization docs** (C8)       | Medium | 1h     | See open question §g                    |
-| 12  | **Add versioned schema migrations** (C3)                                  | Medium | 2h     | Pre-existing gap                        |
-| 13  | **Complete Pebble module** (SnapshotStore, CheckpointStore gaps)          | Medium | 2h     | Pre-existing gap                        |
+| #  | Task                                                                      | Impact | Effort | Why                                     |
+| -- | ------------------------------------------------------------------------- | ------ | ------ | --------------------------------------- |
+| 6  | **Write `example/graph-demo/`** (E4/C10)                                  | Medium | 1h     | First real consumer of graph tier       |
+| 7  | **Migrate DiscordSync's query layer** to `RelationalStore`                | High   | 2h     | Eliminates ~500 LOC hand-written SQL    |
+| 8  | **Add PostgreSQL integration tests** for relational tier (testcontainers) | High   | 1h     | Tested on SQLite only; PG path unproven |
+| 9  | **God-package split: storage/** (38 files → sub-packages)                 | High   | 4h+    | Largest god-package                     |
+| 10 | **God-package split: event/** (30 files → sub-packages)                   | High   | 3h+    | Core module                             |
+| 11 | **Add `RelationalStore` JOIN support or denormalization docs** (C8)       | Medium | 1h     | See open question §g                    |
+| 12 | **Add versioned schema migrations** (C3)                                  | Medium | 2h     | Pre-existing gap                        |
+| 13 | **Complete Pebble module** (SnapshotStore, CheckpointStore gaps)          | Medium | 2h     | Pre-existing gap                        |
 
 ### Tier 3: Quality and completeness
 
-| #   | Task                                                                            | Impact             | Effort | Why                                             |
-| --- | ------------------------------------------------------------------------------- | ------------------ | ------ | ----------------------------------------------- |
-| 14  | **Build Neo4j/Cypher GraphDriver** (`graph/neo4j/`)                             | High (when needed) | 3-4h   | Consumer-pulled                                 |
-| 15  | **Add NATS JetStream transport adapter** (C4)                                   | Medium             | 3h     | ADR-0025 accepted                               |
-| 16  | **Add Outbox DLQ + reference-based outbox** (C6)                                | Medium             | 2h     | Pre-existing gaps                               |
-| 17  | **Add FTS5 full-text search** to RelationalStore                                | Medium             | 2h     | DiscordSync's SearchMessages                    |
-| 18  | **Add Durability profiles** across backends (C7)                                | Low                | 1.5h   | Pre-existing gap                                |
-| 19  | **Documentation site** (Docusaurus/MkDocs) (C5)                                 | Low                | 4h+    | 45 modules need browsable docs                  |
-| 20  | **`bundle.RunProjections` should return a handle** with Start/Wait/Error        | Low                | 30min  | Advanced error handling                         |
-| 21  | **Add `RelationalProjectionOption` for batch checkpointing**                    | Low                | 30min  | Performance for high-throughput replay          |
-| 22  | **`projection.Runner`** (standalone journal replay pipeline) (C2)               | Medium             | 2h     | Advanced use cases beyond bundle.RunProjections |
-| 23  | **Integration test: RelationalProjection end-to-end** (replay → query)          | Medium             | 1h     | No end-to-end test for relational tier yet      |
-| 24  | **`stack.Materialize` receiver consistency** (E6)                               | Low                | 30min  | API smell; value vs pointer receivers           |
-| 25  | **Bump internal module deps** from v3.1.0 → v3.2.0 (post-DiscordSync migration) | Low                | 30min  | Version hygiene after breaking changes settle   |
+| #  | Task                                                                            | Impact             | Effort | Why                                             |
+| -- | ------------------------------------------------------------------------------- | ------------------ | ------ | ----------------------------------------------- |
+| 14 | **Build Neo4j/Cypher GraphDriver** (`graph/neo4j/`)                             | High (when needed) | 3-4h   | Consumer-pulled                                 |
+| 15 | **Add NATS JetStream transport adapter** (C4)                                   | Medium             | 3h     | ADR-0025 accepted                               |
+| 16 | **Add Outbox DLQ + reference-based outbox** (C6)                                | Medium             | 2h     | Pre-existing gaps                               |
+| 17 | **Add FTS5 full-text search** to RelationalStore                                | Medium             | 2h     | DiscordSync's SearchMessages                    |
+| 18 | **Add Durability profiles** across backends (C7)                                | Low                | 1.5h   | Pre-existing gap                                |
+| 19 | **Documentation site** (Docusaurus/MkDocs) (C5)                                 | Low                | 4h+    | 45 modules need browsable docs                  |
+| 20 | **`bundle.RunProjections` should return a handle** with Start/Wait/Error        | Low                | 30min  | Advanced error handling                         |
+| 21 | **Add `RelationalProjectionOption` for batch checkpointing**                    | Low                | 30min  | Performance for high-throughput replay          |
+| 22 | **`projection.Runner`** (standalone journal replay pipeline) (C2)               | Medium             | 2h     | Advanced use cases beyond bundle.RunProjections |
+| 23 | **Integration test: RelationalProjection end-to-end** (replay → query)          | Medium             | 1h     | No end-to-end test for relational tier yet      |
+| 24 | **`stack.Materialize` receiver consistency** (E6)                               | Low                | 30min  | API smell; value vs pointer receivers           |
+| 25 | **Bump internal module deps** from v3.1.0 → v3.2.0 (post-DiscordSync migration) | Low                | 30min  | Version hygiene after breaking changes settle   |
 
 ---
 

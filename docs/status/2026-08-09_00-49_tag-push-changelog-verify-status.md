@@ -221,7 +221,7 @@ was. **Always check `git status` first, trust the summary second.**
 19. **Add precondition checks to planning docs** — note CI gates that block tasks
 20. **Update TODO_LIST.md** — verify items from the daemon's `df23eb1bf` commit
     are still accurate
-21. _*Verify all 2026-08-* status report annotations_* against current code (3
+21. __Verify all 2026-08-_ status report annotations_* against current code (3
     sessions of stale annotations is too many)
 22. **Clean up planning docs** — Multiple overlapping plans in `docs/planning/`
     reference the same work; consolidate or archive completed ones

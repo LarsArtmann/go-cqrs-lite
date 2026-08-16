@@ -19,13 +19,13 @@ Session 119 implemented the outcome of the `VerifyAll([]*MultiSigner)` vs `map[A
 
 ### Session 119 Work (this session)
 
-| #   | Item                                                                           | Files                         | Status                                                          |
-| --- | ------------------------------------------------------------------------------ | ----------------------------- | --------------------------------------------------------------- |
-| 1   | `VerifierMap(signers ...*MultiSigner) map[Actor]Verifier` convenience function | `signing/multisig_extract.go` | Done — panics on nil input, works with zero args, 100% coverage |
-| 2   | `ExampleVerifierMap` example test                                              | `signing/example_test.go`     | Done                                                            |
-| 3   | Update `ExampleVerifyAll` to use `VerifierMap`                                 | `signing/example_test.go`     | Done — removed manual map construction                          |
-| 4   | Fix README `map[string]` → `signing.VerifierMap()`                             | `signing/README.md`           | Done — both "Verify All" and "Require All" sections fixed       |
-| 5   | `TestVerifierMap`, `TestVerifierMap_NilPanics`, `TestVerifierMap_Empty`        | `signing/multisig_test.go`    | Done — 3 new tests                                              |
+| # | Item                                                                           | Files                         | Status                                                          |
+| - | ------------------------------------------------------------------------------ | ----------------------------- | --------------------------------------------------------------- |
+| 1 | `VerifierMap(signers ...*MultiSigner) map[Actor]Verifier` convenience function | `signing/multisig_extract.go` | Done — panics on nil input, works with zero args, 100% coverage |
+| 2 | `ExampleVerifierMap` example test                                              | `signing/example_test.go`     | Done                                                            |
+| 3 | Update `ExampleVerifyAll` to use `VerifierMap`                                 | `signing/example_test.go`     | Done — removed manual map construction                          |
+| 4 | Fix README `map[string]` → `signing.VerifierMap()`                             | `signing/README.md`           | Done — both "Verify All" and "Require All" sections fixed       |
+| 5 | `TestVerifierMap`, `TestVerifierMap_NilPanics`, `TestVerifierMap_Empty`        | `signing/multisig_test.go`    | Done — 3 new tests                                              |
 
 ### Carried Over (Sessions 117–118, fully done)
 
@@ -45,40 +45,40 @@ Nothing partially done — all items in this session were completed.
 
 ### Signing Module
 
-| #   | Item                                 | Priority | Notes                                             |
-| --- | ------------------------------------ | -------- | ------------------------------------------------- |
-| 1   | Push signing v1.0.0 tag              | HIGH     | Code is ready, just needs tag + push              |
-| 2   | Write `docs/signing-architecture.md` | MEDIUM   | Architecture decision doc for signing             |
-| 3   | Split `signing_test.go` (1028L)      | MEDIUM   | Pre-commit warns at 350L for prod, 350L for tests |
-| 4   | Split `multisig_test.go` (1338L)     | MEDIUM   | Same — well over limit                            |
-| 5   | Add HMAC benchmarks                  | LOW      | `benchmark_test.go` exists but only has Ed25519   |
-| 6   | Add Ed25519 benchmarks               | LOW      | Already present but could be expanded             |
-| 7   | Add `VerifyAll` benchmark            | LOW      | Multi-actor verification perf baseline            |
+| # | Item                                 | Priority | Notes                                             |
+| - | ------------------------------------ | -------- | ------------------------------------------------- |
+| 1 | Push signing v1.0.0 tag              | HIGH     | Code is ready, just needs tag + push              |
+| 2 | Write `docs/signing-architecture.md` | MEDIUM   | Architecture decision doc for signing             |
+| 3 | Split `signing_test.go` (1028L)      | MEDIUM   | Pre-commit warns at 350L for prod, 350L for tests |
+| 4 | Split `multisig_test.go` (1338L)     | MEDIUM   | Same — well over limit                            |
+| 5 | Add HMAC benchmarks                  | LOW      | `benchmark_test.go` exists but only has Ed25519   |
+| 6 | Add Ed25519 benchmarks               | LOW      | Already present but could be expanded             |
+| 7 | Add `VerifyAll` benchmark            | LOW      | Multi-actor verification perf baseline            |
 
 ### Cross-Module
 
-| #   | Item                                                    | Priority | Notes                                                                      |
-| --- | ------------------------------------------------------- | -------- | -------------------------------------------------------------------------- |
-| 8   | Fix LSP errors in `projection/runner.go` and `storage/` | HIGH     | `event.Journal` undefined — needs API alignment after Session 117 refactor |
-| 9   | Fix `storage/event_store_mock_test.go` errors           | HIGH     | `ReadFrom`/`ReadAll` undefined — mock out of sync                          |
-| 10  | Update `TODO_LIST.md` to reflect signing work           | MEDIUM   | Still references pre-signing state                                         |
-| 11  | `example/user/go.mod` signing version to v1.0.0         | MEDIUM   | Currently v1.6.0, should track tagged release                              |
-| 12  | Move `example/todo` to own repository                   | BLOCKED  | Requires manual repo creation                                              |
+| #  | Item                                                    | Priority | Notes                                                                      |
+| -- | ------------------------------------------------------- | -------- | -------------------------------------------------------------------------- |
+| 8  | Fix LSP errors in `projection/runner.go` and `storage/` | HIGH     | `event.Journal` undefined — needs API alignment after Session 117 refactor |
+| 9  | Fix `storage/event_store_mock_test.go` errors           | HIGH     | `ReadFrom`/`ReadAll` undefined — mock out of sync                          |
+| 10 | Update `TODO_LIST.md` to reflect signing work           | MEDIUM   | Still references pre-signing state                                         |
+| 11 | `example/user/go.mod` signing version to v1.0.0         | MEDIUM   | Currently v1.6.0, should track tagged release                              |
+| 12 | Move `example/todo` to own repository                   | BLOCKED  | Requires manual repo creation                                              |
 
 ### Catalog
 
-| #   | Item                                            | Priority | Notes             |
-| --- | ----------------------------------------------- | -------- | ----------------- |
-| 13  | `catalog/internal/schemautil` coverage at 84.2% | LOW      | Lowest in catalog |
-| 14  | `catalog/docserver` coverage at 90.1%           | LOW      |                   |
+| #  | Item                                            | Priority | Notes             |
+| -- | ----------------------------------------------- | -------- | ----------------- |
+| 13 | `catalog/internal/schemautil` coverage at 84.2% | LOW      | Lowest in catalog |
+| 14 | `catalog/docserver` coverage at 90.1%           | LOW      |                   |
 
 ### Core
 
-| #   | Item                                            | Priority | Notes                     |
-| --- | ----------------------------------------------- | -------- | ------------------------- |
-| 15  | Query handler `any` → generic `TypedHandler[T]` | v2       | Breaking change, deferred |
-| 16  | `io.Closer` removal from core interfaces        | v2       | Breaking change, deferred |
-| 17  | Global `TransactionID` branded type             | v2       | Breaking change, deferred |
+| #  | Item                                            | Priority | Notes                     |
+| -- | ----------------------------------------------- | -------- | ------------------------- |
+| 15 | Query handler `any` → generic `TypedHandler[T]` | v2       | Breaking change, deferred |
+| 16 | `io.Closer` removal from core interfaces        | v2       | Breaking change, deferred |
+| 17 | Global `TransactionID` branded type             | v2       | Breaking change, deferred |
 
 ---
 
@@ -118,48 +118,48 @@ Nothing partially done — all items in this session were completed.
 
 ### Immediate (do now)
 
-| #   | Action                                                                  | Impact | Effort |
-| --- | ----------------------------------------------------------------------- | ------ | ------ |
-| 1   | Push signing v1.0.0 tag                                                 | HIGH   | 5 min  |
-| 2   | Fix LSP errors in `projection/runner.go` (`event.Journal` undefined)    | HIGH   | 1 hr   |
-| 3   | Fix `storage/event_store_mock_test.go` (`ReadFrom`/`ReadAll` undefined) | HIGH   | 30 min |
-| 4   | Split `signing_test.go` (1028L → 4 files under 350L)                    | MED    | 1 hr   |
-| 5   | Split `multisig_test.go` (1338L → 4 files under 350L)                   | MED    | 1 hr   |
+| # | Action                                                                  | Impact | Effort |
+| - | ----------------------------------------------------------------------- | ------ | ------ |
+| 1 | Push signing v1.0.0 tag                                                 | HIGH   | 5 min  |
+| 2 | Fix LSP errors in `projection/runner.go` (`event.Journal` undefined)    | HIGH   | 1 hr   |
+| 3 | Fix `storage/event_store_mock_test.go` (`ReadFrom`/`ReadAll` undefined) | HIGH   | 30 min |
+| 4 | Split `signing_test.go` (1028L → 4 files under 350L)                    | MED    | 1 hr   |
+| 5 | Split `multisig_test.go` (1338L → 4 files under 350L)                   | MED    | 1 hr   |
 
 ### Short-term (this week)
 
-| #   | Action                                             | Impact | Effort |
-| --- | -------------------------------------------------- | ------ | ------ |
-| 6   | Write `docs/signing-architecture.md` ADR           | MED    | 1 hr   |
-| 7   | Update `TODO_LIST.md` with signing items           | MED    | 30 min |
-| 8   | Add `attachMultiSignature` JSON marshal error test | LOW    | 15 min |
-| 9   | Add `hmacSigner.Verify` error path test            | LOW    | 15 min |
-| 10  | Add HMAC benchmarks to `benchmark_test.go`         | LOW    | 30 min |
-| 11  | Add `VerifyAll` benchmark                          | LOW    | 30 min |
-| 12  | Add cross-module signing integration test          | MED    | 2 hr   |
+| #  | Action                                             | Impact | Effort |
+| -- | -------------------------------------------------- | ------ | ------ |
+| 6  | Write `docs/signing-architecture.md` ADR           | MED    | 1 hr   |
+| 7  | Update `TODO_LIST.md` with signing items           | MED    | 30 min |
+| 8  | Add `attachMultiSignature` JSON marshal error test | LOW    | 15 min |
+| 9  | Add `hmacSigner.Verify` error path test            | LOW    | 15 min |
+| 10 | Add HMAC benchmarks to `benchmark_test.go`         | LOW    | 30 min |
+| 11 | Add `VerifyAll` benchmark                          | LOW    | 30 min |
+| 12 | Add cross-module signing integration test          | MED    | 2 hr   |
 
 ### Medium-term (next sessions)
 
-| #   | Action                                                            | Impact | Effort |
-| --- | ----------------------------------------------------------------- | ------ | ------ |
-| 13  | Update `example/user/go.mod` to signing v1.0.0                    | LOW    | 5 min  |
-| 14  | Improve `catalog/internal/schemautil` coverage (84.2% → 90%+)     | LOW    | 1 hr   |
-| 15  | Improve `testhelpers` coverage (82.1% → 90%+)                     | LOW    | 1 hr   |
-| 16  | Optimize Pebble LoadToTimestamp (full scan → timestamp bounds)    | MED    | 2 hr   |
-| 17  | Add catalog diff/breaking-change detection tool                   | FUTURE | Large  |
-| 18  | Add high-level test utilities (AggregateTester, ProjectionTester) | FUTURE | Large  |
-| 19  | v2: Query handler generic `TypedHandler[T]`                       | HIGH   | Large  |
-| 20  | v2: `io.Closer` removal from core interfaces                      | MED    | Medium |
-| 21  | v2: Global `TransactionID` branded type                           | MED    | Medium |
+| #  | Action                                                            | Impact | Effort |
+| -- | ----------------------------------------------------------------- | ------ | ------ |
+| 13 | Update `example/user/go.mod` to signing v1.0.0                    | LOW    | 5 min  |
+| 14 | Improve `catalog/internal/schemautil` coverage (84.2% → 90%+)     | LOW    | 1 hr   |
+| 15 | Improve `testhelpers` coverage (82.1% → 90%+)                     | LOW    | 1 hr   |
+| 16 | Optimize Pebble LoadToTimestamp (full scan → timestamp bounds)    | MED    | 2 hr   |
+| 17 | Add catalog diff/breaking-change detection tool                   | FUTURE | Large  |
+| 18 | Add high-level test utilities (AggregateTester, ProjectionTester) | FUTURE | Large  |
+| 19 | v2: Query handler generic `TypedHandler[T]`                       | HIGH   | Large  |
+| 20 | v2: `io.Closer` removal from core interfaces                      | MED    | Medium |
+| 21 | v2: Global `TransactionID` branded type                           | MED    | Medium |
 
 ### Infrastructure
 
-| #   | Action                                            | Impact | Effort            |
-| --- | ------------------------------------------------- | ------ | ----------------- |
-| 22  | Move `example/todo` to own repository             | LOW    | Manual            |
-| 23  | Publish go-composable-business-types as Go module | LOW    | Manual            |
-| 24  | Modularize ActaFlow                               | LOW    | Different project |
-| 25  | Evaluate nix flake migration from justfile        | LOW    | 4 hr              |
+| #  | Action                                            | Impact | Effort            |
+| -- | ------------------------------------------------- | ------ | ----------------- |
+| 22 | Move `example/todo` to own repository             | LOW    | Manual            |
+| 23 | Publish go-composable-business-types as Go module | LOW    | Manual            |
+| 24 | Modularize ActaFlow                               | LOW    | Different project |
+| 25 | Evaluate nix flake migration from justfile        | LOW    | 4 hr              |
 
 ---
 

@@ -1,7 +1,7 @@
 # Status Report: ViewStore API Consolidation, Turso Views, gRPC Events, README Refresh
 
-**Date:** 2026-06-24 13:27  
-**Session Focus:** Top 7 tasks from the Tier 2 closeout list  
+**Date:** 2026-06-24 13:27\
+**Session Focus:** Top 7 tasks from the Tier 2 closeout list\
 **Status:** All 7 tasks complete. All tests pass, all linters clean.
 
 ---
@@ -121,12 +121,12 @@ service EventService { rpc Subscribe(SubscriptionRequest) returns (stream EventE
 
 ## C) NOT STARTED (from the original Top 25)
 
-| #   | Task                               | Effort | Why                                                                                           |
-| --- | ---------------------------------- | ------ | --------------------------------------------------------------------------------------------- |
-| 1   | Add 8 missing modules to CI matrix | 30min  | `event/eventtest`, 5 examples, `prometheus`, `stack/turso` — not in per-module CI test matrix |
-| 2   | Fix BuildFlow pre-commit timeout   | 30min  | 60s budget, golangci-lint on 44 modules exceeds it. Every commit needs `--no-verify`          |
-| 4   | Add Postgres testcontainer to CI   | 2h     | stack/postgres has 0% local coverage (skips without `POSTGRES_TEST_DSN`)                      |
-| 5   | Fix gopls infertypeargs warnings   | 20min  | 9 unnecessary type arguments in `stack/accessors.go`, `example/deployer-first/main.go`        |
+| # | Task                               | Effort | Why                                                                                           |
+| - | ---------------------------------- | ------ | --------------------------------------------------------------------------------------------- |
+| 1 | Add 8 missing modules to CI matrix | 30min  | `event/eventtest`, 5 examples, `prometheus`, `stack/turso` — not in per-module CI test matrix |
+| 2 | Fix BuildFlow pre-commit timeout   | 30min  | 60s budget, golangci-lint on 44 modules exceeds it. Every commit needs `--no-verify`          |
+| 4 | Add Postgres testcontainer to CI   | 2h     | stack/postgres has 0% local coverage (skips without `POSTGRES_TEST_DSN`)                      |
+| 5 | Fix gopls infertypeargs warnings   | 20min  | 9 unnecessary type arguments in `stack/accessors.go`, `example/deployer-first/main.go`        |
 
 ---
 
@@ -162,33 +162,33 @@ service EventService { rpc Subscribe(SubscriptionRequest) returns (stream EventE
 
 ## F) Top 25 Things to Get Done Next
 
-| Priority | #   | Task                                                                                                               | Effort | Impact                                                  |
-| -------- | --- | ------------------------------------------------------------------------------------------------------------------ | ------ | ------------------------------------------------------- |
-| 🔴       | 1   | **Fix `nix fmt` YAML import corruption** — stop it from swapping go-faster/yaml → go.yaml.in/yaml/v4               | 30min  | Prevents recurring banned-dep introduction              |
-| 🔴       | 2   | **Add 8 missing modules to CI per-module matrix** — `event/eventtest`, 5 examples, `prometheus`, `stack/turso`     | 30min  | Catches missing-dep bugs like the turso eventtest issue |
-| 🔴       | 3   | **Fix BuildFlow pre-commit hook timeout** — increase to 300s or exclude transport/grpc                             | 30min  | Every commit currently needs `--no-verify`              |
-| 🟡       | 4   | **Add Postgres testcontainer to CI** — stack/postgres has 0% local coverage                                        | 2h     | Real coverage for the distributed preset                |
-| 🟡       | 5   | **Fix gopls infertypeargs warnings** — 9 unnecessary type args in `stack/accessors.go`, `example/deployer-first`   | 20min  | Code quality                                            |
-| 🟡       | 6   | **Full event metadata round-trip in gRPC** — reconstruct causation, tombstone, custom metadata client-side         | 1h     | Completeness of event pub/sub                           |
-| 🟡       | 7   | **gRPC event backpressure policy** — configurable drop vs block, overflow counter                                  | 2h     | Production readiness                                    |
-| 🟡       | 8   | **Shared preset contract test** — assert all SQL presets expose `Database()`, have `SQLViewModel`, same option set | 1h     | Prevents contract drift                                 |
-| 🟡       | 9   | **ViewStore contract test suite for Turso** — run `viewstoretest.RunSuite` against Turso view store                | 30min  | Parity with storage/ tests                              |
-| 🟡       | 10  | **Deprecate `NewViewStoreWithDialect`** — it has zero callers; `NewSQLiteViewStore` covers all use cases           | 15min  | Clean API surface                                       |
-| 🟡       | 11  | **Add `WithEventDB` test for stack/turso** — multidb preset is untested                                            | 1h     | Coverage                                                |
-| 🟡       | 12  | **gRPC bidirectional streaming for events** — allow client-side filter changes mid-stream                          | 3h     | Advanced subscription patterns                          |
-| 🟡       | 13  | **Connection pool tuning docs for Turso** — document `ConfigurePool` behavior under load                           | 30min  | Operations                                              |
-| 🟢       | 14  | **Benchmark gRPC event streaming throughput** — events/sec, latency p50/p99                                        | 1h     | Performance baseline                                    |
-| 🟢       | 15  | **SSE + gRPC unified event delivery ADR** — document when to use which transport                                   | 30min  | Decision clarity                                        |
-| 🟢       | 16  | **ViewStore `Explain` method** — return SQL query plan for debugging slow queries                                  | 2h     | Debuggability                                           |
-| 🟢       | 17  | **Auto-generate view table DDL from struct tags** — skip manual `ViewMapper` for simple cases                      | 3h     | DX improvement                                          |
-| 🟢       | 18  | **Retry middleware for gRPC clients** — exponential backoff on stream disconnect                                   | 1h     | Resilience                                              |
-| 🟢       | 19  | **Add `OpNotIn` operator to ViewFilter conditions**                                                                | 15min  | Feature parity                                          |
-| 🟢       | 20  | **Multi-tenant ViewStore** — schema-per-tenant or row-level isolation                                              | 4h     | SaaS use case                                           |
-| 🟢       | 21  | **Projection checkpoint integration with gRPC events** — resume from last event ID                                 | 2h     | Reliability                                             |
-| 🟢       | 22  | **ViewStore migration tooling** — add/drop columns without data loss                                               | 4h     | Schema evolution                                        |
-| 🟢       | 23  | **OTel tracing for gRPC event streaming** — span per event, correlation propagation                                | 1h     | Observability                                           |
-| 🟢       | 24  | **Integration test: gRPC events → Materialize projection** — end-to-end remote projection                          | 2h     | E2E coverage                                            |
-| 🟢       | 25  | **Document `Condition.Values` vs `Condition.Value`** — make it obvious which to use for which operator             | 15min  | API clarity                                             |
+| Priority | #  | Task                                                                                                               | Effort | Impact                                                  |
+| -------- | -- | ------------------------------------------------------------------------------------------------------------------ | ------ | ------------------------------------------------------- |
+| 🔴       | 1  | **Fix `nix fmt` YAML import corruption** — stop it from swapping go-faster/yaml → go.yaml.in/yaml/v4               | 30min  | Prevents recurring banned-dep introduction              |
+| 🔴       | 2  | **Add 8 missing modules to CI per-module matrix** — `event/eventtest`, 5 examples, `prometheus`, `stack/turso`     | 30min  | Catches missing-dep bugs like the turso eventtest issue |
+| 🔴       | 3  | **Fix BuildFlow pre-commit hook timeout** — increase to 300s or exclude transport/grpc                             | 30min  | Every commit currently needs `--no-verify`              |
+| 🟡       | 4  | **Add Postgres testcontainer to CI** — stack/postgres has 0% local coverage                                        | 2h     | Real coverage for the distributed preset                |
+| 🟡       | 5  | **Fix gopls infertypeargs warnings** — 9 unnecessary type args in `stack/accessors.go`, `example/deployer-first`   | 20min  | Code quality                                            |
+| 🟡       | 6  | **Full event metadata round-trip in gRPC** — reconstruct causation, tombstone, custom metadata client-side         | 1h     | Completeness of event pub/sub                           |
+| 🟡       | 7  | **gRPC event backpressure policy** — configurable drop vs block, overflow counter                                  | 2h     | Production readiness                                    |
+| 🟡       | 8  | **Shared preset contract test** — assert all SQL presets expose `Database()`, have `SQLViewModel`, same option set | 1h     | Prevents contract drift                                 |
+| 🟡       | 9  | **ViewStore contract test suite for Turso** — run `viewstoretest.RunSuite` against Turso view store                | 30min  | Parity with storage/ tests                              |
+| 🟡       | 10 | **Deprecate `NewViewStoreWithDialect`** — it has zero callers; `NewSQLiteViewStore` covers all use cases           | 15min  | Clean API surface                                       |
+| 🟡       | 11 | **Add `WithEventDB` test for stack/turso** — multidb preset is untested                                            | 1h     | Coverage                                                |
+| 🟡       | 12 | **gRPC bidirectional streaming for events** — allow client-side filter changes mid-stream                          | 3h     | Advanced subscription patterns                          |
+| 🟡       | 13 | **Connection pool tuning docs for Turso** — document `ConfigurePool` behavior under load                           | 30min  | Operations                                              |
+| 🟢       | 14 | **Benchmark gRPC event streaming throughput** — events/sec, latency p50/p99                                        | 1h     | Performance baseline                                    |
+| 🟢       | 15 | **SSE + gRPC unified event delivery ADR** — document when to use which transport                                   | 30min  | Decision clarity                                        |
+| 🟢       | 16 | **ViewStore `Explain` method** — return SQL query plan for debugging slow queries                                  | 2h     | Debuggability                                           |
+| 🟢       | 17 | **Auto-generate view table DDL from struct tags** — skip manual `ViewMapper` for simple cases                      | 3h     | DX improvement                                          |
+| 🟢       | 18 | **Retry middleware for gRPC clients** — exponential backoff on stream disconnect                                   | 1h     | Resilience                                              |
+| 🟢       | 19 | **Add `OpNotIn` operator to ViewFilter conditions**                                                                | 15min  | Feature parity                                          |
+| 🟢       | 20 | **Multi-tenant ViewStore** — schema-per-tenant or row-level isolation                                              | 4h     | SaaS use case                                           |
+| 🟢       | 21 | **Projection checkpoint integration with gRPC events** — resume from last event ID                                 | 2h     | Reliability                                             |
+| 🟢       | 22 | **ViewStore migration tooling** — add/drop columns without data loss                                               | 4h     | Schema evolution                                        |
+| 🟢       | 23 | **OTel tracing for gRPC event streaming** — span per event, correlation propagation                                | 1h     | Observability                                           |
+| 🟢       | 24 | **Integration test: gRPC events → Materialize projection** — end-to-end remote projection                          | 2h     | E2E coverage                                            |
+| 🟢       | 25 | **Document `Condition.Values` vs `Condition.Value`** — make it obvious which to use for which operator             | 15min  | API clarity                                             |
 
 ---
 

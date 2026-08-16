@@ -83,16 +83,16 @@ The linter's built-in `--fp-suspects` mode (confidence ≤ 0.25) catches only 21
 
 ## Per-Repo Breakdown
 
-| Repo           | Findings | TP  | FP  | FP% | Notes                              |
-| -------------- | -------- | --- | --- | --- | ---------------------------------- |
-| Standup-Killer | 1        | 1   | 0   | 0%  | Only V006 (version alignment)      |
-| timesheets     | 5        | 5   | 0   | 0%  | Clean — all findings actionable    |
-| bank-sync      | 0        | 0   | 0   | —   | No findings (minimal CQRS surface) |
-| KeyHolderAI    | 4        | 3   | 1   | 25% | D005 version misparse              |
-| Kernovia       | 74       | 53  | 21  | 28% | Largest codebase, most findings    |
-| crush-daily    | 27       | 20  | 7   | 26% | E007 registration tracing failures |
-| cqrs-htmx      | 11       | 4   | 7   | 64% | Type-blind matching + display DTOs |
-| DiscordSync    | 6        | 3   | 3   | 50% | Empty doc.go + version misparse    |
+| Repo           | Findings | TP | FP | FP% | Notes                              |
+| -------------- | -------- | -- | -- | --- | ---------------------------------- |
+| Standup-Killer | 1        | 1  | 0  | 0%  | Only V006 (version alignment)      |
+| timesheets     | 5        | 5  | 0  | 0%  | Clean — all findings actionable    |
+| bank-sync      | 0        | 0  | 0  | —   | No findings (minimal CQRS surface) |
+| KeyHolderAI    | 4        | 3  | 1  | 25% | D005 version misparse              |
+| Kernovia       | 74       | 53 | 21 | 28% | Largest codebase, most findings    |
+| crush-daily    | 27       | 20 | 7  | 26% | E007 registration tracing failures |
+| cqrs-htmx      | 11       | 4  | 7  | 64% | Type-blind matching + display DTOs |
+| DiscordSync    | 6        | 3  | 3  | 50% | Empty doc.go + version misparse    |
 
 **Key insight:** FP rate correlates with codebase complexity patterns, not size. cqrs-htmx (small but uses SSE broadcaster with same-named `Subscribe()` method) has the highest FP rate.
 
@@ -211,8 +211,8 @@ All other rules that fired had **zero false positives** — every finding was a 
 The linter's built-in `--fp-suspects` flag (shows only confidence ≤ 0.25) identifies 21 findings as "likely false positives." Comparison with manual classification:
 
 |       | Manual FP (orig) | Manual FP (corrected) | fp-suspects caught | Missed |
-| ----- | --------------- | --------------------- | ------------------ | ------ |
-| Total | 39              | ~29                   | 11                 | 18     |
+| ----- | ---------------- | --------------------- | ------------------ | ------ |
+| Total | 39               | ~29                   | 11                 | 18     |
 
 **fp-suspects catches 38% of actual false positives (corrected).** The 18 missed FPs all have confidence ≥ 0.5 — the linter is confident they're real. The most dangerous missed FPs:
 

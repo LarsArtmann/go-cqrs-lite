@@ -1,8 +1,8 @@
 # Comprehensive Status Report: go-cqrs-lite
 
-**Date:** 2026-03-30  
-**Time:** 20:34 CET  
-**Branch:** master  
+**Date:** 2026-03-30\
+**Time:** 20:34 CET\
+**Branch:** master\
 **Commit:** HEAD (2 commits ahead of origin/master)
 
 ---
@@ -50,9 +50,9 @@ The go-cqrs-lite library is **PRODUCTION READY** with all core functionality imp
 
 ## b) PARTIALLY DONE ⚠️
 
-| Item                   | Status     | What's Missing                                              |
-| ---------------------- | ---------- | ----------------------------------------------------------- |
-| Test coverage          | ~73% avg   | pkg/id (47%), xtypes (54%), aggregate (64%) need more tests |
+| Item                   | Status    | What's Missing                                              |
+| ---------------------- | --------- | ----------------------------------------------------------- |
+| Test coverage          | ~73% avg  | pkg/id (47%), xtypes (54%), aggregate (64%) need more tests |
 | Middleware examples    | ⚠️ Partial | Infrastructure exists, no pre-built middleware              |
 | Documentation examples | ⚠️ Partial | No working code examples/ directory                         |
 
@@ -236,16 +236,16 @@ Average:         72.7%
 
 ## Quality Gates Status
 
-| Gate                 | Status                      |
-| -------------------- | --------------------------- |
-| Tests pass           | ✅ PASS                     |
-| Coverage > 70%       | ✅ PASS (72.7%)             |
-| Build succeeds       | ✅ PASS                     |
-| Vet clean            | ✅ PASS                     |
+| Gate                 | Status                     |
+| -------------------- | -------------------------- |
+| Tests pass           | ✅ PASS                    |
+| Coverage > 70%       | ✅ PASS (72.7%)            |
+| Build succeeds       | ✅ PASS                    |
+| Vet clean            | ✅ PASS                    |
 | Lint                 | ⚠️ 14 warnings (acceptable) |
-| Files < 250 lines    | ✅ PASS                     |
-| Functions < 30 lines | ✅ PASS                     |
-| No critical issues   | ✅ PASS                     |
+| Files < 250 lines    | ✅ PASS                    |
+| Functions < 30 lines | ✅ PASS                    |
+| No critical issues   | ✅ PASS                    |
 
 ---
 

@@ -299,58 +299,58 @@ Modules that create errors inline without centralized `errors.go`:
 
 ### Priority 1: Fix What's Broken (Do Immediately)
 
-| #   | Task                                                                                  | Module    | Est | Impact                                  |
-| --- | ------------------------------------------------------------------------------------- | --------- | --- | --------------------------------------- |
-| 1   | **Delete or gitignore binary artifacts** (`saga-pattern`, `example/todo/cmd/api/api`) | root      | 2m  | Prevents accidental binary commits      |
-| 2   | **Commit untracked doc.go files** (codec, event, middleware)                          | 3 modules | 2m  | pkg.go.dev docs incomplete without them |
-| 3   | **Run `go mod tidy` workspace-wide** + commit go.work.sum                             | all       | 5m  | Dependency hygiene                      |
-| 4   | **Fix event/README.md stale references** to old `core` package                        | event     | 5m  | Consumer-facing docs correctness        |
+| # | Task                                                                                  | Module    | Est | Impact                                  |
+| - | ------------------------------------------------------------------------------------- | --------- | --- | --------------------------------------- |
+| 1 | **Delete or gitignore binary artifacts** (`saga-pattern`, `example/todo/cmd/api/api`) | root      | 2m  | Prevents accidental binary commits      |
+| 2 | **Commit untracked doc.go files** (codec, event, middleware)                          | 3 modules | 2m  | pkg.go.dev docs incomplete without them |
+| 3 | **Run `go mod tidy` workspace-wide** + commit go.work.sum                             | all       | 5m  | Dependency hygiene                      |
+| 4 | **Fix event/README.md stale references** to old `core` package                        | event     | 5m  | Consumer-facing docs correctness        |
 
 ### Priority 2: Close Coverage Gaps (High Impact)
 
-| #   | Task                                                                                   | Module  | Est | Impact                          |
-| --- | -------------------------------------------------------------------------------------- | ------- | --- | ------------------------------- |
-| 5   | **Turso tests: Save+Load edge cases, AppendBatch, LoadFromVersion, concurrent access** | turso   | 12m | 28.6% → 80%                     |
-| 6   | **Turso tests: error paths (nil DB, closed store, invalid args)**                      | turso   | 10m | Error paths completely untested |
-| 7   | **Turso tests: SnapshotStore + CheckpointStore full coverage**                         | turso   | 10m | Only SaveAndLoad tested         |
-| 8   | **Add storage/sql/helpers_test.go** — shared SQL helper coverage                       | storage | 10m | 0% → meaningful                 |
-| 9   | **Add pebble edge-case tests** — concurrent Save, Close-then-access                    | pebble  | 10m | 86.6% → 90%+                    |
+| # | Task                                                                                   | Module  | Est | Impact                          |
+| - | -------------------------------------------------------------------------------------- | ------- | --- | ------------------------------- |
+| 5 | **Turso tests: Save+Load edge cases, AppendBatch, LoadFromVersion, concurrent access** | turso   | 12m | 28.6% → 80%                     |
+| 6 | **Turso tests: error paths (nil DB, closed store, invalid args)**                      | turso   | 10m | Error paths completely untested |
+| 7 | **Turso tests: SnapshotStore + CheckpointStore full coverage**                         | turso   | 10m | Only SaveAndLoad tested         |
+| 8 | **Add storage/sql/helpers_test.go** — shared SQL helper coverage                       | storage | 10m | 0% → meaningful                 |
+| 9 | **Add pebble edge-case tests** — concurrent Save, Close-then-access                    | pebble  | 10m | 86.6% → 90%+                    |
 
 ### Priority 3: Error Hygiene (Consistency)
 
-| #   | Task                                                             | Module   | Est | Impact                    |
-| --- | ---------------------------------------------------------------- | -------- | --- | ------------------------- |
-| 10  | **Create `snapshot/errors.go`** — consolidate 4 fmt.Errorf calls | snapshot | 5m  | Consistent error matching |
-| 11  | **Create `catalog/errors.go`** — consolidate 31 fmt.Errorf calls | catalog  | 12m | Largest gap               |
-| 12  | **Create `listing/errors.go`** — consolidate 4 fmt.Errorf calls  | listing  | 5m  | Quick win                 |
-| 13  | **Create `storage/errors.go`** — re-export sql/errors.go         | storage  | 5m  | Centralized API surface   |
+| #  | Task                                                             | Module   | Est | Impact                    |
+| -- | ---------------------------------------------------------------- | -------- | --- | ------------------------- |
+| 10 | **Create `snapshot/errors.go`** — consolidate 4 fmt.Errorf calls | snapshot | 5m  | Consistent error matching |
+| 11 | **Create `catalog/errors.go`** — consolidate 31 fmt.Errorf calls | catalog  | 12m | Largest gap               |
+| 12 | **Create `listing/errors.go`** — consolidate 4 fmt.Errorf calls  | listing  | 5m  | Quick win                 |
+| 13 | **Create `storage/errors.go`** — re-export sql/errors.go         | storage  | 5m  | Centralized API surface   |
 
 ### Priority 4: Code Health
 
-| #   | Task                                                                                     | Module    | Est | Impact                       |
-| --- | ---------------------------------------------------------------------------------------- | --------- | --- | ---------------------------- |
-| 14  | **Decompose `storage/sql_aggregate_reader.go:ListWithStatus`** (115L → 3 funcs)          | storage   | 12m | Longest function in codebase |
-| 15  | **Decompose `watermill/protocol.go:messageToEvent`** (86L → 4 funcs)                     | watermill | 12m | Second longest function      |
-| 16  | **Decompose `storage/event_store.go:Save`** (55L → 2 funcs)                              | storage   | 10m | Core write path              |
-| 17  | **Decompose `signing/multisig/middleware.go:RequireMultiSigMiddleware`** (55L → 2 funcs) | signing   | 8m  | Complex verification         |
+| #  | Task                                                                                     | Module    | Est | Impact                       |
+| -- | ---------------------------------------------------------------------------------------- | --------- | --- | ---------------------------- |
+| 14 | **Decompose `storage/sql_aggregate_reader.go:ListWithStatus`** (115L → 3 funcs)          | storage   | 12m | Longest function in codebase |
+| 15 | **Decompose `watermill/protocol.go:messageToEvent`** (86L → 4 funcs)                     | watermill | 12m | Second longest function      |
+| 16 | **Decompose `storage/event_store.go:Save`** (55L → 2 funcs)                              | storage   | 10m | Core write path              |
+| 17 | **Decompose `signing/multisig/middleware.go:RequireMultiSigMiddleware`** (55L → 2 funcs) | signing   | 8m  | Complex verification         |
 
 ### Priority 5: Consumer Experience
 
-| #   | Task                                                                                                    | Module  | Est | Impact                                  |
-| --- | ------------------------------------------------------------------------------------------------------- | ------- | --- | --------------------------------------- |
-| 18  | **Write a unified Getting Started guide** (docs/getting-started.md) showing full CQRS stack composition | docs    | 20m | No single entry point for new consumers |
-| 19  | **Add command/example_test.go** — New + Register + Dispatch roundtrip                                   | command | 5m  | Most-used pattern has no example        |
-| 20  | **Add query/example_test.go** — New + Register + DispatchTyped                                          | query   | 5m  | Same for queries                        |
-| 21  | **Add decider/example_test.go** — Decider + Repository + Execute                                        | decider | 8m  | Core aggregate pattern                  |
-| 22  | **Update storage/README.md** — add Turso section, v2 import paths                                       | storage | 5m  | Missing backend documentation           |
+| #  | Task                                                                                                    | Module  | Est | Impact                                  |
+| -- | ------------------------------------------------------------------------------------------------------- | ------- | --- | --------------------------------------- |
+| 18 | **Write a unified Getting Started guide** (docs/getting-started.md) showing full CQRS stack composition | docs    | 20m | No single entry point for new consumers |
+| 19 | **Add command/example_test.go** — New + Register + Dispatch roundtrip                                   | command | 5m  | Most-used pattern has no example        |
+| 20 | **Add query/example_test.go** — New + Register + DispatchTyped                                          | query   | 5m  | Same for queries                        |
+| 21 | **Add decider/example_test.go** — Decider + Repository + Execute                                        | decider | 8m  | Core aggregate pattern                  |
+| 22 | **Update storage/README.md** — add Turso section, v2 import paths                                       | storage | 5m  | Missing backend documentation           |
 
 ### Priority 6: Architecture (v3 Prep)
 
-| #   | Task                                                                                         | Module         | Est | Impact                               |
-| --- | -------------------------------------------------------------------------------------------- | -------------- | --- | ------------------------------------ |
-| 23  | **Design generic middleware interface** to eliminate 3x duplication                          | middleware     | 30m | Biggest code smell, design doc only  |
-| 24  | **Decouple command from event types** — extract shared types to `id/` or new `types/` module | command, event | 20m | Module boundary fix, design doc only |
-| 25  | **Set up PostgreSQL integration tests with testcontainers**                                  | integration    | 20m | PG code path has zero test coverage  |
+| #  | Task                                                                                         | Module         | Est | Impact                               |
+| -- | -------------------------------------------------------------------------------------------- | -------------- | --- | ------------------------------------ |
+| 23 | **Design generic middleware interface** to eliminate 3x duplication                          | middleware     | 30m | Biggest code smell, design doc only  |
+| 24 | **Decouple command from event types** — extract shared types to `id/` or new `types/` module | command, event | 20m | Module boundary fix, design doc only |
+| 25 | **Set up PostgreSQL integration tests with testcontainers**                                  | integration    | 20m | PG code path has zero test coverage  |
 
 ---
 

@@ -1,10 +1,10 @@
 # Status Report — go-cqrs-lite
 
-**Generated:** 2026-06-10 22:39  
-**Branch:** master  
-**Commits since v2.2.0:** 18  
-**Total Go LOC:** 75,252  
-**Go version:** 1.26.3  
+**Generated:** 2026-06-10 22:39\
+**Branch:** master\
+**Commits since v2.2.0:** 18\
+**Total Go LOC:** 75,252\
+**Go version:** 1.26.3\
 **Module count:** 31 (22 library + 6 examples + 1 integration + 2 cmd)
 
 ---
@@ -203,33 +203,33 @@ Integration packages show `[no statements]` coverage because they test wiring, n
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #   | Task                                                                                | Impact | Effort | Module                              |
-| --- | ----------------------------------------------------------------------------------- | ------ | ------ | ----------------------------------- |
-| 1   | Delete remaining 14 Must\* functions, replace test calls with Parse+t.Fatal         | High   | 2h     | id, command, query, event, snapshot |
-| 2   | Fix FEATURES.md — remove MustNew feature, update status after MustParseType removal | Medium | 15min  | docs                                |
-| 3   | Regenerate `docs/api_surface.txt` after Must\* removals                             | Medium | 5min   | docs                                |
-| 4   | Add storage/sql tests (query_engine, helpers, otel) to get coverage >80%            | High   | 2h     | storage/sql                         |
-| 5   | Remove dead `Backend` type/constants from pebble                                    | Low    | 5min   | pebble                              |
-| 6   | Add Pebble Journal/SeekableJournal implementation                                   | Medium | 4h     | pebble                              |
-| 7   | Add PostgreSQL integration tests for storage/                                       | High   | 4h     | storage                             |
-| 8   | Update AGENTS.md — remove MustParseType references, add Must\* removal note         | Low    | 10min  | docs                                |
-| 9   | Update CHANGELOG.md — add MustParseType removal entry                               | Low    | 5min   | docs                                |
-| 10  | Add `id.ParseAggregateID` usage examples to doc.go                                  | Low    | 30min  | id                                  |
-| 11  | Add module READMEs for remaining ~10 modules without them                           | Medium | 2h     | per-module                          |
-| 12  | Add `doc.go` with pkg.go.dev examples for remaining ~10 modules                     | Medium | 2h     | per-module                          |
-| 13  | Review and update TODO_LIST.md — all items are done/blocked                         | Low    | 30min  | docs                                |
-| 14  | Add error enrichment (aggregate type/ID) to storage error wrapping                  | Medium | 1h     | storage                             |
-| 15  | Add race detector to CI (`go test -race`) — verify all packages pass                | High   | 30min  | CI                                  |
-| 16  | Verify `nix run .#lint` passes after all changes                                    | Medium | 10min  | CI                                  |
-| 17  | Add benchmark regression CI check (prevent perf regressions)                        | Medium | 2h     | CI                                  |
-| 18  | Turso end-to-end integration test                                                   | Medium | 3h     | turso                               |
-| 19  | Extract HTTP transport from middleware/ (v3 planning)                               | Low    | 8h     | middleware → transport              |
-| 20  | Add catalog diff/breaking-change detection                                          | Medium | 4h     | catalog                             |
-| 21  | `event/eventtest` coverage improvement or explicit skip marker                      | Low    | 1h     | event/eventtest                     |
-| 22  | Audit remaining 5 invariant-guard panics for error-return feasibility               | Low    | 30min  | event, pebble, signing              |
-| 23  | Add `go test -count=1 -race ./...` to pre-commit hook                               | Medium | 15min  | CI                                  |
-| 24  | Consider `errors.Join` for batch operations (AppendBatch, MustNewEvents)            | Low    | 1h     | event, command                      |
-| 25  | Add example/ integration test — verify all examples compile and run                 | Medium | 1h     | examples                            |
+| #  | Task                                                                                | Impact | Effort | Module                              |
+| -- | ----------------------------------------------------------------------------------- | ------ | ------ | ----------------------------------- |
+| 1  | Delete remaining 14 Must\* functions, replace test calls with Parse+t.Fatal         | High   | 2h     | id, command, query, event, snapshot |
+| 2  | Fix FEATURES.md — remove MustNew feature, update status after MustParseType removal | Medium | 15min  | docs                                |
+| 3  | Regenerate `docs/api_surface.txt` after Must\* removals                             | Medium | 5min   | docs                                |
+| 4  | Add storage/sql tests (query_engine, helpers, otel) to get coverage >80%            | High   | 2h     | storage/sql                         |
+| 5  | Remove dead `Backend` type/constants from pebble                                    | Low    | 5min   | pebble                              |
+| 6  | Add Pebble Journal/SeekableJournal implementation                                   | Medium | 4h     | pebble                              |
+| 7  | Add PostgreSQL integration tests for storage/                                       | High   | 4h     | storage                             |
+| 8  | Update AGENTS.md — remove MustParseType references, add Must\* removal note         | Low    | 10min  | docs                                |
+| 9  | Update CHANGELOG.md — add MustParseType removal entry                               | Low    | 5min   | docs                                |
+| 10 | Add `id.ParseAggregateID` usage examples to doc.go                                  | Low    | 30min  | id                                  |
+| 11 | Add module READMEs for remaining ~10 modules without them                           | Medium | 2h     | per-module                          |
+| 12 | Add `doc.go` with pkg.go.dev examples for remaining ~10 modules                     | Medium | 2h     | per-module                          |
+| 13 | Review and update TODO_LIST.md — all items are done/blocked                         | Low    | 30min  | docs                                |
+| 14 | Add error enrichment (aggregate type/ID) to storage error wrapping                  | Medium | 1h     | storage                             |
+| 15 | Add race detector to CI (`go test -race`) — verify all packages pass                | High   | 30min  | CI                                  |
+| 16 | Verify `nix run .#lint` passes after all changes                                    | Medium | 10min  | CI                                  |
+| 17 | Add benchmark regression CI check (prevent perf regressions)                        | Medium | 2h     | CI                                  |
+| 18 | Turso end-to-end integration test                                                   | Medium | 3h     | turso                               |
+| 19 | Extract HTTP transport from middleware/ (v3 planning)                               | Low    | 8h     | middleware → transport              |
+| 20 | Add catalog diff/breaking-change detection                                          | Medium | 4h     | catalog                             |
+| 21 | `event/eventtest` coverage improvement or explicit skip marker                      | Low    | 1h     | event/eventtest                     |
+| 22 | Audit remaining 5 invariant-guard panics for error-return feasibility               | Low    | 30min  | event, pebble, signing              |
+| 23 | Add `go test -count=1 -race ./...` to pre-commit hook                               | Medium | 15min  | CI                                  |
+| 24 | Consider `errors.Join` for batch operations (AppendBatch, MustNewEvents)            | Low    | 1h     | event, command                      |
+| 25 | Add example/ integration test — verify all examples compile and run                 | Medium | 1h     | examples                            |
 
 ---
 

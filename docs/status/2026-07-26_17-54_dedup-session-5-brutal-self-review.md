@@ -7,19 +7,19 @@
 
 ## a) FULLY DONE
 
-| #   | Work item                                                                       | Verification                    |
-| --- | ------------------------------------------------------------------------------- | ------------------------------- |
-| 1   | **`wrapTransientOrOK` + `wrapInfraOrOK` in kv_sql.go** — 7 call sites collapsed | Tests pass, lint clean          |
-| 2   | **`codec.MarshalBase64JSONWithModule`** — 2 MarshalJSON methods collapsed       | Tests pass, lint clean          |
-| 3   | **Benchkit soak threshold** — 16MB→32MB, verified 3x under -race                | `go test -race -count=3` passes |
-| 4   | **ADR-0069** — error-wrapping convention                                        | doc-check passes                |
-| 5   | **`docs/dedup-acceptance.md`** — acceptance register                            | doc-check passes                |
-| 6   | **Dedup skill updated** — "unique code is a parameter" insight                  | —                               |
-| 7   | **AGENTS.md updated** — error-wrapping helper convention                        | —                               |
-| 8   | **api-stability golden** — regenerated for new export                           | Test passes                     |
-| 9   | **godoclint fix** in codec/base64_json.go                                       | Lint clean                      |
-| 10  | **art-dupl --semantic -t 5** — **0 groups** at skill's recommended threshold    | —                               |
-| 11  | **art-dupl --structural -t 5** — 134 groups, 2.5%, Health A                     | —                               |
+| #  | Work item                                                                       | Verification                    |
+| -- | ------------------------------------------------------------------------------- | ------------------------------- |
+| 1  | **`wrapTransientOrOK` + `wrapInfraOrOK` in kv_sql.go** — 7 call sites collapsed | Tests pass, lint clean          |
+| 2  | **`codec.MarshalBase64JSONWithModule`** — 2 MarshalJSON methods collapsed       | Tests pass, lint clean          |
+| 3  | **Benchkit soak threshold** — 16MB→32MB, verified 3x under -race                | `go test -race -count=3` passes |
+| 4  | **ADR-0069** — error-wrapping convention                                        | doc-check passes                |
+| 5  | **`docs/dedup-acceptance.md`** — acceptance register                            | doc-check passes                |
+| 6  | **Dedup skill updated** — "unique code is a parameter" insight                  | —                               |
+| 7  | **AGENTS.md updated** — error-wrapping helper convention                        | —                               |
+| 8  | **api-stability golden** — regenerated for new export                           | Test passes                     |
+| 9  | **godoclint fix** in codec/base64_json.go                                       | Lint clean                      |
+| 10 | **art-dupl --semantic -t 5** — **0 groups** at skill's recommended threshold    | —                               |
+| 11 | **art-dupl --structural -t 5** — 134 groups, 2.5%, Health A                     | —                               |
 
 ---
 

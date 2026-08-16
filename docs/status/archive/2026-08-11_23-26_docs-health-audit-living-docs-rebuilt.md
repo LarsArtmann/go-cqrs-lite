@@ -9,6 +9,7 @@
 ## a) FULLY DONE (verified)
 
 ### 1. TODO_LIST.md — full rebuild
+
 - **What:** Deleted all `[x]` done items (was littered with ~30 completed items
   across 7 phases — the dominant structural-decay failure mode). Harvested
   verified open items from 21 status reports + 4 planning docs. Every item
@@ -28,6 +29,7 @@
 - **Verification:** `grep -c "\[x\]" TODO_LIST.md` → 0. Build passes.
 
 ### 2. CHANGELOG.md — 7 missing `[Unreleased]` entries added
+
 - Layout convergence + audit trail + operator-lever regression matrix + DSN
   keyword/value fix (report #21)
 - Per-module coaching migration complete — all 28 rules (reports #16, #19)
@@ -42,6 +44,7 @@
 - **Result:** 6189 → 6333 lines.
 
 ### 3. FEATURES.md — accuracy fixes
+
 - Per-module detection: updated stale "~20 detectors still on primary profile"
   → "all 28 rules evaluate per-module" (verified via
   `integration_multimodule_test.go`).
@@ -57,22 +60,26 @@
 - Removed done item from PLANNED section (PostgreSQL testcontainers ✅ DONE).
 
 ### 4. ROADMAP.md — stale header fixed
+
 - Replaced v4.6.0 snapshot header (describing 2026-08-06 state) with current
   v4.7.0 + v5-in-progress state (86 modules, Phases 1-7, ADRs 0117/0123-0125,
   codec extraction).
 - Updated `[Unreleased]` release-history cell with accurate highlights.
 
 ### 5. 15 files archived (inline-annotated then `git mv`)
+
 - 11 status reports → `docs/status/archive/`
 - 3 planning docs → `docs/planning/archive/`
 - 1 feedback doc → `docs/feedback/archive/` (created dir)
 
 ### 6. 10 partial reports annotated inline
+
 - Report #21: BUG 1 + BUG 2 struck through with `✅ FIXED` + file:line evidence.
 - Reports #1, #2, #3, #7, #9, #10, #15, #18, #20: status banners citing
   CHANGELOG/TODO_LIST routing.
 
 ### 7. Verification gates passed
+
 - `go build -tags "goexperiment.jsonv2" ./...` → exit 0
 - `cmd/doc-check` → 779 references valid across 44 packages
 - TODO_LIST `[x]` count → 0
@@ -82,6 +89,7 @@
 ## b) PARTIALLY DONE
 
 ### 1. ANNOTATE quality — prependix-only on 11 archived reports
+
 - **What was done:** Each archived report got a status banner inserted after
   line 1: `✅ FULLY RESOLVED — archived.`
 - **What was NOT done:** The docs-health skill EXPLICITLY identifies
@@ -96,6 +104,7 @@
   — it is not.
 
 ### 2. VERIFY depth — partial gate
+
 - **What was done:** `go build` + `doc-check`.
 - **What was NOT done:** `nix run .#verify` (vet + test + race + lint +
   doc-assertions + check-arch), `nix fmt`, `nix run .#check-arch`,
@@ -105,6 +114,7 @@
   `doc-assertions` could flag claims I added.
 
 ### 3. ROADMAP Themes section — not pruned
+
 - The Themes section (lines 40-482) contains a massive list of ✅ completed
   items that belong in CHANGELOG, not ROADMAP. A roadmap should be
   forward-looking. I updated the header but left the trophy-case themes
@@ -136,6 +146,7 @@
 ## d) TOTALLY FUCKED UP
 
 ### 1. Prependix-only annotations on 11 archived reports — THE #1 FAILURE MODE
+
 The docs-health SKILL.md says, in bold, with a warning emoji:
 
 > ⚠️ **#1 FAILURE MODE: Appendix-only (or prependix-only) annotations.**
@@ -156,6 +167,7 @@ them" — but the entire point of annotation is that people DO read archived
 reports to find out "is this done?"
 
 ### 2. Claimed "GREEN" without running `nix run .#verify`
+
 I wrote "All gates green (build ✓, doc-check ✓)" in my summary. But I did
 NOT run the full verify gate. I ran `go build` and `doc-check` only. The
 AGENTS.md says: "every session that changes code, go.mod, or docs must run
@@ -166,6 +178,7 @@ I changed docs. I did not run the gate. I claimed GREEN. This is the exact
 anti-pattern documented in AGENTS.md under "Stale GREEN anti-pattern."
 
 ### 3. Did not verify against code before adding CHANGELOG entries
+
 I added 7 CHANGELOG entries based on what the status reports claimed. But
 several of those reports contained inaccuracies (e.g., report #21 claimed
 BUG 1/BUG 2 were open — they were fixed). I verified the BUGs but did NOT
@@ -213,48 +226,52 @@ incomplete or different from what the report described.
 ## f) Up to 50 things to do next
 
 ### Critical (fix what I fucked up)
+
 ~~1. **Inline-annotate every numbered item in the 11 archived reports** — go~~ done - the 2026-08-15 docs-health passes re-annotated the banner-only reports item-by-item (10-24, 10-36, 12-45, 13-01-02, 14-11-21, 14-14-59: every numbered item resolved inline with commit hashes)
-   through each report, strike through each item with `~~item~~ done at
+through each report, strike through each item with `~~item~~ done at
    <hash>` or `done — see CHANGELOG`. This is the #1 failure mode.
 ~~2. **Run `nix run .#verify-fast`** — the minimum gate I skipped.~~ done at 5f2198189 (full verify, not just verify-fast; three GREENs since)
 ~~3. **Run `nix fmt`** — format markdown edits.~~ done - lint/fmt clean since 444be10a7
 ~~4. **Verify each CHANGELOG entry I added against actual code** — some may~~ done - the docs-health passes code-verified claims before routing; stale premises corrected where found (e.g. the gates-wired-since-Aug-3 finding)
-   cite incomplete work.
+cite incomplete work.
 
 ### High priority (fix what I noticed but didn't fix)
+
 ~~5. **Fix AGENTS.md module count** — 79 → 86 `go.mod` files; update the~~ done - module count now 82 across AGENTS/FEATURES/ROADMAP (docs-health 2026-08-15)
-   Quick Reference and Module Map.
+Quick Reference and Module Map.
 ~~6. **Check `docs/DOMAIN_LANGUAGE.md`** for stale `codec/v4` import paths~~ done - DOMAIN_LANGUAGE import paths fixed by the 12-40 session
-   (flagged by report #20).
+(flagged by report #20).
 7. **Archive `docs/planning/2026-08-11_04-12_pareto-comprehensive-plan.html`**
-   or annotate it — it's an orphaned HTML file.
+or annotate it — it's an orphaned HTML file.
 8. **Run internal markdown link checker** — verify all cross-references
-   resolve.
+resolve.
 ~~9. **Audit ROADMAP Themes section** — flag the ✅ completed items that are~~ done in part - Theme 1 trophy block compressed (81 -> 23 lines, docs-health 2026-08-15); Themes 2-12 pruning = g) Q2, still pending user decision
-   really CHANGELOG content; decide whether to prune.
+really CHANGELOG content; decide whether to prune.
 
 ### From TODO_LIST (the work itself, not docs-health)
+
 ~~10. **Publish `go-codec` to GitHub + tag `v0.1.0`** — BLOCKER for `go mod~~ done - go-codec published (v0.1.0+ resolve through the proxy; consumer tides green)
     tidy` in 53 consumer modules (BLOCKED on user).
 ~~11. **Fix Dgraph `CounterBackend` DQL colon bug** — `$key%d string` →~~ done - counter bug fixed with regression guard (20-46 session); counter path reworked at 5127039da
-    `$key%d: string` at `counter.go:155` (single-character fix, XS effort).
+`$key%d: string` at `counter.go:155` (single-character fix, XS effort).
 ~~12. **Tag `id/v4.3.0`** → re-tag record/command/metaengine → tag~~ done - id/v4.4.0, record/v4.2.0, commandlifecycle/v4.0.0 + projections/v4.0.0 all tagged (verified 2026-08-13)
-    `commandlifecycle/v4.0.0` (BLOCKED on user approval).
+`commandlifecycle/v4.0.0` (BLOCKED on user approval).
 ~~13. **Extract `mergeMostPermissiveProfile` from `doctor.go`** — 568 lines~~ done - doctor.go split into doctor/doctor_profile/doctor_suppressions (20-46 session)
-    exceeds the 350-line CI limit.
+exceeds the 350-line CI limit.
 ~~14. **Run the stale-GREEN backlog** — `nix run .#verify` full gate across~~ done at 5f2198189
-    all the code shipped by 2026-08-11 sessions.
+all the code shipped by 2026-08-11 sessions.
 ~~15. **Update `METAENGINE-LAYOUT-PLANNING-MODEL.md`** — design doc still~~ done - on-disk calibration addendum + 'defaults to embedding' claims corrected (20-46 session)
-    says "defaults to embedding" but on-disk calibration contradicts this.
+says "defaults to embedding" but on-disk calibration contradicts this.
 ~~16. **Write ADR-0126** for codec extraction.~~ done - ADR-0126 written and shipped (d0e0b682b)
 ~~17. **Delete dead dirs** `codec/testdata/` and `codec/reports/`.~~ done - codec/ deleted entirely at 5127039da (ADR-0128)
 ~~18. **Audit/remove duplicate `replace` directives** in `system/go.mod` (3)~~ done - replace-directive audit by the 20-46 session (dead ones removed)
-    and `record/go.mod` (1).
+and `record/go.mod` (1).
 19. **Calibrate DuckDB (Columnar)** layout scoring — exact tie is fragile. <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
 20. **Calibrate Row-layout engines** (SQLite/PG/MySQL) — still analytical <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
-    estimates.
+estimates.
 
 ### Polish / hardening
+
 21. **Add per-module regression tests** for remaining cqrs-lint rules (F004, <- OPEN. TODO_LIST 'cqrs-lint' (per-module regression tests)
     F007, F009, F012, F017, F023-F029, B030).
 22. **Multi-engine integration test** with two real backends. <- OPEN. TODO_LIST 'Metaengine' (multi-engine, two real backends)
@@ -262,38 +279,39 @@ incomplete or different from what the report described.
     should be one.
 24. **Brute-force vector search on Pebble/bbolt.** <- OPEN. in flight - concurrent metaengine session writing bbolt/pebble vector backends now
 25. **Native graph dispatch on Postgres/MySQL** via recursive CTE. <- OPEN. in flight - pgengine/mysqlengine graph work in the concurrent session's tree
-~~26. **Fix Dgraph `JournalReadFrom` seq offset mismatch.**~~ done at 7c0a62c98 (position-based JournalReadFrom + shared contract suite)
-27. **macOS verification of ephemeral PG.** <- OPEN. TODO_LIST 'Code Quality' (macOS ephemeral-pg)
-~~28. **Write actual Redis/NATS integration tests.**~~ done for Redis at d8c73be0a; NATS deliberately not adopted (watermill-nats is deprecated NATS-Streaming tech) - broker-edge coverage = TODO_LIST 'Code Quality' (Wire broker tests into CI)
-29. **Run calibration benchmarks against baseline.** <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
-30. **Write v5 migration guide.** <- OPEN. TODO_LIST 'v5 Unification Phase 8' (migration guide)
-31. **Delete `stack.Materialize`** (Phase 8). <- OPEN. TODO_LIST 'v5 Unification Phase 8'
-32. **Delete `storage.RelationalProjection` + `storage/view`** (Phase 8). <- OPEN. TODO_LIST 'v5 Unification Phase 8'
-33. **Delete `graph.GraphProjection`** (Phase 8). <- OPEN. TODO_LIST 'v5 Unification Phase 8'
-34. **Delete `stack.Bundle` + all 8 presets** (Phase 8). <- OPEN. TODO_LIST 'v5 Unification Phase 8'
-35. **Cut v5.0.0.** <- OPEN. TODO_LIST 'v5 Unification Phase 8' (cut v5.0.0)
-36. **Complete go-codec project scaffolding** (CI, lint, FEATURES, etc.).
-37. **Fold-pipeline sync for Active+DualUse roles** (L). <- OPEN. TODO_LIST 'Metaengine - Layout Planning' (concurrent session designing METAENGINE-LAYOUT-ROLES.md)
-38. **Async replication for Backup+Migration roles** (L). <- OPEN. TODO_LIST 'Metaengine - Layout Planning'
-39. **Role transition API** (M). <- OPEN. TODO_LIST 'Metaengine - Layout Planning'
-40. **Real workload trace format** (M). <- OPEN. TODO_LIST 'Metaengine - Layout Planning'
-41. **Aggregate boundary config** (M). <- OPEN. TODO_LIST 'Metaengine - Layout Planning'
-42. **Per-fold mutex instead of global foldMu** (M). <- OPEN. in flight - fold_locks.go in the concurrent session's untracked set
-43. **Multi-collection batch atomicity** (L). <- OPEN. TODO_LIST 'Metaengine - Layout Planning'
-~~44. **Refactor `layout_observability.go`** to use shared `resolvePriority`.~~ done - layout_observability now calls resolvePriority directly (20-46 session)
-45. **Infrastructure polish** — `#check-lint-config`, `#verify-ci`, engine <- OPEN. TODO_LIST 'Code Quality' (Infrastructure polish)
+    ~~26. **Fix Dgraph `JournalReadFrom` seq offset mismatch.**~~ done at 7c0a62c98 (position-based JournalReadFrom + shared contract suite)
+26. **macOS verification of ephemeral PG.** <- OPEN. TODO_LIST 'Code Quality' (macOS ephemeral-pg)
+    ~~28. **Write actual Redis/NATS integration tests.**~~ done for Redis at d8c73be0a; NATS deliberately not adopted (watermill-nats is deprecated NATS-Streaming tech) - broker-edge coverage = TODO_LIST 'Code Quality' (Wire broker tests into CI)
+27. **Run calibration benchmarks against baseline.** <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
+28. **Write v5 migration guide.** <- OPEN. TODO_LIST 'v5 Unification Phase 8' (migration guide)
+29. **Delete `stack.Materialize`** (Phase 8). <- OPEN. TODO_LIST 'v5 Unification Phase 8'
+30. **Delete `storage.RelationalProjection` + `storage/view`** (Phase 8). <- OPEN. TODO_LIST 'v5 Unification Phase 8'
+31. **Delete `graph.GraphProjection`** (Phase 8). <- OPEN. TODO_LIST 'v5 Unification Phase 8'
+32. **Delete `stack.Bundle` + all 8 presets** (Phase 8). <- OPEN. TODO_LIST 'v5 Unification Phase 8'
+33. **Cut v5.0.0.** <- OPEN. TODO_LIST 'v5 Unification Phase 8' (cut v5.0.0)
+34. **Complete go-codec project scaffolding** (CI, lint, FEATURES, etc.).
+35. **Fold-pipeline sync for Active+DualUse roles** (L). <- OPEN. TODO_LIST 'Metaengine - Layout Planning' (concurrent session designing METAENGINE-LAYOUT-ROLES.md)
+36. **Async replication for Backup+Migration roles** (L). <- OPEN. TODO_LIST 'Metaengine - Layout Planning'
+37. **Role transition API** (M). <- OPEN. TODO_LIST 'Metaengine - Layout Planning'
+38. **Real workload trace format** (M). <- OPEN. TODO_LIST 'Metaengine - Layout Planning'
+39. **Aggregate boundary config** (M). <- OPEN. TODO_LIST 'Metaengine - Layout Planning'
+40. **Per-fold mutex instead of global foldMu** (M). <- OPEN. in flight - fold_locks.go in the concurrent session's untracked set
+41. **Multi-collection batch atomicity** (L). <- OPEN. TODO_LIST 'Metaengine - Layout Planning'
+    ~~44. **Refactor `layout_observability.go`** to use shared `resolvePriority`.~~ done - layout_observability now calls resolvePriority directly (20-46 session)
+42. **Infrastructure polish** — `#check-lint-config`, `#verify-ci`, engine <- OPEN. TODO_LIST 'Code Quality' (Infrastructure polish)
     `register.go` consolidation.
-46. **Recursive CTE optimization** for deep graph traversals on SQLite. <- OPEN. in flight - sqliteengine/graph.go modified in the concurrent session's tree
-47. **Audit `.golangci.yml` exclusion blocks** — track removable ones. <- OPEN. TODO_LIST 'Code Quality' (.golangci.yml exclusion audit)
-48. **Calibrate SQLite/Postgres/MySQL (Row) layout** — disk benchmarks. <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
-49. **Consider per-fold mutex** — parallel writes across different queries. <- OPEN. duplicate of 42 - in flight (fold_locks.go)
-50. **Run `nix run .#vulncheck`** — per-module standalone build check. <- OPEN. TODO_LIST 'Release / Tagging' (pre-tag checklist)
+43. **Recursive CTE optimization** for deep graph traversals on SQLite. <- OPEN. in flight - sqliteengine/graph.go modified in the concurrent session's tree
+44. **Audit `.golangci.yml` exclusion blocks** — track removable ones. <- OPEN. TODO_LIST 'Code Quality' (.golangci.yml exclusion audit)
+45. **Calibrate SQLite/Postgres/MySQL (Row) layout** — disk benchmarks. <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
+46. **Consider per-fold mutex** — parallel writes across different queries. <- OPEN. duplicate of 42 - in flight (fold_locks.go)
+47. **Run `nix run .#vulncheck`** — per-module standalone build check. <- OPEN. TODO_LIST 'Release / Tagging' (pre-tag checklist)
 
 ---
 
 ## g) Questions I CANNOT figure out myself
 
 ### Q1: Should I go back and inline-annotate all ~300-500 numbered items in the 11 archived reports?
+
 The docs-health skill says this is mandatory (#1 failure mode). But those
 reports are now in `docs/status/archive/` — readers rarely open them. The
 bang-for-buck is low: 300-500 edits for files few will read. Alternatively, I
@@ -302,6 +320,7 @@ with open questions or partial work). **Which threshold do you want: all 11,
 or only the highest-traffic 3-4?**
 
 ### Q2: Should the ROADMAP Themes section (440 lines of ✅ completed items) be pruned into CHANGELOG?
+
 Lines 40-482 list completed metaengine work with ✅ markers. This is
 structurally CHANGELOG content living in ROADMAP. Pruning it would make
 ROADMAP truly forward-looking (Themes → Raw Ideas → Non-Goals only). But it's
@@ -310,6 +329,7 @@ the vision. **Do you want the themes pruned to forward-looking-only, or kept
 as a "how we got here" narrative?**
 
 ### Q3: Should I publish `go-codec` to GitHub now, or do you want to review the repo first?
+
 `go mod tidy` is broken in all 53 consumer modules until go-codec is
 published with a `v0.1.0` tag. The `go.work` `replace` directive is a
 workaround for builds but not for `go mod tidy`. This blocks CI and anyone
@@ -321,20 +341,19 @@ report #20 asked — it was never answered.)
 
 ## Session metrics
 
-| Metric | Value |
-|--------|-------|
-| Files read (status reports + planning + feedback) | 25 |
-| Living docs updated | 4 (TODO_LIST, CHANGELOG, FEATURES, ROADMAP) |
-| Files archived | 15 (11 status + 3 planning + 1 feedback) |
-| Files annotated (partial) | 10 |
-| CHANGELOG entries added | 7 |
-| TODO_LIST items verified against code | ~40 |
-| Code-verified "already fixed" catches | 5 (BUG 1, BUG 2, FilterIn, module_scope, layoutAssignment) |
-| Verification gates run | `go build` ✓, `doc-check` (779 refs) ✓ |
-| Verification gates SKIPPED | `nix run .#verify`, `nix fmt`, `#check-arch`, `#check-coverage`, `#check-duplication` |
-| GREEN claims made | 1 (STALE — based on partial gate) |
-| #1 failure mode violations | 1 (prependix-only annotations on 11 reports) |
-
+| Metric                                            | Value                                                                                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Files read (status reports + planning + feedback) | 25                                                                                    |
+| Living docs updated                               | 4 (TODO_LIST, CHANGELOG, FEATURES, ROADMAP)                                           |
+| Files archived                                    | 15 (11 status + 3 planning + 1 feedback)                                              |
+| Files annotated (partial)                         | 10                                                                                    |
+| CHANGELOG entries added                           | 7                                                                                     |
+| TODO_LIST items verified against code             | ~40                                                                                   |
+| Code-verified "already fixed" catches             | 5 (BUG 1, BUG 2, FilterIn, module_scope, layoutAssignment)                            |
+| Verification gates run                            | `go build` ✓, `doc-check` (779 refs) ✓                                                |
+| Verification gates SKIPPED                        | `nix run .#verify`, `nix fmt`, `#check-arch`, `#check-coverage`, `#check-duplication` |
+| GREEN claims made                                 | 1 (STALE — based on partial gate)                                                     |
+| #1 failure mode violations                        | 1 (prependix-only annotations on 11 reports)                                          |
 
 ---
 

@@ -1,8 +1,8 @@
 # Comprehensive Status Report — go-cqrs-lite
 
-**Date:** 2026-04-30 02:41 CEST  
-**Branch:** master (1 commit ahead of origin)  
-**Session:** #12 — Post-Integration Module Completion  
+**Date:** 2026-04-30 02:41 CEST\
+**Branch:** master (1 commit ahead of origin)\
+**Session:** #12 — Post-Integration Module Completion\
 **Reporter:** Crush AI Assistant
 
 ---
@@ -286,33 +286,33 @@ The integration tests in `integration/aggregate/repository_test.go` cover it, bu
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Task                                                 | Module                      | Effort | Impact      | Priority |
-| --- | ---------------------------------------------------- | --------------------------- | ------ | ----------- | -------- |
-| 1   | **Fix `core/aggregate` coverage (21.1% → 90%+)**     | `core/aggregate`            | 30min  | 🔴 CRITICAL | **P0**   |
-| 2   | **Create `storage/` module + PostgreSQL schema**     | `storage/`                  | 45min  | 🔴 CRITICAL | **P0**   |
-| 3   | **Implement `event.Store` SQL adapter**              | `storage/`                  | 30min  | 🔴 CRITICAL | **P0**   |
-| 4   | **Add `Codec` interface to core**                    | `core/event`                | 15min  | HIGH        | **P1**   |
-| 5   | **Add `Upcaster` interface to core**                 | `core/event`                | 15min  | HIGH        | **P1**   |
-| 6   | **Add `Projection` interface + `CheckpointStore`**   | `core/projection`           | 20min  | HIGH        | **P1**   |
-| 7   | **Write storage module design doc**                  | `docs/planning/`            | 15min  | MEDIUM      | **P1**   |
-| 8   | **Add `core/command` error path tests (95% → 100%)** | `core/command`              | 10min  | LOW         | **P2**   |
-| 9   | **Add `core/query` error path tests (91% → 100%)**   | `core/query`                | 10min  | LOW         | **P2**   |
-| 10  | **Create `watermill/` module**                       | `watermill/`                | 15min  | HIGH        | **P2**   |
-| 11  | **Implement `event.Bus` via Watermill**              | `watermill/`                | 30min  | HIGH        | **P2**   |
-| 12  | **Add working `example/user/`**                      | `example/`                  | 20min  | MEDIUM      | **P2**   |
-| 13  | **Tag `core/v1.0.0`**                                | Git                         | 5min   | HIGH        | **P2**   |
-| 14  | **Tag `memory/v1.0.0`**                              | Git                         | 5min   | HIGH        | **P2**   |
-| 15  | **Add SQLite storage support**                       | `storage/`                  | 30min  | MEDIUM      | **P3**   |
-| 16  | **Add snapshot strategies**                          | `core/aggregate`            | 20min  | MEDIUM      | **P3**   |
-| 17  | **Implement background outbox publisher**            | `storage/` or `middleware/` | 25min  | MEDIUM      | **P3**   |
-| 18  | **Add `catalog` coverage gaps**                      | `catalog/`                  | 20min  | LOW         | **P3**   |
-| 19  | **Extract shared lifecycle pattern**                 | `core/pkg/lifecycle/`       | 15min  | LOW         | **P4**   |
-| 20  | **Extract shared middleware chain pattern**          | `core/pkg/middleware/`      | 15min  | LOW         | **P4**   |
-| 21  | **Write saga design doc**                            | `docs/planning/`            | 15min  | MEDIUM      | **P4**   |
-| 22  | **Add GitHub Pages go-import tags**                  | `docs/index.html`           | 10min  | MEDIUM      | **P4**   |
-| 23  | **Write upcasting design doc**                       | `docs/planning/`            | 10min  | MEDIUM      | **P4**   |
-| 24  | **Add end-to-end throughput benchmarks**             | `integration/`              | 20min  | LOW         | **P5**   |
-| 25  | **Add `AggregateID` generic type parameter**         | `core/aggregate`            | 30min  | MEDIUM      | **P5**   |
+| #  | Task                                                 | Module                      | Effort | Impact      | Priority |
+| -- | ---------------------------------------------------- | --------------------------- | ------ | ----------- | -------- |
+| 1  | **Fix `core/aggregate` coverage (21.1% → 90%+)**     | `core/aggregate`            | 30min  | 🔴 CRITICAL | **P0**   |
+| 2  | **Create `storage/` module + PostgreSQL schema**     | `storage/`                  | 45min  | 🔴 CRITICAL | **P0**   |
+| 3  | **Implement `event.Store` SQL adapter**              | `storage/`                  | 30min  | 🔴 CRITICAL | **P0**   |
+| 4  | **Add `Codec` interface to core**                    | `core/event`                | 15min  | HIGH        | **P1**   |
+| 5  | **Add `Upcaster` interface to core**                 | `core/event`                | 15min  | HIGH        | **P1**   |
+| 6  | **Add `Projection` interface + `CheckpointStore`**   | `core/projection`           | 20min  | HIGH        | **P1**   |
+| 7  | **Write storage module design doc**                  | `docs/planning/`            | 15min  | MEDIUM      | **P1**   |
+| 8  | **Add `core/command` error path tests (95% → 100%)** | `core/command`              | 10min  | LOW         | **P2**   |
+| 9  | **Add `core/query` error path tests (91% → 100%)**   | `core/query`                | 10min  | LOW         | **P2**   |
+| 10 | **Create `watermill/` module**                       | `watermill/`                | 15min  | HIGH        | **P2**   |
+| 11 | **Implement `event.Bus` via Watermill**              | `watermill/`                | 30min  | HIGH        | **P2**   |
+| 12 | **Add working `example/user/`**                      | `example/`                  | 20min  | MEDIUM      | **P2**   |
+| 13 | **Tag `core/v1.0.0`**                                | Git                         | 5min   | HIGH        | **P2**   |
+| 14 | **Tag `memory/v1.0.0`**                              | Git                         | 5min   | HIGH        | **P2**   |
+| 15 | **Add SQLite storage support**                       | `storage/`                  | 30min  | MEDIUM      | **P3**   |
+| 16 | **Add snapshot strategies**                          | `core/aggregate`            | 20min  | MEDIUM      | **P3**   |
+| 17 | **Implement background outbox publisher**            | `storage/` or `middleware/` | 25min  | MEDIUM      | **P3**   |
+| 18 | **Add `catalog` coverage gaps**                      | `catalog/`                  | 20min  | LOW         | **P3**   |
+| 19 | **Extract shared lifecycle pattern**                 | `core/pkg/lifecycle/`       | 15min  | LOW         | **P4**   |
+| 20 | **Extract shared middleware chain pattern**          | `core/pkg/middleware/`      | 15min  | LOW         | **P4**   |
+| 21 | **Write saga design doc**                            | `docs/planning/`            | 15min  | MEDIUM      | **P4**   |
+| 22 | **Add GitHub Pages go-import tags**                  | `docs/index.html`           | 10min  | MEDIUM      | **P4**   |
+| 23 | **Write upcasting design doc**                       | `docs/planning/`            | 10min  | MEDIUM      | **P4**   |
+| 24 | **Add end-to-end throughput benchmarks**             | `integration/`              | 20min  | LOW         | **P5**   |
+| 25 | **Add `AggregateID` generic type parameter**         | `core/aggregate`            | 30min  | MEDIUM      | **P5**   |
 
 ---
 

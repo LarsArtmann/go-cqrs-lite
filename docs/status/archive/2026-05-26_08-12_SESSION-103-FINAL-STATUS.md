@@ -1,10 +1,10 @@
 # Comprehensive Status Report — Session 103 Final
 
-**Date:** 2026-05-26 08:12 CEST  
-**Branch:** `master` (ahead of origin by 11 commits)  
-**Commit:** `3b81d53`  
-**Go Version:** 1.26.3  
-**Modules:** 14 (13 in `go.work` + root)  
+**Date:** 2026-05-26 08:12 CEST\
+**Branch:** `master` (ahead of origin by 11 commits)\
+**Commit:** `3b81d53`\
+**Go Version:** 1.26.3\
+**Modules:** 14 (13 in `go.work` + root)\
 **Tags:** 12 module-level v1.0.0 tags at HEAD
 
 ---
@@ -67,19 +67,19 @@
 
 **Nothing is fundamentally broken.** But there are **honesty gaps** that will confuse consumers:
 
-1. **FEATURES.md lies about Saga, Watermill, Stream Loading, cqrs-gen, VersionedStore, OutboxPoller**  
+1. **FEATURES.md lies about Saga, Watermill, Stream Loading, cqrs-gen, VersionedStore, OutboxPoller**\
    These all have production code and v1.0.0 tags. FEATURES.md lists them under "📐 PLANNED — no production code." A consumer reading FEATURES.md will think the library is missing its most distinctive features.
 
-2. **CHANGELOG coverage claims are inflated**  
+2. **CHANGELOG coverage claims are inflated**\
    "Saga coverage: 70.5% → ~92%" — actual is 80.3%. This is a 12-point discrepancy. If a consumer checks the coverage badge, they'll find a mismatch.
 
-3. **README still references `catalog/adapters`**  
+3. **README still references `catalog/adapters`**\
    Session 99 deleted `catalog/adapters` (616 lines). README line 411 still shows `adapters.NewBuilder`, `AddCommandFromType`, `FromCommandDispatcher`. These APIs no longer exist.
 
-4. **`core/aggregate` is "deprecated" but treated as first-class**  
+4. **`core/aggregate` is "deprecated" but treated as first-class**\
    The package has `// Deprecated:` notice but is documented in FEATURES.md as "✅ Production" with 95.9% coverage. This is a mixed message — deprecated or production?
 
-5. **saga `options.go` is dead code**  
+5. **saga `options.go` is dead code**\
    `WithLogger`, `WithRetryPolicy`, `WithRetryMultiplier` exist but are never wired into the Runner. The Runner uses `defaultConfig()` and ignores options. This is dishonest API surface.
 
 ---
@@ -109,33 +109,33 @@
 
 ## f) Top #25 Things to Get Done Next
 
-| #   | Task                                                                       | Module               | Impact       | Effort  | Pareto |
-| --- | -------------------------------------------------------------------------- | -------------------- | ------------ | ------- | ------ |
-| 1   | Fix FEATURES.md — document saga, watermill, stream, cqrs-gen, OutboxPoller | docs                 | High         | 30m     | 1%     |
-| 2   | Fix README — remove `catalog/adapters` references                          | docs                 | High         | 15m     | 1%     |
-| 3   | Fix CHANGELOG coverage claims to actual numbers                            | docs                 | Low          | 5m      | 1%     |
-| 4   | Wire saga options (`WithLogger`, `WithRetryPolicy`) into `NewRunner`       | saga                 | High         | 30m     | 1%     |
-| 5   | Add saga `compensate()` failure path tests                                 | saga                 | Medium       | 30m     | 4%     |
-| 6   | Add saga timeout cancellation test                                         | saga                 | Medium       | 20m     | 4%     |
-| 7   | Add cqrs-gen CLI argument parsing test                                     | cmd/cqrs-gen         | Medium       | 20m     | 4%     |
-| 8   | Add cqrs-gen error path tests (bad output dir, etc.)                       | cmd/cqrs-gen         | Medium       | 20m     | 4%     |
-| 9   | Add `SchemaToAny` marshal-failure test                                     | catalog/schemautil   | Low          | 10m     | 20%    |
-| 10  | Add PostgreSQL integration test (testcontainers)                           | storage              | High         | 2h      | 20%    |
-| 11  | Add Watermill subscriber integration test                                  | watermill            | Medium       | 45m     | 20%    |
-| 12  | Add `event.Event.Clone()` defensive copy method                            | core/event           | Medium       | 30m     | 20%    |
-| 13  | Add context cancellation to `SQLOutbox` methods                            | storage              | Medium       | 30m     | 20%    |
-| 14  | Remove `replace` directives from all `go.mod` files                        | all                  | High         | 1h      | 20%    |
-| 15  | Add `GOWORK=off` CI matrix job                                             | CI                   | Medium       | 30m     | 20%    |
-| 16  | Add minimum coverage gate (80%) to CI                                      | CI                   | Medium       | 15m     | 20%    |
-| 17  | Resolve `core/aggregate` deprecation status                                | core                 | Medium       | 30m     | 20%    |
-| 18  | Add `catalog/d2` golden test                                               | catalog/d2           | Low          | 30m     | 20%    |
-| 19  | Add `eventcatalog` writer split (408→3 files)                              | catalog/eventcatalog | Low          | 1h      | 20%    |
-| 20  | Add OpenTelemetry span attribute assertions                                | middleware           | Low          | 30m     | 20%    |
-| 21  | Add `PebbleStore` optimistic concurrency fix                               | storage              | Medium       | 1h      | 20%    |
-| 22  | Add `catalog` enum/default struct tag support                              | catalog              | Medium       | 2h      | 20%    |
-| 23  | Make AsyncAPI servers configurable                                         | catalog/asyncapi     | Low          | 30m     | 20%    |
-| 24  | Add `event.Event.Clone()` + `event.Context` propagation                    | core/event           | Medium       | 45m     | 20%    |
-| 25  | Consumer trial — import saga/watermill into real project                   | external             | **Critical** | ongoing | 20%    |
+| #  | Task                                                                       | Module               | Impact       | Effort  | Pareto |
+| -- | -------------------------------------------------------------------------- | -------------------- | ------------ | ------- | ------ |
+| 1  | Fix FEATURES.md — document saga, watermill, stream, cqrs-gen, OutboxPoller | docs                 | High         | 30m     | 1%     |
+| 2  | Fix README — remove `catalog/adapters` references                          | docs                 | High         | 15m     | 1%     |
+| 3  | Fix CHANGELOG coverage claims to actual numbers                            | docs                 | Low          | 5m      | 1%     |
+| 4  | Wire saga options (`WithLogger`, `WithRetryPolicy`) into `NewRunner`       | saga                 | High         | 30m     | 1%     |
+| 5  | Add saga `compensate()` failure path tests                                 | saga                 | Medium       | 30m     | 4%     |
+| 6  | Add saga timeout cancellation test                                         | saga                 | Medium       | 20m     | 4%     |
+| 7  | Add cqrs-gen CLI argument parsing test                                     | cmd/cqrs-gen         | Medium       | 20m     | 4%     |
+| 8  | Add cqrs-gen error path tests (bad output dir, etc.)                       | cmd/cqrs-gen         | Medium       | 20m     | 4%     |
+| 9  | Add `SchemaToAny` marshal-failure test                                     | catalog/schemautil   | Low          | 10m     | 20%    |
+| 10 | Add PostgreSQL integration test (testcontainers)                           | storage              | High         | 2h      | 20%    |
+| 11 | Add Watermill subscriber integration test                                  | watermill            | Medium       | 45m     | 20%    |
+| 12 | Add `event.Event.Clone()` defensive copy method                            | core/event           | Medium       | 30m     | 20%    |
+| 13 | Add context cancellation to `SQLOutbox` methods                            | storage              | Medium       | 30m     | 20%    |
+| 14 | Remove `replace` directives from all `go.mod` files                        | all                  | High         | 1h      | 20%    |
+| 15 | Add `GOWORK=off` CI matrix job                                             | CI                   | Medium       | 30m     | 20%    |
+| 16 | Add minimum coverage gate (80%) to CI                                      | CI                   | Medium       | 15m     | 20%    |
+| 17 | Resolve `core/aggregate` deprecation status                                | core                 | Medium       | 30m     | 20%    |
+| 18 | Add `catalog/d2` golden test                                               | catalog/d2           | Low          | 30m     | 20%    |
+| 19 | Add `eventcatalog` writer split (408→3 files)                              | catalog/eventcatalog | Low          | 1h      | 20%    |
+| 20 | Add OpenTelemetry span attribute assertions                                | middleware           | Low          | 30m     | 20%    |
+| 21 | Add `PebbleStore` optimistic concurrency fix                               | storage              | Medium       | 1h      | 20%    |
+| 22 | Add `catalog` enum/default struct tag support                              | catalog              | Medium       | 2h      | 20%    |
+| 23 | Make AsyncAPI servers configurable                                         | catalog/asyncapi     | Low          | 30m     | 20%    |
+| 24 | Add `event.Event.Clone()` + `event.Context` propagation                    | core/event           | Medium       | 45m     | 20%    |
+| 25 | Consumer trial — import saga/watermill into real project                   | external             | **Critical** | ongoing | 20%    |
 
 ---
 
@@ -192,9 +192,9 @@ This is the only question that requires a human decision with tradeoffs we canno
 | testhelpers          | 91.2%     | ✅     |
 | projection           | 94.4%     | ✅     |
 | storage              | 89.6%     | ✅     |
-| **saga**             | **80.3%** | ⚠️     |
+| **saga**             | **80.3%** | ⚠️      |
 | watermill            | 89.6%     | ✅     |
-| **cmd/cqrs-gen**     | **46.1%** | ⚠️     |
+| **cmd/cqrs-gen**     | **46.1%** | ⚠️      |
 
 ---
 
@@ -211,5 +211,5 @@ This is the only question that requires a human decision with tradeoffs we canno
 
 ---
 
-_Generated: 2026-05-26 08:12 CEST_  
+_Generated: 2026-05-26 08:12 CEST_\
 _Session: 103 (continued)_

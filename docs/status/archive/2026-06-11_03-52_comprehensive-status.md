@@ -31,7 +31,7 @@
 | `middleware/`  | ✅ Production | Logging, Retry, Recovery, Validation, Metrics, OTel Tracing+Metrics, SSE, HealthCheck                            |
 | `signing/`     | ✅ Production | HMAC-SHA256, Ed25519, multisig, middleware                                                                       |
 | `encryption/`  | ✅ Production | XChaCha20-Poly1305, AES-256-GCM, codec wrapper, Algorithm enum, KeyID phantom type                               |
-| `projection/`  | ✅ Production | Runner (replay+live), HandlerRegistry, Builder with On[T](<>)                                                    |
+| `projection/`  | ✅ Production | Runner (replay+live), HandlerRegistry, Builder with On[T]()                                                      |
 | `storage/`     | ✅ Production | SQLEventStore/SnapshotStore/CheckpointStore (PG/SQLite/Turso)                                                    |
 | `otel/`        | ✅ Production | Shared OTel helpers: Tracer, Meter, Spans, Attributes                                                            |
 | `listing/`     | ✅ Production | AggregateListing, StatusMiddleware, tombstone detection                                                          |
@@ -66,8 +66,8 @@
 
 ## b) PARTIALLY DONE ⚠️
 
-| Item                               | Status                    | What's Missing                                                                                                                                        |
-| ---------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item                               | Status                   | What's Missing                                                                                                                                        |
+| ---------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Test deduplication in catalog/** | ⚠️ Designed, not executed | `cattest` helpers exist but 34 test sites still inline `catalog.Service{ID:..., Name:..., Version:"1.0.0"}`. Design approved. Migration not yet done. |
 | **Phantom types rollout**          | ⚠️ In progress            | Strong IDs added to many modules (catalog, encryption KeyID, etc.) but some modules may still use raw strings for IDs in tests or internal paths      |
 | **Golden test drift**              | ⚠️ Recurring              | Golden tests have drifted before (commit e699df0 fixed it). CI catches it but it's a recurring maintenance burden.                                    |
@@ -113,33 +113,33 @@ No critical issues. Examples were fixed in prior commit (8f5f0d31). Library comp
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #   | Task                                                                           | Impact      | Effort | Rationale                                       |
-| --- | ------------------------------------------------------------------------------ | ----------- | ------ | ----------------------------------------------- |
-| 1   | **Commit ErrorExporter deprecation**                                           | 🔴 Critical | 1min   | Done in working tree, needs git commit          |
-| 2   | **Fix unused writes in eventcatalog frontmatter test**                         | Low         | 5min   | Clean lint                                      |
-| 3   | **Migrate 34 catalog test sites to cattest helpers**                           | High        | 1hr    | Eliminates all reported clones, approved design |
-| 4   | **Phantom type audit: grep for raw string where branded types belong**         | High        | 30min  | Consistency, type safety                        |
-| 5   | **Add CI gate for api-stability checker**                                      | High        | 30min  | Prevents silent breaking changes                |
-| 6   | **Automate golden test drift detection**                                       | Medium      | 1hr    | Recurring pain point                            |
-| 7   | **Write consumer getting-started guide (README section)**                      | High        | 2hr    | First thing new users see                       |
-| 8   | **Module README audit: ensure all 31 have README**                             | Medium      | 2hr    | Discoverability                                 |
-| 9   | **Add `nix run .#coverage` command**                                           | Medium      | 30min  | Developer experience                            |
-| 10  | **Error context enrichment pass on storage/sql**                               | Medium      | 1hr    | Production debugging quality                    |
-| 11  | **Error context enrichment pass on middleware/**                               | Medium      | 1hr    | Same                                            |
-| 12  | **Add benchmark regression detection in CI**                                   | Medium      | 2hr    | Prevent perf regressions                        |
-| 13  | **Extract shared test helpers from integration/ into testutil/**               | Low         | 1hr    | Already started (commit 4408c003), finish it    |
-| 14  | **Add `// Deprecated:` annotations to any remaining legacy APIs**              | Low         | 1hr    | Consumer migration guidance                     |
-| 15  | **Coverage enforcement: fail CI if any module drops below 80%**                | Medium      | 1hr    | Quality gate                                    |
-| 16  | **Add doc.go with pkg.go.dev examples to modules missing them**                | Medium      | 2hr    | API documentation                               |
-| 17  | **Review catalog/exporter.go for v3 migration path**                           | Low         | 30min  | Plan ahead for Exporter[(*T, error)]            |
-| 18  | **Add `go vulncheck` to CI**                                                   | High        | 30min  | Security                                        |
-| 19  | **Review all `//nolint` directives for necessity**                             | Low         | 1hr    | Some may be stale                               |
-| 20  | **Consolidate test assertion helpers across sub-packages**                     | Low         | 1hr    | cattest/assertions.go is good, extend pattern   |
-| 21  | **Add integration test for full lifecycle: register → export → verify**        | Medium      | 2hr    | End-to-end confidence                           |
-| 22  | **Document the module dependency graph in README or docs/**                    | Low         | 30min  | Architecture clarity                            |
-| 23  | **Review pebble/ for production readiness gaps**                               | Medium      | 2hr    | Embedded store needs scrutiny                   |
-| 24  | **Plan v3.0 milestone: what breaks, what improves**                            | Low         | 1hr    | Strategic planning                              |
-| 25  | **Add property-based tests for catalog roundtrip (registry → build → export)** | Medium      | 1hr    | Correctness confidence                          |
+| #  | Task                                                                           | Impact      | Effort | Rationale                                       |
+| -- | ------------------------------------------------------------------------------ | ----------- | ------ | ----------------------------------------------- |
+| 1  | **Commit ErrorExporter deprecation**                                           | 🔴 Critical | 1min   | Done in working tree, needs git commit          |
+| 2  | **Fix unused writes in eventcatalog frontmatter test**                         | Low         | 5min   | Clean lint                                      |
+| 3  | **Migrate 34 catalog test sites to cattest helpers**                           | High        | 1hr    | Eliminates all reported clones, approved design |
+| 4  | **Phantom type audit: grep for raw string where branded types belong**         | High        | 30min  | Consistency, type safety                        |
+| 5  | **Add CI gate for api-stability checker**                                      | High        | 30min  | Prevents silent breaking changes                |
+| 6  | **Automate golden test drift detection**                                       | Medium      | 1hr    | Recurring pain point                            |
+| 7  | **Write consumer getting-started guide (README section)**                      | High        | 2hr    | First thing new users see                       |
+| 8  | **Module README audit: ensure all 31 have README**                             | Medium      | 2hr    | Discoverability                                 |
+| 9  | **Add `nix run .#coverage` command**                                           | Medium      | 30min  | Developer experience                            |
+| 10 | **Error context enrichment pass on storage/sql**                               | Medium      | 1hr    | Production debugging quality                    |
+| 11 | **Error context enrichment pass on middleware/**                               | Medium      | 1hr    | Same                                            |
+| 12 | **Add benchmark regression detection in CI**                                   | Medium      | 2hr    | Prevent perf regressions                        |
+| 13 | **Extract shared test helpers from integration/ into testutil/**               | Low         | 1hr    | Already started (commit 4408c003), finish it    |
+| 14 | **Add `// Deprecated:` annotations to any remaining legacy APIs**              | Low         | 1hr    | Consumer migration guidance                     |
+| 15 | **Coverage enforcement: fail CI if any module drops below 80%**                | Medium      | 1hr    | Quality gate                                    |
+| 16 | **Add doc.go with pkg.go.dev examples to modules missing them**                | Medium      | 2hr    | API documentation                               |
+| 17 | **Review catalog/exporter.go for v3 migration path**                           | Low         | 30min  | Plan ahead for Exporter[(*T, error)]            |
+| 18 | **Add `go vulncheck` to CI**                                                   | High        | 30min  | Security                                        |
+| 19 | **Review all `//nolint` directives for necessity**                             | Low         | 1hr    | Some may be stale                               |
+| 20 | **Consolidate test assertion helpers across sub-packages**                     | Low         | 1hr    | cattest/assertions.go is good, extend pattern   |
+| 21 | **Add integration test for full lifecycle: register → export → verify**        | Medium      | 2hr    | End-to-end confidence                           |
+| 22 | **Document the module dependency graph in README or docs/**                    | Low         | 30min  | Architecture clarity                            |
+| 23 | **Review pebble/ for production readiness gaps**                               | Medium      | 2hr    | Embedded store needs scrutiny                   |
+| 24 | **Plan v3.0 milestone: what breaks, what improves**                            | Low         | 1hr    | Strategic planning                              |
+| 25 | **Add property-based tests for catalog roundtrip (registry → build → export)** | Medium      | 1hr    | Correctness confidence                          |
 
 ---
 
@@ -154,8 +154,8 @@ The design is approved. The helpers exist. But migrating 34 sites across 5 test 
 ## Uncommitted Changes
 
 ```
- catalog/exporter.go            | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+catalog/exporter.go            | 6 +++---
+1 file changed, 3 insertions(+), 3 deletions(-)
 ```
 
 **Change**: `ErrorExporter` collapsed to `type ErrorExporter = Exporter[error]` with `// Deprecated:` annotation.

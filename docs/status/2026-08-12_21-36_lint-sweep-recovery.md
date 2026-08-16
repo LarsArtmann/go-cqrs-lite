@@ -74,6 +74,7 @@
 ## f) NEXT 50 THINGS TO DO
 
 ### Critical (block merge)
+
 ~~1. Commit the 11 changed files on `lint-sweep-recovery`~~ done - branch landed via the merge 0e4a16a8a
 ~~2. Run `nix run .#lint` on the full workspace~~ done - 76/76 modules clean since 444be10a7
 ~~3. Run `nix run .#verify` (or at minimum `nix run .#verify-fast`)~~ done at 5f2198189
@@ -81,67 +82,80 @@
 ~~5. Run `go vet -tags "goexperiment.jsonv2" ./...`~~ done - vet phase green in every verify since
 
 ### Branch cleanup
+
 ~~6. Decide master branch strategy: fast-forward to `2b72de54f` + cherry-pick, or merge `lint-sweep-recovery`~~ done - resolved by merge: 0e4a16a8a restored the deleted modules/infra (see the 01-02 post-merge review)
 7. Clean up `stash@{0}` (orphaned changes from pre-recovery master) <- OPEN. stash@{0} (WIP @ e87be3143) still exists - TODO_LIST 'Code Quality' junk-cleanup item
 ~~8. Delete or archive the old `docs/status/2026-08-12_12-45_lint-sweep-blocked-by-concurrent-refactor.md` (now stale)~~ done - 12-45 annotated item-by-item and archived by the docs-health pass 2026-08-15
 
 ### API stability
+
 ~~9. Run `cd cmd/api-stability && GOWORK=off go run main.go -update` (regenerate golden)~~ done - golden current (4133 exports)
 ~~10. Run `cd cmd/api-stability && GOWORK=off go test -run TestEvery .` (meta-tests)~~ done - meta-tests green
 ~~11. Verify `.golangci.yml` change doesn't affect the api-stability surface~~ done - api-stability green in every verify since
 
 ### Doc consistency
+
 ~~12. Run `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`~~ done - doc-check green (797 refs)
 13. Update AGENTS.md with the codec/alias.go exclusion pattern <- NOT-DO - codec/ deleted at 5127039da; the exclusion died with it
 14. Add AGENTS.md rule: "Never run two agents in the same workspace — use git worktree"
 
 ### Full lint sweep (original goal)
+
 ~~15. Run `nix run .#lint` and capture output to `/tmp/lint_clean_baseline.txt`~~ done - zero issues across all modules (76/76)
 ~~16. For each module with issues: fix, verify per-module, commit~~ done - same
 ~~17. Target: zero issues across all 80+ modules~~ done - same
 ~~18. Pay attention to modules NOT yet checked: `event/`, `command/`, `query/`, `decider/`, `storage/*`, `stack/*`, `system/`, `catalog/`, `transport/*`, `watermill/`, `scheduling/`, `signing/`, `encryption/`, `kv/`, `graph/`, `listing/`, `scenario/`, `deriver/`, `commandlifecycle/`, `snapshot/`, `projection/`, `projectionhost/`, `schema/`, `otel/`, `prometheus/`, `idempotency/*`, `record/`, `metadata/`, `dedup/`, `dispatcher/`, `retry/`, `id/`, `testutil/`, `benchkit/`, `integration/`, `example/*`~~ done - full-workspace lint covers all of them
 
 ### Pre-existing gci issues (unmasked by fixes)
+
 ~~19. Check if other `cmd/*` modules have the same import grouping issue (go-codec + go-error-family in wrong order)~~ done at 2e9a2fc28/444be10a7 - the 95-file gci wave fixed and lint stays clean
 ~~20. Fix any gci issues found across all modules~~ done - same
 
 ### nolint directive audit
+
 ~~21. After `nix fmt`, verify all `//nolint:staticcheck` comments are on the correct line~~ done - lint clean; nolintlint enforces directive hygiene
 22. Consider extracting an exported `testutil.NewTestIdempotencyStore` so external `_test` packages don't need inline nolint
 23. Audit all existing nolint directives in the codebase for staleness
 
 ### metaengine recovery (if we want any of the concurrent agent's work)
+
 ~~24. Review the 60 deleted metaengine core files — were any of them improvements we want to cherry-pick?~~ done at 0e4a16a8a - merge restored the deleted modules and core infra; nothing left to cherry-pick
 ~~25. Review the file consolidation (store.go 672 lines, execute.go 566 lines) — this violates the 350-line rule~~ done - the 672/566-line mega-files died with the broken snapshot; 350-line rule enforced since
 ~~26. Check if any of the 164 deleted files contain improvements worth salvaging~~ done - resolved by the merge (everything restored or superseded)
 27. The `codec/` re-import (30+ implementation files replacing alias.go) — was any of this new/updated code? <- NOT-DO - codec/ deleted outright at 5127039da (ADR-0128)
 
 ### Test coverage
+
 ~~28. Run middleware full test suite with `-race`: `go test -race -tags "goexperiment.jsonv2" ./middleware/...`~~ done - race phase green 3x since 5f2198189
 ~~29. Run metaengine full test suite with `-race`~~ done - same
 ~~30. Run `nix run .#check-coverage` — coverage drift detection~~ done - gate repaired at 875bb689b; green since
 
 ### Dependency/architecture checks
+
 ~~31. Run `nix run .#check-arch` — dependency budget enforcement~~ done - green inside #verify since (layer keys repaired)
 ~~32. Run `nix run .#check-duplication` — no-new-clones gate~~ done - baseline re-pinned; green since
 ~~33. Verify no new production deps were added by the lint fixes~~ done - no new production deps (check-arch green)
 
 ### Integration tests
+
 ~~34. Run `nix run .#test-integration` or at minimum `nix run .#test` ~~ done - verify green 3x (SQLite+Pebble+bbolt+DuckDB legs pass)
 ~~35. Verify SQLite + Pebble + bbolt + DuckDB backends still pass~~ done - same
 
 ### Documentation
+
 ~~36. Update the status report with final verification results~~ done - final results captured by the 01-02 post-merge review (archived) and this pass
 ~~37. Consider a CHANGELOG entry for the lint fixes~~ done - CHANGELOG [Unreleased] 'repo gates' entry covers the lint-fix lineage (444be10a7)
 38. Document the recovery procedure for future reference <- NOT-DO - lessons folded into AGENTS gotchas (worktree rule, concurrent-session verify races); no dedicated doc needed
 
 ### Hardening
+
 39. Add a pre-commit hook that blocks commits when `git stash list` is non-empty (prevent orphaned stashes)
 40. Consider a CI check that prevents two agents from pushing to the same branch simultaneously
-~~41. Add `metaengine/store.go` and `execute.go` file-size check to CI (they're at 672/566 lines on master — violations)~~ done - 350-line limit is CI-enforced already (internal contract #1)
-~~42. Add a test that verifies `go.work` module list matches directories with `go.mod` files~~ done - TestEveryGoModDirIsInModulesList + workspace meta-tests enforce this
+    ~~41. Add `metaengine/store.go` and `execute.go` file-size check to CI (they're at 672/566 lines on master — violations)~~ done - 350-line limit is CI-enforced already (internal contract #1)
+    ~~42. Add a test that verifies `go.work` module list matches directories with `go.mod` files~~ done - TestEveryGoModDirIsInModulesList + workspace meta-tests enforce this
 
 ### Broader code quality
+
 43. Audit all `//nolint` directives across the codebase — many may be stale or unnecessary <- OPEN. nolint staleness audit not done - low priority
 44. Check if `idempotency/alias.go` should also get a golangci.yml exclusion (it re-exports deprecated symbols) <- NOT-DO - idempotency/ shim deleted at 5127039da
 45. Check if `retry/alias.go` has similar lint issues <- NOT-DO - retry/ shim deleted at 5127039da
@@ -149,10 +163,12 @@
 47. Consider adding `depguard` rules to prevent importing `go-cqrs-lite/codec/v4` in new code (should use `go-codec` directly) <- NOT-DO - shims deleted; nothing to ban (matches the 10-24 resolution)
 
 ### Soak tests
+
 ~~48. Run the 50K-event smoke soak: `go test -tags "goexperiment.jsonv2" -run TestSoak ./metaengine/...`~~ done - soak legs green in every verify since
 ~~49. Run the full soak suite without `-race` to verify no regressions~~ done - same
 
 ### Release readiness
+
 50. After all the above: `nix run .#verify` + `nix run .#vulncheck` before any tag <- OPEN. TODO_LIST 'Release / Tagging' (pre-tag checklist: verify + vulncheck)
 
 ---
@@ -164,7 +180,6 @@
 2. **The stash (`stash@{0}`):** It contains uncommitted working-tree changes that were on `master` when I created the recovery branch — a mix of docs status file edits and metaengine file modifications from the concurrent agent. Should I inspect and salvage anything from it, or drop it?
 
 3. **Is the full `nix run .#lint` available?** The nix daemon was down (`cannot connect to socket at '/nix/var/nix/daemon-socket/socket'`). I verified with direct `golangci-lint` per-module instead. Should I try to restart the daemon and run the authoritative nix lint path, or is the per-module verification sufficient for now?
-
 
 ---
 

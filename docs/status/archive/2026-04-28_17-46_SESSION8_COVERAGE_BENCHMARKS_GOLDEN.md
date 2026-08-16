@@ -152,13 +152,13 @@ The codebase is in its cleanest state ever:
 
 **Self-criticism for this session:**
 
-| #   | Mistake                                                    | Fix                                             |
-| --- | ---------------------------------------------------------- | ----------------------------------------------- |
-| 1   | Added test code without running lint first — 19 issues     | Fixed all 19 before committing                  |
-| 2   | Initially committed as one giant batch                     | Re-split into 6 logical commits                 |
-| 3   | Used local `noopQueryHandler` instead of fixing root cause | Added `NoopQueryHandler` to shared testhelpers  |
-| 4   | Introduced dupl in eventcatalog permission tests           | Extracted `requireExportPermissionError` helper |
-| 5   | Didn't reflect on architecture before executing            | Documented reflections in status report         |
+| # | Mistake                                                    | Fix                                             |
+| - | ---------------------------------------------------------- | ----------------------------------------------- |
+| 1 | Added test code without running lint first — 19 issues     | Fixed all 19 before committing                  |
+| 2 | Initially committed as one giant batch                     | Re-split into 6 logical commits                 |
+| 3 | Used local `noopQueryHandler` instead of fixing root cause | Added `NoopQueryHandler` to shared testhelpers  |
+| 4 | Introduced dupl in eventcatalog permission tests           | Extracted `requireExportPermissionError` helper |
+| 5 | Didn't reflect on architecture before executing            | Documented reflections in status report         |
 
 ---
 
@@ -213,33 +213,33 @@ The codebase is in its cleanest state ever:
 
 Priority-sorted by **impact × effort⁻¹**:
 
-| #   | Task                                                               | Effort | Impact   | Module       |
-| --- | ------------------------------------------------------------------ | ------ | -------- | ------------ |
-| 1   | **Design storage module (Phase 5)** — schema, sqlc, interface      | 1 day  | CRITICAL | storage/     |
-| 2   | **Add integration test** — full CQRS flow across all modules       | 2 hr   | HIGH     | testhelpers/ |
-| 3   | **Evaluate samber/ro, samber/do** for projections/DI               | 3 hr   | HIGH     | Planning     |
-| 4   | **Write getting-started guide** with working example               | 2 hr   | HIGH     | docs/        |
-| 5   | **Add working example app** (user CRUD with event sourcing)        | 2 hr   | MEDIUM   | example/     |
-| 6   | **Add OpenTelemetry metrics middleware**                           | 2 hr   | HIGH     | middleware/  |
-| 7   | **Fix `query.Handler` generic return type**                        | 1 hr   | HIGH     | core/query   |
-| 8   | **Split `event.Store` god interface** into Writer/Reader/Deleter   | 1 hr   | HIGH     | core/event   |
-| 9   | **Add health check interface** for Store/Bus/Dispatcher            | 1 hr   | MEDIUM   | core/        |
-| 10  | **Tag v0.1.0-alpha releases** for all 6 modules                    | 30 min | MEDIUM   | Release      |
-| 11  | **Fix 20 pre-existing catalog lint issues**                        | 30 min | LOW      | catalog/     |
-| 12  | **Split eventcatalog/exporter.go** (346→250 lines)                 | 30 min | LOW      | catalog/     |
-| 13  | **Fix naming inconsistency** — EventCatalogMeta → CatalogMeta      | 30 min | LOW      | xtypes/      |
-| 14  | **Add fuzz tests** for command types, event types, schemas         | 1 hr   | LOW      | core/        |
-| 15  | **Add graceful shutdown** — drain in-flight ops on Close()         | 2 hr   | MEDIUM   | core/        |
-| 16  | **Implement persistent event store** (Phase 5 core)                | 3 days | CRITICAL | storage/     |
-| 17  | **Add benchmarks** for catalog operations                          | 30 min | LOW      | catalog/     |
-| 18  | **Implement Watermill module** (Phase 6)                           | 3 days | HIGH     | watermill/   |
-| 19  | **Implement projection module** (Phase 7)                          | 2 days | HIGH     | projection/  |
-| 20  | **Add aggregate saga/process manager** pattern                     | 2 days | HIGH     | core/        |
-| 21  | **Implement SQL snapshot store** (Phase 8)                         | 1 day  | MEDIUM   | sqlsnapshot/ |
-| 22  | **Fix `catalog.Message` discriminated union** — generics over Kind | 2 hr   | MEDIUM   | catalog/     |
-| 23  | **Unify Type generics** — `Type[T]` instead of string aliases      | 2 hr   | MEDIUM   | core/        |
-| 24  | **Add CI badge + pkg.go.dev links** to README                      | 15 min | LOW      | docs/        |
-| 25  | **Add middleware composition builder**                             | 1 hr   | MEDIUM   | core/        |
+| #  | Task                                                               | Effort | Impact   | Module       |
+| -- | ------------------------------------------------------------------ | ------ | -------- | ------------ |
+| 1  | **Design storage module (Phase 5)** — schema, sqlc, interface      | 1 day  | CRITICAL | storage/     |
+| 2  | **Add integration test** — full CQRS flow across all modules       | 2 hr   | HIGH     | testhelpers/ |
+| 3  | **Evaluate samber/ro, samber/do** for projections/DI               | 3 hr   | HIGH     | Planning     |
+| 4  | **Write getting-started guide** with working example               | 2 hr   | HIGH     | docs/        |
+| 5  | **Add working example app** (user CRUD with event sourcing)        | 2 hr   | MEDIUM   | example/     |
+| 6  | **Add OpenTelemetry metrics middleware**                           | 2 hr   | HIGH     | middleware/  |
+| 7  | **Fix `query.Handler` generic return type**                        | 1 hr   | HIGH     | core/query   |
+| 8  | **Split `event.Store` god interface** into Writer/Reader/Deleter   | 1 hr   | HIGH     | core/event   |
+| 9  | **Add health check interface** for Store/Bus/Dispatcher            | 1 hr   | MEDIUM   | core/        |
+| 10 | **Tag v0.1.0-alpha releases** for all 6 modules                    | 30 min | MEDIUM   | Release      |
+| 11 | **Fix 20 pre-existing catalog lint issues**                        | 30 min | LOW      | catalog/     |
+| 12 | **Split eventcatalog/exporter.go** (346→250 lines)                 | 30 min | LOW      | catalog/     |
+| 13 | **Fix naming inconsistency** — EventCatalogMeta → CatalogMeta      | 30 min | LOW      | xtypes/      |
+| 14 | **Add fuzz tests** for command types, event types, schemas         | 1 hr   | LOW      | core/        |
+| 15 | **Add graceful shutdown** — drain in-flight ops on Close()         | 2 hr   | MEDIUM   | core/        |
+| 16 | **Implement persistent event store** (Phase 5 core)                | 3 days | CRITICAL | storage/     |
+| 17 | **Add benchmarks** for catalog operations                          | 30 min | LOW      | catalog/     |
+| 18 | **Implement Watermill module** (Phase 6)                           | 3 days | HIGH     | watermill/   |
+| 19 | **Implement projection module** (Phase 7)                          | 2 days | HIGH     | projection/  |
+| 20 | **Add aggregate saga/process manager** pattern                     | 2 days | HIGH     | core/        |
+| 21 | **Implement SQL snapshot store** (Phase 8)                         | 1 day  | MEDIUM   | sqlsnapshot/ |
+| 22 | **Fix `catalog.Message` discriminated union** — generics over Kind | 2 hr   | MEDIUM   | catalog/     |
+| 23 | **Unify Type generics** — `Type[T]` instead of string aliases      | 2 hr   | MEDIUM   | core/        |
+| 24 | **Add CI badge + pkg.go.dev links** to README                      | 15 min | LOW      | docs/        |
+| 25 | **Add middleware composition builder**                             | 1 hr   | MEDIUM   | core/        |
 
 ---
 

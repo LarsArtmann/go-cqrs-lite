@@ -1,8 +1,8 @@
 # Superb Types Sprint — Comprehensive Status Report
 
-**Date:** 2026-06-11 03:09  
-**Session scope:** Phantom types, strong IDs, error context loss, anti-pattern renames, duplicate consolidation  
-**Source analysis:** `branching-flow all . --no-emoji`  
+**Date:** 2026-06-11 03:09\
+**Session scope:** Phantom types, strong IDs, error context loss, anti-pattern renames, duplicate consolidation\
+**Source analysis:** `branching-flow all . --no-emoji`\
 **Plan document:** `docs/planning/2026-06-11_01-24_SUPERB-TYPES-PHANTOM-IDS-DATA-MODEL.md` (84 tasks)
 
 ---
@@ -164,33 +164,33 @@ The catalog phantom types (Phase 1) were completed in the previous session. This
 
 ## f) Top 25 Things to Do Next (Sorted by Impact/Effort)
 
-| #   | Task                                                                             | Impact | Effort | File(s)                                                            |
-| --- | -------------------------------------------------------------------------------- | ------ | ------ | ------------------------------------------------------------------ |
-| 1   | Apply phantom types to `cattest/builders.go` (18 violations)                     | HIGH   | 15min  | `catalog/internal/cattest/builders.go`                             |
-| 2   | Apply phantom types to `asyncapi/types.go` (16 violations)                       | HIGH   | 15min  | `catalog/asyncapi/types.go`                                        |
-| 3   | Apply phantom types to `openapi/types.go` (11 violations)                        | MEDIUM | 10min  | `catalog/openapi/types.go`                                         |
-| 4   | Apply phantom types to `asyncapi/exporter.go` (7 violations)                     | MEDIUM | 10min  | `catalog/asyncapi/exporter.go`                                     |
-| 5   | Apply phantom types to `asyncapi/builder.go` (5 violations)                      | MEDIUM | 10min  | `catalog/asyncapi/builder.go`                                      |
-| 6   | Apply phantom types to `docserver/` (8 violations)                               | MEDIUM | 10min  | `catalog/docserver/*.go`                                           |
-| 7   | Apply phantom types to `eventcatalog/writer_frontmatter.go` (5 violations)       | MEDIUM | 8min   | `catalog/eventcatalog/writer_frontmatter.go`                       |
-| 8   | Apply phantom types to `d2/exporter.go` (6 violations)                           | MEDIUM | 8min   | `catalog/d2/exporter.go`                                           |
-| 9   | Apply phantom types to `catalog/registry.go` (5 violations)                      | MEDIUM | 8min   | `catalog/registry.go`                                              |
-| 10  | Apply phantom types to `catalog/message_config.go` (5 violations)                | MEDIUM | 8min   | `catalog/message_config.go`                                        |
-| 11  | Apply phantom types to `catalog/types_resources.go` (9 violations — Email, URL)  | MEDIUM | 10min  | `catalog/types_resources.go`                                       |
-| 12  | Apply phantom types to `catalog/docserver/html.go` (5 violations)                | LOW    | 8min   | `catalog/docserver/html.go`                                        |
-| 13  | Apply phantom types to `catalog/openapi/exporter.go` (6 violations)              | LOW    | 8min   | `catalog/openapi/exporter.go`                                      |
-| 14  | Add branded `OrderID` to `example/saga-pattern` (7 violations)                   | MEDIUM | 10min  | `example/saga-pattern/main.go`                                     |
-| 15  | Add branded `ReleaseID`/`ComponentID` to healthcheck (2 violations)              | MEDIUM | 10min  | `middleware/healthcheck.go`                                        |
-| 16  | Run `go mod tidy` in encryption module (stale signing dep)                       | LOW    | 2min   | `encryption/go.mod`                                                |
-| 17  | Split `catalog.Message` → `Message` + `MessageMeta` (17 fields)                  | HIGH   | 15min  | `catalog/types.go`                                                 |
-| 18  | Split `catalog.Service` → `Service` + `ServiceMeta` (16 fields)                  | HIGH   | 15min  | `catalog/types.go`                                                 |
-| 19  | Update plan doc with completion status                                           | LOW    | 5min   | `docs/planning/2026-06-11_...`                                     |
-| 20  | Add `bool` → enum for `Deprecated` in catalog Message                            | LOW    | 5min   | `catalog/types.go`                                                 |
-| 21  | Add phantom types to `storage/sql/helpers.go` (7 violations)                     | LOW    | 10min  | `storage/sql/helpers.go`                                           |
-| 22  | Add phantom types to `event/reconstruct.go` (5 violations)                       | LOW    | 8min   | `event/reconstruct.go`                                             |
-| 23  | Add `Topic` phantom type to watermill (4 violations)                             | LOW    | 8min   | `watermill/protocol.go`, `publisher.go`, `subscriber.go`           |
-| 24  | Add `DbPath` phantom type to turso/storage (5 violations)                        | LOW    | 8min   | `turso/connector.go`, `turso/sync.go`, `storage/sqlite_helpers.go` |
-| 25  | Run full `branching-flow all .` and verify violation drop from 389 → target <200 | HIGH   | 5min   | all                                                                |
+| #  | Task                                                                             | Impact | Effort | File(s)                                                            |
+| -- | -------------------------------------------------------------------------------- | ------ | ------ | ------------------------------------------------------------------ |
+| 1  | Apply phantom types to `cattest/builders.go` (18 violations)                     | HIGH   | 15min  | `catalog/internal/cattest/builders.go`                             |
+| 2  | Apply phantom types to `asyncapi/types.go` (16 violations)                       | HIGH   | 15min  | `catalog/asyncapi/types.go`                                        |
+| 3  | Apply phantom types to `openapi/types.go` (11 violations)                        | MEDIUM | 10min  | `catalog/openapi/types.go`                                         |
+| 4  | Apply phantom types to `asyncapi/exporter.go` (7 violations)                     | MEDIUM | 10min  | `catalog/asyncapi/exporter.go`                                     |
+| 5  | Apply phantom types to `asyncapi/builder.go` (5 violations)                      | MEDIUM | 10min  | `catalog/asyncapi/builder.go`                                      |
+| 6  | Apply phantom types to `docserver/` (8 violations)                               | MEDIUM | 10min  | `catalog/docserver/*.go`                                           |
+| 7  | Apply phantom types to `eventcatalog/writer_frontmatter.go` (5 violations)       | MEDIUM | 8min   | `catalog/eventcatalog/writer_frontmatter.go`                       |
+| 8  | Apply phantom types to `d2/exporter.go` (6 violations)                           | MEDIUM | 8min   | `catalog/d2/exporter.go`                                           |
+| 9  | Apply phantom types to `catalog/registry.go` (5 violations)                      | MEDIUM | 8min   | `catalog/registry.go`                                              |
+| 10 | Apply phantom types to `catalog/message_config.go` (5 violations)                | MEDIUM | 8min   | `catalog/message_config.go`                                        |
+| 11 | Apply phantom types to `catalog/types_resources.go` (9 violations — Email, URL)  | MEDIUM | 10min  | `catalog/types_resources.go`                                       |
+| 12 | Apply phantom types to `catalog/docserver/html.go` (5 violations)                | LOW    | 8min   | `catalog/docserver/html.go`                                        |
+| 13 | Apply phantom types to `catalog/openapi/exporter.go` (6 violations)              | LOW    | 8min   | `catalog/openapi/exporter.go`                                      |
+| 14 | Add branded `OrderID` to `example/saga-pattern` (7 violations)                   | MEDIUM | 10min  | `example/saga-pattern/main.go`                                     |
+| 15 | Add branded `ReleaseID`/`ComponentID` to healthcheck (2 violations)              | MEDIUM | 10min  | `middleware/healthcheck.go`                                        |
+| 16 | Run `go mod tidy` in encryption module (stale signing dep)                       | LOW    | 2min   | `encryption/go.mod`                                                |
+| 17 | Split `catalog.Message` → `Message` + `MessageMeta` (17 fields)                  | HIGH   | 15min  | `catalog/types.go`                                                 |
+| 18 | Split `catalog.Service` → `Service` + `ServiceMeta` (16 fields)                  | HIGH   | 15min  | `catalog/types.go`                                                 |
+| 19 | Update plan doc with completion status                                           | LOW    | 5min   | `docs/planning/2026-06-11_...`                                     |
+| 20 | Add `bool` → enum for `Deprecated` in catalog Message                            | LOW    | 5min   | `catalog/types.go`                                                 |
+| 21 | Add phantom types to `storage/sql/helpers.go` (7 violations)                     | LOW    | 10min  | `storage/sql/helpers.go`                                           |
+| 22 | Add phantom types to `event/reconstruct.go` (5 violations)                       | LOW    | 8min   | `event/reconstruct.go`                                             |
+| 23 | Add `Topic` phantom type to watermill (4 violations)                             | LOW    | 8min   | `watermill/protocol.go`, `publisher.go`, `subscriber.go`           |
+| 24 | Add `DbPath` phantom type to turso/storage (5 violations)                        | LOW    | 8min   | `turso/connector.go`, `turso/sync.go`, `storage/sqlite_helpers.go` |
+| 25 | Run full `branching-flow all .` and verify violation drop from 389 → target <200 | HIGH   | 5min   | all                                                                |
 
 ---
 

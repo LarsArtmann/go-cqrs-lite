@@ -64,17 +64,17 @@
 
 ## C) NOT STARTED ⬜
 
-| #   | Item                                                                     | Impact | Effort          |
-| --- | ------------------------------------------------------------------------ | ------ | --------------- |
-| 1   | catalog/ lint fixes (7 issues)                                           | Medium | Low             |
-| 2   | catalog/internal/cattest/builders.go split (377L)                        | Low    | Low             |
-| 3   | scripts/go-mod-graph-local/main.go split (412L)                          | Low    | Medium          |
-| 4   | integration/doc.go                                                       | Low    | Trivial         |
-| 5   | command errors.go re-export coverage (drags 80.5% → higher)              | Low    | Low             |
-| 6   | Duplicate errorfamily re-exports in event + command (identical 70 lines) | Medium | Medium          |
-| 7   | Type model improvements in storage/sql/dialect.go (uses `any` for time)  | Low    | Breaking change |
-| 8   | storage/example_test.go (needs DB mocking)                               | Low    | Medium          |
-| 9   | `samber/lo` adoption for slice operations                                | Low    | Low             |
+| # | Item                                                                     | Impact | Effort          |
+| - | ------------------------------------------------------------------------ | ------ | --------------- |
+| 1 | catalog/ lint fixes (7 issues)                                           | Medium | Low             |
+| 2 | catalog/internal/cattest/builders.go split (377L)                        | Low    | Low             |
+| 3 | scripts/go-mod-graph-local/main.go split (412L)                          | Low    | Medium          |
+| 4 | integration/doc.go                                                       | Low    | Trivial         |
+| 5 | command errors.go re-export coverage (drags 80.5% → higher)              | Low    | Low             |
+| 6 | Duplicate errorfamily re-exports in event + command (identical 70 lines) | Medium | Medium          |
+| 7 | Type model improvements in storage/sql/dialect.go (uses `any` for time)  | Low    | Breaking change |
+| 8 | storage/example_test.go (needs DB mocking)                               | Low    | Medium          |
+| 9 | `samber/lo` adoption for slice operations                                | Low    | Low             |
 
 ---
 
@@ -133,33 +133,33 @@ The only items that were previously "problems" and were correctly identified as 
 
 Sorted by impact × ease (Pareto order):
 
-| #   | Task                                                        | Module        | Impact | Effort | Category     |
-| --- | ----------------------------------------------------------- | ------------- | ------ | ------ | ------------ |
-| 1   | Fix catalog/schema/reflect.go: unchecked type assertion     | catalog       | Medium | 5m     | Lint         |
-| 2   | Fix catalog/schema/reflect.go: remove unused jsonKeyType    | catalog       | Low    | 2m     | Lint         |
-| 3   | Fix catalog/schema.go: wrap external error                  | catalog       | Medium | 2m     | Lint         |
-| 4   | Fix catalog/internal/cattest: goconst + godoclint           | catalog       | Low    | 5m     | Lint         |
-| 5   | Add integration/doc.go                                      | integration   | Low    | 3m     | Docs         |
-| 6   | Add command errorfamily re-export tests (coverage 80.5→92%) | command       | Medium | 10m    | Coverage     |
-| 7   | Consider eliminating duplicate errorfamily re-exports       | event+command | High   | 30m    | Architecture |
-| 8   | Add storage/example_test.go with in-memory SQLite demo      | storage       | Medium | 15m    | Consumer     |
-| 9   | Split catalog/internal/cattest/builders.go (377L → 2 files) | catalog       | Low    | 5m     | File size    |
-| 10  | Split scripts/go-mod-graph-local/main.go (412L → 3 files)   | scripts       | Low    | 10m    | File size    |
-| 11  | Add catalog/example_test.go                                 | catalog       | Medium | 15m    | Consumer     |
-| 12  | Add catalog/schema edge-case tests                          | catalog       | Medium | 15m    | Coverage     |
-| 13  | Add pebble concurrent/edge-case tests                       | pebble        | Medium | 15m    | Coverage     |
-| 14  | Investigate typed TimeValue for Dialect interface           | storage       | Medium | 20m    | Type model   |
-| 15  | Add otel/example_test.go                                    | otel          | Low    | 5m     | Consumer     |
-| 16  | Split large test files (>350L) into focused test files      | multiple      | Low    | 60m    | Navigation   |
-| 17  | Evaluate samber/lo for slice helpers (filterByType, etc.)   | multiple      | Low    | 15m    | Lib adoption |
-| 18  | Document module dependency graph in README or docs/         | docs          | Medium | 10m    | Docs         |
-| 19  | Consider shared `withTx` helper for storage write methods   | storage       | Low    | 20m    | DRY          |
-| 20  | Verify all GOWORK=off builds after any future tidy          | all           | Medium | 10m    | CI           |
-| 21  | ADR 0010: implement io.Closer removal (v3)                  | event+core    | High   | 120m   | Breaking     |
-| 22  | ADR 0011: implement ErrDispatcherClosed unification (v3)    | dispatcher    | Medium | 30m    | Breaking     |
-| 23  | ADR 0012: implement catalog module split (v3)               | catalog       | High   | 180m   | Breaking     |
-| 24  | Add example/ demonstrating listing module                   | example       | Low    | 15m    | Consumer     |
-| 25  | Add example/ demonstrating pebble module                    | example       | Low    | 15m    | Consumer     |
+| #  | Task                                                        | Module        | Impact | Effort | Category     |
+| -- | ----------------------------------------------------------- | ------------- | ------ | ------ | ------------ |
+| 1  | Fix catalog/schema/reflect.go: unchecked type assertion     | catalog       | Medium | 5m     | Lint         |
+| 2  | Fix catalog/schema/reflect.go: remove unused jsonKeyType    | catalog       | Low    | 2m     | Lint         |
+| 3  | Fix catalog/schema.go: wrap external error                  | catalog       | Medium | 2m     | Lint         |
+| 4  | Fix catalog/internal/cattest: goconst + godoclint           | catalog       | Low    | 5m     | Lint         |
+| 5  | Add integration/doc.go                                      | integration   | Low    | 3m     | Docs         |
+| 6  | Add command errorfamily re-export tests (coverage 80.5→92%) | command       | Medium | 10m    | Coverage     |
+| 7  | Consider eliminating duplicate errorfamily re-exports       | event+command | High   | 30m    | Architecture |
+| 8  | Add storage/example_test.go with in-memory SQLite demo      | storage       | Medium | 15m    | Consumer     |
+| 9  | Split catalog/internal/cattest/builders.go (377L → 2 files) | catalog       | Low    | 5m     | File size    |
+| 10 | Split scripts/go-mod-graph-local/main.go (412L → 3 files)   | scripts       | Low    | 10m    | File size    |
+| 11 | Add catalog/example_test.go                                 | catalog       | Medium | 15m    | Consumer     |
+| 12 | Add catalog/schema edge-case tests                          | catalog       | Medium | 15m    | Coverage     |
+| 13 | Add pebble concurrent/edge-case tests                       | pebble        | Medium | 15m    | Coverage     |
+| 14 | Investigate typed TimeValue for Dialect interface           | storage       | Medium | 20m    | Type model   |
+| 15 | Add otel/example_test.go                                    | otel          | Low    | 5m     | Consumer     |
+| 16 | Split large test files (>350L) into focused test files      | multiple      | Low    | 60m    | Navigation   |
+| 17 | Evaluate samber/lo for slice helpers (filterByType, etc.)   | multiple      | Low    | 15m    | Lib adoption |
+| 18 | Document module dependency graph in README or docs/         | docs          | Medium | 10m    | Docs         |
+| 19 | Consider shared `withTx` helper for storage write methods   | storage       | Low    | 20m    | DRY          |
+| 20 | Verify all GOWORK=off builds after any future tidy          | all           | Medium | 10m    | CI           |
+| 21 | ADR 0010: implement io.Closer removal (v3)                  | event+core    | High   | 120m   | Breaking     |
+| 22 | ADR 0011: implement ErrDispatcherClosed unification (v3)    | dispatcher    | Medium | 30m    | Breaking     |
+| 23 | ADR 0012: implement catalog module split (v3)               | catalog       | High   | 180m   | Breaking     |
+| 24 | Add example/ demonstrating listing module                   | example       | Low    | 15m    | Consumer     |
+| 25 | Add example/ demonstrating pebble module                    | example       | Low    | 15m    | Consumer     |
 
 ---
 

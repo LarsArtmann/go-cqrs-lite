@@ -209,33 +209,33 @@ FEATURES.md says pkg/config loads YAML. The code loads JSON. The documentation i
 
 ## F) Top 25 Things to Do Next
 
-| #   | Item                                                     | Effort   | Impact                         | Status            |
-| --- | -------------------------------------------------------- | -------- | ------------------------------ | ----------------- |
-| 1   | Fix snaptest compiler error                              | 5 min    | Unblocks snapshot testing      | 🟡 Partially done |
-| 2   | Clean stale FEATURES.md section                          | 30 min   | Trust / accuracy               | ⬜ Not started    |
-| 3   | Fix pkg/config YAML/JSON doc mismatch                    | 15 min   | Consumer trust                 | ⬜ Not started    |
-| 4   | Extract `resilience/` module (pure retry/backoff/cb)     | 1–2 days | **Unlocks non-CQRS adoption**  | ⬜ Not started    |
-| 5   | OTel shim pattern (interface + adapter)                  | 2–3 days | ~15 transitive deps eliminated | ⬜ Not started    |
-| 6   | Clean up event/go.mod (test-only deps)                   | 0.5 days | Perceived dep graph fix        | ⬜ Not started    |
-| 7   | Dependency budget CI check                               | 1 day    | Prevents regression            | ⬜ Not started    |
-| 8   | Document configurable ID backing type                    | 0.5 days | Removes adoption barrier       | ⬜ Not started    |
-| 9   | Middleware deduplication (~500 lines)                    | 2 days   | Maintenance cost reduction     | ⬜ Not started    |
-| 10  | Unify ErrHandlerNotFound                                 | 0.5 days | API consistency                | ⬜ Not started    |
-| 11  | Archive old status reports (80+ files)                   | 15 min   | Signal-to-noise                | ⬜ Not started    |
-| 12  | Hide VersionedStore embedded Store                       | 1 hour   | API surface cleanup            | ⬜ Not started    |
-| 13  | SSE handler in example/user/ + JS client                 | 1 day    | Demo completeness              | ⬜ Not started    |
-| 14  | Config usage example in example/user/                    | 2 hours  | Consumer experience            | ⬜ Not started    |
-| 15  | Docker build CI step (amd64 + arm64)                     | 1 day    | CI completeness                | ⬜ Not started    |
-| 16  | Catalog snapshot tests                                   | 1 day    | Regression safety              | ⬜ Not started    |
-| 17  | Projection snapshot tests                                | 0.5 days | Regression safety              | ⬜ Not started    |
-| 18  | Playwright E2E tests                                     | 2 days   | Integration confidence         | ⬜ Not started    |
-| 19  | PBT on command/ and query/                               | 1 day    | Edge case coverage             | ⬜ Not started    |
-| 20  | go-snaps across remaining 11 modules                     | 2 days   | Snapshot regression            | ⬜ Not started    |
-| 21  | Add global TransactionID branded type                    | 1 day    | Distributed tracing            | ⬜ Deferred       |
-| 22  | io.Closer removal from core interfaces                   | 1 day    | API cleanliness                | ⬜ Deferred       |
-| 23  | Remove unused `memory` dep from middleware/go.mod        | 15 min   | Dep graph accuracy             | ⬜ Not started    |
-| 24  | Run `go mod tidy` on all modules                         | 15 min   | Dep hygiene                    | 🟡 Unknown        |
-| 25  | Remove unnecessary type args in middleware (gopls infos) | 10 min   | Code cleanliness               | ⬜ Not started    |
+| #  | Item                                                     | Effort   | Impact                         | Status            |
+| -- | -------------------------------------------------------- | -------- | ------------------------------ | ----------------- |
+| 1  | Fix snaptest compiler error                              | 5 min    | Unblocks snapshot testing      | 🟡 Partially done |
+| 2  | Clean stale FEATURES.md section                          | 30 min   | Trust / accuracy               | ⬜ Not started    |
+| 3  | Fix pkg/config YAML/JSON doc mismatch                    | 15 min   | Consumer trust                 | ⬜ Not started    |
+| 4  | Extract `resilience/` module (pure retry/backoff/cb)     | 1–2 days | **Unlocks non-CQRS adoption**  | ⬜ Not started    |
+| 5  | OTel shim pattern (interface + adapter)                  | 2–3 days | ~15 transitive deps eliminated | ⬜ Not started    |
+| 6  | Clean up event/go.mod (test-only deps)                   | 0.5 days | Perceived dep graph fix        | ⬜ Not started    |
+| 7  | Dependency budget CI check                               | 1 day    | Prevents regression            | ⬜ Not started    |
+| 8  | Document configurable ID backing type                    | 0.5 days | Removes adoption barrier       | ⬜ Not started    |
+| 9  | Middleware deduplication (~500 lines)                    | 2 days   | Maintenance cost reduction     | ⬜ Not started    |
+| 10 | Unify ErrHandlerNotFound                                 | 0.5 days | API consistency                | ⬜ Not started    |
+| 11 | Archive old status reports (80+ files)                   | 15 min   | Signal-to-noise                | ⬜ Not started    |
+| 12 | Hide VersionedStore embedded Store                       | 1 hour   | API surface cleanup            | ⬜ Not started    |
+| 13 | SSE handler in example/user/ + JS client                 | 1 day    | Demo completeness              | ⬜ Not started    |
+| 14 | Config usage example in example/user/                    | 2 hours  | Consumer experience            | ⬜ Not started    |
+| 15 | Docker build CI step (amd64 + arm64)                     | 1 day    | CI completeness                | ⬜ Not started    |
+| 16 | Catalog snapshot tests                                   | 1 day    | Regression safety              | ⬜ Not started    |
+| 17 | Projection snapshot tests                                | 0.5 days | Regression safety              | ⬜ Not started    |
+| 18 | Playwright E2E tests                                     | 2 days   | Integration confidence         | ⬜ Not started    |
+| 19 | PBT on command/ and query/                               | 1 day    | Edge case coverage             | ⬜ Not started    |
+| 20 | go-snaps across remaining 11 modules                     | 2 days   | Snapshot regression            | ⬜ Not started    |
+| 21 | Add global TransactionID branded type                    | 1 day    | Distributed tracing            | ⬜ Deferred       |
+| 22 | io.Closer removal from core interfaces                   | 1 day    | API cleanliness                | ⬜ Deferred       |
+| 23 | Remove unused `memory` dep from middleware/go.mod        | 15 min   | Dep graph accuracy             | ⬜ Not started    |
+| 24 | Run `go mod tidy` on all modules                         | 15 min   | Dep hygiene                    | 🟡 Unknown        |
+| 25 | Remove unnecessary type args in middleware (gopls infos) | 10 min   | Code cleanliness               | ⬜ Not started    |
 
 ---
 

@@ -87,7 +87,7 @@ clean tree).
   **T6** standalone CI signal + Benchmarks-job fix; **T7** system/integration DuckDB standalone.
 - **T10** core defects 2 + security hygiene (kv.Cache shared `*T`, TypedQueryStore codec,
   ErrBinaryNotFound, SECURITY.md, release.yml govulncheck, iroh pin); **T11** planner cost model
-  + capability conformance (6 over-declaring engines).
+  - capability conformance (6 over-declaring engines).
 - **T12–T15** v5 cut chain; **T16 remainder** (concurrent session shipped docs+golden+13 green
   modules; json/v1 fallback tests + omitempty ADR still pending, G6=ADR decided);
   **T17** docs honesty batch.

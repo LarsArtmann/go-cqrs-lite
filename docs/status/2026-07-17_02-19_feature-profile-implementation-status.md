@@ -123,10 +123,10 @@ The status report from the prior session identified this naming lie. Not started
 **The bug:** In `doctor.go`, the suggested config JSON always prints `"server": X,` and `"soft-delete": Y,` with trailing commas. When `tracing` and `snapshot` are both `unknown` (not printed), the output is:
 
 ```json
-  "features": {
-    "server": false,
-    "soft-delete": false,
-  }
+"features": {
+  "server": false,
+  "soft-delete": false,
+}
 ```
 
 That trailing comma after `false,` makes it invalid JSON. A user who copies this into their `.cqrs-lint.json` gets a parse error.

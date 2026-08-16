@@ -1,7 +1,7 @@
 # Status Report: Metaengine v2 Publishability & Test Coverage
 
-**Date:** 2026-08-08 01:34  
-**Session goal:** Complete the metaengine v2 TODO list items from `paste_1.txt`  
+**Date:** 2026-08-08 01:34\
+**Session goal:** Complete the metaengine v2 TODO list items from `paste_1.txt`\
 **Outcome:** Most items done. Verify gate NOT confirmed GREEN. Tags NOT pushed.
 
 ---

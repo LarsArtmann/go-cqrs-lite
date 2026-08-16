@@ -1,9 +1,9 @@
 # Session 134 — Branded Type Telemetry Refactor & Naming Cleanup
 
-**Date:** 2026-05-29 06:16  
-**Coverage:** 92.4% (statements) across all modules  
-**Tests:** 26/26 packages PASS  
-**Go vet:** Clean  
+**Date:** 2026-05-29 06:16\
+**Coverage:** 92.4% (statements) across all modules\
+**Tests:** 26/26 packages PASS\
+**Go vet:** Clean\
 **Lines of Go:** ~69,454
 
 ---
@@ -115,48 +115,48 @@ Nothing. Clean refactor, zero regressions.
 
 ### High Impact, Low Work (Do First)
 
-| #   | Task                                                                                                                                          | Effort | Impact       |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------------ |
-| 1   | **Rename `AggregateBaseAttrs` → consistent naming** with `AggregateAttrs` (resolve confusion between "with version" and "without version")    | Small  | API clarity  |
-| 2   | **Unify `storage/otel.go:startSaveSpan`** to use `AggregateBaseAttrs()` + append like all other callers, remove `aggregateAttrsWithVersion()` | Small  | Dedup        |
-| 3   | **Fix `otel/AggregateAttrs` aggregateType param** to `fmt.Stringer` for consistency with `AggregateBaseAttrs`                                 | Small  | Type safety  |
-| 4   | **Refactor `middleware/tracing.go:EventPublishTracing`** to use `cqrsotel.EventAttrs()` instead of manual attribute construction              | Small  | Dedup        |
-| 5   | **Rename `aggID` → `aggregateID` in `core/decider/load.go:opError`**                                                                          | Tiny   | Naming       |
-| 6   | **Rename `aggType` → `aggregateType` in `stream/in_memory.go:filterByType`**                                                                  | Tiny   | Naming       |
-| 7   | **Rename `evtType` → `eventType` in `projection/runner.go:subscribesTo`**                                                                     | Tiny   | Naming       |
-| 8   | **Rename `evtType` → `eventType` in `core/event/runner.go:SubscribesTo`**                                                                     | Tiny   | Naming       |
-| 9   | **Fix otel test to use `id.MustParseAggregateID`** instead of custom `testStringer` for realistic testing                                     | Small  | Test quality |
-| 10  | **Add `AggregateTypeAndID` single struct/type** to avoid always passing two params everywhere                                                 | Medium | Ergonomics   |
+| #  | Task                                                                                                                                          | Effort | Impact       |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------------ |
+| 1  | **Rename `AggregateBaseAttrs` → consistent naming** with `AggregateAttrs` (resolve confusion between "with version" and "without version")    | Small  | API clarity  |
+| 2  | **Unify `storage/otel.go:startSaveSpan`** to use `AggregateBaseAttrs()` + append like all other callers, remove `aggregateAttrsWithVersion()` | Small  | Dedup        |
+| 3  | **Fix `otel/AggregateAttrs` aggregateType param** to `fmt.Stringer` for consistency with `AggregateBaseAttrs`                                 | Small  | Type safety  |
+| 4  | **Refactor `middleware/tracing.go:EventPublishTracing`** to use `cqrsotel.EventAttrs()` instead of manual attribute construction              | Small  | Dedup        |
+| 5  | **Rename `aggID` → `aggregateID` in `core/decider/load.go:opError`**                                                                          | Tiny   | Naming       |
+| 6  | **Rename `aggType` → `aggregateType` in `stream/in_memory.go:filterByType`**                                                                  | Tiny   | Naming       |
+| 7  | **Rename `evtType` → `eventType` in `projection/runner.go:subscribesTo`**                                                                     | Tiny   | Naming       |
+| 8  | **Rename `evtType` → `eventType` in `core/event/runner.go:SubscribesTo`**                                                                     | Tiny   | Naming       |
+| 9  | **Fix otel test to use `id.MustParseAggregateID`** instead of custom `testStringer` for realistic testing                                     | Small  | Test quality |
+| 10 | **Add `AggregateTypeAndID` single struct/type** to avoid always passing two params everywhere                                                 | Medium | Ergonomics   |
 
 ### High Impact, Medium Work
 
-| #   | Task                                                                                                                                                    | Effort | Impact       |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------------ |
-| 11  | **Run `nix run .#lint`** and fix any findings                                                                                                           | Medium | Code quality |
-| 12  | **Run integration tests** to verify storage changes work with real DB                                                                                   | Medium | Confidence   |
-| 13  | **Decide on public API parameter renames** (`Execute(ctx, aggID, aggType)` → `aggregateID, aggregateType`) — breaking change, needs versioning strategy | Medium | Naming       |
-| 14  | **Audit all `string()` casts on branded types** across codebase — many in SQL helpers that could accept the branded type directly                       | Medium | Type safety  |
-| 15  | **Extract `AggregateRef` struct** `{Type AggregateType, ID AggregateID}` as a value object used everywhere these two travel together                    | Medium | Architecture |
-| 16  | **Add `AggregateVersionAttrs(baseAttrs, version)` helper** to `otel` for the common "base + version" pattern                                            | Small  | Dedup        |
+| #  | Task                                                                                                                                                    | Effort | Impact       |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------------ |
+| 11 | **Run `nix run .#lint`** and fix any findings                                                                                                           | Medium | Code quality |
+| 12 | **Run integration tests** to verify storage changes work with real DB                                                                                   | Medium | Confidence   |
+| 13 | **Decide on public API parameter renames** (`Execute(ctx, aggID, aggType)` → `aggregateID, aggregateType`) — breaking change, needs versioning strategy | Medium | Naming       |
+| 14 | **Audit all `string()` casts on branded types** across codebase — many in SQL helpers that could accept the branded type directly                       | Medium | Type safety  |
+| 15 | **Extract `AggregateRef` struct** `{Type AggregateType, ID AggregateID}` as a value object used everywhere these two travel together                    | Medium | Architecture |
+| 16 | **Add `AggregateVersionAttrs(baseAttrs, version)` helper** to `otel` for the common "base + version" pattern                                            | Small  | Dedup        |
 
 ### Medium Impact, Medium Work
 
-| #   | Task                                                                                                                                  | Effort | Impact      |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------- |
-| 17  | **Remove unused `go-branded-id` re-exports** if any exist in the API surface                                                          | Medium | Cleanup     |
-| 18  | **Standardize error wrapping in `storage/`** — some use `event.WrapInfrastructure`, some use `fmt.Errorf`                             | Medium | Consistency |
-| 19  | **Add missing doc comments** on exported functions in `otel/attributes.go`                                                            | Small  | Docs        |
-| 20  | **Consider `event.Type` as `fmt.Stringer`** — it's `type Type string` with `.String()`. Could accept `fmt.Stringer` in otel functions | Small  | Type safety |
+| #  | Task                                                                                                                                  | Effort | Impact      |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------- |
+| 17 | **Remove unused `go-branded-id` re-exports** if any exist in the API surface                                                          | Medium | Cleanup     |
+| 18 | **Standardize error wrapping in `storage/`** — some use `event.WrapInfrastructure`, some use `fmt.Errorf`                             | Medium | Consistency |
+| 19 | **Add missing doc comments** on exported functions in `otel/attributes.go`                                                            | Small  | Docs        |
+| 20 | **Consider `event.Type` as `fmt.Stringer`** — it's `type Type string` with `.String()`. Could accept `fmt.Stringer` in otel functions | Small  | Type safety |
 
 ### Larger Initiatives
 
-| #   | Task                                                                                                 | Effort | Impact    |
-| --- | ---------------------------------------------------------------------------------------------------- | ------ | --------- |
-| 21  | **Naming review skill** — Run full naming audit across entire codebase using the naming-review skill | Large  | Quality   |
-| 22  | **Architecture visualization** — Generate D2 diagram of current module dependencies                  | Medium | Docs      |
-| 23  | **Docs freshness check** — Verify AGENTS.md, FEATURES.md, TODO_LIST.md are current                   | Medium | Docs      |
-| 24  | **Pareto planning** — Create prioritized execution plan for next sprint                              | Medium | Planning  |
-| 25  | **v1.0.0 release preparation** — Tag modules, remove `replace` directives, publish                   | Large  | Milestone |
+| #  | Task                                                                                                 | Effort | Impact    |
+| -- | ---------------------------------------------------------------------------------------------------- | ------ | --------- |
+| 21 | **Naming review skill** — Run full naming audit across entire codebase using the naming-review skill | Large  | Quality   |
+| 22 | **Architecture visualization** — Generate D2 diagram of current module dependencies                  | Medium | Docs      |
+| 23 | **Docs freshness check** — Verify AGENTS.md, FEATURES.md, TODO_LIST.md are current                   | Medium | Docs      |
+| 24 | **Pareto planning** — Create prioritized execution plan for next sprint                              | Medium | Planning  |
+| 25 | **v1.0.0 release preparation** — Tag modules, remove `replace` directives, publish                   | Large  | Milestone |
 
 ---
 

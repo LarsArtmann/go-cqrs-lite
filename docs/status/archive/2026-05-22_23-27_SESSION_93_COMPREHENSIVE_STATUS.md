@@ -152,33 +152,33 @@ errors.Is(fmt.Errorf("ctx: %w: %w", ErrA, errB), errB) == true
 
 Sorted by impact × effort (Pareto order):
 
-| #   | Task                                                             | Impact | Effort  |
-| --- | ---------------------------------------------------------------- | ------ | ------- |
-| 1   | Fix pre-commit hook (todo-check, library-policy false positives) | High   | Medium  |
-| 2   | Remove `event.Core.clock` field — pass as parameter to NewEvent  | Medium | Low     |
-| 3   | Remove orphaned `replace` in `catalog/go.mod`                    | Low    | Trivial |
-| 4   | Add coverage gate to CI (80% minimum per module)                 | High   | Low     |
-| 5   | Fix `docserver.go:124` panic — return error from constructor     | Medium | Low     |
-| 6   | Improve testhelpers coverage to 80%+                             | Medium | Medium  |
-| 7   | Remove `aggregate` package (deprecated 56 sessions ago)          | Medium | Medium  |
-| 8   | Remove `Command.IdempotencyKey()` from interface                 | Medium | Medium  |
-| 9   | Break `core` ↔ `memory` circular dep for publishing              | High   | High    |
-| 10  | Break `core` ↔ `testhelpers` circular dep for publishing         | High   | High    |
-| 11  | Add `Codec` parameter to `On[T]` in projection builder           | Medium | Medium  |
-| 12  | Complete Pebble store (GlobalLoader, TransactionalStore)         | Medium | High    |
-| 13  | Improve `catalog/internal/caseutil` coverage to 80%+             | Low    | Low     |
-| 14  | Improve `catalog/internal/schemautil` coverage to 90%+           | Low    | Low     |
-| 15  | Remove deprecated `catalog/adapters/builder.go` wrapper          | Low    | Low     |
-| 16  | Add Pebble store benchmark tests                                 | Low    | Medium  |
-| 17  | Add event store concurrency stress tests                         | Medium | Medium  |
-| 18  | Consider merging `sync` into core or documenting as standalone   | Low    | Medium  |
-| 19  | Add `nix flake check` (formatting) to CI                         | Low    | Trivial |
-| 20  | Fix example panics — return errors instead                       | Low    | Low     |
-| 21  | Add `context.Context` timeout propagation tests for storage      | Medium | Medium  |
-| 22  | Document `query.Handler` `any` tradeoff with ADR                 | Low    | Low     |
-| 23  | Add `storage/sql_helpers.go` edge case tests                     | Low    | Medium  |
-| 24  | Review `MemoryBus.Publish` RLock during handler execution        | Low    | Medium  |
-| 25  | Create `CONTRIBUTING.md` with module dependency rules            | Low    | Low     |
+| #  | Task                                                             | Impact | Effort  |
+| -- | ---------------------------------------------------------------- | ------ | ------- |
+| 1  | Fix pre-commit hook (todo-check, library-policy false positives) | High   | Medium  |
+| 2  | Remove `event.Core.clock` field — pass as parameter to NewEvent  | Medium | Low     |
+| 3  | Remove orphaned `replace` in `catalog/go.mod`                    | Low    | Trivial |
+| 4  | Add coverage gate to CI (80% minimum per module)                 | High   | Low     |
+| 5  | Fix `docserver.go:124` panic — return error from constructor     | Medium | Low     |
+| 6  | Improve testhelpers coverage to 80%+                             | Medium | Medium  |
+| 7  | Remove `aggregate` package (deprecated 56 sessions ago)          | Medium | Medium  |
+| 8  | Remove `Command.IdempotencyKey()` from interface                 | Medium | Medium  |
+| 9  | Break `core` ↔ `memory` circular dep for publishing              | High   | High    |
+| 10 | Break `core` ↔ `testhelpers` circular dep for publishing         | High   | High    |
+| 11 | Add `Codec` parameter to `On[T]` in projection builder           | Medium | Medium  |
+| 12 | Complete Pebble store (GlobalLoader, TransactionalStore)         | Medium | High    |
+| 13 | Improve `catalog/internal/caseutil` coverage to 80%+             | Low    | Low     |
+| 14 | Improve `catalog/internal/schemautil` coverage to 90%+           | Low    | Low     |
+| 15 | Remove deprecated `catalog/adapters/builder.go` wrapper          | Low    | Low     |
+| 16 | Add Pebble store benchmark tests                                 | Low    | Medium  |
+| 17 | Add event store concurrency stress tests                         | Medium | Medium  |
+| 18 | Consider merging `sync` into core or documenting as standalone   | Low    | Medium  |
+| 19 | Add `nix flake check` (formatting) to CI                         | Low    | Trivial |
+| 20 | Fix example panics — return errors instead                       | Low    | Low     |
+| 21 | Add `context.Context` timeout propagation tests for storage      | Medium | Medium  |
+| 22 | Document `query.Handler` `any` tradeoff with ADR                 | Low    | Low     |
+| 23 | Add `storage/sql_helpers.go` edge case tests                     | Low    | Medium  |
+| 24 | Review `MemoryBus.Publish` RLock during handler execution        | Low    | Medium  |
+| 25 | Create `CONTRIBUTING.md` with module dependency rules            | Low    | Low     |
 
 ---
 

@@ -81,7 +81,7 @@ Added `TestQuicMultimapConvergence` and `TestLoopbackMultimapConvergence`. Both 
 | Badger   | ✅ PASS | 7 ADTs implemented, 4 skipped                               |
 | DuckDB   | ✅ PASS | 4 ADTs (Map/SortedMap/Counter/StreamLog), 7 skipped         |
 | Postgres | ✅ PASS | 4 ADTs (same as DuckDB), via testcontainers Docker          |
-| Dgraph   | ⏭️ SKIP | Dgraph not running locally (connection refused on :9080)    |
+| Dgraph   | ⏭️ SKIP  | Dgraph not running locally (connection refused on :9080)    |
 
 All engines pass the 11-scenario matrix. The stale comment fix ("7-ADT"→"11-ADT") ensures future readers aren't confused.
 

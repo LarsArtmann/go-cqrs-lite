@@ -258,48 +258,48 @@ The worst offenders are in catalog export logic (`writeCrossServiceConnections` 
 
 ### Tier 1: HIGH Impact, LOW Effort (Do First)
 
-| #   | Task                                                | Impact      | Effort | Why                                        |
-| --- | --------------------------------------------------- | ----------- | ------ | ------------------------------------------ |
-| 1   | Split `pebble_event_store.go` (445→3 files)         | Quality     | 1h     | Largest file in codebase, hard to navigate |
-| 2   | Storage test coverage 85%→95%                       | Reliability | 2h     | Lowest coverage module                     |
-| 3   | Decompose `writeCrossServiceConnections` (59 lines) | Quality     | 30m    | Longest function in codebase               |
-| 4   | Decompose `Export` in asyncapi (55 lines)           | Quality     | 30m    | Second longest function                    |
-| 5   | Add `example/user/` integration test                | Trust       | 1h     | Example has no automated test              |
-| 6   | Update `FEATURES.md` with storage sentinels         | Docs        | 15m    | 9 new sentinels not documented             |
+| # | Task                                                | Impact      | Effort | Why                                        |
+| - | --------------------------------------------------- | ----------- | ------ | ------------------------------------------ |
+| 1 | Split `pebble_event_store.go` (445→3 files)         | Quality     | 1h     | Largest file in codebase, hard to navigate |
+| 2 | Storage test coverage 85%→95%                       | Reliability | 2h     | Lowest coverage module                     |
+| 3 | Decompose `writeCrossServiceConnections` (59 lines) | Quality     | 30m    | Longest function in codebase               |
+| 4 | Decompose `Export` in asyncapi (55 lines)           | Quality     | 30m    | Second longest function                    |
+| 5 | Add `example/user/` integration test                | Trust       | 1h     | Example has no automated test              |
+| 6 | Update `FEATURES.md` with storage sentinels         | Docs        | 15m    | 9 new sentinels not documented             |
 
 ### Tier 2: HIGH Impact, MEDIUM Effort (Do Soon)
 
-| #   | Task                                                       | Impact       | Effort | Why                                         |
-| --- | ---------------------------------------------------------- | ------------ | ------ | ------------------------------------------- |
-| 7   | SQL dialect abstraction (eliminate ~500 lines duplication) | Architecture | 4h     | Biggest source of dupl in codebase          |
-| 8   | Split `core/decider/decider.go` (265→under 250)            | Quality      | 30m    | One of 5 files over limit                   |
-| 9   | Split `core/aggregate/repository.go` (279→under 250)       | Quality      | 30m    | Already has extracted helpers, still over   |
-| 10  | Split `catalog/asyncapi/exporter.go` (258→under 250)       | Quality      | 30m    | Export function is the bottleneck           |
-| 11  | Split `storage/sqlite_event_store.go` (285→under 250)      | Quality      | 30m    | Post-dialect-abstraction would resolve      |
-| 12  | Add `storage/dialect.go` with `Dialect` interface          | Architecture | 2h     | Foundation for SQL dedup                    |
-| 13  | `core/go.mod` circular dependency fix                      | Health       | 1h     | Test-only deps create module cycle          |
-| 14  | Cross-package sentinel consolidation                       | Quality      | 2h     | `ErrNilStore` × 2, `ErrHandlerNotFound` × 3 |
+| #  | Task                                                       | Impact       | Effort | Why                                         |
+| -- | ---------------------------------------------------------- | ------------ | ------ | ------------------------------------------- |
+| 7  | SQL dialect abstraction (eliminate ~500 lines duplication) | Architecture | 4h     | Biggest source of dupl in codebase          |
+| 8  | Split `core/decider/decider.go` (265→under 250)            | Quality      | 30m    | One of 5 files over limit                   |
+| 9  | Split `core/aggregate/repository.go` (279→under 250)       | Quality      | 30m    | Already has extracted helpers, still over   |
+| 10 | Split `catalog/asyncapi/exporter.go` (258→under 250)       | Quality      | 30m    | Export function is the bottleneck           |
+| 11 | Split `storage/sqlite_event_store.go` (285→under 250)      | Quality      | 30m    | Post-dialect-abstraction would resolve      |
+| 12 | Add `storage/dialect.go` with `Dialect` interface          | Architecture | 2h     | Foundation for SQL dedup                    |
+| 13 | `core/go.mod` circular dependency fix                      | Health       | 1h     | Test-only deps create module cycle          |
+| 14 | Cross-package sentinel consolidation                       | Quality      | 2h     | `ErrNilStore` × 2, `ErrHandlerNotFound` × 3 |
 
 ### Tier 3: MEDIUM Impact, MEDIUM Effort (Plan For)
 
-| #   | Task                                                | Impact    | Effort | Why                                           |
-| --- | --------------------------------------------------- | --------- | ------ | --------------------------------------------- |
-| 15  | `io.Closer` removal from core interfaces            | API       | 2h     | Breaking change, needs design                 |
-| 16  | `CatalogMeta` consolidation across 3 packages       | Quality   | 1h     | Nearly identical types                        |
-| 17  | Shared `opError` helper (aggregate + decider)       | DRY       | 30m    | Two different signatures doing the same thing |
-| 18  | Add `CONTRIBUTING.md`                               | Community | 1h     | No contribution guide exists                  |
-| 19  | Benchmark storage backends (PG vs SQLite vs Pebble) | Perf      | 2h     | No perf data for storage                      |
-| 20  | Add Turso integration test (requires Turso account) | Coverage  | 2h     | Turso connector only tested with :memory:     |
+| #  | Task                                                | Impact    | Effort | Why                                           |
+| -- | --------------------------------------------------- | --------- | ------ | --------------------------------------------- |
+| 15 | `io.Closer` removal from core interfaces            | API       | 2h     | Breaking change, needs design                 |
+| 16 | `CatalogMeta` consolidation across 3 packages       | Quality   | 1h     | Nearly identical types                        |
+| 17 | Shared `opError` helper (aggregate + decider)       | DRY       | 30m    | Two different signatures doing the same thing |
+| 18 | Add `CONTRIBUTING.md`                               | Community | 1h     | No contribution guide exists                  |
+| 19 | Benchmark storage backends (PG vs SQLite vs Pebble) | Perf      | 2h     | No perf data for storage                      |
+| 20 | Add Turso integration test (requires Turso account) | Coverage  | 2h     | Turso connector only tested with :memory:     |
 
 ### Tier 4: HIGH Impact, HIGH Effort (Strategic)
 
-| #   | Task                                | Impact        | Effort | Why                                       |
-| --- | ----------------------------------- | ------------- | ------ | ----------------------------------------- |
-| 21  | Saga/process manager implementation | Feature       | 18h    | Design doc exists (`SAGA_DESIGN.md`)      |
-| 22  | Query handler generics migration    | Type Safety   | 8h     | Eliminate 24 bare `any` usages            |
-| 23  | Watermill adapter (Kafka/NATS)      | Extensibility | 8h     | Listed as planned                         |
-| 24  | API stability guarantees + semver   | Governance    | 4h     | Library consumers need stability promises |
-| 25  | Event signing/verification          | Security      | 8h     | Listed in roadmap non-goals, but valuable |
+| #  | Task                                | Impact        | Effort | Why                                       |
+| -- | ----------------------------------- | ------------- | ------ | ----------------------------------------- |
+| 21 | Saga/process manager implementation | Feature       | 18h    | Design doc exists (`SAGA_DESIGN.md`)      |
+| 22 | Query handler generics migration    | Type Safety   | 8h     | Eliminate 24 bare `any` usages            |
+| 23 | Watermill adapter (Kafka/NATS)      | Extensibility | 8h     | Listed as planned                         |
+| 24 | API stability guarantees + semver   | Governance    | 4h     | Library consumers need stability promises |
+| 25 | Event signing/verification          | Security      | 8h     | Listed in roadmap non-goals, but valuable |
 
 ---
 
@@ -330,16 +330,16 @@ The `scanEvent` function in `storage/helpers.go:77` and `storage/sqlite_helpers.
 
 ## Project Health Scorecard
 
-| Dimension                     | Score                    | Trend         |
-| ----------------------------- | ------------------------ | ------------- |
+| Dimension                     | Score                    | Trend        |
+| ----------------------------- | ------------------------ | ------------ |
 | Test coverage                 | ~91% avg                 | ↗️ Stable     |
-| Lint issues                   | **0**                    | ✅ Stable     |
-| Dead code                     | **0**                    | ✅ Stable     |
-| TODO/FIXME                    | **0**                    | ✅ Stable     |
-| File size compliance          | 95% (5/124 over 250)     | → Flat        |
-| Function length compliance    | ~80% (~26 over 30 lines) | → Flat        |
-| Sentinels with classification | 100% (48/48)             | ✅ Stable     |
-| Compile-time interface checks | 37                       | ✅ Stable     |
-| Benchmarks                    | 43                       | ✅ Stable     |
+| Lint issues                   | **0**                    | ✅ Stable    |
+| Dead code                     | **0**                    | ✅ Stable    |
+| TODO/FIXME                    | **0**                    | ✅ Stable    |
+| File size compliance          | 95% (5/124 over 250)     | → Flat       |
+| Function length compliance    | ~80% (~26 over 30 lines) | → Flat       |
+| Sentinels with classification | 100% (48/48)             | ✅ Stable    |
+| Compile-time interface checks | 37                       | ✅ Stable    |
+| Benchmarks                    | 43                       | ✅ Stable    |
 | Error context quality         | 96.5/100                 | ↗️ (was 95.4) |
-| Dependency health             | Excellent                | ✅ Stable     |
+| Dependency health             | Excellent                | ✅ Stable    |

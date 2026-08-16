@@ -147,43 +147,43 @@ Groups 4-5 are structural coincidence (read/write split by design — ISP).
 
 ### HIGH IMPACT (Architecture & Production Readiness)
 
-| #   | Task                                                                                  | Effort | ROI   |
-| --- | ------------------------------------------------------------------------------------- | ------ | ----- |
-| 1   | Fix pre-commit BuildFlow hook (or remove it)                                          | 30min  | ★★★★★ |
-| 2   | Add ErrorExporter = Exporter[error] deprecation alias in catalog                      | 5min   | ★★★★  |
-| 3   | Consolidate AggregateProjection/SQLAggregateReader shared fields into embedded struct | 20min  | ★★★★  |
-| 4   | Split catalog.Message (17 fields) into Message+MessageMeta with embedding             | 30min  | ★★★★  |
-| 5   | Split catalog.Service (16 fields) into Service+ServiceMeta with embedding             | 30min  | ★★★★  |
-| 6   | Add bool→enum for catalog schema types (Nullable, Required, Deprecated)               | 15min  | ★★★   |
-| 7   | Consolidate projection Builder/builtProjection shared fields                          | 15min  | ★★★   |
+| # | Task                                                                                  | Effort | ROI   |
+| - | ------------------------------------------------------------------------------------- | ------ | ----- |
+| 1 | Fix pre-commit BuildFlow hook (or remove it)                                          | 30min  | ★★★★★ |
+| 2 | Add ErrorExporter = Exporter[error] deprecation alias in catalog                      | 5min   | ★★★★  |
+| 3 | Consolidate AggregateProjection/SQLAggregateReader shared fields into embedded struct | 20min  | ★★★★  |
+| 4 | Split catalog.Message (17 fields) into Message+MessageMeta with embedding             | 30min  | ★★★★  |
+| 5 | Split catalog.Service (16 fields) into Service+ServiceMeta with embedding             | 30min  | ★★★★  |
+| 6 | Add bool→enum for catalog schema types (Nullable, Required, Deprecated)               | 15min  | ★★★   |
+| 7 | Consolidate projection Builder/builtProjection shared fields                          | 15min  | ★★★   |
 
 ### MEDIUM IMPACT (Type Safety & Code Quality)
 
-| #   | Task                                                                             | Effort | ROI |
-| --- | -------------------------------------------------------------------------------- | ------ | --- |
-| 8   | Fix memory/store_load.go error context (include `op` variable)                   | 5min   | ★★★ |
-| 9   | Fix middleware/recovery.go error context (include msgKind, typeName)             | 5min   | ★★★ |
-| 10  | Add storage/sql query_engine phantom types for table, aggType, tablePrefix       | 20min  | ★★★ |
-| 11  | Add phantom types to otel attributes helpers (commandType, msgType, serviceName) | 15min  | ★★  |
-| 12  | Add phantom types to middleware internals (Kind, msgType, label)                 | 20min  | ★★  |
-| 13  | Add example/user shared domain package to eliminate duplicate types              | 30min  | ★★  |
-| 14  | Add example/todo phantom types (Title, Description, Priority)                    | 20min  | ★★  |
+| #  | Task                                                                             | Effort | ROI |
+| -- | -------------------------------------------------------------------------------- | ------ | --- |
+| 8  | Fix memory/store_load.go error context (include `op` variable)                   | 5min   | ★★★ |
+| 9  | Fix middleware/recovery.go error context (include msgKind, typeName)             | 5min   | ★★★ |
+| 10 | Add storage/sql query_engine phantom types for table, aggType, tablePrefix       | 20min  | ★★★ |
+| 11 | Add phantom types to otel attributes helpers (commandType, msgType, serviceName) | 15min  | ★★  |
+| 12 | Add phantom types to middleware internals (Kind, msgType, label)                 | 20min  | ★★  |
+| 13 | Add example/user shared domain package to eliminate duplicate types              | 30min  | ★★  |
+| 14 | Add example/todo phantom types (Title, Description, Priority)                    | 20min  | ★★  |
 
 ### LOWER IMPACT (Polish & Maintenance)
 
-| #   | Task                                                                                            | Effort | ROI   |
-| --- | ----------------------------------------------------------------------------------------------- | ------ | ----- |
-| 15  | Update TODO_LIST.md with superb-types completion status                                         | 10min  | ★★★   |
-| 16  | Update ROADMAP.md with superb-types sprint items                                                | 10min  | ★★★   |
-| 17  | Update planning docs (mark 50+ tasks done)                                                      | 10min  | ★★★   |
-| 18  | Add CI coverage badge to README.md                                                              | 15min  | ★★    |
-| 19  | Add `//nophantom:` or `.branching-flow-ignore` support annotations                              | 30min  | ★★    |
-| 20  | Docker CI build step (linux amd64 + arm64)                                                      | 30min  | ★★    |
-| 21  | Add go-snaps snapshot testing across remaining modules                                          | 60min  | ★★    |
-| 22  | jsonv2 codec experiment behind build tag                                                        | 60min  | ★     |
-| 23  | Add phantom types to remaining library modules (memory, listing, dispatcher, query, projection) | 60min  | ★     |
-| 24  | Add phantom types to event/eventtest helpers                                                    | 15min  | ★     |
-| 25  | Push all commits to origin/master                                                               | 1min   | ★★★★★ |
+| #  | Task                                                                                            | Effort | ROI   |
+| -- | ----------------------------------------------------------------------------------------------- | ------ | ----- |
+| 15 | Update TODO_LIST.md with superb-types completion status                                         | 10min  | ★★★   |
+| 16 | Update ROADMAP.md with superb-types sprint items                                                | 10min  | ★★★   |
+| 17 | Update planning docs (mark 50+ tasks done)                                                      | 10min  | ★★★   |
+| 18 | Add CI coverage badge to README.md                                                              | 15min  | ★★    |
+| 19 | Add `//nophantom:` or `.branching-flow-ignore` support annotations                              | 30min  | ★★    |
+| 20 | Docker CI build step (linux amd64 + arm64)                                                      | 30min  | ★★    |
+| 21 | Add go-snaps snapshot testing across remaining modules                                          | 60min  | ★★    |
+| 22 | jsonv2 codec experiment behind build tag                                                        | 60min  | ★     |
+| 23 | Add phantom types to remaining library modules (memory, listing, dispatcher, query, projection) | 60min  | ★     |
+| 24 | Add phantom types to event/eventtest helpers                                                    | 15min  | ★     |
+| 25 | Push all commits to origin/master                                                               | 1min   | ★★★★★ |
 
 ---
 

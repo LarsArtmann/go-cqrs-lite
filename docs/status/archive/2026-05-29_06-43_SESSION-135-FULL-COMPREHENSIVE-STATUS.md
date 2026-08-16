@@ -122,33 +122,33 @@ Marked deprecated in favor of `projection.Runner`. No production callers found �
 
 ## E) WHAT WE SHOULD IMPROVE (Top 25)
 
-| #   | Item                                                                  | Effort | Impact | Customer Value       |
-| --- | --------------------------------------------------------------------- | ------ | ------ | -------------------- |
-| 1   | **Generic `Dispatcher[Req, Res]`** — unify command/query              | High   | High   | Less API surface     |
-| 2   | **Branded ID code generation** — eliminate 7 boilerplate files        | Medium | Medium | Maintainability      |
-| 3   | **Remove `core/aggregate/` package** — fully deprecated               | Low    | Low    | Clean API (breaking) |
-| 4   | **Remove `event.Runner`** — fully deprecated                          | Low    | Low    | Clean API (breaking) |
-| 5   | **Migrate `event.JSONCodec{}` in examples**                           | Low    | Low    | Hygiene              |
-| 6   | **Add `t.Parallel()` to 30 test files**                               | Low    | Low    | Faster CI            |
-| 7   | **Fix `wrapcheck` in `core/aggregate/`**                              | Low    | Low    | Lint clean           |
-| 8   | **Fix `nlreturn` lint issue**                                         | Low    | Low    | Lint clean           |
-| 9   | **Remove deprecated type aliases (v2.0)**                             | Low    | Low    | Clean API (breaking) |
-| 10  | **OTEL builder pattern** — `Attrs().Aggregate(t,id).Version(v)`       | Medium | Medium | Ergonomics           |
-| 11  | **Unify `event.New` and `NewEvent`** — single constructor             | Medium | Medium | Simpler API          |
-| 12  | **Extract `clock`/`newCodec` from `ImmutableEvent`**                  | Medium | Medium | Cleaner domain model |
-| 13  | **Snapshot state caching** — avoid double fold                        | Medium | Medium | Performance          |
-| 14  | **Generic `getOverride` pattern** — apply to other fakes              | Low    | Low    | Consistency          |
-| 15  | **SQLTransactionalStore embedding fix** — hide non-transactional Save | High   | High   | Safety               |
-| 16  | **Codec-aware batch operations**                                      | Medium | Medium | Feature parity       |
-| 17  | **Projection checkpoint batching**                                    | High   | High   | Performance          |
-| 18  | **Event upcasting integration tests**                                 | Medium | Medium | Confidence           |
-| 19  | **Saga timeout handling**                                             | Medium | Medium | Reliability          |
-| 20  | **Outbox polling backoff strategy**                                   | Medium | Medium | Reliability          |
-| 21  | **Storage dialect auto-detection**                                    | Medium | Medium | DX                   |
-| 22  | **Memory store snapshot support**                                     | Low    | Medium | Test parity          |
-| 23  | **Catalog live reload**                                               | High   | Low    | DX                   |
-| 24  | **OpenAPI 3.1 support**                                               | Medium | Low    | Standards compliance |
-| 25  | **gRPC protocol adapter**                                             | High   | Low    | New transport        |
+| #  | Item                                                                  | Effort | Impact | Customer Value       |
+| -- | --------------------------------------------------------------------- | ------ | ------ | -------------------- |
+| 1  | **Generic `Dispatcher[Req, Res]`** — unify command/query              | High   | High   | Less API surface     |
+| 2  | **Branded ID code generation** — eliminate 7 boilerplate files        | Medium | Medium | Maintainability      |
+| 3  | **Remove `core/aggregate/` package** — fully deprecated               | Low    | Low    | Clean API (breaking) |
+| 4  | **Remove `event.Runner`** — fully deprecated                          | Low    | Low    | Clean API (breaking) |
+| 5  | **Migrate `event.JSONCodec{}` in examples**                           | Low    | Low    | Hygiene              |
+| 6  | **Add `t.Parallel()` to 30 test files**                               | Low    | Low    | Faster CI            |
+| 7  | **Fix `wrapcheck` in `core/aggregate/`**                              | Low    | Low    | Lint clean           |
+| 8  | **Fix `nlreturn` lint issue**                                         | Low    | Low    | Lint clean           |
+| 9  | **Remove deprecated type aliases (v2.0)**                             | Low    | Low    | Clean API (breaking) |
+| 10 | **OTEL builder pattern** — `Attrs().Aggregate(t,id).Version(v)`       | Medium | Medium | Ergonomics           |
+| 11 | **Unify `event.New` and `NewEvent`** — single constructor             | Medium | Medium | Simpler API          |
+| 12 | **Extract `clock`/`newCodec` from `ImmutableEvent`**                  | Medium | Medium | Cleaner domain model |
+| 13 | **Snapshot state caching** — avoid double fold                        | Medium | Medium | Performance          |
+| 14 | **Generic `getOverride` pattern** — apply to other fakes              | Low    | Low    | Consistency          |
+| 15 | **SQLTransactionalStore embedding fix** — hide non-transactional Save | High   | High   | Safety               |
+| 16 | **Codec-aware batch operations**                                      | Medium | Medium | Feature parity       |
+| 17 | **Projection checkpoint batching**                                    | High   | High   | Performance          |
+| 18 | **Event upcasting integration tests**                                 | Medium | Medium | Confidence           |
+| 19 | **Saga timeout handling**                                             | Medium | Medium | Reliability          |
+| 20 | **Outbox polling backoff strategy**                                   | Medium | Medium | Reliability          |
+| 21 | **Storage dialect auto-detection**                                    | Medium | Medium | DX                   |
+| 22 | **Memory store snapshot support**                                     | Low    | Medium | Test parity          |
+| 23 | **Catalog live reload**                                               | High   | Low    | DX                   |
+| 24 | **OpenAPI 3.1 support**                                               | Medium | Low    | Standards compliance |
+| 25 | **gRPC protocol adapter**                                             | High   | Low    | New transport        |
 
 ---
 

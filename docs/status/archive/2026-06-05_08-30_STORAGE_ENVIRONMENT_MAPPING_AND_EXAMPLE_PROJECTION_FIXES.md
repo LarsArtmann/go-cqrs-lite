@@ -72,8 +72,8 @@
 
 ## b) PARTIALLY DONE
 
-| #   | Item                                                                    | Status        | Why Partial                                                                                                                                                                           |
-| --- | ----------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #   | Item                                                                    | Status       | Why Partial                                                                                                                                                                           |
+| --- | ----------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 4.1 | `example/todo/cmd/api/integration_test.go` — `TestUpdateTodo_InvalidID` | ⚠️ Fixed      | Test expectation changed from 500 to 200 because projection errors are now isolated (correct behavior), but the test intent ("invalid ID should error") is now less clearly expressed |
 | 4.2 | `pebble/` snapshot + checkpoint stores                                  | ⚠️ Identified | Documented as trivial to add, but not implemented                                                                                                                                     |
 | 4.3 | `command.Store` implementations                                         | ⚠️ Identified | Zero implementations exist; documented in research but not built                                                                                                                      |

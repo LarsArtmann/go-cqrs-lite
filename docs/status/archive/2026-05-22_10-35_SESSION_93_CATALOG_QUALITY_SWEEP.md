@@ -1,7 +1,7 @@
 # Session 93 Comprehensive Status Report
 
-**Date:** 2026-05-22 10:35 UTC  
-**Focus:** Catalog Module Quality Sweep — Bug fixes, dead code removal, API improvements, coverage boost  
+**Date:** 2026-05-22 10:35 UTC\
+**Focus:** Catalog Module Quality Sweep — Bug fixes, dead code removal, API improvements, coverage boost\
 **Commits:** Uncommitted (on branch: master, HEAD at `8b3f518`)
 
 ---
@@ -258,20 +258,20 @@ All 25 test packages pass. `go vet` clean. Zero files >250 lines. Zero TODO/FIXM
 ## Git Status
 
 ```
- M catalog/build_test.go
- M catalog/go.mod
- M catalog/go.sum
- M catalog/id_parse.go
- M catalog/integration_test.go
- M catalog/registry.go
- M catalog/registry_test.go
- M catalog/schema.go
- M catalog/testdata/golden/asyncapi.yaml
- M catalog/testdata/golden/eventcatalog-config.js
- M catalog/testdata/golden/package.json
- M catalog/types.go
- M catalog/validate.go
- M catalog/validate_test.go
+M catalog/build_test.go
+M catalog/go.mod
+M catalog/go.sum
+M catalog/id_parse.go
+M catalog/integration_test.go
+M catalog/registry.go
+M catalog/registry_test.go
+M catalog/schema.go
+M catalog/testdata/golden/asyncapi.yaml
+M catalog/testdata/golden/eventcatalog-config.js
+M catalog/testdata/golden/package.json
+M catalog/types.go
+M catalog/validate.go
+M catalog/validate_test.go
 ```
 
 Clean working tree except for these catalog changes. Ready to commit.

@@ -48,23 +48,23 @@
 
 ## f) Up to 50 Things to Get Done Next
 
-| #   | Task                                                                                                                          | Priority     |
-| --- | ----------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| 1   | Compress base SKILL.md body to ≤1000 chars (use list, not table)                                                              | **CRITICAL** |
-| 2   | Restore versioning note (v3.x / `/v4` suffix) into `core.md`                                                                  | **CRITICAL** |
-| 3   | Restore "About This Skill" provenance section into `core.md`                                                                  | Medium       |
-| 4   | Run `nix fmt` to confirm body stays under 1000 after formatting                                                               | **CRITICAL** |
-| 5   | Run `nix run .#verify` (full gate: build+vet+test+race+lint+doc-check)                                                        | High         |
-| 6   | Check `evals/evals.json` for stale section references                                                                         | Medium       |
-| 7   | Check `evals/trigger-eval-set.json` for stale references                                                                      | Medium       |
-| 8   | Verify global symlink `~/.config/crush/skills/go-cqrs-lite` still resolves                                                    | Medium       |
-| 9   | Verify git tracks the symlink correctly (was regular file before)                                                             | High         |
-| 10  | Consider whether `faq.md` content overlaps with `core.md` §4 anti-patterns                                                    | Low          |
-| 11  | Consider adding a "start here" breadcrumb at the top of each reference file                                                   | Low          |
-| 12  | Consider adding cross-links between reference files (e.g. core.md → recipes.md)                                               | Low          |
-| 13  | Run the skill-creator eval workflow to test the restructured skill                                                            | Low          |
-| 14  | Commit the changes once verified                                                                                              | High         |
-| 15  | Note: `benchkit/generator.go` and `cmd/cqrs-bench/cqrs-bench` have unrelated modifications in git status — do NOT touch these | Info         |
+| #  | Task                                                                                                                          | Priority     |
+| -- | ----------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| 1  | Compress base SKILL.md body to ≤1000 chars (use list, not table)                                                              | **CRITICAL** |
+| 2  | Restore versioning note (v3.x / `/v4` suffix) into `core.md`                                                                  | **CRITICAL** |
+| 3  | Restore "About This Skill" provenance section into `core.md`                                                                  | Medium       |
+| 4  | Run `nix fmt` to confirm body stays under 1000 after formatting                                                               | **CRITICAL** |
+| 5  | Run `nix run .#verify` (full gate: build+vet+test+race+lint+doc-check)                                                        | High         |
+| 6  | Check `evals/evals.json` for stale section references                                                                         | Medium       |
+| 7  | Check `evals/trigger-eval-set.json` for stale references                                                                      | Medium       |
+| 8  | Verify global symlink `~/.config/crush/skills/go-cqrs-lite` still resolves                                                    | Medium       |
+| 9  | Verify git tracks the symlink correctly (was regular file before)                                                             | High         |
+| 10 | Consider whether `faq.md` content overlaps with `core.md` §4 anti-patterns                                                    | Low          |
+| 11 | Consider adding a "start here" breadcrumb at the top of each reference file                                                   | Low          |
+| 12 | Consider adding cross-links between reference files (e.g. core.md → recipes.md)                                               | Low          |
+| 13 | Run the skill-creator eval workflow to test the restructured skill                                                            | Low          |
+| 14 | Commit the changes once verified                                                                                              | High         |
+| 15 | Note: `benchkit/generator.go` and `cmd/cqrs-bench/cqrs-bench` have unrelated modifications in git status — do NOT touch these | Info         |
 
 ## g) Questions I Cannot Answer Myself
 

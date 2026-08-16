@@ -68,8 +68,8 @@
 - `samplesForClassification()` helper extracts raw samples from either
   `eventSamples` (Infer) or `namedSamples` (InferFromNamedEvents).
 - **Tests:** `TestInferFromNamedEvents_BasicCRUD` (wire event types for create
-  + delete), `TestInferFromNamedEvents_EmptyEventTypePanics`,
-  `TestInferFromNamedEvents_NoSamplesPanics`. All pass.
+  - delete), `TestInferFromNamedEvents_EmptyEventTypePanics`,
+    `TestInferFromNamedEvents_NoSamplesPanics`. All pass.
 
 ### 5. `[]Struct` fields verification
 
@@ -152,8 +152,8 @@
    the new capabilities (composite keys, filter operators, sort, named events).
 
 9. **Cross-feature testing** — InferFromNamedEvents + composite keys,
-  InferFromNamedEvents + filter inference, Override + composite keys — none
-  of these combinations were tested.
+   InferFromNamedEvents + filter inference, Override + composite keys — none
+   of these combinations were tested.
 
 10. **SQLite/Pebble/bbolt engine tests** with any of the new features.
 

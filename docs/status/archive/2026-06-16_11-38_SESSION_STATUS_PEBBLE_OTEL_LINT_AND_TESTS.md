@@ -147,43 +147,43 @@ Nothing. All changes are committed, buildable, tested, and lint-clean.
 
 ### HIGH — Correctness & Consistency
 
-| #   | Task                                                                 | Impact | Effort |
-| --- | -------------------------------------------------------------------- | ------ | ------ |
-| 1   | Add OTel tracing to pebble `EventStore` (Save/Load/ReadAll/ReadFrom) | High   | 1hr    |
-| 2   | Add `SnapshotStore()` + `CheckpointStore()` to `SQLBackend` facade   | Medium | 30min  |
-| 3   | Fix `SQLCommandStore` metadata roundtrip (TODO_LIST item)            | Medium | 1hr    |
-| 4   | Add `query.BasicQuery` metadata (TODO_LIST item)                     | Medium | 1hr    |
+| # | Task                                                                 | Impact | Effort |
+| - | -------------------------------------------------------------------- | ------ | ------ |
+| 1 | Add OTel tracing to pebble `EventStore` (Save/Load/ReadAll/ReadFrom) | High   | 1hr    |
+| 2 | Add `SnapshotStore()` + `CheckpointStore()` to `SQLBackend` facade   | Medium | 30min  |
+| 3 | Fix `SQLCommandStore` metadata roundtrip (TODO_LIST item)            | Medium | 1hr    |
+| 4 | Add `query.BasicQuery` metadata (TODO_LIST item)                     | Medium | 1hr    |
 
 ### MEDIUM — Quality & Coverage
 
-| #   | Task                                                                   | Impact | Effort |
-| --- | ---------------------------------------------------------------------- | ------ | ------ |
-| 5   | Increase pebble coverage from 81.2% to 85%+                            | Medium | 1hr    |
-| 6   | Add go-snaps golden tests for pebble CBOR envelope                     | Medium | 1hr    |
-| 7   | Add integration test: pebble EventStore + projection Runner end-to-end | Medium | 2hr    |
-| 8   | Create `PebbleBackend` facade (matches `SQLBackend` pattern)           | Medium | 1hr    |
-| 9   | Add `replace` directive CI check (GOWORK=off per-module builds)        | Medium | 2hr    |
-| 10  | Document EventStore.Close() vs SnapshotStore.Close() asymmetry in ADR  | Low    | 30min  |
-| 11  | Docker build CI step (multi-arch)                                      | Low    | 2hr    |
-| 12  | Playwright E2E tests for example/user/                                 | Low    | 4hr    |
+| #  | Task                                                                   | Impact | Effort |
+| -- | ---------------------------------------------------------------------- | ------ | ------ |
+| 5  | Increase pebble coverage from 81.2% to 85%+                            | Medium | 1hr    |
+| 6  | Add go-snaps golden tests for pebble CBOR envelope                     | Medium | 1hr    |
+| 7  | Add integration test: pebble EventStore + projection Runner end-to-end | Medium | 2hr    |
+| 8  | Create `PebbleBackend` facade (matches `SQLBackend` pattern)           | Medium | 1hr    |
+| 9  | Add `replace` directive CI check (GOWORK=off per-module builds)        | Medium | 2hr    |
+| 10 | Document EventStore.Close() vs SnapshotStore.Close() asymmetry in ADR  | Low    | 30min  |
+| 11 | Docker build CI step (multi-arch)                                      | Low    | 2hr    |
+| 12 | Playwright E2E tests for example/user/                                 | Low    | 4hr    |
 
 ### LOWER — Polish & Future
 
-| #   | Task                                                         | Impact | Effort |
-| --- | ------------------------------------------------------------ | ------ | ------ |
-| 13  | Pebble: add `WithLogger(nil)` option for silent mode         | Low    | 15min  |
-| 14  | Pebble: document key prefix collision behavior               | Low    | 15min  |
-| 15  | Memory: add `MemorySnapshotStore` golden tests               | Low    | 30min  |
-| 16  | Storage: add `SQLBackend.Close()` that closes all stores     | Low    | 30min  |
-| 17  | Add `PebbleBackend.Close()` if facade is created             | Low    | 15min  |
-| 18  | Pebble: add fuzz tests for snapshot/checkpoint serialization | Low    | 1hr    |
-| 19  | Consider `kv/` interface module for KV store abstraction     | High   | 4hr    |
-| 20  | Benchmark pebble SnapshotStore vs SQLSnapshotStore           | Low    | 1hr    |
-| 21  | Add pebble to `turso/` as alternative embedded backend       | Low    | 2hr    |
-| 22  | Add circuit breaker middleware to pebble stores              | Low    | 1hr    |
-| 23  | Document CBOR envelope format in ADR                         | Low    | 30min  |
-| 24  | Add `event.StreamLoader` implementation for pebble           | Medium | 2hr    |
-| 25  | Consider pebble snapshot compaction strategy                 | Low    | 4hr    |
+| #  | Task                                                         | Impact | Effort |
+| -- | ------------------------------------------------------------ | ------ | ------ |
+| 13 | Pebble: add `WithLogger(nil)` option for silent mode         | Low    | 15min  |
+| 14 | Pebble: document key prefix collision behavior               | Low    | 15min  |
+| 15 | Memory: add `MemorySnapshotStore` golden tests               | Low    | 30min  |
+| 16 | Storage: add `SQLBackend.Close()` that closes all stores     | Low    | 30min  |
+| 17 | Add `PebbleBackend.Close()` if facade is created             | Low    | 15min  |
+| 18 | Pebble: add fuzz tests for snapshot/checkpoint serialization | Low    | 1hr    |
+| 19 | Consider `kv/` interface module for KV store abstraction     | High   | 4hr    |
+| 20 | Benchmark pebble SnapshotStore vs SQLSnapshotStore           | Low    | 1hr    |
+| 21 | Add pebble to `turso/` as alternative embedded backend       | Low    | 2hr    |
+| 22 | Add circuit breaker middleware to pebble stores              | Low    | 1hr    |
+| 23 | Document CBOR envelope format in ADR                         | Low    | 30min  |
+| 24 | Add `event.StreamLoader` implementation for pebble           | Medium | 2hr    |
+| 25 | Consider pebble snapshot compaction strategy                 | Low    | 4hr    |
 
 ---
 

@@ -9,16 +9,16 @@
 
 ## TL;DR
 
-| Metric                   | Value                                                                 |
-| ------------------------ | --------------------------------------------------------------------- |
-| Build                    | ✅ PASS                                                               |
-| Tests                    | ✅ 37/37 packages                                                     |
-| Lint                     | ✅ 0 issues across 22 modules                                         |
-| Modules                  | 31 (22 library + 6 examples + 1 integration + 2 cmd)                  |
-| Coverage (avg)           | ~89% (top: decider/dispatcher 100%, low: turso 28.6%)                 |
-| Committed binaries       | ❌ 1 tracked (saga-pattern, 7.5MB ELF)                                |
+| Metric                   | Value                                                                |
+| ------------------------ | -------------------------------------------------------------------- |
+| Build                    | ✅ PASS                                                              |
+| Tests                    | ✅ 37/37 packages                                                    |
+| Lint                     | ✅ 0 issues across 22 modules                                        |
+| Modules                  | 31 (22 library + 6 examples + 1 integration + 2 cmd)                 |
+| Coverage (avg)           | ~89% (top: decider/dispatcher 100%, low: turso 28.6%)                |
+| Committed binaries       | ❌ 1 tracked (saga-pattern, 7.5MB ELF)                               |
 | Uncommitted golden drift | ⚠️ 2 files (codec + middleware golden files reformatted by `nix fmt`) |
-| CI (GitHub Actions)      | ❌ BLOCKED by billing ("recent account payments have failed")         |
+| CI (GitHub Actions)      | ❌ BLOCKED by billing ("recent account payments have failed")        |
 
 ---
 
@@ -168,33 +168,33 @@ GitHub Actions CI fails with billing error: "recent account payments have failed
 
 Sorted by impact × effort (Pareto order):
 
-| #   | Item                                                                     | Impact | Effort | Type           |
-| --- | ------------------------------------------------------------------------ | ------ | ------ | -------------- |
-| 1   | **Fix golden file drift: exclude `testdata/` from golines in treefmt**   | High   | Tiny   | Bug fix        |
-| 2   | **Remove `saga-pattern` binary from git, add to .gitignore**             | High   | Tiny   | Hygiene        |
-| 3   | **Commit the 2 regenerated golden files**                                | High   | Tiny   | Fix            |
-| 4   | **Add `go-snaps` to replace manual golden helpers**                      | High   | Medium | DX improvement |
-| 5   | **Wire benchmark-regression.sh into Nix flake**                          | Medium | Small  | CI             |
-| 6   | **Add coverage regression gate (minimum 80% per module)**                | Medium | Small  | CI             |
-| 7   | **Fix `turso` coverage (28.6% → 80%+)**                                  | Medium | Medium | Quality        |
-| 8   | **Investigate `otel` coverage drop (96.6% → 73.0%)**                     | Medium | Small  | Quality        |
-| 9   | **Add `storage/sql` sub-package tests (34.7% → 80%+)**                   | Medium | Medium | Quality        |
-| 10  | **Remove dead `runServer()` from example/user**                          | Low    | Tiny   | Cleanup        |
-| 11  | **Consolidate error re-exports (command/errors.go, event/errors.go)**    | Medium | Medium | Architecture   |
-| 12  | **Add `go vet` + `staticcheck` to CI (when unblocked)**                  | Medium | Small  | Quality        |
-| 13  | **Add doc.go with examples to all modules missing them**                 | Medium | Medium | DX             |
-| 14  | **Migrate otel/ and codec/ golden tests to shared helper**               | Low    | Small  | Consistency    |
-| 15  | **Add `check-compile-example` to verify all examples compile**           | Medium | Small  | CI             |
-| 16  | **Create integration test for listing → storage roundtrip**              | Medium | Medium | Testing        |
-| 17  | **Add API stability check to CI (cmd/api-stability already exists)**     | Medium | Small  | CI             |
-| 18  | **Write CONTRIBUTING.md (mentioned in sprint 1, status unknown)**        | Medium | Medium | DX             |
-| 19  | **Add `gosec` findings to CI output (not just flag them)**               | Low    | Small  | Security       |
-| 20  | **Add pre-commit hook to prevent binary commits**                        | High   | Small  | Hygiene        |
-| 21  | **Evaluate `govulncheck` integration for dependency scanning**           | Medium | Small  | Security       |
-| 22  | **Add property-based tests to remaining modules (only 3/22 have rapid)** | Medium | Large  | Quality        |
-| 23  | **OTel interface abstraction (Phase 3 from packaging plan)**             | Medium | Large  | Architecture   |
-| 24  | **Add Docker multi-stage build for examples**                            | Low    | Medium | DX             |
-| 25  | **Add Playwright E2E for SSE client**                                    | Low    | Large  | Testing        |
+| #  | Item                                                                     | Impact | Effort | Type           |
+| -- | ------------------------------------------------------------------------ | ------ | ------ | -------------- |
+| 1  | **Fix golden file drift: exclude `testdata/` from golines in treefmt**   | High   | Tiny   | Bug fix        |
+| 2  | **Remove `saga-pattern` binary from git, add to .gitignore**             | High   | Tiny   | Hygiene        |
+| 3  | **Commit the 2 regenerated golden files**                                | High   | Tiny   | Fix            |
+| 4  | **Add `go-snaps` to replace manual golden helpers**                      | High   | Medium | DX improvement |
+| 5  | **Wire benchmark-regression.sh into Nix flake**                          | Medium | Small  | CI             |
+| 6  | **Add coverage regression gate (minimum 80% per module)**                | Medium | Small  | CI             |
+| 7  | **Fix `turso` coverage (28.6% → 80%+)**                                  | Medium | Medium | Quality        |
+| 8  | **Investigate `otel` coverage drop (96.6% → 73.0%)**                     | Medium | Small  | Quality        |
+| 9  | **Add `storage/sql` sub-package tests (34.7% → 80%+)**                   | Medium | Medium | Quality        |
+| 10 | **Remove dead `runServer()` from example/user**                          | Low    | Tiny   | Cleanup        |
+| 11 | **Consolidate error re-exports (command/errors.go, event/errors.go)**    | Medium | Medium | Architecture   |
+| 12 | **Add `go vet` + `staticcheck` to CI (when unblocked)**                  | Medium | Small  | Quality        |
+| 13 | **Add doc.go with examples to all modules missing them**                 | Medium | Medium | DX             |
+| 14 | **Migrate otel/ and codec/ golden tests to shared helper**               | Low    | Small  | Consistency    |
+| 15 | **Add `check-compile-example` to verify all examples compile**           | Medium | Small  | CI             |
+| 16 | **Create integration test for listing → storage roundtrip**              | Medium | Medium | Testing        |
+| 17 | **Add API stability check to CI (cmd/api-stability already exists)**     | Medium | Small  | CI             |
+| 18 | **Write CONTRIBUTING.md (mentioned in sprint 1, status unknown)**        | Medium | Medium | DX             |
+| 19 | **Add `gosec` findings to CI output (not just flag them)**               | Low    | Small  | Security       |
+| 20 | **Add pre-commit hook to prevent binary commits**                        | High   | Small  | Hygiene        |
+| 21 | **Evaluate `govulncheck` integration for dependency scanning**           | Medium | Small  | Security       |
+| 22 | **Add property-based tests to remaining modules (only 3/22 have rapid)** | Medium | Large  | Quality        |
+| 23 | **OTel interface abstraction (Phase 3 from packaging plan)**             | Medium | Large  | Architecture   |
+| 24 | **Add Docker multi-stage build for examples**                            | Low    | Medium | DX             |
+| 25 | **Add Playwright E2E for SSE client**                                    | Low    | Large  | Testing        |
 
 ---
 
@@ -236,8 +236,8 @@ This is a product/design decision that affects the public API surface. It can't 
 | pebble         | 87.2%    | ↓ (was 88.1%)                            |
 | storage        | 86.8%    | ↑ (was 71.4%)                            |
 | integration    | 80.0%    | —                                        |
-| otel           | 73.0%    | ↓ (was 96.6%) ⚠️                         |
-| turso          | 28.6%    | — ⚠️                                     |
+| otel           | 73.0%    | ↓ (was 96.6%) ⚠️                          |
+| turso          | 28.6%    | — ⚠️                                      |
 
 **Modules with coverage drops**: otel (−23.6%), middleware (−5%), memory (−0.9%), query (−1.2%), pebble (−0.9%). These likely have new untested code added since last measurement.
 

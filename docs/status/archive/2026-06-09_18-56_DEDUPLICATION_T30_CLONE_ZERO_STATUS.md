@@ -74,15 +74,15 @@
 
 ### Architecture-Level Dedup Opportunities
 
-| #   | Area                            | Description                                                                          | Duplication                       | Effort | Value  |
-| --- | ------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------- | ------ | ------ |
-| 1   | `commandtest` package           | Create shared noopCommandHandler/callbackCommandHandler like `eventtest/handlers.go` | 3 files × ~30 lines               | Medium | Medium |
-| 2   | `testkit` leaf module           | Extract zero-dep `AssertGolden` for otel/codec (currently each has local copy)       | 2 files × ~25 lines               | Medium | Medium |
-| 3   | `dispatcher.CheckClosed`        | Move checkClosed/ensureOpen logic to `dispatcher.Dispatcher` method                  | 2 identical private methods       | Low    | Medium |
-| 4   | `TestDialectConformance`        | Create parameterized dialect test helper in `storage/sql`                            | 11 identical test cases × 2 files | Medium | Medium |
-| 5   | Error wrapper consolidation     | Create `errkit` leaf module or accept re-exports as-is                               | 70 lines × 2 files                | Low    | Low    |
-| 6   | Committed binaries              | Remove committed binaries from git, update `.gitignore`                              | Blocks pre-commit hook            | Low    | High   |
-| 7   | Example compilation test helper | Extract shared test for `go build` verification across 6+ examples                   | 6 files × ~20 lines               | Medium | Low    |
+| # | Area                            | Description                                                                          | Duplication                       | Effort | Value  |
+| - | ------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------- | ------ | ------ |
+| 1 | `commandtest` package           | Create shared noopCommandHandler/callbackCommandHandler like `eventtest/handlers.go` | 3 files × ~30 lines               | Medium | Medium |
+| 2 | `testkit` leaf module           | Extract zero-dep `AssertGolden` for otel/codec (currently each has local copy)       | 2 files × ~25 lines               | Medium | Medium |
+| 3 | `dispatcher.CheckClosed`        | Move checkClosed/ensureOpen logic to `dispatcher.Dispatcher` method                  | 2 identical private methods       | Low    | Medium |
+| 4 | `TestDialectConformance`        | Create parameterized dialect test helper in `storage/sql`                            | 11 identical test cases × 2 files | Medium | Medium |
+| 5 | Error wrapper consolidation     | Create `errkit` leaf module or accept re-exports as-is                               | 70 lines × 2 files                | Low    | Low    |
+| 6 | Committed binaries              | Remove committed binaries from git, update `.gitignore`                              | Blocks pre-commit hook            | Low    | High   |
+| 7 | Example compilation test helper | Extract shared test for `go build` verification across 6+ examples                   | 6 files × ~20 lines               | Medium | Low    |
 
 ---
 
@@ -118,33 +118,33 @@ Nothing. All changes compile, test, and lint clean. The latent bug in `realistic
 
 Sorted by **impact × effort** (high impact + low effort first):
 
-| #   | Task                                                                                    | Impact | Effort | Type         |
-| --- | --------------------------------------------------------------------------------------- | ------ | ------ | ------------ |
-| 1   | Remove committed binaries from git + update `.gitignore`                                | High   | Low    | Cleanup      |
-| 2   | Add `CheckClosed` method to `dispatcher.Dispatcher`                                     | Medium | Low    | Architecture |
-| 3   | Create `command/v2/commandtest/` package with shared handlers                           | Medium | Medium | Test infra   |
-| 4   | Create `testkit` leaf module with `AssertGolden`                                        | Medium | Medium | Test infra   |
-| 5   | Create `TestDialectConformance` in `storage/sql`                                        | Medium | Medium | Test infra   |
-| 6   | Run `art-dupl` at threshold 22 to find remaining structural clones                      | Low    | Low    | Quality      |
-| 7   | Add module README.md to all 22 library modules                                          | Medium | Medium | DX           |
-| 8   | Check if `listing/` golden tests need snapshot update after `testListingStatus`         | Low    | Low    | Verification |
-| 9   | Add `benchPopulateStore` return value for last event ID                                 | Low    | Low    | Cleanup      |
-| 10  | Verify all `example/` compile with `go build` after dedup changes                       | Medium | Low    | Verification |
-| 11  | Add CI gate for `art-dupl -t 30 --semantic` to prevent regression                       | High   | Low    | CI           |
-| 12  | Consider `testify` dependency for shared assertions                                     | Medium | Medium | DX           |
-| 13  | Extract example compilation test helper                                                 | Low    | Medium | Test infra   |
-| 14  | Run `go vet -tests` across all modules                                                  | Low    | Low    | Quality      |
-| 15  | Check `storage/dialect_test.go` vs `storage/sql/dialect_test.go` overlap                | Medium | Low    | Analysis     |
-| 16  | Consider `errkit` leaf module for error wrapper re-exports                              | Low    | Medium | Architecture |
-| 17  | Add race detector to CI (`-race` flag)                                                  | High   | Low    | CI           |
-| 18  | Verify `-tags=scale` benchmarks compile after changes                                   | Medium | Low    | Verification |
-| 19  | Check if `decider_helpers_test.go` `saveSnapshot`/`applySnapshot` can use shared helper | Low    | Low    | Cleanup      |
-| 20  | Run `nix flake check` to verify full flake integrity                                    | Medium | Low    | Quality      |
-| 21  | Consider Go 1.27 `synctest` for concurrent test patterns                                | Medium | Medium | Testing      |
-| 22  | Add `go.work.sum` sync after go.mod changes                                             | Low    | Low    | Maintenance  |
-| 23  | Check if `watermill/` and `turso/` modules have their own clone debt                    | Low    | Low    | Quality      |
-| 24  | Consider `gotest.tools` for example compilation tests                                   | Low    | Medium | DX           |
-| 25  | Evaluate `samber/ro` v2 API for reactive pattern improvements                           | Low    | Medium | DX           |
+| #  | Task                                                                                    | Impact | Effort | Type         |
+| -- | --------------------------------------------------------------------------------------- | ------ | ------ | ------------ |
+| 1  | Remove committed binaries from git + update `.gitignore`                                | High   | Low    | Cleanup      |
+| 2  | Add `CheckClosed` method to `dispatcher.Dispatcher`                                     | Medium | Low    | Architecture |
+| 3  | Create `command/v2/commandtest/` package with shared handlers                           | Medium | Medium | Test infra   |
+| 4  | Create `testkit` leaf module with `AssertGolden`                                        | Medium | Medium | Test infra   |
+| 5  | Create `TestDialectConformance` in `storage/sql`                                        | Medium | Medium | Test infra   |
+| 6  | Run `art-dupl` at threshold 22 to find remaining structural clones                      | Low    | Low    | Quality      |
+| 7  | Add module README.md to all 22 library modules                                          | Medium | Medium | DX           |
+| 8  | Check if `listing/` golden tests need snapshot update after `testListingStatus`         | Low    | Low    | Verification |
+| 9  | Add `benchPopulateStore` return value for last event ID                                 | Low    | Low    | Cleanup      |
+| 10 | Verify all `example/` compile with `go build` after dedup changes                       | Medium | Low    | Verification |
+| 11 | Add CI gate for `art-dupl -t 30 --semantic` to prevent regression                       | High   | Low    | CI           |
+| 12 | Consider `testify` dependency for shared assertions                                     | Medium | Medium | DX           |
+| 13 | Extract example compilation test helper                                                 | Low    | Medium | Test infra   |
+| 14 | Run `go vet -tests` across all modules                                                  | Low    | Low    | Quality      |
+| 15 | Check `storage/dialect_test.go` vs `storage/sql/dialect_test.go` overlap                | Medium | Low    | Analysis     |
+| 16 | Consider `errkit` leaf module for error wrapper re-exports                              | Low    | Medium | Architecture |
+| 17 | Add race detector to CI (`-race` flag)                                                  | High   | Low    | CI           |
+| 18 | Verify `-tags=scale` benchmarks compile after changes                                   | Medium | Low    | Verification |
+| 19 | Check if `decider_helpers_test.go` `saveSnapshot`/`applySnapshot` can use shared helper | Low    | Low    | Cleanup      |
+| 20 | Run `nix flake check` to verify full flake integrity                                    | Medium | Low    | Quality      |
+| 21 | Consider Go 1.27 `synctest` for concurrent test patterns                                | Medium | Medium | Testing      |
+| 22 | Add `go.work.sum` sync after go.mod changes                                             | Low    | Low    | Maintenance  |
+| 23 | Check if `watermill/` and `turso/` modules have their own clone debt                    | Low    | Low    | Quality      |
+| 24 | Consider `gotest.tools` for example compilation tests                                   | Low    | Medium | DX           |
+| 25 | Evaluate `samber/ro` v2 API for reactive pattern improvements                           | Low    | Medium | DX           |
 
 ---
 

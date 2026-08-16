@@ -80,7 +80,6 @@
 - Bisect used `git worktree` (never checkout/reset); probe tests deleted after
   use; temp sqlite fix-revert restored from backup copy.
 
-
 ---
 
 ## Resolution (2026-08-15)

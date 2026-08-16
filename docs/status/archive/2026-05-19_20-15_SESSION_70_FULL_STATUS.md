@@ -1,9 +1,9 @@
 # Session 70 Full Status Report
 
-**Date:** 2026-05-19 20:15  
-**Session Focus:** Zero-Cost Catalog API (Phase 1) + Core Quality Fixes (Phase 2 partial) + BaseDispatcher Removal  
-**Commits This Session:** 5  
-**Commits Ahead of Origin:** 5  
+**Date:** 2026-05-19 20:15\
+**Session Focus:** Zero-Cost Catalog API (Phase 1) + Core Quality Fixes (Phase 2 partial) + BaseDispatcher Removal\
+**Commits This Session:** 5\
+**Commits Ahead of Origin:** 5\
 **Test Status:** All 22 packages pass
 
 ---
@@ -138,33 +138,33 @@ builder.AddService("svc", "Name", "1.0.0", "Summary",
 
 ### F) Top #25 Things To Get Done Next
 
-| #   | Priority | Task                                                                         | Est.  | Module                 |
-| --- | -------- | ---------------------------------------------------------------------------- | ----- | ---------------------- |
-| 1   | **P0**   | Design `storage.Dialect` interface                                           | 10min | storage                |
-| 2   | **P0**   | Refactor `SQLEventStore` + `SQLiteEventStore` → single store with dialect    | 20min | storage                |
-| 3   | **P0**   | Refactor `SQLSnapshotStore` + `SQLiteSnapshotStore` → single store           | 20min | storage                |
-| 4   | **P0**   | Refactor `SQLCheckpointStore` + `SQLiteCheckpointStore` → single store       | 15min | storage                |
-| 5   | **P0**   | Refactor `SQLOutbox` + `SQLiteOutbox` → single store                         | 20min | storage                |
-| 6   | **P0**   | Refactor `SQLTransactionalStore` + `SQLiteTransactionalStore` → single store | 15min | storage                |
-| 7   | **P0**   | Update storage tests for dialect-based stores                                | 20min | storage                |
-| 8   | **P1**   | Add `builder_test.go` for `event.Builder`                                    | 10min | core/event             |
-| 9   | **P1**   | Add `enricher_test.go` for `CompositeEnricher`/`EnrichEvent`                 | 10min | core/event             |
-| 10  | **P1**   | Add `publish_helper_test.go` for `PublishChanges`/`SaveSnapshot`             | 10min | core/event             |
-| 11  | **P1**   | Add `snapshot_helper_test.go` for `ShouldSnapshot`                           | 8min  | core/event             |
-| 12  | **P1**   | Add `projection/options_test.go` with proper fake types                      | 10min | projection             |
-| 13  | **P1**   | Split `core/decider/decider_test.go` (1146 lines)                            | 10min | core/decider           |
-| 14  | **P1**   | Split `projection/runner_test.go` (1057 lines)                               | 10min | projection             |
-| 15  | **P1**   | Split `core/aggregate/repository_test.go` (875 lines)                        | 10min | core/aggregate         |
-| 16  | **P2**   | Change `event.Version` → `uint`                                              | 15min | core/event             |
-| 17  | **P2**   | Change `event.SchemaVersion` → `uint`                                        | 10min | core/event             |
-| 18  | **P2**   | Propagate `uint` versions to storage/memory/example                          | 30min | multiple               |
-| 19  | **P2**   | Define `SubscriptionScope` enum                                              | 8min  | core/event             |
-| 20  | **P2**   | Update `SubscribesTo` + `projection.Runner` for enum                         | 15min | core/event, projection |
-| 21  | **P3**   | Consolidate MemoryBus `handlers` + `allHandlers` maps                        | 15min | memory                 |
-| 22  | **P3**   | Standardize storage error wrapping                                           | 15min | storage                |
-| 23  | **P3**   | Fix dynamic errors with sentinels across modules                             | 15min | multiple               |
-| 24  | **P3**   | Split `catalog/schema_test.go` (604 lines)                                   | 10min | catalog                |
-| 25  | **P3**   | Split `core/event/runner_test.go` (439 lines)                                | 10min | core/event             |
+| #  | Priority | Task                                                                         | Est.  | Module                 |
+| -- | -------- | ---------------------------------------------------------------------------- | ----- | ---------------------- |
+| 1  | **P0**   | Design `storage.Dialect` interface                                           | 10min | storage                |
+| 2  | **P0**   | Refactor `SQLEventStore` + `SQLiteEventStore` → single store with dialect    | 20min | storage                |
+| 3  | **P0**   | Refactor `SQLSnapshotStore` + `SQLiteSnapshotStore` → single store           | 20min | storage                |
+| 4  | **P0**   | Refactor `SQLCheckpointStore` + `SQLiteCheckpointStore` → single store       | 15min | storage                |
+| 5  | **P0**   | Refactor `SQLOutbox` + `SQLiteOutbox` → single store                         | 20min | storage                |
+| 6  | **P0**   | Refactor `SQLTransactionalStore` + `SQLiteTransactionalStore` → single store | 15min | storage                |
+| 7  | **P0**   | Update storage tests for dialect-based stores                                | 20min | storage                |
+| 8  | **P1**   | Add `builder_test.go` for `event.Builder`                                    | 10min | core/event             |
+| 9  | **P1**   | Add `enricher_test.go` for `CompositeEnricher`/`EnrichEvent`                 | 10min | core/event             |
+| 10 | **P1**   | Add `publish_helper_test.go` for `PublishChanges`/`SaveSnapshot`             | 10min | core/event             |
+| 11 | **P1**   | Add `snapshot_helper_test.go` for `ShouldSnapshot`                           | 8min  | core/event             |
+| 12 | **P1**   | Add `projection/options_test.go` with proper fake types                      | 10min | projection             |
+| 13 | **P1**   | Split `core/decider/decider_test.go` (1146 lines)                            | 10min | core/decider           |
+| 14 | **P1**   | Split `projection/runner_test.go` (1057 lines)                               | 10min | projection             |
+| 15 | **P1**   | Split `core/aggregate/repository_test.go` (875 lines)                        | 10min | core/aggregate         |
+| 16 | **P2**   | Change `event.Version` → `uint`                                              | 15min | core/event             |
+| 17 | **P2**   | Change `event.SchemaVersion` → `uint`                                        | 10min | core/event             |
+| 18 | **P2**   | Propagate `uint` versions to storage/memory/example                          | 30min | multiple               |
+| 19 | **P2**   | Define `SubscriptionScope` enum                                              | 8min  | core/event             |
+| 20 | **P2**   | Update `SubscribesTo` + `projection.Runner` for enum                         | 15min | core/event, projection |
+| 21 | **P3**   | Consolidate MemoryBus `handlers` + `allHandlers` maps                        | 15min | memory                 |
+| 22 | **P3**   | Standardize storage error wrapping                                           | 15min | storage                |
+| 23 | **P3**   | Fix dynamic errors with sentinels across modules                             | 15min | multiple               |
+| 24 | **P3**   | Split `catalog/schema_test.go` (604 lines)                                   | 10min | catalog                |
+| 25 | **P3**   | Split `core/event/runner_test.go` (439 lines)                                | 10min | core/event             |
 
 ---
 

@@ -15,6 +15,7 @@ compile-time assertion gaps. All builds and tests pass across 6 engine modules.
 ## a) FULLY DONE
 
 ### Task 4: Compile-time assertion gaps (Effort: S) ✅
+
 - **mysqlengine**: Added `_ metaengine.Calibratable = (*mysqlEngine)(nil)` assertion.
   Interface was already satisfied via embedded `metaengine.Calibration` — one-line fix.
   File: `metaengine/mysqlengine/engine.go:241`
@@ -23,8 +24,10 @@ compile-time assertion gaps. All builds and tests pass across 6 engine modules.
   The task premise was partially incorrect.
 
 ### Task 2: Capability-degradation planner rule (Effort: M) ✅
+
 The `degradedADTRule` (`rule_degraded_adt.go`) already existed but emitted a bare
 message. Enhanced it with three new capabilities:
+
 1. **Cost penalty estimate**: Diagnostic now includes `est %.2fms` from `q.Cost.EstimatedLatencyMs`
 2. **Native-engine recommendation**: Scans `ctx.Store.engines` for a non-degraded
    engine supporting the same ADT; includes `native engine "X" recommended` or
@@ -33,6 +36,7 @@ message. Enhanced it with three new capabilities:
    output via `degradedDoctorSection()` in `doctor_degraded.go`
 
 Files created/modified:
+
 - `metaengine/rule_degraded_adt.go` — rewritten with cost + recommendation
 - `metaengine/doctor_degraded.go` — NEW: Doctor section renderer
 - `metaengine/explain.go` — wired section between Latency and Routing
@@ -41,6 +45,7 @@ Files created/modified:
 ### Task 1: Universal ADT coverage (Effort: XL) — MAJOR PROGRESS
 
 #### 1a: StreamLog on Dgraph ✅
+
 - Implemented `StreamLogBackend` (5 methods) + `AtomicAppender` on dgraphengine
 - Schema: 4 new predicates (`cqrs.stream_log_collection/stream/seq/value`)
 - Profile: `ADTStreamLog: ComplexityOLogN` added to Supports (native, not degraded)
@@ -50,6 +55,7 @@ Files created/modified:
 - Extracted Map backend methods to `map_backend.go` to bring `engine.go` under 350 lines
 
 #### 1b: Native graph on SQLite/Turso ✅
+
 - Created `meta_graph_edges` table + `idx_graph_edges_from` index in SQLite DDL
 - Implemented `GraphAddEdge` (INSERT OR IGNORE) + `GraphNeighbors` (iterative BFS)
 - **Design pivot**: Originally implemented recursive CTE (`WITH RECURSIVE bfs`),
@@ -61,6 +67,7 @@ Files created/modified:
 - Updated outdated comment in `graph_fallback_sqlite_e2e_test.go`
 
 #### 1c: E2e Store integration test ✅
+
 - `graph_cte_e2e_test.go`: 2 tests exercising full `Plan → Apply → Execute` pipeline
   on SQLite with native graph dispatch (not fallback)
 - Verifies no DEGRADED diagnostic, correct depth-limited BFS results
@@ -69,6 +76,7 @@ Files created/modified:
 ### Task 3: Engine test parity (Effort: M) ✅
 
 #### mysqlengine (4 files)
+
 - `stream_log_test.go` — 2 tests via `enginetest.RunStreamLogBackendTest` / `RunAtomicAppenderTest`
 - `pushdown_test.go` — 3 tests: filter, combined filter+sort+limit, empty result
 - `calibration_bench_test.go` — 3 benchmarks (Set, Get, CounterIncrement)
@@ -76,11 +84,13 @@ Files created/modified:
   JSON path operators (`value->'$.field'`, `CAST(? AS JSON)`)
 
 #### tursoengine (3 files)
+
 - `record_stamp_test.go` — via `enginetest.RunRecordStampTest`
 - `soak_autocrud_test.go` — via `enginetest.RunAutoCRUDSoak`
 - `healthcheck_test.go` — HealthChecker interface assertion + ping
 
 #### bboltengine (3 files)
+
 - `edge_cases_test.go` — 4 tests adapted for bbolt's `MapBackend`/`ScanBackend`
   (NOT `RawScanReader`/`LayoutPlanner` which bbolt doesn't implement)
 - `fuzz_test.go` — fuzz MapSet/Get with arbitrary string keys + int64 values
@@ -91,7 +101,9 @@ Files created/modified:
 ## b) PARTIALLY DONE
 
 ### Task 1: Universal ADT coverage — remaining gaps
+
 The task asked for **every engine to handle every ADT**. Achieved:
+
 - ✅ StreamLog on Dgraph (was missing)
 - ✅ Graph on SQLite/Turso (was degraded fallback)
 - ❌ **Recursive CTE optimization**: Task explicitly mentioned "recursive CTE on
@@ -144,6 +156,7 @@ mandatory verification gate). The AGENTS.md explicitly calls out "Stale GREEN"
 anti-pattern. I ran `go build` + `go test` on touched modules only, not the full
 `#verify` suite (build + vet + test + race + lint + doc-check + doc-assertions +
 check-arch + check-duplication). There could be:
+
 - Lint failures (line length, depguard, gosec)
 - Duplication threshold violations (new explain.go shares patterns with pgengine/duckdbengine)
 - Doc-check failures (SKILL.md references to SQLite graph as degraded)
@@ -191,6 +204,7 @@ check-arch + check-duplication). There could be:
 ## f) Up to 50 things to do next
 
 ### Verification & CI (must-do)
+
 ~~1. Run `nix run .#verify` and fix any failures~~ done at 5f2198189 (three GREENs since)
 ~~2. Run `cd cmd/api-stability && GOWORK=off go run main.go -update` (regenerate golden)~~ done - golden current (4133)
 ~~3. Run `nix run .#check-duplication` — fix or baseline any new clones~~ done - baseline re-pinned 92->97; gate green
@@ -198,6 +212,7 @@ check-arch + check-duplication). There could be:
 ~~5. Run `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`~~ done - doc-check 797 refs green
 
 ### Documentation updates
+
 6. Update `.agents/skills/go-cqrs-lite/references/recipes.md` — SQLite graph is now native
 7. Update `.agents/skills/go-cqrs-lite/references/modules.md` — dgraphengine now has StreamLog
 8. Update `metaengine/calibration-baseline.md` if graph costs changed
@@ -206,6 +221,7 @@ check-arch + check-duplication). There could be:
 11. Update `FEATURES.md` if it tracks per-engine ADT support
 
 ### Graph improvements
+
 12. Implement `WITH RECURSIVE` CTE path for SQLite (with BFS fallback for Turso) <- OPEN. in flight - sqliteengine/graph.go carries WITH RECURSIVE in the concurrent session's tree
 13. Implement `WITH RECURSIVE` CTE path for MySQL 8.0+ <- OPEN. in flight - mysqlengine graph work untracked in the concurrent session's tree
 14. Implement recursive CTE for PG (already supports it) <- OPEN. in flight - pgengine/graph.go WITH RECURSIVE present in the concurrent session's tree
@@ -216,21 +232,24 @@ check-arch + check-duplication). There could be:
 19. Consider weighted graph support (priority queues for shortest-path)
 
 ### Dgraph StreamLog improvements
+
 20. Fix timestamp collision risk with per-collection counter
 21. Add `StreamTemporalReader` interface to dgraphengine (version-bounded reads)
-~~22. Test Dgraph StreamLog with the `enginetest.RunStreamLogBackendTest` harness~~ done at 7c0a62c98 - TestStreamLog_HarnessParity wires the shared suite; 24/24 live
-~~23. Add Dgraph StreamLog to the cross-engine ADT matrix test~~ done - ADT matrix includes StreamLog incl. the interleaved-collections phase (2026-08-15)
-24. Benchmark Dgraph StreamAppend/JournalReadAll
+    ~~22. Test Dgraph StreamLog with the `enginetest.RunStreamLogBackendTest` harness~~ done at 7c0a62c98 - TestStreamLog_HarnessParity wires the shared suite; 24/24 live
+    ~~23. Add Dgraph StreamLog to the cross-engine ADT matrix test~~ done - ADT matrix includes StreamLog incl. the interleaved-collections phase (2026-08-15)
+22. Benchmark Dgraph StreamAppend/JournalReadAll
 
 ### Remaining ADT coverage gaps
+
 25. Implement brute-force `VectorBackend` on Pebble (O(N) scan) <- OPEN. in flight - pebbleengine/vector.go in the concurrent session's untracked set
 26. Implement brute-force `VectorBackend` on bbolt <- OPEN. in flight - bboltengine/vector.go in the concurrent session's untracked set
 27. Implement brute-force `SearchBackend` on Pebble
-~~28. Implement `StreamLogBackend` on badgerengine (if missing)~~ done at 4a95bd04d - badgerengine's first StreamLog contract test (shared harness)
-29. Audit ALL engines × ALL 11 ADTs for coverage completeness <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)'
-30. Create a coverage matrix test that asserts every engine handles every ADT (degraded or native) <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)' (coverage-matrix assert)
+    ~~28. Implement `StreamLogBackend` on badgerengine (if missing)~~ done at 4a95bd04d - badgerengine's first StreamLog contract test (shared harness)
+28. Audit ALL engines × ALL 11 ADTs for coverage completeness <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)'
+29. Create a coverage matrix test that asserts every engine handles every ADT (degraded or native) <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)' (coverage-matrix assert)
 
 ### Test parity improvements
+
 31. Add `stream_log_test.go` to tursoengine (currently delegates to sqlite)
 32. Add `pushdown_test.go` to pgengine (if missing)
 33. Add `explain_test.go` to mysqlengine (test the new ExplainableScan methods)
@@ -240,22 +259,25 @@ check-arch + check-duplication). There could be:
 37. Add `doctor_test.go` to mysqlengine testing the degraded section
 
 ### Planner/diagnostic improvements
+
 38. Add cost comparison to the degraded diagnostic (show native vs degraded latency delta)
 39. Add `-- Degraded ADTs --` section to `ExplainPlan()` output (currently only Doctor)
 40. Add a `Summary()` method on `Diagnostics` for quick health checks
 41. Consider adding `DiagLevelInfo` for native graph routing (positive confirmation)
 
 ### Cost model
+
 42. Recalibrate SQLite costs now that graph is native `ComplexityODegree` (was `ComplexityON`)
 43. Add a graph-specific `NsPerOp` measurement for the iterative BFS path
 44. Update `ReadCosts` for SQLite to include graph traversal cost
 
 ### Code quality
+
 ~~45. Run `nix fmt` on all new files (gofumpt + goimports)~~ done - lint 76/76 clean since 444be10a7
 ~~46. Add `//nolint` directives if gosec flags the `fmt.Sprintf` in SQL builders~~ done - lint clean; no unmanaged nolints
 ~~47. Review the Dgraph `stream_log.go` for the `DeferClose` pattern (rows cleanup)~~ done - DeferClose pattern is the repo-wide contract (AGENTS internal contract #14)
 48. Consider extracting the iterative BFS algorithm into a shared helper (used by both
-    `graph_fallback.go` and `sqliteengine/graph.go`)
+`graph_fallback.go` and `sqliteengine/graph.go`)
 49. Add inline benchmarks to `graph_test.go` using `b.Loop()` pattern
 50. Review whether `meta_graph_edges` needs a `seq` column for edge ordering
 
@@ -280,7 +302,6 @@ check-arch + check-duplication). There could be:
    silently does nothing when the condition fails (no error, no UIDs assigned). Detecting
    "zero UIDs" as a conflict works but could also trigger on a Dgraph internal error that
    silently swallows the mutation. Should I use a more explicit conflict detection mechanism?
-
 
 ---
 

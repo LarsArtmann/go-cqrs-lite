@@ -206,15 +206,15 @@ The codebase is in the cleanest state in its entire history:
 
 ### Self-Criticism (Session 13)
 
-| #   | Mistake                                                                                  | Learning                                                                                               |
-| --- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| 1   | Wasted tasks on already-fixed issues (MemorySnapshotStore, core/internal/)               | Check git log before assuming status reports are current                                               |
-| 2   | Didn't run lint first — fixed issues iteratively                                         | Always run `nix run .#lint` as step 1                                                                  |
-| 3   | 615-line `repository_test.go` exceeds 250-line guideline                                 | Should split into `repository_test.go` (fakes) + `repository_save_test.go` + `repository_load_test.go` |
-| 4   | Used `fmt.Errorf` for static errors, then had to fix for perfsprint                      | Use `errors.New` for static messages from the start                                                    |
-| 5   | Didn't extract fakes to `testhelpers/` — 250 lines of reusable code trapped in test file | Do it now before storage module duplicates them                                                        |
-| 6   | Didn't leverage existing `event.Codec` for snapshot serialization                        | `ApplySnapshot` still receives raw `[]byte`                                                            |
-| 7   | Didn't update `CHANGELOG.md`                                                             | Should record session 13 changes                                                                       |
+| # | Mistake                                                                                  | Learning                                                                                               |
+| - | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| 1 | Wasted tasks on already-fixed issues (MemorySnapshotStore, core/internal/)               | Check git log before assuming status reports are current                                               |
+| 2 | Didn't run lint first — fixed issues iteratively                                         | Always run `nix run .#lint` as step 1                                                                  |
+| 3 | 615-line `repository_test.go` exceeds 250-line guideline                                 | Should split into `repository_test.go` (fakes) + `repository_save_test.go` + `repository_load_test.go` |
+| 4 | Used `fmt.Errorf` for static errors, then had to fix for perfsprint                      | Use `errors.New` for static messages from the start                                                    |
+| 5 | Didn't extract fakes to `testhelpers/` — 250 lines of reusable code trapped in test file | Do it now before storage module duplicates them                                                        |
+| 6 | Didn't leverage existing `event.Codec` for snapshot serialization                        | `ApplySnapshot` still receives raw `[]byte`                                                            |
+| 7 | Didn't update `CHANGELOG.md`                                                             | Should record session 13 changes                                                                       |
 
 ---
 
@@ -291,33 +291,33 @@ The codebase is in the cleanest state in its entire history:
 
 Sorted by impact × effort⁻¹ (highest ROI first):
 
-| #   | Task                                              | Module         | Effort | Impact          |
-| --- | ------------------------------------------------- | -------------- | ------ | --------------- |
-| 1   | **Extract fakes to `testhelpers/`**               | testhelpers    | 30min  | HIGH            |
-| 2   | **Add `DecodePayload[T]` helper**                 | core/event     | 15min  | MEDIUM          |
-| 3   | **Tag `v0.1.0-alpha` releases**                   | Git            | 15min  | MEDIUM          |
-| 4   | **Split `repository_test.go` into 3 files**       | core/aggregate | 20min  | LOW             |
-| 5   | **Update `CHANGELOG.md`**                         | docs/          | 15min  | LOW             |
-| 6   | **Add `Projection` interface + in-memory runner** | core           | 2hr    | HIGH            |
-| 7   | **Add `Upcaster` interface + registry**           | core           | 1hr    | HIGH            |
-| 8   | **Wire `Codec` into snapshot serialization**      | core/aggregate | 30min  | MEDIUM          |
-| 9   | **Use `dispatcher.Typed` for generic middleware** | core           | 1hr    | MEDIUM          |
-| 10  | **Design storage module schema**                  | storage/       | 1hr    | CRITICAL        |
-| 11  | **Create `storage/` module skeleton**             | storage/       | 15min  | CRITICAL        |
-| 12  | **Add sqlc config + generated queries**           | storage/       | 1hr    | CRITICAL        |
-| 13  | **Implement `event.Store` SQL adapter**           | storage/       | 2hr    | CRITICAL        |
-| 14  | **Implement transactional outbox**                | storage/       | 2hr    | HIGH            |
-| 15  | **Add working `example/user/`**                   | example/       | 3hr    | HIGH            |
-| 16  | **Write getting-started guide**                   | docs/          | 2hr    | HIGH            |
-| 17  | **Split `event.Store` → `Writer/Reader/Deleter`** | core/event     | 1hr    | HIGH (breaking) |
-| 18  | **Replace `TestMetrics` with OTel SDK**           | middleware     | 2hr    | MEDIUM          |
-| 19  | **Evaluate `samber/do` for storage DI**           | storage/       | 2hr    | MEDIUM          |
-| 20  | **Add GitHub Pages go-import tags**               | docs/          | 15min  | MEDIUM          |
-| 21  | **Create `watermill/` module**                    | watermill/     | 3hr    | HIGH            |
-| 22  | **Create `projection/` module**                   | projection/    | 2d     | HIGH            |
-| 23  | **Add E2E throughput benchmarks**                 | integration/   | 30min  | LOW             |
-| 24  | **Add fuzz tests for event + catalog**            | core/          | 1hr    | LOW             |
-| 25  | **Write saga/process manager design doc**         | docs/planning/ | 1hr    | MEDIUM          |
+| #  | Task                                              | Module         | Effort | Impact          |
+| -- | ------------------------------------------------- | -------------- | ------ | --------------- |
+| 1  | **Extract fakes to `testhelpers/`**               | testhelpers    | 30min  | HIGH            |
+| 2  | **Add `DecodePayload[T]` helper**                 | core/event     | 15min  | MEDIUM          |
+| 3  | **Tag `v0.1.0-alpha` releases**                   | Git            | 15min  | MEDIUM          |
+| 4  | **Split `repository_test.go` into 3 files**       | core/aggregate | 20min  | LOW             |
+| 5  | **Update `CHANGELOG.md`**                         | docs/          | 15min  | LOW             |
+| 6  | **Add `Projection` interface + in-memory runner** | core           | 2hr    | HIGH            |
+| 7  | **Add `Upcaster` interface + registry**           | core           | 1hr    | HIGH            |
+| 8  | **Wire `Codec` into snapshot serialization**      | core/aggregate | 30min  | MEDIUM          |
+| 9  | **Use `dispatcher.Typed` for generic middleware** | core           | 1hr    | MEDIUM          |
+| 10 | **Design storage module schema**                  | storage/       | 1hr    | CRITICAL        |
+| 11 | **Create `storage/` module skeleton**             | storage/       | 15min  | CRITICAL        |
+| 12 | **Add sqlc config + generated queries**           | storage/       | 1hr    | CRITICAL        |
+| 13 | **Implement `event.Store` SQL adapter**           | storage/       | 2hr    | CRITICAL        |
+| 14 | **Implement transactional outbox**                | storage/       | 2hr    | HIGH            |
+| 15 | **Add working `example/user/`**                   | example/       | 3hr    | HIGH            |
+| 16 | **Write getting-started guide**                   | docs/          | 2hr    | HIGH            |
+| 17 | **Split `event.Store` → `Writer/Reader/Deleter`** | core/event     | 1hr    | HIGH (breaking) |
+| 18 | **Replace `TestMetrics` with OTel SDK**           | middleware     | 2hr    | MEDIUM          |
+| 19 | **Evaluate `samber/do` for storage DI**           | storage/       | 2hr    | MEDIUM          |
+| 20 | **Add GitHub Pages go-import tags**               | docs/          | 15min  | MEDIUM          |
+| 21 | **Create `watermill/` module**                    | watermill/     | 3hr    | HIGH            |
+| 22 | **Create `projection/` module**                   | projection/    | 2d     | HIGH            |
+| 23 | **Add E2E throughput benchmarks**                 | integration/   | 30min  | LOW             |
+| 24 | **Add fuzz tests for event + catalog**            | core/          | 1hr    | LOW             |
+| 25 | **Write saga/process manager design doc**         | docs/planning/ | 1hr    | MEDIUM          |
 
 ---
 

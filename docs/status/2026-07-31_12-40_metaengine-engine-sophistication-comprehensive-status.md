@@ -1,7 +1,7 @@
 # Metaengine Engine Sophistication — Comprehensive Status Report
 
-**Date:** 2026-07-31 12:40  
-**Session scope:** Pebble RawValueReader + RawScanReader, ADT matrix test harness extraction, Pebble ADT matrix integration  
+**Date:** 2026-07-31 12:40\
+**Session scope:** Pebble RawValueReader + RawScanReader, ADT matrix test harness extraction, Pebble ADT matrix integration\
 **Previous report:** `2026-07-31_07-06_metaengine-todo-list-execution-status.md`
 
 ---
@@ -78,15 +78,15 @@
 
 These items from the original task list were **not attempted** in this session:
 
-| #   | Item                                                          | Status      | Reason                                                             |
-| --- | ------------------------------------------------------------- | ----------- | ------------------------------------------------------------------ |
-| 3   | Pebble LayoutPlanner — prefixed key ranges for indexed fields | NOT STARTED | Out of scope for this session — the two 🔥 items were prioritized. |
-| 4   | Postgres engine — native JSONB operators                      | NOT STARTED | Requires a new `metaengine/postgresengine` module.                 |
-| 5   | DuckDB analytical engine — columnar OLAP                      | NOT STARTED | Requires a new `metaengine/duckdbengine` module (CGo).             |
-| 6   | Soak test (10M events)                                        | NOT STARTED | Needs a long-running test harness with memory profiling.           |
-| 7   | Chaos testing — random transaction kills, error injection     | NOT STARTED | Needs a chaos testing framework.                                   |
-| 8   | metaengine-gen code generator                                 | NOT STARTED | New `cmd/metaengine-gen` tool — large scope.                       |
-| 9   | Schema enforcement at Plan() time                             | NOT STARTED | Requires planner changes.                                          |
+| # | Item                                                          | Status      | Reason                                                             |
+| - | ------------------------------------------------------------- | ----------- | ------------------------------------------------------------------ |
+| 3 | Pebble LayoutPlanner — prefixed key ranges for indexed fields | NOT STARTED | Out of scope for this session — the two 🔥 items were prioritized. |
+| 4 | Postgres engine — native JSONB operators                      | NOT STARTED | Requires a new `metaengine/postgresengine` module.                 |
+| 5 | DuckDB analytical engine — columnar OLAP                      | NOT STARTED | Requires a new `metaengine/duckdbengine` module (CGo).             |
+| 6 | Soak test (10M events)                                        | NOT STARTED | Needs a long-running test harness with memory profiling.           |
+| 7 | Chaos testing — random transaction kills, error injection     | NOT STARTED | Needs a chaos testing framework.                                   |
+| 8 | metaengine-gen code generator                                 | NOT STARTED | New `cmd/metaengine-gen` tool — large scope.                       |
+| 9 | Schema enforcement at Plan() time                             | NOT STARTED | Requires planner changes.                                          |
 
 ---
 

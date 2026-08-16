@@ -12,12 +12,12 @@
 Four test files created in `metaengine/bboltengine/` (352 lines total), mirroring the
 pebbleengine coverage pattern and adapting for bbolt's single-writer B+tree model:
 
-| File | Lines | Tests | Mirrors |
-|---|---|---|---|
-| `persistence_test.go` | 56 | 3 (volatile, on-disk, FromDB profile) | pebbleengine/persistence_test.go |
-| `restart_safety_test.go` | 157 | 2 (StreamAndJournal, FromDB seq seeding) | pebbleengine/restart_safety_test.go |
-| `disk_backed_test.go` | 69 | 2 (persist across reopen, volatile does not) | pebbleengine/disk_backed_test.go |
-| `calibration_bench_test.go` | 70 | 3 benchmarks (Set, Get, CounterIncrement) | badgerengine/calibration_bench_test.go |
+| File                        | Lines | Tests                                        | Mirrors                                |
+| --------------------------- | ----- | -------------------------------------------- | -------------------------------------- |
+| `persistence_test.go`       | 56    | 3 (volatile, on-disk, FromDB profile)        | pebbleengine/persistence_test.go       |
+| `restart_safety_test.go`    | 157   | 2 (StreamAndJournal, FromDB seq seeding)     | pebbleengine/restart_safety_test.go    |
+| `disk_backed_test.go`       | 69    | 2 (persist across reopen, volatile does not) | pebbleengine/disk_backed_test.go       |
+| `calibration_bench_test.go` | 70    | 3 benchmarks (Set, Get, CounterIncrement)    | badgerengine/calibration_bench_test.go |
 
 ### Verification Results
 
@@ -36,8 +36,7 @@ pebbleengine coverage pattern and adapting for bbolt's single-writer B+tree mode
    is better coverage. This was the right call.
 
 2. **`NewBboltEngine("")` is volatile via temp file** — Unlike pebble (true in-memory via `vfs.NewMem()),
-   bbolt always uses a file. The empty-path path creates a temp file deleted on Close. The
-   `disk_backed_test.go` comments accurately describe this, but the test naming (`TestBboltInMemory`)
+   bbolt always uses a file. The empty-path path creates a temp file deleted on Close. The`disk_backed_test.go`comments accurately describe this, but the test naming (`TestBboltInMemory`)
    is slightly misleading — bbolt has no true in-memory mode.
 
 ---
@@ -132,6 +131,7 @@ Nothing. All four requested files were created and verified.
 ## f) Up to 50 Things We Should Get Done Next
 
 ### Immediate (blocking / this session's debt)
+
 1. Fix `record_stamp.go` GOWORK=off build failure — affects all engine modules
 2. Run `nix fmt` on the four new bboltengine test files
 3. Run `nix run .#lint` on bboltengine (golangci-lint, 202 rules)
@@ -140,6 +140,7 @@ Nothing. All four requested files were created and verified.
 6. Run `nix run .#verify-fast` to confirm no regressions
 
 ### bboltengine parity gaps
+
 7. Pebble has `edge_cases_test.go` — bbolt does not
 8. Pebble has `fuzz_test.go` — bbolt does not
 9. Pebble has `format_index_test.go` — bbolt does not
@@ -157,6 +158,7 @@ Nothing. All four requested files were created and verified.
 21. Pebble has `soak_autocrud_test.go` — bbolt has one (covered)
 
 ### Cross-engine consistency
+
 22. Add `CounterIncrement` benchmark to pebbleengine calibration_bench_test.go
 23. Add `CounterIncrement` benchmark to badgerengine (already has one — verify parity)
 24. Verify all 9 engine modules have the same 4-file source-of-truth test set
@@ -166,6 +168,7 @@ Nothing. All four requested files were created and verified.
 28. pgengine / mysqlengine — remote engines may need different restart semantics tests
 
 ### CI / Build
+
 29. Run `nix run .#verify` (full gate: build + vet + test + race + lint + doc-check)
 30. Run `nix run .#vulncheck` — per-module standalone build catches version-sequence breaks
 31. Run `nix run .#check-arch` — dependency budget enforcement
@@ -174,12 +177,14 @@ Nothing. All four requested files were created and verified.
 34. Verify bboltengine is in `cmd/api-stability/main.go` modules list
 
 ### record_stamp.go / replace-propagation problem
+
 35. Audit ALL engine modules for missing `replace record/v4` directives
 36. Consider adding a meta-test: `TestEveryEngineModuleBuildsWithGoworkOff`
 37. Consider publishing `record/v4.0.1` with the branded types so replace directives aren't needed
 38. Or: add `replace` directives to every engine go.mod (boilerplate but reliable)
 
 ### Testing quality
+
 39. The restart_safety tests only cover happy-path. Add: concurrent writes before close,
     corrupt DB file reopen, close-then-close (idempotency), close-then-write (error).
 40. The calibration benches only measure Map + Counter. Add: LogAppend, SetAdd, MultiAdd,
@@ -190,6 +195,7 @@ Nothing. All four requested files were created and verified.
 43. Add a test for many-bucket persistence (bbolt uses a single bucket — does it degrade?).
 
 ### Documentation
+
 44. Update AGENTS.md module map if bboltengine test coverage changed its maturity level
 45. Add benchmark results to a calibration table in docs/ once `nix run .#bench` is run
 46. Consider adding bbolt-specific gotchas to AGENTS.md (single-writer model, temp-file volatile)
@@ -202,6 +208,7 @@ Nothing. All four requested files were created and verified.
 
 The `.String()` calls on branded ID types fail when building with `GOWORK=off` because the
 published `record/v4.0.0` resolves those types to plain `string`. Two options:
+
 - **(A)** Replace `.String()` with `string(...)` casts in `record_stamp.go` — minimal, works
   with the published version.
 - **(B)** Add `replace record/v4 => ../../record` to every engine module's go.mod — preserves

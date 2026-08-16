@@ -110,33 +110,33 @@ No revert was needed; I left the foreign changes untouched per project policy.
 
 ## (f) TOP 25 — WHAT TO GET DONE NEXT (impact ↓)
 
-| #   | Task                                                                        | Impact | Effort |
-| --- | --------------------------------------------------------------------------- | ------ | ------ |
-| 1   | Resolve `mustNewCmd` duplication (see question g)                           | high   | low    |
-| 2   | Add `.art-dupl.json` exclusion config for accepted idioms                   | high   | low    |
-| 3   | Write duplicate-code ADR (`docs/adr/`)                                      | med    | low    |
-| 4   | Mention `idtest`/`querytest` in `SKILL.md` consumer guide                   | med    | low    |
-| 5   | Raise art-dupl threshold guidance in CONTRIBUTING                           | med    | low    |
-| 6   | Add `idtest` to the `testutil` README "see also"                            | low    | low    |
-| 7   | Consolidate `signing/internal/testutil` to use `idtest` fully               | low    | low    |
-| 8   | Audit `example/*` for shared test helpers (currently self-contained)        | low    | med    |
-| 9   | Group 48 `startAggregateSpan` (pebble/otel.go vs sql/otel.go) — investigate | low    | med    |
-| 10  | Promote shared `must[T]` if a 3rd consumer appears                          | low    | low    |
-| 11  | Wire `nix fmt` into a pre-commit hook                                       | med    | med    |
-| 12  | Add `//nolint` audit pass for positioning after fmt                         | low    | med    |
-| 13  | Coverage check on `idtest`/`querytest` (currently ~100%)                    | low    | low    |
-| 14  | Document the Layer-0 test-helper pattern in AGENTS.md conventions           | med    | low    |
-| 15  | Push the 4 ahead commits to origin (after review)                           | med    | low    |
-| 16  | Re-baseline `benchmark-baseline.txt` if allocs changed                      | low    | med    |
-| 17  | Add a `make dedup` / `nix run .#dedup` wrapper for art-dupl                 | low    | low    |
-| 18  | Review `catalog/internal/cattest` for idtest reuse                          | low    | low    |
-| 19  | Check `decider` tests for parse-helper usage (none found)                   | low    | low    |
-| 20  | Consider `eventtest.MustParseAggregateID` re-export for convenience         | low    | low    |
-| 21  | Add CI gate running `art-dupl -t 30` with fail-on-new-groups                | med    | med    |
-| 22  | Sweep for remaining per-module `parseXxxID` in examples                     | low    | low    |
-| 23  | Document `didPanic` test helper idiom (inner-closure pattern)               | low    | low    |
-| 24  | Align `querytest` naming with any future `commandtest`                      | low    | low    |
-| 25  | Update FEATURES.md with the two new test-helper packages                    | low    | low    |
+| #  | Task                                                                        | Impact | Effort |
+| -- | --------------------------------------------------------------------------- | ------ | ------ |
+| 1  | Resolve `mustNewCmd` duplication (see question g)                           | high   | low    |
+| 2  | Add `.art-dupl.json` exclusion config for accepted idioms                   | high   | low    |
+| 3  | Write duplicate-code ADR (`docs/adr/`)                                      | med    | low    |
+| 4  | Mention `idtest`/`querytest` in `SKILL.md` consumer guide                   | med    | low    |
+| 5  | Raise art-dupl threshold guidance in CONTRIBUTING                           | med    | low    |
+| 6  | Add `idtest` to the `testutil` README "see also"                            | low    | low    |
+| 7  | Consolidate `signing/internal/testutil` to use `idtest` fully               | low    | low    |
+| 8  | Audit `example/*` for shared test helpers (currently self-contained)        | low    | med    |
+| 9  | Group 48 `startAggregateSpan` (pebble/otel.go vs sql/otel.go) — investigate | low    | med    |
+| 10 | Promote shared `must[T]` if a 3rd consumer appears                          | low    | low    |
+| 11 | Wire `nix fmt` into a pre-commit hook                                       | med    | med    |
+| 12 | Add `//nolint` audit pass for positioning after fmt                         | low    | med    |
+| 13 | Coverage check on `idtest`/`querytest` (currently ~100%)                    | low    | low    |
+| 14 | Document the Layer-0 test-helper pattern in AGENTS.md conventions           | med    | low    |
+| 15 | Push the 4 ahead commits to origin (after review)                           | med    | low    |
+| 16 | Re-baseline `benchmark-baseline.txt` if allocs changed                      | low    | med    |
+| 17 | Add a `make dedup` / `nix run .#dedup` wrapper for art-dupl                 | low    | low    |
+| 18 | Review `catalog/internal/cattest` for idtest reuse                          | low    | low    |
+| 19 | Check `decider` tests for parse-helper usage (none found)                   | low    | low    |
+| 20 | Consider `eventtest.MustParseAggregateID` re-export for convenience         | low    | low    |
+| 21 | Add CI gate running `art-dupl -t 30` with fail-on-new-groups                | med    | med    |
+| 22 | Sweep for remaining per-module `parseXxxID` in examples                     | low    | low    |
+| 23 | Document `didPanic` test helper idiom (inner-closure pattern)               | low    | low    |
+| 24 | Align `querytest` naming with any future `commandtest`                      | low    | low    |
+| 25 | Update FEATURES.md with the two new test-helper packages                    | low    | low    |
 
 ---
 

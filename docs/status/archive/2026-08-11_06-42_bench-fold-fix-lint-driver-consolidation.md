@@ -53,10 +53,12 @@ exclusion in `.golangci.yml` for this file was also removed.
 
 Two `filepath.Walk` callbacks in `TestMultiPackageModulesHaveArchLintConfig`
 swallowed `subErr` by returning `nil` instead of propagating the error:
+
 ```go
 // Before: if subErr != nil || sub == path { return nil }
 // After:  if subErr != nil { return subErr }; if sub == path { return nil }
 ```
+
 Applied to both walk callbacks (lines 599 and 612). Narrowed the api-stability
 lint exclusion to drop `nilerr` and `nolintlint` (only `gocognit` remains).
 
@@ -92,11 +94,13 @@ PASS), but **NOT committed**. Working tree has 7 staged files.
 ### 2. M15: Lint exclusion audit
 
 Done:
+
 - Deleted dead `dgraphengine/retry.go` + removed its `unused` exclusion
 - Fixed `nilerr` in `api-stability/main_test.go` + narrowed exclusion
 - Narrowed api-stability exclusion (dropped `nilerr`, `nolintlint`)
 
 NOT done:
+
 - `flightrecorder/alias.go` (13 `deprecatedComment` findings) — still excluded
 - `id/actor_id.go` (16 findings) — still excluded
 - `mysqlengine` `sqlclosecheck` — still excluded

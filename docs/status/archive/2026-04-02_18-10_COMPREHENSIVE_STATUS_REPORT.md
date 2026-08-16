@@ -1,10 +1,10 @@
 # Status Report — 2026-04-02 18:10
 
-**Project:** go-cqrs-lite  
-**Branch:** master  
-**Commit:** a905cbc (up to date with origin/master)  
-**Working tree:** CLEAN — all changes committed  
-**Total Go LOC:** ~7,252 lines across all packages  
+**Project:** go-cqrs-lite\
+**Branch:** master\
+**Commit:** a905cbc (up to date with origin/master)\
+**Working tree:** CLEAN — all changes committed\
+**Total Go LOC:** ~7,252 lines across all packages\
 **Test status:** ALL 11 PACKAGES PASSING ✅
 
 ---
@@ -168,33 +168,33 @@
 
 ## F) TOP 25 THINGS TO DO NEXT
 
-| #   | Task                                                                 | Impact | Effort  |
-| --- | -------------------------------------------------------------------- | ------ | ------- |
-| 1   | Fix Go build cache corruption (`go clean -cache`)                    | HIGH   | LOW     |
-| 2   | Add benchmarks for all catalog packages                              | HIGH   | MEDIUM  |
-| 3   | Increase `catalog/yaml` coverage to 90%+                             | MEDIUM | LOW     |
-| 4   | Increase `catalog/eventcatalog` coverage to 90%+                     | MEDIUM | LOW     |
-| 5   | Remove unused `testStructOmit` type in yaml_test.go                  | LOW    | TRIVIAL |
-| 6   | Add end-to-end integration test (struct → registry → both exporters) | HIGH   | MEDIUM  |
-| 7   | Make AsyncAPI servers configurable (not hardcoded kafka:9092)        | MEDIUM | LOW     |
-| 8   | Add `time.Time` support to YAML marshaler                            | MEDIUM | LOW     |
-| 9   | Add CI status badge to README                                        | LOW    | TRIVIAL |
-| 10  | Implement middleware package (logging, metrics, validation)          | HIGH   | HIGH    |
-| 11  | Add schema example auto-generation from struct tags                  | MEDIUM | MEDIUM  |
-| 12  | Add catalog sentinel errors (cockroachdb/errors)                     | LOW    | TRIVIAL |
-| 13  | Fix gopls inline warnings in schema.go                               | LOW    | TRIVIAL |
-| 14  | Add OpenAPI/Swagger exporter                                         | MEDIUM | HIGH    |
-| 15  | Add YAML `yaml:"-"` omit tag test                                    | LOW    | TRIVIAL |
-| 16  | Add catalog diff/breaking-change detection                           | MEDIUM | HIGH    |
-| 17  | Add fuzzing tests for schema reflection                              | MEDIUM | MEDIUM  |
-| 18  | Add fuzzing tests for YAML marshaler                                 | MEDIUM | MEDIUM  |
-| 19  | Add `go.work` integration for go-cqrs-lite                           | LOW    | TRIVIAL |
-| 20  | Write CONTRIBUTING.md updates with catalog development guide         | LOW    | LOW     |
-| 21  | Add Message.Examples auto-population from struct instances           | MEDIUM | MEDIUM  |
-| 22  | Add EventCatalog domain page generation test                         | LOW    | LOW     |
-| 23  | Add AsyncAPI custom server config (per-service)                      | MEDIUM | LOW     |
-| 24  | Add GraphQL schema exporter                                          | MEDIUM | HIGH    |
-| 25  | Performance optimization for large catalogs (1000+ messages)         | LOW    | MEDIUM  |
+| #  | Task                                                                 | Impact | Effort  |
+| -- | -------------------------------------------------------------------- | ------ | ------- |
+| 1  | Fix Go build cache corruption (`go clean -cache`)                    | HIGH   | LOW     |
+| 2  | Add benchmarks for all catalog packages                              | HIGH   | MEDIUM  |
+| 3  | Increase `catalog/yaml` coverage to 90%+                             | MEDIUM | LOW     |
+| 4  | Increase `catalog/eventcatalog` coverage to 90%+                     | MEDIUM | LOW     |
+| 5  | Remove unused `testStructOmit` type in yaml_test.go                  | LOW    | TRIVIAL |
+| 6  | Add end-to-end integration test (struct → registry → both exporters) | HIGH   | MEDIUM  |
+| 7  | Make AsyncAPI servers configurable (not hardcoded kafka:9092)        | MEDIUM | LOW     |
+| 8  | Add `time.Time` support to YAML marshaler                            | MEDIUM | LOW     |
+| 9  | Add CI status badge to README                                        | LOW    | TRIVIAL |
+| 10 | Implement middleware package (logging, metrics, validation)          | HIGH   | HIGH    |
+| 11 | Add schema example auto-generation from struct tags                  | MEDIUM | MEDIUM  |
+| 12 | Add catalog sentinel errors (cockroachdb/errors)                     | LOW    | TRIVIAL |
+| 13 | Fix gopls inline warnings in schema.go                               | LOW    | TRIVIAL |
+| 14 | Add OpenAPI/Swagger exporter                                         | MEDIUM | HIGH    |
+| 15 | Add YAML `yaml:"-"` omit tag test                                    | LOW    | TRIVIAL |
+| 16 | Add catalog diff/breaking-change detection                           | MEDIUM | HIGH    |
+| 17 | Add fuzzing tests for schema reflection                              | MEDIUM | MEDIUM  |
+| 18 | Add fuzzing tests for YAML marshaler                                 | MEDIUM | MEDIUM  |
+| 19 | Add `go.work` integration for go-cqrs-lite                           | LOW    | TRIVIAL |
+| 20 | Write CONTRIBUTING.md updates with catalog development guide         | LOW    | LOW     |
+| 21 | Add Message.Examples auto-population from struct instances           | MEDIUM | MEDIUM  |
+| 22 | Add EventCatalog domain page generation test                         | LOW    | LOW     |
+| 23 | Add AsyncAPI custom server config (per-service)                      | MEDIUM | LOW     |
+| 24 | Add GraphQL schema exporter                                          | MEDIUM | HIGH    |
+| 25 | Performance optimization for large catalogs (1000+ messages)         | LOW    | MEDIUM  |
 
 ---
 

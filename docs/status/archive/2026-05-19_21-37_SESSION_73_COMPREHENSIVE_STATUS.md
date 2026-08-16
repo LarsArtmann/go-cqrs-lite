@@ -169,58 +169,58 @@ The pre-commit hook (`buildflow`) has multiple false failures:
 
 ### P0 — Unblock Everything (3 items)
 
-| #   | Task                                                                                              | Impact                               | Effort                                                                  |
-| --- | ------------------------------------------------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------- |
-| 1   | **Publish `testhelpers@v1.2.0`** — fixes `event.Version` type mismatch                            | HIGH — unblocks lint in 4 modules    | LOW — `cd testhelpers && GOWORK=off go mod tidy && git tag && git push` |
-| 2   | **Fix pre-commit hook** — add `GOWORK=off` to golangci-lint step or suppress known false failures | HIGH — stops requiring `--no-verify` | MEDIUM                                                                  |
-| 3   | **Run `go work sync` + commit go.work.sum changes** — keeps workspace consistent                  | MEDIUM                               | LOW                                                                     |
+| # | Task                                                                                              | Impact                               | Effort                                                                  |
+| - | ------------------------------------------------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------- |
+| 1 | **Publish `testhelpers@v1.2.0`** — fixes `event.Version` type mismatch                            | HIGH — unblocks lint in 4 modules    | LOW — `cd testhelpers && GOWORK=off go mod tidy && git tag && git push` |
+| 2 | **Fix pre-commit hook** — add `GOWORK=off` to golangci-lint step or suppress known false failures | HIGH — stops requiring `--no-verify` | MEDIUM                                                                  |
+| 3 | **Run `go work sync` + commit go.work.sum changes** — keeps workspace consistent                  | MEDIUM                               | LOW                                                                     |
 
 ### P1 — Lint + Type Safety (5 items)
 
-| #   | Task                                                                                | Impact                                  | Effort         |
-| --- | ----------------------------------------------------------------------------------- | --------------------------------------- | -------------- |
-| 4   | **Zero storage lint** (18 issues: 13 mnd, 2 err113, 1 gci, 2 staticcheck)           | MEDIUM                                  | MEDIUM         |
-| 5   | **Zero core lint** — fix `testhelpers` dependency, then lint core                   | HIGH                                    | LOW (after #1) |
-| 6   | **Zero middleware lint** (2 staticcheck — deprecated CatalogMeta in test)           | LOW                                     | LOW            |
-| 7   | **Zero integration lint** (6 staticcheck — deprecated CatalogMeta/CatalogCore)      | LOW                                     | LOW            |
-| 8   | **Delete deprecated `Catalogable`/`CatalogMeta`/`CatalogCore`** across all 14 files | HIGH — removes 90+ staticcheck warnings | HIGH           |
+| # | Task                                                                                | Impact                                  | Effort         |
+| - | ----------------------------------------------------------------------------------- | --------------------------------------- | -------------- |
+| 4 | **Zero storage lint** (18 issues: 13 mnd, 2 err113, 1 gci, 2 staticcheck)           | MEDIUM                                  | MEDIUM         |
+| 5 | **Zero core lint** — fix `testhelpers` dependency, then lint core                   | HIGH                                    | LOW (after #1) |
+| 6 | **Zero middleware lint** (2 staticcheck — deprecated CatalogMeta in test)           | LOW                                     | LOW            |
+| 7 | **Zero integration lint** (6 staticcheck — deprecated CatalogMeta/CatalogCore)      | LOW                                     | LOW            |
+| 8 | **Delete deprecated `Catalogable`/`CatalogMeta`/`CatalogCore`** across all 14 files | HIGH — removes 90+ staticcheck warnings | HIGH           |
 
 ### P2 — Coverage (5 items)
 
-| #   | Task                                                                                                | Impact | Effort |
-| --- | --------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 9   | **Storage coverage 88→95%** — add error path tests for event store, snapshot store, outbox          | MEDIUM | HIGH   |
-| 10  | **`catalog/asyncapi` coverage 93.9→97%** — test `addMessageSchema`, empty service, nil descriptions | LOW    | MEDIUM |
-| 11  | **`catalog/docserver` coverage 92.3→97%** — test YAML error paths, nil config defaults              | LOW    | MEDIUM |
-| 12  | **`core/decider` coverage 92.7→97%** — test snapshot delete error, version mismatch                 | MEDIUM | MEDIUM |
-| 13  | **`example/user` E2E test** — run the full example as an integration test                           | MEDIUM | MEDIUM |
+| #  | Task                                                                                                | Impact | Effort |
+| -- | --------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 9  | **Storage coverage 88→95%** — add error path tests for event store, snapshot store, outbox          | MEDIUM | HIGH   |
+| 10 | **`catalog/asyncapi` coverage 93.9→97%** — test `addMessageSchema`, empty service, nil descriptions | LOW    | MEDIUM |
+| 11 | **`catalog/docserver` coverage 92.3→97%** — test YAML error paths, nil config defaults              | LOW    | MEDIUM |
+| 12 | **`core/decider` coverage 92.7→97%** — test snapshot delete error, version mismatch                 | MEDIUM | MEDIUM |
+| 13 | **`example/user` E2E test** — run the full example as an integration test                           | MEDIUM | MEDIUM |
 
 ### P3 — File Size Compliance (4 items)
 
-| #   | Task                                                                                                                                                               | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------ |
-| 14  | **Split `catalog/openapi/exporter.go`** (253→<250) — extract 1 more helper                                                                                         | LOW    | LOW    |
-| 15  | **Split `example/todo/cmd/api/main.go`** (330→<250) — extract handlers, setup                                                                                      | LOW    | MEDIUM |
-| 16  | **Split large test files** — top 5: `decider_test.go` (1146), `runner_test.go` (1057), `id_test.go` (993), `event_store_test.go` (884), `repository_test.go` (875) | MEDIUM | HIGH   |
-| 17  | **Enforce 350-line limit on test files** via pre-commit hook                                                                                                       | MEDIUM | LOW    |
+| #  | Task                                                                                                                                                               | Impact | Effort |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------ |
+| 14 | **Split `catalog/openapi/exporter.go`** (253→<250) — extract 1 more helper                                                                                         | LOW    | LOW    |
+| 15 | **Split `example/todo/cmd/api/main.go`** (330→<250) — extract handlers, setup                                                                                      | LOW    | MEDIUM |
+| 16 | **Split large test files** — top 5: `decider_test.go` (1146), `runner_test.go` (1057), `id_test.go` (993), `event_store_test.go` (884), `repository_test.go` (875) | MEDIUM | HIGH   |
+| 17 | **Enforce 350-line limit on test files** via pre-commit hook                                                                                                       | MEDIUM | LOW    |
 
 ### P4 — Documentation + Process (5 items)
 
-| #   | Task                                                                                          | Impact | Effort |
-| --- | --------------------------------------------------------------------------------------------- | ------ | ------ |
-| 18  | **Update FEATURES.md** — coverage numbers are stale for several modules                       | LOW    | LOW    |
-| 19  | **Update TODO_LIST.md** — prune done items, add new items from this session                   | LOW    | LOW    |
-| 20  | **Add `docs/planning/DEPRECATED_TYPE_MIGRATION.md`** — plan for CatalogMeta removal           | MEDIUM | MEDIUM |
-| 21  | **Add CI pipeline** — run `GOWORK=off` tests + lint on every PR                               | HIGH   | HIGH   |
-| 22  | **Golden test semantic comparison** — parse YAML/JSON and compare ASTs instead of raw strings | MEDIUM | HIGH   |
+| #  | Task                                                                                          | Impact | Effort |
+| -- | --------------------------------------------------------------------------------------------- | ------ | ------ |
+| 18 | **Update FEATURES.md** — coverage numbers are stale for several modules                       | LOW    | LOW    |
+| 19 | **Update TODO_LIST.md** — prune done items, add new items from this session                   | LOW    | LOW    |
+| 20 | **Add `docs/planning/DEPRECATED_TYPE_MIGRATION.md`** — plan for CatalogMeta removal           | MEDIUM | MEDIUM |
+| 21 | **Add CI pipeline** — run `GOWORK=off` tests + lint on every PR                               | HIGH   | HIGH   |
+| 22 | **Golden test semantic comparison** — parse YAML/JSON and compare ASTs instead of raw strings | MEDIUM | HIGH   |
 
 ### P5 — Architecture (3 items)
 
-| #   | Task                                                                              | Impact          | Effort    |
-| --- | --------------------------------------------------------------------------------- | --------------- | --------- |
-| 23  | **`query.Handler` generics migration** — replace `any` return with typed generics | HIGH (breaking) | HIGH      |
-| 24  | **Saga implementation** — design doc exists, 4-phase plan at 18h estimate         | HIGH            | VERY HIGH |
-| 25  | **`io.Closer` removal from interfaces** — deferred breaking change                | MEDIUM          | MEDIUM    |
+| #  | Task                                                                              | Impact          | Effort    |
+| -- | --------------------------------------------------------------------------------- | --------------- | --------- |
+| 23 | **`query.Handler` generics migration** — replace `any` return with typed generics | HIGH (breaking) | HIGH      |
+| 24 | **Saga implementation** — design doc exists, 4-phase plan at 18h estimate         | HIGH            | VERY HIGH |
+| 25 | **`io.Closer` removal from interfaces** — deferred breaking change                | MEDIUM          | MEDIUM    |
 
 ---
 

@@ -265,33 +265,33 @@ Either fix the golangci-lint workspace issue or suppress it explicitly. Same for
 
 ## F. TOP 25 THINGS TO DO NEXT (Priority Order)
 
-| #   | Item                                                      | Impact | Effort | Category       |
-| --- | --------------------------------------------------------- | ------ | ------ | -------------- |
-| 1   | Test `otel/` module (spans, attributes, nil provider)     | HIGH   | 2h     | Quality        |
-| 2   | Fix saga OTel ghost imports (add spans or remove imports) | HIGH   | 1h     | Correctness    |
-| 3   | Add OTel spans to `storage/outbox.go`                     | HIGH   | 1h     | Observability  |
-| 4   | Add OTel spans to `storage/snapshot.go`                   | HIGH   | 1h     | Observability  |
-| 5   | Add OTel spans to `projection/runner.go`                  | MEDIUM | 2h     | Observability  |
-| 6   | Write migration guide `docs/MIGRATION_v1.md`              | HIGH   | 2h     | Documentation  |
-| 7   | Add `stream/` example application                         | MEDIUM | 3h     | Documentation  |
-| 8   | Kill dead code in `catalog/internal/cattest`              | MEDIUM | 30m    | Cleanup        |
-| 9   | Add `tombstone` + `rebirth` example to `example/user`     | MEDIUM | 1h     | Documentation  |
-| 10  | Fix `applyEnricher` coverage (18.2% → 80%+)               | MEDIUM | 1h     | Quality        |
-| 11  | Add circuit breaker state transition tests                | MEDIUM | 1h     | Quality        |
-| 12  | Fix `OpenTursoSync` coverage (22.2%)                      | LOW    | 1h     | Quality        |
-| 13  | Add OTel integration test (verify actual span emission)   | HIGH   | 3h     | Quality        |
-| 14  | Update CI pipeline for `otel/` and `stream/` modules      | MEDIUM | 1h     | Infrastructure |
-| 15  | Add benchmarks for stream cursor pagination               | LOW    | 2h     | Performance    |
-| 16  | Add API surface stability test (`apidiff`)                | HIGH   | 3h     | Quality        |
-| 17  | Remove `replace` directives and tag v1.0.0                | HIGH   | 4h     | Release        |
-| 18  | Add structured logging with trace ID correlation          | MEDIUM | 3h     | Observability  |
-| 19  | Fix LSP stale cache (document workaround)                 | LOW    | 30m    | DX             |
-| 20  | Clean up BuildFlow pre-commit noise                       | LOW    | 2h     | DX             |
-| 21  | Add health check utilities for runners                    | LOW    | 2h     | Operations     |
-| 22  | Add chaos/fault-injection test suite                      | LOW    | 4h     | Resilience     |
-| 23  | Generate documentation site                               | LOW    | 4h     | Documentation  |
-| 24  | Add `aggregate` package deprecation path to decider       | MEDIUM | 2h     | Cleanup        |
-| 25  | Add `internal/apitest` package for contract testing       | MEDIUM | 3h     | Quality        |
+| #  | Item                                                      | Impact | Effort | Category       |
+| -- | --------------------------------------------------------- | ------ | ------ | -------------- |
+| 1  | Test `otel/` module (spans, attributes, nil provider)     | HIGH   | 2h     | Quality        |
+| 2  | Fix saga OTel ghost imports (add spans or remove imports) | HIGH   | 1h     | Correctness    |
+| 3  | Add OTel spans to `storage/outbox.go`                     | HIGH   | 1h     | Observability  |
+| 4  | Add OTel spans to `storage/snapshot.go`                   | HIGH   | 1h     | Observability  |
+| 5  | Add OTel spans to `projection/runner.go`                  | MEDIUM | 2h     | Observability  |
+| 6  | Write migration guide `docs/MIGRATION_v1.md`              | HIGH   | 2h     | Documentation  |
+| 7  | Add `stream/` example application                         | MEDIUM | 3h     | Documentation  |
+| 8  | Kill dead code in `catalog/internal/cattest`              | MEDIUM | 30m    | Cleanup        |
+| 9  | Add `tombstone` + `rebirth` example to `example/user`     | MEDIUM | 1h     | Documentation  |
+| 10 | Fix `applyEnricher` coverage (18.2% → 80%+)               | MEDIUM | 1h     | Quality        |
+| 11 | Add circuit breaker state transition tests                | MEDIUM | 1h     | Quality        |
+| 12 | Fix `OpenTursoSync` coverage (22.2%)                      | LOW    | 1h     | Quality        |
+| 13 | Add OTel integration test (verify actual span emission)   | HIGH   | 3h     | Quality        |
+| 14 | Update CI pipeline for `otel/` and `stream/` modules      | MEDIUM | 1h     | Infrastructure |
+| 15 | Add benchmarks for stream cursor pagination               | LOW    | 2h     | Performance    |
+| 16 | Add API surface stability test (`apidiff`)                | HIGH   | 3h     | Quality        |
+| 17 | Remove `replace` directives and tag v1.0.0                | HIGH   | 4h     | Release        |
+| 18 | Add structured logging with trace ID correlation          | MEDIUM | 3h     | Observability  |
+| 19 | Fix LSP stale cache (document workaround)                 | LOW    | 30m    | DX             |
+| 20 | Clean up BuildFlow pre-commit noise                       | LOW    | 2h     | DX             |
+| 21 | Add health check utilities for runners                    | LOW    | 2h     | Operations     |
+| 22 | Add chaos/fault-injection test suite                      | LOW    | 4h     | Resilience     |
+| 23 | Generate documentation site                               | LOW    | 4h     | Documentation  |
+| 24 | Add `aggregate` package deprecation path to decider       | MEDIUM | 2h     | Cleanup        |
+| 25 | Add `internal/apitest` package for contract testing       | MEDIUM | 3h     | Quality        |
 
 ---
 
@@ -361,4 +361,4 @@ This decision fundamentally affects the `go.mod` structure and consumer onboardi
 | `catalog`                     | 86.8%               | ✅ Production   |
 | `testhelpers`                 | 85.0%               | 🧪 Test utility |
 | `catalog/internal/cattest`    | 0.0%                | 💀 Dead code    |
-| `otel`                        | N/A (no test files) | ⚠️ Untested     |
+| `otel`                        | N/A (no test files) | ⚠️ Untested      |

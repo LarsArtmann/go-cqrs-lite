@@ -50,7 +50,7 @@
    cleanup, skipped.
 8. **stack/mysql was never live-tested against MariaDB**, even though the TODO context
    was about the nspawn env which runs `stack/mysql` tests. My changes were confined to
-   mysqlengine — but the *claim* "nspawn failures resolved" is only as strong as the
+   mysqlengine — but the _claim_ "nspawn failures resolved" is only as strong as the
    nearest layer I verified. The nspawn run itself needs root; I substituted docker
    verification of ONE module and flagged it, but did not escalate the root-access
    ask to the user when the skill/context made clear it was the true gate.
@@ -169,38 +169,38 @@
 
 ## f) Top next tasks (ranked; harvest-ready)
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Fix/land concurrent refactor's `WithSharedCollection` panic (their WIP; coordinate or fix on instruction) | Critical | S | Bug |
-| 2 | Run `nix run .#verify` clean; fix fallout incl. lint findings in my six modules | Critical | S/M | Quality |
-| 3 | Rebaseline `check-coverage.sh` (metaengine 83.3% → actual) + AGENTS.md sync | Critical | S | Quality |
-| 4 | MariaDB numeric-safe ORDER BY: emit `CAST(JSON_EXTRACT(...) AS DECIMAL(65,10))` for sort/cursor on MariaDB dialect; add multi-digit priority test | High | M | Bug |
-| 5 | Add CTE capability probe to pgengine/mysqlengine (guard MySQL 5.7 / MariaDB <10.2; degrade to multimap fallback like sqliteengine) | High | S | Bug |
-| 6 | CHANGELOG.md + FEATURES.md entries for MariaDB dialect, vector backends, native graph, SQLite CTE | High | S | Documentation |
-| 7 | Live-verify in the real nspawn env (`nix run .#integration-mysql-nspawn`, needs root) — incl. stack/mysql module, not just mysqlengine | High | S | Quality |
-| 8 | Run new/changed tests 3x `-count=3 -race` (mysqlengine, sqliteengine, pebble, bbolt, pgengine) | High | S | Quality |
-| 9 | pgengine README: add Graph backend + complexity row; consider mysqlengine README | Medium | S | Documentation |
-| 10 | Pre-commit guard: reject spaced `LAYER[...]`/`DEP_BUDGET[...]`/EXPECTED keys in scripts/*.sh (daemon-mangle prophylaxis, 3rd occurrence) | High | S | Quality |
-| 11 | pgtestcontainer: self-heal `test_N already exists` (DROP IF EXISTS or unique suffix) | High | S | Bug |
-| 12 | Decide + implement MySQL-8 nix backend or dual-dialect CI matrix (answer to g1) | High | M | Feature |
-| 13 | DuckDB recursive-CTE graph backend (port pgengine recipe; DuckDB supports WITH RECURSIVE) | Medium | M | Feature |
-| 14 | Engine over-declaration census: align Profile().Supports/DegradedADTs with implemented interfaces (pebble Search/Spatial first); include README claims | High | M | Cleanup |
-| 15 | MariaDB ApplyLayout: virtual generated column + index instead of no-op | Medium | M | Feature |
-| 16 | badgerengine VectorBackend port | Medium | S | Feature |
-| 17 | CTE depth guard: cap `depth` (e.g. 64) or document memory growth; boundary test on cyclic graph | Medium | S | Quality |
-| 18 | adttest: opt-in per-Factory collection suffix so server-backed matrices self-isolate | Medium | S | Quality |
-| 19 | `mysqltestcontainer` helper (per-test database, pgtestcontainer model) | Medium | M | Feature |
-| 20 | DuckDB `AggregateReader` aggregation pushdown (pre-existing TODO) | High | L | Feature |
-| 21 | Journal true-seq resumption O(offset)→O(log n) (pre-existing TODO) | Medium | M | Feature |
-| 22 | Dgraph engine hardening (pre-existing TODO) | Medium | M | Quality |
-| 23 | Reusable SQL-dialect probe fixture (docker mysql8+mariadb+pg + assertion sheets) | Medium | S | Quality |
-| 24 | Session-end checklist file (CHANGELOG/FEATURES/READMEs/lint/race/cleanup/golden-entanglement) — candidate skill | Medium | S | Quality |
-| 25 | Cleanup: stop/remove docker test containers, `git worktree remove /tmp/mysql-head`, delete /tmp/sqlprobe | Low | S | Cleanup |
-| 26 | Turso remote live verification of CTE probe mode (needs Turso URL) | Medium | S | Quality |
-| 27 | Vector upsert/tombstone semantics review (delete-on-domain-event story for embeddings) | Low | M | Feature |
-| 28 | MariaDB bool/null filter live test (unit-covered, not live-covered) | Low | S | Quality |
-| 29 | Watch api_surface.txt golden for concurrent-session revert drift; regenerate if their exports change | Medium | S | Quality |
-| 30 | Coverage measurement load-isolation: make check-coverage.sh refuse to run while `go test` processes are alive | Medium | S | Quality |
+| #  | Task                                                                                                                                                   | Impact   | Effort | Category      |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------ | ------------- |
+| 1  | Fix/land concurrent refactor's `WithSharedCollection` panic (their WIP; coordinate or fix on instruction)                                              | Critical | S      | Bug           |
+| 2  | Run `nix run .#verify` clean; fix fallout incl. lint findings in my six modules                                                                        | Critical | S/M    | Quality       |
+| 3  | Rebaseline `check-coverage.sh` (metaengine 83.3% → actual) + AGENTS.md sync                                                                            | Critical | S      | Quality       |
+| 4  | MariaDB numeric-safe ORDER BY: emit `CAST(JSON_EXTRACT(...) AS DECIMAL(65,10))` for sort/cursor on MariaDB dialect; add multi-digit priority test      | High     | M      | Bug           |
+| 5  | Add CTE capability probe to pgengine/mysqlengine (guard MySQL 5.7 / MariaDB <10.2; degrade to multimap fallback like sqliteengine)                     | High     | S      | Bug           |
+| 6  | CHANGELOG.md + FEATURES.md entries for MariaDB dialect, vector backends, native graph, SQLite CTE                                                      | High     | S      | Documentation |
+| 7  | Live-verify in the real nspawn env (`nix run .#integration-mysql-nspawn`, needs root) — incl. stack/mysql module, not just mysqlengine                 | High     | S      | Quality       |
+| 8  | Run new/changed tests 3x `-count=3 -race` (mysqlengine, sqliteengine, pebble, bbolt, pgengine)                                                         | High     | S      | Quality       |
+| 9  | pgengine README: add Graph backend + complexity row; consider mysqlengine README                                                                       | Medium   | S      | Documentation |
+| 10 | Pre-commit guard: reject spaced `LAYER[...]`/`DEP_BUDGET[...]`/EXPECTED keys in scripts/*.sh (daemon-mangle prophylaxis, 3rd occurrence)               | High     | S      | Quality       |
+| 11 | pgtestcontainer: self-heal `test_N already exists` (DROP IF EXISTS or unique suffix)                                                                   | High     | S      | Bug           |
+| 12 | Decide + implement MySQL-8 nix backend or dual-dialect CI matrix (answer to g1)                                                                        | High     | M      | Feature       |
+| 13 | DuckDB recursive-CTE graph backend (port pgengine recipe; DuckDB supports WITH RECURSIVE)                                                              | Medium   | M      | Feature       |
+| 14 | Engine over-declaration census: align Profile().Supports/DegradedADTs with implemented interfaces (pebble Search/Spatial first); include README claims | High     | M      | Cleanup       |
+| 15 | MariaDB ApplyLayout: virtual generated column + index instead of no-op                                                                                 | Medium   | M      | Feature       |
+| 16 | badgerengine VectorBackend port                                                                                                                        | Medium   | S      | Feature       |
+| 17 | CTE depth guard: cap `depth` (e.g. 64) or document memory growth; boundary test on cyclic graph                                                        | Medium   | S      | Quality       |
+| 18 | adttest: opt-in per-Factory collection suffix so server-backed matrices self-isolate                                                                   | Medium   | S      | Quality       |
+| 19 | `mysqltestcontainer` helper (per-test database, pgtestcontainer model)                                                                                 | Medium   | M      | Feature       |
+| 20 | DuckDB `AggregateReader` aggregation pushdown (pre-existing TODO)                                                                                      | High     | L      | Feature       |
+| 21 | Journal true-seq resumption O(offset)→O(log n) (pre-existing TODO)                                                                                     | Medium   | M      | Feature       |
+| 22 | Dgraph engine hardening (pre-existing TODO)                                                                                                            | Medium   | M      | Quality       |
+| 23 | Reusable SQL-dialect probe fixture (docker mysql8+mariadb+pg + assertion sheets)                                                                       | Medium   | S      | Quality       |
+| 24 | Session-end checklist file (CHANGELOG/FEATURES/READMEs/lint/race/cleanup/golden-entanglement) — candidate skill                                        | Medium   | S      | Quality       |
+| 25 | Cleanup: stop/remove docker test containers, `git worktree remove /tmp/mysql-head`, delete /tmp/sqlprobe                                               | Low      | S      | Cleanup       |
+| 26 | Turso remote live verification of CTE probe mode (needs Turso URL)                                                                                     | Medium   | S      | Quality       |
+| 27 | Vector upsert/tombstone semantics review (delete-on-domain-event story for embeddings)                                                                 | Low      | M      | Feature       |
+| 28 | MariaDB bool/null filter live test (unit-covered, not live-covered)                                                                                    | Low      | S      | Quality       |
+| 29 | Watch api_surface.txt golden for concurrent-session revert drift; regenerate if their exports change                                                   | Medium   | S      | Quality       |
+| 30 | Coverage measurement load-isolation: make check-coverage.sh refuse to run while `go test` processes are alive                                          | Medium   | S      | Quality       |
 
 ## g) Questions (up to 3; each unanswerable by me)
 
@@ -220,4 +220,4 @@
 
 ---
 
-*Point-in-time snapshot. Stale by design — see docs-health ANNOTATE for corrections.*
+_Point-in-time snapshot. Stale by design — see docs-health ANNOTATE for corrections._

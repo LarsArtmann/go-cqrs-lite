@@ -25,6 +25,7 @@ The status reports from earlier today (`16-14` and `16-15`) were **substantially
 **Fix applied (both stores):** Introduced a `metadataPayload` type (`[]byte` wrapper) that stores event metadata as JSON bytes INSIDE the CBOR envelope. This ensures types implementing `json.Marshaler` (like `id.ActorID`) serialize correctly through the only code path they support. The `MarshalCBOR`/`UnmarshalCBOR` methods on `metadataPayload` include a backward-compatibility fallback: if the CBOR data doesn't decode as a byte string (legacy format where metadata was a CBOR map), it falls back to reflecting into `event.Metadata` and re-marshaling to JSON.
 
 **Files changed:**
+
 - `storage/pebble/serialization.go` — new `metadataPayload` type, updated `serializeEvent`/`deserializeEvent`/`serializableEvent`
 - `storage/bbolt/serialization.go` — identical changes (cross-module duplicate, `//art-dupl:accept` tagged)
 - `storage/pebble/cbor_test.go` — added ActorID assertion to `TestDeserializeEvent_CBORWithMetadata`, fixed `TestSerializeEvent_SmallerThanJSON` to include metadata in both CBOR and JSON comparison structs
@@ -36,6 +37,7 @@ The status reports from earlier today (`16-14` and `16-15`) were **substantially
 ### 2. Metaengine Graph ADT / Planner / Replication Tests (already fixed — verified)
 
 The prior status report (`16-15`) claimed 15 failing Ginkgo specs for graph ADT and a replication RTT test failure. When I ran the tests, **all 145 specs passed**. The auto-commit daemon had already committed:
+
 - `metaengine/memory_graph.go` — restored graph support to the memory engine (ADR-0113 post-fix)
 - `metaengine/rule_replication_test.go` — updated RTT assertion to match new display format (`rtt=prior 5ms`)
 - `metaengine/planner.go`, `metaengine/engine.go` — planner fixes
@@ -57,6 +59,7 @@ The signing golden test (`TestGolden_HMACSignedEvent`) was failing because the s
 ### 5. ADR-0111 Record Consolidation (already complete — verified)
 
 Investigation confirmed that ADR-0111 Phases 1-4 are **all done at the type level**:
+
 - Phase 1: `record.Record` + `record.CommonMetadata` exist in `record/record.go` ✅
 - Phase 2: metaengine fold handlers receive typed `Record` ✅
 - Phase 3: `event.Metadata` and `command.Metadata` both embed `record.CommonMetadata`; `metadata.Tracing` type is deleted ✅
@@ -73,6 +76,7 @@ Investigation confirmed that ADR-0111 Phases 1-4 are **all done at the type leve
 **Status:** Root cause identified, golden file updated in working tree, but test still fails.
 
 The `TestIntegration_TaskmanagerExpectedFindings` test detects 2 new findings not in the golden profile:
+
 - **V003**: `metaengine/sqliteengine/v4 is on v4.0.x — 3 minor versions behind latest (v4.3.x)` — the version pinning rule correctly detects that sqliteengine is behind other modules
 - **C017**: `In-memory dead-letter store paired with persistent event store (sqlite) — lost on restart` — the correctness rule correctly detects a durability mismatch
 
@@ -100,6 +104,7 @@ The following items from the checklist were **not worked on** because they were 
 ### Stale Status Reports Caused Massive Wasted Research
 
 The two prior status reports (`16-14` and `16-15`) described 7 failing areas. When I actually ran the tests:
+
 - 3 were **already fixed** (graph ADT, branded-ID stamping, replication RTT)
 - 1 was **already fixed at type level** (ADR-0111 consolidation)
 - 1 was **a real failure I fixed** (pebble/bbolt metadata roundtrip)
@@ -111,6 +116,7 @@ I spent 3 parallel agent investigations researching issues that were already res
 ### The `metadataPayload` Approach Has a Hidden Cost
 
 The fix stores metadata as a JSON byte string inside CBOR. This means:
+
 - **Every event write** now does a JSON marshal of metadata + a CBOR marshal of the envelope (2 passes instead of 1)
 - **Every event read** does a CBOR unmarshal + a JSON unmarshal of metadata (2 passes instead of 1)
 - The CBOR envelope is slightly larger (JSON bytes are longer than native CBOR map encoding for simple fields)
@@ -221,28 +227,28 @@ The `TestSerializeEvent_SmallerThanJSON` test had to be updated to include metad
 
 ## Commits This Session
 
-| Commit | Description | Author |
-|--------|-------------|--------|
+| Commit      | Description                                                                                 | Author                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | `74b5762e2` | feat(metaengine): ship live-latency model P1/P2/P3, store stats, and metadata JSON encoding | Auto-commit daemon (includes my pebble/bbolt serialization fix + unrelated live-latency work) |
-| `02a05a163` | chore: refresh deps, fix go.mod ordering, and tidy formatting | Auto-commit daemon |
+| `02a05a163` | chore: refresh deps, fix go.mod ordering, and tidy formatting                               | Auto-commit daemon                                                                            |
 
 ## Uncommitted Changes (2 files)
 
-| File | Change |
-|------|--------|
-| `signing/testdata/golden/hmac-signed-metadata.snap` | Regenerated: `userId→actorId` + new timestamp fields |
-| `cmd/cqrs-lint/testdata/taskmanager_golden.txt` | Updated: added V003 + C017 findings (but test still fails) |
+| File                                                | Change                                                     |
+| --------------------------------------------------- | ---------------------------------------------------------- |
+| `signing/testdata/golden/hmac-signed-metadata.snap` | Regenerated: `userId→actorId` + new timestamp fields       |
+| `cmd/cqrs-lint/testdata/taskmanager_golden.txt`     | Updated: added V003 + C017 findings (but test still fails) |
 
 ---
 
 ## Test Results Summary
 
-| Module | Status | Notes |
-|--------|--------|-------|
-| `storage/pebble/` | ✅ PASS | All tests including metadata roundtrip + ActorID assertion |
-| `storage/bbolt/` | ✅ PASS | All tests including metadata roundtrip |
-| `metaengine/` | ✅ PASS | 145/145 Ginkgo specs (graph ADT, replication, planner all green) |
-| `signing/` | ✅ PASS | 12/12 specs, 1 golden snapshot passed |
-| `metaengine/projectionadapter/` | ✅ PASS | Auto-insert through adapter works |
-| `cmd/cqrs-lint/pkg/rules/` | ❌ FAIL | V003 + C017 not in golden profile (golden update incomplete) |
-| `nix run .#verify` | ⏳ NOT RUN | Full CI gate not executed |
+| Module                          | Status     | Notes                                                            |
+| ------------------------------- | ---------- | ---------------------------------------------------------------- |
+| `storage/pebble/`               | ✅ PASS    | All tests including metadata roundtrip + ActorID assertion       |
+| `storage/bbolt/`                | ✅ PASS    | All tests including metadata roundtrip                           |
+| `metaengine/`                   | ✅ PASS    | 145/145 Ginkgo specs (graph ADT, replication, planner all green) |
+| `signing/`                      | ✅ PASS    | 12/12 specs, 1 golden snapshot passed                            |
+| `metaengine/projectionadapter/` | ✅ PASS    | Auto-insert through adapter works                                |
+| `cmd/cqrs-lint/pkg/rules/`      | ❌ FAIL    | V003 + C017 not in golden profile (golden update incomplete)     |
+| `nix run .#verify`              | ⏳ NOT RUN | Full CI gate not executed                                        |

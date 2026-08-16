@@ -1,7 +1,7 @@
 # Status Report: `go-composable-business-types` Remote Module Migration
 
-**Date:** 2026-04-26 13:57  
-**Branch:** `master`  
+**Date:** 2026-04-26 13:57\
+**Branch:** `master`\
 **Status:** 🟡 PARTIALLY COMPLETE — Build succeeds, tests failing due to resource constraints
 
 ---
@@ -146,33 +146,33 @@ The following tests are **known to be broken** based on last successful test run
 
 ## Top 25 Priority Items
 
-| #   | Priority    | Item                                                                      | Status      |
-| --- | ----------- | ------------------------------------------------------------------------- | ----------- |
-| 1   | 🔴 CRITICAL | Fix TestJSON/marshal — double-encoding bug in MarshalJSON                 | PARTIAL     |
-| 2   | 🔴 CRITICAL | Fix TestSQLValue/value — assertion checks bytes not string                | PARTIAL     |
-| 3   | 🔴 CRITICAL | Fix TestEncoding/binary — unmarshal needs 16-byte binary input            | PARTIAL     |
-| 4   | 🔴 CRITICAL | Run full test suite to confirm all 15 packages pass                       | BLOCKED     |
-| 5   | 🟠 HIGH     | Add `//nolint:err113` to Scan error messages                              | NOT STARTED |
-| 6   | 🟠 HIGH     | Add `//nolint:exhaustruct` to interface assertions                        | NOT STARTED |
-| 7   | 🟠 HIGH     | Extract repeated ULID to `const testULID = "01HK..."` in tests            | NOT STARTED |
-| 8   | 🟠 HIGH     | Update `docs/status/2026-04-26_15-00_STATUS.md` with final results        | NOT STARTED |
-| 9   | 🟠 HIGH     | Run `golangci-lint run` on full codebase, fix new issues                  | NOT STARTED |
-| 10  | 🟡 MEDIUM   | Verify `go build` all modules including examples                          | PARTIAL     |
-| 11  | 🟡 MEDIUM   | Check if `ulimit -u` can be increased to fix thread exhaustion            | BLOCKED     |
-| 12  | 🟡 MEDIUM   | Run test coverage report (`go test -cover`)                               | BLOCKED     |
-| 13  | 🟡 MEDIUM   | Review `event/event.go` for any `AggregateID` string serialization issues | NOT STARTED |
-| 14  | 🟡 MEDIUM   | Check `middleware` package for ID string usage                            | NOT STARTED |
-| 15  | 🟡 MEDIUM   | Verify `xtypes` package tests pass (appeared OK in earlier runs)          | NOT STARTED |
-| 16  | 🟡 MEDIUM   | Verify `catalog` package tests pass (appeared OK in earlier runs)         | NOT STARTED |
-| 17  | 🟡 MEDIUM   | Verify `memory` package tests pass (appeared OK in earlier runs)          | NOT STARTED |
-| 18  | 🟡 MEDIUM   | Verify `command`, `event`, `aggregate`, `query` tests pass                | NOT STARTED |
-| 19  | 🟢 LOW      | Update `AGENTS.md` with the new `ID[T, ULID]` approach                    | NOT STARTED |
-| 20  | 🟢 LOW      | Add benchmark for `id.New[T]()` and `id.Parse[T]()`                       | NOT STARTED |
-| 21  | 🟢 LOW      | Check `example/catalog` builds                                            | NOT STARTED |
-| 22  | 🟢 LOW      | Tag release `v0.x.0` after all tests pass                                 | NOT STARTED |
-| 23  | 🟢 LOW      | Push to remote after commit                                               | NOT STARTED |
-| 24  | 🟢 LOW      | Create follow-up issue for storage module (phase 5)                       | NOT STARTED |
-| 25  | 🟢 LOW      | Consider adding `ID[T, string]` variant for non-time-ordered IDs          | NOT STARTED |
+| #  | Priority    | Item                                                                      | Status      |
+| -- | ----------- | ------------------------------------------------------------------------- | ----------- |
+| 1  | 🔴 CRITICAL | Fix TestJSON/marshal — double-encoding bug in MarshalJSON                 | PARTIAL     |
+| 2  | 🔴 CRITICAL | Fix TestSQLValue/value — assertion checks bytes not string                | PARTIAL     |
+| 3  | 🔴 CRITICAL | Fix TestEncoding/binary — unmarshal needs 16-byte binary input            | PARTIAL     |
+| 4  | 🔴 CRITICAL | Run full test suite to confirm all 15 packages pass                       | BLOCKED     |
+| 5  | 🟠 HIGH     | Add `//nolint:err113` to Scan error messages                              | NOT STARTED |
+| 6  | 🟠 HIGH     | Add `//nolint:exhaustruct` to interface assertions                        | NOT STARTED |
+| 7  | 🟠 HIGH     | Extract repeated ULID to `const testULID = "01HK..."` in tests            | NOT STARTED |
+| 8  | 🟠 HIGH     | Update `docs/status/2026-04-26_15-00_STATUS.md` with final results        | NOT STARTED |
+| 9  | 🟠 HIGH     | Run `golangci-lint run` on full codebase, fix new issues                  | NOT STARTED |
+| 10 | 🟡 MEDIUM   | Verify `go build` all modules including examples                          | PARTIAL     |
+| 11 | 🟡 MEDIUM   | Check if `ulimit -u` can be increased to fix thread exhaustion            | BLOCKED     |
+| 12 | 🟡 MEDIUM   | Run test coverage report (`go test -cover`)                               | BLOCKED     |
+| 13 | 🟡 MEDIUM   | Review `event/event.go` for any `AggregateID` string serialization issues | NOT STARTED |
+| 14 | 🟡 MEDIUM   | Check `middleware` package for ID string usage                            | NOT STARTED |
+| 15 | 🟡 MEDIUM   | Verify `xtypes` package tests pass (appeared OK in earlier runs)          | NOT STARTED |
+| 16 | 🟡 MEDIUM   | Verify `catalog` package tests pass (appeared OK in earlier runs)         | NOT STARTED |
+| 17 | 🟡 MEDIUM   | Verify `memory` package tests pass (appeared OK in earlier runs)          | NOT STARTED |
+| 18 | 🟡 MEDIUM   | Verify `command`, `event`, `aggregate`, `query` tests pass                | NOT STARTED |
+| 19 | 🟢 LOW      | Update `AGENTS.md` with the new `ID[T, ULID]` approach                    | NOT STARTED |
+| 20 | 🟢 LOW      | Add benchmark for `id.New[T]()` and `id.Parse[T]()`                       | NOT STARTED |
+| 21 | 🟢 LOW      | Check `example/catalog` builds                                            | NOT STARTED |
+| 22 | 🟢 LOW      | Tag release `v0.x.0` after all tests pass                                 | NOT STARTED |
+| 23 | 🟢 LOW      | Push to remote after commit                                               | NOT STARTED |
+| 24 | 🟢 LOW      | Create follow-up issue for storage module (phase 5)                       | NOT STARTED |
+| 25 | 🟢 LOW      | Consider adding `ID[T, string]` variant for non-time-ordered IDs          | NOT STARTED |
 
 ---
 

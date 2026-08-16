@@ -33,7 +33,7 @@ with no real-world validation.
 | **Zero-panic migration** | ✅ Complete | 26 production panics → error returns |
 | **Error taxonomy** | ✅ Complete | 5-family classification (Rejection/Conflict/Transient/Infrastructure/Corruption) |
 | **Dead build tags cleaned** | ✅ Done | Only `goexperiment.arenas` + `goexperiment.jsonv2` remain |
-| **Security theater removed** | ✅ Done | gosec `-no-fail`, `                                                                                           |     | true` removed |
+| **Security theater removed** | ✅ Done | gosec `-no-fail`, `|     | true` removed |
 | **Ghost code eliminated** | ✅ Done | `readmodel/`, `projection/`, `wasm/`, `transaction_id.go`, ghost bus — all deleted |
 | **CI file-size gate fixed** | ✅ Done | Subshell bug fixed, gate actually works |
 | **API stability golden** | ✅ Current | 1,605 exports, `TestAPISurfaceCheck` passes |
@@ -142,53 +142,53 @@ with no real-world validation.
 
 ### Tier 1: Validate (do FIRST, blocks everything)
 
-| #   | Task                                            | Impact   | Effort |
-| --- | ----------------------------------------------- | -------- | ------ |
-| 1   | **Build a real application using the library**  | CRITICAL | Days   |
-| 2   | **Dogfood `stack/sqlite.New()` end-to-end**     | CRITICAL | Hours  |
-| 3   | **Publish to a consumer project, get feedback** | CRITICAL | Days   |
+| # | Task                                            | Impact   | Effort |
+| - | ----------------------------------------------- | -------- | ------ |
+| 1 | **Build a real application using the library**  | CRITICAL | Days   |
+| 2 | **Dogfood `stack/sqlite.New()` end-to-end**     | CRITICAL | Hours  |
+| 3 | **Publish to a consumer project, get feedback** | CRITICAL | Days   |
 
 ### Tier 2: Simplify (high value, reduces friction)
 
-| #   | Task                                                  | Impact | Effort   |
-| --- | ----------------------------------------------------- | ------ | -------- |
-| 4   | **Collapse 38→5-6 modules**                           | HIGH   | Days     |
-| 5   | **Delete `catalog/docserver/`**                       | Medium | 5 min    |
-| 6   | **Move `turso/indexing/` to `storage/sql/indexing/`** | Medium | 1 hour   |
-| 7   | **Delete or wire `prometheus/`**                      | Medium | Decision |
-| 8   | **Inline `go-error-family` (3 types)**                | Medium | 2 hours  |
-| 9   | **Clean up `event/streaming_source.go` split brain**  | Low    | 10 min   |
-| 10  | **Archive 500+ historical doc files**                 | Medium | 1 hour   |
+| #  | Task                                                  | Impact | Effort   |
+| -- | ----------------------------------------------------- | ------ | -------- |
+| 4  | **Collapse 38→5-6 modules**                           | HIGH   | Days     |
+| 5  | **Delete `catalog/docserver/`**                       | Medium | 5 min    |
+| 6  | **Move `turso/indexing/` to `storage/sql/indexing/`** | Medium | 1 hour   |
+| 7  | **Delete or wire `prometheus/`**                      | Medium | Decision |
+| 8  | **Inline `go-error-family` (3 types)**                | Medium | 2 hours  |
+| 9  | **Clean up `event/streaming_source.go` split brain**  | Low    | 10 min   |
+| 10 | **Archive 500+ historical doc files**                 | Medium | 1 hour   |
 
 ### Tier 3: Ship (makes it real)
 
-| #   | Task                                               | Impact | Effort  |
-| --- | -------------------------------------------------- | ------ | ------- |
-| 11  | **Tag v3.0.0** (after validation)                  | HIGH   | 5 min   |
-| 12  | **Write `V3_MIGRATION.md` (fix broken example)**   | Medium | 30 min  |
-| 13  | **Add godoc `Example_*` functions for presets**    | Medium | 1 hour  |
-| 14  | **Reduce API surface (mark internals unexported)** | Medium | Ongoing |
+| #  | Task                                               | Impact | Effort  |
+| -- | -------------------------------------------------- | ------ | ------- |
+| 11 | **Tag v3.0.0** (after validation)                  | HIGH   | 5 min   |
+| 12 | **Write `V3_MIGRATION.md` (fix broken example)**   | Medium | 30 min  |
+| 13 | **Add godoc `Example_*` functions for presets**    | Medium | 1 hour  |
+| 14 | **Reduce API surface (mark internals unexported)** | Medium | Ongoing |
 
 ### Tier 4: Harden (after consumers exist)
 
-| #   | Task                                                | Impact | Effort  |
-| --- | --------------------------------------------------- | ------ | ------- |
-| 15  | **Per-module coverage CI floor**                    | Medium | 1 hour  |
-| 16  | **Real-Postgres CI integration**                    | Medium | 1 hour  |
-| 17  | **Property-based tests for Version arithmetic**     | Low    | 30 min  |
-| 18  | **Add race tests for PgxListener concurrent Close** | Medium | 45 min  |
-| 19  | **Full `art-dupl` dedup pass on ~72 clone groups**  | Low    | 3 hours |
+| #  | Task                                                | Impact | Effort  |
+| -- | --------------------------------------------------- | ------ | ------- |
+| 15 | **Per-module coverage CI floor**                    | Medium | 1 hour  |
+| 16 | **Real-Postgres CI integration**                    | Medium | 1 hour  |
+| 17 | **Property-based tests for Version arithmetic**     | Low    | 30 min  |
+| 18 | **Add race tests for PgxListener concurrent Close** | Medium | 45 min  |
+| 19 | **Full `art-dupl` dedup pass on ~72 clone groups**  | Low    | 3 hours |
 
 ### Tier 5: Polish (nice to have)
 
-| #   | Task                                                     | Impact | Effort  |
-| --- | -------------------------------------------------------- | ------ | ------- |
-| 20  | **`fanOut[T]` generic pattern for SSE**                  | Medium | 30 min  |
-| 21  | **Typed `SecurityEnvelope` metadata field**              | Low    | 30 min  |
-| 22  | **Property-based test for `command.Metadata` isolation** | Low    | 1 hour  |
-| 23  | **Add `CONTRIBUTING.md`**                                | Low    | 1 hour  |
-| 24  | **Benchmark hot paths (post concrete-type baseline)**    | Low    | 2 hours |
-| 25  | **Version drift detection in CI**                        | Low    | 30 min  |
+| #  | Task                                                     | Impact | Effort  |
+| -- | -------------------------------------------------------- | ------ | ------- |
+| 20 | **`fanOut[T]` generic pattern for SSE**                  | Medium | 30 min  |
+| 21 | **Typed `SecurityEnvelope` metadata field**              | Low    | 30 min  |
+| 22 | **Property-based test for `command.Metadata` isolation** | Low    | 1 hour  |
+| 23 | **Add `CONTRIBUTING.md`**                                | Low    | 1 hour  |
+| 24 | **Benchmark hot paths (post concrete-type baseline)**    | Low    | 2 hours |
+| 25 | **Version drift detection in CI**                        | Low    | 30 min  |
 
 ---
 

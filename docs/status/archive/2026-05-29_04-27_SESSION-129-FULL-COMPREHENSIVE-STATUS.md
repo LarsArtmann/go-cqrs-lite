@@ -38,25 +38,25 @@
 
 ### Decider Module — 2 methods instrumented
 
-| Method               | Span Name         | RecordError            |
-| -------------------- | ----------------- | ---------------------- |
-| `Repository.Execute` | `decider.execute` | ✅ All 5 error paths   |
+| Method               | Span Name         | RecordError           |
+| -------------------- | ----------------- | --------------------- |
+| `Repository.Execute` | `decider.execute` | ✅ All 5 error paths  |
 | `Repository.Load`    | `decider.load`    | ⚠️ Missing (see below) |
 
 ### Saga Module — 3 methods instrumented
 
-| Method               | Span Name           | RecordError            |
-| -------------------- | ------------------- | ---------------------- |
-| `Runner.Start`       | `saga.start`        | ✅ All error paths     |
+| Method               | Span Name           | RecordError           |
+| -------------------- | ------------------- | --------------------- |
+| `Runner.Start`       | `saga.start`        | ✅ All error paths    |
 | `Runner.ExecuteStep` | `saga.step.execute` | ⚠️ Partial (see below) |
-| `Runner.compensate`  | `saga.compensate`   | ✅ Dispatch errors     |
+| `Runner.compensate`  | `saga.compensate`   | ✅ Dispatch errors    |
 
 ### Projection Module — 2 internal spans
 
-| Method                          | Span Name           | RecordError                 |
-| ------------------------------- | ------------------- | --------------------------- |
+| Method                          | Span Name           | RecordError                |
+| ------------------------------- | ------------------- | -------------------------- |
 | `replay` (private)              | `projection.replay` | ⚠️ Checkpoint error missing |
-| `handleAndCheckpoint` (private) | `projection.handle` | ✅                          |
+| `handleAndCheckpoint` (private) | `projection.handle` | ✅                         |
 
 ### Non-OTel Work Fully Done
 
@@ -98,19 +98,19 @@
 
 ## c) NOT STARTED ⬜
 
-| #   | Area                                    | Methods                                                      | Effort |
-| --- | --------------------------------------- | ------------------------------------------------------------ | ------ |
-| 1   | `stream/` module                        | `List`, `ListWithStatus`, `AggregateProjection.Handle`       | 1 hr   |
-| 2   | `signing/` module                       | `Sign`, `Verify`, `VerifyActor` (HMAC, Ed25519, Multi)       | 2 hr   |
-| 3   | `memory/` module                        | 20 methods across MemoryStore/Bus/Outbox/Snapshot/Checkpoint | 3 hr   |
-| 4   | `watermill/` module                     | `Publish`, `Subscribe`, `Close`                              | 1 hr   |
-| 5   | `storage/PebbleEventStore`              | All methods (Save, Load, variants)                           | 2 hr   |
-| 6   | OTel metrics for storage                | Latency histograms for store/query operations                | 3 hr   |
-| 7   | OTel semconv adoption                   | `db.operation`, `messaging.system` standard attributes       | 4 hr   |
-| 8   | Integration test with trace propagation | command → decider → store → bus → projection                 | 3 hr   |
-| 9   | W3C trace context propagation           | Through event bus for distributed tracing                    | 4 hr   |
-| 10  | Example code for OTel provider wiring   | Consumer-facing example                                      | 1 hr   |
-| 11  | `testhelpers/otel.go` shared test utils | Extract `testTracerWithRecorder()`                           | 30 min |
+| #  | Area                                    | Methods                                                      | Effort |
+| -- | --------------------------------------- | ------------------------------------------------------------ | ------ |
+| 1  | `stream/` module                        | `List`, `ListWithStatus`, `AggregateProjection.Handle`       | 1 hr   |
+| 2  | `signing/` module                       | `Sign`, `Verify`, `VerifyActor` (HMAC, Ed25519, Multi)       | 2 hr   |
+| 3  | `memory/` module                        | 20 methods across MemoryStore/Bus/Outbox/Snapshot/Checkpoint | 3 hr   |
+| 4  | `watermill/` module                     | `Publish`, `Subscribe`, `Close`                              | 1 hr   |
+| 5  | `storage/PebbleEventStore`              | All methods (Save, Load, variants)                           | 2 hr   |
+| 6  | OTel metrics for storage                | Latency histograms for store/query operations                | 3 hr   |
+| 7  | OTel semconv adoption                   | `db.operation`, `messaging.system` standard attributes       | 4 hr   |
+| 8  | Integration test with trace propagation | command → decider → store → bus → projection                 | 3 hr   |
+| 9  | W3C trace context propagation           | Through event bus for distributed tracing                    | 4 hr   |
+| 10 | Example code for OTel provider wiring   | Consumer-facing example                                      | 1 hr   |
+| 11 | `testhelpers/otel.go` shared test utils | Extract `testTracerWithRecorder()`                           | 30 min |
 
 ---
 
@@ -150,53 +150,53 @@
 
 ### Tier 1: Fix bugs (high impact, minutes each)
 
-| #   | Item                                                          | Effort |
-| --- | ------------------------------------------------------------- | ------ |
-| 1   | Add `RecordError` to `decider.Load` return path               | 5 min  |
-| 2   | Add `RecordError` to all 5+ error paths in `saga.ExecuteStep` | 15 min |
-| 3   | Add `RecordError` to `saga.compensate` store.Save error       | 5 min  |
-| 4   | Add `RecordError` to `projection.replay` checkpoint error     | 5 min  |
-| 5   | Extract `testTracerWithRecorder()` to `testhelpers/otel.go`   | 30 min |
+| # | Item                                                          | Effort |
+| - | ------------------------------------------------------------- | ------ |
+| 1 | Add `RecordError` to `decider.Load` return path               | 5 min  |
+| 2 | Add `RecordError` to all 5+ error paths in `saga.ExecuteStep` | 15 min |
+| 3 | Add `RecordError` to `saga.compensate` store.Save error       | 5 min  |
+| 4 | Add `RecordError` to `projection.replay` checkpoint error     | 5 min  |
+| 5 | Extract `testTracerWithRecorder()` to `testhelpers/otel.go`   | 30 min |
 
 ### Tier 2: Complete coverage (high impact, 1-2 hr each)
 
-| #   | Item                                                           | Effort |
-| --- | -------------------------------------------------------------- | ------ |
-| 6   | Add span to `storage/SQLSnapshotStore.LoadAtVersion`           | 15 min |
-| 7   | Add span to `storage/SQLTransactionalStore.SaveWithOutbox`     | 30 min |
-| 8   | Add spans to `storage/SQLSagaStore` (Save/Load/LoadAllRunning) | 30 min |
-| 9   | Add span to `storage/SQLEventStore.LoadStream`                 | 15 min |
-| 10  | Add spans to `core/decider/LoadAtVersion` and `LoadAtTime`     | 30 min |
-| 11  | Add span to `projection/Run`                                   | 30 min |
-| 12  | Add spans to `stream/` module (List, ListWithStatus)           | 1 hr   |
+| #  | Item                                                           | Effort |
+| -- | -------------------------------------------------------------- | ------ |
+| 6  | Add span to `storage/SQLSnapshotStore.LoadAtVersion`           | 15 min |
+| 7  | Add span to `storage/SQLTransactionalStore.SaveWithOutbox`     | 30 min |
+| 8  | Add spans to `storage/SQLSagaStore` (Save/Load/LoadAllRunning) | 30 min |
+| 9  | Add span to `storage/SQLEventStore.LoadStream`                 | 15 min |
+| 10 | Add spans to `core/decider/LoadAtVersion` and `LoadAtTime`     | 30 min |
+| 11 | Add span to `projection/Run`                                   | 30 min |
+| 12 | Add spans to `stream/` module (List, ListWithStatus)           | 1 hr   |
 
 ### Tier 3: New instrumentation (medium impact, 1-2 hr each)
 
-| #   | Item                                               | Effort |
-| --- | -------------------------------------------------- | ------ |
-| 13  | Add spans to `signing/` module                     | 2 hr   |
-| 14  | Add spans to `storage/PebbleEventStore`            | 2 hr   |
-| 15  | Add spans to `memory/` module (test observability) | 3 hr   |
-| 16  | Add spans to `watermill/` module                   | 1 hr   |
+| #  | Item                                               | Effort |
+| -- | -------------------------------------------------- | ------ |
+| 13 | Add spans to `signing/` module                     | 2 hr   |
+| 14 | Add spans to `storage/PebbleEventStore`            | 2 hr   |
+| 15 | Add spans to `memory/` module (test observability) | 3 hr   |
+| 16 | Add spans to `watermill/` module                   | 1 hr   |
 
 ### Tier 4: Ecosystem integration (high impact, higher effort)
 
-| #   | Item                                                            | Effort |
-| --- | --------------------------------------------------------------- | ------ |
-| 17  | Adopt OTel semconv `db.operation`/`messaging.system` attributes | 4 hr   |
-| 18  | OTel metrics for storage operations (latency histograms)        | 3 hr   |
-| 19  | Integration test with full trace propagation                    | 3 hr   |
-| 20  | W3C trace context propagation through event bus                 | 4 hr   |
+| #  | Item                                                            | Effort |
+| -- | --------------------------------------------------------------- | ------ |
+| 17 | Adopt OTel semconv `db.operation`/`messaging.system` attributes | 4 hr   |
+| 18 | OTel metrics for storage operations (latency histograms)        | 3 hr   |
+| 19 | Integration test with full trace propagation                    | 3 hr   |
+| 20 | W3C trace context propagation through event bus                 | 4 hr   |
 
 ### Tier 5: Polish and documentation
 
-| #   | Item                                                        | Effort |
-| --- | ----------------------------------------------------------- | ------ |
-| 21  | Option pattern API for span creation (`cqrsotel.Span(...)`) | 3 hr   |
-| 22  | Example code for OTel provider wiring                       | 1 hr   |
-| 23  | Performance benchmark: span overhead (noop vs real)         | 2 hr   |
-| 24  | ADR for OTel instrumentation decisions                      | 1 hr   |
-| 25  | CI addition: OTel integration test in GitHub Actions        | 2 hr   |
+| #  | Item                                                        | Effort |
+| -- | ----------------------------------------------------------- | ------ |
+| 21 | Option pattern API for span creation (`cqrsotel.Span(...)`) | 3 hr   |
+| 22 | Example code for OTel provider wiring                       | 1 hr   |
+| 23 | Performance benchmark: span overhead (noop vs real)         | 2 hr   |
+| 24 | ADR for OTel instrumentation decisions                      | 1 hr   |
+| 25 | CI addition: OTel integration test in GitHub Actions        | 2 hr   |
 
 ---
 

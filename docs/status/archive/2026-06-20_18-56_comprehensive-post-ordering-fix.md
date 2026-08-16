@@ -228,33 +228,33 @@ per-module with `GOWORK=off`, so this would have failed in CI.
 
 Sorted by impact/effort (Pareto order).
 
-| #   | Task                                                                                             | Impact   | Effort   | Type         |
-| --- | ------------------------------------------------------------------------------------------------ | -------- | -------- | ------------ |
-| 1   | **Add multi-event ordering integration test** (Decider→Bus→CatchUp→Materialize, 5+ events)       | Critical | 30min    | Test         |
-| 2   | **Add EventBusOption for GoChannel config** (consumer can tune buffer/throughput)                | High     | 20min    | Feature      |
-| 3   | **Add retry/dead-letter helper for direct-consumption path** (no Router needed)                  | High     | 40min    | Feature      |
-| 4   | **Migrate example/user to Materialize + CatchUpSubscriber**                                      | High     | 30min    | Migration    |
-| 5   | **Migrate example/todo to Materialize + CatchUpSubscriber**                                      | High     | 30min    | Migration    |
-| 6   | **Update cqrs-gen to emit Materialize code**                                                     | Medium   | 20min    | Codegen      |
-| 7   | **Decide DistributedRunner fate** (keep projection/ for distributed, or build composable leader) | Critical | Decision | Architecture |
-| 8   | **Remove `ProjectionRunner()` from stack/** (after examples migrated)                            | Medium   | 15min    | Cleanup      |
-| 9   | **Delete projection/ module** (after DistributedRunner decision + examples migrated)             | High     | 20min    | Architecture |
-| 10  | **Kill command.Metadata alias** (ADR-0031)                                                       | Medium   | 25min    | Type safety  |
-| 11  | **Kill query.Metadata alias** (ADR-0031)                                                         | Medium   | 25min    | Type safety  |
-| 12  | **Update storage scan helpers for new Metadata types**                                           | Medium   | 15min    | Type safety  |
-| 13  | **Update TODO_LIST.md** (mark done items, remove stale)                                          | Low      | 15min    | Docs         |
-| 14  | **Update FEATURES.md** with deployer-first architecture                                          | Medium   | 15min    | Docs         |
-| 15  | **Update ROADMAP.md** with current direction                                                     | Low      | 15min    | Docs         |
-| 16  | **Add `.gitignore` for example binaries**                                                        | Low      | 5min     | Cleanup      |
-| 17  | **Consolidate `deployer_first_test.go`** (stack/ test vs example/)                               | Low      | 15min    | Cleanup      |
-| 18  | **Add `-race` to example/deployer-first tests**                                                  | Medium   | 5min     | Test         |
-| 19  | **Add projection.Runner multi-event ordering test** (verify the EventBus fix)                    | High     | 20min    | Test         |
-| 20  | **Audit all examples for stale `NewMemoryBus` references**                                       | Low      | 10min    | Cleanup      |
-| 21  | **Document the CatchUpSubscriber startup pattern** (commands before projection)                  | Medium   | 10min    | Docs         |
-| 22  | **Add Watermill Router vs direct-consumption decision guide**                                    | Medium   | 15min    | Docs         |
-| 23  | **Enrich CBOR fuzz corpus** with real event payloads                                             | Low      | 15min    | Test         |
-| 24  | **Add EventBus benchmark** (throughput with BlockPublishUntilSubscriberAck)                      | Medium   | 20min    | Perf         |
-| 25  | **Review all ADR statuses** (0030 Accepted → should it be Partial?)                              | Low      | 10min    | Docs         |
+| #  | Task                                                                                             | Impact   | Effort   | Type         |
+| -- | ------------------------------------------------------------------------------------------------ | -------- | -------- | ------------ |
+| 1  | **Add multi-event ordering integration test** (Decider→Bus→CatchUp→Materialize, 5+ events)       | Critical | 30min    | Test         |
+| 2  | **Add EventBusOption for GoChannel config** (consumer can tune buffer/throughput)                | High     | 20min    | Feature      |
+| 3  | **Add retry/dead-letter helper for direct-consumption path** (no Router needed)                  | High     | 40min    | Feature      |
+| 4  | **Migrate example/user to Materialize + CatchUpSubscriber**                                      | High     | 30min    | Migration    |
+| 5  | **Migrate example/todo to Materialize + CatchUpSubscriber**                                      | High     | 30min    | Migration    |
+| 6  | **Update cqrs-gen to emit Materialize code**                                                     | Medium   | 20min    | Codegen      |
+| 7  | **Decide DistributedRunner fate** (keep projection/ for distributed, or build composable leader) | Critical | Decision | Architecture |
+| 8  | **Remove `ProjectionRunner()` from stack/** (after examples migrated)                            | Medium   | 15min    | Cleanup      |
+| 9  | **Delete projection/ module** (after DistributedRunner decision + examples migrated)             | High     | 20min    | Architecture |
+| 10 | **Kill command.Metadata alias** (ADR-0031)                                                       | Medium   | 25min    | Type safety  |
+| 11 | **Kill query.Metadata alias** (ADR-0031)                                                         | Medium   | 25min    | Type safety  |
+| 12 | **Update storage scan helpers for new Metadata types**                                           | Medium   | 15min    | Type safety  |
+| 13 | **Update TODO_LIST.md** (mark done items, remove stale)                                          | Low      | 15min    | Docs         |
+| 14 | **Update FEATURES.md** with deployer-first architecture                                          | Medium   | 15min    | Docs         |
+| 15 | **Update ROADMAP.md** with current direction                                                     | Low      | 15min    | Docs         |
+| 16 | **Add `.gitignore` for example binaries**                                                        | Low      | 5min     | Cleanup      |
+| 17 | **Consolidate `deployer_first_test.go`** (stack/ test vs example/)                               | Low      | 15min    | Cleanup      |
+| 18 | **Add `-race` to example/deployer-first tests**                                                  | Medium   | 5min     | Test         |
+| 19 | **Add projection.Runner multi-event ordering test** (verify the EventBus fix)                    | High     | 20min    | Test         |
+| 20 | **Audit all examples for stale `NewMemoryBus` references**                                       | Low      | 10min    | Cleanup      |
+| 21 | **Document the CatchUpSubscriber startup pattern** (commands before projection)                  | Medium   | 10min    | Docs         |
+| 22 | **Add Watermill Router vs direct-consumption decision guide**                                    | Medium   | 15min    | Docs         |
+| 23 | **Enrich CBOR fuzz corpus** with real event payloads                                             | Low      | 15min    | Test         |
+| 24 | **Add EventBus benchmark** (throughput with BlockPublishUntilSubscriberAck)                      | Medium   | 20min    | Perf         |
+| 25 | **Review all ADR statuses** (0030 Accepted → should it be Partial?)                              | Low      | 10min    | Docs         |
 
 ---
 

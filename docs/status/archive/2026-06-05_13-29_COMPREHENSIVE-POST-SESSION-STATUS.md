@@ -223,48 +223,48 @@ ADR 0010 (io.Closer removal), 0011 (ErrDispatcherClosed unification), 0012 (cata
 
 ### P0 — Critical (Do First)
 
-| #   | Task                                                                                          | Module     | Est | Impact                                          |
-| --- | --------------------------------------------------------------------------------------------- | ---------- | --- | ----------------------------------------------- |
-| 1   | Fix BuildFlow pre-commit hook — exclude `scripts/` from lint, resolve library-policy conflict | infra      | 30m | Every commit currently requires `--no-verify`   |
-| 2   | Add `snapshot/example_test.go` — Save + Load roundtrip                                        | snapshot   | 8m  | pkg.go.dev shows no example for snapshot module |
-| 3   | Add `memory/example_test.go` — NewStore + NewBus creation                                     | memory     | 5m  | Most-used test module, no example               |
-| 4   | Add `middleware/example_test.go` — middleware chain composition                               | middleware | 10m | 24 middleware factories, no runnable example    |
-| 5   | Add `pebble/example_test.go` — Open + Save + Load                                             | pebble     | 10m | Embedded KV store, no example                   |
-| 6   | Add `turso/example_test.go` — OpenInMemory + InitSchema + Save                                | turso      | 10m | Production module, no example                   |
+| # | Task                                                                                          | Module     | Est | Impact                                          |
+| - | --------------------------------------------------------------------------------------------- | ---------- | --- | ----------------------------------------------- |
+| 1 | Fix BuildFlow pre-commit hook — exclude `scripts/` from lint, resolve library-policy conflict | infra      | 30m | Every commit currently requires `--no-verify`   |
+| 2 | Add `snapshot/example_test.go` — Save + Load roundtrip                                        | snapshot   | 8m  | pkg.go.dev shows no example for snapshot module |
+| 3 | Add `memory/example_test.go` — NewStore + NewBus creation                                     | memory     | 5m  | Most-used test module, no example               |
+| 4 | Add `middleware/example_test.go` — middleware chain composition                               | middleware | 10m | 24 middleware factories, no runnable example    |
+| 5 | Add `pebble/example_test.go` — Open + Save + Load                                             | pebble     | 10m | Embedded KV store, no example                   |
+| 6 | Add `turso/example_test.go` — OpenInMemory + InitSchema + Save                                | turso      | 10m | Production module, no example                   |
 
 ### P1 — High (Do Soon)
 
-| #   | Task                                                                           | Module    | Est | Impact                               |
-| --- | ------------------------------------------------------------------------------ | --------- | --- | ------------------------------------ |
-| 7   | Consolidate `catalog/errors.go` — 31 scattered fmt.Errorf → named sentinels    | catalog   | 12m | Largest module, most error sites     |
-| 8   | Consolidate `storage/errors.go` — re-export sql/ errors + storage-level errors | storage   | 8m  | Errors in sql/ but not storage/ root |
-| 9   | Decompose `storage/sql_aggregate_reader.go:ListWithStatus` (115L → 3 funcs)    | storage   | 12m | Longest function in codebase         |
-| 10  | Decompose `watermill/protocol.go:messageToEvent` (86L → 4 funcs)               | watermill | 12m | Longest function outside storage     |
-| 11  | Decompose `storage/event_store.go:Save` (55L → 2 funcs)                        | storage   | 10m | Core write path                      |
-| 12  | Fix catalog 7 pre-existing lint issues                                         | catalog   | 15m | Only module with lint issues         |
-| 13  | Add `storage/example_test.go` — SQLite in-memory event store                   | storage   | 12m | Most complex module, no example      |
-| 14  | Add turso edge-case tests: error paths, concurrent access, benchmarks          | turso     | 30m | Only module below 85% coverage       |
+| #  | Task                                                                           | Module    | Est | Impact                               |
+| -- | ------------------------------------------------------------------------------ | --------- | --- | ------------------------------------ |
+| 7  | Consolidate `catalog/errors.go` — 31 scattered fmt.Errorf → named sentinels    | catalog   | 12m | Largest module, most error sites     |
+| 8  | Consolidate `storage/errors.go` — re-export sql/ errors + storage-level errors | storage   | 8m  | Errors in sql/ but not storage/ root |
+| 9  | Decompose `storage/sql_aggregate_reader.go:ListWithStatus` (115L → 3 funcs)    | storage   | 12m | Longest function in codebase         |
+| 10 | Decompose `watermill/protocol.go:messageToEvent` (86L → 4 funcs)               | watermill | 12m | Longest function outside storage     |
+| 11 | Decompose `storage/event_store.go:Save` (55L → 2 funcs)                        | storage   | 10m | Core write path                      |
+| 12 | Fix catalog 7 pre-existing lint issues                                         | catalog   | 15m | Only module with lint issues         |
+| 13 | Add `storage/example_test.go` — SQLite in-memory event store                   | storage   | 12m | Most complex module, no example      |
+| 14 | Add turso edge-case tests: error paths, concurrent access, benchmarks          | turso     | 30m | Only module below 85% coverage       |
 
 ### P2 — Medium (Do When Time)
 
-| #   | Task                                                                                  | Module  | Est | Impact                                         |
-| --- | ------------------------------------------------------------------------------------- | ------- | --- | ---------------------------------------------- |
-| 15  | Split `catalog/internal/cattest/builders.go` (377L → 2 files)                         | catalog | 5m  | Only test helper >350L                         |
-| 16  | Split `scripts/go-mod-graph-local/main.go` (412L → 3 files)                           | scripts | 8m  | Only tool file >350L                           |
-| 17  | Add `storage/sql/` helpers tests: error paths for SharedInsertEvents, SharedEventLoad | storage | 10m | Shared SQL helpers only tested via integration |
-| 18  | Add `event/codec` tests: decode malformed JSON, nil payload, roundtrip                | event   | 8m  | Codec is critical infrastructure               |
-| 19  | Decompose `storage/event_store_global.go:ReadFrom` (59L → 2 funcs)                    | storage | 10m | Projection-critical path                       |
-| 20  | Decompose `signing/multisig/middleware.go:RequireMultiSigMiddleware` (55L → 2 funcs)  | signing | 8m  | Complex verification logic                     |
+| #  | Task                                                                                  | Module  | Est | Impact                                         |
+| -- | ------------------------------------------------------------------------------------- | ------- | --- | ---------------------------------------------- |
+| 15 | Split `catalog/internal/cattest/builders.go` (377L → 2 files)                         | catalog | 5m  | Only test helper >350L                         |
+| 16 | Split `scripts/go-mod-graph-local/main.go` (412L → 3 files)                           | scripts | 8m  | Only tool file >350L                           |
+| 17 | Add `storage/sql/` helpers tests: error paths for SharedInsertEvents, SharedEventLoad | storage | 10m | Shared SQL helpers only tested via integration |
+| 18 | Add `event/codec` tests: decode malformed JSON, nil payload, roundtrip                | event   | 8m  | Codec is critical infrastructure               |
+| 19 | Decompose `storage/event_store_global.go:ReadFrom` (59L → 2 funcs)                    | storage | 10m | Projection-critical path                       |
+| 20 | Decompose `signing/multisig/middleware.go:RequireMultiSigMiddleware` (55L → 2 funcs)  | signing | 8m  | Complex verification logic                     |
 
 ### P3 — Low (Nice to Have)
 
-| #   | Task                                                       | Module          | Est | Impact                                    |
-| --- | ---------------------------------------------------------- | --------------- | --- | ----------------------------------------- |
-| 21  | Create ROADMAP.md — long-term direction and raw ideas      | docs            | 15m | Referenced in AGENTS.md but never created |
-| 22  | Fill ADR-0005 gap — missing number in ADR sequence         | docs            | 10m | ADR sequence has gap 0005                 |
-| 23  | Clean up docs/status/ — archive reports older than 2 weeks | docs            | 10m | 100+ reports, zero cleanup                |
-| 24  | Add `t.Parallel()` to turso tests                          | turso           | 3m  | Convention compliance                     |
-| 25  | Add CommandStore benchmark tests — memory and SQL backends | memory, storage | 15m | Performance baseline missing              |
+| #  | Task                                                       | Module          | Est | Impact                                    |
+| -- | ---------------------------------------------------------- | --------------- | --- | ----------------------------------------- |
+| 21 | Create ROADMAP.md — long-term direction and raw ideas      | docs            | 15m | Referenced in AGENTS.md but never created |
+| 22 | Fill ADR-0005 gap — missing number in ADR sequence         | docs            | 10m | ADR sequence has gap 0005                 |
+| 23 | Clean up docs/status/ — archive reports older than 2 weeks | docs            | 10m | 100+ reports, zero cleanup                |
+| 24 | Add `t.Parallel()` to turso tests                          | turso           | 3m  | Convention compliance                     |
+| 25 | Add CommandStore benchmark tests — memory and SQL backends | memory, storage | 15m | Performance baseline missing              |
 
 ---
 

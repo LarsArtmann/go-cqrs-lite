@@ -140,48 +140,48 @@ None. All tasks that were started were completed.
 
 ### HIGH IMPACT, LOW EFFORT (do first)
 
-| #   | Task                                                                                                         | Est. | Impact                       |
-| --- | ------------------------------------------------------------------------------------------------------------ | ---: | ---------------------------- |
-| 1   | Mark 3 remaining Session 140 review items as DONE in TODO_LIST.md (pebble aliases, TypedHandler, fake_store) |   2m | Cleanup                      |
-| 2   | Fix buildflow pre-commit to exclude `scripts/` from golangci-lint                                            |   5m | Unblocks normal git workflow |
-| 3   | Commit the uncommitted `docs/brainstorming/deployment-time-tradeoffs.md`                                     |   1m | Clean git status             |
-| 4   | Extract `listRefsFromStatus` to `listing/` package, deduplicate from `storage/`                              |  10m | Eliminates code duplication  |
-| 5   | Add `nix run .#lint` that excludes `scripts/` directory                                                      |   5m | CI reliability               |
-| 6   | Add real PostgreSQL benchmarks via testcontainers (or at minimum document why sqlmock is used)               |  15m | Honest performance numbers   |
-| 7   | Run `go mod tidy` on ALL modules to ensure consistency                                                       |   5m | Hygiene                      |
+| # | Task                                                                                                         | Est. | Impact                       |
+| - | ------------------------------------------------------------------------------------------------------------ | ---: | ---------------------------- |
+| 1 | Mark 3 remaining Session 140 review items as DONE in TODO_LIST.md (pebble aliases, TypedHandler, fake_store) |   2m | Cleanup                      |
+| 2 | Fix buildflow pre-commit to exclude `scripts/` from golangci-lint                                            |   5m | Unblocks normal git workflow |
+| 3 | Commit the uncommitted `docs/brainstorming/deployment-time-tradeoffs.md`                                     |   1m | Clean git status             |
+| 4 | Extract `listRefsFromStatus` to `listing/` package, deduplicate from `storage/`                              |  10m | Eliminates code duplication  |
+| 5 | Add `nix run .#lint` that excludes `scripts/` directory                                                      |   5m | CI reliability               |
+| 6 | Add real PostgreSQL benchmarks via testcontainers (or at minimum document why sqlmock is used)               |  15m | Honest performance numbers   |
+| 7 | Run `go mod tidy` on ALL modules to ensure consistency                                                       |   5m | Hygiene                      |
 
 ### HIGH IMPACT, MEDIUM EFFORT
 
-| #   | Task                                                                               | Est. | Impact               |
-| --- | ---------------------------------------------------------------------------------- | ---: | -------------------- |
-| 8   | Add incremental index to `listing/InMemoryAggregateReader` — avoid O(n) per List() |  20m | 10K aggregate perf   |
-| 9   | Add `nix run .#benchstat` that runs count=10 + compares with last baseline         |  15m | Regression detection |
-| 10  | Add CI regression gate: fail PR if any benchmark >2x slower                        |  10m | Performance contract |
-| 11  | Add `example/user/` documentation — README.md explaining the full-stack demo       |  15m | Onboarding           |
-| 12  | Add catalog registration to `example/user/main.go` (if not already there)          |  10m | Full-stack demo      |
-| 13  | Create `docs/DOMAIN_LANGUAGE.md` with bounded context glossary                     |  20m | Ubiquitous language  |
-| 14  | Add turso real-database tests (currently only connector tests)                     |  20m | Coverage             |
-| 15  | Add iterator-based `ReadAll` option for memory store                               |  15m | Memory efficiency    |
+| #  | Task                                                                               | Est. | Impact               |
+| -- | ---------------------------------------------------------------------------------- | ---: | -------------------- |
+| 8  | Add incremental index to `listing/InMemoryAggregateReader` — avoid O(n) per List() |  20m | 10K aggregate perf   |
+| 9  | Add `nix run .#benchstat` that runs count=10 + compares with last baseline         |  15m | Regression detection |
+| 10 | Add CI regression gate: fail PR if any benchmark >2x slower                        |  10m | Performance contract |
+| 11 | Add `example/user/` documentation — README.md explaining the full-stack demo       |  15m | Onboarding           |
+| 12 | Add catalog registration to `example/user/main.go` (if not already there)          |  10m | Full-stack demo      |
+| 13 | Create `docs/DOMAIN_LANGUAGE.md` with bounded context glossary                     |  20m | Ubiquitous language  |
+| 14 | Add turso real-database tests (currently only connector tests)                     |  20m | Coverage             |
+| 15 | Add iterator-based `ReadAll` option for memory store                               |  15m | Memory efficiency    |
 
 ### MEDIUM IMPACT, MEDIUM EFFORT
 
-| #   | Task                                                                   | Est. | Impact                 |
-| --- | ---------------------------------------------------------------------- | ---: | ---------------------- |
-| 16  | Add `catalog.SchemaFromType[T]()` fuzz test                            |  10m | Robustness             |
-| 17  | Add upcaster chain fuzz test                                           |  10m | Robustness             |
-| 18  | Add go.work verification to pre-commit hook                            |   5m | Consistency            |
-| 19  | Add `CONTRIBUTING.md` updates with benchmark instructions              |  10m | Contributor experience |
-| 20  | Split `integration/scale_benchmark_test.go` (812L → focused files)     |  15m | File size gate         |
-| 21  | Add `storage/sqlite_bench_test.go` integration with real data patterns |  15m | Realistic benchmarks   |
+| #  | Task                                                                   | Est. | Impact                 |
+| -- | ---------------------------------------------------------------------- | ---: | ---------------------- |
+| 16 | Add `catalog.SchemaFromType[T]()` fuzz test                            |  10m | Robustness             |
+| 17 | Add upcaster chain fuzz test                                           |  10m | Robustness             |
+| 18 | Add go.work verification to pre-commit hook                            |   5m | Consistency            |
+| 19 | Add `CONTRIBUTING.md` updates with benchmark instructions              |  10m | Contributor experience |
+| 20 | Split `integration/scale_benchmark_test.go` (812L → focused files)     |  15m | File size gate         |
+| 21 | Add `storage/sqlite_bench_test.go` integration with real data patterns |  15m | Realistic benchmarks   |
 
 ### LOWER IMPACT (nice to have)
 
-| #   | Task                                                                         | Est. | Impact                    |
-| --- | ---------------------------------------------------------------------------- | ---: | ------------------------- |
-| 22  | SIMD pebble/LoadToTimestamp prototype behind build tag                       |  30m | Experimental optimization |
-| 23  | Add `docs/SIGNING_ARCHITECTURE.md` update with canonicalPayload improvements |  10m | Documentation             |
-| 24  | Evaluate `go1.27` arena experiment for event creation                        |  15m | Future performance        |
-| 25  | Add `.gitattributes` for linguist detection (mark docs/ as documentation)    |   2m | GitHub accuracy           |
+| #  | Task                                                                         | Est. | Impact                    |
+| -- | ---------------------------------------------------------------------------- | ---: | ------------------------- |
+| 22 | SIMD pebble/LoadToTimestamp prototype behind build tag                       |  30m | Experimental optimization |
+| 23 | Add `docs/SIGNING_ARCHITECTURE.md` update with canonicalPayload improvements |  10m | Documentation             |
+| 24 | Evaluate `go1.27` arena experiment for event creation                        |  15m | Future performance        |
+| 25 | Add `.gitattributes` for linguist detection (mark docs/ as documentation)    |   2m | GitHub accuracy           |
 
 ---
 

@@ -33,30 +33,30 @@
 
 **Fix:** `TypedHandler[T any]` → `TypedHandler[Q Query, R any]` — two type parameters. `RegisterTyped` now performs the `q.(Q)` assertion internally, mirroring the command pattern.
 
-| #   | Change                                                                   | Files                                                       | Impact                                                              |
-| --- | ------------------------------------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------- |
-| 1   | `TypedHandler[Q Query, R any]` — typed query input + typed result output | `query/query.go:53`                                         | Type-safe query handlers — no more manual assertions                |
-| 2   | `RegisterTyped[Q, R]` with built-in type assertion                       | `query/dispatcher.go:76`                                    | Framework handles assertion, returns `ErrTypeAssertion` on mismatch |
-| 3   | `ErrTypeAssertion` sentinel error                                        | `query/errors.go:23`                                        | Consistent with `command.ErrTypeAssertion`                          |
-| 4   | Removed manual type assertions from all handlers                         | `example/user/handlers.go`, `integration/full_flow_test.go` | Cleaner consumer code                                               |
-| 5   | Updated `example/todo/queries/*.go` — typed `Handle` methods             | `get_todo.go`, `list_todos.go`, `count_todos.go`            | Handlers receive `*ConcreteQuery` directly                          |
-| 6   | Removed `requireQueryType` helper (no longer needed)                     | `example/todo/queries/types.go`                             | -16 lines of dead helper code                                       |
-| 7   | Removed dead `errUnexpectedQueryType`                                    | `example/user/handlers.go`                                  | -1 sentinel, removed `errors` import                                |
-| 8   | Updated code generator for `[Q, R]` signature                            | `cmd/cqrs-gen/main.go:238`                                  | Generates `query.RegisterTyped[*StructName, R]`                     |
-| 9   | Updated all tests                                                        | 4 test files                                                | All passing                                                         |
+| # | Change                                                                   | Files                                                       | Impact                                                              |
+| - | ------------------------------------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------- |
+| 1 | `TypedHandler[Q Query, R any]` — typed query input + typed result output | `query/query.go:53`                                         | Type-safe query handlers — no more manual assertions                |
+| 2 | `RegisterTyped[Q, R]` with built-in type assertion                       | `query/dispatcher.go:76`                                    | Framework handles assertion, returns `ErrTypeAssertion` on mismatch |
+| 3 | `ErrTypeAssertion` sentinel error                                        | `query/errors.go:23`                                        | Consistent with `command.ErrTypeAssertion`                          |
+| 4 | Removed manual type assertions from all handlers                         | `example/user/handlers.go`, `integration/full_flow_test.go` | Cleaner consumer code                                               |
+| 5 | Updated `example/todo/queries/*.go` — typed `Handle` methods             | `get_todo.go`, `list_todos.go`, `count_todos.go`            | Handlers receive `*ConcreteQuery` directly                          |
+| 6 | Removed `requireQueryType` helper (no longer needed)                     | `example/todo/queries/types.go`                             | -16 lines of dead helper code                                       |
+| 7 | Removed dead `errUnexpectedQueryType`                                    | `example/user/handlers.go`                                  | -1 sentinel, removed `errors` import                                |
+| 8 | Updated code generator for `[Q, R]` signature                            | `cmd/cqrs-gen/main.go:238`                                  | Generates `query.RegisterTyped[*StructName, R]`                     |
+| 9 | Updated all tests                                                        | 4 test files                                                | All passing                                                         |
 
 **Net impact:** 14 files changed, +60 / -100 lines. Every query handler is now cleaner — zero manual type assertions.
 
 ### Previous Session (Session 144) — Performance + Housekeeping
 
-| #   | Change                             | Impact                                                                   |
-| --- | ---------------------------------- | ------------------------------------------------------------------------ |
-| 1   | MemoryStore global log             | ReadAll: 98μs→3.3μs (-96%)                                               |
-| 2   | Listing projection cache           | List: 840ms→33ms (-96%)                                                  |
-| 3   | ImmutableEvent slim-down           | 336B→304B per event (-10%)                                               |
-| 4   | 10 new benchmarks across 4 modules | codec, watermill, turso, memory                                          |
-| 5   | 6 housekeeping items               | ADR numbering, go.mod tidy, deprecated API removal, CONTRIBUTING rewrite |
-| 6   | 14 FakeStore tests                 | eventtest coverage: 0%→18.4%                                             |
+| # | Change                             | Impact                                                                   |
+| - | ---------------------------------- | ------------------------------------------------------------------------ |
+| 1 | MemoryStore global log             | ReadAll: 98μs→3.3μs (-96%)                                               |
+| 2 | Listing projection cache           | List: 840ms→33ms (-96%)                                                  |
+| 3 | ImmutableEvent slim-down           | 336B→304B per event (-10%)                                               |
+| 4 | 10 new benchmarks across 4 modules | codec, watermill, turso, memory                                          |
+| 5 | 6 housekeeping items               | ADR numbering, go.mod tidy, deprecated API removal, CONTRIBUTING rewrite |
+| 6 | 14 FakeStore tests                 | eventtest coverage: 0%→18.4%                                             |
 
 ### V2.0.0 Release (Session ~100-143) — Complete
 
@@ -81,28 +81,28 @@ All 23 modules tagged at v2.0.0 with `/v2` semantic import paths. All P0–P5 re
 
 ### From TODO_LIST.md (Still Open, Checked)
 
-| #   | Item                                                                            | Source              | Priority   |
-| --- | ------------------------------------------------------------------------------- | ------------------- | ---------- |
-| 1   | `pebble/config.go:59-69` — 20 lines of backward-compat aliases                  | Session 140 review  | LOW        |
-| 2   | ~~`query.TypedHandler[T]` takes `Query` not `T`~~ — **NOW DONE (this session)** | Session 140 review  | ~~LOW~~ ✅ |
-| 3   | `ROADMAP.md` creation                                                           | Documentation gap   | LOW        |
-| 4   | `CHANGELOG.md` update                                                           | 2+ days behind      | LOW        |
-| 5   | Outbox Pattern design doc                                                       | FEATURES.md planned | MEDIUM     |
-| 6   | Schema Registry design doc                                                      | FEATURES.md planned | MEDIUM     |
+| # | Item                                                                            | Source              | Priority   |
+| - | ------------------------------------------------------------------------------- | ------------------- | ---------- |
+| 1 | `pebble/config.go:59-69` — 20 lines of backward-compat aliases                  | Session 140 review  | LOW        |
+| 2 | ~~`query.TypedHandler[T]` takes `Query` not `T`~~ — **NOW DONE (this session)** | Session 140 review  | ~~LOW~~ ✅ |
+| 3 | `ROADMAP.md` creation                                                           | Documentation gap   | LOW        |
+| 4 | `CHANGELOG.md` update                                                           | 2+ days behind      | LOW        |
+| 5 | Outbox Pattern design doc                                                       | FEATURES.md planned | MEDIUM     |
+| 6 | Schema Registry design doc                                                      | FEATURES.md planned | MEDIUM     |
 
 ### From Planning Docs (Phase C + D — Performance)
 
-| #   | Task                                                                            | Est   | Impact                        |
-| --- | ------------------------------------------------------------------------------- | ----- | ----------------------------- |
-| C1  | MemoryStore deduplication: store events ONLY in globalLog, index for per-stream | 20min | **2× memory reduction**       |
-| C2  | Listing cache auto-invalidation via atomic counter                              | 10min | Correctness + performance     |
-| C3  | `findCodecOption` elimination — cache default codec                             | 10min | 1 alloc per `New()`           |
-| C4  | `sync.Pool` for `ImmutableEvent` construction                                   | 15min | Reduce GC pressure            |
-| C5  | api-stability tests                                                             | 10min | Untested guard tool           |
-| C6  | `Option` as interface (v3)                                                      | 20min | Eliminates func closure alloc |
-| D1  | Reactive `AggregateReader` (subscribe to bus)                                   | 15min | Real-time listing             |
-| D2  | Compact `Metadata` representation                                               | 20min | Reduce 152B per event         |
-| D3  | Evaluate faster JSON codec (`goccy/go-json`)                                    | 15min | Potential 2-3× speedup        |
+| #  | Task                                                                            | Est   | Impact                        |
+| -- | ------------------------------------------------------------------------------- | ----- | ----------------------------- |
+| C1 | MemoryStore deduplication: store events ONLY in globalLog, index for per-stream | 20min | **2× memory reduction**       |
+| C2 | Listing cache auto-invalidation via atomic counter                              | 10min | Correctness + performance     |
+| C3 | `findCodecOption` elimination — cache default codec                             | 10min | 1 alloc per `New()`           |
+| C4 | `sync.Pool` for `ImmutableEvent` construction                                   | 15min | Reduce GC pressure            |
+| C5 | api-stability tests                                                             | 10min | Untested guard tool           |
+| C6 | `Option` as interface (v3)                                                      | 20min | Eliminates func closure alloc |
+| D1 | Reactive `AggregateReader` (subscribe to bus)                                   | 15min | Real-time listing             |
+| D2 | Compact `Metadata` representation                                               | 20min | Reduce 152B per event         |
+| D3 | Evaluate faster JSON codec (`goccy/go-json`)                                    | 15min | Potential 2-3× speedup        |
 
 ### From TODO_LIST.md (v2 / BLOCKED / FUTURE)
 
@@ -122,12 +122,12 @@ All 23 modules tagged at v2.0.0 with `/v2` semantic import paths. All P0–P5 re
 
 ## d) TOTALLY FUCKED UP
 
-| #   | Issue                                | Severity | Root Cause                                                                          | Fix                                   |
-| --- | ------------------------------------ | -------- | ----------------------------------------------------------------------------------- | ------------------------------------- |
-| 1   | **BuildFlow pre-commit hook broken** | HIGH     | `build_mode: full` runs heavy checks, missing excludes, no actual git hook plumbing | Deferred per user request             |
-| 2   | **ADR 0005 missing**                 | LOW      | Gap in sequence — skipped during creation                                           | Cosmetic                              |
-| 3   | **turso coverage at 28.6%**          | MEDIUM   | SyncDB Push/Pull/Checkpoint require remote server                                   | Needs testcontainers or mock          |
-| 4   | **Pre-existing lint failure**        | LOW      | `schema/benchmark_test.go:61` variable `vs` too short                               | Trivial fix, not touched this session |
+| # | Issue                                | Severity | Root Cause                                                                          | Fix                                   |
+| - | ------------------------------------ | -------- | ----------------------------------------------------------------------------------- | ------------------------------------- |
+| 1 | **BuildFlow pre-commit hook broken** | HIGH     | `build_mode: full` runs heavy checks, missing excludes, no actual git hook plumbing | Deferred per user request             |
+| 2 | **ADR 0005 missing**                 | LOW      | Gap in sequence — skipped during creation                                           | Cosmetic                              |
+| 3 | **turso coverage at 28.6%**          | MEDIUM   | SyncDB Push/Pull/Checkpoint require remote server                                   | Needs testcontainers or mock          |
+| 4 | **Pre-existing lint failure**        | LOW      | `schema/benchmark_test.go:61` variable `vs` too short                               | Trivial fix, not touched this session |
 
 ---
 
@@ -271,21 +271,21 @@ This is **2× memory** for every event. For 100K events, that's significant.
 ## Appendix: Uncommitted Changes (This Session)
 
 ```
- cmd/cqrs-gen/main.go                 |  5 +++--
- cmd/cqrs-gen/main_test.go            |  8 ++++----
- example/todo/queries/count_todos.go  | 11 +++--------
- example/todo/queries/get_todo.go     | 11 +++--------
- example/todo/queries/list_todos.go   | 17 ++++++-----------
- example/todo/queries/queries_test.go | 11 -----------
- example/todo/queries/types.go        | 16 ----------------
- example/user/handlers.go             | 20 ++++----------------
- integration/full_flow_test.go        | 11 +++--------
- query/dispatcher.go                  | 14 ++++++++++----
- query/dispatcher_test.go             | 20 ++++++++++++--------
- query/errors.go                      |  6 ++++++
- query/example_test.go                |  2 +-
- query/query.go                       |  8 +++++---
- 14 files changed, 60 insertions(+), 100 deletions(-)
+cmd/cqrs-gen/main.go                 |  5 +++--
+cmd/cqrs-gen/main_test.go            |  8 ++++----
+example/todo/queries/count_todos.go  | 11 +++--------
+example/todo/queries/get_todo.go     | 11 +++--------
+example/todo/queries/list_todos.go   | 17 ++++++-----------
+example/todo/queries/queries_test.go | 11 -----------
+example/todo/queries/types.go        | 16 ----------------
+example/user/handlers.go             | 20 ++++----------------
+integration/full_flow_test.go        | 11 +++--------
+query/dispatcher.go                  | 14 ++++++++++----
+query/dispatcher_test.go             | 20 ++++++++++++--------
+query/errors.go                      |  6 ++++++
+query/example_test.go                |  2 +-
+query/query.go                       |  8 +++++---
+14 files changed, 60 insertions(+), 100 deletions(-)
 ```
 
 ---

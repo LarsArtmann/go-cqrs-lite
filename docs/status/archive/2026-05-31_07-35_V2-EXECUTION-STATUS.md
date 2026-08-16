@@ -1,8 +1,8 @@
 # Session 161–162 Status Report — V2.0.0 Pre-Release Execution
 
-> **Date:** 2026-05-31 07:35  
-> **Sessions:** 161 (audit + planning) → 162 (execution + fix)  
-> **Branch:** master  
+> **Date:** 2026-05-31 07:35\
+> **Sessions:** 161 (audit + planning) → 162 (execution + fix)\
+> **Branch:** master\
 > **Tree:** CLEAN — all committed and pushed
 
 ---
@@ -28,21 +28,21 @@ Comprehensive v2.0.0 audit triggered 7 skills (code-quality-scan, full-code-revi
 
 ## Coverage Per Package
 
-| Package              | Coverage |     | Package           | Coverage |
-| -------------------- | -------- | --- | ----------------- | -------- |
-| codec                | 100.0%   |     | memory            | 98.1%    |
-| id                   | 94.5%    |     | catalog/d2        | 95.0%    |
-| query                | 96.9%    |     | catalog/openapi   | 96.2%    |
-| catalog              | 96.3%    |     | catalog/asyncapi  | 93.7%    |
-| catalog/eventcatalog | 92.8%    |     | catalog/docserver | 90.1%    |
-| catalog/schema       | 86.1%    |     | command           | 94.7%    |
-| event                | 86.4%    |     | decider           | 94.5%    |
-| dispatcher           | 90.9%    |     | schema            | 76.8%    |
-| snapshot             | 92.3%    |     | middleware        | 93.9%    |
-| signing              | 93.9%    |     | signing/multisig  | 94.2%    |
-| projection           | 89.6%    |     | storage           | 72.7%    |
-| watermill            | 95.2%    |     | pebble            | 87.8%    |
-| otel                 | 96.4%    |     | listing           | 93.8%    |
+| Package              | Coverage |   | Package           | Coverage |
+| -------------------- | -------- | - | ----------------- | -------- |
+| codec                | 100.0%   |   | memory            | 98.1%    |
+| id                   | 94.5%    |   | catalog/d2        | 95.0%    |
+| query                | 96.9%    |   | catalog/openapi   | 96.2%    |
+| catalog              | 96.3%    |   | catalog/asyncapi  | 93.7%    |
+| catalog/eventcatalog | 92.8%    |   | catalog/docserver | 90.1%    |
+| catalog/schema       | 86.1%    |   | command           | 94.7%    |
+| event                | 86.4%    |   | decider           | 94.5%    |
+| dispatcher           | 90.9%    |   | schema            | 76.8%    |
+| snapshot             | 92.3%    |   | middleware        | 93.9%    |
+| signing              | 93.9%    |   | signing/multisig  | 94.2%    |
+| projection           | 89.6%    |   | storage           | 72.7%    |
+| watermill            | 95.2%    |   | pebble            | 87.8%    |
+| otel                 | 96.4%    |   | listing           | 93.8%    |
 
 ---
 
@@ -62,47 +62,47 @@ Comprehensive v2.0.0 audit triggered 7 skills (code-quality-scan, full-code-revi
 
 ### P0 — Critical Safety (12/12 bugs fixed)
 
-| #   | Fix                                                               | Files Changed                        |
-| --- | ----------------------------------------------------------------- | ------------------------------------ |
-| 1   | `[]byte`/`json.RawMessage` deep-copy in `event.NewEvent`          | `event/event_new.go:64-72`           |
-| 2   | `sync.RWMutex` on `CatalogDispatcher` (data race + copylocks)     | `dispatcher/dispatcher.go:194-247`   |
-| 3   | `html.EscapeString` in docserver (XSS)                            | `catalog/docserver/html.go`          |
-| 4   | `sync.Once` in watermill subscriber (double-close panic)          | `watermill/subscriber.go`            |
-| 5   | `id.Parse*` instead of `MustParse*` in watermill protocol         | `watermill/protocol.go:162-176`      |
-| 6   | `CheckClosed` guard in `MemoryCheckpointStore`                    | `memory/checkpoint.go:29-49`         |
-| 7   | Error-return instead of panic in signing middleware (3 functions) | `signing/middleware.go:37-148`       |
-| 8   | Fixed stale `core/` import paths in `cmd/api-stability`           | `cmd/api-stability/main.go:14-19`    |
-| 9   | Fixed cqrs-gen query handler signature `(any, error)`             | `cmd/cqrs-gen/main.go:237`           |
-| 10  | Fixed projection example `ItemRemoved` handling                   | `example/projection/main.go:136-137` |
-| 11  | Added missing `replace` directives in `example/storage/go.mod`    | `example/storage/go.mod:42-48`       |
-| 12  | Fixed memory checkpoint store lint from P0 changes                | `memory/checkpoint.go`               |
+| #  | Fix                                                               | Files Changed                        |
+| -- | ----------------------------------------------------------------- | ------------------------------------ |
+| 1  | `[]byte`/`json.RawMessage` deep-copy in `event.NewEvent`          | `event/event_new.go:64-72`           |
+| 2  | `sync.RWMutex` on `CatalogDispatcher` (data race + copylocks)     | `dispatcher/dispatcher.go:194-247`   |
+| 3  | `html.EscapeString` in docserver (XSS)                            | `catalog/docserver/html.go`          |
+| 4  | `sync.Once` in watermill subscriber (double-close panic)          | `watermill/subscriber.go`            |
+| 5  | `id.Parse*` instead of `MustParse*` in watermill protocol         | `watermill/protocol.go:162-176`      |
+| 6  | `CheckClosed` guard in `MemoryCheckpointStore`                    | `memory/checkpoint.go:29-49`         |
+| 7  | Error-return instead of panic in signing middleware (3 functions) | `signing/middleware.go:37-148`       |
+| 8  | Fixed stale `core/` import paths in `cmd/api-stability`           | `cmd/api-stability/main.go:14-19`    |
+| 9  | Fixed cqrs-gen query handler signature `(any, error)`             | `cmd/cqrs-gen/main.go:237`           |
+| 10 | Fixed projection example `ItemRemoved` handling                   | `example/projection/main.go:136-137` |
+| 11 | Added missing `replace` directives in `example/storage/go.mod`    | `example/storage/go.mod:42-48`       |
+| 12 | Fixed memory checkpoint store lint from P0 changes                | `memory/checkpoint.go`               |
 
 ### P1 — File Splits + Error Handling (most done)
 
-| #   | Fix                                                                   | Files Changed                   |
-| --- | --------------------------------------------------------------------- | ------------------------------- |
-| ✅  | `event/event.go` → `event.go` + `event_construct.go` (196 lines)      | `event/`                        |
-| ✅  | `projection/runner.go` → `runner.go` + `runner_filter.go` (228 lines) | `projection/`                   |
-| ✅  | `pebble/store.go` → `store.go` + `iteration.go` (154 lines)           | `pebble/`                       |
-| ✅  | Validation middleware preserves validator error as cause              | `middleware/validation.go`      |
-| ✅  | Circuit breaker uses error-family taxonomy                            | `middleware/circuit_breaker.go` |
-| ✅  | Memory bus: removed double error wrapping                             | `memory/bus.go`                 |
-| ✅  | Decider: records snapshot errors on OTel span                         | `decider/decider.go`            |
-| ✅  | Pebble: nil logger guard                                              | `pebble/helpers.go`             |
-| ✅  | Schema: nil upcaster guard in `NewVersionedStore`                     | `schema/versioned_source.go`    |
-| ✅  | Schema: nil upcast func guard in `Upcast()` method                    | `schema/upcaster.go`            |
-| ✅  | Dead code: removed unused `SpanFromContext` from otel                 | `otel/spans.go`                 |
-| ✅  | Signing nil-guard: renamed unused `next` → `_`                        | `signing/middleware.go`         |
+| #  | Fix                                                                   | Files Changed                   |
+| -- | --------------------------------------------------------------------- | ------------------------------- |
+| ✅ | `event/event.go` → `event.go` + `event_construct.go` (196 lines)      | `event/`                        |
+| ✅ | `projection/runner.go` → `runner.go` + `runner_filter.go` (228 lines) | `projection/`                   |
+| ✅ | `pebble/store.go` → `store.go` + `iteration.go` (154 lines)           | `pebble/`                       |
+| ✅ | Validation middleware preserves validator error as cause              | `middleware/validation.go`      |
+| ✅ | Circuit breaker uses error-family taxonomy                            | `middleware/circuit_breaker.go` |
+| ✅ | Memory bus: removed double error wrapping                             | `memory/bus.go`                 |
+| ✅ | Decider: records snapshot errors on OTel span                         | `decider/decider.go`            |
+| ✅ | Pebble: nil logger guard                                              | `pebble/helpers.go`             |
+| ✅ | Schema: nil upcaster guard in `NewVersionedStore`                     | `schema/versioned_source.go`    |
+| ✅ | Schema: nil upcast func guard in `Upcast()` method                    | `schema/upcaster.go`            |
+| ✅ | Dead code: removed unused `SpanFromContext` from otel                 | `otel/spans.go`                 |
+| ✅ | Signing nil-guard: renamed unused `next` → `_`                        | `signing/middleware.go`         |
 
 ### P2 — Naming + Examples + Lint
 
-| #   | Fix                                                                       | Files Changed                            |
-| --- | ------------------------------------------------------------------------- | ---------------------------------------- |
-| ✅  | `query.ErrHandlerNotFound` added, `ErrQueryNotSupported` deprecated alias | `query/errors.go`, `query/dispatcher.go` |
-| ✅  | User projection: handles `UserDeleted` + `UserRebirth` events             | `example/user/projection.go`             |
-| ✅  | Saga: fixed compensation step name `"confirm-order"`                      | `example/saga-pattern/main.go`           |
-| ✅  | Todo README: fixed stale dependency references                            | `example/todo/README.md`                 |
-| ✅  | 4 example go.mod: added missing `replace` directives                      | `example/*/go.mod`                       |
+| #  | Fix                                                                       | Files Changed                            |
+| -- | ------------------------------------------------------------------------- | ---------------------------------------- |
+| ✅ | `query.ErrHandlerNotFound` added, `ErrQueryNotSupported` deprecated alias | `query/errors.go`, `query/dispatcher.go` |
+| ✅ | User projection: handles `UserDeleted` + `UserRebirth` events             | `example/user/projection.go`             |
+| ✅ | Saga: fixed compensation step name `"confirm-order"`                      | `example/saga-pattern/main.go`           |
+| ✅ | Todo README: fixed stale dependency references                            | `example/todo/README.md`                 |
+| ✅ | 4 example go.mod: added missing `replace` directives                      | `example/*/go.mod`                       |
 
 ---
 
@@ -211,33 +211,33 @@ All 13 items in the original audit remain unstarted. These are architecture-leve
 
 Priority-ordered by impact × effort:
 
-| #   | Task                                                           | Priority     | Effort | Impact   | Module              |
-| --- | -------------------------------------------------------------- | ------------ | ------ | -------- | ------------------- |
-| 1   | Replace panics in `multisig/middleware.go` (3 functions)       | P0           | 15min  | Critical | `signing/multisig`  |
-| 2   | Update `TODO_LIST.md` — mark all completed items               | P1           | 20min  | High     | meta                |
-| 3   | Change `ErrTypeAssertion` to `Rejection` family                | P2           | 10min  | Medium   | `command`           |
-| 4   | Extract shared tombstone helper                                | P2           | 20min  | Medium   | `event`             |
-| 5   | Extract shared signing `extractOrPassThrough`                  | P2           | 20min  | Medium   | `signing`           |
-| 6   | Add nil store guard in `NewVersionedStore`                     | P2           | 10min  | Medium   | `schema`            |
-| 7   | Parameterize recovery functions                                | P2           | 30min  | Medium   | `middleware`        |
-| 8   | Add `go.mod` for `cmd/api-stability`                           | P2           | 15min  | Low      | `cmd/api-stability` |
-| 9   | Add doc comments to `id/command_id.go`                         | P3           | 10min  | Low      | `id`                |
-| 10  | Remove dead `CommandTypeError` from example/todo               | P3           | 5min   | Low      | `example/todo`      |
-| 11  | Remove dead `errUnexpectedQueryType` from example/user         | P3           | 5min   | Low      | `example/user`      |
-| 12  | Validate snapshot store+codec pair in `NewRepository`          | P2           | 20min  | Medium   | `decider`           |
-| 13  | Add tests for `schema.VersionedStore` nil upcaster             | P3           | 15min  | Medium   | `schema`            |
-| 14  | Add storage integration tests for error paths                  | P3           | 60min  | High     | `storage`           |
-| 15  | Add READMEs for 4 example directories                          | P4           | 60min  | Low      | `example/*`         |
-| 16  | Fix or remove broken pre-commit hook                           | P3           | 15min  | Low      | repo root           |
-| 17  | Rename `ParseUserAgent` → `SanitizeUserAgent`                  | P3           | 10min  | Low      | `event`             |
-| 18  | Accept `context.Context` in `OTelMetricsRecorder.Observe`      | P2+          | 30min  | Medium   | `middleware`        |
-| 19  | Parameterize dispatch closed-check boilerplate                 | P2           | 30min  | Medium   | `command`, `query`  |
-| 20  | Fix example/user `catalog.go` payload types                    | P3           | 15min  | Low      | `example/user`      |
-| 21  | Add race detector test for `CatalogDispatcher`                 | P3           | 15min  | Medium   | `dispatcher`        |
-| 22  | Run `dupl` to verify clone count reduction                     | Verification | 5min   | Info     | meta                |
-| 23  | Update `AGENTS.md` with naming convention (ErrHandlerNotFound) | P3           | 5min   | Low      | meta                |
-| 24  | Add `listing.StatusMiddleware` tests                           | P3           | 20min  | Medium   | `listing`           |
-| 25  | Bump module versions to v2.0.0                                 | P4           | 30min  | High     | all                 |
+| #  | Task                                                           | Priority     | Effort | Impact   | Module              |
+| -- | -------------------------------------------------------------- | ------------ | ------ | -------- | ------------------- |
+| 1  | Replace panics in `multisig/middleware.go` (3 functions)       | P0           | 15min  | Critical | `signing/multisig`  |
+| 2  | Update `TODO_LIST.md` — mark all completed items               | P1           | 20min  | High     | meta                |
+| 3  | Change `ErrTypeAssertion` to `Rejection` family                | P2           | 10min  | Medium   | `command`           |
+| 4  | Extract shared tombstone helper                                | P2           | 20min  | Medium   | `event`             |
+| 5  | Extract shared signing `extractOrPassThrough`                  | P2           | 20min  | Medium   | `signing`           |
+| 6  | Add nil store guard in `NewVersionedStore`                     | P2           | 10min  | Medium   | `schema`            |
+| 7  | Parameterize recovery functions                                | P2           | 30min  | Medium   | `middleware`        |
+| 8  | Add `go.mod` for `cmd/api-stability`                           | P2           | 15min  | Low      | `cmd/api-stability` |
+| 9  | Add doc comments to `id/command_id.go`                         | P3           | 10min  | Low      | `id`                |
+| 10 | Remove dead `CommandTypeError` from example/todo               | P3           | 5min   | Low      | `example/todo`      |
+| 11 | Remove dead `errUnexpectedQueryType` from example/user         | P3           | 5min   | Low      | `example/user`      |
+| 12 | Validate snapshot store+codec pair in `NewRepository`          | P2           | 20min  | Medium   | `decider`           |
+| 13 | Add tests for `schema.VersionedStore` nil upcaster             | P3           | 15min  | Medium   | `schema`            |
+| 14 | Add storage integration tests for error paths                  | P3           | 60min  | High     | `storage`           |
+| 15 | Add READMEs for 4 example directories                          | P4           | 60min  | Low      | `example/*`         |
+| 16 | Fix or remove broken pre-commit hook                           | P3           | 15min  | Low      | repo root           |
+| 17 | Rename `ParseUserAgent` → `SanitizeUserAgent`                  | P3           | 10min  | Low      | `event`             |
+| 18 | Accept `context.Context` in `OTelMetricsRecorder.Observe`      | P2+          | 30min  | Medium   | `middleware`        |
+| 19 | Parameterize dispatch closed-check boilerplate                 | P2           | 30min  | Medium   | `command`, `query`  |
+| 20 | Fix example/user `catalog.go` payload types                    | P3           | 15min  | Low      | `example/user`      |
+| 21 | Add race detector test for `CatalogDispatcher`                 | P3           | 15min  | Medium   | `dispatcher`        |
+| 22 | Run `dupl` to verify clone count reduction                     | Verification | 5min   | Info     | meta                |
+| 23 | Update `AGENTS.md` with naming convention (ErrHandlerNotFound) | P3           | 5min   | Low      | meta                |
+| 24 | Add `listing.StatusMiddleware` tests                           | P3           | 20min  | Medium   | `listing`           |
+| 25 | Bump module versions to v2.0.0                                 | P4           | 30min  | High     | all                 |
 
 ---
 

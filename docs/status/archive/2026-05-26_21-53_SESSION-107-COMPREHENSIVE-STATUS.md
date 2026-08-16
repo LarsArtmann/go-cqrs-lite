@@ -47,12 +47,12 @@ go-cqrs-lite is a **multi-module Go CQRS/Event Sourcing library** with 13 module
 | catalog/openapi             | 94.4%    | 0                                                         | ✅         |
 | catalog/internal/caseutil   | 100.0%   | 0                                                         | ✅ Perfect |
 | catalog/internal/schemautil | 84.2%    | 0                                                         | ✅         |
-| catalog/internal/cattest    | 0.0%     | N/A (test helpers)                                        | ⚠️ Unused  |
+| catalog/internal/cattest    | 0.0%     | N/A (test helpers)                                        | ⚠️ Unused   |
 
 ### Storage System (production-ready)
 
-| Package        | Coverage | Lint Issues                                                                                    | Status                |
-| -------------- | -------- | ---------------------------------------------------------------------------------------------- | --------------------- |
+| Package        | Coverage | Lint Issues                                                                                    | Status               |
+| -------------- | -------- | ---------------------------------------------------------------------------------------------- | -------------------- |
 | storage (root) | 89.6%    | 25 issues (errcheck, nlreturn, noinlineerr, wsl, gci, sloglint, forcetypeassert, rowserrcheck) | ⚠️ Needs lint cleanup |
 
 ### Session 106-107 Specific Accomplishments
@@ -129,15 +129,15 @@ BuildFlow pre-commit hook fails on 3 steps (all pre-existing, non-blocking with 
 
 ### High Priority (from TODO_LIST.md)
 
-| #   | Item                                                        | Source            | Effort | Impact                             |
-| --- | ----------------------------------------------------------- | ----------------- | ------ | ---------------------------------- |
-| 1   | Fix query.Handler returns `any` → generic `TypedHandler[T]` | Multiple sessions | Large  | High — API ergonomics              |
-| 2   | Publish go-composable-business-types as Go module           | COMPREHENSIVE     | Medium | High — external adoption blocker   |
-| 3   | Add global TransactionID branded type                       | TIME_TRAVEL       | Medium | High — cross-aggregate consistency |
-| 4   | io.Closer removal from core interfaces                      | SESSION_60        | Medium | Medium — API cleanup               |
-| 5   | Add catalog diff/breaking-change detection                  | SESSION_04        | Large  | High — contract testing            |
-| 6   | Add high-level test utilities (AggregateTester, etc.)       | MONOREPO_PLAN     | Medium | High — DX                          |
-| 7   | Modularize ActaFlow                                         | COMPARISON_REPORT | Large  | Low — different project            |
+| # | Item                                                        | Source            | Effort | Impact                             |
+| - | ----------------------------------------------------------- | ----------------- | ------ | ---------------------------------- |
+| 1 | Fix query.Handler returns `any` → generic `TypedHandler[T]` | Multiple sessions | Large  | High — API ergonomics              |
+| 2 | Publish go-composable-business-types as Go module           | COMPREHENSIVE     | Medium | High — external adoption blocker   |
+| 3 | Add global TransactionID branded type                       | TIME_TRAVEL       | Medium | High — cross-aggregate consistency |
+| 4 | io.Closer removal from core interfaces                      | SESSION_60        | Medium | Medium — API cleanup               |
+| 5 | Add catalog diff/breaking-change detection                  | SESSION_04        | Large  | High — contract testing            |
+| 6 | Add high-level test utilities (AggregateTester, etc.)       | MONOREPO_PLAN     | Medium | High — DX                          |
+| 7 | Modularize ActaFlow                                         | COMPARISON_REPORT | Large  | Low — different project            |
 
 ### Medium Priority (12 open items)
 
@@ -233,33 +233,33 @@ There are zero production bugs, zero failing tests, zero data races. The codebas
 
 Sorted by impact × effort ratio (highest first):
 
-| #   | Task                                                            | Impact | Effort                  | Category         |
-| --- | --------------------------------------------------------------- | ------ | ----------------------- | ---------------- |
-| 1   | Fix all 50 lint issues (batch per module)                       | Medium | Low (~1h)               | Quality          |
-| 2   | Delete `catalog/internal/cattest/` (dead code, 0% coverage)     | Low    | Trivial (5min)          | Cleanup          |
-| 3   | Triage 144 unclassified TODO items → assign priority            | High   | Medium (~2h)            | Organization     |
-| 4   | Split `core/decider/decider_test.go` (1182→<350 lines ×4 files) | Medium | Medium (~1h)            | Test quality     |
-| 5   | Split `projection/runner_test.go` (1140→<350 lines ×4 files)    | Medium | Medium (~1h)            | Test quality     |
-| 6   | Split `saga/saga_test.go` (1132→<350 lines ×4 files)            | Medium | Medium (~1h)            | Test quality     |
-| 7   | Fix storage `forcetypeassert` in sync.Map lock/unlock           | Medium | Low (~15min)            | Correctness      |
-| 8   | Fix BuildFlow golangci-lint root-level execution                | Medium | Low (~30min)            | DX               |
-| 9   | Update FEATURES.md with current module state                    | Medium | Low (~30min)            | Documentation    |
-| 10  | Fix `middleware/retry.go` math/rand → crypto/rand or nolint     | Low    | Trivial (~5min)         | Security lint    |
-| 11  | Split `core/pkg/id/id_test.go` (996→<350 lines ×3 files)        | Medium | Medium (~45min)         | Test quality     |
-| 12  | Split `storage/event_store_test.go` (833→<350 lines ×3 files)   | Medium | Medium (~45min)         | Test quality     |
-| 13  | Split `core/event/event_test.go` (794→<350 lines ×3 files)      | Medium | Medium (~45min)         | Test quality     |
-| 14  | Extract error classification to standalone package              | High   | Medium (~2h)            | Architecture     |
-| 15  | Fix outbox transaction co-participation                         | High   | Large (~4h)             | Correctness      |
-| 16  | Add slog.Warn for corrupt IDs in Pebble deserialization         | Low    | Trivial (~10min)        | Resilience       |
-| 17  | Add catalog diff/breaking-change detection tool                 | High   | Large (~1 day)          | Contract testing |
-| 18  | Fix query.Handler returns `any` → TypedHandler[T]               | High   | Large (breaking change) | API design       |
-| 19  | Optimize Pebble LoadToTimestamp (avoid full scan)               | Medium | Medium (~2h)            | Performance      |
-| 20  | Add PostgreSQL integration tests with testcontainers            | High   | Large (~1 day)          | Testing          |
-| 21  | Push release tags to remote (unblock external adoption)         | High   | Low (~30min)            | Publishing       |
-| 22  | Create CONTRIBUTING.md with architecture guidelines             | Medium | Medium (~2h)            | Documentation    |
-| 23  | Write getting-started README section                            | Medium | Low (~1h)               | Documentation    |
-| 24  | Add high-level test utilities (AggregateTester, etc.)           | High   | Medium (~4h)            | DX               |
-| 25  | Fix core→memory circular dependency                             | High   | Medium (~2h)            | Architecture     |
+| #  | Task                                                            | Impact | Effort                  | Category         |
+| -- | --------------------------------------------------------------- | ------ | ----------------------- | ---------------- |
+| 1  | Fix all 50 lint issues (batch per module)                       | Medium | Low (~1h)               | Quality          |
+| 2  | Delete `catalog/internal/cattest/` (dead code, 0% coverage)     | Low    | Trivial (5min)          | Cleanup          |
+| 3  | Triage 144 unclassified TODO items → assign priority            | High   | Medium (~2h)            | Organization     |
+| 4  | Split `core/decider/decider_test.go` (1182→<350 lines ×4 files) | Medium | Medium (~1h)            | Test quality     |
+| 5  | Split `projection/runner_test.go` (1140→<350 lines ×4 files)    | Medium | Medium (~1h)            | Test quality     |
+| 6  | Split `saga/saga_test.go` (1132→<350 lines ×4 files)            | Medium | Medium (~1h)            | Test quality     |
+| 7  | Fix storage `forcetypeassert` in sync.Map lock/unlock           | Medium | Low (~15min)            | Correctness      |
+| 8  | Fix BuildFlow golangci-lint root-level execution                | Medium | Low (~30min)            | DX               |
+| 9  | Update FEATURES.md with current module state                    | Medium | Low (~30min)            | Documentation    |
+| 10 | Fix `middleware/retry.go` math/rand → crypto/rand or nolint     | Low    | Trivial (~5min)         | Security lint    |
+| 11 | Split `core/pkg/id/id_test.go` (996→<350 lines ×3 files)        | Medium | Medium (~45min)         | Test quality     |
+| 12 | Split `storage/event_store_test.go` (833→<350 lines ×3 files)   | Medium | Medium (~45min)         | Test quality     |
+| 13 | Split `core/event/event_test.go` (794→<350 lines ×3 files)      | Medium | Medium (~45min)         | Test quality     |
+| 14 | Extract error classification to standalone package              | High   | Medium (~2h)            | Architecture     |
+| 15 | Fix outbox transaction co-participation                         | High   | Large (~4h)             | Correctness      |
+| 16 | Add slog.Warn for corrupt IDs in Pebble deserialization         | Low    | Trivial (~10min)        | Resilience       |
+| 17 | Add catalog diff/breaking-change detection tool                 | High   | Large (~1 day)          | Contract testing |
+| 18 | Fix query.Handler returns `any` → TypedHandler[T]               | High   | Large (breaking change) | API design       |
+| 19 | Optimize Pebble LoadToTimestamp (avoid full scan)               | Medium | Medium (~2h)            | Performance      |
+| 20 | Add PostgreSQL integration tests with testcontainers            | High   | Large (~1 day)          | Testing          |
+| 21 | Push release tags to remote (unblock external adoption)         | High   | Low (~30min)            | Publishing       |
+| 22 | Create CONTRIBUTING.md with architecture guidelines             | Medium | Medium (~2h)            | Documentation    |
+| 23 | Write getting-started README section                            | Medium | Low (~1h)               | Documentation    |
+| 24 | Add high-level test utilities (AggregateTester, etc.)           | High   | Medium (~4h)            | DX               |
+| 25 | Fix core→memory circular dependency                             | High   | Medium (~2h)            | Architecture     |
 
 ---
 

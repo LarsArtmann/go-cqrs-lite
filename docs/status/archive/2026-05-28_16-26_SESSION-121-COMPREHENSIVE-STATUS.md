@@ -203,48 +203,48 @@ Should be formalized: `<module>.<package>.<error_description>`
 
 ### Priority 1: Fix Broken Things (7 tasks)
 
-| #   | Task                                                  | Impact                  | Effort | Est.  |
-| --- | ----------------------------------------------------- | ----------------------- | ------ | ----- |
-| 1   | Fix signing test split — complete or revert           | Race detection blocked  | 30min  | 30min |
-| 2   | Update catalog golden test files                      | CI green                | 5min   | 5min  |
-| 3   | Commit and push all uncommitted changes               | Safety                  | 5min   | 5min  |
-| 4   | Add stream module tests (basic coverage)              | 0% → 80%+               | 60min  | 60min |
-| 5   | Add `go.work sync` to verify module graph consistency | Build hygiene           | 10min  | 10min |
-| 6   | Add stream module to integration tests                | Cross-module validation | 30min  | 30min |
-| 7   | Verify signing test coverage after fix                | Regression check        | 15min  | 15min |
+| # | Task                                                  | Impact                  | Effort | Est.  |
+| - | ----------------------------------------------------- | ----------------------- | ------ | ----- |
+| 1 | Fix signing test split — complete or revert           | Race detection blocked  | 30min  | 30min |
+| 2 | Update catalog golden test files                      | CI green                | 5min   | 5min  |
+| 3 | Commit and push all uncommitted changes               | Safety                  | 5min   | 5min  |
+| 4 | Add stream module tests (basic coverage)              | 0% → 80%+               | 60min  | 60min |
+| 5 | Add `go.work sync` to verify module graph consistency | Build hygiene           | 10min  | 10min |
+| 6 | Add stream module to integration tests                | Cross-module validation | 30min  | 30min |
+| 7 | Verify signing test coverage after fix                | Regression check        | 15min  | 15min |
 
 ### Priority 2: Complete errorfamily Migration (9 tasks)
 
-| #   | Task                                                   | Impact                     | Effort | Est.  |
-| --- | ------------------------------------------------------ | -------------------------- | ------ | ----- |
-| 8   | Convert signing/ 36 fmt.Errorf → errorfamily           | Highest-value remaining    | 45min  | 45min |
-| 9   | Convert catalog/ 29 fmt.Errorf → errorfamily           | Catalog is consumer-facing | 30min  | 30min |
-| 10  | Convert middleware/ 4 fmt.Errorf → errorfamily         | Consistency                | 15min  | 15min |
-| 11  | Convert core/event/types.go 3 validation errors        | Core module completeness   | 10min  | 10min |
-| 12  | Convert core/pkg/id/id.go 2 dynamic wraps              | Core module completeness   | 10min  | 10min |
-| 13  | Convert core/decider/load.go 1 dynamic wrap            | Core module completeness   | 5min   | 5min  |
-| 14  | Convert cmd/cqrs-gen 1 wrap                            | Completeness               | 5min   | 5min  |
-| 15  | Convert example/ 60 fmt.Errorf → errorfamily           | Example quality            | 60min  | 60min |
-| 16  | Remove `fmt` imports from files that no longer need it | Code cleanliness           | 15min  | 15min |
+| #  | Task                                                   | Impact                     | Effort | Est.  |
+| -- | ------------------------------------------------------ | -------------------------- | ------ | ----- |
+| 8  | Convert signing/ 36 fmt.Errorf → errorfamily           | Highest-value remaining    | 45min  | 45min |
+| 9  | Convert catalog/ 29 fmt.Errorf → errorfamily           | Catalog is consumer-facing | 30min  | 30min |
+| 10 | Convert middleware/ 4 fmt.Errorf → errorfamily         | Consistency                | 15min  | 15min |
+| 11 | Convert core/event/types.go 3 validation errors        | Core module completeness   | 10min  | 10min |
+| 12 | Convert core/pkg/id/id.go 2 dynamic wraps              | Core module completeness   | 10min  | 10min |
+| 13 | Convert core/decider/load.go 1 dynamic wrap            | Core module completeness   | 5min   | 5min  |
+| 14 | Convert cmd/cqrs-gen 1 wrap                            | Completeness               | 5min   | 5min  |
+| 15 | Convert example/ 60 fmt.Errorf → errorfamily           | Example quality            | 60min  | 60min |
+| 16 | Remove `fmt` imports from files that no longer need it | Code cleanliness           | 15min  | 15min |
 
 ### Priority 3: Quality & Consistency (5 tasks)
 
-| #   | Task                                                            | Impact       | Effort | Est.  |
-| --- | --------------------------------------------------------------- | ------------ | ------ | ----- |
-| 17  | Add `err113` linter rule to prevent new fmt.Errorf              | Prevention   | 10min  | 10min |
-| 18  | Formalize error code naming convention (`module.package.error`) | Consistency  | 15min  | 15min |
-| 19  | Add error classification tests for signing                      | Coverage     | 20min  | 20min |
-| 20  | Add error classification tests for catalog                      | Coverage     | 20min  | 20min |
-| 21  | Run full race + coverage report                                 | Verification | 10min  | 10min |
+| #  | Task                                                            | Impact       | Effort | Est.  |
+| -- | --------------------------------------------------------------- | ------------ | ------ | ----- |
+| 17 | Add `err113` linter rule to prevent new fmt.Errorf              | Prevention   | 10min  | 10min |
+| 18 | Formalize error code naming convention (`module.package.error`) | Consistency  | 15min  | 15min |
+| 19 | Add error classification tests for signing                      | Coverage     | 20min  | 20min |
+| 20 | Add error classification tests for catalog                      | Coverage     | 20min  | 20min |
+| 21 | Run full race + coverage report                                 | Verification | 10min  | 10min |
 
 ### Priority 4: Future-Proofing (4 tasks)
 
-| #   | Task                                                  | Impact         | Effort | Est.  |
-| --- | ----------------------------------------------------- | -------------- | ------ | ----- |
-| 22  | Document error taxonomy in AGENTS.md or docs/         | Onboarding     | 20min  | 20min |
-| 23  | Plan v1.0.0 tag strategy to remove replace directives | Publishability | 30min  | 30min |
-| 24  | Add `stream` module error wrapping patterns           | Architecture   | 15min  | 15min |
-| 25  | Review `example/` as integration test surface         | Test strategy  | 30min  | 30min |
+| #  | Task                                                  | Impact         | Effort | Est.  |
+| -- | ----------------------------------------------------- | -------------- | ------ | ----- |
+| 22 | Document error taxonomy in AGENTS.md or docs/         | Onboarding     | 20min  | 20min |
+| 23 | Plan v1.0.0 tag strategy to remove replace directives | Publishability | 30min  | 30min |
+| 24 | Add `stream` module error wrapping patterns           | Architecture   | 15min  | 15min |
+| 25 | Review `example/` as integration test surface         | Test strategy  | 30min  | 30min |
 
 ---
 
@@ -259,13 +259,13 @@ Should be formalized: `<module>.<package>.<error_description>`
 | core/pkg/id         | 100.0%   | ✅    | Green                                |
 | core/query          | 96.8%    | ✅    | Green                                |
 | memory              | 99.6%    | ✅    | Green                                |
-| signing             | 93.9%    | ⚠️    | Race build fails (broken test files) |
+| signing             | 93.9%    | ⚠️     | Race build fails (broken test files) |
 | saga                | 93.4%    | ✅    | Green                                |
 | watermill           | 94.4%    | ✅    | Green                                |
 | projection          | 96.0%    | ✅    | Green                                |
 | middleware          | 93.7%    | ✅    | Green                                |
 | storage             | 89.9%    | ✅    | Green                                |
-| catalog             | 96.3%    | ⚠️    | Golden tests stale                   |
+| catalog             | 96.3%    | ⚠️     | Golden tests stale                   |
 | testhelpers         | 82.1%    | ✅    | Green                                |
 | integration         | N/A      | ✅    | Green                                |
 | stream              | 0.0%     | ❌    | No tests                             |

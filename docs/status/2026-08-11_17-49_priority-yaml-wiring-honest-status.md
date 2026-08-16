@@ -11,34 +11,34 @@
 
 ### Config-layer wiring (operator-facing)
 
-| Item | File | Evidence |
-| --- | --- | --- |
-| `EngineConfig.Priority` field (koanf tag) | `system/config_types.go:134` | Flows into `DriverConfig.Priority` via `driver_registry.go` |
-| `DeploymentConfig.Priority *PriorityConfig` (koanf) | `system/config_types.go:127` | Nil-guarded in constructor; threaded into `metaengine.Plan` via `WithPriorityConfig` |
-| `system.PriorityConfig` YAML shape (Global/PerEngine/PerQuery) | `system/config_types.go:138` | `.toMeta()` bridges to `metaengine.PriorityConfig` |
-| CheckSafety validates invalid priorities at startup | `system/scream_store.go:66` | ADVISORY-tier diagnostic with actionable message |
-| `LoadConfig` doc: YAML + env var examples | `system/config_loader.go:30` | `CQRS_PRIORITY__GLOBAL`, `CQRS_ENGINES__PRIMARY__PRIORITY` |
-| `DriverConfig.Priority` field (metaengine registry) | `metaengine/registry.go:18` | Available to driver factories |
+| Item                                                           | File                         | Evidence                                                                             |
+| -------------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------ |
+| `EngineConfig.Priority` field (koanf tag)                      | `system/config_types.go:134` | Flows into `DriverConfig.Priority` via `driver_registry.go`                          |
+| `DeploymentConfig.Priority *PriorityConfig` (koanf)            | `system/config_types.go:127` | Nil-guarded in constructor; threaded into `metaengine.Plan` via `WithPriorityConfig` |
+| `system.PriorityConfig` YAML shape (Global/PerEngine/PerQuery) | `system/config_types.go:138` | `.toMeta()` bridges to `metaengine.PriorityConfig`                                   |
+| CheckSafety validates invalid priorities at startup            | `system/scream_store.go:66`  | ADVISORY-tier diagnostic with actionable message                                     |
+| `LoadConfig` doc: YAML + env var examples                      | `system/config_loader.go:30` | `CQRS_PRIORITY__GLOBAL`, `CQRS_ENGINES__PRIMARY__PRIORITY`                           |
+| `DriverConfig.Priority` field (metaengine registry)            | `metaengine/registry.go:18`  | Available to driver factories                                                        |
 
 ### QueryDecl builder options (developer-facing)
 
-| Item | File | Evidence |
-| --- | --- | --- |
-| `metaengine.WithLayoutPriority(p)` QueryOption | `metaengine/query.go:65` | Sets `QueryConfig.layoutPriority` |
-| `lookupBuilder.Priority()` chainable method | `system/query_constructors.go:54` | Threaded through `buildCRUDQuery` |
-| `querySetBuilder.Priority()` chainable method | `system/query_constructors.go:150` | Threaded through `buildCRUDQueryWithOptions` |
-| `countBuilder.Priority()` chainable method | `system/query_constructors.go:235` | Threaded through `buildCounterQuery` |
-| `buildQueryFromFolds` extended (variadic extraArgs) | `system/evolutions.go:223` | Backward-compatible |
+| Item                                                | File                               | Evidence                                     |
+| --------------------------------------------------- | ---------------------------------- | -------------------------------------------- |
+| `metaengine.WithLayoutPriority(p)` QueryOption      | `metaengine/query.go:65`           | Sets `QueryConfig.layoutPriority`            |
+| `lookupBuilder.Priority()` chainable method         | `system/query_constructors.go:54`  | Threaded through `buildCRUDQuery`            |
+| `querySetBuilder.Priority()` chainable method       | `system/query_constructors.go:150` | Threaded through `buildCRUDQueryWithOptions` |
+| `countBuilder.Priority()` chainable method          | `system/query_constructors.go:235` | Threaded through `buildCounterQuery`         |
+| `buildQueryFromFolds` extended (variadic extraArgs) | `system/evolutions.go:223`         | Backward-compatible                          |
 
 ### Observability wiring (metaengine)
 
-| Item | File | Evidence |
-| --- | --- | --- |
-| `Store.priorityForQuery` unified resolver | `metaengine/query.go:87` | per-Query (operator) > per-Query (developer) > per-Engine > Global > Balanced |
-| `GetLayoutInfo` uses unified resolver | `metaengine/layout_observability.go:31` | |
-| `LayoutWarnings` uses unified resolver | `metaengine/layout_observability.go:104` | |
-| `ReplanLayout` honours developer pin | `metaengine/relayout.go:77` | Operator what-if doesn't clobber developer pin |
-| `ExplainPlan` shows resolved priority | `metaengine/explain.go:161` | |
+| Item                                      | File                                     | Evidence                                                                      |
+| ----------------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------- |
+| `Store.priorityForQuery` unified resolver | `metaengine/query.go:87`                 | per-Query (operator) > per-Query (developer) > per-Engine > Global > Balanced |
+| `GetLayoutInfo` uses unified resolver     | `metaengine/layout_observability.go:31`  |                                                                               |
+| `LayoutWarnings` uses unified resolver    | `metaengine/layout_observability.go:104` |                                                                               |
+| `ReplanLayout` honours developer pin      | `metaengine/relayout.go:77`              | Operator what-if doesn't clobber developer pin                                |
+| `ExplainPlan` shows resolved priority     | `metaengine/explain.go:161`              |                                                                               |
 
 ### Verification
 
@@ -73,14 +73,14 @@
 
 ### 1. Zero tests written for any new API
 
-| Missing test | Why it matters |
-| --- | --- |
+| Missing test                                                                          | Why it matters                                                                             |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | `lookupBuilder.Priority()` / `querySetBuilder.Priority()` / `countBuilder.Priority()` | These are the developer-facing API — if they break silently, consumers lose layout control |
-| `metaengine.WithLayoutPriority(p)` option | No coverage that `QueryConfig.layoutPriority` is actually set |
-| `Store.priorityForQuery` resolution order | The 5-level resolution chain is untested — a bug here silently picks the wrong priority |
-| `system.PriorityConfig` YAML parsing via koanf | Untested — a koanf tag mismatch would silently leave the field empty |
-| `CheckSafety` invalid-priority diagnostic | Untested — the validation rule could regress silently |
-| `DeploymentConfig.Priority` nil guard in constructor | Tested implicitly (existing tests pass) but no explicit nil-config test |
+| `metaengine.WithLayoutPriority(p)` option                                             | No coverage that `QueryConfig.layoutPriority` is actually set                              |
+| `Store.priorityForQuery` resolution order                                             | The 5-level resolution chain is untested — a bug here silently picks the wrong priority    |
+| `system.PriorityConfig` YAML parsing via koanf                                        | Untested — a koanf tag mismatch would silently leave the field empty                       |
+| `CheckSafety` invalid-priority diagnostic                                             | Untested — the validation rule could regress silently                                      |
+| `DeploymentConfig.Priority` nil guard in constructor                                  | Tested implicitly (existing tests pass) but no explicit nil-config test                    |
 
 ### 2. Skill references not updated
 
@@ -203,7 +203,6 @@ I added it to `Store` intending to cache per-query layout assignments, but ended
 
 (a) Delete them (they're dead code), or
 (b) Wire them (cache resolved priorities per query for performance)?
-
 
 ---
 

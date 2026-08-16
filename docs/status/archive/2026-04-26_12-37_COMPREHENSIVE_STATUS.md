@@ -207,33 +207,33 @@ golangci-lint run ./core/... ./memory/... ./catalog/... ./middleware/... ./xtype
 
 ## F. TOP #25 THINGS TO GET DONE NEXT
 
-| #   | Item                                                         | Priority | Effort | Category       |
-| --- | ------------------------------------------------------------ | -------- | ------ | -------------- |
-| 1   | Publish `go-composable-business-types` as Go module          | 🔴 HIGH  | 1h     | Infrastructure |
-| 2   | Fix 105 lint issues (or selectively suppress)                | 🟡 MED   | 2–4h   | Code Quality   |
-| 3   | Restore `core/pkg/id` coverage (63.6% → 85%+)                | 🟡 MED   | 1h     | Testing        |
-| 4   | Fix `example/user` module callers                            | 🟡 MED   | 30min  | Migration      |
-| 5   | Increase `middleware` coverage (64.8% → 80%+)                | 🟡 MED   | 1h     | Testing        |
-| 6   | Add `EventRetry` tests in `middleware`                       | 🟢 LOW   | 30min  | Testing        |
-| 7   | Add `BinaryMarshaler`/`TextMarshaler` to `Of[T]`             | 🟡 MED   | 1h     | Feature        |
-| 8   | Add utility methods (`Equal`, `Compare`, `Or`) to `Of[T]`    | 🟢 LOW   | 1h     | Feature        |
-| 9   | Fix `go.work` version mismatch (`1.26` vs `1.26.0`)          | 🟢 LOW   | 5min   | Config         |
-| 10  | Add `t.Parallel()` to BDD suite tests                        | 🟢 LOW   | 10min  | Testing        |
-| 11  | Delete or implement `event/store_config.go`                  | 🟢 LOW   | 15min  | Cleanup        |
-| 12  | Update `docs/planning/go-composable-business-types-usage.md` | 🟢 LOW   | 30min  | Docs           |
-| 13  | Fix `toDotAddress` number handling bug                       | 🟢 LOW   | 1h     | Bug            |
-| 14  | Document `go-composable-business-types` API surface used     | 🟢 LOW   | 10min  | Docs           |
-| 15  | Add `goimports`/`gofumpt` to CI pipeline                     | 🟢 LOW   | 30min  | CI             |
-| 16  | Add performance benchmarks for event store                   | 🟢 LOW   | 1h     | Performance    |
-| 17  | Phase 5: Implement storage module (sqlc event store)         | 🔴 HIGH  | 4–8h   | Migration      |
-| 18  | Phase 6: Implement Watermill module (pub/sub)                | 🟡 MED   | 4–8h   | Migration      |
-| 19  | Phase 7: Implement Projection module (samber/ro)             | 🟡 MED   | 4–8h   | Migration      |
-| 20  | Phase 8: Implement Snapshot module (SQL-backed)              | 🟡 MED   | 4h     | Migration      |
-| 21  | Phase 9: Implement Test utilities module                     | 🟡 MED   | 2h     | Migration      |
-| 22  | Phase 10: Tag releases                                       | 🟡 MED   | 1h     | Release        |
-| 23  | Update README with full migration status                     | 🟢 LOW   | 15min  | Docs           |
-| 24  | Add CONTRIBUTING.md for external contributors                | 🟢 LOW   | 30min  | Docs           |
-| 25  | Address `xtypes.TypedCommand.Command()` allocation issue     | 🟢 LOW   | 1h     | Optimization   |
+| #  | Item                                                         | Priority | Effort | Category       |
+| -- | ------------------------------------------------------------ | -------- | ------ | -------------- |
+| 1  | Publish `go-composable-business-types` as Go module          | 🔴 HIGH  | 1h     | Infrastructure |
+| 2  | Fix 105 lint issues (or selectively suppress)                | 🟡 MED   | 2–4h   | Code Quality   |
+| 3  | Restore `core/pkg/id` coverage (63.6% → 85%+)                | 🟡 MED   | 1h     | Testing        |
+| 4  | Fix `example/user` module callers                            | 🟡 MED   | 30min  | Migration      |
+| 5  | Increase `middleware` coverage (64.8% → 80%+)                | 🟡 MED   | 1h     | Testing        |
+| 6  | Add `EventRetry` tests in `middleware`                       | 🟢 LOW   | 30min  | Testing        |
+| 7  | Add `BinaryMarshaler`/`TextMarshaler` to `Of[T]`             | 🟡 MED   | 1h     | Feature        |
+| 8  | Add utility methods (`Equal`, `Compare`, `Or`) to `Of[T]`    | 🟢 LOW   | 1h     | Feature        |
+| 9  | Fix `go.work` version mismatch (`1.26` vs `1.26.0`)          | 🟢 LOW   | 5min   | Config         |
+| 10 | Add `t.Parallel()` to BDD suite tests                        | 🟢 LOW   | 10min  | Testing        |
+| 11 | Delete or implement `event/store_config.go`                  | 🟢 LOW   | 15min  | Cleanup        |
+| 12 | Update `docs/planning/go-composable-business-types-usage.md` | 🟢 LOW   | 30min  | Docs           |
+| 13 | Fix `toDotAddress` number handling bug                       | 🟢 LOW   | 1h     | Bug            |
+| 14 | Document `go-composable-business-types` API surface used     | 🟢 LOW   | 10min  | Docs           |
+| 15 | Add `goimports`/`gofumpt` to CI pipeline                     | 🟢 LOW   | 30min  | CI             |
+| 16 | Add performance benchmarks for event store                   | 🟢 LOW   | 1h     | Performance    |
+| 17 | Phase 5: Implement storage module (sqlc event store)         | 🔴 HIGH  | 4–8h   | Migration      |
+| 18 | Phase 6: Implement Watermill module (pub/sub)                | 🟡 MED   | 4–8h   | Migration      |
+| 19 | Phase 7: Implement Projection module (samber/ro)             | 🟡 MED   | 4–8h   | Migration      |
+| 20 | Phase 8: Implement Snapshot module (SQL-backed)              | 🟡 MED   | 4h     | Migration      |
+| 21 | Phase 9: Implement Test utilities module                     | 🟡 MED   | 2h     | Migration      |
+| 22 | Phase 10: Tag releases                                       | 🟡 MED   | 1h     | Release        |
+| 23 | Update README with full migration status                     | 🟢 LOW   | 15min  | Docs           |
+| 24 | Add CONTRIBUTING.md for external contributors                | 🟢 LOW   | 30min  | Docs           |
+| 25 | Address `xtypes.TypedCommand.Command()` allocation issue     | 🟢 LOW   | 1h     | Optimization   |
 
 ---
 

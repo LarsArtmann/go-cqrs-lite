@@ -153,6 +153,7 @@
 ## f) NEXT — ordered by leverage (not all 50; these are real, deduped)
 
 **Release (blocked on g1):**
+
 1. Tag engine fixes: sqliteengine/pgengine/mysqlengine/duckdbengine v4.0.2+ <- OPEN. TODO_LIST 'Release / Tagging' + ROADMAP 'Open Questions' #1 (fix invisible to consumers until tagged)
    (+ metaengine, system, stack/sqlite, stack/pebble consumers as needed) —
    otherwise the re-delivery fix never reaches consumers.
@@ -164,40 +165,40 @@
 **Skew/drift:**
 4. Pin-drift meta-test (required-version vs latest tag per sibling module). <- OPEN. TODO_LIST 'Pin & Standalone-Build Hygiene' (pin-drift meta-test, flagged urgent); gated on ROADMAP 'Open Questions' #4
 5. Repo-wide stale-pin sweep for ALL modules (benchkit still pins <- OPEN. TODO_LIST 'Pin & Standalone-Build Hygiene' (repo-wide stale-pin sweep, flagged urgent)
-   sqliteengine v4.0.1 = the pre-fix code, decider v4.3.0, event v4.6.0…).
+sqliteengine v4.0.1 = the pre-fix code, decider v4.3.0, event v4.6.0…).
 ~~6. Check CI (gh run list) for red benchkit runs predating the fix — establish~~ done - checked 2026-08-15 (docs-health pass): CI 'Benchmarks' job red, 3 recent failures, consistent with standalone skew; the predating window was not bisected further
-   how long standalone was broken.
+how long standalone was broken.
 7. `#verify-standalone` nix app (GOWORK=off per module) or explicit decision <- OPEN. TODO_LIST 'Pin & Standalone-Build Hygiene' (#verify-standalone)
-   that CI owns that signal.
+that CI owns that signal.
 
 **Correctness follow-ups:**
 8. Seq-carrying journal reads (perf): OFFSET skip is O(offset) per page; <- OPEN. TODO_LIST 'Metaengine' (seq-carrying perf follow-up)
-   `JournalReadAllWithSeq`/`StreamLogEntry{Seq,Value}` enables index-seek
-   resume. Correctness is done; this is the large-journal performance item.
+`JournalReadAllWithSeq`/`StreamLogEntry{Seq,Value}` enables index-seek
+resume. Correctness is done; this is the large-journal performance item.
 9. mysqlengine/MariaDB: separate the two failure classes (JSON-path syntax vs <- OPEN. TODO_LIST 'Metaengine' (MariaDB compatibility)
-   invalid connection); decide dialect support vs MySQL-8-only + test-backend
-   swap.
+invalid connection); decide dialect support vs MySQL-8-only + test-backend
+swap.
 10. Two-live-engine integration test (AddEngine + Backfill correctness). <- OPEN. TODO_LIST 'Metaengine' (two live backends)
 11. Vector ADT brute-force on Pebble/bbolt. <- OPEN. in flight - concurrent metaengine session writing bbolt/pebble vector backends now
 12. Recursive CTE graph dispatch for PG/MySQL; recursive CTE optimization for <- OPEN. in flight - pgengine/mysqlengine/sqliteengine graph work in the concurrent session's tree
-    deep SQLite traversals.
+deep SQLite traversals.
 
 **Toolchain / editor:**
 13. Restart gopls (go.work bump noise) at next session start. <- NOT-DO - session-start operational habit (gopls restart), no repo artifact
 14. Go 1.26.6 decision + alignment sweep (go.mod files, CI, nix pin, <- OPEN. ROADMAP 'Open Questions' #2
-    .go-version) — blocked on g2.
+.go-version) — blocked on g2.
 ~~15. Add `nix fmt` to the end-of-session checklist (I only gofumpt'd changed~~ WONT - session checklist habit; lint gate already enforces formatting
-    dirs; lint covered it this time, convention says treefmt).
+dirs; lint covered it this time, convention says treefmt).
 
 **Hardening / tests:**
 16. cqrs-lint per-module regression tests (F004, F007, F009, F012, F017, <- OPEN. TODO_LIST 'cqrs-lint' (per-module regression tests)
-    F023–F029, B030).
+F023–F029, B030).
 17. `.golangci.yml` exclusion audit (system/ 20 linters, cmd/cqrs-lint/ 17, <- OPEN. TODO_LIST 'Code Quality' (.golangci.yml exclusion audit)
-    metaengine/ 24).
+metaengine/ 24).
 18. Watermill-redisstream real-broker edge tests (redelivery duplicates, <- OPEN. TODO_LIST 'Code Quality' (Wire broker tests into CI)
-    consumer-group rebalance, message size limits).
+consumer-group rebalance, message size limits).
 19. duckdbengine suite split or budget raise (76-91s observed; now 8m ceiling <- OPEN. TODO_LIST 'Code Quality' (duckdbengine suite split)
-    — healthier, still worth splitting the soak).
+— healthier, still worth splitting the soak).
 20. ephemeral-pg.sh macOS verification. <- OPEN. TODO_LIST 'Code Quality' (macOS ephemeral-pg)
 21. Doc-check 0-warning CI tripwire (regression guard for the count). <- OPEN. TODO_LIST 'Code Quality' (Doc-check 0-warning tripwire)
 
@@ -206,13 +207,13 @@
 23. Wire `#sweep` to pre-commit/cron. <- OPEN. TODO_LIST 'Code Quality' (Infrastructure polish)
 24. Consolidate engine `register.go` boilerplate (7 modules). <- OPEN. TODO_LIST 'Code Quality' (Infrastructure polish)
 25. Calibration-baseline CI regression check; DuckDB 60s disk calibration; <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks + CI regression check)
-    SQLite/PG/MySQL Row-layout calibration.
+SQLite/PG/MySQL Row-layout calibration.
 
 **Docs/debt:**
 ~~26. docs-health HARVEST: open items from 2026-08-14/15 reports → TODO_LIST.~~ done - TODO_LIST rebuilt + reports annotated/archived by the docs-health audit 2026-08-15
 27. v5 Phase 8 sequence: delete stack.Materialize → RelationalProjection/view <- OPEN. TODO_LIST 'v5 Unification Phase 8' (each step is its own item)
-    → graph.GraphProjection → Bundle+8 presets → RunProjections → ADR-0126
-    shells → transport/http+grpc registry drop → migration guide → cut v5.0.0.
+→ graph.GraphProjection → Bundle+8 presets → RunProjections → ADR-0126
+shells → transport/http+grpc registry drop → migration guide → cut v5.0.0.
 28. go-codec repo scaffolding (sibling session's lane — do not start here).
 
 ## g) QUESTIONS (cannot figure out myself)
@@ -239,7 +240,6 @@
   `✅ Lint: 76/76 modules clean`, doc-check 1020 refs (/tmp/verify-final3.log)
 - Live: PG pgengine ok; MySQL StreamLog PASS; Dgraph 24/24 (61.1s)
 - Standalone: benchkit 34.4s green after pin bump
-
 
 ---
 

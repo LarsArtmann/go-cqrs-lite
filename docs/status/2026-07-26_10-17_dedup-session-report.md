@@ -37,20 +37,20 @@
 
 These extractions were applied, tested, and committed:
 
-| #   | Module               | Helper extracted                                                         | What it replaced                                                                                        | Clone groups killed        |
-| --- | -------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- | -------------------------- |
-| 1   | `storage/pebble`     | `lastSegmentAfterByte(key, sep)`                                         | Two identical 8-line reverse-scan loops for journal key ID extraction                                   | #67                        |
-| 2   | `metaengine`         | `extractIntFieldByName(input, name, default)`                            | Two identical 10-line reflect patterns (`extractDepthFromInput`, `extractLimitFromInput`)               | #69, #79                   |
-| 3   | `metaengine`         | `derefType(sample)`                                                      | Three identical pointer-deref blocks (`decodeFromSample`, `buildKeyExtractor`, `detectPagination`)      | #45, #21                   |
-| 4   | `event`              | `SchemaVersion.checkUnderflow(result, op, n)`                            | Two identical validation blocks in `Add` and `Sub`                                                      | #62                        |
-| 5   | `catalog/simple`     | `Builder.buildInner()`                                                   | Three identical `addConfiguredService() + inner.Build()` preamble blocks                                | #22                        |
-| 6   | `storage/turso`      | `AutoIndexer.rejectIfDisabled(span)`                                     | Four identical 6-line "if disabled → rejection error" guards                                            | #30, #63, #73              |
-| 7   | `scenario`           | `DeciderScenario.prepareThen(method)`                                    | Two identical `Helper + requireWhen + foldGiven` blocks in `Then` and `ThenError`                       | #29                        |
-| 8   | `signing`            | `canonicalOrErr(evt)`                                                    | Four identical nil-check + canonicalPayload blocks across ed25519/hmac Sign/Verify                      | #52, #69, #76              |
-| 9   | `schema`             | `newUpcasterRegistryFrom(upcasters)`                                     | Two identical registry construction loops in `versioned_journal.go` and `versioned_source.go`           | #76                        |
-| 10  | `storage/relational` | `sqlSink.resolveCols(table, row, conflictCols)`                          | Two identical rowColumns + conflictTarget resolution blocks in `UpsertCols` and `UpsertExpr`            | #30                        |
-| 11  | `catalog/openapi`    | `registerOperation(doc, path, method, op)`                               | Three identical `ensurePathItem + setOperation` tail blocks                                             | #26, #59                   |
-| 12  | `catalog` tests      | Standardized on `cattest.NewTestRegistry()` / `cattest.NewTestBuilder()` | ~20 direct `catalog.NewRegistry("TestCatalog", "1.0.0")` calls across asyncapi/d2/build_resources tests | #1, #2, #6, #8 (partially) |
+| #  | Module               | Helper extracted                                                         | What it replaced                                                                                        | Clone groups killed        |
+| -- | -------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- | -------------------------- |
+| 1  | `storage/pebble`     | `lastSegmentAfterByte(key, sep)`                                         | Two identical 8-line reverse-scan loops for journal key ID extraction                                   | #67                        |
+| 2  | `metaengine`         | `extractIntFieldByName(input, name, default)`                            | Two identical 10-line reflect patterns (`extractDepthFromInput`, `extractLimitFromInput`)               | #69, #79                   |
+| 3  | `metaengine`         | `derefType(sample)`                                                      | Three identical pointer-deref blocks (`decodeFromSample`, `buildKeyExtractor`, `detectPagination`)      | #45, #21                   |
+| 4  | `event`              | `SchemaVersion.checkUnderflow(result, op, n)`                            | Two identical validation blocks in `Add` and `Sub`                                                      | #62                        |
+| 5  | `catalog/simple`     | `Builder.buildInner()`                                                   | Three identical `addConfiguredService() + inner.Build()` preamble blocks                                | #22                        |
+| 6  | `storage/turso`      | `AutoIndexer.rejectIfDisabled(span)`                                     | Four identical 6-line "if disabled → rejection error" guards                                            | #30, #63, #73              |
+| 7  | `scenario`           | `DeciderScenario.prepareThen(method)`                                    | Two identical `Helper + requireWhen + foldGiven` blocks in `Then` and `ThenError`                       | #29                        |
+| 8  | `signing`            | `canonicalOrErr(evt)`                                                    | Four identical nil-check + canonicalPayload blocks across ed25519/hmac Sign/Verify                      | #52, #69, #76              |
+| 9  | `schema`             | `newUpcasterRegistryFrom(upcasters)`                                     | Two identical registry construction loops in `versioned_journal.go` and `versioned_source.go`           | #76                        |
+| 10 | `storage/relational` | `sqlSink.resolveCols(table, row, conflictCols)`                          | Two identical rowColumns + conflictTarget resolution blocks in `UpsertCols` and `UpsertExpr`            | #30                        |
+| 11 | `catalog/openapi`    | `registerOperation(doc, path, method, op)`                               | Three identical `ensurePathItem + setOperation` tail blocks                                             | #26, #59                   |
+| 12 | `catalog` tests      | Standardized on `cattest.NewTestRegistry()` / `cattest.NewTestBuilder()` | ~20 direct `catalog.NewRegistry("TestCatalog", "1.0.0")` calls across asyncapi/d2/build_resources tests | #1, #2, #6, #8 (partially) |
 
 **Total: ~15 original clone groups eliminated, ~150 tokens of duplication removed.**
 

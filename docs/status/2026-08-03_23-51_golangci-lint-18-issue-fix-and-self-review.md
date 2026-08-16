@@ -1,7 +1,7 @@
 # Status Report: golangci-lint 18-Issue Fix (Self-Review)
 
-**Date:** 2026-08-03 23:51 CEST  
-**Session scope:** `buildflow -s golangci-lint` — fix all reported lint issues  
+**Date:** 2026-08-03 23:51 CEST\
+**Session scope:** `buildflow -s golangci-lint` — fix all reported lint issues\
 **Verdict:** GREEN (0 issues), but several shortcuts taken (see below)
 
 ---
@@ -10,15 +10,15 @@
 
 `buildflow -s golangci-lint` reported **18 issues** across **7 files** in 6 categories. All 18 were resolved. The final re-run shows **0 issues across all 65 DAG nodes**.
 
-| #   | Linter             | File                                                                                          | Fix Applied                                                          |
-| --- | ------------------ | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| 1   | recvcheck          | `command/metadata.go`                                                                         | `//nolint:recvcheck` on `Metadata` struct                            |
-| 1   | recvcheck          | `query/query.go`                                                                              | `//nolint:recvcheck` on `Metadata` struct                            |
-| 1   | wrapcheck          | `retry/alias.go`                                                                              | `//nolint:wrapcheck` on `Do()` re-export                             |
-| 1   | wrapcheck          | `metaengine/sse.go`                                                                           | Wrapped `sse.WriteEvent` with `fmt.Errorf`                           |
-| 1   | nolintlint         | `metaengine/sse.go`                                                                           | Removed stale `//nolint:wrapcheck` (no longer needed after wrap)     |
-| 1   | golines            | `cmd/cqrs-lint/main.go`                                                                       | Fixed tag spacing: `omitempty"   default:"` → `omitempty" default:"` |
-| 16  | staticcheck SA5011 | `metaengine/coverage_test.go`, `features3_test.go`, `features4_test.go`, `sse_replay_test.go` | Restructured nil-check-then-dereference patterns                     |
+| #  | Linter             | File                                                                                          | Fix Applied                                                          |
+| -- | ------------------ | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| 1  | recvcheck          | `command/metadata.go`                                                                         | `//nolint:recvcheck` on `Metadata` struct                            |
+| 1  | recvcheck          | `query/query.go`                                                                              | `//nolint:recvcheck` on `Metadata` struct                            |
+| 1  | wrapcheck          | `retry/alias.go`                                                                              | `//nolint:wrapcheck` on `Do()` re-export                             |
+| 1  | wrapcheck          | `metaengine/sse.go`                                                                           | Wrapped `sse.WriteEvent` with `fmt.Errorf`                           |
+| 1  | nolintlint         | `metaengine/sse.go`                                                                           | Removed stale `//nolint:wrapcheck` (no longer needed after wrap)     |
+| 1  | golines            | `cmd/cqrs-lint/main.go`                                                                       | Fixed tag spacing: `omitempty"   default:"` → `omitempty" default:"` |
+| 16 | staticcheck SA5011 | `metaengine/coverage_test.go`, `features3_test.go`, `features4_test.go`, `sse_replay_test.go` | Restructured nil-check-then-dereference patterns                     |
 
 ---
 

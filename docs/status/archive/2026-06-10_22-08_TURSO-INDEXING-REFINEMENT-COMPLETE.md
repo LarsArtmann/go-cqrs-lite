@@ -63,18 +63,18 @@ Follows the project's existing `SQLEventStoreOption` pattern from `storage/optio
 
 ## a) FULLY DONE ✅
 
-| #   | Item                                  | Status                |
-| --- | ------------------------------------- | --------------------- |
-| 1   | AutoIndexer consistency bug fix       | ✅ Committed 9eaaf5b5 |
-| 2   | Index.Partial bool                    | ✅ Committed 2a9dbd70 |
-| 3   | IndexSet.DropDDL()                    | ✅ Committed 2a9dbd70 |
-| 4   | turso/doc.go indexing mention         | ✅ Committed 5b7802b8 |
-| 5   | AdvisorOption pattern                 | ✅ Committed 4c99bb81 |
-| 6   | AutoIndexerOption pattern             | ✅ Committed 4c99bb81 |
-| 7   | WithExcludedTables filter             | ✅ Committed 4c99bb81 |
-| 8   | WithAutoAnalyze option                | ✅ Committed 4c99bb81 |
-| 9   | Auto-run ANALYZE after index creation | ✅ Committed 4c99bb81 |
-| 10  | All tests pass (turso + indexing)     | ✅ 100% pass rate     |
+| #  | Item                                  | Status                |
+| -- | ------------------------------------- | --------------------- |
+| 1  | AutoIndexer consistency bug fix       | ✅ Committed 9eaaf5b5 |
+| 2  | Index.Partial bool                    | ✅ Committed 2a9dbd70 |
+| 3  | IndexSet.DropDDL()                    | ✅ Committed 2a9dbd70 |
+| 4  | turso/doc.go indexing mention         | ✅ Committed 5b7802b8 |
+| 5  | AdvisorOption pattern                 | ✅ Committed 4c99bb81 |
+| 6  | AutoIndexerOption pattern             | ✅ Committed 4c99bb81 |
+| 7  | WithExcludedTables filter             | ✅ Committed 4c99bb81 |
+| 8  | WithAutoAnalyze option                | ✅ Committed 4c99bb81 |
+| 9  | Auto-run ANALYZE after index creation | ✅ Committed 4c99bb81 |
+| 10 | All tests pass (turso + indexing)     | ✅ 100% pass rate     |
 
 ---
 
@@ -165,23 +165,23 @@ No before/after benchmarks proving that CQRS indexes improve query performance. 
 
 ## f) Top #15 Things We Should Get Done Next!
 
-| #   | Priority    | Task                                                 | Module         | Effort  |
-| --- | ----------- | ---------------------------------------------------- | -------------- | ------- |
-| 1   | 🔴 CRITICAL | Rename `Recommendation.Reason` → `Explanation`       | turso/indexing | 10 min  |
-| 2   | 🔴 CRITICAL | Remove dead `Recommendation.EstimatedCost`           | turso/indexing | 5 min   |
-| 3   | 🔴 CRITICAL | Benchmark indexed vs unindexed `ReadFrom`            | turso          | 30 min  |
-| 4   | 🟡 HIGH     | Test `WithExcludedTables` and `WithAutoAnalyze`      | turso/indexing | 20 min  |
-| 5   | 🟡 HIGH     | Add OTel tracing to indexing operations              | turso/indexing | 25 min  |
-| 6   | 🟡 HIGH     | Add `indexing.IndexUsageStats(ctx, db)`              | turso/indexing | 1.5 hrs |
-| 7   | 🟡 HIGH     | Real Turso sync integration tests (build-tagged)     | turso          | 2 hrs   |
-| 8   | 🟢 MEDIUM   | Add `AutoIndexer.CleanupUnused(ctx)`                 | turso/indexing | 1 hr    |
-| 9   | 🟢 MEDIUM   | Add `InitSchemaWithIndexesAndOptimizations`          | turso          | 15 min  |
-| 10  | 🟢 MEDIUM   | `listing` integration: validate indexes before reads | listing        | 2 hrs   |
-| 11  | 🟢 MEDIUM   | WAL checkpoint scheduling helper                     | turso          | 1 hr    |
-| 12  | 🟢 MEDIUM   | Document index trade-offs (write amplification)      | docs           | 45 min  |
-| 13  | 🟢 LOW      | `AutoIndexer.Close()` + lifecycle cleanup            | turso/indexing | 15 min  |
-| 14  | 🟢 LOW      | `indexing.DryRun` mode (print DDL, don't execute)    | turso/indexing | 30 min  |
-| 15  | 🟢 LOW      | Publish ADR: "Why pre-calculated CQRS indexes"       | docs/adr       | 1 hr    |
+| #  | Priority    | Task                                                 | Module         | Effort  |
+| -- | ----------- | ---------------------------------------------------- | -------------- | ------- |
+| 1  | 🔴 CRITICAL | Rename `Recommendation.Reason` → `Explanation`       | turso/indexing | 10 min  |
+| 2  | 🔴 CRITICAL | Remove dead `Recommendation.EstimatedCost`           | turso/indexing | 5 min   |
+| 3  | 🔴 CRITICAL | Benchmark indexed vs unindexed `ReadFrom`            | turso          | 30 min  |
+| 4  | 🟡 HIGH     | Test `WithExcludedTables` and `WithAutoAnalyze`      | turso/indexing | 20 min  |
+| 5  | 🟡 HIGH     | Add OTel tracing to indexing operations              | turso/indexing | 25 min  |
+| 6  | 🟡 HIGH     | Add `indexing.IndexUsageStats(ctx, db)`              | turso/indexing | 1.5 hrs |
+| 7  | 🟡 HIGH     | Real Turso sync integration tests (build-tagged)     | turso          | 2 hrs   |
+| 8  | 🟢 MEDIUM   | Add `AutoIndexer.CleanupUnused(ctx)`                 | turso/indexing | 1 hr    |
+| 9  | 🟢 MEDIUM   | Add `InitSchemaWithIndexesAndOptimizations`          | turso          | 15 min  |
+| 10 | 🟢 MEDIUM   | `listing` integration: validate indexes before reads | listing        | 2 hrs   |
+| 11 | 🟢 MEDIUM   | WAL checkpoint scheduling helper                     | turso          | 1 hr    |
+| 12 | 🟢 MEDIUM   | Document index trade-offs (write amplification)      | docs           | 45 min  |
+| 13 | 🟢 LOW      | `AutoIndexer.Close()` + lifecycle cleanup            | turso/indexing | 15 min  |
+| 14 | 🟢 LOW      | `indexing.DryRun` mode (print DDL, don't execute)    | turso/indexing | 30 min  |
+| 15 | 🟢 LOW      | Publish ADR: "Why pre-calculated CQRS indexes"       | docs/adr       | 1 hr    |
 
 ---
 

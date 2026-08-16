@@ -144,33 +144,33 @@ The library has matured significantly across two major sessions. The PostgresBus
 
 ## F) Top 25 Things to Get Done Next (Sorted by Impact/Effort)
 
-| #   | Task                                                                             | Impact      | Effort  | Tier |
-| --- | -------------------------------------------------------------------------------- | ----------- | ------- | ---- |
-| 1   | **Commit + push the deadlock fix** (in working tree)                             | 🔴 CRITICAL | 2m      | P0   |
-| 2   | **Verify integration tests pass in CI** (push triggers CI)                       | 🔴 CRITICAL | 5m      | P0   |
-| 3   | **Add `TestPgxListener_CloseDoesNotDeadlock`** regression test                   | 🔴 HIGH     | 10m     | P0   |
-| 4   | **PgxListener auto-reconnect** (backoff + re-LISTEN on conn loss)                | 🔴 HIGH     | 45m     | P1   |
-| 5   | **PostgresBus backpressure strategy** (drop-oldest or block-and-warn)            | 🟠 HIGH     | 30m     | P1   |
-| 6   | **Add PgxListener metrics** (notifications received/dropped/errors)              | 🟠 MED      | 20m     | P1   |
-| 7   | **Shrink notifyPayload to EventID-only** (v2 format + capability check)          | 🟡 MED      | 25m     | P1   |
-| 8   | **Property-based test for validateChannelName** (rapid)                          | 🟡 MED      | 15m     | P1   |
-| 9   | **Document graceful drain behavior** (in-flight handlers on Close)               | 🟡 MED      | 10m     | P2   |
-| 10  | **PostgresBus example in `example/`** (multi-process demo)                       | 🟡 MED      | 30m     | P2   |
-| 11  | **Pebble secondary index** (event ID → journal key for O(1) LoadByEventID)       | 🟢 LOW      | 60m     | P2   |
-| 12  | **Outbox pattern** (transactional event publishing via outbox table)             | 🟠 HIGH     | 90m     | P2   |
-| 13  | **gRPC transport adapter** (ADR-0025, separate module)                           | 🟡 MED      | 120m    | P3   |
-| 14  | **NATS Stream adapter** (ADR-0025, separate module)                              | 🟡 MED      | 90m     | P3   |
-| 15  | **Redis Stream adapter** (ADR-0025, separate module)                             | 🟡 MED      | 90m     | P3   |
-| 16  | **jsonv2 codec experiment** (behind build tag, blocked on stdlib)                | 🟢 LOW      | Blocked | P3   |
-| 17  | **Arena allocation experiment** (behind build tag, blocked on stdlib)            | 🟢 LOW      | Blocked | P3   |
-| 18  | **SIMD-accelerated event serialization** (Go experiment)                         | 🟢 LOW      | Blocked | P3   |
-| 19  | **Coverage gap analysis** (readmodel, stack/postgres presets)                    | 🟡 MED      | 30m     | P2   |
-| 20  | **CQRS dashboard** (web UI for inspecting aggregates/events/projections)         | 🟢 LOW      | 240m    | P3   |
-| 21  | **Multi-tenant event store** (schema-per-tenant)                                 | 🟢 LOW      | 180m    | P3   |
-| 22  | **Event archival to S3/GCS**                                                     | 🟢 LOW      | 120m    | P3   |
-| 23  | **Performance regression dashboard** (historical benchmark tracking)             | 🟢 LOW      | 90m     | P3   |
-| 24  | **Chaos engineering integration** (random partitions, disk failures)             | 🟢 LOW      | 180m    | P3   |
-| 25  | **v3 breaking changes** (remove io.Closer from core, global TransactionID, etc.) | 🟡 MED      | 300m    | P3   |
+| #  | Task                                                                             | Impact      | Effort  | Tier |
+| -- | -------------------------------------------------------------------------------- | ----------- | ------- | ---- |
+| 1  | **Commit + push the deadlock fix** (in working tree)                             | 🔴 CRITICAL | 2m      | P0   |
+| 2  | **Verify integration tests pass in CI** (push triggers CI)                       | 🔴 CRITICAL | 5m      | P0   |
+| 3  | **Add `TestPgxListener_CloseDoesNotDeadlock`** regression test                   | 🔴 HIGH     | 10m     | P0   |
+| 4  | **PgxListener auto-reconnect** (backoff + re-LISTEN on conn loss)                | 🔴 HIGH     | 45m     | P1   |
+| 5  | **PostgresBus backpressure strategy** (drop-oldest or block-and-warn)            | 🟠 HIGH     | 30m     | P1   |
+| 6  | **Add PgxListener metrics** (notifications received/dropped/errors)              | 🟠 MED      | 20m     | P1   |
+| 7  | **Shrink notifyPayload to EventID-only** (v2 format + capability check)          | 🟡 MED      | 25m     | P1   |
+| 8  | **Property-based test for validateChannelName** (rapid)                          | 🟡 MED      | 15m     | P1   |
+| 9  | **Document graceful drain behavior** (in-flight handlers on Close)               | 🟡 MED      | 10m     | P2   |
+| 10 | **PostgresBus example in `example/`** (multi-process demo)                       | 🟡 MED      | 30m     | P2   |
+| 11 | **Pebble secondary index** (event ID → journal key for O(1) LoadByEventID)       | 🟢 LOW      | 60m     | P2   |
+| 12 | **Outbox pattern** (transactional event publishing via outbox table)             | 🟠 HIGH     | 90m     | P2   |
+| 13 | **gRPC transport adapter** (ADR-0025, separate module)                           | 🟡 MED      | 120m    | P3   |
+| 14 | **NATS Stream adapter** (ADR-0025, separate module)                              | 🟡 MED      | 90m     | P3   |
+| 15 | **Redis Stream adapter** (ADR-0025, separate module)                             | 🟡 MED      | 90m     | P3   |
+| 16 | **jsonv2 codec experiment** (behind build tag, blocked on stdlib)                | 🟢 LOW      | Blocked | P3   |
+| 17 | **Arena allocation experiment** (behind build tag, blocked on stdlib)            | 🟢 LOW      | Blocked | P3   |
+| 18 | **SIMD-accelerated event serialization** (Go experiment)                         | 🟢 LOW      | Blocked | P3   |
+| 19 | **Coverage gap analysis** (readmodel, stack/postgres presets)                    | 🟡 MED      | 30m     | P2   |
+| 20 | **CQRS dashboard** (web UI for inspecting aggregates/events/projections)         | 🟢 LOW      | 240m    | P3   |
+| 21 | **Multi-tenant event store** (schema-per-tenant)                                 | 🟢 LOW      | 180m    | P3   |
+| 22 | **Event archival to S3/GCS**                                                     | 🟢 LOW      | 120m    | P3   |
+| 23 | **Performance regression dashboard** (historical benchmark tracking)             | 🟢 LOW      | 90m     | P3   |
+| 24 | **Chaos engineering integration** (random partitions, disk failures)             | 🟢 LOW      | 180m    | P3   |
+| 25 | **v3 breaking changes** (remove io.Closer from core, global TransactionID, etc.) | 🟡 MED      | 300m    | P3   |
 
 ---
 

@@ -42,7 +42,7 @@ go-cqrs-lite is a **healthy, production-quality Go CQRS/event sourcing library**
 | `memory`      | 99.6%    | MemoryStore, MemoryBus, MemorySnapshotStore, concurrent-safe      |
 | `middleware`  | 98.0%    | Logging, Retry, Recovery, Validation, Metrics + WithLogger option |
 | `testhelpers` | 94.8%    | All fakes, handlers, metrics collector                            |
-| `projection`  | 95.3%    | Runner (replay+live), HandlerRegistry, Builder with On[T](<>)     |
+| `projection`  | 95.3%    | Runner (replay+live), HandlerRegistry, Builder with On[T]()       |
 | `saga`        | 93.4%    | Runner, compensation, retry, persistent state                     |
 | `watermill`   | 94.4%    | Protocol adapter, publisher/subscriber                            |
 
@@ -249,33 +249,33 @@ go-cqrs-lite is a **healthy, production-quality Go CQRS/event sourcing library**
 
 Sorted by **impact × effort** (Pareto: high impact, low effort first):
 
-| #   | Item                                                                                              | Impact      | Effort | Type         |
-| --- | ------------------------------------------------------------------------------------------------- | ----------- | ------ | ------------ |
-| 1   | **Push v1.0.0 tags to remote** — Unblock external adoption, remove replace directives             | 🔴 Critical | 30min  | Release      |
-| 2   | **Commit 34 uncommitted formatting changes** — Clean git tree                                     | 🟡 High     | 5min   | Cleanup      |
-| 3   | **Fix `integration/go.mod` saga v1.0.0→v1.6.0** — Consistency                                     | 🟡 High     | 2min   | Fix          |
-| 4   | **Move test deps out of core/go.mod** — Unblock independent core publishing                       | 🔴 Critical | 2hr    | Architecture |
-| 5   | **Write getting-started README** — "Your first CQRS app in 30 lines"                              | 🟡 High     | 1hr    | Docs         |
-| 6   | **Add module READMEs** for core, storage, catalog                                                 | 🟡 High     | 2hr    | Docs         |
-| 7   | **Split large test files** (decider_test 1182L, runner_test 1159L, id_test 1021L)                 | 🟡 High     | 2hr    | Quality      |
-| 8   | **Write cattest tests or inline helpers** — Eliminate 0% coverage module                          | 🟠 Medium   | 2hr    | Quality      |
-| 9   | **Add outbox full-cycle integration test** (Append→Poll→Publish→Ack)                              | 🟠 Medium   | 3hr    | Testing      |
-| 10  | **Add PostgreSQL testcontainers integration tests**                                               | 🟠 Medium   | 4hr    | Testing      |
-| 11  | **Rewrite example/user/ for full CQRS stack** + smoke test                                        | 🟠 Medium   | 3hr    | Examples     |
-| 12  | **Split saga/runner.go** (268→<250 lines)                                                         | 🟢 Low      | 30min  | Quality      |
-| 13  | **Add SQLSnapshotStore + SQLCheckpointStore go-sqlmock tests**                                    | 🟠 Medium   | 3hr    | Testing      |
-| 14  | **Consolidate testhelpers boilerplate** via fakeBase struct                                       | 🟢 Low      | 1hr    | Refactor     |
-| 15  | **Wire example/user to use catalog-aware event constructors**                                     | 🟢 Low      | 2hr    | Examples     |
-| 16  | **Add enum + default struct tag support to Schema/Property**                                      | 🟠 Medium   | 3hr    | Feature      |
-| 17  | **Make AsyncAPI servers configurable** (not hardcoded kafka:9092)                                 | 🟠 Medium   | 1hr    | Feature      |
-| 18  | **Add catalog diff/breaking-change detection tool**                                               | 🟡 High     | 4hr    | Feature      |
-| 19  | **Design ADR for outbox transaction co-participation**                                            | 🟢 Low      | 1hr    | Docs         |
-| 20  | **Add publish-side event middleware** (events go through middleware on subscribe but not Publish) | 🟠 Medium   | 3hr    | Feature      |
-| 21  | **Implement Store.ReadBackwards** (MemoryStore + SQLEventStore)                                   | 🟠 Medium   | 4hr    | Feature      |
-| 22  | **Add Turso integration test** (save→load→delete)                                                 | 🟠 Medium   | 2hr    | Testing      |
-| 23  | **Set up pkg.go.dev documentation hosting**                                                       | 🟠 Medium   | 1hr    | Infra        |
-| 24  | **Add .goreleaser.yml for multi-module releases**                                                 | 🟠 Medium   | 2hr    | Infra        |
-| 25  | **Fix pre-commit hook timeouts** — Configure per-module or increase timeout                       | 🟢 Low      | 1hr    | Infra        |
+| #  | Item                                                                                              | Impact      | Effort | Type         |
+| -- | ------------------------------------------------------------------------------------------------- | ----------- | ------ | ------------ |
+| 1  | **Push v1.0.0 tags to remote** — Unblock external adoption, remove replace directives             | 🔴 Critical | 30min  | Release      |
+| 2  | **Commit 34 uncommitted formatting changes** — Clean git tree                                     | 🟡 High     | 5min   | Cleanup      |
+| 3  | **Fix `integration/go.mod` saga v1.0.0→v1.6.0** — Consistency                                     | 🟡 High     | 2min   | Fix          |
+| 4  | **Move test deps out of core/go.mod** — Unblock independent core publishing                       | 🔴 Critical | 2hr    | Architecture |
+| 5  | **Write getting-started README** — "Your first CQRS app in 30 lines"                              | 🟡 High     | 1hr    | Docs         |
+| 6  | **Add module READMEs** for core, storage, catalog                                                 | 🟡 High     | 2hr    | Docs         |
+| 7  | **Split large test files** (decider_test 1182L, runner_test 1159L, id_test 1021L)                 | 🟡 High     | 2hr    | Quality      |
+| 8  | **Write cattest tests or inline helpers** — Eliminate 0% coverage module                          | 🟠 Medium   | 2hr    | Quality      |
+| 9  | **Add outbox full-cycle integration test** (Append→Poll→Publish→Ack)                              | 🟠 Medium   | 3hr    | Testing      |
+| 10 | **Add PostgreSQL testcontainers integration tests**                                               | 🟠 Medium   | 4hr    | Testing      |
+| 11 | **Rewrite example/user/ for full CQRS stack** + smoke test                                        | 🟠 Medium   | 3hr    | Examples     |
+| 12 | **Split saga/runner.go** (268→<250 lines)                                                         | 🟢 Low      | 30min  | Quality      |
+| 13 | **Add SQLSnapshotStore + SQLCheckpointStore go-sqlmock tests**                                    | 🟠 Medium   | 3hr    | Testing      |
+| 14 | **Consolidate testhelpers boilerplate** via fakeBase struct                                       | 🟢 Low      | 1hr    | Refactor     |
+| 15 | **Wire example/user to use catalog-aware event constructors**                                     | 🟢 Low      | 2hr    | Examples     |
+| 16 | **Add enum + default struct tag support to Schema/Property**                                      | 🟠 Medium   | 3hr    | Feature      |
+| 17 | **Make AsyncAPI servers configurable** (not hardcoded kafka:9092)                                 | 🟠 Medium   | 1hr    | Feature      |
+| 18 | **Add catalog diff/breaking-change detection tool**                                               | 🟡 High     | 4hr    | Feature      |
+| 19 | **Design ADR for outbox transaction co-participation**                                            | 🟢 Low      | 1hr    | Docs         |
+| 20 | **Add publish-side event middleware** (events go through middleware on subscribe but not Publish) | 🟠 Medium   | 3hr    | Feature      |
+| 21 | **Implement Store.ReadBackwards** (MemoryStore + SQLEventStore)                                   | 🟠 Medium   | 4hr    | Feature      |
+| 22 | **Add Turso integration test** (save→load→delete)                                                 | 🟠 Medium   | 2hr    | Testing      |
+| 23 | **Set up pkg.go.dev documentation hosting**                                                       | 🟠 Medium   | 1hr    | Infra        |
+| 24 | **Add .goreleaser.yml for multi-module releases**                                                 | 🟠 Medium   | 2hr    | Infra        |
+| 25 | **Fix pre-commit hook timeouts** — Configure per-module or increase timeout                       | 🟢 Low      | 1hr    | Infra        |
 
 ---
 
@@ -302,16 +302,16 @@ The chicken-and-egg problem:
 | Race detector               | Clean                                                              | Clean               | ✅     |
 | Avg coverage                | 91.9%                                                              | >80%                | ✅     |
 | Packages at 100%            | 3 (decider, id, dispatcher)                                        | —                   | ✅     |
-| Packages <90%               | 4 (event 93.8%, asyncapi 93.7%, schemautil 84.2%, docserver 90.1%) | <3                  | ⚠️     |
+| Packages <90%               | 4 (event 93.8%, asyncapi 93.7%, schemautil 84.2%, docserver 90.1%) | <3                  | ⚠️      |
 | Packages <80%               | 1 (cattest 0%)                                                     | 0                   | 💥     |
-| Production files >250 lines | 1 (saga/runner.go 268L)                                            | 0                   | ⚠️     |
-| Test files >800 lines       | 4                                                                  | 0                   | ⚠️     |
+| Production files >250 lines | 1 (saga/runner.go 268L)                                            | 0                   | ⚠️      |
+| Test files >800 lines       | 4                                                                  | 0                   | ⚠️      |
 | TODO items done             | 155/261 (59%)                                                      | —                   | 📈     |
 | TODO items remaining        | 106                                                                | —                   | 📋     |
 | Uncommitted files           | 34                                                                 | 0                   | 💥     |
 | Replace directives          | 16 modules                                                         | 0 (blocked on tags) | 🔴     |
 | CI pipeline                 | Full (build/vet/test/lint/race/coverage)                           | Full                | ✅     |
-| Documentation               | AGENTS.md + CHANGELOG + ADRs + guides                              | Module READMEs      | ⚠️     |
+| Documentation               | AGENTS.md + CHANGELOG + ADRs + guides                              | Module READMEs      | ⚠️      |
 
 ---
 

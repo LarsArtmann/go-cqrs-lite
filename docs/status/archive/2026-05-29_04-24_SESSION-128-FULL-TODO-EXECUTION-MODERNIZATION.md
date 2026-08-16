@@ -49,20 +49,20 @@ Executed the full remaining TODO list from Session 126's comprehensive plan. 4 l
 
 ## c) NOT STARTED ⬜
 
-| #   | Item                                                     | Impact                                    | Effort                          |
-| --- | -------------------------------------------------------- | ----------------------------------------- | ------------------------------- |
-| 1   | Adopt OTel semconv v1.41+ standard attributes            | High — standard dashboard compatibility   | Medium                          |
-| 2   | OTel metrics for storage operations (latency histograms) | High — SLO monitoring                     | Medium                          |
-| 3   | E2E trace propagation integration test                   | High — validates full observability chain | Medium                          |
-| 4   | stream/ module OTel instrumentation                      | Medium — aggregate reader spans           | Low                             |
-| 5   | signing/ module OTel instrumentation                     | Medium — crypto operation timing          | Low                             |
-| 6   | Example code for OTel provider wiring                    | Medium — consumer onboarding              | Low                             |
-| 7   | PebbleEventStore spans                                   | Low — embedded store, less common         | Low                             |
-| 8   | watermill/ module OTel instrumentation                   | Low — protocol adapter                    | Low                             |
-| 9   | OTel baggage propagation through decider → store         | Medium — cross-service correlation        | Medium                          |
-| 10  | `slices` adoption in remaining test helpers              | Low — test code                           | Low                             |
-| 11  | Benchmark CI regression detection (baseline file)        | Medium — catch perf regressions           | Low                             |
-| 12  | Per-module coverage gate in CI                           | High — enforce quality                    | Low (already in CI but via nix) |
+| #  | Item                                                     | Impact                                    | Effort                          |
+| -- | -------------------------------------------------------- | ----------------------------------------- | ------------------------------- |
+| 1  | Adopt OTel semconv v1.41+ standard attributes            | High — standard dashboard compatibility   | Medium                          |
+| 2  | OTel metrics for storage operations (latency histograms) | High — SLO monitoring                     | Medium                          |
+| 3  | E2E trace propagation integration test                   | High — validates full observability chain | Medium                          |
+| 4  | stream/ module OTel instrumentation                      | Medium — aggregate reader spans           | Low                             |
+| 5  | signing/ module OTel instrumentation                     | Medium — crypto operation timing          | Low                             |
+| 6  | Example code for OTel provider wiring                    | Medium — consumer onboarding              | Low                             |
+| 7  | PebbleEventStore spans                                   | Low — embedded store, less common         | Low                             |
+| 8  | watermill/ module OTel instrumentation                   | Low — protocol adapter                    | Low                             |
+| 9  | OTel baggage propagation through decider → store         | Medium — cross-service correlation        | Medium                          |
+| 10 | `slices` adoption in remaining test helpers              | Low — test code                           | Low                             |
+| 11 | Benchmark CI regression detection (baseline file)        | Medium — catch perf regressions           | Low                             |
+| 12 | Per-module coverage gate in CI                           | High — enforce quality                    | Low (already in CI but via nix) |
 
 ---
 
@@ -107,33 +107,33 @@ Executed the full remaining TODO list from Session 126's comprehensive plan. 4 l
 
 ## f) TOP 25 THINGS TO DO NEXT
 
-| Priority | #   | Item                                                             | Impact        | Effort |
-| -------- | --- | ---------------------------------------------------------------- | ------------- | ------ |
-| **P0**   | 1   | Fix gopls workspace (eliminate 500+ false positives)             | High DX       | Medium |
-| **P0**   | 2   | Fix pre-commit hooks (golangci-lint at workspace root)           | High DX       | Low    |
-| **P0**   | 3   | Split `catalog/eventcatalog/exporter_test.go` (564L → 2-3 files) | Code quality  | Low    |
-| **P0**   | 4   | Split `memory/store_test.go` (545L → 2-3 files)                  | Code quality  | Low    |
-| **P1**   | 5   | Adopt OTel semconv v1.41+ standard attributes                    | Observability | Medium |
-| **P1**   | 6   | Add OTel metrics for storage operations                          | Observability | Medium |
-| **P1**   | 7   | E2E trace propagation integration test                           | Observability | Medium |
-| **P1**   | 8   | Instrument stream/ module with OTel spans                        | Observability | Low    |
-| **P1**   | 9   | Instrument signing/ module with OTel spans                       | Observability | Low    |
-| **P2**   | 10  | Split `projection/runner.go` (285L → 2 files)                    | Code quality  | Medium |
-| **P2**   | 11  | Split `testhelpers/fake_store.go` (283L → 2 files)               | Code quality  | Low    |
-| **P2**   | 12  | Complete `slices` adoption in testhelpers & stream               | Code quality  | Low    |
-| **P2**   | 13  | Add BDD suite for storage/ module                                | Test quality  | Medium |
-| **P2**   | 14  | Add BDD suite for memory/ module                                 | Test quality  | Medium |
-| **P2**   | 15  | Add fuzz tests for storage SQL parsing                           | Robustness    | Medium |
-| **P2**   | 16  | Create benchmark baseline file for CI regression detection       | Perf          | Low    |
-| **P3**   | 17  | Add example code showing OTel provider wiring                    | DX            | Low    |
-| **P3**   | 18  | OTel baggage propagation through decider → store                 | Observability | Medium |
-| **P3**   | 19  | Instrument watermill/ module with OTel spans                     | Observability | Low    |
-| **P3**   | 20  | Remove `any` types from `dialect.go`                             | Type safety   | Medium |
-| **P3**   | 21  | Plan v1.0.0 release (remove `replace` directives)                | Publishing    | High   |
-| **P3**   | 22  | Add PebbleEventStore OTel spans                                  | Observability | Low    |
-| **P3**   | 23  | Add catalog BDD suite                                            | Test quality  | Medium |
-| **P3**   | 24  | CI: add per-module coverage gate in nix                          | Quality       | Low    |
-| **P3**   | 25  | Document public API stability guarantees                         | Publishing    | Low    |
+| Priority | #  | Item                                                             | Impact        | Effort |
+| -------- | -- | ---------------------------------------------------------------- | ------------- | ------ |
+| **P0**   | 1  | Fix gopls workspace (eliminate 500+ false positives)             | High DX       | Medium |
+| **P0**   | 2  | Fix pre-commit hooks (golangci-lint at workspace root)           | High DX       | Low    |
+| **P0**   | 3  | Split `catalog/eventcatalog/exporter_test.go` (564L → 2-3 files) | Code quality  | Low    |
+| **P0**   | 4  | Split `memory/store_test.go` (545L → 2-3 files)                  | Code quality  | Low    |
+| **P1**   | 5  | Adopt OTel semconv v1.41+ standard attributes                    | Observability | Medium |
+| **P1**   | 6  | Add OTel metrics for storage operations                          | Observability | Medium |
+| **P1**   | 7  | E2E trace propagation integration test                           | Observability | Medium |
+| **P1**   | 8  | Instrument stream/ module with OTel spans                        | Observability | Low    |
+| **P1**   | 9  | Instrument signing/ module with OTel spans                       | Observability | Low    |
+| **P2**   | 10 | Split `projection/runner.go` (285L → 2 files)                    | Code quality  | Medium |
+| **P2**   | 11 | Split `testhelpers/fake_store.go` (283L → 2 files)               | Code quality  | Low    |
+| **P2**   | 12 | Complete `slices` adoption in testhelpers & stream               | Code quality  | Low    |
+| **P2**   | 13 | Add BDD suite for storage/ module                                | Test quality  | Medium |
+| **P2**   | 14 | Add BDD suite for memory/ module                                 | Test quality  | Medium |
+| **P2**   | 15 | Add fuzz tests for storage SQL parsing                           | Robustness    | Medium |
+| **P2**   | 16 | Create benchmark baseline file for CI regression detection       | Perf          | Low    |
+| **P3**   | 17 | Add example code showing OTel provider wiring                    | DX            | Low    |
+| **P3**   | 18 | OTel baggage propagation through decider → store                 | Observability | Medium |
+| **P3**   | 19 | Instrument watermill/ module with OTel spans                     | Observability | Low    |
+| **P3**   | 20 | Remove `any` types from `dialect.go`                             | Type safety   | Medium |
+| **P3**   | 21 | Plan v1.0.0 release (remove `replace` directives)                | Publishing    | High   |
+| **P3**   | 22 | Add PebbleEventStore OTel spans                                  | Observability | Low    |
+| **P3**   | 23 | Add catalog BDD suite                                            | Test quality  | Medium |
+| **P3**   | 24 | CI: add per-module coverage gate in nix                          | Quality       | Low    |
+| **P3**   | 25 | Document public API stability guarantees                         | Publishing    | Low    |
 
 ---
 

@@ -206,14 +206,14 @@ is almost never the right choice.
 
 ## Build & Test Status
 
-| Check                              | Status                                     |
-| ---------------------------------- | ------------------------------------------ |
-| `nix run .#build` (full workspace) | ✅ Pass                                    |
-| `stack/sqlite` — test + race       | ✅ 14/14 Pass                              |
-| `stack/turso` — test + race        | ✅ 15/15 Pass                              |
-| `stack/postgres` — test + race     | ✅ Pass                                    |
-| `stack/sqlite` — lint              | ✅ 0 issues                                |
-| `stack/turso` — lint               | ✅ 0 issues                                |
+| Check                              | Status                                    |
+| ---------------------------------- | ----------------------------------------- |
+| `nix run .#build` (full workspace) | ✅ Pass                                   |
+| `stack/sqlite` — test + race       | ✅ 14/14 Pass                             |
+| `stack/turso` — test + race        | ✅ 15/15 Pass                             |
+| `stack/postgres` — test + race     | ✅ Pass                                   |
+| `stack/sqlite` — lint              | ✅ 0 issues                               |
+| `stack/turso` — lint               | ✅ 0 issues                               |
 | `stack/postgres` — lint            | ⚠️ 4 pre-existing test issues              |
 | Full workspace — lint              | ⚠️ 33 pre-existing issues in other modules |
 

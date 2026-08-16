@@ -24,33 +24,33 @@ A final session completed **all P2 and P3 items**: upgraded 18 smoke tests to be
 
 ## a) FULLY DONE (Working & Verified)
 
-| #   | Item                              | Details                                                                                                                                | Verification                                     |
-| --- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| 1   | C010 method-name matching bug fix | Fold name receiver prefix stripped before matching                                                                                     | Build + tests pass                               |
-| 2   | Suppression filter rewrite        | Now reads actual source files instead of empty Snippet field; file-cache with fallback                                                 | 4 tests pass, including real-file test           |
-| 3   | Dead code removal                 | Removed `_ = sel` (correctness + boilerplate), dead `prefix` variable in `detectorCategory`                                            | Build passes                                     |
-| 4   | correctness/rules.go split        | 953 lines → 12 per-rule files (c001.go through c012.go) + helpers.go + doc.go                                                          | All <350 lines, tests pass                       |
-| 5   | api/rules.go split                | 580 lines → 8 per-rule files (a001.go through a008.go) + helpers.go + doc.go                                                           | All <350 lines, tests pass                       |
-| 6   | analyzer/builder.go split         | 452 lines → scanner.go (now split further) + ast_helpers.go                                                                            | All <350 lines, tests pass                       |
-| 7   | C004 + C011 correctness rules     | C004: checkpoint-before-async-complete; C011: nondeterministic-decider (rand.* in decider)                                             | Build passes, integration test finds 57 findings |
-| 8   | 19 new rules implemented          | A009-A019, B004-B014, D003-D005, E001-E007, S002-S003                                                                                  | Build passes, registered in pipeline             |
-| 9   | `--min-confidence` flag           | Filters findings by confidence level (low/medium/high)                                                                                 | CLI test passes                                  |
-| 10  | Config file support               | `.cqrs-lint.json` auto-loaded via cmdguard's `WithConfigFile`                                                                          | CLI build passes                                 |
-| 11  | Integration tests                 | 3 tests: full pipeline run against taskmanager (52 detectors, 57 findings), critical subset verification, category filter verification | All pass with workspace enabled                  |
-| 12  | README rewrite                    | Complete rule reference table (52 rules), CLI flags table, config file docs, architecture description                                  | Written                                          |
-| 13  | AGENTS.md updated                 | Module description updated: "52 rules across 6 categories"                                                                             | Written                                          |
-| 14  | nix fmt                           | All files formatted                                                                                                                    | 6 files changed on final run                     |
-| 15  | All workspace tests pass          | cqrs-lint (33 test functions) + event/command/decider/codec/dispatcher/metadata/schema/snapshot etc.                                   | Only pre-existing `id/v4` fuzz failure           |
-| 16  | No files exceed 350 lines         | All 71 .go files verified (was 56)                                                                                                     | `find` check passes                              |
-| 17  | **9 missing rules implemented**   | A011, A014, A017, B006, B007, B009, B010, B012, B015 — all with real detection logic                                                   | Build passes, all in `RegisterAll()`             |
-| 18  | **4 stub detectors replaced**     | E002 (circular dep via import graph), E003 (module boundary), E007 (query without handler), D005 (stale doc version)                   | Build passes, all produce real findings          |
-| 19  | **Depguard fixed**                | 28 new packages added to `.golangci.yml` allow list + cqrs-lint exclusion block                                                        | `nix run .#lint` → 0 issues                      |
-| 20  | **`os.Exit(1)` in `run()` fixed** | Returns `errFindingsWithErrors` sentinel error; cmdguard handles exit code                                                             | Function is now testable                         |
-| 21  | **scanner.go split**              | 346 lines → scanner.go (101) + scanner_calls.go (58) + scanner_folds.go (182)                                                          | All <350 lines                                   |
-| 22  | **A015 false positive fixed**     | Excludes `Err*`/`Sentinel*` prefixed variables from global mutable state detection                                                     | Test `TestA015_NoFindingForErrPrefix` passes     |
-| 23  | **Unit tests for all new rules**  | 5 new test files, 61 new test functions across all 6 rule categories                                                                   | 94 total test functions, all pass                |
-| 24  | **cqrs-lint wired into CI**       | Added to `flake.nix` lint/test/build module pipelines                                                                                  | `nix run .#lint` and `nix run .#test` include it |
-| 25  | **Lint clean — 0 issues**         | Fixed: contextcheck, errcheck, gosec, depguard, gocritic, nonamedreturns, predeclared, revive, staticcheck, wrapcheck                  | `nix run .#lint` → cqrs-lint: **0 issues**       |
+| #  | Item                              | Details                                                                                                                                | Verification                                     |
+| -- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| 1  | C010 method-name matching bug fix | Fold name receiver prefix stripped before matching                                                                                     | Build + tests pass                               |
+| 2  | Suppression filter rewrite        | Now reads actual source files instead of empty Snippet field; file-cache with fallback                                                 | 4 tests pass, including real-file test           |
+| 3  | Dead code removal                 | Removed `_ = sel` (correctness + boilerplate), dead `prefix` variable in `detectorCategory`                                            | Build passes                                     |
+| 4  | correctness/rules.go split        | 953 lines → 12 per-rule files (c001.go through c012.go) + helpers.go + doc.go                                                          | All <350 lines, tests pass                       |
+| 5  | api/rules.go split                | 580 lines → 8 per-rule files (a001.go through a008.go) + helpers.go + doc.go                                                           | All <350 lines, tests pass                       |
+| 6  | analyzer/builder.go split         | 452 lines → scanner.go (now split further) + ast_helpers.go                                                                            | All <350 lines, tests pass                       |
+| 7  | C004 + C011 correctness rules     | C004: checkpoint-before-async-complete; C011: nondeterministic-decider (rand.* in decider)                                             | Build passes, integration test finds 57 findings |
+| 8  | 19 new rules implemented          | A009-A019, B004-B014, D003-D005, E001-E007, S002-S003                                                                                  | Build passes, registered in pipeline             |
+| 9  | `--min-confidence` flag           | Filters findings by confidence level (low/medium/high)                                                                                 | CLI test passes                                  |
+| 10 | Config file support               | `.cqrs-lint.json` auto-loaded via cmdguard's `WithConfigFile`                                                                          | CLI build passes                                 |
+| 11 | Integration tests                 | 3 tests: full pipeline run against taskmanager (52 detectors, 57 findings), critical subset verification, category filter verification | All pass with workspace enabled                  |
+| 12 | README rewrite                    | Complete rule reference table (52 rules), CLI flags table, config file docs, architecture description                                  | Written                                          |
+| 13 | AGENTS.md updated                 | Module description updated: "52 rules across 6 categories"                                                                             | Written                                          |
+| 14 | nix fmt                           | All files formatted                                                                                                                    | 6 files changed on final run                     |
+| 15 | All workspace tests pass          | cqrs-lint (33 test functions) + event/command/decider/codec/dispatcher/metadata/schema/snapshot etc.                                   | Only pre-existing `id/v4` fuzz failure           |
+| 16 | No files exceed 350 lines         | All 71 .go files verified (was 56)                                                                                                     | `find` check passes                              |
+| 17 | **9 missing rules implemented**   | A011, A014, A017, B006, B007, B009, B010, B012, B015 — all with real detection logic                                                   | Build passes, all in `RegisterAll()`             |
+| 18 | **4 stub detectors replaced**     | E002 (circular dep via import graph), E003 (module boundary), E007 (query without handler), D005 (stale doc version)                   | Build passes, all produce real findings          |
+| 19 | **Depguard fixed**                | 28 new packages added to `.golangci.yml` allow list + cqrs-lint exclusion block                                                        | `nix run .#lint` → 0 issues                      |
+| 20 | **`os.Exit(1)` in `run()` fixed** | Returns `errFindingsWithErrors` sentinel error; cmdguard handles exit code                                                             | Function is now testable                         |
+| 21 | **scanner.go split**              | 346 lines → scanner.go (101) + scanner_calls.go (58) + scanner_folds.go (182)                                                          | All <350 lines                                   |
+| 22 | **A015 false positive fixed**     | Excludes `Err*`/`Sentinel*` prefixed variables from global mutable state detection                                                     | Test `TestA015_NoFindingForErrPrefix` passes     |
+| 23 | **Unit tests for all new rules**  | 5 new test files, 61 new test functions across all 6 rule categories                                                                   | 94 total test functions, all pass                |
+| 24 | **cqrs-lint wired into CI**       | Added to `flake.nix` lint/test/build module pipelines                                                                                  | `nix run .#lint` and `nix run .#test` include it |
+| 25 | **Lint clean — 0 issues**         | Fixed: contextcheck, errcheck, gosec, depguard, gocritic, nonamedreturns, predeclared, revive, staticcheck, wrapcheck                  | `nix run .#lint` → cqrs-lint: **0 issues**       |
 
 ---
 
@@ -58,35 +58,35 @@ A final session completed **all P2 and P3 items**: upgraded 18 smoke tests to be
 
 > **Previously had 4 partial items. All 4 are now resolved. P2/P3 session further improved test quality.**
 
-| #   | Item                      | Status                                                                                                                                                                           |
-| --- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Rule implementation       | **RESOLVED** — All 61 rules now have real detectors. The 9 missing rules (A011, A014, A017, B006, B007, B009, B010, B012, B015) are implemented and registered.                  |
-| 2   | Stub detectors            | **RESOLVED** — All 4 stubs (E002, E003, E007, D005) replaced with real detection logic.                                                                                          |
-| 3   | Test coverage             | **RESOLVED** — 122 test functions now exist (was 33). 38 of 61 rules have positive detection assertions. 18 smoke tests were upgraded to behavioral assertions in P2/P3 session. |
-| 4   | CLI migration to cmdguard | **RESOLVED** — `os.Exit(1)` removed from `run()` and `commands.go`. All subcommand setup functions now return errors.                                                            |
+| # | Item                      | Status                                                                                                                                                                           |
+| - | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Rule implementation       | **RESOLVED** — All 61 rules now have real detectors. The 9 missing rules (A011, A014, A017, B006, B007, B009, B010, B012, B015) are implemented and registered.                  |
+| 2 | Stub detectors            | **RESOLVED** — All 4 stubs (E002, E003, E007, D005) replaced with real detection logic.                                                                                          |
+| 3 | Test coverage             | **RESOLVED** — 122 test functions now exist (was 33). 38 of 61 rules have positive detection assertions. 18 smoke tests were upgraded to behavioral assertions in P2/P3 session. |
+| 4 | CLI migration to cmdguard | **RESOLVED** — `os.Exit(1)` removed from `run()` and `commands.go`. All subcommand setup functions now return errors.                                                            |
 
 ---
 
 ## c) NOT STARTED
 
-| #   | Item                                      | Impact       | Status                                                                                                                                |
-| --- | ----------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Depguard allow list update                | ~~BLOCKING~~ | **DONE** — 28 packages added to allow list + exclusion block                                                                          |
-| 2   | Dependency budget review                  | **RESOLVED** | User accepted cmdguard deps: "cmdguard is fine"                                                                                       |
-| 3   | `check-layers` script update              | Medium       | Not started — cqrs-lint's dependency graph not in check-module-layers.sh                                                              |
-| 4   | Snippet field population                  | Medium       | **PARTIALLY DONE** — correctness rules (C001-C012) + S001 done (14 of 30 detector files). API/boilerplate/architecture still missing. |
-| 5   | `--only` flag for individual rule IDs     | Medium       | **DONE** — `FilterByRuleIDs()` + `IsRuleID()` auto-detects rule IDs vs categories                                                     |
-| 6   | Doctor command                            | Low          | Not started                                                                                                                           |
-| 7   | Version subcommand using cmdguard version | Low          | Not started — uses custom `version` string                                                                                            |
-| 8   | Colored terminal output                   | Low          | **DONE** — `--color auto                                                                                                              | always | never` with ANSI codes |
-| 9   | `cqrs-lint init` command                  | Low          | **DONE** — creates `.cqrs-lint.json` template                                                                                         |
-| 10  | `--exclude` path exclusion                | Medium       | **DONE** — `filterByExcludedPaths()` in filters.go                                                                                    |
-| 11  | CONTRIBUTING.md                           | Low          | **DONE** — rule development guide written                                                                                             |
-| 12  | Golden file tests (JSON)                  | Low          | **DONE** — `testdata/json_output.json`                                                                                                |
-| 13  | Golden file tests (SARIF)                 | Low          | Not started — JSON golden exists, SARIF does not                                                                                      |
-| 14  | Benchmark tests                           | Low          | **DONE** — 3 benchmarks (C001, RegisterAll, FilterByRuleIDs)                                                                          |
-| 15  | Update README rule tables (61 rules)      | **High**     | Not started — README still says "52 rules"                                                                                            |
-| 16  | Update AGENTS.md (61 rules)               | **High**     | Not started — AGENTS.md still says "52 rules"                                                                                         |
+| #  | Item                                      | Impact       | Status                                                                                                                                |
+| -- | ----------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Depguard allow list update                | ~~BLOCKING~~ | **DONE** — 28 packages added to allow list + exclusion block                                                                          |
+| 2  | Dependency budget review                  | **RESOLVED** | User accepted cmdguard deps: "cmdguard is fine"                                                                                       |
+| 3  | `check-layers` script update              | Medium       | Not started — cqrs-lint's dependency graph not in check-module-layers.sh                                                              |
+| 4  | Snippet field population                  | Medium       | **PARTIALLY DONE** — correctness rules (C001-C012) + S001 done (14 of 30 detector files). API/boilerplate/architecture still missing. |
+| 5  | `--only` flag for individual rule IDs     | Medium       | **DONE** — `FilterByRuleIDs()` + `IsRuleID()` auto-detects rule IDs vs categories                                                     |
+| 6  | Doctor command                            | Low          | Not started                                                                                                                           |
+| 7  | Version subcommand using cmdguard version | Low          | Not started — uses custom `version` string                                                                                            |
+| 8  | Colored terminal output                   | Low          | **DONE** — `--color auto                                                                                                              |
+| 9  | `cqrs-lint init` command                  | Low          | **DONE** — creates `.cqrs-lint.json` template                                                                                         |
+| 10 | `--exclude` path exclusion                | Medium       | **DONE** — `filterByExcludedPaths()` in filters.go                                                                                    |
+| 11 | CONTRIBUTING.md                           | Low          | **DONE** — rule development guide written                                                                                             |
+| 12 | Golden file tests (JSON)                  | Low          | **DONE** — `testdata/json_output.json`                                                                                                |
+| 13 | Golden file tests (SARIF)                 | Low          | Not started — JSON golden exists, SARIF does not                                                                                      |
+| 14 | Benchmark tests                           | Low          | **DONE** — 3 benchmarks (C001, RegisterAll, FilterByRuleIDs)                                                                          |
+| 15 | Update README rule tables (61 rules)      | **High**     | Not started — README still says "52 rules"                                                                                            |
+| 16 | Update AGENTS.md (61 rules)               | **High**     | Not started — AGENTS.md still says "52 rules"                                                                                         |
 
 ---
 
@@ -94,19 +94,19 @@ A final session completed **all P2 and P3 items**: upgraded 18 smoke tests to be
 
 > **Previously had 7 issues. ALL are now RESOLVED. P2/P3 session found 2 new critical bugs (both fixed) and 1 doc drift issue.**
 
-| #   | Issue                                               | Severity     | Status                                                                                                                                                   |
-| --- | --------------------------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Dependency explosion from cmdguard**              | ~~CRITICAL~~ | **ACCEPTED** — User decided "cmdguard is fine". 52 transitive deps documented in depguard allow list.                                                    |
-| 2   | **`os.Exit(1)` inside `run()` function**            | ~~High~~     | **FIXED** — Returns `errFindingsWithErrors` sentinel. `commands.go` now also returns errors.                                                             |
-| 3   | **`AConfig` struct tag formatting**                 | ~~Medium~~   | **FIXED** — `nix fmt` resolved alignment; no longer an issue.                                                                                            |
-| 4   | **`scanner.go` at 346 lines — barely under limit**  | ~~Medium~~   | **FIXED** — Split into scanner.go (101) + scanner_calls.go (58) + scanner_folds.go (182).                                                                |
-| 5   | **Broken git index warnings**                       | ~~Low~~      | **FIXED** — `git add` staged all deletions.                                                                                                              |
-| 6   | **Test quality is uneven**                          | ~~High~~     | **FIXED** — 18 smoke tests upgraded to behavioral assertions. 38 of 61 rules now have positive detection tests.                                          |
-| 7   | **`extraRulesNew()` is a terrible name**            | ~~Low~~      | **FIXED** — Renamed to `extraRulesBatch2()`.                                                                                                             |
-| 8   | **NEW: `filterBySeverity` alphabetical comparison** | ~~CRITICAL~~ | **FIXED** — Was completely broken (`"critical" < "error"` alphabetically inverted filtering). Now uses `Severity.Compare()`. Found during P2/P3 session. |
-| 9   | **NEW: `hasErrors` same alphabetical bug**          | ~~High~~     | **FIXED** — Same root cause as #8. Now uses `Severity.Compare(SeverityError) >= 0`.                                                                      |
-| 10  | **NEW: README + AGENTS.md say "52 rules"**          | **High**     | Documentation drift. The `rules` command lists 61 rules but README and AGENTS.md still say 52. **Not yet fixed.**                                        |
-| 11  | **NEW: `init` config template key mismatch**        | **Medium**   | Template uses `min_severity` (underscore) but struct tags use `min-severity` (hyphen). **Not yet fixed.**                                                |
+| #  | Issue                                               | Severity     | Status                                                                                                                                                   |
+| -- | --------------------------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | **Dependency explosion from cmdguard**              | ~~CRITICAL~~ | **ACCEPTED** — User decided "cmdguard is fine". 52 transitive deps documented in depguard allow list.                                                    |
+| 2  | **`os.Exit(1)` inside `run()` function**            | ~~High~~     | **FIXED** — Returns `errFindingsWithErrors` sentinel. `commands.go` now also returns errors.                                                             |
+| 3  | **`AConfig` struct tag formatting**                 | ~~Medium~~   | **FIXED** — `nix fmt` resolved alignment; no longer an issue.                                                                                            |
+| 4  | **`scanner.go` at 346 lines — barely under limit**  | ~~Medium~~   | **FIXED** — Split into scanner.go (101) + scanner_calls.go (58) + scanner_folds.go (182).                                                                |
+| 5  | **Broken git index warnings**                       | ~~Low~~      | **FIXED** — `git add` staged all deletions.                                                                                                              |
+| 6  | **Test quality is uneven**                          | ~~High~~     | **FIXED** — 18 smoke tests upgraded to behavioral assertions. 38 of 61 rules now have positive detection tests.                                          |
+| 7  | **`extraRulesNew()` is a terrible name**            | ~~Low~~      | **FIXED** — Renamed to `extraRulesBatch2()`.                                                                                                             |
+| 8  | **NEW: `filterBySeverity` alphabetical comparison** | ~~CRITICAL~~ | **FIXED** — Was completely broken (`"critical" < "error"` alphabetically inverted filtering). Now uses `Severity.Compare()`. Found during P2/P3 session. |
+| 9  | **NEW: `hasErrors` same alphabetical bug**          | ~~High~~     | **FIXED** — Same root cause as #8. Now uses `Severity.Compare(SeverityError) >= 0`.                                                                      |
+| 10 | **NEW: README + AGENTS.md say "52 rules"**          | **High**     | Documentation drift. The `rules` command lists 61 rules but README and AGENTS.md still say 52. **Not yet fixed.**                                        |
+| 11 | **NEW: `init` config template key mismatch**        | **Medium**   | Template uses `min_severity` (underscore) but struct tags use `min-severity` (hyphen). **Not yet fixed.**                                                |
 
 ---
 
@@ -156,14 +156,14 @@ A final session completed **all P2 and P3 items**: upgraded 18 smoke tests to be
 
 ### P0 — Blocking ~~(must fix before merge)~~ ✅ ALL DONE
 
-| #   | Task                                                                   | Status              |
-| --- | ---------------------------------------------------------------------- | ------------------- |
-| 1   | ~~Fix depguard allow list~~                                            | **DONE**            |
-| 2   | ~~Replace `os.Exit(1)` in `run()` with returned sentinel error~~       | **DONE**            |
-| 3   | ~~Run `nix run .#lint` on cqrs-lint module and fix ALL linter errors~~ | **DONE**            |
-| 4   | ~~Run `nix run .#build` and verify it compiles cqrs-lint~~             | **DONE**            |
-| 5   | ~~Stage deleted files with `git add` to fix git index warnings~~       | **DONE**            |
-| 6   | ~~Audit dependency budget~~                                            | **DONE** (accepted) |
+| # | Task                                                                   | Status              |
+| - | ---------------------------------------------------------------------- | ------------------- |
+| 1 | ~~Fix depguard allow list~~                                            | **DONE**            |
+| 2 | ~~Replace `os.Exit(1)` in `run()` with returned sentinel error~~       | **DONE**            |
+| 3 | ~~Run `nix run .#lint` on cqrs-lint module and fix ALL linter errors~~ | **DONE**            |
+| 4 | ~~Run `nix run .#build` and verify it compiles cqrs-lint~~             | **DONE**            |
+| 5 | ~~Stage deleted files with `git add` to fix git index warnings~~       | **DONE**            |
+| 6 | ~~Audit dependency budget~~                                            | **DONE** (accepted) |
 
 ### P1 — High Impact ✅ ALL DONE
 
@@ -175,19 +175,19 @@ A final session completed **all P2 and P3 items**: upgraded 18 smoke tests to be
 
 ### P2 — Quality Improvements
 
-| #   | Task                                                                                | Status                                    |
-| --- | ----------------------------------------------------------------------------------- | ----------------------------------------- |
-| 30  | Populate `Finding.Snippet` field in all detectors                                   | **PARTIALLY DONE** (14/30 detector files) |
-| 31  | ~~Add `--only C001,C002` flag for individual rule selection~~                       | **DONE**                                  |
-| 32  | ~~Split `scanner.go` (346 lines) proactively~~                                      | **DONE**                                  |
-| 33  | Split `helpers.go` (332 lines) proactively into helpers_tx.go + helpers_ast.go      | Not started                               |
-| 34  | ~~Fix A015 false positive risk~~                                                    | **DONE**                                  |
-| 35  | ~~Add golden file tests for JSON output stability~~                                 | **DONE**                                  |
-| 36  | ~~Add benchmark tests for pipeline performance~~                                    | **DONE**                                  |
-| 37  | Wire up cmdguard `DoctorCommand` for environment diagnostics                        | Not started                               |
-| 38  | Pin go-finding and cmdguard with proper version tags                                | Not started                               |
-| 39  | Update `scripts/check-module-layers.sh` for cqrs-lint dependency graph              | Not started                               |
-| 40  | Add `--rules-config` flag for custom rule severity/confidence overrides per project | Not started                               |
+| #  | Task                                                                                | Status                                    |
+| -- | ----------------------------------------------------------------------------------- | ----------------------------------------- |
+| 30 | Populate `Finding.Snippet` field in all detectors                                   | **PARTIALLY DONE** (14/30 detector files) |
+| 31 | ~~Add `--only C001,C002` flag for individual rule selection~~                       | **DONE**                                  |
+| 32 | ~~Split `scanner.go` (346 lines) proactively~~                                      | **DONE**                                  |
+| 33 | Split `helpers.go` (332 lines) proactively into helpers_tx.go + helpers_ast.go      | Not started                               |
+| 34 | ~~Fix A015 false positive risk~~                                                    | **DONE**                                  |
+| 35 | ~~Add golden file tests for JSON output stability~~                                 | **DONE**                                  |
+| 36 | ~~Add benchmark tests for pipeline performance~~                                    | **DONE**                                  |
+| 37 | Wire up cmdguard `DoctorCommand` for environment diagnostics                        | Not started                               |
+| 38 | Pin go-finding and cmdguard with proper version tags                                | Not started                               |
+| 39 | Update `scripts/check-module-layers.sh` for cqrs-lint dependency graph              | Not started                               |
+| 40 | Add `--rules-config` flag for custom rule severity/confidence overrides per project | Not started                               |
 
 ### P2.5 — Test Quality Upgrades (from completion report) — ✅ ALL DONE
 
@@ -202,18 +202,18 @@ A final session completed **all P2 and P3 items**: upgraded 18 smoke tests to be
 
 ### P3 — Polish
 
-| #   | Task                                                                        | Status      |
-| --- | --------------------------------------------------------------------------- | ----------- |
-| 41  | ~~Improve S002 PII detection (analyze struct fields, not just type names)~~ | **DONE**    |
-| 42  | ~~Improve B008 retry detection (detect backoff patterns without Sleep)~~    | **DONE**    |
-| 43  | ~~Add `--exclude` flag for path exclusion patterns~~                        | **DONE**    |
-| 44  | ~~Add colored text output for terminal (red/yellow/green by severity)~~     | **DONE**    |
-| 45  | Add `--watch` mode for continuous linting on file change                    | Not started |
-| 46  | ~~Add `cqrs-lint init` command to generate `.cqrs-lint.json` template~~     | **DONE**    |
-| 47  | Add SARIF rule metadata (help URLs, CWE mapping for security rules)         | Not started |
-| 48  | Add `.cqrs-lintignore` file support (path-based exclusions)                 | Not started |
-| 49  | ~~Create CONTRIBUTING.md with rule development guide~~                      | **DONE**    |
-| 50  | Add pre-commit hook installation (`cqrs-lint install-hooks`)                | Not started |
+| #  | Task                                                                        | Status      |
+| -- | --------------------------------------------------------------------------- | ----------- |
+| 41 | ~~Improve S002 PII detection (analyze struct fields, not just type names)~~ | **DONE**    |
+| 42 | ~~Improve B008 retry detection (detect backoff patterns without Sleep)~~    | **DONE**    |
+| 43 | ~~Add `--exclude` flag for path exclusion patterns~~                        | **DONE**    |
+| 44 | ~~Add colored text output for terminal (red/yellow/green by severity)~~     | **DONE**    |
+| 45 | Add `--watch` mode for continuous linting on file change                    | Not started |
+| 46 | ~~Add `cqrs-lint init` command to generate `.cqrs-lint.json` template~~     | **DONE**    |
+| 47 | Add SARIF rule metadata (help URLs, CWE mapping for security rules)         | Not started |
+| 48 | Add `.cqrs-lintignore` file support (path-based exclusions)                 | Not started |
+| 49 | ~~Create CONTRIBUTING.md with rule development guide~~                      | **DONE**    |
+| 50 | Add pre-commit hook installation (`cqrs-lint install-hooks`)                | Not started |
 
 ---
 

@@ -39,7 +39,7 @@
 
 ## a) FULLY DONE
 
-1. _*All 2026-08-* files read_* — ~150 files inventoried, ~30 recent status reports + 7 planning docs read in detail
+1. __All 2026-08-_ files read_* — ~150 files inventoried, ~30 recent status reports + 7 planning docs read in detail
 2. **Forward-looking items harvested** — ~400 raw items extracted, deduplicated to ~149 genuinely open
 3. **Code verification** — rule counts, module counts, tag existence, key function existence all checked against code
 4. **TODO_LIST.md rebuilt** — 30+ completed items removed, 51 open items retained/added, 0 "Previously Completed" sections

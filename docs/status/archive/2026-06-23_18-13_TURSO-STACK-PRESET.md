@@ -259,15 +259,15 @@ Turso.
 
 ## Build & Test Status
 
-| Check                               | Status                                    |
-| ----------------------------------- | ----------------------------------------- |
-| `go build ./...` (stack/turso)      | ✅ Pass                                   |
-| `go vet ./...` (stack/turso)        | ✅ Pass                                   |
-| `go test ./... -race` (stack/turso) | ✅ 10/10 Pass                             |
-| `nix run .#build` (full workspace)  | ✅ Pass                                   |
-| `nix run .#lint` (stack/turso)      | ✅ 0 errors                               |
+| Check                               | Status                                   |
+| ----------------------------------- | ---------------------------------------- |
+| `go build ./...` (stack/turso)      | ✅ Pass                                  |
+| `go vet ./...` (stack/turso)        | ✅ Pass                                  |
+| `go test ./... -race` (stack/turso) | ✅ 10/10 Pass                            |
+| `nix run .#build` (full workspace)  | ✅ Pass                                  |
+| `nix run .#lint` (stack/turso)      | ✅ 0 errors                              |
 | `nix run .#lint` (full workspace)   | ⚠️ 9 pre-existing errors in other modules |
-| `nix fmt`                           | ✅ Applied                                |
+| `nix fmt`                           | ✅ Applied                               |
 
 ## Numbers
 

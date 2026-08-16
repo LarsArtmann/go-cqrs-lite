@@ -23,27 +23,27 @@ Auto-commit daemon has already committed all work (commits `e69547e3`, `6b52c03a
 
 ### Extractions applied (production code)
 
-| #   | Module                           | Helper extracted                                                  | Sites consolidated                            | Build | Test |
-| --- | -------------------------------- | ----------------------------------------------------------------- | --------------------------------------------- | ----- | ---- |
-| 1   | `cmd/cqrs-lint/pkg/analyzer`     | `selectorNameAndPkg(call)` → returns `(funcName, pkgName, ok)`    | 2 (scanner.go, scanner_calls.go)              | ✅    | ✅   |
-| 2   | `storage/turso/indexing`         | `(a *AutoIndexer) setEnabled(bool)`                               | 3 (Enable, Disable, Close)                    | ✅    | ✅   |
-| 3   | `storage/pebble`                 | `(a *EventStore) journalReadSpan(ctx, name) (span, lower, upper)` | 2 (ReadAll, ReadStream)                       | ✅    | ✅   |
-| 4   | `storage/pebble`                 | Reused existing `journalBounds()` in `ReadFrom` upper bound       | 1                                             | ✅    | ✅   |
-| 5   | `metaengine`                     | `findValueByType(input, type, skip)` with skip predicate          | 2 (extractValueByType, extractKeyValueByType) | ✅    | ✅   |
-| 6   | `kv`                             | `(s *MemStore) runLocked(lock, unlock, fn)`                       | 2 (withRLock, withLock)                       | ✅    | ✅   |
-| 7   | `storage/memory` (command_store) | `(s *MemoryCommandStore) withWriteLock(code, msg, fn)`            | 2 (Save, AppendBatch)                         | ✅    | ✅   |
-| 8   | `storage/memory` (snapshot)      | `(s *MemorySnapshotStore) withWriteLock(code, msg, fn)`           | 2 (Save, Delete)                              | ✅    | ✅   |
+| # | Module                           | Helper extracted                                                  | Sites consolidated                            | Build | Test |
+| - | -------------------------------- | ----------------------------------------------------------------- | --------------------------------------------- | ----- | ---- |
+| 1 | `cmd/cqrs-lint/pkg/analyzer`     | `selectorNameAndPkg(call)` → returns `(funcName, pkgName, ok)`    | 2 (scanner.go, scanner_calls.go)              | ✅    | ✅   |
+| 2 | `storage/turso/indexing`         | `(a *AutoIndexer) setEnabled(bool)`                               | 3 (Enable, Disable, Close)                    | ✅    | ✅   |
+| 3 | `storage/pebble`                 | `(a *EventStore) journalReadSpan(ctx, name) (span, lower, upper)` | 2 (ReadAll, ReadStream)                       | ✅    | ✅   |
+| 4 | `storage/pebble`                 | Reused existing `journalBounds()` in `ReadFrom` upper bound       | 1                                             | ✅    | ✅   |
+| 5 | `metaengine`                     | `findValueByType(input, type, skip)` with skip predicate          | 2 (extractValueByType, extractKeyValueByType) | ✅    | ✅   |
+| 6 | `kv`                             | `(s *MemStore) runLocked(lock, unlock, fn)`                       | 2 (withRLock, withLock)                       | ✅    | ✅   |
+| 7 | `storage/memory` (command_store) | `(s *MemoryCommandStore) withWriteLock(code, msg, fn)`            | 2 (Save, AppendBatch)                         | ✅    | ✅   |
+| 8 | `storage/memory` (snapshot)      | `(s *MemorySnapshotStore) withWriteLock(code, msg, fn)`           | 2 (Save, Delete)                              | ✅    | ✅   |
 
 ### Extractions applied (test code)
 
-| #   | Module                 | Helper                                                                  | Occurrences simplified |
-| --- | ---------------------- | ----------------------------------------------------------------------- | ---------------------- |
-| 9   | `benchkit`             | `parallelTimeoutCtx(t, timeout)`                                        | 17                     |
-| 10  | `storage/view`         | `parallelViewStore(t)`                                                  | 21 (across 5 files)    |
-| 11  | `catalog`              | Variadic `cattest.NewTestRegistry(svc...)` — collapsed 2-call to 1-call | 23 (across 7 files)    |
-| 12  | `catalog/eventcatalog` | `parallelExportEnv(t) (tmpDir, reg)`                                    | 9                      |
-| 13  | `stack/contracttest`   | `parallelBundle(t, factory)`                                            | 4                      |
-| 14  | `event/v4/eventtest`   | `newTestStreamEvent(t, cfg) (aggID, evt)`                               | 2                      |
+| #  | Module                 | Helper                                                                  | Occurrences simplified |
+| -- | ---------------------- | ----------------------------------------------------------------------- | ---------------------- |
+| 9  | `benchkit`             | `parallelTimeoutCtx(t, timeout)`                                        | 17                     |
+| 10 | `storage/view`         | `parallelViewStore(t)`                                                  | 21 (across 5 files)    |
+| 11 | `catalog`              | Variadic `cattest.NewTestRegistry(svc...)` — collapsed 2-call to 1-call | 23 (across 7 files)    |
+| 12 | `catalog/eventcatalog` | `parallelExportEnv(t) (tmpDir, reg)`                                    | 9                      |
+| 13 | `stack/contracttest`   | `parallelBundle(t, factory)`                                            | 4                      |
+| 14 | `event/v4/eventtest`   | `newTestStreamEvent(t, cfg) (aggID, evt)`                               | 2                      |
 
 ### Documentation
 

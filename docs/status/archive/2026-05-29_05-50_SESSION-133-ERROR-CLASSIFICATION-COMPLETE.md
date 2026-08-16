@@ -193,33 +193,33 @@ The gopls diagnostics show 390+ "go mod tidy" errors for BDD test files that nee
 
 ## f) Top 25 Things to Get Done Next
 
-| #   | Task                                                                  | Impact | Effort | Module     |
-| --- | --------------------------------------------------------------------- | ------ | ------ | ---------- |
-| 1   | **Commit the 17 pre-existing uncommitted files** (prior session work) | HIGH   | LOW    | all        |
-| 2   | **Commit or delete the codec/ module**                                | HIGH   | LOW    | codec      |
-| 3   | **Classify catalog/ errors** (29 `fmt.Errorf` → classified)           | MED    | MED    | catalog    |
-| 4   | **Classify core/pkg/id/ errors** (3 calls → `event.WrapRejection`)    | MED    | LOW    | core       |
-| 5   | **Classify projection/health.go errors** (2 calls)                    | LOW    | LOW    | projection |
-| 6   | **Classify saga/health.go error** (1 call)                            | LOW    | LOW    | saga       |
-| 7   | **Push signing/v1.0.0 tag** if not already done                       | HIGH   | LOW    | signing    |
-| 8   | **Remove replace directives** from go.mod files (after v1.0.0 tags)   | HIGH   | MED    | all        |
-| 9   | **Add ProcessedAt to CheckpointStore**                                | MED    | MED    | core       |
-| 10  | **Build catch-up projection runner**                                  | HIGH   | HIGH   | projection |
-| 11  | **Add stream module integration tests**                               | MED    | MED    | stream     |
-| 12  | **Add stream SQL reader tests**                                       | MED    | MED    | stream     |
-| 13  | **Add example/user/ smoke test**                                      | MED    | LOW    | example    |
-| 14  | **Rewrite example/user/ for full CQRS demo**                          | HIGH   | HIGH   | example    |
-| 15  | **Add fuzz tests** for event creation, ID parsing, upcaster chain     | MED    | MED    | core       |
-| 16  | **Parallelize CI** — one job per module                               | MED    | MED    | CI         |
-| 17  | **Split large test files** (decider_test.go, runner_test.go)          | LOW    | MED    | tests      |
-| 18  | **Enforce 350-line limit via pre-commit hook**                        | LOW    | MED    | CI         |
-| 19  | **Add gofumpt/goimports to pre-commit**                               | LOW    | LOW    | CI         |
-| 20  | **Benchmark storage backends** (PG vs SQLite vs Pebble)               | MED    | HIGH   | storage    |
-| 21  | **Add E2E throughput benchmarks**                                     | MED    | MED    | tests      |
-| 22  | **Add background polling for InMemoryRunner**                         | MED    | MED    | core       |
-| 23  | **Add projection parallel processing** (goroutine pool)               | MED    | HIGH   | projection |
-| 24  | **Performance regression CI** (bench comparison on PRs)               | MED    | MED    | CI         |
-| 25  | **Suppress gopls "go mod tidy" noise** for BDD test files             | LOW    | LOW    | tooling    |
+| #  | Task                                                                  | Impact | Effort | Module     |
+| -- | --------------------------------------------------------------------- | ------ | ------ | ---------- |
+| 1  | **Commit the 17 pre-existing uncommitted files** (prior session work) | HIGH   | LOW    | all        |
+| 2  | **Commit or delete the codec/ module**                                | HIGH   | LOW    | codec      |
+| 3  | **Classify catalog/ errors** (29 `fmt.Errorf` → classified)           | MED    | MED    | catalog    |
+| 4  | **Classify core/pkg/id/ errors** (3 calls → `event.WrapRejection`)    | MED    | LOW    | core       |
+| 5  | **Classify projection/health.go errors** (2 calls)                    | LOW    | LOW    | projection |
+| 6  | **Classify saga/health.go error** (1 call)                            | LOW    | LOW    | saga       |
+| 7  | **Push signing/v1.0.0 tag** if not already done                       | HIGH   | LOW    | signing    |
+| 8  | **Remove replace directives** from go.mod files (after v1.0.0 tags)   | HIGH   | MED    | all        |
+| 9  | **Add ProcessedAt to CheckpointStore**                                | MED    | MED    | core       |
+| 10 | **Build catch-up projection runner**                                  | HIGH   | HIGH   | projection |
+| 11 | **Add stream module integration tests**                               | MED    | MED    | stream     |
+| 12 | **Add stream SQL reader tests**                                       | MED    | MED    | stream     |
+| 13 | **Add example/user/ smoke test**                                      | MED    | LOW    | example    |
+| 14 | **Rewrite example/user/ for full CQRS demo**                          | HIGH   | HIGH   | example    |
+| 15 | **Add fuzz tests** for event creation, ID parsing, upcaster chain     | MED    | MED    | core       |
+| 16 | **Parallelize CI** — one job per module                               | MED    | MED    | CI         |
+| 17 | **Split large test files** (decider_test.go, runner_test.go)          | LOW    | MED    | tests      |
+| 18 | **Enforce 350-line limit via pre-commit hook**                        | LOW    | MED    | CI         |
+| 19 | **Add gofumpt/goimports to pre-commit**                               | LOW    | LOW    | CI         |
+| 20 | **Benchmark storage backends** (PG vs SQLite vs Pebble)               | MED    | HIGH   | storage    |
+| 21 | **Add E2E throughput benchmarks**                                     | MED    | MED    | tests      |
+| 22 | **Add background polling for InMemoryRunner**                         | MED    | MED    | core       |
+| 23 | **Add projection parallel processing** (goroutine pool)               | MED    | HIGH   | projection |
+| 24 | **Performance regression CI** (bench comparison on PRs)               | MED    | MED    | CI         |
+| 25 | **Suppress gopls "go mod tidy" noise** for BDD test files             | LOW    | LOW    | tooling    |
 
 ---
 

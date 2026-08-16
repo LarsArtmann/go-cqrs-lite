@@ -63,6 +63,7 @@ no reliance on DQL `offset` semantics). Positional semantics match every dense-s
 position == seq.
 
 **Test hardening:**
+
 - `TestStreamLog_JournalReadFrom`: exact counts now (skip-1 → 2 entries starting "v1";
   limit 1 → first entry; resume past end → empty)
 - New `TestStreamLog_HarnessParity` wires `enginetest.RunStreamLogBackendTest` — dgraph was the
@@ -142,7 +143,6 @@ The sibling's bump was NOT touched (not my change to revert).
    go-cqrs-lite formally moves to Go 1.26.6 (per-module go.mod + CI + nixpkgs go pin) or the
    sibling bump lands back at 1.26.5. The go.work-only bump unblocks dev but is a half-state.
 3. SA1019 exclusion permanence (from prior session, unchanged). <- OPEN. TODO_LIST 'v5 Unification Phase 8' (kvstore SA1019 decision) + ROADMAP 'Open Questions' #3
-
 
 ---
 

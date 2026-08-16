@@ -105,48 +105,48 @@ implementing domain interfaces directly per storage module.
 
 ### Tier 1: Unblock & Fix (do NOW)
 
-| #   | Task                                                                                       | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------ | ------ | ------ |
-| 1   | Commit the 8 uncommitted files (AGENTS.md, docs, listing/doc.go, otel/attributes.go, etc.) | HIGH   | 5 min  |
-| 2   | Fix listing/README.md `stream` → `listing` import references                               | MEDIUM | 5 min  |
-| 3   | Fix FEATURES.md stale `stream` references                                                  | MEDIUM | 10 min |
-| 4   | Verify and fix flake.nix module list                                                       | MEDIUM | 10 min |
-| 5   | Verify and fix ci.yml module list                                                          | MEDIUM | 10 min |
+| # | Task                                                                                       | Impact | Effort |
+| - | ------------------------------------------------------------------------------------------ | ------ | ------ |
+| 1 | Commit the 8 uncommitted files (AGENTS.md, docs, listing/doc.go, otel/attributes.go, etc.) | HIGH   | 5 min  |
+| 2 | Fix listing/README.md `stream` → `listing` import references                               | MEDIUM | 5 min  |
+| 3 | Fix FEATURES.md stale `stream` references                                                  | MEDIUM | 10 min |
+| 4 | Verify and fix flake.nix module list                                                       | MEDIUM | 10 min |
+| 5 | Verify and fix ci.yml module list                                                          | MEDIUM | 10 min |
 
 ### Tier 2: Pebble Completeness
 
-| #   | Task                                                                       | Impact | Effort |
-| --- | -------------------------------------------------------------------------- | ------ | ------ |
-| 6   | PebbleCheckpointStore (`event.CheckpointStore` on `*pebble.DB`)            | HIGH   | LOW    |
-| 7   | PebbleSnapshotStore (`event.SnapshotStore` on `*pebble.DB`)                | HIGH   | LOW    |
-| 8   | PebbleOutbox (`event.Outbox` on `*pebble.DB`)                              | HIGH   | MEDIUM |
-| 9   | PebbleBackwardsSource (reverse iteration on aggregate prefix)              | MEDIUM | LOW    |
-| 10  | PebbleJournal (ReadAll — full scan + sort, document O(N log N))            | MEDIUM | MEDIUM |
-| 11  | PebbleSeekableJournal (ReadFrom — secondary index `journal:{ulid}`)        | MEDIUM | HIGH   |
-| 12  | Unified PebbleBackend facade (like `SQLBackend` — wires all Pebble stores) | MEDIUM | LOW    |
+| #  | Task                                                                       | Impact | Effort |
+| -- | -------------------------------------------------------------------------- | ------ | ------ |
+| 6  | PebbleCheckpointStore (`event.CheckpointStore` on `*pebble.DB`)            | HIGH   | LOW    |
+| 7  | PebbleSnapshotStore (`event.SnapshotStore` on `*pebble.DB`)                | HIGH   | LOW    |
+| 8  | PebbleOutbox (`event.Outbox` on `*pebble.DB`)                              | HIGH   | MEDIUM |
+| 9  | PebbleBackwardsSource (reverse iteration on aggregate prefix)              | MEDIUM | LOW    |
+| 10 | PebbleJournal (ReadAll — full scan + sort, document O(N log N))            | MEDIUM | MEDIUM |
+| 11 | PebbleSeekableJournal (ReadFrom — secondary index `journal:{ulid}`)        | MEDIUM | HIGH   |
+| 12 | Unified PebbleBackend facade (like `SQLBackend` — wires all Pebble stores) | MEDIUM | LOW    |
 
 ### Tier 3: New Capabilities
 
-| #   | Task                                                                             | Impact | Effort |
-| --- | -------------------------------------------------------------------------------- | ------ | ------ |
-| 13  | Design CommandStore interface in `core/command/` (Sink + Source, with CommandID) | HIGH   | MEDIUM |
-| 14  | Implement CommandStore on memory + pebble + SQL                                  | HIGH   | MEDIUM |
-| 15  | Design ProjectionStore / ReadModelStore for projected state persistence          | HIGH   | MEDIUM |
-| 16  | Implement KVStore[T] generic for typed read model storage                        | MEDIUM | MEDIUM |
-| 17  | listing/ SQLAggregateReader (bring back `NewSQLAggregateReader`)                 | MEDIUM | MEDIUM |
+| #  | Task                                                                             | Impact | Effort |
+| -- | -------------------------------------------------------------------------------- | ------ | ------ |
+| 13 | Design CommandStore interface in `core/command/` (Sink + Source, with CommandID) | HIGH   | MEDIUM |
+| 14 | Implement CommandStore on memory + pebble + SQL                                  | HIGH   | MEDIUM |
+| 15 | Design ProjectionStore / ReadModelStore for projected state persistence          | HIGH   | MEDIUM |
+| 16 | Implement KVStore[T] generic for typed read model storage                        | MEDIUM | MEDIUM |
+| 17 | listing/ SQLAggregateReader (bring back `NewSQLAggregateReader`)                 | MEDIUM | MEDIUM |
 
 ### Tier 4: Architecture & Quality
 
-| #   | Task                                                                  | Impact | Effort                 |
-| --- | --------------------------------------------------------------------- | ------ | ---------------------- |
-| 18  | core/event god-package split (12 concern clusters → sub-packages)     | HIGH   | HIGH                   |
-| 19  | io.Closer removal from core interfaces (return to explicit lifecycle) | MEDIUM | MEDIUM                 |
-| 20  | Create ROADMAP.md with v1.0.0 release criteria                        | MEDIUM | LOW                    |
-| 21  | Consolidate 57 status reports into architectural docs                 | LOW    | HIGH                   |
-| 22  | Push v1.0.0 tags to remove replace directives                         | HIGH   | LOW (but irreversible) |
-| 23  | TypedHandler generic for query.Handler                                | LOW    | MEDIUM                 |
-| 24  | Server timestamps for events (database-side)                          | LOW    | MEDIUM                 |
-| 25  | Full FEATURES.md re-audit                                             | MEDIUM | LOW                    |
+| #  | Task                                                                  | Impact | Effort                 |
+| -- | --------------------------------------------------------------------- | ------ | ---------------------- |
+| 18 | core/event god-package split (12 concern clusters → sub-packages)     | HIGH   | HIGH                   |
+| 19 | io.Closer removal from core interfaces (return to explicit lifecycle) | MEDIUM | MEDIUM                 |
+| 20 | Create ROADMAP.md with v1.0.0 release criteria                        | MEDIUM | LOW                    |
+| 21 | Consolidate 57 status reports into architectural docs                 | LOW    | HIGH                   |
+| 22 | Push v1.0.0 tags to remove replace directives                         | HIGH   | LOW (but irreversible) |
+| 23 | TypedHandler generic for query.Handler                                | LOW    | MEDIUM                 |
+| 24 | Server timestamps for events (database-side)                          | LOW    | MEDIUM                 |
+| 25 | Full FEATURES.md re-audit                                             | MEDIUM | LOW                    |
 
 ---
 

@@ -99,33 +99,33 @@ Nothing partially done — all catalog schema work is complete.
 
 ## f) Top #25 Things to Get Done Next
 
-| #   | Priority | Task                                                                           | Effort |
-| --- | -------- | ------------------------------------------------------------------------------ | ------ |
-| 1   | 🔴 P0    | Fix pebble `ScanPrefix` test failure                                           | S      |
-| 2   | 🟡 P1    | Add `catalog/schema/doc.go` with package overview                              | S      |
-| 3   | 🟡 P1    | Investigate turso module build/test status                                     | S      |
-| 4   | 🟡 P1    | Audit all `replace` directives for consistency across go.mod files             | M      |
-| 5   | 🟡 P1    | Verify `cmd/cqrs-gen` builds and tests pass                                    | S      |
-| 6   | 🟡 P1    | Add coverage report for `catalog/schema/`                                      | S      |
-| 7   | 🟡 P1    | Review `catalog/internal/cattest/` — make public or integrate into testhelpers | M      |
-| 8   | 🟢 P2    | Add benchmark tests for `schema.FromType[T]()`                                 | S      |
-| 9   | 🟢 P2    | Add `catalog/schema` to AGENTS.md module listing                               | S      |
-| 10  | 🟢 P2    | Verify `example/saga-pattern/` builds and runs                                 | S      |
-| 11  | 🟢 P2    | Review `registry_copy.go` + `registry_helpers.go` — 321 lines of copy code     | M      |
-| 12  | 🟢 P2    | Add schema examples to root `example_test.go`                                  | S      |
-| 13  | 🟢 P2    | Run full code quality scan (lint, vet, dupl) across all modules                | M      |
-| 14  | 🟢 P2    | Review `cmd/api-stability/` for staleness                                      | S      |
-| 15  | 🟢 P2    | Clean up `cmd/coverage.out`, `cmd/cov.out` if stale                            | S      |
-| 16  | 🔵 P3    | Publish v0.1.0 tags to eliminate replace directive blocker                     | L      |
-| 17  | 🔵 P3    | Add OpenAPI 3.1 output support                                                 | M      |
-| 18  | 🔵 P3    | Consider custom struct tag parser support in schema                            | M      |
-| 19  | 🔵 P3    | Add JSON Schema draft-07/2020-12 validation                                    | L      |
-| 20  | 🔵 P3    | Extract catalog validate.go into catalog/validate/ sub-package                 | S      |
-| 21  | 🔵 P3    | Add integration tests for catalog schema + exporter pipeline                   | M      |
-| 22  | 🔵 P3    | Review eventcatalog exporter for schema sub-package compatibility              | S      |
-| 23  | 🔵 P3    | Add fuzz tests for schema reflection engine                                    | M      |
-| 24  | 🔵 P3    | Document catalog sub-package architecture in ADR                               | M      |
-| 25  | 🔵 P3    | Profile schema reflection performance for large structs                        | S      |
+| #  | Priority | Task                                                                           | Effort |
+| -- | -------- | ------------------------------------------------------------------------------ | ------ |
+| 1  | 🔴 P0    | Fix pebble `ScanPrefix` test failure                                           | S      |
+| 2  | 🟡 P1    | Add `catalog/schema/doc.go` with package overview                              | S      |
+| 3  | 🟡 P1    | Investigate turso module build/test status                                     | S      |
+| 4  | 🟡 P1    | Audit all `replace` directives for consistency across go.mod files             | M      |
+| 5  | 🟡 P1    | Verify `cmd/cqrs-gen` builds and tests pass                                    | S      |
+| 6  | 🟡 P1    | Add coverage report for `catalog/schema/`                                      | S      |
+| 7  | 🟡 P1    | Review `catalog/internal/cattest/` — make public or integrate into testhelpers | M      |
+| 8  | 🟢 P2    | Add benchmark tests for `schema.FromType[T]()`                                 | S      |
+| 9  | 🟢 P2    | Add `catalog/schema` to AGENTS.md module listing                               | S      |
+| 10 | 🟢 P2    | Verify `example/saga-pattern/` builds and runs                                 | S      |
+| 11 | 🟢 P2    | Review `registry_copy.go` + `registry_helpers.go` — 321 lines of copy code     | M      |
+| 12 | 🟢 P2    | Add schema examples to root `example_test.go`                                  | S      |
+| 13 | 🟢 P2    | Run full code quality scan (lint, vet, dupl) across all modules                | M      |
+| 14 | 🟢 P2    | Review `cmd/api-stability/` for staleness                                      | S      |
+| 15 | 🟢 P2    | Clean up `cmd/coverage.out`, `cmd/cov.out` if stale                            | S      |
+| 16 | 🔵 P3    | Publish v0.1.0 tags to eliminate replace directive blocker                     | L      |
+| 17 | 🔵 P3    | Add OpenAPI 3.1 output support                                                 | M      |
+| 18 | 🔵 P3    | Consider custom struct tag parser support in schema                            | M      |
+| 19 | 🔵 P3    | Add JSON Schema draft-07/2020-12 validation                                    | L      |
+| 20 | 🔵 P3    | Extract catalog validate.go into catalog/validate/ sub-package                 | S      |
+| 21 | 🔵 P3    | Add integration tests for catalog schema + exporter pipeline                   | M      |
+| 22 | 🔵 P3    | Review eventcatalog exporter for schema sub-package compatibility              | S      |
+| 23 | 🔵 P3    | Add fuzz tests for schema reflection engine                                    | M      |
+| 24 | 🔵 P3    | Document catalog sub-package architecture in ADR                               | M      |
+| 25 | 🔵 P3    | Profile schema reflection performance for large structs                        | S      |
 
 ---
 

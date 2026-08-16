@@ -159,33 +159,33 @@ The `LeaderElection` interface has a doc comment showing `runner.RunWithLeaderEl
 
 ## f) Top 25 Next Tasks (sorted by impact/work ratio)
 
-| #   | Task                                                                             | Impact | Work  | Ratio |
-| --- | -------------------------------------------------------------------------------- | ------ | ----- | ----- |
-| 1   | Delete `event/streaming_source.go` (dead duplicate of stream.go)                 | High   | 5min  | ★★★   |
-| 2   | Fix `projection/leader_election.go` doc (remove fake method) or wire into Runner | High   | 15min | ★★★   |
-| 3   | Update `SKILL.md` with new APIs (dedup, enricher, validator, prometheus)         | High   | 30min | ★★★   |
-| 4   | Delete or fix `codec/jsonv2_experiment.go` (won't compile)                       | Medium | 5min  | ★★★   |
-| 5   | Delete or fix `wasm/main.go` (proves nothing)                                    | Low    | 5min  | ★★★   |
-| 6   | Rename `schema.Validator` → `schema.PayloadValidator` (honest naming)            | Medium | 15min | ★★☆   |
-| 7   | Add prometheus + middleware integration example_test.go                          | Medium | 15min | ★★☆   |
-| 8   | Fix ADR-0026 (remove phantom SIMD reference)                                     | Low    | 2min  | ★★☆   |
-| 9   | Remove ADR-0017 "uses catalog/schema/" false claim                               | Low    | 2min  | ★★☆   |
-| 10  | Integrate `santhosh-tekuri/jsonschema/v6` for real validation                    | High   | 2h    | ★☆☆   |
-| 11  | Implement `StreamingSource` on `SQLEventStore` (if streaming_source.go stays)    | Medium | 2h    | ★☆☆   |
-| 12  | Implement `StreamingSource` on Pebble `EventStore`                               | Medium | 2h    | ★☆☆   |
-| 13  | Wire `LeaderElection` into Runner (optional leader check before RunLive)         | High   | 1h    | ★★☆   |
-| 14  | Add `prometheus.SetupWithCQRSMetrics()` convenience function                     | Low    | 15min | ★☆☆   |
-| 15  | Populate MkDocs site content (index.md, getting-started)                         | Medium | 2h    | ★☆☆   |
-| 16  | Add GitHub Actions workflow for MkDocs deployment                                | Low    | 30min | ★☆☆   |
-| 17  | Consolidate streaming: make `EventStream` use `(Event, error)` with `io.EOF`     | Medium | 1h    | ★☆☆   |
-| 18  | Fix arena experiment doc (`arena.NewArena()` → `arena.New()`)                    | Low    | 2min  | ★★☆   |
-| 19  | Add cqrs-gen `-type=event` handler generation                                    | Medium | 1h    | ★☆☆   |
-| 20  | Add property-based tests for bounded dedup ring (rapid)                          | Low    | 30min | ★☆☆   |
-| 21  | Add integration test: prometheus → middleware.CommandMetrics → /metrics          | Medium | 30min | ★★☆   |
-| 22  | Add `schema.ValidatorFromCatalog(cat)` auto-registration from catalog types      | Medium | 1h    | ★☆☆   |
-| 23  | Document streaming design decision (ADR: bool vs io.EOF contract)                | Low    | 30min | ★☆☆   |
-| 24  | Add `projection.WithLeaderElection(le)` Runner option                            | Medium | 30min | ★★☆   |
-| 25  | Audit all doc comments for fabricated usage examples                             | Medium | 1h    | ★☆☆   |
+| #  | Task                                                                             | Impact | Work  | Ratio |
+| -- | -------------------------------------------------------------------------------- | ------ | ----- | ----- |
+| 1  | Delete `event/streaming_source.go` (dead duplicate of stream.go)                 | High   | 5min  | ★★★   |
+| 2  | Fix `projection/leader_election.go` doc (remove fake method) or wire into Runner | High   | 15min | ★★★   |
+| 3  | Update `SKILL.md` with new APIs (dedup, enricher, validator, prometheus)         | High   | 30min | ★★★   |
+| 4  | Delete or fix `codec/jsonv2_experiment.go` (won't compile)                       | Medium | 5min  | ★★★   |
+| 5  | Delete or fix `wasm/main.go` (proves nothing)                                    | Low    | 5min  | ★★★   |
+| 6  | Rename `schema.Validator` → `schema.PayloadValidator` (honest naming)            | Medium | 15min | ★★☆   |
+| 7  | Add prometheus + middleware integration example_test.go                          | Medium | 15min | ★★☆   |
+| 8  | Fix ADR-0026 (remove phantom SIMD reference)                                     | Low    | 2min  | ★★☆   |
+| 9  | Remove ADR-0017 "uses catalog/schema/" false claim                               | Low    | 2min  | ★★☆   |
+| 10 | Integrate `santhosh-tekuri/jsonschema/v6` for real validation                    | High   | 2h    | ★☆☆   |
+| 11 | Implement `StreamingSource` on `SQLEventStore` (if streaming_source.go stays)    | Medium | 2h    | ★☆☆   |
+| 12 | Implement `StreamingSource` on Pebble `EventStore`                               | Medium | 2h    | ★☆☆   |
+| 13 | Wire `LeaderElection` into Runner (optional leader check before RunLive)         | High   | 1h    | ★★☆   |
+| 14 | Add `prometheus.SetupWithCQRSMetrics()` convenience function                     | Low    | 15min | ★☆☆   |
+| 15 | Populate MkDocs site content (index.md, getting-started)                         | Medium | 2h    | ★☆☆   |
+| 16 | Add GitHub Actions workflow for MkDocs deployment                                | Low    | 30min | ★☆☆   |
+| 17 | Consolidate streaming: make `EventStream` use `(Event, error)` with `io.EOF`     | Medium | 1h    | ★☆☆   |
+| 18 | Fix arena experiment doc (`arena.NewArena()` → `arena.New()`)                    | Low    | 2min  | ★★☆   |
+| 19 | Add cqrs-gen `-type=event` handler generation                                    | Medium | 1h    | ★☆☆   |
+| 20 | Add property-based tests for bounded dedup ring (rapid)                          | Low    | 30min | ★☆☆   |
+| 21 | Add integration test: prometheus → middleware.CommandMetrics → /metrics          | Medium | 30min | ★★☆   |
+| 22 | Add `schema.ValidatorFromCatalog(cat)` auto-registration from catalog types      | Medium | 1h    | ★☆☆   |
+| 23 | Document streaming design decision (ADR: bool vs io.EOF contract)                | Low    | 30min | ★☆☆   |
+| 24 | Add `projection.WithLeaderElection(le)` Runner option                            | Medium | 30min | ★★☆   |
+| 25 | Audit all doc comments for fabricated usage examples                             | Medium | 1h    | ★☆☆   |
 
 ---
 

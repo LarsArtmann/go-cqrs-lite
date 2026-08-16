@@ -29,25 +29,25 @@
 
 ## Module Health
 
-| Module                   | Production Files | Test Files | Lint Issues | Status                     |
-| ------------------------ | ---------------: | ---------: | ----------: | -------------------------- |
-| core (6 sub-packages)    |               52 |         38 |           0 | ✅ Healthy                 |
-| storage                  |               29 |         22 |           0 | ✅ Healthy                 |
-| catalog (7 sub-packages) |               49 |         29 |           0 | ✅ Healthy                 |
-| middleware               |               11 |         14 |           0 | ✅ Healthy                 |
-| memory                   |                9 |         11 |           0 | ✅ Healthy                 |
-| saga                     |                9 |          7 |           0 | ✅ Healthy                 |
+| Module                   | Production Files | Test Files | Lint Issues | Status                    |
+| ------------------------ | ---------------: | ---------: | ----------: | ------------------------- |
+| core (6 sub-packages)    |               52 |         38 |           0 | ✅ Healthy                |
+| storage                  |               29 |         22 |           0 | ✅ Healthy                |
+| catalog (7 sub-packages) |               49 |         29 |           0 | ✅ Healthy                |
+| middleware               |               11 |         14 |           0 | ✅ Healthy                |
+| memory                   |                9 |         11 |           0 | ✅ Healthy                |
+| saga                     |                9 |          7 |           0 | ✅ Healthy                |
 | signing                  |                9 |          2 |           0 | ⚠️ Isolated (no consumers) |
-| projection               |                6 |          8 |           0 | ✅ Healthy                 |
-| watermill                |                3 |          3 |           0 | ✅ Healthy                 |
-| testhelpers              |                9 |          6 |           0 | ✅ Healthy                 |
-| integration              |                0 |         13 |           0 | ✅ Healthy                 |
-| cmd/cqrs-gen             |                1 |          1 |           0 | ✅ Healthy                 |
-| example/user             |               11 |          1 |           — | ✅ Demo app                |
-| example/todo             |               23 |          7 |           — | ✅ Demo app                |
-| example/saga             |                1 |          0 |           — | ✅ Demo app                |
-| example/storage          |                1 |          0 |           — | ✅ Demo app                |
-| example/projection       |                1 |          0 |           — | ✅ Demo app                |
+| projection               |                6 |          8 |           0 | ✅ Healthy                |
+| watermill                |                3 |          3 |           0 | ✅ Healthy                |
+| testhelpers              |                9 |          6 |           0 | ✅ Healthy                |
+| integration              |                0 |         13 |           0 | ✅ Healthy                |
+| cmd/cqrs-gen             |                1 |          1 |           0 | ✅ Healthy                |
+| example/user             |               11 |          1 |           — | ✅ Demo app               |
+| example/todo             |               23 |          7 |           — | ✅ Demo app               |
+| example/saga             |                1 |          0 |           — | ✅ Demo app               |
+| example/storage          |                1 |          0 |           — | ✅ Demo app               |
+| example/projection       |                1 |          0 |           — | ✅ Demo app               |
 
 ---
 
@@ -233,43 +233,43 @@ Sorted by impact × effort (highest impact, lowest effort first):
 
 ### P0 — Must Do (blocks consumers or causes ongoing pain)
 
-| #   | Task                                                                                                    | Impact | Effort  | Module     |
-| --- | ------------------------------------------------------------------------------------------------------- | ------ | ------- | ---------- |
-| 1   | **Fix pre-commit hook golden file flakiness** — Ensure buildflow respects treefmt excludes              | High   | Low     | CI         |
-| 2   | **Integrate or remove signing module** — Add signing to an example app, or document why it's standalone | High   | Medium  | signing    |
-| 3   | **Add JSON event codec implementation** — `event.Codec` needs at least one concrete impl                | High   | Medium  | core/event |
-| 4   | **Push v1.0.0 tags to remote** — Eliminate `replace` directives requirement for consumers               | High   | Low     | all        |
-| 5   | **Add coverage.out to .gitignore** — Prevents accidental commits                                        | Low    | Trivial | root       |
+| # | Task                                                                                                    | Impact | Effort  | Module     |
+| - | ------------------------------------------------------------------------------------------------------- | ------ | ------- | ---------- |
+| 1 | **Fix pre-commit hook golden file flakiness** — Ensure buildflow respects treefmt excludes              | High   | Low     | CI         |
+| 2 | **Integrate or remove signing module** — Add signing to an example app, or document why it's standalone | High   | Medium  | signing    |
+| 3 | **Add JSON event codec implementation** — `event.Codec` needs at least one concrete impl                | High   | Medium  | core/event |
+| 4 | **Push v1.0.0 tags to remote** — Eliminate `replace` directives requirement for consumers               | High   | Low     | all        |
+| 5 | **Add coverage.out to .gitignore** — Prevents accidental commits                                        | Low    | Trivial | root       |
 
 ### P1 — Should Do (significant quality improvement)
 
-| #   | Task                                                                                             | Impact | Effort  | Module     |
-| --- | ------------------------------------------------------------------------------------------------ | ------ | ------- | ---------- |
-| 6   | **Generic middleware factory** — Eliminate 7×3 duplication                                       | High   | Medium  | middleware |
-| 7   | **Add benchmark suite** — Event store Save/Load, decider Execute, middleware chain               | Medium | Medium  | all        |
-| 8   | **Add fuzz tests** — Event marshaling, ID parsing, decider fold                                  | Medium | Medium  | core       |
-| 9   | **PostgreSQL integration tests** — Test storage against real PG via testcontainers               | High   | Medium  | storage    |
-| 10  | **Configure go-structure-linter** — Suppress 4 false positives for workspace root                | Low    | Trivial | CI         |
-| 11  | **Suppress math/rand/v2 false positive** — Add library-policy ignore for retry.go                | Low    | Trivial | middleware |
-| 12  | **Add CI coverage gate** — Fail CI if any module drops below 80%                                 | Medium | Low     | CI         |
-| 13  | **Error taxonomy docs** — Public-facing guide for 5-family error handling                        | Medium | Low     | docs       |
-| 14  | **OpenTelemetry tracing spans** — Actually emit spans in middleware, not just import the package | Medium | Medium  | middleware |
+| #  | Task                                                                                             | Impact | Effort  | Module     |
+| -- | ------------------------------------------------------------------------------------------------ | ------ | ------- | ---------- |
+| 6  | **Generic middleware factory** — Eliminate 7×3 duplication                                       | High   | Medium  | middleware |
+| 7  | **Add benchmark suite** — Event store Save/Load, decider Execute, middleware chain               | Medium | Medium  | all        |
+| 8  | **Add fuzz tests** — Event marshaling, ID parsing, decider fold                                  | Medium | Medium  | core       |
+| 9  | **PostgreSQL integration tests** — Test storage against real PG via testcontainers               | High   | Medium  | storage    |
+| 10 | **Configure go-structure-linter** — Suppress 4 false positives for workspace root                | Low    | Trivial | CI         |
+| 11 | **Suppress math/rand/v2 false positive** — Add library-policy ignore for retry.go                | Low    | Trivial | middleware |
+| 12 | **Add CI coverage gate** — Fail CI if any module drops below 80%                                 | Medium | Low     | CI         |
+| 13 | **Error taxonomy docs** — Public-facing guide for 5-family error handling                        | Medium | Low     | docs       |
+| 14 | **OpenTelemetry tracing spans** — Actually emit spans in middleware, not just import the package | Medium | Medium  | middleware |
 
 ### P2 — Nice to Have (polish, not blocking)
 
-| #   | Task                                                                      | Impact | Effort  | Module     |
-| --- | ------------------------------------------------------------------------- | ------ | ------- | ---------- |
-| 15  | **Consistent BDD testing** — Standardize on Ginkgo v2 across all modules  | Low    | High    | all        |
-| 16  | **Event versioning strategy** — Document and implement upcasting          | Medium | High    | core/event |
-| 17  | **Projection rebuild API** — Admin endpoint to trigger full rebuild       | Medium | Medium  | projection |
-| 18  | **Saga state store (SQL)** — Persist saga state to SQL, not just memory   | Medium | Medium  | saga       |
-| 19  | **Watermill DLQ handler** — Dead-letter queue for failed messages         | Medium | Medium  | watermill  |
-| 20  | **Example app consistency** — Make all 5 examples comparable quality      | Low    | Medium  | example/\* |
-| 21  | **API docs with examples** — godoc-ready examples for all public APIs     | Low    | Medium  | all        |
-| 22  | **Event encryption** — At-rest encryption for sensitive payloads          | Low    | High    | core/event |
-| 23  | **CI parallelization** — Run module tests in parallel via matrix strategy | Medium | Low     | CI         |
-| 24  | **File size enforcement in CI** — Block merges on > 350 line files        | Low    | Trivial | CI         |
-| 25  | **Turso integration tests** — Test storage against real Turso cloud       | Medium | Medium  | storage    |
+| #  | Task                                                                      | Impact | Effort  | Module     |
+| -- | ------------------------------------------------------------------------- | ------ | ------- | ---------- |
+| 15 | **Consistent BDD testing** — Standardize on Ginkgo v2 across all modules  | Low    | High    | all        |
+| 16 | **Event versioning strategy** — Document and implement upcasting          | Medium | High    | core/event |
+| 17 | **Projection rebuild API** — Admin endpoint to trigger full rebuild       | Medium | Medium  | projection |
+| 18 | **Saga state store (SQL)** — Persist saga state to SQL, not just memory   | Medium | Medium  | saga       |
+| 19 | **Watermill DLQ handler** — Dead-letter queue for failed messages         | Medium | Medium  | watermill  |
+| 20 | **Example app consistency** — Make all 5 examples comparable quality      | Low    | Medium  | example/\* |
+| 21 | **API docs with examples** — godoc-ready examples for all public APIs     | Low    | Medium  | all        |
+| 22 | **Event encryption** — At-rest encryption for sensitive payloads          | Low    | High    | core/event |
+| 23 | **CI parallelization** — Run module tests in parallel via matrix strategy | Medium | Low     | CI         |
+| 24 | **File size enforcement in CI** — Block merges on > 350 line files        | Low    | Trivial | CI         |
+| 25 | **Turso integration tests** — Test storage against real Turso cloud       | Medium | Medium  | storage    |
 
 ---
 
@@ -301,10 +301,10 @@ The signing module is fully implemented (HMAC-SHA256, Ed25519, multi-sig, middle
 | go-mod-tidy         | ✅ Pass              |                                              |
 | golangci-lint       | ✅ 0 issues          | Per-module                                   |
 | go-structure-linter | ❌ 4 false positives | Workspace root `go.mod`/`go.sum` — by design |
-| library-policy      | ⚠️ 1 false positive  | `math/rand/v2` in retry jitter               |
+| library-policy      | ⚠️ 1 false positive   | `math/rand/v2` in retry jitter               |
 | TODO scanner        | ✅ 0 found           |                                              |
 | binary scanner      | ✅ Clean             |                                              |
-| file size checker   | ⚠️ 1 file over 350   | `signing/multisig_test.go` (491 lines)       |
+| file size checker   | ⚠️ 1 file over 350    | `signing/multisig_test.go` (491 lines)       |
 | doc freshness       | ✅ All up-to-date    |                                              |
 
 ---

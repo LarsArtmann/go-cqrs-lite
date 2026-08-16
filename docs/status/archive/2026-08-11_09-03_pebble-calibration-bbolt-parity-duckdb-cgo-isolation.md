@@ -13,6 +13,7 @@
 **What:** Added `BenchmarkCalibration_PebbleCounterIncrement` to `metaengine/pebbleengine/calibration_bench_test.go`, matching the existing pattern in badgerengine and bboltengine.
 
 **Files changed:**
+
 - `metaengine/pebbleengine/calibration_bench_test.go` — added `fmt` import, updated header comment, added the benchmark function
 
 **Verification:** Benchmark compiles and runs (31,789 ns/op). All three engines now have calibration parity: Set + Get + CounterIncrement.
@@ -24,10 +25,12 @@
 **What:** Ported 2 of the 5 missing pebble test files to bboltengine. The other 3 are intentionally NOT portable.
 
 **Files ported:**
+
 - `metaengine/bboltengine/stream_log_test.go` — delegates to `enginetest.RunStreamLogBackendTest` + `enginetest.RunAtomicAppenderTest` (bbolt implements both `StreamLogBackend` and `AtomicAppender`)
 - `metaengine/bboltengine/watcher_test.go` — 2 regression tests for delete notification + replay seq recording (engine-agnostic, uses `metaengine.Plan` + `metaengine.NewWatcher` at Store level)
 
 **Files NOT ported (by design):**
+
 - `edge_cases_test.go` — exercises `LayoutPlanner.ApplyLayout` + `RawScanReader.ScanRawValues` — bbolt does NOT implement either interface (no secondary indexes, single-writer bucket model)
 - `fuzz_test.go` — fuzzes `ScanRawValues` filter index — same dependency on `RawScanReader`
 - `scan_bench_test.go` — benchmarks `ScanRawValues` at 100/1K/10K/100K — same dependency
@@ -45,15 +48,18 @@
 **What:** Extracted the CGo-gated DuckDB integration test from `system/` into a new `system/integration/` Go module, following the `testutil/pgtestcontainer/` precedent.
 
 **Files created:**
+
 - `system/integration/go.mod` — new module `github.com/larsartmann/go-cqrs-lite/system/integration/v4`
 - `system/integration/doc.go` — package doc explaining the isolation rationale
 - `system/integration/duckdb_test.go` — self-contained DuckDB integration test with its own `TestMain`, domain types, and helper functions (no shared test helpers from system/)
 
 **Files removed:**
+
 - `system/integration_duckdb_test.go` — moved to sub-module
 - `system/main_cgo_test.go` — blank import of duckdbengine, no longer needed
 
 **Files updated:**
+
 - `system/go.mod` — removed `duckdbengine/v4` direct dep; `go mod tidy` removed ~20 indirect deps (Arrow, FlatBuffers, 6 DuckDB platform bindings)
 - `system/main_test.go` — updated comment to point to `system/integration/`
 - `go.work` — added `./system/integration`
@@ -61,6 +67,7 @@
 - `cmd/api-stability/main.go` — added `"system/integration"` to modules list
 
 **Verification:**
+
 - `system/` builds and tests pass WITHOUT CGo (no DuckDB deps in go.mod)
 - `system/integration/` DuckDB test passes WITH `CGO_ENABLED=1`
 - `CGO_ENABLED=0 go build ./system/integration/...` works (doc.go is pure Go)
@@ -112,6 +119,7 @@ Nothing. No regressions, no broken builds, no data loss.
 ## f) Up to 50 Things We Should Get Done Next
 
 ### Immediate (this session's loose ends)
+
 1. Run `nix fmt` to verify formatting of all new/modified files
 2. Run `nix run .#verify` (or at minimum `nix run .#verify-fast`) for full gate
 3. Update AGENTS.md Module Map to include `system/integration/`
@@ -120,6 +128,7 @@ Nothing. No regressions, no broken builds, no data loss.
 6. Run `nix run .#check-duplication` to verify no new code clones were introduced
 
 ### bboltengine parity (remaining)
+
 7. Consider porting `nextkey_test.go` — tests pebble's `nextKey` helper, which is pebble-internal. NOT portable.
 8. Consider porting `scan_count_test.go` — tests pebble's scan count. NOT portable (RawScanReader).
 9. Consider porting `raw_reader_test.go` — tests pebble's raw reader. NOT portable.
@@ -130,36 +139,43 @@ Nothing. No regressions, no broken builds, no data loss.
 14. Add `edge_cases_test.go`-style tests for bbolt using `ScanBackend.MapScan` (the bbolt equivalent of `RawScanReader`)
 
 ### metaengine calibration
+
 15. Run the actual calibration benchmarks and update `PebbleNsPerOp`/`PebbleNsPerRead`/`PebbleNsPerWrite` constants with measured data
 16. Verify all engines (sqlite, pg, mysql, dgraph, turso, badger, iroh) have CounterIncrement calibration benchmarks
 17. Add calibration benchmarks for other ADT operations (SetAdd, MultiAdd, LogAppend, StreamAppend) where missing across engines
 
 ### system/integration module
+
 18. Add a README.md to `system/integration/` explaining when to add tests here vs system/
 19. Consider adding a `system/integration/badger_test.go` — move badger CGo-free integration test here too for consistency (currently in system/)
 20. Consider whether `stack/duckdb/` should follow the same isolation pattern (it already has its own module, so this is already handled)
 
 ### Cross-engine test infrastructure
+
 21. Audit ALL engines for calibration benchmark parity (Set, Get, CounterIncrement at minimum)
 22. Create a test-matrix CI job that verifies every engine has the same set of calibration benchmarks
 23. Consider a shared `calibration_bench_test.go` template in `enginetest` that engines can instantiate
 
 ### DuckDB/CGo cleanup
+
 24. Verify `stack/duckdb/` doesn't pull DuckDB deps into any non-CGo consumer module
 25. Audit all non-CGo modules for accidental DuckDB indirect dependencies
 26. Consider whether `metaengine/bench/` (which imports all engines including duckdb) should be split similarly
 
 ### Documentation
+
 27. Update `.agents/skills/go-cqrs-lite/references/modules.md` to include `system/integration/`
 28. Add a note to AGENTS.md Gotchas about the `system/integration/` pattern for CGo test isolation
 29. Document the calibration benchmark convention in AGENTS.md (all engines should have Set+Get+CounterIncrement)
 
 ### Verification gates
+
 30. Run `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md` to verify docs
 31. Run `nix run .#vulncheck` to verify per-module standalone builds
 32. Run `nix run .#check-coverage` to verify coverage drift
 
 ### Broader metaengine improvements
+
 33. Consider whether bbolt should implement `LayoutPlanner` — it could use in-memory sort instead of secondary indexes
 34. If bbolt gets `LayoutPlanner`, then `edge_cases_test.go` and `scan_bench_test.go` become portable
 35. Audit `metaengine/enginetest` for shared test harnesses that bbolt could use instead of per-engine tests
@@ -170,16 +186,19 @@ Nothing. No regressions, no broken builds, no data loss.
 40. Add `LogBackend` calibration benchmark (LogAppend + LogTail) to all engines
 
 ### System module
+
 41. Audit `system/go.mod` for other heavy deps that could be isolated (pebble pulls cockroachdb deps, badger pulls dgraph deps)
 42. Consider whether `system/` should have zero engine deps (only string-based driver registration, engines registered by consumer)
 43. If system/ goes engine-free, all engine integration tests move to `system/integration/`
 
 ### CI/CD
+
 44. Verify the GitHub Actions CI runs `system/integration/` tests with CGo enabled
 45. Verify CI doesn't break when `system/` no longer has DuckDB deps
 46. Add a CI check that `system/go.mod` never re-acquires DuckDB/Arrow/FlatBuffers deps
 
 ### Quality
+
 47. Run `golangci-lint` on `system/integration/` — it's a new module, needs lint verification
 48. Run `golangci-lint` on `metaengine/bboltengine/` — new test files may trigger lint
 49. Run `golangci-lint` on `metaengine/pebbleengine/` — modified calibration file

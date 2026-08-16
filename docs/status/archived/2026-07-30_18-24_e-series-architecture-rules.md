@@ -8,26 +8,26 @@
 
 ## a) FULLY DONE
 
-| #   | Task                                                                        | Status | Verification                                                   |
-| --- | --------------------------------------------------------------------------- | ------ | -------------------------------------------------------------- |
-| 1   | `helpers.go` — shared detection infrastructure (300 lines, 9 helpers)       | ✅     | Builds clean                                                   |
-| 2   | E008 `stack-preset-bypass` detector                                         | ✅     | 3 tests pass                                                   |
-| 3   | E009 `no-http-integration` detector                                         | ✅     | 3 tests pass                                                   |
-| 4   | E010 `capture-without-validation` detector                                  | ✅     | 3 tests pass                                                   |
-| 5   | E011 `excessive-adapter-layers` detector                                    | ✅     | 3 tests pass                                                   |
-| 6   | E012 `dual-write-no-completion` detector                                    | ✅     | 3 tests pass                                                   |
-| 7   | E013 `signing-disabled-by-default` detector                                 | ✅     | 3 tests pass                                                   |
-| 8   | E014 `no-read-your-writes` detector                                         | ✅     | 3 tests pass                                                   |
-| 9   | E015 `watermill-no-ordered-delivery` detector                               | ✅     | 3 tests pass                                                   |
-| 10  | 8 catalog entries in `catalog_extra.go` `architectureRules()`               | ✅     | Meta-test `TestCatalogCountMatchesRegister` passes             |
-| 11  | 8 detector registrations in `register.go`                                   | ✅     | Meta-test `TestAllDetectorsInstantiate` passes (159 detectors) |
-| 12  | Meta-test count updated 151→159                                             | ✅     | Passes                                                         |
-| 13  | `IMPROVEMENT_IDEAS.md` — items 40–47 struck through with `done` + file refs | ✅     | Verified                                                       |
-| 14  | `AGENTS.md` rule count updated (150→159), E-series description added        | ✅     | Verified                                                       |
-| 15  | API-stability golden regenerated (2749 exports)                             | ✅     | `go run . -update` succeeded                                   |
-| 16  | All files under 350-line CI limit                                           | ✅     | Verified (largest: helpers.go at 300)                          |
-| 17  | Self-lint produces 2 legitimate findings (E008 + E011 on benchkit)          | ✅     | Verified via binary                                            |
-| 18  | Full test suite passes with `-race` (16 packages)                           | ✅     | Verified                                                       |
+| #  | Task                                                                        | Status | Verification                                                   |
+| -- | --------------------------------------------------------------------------- | ------ | -------------------------------------------------------------- |
+| 1  | `helpers.go` — shared detection infrastructure (300 lines, 9 helpers)       | ✅     | Builds clean                                                   |
+| 2  | E008 `stack-preset-bypass` detector                                         | ✅     | 3 tests pass                                                   |
+| 3  | E009 `no-http-integration` detector                                         | ✅     | 3 tests pass                                                   |
+| 4  | E010 `capture-without-validation` detector                                  | ✅     | 3 tests pass                                                   |
+| 5  | E011 `excessive-adapter-layers` detector                                    | ✅     | 3 tests pass                                                   |
+| 6  | E012 `dual-write-no-completion` detector                                    | ✅     | 3 tests pass                                                   |
+| 7  | E013 `signing-disabled-by-default` detector                                 | ✅     | 3 tests pass                                                   |
+| 8  | E014 `no-read-your-writes` detector                                         | ✅     | 3 tests pass                                                   |
+| 9  | E015 `watermill-no-ordered-delivery` detector                               | ✅     | 3 tests pass                                                   |
+| 10 | 8 catalog entries in `catalog_extra.go` `architectureRules()`               | ✅     | Meta-test `TestCatalogCountMatchesRegister` passes             |
+| 11 | 8 detector registrations in `register.go`                                   | ✅     | Meta-test `TestAllDetectorsInstantiate` passes (159 detectors) |
+| 12 | Meta-test count updated 151→159                                             | ✅     | Passes                                                         |
+| 13 | `IMPROVEMENT_IDEAS.md` — items 40–47 struck through with `done` + file refs | ✅     | Verified                                                       |
+| 14 | `AGENTS.md` rule count updated (150→159), E-series description added        | ✅     | Verified                                                       |
+| 15 | API-stability golden regenerated (2749 exports)                             | ✅     | `go run . -update` succeeded                                   |
+| 16 | All files under 350-line CI limit                                           | ✅     | Verified (largest: helpers.go at 300)                          |
+| 17 | Self-lint produces 2 legitimate findings (E008 + E011 on benchkit)          | ✅     | Verified via binary                                            |
+| 18 | Full test suite passes with `-race` (16 packages)                           | ✅     | Verified                                                       |
 
 ---
 
@@ -55,14 +55,14 @@
 
 ## c) NOT STARTED
 
-| #   | Task                                                                                                                                                                                                                      | Why It Matters                                                     |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| 1   | **Import-alias resolution** — ALL 8 rules assume unqualified package names (`decider.`, `stack.`, `signing.`, etc.). Aliased imports (`d "decider"`, `wm "watermill"`) bypass every detector. Carried over from D-series. | Without this, aliased imports make 6/8 rules blind                 |
-| 2   | **Resolve self-lint findings** — E008 fires on `benchkit/phases_snapshot.go:80`, E011 fires on `benchkit/artifacts.go`. Neither fixed nor suppressed.                                                                     | Self-lint should be clean on the library itself                    |
-| 3   | **README rule table** — `cmd/cqrs-lint/README.md` has no E008–E015 rows                                                                                                                                                   | Users can't discover the new rules                                 |
-| 4   | **D-series leftover tasks** — 12 next steps from prior session status report, including D009 signature check, D013 threshold, import-alias resolution, helpers extraction, golden regen                                   | Technical debt accumulating                                        |
-| 5   | **Integration test** — No test runs the actual linter binary against a real project to verify end-to-end behavior                                                                                                         | Unit tests with synthetic source don't catch real-world AST shapes |
-| 6   | **Per-rule documentation** — No expanded docs explaining rationale and fix steps for each E-series rule                                                                                                                   | Coaching rules need coaching context                               |
+| # | Task                                                                                                                                                                                                                      | Why It Matters                                                     |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| 1 | **Import-alias resolution** — ALL 8 rules assume unqualified package names (`decider.`, `stack.`, `signing.`, etc.). Aliased imports (`d "decider"`, `wm "watermill"`) bypass every detector. Carried over from D-series. | Without this, aliased imports make 6/8 rules blind                 |
+| 2 | **Resolve self-lint findings** — E008 fires on `benchkit/phases_snapshot.go:80`, E011 fires on `benchkit/artifacts.go`. Neither fixed nor suppressed.                                                                     | Self-lint should be clean on the library itself                    |
+| 3 | **README rule table** — `cmd/cqrs-lint/README.md` has no E008–E015 rows                                                                                                                                                   | Users can't discover the new rules                                 |
+| 4 | **D-series leftover tasks** — 12 next steps from prior session status report, including D009 signature check, D013 threshold, import-alias resolution, helpers extraction, golden regen                                   | Technical debt accumulating                                        |
+| 5 | **Integration test** — No test runs the actual linter binary against a real project to verify end-to-end behavior                                                                                                         | Unit tests with synthetic source don't catch real-world AST shapes |
+| 6 | **Per-rule documentation** — No expanded docs explaining rationale and fix steps for each E-series rule                                                                                                                   | Coaching rules need coaching context                               |
 
 ---
 
@@ -70,13 +70,13 @@
 
 ### Nothing is irreversibly broken, but these are embarrassing:
 
-| #   | What                                   | Why It's Bad                                                                                                                                                                                                                                                                                    |
-| --- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **E010 is architecturally wrong**      | The rule detects `store.Save()` calls by package qualifier. But in Go, you call methods on VARIABLES, not packages. `eventStore.Save()` has qualifier `eventStore`, not `store`. The rule will only match code that happens to name its variable exactly `store`. This is cargo-cult detection. |
-| 2   | **E011 doesn't match the spec at all** | The spec says "detect >2 layers between `command.Handler` and `decider.Repository.Execute`" — that's call-graph depth analysis. I implemented "count types with `Adapter` suffix." These are completely different concepts. I counted names instead of measuring architectural depth.           |
-| 3   | **E014 detects the wrong concept**     | The spec says "no read-your-writes consistency" = projection drain before responding to commands. I check for absence of `host.Stop()` — but `Stop()` is shutdown, not read-your-writes. And substring matching for `"Drain"` / `"WaitFor"` is crude. The rule fires for the wrong reason.      |
-| 4   | **Initial helpers.go had dead code**   | Wrote `projectHasSelector` and `projectHasCallByName` (70+ lines) that no rule used. Had to delete them to fit under 350 lines. Should have checked usage before writing.                                                                                                                       |
-| 5   | **E013 will false-positive**           | `Enabled: false` in any composite literal triggers it when signing is imported. But `Enabled: false` is extremely common for logging, metrics, tracing, debug configs. The rule doesn't verify the `Enabled` field belongs to a signing/encryption config struct.                               |
+| # | What                                   | Why It's Bad                                                                                                                                                                                                                                                                                    |
+| - | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **E010 is architecturally wrong**      | The rule detects `store.Save()` calls by package qualifier. But in Go, you call methods on VARIABLES, not packages. `eventStore.Save()` has qualifier `eventStore`, not `store`. The rule will only match code that happens to name its variable exactly `store`. This is cargo-cult detection. |
+| 2 | **E011 doesn't match the spec at all** | The spec says "detect >2 layers between `command.Handler` and `decider.Repository.Execute`" — that's call-graph depth analysis. I implemented "count types with `Adapter` suffix." These are completely different concepts. I counted names instead of measuring architectural depth.           |
+| 3 | **E014 detects the wrong concept**     | The spec says "no read-your-writes consistency" = projection drain before responding to commands. I check for absence of `host.Stop()` — but `Stop()` is shutdown, not read-your-writes. And substring matching for `"Drain"` / `"WaitFor"` is crude. The rule fires for the wrong reason.      |
+| 4 | **Initial helpers.go had dead code**   | Wrote `projectHasSelector` and `projectHasCallByName` (70+ lines) that no rule used. Had to delete them to fit under 350 lines. Should have checked usage before writing.                                                                                                                       |
+| 5 | **E013 will false-positive**           | `Enabled: false` in any composite literal triggers it when signing is imported. But `Enabled: false` is extremely common for logging, metrics, tracing, debug configs. The rule doesn't verify the `Enabled` field belongs to a signing/encryption config struct.                               |
 
 ---
 

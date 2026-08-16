@@ -12,19 +12,19 @@ Resumed from a prior session that implemented the DuckDB columnar-native storage
 
 ### Changes Made (11 tasks, all completed)
 
-| #   | Category    | File                                                 | Change                                                                                                                   |
-| --- | ----------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Correctness | `metaengine/layout.go:296`                           | `sqlTypeOf`: split `float32→REAL`, `float64→DOUBLE`. Both previously mapped to REAL (32-bit), truncating Go's `float64`. |
-| 2   | Correctness | `metaengine/duckdbengine/layout_planner.go:392`      | `coerceForColumn`: added `DOUBLE`/`FLOAT`/`FLOAT4`/`FLOAT8` cases.                                                       |
-| 3   | Correctness | `metaengine/layout.go:249`                           | `BuildColumnarLayoutPlan`: skip fields named `key`/`value` (case-insensitive) to prevent DDL column collision.           |
-| 4   | API cleanup | `metaengine/query.go:42`                             | `WithColumnarLayout`: removed decorative `[R any]` generic. `R` was unused.                                              |
-| 5   | Test        | `metaengine/duckdbengine/layout_planner_cgo_test.go` | Updated 3 tests to use realistic decimal values (1.99, 0.75, 0.99, 2.49).                                                |
-| 6   | Test        | `metaengine/duckdbengine/layout_planner_cgo_test.go` | Added `TestDuckDBEngine_ColumnarDoublePrecision` — Pi roundtrip proves DOUBLE precision.                                 |
-| 7   | Docs        | `docs/adr/0092-duckdb-columnar-native-storage.md`    | Full ADR (context, decision, consequences, alternatives).                                                                |
-| 8   | Docs        | `AGENTS.md`                                          | Added columnar-native feature comment + updated duckdbengine description.                                                |
-| 9   | Docs        | `TODO_LIST.md`                                       | Marked `coerceForColumn` sub-item as resolved.                                                                           |
-| 10  | Docs        | `docs/README.md`                                     | Indexed ADR-0092.                                                                                                        |
-| 11  | Verify      | Full repo                                            | `nix run .#verify` GREEN across all 80+ modules.                                                                         |
+| #  | Category    | File                                                 | Change                                                                                                                   |
+| -- | ----------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 1  | Correctness | `metaengine/layout.go:296`                           | `sqlTypeOf`: split `float32→REAL`, `float64→DOUBLE`. Both previously mapped to REAL (32-bit), truncating Go's `float64`. |
+| 2  | Correctness | `metaengine/duckdbengine/layout_planner.go:392`      | `coerceForColumn`: added `DOUBLE`/`FLOAT`/`FLOAT4`/`FLOAT8` cases.                                                       |
+| 3  | Correctness | `metaengine/layout.go:249`                           | `BuildColumnarLayoutPlan`: skip fields named `key`/`value` (case-insensitive) to prevent DDL column collision.           |
+| 4  | API cleanup | `metaengine/query.go:42`                             | `WithColumnarLayout`: removed decorative `[R any]` generic. `R` was unused.                                              |
+| 5  | Test        | `metaengine/duckdbengine/layout_planner_cgo_test.go` | Updated 3 tests to use realistic decimal values (1.99, 0.75, 0.99, 2.49).                                                |
+| 6  | Test        | `metaengine/duckdbengine/layout_planner_cgo_test.go` | Added `TestDuckDBEngine_ColumnarDoublePrecision` — Pi roundtrip proves DOUBLE precision.                                 |
+| 7  | Docs        | `docs/adr/0092-duckdb-columnar-native-storage.md`    | Full ADR (context, decision, consequences, alternatives).                                                                |
+| 8  | Docs        | `AGENTS.md`                                          | Added columnar-native feature comment + updated duckdbengine description.                                                |
+| 9  | Docs        | `TODO_LIST.md`                                       | Marked `coerceForColumn` sub-item as resolved.                                                                           |
+| 10 | Docs        | `docs/README.md`                                     | Indexed ADR-0092.                                                                                                        |
+| 11 | Verify      | Full repo                                            | `nix run .#verify` GREEN across all 80+ modules.                                                                         |
 
 ---
 

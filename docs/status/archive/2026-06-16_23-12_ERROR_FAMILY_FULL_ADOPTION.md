@@ -102,33 +102,33 @@
 
 ## f) Top 25 Things to Get Done Next 🎯
 
-| #   | Task                                                                                                 | Impact                  | Effort |
-| --- | ---------------------------------------------------------------------------------------------------- | ----------------------- | ------ |
-| 1   | **Run `nix fmt` on all changed files**                                                               | Formatting hygiene      | 5 min  |
-| 2   | **Run `nix run .#lint` full lint**                                                                   | Catch remaining issues  | 10 min |
-| 3   | **Fix turso test failure** (LibSQL connection)                                                       | Test suite completeness | 30 min |
-| 4   | **Review catalog error codes** — replace sequential numbers with semantic names                      | Code quality            | 1 hr   |
-| 5   | **Review decider `opError` rewrite** for edge cases                                                  | Correctness             | 30 min |
-| 6   | **Audit error family classifications** — ensure Infrastructure vs Corruption vs Rejection is correct | API quality             | 2 hr   |
-| 7   | **Fix strong-id findings** (2 high severity) — watermill topic, turso id                             | Type safety             | 1 hr   |
-| 8   | **Add `Compose` to command/errors.go and query/errors.go**                                           | API consistency         | 15 min |
-| 9   | **Delete untracked binary** `cmd/api-stability/api-stability`                                        | Cleanup                 | 1 min  |
-| 10  | **Review 6 real dupe findings** from branching-flow                                                  | DRY                     | 1 hr   |
-| 11  | **Review 3 anti-pattern findings** (pebble/base.go naming)                                           | Naming quality          | 30 min |
-| 12  | **Review 6 context-loss findings**                                                                   | Error quality           | 1 hr   |
-| 13  | **Triage 264 phantom type findings** — pick top 10 actionable                                        | Type safety             | 1 hr   |
-| 14  | **Run `nix run .#test` full workspace test**                                                         | Verification            | 10 min |
-| 15  | **Update AGENTS.md** with errorfamily adoption policy                                                | Documentation           | 15 min |
-| 16  | **Add errorfamily to CI** (`--exit-code` flag in ci.yml)                                             | Enforcement             | 15 min |
-| 17  | **Write error handling guide** (docs/patterns/error-families.md)                                     | Developer experience    | 1 hr   |
-| 18  | **Review mixin opportunities** (21 findings)                                                         | Architecture            | 2 hr   |
-| 19  | **Add `.gitignore` for compiled binaries**                                                           | Repo hygiene            | 5 min  |
-| 20  | **Update go.sum across workspace** (`go work sync`)                                                  | Dependency hygiene      | 5 min  |
-| 21  | **Coverage report refresh**                                                                          | Quality tracking        | 15 min |
-| 22  | **Review example/todo error codes** for consistency                                                  | Example quality         | 30 min |
-| 23  | **Add error family tests** — verify Classify() returns expected family for key errors                | Test rigor              | 2 hr   |
-| 24  | **Consider `errorfamily.Compose` → direct import** instead of re-exporting through event/            | Architecture decision   | 30 min |
-| 25  | **Tag v2.4.0** — errorfamily adoption release                                                        | Release management      | 30 min |
+| #  | Task                                                                                                 | Impact                  | Effort |
+| -- | ---------------------------------------------------------------------------------------------------- | ----------------------- | ------ |
+| 1  | **Run `nix fmt` on all changed files**                                                               | Formatting hygiene      | 5 min  |
+| 2  | **Run `nix run .#lint` full lint**                                                                   | Catch remaining issues  | 10 min |
+| 3  | **Fix turso test failure** (LibSQL connection)                                                       | Test suite completeness | 30 min |
+| 4  | **Review catalog error codes** — replace sequential numbers with semantic names                      | Code quality            | 1 hr   |
+| 5  | **Review decider `opError` rewrite** for edge cases                                                  | Correctness             | 30 min |
+| 6  | **Audit error family classifications** — ensure Infrastructure vs Corruption vs Rejection is correct | API quality             | 2 hr   |
+| 7  | **Fix strong-id findings** (2 high severity) — watermill topic, turso id                             | Type safety             | 1 hr   |
+| 8  | **Add `Compose` to command/errors.go and query/errors.go**                                           | API consistency         | 15 min |
+| 9  | **Delete untracked binary** `cmd/api-stability/api-stability`                                        | Cleanup                 | 1 min  |
+| 10 | **Review 6 real dupe findings** from branching-flow                                                  | DRY                     | 1 hr   |
+| 11 | **Review 3 anti-pattern findings** (pebble/base.go naming)                                           | Naming quality          | 30 min |
+| 12 | **Review 6 context-loss findings**                                                                   | Error quality           | 1 hr   |
+| 13 | **Triage 264 phantom type findings** — pick top 10 actionable                                        | Type safety             | 1 hr   |
+| 14 | **Run `nix run .#test` full workspace test**                                                         | Verification            | 10 min |
+| 15 | **Update AGENTS.md** with errorfamily adoption policy                                                | Documentation           | 15 min |
+| 16 | **Add errorfamily to CI** (`--exit-code` flag in ci.yml)                                             | Enforcement             | 15 min |
+| 17 | **Write error handling guide** (docs/patterns/error-families.md)                                     | Developer experience    | 1 hr   |
+| 18 | **Review mixin opportunities** (21 findings)                                                         | Architecture            | 2 hr   |
+| 19 | **Add `.gitignore` for compiled binaries**                                                           | Repo hygiene            | 5 min  |
+| 20 | **Update go.sum across workspace** (`go work sync`)                                                  | Dependency hygiene      | 5 min  |
+| 21 | **Coverage report refresh**                                                                          | Quality tracking        | 15 min |
+| 22 | **Review example/todo error codes** for consistency                                                  | Example quality         | 30 min |
+| 23 | **Add error family tests** — verify Classify() returns expected family for key errors                | Test rigor              | 2 hr   |
+| 24 | **Consider `errorfamily.Compose` → direct import** instead of re-exporting through event/            | Architecture decision   | 30 min |
+| 25 | **Tag v2.4.0** — errorfamily adoption release                                                        | Release management      | 30 min |
 
 ---
 

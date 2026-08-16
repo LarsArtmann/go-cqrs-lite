@@ -123,22 +123,22 @@ key := ref.StreamKey()
 
 These are from TODO_LIST.md that have not been touched:
 
-| #   | Item                                                                   | Source             |
-| --- | ---------------------------------------------------------------------- | ------------------ |
-| 1   | Add ProcessedAt to CheckpointStore                                     | OFFLINE_FIRST      |
-| 2   | Add event.Context propagation                                          | SESSION_82         |
-| 3   | Add WithAsyncWrites() for PebbleEventStore                             | SESSION_74         |
-| 4   | Benchmark storage backends (PG vs SQLite vs Pebble)                    | SESSION_61         |
-| 5   | Rewrite example/user/ to demonstrate full CQRS                         | SUPERB_EXAMPLE     |
-| 6   | Add example/user/ smoke test                                           | multiple sessions  |
-| 7   | Parallelize CI matrix — one job per module                             | COMPREHENSIVE_PLAN |
-| 8   | Add gofumpt/goimports to pre-commit hook                               | SESSION_16         |
-| 9   | Performance regression CI — benchmark comparison on PR                 | multiple sessions  |
-| 10  | Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination     | SESSION_67         |
-| 11  | Add fuzz tests                                                         | multiple sessions  |
-| 12  | Add E2E throughput benchmarks                                          | SESSION13          |
-| 13  | Split large test files (decider_test.go ~1200L, runner_test.go ~1057L) | multiple sessions  |
-| 14  | Enforce 350-line limit on test files via pre-commit                    | SESSION_73         |
+| #  | Item                                                                   | Source             |
+| -- | ---------------------------------------------------------------------- | ------------------ |
+| 1  | Add ProcessedAt to CheckpointStore                                     | OFFLINE_FIRST      |
+| 2  | Add event.Context propagation                                          | SESSION_82         |
+| 3  | Add WithAsyncWrites() for PebbleEventStore                             | SESSION_74         |
+| 4  | Benchmark storage backends (PG vs SQLite vs Pebble)                    | SESSION_61         |
+| 5  | Rewrite example/user/ to demonstrate full CQRS                         | SUPERB_EXAMPLE     |
+| 6  | Add example/user/ smoke test                                           | multiple sessions  |
+| 7  | Parallelize CI matrix — one job per module                             | COMPREHENSIVE_PLAN |
+| 8  | Add gofumpt/goimports to pre-commit hook                               | SESSION_16         |
+| 9  | Performance regression CI — benchmark comparison on PR                 | multiple sessions  |
+| 10 | Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination     | SESSION_67         |
+| 11 | Add fuzz tests                                                         | multiple sessions  |
+| 12 | Add E2E throughput benchmarks                                          | SESSION13          |
+| 13 | Split large test files (decider_test.go ~1200L, runner_test.go ~1057L) | multiple sessions  |
+| 14 | Enforce 350-line limit on test files via pre-commit                    | SESSION_73         |
 
 ---
 
@@ -191,33 +191,33 @@ These are from TODO_LIST.md that have not been touched:
 
 Ranked by impact / effort ratio:
 
-| #   | Task                                       | Module            | Impact                      | Effort |
-| --- | ------------------------------------------ | ----------------- | --------------------------- | ------ |
-| 1   | Fix LSP stale diagnostics                  | tooling           | HIGH — blocks IDE usage     | LOW    |
-| 2   | Add stream integration tests               | stream            | HIGH — closes test gap      | LOW    |
-| 3   | Add example/user/ smoke test               | example           | HIGH — prevents regressions | LOW    |
-| 4   | Split decider_test.go (~1200L)             | core/decider      | MED — maintainability       | MED    |
-| 5   | Split runner_test.go (~1057L)              | projection        | MED — maintainability       | MED    |
-| 6   | Add fuzz tests for event creation          | core/event        | HIGH — catches edge cases   | MED    |
-| 7   | Add fuzz tests for ID parsing              | core/pkg/id       | HIGH — catches edge cases   | LOW    |
-| 8   | Add BDD tests for Version                  | core/event        | MED — narrative coverage    | LOW    |
-| 9   | Add BDD tests for SchemaVersion            | core/event        | MED — narrative coverage    | LOW    |
-| 10  | Add BDD tests for OutboxStatus             | core/event        | MED — narrative coverage    | LOW    |
-| 11  | Add BDD tests for Pagination               | core/query        | MED — narrative coverage    | LOW    |
-| 12  | Benchmark PG vs SQLite vs Pebble           | storage           | HIGH — missing perf data    | MED    |
-| 13  | Add E2E throughput benchmarks              | integration       | HIGH — missing perf data    | MED    |
-| 14  | Parallelize CI matrix                      | .github/workflows | MED — faster feedback       | LOW    |
-| 15  | Add gofumpt/goimports to pre-commit        | tooling           | LOW — consistency           | LOW    |
-| 16  | Add event.Context propagation              | core/event        | MED — cancellation support  | MED    |
-| 17  | Add ProcessedAt to CheckpointStore         | storage           | LOW — observability         | LOW    |
-| 18  | Add WithAsyncWrites() for Pebble           | storage           | MED — throughput            | MED    |
-| 19  | Add performance regression CI              | .github/workflows | HIGH — quality gate         | MED    |
-| 20  | Enforce 350-line test limit via pre-commit | tooling           | LOW — consistency           | LOW    |
-| 21  | Rewrite example/user/ for full CQRS        | example           | HIGH — showcases library    | HIGH   |
-| 22  | Add hybrid service example                 | example           | MED — demonstrates pattern  | HIGH   |
-| 23  | Add catalog diff/breaking-change detection | catalog           | MED — developer experience  | HIGH   |
-| 24  | Add distributed tracing E2E test           | integration       | LOW — validates middleware  | MED    |
-| 25  | Add dead letter queue tests                | projection        | LOW — validates retries     | LOW    |
+| #  | Task                                       | Module            | Impact                      | Effort |
+| -- | ------------------------------------------ | ----------------- | --------------------------- | ------ |
+| 1  | Fix LSP stale diagnostics                  | tooling           | HIGH — blocks IDE usage     | LOW    |
+| 2  | Add stream integration tests               | stream            | HIGH — closes test gap      | LOW    |
+| 3  | Add example/user/ smoke test               | example           | HIGH — prevents regressions | LOW    |
+| 4  | Split decider_test.go (~1200L)             | core/decider      | MED — maintainability       | MED    |
+| 5  | Split runner_test.go (~1057L)              | projection        | MED — maintainability       | MED    |
+| 6  | Add fuzz tests for event creation          | core/event        | HIGH — catches edge cases   | MED    |
+| 7  | Add fuzz tests for ID parsing              | core/pkg/id       | HIGH — catches edge cases   | LOW    |
+| 8  | Add BDD tests for Version                  | core/event        | MED — narrative coverage    | LOW    |
+| 9  | Add BDD tests for SchemaVersion            | core/event        | MED — narrative coverage    | LOW    |
+| 10 | Add BDD tests for OutboxStatus             | core/event        | MED — narrative coverage    | LOW    |
+| 11 | Add BDD tests for Pagination               | core/query        | MED — narrative coverage    | LOW    |
+| 12 | Benchmark PG vs SQLite vs Pebble           | storage           | HIGH — missing perf data    | MED    |
+| 13 | Add E2E throughput benchmarks              | integration       | HIGH — missing perf data    | MED    |
+| 14 | Parallelize CI matrix                      | .github/workflows | MED — faster feedback       | LOW    |
+| 15 | Add gofumpt/goimports to pre-commit        | tooling           | LOW — consistency           | LOW    |
+| 16 | Add event.Context propagation              | core/event        | MED — cancellation support  | MED    |
+| 17 | Add ProcessedAt to CheckpointStore         | storage           | LOW — observability         | LOW    |
+| 18 | Add WithAsyncWrites() for Pebble           | storage           | MED — throughput            | MED    |
+| 19 | Add performance regression CI              | .github/workflows | HIGH — quality gate         | MED    |
+| 20 | Enforce 350-line test limit via pre-commit | tooling           | LOW — consistency           | LOW    |
+| 21 | Rewrite example/user/ for full CQRS        | example           | HIGH — showcases library    | HIGH   |
+| 22 | Add hybrid service example                 | example           | MED — demonstrates pattern  | HIGH   |
+| 23 | Add catalog diff/breaking-change detection | catalog           | MED — developer experience  | HIGH   |
+| 24 | Add distributed tracing E2E test           | integration       | LOW — validates middleware  | MED    |
+| 25 | Add dead letter queue tests                | projection        | LOW — validates retries     | LOW    |
 
 ---
 

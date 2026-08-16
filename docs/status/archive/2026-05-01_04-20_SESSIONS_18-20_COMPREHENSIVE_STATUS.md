@@ -117,17 +117,17 @@ All source files under 250 lines (previously 3 violations):
 
 ## C) NOT STARTED 📋
 
-| #   | Item                                  | GitHub Issue | Priority |
-| --- | ------------------------------------- | ------------ | -------- |
-| 1   | Watermill module (pub/sub)            | #11          | HIGH     |
-| 2   | SQL-backed SnapshotStore              | #12          | MEDIUM   |
-| 3   | SQL-backed CheckpointStore            | #13          | MEDIUM   |
-| 4   | Tag v0.1.0 release                    | #14          | HIGH     |
-| 5   | Storage coverage to 90%+              | #10          | MEDIUM   |
-| 6   | Example/user test files               | #8           | LOW      |
-| 7   | CatalogBuilder/Registry consolidation | #6           | MEDIUM   |
-| 8   | NewEvent refactor (66-line function)  | #16          | LOW      |
-| 9   | Schema Format/Description fields      | #15          | LOW      |
+| # | Item                                  | GitHub Issue | Priority |
+| - | ------------------------------------- | ------------ | -------- |
+| 1 | Watermill module (pub/sub)            | #11          | HIGH     |
+| 2 | SQL-backed SnapshotStore              | #12          | MEDIUM   |
+| 3 | SQL-backed CheckpointStore            | #13          | MEDIUM   |
+| 4 | Tag v0.1.0 release                    | #14          | HIGH     |
+| 5 | Storage coverage to 90%+              | #10          | MEDIUM   |
+| 6 | Example/user test files               | #8           | LOW      |
+| 7 | CatalogBuilder/Registry consolidation | #6           | MEDIUM   |
+| 8 | NewEvent refactor (66-line function)  | #16          | LOW      |
+| 9 | Schema Format/Description fields      | #15          | LOW      |
 
 ---
 
@@ -170,48 +170,48 @@ All 19 test packages pass. Zero lint. Zero races. Zero broken tests.
 
 ### Immediate (30 min)
 
-| #   | Task                                                        | Effort |
-| --- | ----------------------------------------------------------- | ------ |
-| 1   | Add `user` binary to `.gitignore`                           | 2 min  |
-| 2   | Storage error path tests (tx fail, commit fail, query fail) | 20 min |
-| 3   | Verify storage coverage ≥ 90%                               | 5 min  |
-| 4   | Update CHANGELOG for v0.1.0                                 | 10 min |
+| # | Task                                                        | Effort |
+| - | ----------------------------------------------------------- | ------ |
+| 1 | Add `user` binary to `.gitignore`                           | 2 min  |
+| 2 | Storage error path tests (tx fail, commit fail, query fail) | 20 min |
+| 3 | Verify storage coverage ≥ 90%                               | 5 min  |
+| 4 | Update CHANGELOG for v0.1.0                                 | 10 min |
 
 ### Short-Term (1 day)
 
-| #   | Task                       | Effort |
-| --- | -------------------------- | ------ |
-| 5   | Example/user smoke test    | 2 hrs  |
-| 6   | Tag v0.1.0 release         | 30 min |
-| 7   | SQL-backed CheckpointStore | 4 hrs  |
-| 8   | SQL-backed SnapshotStore   | 4 hrs  |
+| # | Task                       | Effort |
+| - | -------------------------- | ------ |
+| 5 | Example/user smoke test    | 2 hrs  |
+| 6 | Tag v0.1.0 release         | 30 min |
+| 7 | SQL-backed CheckpointStore | 4 hrs  |
+| 8 | SQL-backed SnapshotStore   | 4 hrs  |
 
 ### Medium-Term (1 week)
 
-| #   | Task                                       | Effort   |
-| --- | ------------------------------------------ | -------- |
-| 9   | Watermill module (pub/sub with Kafka/NATS) | 2-3 days |
-| 10  | CatalogBuilder wraps Registry              | 3 hrs    |
-| 11  | NewEvent refactor into smaller helpers     | 2 hrs    |
-| 12  | Schema Format/Description fields           | 1 hr     |
-| 13  | Polish godoc on all exported types         | 3 hrs    |
-| 14  | Circuit breaker middleware                 | 4 hrs    |
-| 15  | Dead letter queue mechanism                | 4 hrs    |
-| 16  | Event bus partitioning by aggregate ID     | 4 hrs    |
+| #  | Task                                       | Effort   |
+| -- | ------------------------------------------ | -------- |
+| 9  | Watermill module (pub/sub with Kafka/NATS) | 2-3 days |
+| 10 | CatalogBuilder wraps Registry              | 3 hrs    |
+| 11 | NewEvent refactor into smaller helpers     | 2 hrs    |
+| 12 | Schema Format/Description fields           | 1 hr     |
+| 13 | Polish godoc on all exported types         | 3 hrs    |
+| 14 | Circuit breaker middleware                 | 4 hrs    |
+| 15 | Dead letter queue mechanism                | 4 hrs    |
+| 16 | Event bus partitioning by aggregate ID     | 4 hrs    |
 
 ### Long-Term (2-4 weeks)
 
-| #   | Task                                          | Effort |
-| --- | --------------------------------------------- | ------ |
-| 17  | HTTP handler examples (chi/echo)              | 3 hrs  |
-| 18  | OpenTelemetry tracing middleware              | 1 day  |
-| 19  | Migration CLI tool (schema versioning)        | 2 days |
-| 20  | Documentation site (Docusaurus)               | 2 days |
-| 21  | Contributing guide with architecture diagrams | 4 hrs  |
-| 22  | gRPC transport examples                       | 1 day  |
-| 23  | Multi-service demo with EventCatalog          | 1 day  |
-| 24  | Performance benchmark suite for storage       | 4 hrs  |
-| 25  | Graceful shutdown patterns                    | 3 hrs  |
+| #  | Task                                          | Effort |
+| -- | --------------------------------------------- | ------ |
+| 17 | HTTP handler examples (chi/echo)              | 3 hrs  |
+| 18 | OpenTelemetry tracing middleware              | 1 day  |
+| 19 | Migration CLI tool (schema versioning)        | 2 days |
+| 20 | Documentation site (Docusaurus)               | 2 days |
+| 21 | Contributing guide with architecture diagrams | 4 hrs  |
+| 22 | gRPC transport examples                       | 1 day  |
+| 23 | Multi-service demo with EventCatalog          | 1 day  |
+| 24 | Performance benchmark suite for storage       | 4 hrs  |
+| 25 | Graceful shutdown patterns                    | 3 hrs  |
 
 ---
 

@@ -10,18 +10,18 @@ Ran `branching-flow dupe . --format markdown`, reviewed all 15 groups, identifie
 
 ### a) FULLY DONE
 
-| #   | Task                                                                            | Commit                                                   | Evidence                                |
-| --- | ------------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------- |
-| 1   | Duplicate code audit — all 15 groups classified                                 | `docs/planning/2026-06-11_DUPLICATE_CODE_REVIEW_PLAN.md` | Plan doc with per-group rationale       |
-| 2   | Group 13 investigation — already refactored at HEAD                             | `storage/listing_table.go` exists                        | `63fe9885` + `4f172eba`                 |
-| 3   | Group 14 investigation — Builder/builtProjection is intentional builder pattern | ACCEPT in plan doc                                       | `projection/builder.go:13-77`           |
-| 4   | Middleware golden test fix (JSON formatting drift)                              | `96a70a6f`                                               | `TestGolden_HealthCheckResponse` passes |
+| # | Task                                                                            | Commit                                                   | Evidence                                |
+| - | ------------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------- |
+| 1 | Duplicate code audit — all 15 groups classified                                 | `docs/planning/2026-06-11_DUPLICATE_CODE_REVIEW_PLAN.md` | Plan doc with per-group rationale       |
+| 2 | Group 13 investigation — already refactored at HEAD                             | `storage/listing_table.go` exists                        | `63fe9885` + `4f172eba`                 |
+| 3 | Group 14 investigation — Builder/builtProjection is intentional builder pattern | ACCEPT in plan doc                                       | `projection/builder.go:13-77`           |
+| 4 | Middleware golden test fix (JSON formatting drift)                              | `96a70a6f`                                               | `TestGolden_HealthCheckResponse` passes |
 
 ### b) PARTIALLY DONE
 
-| #   | Task                            | Status                                                                  | Remaining           |
-| --- | ------------------------------- | ----------------------------------------------------------------------- | ------------------- |
-| 1   | Lint cleanup across all modules | ~60% fixed by intermediate commits (`3f7276fc`, `0a3dd0ad`, `05294567`) | See section d below |
+| # | Task                            | Status                                                                  | Remaining           |
+| - | ------------------------------- | ----------------------------------------------------------------------- | ------------------- |
+| 1 | Lint cleanup across all modules | ~60% fixed by intermediate commits (`3f7276fc`, `0a3dd0ad`, `05294567`) | See section d below |
 
 ### c) NOT STARTED
 
@@ -81,48 +81,48 @@ Ran `branching-flow dupe . --format markdown`, reviewed all 15 groups, identifie
 
 ### HIGH Impact, LOW Effort (1-2 hours each)
 
-| #   | Task                                                      | Impact | Effort | Why                                                     |
-| --- | --------------------------------------------------------- | ------ | ------ | ------------------------------------------------------- |
-| 1   | Fix remaining ~34 lint issues                             | HIGH   | LOW    | Clean lint = clean CI. Currently 8 modules dirty.       |
-| 2   | Add `//nolint:nlreturn` to schema/fuzz_test.go            | HIGH   | 1 min  | Blocks lint pipeline for all downstream modules         |
-| 3   | Fix `pebble/cbor_test.go` compilation or gitignore it     | HIGH   | 5 min  | Breaks `go test ./pebble/...`                           |
-| 4   | Make nix lint non-failing per-module                      | HIGH   | 5 min  | Currently hides 7 modules of issues                     |
-| 5   | Verify depguard allow list includes `golang.org/x/crypto` | MEDIUM | 2 min  | Was missing, may have been fixed in intermediate commit |
+| # | Task                                                      | Impact | Effort | Why                                                     |
+| - | --------------------------------------------------------- | ------ | ------ | ------------------------------------------------------- |
+| 1 | Fix remaining ~34 lint issues                             | HIGH   | LOW    | Clean lint = clean CI. Currently 8 modules dirty.       |
+| 2 | Add `//nolint:nlreturn` to schema/fuzz_test.go            | HIGH   | 1 min  | Blocks lint pipeline for all downstream modules         |
+| 3 | Fix `pebble/cbor_test.go` compilation or gitignore it     | HIGH   | 5 min  | Breaks `go test ./pebble/...`                           |
+| 4 | Make nix lint non-failing per-module                      | HIGH   | 5 min  | Currently hides 7 modules of issues                     |
+| 5 | Verify depguard allow list includes `golang.org/x/crypto` | MEDIUM | 2 min  | Was missing, may have been fixed in intermediate commit |
 
 ### MEDIUM Impact, MEDIUM Effort (2-8 hours each)
 
-| #   | Task                                                                                   | Impact | Effort | Why                                                       |
-| --- | -------------------------------------------------------------------------------------- | ------ | ------ | --------------------------------------------------------- |
-| 6   | Deduplicate `aesgcm_test.go` / `xchacha20_test.go` via table-driven tests              | MEDIUM | 2h     | 130 lines duplicated, but functionally correct            |
-| 7   | Bump `memory/v2` published tag — v2.2.0 references deleted `event.StreamKey`           | MEDIUM | 30 min | GOWORK=off consumers can't build                          |
-| 8   | Add `example/cbor-codec/` tests                                                        | MEDIUM | 2h     | New example has zero test coverage                        |
-| 9   | Fix `encryption/` varnamelen (16 issues) — rename `ct`→`ciphertext`, `mw`→`middleware` | LOW    | 1h     | Mechanical but tedious                                    |
-| 10  | Review `signing/multisig/fuzz_test.go` — gopls shows 12 errors                         | MEDIUM | 30 min | May be workspace-mode false positive or real API mismatch |
+| #  | Task                                                                                   | Impact | Effort | Why                                                       |
+| -- | -------------------------------------------------------------------------------------- | ------ | ------ | --------------------------------------------------------- |
+| 6  | Deduplicate `aesgcm_test.go` / `xchacha20_test.go` via table-driven tests              | MEDIUM | 2h     | 130 lines duplicated, but functionally correct            |
+| 7  | Bump `memory/v2` published tag — v2.2.0 references deleted `event.StreamKey`           | MEDIUM | 30 min | GOWORK=off consumers can't build                          |
+| 8  | Add `example/cbor-codec/` tests                                                        | MEDIUM | 2h     | New example has zero test coverage                        |
+| 9  | Fix `encryption/` varnamelen (16 issues) — rename `ct`→`ciphertext`, `mw`→`middleware` | LOW    | 1h     | Mechanical but tedious                                    |
+| 10 | Review `signing/multisig/fuzz_test.go` — gopls shows 12 errors                         | MEDIUM | 30 min | May be workspace-mode false positive or real API mismatch |
 
 ### HIGH Impact, MEDIUM Effort (not started)
 
-| #   | Task                                                                   | Impact | Effort | Why                              |
-| --- | ---------------------------------------------------------------------- | ------ | ------ | -------------------------------- |
-| 11  | v2.3.0 release — tag all modules with latest fixes                     | HIGH   | 1h     | Multiple fixes since v2.2.0      |
-| 12  | CI: add nolint-count gate — fail if nolint directives exceed threshold | MEDIUM | 2h     | Prevent nolint debt accumulation |
-| 13  | Add PostgreSQL integration tests (BLOCKED: needs testcontainers)       | HIGH   | 4h     | Only SQLite tested in CI         |
-| 14  | Push signing v1.0.0 tag (BLOCKED: needs tag push)                      | MEDIUM | 5 min  | Code is ready                    |
+| #  | Task                                                                   | Impact | Effort | Why                              |
+| -- | ---------------------------------------------------------------------- | ------ | ------ | -------------------------------- |
+| 11 | v2.3.0 release — tag all modules with latest fixes                     | HIGH   | 1h     | Multiple fixes since v2.2.0      |
+| 12 | CI: add nolint-count gate — fail if nolint directives exceed threshold | MEDIUM | 2h     | Prevent nolint debt accumulation |
+| 13 | Add PostgreSQL integration tests (BLOCKED: needs testcontainers)       | HIGH   | 4h     | Only SQLite tested in CI         |
+| 14 | Push signing v1.0.0 tag (BLOCKED: needs tag push)                      | MEDIUM | 5 min  | Code is ready                    |
 
 ### FUTURE / SPECULATIVE
 
-| #   | Task                                                                   | Impact | Effort | Why                         |
-| --- | ---------------------------------------------------------------------- | ------ | ------ | --------------------------- |
-| 15  | [v2] Add TransactionID branded type                                    | HIGH   | 4h     | Cross-aggregate consistency |
-| 16  | [v2] Split event.Store into Writer/Reader/Deleter                      | HIGH   | 8h     | ISP compliance              |
-| 17  | [v2] Make event Core truly immutable                                   | HIGH   | 4h     | Safety guarantee            |
-| 18  | [FUTURE] Catalog diff/breaking-change detection tool                   | HIGH   | 16h    | API evolution safety        |
-| 19  | [FUTURE] High-level test utilities (AggregateTester, ProjectionTester) | MEDIUM | 8h     | Consumer DX                 |
-| 20  | [FUTURE] Bi-temporal support (ValidAt, LoadToValidTime)                | MEDIUM | 8h     | Time-travel completeness    |
-| 21  | [FUTURE] HLC implementation                                            | MEDIUM | 4h     | Offline-first foundation    |
-| 22  | [FUTURE] Documentation site (Docusaurus/MkDocs/Hugo)                   | MEDIUM | 16h    | Discoverability             |
-| 23  | [FUTURE] Thin PostgreSQL store adapter (no Watermill)                  | MEDIUM | 8h     | Reduce deps for PG users    |
-| 24  | [FUTURE] Thin NATS bus adapter (no Watermill)                          | MEDIUM | 8h     | Reduce deps for NATS users  |
-| 25  | [FUTURE] Schema migration tool                                         | MEDIUM | 16h    | Operational readiness       |
+| #  | Task                                                                   | Impact | Effort | Why                         |
+| -- | ---------------------------------------------------------------------- | ------ | ------ | --------------------------- |
+| 15 | [v2] Add TransactionID branded type                                    | HIGH   | 4h     | Cross-aggregate consistency |
+| 16 | [v2] Split event.Store into Writer/Reader/Deleter                      | HIGH   | 8h     | ISP compliance              |
+| 17 | [v2] Make event Core truly immutable                                   | HIGH   | 4h     | Safety guarantee            |
+| 18 | [FUTURE] Catalog diff/breaking-change detection tool                   | HIGH   | 16h    | API evolution safety        |
+| 19 | [FUTURE] High-level test utilities (AggregateTester, ProjectionTester) | MEDIUM | 8h     | Consumer DX                 |
+| 20 | [FUTURE] Bi-temporal support (ValidAt, LoadToValidTime)                | MEDIUM | 8h     | Time-travel completeness    |
+| 21 | [FUTURE] HLC implementation                                            | MEDIUM | 4h     | Offline-first foundation    |
+| 22 | [FUTURE] Documentation site (Docusaurus/MkDocs/Hugo)                   | MEDIUM | 16h    | Discoverability             |
+| 23 | [FUTURE] Thin PostgreSQL store adapter (no Watermill)                  | MEDIUM | 8h     | Reduce deps for PG users    |
+| 24 | [FUTURE] Thin NATS bus adapter (no Watermill)                          | MEDIUM | 8h     | Reduce deps for NATS users  |
+| 25 | [FUTURE] Schema migration tool                                         | MEDIUM | 16h    | Operational readiness       |
 
 ## g) Top #1 Question I Cannot Figure Out Myself
 

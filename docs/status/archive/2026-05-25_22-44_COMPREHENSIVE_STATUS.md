@@ -137,43 +137,43 @@ Written and documented, **no decision taken** on:
 
 ### High Impact
 
-| #   | Task                                                                  |
-| --- | --------------------------------------------------------------------- |
-| 1   | **Remove `DeriveAggregateID`** — YAGNI, zero callers                  |
-| 2   | **Unexport `AggregateMarker`** + clean `example/todo` embedding       |
-| 3   | **Scan branded IDs directly from SQL** — 4 intermediate string parses |
-| 4   | **Raise eventcatalog coverage to >90%** — test new generators         |
-| 5   | **Update AGENTS.md** — all new types, APIs, branded IDs, coverage     |
+| # | Task                                                                  |
+| - | --------------------------------------------------------------------- |
+| 1 | **Remove `DeriveAggregateID`** — YAGNI, zero callers                  |
+| 2 | **Unexport `AggregateMarker`** + clean `example/todo` embedding       |
+| 3 | **Scan branded IDs directly from SQL** — 4 intermediate string parses |
+| 4 | **Raise eventcatalog coverage to >90%** — test new generators         |
+| 5 | **Update AGENTS.md** — all new types, APIs, branded IDs, coverage     |
 
 ### Medium Impact
 
-| #   | Task                                                                            |
-| --- | ------------------------------------------------------------------------------- |
-| 6   | **Add Pebble serialization round-trip tests** — verify branded IDs survive JSON |
-| 7   | **Add `DataStoreOption` fluent API**                                            |
-| 8   | **Add `FlowOption` fluent API**                                                 |
-| 9   | **Update `example/user` to use all fluent APIs**                                |
-| 10  | **Add storage error path tests** — 89.3% → >92%                                 |
-| 11  | **Add `catalog/schemautil` tests** — 84.2% → >90%                               |
-| 12  | **Push all commits to origin**                                                  |
-| 13  | **Run `nix run .#lint`**                                                        |
+| #  | Task                                                                            |
+| -- | ------------------------------------------------------------------------------- |
+| 6  | **Add Pebble serialization round-trip tests** — verify branded IDs survive JSON |
+| 7  | **Add `DataStoreOption` fluent API**                                            |
+| 8  | **Add `FlowOption` fluent API**                                                 |
+| 9  | **Update `example/user` to use all fluent APIs**                                |
+| 10 | **Add storage error path tests** — 89.3% → >92%                                 |
+| 11 | **Add `catalog/schemautil` tests** — 84.2% → >90%                               |
+| 12 | **Push all commits to origin**                                                  |
+| 13 | **Run `nix run .#lint`**                                                        |
 
 ### Lower Impact
 
-| #   | Task                                                             |
-| --- | ---------------------------------------------------------------- |
-| 14  | **Add EventCatalog changelog generation**                        |
-| 15  | **Add EventCatalog diagram generation**                          |
-| 16  | **Add `MsgExamples` MessageOption**                              |
-| 17  | **Add `ServiceFlows` / `DomainFlows` options**                   |
-| 18  | **Benchmark Pebble serialization with branded IDs**              |
-| 19  | **Audit all `.String()` calls on branded IDs**                   |
-| 20  | **Add `go vet` + `staticcheck` to CI**                           |
-| 21  | **Fix `./sync/...` stale pattern in flake.nix**                  |
-| 22  | **Add godoc examples for all option functions**                  |
-| 23  | **Rename `cattest/builders.go` helpers to accept branded types** |
-| 24  | **Add `ChannelRoute.To []ChannelID`**                            |
-| 25  | **Review `Ref.ID` polymorphic usage**                            |
+| #  | Task                                                             |
+| -- | ---------------------------------------------------------------- |
+| 14 | **Add EventCatalog changelog generation**                        |
+| 15 | **Add EventCatalog diagram generation**                          |
+| 16 | **Add `MsgExamples` MessageOption**                              |
+| 17 | **Add `ServiceFlows` / `DomainFlows` options**                   |
+| 18 | **Benchmark Pebble serialization with branded IDs**              |
+| 19 | **Audit all `.String()` calls on branded IDs**                   |
+| 20 | **Add `go vet` + `staticcheck` to CI**                           |
+| 21 | **Fix `./sync/...` stale pattern in flake.nix**                  |
+| 22 | **Add godoc examples for all option functions**                  |
+| 23 | **Rename `cattest/builders.go` helpers to accept branded types** |
+| 24 | **Add `ChannelRoute.To []ChannelID`**                            |
+| 25 | **Review `Ref.ID` polymorphic usage**                            |
 
 ---
 

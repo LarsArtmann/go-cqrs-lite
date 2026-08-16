@@ -1,9 +1,9 @@
 # Comprehensive Status Report — go-cqrs-lite v2.2.0 Release
 
-**Date:** 2026-06-08 01:29  
-**Branch:** master  
-**Commit:** `09eb3964`  
-**Tag:** v2.2.0 (just released)  
+**Date:** 2026-06-08 01:29\
+**Branch:** master\
+**Commit:** `09eb3964`\
+**Tag:** v2.2.0 (just released)\
 **Go Version:** 1.26.3
 
 ---
@@ -272,33 +272,33 @@ This is an unused variable or incorrect short declaration in the snaptest helper
 
 ## f) Top #25 Things To Get Done Next
 
-| #   | Priority  | Item                                     | Effort | Impact | Category   |
-| --- | --------- | ---------------------------------------- | ------ | ------ | ---------- |
-| 1   | ✅ DONE   | ~~Fix otel flaky parallel test~~         | —      | —      | Bug        |
-| 2   | 🟡 HIGH   | Add go-snaps to catalog/ exports         | 4h     | High   | Testing    |
-| 3   | 🟡 HIGH   | Fix snaptest compilation error           | 30m    | Low    | Bug        |
-| 4   | 🟡 HIGH   | Add nolint for intentional tagliatelle   | 30m    | Low    | Lint       |
-| 5   | 🟡 HIGH   | Fix gomodguard_v2 config                 | 15m    | Low    | Lint       |
-| 6   | 🟢 MEDIUM | Add config usage to example/user/        | 2h     | Medium | DX         |
-| 7   | 🟢 MEDIUM | Docker build CI step (multi-arch)        | 4h     | Medium | CI         |
-| 8   | 🟢 MEDIUM | SSE handler + JS client in example/user/ | 3h     | Medium | Feature    |
-| 9   | 🟢 MEDIUM | rapid PBT on command/ and query/         | 3h     | Medium | Testing    |
-| 10  | 🟢 MEDIUM | Document experimental build tags         | 2h     | Low    | Docs       |
-| 11  | 🟢 MEDIUM | Playwright setup + health E2E            | 4h     | Medium | Testing    |
-| 12  | 🟢 MEDIUM | Playwright command→event→query E2E       | 4h     | High   | Testing    |
-| 13  | 🟢 MEDIUM | Dual store runtime switching             | 3h     | Medium | Feature    |
-| 14  | 🟢 MEDIUM | go-snaps across all modules              | 8h     | Medium | Testing    |
-| 15  | 🟢 MEDIUM | Delete empty core/ directory             | 15m    | Low    | Cleanup    |
-| 16  | 🟢 MEDIUM | Prometheus metrics exporter              | 4h     | Medium | Feature    |
-| 17  | 🟢 MEDIUM | pprof endpoints in example/user/         | 2h     | Low    | Feature    |
-| 18  | 🟢 MEDIUM | Add Docker image integration test        | 3h     | Medium | CI         |
-| 19  | 🟢 MEDIUM | JSON v2 codec experiment                 | 6h     | Low    | Experiment |
-| 20  | 🟢 MEDIUM | Arena allocation experiment              | 8h     | Low    | Experiment |
-| 21  | 🟢 LOW    | gRPC transport adapter                   | 16h    | High   | Feature    |
-| 22  | 🟢 LOW    | NATS/Redis Stream adapter                | 12h    | High   | Feature    |
-| 23  | 🟢 LOW    | Saga module                              | 20h    | High   | Feature    |
-| 24  | 🟢 LOW    | GraphQL query adapter                    | 16h    | Medium | Feature    |
-| 25  | 🟢 LOW    | WebAssembly decider target               | 24h    | Medium | Experiment |
+| #  | Priority  | Item                                     | Effort | Impact | Category   |
+| -- | --------- | ---------------------------------------- | ------ | ------ | ---------- |
+| 1  | ✅ DONE   | ~~Fix otel flaky parallel test~~         | —      | —      | Bug        |
+| 2  | 🟡 HIGH   | Add go-snaps to catalog/ exports         | 4h     | High   | Testing    |
+| 3  | 🟡 HIGH   | Fix snaptest compilation error           | 30m    | Low    | Bug        |
+| 4  | 🟡 HIGH   | Add nolint for intentional tagliatelle   | 30m    | Low    | Lint       |
+| 5  | 🟡 HIGH   | Fix gomodguard_v2 config                 | 15m    | Low    | Lint       |
+| 6  | 🟢 MEDIUM | Add config usage to example/user/        | 2h     | Medium | DX         |
+| 7  | 🟢 MEDIUM | Docker build CI step (multi-arch)        | 4h     | Medium | CI         |
+| 8  | 🟢 MEDIUM | SSE handler + JS client in example/user/ | 3h     | Medium | Feature    |
+| 9  | 🟢 MEDIUM | rapid PBT on command/ and query/         | 3h     | Medium | Testing    |
+| 10 | 🟢 MEDIUM | Document experimental build tags         | 2h     | Low    | Docs       |
+| 11 | 🟢 MEDIUM | Playwright setup + health E2E            | 4h     | Medium | Testing    |
+| 12 | 🟢 MEDIUM | Playwright command→event→query E2E       | 4h     | High   | Testing    |
+| 13 | 🟢 MEDIUM | Dual store runtime switching             | 3h     | Medium | Feature    |
+| 14 | 🟢 MEDIUM | go-snaps across all modules              | 8h     | Medium | Testing    |
+| 15 | 🟢 MEDIUM | Delete empty core/ directory             | 15m    | Low    | Cleanup    |
+| 16 | 🟢 MEDIUM | Prometheus metrics exporter              | 4h     | Medium | Feature    |
+| 17 | 🟢 MEDIUM | pprof endpoints in example/user/         | 2h     | Low    | Feature    |
+| 18 | 🟢 MEDIUM | Add Docker image integration test        | 3h     | Medium | CI         |
+| 19 | 🟢 MEDIUM | JSON v2 codec experiment                 | 6h     | Low    | Experiment |
+| 20 | 🟢 MEDIUM | Arena allocation experiment              | 8h     | Low    | Experiment |
+| 21 | 🟢 LOW    | gRPC transport adapter                   | 16h    | High   | Feature    |
+| 22 | 🟢 LOW    | NATS/Redis Stream adapter                | 12h    | High   | Feature    |
+| 23 | 🟢 LOW    | Saga module                              | 20h    | High   | Feature    |
+| 24 | 🟢 LOW    | GraphQL query adapter                    | 16h    | Medium | Feature    |
+| 25 | 🟢 LOW    | WebAssembly decider target               | 24h    | Medium | Experiment |
 
 ---
 
@@ -349,7 +349,7 @@ This is an unused variable or incorrect short declaration in the snaptest helper
 | storage/sql            | ✅    | Healthy   |                                |
 | watermill              | ✅    | Healthy   |                                |
 | listing                | ✅    | Healthy   |                                |
-| otel                   | ⚠️    | **FLAKY** | Fails under parallel execution |
+| otel                   | ⚠️     | **FLAKY** | Fails under parallel execution |
 | pebble                 | ✅    | Healthy   |                                |
 | turso                  | ✅    | Healthy   |                                |
 | cmd/cqrs-gen           | ✅    | Healthy   |                                |

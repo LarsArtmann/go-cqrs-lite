@@ -1,7 +1,7 @@
 # Session 113: golangci-lint Full Monorepo Sweep — Status Report
 
-**Date:** 2026-05-28 06:57  
-**Branch:** master (2 commits ahead of origin)  
+**Date:** 2026-05-28 06:57\
+**Branch:** master (2 commits ahead of origin)\
 **Scope:** Run `golangci-lint run --fix` across all 18 sub-modules, fix every issue, verify 0 issues remain.
 
 ---
@@ -21,25 +21,25 @@ This session also uncovered and fixed 2 pre-existing compilation errors (saga te
 
 Every module with Go source files was linted and all issues resolved:
 
-| Module               | Issues Found    | Issues Fixed                                                           | Status     |
-| -------------------- | --------------- | ---------------------------------------------------------------------- | ---------- |
-| `core`               | 0               | 0                                                                      | ✅ Clean   |
-| `testhelpers`        | 0               | 0                                                                      | ✅ Clean   |
-| `signing`            | 3 → 0           | gosec G115, noinlineerr, wrapcheck                                     | ✅ Fixed   |
-| `catalog`            | 0               | 0                                                                      | ✅ Clean   |
-| `memory`             | typecheck block | Missing `replace` directives in go.mod                                 | ✅ Fixed   |
-| `middleware`         | 10 → 0          | contextcheck, exhaustruct, mnd, noinlineerr, dupl, varnamelen          | ✅ Fixed   |
-| `storage`            | 0               | 0                                                                      | ✅ Clean   |
-| `projection`         | 3 → 0           | varnamelen (test `cp` → `checkpointStore`)                             | ✅ Fixed   |
-| `saga`               | typecheck block | Pre-existing: `saga.Option`→`saga.RunnerOption`, `*command.Dispatcher` | ✅ Fixed   |
-| `watermill`          | 0               | 0                                                                      | ✅ Clean   |
+| Module               | Issues Found    | Issues Fixed                                                           | Status    |
+| -------------------- | --------------- | ---------------------------------------------------------------------- | --------- |
+| `core`               | 0               | 0                                                                      | ✅ Clean  |
+| `testhelpers`        | 0               | 0                                                                      | ✅ Clean  |
+| `signing`            | 3 → 0           | gosec G115, noinlineerr, wrapcheck                                     | ✅ Fixed  |
+| `catalog`            | 0               | 0                                                                      | ✅ Clean  |
+| `memory`             | typecheck block | Missing `replace` directives in go.mod                                 | ✅ Fixed  |
+| `middleware`         | 10 → 0          | contextcheck, exhaustruct, mnd, noinlineerr, dupl, varnamelen          | ✅ Fixed  |
+| `storage`            | 0               | 0                                                                      | ✅ Clean  |
+| `projection`         | 3 → 0           | varnamelen (test `cp` → `checkpointStore`)                             | ✅ Fixed  |
+| `saga`               | typecheck block | Pre-existing: `saga.Option`→`saga.RunnerOption`, `*command.Dispatcher` | ✅ Fixed  |
+| `watermill`          | 0               | 0                                                                      | ✅ Clean  |
 | `integration`        | N/A             | No Go files                                                            | ⏭️ Skipped |
-| `cmd/cqrs-gen`       | 1 → 0           | goconst (`"command"`/`"query"` → named constants)                      | ✅ Fixed   |
-| `example/saga`       | 0               | 0                                                                      | ✅ Clean   |
-| `example/user`       | 24 → 0          | Full list below                                                        | ✅ Fixed   |
+| `cmd/cqrs-gen`       | 1 → 0           | goconst (`"command"`/`"query"` → named constants)                      | ✅ Fixed  |
+| `example/saga`       | 0               | 0                                                                      | ✅ Clean  |
+| `example/user`       | 24 → 0          | Full list below                                                        | ✅ Fixed  |
 | `example/todo`       | N/A             | No Go files                                                            | ⏭️ Skipped |
-| `example/storage`    | 3 → 0           | errcheck, errchkjson, gocritic (exitAfterDefer)                        | ✅ Fixed   |
-| `example/projection` | 7 → 0           | errchkjson, gocritic, mnd                                              | ✅ Fixed   |
+| `example/storage`    | 3 → 0           | errcheck, errchkjson, gocritic (exitAfterDefer)                        | ✅ Fixed  |
+| `example/projection` | 7 → 0           | errchkjson, gocritic, mnd                                              | ✅ Fixed  |
 
 ### 2. Pre-existing bugs fixed during lint sweep
 
@@ -172,48 +172,48 @@ The codebase is in **solid shape**:
 
 ### Critical (P0) — Do First
 
-| #   | Task                                                       | Module  | Effort |
-| --- | ---------------------------------------------------------- | ------- | ------ |
-| 1   | Fix catalog golden tests (`go test -update`)               | catalog | 5 min  |
-| 2   | Create `.golangci.yml` with project-standard config        | root    | 30 min |
-| 3   | Run full test suite with `-race` flag                      | all     | 10 min |
-| 4   | Verify CI pipeline matches local lint behavior             | CI      | 15 min |
-| 5   | Push or plan v1.0.0 tags to eliminate `replace` directives | all     | 1 hr   |
+| # | Task                                                       | Module  | Effort |
+| - | ---------------------------------------------------------- | ------- | ------ |
+| 1 | Fix catalog golden tests (`go test -update`)               | catalog | 5 min  |
+| 2 | Create `.golangci.yml` with project-standard config        | root    | 30 min |
+| 3 | Run full test suite with `-race` flag                      | all     | 10 min |
+| 4 | Verify CI pipeline matches local lint behavior             | CI      | 15 min |
+| 5 | Push or plan v1.0.0 tags to eliminate `replace` directives | all     | 1 hr   |
 
 ### High Priority (P1)
 
-| #   | Task                                                             | Module          | Effort |
-| --- | ---------------------------------------------------------------- | --------------- | ------ |
-| 6   | Fill `integration/` with cross-module E2E tests                  | integration     | 4 hr   |
-| 7   | Audit and reduce 90 `//nolint` directives                        | all             | 2 hr   |
-| 8   | Add constructor functions to eliminate `exhaustruct` nolints     | core, memory    | 2 hr   |
-| 9   | Wrap external errors at boundaries to remove `wrapcheck` nolints | memory, catalog | 1 hr   |
-| 10  | Add `example/todo` Go files or remove the module                 | example/todo    | 1 hr   |
-| 11  | Add signing module README with usage examples                    | signing         | 1 hr   |
-| 12  | Run `go mod tidy` in all modules to clean up deps                | all             | 10 min |
+| #  | Task                                                             | Module          | Effort |
+| -- | ---------------------------------------------------------------- | --------------- | ------ |
+| 6  | Fill `integration/` with cross-module E2E tests                  | integration     | 4 hr   |
+| 7  | Audit and reduce 90 `//nolint` directives                        | all             | 2 hr   |
+| 8  | Add constructor functions to eliminate `exhaustruct` nolints     | core, memory    | 2 hr   |
+| 9  | Wrap external errors at boundaries to remove `wrapcheck` nolints | memory, catalog | 1 hr   |
+| 10 | Add `example/todo` Go files or remove the module                 | example/todo    | 1 hr   |
+| 11 | Add signing module README with usage examples                    | signing         | 1 hr   |
+| 12 | Run `go mod tidy` in all modules to clean up deps                | all             | 10 min |
 
 ### Medium Priority (P2)
 
-| #   | Task                                                            | Module     | Effort |
-| --- | --------------------------------------------------------------- | ---------- | ------ |
-| 13  | Add fuzz tests for signing (HMAC, Ed25519)                      | signing    | 2 hr   |
-| 14  | Add fuzz tests for codec (JSON round-trip)                      | core/event | 1 hr   |
-| 15  | Add circuit breaker race condition tests                        | middleware | 2 hr   |
-| 16  | Create example that uses signing module                         | example/   | 2 hr   |
-| 17  | Add context propagation audit (find all `context.Background()`) | all        | 1 hr   |
-| 18  | Update ADRs with linting and signing decisions                  | docs/adr   | 1 hr   |
-| 19  | Add error wrapping to `os.WriteFile` calls in catalog           | catalog    | 30 min |
-| 20  | Verify all middleware works with generic Dispatcher[State]      | middleware | 2 hr   |
+| #  | Task                                                            | Module     | Effort |
+| -- | --------------------------------------------------------------- | ---------- | ------ |
+| 13 | Add fuzz tests for signing (HMAC, Ed25519)                      | signing    | 2 hr   |
+| 14 | Add fuzz tests for codec (JSON round-trip)                      | core/event | 1 hr   |
+| 15 | Add circuit breaker race condition tests                        | middleware | 2 hr   |
+| 16 | Create example that uses signing module                         | example/   | 2 hr   |
+| 17 | Add context propagation audit (find all `context.Background()`) | all        | 1 hr   |
+| 18 | Update ADRs with linting and signing decisions                  | docs/adr   | 1 hr   |
+| 19 | Add error wrapping to `os.WriteFile` calls in catalog           | catalog    | 30 min |
+| 20 | Verify all middleware works with generic Dispatcher[State]      | middleware | 2 hr   |
 
 ### Lower Priority (P3)
 
-| #   | Task                                                                    | Module     | Effort |
-| --- | ----------------------------------------------------------------------- | ---------- | ------ |
-| 21  | Benchmark suite for hot paths (event creation, dispatch)                | core       | 4 hr   |
-| 22  | Add `//go:generate` directives for boilerplate                          | middleware | 2 hr   |
-| 23  | Add OpenTelemetry integration for metrics middleware                    | middleware | 4 hr   |
-| 24  | Create interactive API documentation (Swagger UI / AsyncAPI Playground) | catalog    | 4 hr   |
-| 25  | Add Pre-commit hook for golangci-lint                                   | root       | 30 min |
+| #  | Task                                                                    | Module     | Effort |
+| -- | ----------------------------------------------------------------------- | ---------- | ------ |
+| 21 | Benchmark suite for hot paths (event creation, dispatch)                | core       | 4 hr   |
+| 22 | Add `//go:generate` directives for boilerplate                          | middleware | 2 hr   |
+| 23 | Add OpenTelemetry integration for metrics middleware                    | middleware | 4 hr   |
+| 24 | Create interactive API documentation (Swagger UI / AsyncAPI Playground) | catalog    | 4 hr   |
+| 25 | Add Pre-commit hook for golangci-lint                                   | root       | 30 min |
 
 ---
 

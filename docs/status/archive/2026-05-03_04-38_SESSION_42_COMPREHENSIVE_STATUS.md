@@ -1,9 +1,9 @@
 # Session 42 — Comprehensive Status Report
 
-**Date:** 2026-05-03 04:38  
-**Branch:** `master`  
-**Commits since Session 40:** 10  
-**Test suites:** 22 packages, ALL PASS  
+**Date:** 2026-05-03 04:38\
+**Branch:** `master`\
+**Commits since Session 40:** 10\
+**Test suites:** 22 packages, ALL PASS\
 **Total LOC:** 29,974 Go (10,057 production + 19,917 test)
 
 ---
@@ -50,8 +50,8 @@
 
 ## B) PARTIALLY DONE ⚠️
 
-| Item                         | Status         | What's Done                                                      | What's Missing                                                                                                                                                                                                             |
-| ---------------------------- | -------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item                         | Status        | What's Done                                                      | What's Missing                                                                                                                                                                                                             |
+| ---------------------------- | ------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Decider coverage**         | ⚠️ 77.4%       | Execute, Load, NewRepository, loadState, publishChanges all 100% | `loadFromSnapshot` at 18.2% (snapshot decode error, store load error, fold error paths), `Delete` at 75%, `saveSnapshot` at 71.4%, `EveryNEvents` at 66.7%                                                                 |
 | **Function size compliance** | ⚠️ Partial     | Session 41 reduced worst offenders (76→22, 66→5, 53→30, 49→20)   | 43 functions still exceed 30-line max — mostly in catalog exporters (asyncapi 62-line Export, d2 60-line connections, eventcatalog 56-line writeLLMsTxt). Also `validateEventParams` 51 lines, `loadFromSnapshot` 49 lines |
 | **File size compliance**     | ⚠️ 1 file over | All files ≤250 except `core/decider/decider.go` at 292 lines     | Need to split decider.go (options/methods to separate files)                                                                                                                                                               |
@@ -229,11 +229,11 @@ This is an **interface-breaking decision**. Option 1 is cleanest for consumers b
 | `catalog/asyncapi`     | 95.9%     | >95%   | ✅     |
 | `catalog/eventcatalog` | 95.6%     | >95%   | ✅     |
 | `catalog/adapters`     | 95.5%     | >95%   | ✅     |
-| `catalog`              | 94.4%     | >95%   | ⚠️     |
-| `core/aggregate`       | 93.2%     | >95%   | ⚠️     |
-| `storage`              | 92.0%     | >95%   | ⚠️     |
-| `memory`               | 91.9%     | >95%   | ⚠️     |
-| `projection`           | 90.1%     | >95%   | ⚠️     |
+| `catalog`              | 94.4%     | >95%   | ⚠️      |
+| `core/aggregate`       | 93.2%     | >95%   | ⚠️      |
+| `storage`              | 92.0%     | >95%   | ⚠️      |
+| `memory`               | 91.9%     | >95%   | ⚠️      |
+| `projection`           | 90.1%     | >95%   | ⚠️      |
 | **`core/decider`**     | **77.4%** | >95%   | **💥** |
 
 ## Module Dependency Graph

@@ -30,6 +30,7 @@ Added row: `| [0125](0125-developer-priority-is-layout-only.md) | Developer Prio
 **File:** `metaengine/query.go:55-74`
 
 Updated `WithLayoutPriority` godoc:
+
 - Added ADR-0125 reference.
 - Added `LAYOUT-ONLY:` paragraph explicitly stating it does not influence engine ranking.
 - Fixed the resolution order comment: was `per-Query (this) > per-Query (operator config)`, now correctly `per-Query (operator config) > per-Query (this)` — operator wins.
@@ -68,7 +69,7 @@ These were identified in the prior session's status report (`2026-08-11_17-49`) 
 
 ### 1. I made a confident claim, then discovered I was wrong
 
-In my first response I said: *"the name and docs are already precise."* The user asked "Document is some where?" and when I searched, I found **no doc states this boundary anywhere.** The name is precise; the docs didn't exist. I should have searched BEFORE making the claim. I corrected it immediately when the user pushed back, but it cost a round trip.
+In my first response I said: _"the name and docs are already precise."_ The user asked "Document is some where?" and when I searched, I found **no doc states this boundary anywhere.** The name is precise; the docs didn't exist. I should have searched BEFORE making the claim. I corrected it immediately when the user pushed back, but it cost a round trip.
 
 ### 2. I didn't review the daemon's changes
 

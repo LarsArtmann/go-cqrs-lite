@@ -12,11 +12,11 @@
 
 Three bugs fixed, all in the SSE reconnection subsystem:
 
-| #   | Bug                                                                                                                                                    | Fix                                                                                                                                                       | File                      |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| 1   | **Silent 1000-event cap** — `replayLimit <= 0` was silently coerced to 1000, permanently dropping events for long-offline clients                      | `replayLimit <= 0` now means **unlimited** with batch streaming (500 events/batch). Exported `DefaultSSEReplayLimit = 1000` for callers who want bounded. | `sse.go:37-47`            |
-| 2   | **Dedup wired wrong** — `replayEvents` returned a dedup set but `SSEHandler` discarded it. Live events that were already replayed got delivered twice. | Dedup ring now captured in `replayed` variable and checked in the live loop with `continue` on match.                                                     | `sse.go:222-227, 263-266` |
-| 3   | **Client registered AFTER replay** — race window where concurrent live events published during replay were lost (client not yet in the fanout map).    | `AddClient` now runs **before** `replayEvents`. Live events buffer in the channel (size 100) during replay, then drain through the dedup-aware live loop. | `sse.go:217-219`          |
+| # | Bug                                                                                                                                                    | Fix                                                                                                                                                       | File                      |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| 1 | **Silent 1000-event cap** — `replayLimit <= 0` was silently coerced to 1000, permanently dropping events for long-offline clients                      | `replayLimit <= 0` now means **unlimited** with batch streaming (500 events/batch). Exported `DefaultSSEReplayLimit = 1000` for callers who want bounded. | `sse.go:37-47`            |
+| 2 | **Dedup wired wrong** — `replayEvents` returned a dedup set but `SSEHandler` discarded it. Live events that were already replayed got delivered twice. | Dedup ring now captured in `replayed` variable and checked in the live loop with `continue` on match.                                                     | `sse.go:222-227, 263-266` |
+| 3 | **Client registered AFTER replay** — race window where concurrent live events published during replay were lost (client not yet in the fanout map).    | `AddClient` now runs **before** `replayEvents`. Live events buffer in the channel (size 100) during replay, then drain through the dedup-aware live loop. | `sse.go:217-219`          |
 
 ### Bounded Dedup Ring — Memory Safety (`transport/http/dedup_ring.go`)
 
@@ -91,41 +91,41 @@ Previously: "unbounded map for unlimited replay (~26MB for 1M events)." Now reso
 
 ### Immediate (this session's scope)
 
-| #   | Task                                                | Status                                                                                                                                                                                          |
-| --- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `WithReplayTimeout(maxDuration)` for browser safety | **DONE** — `WithReplayTimeout(d time.Duration)`                                                                                                                                                 |
-| 2   | Bounded dedup set (ring buffer)                     | **DONE** — `dedupRing` in both SSE and CatchUpSubscriber                                                                                                                                        |
-| 3   | Simplify `id` field branding round-trip             | **SKIPPED** — the SSEEventID brand provides newline/CR injection validation at the wire boundary. Removing it would lose a security check for no meaningful simplification. Not worth the risk. |
+| # | Task                                                | Status                                                                                                                                                                                          |
+| - | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `WithReplayTimeout(maxDuration)` for browser safety | **DONE** — `WithReplayTimeout(d time.Duration)`                                                                                                                                                 |
+| 2 | Bounded dedup set (ring buffer)                     | **DONE** — `dedupRing` in both SSE and CatchUpSubscriber                                                                                                                                        |
+| 3 | Simplify `id` field branding round-trip             | **SKIPPED** — the SSEEventID brand provides newline/CR injection validation at the wire boundary. Removing it would lose a security check for no meaningful simplification. Not worth the risk. |
 
 ### Broader (noticed during investigation)
 
-| #   | Task                                  | Status                                |
-| --- | ------------------------------------- | ------------------------------------- |
-| 4   | `SQLTimerStore` in `scheduling/`      | Not started — separate session        |
-| 5   | CatchUpSubscriber replayIDs unbounded | **DONE** — bounded dedup ring applied |
+| # | Task                                  | Status                                |
+| - | ------------------------------------- | ------------------------------------- |
+| 4 | `SQLTimerStore` in `scheduling/`      | Not started — separate session        |
+| 5 | CatchUpSubscriber replayIDs unbounded | **DONE** — bounded dedup ring applied |
 
 ---
 
 ## f) Remaining work (priority-ordered)
 
-| #   | Priority | Task                                                                                    | Impact                                   |
-| --- | -------- | --------------------------------------------------------------------------------------- | ---------------------------------------- |
-| 1   | **P0**   | Commit the SSE replay fix + improvements                                                | Ships everything above                   |
-| 2   | **P2**   | Implement `SQLTimerStore` in `scheduling/`                                              | Makes durable deadlines production-ready |
-| 3   | **P2**   | Add SSE replay integration test with real `MemoryStore` (not just `FakeStore`)          | Catches SQL-specific replay bugs         |
-| 4   | **P2**   | Batched streaming in `CatchUpSubscriber.replayPhase`                                    | Reduces peak memory for large journals   |
-| 5   | **P3**   | Add SSE replay metrics (replay_count, replay_duration, dedup_hits) to OTel span         | Observability                            |
-| 6   | **P3**   | Document SSE vs CatchUpSubscriber decision matrix in SKILL.md                           | Consumer guidance                        |
-| 7   | **P3**   | Add `example/` showing SSE + offline client reconnection                                | Usage demo                               |
-| 8   | **P3**   | Consider SSE `retry:` field auto-tuning based on client reconnect frequency             | UX                                       |
-| 9   | **P4**   | Investigate whether `handleEvent` fanout should use worker pool instead of lock+iterate | Performance at scale                     |
-| 10  | **P4**   | Add backpressure: when client channel is full, slow down or drop oldest                 | Prevents slow-client memory bloat        |
-| 11  | **P4**   | Add `SSEBroker.Stats()` returning per-client lag (events buffered, events dropped)      | Debugging                                |
-| 12  | **P4**   | Consider WebSocket transport alongside SSE for bidirectional needs                      | Feature completeness                     |
-| 13  | **P5**   | Add compression support to SSE (gzip + `Content-Encoding: gzip`)                        | Bandwidth                                |
-| 14  | **P5**   | Add per-event-type SSE filtering (client subscribes to `user.*` not all events)         | Bandwidth                                |
-| 15  | **P5**   | Add SSE authentication middleware example                                               | Security                                 |
-| 16  | **P5**   | Add connection draining on `broker.Close()` with grace period                           | Clean shutdown                           |
+| #  | Priority | Task                                                                                    | Impact                                   |
+| -- | -------- | --------------------------------------------------------------------------------------- | ---------------------------------------- |
+| 1  | **P0**   | Commit the SSE replay fix + improvements                                                | Ships everything above                   |
+| 2  | **P2**   | Implement `SQLTimerStore` in `scheduling/`                                              | Makes durable deadlines production-ready |
+| 3  | **P2**   | Add SSE replay integration test with real `MemoryStore` (not just `FakeStore`)          | Catches SQL-specific replay bugs         |
+| 4  | **P2**   | Batched streaming in `CatchUpSubscriber.replayPhase`                                    | Reduces peak memory for large journals   |
+| 5  | **P3**   | Add SSE replay metrics (replay_count, replay_duration, dedup_hits) to OTel span         | Observability                            |
+| 6  | **P3**   | Document SSE vs CatchUpSubscriber decision matrix in SKILL.md                           | Consumer guidance                        |
+| 7  | **P3**   | Add `example/` showing SSE + offline client reconnection                                | Usage demo                               |
+| 8  | **P3**   | Consider SSE `retry:` field auto-tuning based on client reconnect frequency             | UX                                       |
+| 9  | **P4**   | Investigate whether `handleEvent` fanout should use worker pool instead of lock+iterate | Performance at scale                     |
+| 10 | **P4**   | Add backpressure: when client channel is full, slow down or drop oldest                 | Prevents slow-client memory bloat        |
+| 11 | **P4**   | Add `SSEBroker.Stats()` returning per-client lag (events buffered, events dropped)      | Debugging                                |
+| 12 | **P4**   | Consider WebSocket transport alongside SSE for bidirectional needs                      | Feature completeness                     |
+| 13 | **P5**   | Add compression support to SSE (gzip + `Content-Encoding: gzip`)                        | Bandwidth                                |
+| 14 | **P5**   | Add per-event-type SSE filtering (client subscribes to `user.*` not all events)         | Bandwidth                                |
+| 15 | **P5**   | Add SSE authentication middleware example                                               | Security                                 |
+| 16 | **P5**   | Add connection draining on `broker.Close()` with grace period                           | Clean shutdown                           |
 
 ---
 

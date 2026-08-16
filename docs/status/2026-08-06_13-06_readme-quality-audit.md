@@ -9,40 +9,40 @@
 
 ### Structural fixes applied
 
-| #   | File                                     | What was done                                                                                                                                   |
-| --- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `README.md` (root)                       | Module count corrected (58 → 68 in two places)                                                                                                  |
-| 2   | `docs/README.md`                         | Broken example links fixed (`todo`/`user`/`encryption` → `taskmanager`/`getting-started`/`readme-quickstart`); module count corrected (59 → 68) |
-| 3   | `catalog/README.md`                      | Fixed orphaned section structure — `## Branded ID Types` was an empty header with content dumped 80 lines later; consolidated                   |
-| 4   | `metaengine/projectionadapter/README.md` | Fixed broken ADR link (`0062-projection-adapter.md` → `0062-metaengine-dependency-boundary.md`)                                                 |
+| # | File                                     | What was done                                                                                                                                   |
+| - | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `README.md` (root)                       | Module count corrected (58 → 68 in two places)                                                                                                  |
+| 2 | `docs/README.md`                         | Broken example links fixed (`todo`/`user`/`encryption` → `taskmanager`/`getting-started`/`readme-quickstart`); module count corrected (59 → 68) |
+| 3 | `catalog/README.md`                      | Fixed orphaned section structure — `## Branded ID Types` was an empty header with content dumped 80 lines later; consolidated                   |
+| 4 | `metaengine/projectionadapter/README.md` | Fixed broken ADR link (`0062-projection-adapter.md` → `0062-metaengine-dependency-boundary.md`)                                                 |
 
 ### Missing READMEs created (5 new files)
 
-| #   | Module                              | Content                                                                                                             |
-| --- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| 5   | `system/README.md`                  | Deployer-driven composition root: `New(ctx, domain, deployment)`, driver registry, introspection API, safety checks |
-| 6   | `metaengine/pebbleengine/README.md` | Pebble engine: cost profile, 7 backends, RawValueReader, persistence model                                          |
-| 7   | `metaengine/duckdbengine/README.md` | DuckDB engine: columnar OLAP, PushdownScan, LayoutPlanner, CGo note                                                 |
-| 8   | `metaengine/pgengine/README.md`     | Postgres engine: JSONB, expression indexes, pgx pure-Go, cost profile                                               |
-| 9   | `metaengine/irohengine/README.md`   | CRDT replication wrapper: 5 CRDT-safe ops, three-tier transport pyramid                                             |
+| # | Module                              | Content                                                                                                             |
+| - | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| 5 | `system/README.md`                  | Deployer-driven composition root: `New(ctx, domain, deployment)`, driver registry, introspection API, safety checks |
+| 6 | `metaengine/pebbleengine/README.md` | Pebble engine: cost profile, 7 backends, RawValueReader, persistence model                                          |
+| 7 | `metaengine/duckdbengine/README.md` | DuckDB engine: columnar OLAP, PushdownScan, LayoutPlanner, CGo note                                                 |
+| 8 | `metaengine/pgengine/README.md`     | Postgres engine: JSONB, expression indexes, pgx pure-Go, cost profile                                               |
+| 9 | `metaengine/irohengine/README.md`   | CRDT replication wrapper: 5 CRDT-safe ops, three-tier transport pyramid                                             |
 
 ### Consistency improvements (badges, install, cross-links)
 
-| #   | Module                            | Improvements                                                                            |
-| --- | --------------------------------- | --------------------------------------------------------------------------------------- |
-| 10  | `flightrecorder/`                 | Added badge, descriptive title, `go get`, Why section, Related Modules                  |
-| 11  | `projectionhost/`                 | Fixed title (`projectionhost/v4` → proper name), added badge, `go get`, Related Modules |
-| 12  | `prometheus/`                     | Added badge, `go get`, API table, Related Modules                                       |
-| 13  | `benchkit/`                       | Added badge, `go get`, Related Modules                                                  |
-| 14  | `stack/duckdb/`                   | Added badge, `go get`, Related Modules                                                  |
-| 15  | `metaengine/`                     | Added badge, `go get`, Related Modules                                                  |
-| 16  | `metaengine/projectionadapter/`   | Added badge, `go get`, Related Modules                                                  |
-| 17  | `metaengine/irohengine/loopback/` | Added badge, `go get`, Related Modules                                                  |
-| 18  | `metaengine/irohengine/quic/`     | Added badge, `go get`, Related Modules                                                  |
-| 19  | `cmd/cqrs-lint/`                  | Added badge, Related Modules                                                            |
-| 20  | `scheduling/sqlstore/`            | Added Related Modules                                                                   |
-| 21  | `idempotency/sqlstore/`           | Added Related Modules                                                                   |
-| 22  | `storage/turso/indexing/`         | Added badge, `go get`                                                                   |
+| #  | Module                            | Improvements                                                                            |
+| -- | --------------------------------- | --------------------------------------------------------------------------------------- |
+| 10 | `flightrecorder/`                 | Added badge, descriptive title, `go get`, Why section, Related Modules                  |
+| 11 | `projectionhost/`                 | Fixed title (`projectionhost/v4` → proper name), added badge, `go get`, Related Modules |
+| 12 | `prometheus/`                     | Added badge, `go get`, API table, Related Modules                                       |
+| 13 | `benchkit/`                       | Added badge, `go get`, Related Modules                                                  |
+| 14 | `stack/duckdb/`                   | Added badge, `go get`, Related Modules                                                  |
+| 15 | `metaengine/`                     | Added badge, `go get`, Related Modules                                                  |
+| 16 | `metaengine/projectionadapter/`   | Added badge, `go get`, Related Modules                                                  |
+| 17 | `metaengine/irohengine/loopback/` | Added badge, `go get`, Related Modules                                                  |
+| 18 | `metaengine/irohengine/quic/`     | Added badge, `go get`, Related Modules                                                  |
+| 19 | `cmd/cqrs-lint/`                  | Added badge, Related Modules                                                            |
+| 20 | `scheduling/sqlstore/`            | Added Related Modules                                                                   |
+| 21 | `idempotency/sqlstore/`           | Added Related Modules                                                                   |
+| 22 | `storage/turso/indexing/`         | Added badge, `go get`                                                                   |
 
 ### Verification passed
 

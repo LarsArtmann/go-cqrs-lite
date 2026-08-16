@@ -1,10 +1,10 @@
 # Session 19-20: Comprehensive Status Report
 
-**Date:** 2026-05-01 04:20 CEST  
-**Author:** Session 19 (Crush) + Session 20 (concurrent Crush)  
-**Commits since session 17:** 18  
-**Total Go files:** 142 (65 test files)  
-**Total Go LOC:** 22,585  
+**Date:** 2026-05-01 04:20 CEST\
+**Author:** Session 19 (Crush) + Session 20 (concurrent Crush)\
+**Commits since session 17:** 18\
+**Total Go files:** 142 (65 test files)\
+**Total Go LOC:** 22,585\
 **Total tests passing:** 486
 
 ---
@@ -100,13 +100,13 @@ These features are complete, tested, documented, and in CI.
 
 | Feature                       | Status | Coverage Gap                        | Notes                                    |
 | ----------------------------- | ------ | ----------------------------------- | ---------------------------------------- |
-| SQLEventStore.Save            | ⚠️     | Missing begin-tx error path         | Happy path + concurrency conflict tested |
-| SQLEventStore.AppendBatch     | ⚠️     | Missing begin-tx error path         | Transactional happy path tested          |
-| SQLEventStore.Load            | ⚠️     | Missing query error path            | Happy path + not-found tested            |
-| SQLEventStore.LoadFromVersion | ⚠️     | Missing query error path            | Happy path tested                        |
-| SQLEventStore.Delete          | ⚠️     | Missing exec error path             | Happy path tested                        |
-| SQLEventStore.Close           | ⚠️     | Complete                            |                                          |
-| scanEvents                    | ⚠️     | Missing parse/unmarshal error paths | Metadata roundtrip tested                |
+| SQLEventStore.Save            | ⚠️      | Missing begin-tx error path         | Happy path + concurrency conflict tested |
+| SQLEventStore.AppendBatch     | ⚠️      | Missing begin-tx error path         | Transactional happy path tested          |
+| SQLEventStore.Load            | ⚠️      | Missing query error path            | Happy path + not-found tested            |
+| SQLEventStore.LoadFromVersion | ⚠️      | Missing query error path            | Happy path tested                        |
+| SQLEventStore.Delete          | ⚠️      | Missing exec error path             | Happy path tested                        |
+| SQLEventStore.Close           | ⚠️      | Complete                            |                                          |
+| scanEvents                    | ⚠️      | Missing parse/unmarshal error paths | Metadata roundtrip tested                |
 | Schema() DDL                  | ❌     | Untested                            | Function exists, no test                 |
 | SQL SnapshotStore             | ❌     | Not started                         | Interface exists in core                 |
 | SQL CheckpointStore           | ❌     | Not started                         | Interface exists in core                 |
@@ -115,8 +115,8 @@ These features are complete, tested, documented, and in CI.
 
 | Feature            | Status | Notes                                       |
 | ------------------ | ------ | ------------------------------------------- |
-| User aggregate     | ⚠️     | Full lifecycle demo, no test files          |
-| Catalog generation | ⚠️     | Generates EventCatalog output, not verified |
+| User aggregate     | ⚠️      | Full lifecycle demo, no test files          |
+| Catalog generation | ⚠️      | Generates EventCatalog output, not verified |
 
 ### Catalog Schema type
 
@@ -217,33 +217,33 @@ Events were re-upcasted by ALL upcasters with sourceVersion ≤ N instead of exa
 
 ## F) TOP 25 NEXT ACTIONS (by impact/effort)
 
-| #   | Action                                                | Impact | Effort | Issue | Customer Value            |
-| --- | ----------------------------------------------------- | ------ | ------ | ----- | ------------------------- |
-| 1   | Storage error path tests (begin/query/parse failures) | HIGH   | 30min  | #10   | Data integrity            |
-| 2   | Add Schema() DDL test                                 | MEDIUM | 5min   | #10   | SQL correctness           |
-| 3   | example/user smoke test                               | MEDIUM | 30min  | #8    | Demo doesn't break        |
-| 4   | Split testhelpers/fakes.go (342→4×85)                 | MEDIUM | 20min  | #7    | Maintainability           |
-| 5   | Split id_test.go (947→5×190)                          | LOW    | 15min  | —     | Maintainability           |
-| 6   | Split cattest/helpers.go (330→2×165)                  | LOW    | 10min  | —     | Maintainability           |
-| 7   | Storage integration test (testcontainers?)            | HIGH   | 90min  | —     | Real DB verification      |
-| 8   | Watermill module: event.Bus impl                      | HIGH   | 120min | #11   | Production pub/sub        |
-| 9   | SQL CheckpointStore                                   | MEDIUM | 60min  | #13   | Production projections    |
-| 10  | SQL SnapshotStore                                     | MEDIUM | 60min  | #12   | Production snapshots      |
-| 11  | CatalogBuilder/Registry dedup                         | MEDIUM | 45min  | #6    | Eliminate split brain     |
-| 12  | Add Format/Description to Schema Property             | LOW    | 30min  | #15   | Richer documentation      |
-| 13  | Refactor NewEvent (66→5 lines)                        | LOW    | 20min  | #16   | Maintainability           |
-| 14  | Coverage regression CI gate (fail if <95%)            | MEDIUM | 15min  | —     | Catch regressions         |
-| 15  | go.work ↔ flake.nix sync check (pre-commit)           | LOW    | 15min  | —     | Prevent ghost modules     |
-| 16  | Merged coverage report across modules                 | MEDIUM | 30min  | —     | Accurate total coverage   |
-| 17  | README installation instructions                      | LOW    | 20min  | —     | Consumer onboarding       |
-| 18  | go doc render check for public APIs                   | LOW    | 15min  | —     | API documentation         |
-| 19  | Tag v0.1.0 releases per module                        | LOW    | 30min  | #14   | Go module discoverability |
-| 20  | Benchmark regression tracking                         | LOW    | 60min  | —     | Performance visibility    |
-| 21  | Add ErrConcurrencyConflict sentinel                   | LOW    | 10min  | —     | Type-safe error handling  |
-| 22  | Storage: test AppendBatch with single event           | LOW    | 5min   | —     | Edge case                 |
-| 23  | Add EmptyEventTypes → subscribesToAll doc             | LOW    | 5min   | —     | API clarity               |
-| 24  | Consider sqlc for storage queries                     | LOW    | 60min  | —     | Type-safe SQL             |
-| 25  | Add CONTRIBUTING.md testing section for storage       | LOW    | 5min   | —     | Contributor onboarding    |
+| #  | Action                                                | Impact | Effort | Issue | Customer Value            |
+| -- | ----------------------------------------------------- | ------ | ------ | ----- | ------------------------- |
+| 1  | Storage error path tests (begin/query/parse failures) | HIGH   | 30min  | #10   | Data integrity            |
+| 2  | Add Schema() DDL test                                 | MEDIUM | 5min   | #10   | SQL correctness           |
+| 3  | example/user smoke test                               | MEDIUM | 30min  | #8    | Demo doesn't break        |
+| 4  | Split testhelpers/fakes.go (342→4×85)                 | MEDIUM | 20min  | #7    | Maintainability           |
+| 5  | Split id_test.go (947→5×190)                          | LOW    | 15min  | —     | Maintainability           |
+| 6  | Split cattest/helpers.go (330→2×165)                  | LOW    | 10min  | —     | Maintainability           |
+| 7  | Storage integration test (testcontainers?)            | HIGH   | 90min  | —     | Real DB verification      |
+| 8  | Watermill module: event.Bus impl                      | HIGH   | 120min | #11   | Production pub/sub        |
+| 9  | SQL CheckpointStore                                   | MEDIUM | 60min  | #13   | Production projections    |
+| 10 | SQL SnapshotStore                                     | MEDIUM | 60min  | #12   | Production snapshots      |
+| 11 | CatalogBuilder/Registry dedup                         | MEDIUM | 45min  | #6    | Eliminate split brain     |
+| 12 | Add Format/Description to Schema Property             | LOW    | 30min  | #15   | Richer documentation      |
+| 13 | Refactor NewEvent (66→5 lines)                        | LOW    | 20min  | #16   | Maintainability           |
+| 14 | Coverage regression CI gate (fail if <95%)            | MEDIUM | 15min  | —     | Catch regressions         |
+| 15 | go.work ↔ flake.nix sync check (pre-commit)           | LOW    | 15min  | —     | Prevent ghost modules     |
+| 16 | Merged coverage report across modules                 | MEDIUM | 30min  | —     | Accurate total coverage   |
+| 17 | README installation instructions                      | LOW    | 20min  | —     | Consumer onboarding       |
+| 18 | go doc render check for public APIs                   | LOW    | 15min  | —     | API documentation         |
+| 19 | Tag v0.1.0 releases per module                        | LOW    | 30min  | #14   | Go module discoverability |
+| 20 | Benchmark regression tracking                         | LOW    | 60min  | —     | Performance visibility    |
+| 21 | Add ErrConcurrencyConflict sentinel                   | LOW    | 10min  | —     | Type-safe error handling  |
+| 22 | Storage: test AppendBatch with single event           | LOW    | 5min   | —     | Edge case                 |
+| 23 | Add EmptyEventTypes → subscribesToAll doc             | LOW    | 5min   | —     | API clarity               |
+| 24 | Consider sqlc for storage queries                     | LOW    | 60min  | —     | Type-safe SQL             |
+| 25 | Add CONTRIBUTING.md testing section for storage       | LOW    | 5min   | —     | Contributor onboarding    |
 
 ---
 

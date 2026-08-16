@@ -19,13 +19,13 @@ Session 122 recovered from Session 121's destructive `git reset --hard` that des
 
 ### Session 122 Work (this session)
 
-| #   | Item                                          | Files                                                                                                                                                                                                                    | Status                                      |
-| --- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
-| 1   | Fix `ErrNilEvent` undefined in `tombstone.go` | `core/event/tombstone.go`                                                                                                                                                                                                | Done — replaced with `NewRejection` calls   |
-| 2   | Split `signing_test.go` (1028L → 5 files)     | `signing/signing_test.go`, `hmac_test.go`, `ed25519_test.go`, `signature_test.go`, `middleware_test.go`                                                                                                                  | Done — max 372L                             |
-| 3   | Split `multisig_test.go` (1275L → 8 files)    | `multisig_test.go`, `multisig_types_test.go`, `multisig_sign_test.go`, `multisig_verify_test.go`, `multisig_extract_test.go`, `multisig_middleware_test.go`, `multisig_middleware_extra_test.go`, `multisig_e2e_test.go` | Done — max 314L                             |
-| 4   | Cross-module signing integration tests        | `integration/signing/signing_integration_test.go`                                                                                                                                                                        | Done — 2 tests                              |
-| 5   | Fix 3 golden test fixture failures            | `catalog/testdata/golden/asyncapi.yaml`, `eventcatalog-config.js`, `package.json`                                                                                                                                        | Done — YAML indentation change from 569c726 |
+| # | Item                                          | Files                                                                                                                                                                                                                    | Status                                      |
+| - | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
+| 1 | Fix `ErrNilEvent` undefined in `tombstone.go` | `core/event/tombstone.go`                                                                                                                                                                                                | Done — replaced with `NewRejection` calls   |
+| 2 | Split `signing_test.go` (1028L → 5 files)     | `signing/signing_test.go`, `hmac_test.go`, `ed25519_test.go`, `signature_test.go`, `middleware_test.go`                                                                                                                  | Done — max 372L                             |
+| 3 | Split `multisig_test.go` (1275L → 8 files)    | `multisig_test.go`, `multisig_types_test.go`, `multisig_sign_test.go`, `multisig_verify_test.go`, `multisig_extract_test.go`, `multisig_middleware_test.go`, `multisig_middleware_extra_test.go`, `multisig_e2e_test.go` | Done — max 314L                             |
+| 4 | Cross-module signing integration tests        | `integration/signing/signing_integration_test.go`                                                                                                                                                                        | Done — 2 tests                              |
+| 5 | Fix 3 golden test fixture failures            | `catalog/testdata/golden/asyncapi.yaml`, `eventcatalog-config.js`, `package.json`                                                                                                                                        | Done — YAML indentation change from 569c726 |
 
 ### Carried Over (Sessions 117–120)
 
@@ -46,40 +46,40 @@ Nothing partially done.
 
 ### Signing Module
 
-| #   | Item                                        | Priority | Notes                                                      |
-| --- | ------------------------------------------- | -------- | ---------------------------------------------------------- |
-| 1   | Push signing v1.0.0 tag                     | HIGH     | Code ready, needs manual `git tag` + `git push --tags`     |
-| 2   | `attachMultiSignature` JSON error path test | LOW      | Unreachable path (MultiSignature always JSON-marshallable) |
-| 3   | `hmacSigner.Verify` error path test         | LOW      | Unreachable path (Sign can't fail after nil check)         |
+| # | Item                                        | Priority | Notes                                                      |
+| - | ------------------------------------------- | -------- | ---------------------------------------------------------- |
+| 1 | Push signing v1.0.0 tag                     | HIGH     | Code ready, needs manual `git tag` + `git push --tags`     |
+| 2 | `attachMultiSignature` JSON error path test | LOW      | Unreachable path (MultiSignature always JSON-marshallable) |
+| 3 | `hmacSigner.Verify` error path test         | LOW      | Unreachable path (Sign can't fail after nil check)         |
 
 ### Cross-Module
 
-| #   | Item                                  | Priority | Notes                         |
-| --- | ------------------------------------- | -------- | ----------------------------- |
-| 4   | `example/user/go.mod` signing version | MED      | Currently v1.6.0              |
-| 5   | Move `example/todo` to own repo       | BLOCKED  | Requires manual repo creation |
+| # | Item                                  | Priority | Notes                         |
+| - | ------------------------------------- | -------- | ----------------------------- |
+| 4 | `example/user/go.mod` signing version | MED      | Currently v1.6.0              |
+| 5 | Move `example/todo` to own repo       | BLOCKED  | Requires manual repo creation |
 
 ### Catalog
 
-| #   | Item                                           | Priority | Notes             |
-| --- | ---------------------------------------------- | -------- | ----------------- |
-| 6   | `catalog/internal/schemautil` coverage (84.2%) | LOW      | Lowest in catalog |
+| # | Item                                           | Priority | Notes             |
+| - | ---------------------------------------------- | -------- | ----------------- |
+| 6 | `catalog/internal/schemautil` coverage (84.2%) | LOW      | Lowest in catalog |
 
 ### Core
 
-| #   | Item                                            | Priority | Notes           |
-| --- | ----------------------------------------------- | -------- | --------------- |
-| 7   | Query handler `any` → generic `TypedHandler[T]` | v2       | Breaking change |
-| 8   | `io.Closer` removal from core interfaces        | v2       | Breaking change |
-| 9   | Global `TransactionID` branded type             | v2       | Breaking change |
+| # | Item                                            | Priority | Notes           |
+| - | ----------------------------------------------- | -------- | --------------- |
+| 7 | Query handler `any` → generic `TypedHandler[T]` | v2       | Breaking change |
+| 8 | `io.Closer` removal from core interfaces        | v2       | Breaking change |
+| 9 | Global `TransactionID` branded type             | v2       | Breaking change |
 
 ### Stream Module (from Session 121 commit)
 
-| #   | Item                                                           | Priority | Notes                             |
-| --- | -------------------------------------------------------------- | -------- | --------------------------------- |
-| 10  | Add stream/ SQL reader + projection                            | MED      | New module scaffolded in cdc2176  |
-| 11  | Add stream/ tests >80% coverage                                | MED      | Module has doc.go + types.go only |
-| 12  | Remove Delete from Store interfaces (Phase 2 of Stream API v4) | MED      | Breaking change                   |
+| #  | Item                                                           | Priority | Notes                             |
+| -- | -------------------------------------------------------------- | -------- | --------------------------------- |
+| 10 | Add stream/ SQL reader + projection                            | MED      | New module scaffolded in cdc2176  |
+| 11 | Add stream/ tests >80% coverage                                | MED      | Module has doc.go + types.go only |
+| 12 | Remove Delete from Store interfaces (Phase 2 of Stream API v4) | MED      | Breaking change                   |
 
 ---
 
@@ -143,48 +143,48 @@ Nothing partially done.
 
 ### Immediate (do now)
 
-| #   | Action                                                    | Impact | Effort |
-| --- | --------------------------------------------------------- | ------ | ------ |
-| 1   | Push signing v1.0.0 tag                                   | HIGH   | 5 min  |
-| 2   | Move `TestEmptyPayloadEvent` to `hmac_test.go` (fix 372L) | LOW    | 2 min  |
-| 3   | Rename `signing_test.go` → `test_helpers_test.go`         | LOW    | 2 min  |
+| # | Action                                                    | Impact | Effort |
+| - | --------------------------------------------------------- | ------ | ------ |
+| 1 | Push signing v1.0.0 tag                                   | HIGH   | 5 min  |
+| 2 | Move `TestEmptyPayloadEvent` to `hmac_test.go` (fix 372L) | LOW    | 2 min  |
+| 3 | Rename `signing_test.go` → `test_helpers_test.go`         | LOW    | 2 min  |
 
 ### Short-term (this week)
 
-| #   | Action                                                | Impact | Effort |
-| --- | ----------------------------------------------------- | ------ | ------ |
-| 4   | Fix `example/user/go.mod` signing version             | LOW    | 5 min  |
-| 5   | Update `TODO_LIST.md` with current state              | MED    | 30 min |
-| 6   | Add `Actor` branded type (like `id.Of[actorMarker]`)  | MED    | 30 min |
-| 7   | Add `Algorithm` enum type                             | MED    | 30 min |
-| 8   | Write signing benchmarks for VerifyAll with >2 actors | LOW    | 30 min |
-| 9   | Evaluate `testify/require` for test assertions        | LOW    | 1 hr   |
-| 10  | Stream module: add tests for existing types           | MED    | 2 hr   |
+| #  | Action                                                | Impact | Effort |
+| -- | ----------------------------------------------------- | ------ | ------ |
+| 4  | Fix `example/user/go.mod` signing version             | LOW    | 5 min  |
+| 5  | Update `TODO_LIST.md` with current state              | MED    | 30 min |
+| 6  | Add `Actor` branded type (like `id.Of[actorMarker]`)  | MED    | 30 min |
+| 7  | Add `Algorithm` enum type                             | MED    | 30 min |
+| 8  | Write signing benchmarks for VerifyAll with >2 actors | LOW    | 30 min |
+| 9  | Evaluate `testify/require` for test assertions        | LOW    | 1 hr   |
+| 10 | Stream module: add tests for existing types           | MED    | 2 hr   |
 
 ### Medium-term (next sessions)
 
-| #   | Action                                                | Impact | Effort |
-| --- | ----------------------------------------------------- | ------ | ------ |
-| 11  | Stream module: SQL reader + projection implementation | MED    | Large  |
-| 12  | Stream module: Phase 2 — remove Delete from Store     | MED    | Large  |
-| 13  | `catalog/internal/schemautil` coverage (84.2% → 90%+) | LOW    | 1 hr   |
-| 14  | Evaluate `xxhash/v2` for canonical payload hashing    | LOW    | 1 hr   |
-| 15  | Evaluate `sha256-simd` for canonical payload          | LOW    | 1 hr   |
-| 16  | Optimize Pebble LoadToTimestamp (full scan → bounds)  | MED    | 2 hr   |
-| 17  | Add catalog diff/breaking-change detection            | FUTURE | Large  |
-| 18  | Add high-level test utilities (AggregateTester, etc.) | FUTURE | Large  |
-| 19  | v2: Query handler generic `TypedHandler[T]`           | HIGH   | Large  |
-| 20  | v2: `io.Closer` removal from core interfaces          | MED    | Medium |
-| 21  | v2: Global `TransactionID` branded type               | MED    | Medium |
+| #  | Action                                                | Impact | Effort |
+| -- | ----------------------------------------------------- | ------ | ------ |
+| 11 | Stream module: SQL reader + projection implementation | MED    | Large  |
+| 12 | Stream module: Phase 2 — remove Delete from Store     | MED    | Large  |
+| 13 | `catalog/internal/schemautil` coverage (84.2% → 90%+) | LOW    | 1 hr   |
+| 14 | Evaluate `xxhash/v2` for canonical payload hashing    | LOW    | 1 hr   |
+| 15 | Evaluate `sha256-simd` for canonical payload          | LOW    | 1 hr   |
+| 16 | Optimize Pebble LoadToTimestamp (full scan → bounds)  | MED    | 2 hr   |
+| 17 | Add catalog diff/breaking-change detection            | FUTURE | Large  |
+| 18 | Add high-level test utilities (AggregateTester, etc.) | FUTURE | Large  |
+| 19 | v2: Query handler generic `TypedHandler[T]`           | HIGH   | Large  |
+| 20 | v2: `io.Closer` removal from core interfaces          | MED    | Medium |
+| 21 | v2: Global `TransactionID` branded type               | MED    | Medium |
 
 ### Infrastructure
 
-| #   | Action                                            | Impact | Effort            |
-| --- | ------------------------------------------------- | ------ | ----------------- |
-| 22  | Move `example/todo` to own repository             | LOW    | Manual            |
-| 23  | Publish go-composable-business-types as Go module | LOW    | Manual            |
-| 24  | Modularize ActaFlow                               | LOW    | Different project |
-| 25  | Evaluate nix flake migration from justfile        | LOW    | 4 hr              |
+| #  | Action                                            | Impact | Effort            |
+| -- | ------------------------------------------------- | ------ | ----------------- |
+| 22 | Move `example/todo` to own repository             | LOW    | Manual            |
+| 23 | Publish go-composable-business-types as Go module | LOW    | Manual            |
+| 24 | Modularize ActaFlow                               | LOW    | Different project |
+| 25 | Evaluate nix flake migration from justfile        | LOW    | 4 hr              |
 
 ---
 

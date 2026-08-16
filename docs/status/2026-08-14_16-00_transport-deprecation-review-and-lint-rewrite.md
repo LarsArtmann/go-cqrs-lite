@@ -11,9 +11,9 @@
 **What did I forget?**
 
 1. **`example/taskmanager` still imports the deprecated path** (`cqrshttp.NewSSEBroker`, `http.go:39`, `setup.go:53,180`). The flagship example now contradicts the doctrine the library just adopted. I deliberately deferred it (runtime-behavior change beyond a deprecation sweep) — but it means the deprecation is announced while our own flagship ignores it.
-2. **No lint rule coaches migration AWAY from transport/**. I stopped coaching users *toward* it (catalog removal, E009/F013 rewrites), but a project importing `transport/http` today gets silence. The natural companion — a low-severity "deprecated module detected, here's your migration path" rule — was not built.
-3. **`watermill/README.md`** was not updated to say it is now *the* sanctioned delivery path (I added the recipe to skill `advanced.md` §6.4.1, but not to the module's own README).
-4. **F012's message body was not audited** — I rewrote F013 and E009; F012 lives in `f002_f005.go` (a file modified by the *parallel* WAL session, so I left it alone). It may still reference transport modules.
+2. **No lint rule coaches migration AWAY from transport/**. I stopped coaching users _toward_ it (catalog removal, E009/F013 rewrites), but a project importing `transport/http` today gets silence. The natural companion — a low-severity "deprecated module detected, here's your migration path" rule — was not built.
+3. **`watermill/README.md`** was not updated to say it is now _the_ sanctioned delivery path (I added the recipe to skill `advanced.md` §6.4.1, but not to the module's own README).
+4. **F012's message body was not audited** — I rewrote F013 and E009; F012 lives in `f002_f005.go` (a file modified by the _parallel_ WAL session, so I left it alone). It may still reference transport modules.
 5. **`catalog_extra.go`** was never checked for transport references.
 
 **What could I have done better?**
@@ -29,27 +29,32 @@
 ## a) FULLY DONE
 
 ### 1. Full project review (brutal, evidence-backed)
+
 - 5 parallel deep-dives: core modules, storage+metaengine, docs honesty, tooling/examples, gap hunt.
 - Every damning claim re-verified by hand (id/v4.4.0 missing `actor_id.go`, `listing/types.go:42` TombstonePolicy, `dgraphengine/counter.go:158` colon bug, taskmanager local `replace`).
 - Outputs: `docs/reviews/2026-08-14_14-25_brutal-self-review.{html,md}` — six-tier verdict (EXCEPTIONAL→REALLY BAD) + Totally-Missed list + Pareto fix plan.
 - Correction pass: broker-transport finding rewritten (watermill bridge existed all along; corpse tests + stale design docs were the real gaps). RTT/EWMA glossary added.
 
 ### 2. Broker-transport documentation corrections
+
 - `docs/design/transport-nats.md`, `transport-redis.md`: "Accepted, implementation pending" → SUPERSEDED banners pointing at ADR-0025 + watermill + official plugins.
 - Skill `advanced.md` §6.4.1: new "Broker Backends (the sanctioned path)" recipe with verified symbols (`NewEventPublisher`, `WithBackend`, `WithCommandBackend`).
 - `TODO_LIST.md`: broker item rewritten (sanctioned path, corpse-test warning, broker-edge checklist).
 
 ### 3. ADR-0127 — deprecate transport/* (written + wired)
+
 - `docs/adr/0127-deprecate-transport-modules.md`: context, decision, sanctioned-path table, consequences, migration table.
 - ADR-0025 header → "Superseded by ADR-0127".
 - `docs/adr/README.md`: 0025 status updated; added missing 0126 row (pre-existing index drift) + 0127 row.
 
 ### 4. Module deprecations (house style)
+
 - `transport/http/doc.go` + README: "Package http is DEPRECATED (ADR-0127)… removal at v5" with need→replacement table (go-sse / watermill / cqrs-htmx).
 - `transport/grpc/doc.go` + README: same treatment (watermill brokers or direct grpc-go bridge).
 - `metaengine/sse.go:15`: doc no longer points at the deprecated SSEBroker; names go-sse + watermill as the raw-event path.
 
 ### 5. cqrs-lint rewrite toward sanctioned paths
+
 - `feature_detect.go`: `HasTransport` now detects `watermill/`, `go-sse` (via `larsartmann/go-sse`), `cqrs-htmx`, and legacy `transport/*` (migrating projects aren't coached).
 - `module_catalog_data.go`: `transport/http` + `transport/grpc` entries deleted (deprecated modules are not adoption targets) with explanatory comment.
 - E009 + F013 messages rewritten (watermill/go-sse/cqrs-htmx; "transport/* modules are deprecated").
@@ -58,14 +63,17 @@
 - `cmd/cqrs-lint/README.md`: `transport` flag docs describe the new detection set.
 
 ### 6. Consumer-facing doc sweep (single deprecation story)
+
 - `SKILL.md` delivery table, `references/modules.md` (both rows), `advanced.md` (§6.8 + SSE comparisons), `core.md` (decision matrix 5 rows, cross-cutting row, layer list), `recipes.md` §2.15 (deprecated module note; `TranscodeToJSON` itself NOT deprecated), `AGENTS.md` module map, `FEATURES.md` (SSE Broker + gRPC sections → ⚠️ DEPRECATED), `docs/DOMAIN_LANGUAGE.md` (messaging table).
 - Root `README.md` audited — already aligned with doctrine ("no transport forced"), no change needed.
 
 ### 7. CHANGELOG + TODO_LIST
+
 - CHANGELOG `[Unreleased]`: new "Deprecated — transport/* modules" section, newest-first.
 - TODO_LIST v5 Phase 8: new item "Delete transport/http + transport/grpc" with migration-first ordering (taskmanager → go.work/flake/api-stability removal → delete).
 
 ### 8. Verification
+
 - cqrs-lint suite: 17/17 packages GREEN (`-count=1`).
 - doc-check: 797 references valid across 44 packages.
 - api-stability: meta-tests pass; `docs/api_surface.txt` regenerated (4131→4132 exports).
@@ -106,11 +114,12 @@
 ## f) NEXT — up to 50, in Pareto order
 
 **P0 — invalidates everything while broken:**
+
 1. Fix release chain: re-tag `id` (missing `actor_id.go` in v4.4.0), re-tag dependents (record/command/metaengine), bump 66 downstream go.mods; verify `GOWORK=off` build against published versions only. <- **NOT-DO - premise stale: id/v4.4.0 already contains actor_id.go (verified via git tag --contains, 2026-08-15); no re-tag cascade needed. Downstream tagging tracks in TODO_LIST 'Release / Tagging'.**
 2. Engine capability conformance test: plan-time `Supports`-vs-implemented-interfaces check (catches pg/mysql/duckdb declaring Set/Log/Multimap/Graph/Vector with no implementations). <- OPEN. TODO_LIST 'Metaengine' (Engine capability conformance test)
-~~3. Fix Dgraph `CounterBackend` DQL colon bug (`counter.go:158`, 1 char) + `JournalReadFrom` off-by-one.~~ done - counter path reworked at 5127039da ($keyN variable binding, injection test, per-counter observability; live ADT matrix incl. counters green 24/24); JournalReadFrom at 7c0a62c98
-4. Reconcile ADR-0114 fiction: land DeletePolicy or rewrite FEATURES/CHANGELOG/AGENTS/migration-guide/DOMAIN_LANGUAGE to tell the tombstone truth. <- OPEN. TODO_LIST 'Docs Honesty' (ADR-0114 tombstone reconciliation)
-5. Remove taskmanager's local `replace` (`go.mod:88`). <- NOT-DO - the only replace in taskmanager/go.mod is the intentional go-must sibling dev-replace (present at report time too); no cqrs-lite local replace to remove
+   ~~3. Fix Dgraph `CounterBackend` DQL colon bug (`counter.go:158`, 1 char) + `JournalReadFrom` off-by-one.~~ done - counter path reworked at 5127039da ($keyN variable binding, injection test, per-counter observability; live ADT matrix incl. counters green 24/24); JournalReadFrom at 7c0a62c98
+3. Reconcile ADR-0114 fiction: land DeletePolicy or rewrite FEATURES/CHANGELOG/AGENTS/migration-guide/DOMAIN_LANGUAGE to tell the tombstone truth. <- OPEN. TODO_LIST 'Docs Honesty' (ADR-0114 tombstone reconciliation)
+4. Remove taskmanager's local `replace` (`go.mod:88`). <- NOT-DO - the only replace in taskmanager/go.mod is the intentional go-must sibling dev-replace (present at report time too); no cqrs-lite local replace to remove
 
 **P1 — this session's direct follow-ups:**
 6. ~~Migrate taskmanager off `cqrshttp.NewSSEBroker` → go-sse or `metaengine.ServeSSE`.~~ Done — `metaengine.ServeSSE` chosen (example already runs metaengine projections; zero new deps; free reconnection).
@@ -189,8 +198,7 @@ details in CHANGELOG `[Unreleased]`.
 
 ---
 
-*Report ends. Waiting for instructions.*
-
+_Report ends. Waiting for instructions._
 
 ---
 

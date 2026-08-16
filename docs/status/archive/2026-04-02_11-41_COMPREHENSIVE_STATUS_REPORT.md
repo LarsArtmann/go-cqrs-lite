@@ -17,41 +17,41 @@ The biggest recent event: a thorough **review of adopting `go-composable-busines
 
 ## a) FULLY DONE ✅
 
-| #   | Item                                                      | Evidence                                                      | Date       |
-| --- | --------------------------------------------------------- | ------------------------------------------------------------- | ---------- |
-| 1   | **Core CQRS packages** (command, query, event, aggregate) | All compile, all tested                                       | 2026-03-15 |
-| 2   | **Generic internal dispatcher**                           | `internal/dispatcher/dispatcher.go` (167 lines)               | 2026-03-22 |
-| 3   | **Strongly-typed IDs** (`pkg/id`)                         | `Of[T] string` branded type, 7 pre-defined types              | 2026-03-22 |
-| 4   | **xtypes extension package**                              | Typed wrappers for event/command/aggregate                    | 2026-03-23 |
-| 5   | **In-memory event store**                                 | `event/memory_store.go` with Save/Load/Delete                 | 2026-03-15 |
-| 6   | **In-memory event bus**                                   | `event/memory_bus.go` with Publish/Subscribe                  | 2026-03-15 |
-| 7   | **Command dispatcher** with middleware                    | `command/dispatcher.go` with `Use()`/`Dispatch()`             | 2026-03-15 |
-| 8   | **Query dispatcher** with middleware                      | `query/dispatcher.go` with `Use()`/`Dispatch()`               | 2026-03-15 |
-| 9   | **Event creation with rich options**                      | CorrelationID, CausationID, UserID, RequestID, Source, IP, UA | 2026-03-15 |
-| 10  | **Event metadata system**                                 | `Metadata` struct with custom fields                          | 2026-03-15 |
-| 11  | **Version type** with Parse/Increment                     | `event.Version` phantom type                                  | 2026-03-15 |
-| 12  | **CI: GitHub Actions**                                    | `.github/workflows/test.yml` + `lint.yml`                     | 2026-03-23 |
-| 13  | **Linter config**                                         | `.golangci.yml` + `.golangci-lint.yml`                        | 2026-03-23 |
-| 14  | **go-json-experiment integration**                        | Faster JSON marshaling for IDs                                | 2026-03-30 |
-| 15  | **Project documentation**                                 | README, AGENTS.md, CONTRIBUTING, CODE_OF_CONDUCT              | 2026-03-23 |
-| 16  | **go-composable-business-types review**                   | Full analysis: cherry-pick, don't replace                     | 2026-04-02 |
-| 17  | **Error handling**                                        | `cockroachdb/errors` with sentinel + wrap pattern             | 2026-03-15 |
-| 18  | **Module hygiene**                                        | `go vet ./...` passes clean                                   | 2026-04-02 |
+| #  | Item                                                      | Evidence                                                      | Date       |
+| -- | --------------------------------------------------------- | ------------------------------------------------------------- | ---------- |
+| 1  | **Core CQRS packages** (command, query, event, aggregate) | All compile, all tested                                       | 2026-03-15 |
+| 2  | **Generic internal dispatcher**                           | `internal/dispatcher/dispatcher.go` (167 lines)               | 2026-03-22 |
+| 3  | **Strongly-typed IDs** (`pkg/id`)                         | `Of[T] string` branded type, 7 pre-defined types              | 2026-03-22 |
+| 4  | **xtypes extension package**                              | Typed wrappers for event/command/aggregate                    | 2026-03-23 |
+| 5  | **In-memory event store**                                 | `event/memory_store.go` with Save/Load/Delete                 | 2026-03-15 |
+| 6  | **In-memory event bus**                                   | `event/memory_bus.go` with Publish/Subscribe                  | 2026-03-15 |
+| 7  | **Command dispatcher** with middleware                    | `command/dispatcher.go` with `Use()`/`Dispatch()`             | 2026-03-15 |
+| 8  | **Query dispatcher** with middleware                      | `query/dispatcher.go` with `Use()`/`Dispatch()`               | 2026-03-15 |
+| 9  | **Event creation with rich options**                      | CorrelationID, CausationID, UserID, RequestID, Source, IP, UA | 2026-03-15 |
+| 10 | **Event metadata system**                                 | `Metadata` struct with custom fields                          | 2026-03-15 |
+| 11 | **Version type** with Parse/Increment                     | `event.Version` phantom type                                  | 2026-03-15 |
+| 12 | **CI: GitHub Actions**                                    | `.github/workflows/test.yml` + `lint.yml`                     | 2026-03-23 |
+| 13 | **Linter config**                                         | `.golangci.yml` + `.golangci-lint.yml`                        | 2026-03-23 |
+| 14 | **go-json-experiment integration**                        | Faster JSON marshaling for IDs                                | 2026-03-30 |
+| 15 | **Project documentation**                                 | README, AGENTS.md, CONTRIBUTING, CODE_OF_CONDUCT              | 2026-03-23 |
+| 16 | **go-composable-business-types review**                   | Full analysis: cherry-pick, don't replace                     | 2026-04-02 |
+| 17 | **Error handling**                                        | `cockroachdb/errors` with sentinel + wrap pattern             | 2026-03-15 |
+| 18 | **Module hygiene**                                        | `go vet ./...` passes clean                                   | 2026-04-02 |
 
 ---
 
 ## b) PARTIALLY DONE 🔶
 
-| #   | Item                      | Status                           | Gap                                                     | Priority |
-| --- | ------------------------- | -------------------------------- | ------------------------------------------------------- | -------- |
-| 1   | **Test coverage**         | 63.6%–92.6% per package          | `pkg/id` at 48.2%, `aggregate` at 63.6%                 | HIGH     |
-| 2   | **CHANGELOG.md**          | Exists but empty placeholder     | No entries since v0.1.0                                 | MEDIUM   |
-| 3   | **TODO_LIST.md**          | Exists with 44 items             | Many stale, some completed but unchecked                | LOW      |
-| 4   | **Aggregate package**     | Basic Core + LoadFromHistory     | No Repository interface, no snapshot support            | MEDIUM   |
-| 5   | **ID type safety**        | `Of[T] string` with 7 types      | Missing Equal, Compare, Or, Reset, Binary/Text encoding | HIGH     |
-| 6   | **CI Go versions**        | Matrix: 1.21, 1.22, 1.23         | Module requires Go 1.26.0 — matrix is outdated          | HIGH     |
-| 7   | **Event Store interface** | Save/Load/Delete/LoadFromVersion | No AppendBatch, no streaming implementation             | MEDIUM   |
-| 8   | **xtypes package**        | Typed wrappers work              | Re-exports but doesn't expose all ID methods            | LOW      |
+| # | Item                      | Status                           | Gap                                                     | Priority |
+| - | ------------------------- | -------------------------------- | ------------------------------------------------------- | -------- |
+| 1 | **Test coverage**         | 63.6%–92.6% per package          | `pkg/id` at 48.2%, `aggregate` at 63.6%                 | HIGH     |
+| 2 | **CHANGELOG.md**          | Exists but empty placeholder     | No entries since v0.1.0                                 | MEDIUM   |
+| 3 | **TODO_LIST.md**          | Exists with 44 items             | Many stale, some completed but unchecked                | LOW      |
+| 4 | **Aggregate package**     | Basic Core + LoadFromHistory     | No Repository interface, no snapshot support            | MEDIUM   |
+| 5 | **ID type safety**        | `Of[T] string` with 7 types      | Missing Equal, Compare, Or, Reset, Binary/Text encoding | HIGH     |
+| 6 | **CI Go versions**        | Matrix: 1.21, 1.22, 1.23         | Module requires Go 1.26.0 — matrix is outdated          | HIGH     |
+| 7 | **Event Store interface** | Save/Load/Delete/LoadFromVersion | No AppendBatch, no streaming implementation             | MEDIUM   |
+| 8 | **xtypes package**        | Typed wrappers work              | Re-exports but doesn't expose all ID methods            | LOW      |
 
 ### Coverage Breakdown
 
@@ -69,37 +69,37 @@ The biggest recent event: a thorough **review of adopting `go-composable-busines
 
 ## c) NOT STARTED ⬜
 
-| #   | Item                                                                           | Source                              | Impact                                             |
-| --- | ------------------------------------------------------------------------------ | ----------------------------------- | -------------------------------------------------- |
-| 1   | **example/ directory**                                                         | TODO_LIST.md                        | Critical for adoption — no usage examples exist    |
-| 2   | **Integration tests**                                                          | TODO_LIST.md, BDD_TESTS_REVIEW.md   | No end-to-end CQRS flow tests                      |
-| 3   | **BDD tests (Ginkgo)**                                                         | BDD_TESTS_REVIEW.md (score: 1.3/5)  | No Given-When-Then style tests                     |
-| 4   | **Middleware implementations** (logging, recovery, retry, validation, metrics) | TODO_LIST.md                        | 5 middleware packages planned, 0 built             |
-| 5   | **Aggregate Repository interface**                                             | TODO_LIST.md                        | Standard DDD pattern, missing                      |
-| 6   | **Event snapshot store**                                                       | TODO_LIST.md                        | Performance optimization for long-lived aggregates |
-| 7   | **Query pagination**                                                           | TODO_LIST.md                        | Essential for production query handling            |
-| 8   | **Event middleware**                                                           | TODO_LIST.md                        | No event pipeline hooks                            |
-| 9   | **GoDoc package examples**                                                     | TODO_LIST.md                        | No runnable `Example*` test functions              |
-| 10  | **Benchmarks**                                                                 | TODO_LIST.md                        | No performance benchmarks for any package          |
-| 11  | **Fuzzing**                                                                    | TODO_LIST.md                        | No fuzz tests for Parse functions                  |
-| 12  | **Architecture documentation**                                                 | TODO_LIST.md                        | No architecture.md or design decision docs         |
-| 13  | **Push to origin**                                                             | TODO_LIST.md                        | 1 commit unpushed                                  |
-| 14  | **ID binary/text encoding**                                                    | go-composable-business-types review | Missing BinaryMarshaler, TextMarshaler             |
-| 15  | **ID Equal/Compare/Or/Reset**                                                  | go-composable-business-types review | Missing utility methods on `Of[T]`                 |
+| #  | Item                                                                           | Source                              | Impact                                             |
+| -- | ------------------------------------------------------------------------------ | ----------------------------------- | -------------------------------------------------- |
+| 1  | **example/ directory**                                                         | TODO_LIST.md                        | Critical for adoption — no usage examples exist    |
+| 2  | **Integration tests**                                                          | TODO_LIST.md, BDD_TESTS_REVIEW.md   | No end-to-end CQRS flow tests                      |
+| 3  | **BDD tests (Ginkgo)**                                                         | BDD_TESTS_REVIEW.md (score: 1.3/5)  | No Given-When-Then style tests                     |
+| 4  | **Middleware implementations** (logging, recovery, retry, validation, metrics) | TODO_LIST.md                        | 5 middleware packages planned, 0 built             |
+| 5  | **Aggregate Repository interface**                                             | TODO_LIST.md                        | Standard DDD pattern, missing                      |
+| 6  | **Event snapshot store**                                                       | TODO_LIST.md                        | Performance optimization for long-lived aggregates |
+| 7  | **Query pagination**                                                           | TODO_LIST.md                        | Essential for production query handling            |
+| 8  | **Event middleware**                                                           | TODO_LIST.md                        | No event pipeline hooks                            |
+| 9  | **GoDoc package examples**                                                     | TODO_LIST.md                        | No runnable `Example*` test functions              |
+| 10 | **Benchmarks**                                                                 | TODO_LIST.md                        | No performance benchmarks for any package          |
+| 11 | **Fuzzing**                                                                    | TODO_LIST.md                        | No fuzz tests for Parse functions                  |
+| 12 | **Architecture documentation**                                                 | TODO_LIST.md                        | No architecture.md or design decision docs         |
+| 13 | **Push to origin**                                                             | TODO_LIST.md                        | 1 commit unpushed                                  |
+| 14 | **ID binary/text encoding**                                                    | go-composable-business-types review | Missing BinaryMarshaler, TextMarshaler             |
+| 15 | **ID Equal/Compare/Or/Reset**                                                  | go-composable-business-types review | Missing utility methods on `Of[T]`                 |
 
 ---
 
 ## d) TOTALLY FUCKED UP 💥
 
-| #   | Item                                                                | Problem                                                                                               | Severity    | Fix Effort |
-| --- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------- | ---------- |
-| 1   | **CI Go version matrix**                                            | Workflow tests Go 1.21/1.22/1.23 but `go.mod` requires 1.26.0 — CI is broken                          | 🔴 CRITICAL | 5 min      |
-| 2   | **`internal/dispatcher/` has 0% coverage**                          | Core shared infrastructure with zero tests                                                            | 🔴 HIGH     | 2 hrs      |
-| 3   | **`pkg/id/` at 48.2% coverage**                                     | Core ID package poorly tested — JSON roundtrip, SQL Scan/Value, edge cases untested                   | 🔴 HIGH     | 1 hr       |
-| 4   | **CHANGELOG is empty**                                              | 20+ commits since v0.1.0 with no changelog entries                                                    | 🟡 MEDIUM   | 30 min     |
-| 5   | **TODO_LIST has 44 stale items**                                    | Many completed or contradictory, no cleanup since 2026-03-30                                          | 🟡 MEDIUM   | 30 min     |
-| 6   | **1 commit unpushed**                                               | `f3ce551` ahead of origin/master                                                                      | 🟡 LOW      | 10 sec     |
-| 7   | **docs/planning/go-composable-business-types-usage.md is outdated** | Written before strong IDs were implemented; describes a future state that was implemented differently | 🟡 LOW      | 1 hr       |
+| # | Item                                                                | Problem                                                                                               | Severity    | Fix Effort |
+| - | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------- | ---------- |
+| 1 | **CI Go version matrix**                                            | Workflow tests Go 1.21/1.22/1.23 but `go.mod` requires 1.26.0 — CI is broken                          | 🔴 CRITICAL | 5 min      |
+| 2 | **`internal/dispatcher/` has 0% coverage**                          | Core shared infrastructure with zero tests                                                            | 🔴 HIGH     | 2 hrs      |
+| 3 | **`pkg/id/` at 48.2% coverage**                                     | Core ID package poorly tested — JSON roundtrip, SQL Scan/Value, edge cases untested                   | 🔴 HIGH     | 1 hr       |
+| 4 | **CHANGELOG is empty**                                              | 20+ commits since v0.1.0 with no changelog entries                                                    | 🟡 MEDIUM   | 30 min     |
+| 5 | **TODO_LIST has 44 stale items**                                    | Many completed or contradictory, no cleanup since 2026-03-30                                          | 🟡 MEDIUM   | 30 min     |
+| 6 | **1 commit unpushed**                                               | `f3ce551` ahead of origin/master                                                                      | 🟡 LOW      | 10 sec     |
+| 7 | **docs/planning/go-composable-business-types-usage.md is outdated** | Written before strong IDs were implemented; describes a future state that was implemented differently | 🟡 LOW      | 1 hr       |
 
 ---
 

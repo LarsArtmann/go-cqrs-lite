@@ -87,7 +87,7 @@ Goal: kill the last verify failure (`TestSoak_AutoCRUDByConvention` heap growth)
 ~~23. Update FEATURES.md/CHANGELOG.md entries if soak behavior change merits a line~~ done - CHANGELOG [Unreleased] 'Fixed - repo gates' entry covers the 13 heap-parallel fixes
 24. Add a CI annotation or doc note that soak tests are sequential-by-design (prevents "make it parallel for speed" regressions)
 
-*(24 items — the remaining carried tasks are enumerated in the 12-40 report §f and deliberately not duplicated here.)*
+_(24 items — the remaining carried tasks are enumerated in the 12-40 report §f and deliberately not duplicated here.)_
 
 ## g) QUESTIONS (cannot be answered from the repo)
 
@@ -98,7 +98,6 @@ Goal: kill the last verify failure (`TestSoak_AutoCRUDByConvention` heap growth)
 ---
 
 **Bottom line:** The blocking failure was a measurement artifact, not a leak — fixed at the root across 13 files, independently verified (3x + race). Verify gate re-run in flight; commit + gates + releases are the remaining runway, gated on the verify result and 3 answers.
-
 
 ---
 

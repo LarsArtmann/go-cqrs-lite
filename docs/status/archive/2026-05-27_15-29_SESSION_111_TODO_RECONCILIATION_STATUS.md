@@ -43,31 +43,31 @@ Session 111 audited the full TODO_LIST.md, verified 14 items already completed b
 
 ### Overall Project Health
 
-| Module                        | Coverage  | Status                   |
-| ----------------------------- | --------- | ------------------------ |
-| `core/command`                | 92.5%     | ✅                       |
-| `core/decider`                | 100.0%    | ✅                       |
-| `core/event`                  | 93.7%     | ✅                       |
-| `core/pkg/dispatcher`         | 100.0%    | ✅                       |
-| `core/pkg/id`                 | 100.0%    | ✅                       |
-| `core/query`                  | 98.4%     | ✅                       |
-| `memory`                      | 99.6%     | ✅                       |
-| `catalog` (root)              | 96.3%     | ✅                       |
-| `catalog/asyncapi`            | 93.7%     | ✅                       |
-| `catalog/d2`                  | 95.0%     | ✅                       |
-| `catalog/docserver`           | 90.1%     | ✅                       |
-| `catalog/eventcatalog`        | 92.8%     | ✅                       |
-| `catalog/internal/caseutil`   | 100.0%    | ✅                       |
+| Module                        | Coverage  | Status                  |
+| ----------------------------- | --------- | ----------------------- |
+| `core/command`                | 92.5%     | ✅                      |
+| `core/decider`                | 100.0%    | ✅                      |
+| `core/event`                  | 93.7%     | ✅                      |
+| `core/pkg/dispatcher`         | 100.0%    | ✅                      |
+| `core/pkg/id`                 | 100.0%    | ✅                      |
+| `core/query`                  | 98.4%     | ✅                      |
+| `memory`                      | 99.6%     | ✅                      |
+| `catalog` (root)              | 96.3%     | ✅                      |
+| `catalog/asyncapi`            | 93.7%     | ✅                      |
+| `catalog/d2`                  | 95.0%     | ✅                      |
+| `catalog/docserver`           | 90.1%     | ✅                      |
+| `catalog/eventcatalog`        | 92.8%     | ✅                      |
+| `catalog/internal/caseutil`   | 100.0%    | ✅                      |
 | `catalog/internal/cattest`    | 0.0%      | ⚠️ Test helper, no tests |
 | `catalog/internal/schemautil` | 84.2%     | ⚠️ Below 90%             |
-| `catalog/openapi`             | 94.4%     | ✅                       |
-| `middleware`                  | 98.0%     | ✅                       |
-| `testhelpers`                 | 94.8%     | ✅                       |
-| `projection`                  | 95.3%     | ✅                       |
-| `storage`                     | 90.2%     | ✅                       |
-| `saga`                        | 93.4%     | ✅                       |
-| `watermill`                   | 94.4%     | ✅                       |
-| **TOTAL**                     | **91.9%** | ✅ Above 80% CI gate     |
+| `catalog/openapi`             | 94.4%     | ✅                      |
+| `middleware`                  | 98.0%     | ✅                      |
+| `testhelpers`                 | 94.8%     | ✅                      |
+| `projection`                  | 95.3%     | ✅                      |
+| `storage`                     | 90.2%     | ✅                      |
+| `saga`                        | 93.4%     | ✅                      |
+| `watermill`                   | 94.4%     | ✅                      |
+| **TOTAL**                     | **91.9%** | ✅ Above 80% CI gate    |
 
 ### Build & CI
 
@@ -188,53 +188,53 @@ The full list of 152 unchecked items is in `TODO_LIST.md`. Major categories incl
 
 ### Tier 1: Unblocks Everything Else (Do First)
 
-| #   | Item                                     | Impact                                    | Effort           |
-| --- | ---------------------------------------- | ----------------------------------------- | ---------------- |
-| 1   | **Push v1.7.0 tags to remote**           | 🔴 Unblocks all external adoption         | 5 min (git push) |
-| 2   | **Remove replace directives** after tags | 🔴 Makes modules independently importable | 30 min           |
-| 3   | **Add GOWORK=off CI matrix job**         | 🔴 Prevents version drift                 | 1 hr             |
-| 4   | **Add minimum 80% coverage gate to CI**  | 🟡 Enforces quality floor                 | 30 min           |
+| # | Item                                     | Impact                                    | Effort           |
+| - | ---------------------------------------- | ----------------------------------------- | ---------------- |
+| 1 | **Push v1.7.0 tags to remote**           | 🔴 Unblocks all external adoption         | 5 min (git push) |
+| 2 | **Remove replace directives** after tags | 🔴 Makes modules independently importable | 30 min           |
+| 3 | **Add GOWORK=off CI matrix job**         | 🔴 Prevents version drift                 | 1 hr             |
+| 4 | **Add minimum 80% coverage gate to CI**  | 🟡 Enforces quality floor                 | 30 min           |
 
 ### Tier 2: Developer Experience
 
-| #   | Item                                            | Impact                                            | Effort |
-| --- | ----------------------------------------------- | ------------------------------------------------- | ------ |
-| 5   | **Write CONTRIBUTING.md**                       | 🟡 Onboarding for contributors                    | 2 hr   |
-| 6   | **Create docs/adr/ with ADR-0001/0002/0003**    | 🟡 Documents key decisions                        | 2 hr   |
-| 7   | **Add module READMEs (core, storage, catalog)** | 🟡 Discoverability on pkg.go.dev                  | 3 hr   |
-| 8   | **Write getting-started README section**        | 🟡 "Your first CQRS app in 30 lines"              | 1 hr   |
-| 9   | **Document time-travel API**                    | 🟢 LoadToVersion/LoadToTimestamp/PositionalLoader | 1 hr   |
+| # | Item                                            | Impact                                            | Effort |
+| - | ----------------------------------------------- | ------------------------------------------------- | ------ |
+| 5 | **Write CONTRIBUTING.md**                       | 🟡 Onboarding for contributors                    | 2 hr   |
+| 6 | **Create docs/adr/ with ADR-0001/0002/0003**    | 🟡 Documents key decisions                        | 2 hr   |
+| 7 | **Add module READMEs (core, storage, catalog)** | 🟡 Discoverability on pkg.go.dev                  | 3 hr   |
+| 8 | **Write getting-started README section**        | 🟡 "Your first CQRS app in 30 lines"              | 1 hr   |
+| 9 | **Document time-travel API**                    | 🟢 LoadToVersion/LoadToTimestamp/PositionalLoader | 1 hr   |
 
 ### Tier 3: Architecture & Quality
 
-| #   | Item                                                      | Impact                                   | Effort |
-| --- | --------------------------------------------------------- | ---------------------------------------- | ------ |
-| 10  | **Fix core→memory circular dependency**                   | 🟡 Enables publishing core independently | 4 hr   |
-| 11  | **Extend lint to all 9 production modules**               | 🟡 Currently only core/ is linted        | 1 hr   |
-| 12  | **Add publish-side event middleware**                     | 🟡 Symmetric middleware chain            | 3 hr   |
-| 13  | **Replace init() error registration with explicit setup** | 🟢 Removes hidden side effects           | 2 hr   |
-| 14  | **Add PostgreSQL integration tests with testcontainers**  | 🟡 Only SQLite tested in CI              | 4 hr   |
+| #  | Item                                                      | Impact                                   | Effort |
+| -- | --------------------------------------------------------- | ---------------------------------------- | ------ |
+| 10 | **Fix core→memory circular dependency**                   | 🟡 Enables publishing core independently | 4 hr   |
+| 11 | **Extend lint to all 9 production modules**               | 🟡 Currently only core/ is linted        | 1 hr   |
+| 12 | **Add publish-side event middleware**                     | 🟡 Symmetric middleware chain            | 3 hr   |
+| 13 | **Replace init() error registration with explicit setup** | 🟢 Removes hidden side effects           | 2 hr   |
+| 14 | **Add PostgreSQL integration tests with testcontainers**  | 🟡 Only SQLite tested in CI              | 4 hr   |
 
 ### Tier 4: Storage & Features
 
-| #   | Item                                                      | Impact                          | Effort |
-| --- | --------------------------------------------------------- | ------------------------------- | ------ |
-| 15  | **Implement SQL-backed CheckpointStore**                  | 🟡 Production-ready projections | 3 hr   |
-| 16  | **Add outbox integration test (Append→Poll→Publish→Ack)** | 🟡 End-to-end outbox confidence | 2 hr   |
-| 17  | **Add storage metadata roundtrip test**                   | 🟡 Save→load→verify all fields  | 1 hr   |
-| 18  | **Move schema DDL onto Dialect interface**                | 🟢 Proper SQL abstraction       | 2 hr   |
-| 19  | **Add context cancellation to all storage operations**    | 🟡 Graceful shutdown            | 2 hr   |
+| #  | Item                                                      | Impact                          | Effort |
+| -- | --------------------------------------------------------- | ------------------------------- | ------ |
+| 15 | **Implement SQL-backed CheckpointStore**                  | 🟡 Production-ready projections | 3 hr   |
+| 16 | **Add outbox integration test (Append→Poll→Publish→Ack)** | 🟡 End-to-end outbox confidence | 2 hr   |
+| 17 | **Add storage metadata roundtrip test**                   | 🟡 Save→load→verify all fields  | 1 hr   |
+| 18 | **Move schema DDL onto Dialect interface**                | 🟢 Proper SQL abstraction       | 2 hr   |
+| 19 | **Add context cancellation to all storage operations**    | 🟡 Graceful shutdown            | 2 hr   |
 
 ### Tier 5: Cleanup & Hygiene
 
-| #   | Item                                              | Impact                                     | Effort |
-| --- | ------------------------------------------------- | ------------------------------------------ | ------ |
-| 20  | **Prune docs/status/ (100+ archived reports)**    | 🟢 Repo bloat reduction                    | 30 min |
-| 21  | **Archive stale planning docs (pre-2026-05-01)**  | 🟢 Cleanup                                 | 30 min |
-| 22  | **Add Turso integration test (save→load→delete)** | 🟢 Storage backend confidence              | 2 hr   |
-| 23  | **Consolidate MemoryBus handler storage**         | 🟢 Single map with sentinel key            | 1 hr   |
-| 24  | **Extract deduplication in middleware**           | 🟢 3 retry + 3 tracing identical functions | 2 hr   |
-| 25  | **Write CHANGELOG.md**                            | 🟢 111 sessions of untracked changes       | 3 hr   |
+| #  | Item                                              | Impact                                     | Effort |
+| -- | ------------------------------------------------- | ------------------------------------------ | ------ |
+| 20 | **Prune docs/status/ (100+ archived reports)**    | 🟢 Repo bloat reduction                    | 30 min |
+| 21 | **Archive stale planning docs (pre-2026-05-01)**  | 🟢 Cleanup                                 | 30 min |
+| 22 | **Add Turso integration test (save→load→delete)** | 🟢 Storage backend confidence              | 2 hr   |
+| 23 | **Consolidate MemoryBus handler storage**         | 🟢 Single map with sentinel key            | 1 hr   |
+| 24 | **Extract deduplication in middleware**           | 🟢 3 retry + 3 tracing identical functions | 2 hr   |
+| 25 | **Write CHANGELOG.md**                            | 🟢 111 sessions of untracked changes       | 3 hr   |
 
 ---
 

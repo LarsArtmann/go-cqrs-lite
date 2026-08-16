@@ -164,53 +164,53 @@ Sorted by impact (Pareto principle):
 
 ### Tier 1: Ship Blockers (Do First)
 
-| #   | Task                                                                           | Impact                                              | Effort |
-| --- | ------------------------------------------------------------------------------ | --------------------------------------------------- | ------ |
-| 1   | **Fix `example/user` to use `event.New()` + new catalog API**                  | High — example is the first thing consumers see     | Low    |
-| 2   | **Migrate `example/user/catalog.go` off deprecated `adapters.CatalogBuilder`** | High — example teaches wrong patterns               | Low    |
-| 3   | **Remove `IdempotencyKey()` from `Command` interface**                         | Medium — deprecated but still in interface contract | Medium |
-| 4   | **Consolidate `CatalogMeta` → `dispatcher.CatalogEntry`**                      | Medium — eliminates split-brain type duplication    | Medium |
+| # | Task                                                                           | Impact                                              | Effort |
+| - | ------------------------------------------------------------------------------ | --------------------------------------------------- | ------ |
+| 1 | **Fix `example/user` to use `event.New()` + new catalog API**                  | High — example is the first thing consumers see     | Low    |
+| 2 | **Migrate `example/user/catalog.go` off deprecated `adapters.CatalogBuilder`** | High — example teaches wrong patterns               | Low    |
+| 3 | **Remove `IdempotencyKey()` from `Command` interface**                         | Medium — deprecated but still in interface contract | Medium |
+| 4 | **Consolidate `CatalogMeta` → `dispatcher.CatalogEntry`**                      | Medium — eliminates split-brain type duplication    | Medium |
 
 ### Tier 2: Quality Improvements (High Value)
 
-| #   | Task                                                       | Impact                              | Effort                 |
-| --- | ---------------------------------------------------------- | ----------------------------------- | ---------------------- |
-| 5   | **Add `event.New()` examples to README**                   | High — discoverability              | Low                    |
-| 6   | **Write `projection.Builder` usage example**               | High — new API needs docs           | Low                    |
-| 7   | **Add `IsReplay` usage example**                           | Medium — new API needs docs         | Low                    |
-| 8   | **Migrate integration/aggregate tests to decider pattern** | Medium — tests use deprecated API   | Medium                 |
-| 9   | **Improve `storage` coverage to >90%**                     | Medium — lowest production coverage | Medium                 |
-| 10  | **Fix `query.Handler` `any` return type**                  | Medium — violates project rule      | High (breaking change) |
+| #  | Task                                                       | Impact                              | Effort                 |
+| -- | ---------------------------------------------------------- | ----------------------------------- | ---------------------- |
+| 5  | **Add `event.New()` examples to README**                   | High — discoverability              | Low                    |
+| 6  | **Write `projection.Builder` usage example**               | High — new API needs docs           | Low                    |
+| 7  | **Add `IsReplay` usage example**                           | Medium — new API needs docs         | Low                    |
+| 8  | **Migrate integration/aggregate tests to decider pattern** | Medium — tests use deprecated API   | Medium                 |
+| 9  | **Improve `storage` coverage to >90%**                     | Medium — lowest production coverage | Medium                 |
+| 10 | **Fix `query.Handler` `any` return type**                  | Medium — violates project rule      | High (breaking change) |
 
 ### Tier 3: New Features (Consumer Value)
 
-| #   | Task                                                       | Impact                                      | Effort |
-| --- | ---------------------------------------------------------- | ------------------------------------------- | ------ |
-| 11  | **Projection `OnError` callback option**                   | Medium — consumers need error observability | Low    |
-| 12  | **`event.New()` with schema validation**                   | Medium — type-safe payload construction     | Medium |
-| 13  | **`decider.ExecuteWithResult` example**                    | Medium — new API needs real-world demo      | Low    |
-| 14  | **Builder pattern for `event.Projection` with middleware** | Medium — composable projection handlers     | Medium |
-| 15  | **`DeriveAggregateID` documentation + examples**           | Low — new API, needs discoverability        | Low    |
+| #  | Task                                                       | Impact                                      | Effort |
+| -- | ---------------------------------------------------------- | ------------------------------------------- | ------ |
+| 11 | **Projection `OnError` callback option**                   | Medium — consumers need error observability | Low    |
+| 12 | **`event.New()` with schema validation**                   | Medium — type-safe payload construction     | Medium |
+| 13 | **`decider.ExecuteWithResult` example**                    | Medium — new API needs real-world demo      | Low    |
+| 14 | **Builder pattern for `event.Projection` with middleware** | Medium — composable projection handlers     | Medium |
+| 15 | **`DeriveAggregateID` documentation + examples**           | Low — new API, needs discoverability        | Low    |
 
 ### Tier 4: Cleanup & Hygiene
 
-| #   | Task                                                                | Impact                                 | Effort |
-| --- | ------------------------------------------------------------------- | -------------------------------------- | ------ |
-| 16  | **Remove deprecated `FromCommandDispatcher`/`FromQueryDispatcher`** | Low — dead code path                   | Low    |
-| 17  | **Remove deprecated `catalog.MessageIDString()`**                   | Low — dead code                        | Low    |
-| 18  | **Add `//nolint` expiry comments (revisit by date)**                | Low — maintenance discipline           | Low    |
-| 19  | **Add `catalog/internal/cattest` basic tests**                      | Low — metric improvement               | Low    |
-| 20  | **Improve `testhelpers` coverage >50%**                             | Low — indirect coverage already exists | Medium |
+| #  | Task                                                                | Impact                                 | Effort |
+| -- | ------------------------------------------------------------------- | -------------------------------------- | ------ |
+| 16 | **Remove deprecated `FromCommandDispatcher`/`FromQueryDispatcher`** | Low — dead code path                   | Low    |
+| 17 | **Remove deprecated `catalog.MessageIDString()`**                   | Low — dead code                        | Low    |
+| 18 | **Add `//nolint` expiry comments (revisit by date)**                | Low — maintenance discipline           | Low    |
+| 19 | **Add `catalog/internal/cattest` basic tests**                      | Low — metric improvement               | Low    |
+| 20 | **Improve `testhelpers` coverage >50%**                             | Low — indirect coverage already exists | Medium |
 
 ### Tier 5: Strategic (Longer Term)
 
-| #   | Task                                                    | Impact                             | Effort |
-| --- | ------------------------------------------------------- | ---------------------------------- | ------ |
-| 21  | **Decide fate of `sync` module** (keep/remove/document) | Low — zero consumers               | Low    |
-| 22  | **Golden test auto-refresh in CI**                      | Low — removes manual step          | Medium |
-| 23  | **Versioned module tags (git tag per module)**          | High — consumers need version pins | High   |
-| 24  | **Watermill integration module**                        | High — real message broker support | High   |
-| 25  | **Nix flake migration** (from justfile remnants)        | Medium — build reproducibility     | Medium |
+| #  | Task                                                    | Impact                             | Effort |
+| -- | ------------------------------------------------------- | ---------------------------------- | ------ |
+| 21 | **Decide fate of `sync` module** (keep/remove/document) | Low — zero consumers               | Low    |
+| 22 | **Golden test auto-refresh in CI**                      | Low — removes manual step          | Medium |
+| 23 | **Versioned module tags (git tag per module)**          | High — consumers need version pins | High   |
+| 24 | **Watermill integration module**                        | High — real message broker support | High   |
+| 25 | **Nix flake migration** (from justfile remnants)        | Medium — build reproducibility     | Medium |
 
 ---
 

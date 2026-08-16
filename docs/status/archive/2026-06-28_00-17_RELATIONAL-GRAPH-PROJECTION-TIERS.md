@@ -247,48 +247,48 @@ Sorted by impact/effort (Pareto). Tier 1 first.
 
 ### Tier 1: Critical (ship-blockers or highest leverage)
 
-| #   | Task                                                                                 | Impact   | Effort | Why                                             |
-| --- | ------------------------------------------------------------------------------------ | -------- | ------ | ----------------------------------------------- |
-| 1   | **Commit the graph module + AGENTS.md + go.work**                                    | Critical | 5min   | Current work is uncommitted                     |
-| 2   | **Write ADR for graph tier** (ADR-0036: writes-portable/reads-native decision)       | High     | 30min  | Design decision is in docstrings but not an ADR |
-| 3   | **Write projection-tier decision guide** (`docs/projection-tiers.md`)                | High     | 45min  | 3 tiers exist, no "which do I pick?" guide      |
-| 4   | **Run `nix run .#check-layers`** to verify graph/ module respects dependency budgets | High     | 10min  | New module must pass layer enforcement          |
-| 5   | **Run `nix run .#check-file-size`** to verify all new files ≤350 lines               | High     | 5min   | CI-enforced gate                                |
+| # | Task                                                                                 | Impact   | Effort | Why                                             |
+| - | ------------------------------------------------------------------------------------ | -------- | ------ | ----------------------------------------------- |
+| 1 | **Commit the graph module + AGENTS.md + go.work**                                    | Critical | 5min   | Current work is uncommitted                     |
+| 2 | **Write ADR for graph tier** (ADR-0036: writes-portable/reads-native decision)       | High     | 30min  | Design decision is in docstrings but not an ADR |
+| 3 | **Write projection-tier decision guide** (`docs/projection-tiers.md`)                | High     | 45min  | 3 tiers exist, no "which do I pick?" guide      |
+| 4 | **Run `nix run .#check-layers`** to verify graph/ module respects dependency budgets | High     | 10min  | New module must pass layer enforcement          |
+| 5 | **Run `nix run .#check-file-size`** to verify all new files ≤350 lines               | High     | 5min   | CI-enforced gate                                |
 
 ### Tier 2: High-value improvements
 
-| #   | Task                                                                                        | Impact   | Effort | Why                                                           |
-| --- | ------------------------------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------------------- |
-| 6   | **Migrate DiscordSync's `internal/projection/` to `storage.RelationalProjection`**          | Critical | 2-3h   | The original trigger for all this work; capability now exists |
-| 7   | **Migrate DiscordSync's `internal/db/query.go` to `storage.RelationalStore`**               | High     | 2h     | Eliminates ~500 LOC of hand-written SQL in DiscordSync        |
-| 8   | **Add PostgreSQL integration tests** for the relational tier (testcontainers or CI service) | High     | 1h     | Relational tier tested on SQLite only; PG path unproven       |
-| 9   | **Create `graph/graphtest/contract.go`** shared contract test for GraphDriver impls         | High     | 45min  | Prevents driver divergence when Neo4j driver is built         |
-| 10  | **Add `RelationalStore.QueryMulti` or JOIN helper**                                         | Medium   | 1h     | Needed for DiscordSync's attachment-by-channel queries        |
-| 11  | **Unify projection tier constructors** (all `New*` style or all builder)                    | Medium   | 30min  | Consistency across 3 tiers reduces cognitive load             |
-| 12  | **Fix BuildFlow pre-commit hook** (increase budget or scope)                                | Medium   | 30min  | Persistent papercut — every commit needs --no-verify          |
+| #  | Task                                                                                        | Impact   | Effort | Why                                                           |
+| -- | ------------------------------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------------------- |
+| 6  | **Migrate DiscordSync's `internal/projection/` to `storage.RelationalProjection`**          | Critical | 2-3h   | The original trigger for all this work; capability now exists |
+| 7  | **Migrate DiscordSync's `internal/db/query.go` to `storage.RelationalStore`**               | High     | 2h     | Eliminates ~500 LOC of hand-written SQL in DiscordSync        |
+| 8  | **Add PostgreSQL integration tests** for the relational tier (testcontainers or CI service) | High     | 1h     | Relational tier tested on SQLite only; PG path unproven       |
+| 9  | **Create `graph/graphtest/contract.go`** shared contract test for GraphDriver impls         | High     | 45min  | Prevents driver divergence when Neo4j driver is built         |
+| 10 | **Add `RelationalStore.QueryMulti` or JOIN helper**                                         | Medium   | 1h     | Needed for DiscordSync's attachment-by-channel queries        |
+| 11 | **Unify projection tier constructors** (all `New*` style or all builder)                    | Medium   | 30min  | Consistency across 3 tiers reduces cognitive load             |
+| 12 | **Fix BuildFlow pre-commit hook** (increase budget or scope)                                | Medium   | 30min  | Persistent papercut — every commit needs --no-verify          |
 
 ### Tier 3: Quality and completeness
 
-| #   | Task                                                                                 | Impact | Effort | Why                                                             |
-| --- | ------------------------------------------------------------------------------------ | ------ | ------ | --------------------------------------------------------------- |
-| 13  | **Add `Row` column-name validation** against RelationalSchema at write time          | Medium | 30min  | Catches typos before SQL execution                              |
-| 14  | **Wire `transport/grpc` into `go.work`**                                             | Low    | 5min   | Builds clean, just not added                                    |
-| 15  | **Add versioned schema migrations** (`schema_migrations` table, numbered migrations) | Medium | 2h     | Pre-existing gap; relational tier only has CREATE IF NOT EXISTS |
-| 16  | **Write example: `example/graph-demo/`** using GraphProjection + MemoryDriver        | Medium | 1h     | Proves the tier with a runnable demo                            |
-| 17  | **Add graph edge cardinality documentation + edge-case tests**                       | Low    | 30min  | MERGE semantics are implicit; make them explicit                |
-| 18  | **Complete Pebble module** (SnapshotStore, CheckpointStore, Outbox)                  | Medium | 2h     | Pre-existing; Pebble still incomplete vs SQL                    |
+| #  | Task                                                                                 | Impact | Effort | Why                                                             |
+| -- | ------------------------------------------------------------------------------------ | ------ | ------ | --------------------------------------------------------------- |
+| 13 | **Add `Row` column-name validation** against RelationalSchema at write time          | Medium | 30min  | Catches typos before SQL execution                              |
+| 14 | **Wire `transport/grpc` into `go.work`**                                             | Low    | 5min   | Builds clean, just not added                                    |
+| 15 | **Add versioned schema migrations** (`schema_migrations` table, numbered migrations) | Medium | 2h     | Pre-existing gap; relational tier only has CREATE IF NOT EXISTS |
+| 16 | **Write example: `example/graph-demo/`** using GraphProjection + MemoryDriver        | Medium | 1h     | Proves the tier with a runnable demo                            |
+| 17 | **Add graph edge cardinality documentation + edge-case tests**                       | Low    | 30min  | MERGE semantics are implicit; make them explicit                |
+| 18 | **Complete Pebble module** (SnapshotStore, CheckpointStore, Outbox)                  | Medium | 2h     | Pre-existing; Pebble still incomplete vs SQL                    |
 
 ### Tier 4: Future / nice-to-have
 
-| #   | Task                                                                 | Impact             | Effort | Why                                                                                                          |
-| --- | -------------------------------------------------------------------- | ------------------ | ------ | ------------------------------------------------------------------------------------------------------------ |
-| 19  | **Build Neo4j/Cypher GraphDriver** (`graph/neo4j/`)                  | High (when needed) | 3-4h   | Consumer-pulled; build when someone deploys Neo4j                                                            |
-| 20  | **Add NATS JetStream transport adapter**                             | Medium             | 3h     | ADR-0025 accepted, zero code                                                                                 |
-| 21  | **Add Outbox DLQ + reference-based outbox**                          | Medium             | 2h     | Pre-existing gaps                                                                                            |
-| 22  | **Add FTS5 full-text search to RelationalStore**                     | Medium             | 2h     | DiscordSync's SearchMessages needs it                                                                        |
-| 23  | **Add Durability profiles** (Sync/BatchedSync/Async across backends) | Low                | 1.5h   | Pre-existing gap                                                                                             |
-| 24  | **Add Redis GraphDriver** (`graph/redisgraph/`)                      | Low                | 3h     | RedisGraph speaks openCypher too. Author is not a fan of Redis; ValKey would be preferred if/when this ships |
-| 25  | **Documentation site** (Docusaurus/MkDocs)                           | Low                | 4h+    | Zero work; 44 modules need browsable docs                                                                    |
+| #  | Task                                                                 | Impact             | Effort | Why                                                                                                          |
+| -- | -------------------------------------------------------------------- | ------------------ | ------ | ------------------------------------------------------------------------------------------------------------ |
+| 19 | **Build Neo4j/Cypher GraphDriver** (`graph/neo4j/`)                  | High (when needed) | 3-4h   | Consumer-pulled; build when someone deploys Neo4j                                                            |
+| 20 | **Add NATS JetStream transport adapter**                             | Medium             | 3h     | ADR-0025 accepted, zero code                                                                                 |
+| 21 | **Add Outbox DLQ + reference-based outbox**                          | Medium             | 2h     | Pre-existing gaps                                                                                            |
+| 22 | **Add FTS5 full-text search to RelationalStore**                     | Medium             | 2h     | DiscordSync's SearchMessages needs it                                                                        |
+| 23 | **Add Durability profiles** (Sync/BatchedSync/Async across backends) | Low                | 1.5h   | Pre-existing gap                                                                                             |
+| 24 | **Add Redis GraphDriver** (`graph/redisgraph/`)                      | Low                | 3h     | RedisGraph speaks openCypher too. Author is not a fan of Redis; ValKey would be preferred if/when this ships |
+| 25 | **Documentation site** (Docusaurus/MkDocs)                           | Low                | 4h+    | Zero work; 44 modules need browsable docs                                                                    |
 
 ---
 

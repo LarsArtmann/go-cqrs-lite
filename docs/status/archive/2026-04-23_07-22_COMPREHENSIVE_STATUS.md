@@ -124,48 +124,48 @@ go-cqrs-lite is a ~14,300 LOC CQRS library in Go. All tests pass (13 packages, r
 
 ### Tier 1: Fix Broken Things (Do First)
 
-| #   | Task                                                         | Module           | Effort |
-| --- | ------------------------------------------------------------ | ---------------- | ------ |
-| 1   | Fix `catalog/benchmark_test.go` cross-module internal import | catalog          | XS     |
-| 2   | Fix flaky aggregate concurrency BDD test                     | core/aggregate   | S      |
-| 3   | Run `go mod tidy` on core and catalog                        | root             | XS     |
-| 4   | Delete unused functions in `catalog/adapters/message.go`     | catalog/adapters | XS     |
-| 5   | Delete dead `pkg/errors` package                             | core/pkg         | XS     |
+| # | Task                                                         | Module           | Effort |
+| - | ------------------------------------------------------------ | ---------------- | ------ |
+| 1 | Fix `catalog/benchmark_test.go` cross-module internal import | catalog          | XS     |
+| 2 | Fix flaky aggregate concurrency BDD test                     | core/aggregate   | S      |
+| 3 | Run `go mod tidy` on core and catalog                        | root             | XS     |
+| 4 | Delete unused functions in `catalog/adapters/message.go`     | catalog/adapters | XS     |
+| 5 | Delete dead `pkg/errors` package                             | core/pkg         | XS     |
 
 ### Tier 2: Unblock Production Use
 
-| #   | Task                                                     | Module     | Effort |
-| --- | -------------------------------------------------------- | ---------- | ------ |
-| 6   | Implement `storage/` module with sqlc (PostgreSQL first) | storage    | L      |
-| 7   | Implement outbox pattern in `storage/`                   | storage    | M      |
-| 8   | Implement `watermill/` module (Redis Streams first)      | watermill  | M      |
-| 9   | Implement `projection/` module with checkpoint tracking  | projection | L      |
-| 10  | Extract middleware to own module (Phase 4)               | middleware | S      |
+| #  | Task                                                     | Module     | Effort |
+| -- | -------------------------------------------------------- | ---------- | ------ |
+| 6  | Implement `storage/` module with sqlc (PostgreSQL first) | storage    | L      |
+| 7  | Implement outbox pattern in `storage/`                   | storage    | M      |
+| 8  | Implement `watermill/` module (Redis Streams first)      | watermill  | M      |
+| 9  | Implement `projection/` module with checkpoint tracking  | projection | L      |
+| 10 | Extract middleware to own module (Phase 4)               | middleware | S      |
 
 ### Tier 3: Complete the SDK
 
-| #   | Task                                                             | Module      | Effort |
-| --- | ---------------------------------------------------------------- | ----------- | ------ |
-| 11  | Extract xtypes to own module (Phase 4)                           | xtypes      | S      |
-| 12  | Implement `snapshot/` module (SQL-backed)                        | snapshot    | M      |
-| 13  | Implement `testutil/` module (AggregateTester, ProjectionTester) | testutil    | M      |
-| 14  | Add Event Codec interface to core (JSON default)                 | core/event  | S      |
-| 15  | Migrate from google/uuid to oklog/ulid                           | core/pkg/id | M      |
+| #  | Task                                                             | Module      | Effort |
+| -- | ---------------------------------------------------------------- | ----------- | ------ |
+| 11 | Extract xtypes to own module (Phase 4)                           | xtypes      | S      |
+| 12 | Implement `snapshot/` module (SQL-backed)                        | snapshot    | M      |
+| 13 | Implement `testutil/` module (AggregateTester, ProjectionTester) | testutil    | M      |
+| 14 | Add Event Codec interface to core (JSON default)                 | core/event  | S      |
+| 15 | Migrate from google/uuid to oklog/ulid                           | core/pkg/id | M      |
 
 ### Tier 4: Polish & Production Hardening
 
-| #   | Task                                                | Module              | Effort |
-| --- | --------------------------------------------------- | ------------------- | ------ |
-| 16  | Raise `catalog/adapters` coverage to >80%           | catalog/adapters    | S      |
-| 17  | Raise `aggregate` coverage to >85%                  | core/aggregate      | S      |
-| 18  | Raise `internal/dispatcher` coverage to >85%        | core/pkg/dispatcher | S      |
-| 19  | Fix all err113 linter warnings (sentinel errors)    | all                 | S      |
-| 20  | Fix broken example modules, add to go.work CI       | examples            | S      |
-| 21  | Add MySQL + SQLite schemas to storage/              | storage             | M      |
-| 22  | Add Event Upcasting interface + implementation      | core/upcasting      | M      |
-| 23  | Add OpenTelemetry tracing middleware                | middleware          | M      |
-| 24  | Write getting-started guide + architecture overview | docs                | M      |
-| 25  | Tag v1.0.0 releases for all modules                 | all                 | S      |
+| #  | Task                                                | Module              | Effort |
+| -- | --------------------------------------------------- | ------------------- | ------ |
+| 16 | Raise `catalog/adapters` coverage to >80%           | catalog/adapters    | S      |
+| 17 | Raise `aggregate` coverage to >85%                  | core/aggregate      | S      |
+| 18 | Raise `internal/dispatcher` coverage to >85%        | core/pkg/dispatcher | S      |
+| 19 | Fix all err113 linter warnings (sentinel errors)    | all                 | S      |
+| 20 | Fix broken example modules, add to go.work CI       | examples            | S      |
+| 21 | Add MySQL + SQLite schemas to storage/              | storage             | M      |
+| 22 | Add Event Upcasting interface + implementation      | core/upcasting      | M      |
+| 23 | Add OpenTelemetry tracing middleware                | middleware          | M      |
+| 24 | Write getting-started guide + architecture overview | docs                | M      |
+| 25 | Tag v1.0.0 releases for all modules                 | all                 | S      |
 
 ---
 
@@ -233,7 +233,7 @@ FAIL catalog (cross-module internal import)
 | `pkg/id`               | 85.4%     | ✅     |
 | `middleware`           | 84.6%     | ✅     |
 | `command`              | 84.4%     | ✅     |
-| `internal/dispatcher`  | 77.4%     | ⚠️     |
-| `aggregate`            | 77.3%     | ⚠️     |
+| `internal/dispatcher`  | 77.4%     | ⚠️      |
+| `aggregate`            | 77.3%     | ⚠️      |
 | `catalog/adapters`     | 66.0%     | 🔴     |
 | **Total**              | **85.1%** |        |

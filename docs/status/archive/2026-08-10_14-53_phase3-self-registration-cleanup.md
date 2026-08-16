@@ -65,12 +65,12 @@ duckdbengine). This session:
 The prior session deleted `metaengine.GraphBackend` but left 9 string literals
 in dgraphengine test files saying `"does not implement GraphBackend"`:
 
-| File | Lines |
-|------|-------|
-| `metaengine/dgraphengine/bench_test.go` | 149, 187, 217 |
-| `metaengine/dgraphengine/mixed_bench_test.go` | 84, 137, 223 |
-| `metaengine/dgraphengine/stress_test.go` | 31 |
-| `metaengine/dgraphengine/graphrag_test.go` | 30 |
+| File                                          | Lines         |
+| --------------------------------------------- | ------------- |
+| `metaengine/dgraphengine/bench_test.go`       | 149, 187, 217 |
+| `metaengine/dgraphengine/mixed_bench_test.go` | 84, 137, 223  |
+| `metaengine/dgraphengine/stress_test.go`      | 31            |
+| `metaengine/dgraphengine/graphrag_test.go`    | 30            |
 
 These are purely cosmetic (string literals in `t.Fatal` messages) but reference
 a deleted type. Should say `"does not implement graph dispatch"` or similar.
@@ -83,13 +83,13 @@ the deleted interface).
 
 ### Phase 2 GraphBackend Deletion — 5 stale doc references NOT fixed
 
-| File | Lines | Issue |
-|------|-------|-------|
-| `docs/METAENGINE_DOMAIN_LANGUAGE.md` | 86 | `GraphBackend` in backend interface list |
-| `docs/METAENGINE_DOMAIN_LANGUAGE.md` | 374 | `GraphBackend: GraphAddEdge/GraphNeighbors` |
-| `metaengine/README.md` | 531 | `GraphBackend` in backend type list |
-| `metaengine/README.md` | 533 | "implemented by Memory, Dgraph, and graphadapter" (Memory lost graph support) |
-| `ROADMAP.md` | 511 | `metaengine.GraphBackend` → `graphadapter` migration mapping |
+| File                                 | Lines | Issue                                                                         |
+| ------------------------------------ | ----- | ----------------------------------------------------------------------------- |
+| `docs/METAENGINE_DOMAIN_LANGUAGE.md` | 86    | `GraphBackend` in backend interface list                                      |
+| `docs/METAENGINE_DOMAIN_LANGUAGE.md` | 374   | `GraphBackend: GraphAddEdge/GraphNeighbors`                                   |
+| `metaengine/README.md`               | 531   | `GraphBackend` in backend type list                                           |
+| `metaengine/README.md`               | 533   | "implemented by Memory, Dgraph, and graphadapter" (Memory lost graph support) |
+| `ROADMAP.md`                         | 511   | `metaengine.GraphBackend` → `graphadapter` migration mapping                  |
 
 ---
 
@@ -124,6 +124,7 @@ then become unnecessary in system's go.mod.
 No regressions introduced. All production code builds cleanly.
 
 **Pre-existing issues (NOT caused by this session):**
+
 - `watermill/protocol.go` — type mismatches with `event.Metadata` (Tombstone,
   Tracing, UserID fields). Blocks all `system/` test compilation.
 - `metaengine/enginetest/record_stamp.go:57-58` — branded ID type mismatch

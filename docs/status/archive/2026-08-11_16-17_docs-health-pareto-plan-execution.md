@@ -14,7 +14,7 @@
 
 1. **`TestCatalogEveryGoWorkModuleCovered`** — `system/integration` module existed in `go.work` but was missing from the `excludedModules` map in `cmd/cqrs-lint/pkg/analyzer/module_catalog_test.go:258`. Added it with reason `"test sub-module (covered by system)"`.
 
-2. **`TestExceptionsAreMinimal`** — `scripts/check-module-layers.sh` uses `LAYER[storage / memory]` (spaces around `/`) for readability, but `EXCEPTIONS[event]="storage/memory"` uses standard `/`. The test parser in `cmd/api-stability/main_test.go:374` stored raw keys without normalizing, so 9 EXCEPTIONS deps referencing multi-segment modules never matched their LAYER entries. Fixed by normalizing ` / ` → `/` after regex parsing.
+2. **`TestExceptionsAreMinimal`** — `scripts/check-module-layers.sh` uses `LAYER[storage / memory]` (spaces around `/`) for readability, but `EXCEPTIONS[event]="storage/memory"` uses standard `/`. The test parser in `cmd/api-stability/main_test.go:374` stored raw keys without normalizing, so 9 EXCEPTIONS deps referencing multi-segment modules never matched their LAYER entries. Fixed by normalizing `/` → `/` after regex parsing.
 
 3. **Stale API golden** — `docs/api_surface.txt` was 4 exports behind (4085 vs 4089). Regenerated to 4091 exports (the extra 2 are from concurrent session work on commandlifecycle).
 
@@ -59,7 +59,7 @@
 ### T8: AGENTS.md gotcha documentation
 
 - Added `check-module-layers.sh` LAYER key format convention to "Module & Dependency Management" section
-- Documents the ` / ` (LAYER) vs `/` (EXCEPTIONS) mismatch and the test normalization
+- Documents the `/` (LAYER) vs `/` (EXCEPTIONS) mismatch and the test normalization
 
 ### T9: Commit + push
 

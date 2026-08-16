@@ -46,12 +46,15 @@
 ## b) PARTIALLY DONE
 
 ### Middleware Integration with Retry Middleware
+
 The outer + attempt middleware design is correct and tested in isolation, but **I never wrote an integration test that wires it through the actual `middleware.CommandRetry` middleware**. The `TestAttemptMiddleware_DetectsRetries` test simulates retries by calling the handler 3x manually — it does NOT test the real retry middleware wrapping. The ADR-0117 use case is specifically about emitting lifecycle events during real retry loops, and that path is untested end-to-end.
 
 ### Projection Query Results
+
 The projection tests verify that events are **applied** to the store (via `ApplyRecord`), but only `RetryCount` has a read-back assertion (`ExecuteTyped`). `DeadLetterQueue` and `FailureLog` tests only verify `ApplyRecord` succeeds — they don't assert the query returns correct results. This is because I hit friction with the metaengine's `ExecuteTyped` return type handling for Map/Log ADTs and time-boxed it rather than solving it.
 
 ### Documentation
+
 - `TODO_LIST.md` updated ✓
 - `AGENTS.md` module map updated ✓
 - **SKILL.md / references NOT updated** — The consumer-facing recipes (`references/recipes.md`, `references/readmodels.md`) should have a recipe for ADR-0117 lifecycle tracking. I skipped this.
@@ -61,7 +64,9 @@ The projection tests verify that events are **applied** to the store (via `Apply
 ## c) NOT STARTED
 
 ### End-to-End Example
+
 No example code showing the full lifecycle flow:
+
 ```
 Dispatcher → Outer MW → Retry MW → Attempt MW → Handler
                                     ↓
@@ -71,23 +76,30 @@ Dispatcher → Outer MW → Retry MW → Attempt MW → Handler
                                     ↓
                               DLQ / Retry Count / Failure Log queries
 ```
+
 The `example/taskmanager` could have been extended, or a new `example/commandlifecycle` created.
 
 ### Integration with `system/` Package
+
 The `system.DomainConfig` does not know about lifecycle projections. A consumer currently has to manually wire:
+
 1. The `commandlifecycle.Recorder` to their event store
 2. The middleware to their dispatcher
 3. The projections to their metaengine plan
-This could be a one-call `system.WithCommandLifecycle(eventSink)` option.
+   This could be a one-call `system.WithCommandLifecycle(eventSink)` option.
 
 ### Integration with `projectionhost/`
+
 The `projectionhost` feeds events to the metaengine. For lifecycle events to reach the projections, the host needs to subscribe to `CommandLifecycle/*` streams. No wiring exists for this.
 
 ### `ReceivedPayload`/`CompletedPayload` not used in projections
+
 The ADR mentions a "Processing time" projection from `command.received` + `command.completed`. I did not implement this — it requires a Map update fold that timestamps received, then a second fold on completed that computes the delta. Straightforward but not done.
 
 ### Persistent Version Tracking
+
 The `Recorder` tracks versions in an in-memory `map[string]event.Version`. On restart, versions reset to 0 and the next `AppendBatch` will collide with existing events (version 1 already exists). For production use, the Recorder should:
+
 1. Query the `EventSource` for the current stream length on startup, OR
 2. Use `Save()` with optimistic concurrency instead of `AppendBatch()`, OR
 3. Accept a `VersionResolver` that reads the real stream length
@@ -95,9 +107,11 @@ The `Recorder` tracks versions in an in-memory `map[string]event.Version`. On re
 I added `ResetVersion()` as a manual escape hatch but no automatic resolution.
 
 ### Depguard Allow-List
+
 The AGENTS.md says "When adding new dependencies, add them to `.golangci.yml` depguard allow list at the same time." I didn't check whether `commandlifecycle` needs entries in `.golangci.yml`. The git status shows `.golangci.yml` was modified (likely by the auto-commit daemon), but I should verify.
 
 ### `.go-version` / CI Verification
+
 I did not run `nix run .#verify` or `nix run .#lint` — only individual checks. The full verify gate includes `check-arch` (dependency budget), `check-coverage`, `check-duplication`, and `vulncheck`, none of which I ran.
 
 ---
@@ -107,17 +121,22 @@ I did not run `nix run .#verify` or `nix run .#lint` — only individual checks.
 Nothing is irreversibly broken. But there are design concerns:
 
 ### Version Tracking is Fragile
+
 The in-memory version counter is **wrong for any production scenario**. If the process restarts, or if multiple instances write to the same lifecycle stream (which is the whole point of event sourcing — multiple producers), the version counter resets and `AppendBatch` produces duplicate versions or the store rejects the write. This is a fundamental design flaw in the Recorder that I shipped anyway because I time-boxed it. A real implementation should either:
+
 - Use `Save()` with `expectedVersion` and let the store assign versions (requires reading current version first), or
 - Use `AppendBatch()` and accept that the store assigns versions (in which case the event version is stamped by the store, not the recorder — but `event.New()` requires a non-zero version, creating a chicken-and-egg problem)
 
 Looking at how `MemoryStore.AppendBatch` works — it doesn't re-stamp versions; it trusts the events as-is. So duplicate versions would silently corrupt the stream.
 
 ### `DeadLetteredPayload` Field Alignment
+
 The `DeadLetteredPayload` has a field alignment issue from gofmt:
+
 ```go
 DeadLetteredAt time.Time `json:"deadLetteredAt"`
 ```
+
 gofmt aligned the struct fields with extra spaces. This is cosmetic but sloppy.
 
 ---
@@ -137,6 +156,7 @@ gofmt aligned the struct fields with extra spaces. This is cosmetic but sloppy.
 ## f) Up to 50 Things to Get Done Next
 
 ### Correctness (Critical)
+
 1. Fix Recorder version tracking — use store-assigned versions or optimistic concurrency
 2. Write integration test with real `middleware.CommandRetry` wrapping lifecycle middleware
 3. Verify DLQ projection query returns correct entry via `ExecuteTyped`
@@ -149,6 +169,7 @@ gofmt aligned the struct fields with extra spaces. This is cosmetic but sloppy.
 10. Add test: `event.AsRecord(lifecycleEvent)` produces correct Record fields
 
 ### Projections
+
 11. Implement processing-time projection (received → completed delta)
 12. Add `FilterOnField` to DLQ projection for filtering by command type
 13. Add `SortOnField` to FailureLog projection for chronological ordering
@@ -159,6 +180,7 @@ gofmt aligned the struct fields with extra spaces. This is cosmetic but sloppy.
 18. Add failure-rate projection (failed/total ratio over time window)
 
 ### Integration
+
 19. Wire `system.WithCommandLifecycle(eventSink)` convenience option
 20. Wire lifecycle stream subscription into `projectionhost`
 21. Add lifecycle events to `catalog/` registry (AsyncAPI/D2 generation)
@@ -168,6 +190,7 @@ gofmt aligned the struct fields with extra spaces. This is cosmetic but sloppy.
 25. Add OTel spans for lifecycle event recording
 
 ### Documentation
+
 26. Add lifecycle recipe to `references/recipes.md`
 27. Add lifecycle read-model section to `references/readmodels.md`
 28. Add lifecycle DSL section to `references/advanced.md`
@@ -177,6 +200,7 @@ gofmt aligned the struct fields with extra spaces. This is cosmetic but sloppy.
 32. Add consumer-facing doc for "migrating from callback DLQ to event-stream DLQ"
 
 ### Infrastructure
+
 33. Run `nix run .#verify` (full gate)
 34. Run `nix run .#check-arch` (dependency budget — verify new modules pass)
 35. Run `nix run .#check-coverage` (coverage drift — new modules may lower coverage)
@@ -189,6 +213,7 @@ gofmt aligned the struct fields with extra spaces. This is cosmetic but sloppy.
 42. Verify tags are monotonically increasing in commit ancestry
 
 ### Polish
+
 43. Fix struct field alignment in `DeadLetteredPayload`
 44. Add `context.Context` propagation through Recorder for cancellation
 45. Add metrics (lifecycle events written, failures, latencies)
@@ -203,16 +228,20 @@ gofmt aligned the struct fields with extra spaces. This is cosmetic but sloppy.
 ## g) Questions I Cannot Answer Myself
 
 ### 1. Version tracking strategy
+
 Should the Recorder use `Save()` with optimistic concurrency (requires reading current stream version first — extra round trip) or `AppendBatch()` (no version check, store must assign versions)?
 
 The `event.New()` API requires a non-zero `Version` parameter, but `AppendBatch` doesn't re-stamp versions. This means either:
+
 - The Recorder must know the current version (read-before-write), or
 - The store layer should assign/re-stamp versions on `AppendBatch`
 
 The current implementation uses an in-memory counter which is wrong for multi-instance or restart scenarios. What's the intended design?
 
 ### 2. Should lifecycle events go through the same EventSink as domain events?
+
 The ADR shows lifecycle events in `CommandLifecycle/*` streams. In the current implementation, I write to any `event.EventSink`. But should lifecycle events:
+
 - Share the same store as domain events (single journal, easier replay)?
 - Use a separate store (isolation, different retention policies)?
 - Be configurable?
@@ -220,6 +249,7 @@ The ADR shows lifecycle events in `CommandLifecycle/*` streams. In the current i
 This affects the `system/` integration design.
 
 ### 3. Should the attempt middleware be inside or outside the retry middleware?
+
 I designed it as: `outer → retry → attempt → handler`. The outer emits received/dead-lettered, the attempt emits failed/retried. But the `middleware.CommandRetry` doesn't expose hooks for "before retry" — it only has `OnDeadLetter`. So the attempt middleware must be the **innermost** middleware (after retry), wrapping the handler directly.
 
 Is this the intended layering? Or should the retry middleware itself emit lifecycle events (deeper integration, avoiding the two-middleware dance)?

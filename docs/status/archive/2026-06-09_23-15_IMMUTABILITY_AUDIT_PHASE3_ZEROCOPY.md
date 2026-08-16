@@ -77,18 +77,18 @@
 
 ## F) Top #10 Next Items
 
-| #   | Priority | Task                                                            | Impact        | Effort |
-| --- | -------- | --------------------------------------------------------------- | ------------- | ------ |
-| 1   | P1       | Update ADR-0013 to include PayloadReadOnly cross-module pattern | Documentation | S      |
-| 2   | P2       | Benchmark PayloadReadOnly in signing/storage/pebble hot paths   | Visibility    | S      |
-| 3   | P2       | Add PayloadReadOnly benchmark to event/benchmark_clone_test.go  | Visibility    | S      |
-| 4   | P2       | Property-based tests with rapid for all accessor methods        | Test rigor    | M      |
-| 5   | P3       | Allocation profiling in CI                                      | Visibility    | M      |
-| 6   | P3       | Fuzz tests for codec/ module                                    | Robustness    | S      |
-| 7   | P3       | Integration test: signing roundtrip through real store          | Test coverage | S      |
-| 8   | P4       | sync.Pool for event payload buffers                             | Perf          | M      |
-| 9   | P4       | io.Reader for payload streaming                                 | Architecture  | L      |
-| 10  | P5       | Write ADR for PayloadReadOnly API design decision               | Documentation | S      |
+| #  | Priority | Task                                                            | Impact        | Effort |
+| -- | -------- | --------------------------------------------------------------- | ------------- | ------ |
+| 1  | P1       | Update ADR-0013 to include PayloadReadOnly cross-module pattern | Documentation | S      |
+| 2  | P2       | Benchmark PayloadReadOnly in signing/storage/pebble hot paths   | Visibility    | S      |
+| 3  | P2       | Add PayloadReadOnly benchmark to event/benchmark_clone_test.go  | Visibility    | S      |
+| 4  | P2       | Property-based tests with rapid for all accessor methods        | Test rigor    | M      |
+| 5  | P3       | Allocation profiling in CI                                      | Visibility    | M      |
+| 6  | P3       | Fuzz tests for codec/ module                                    | Robustness    | S      |
+| 7  | P3       | Integration test: signing roundtrip through real store          | Test coverage | S      |
+| 8  | P4       | sync.Pool for event payload buffers                             | Perf          | M      |
+| 9  | P4       | io.Reader for payload streaming                                 | Architecture  | L      |
+| 10 | P5       | Write ADR for PayloadReadOnly API design decision               | Documentation | S      |
 
 ---
 

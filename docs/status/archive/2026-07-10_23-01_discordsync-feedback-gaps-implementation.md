@@ -18,13 +18,13 @@ document was verified against source code — all claims were accurate.
 
 ## A) FULLY DONE
 
-| #   | Gap                        | What was shipped                                                                                                                                                                                                                                                      | Tests                                                                                                                              | Verification                |
-| --- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| 1   | `VersionedSeekableJournal` | `schema/versioned_journal.go` — wraps `event.SeekableJournal` with upcasters; `schema/registry.go` — refactored `upcastAll` to shared registry method; `schema/versioned_source.go` — `VersionedStore` uses shared method; `schema/errors.go` — added `ErrNilJournal` | 7 tests (nil journal, no upcasters, ReadAll+upcast, ReadFrom+upcast, upcast errors on both paths, nil upcasters)                   | `schema` tests pass         |
-| 3A  | `SQLiteDeadLetterStore`    | `projectionhost/sqlite_dlq.go` — full CRUD (`Store`/`List`/`Delete`/`Purge`) with event serialization/deserialization via `ReconstructEventFromFields`, `INSERT OR REPLACE` for idempotent stores                                                                     | 9 tests (nil db, store+list, list all, list by projection, delete, purge, purge all, replace on duplicate, preserves event fields) | `projectionhost` tests pass |
-| 3B  | DLQ separation docs        | `projectionhost/dlq.go` — enhanced `MemoryDeadLetterStore` doc to reference `SQLiteDeadLetterStore`; ADR-0043 already documents the split rationale                                                                                                                   | —                                                                                                                                  | —                           |
-| 4   | `prometheus.WithViews`     | `prometheus/exporter.go` — added `WithViews(...metric.View)` option + views field; meter provider applies views when present; doc comment shows `otel.Setup` + `prometheus.Setup` composition pattern                                                                 | 1 test (WithViews creates provider)                                                                                                | `prometheus` tests pass     |
-| —   | AGENTS.md                  | Updated module descriptions, added code examples for `VersionedSeekableJournal`, `WithPayloadTransform`, `SQLiteDeadLetterStore`, `prometheus.WithViews` composition                                                                                                  | —                                                                                                                                  | —                           |
+| #  | Gap                        | What was shipped                                                                                                                                                                                                                                                      | Tests                                                                                                                              | Verification                |
+| -- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| 1  | `VersionedSeekableJournal` | `schema/versioned_journal.go` — wraps `event.SeekableJournal` with upcasters; `schema/registry.go` — refactored `upcastAll` to shared registry method; `schema/versioned_source.go` — `VersionedStore` uses shared method; `schema/errors.go` — added `ErrNilJournal` | 7 tests (nil journal, no upcasters, ReadAll+upcast, ReadFrom+upcast, upcast errors on both paths, nil upcasters)                   | `schema` tests pass         |
+| 3A | `SQLiteDeadLetterStore`    | `projectionhost/sqlite_dlq.go` — full CRUD (`Store`/`List`/`Delete`/`Purge`) with event serialization/deserialization via `ReconstructEventFromFields`, `INSERT OR REPLACE` for idempotent stores                                                                     | 9 tests (nil db, store+list, list all, list by projection, delete, purge, purge all, replace on duplicate, preserves event fields) | `projectionhost` tests pass |
+| 3B | DLQ separation docs        | `projectionhost/dlq.go` — enhanced `MemoryDeadLetterStore` doc to reference `SQLiteDeadLetterStore`; ADR-0043 already documents the split rationale                                                                                                                   | —                                                                                                                                  | —                           |
+| 4  | `prometheus.WithViews`     | `prometheus/exporter.go` — added `WithViews(...metric.View)` option + views field; meter provider applies views when present; doc comment shows `otel.Setup` + `prometheus.Setup` composition pattern                                                                 | 1 test (WithViews creates provider)                                                                                                | `prometheus` tests pass     |
+| —  | AGENTS.md                  | Updated module descriptions, added code examples for `VersionedSeekableJournal`, `WithPayloadTransform`, `SQLiteDeadLetterStore`, `prometheus.WithViews` composition                                                                                                  | —                                                                                                                                  | —                           |
 
 ---
 
@@ -109,78 +109,78 @@ The SSE subsystem has three delivery paths (live, replay, backfill) but the back
 
 ### Critical (block merging)
 
-| #   | Task                                                             | Why                                      | Effort                  |
-| --- | ---------------------------------------------------------------- | ---------------------------------------- | ----------------------- |
-| 1   | Fix `sse_backfill.go` — apply payload transform to backfill path | Incomplete TODO, marked done incorrectly | 30min + design decision |
-| 2   | Remove `var _ = errors.New` hack from both test files            | Sloppy code                              | 2min                    |
-| 3   | Run `nix fmt` on all changed files                               | Convention violation                     | 5min                    |
-| 4   | Run `nix run .#lint` on all changed modules                      | Convention violation                     | 10min                   |
-| 5   | Run full workspace test sweep (`nix run .#test` or equivalent)   | Only per-module tests ran                | 15min                   |
+| # | Task                                                             | Why                                      | Effort                  |
+| - | ---------------------------------------------------------------- | ---------------------------------------- | ----------------------- |
+| 1 | Fix `sse_backfill.go` — apply payload transform to backfill path | Incomplete TODO, marked done incorrectly | 30min + design decision |
+| 2 | Remove `var _ = errors.New` hack from both test files            | Sloppy code                              | 2min                    |
+| 3 | Run `nix fmt` on all changed files                               | Convention violation                     | 5min                    |
+| 4 | Run `nix run .#lint` on all changed modules                      | Convention violation                     | 10min                   |
+| 5 | Run full workspace test sweep (`nix run .#test` or equivalent)   | Only per-module tests ran                | 15min                   |
 
 ### High value
 
-| #   | Task                                                                                 | Why                                           | Effort     |
-| --- | ------------------------------------------------------------------------------------ | --------------------------------------------- | ---------- |
-| 6   | Add cross-module composition test: `VersionedSeekableJournal` → `projectionhost.New` | Proves Gap 1 is actually fixed end-to-end     | 30min      |
-| 7   | Improve `WithViews` test — verify histogram boundaries in Prometheus output          | Current test is superficial                   | 20min      |
-| 8   | Design decision: should `BackfillHandler` take a broker or stay standalone?          | Blocks proper fix for backfill transform      | Discussion |
-| 9   | Run `cmd/doc-check` on updated AGENTS.md                                             | Verify all import paths + symbols still valid | 5min       |
-| 10  | Add `Close()` test for `VersionedSeekableJournal`                                    | Method exists, untested                       | 10min      |
+| #  | Task                                                                                 | Why                                           | Effort     |
+| -- | ------------------------------------------------------------------------------------ | --------------------------------------------- | ---------- |
+| 6  | Add cross-module composition test: `VersionedSeekableJournal` → `projectionhost.New` | Proves Gap 1 is actually fixed end-to-end     | 30min      |
+| 7  | Improve `WithViews` test — verify histogram boundaries in Prometheus output          | Current test is superficial                   | 20min      |
+| 8  | Design decision: should `BackfillHandler` take a broker or stay standalone?          | Blocks proper fix for backfill transform      | Discussion |
+| 9  | Run `cmd/doc-check` on updated AGENTS.md                                             | Verify all import paths + symbols still valid | 5min       |
+| 10 | Add `Close()` test for `VersionedSeekableJournal`                                    | Method exists, untested                       | 10min      |
 
 ### Medium value
 
-| #   | Task                                                                                           | Why                                                        | Effort     |
-| --- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ---------- |
-| 11  | Add `VersionedSeekableJournal` example to `schema/example_test.go`                             | Discoverability                                            | 15min      |
-| 12  | Add `SQLiteDeadLetterStore` to `projectionhost/doc.go` or README                               | Discoverability                                            | 10min      |
-| 13  | Add `WithPayloadTransform` example to `transport/http` README or doc.go                        | Discoverability                                            | 10min      |
-| 14  | Consider `BackfillHandlerWithTransform` variant                                                | Non-breaking way to fix backfill path                      | 20min      |
-| 15  | Test `SQLiteDeadLetterStore` with nil event in entry                                           | Edge case — what if Event is nil?                          | 10min      |
-| 16  | Test `SQLiteDeadLetterStore` concurrently (race detector)                                      | Production safety                                          | 15min      |
-| 17  | Add benchmark for `SQLiteDeadLetterStore.Store`                                                | Performance baseline                                       | 15min      |
-| 18  | Add benchmark for `VersionedSeekableJournal.ReadFrom`                                          | Performance baseline                                       | 15min      |
-| 19  | Consider adding `WithViews` example to `otel/setup.go` docs                                    | Cross-reference                                            | 5min       |
-| 20  | Verify `go mod tidy` is clean (no `-e` needed) in all 4 changed modules                        | Module hygiene                                             | 10min      |
-| 21  | Update `docs/api_surface.txt` with new exported symbols                                        | API stability checking                                     | 10min      |
-| 22  | Add `VersionedSeekableJournal` to `schema/README.md`                                           | Discoverability                                            | 10min      |
-| 23  | Consider whether `VersionedSeekableJournal` should also implement `event.Store` (sink methods) | Design question — consumers who have a Store may want both | Discussion |
+| #  | Task                                                                                           | Why                                                        | Effort     |
+| -- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ---------- |
+| 11 | Add `VersionedSeekableJournal` example to `schema/example_test.go`                             | Discoverability                                            | 15min      |
+| 12 | Add `SQLiteDeadLetterStore` to `projectionhost/doc.go` or README                               | Discoverability                                            | 10min      |
+| 13 | Add `WithPayloadTransform` example to `transport/http` README or doc.go                        | Discoverability                                            | 10min      |
+| 14 | Consider `BackfillHandlerWithTransform` variant                                                | Non-breaking way to fix backfill path                      | 20min      |
+| 15 | Test `SQLiteDeadLetterStore` with nil event in entry                                           | Edge case — what if Event is nil?                          | 10min      |
+| 16 | Test `SQLiteDeadLetterStore` concurrently (race detector)                                      | Production safety                                          | 15min      |
+| 17 | Add benchmark for `SQLiteDeadLetterStore.Store`                                                | Performance baseline                                       | 15min      |
+| 18 | Add benchmark for `VersionedSeekableJournal.ReadFrom`                                          | Performance baseline                                       | 15min      |
+| 19 | Consider adding `WithViews` example to `otel/setup.go` docs                                    | Cross-reference                                            | 5min       |
+| 20 | Verify `go mod tidy` is clean (no `-e` needed) in all 4 changed modules                        | Module hygiene                                             | 10min      |
+| 21 | Update `docs/api_surface.txt` with new exported symbols                                        | API stability checking                                     | 10min      |
+| 22 | Add `VersionedSeekableJournal` to `schema/README.md`                                           | Discoverability                                            | 10min      |
+| 23 | Consider whether `VersionedSeekableJournal` should also implement `event.Store` (sink methods) | Design question — consumers who have a Store may want both | Discussion |
 
 ### Lower priority but worth doing
 
-| #   | Task                                                                              | Why                                                      | Effort                          |
-| --- | --------------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------- |
-| 24  | v4: Rename `PayloadReadOnly` → `PayloadBytes` (Gap 5)                             | Feedback nitpick                                         | 30min (rename + all call sites) |
-| 25  | Add ADR for `VersionedSeekableJournal`                                            | Documents why it exists separately from `VersionedStore` | 20min                           |
-| 26  | Add ADR for `SQLiteDeadLetterStore`                                               | Documents the schema and lifecycle                       | 20min                           |
-| 27  | Consider `PostgresDeadLetterStore`                                                | Feature parity                                           | 2h                              |
-| 28  | Consider `PebbleDeadLetterStore`                                                  | Feature parity for KV users                              | 2h                              |
-| 29  | Add SSE payload transform example using actual CBOR codec                         | Real-world usage example                                 | 15min                           |
-| 30  | Test SSE payload transform with nil transform (identity path)                     | Edge case                                                | 5min                            |
-| 31  | Test SSE payload transform returning nil/empty bytes                              | Edge case                                                | 5min                            |
-| 32  | Add `WithPayloadTransform` to `SKILL.md` recipes                                  | Consumer guide                                           | 10min                           |
-| 33  | Add `VersionedSeekableJournal` to `SKILL.md` module decision matrix               | Consumer guide                                           | 10min                           |
-| 34  | Add `SQLiteDeadLetterStore` to `SKILL.md` projectionhost section                  | Consumer guide                                           | 10min                           |
-| 35  | Consider integrating `WithPayloadTransform` into `stack/` presets                 | One-call CBOR→JSON for SSE                               | Discussion                      |
-| 36  | Add fuzz test for `SQLiteDeadLetterStore` scan/reconstruct round-trip             | Robustness                                               | 30min                           |
-| 37  | Add fuzz test for `VersionedSeekableJournal` upcast round-trip                    | Robustness                                               | 20min                           |
-| 38  | Test `SQLiteDeadLetterStore.Purge` with non-existent projection (should be no-op) | Edge case                                                | 5min                            |
-| 39  | Test `SQLiteDeadLetterStore.Delete` with non-existent entry (should be no-op)     | Edge case                                                | 5min                            |
-| 40  | Verify `SQLiteDeadLetterStore` works with shared cache (`cache=shared`)           | Common deployment pattern                                | 10min                           |
-| 41  | Consider `SQLiteDeadLetterStore` schema migration path                            | If schema changes in future                              | Discussion                      |
-| 42  | Document that `SQLiteDeadLetterStore` does NOT close the `*sql.DB`                | Caller ownership                                         | 5min                            |
-| 43  | Add `List` pagination support to `SQLiteDeadLetterStore`                          | Large DLQ tables                                         | 30min                           |
-| 44  | Consider `DeadLetterStore.Count()` method on the interface                        | Observability                                            | Discussion                      |
-| 45  | Review whether `schema.VersionedStore` should also get `Close()` sharing refactor | Consistency                                              | 5min                            |
+| #  | Task                                                                              | Why                                                      | Effort                          |
+| -- | --------------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------- |
+| 24 | v4: Rename `PayloadReadOnly` → `PayloadBytes` (Gap 5)                             | Feedback nitpick                                         | 30min (rename + all call sites) |
+| 25 | Add ADR for `VersionedSeekableJournal`                                            | Documents why it exists separately from `VersionedStore` | 20min                           |
+| 26 | Add ADR for `SQLiteDeadLetterStore`                                               | Documents the schema and lifecycle                       | 20min                           |
+| 27 | Consider `PostgresDeadLetterStore`                                                | Feature parity                                           | 2h                              |
+| 28 | Consider `PebbleDeadLetterStore`                                                  | Feature parity for KV users                              | 2h                              |
+| 29 | Add SSE payload transform example using actual CBOR codec                         | Real-world usage example                                 | 15min                           |
+| 30 | Test SSE payload transform with nil transform (identity path)                     | Edge case                                                | 5min                            |
+| 31 | Test SSE payload transform returning nil/empty bytes                              | Edge case                                                | 5min                            |
+| 32 | Add `WithPayloadTransform` to `SKILL.md` recipes                                  | Consumer guide                                           | 10min                           |
+| 33 | Add `VersionedSeekableJournal` to `SKILL.md` module decision matrix               | Consumer guide                                           | 10min                           |
+| 34 | Add `SQLiteDeadLetterStore` to `SKILL.md` projectionhost section                  | Consumer guide                                           | 10min                           |
+| 35 | Consider integrating `WithPayloadTransform` into `stack/` presets                 | One-call CBOR→JSON for SSE                               | Discussion                      |
+| 36 | Add fuzz test for `SQLiteDeadLetterStore` scan/reconstruct round-trip             | Robustness                                               | 30min                           |
+| 37 | Add fuzz test for `VersionedSeekableJournal` upcast round-trip                    | Robustness                                               | 20min                           |
+| 38 | Test `SQLiteDeadLetterStore.Purge` with non-existent projection (should be no-op) | Edge case                                                | 5min                            |
+| 39 | Test `SQLiteDeadLetterStore.Delete` with non-existent entry (should be no-op)     | Edge case                                                | 5min                            |
+| 40 | Verify `SQLiteDeadLetterStore` works with shared cache (`cache=shared`)           | Common deployment pattern                                | 10min                           |
+| 41 | Consider `SQLiteDeadLetterStore` schema migration path                            | If schema changes in future                              | Discussion                      |
+| 42 | Document that `SQLiteDeadLetterStore` does NOT close the `*sql.DB`                | Caller ownership                                         | 5min                            |
+| 43 | Add `List` pagination support to `SQLiteDeadLetterStore`                          | Large DLQ tables                                         | 30min                           |
+| 44 | Consider `DeadLetterStore.Count()` method on the interface                        | Observability                                            | Discussion                      |
+| 45 | Review whether `schema.VersionedStore` should also get `Close()` sharing refactor | Consistency                                              | 5min                            |
 
 ### Cross-cutting
 
-| #   | Task                                                                       | Why                                                             | Effort |
-| --- | -------------------------------------------------------------------------- | --------------------------------------------------------------- | ------ |
-| 46  | Add cross-module composition test suite (`integration/` module)            | The root cause identified in my review                          | 2h     |
-| 47  | Audit all broker-level options for backfill path coverage                  | 系统性 check that BackfillHandler doesn't silently miss options | 30min  |
-| 48  | Consider unifying SSE delivery paths into a shared `sseWriter` abstraction | Structural fix for E5                                           | 1h     |
-| 49  | Review `prometheus.WithViews` for OTel SDK version compatibility           | Ensure `metric.View` type is stable across versions             | 10min  |
-| 50  | Update DiscordSync feedback doc with status of each gap                    | Close the loop with the consumer                                | 10min  |
+| #  | Task                                                                       | Why                                                             | Effort |
+| -- | -------------------------------------------------------------------------- | --------------------------------------------------------------- | ------ |
+| 46 | Add cross-module composition test suite (`integration/` module)            | The root cause identified in my review                          | 2h     |
+| 47 | Audit all broker-level options for backfill path coverage                  | 系统性 check that BackfillHandler doesn't silently miss options | 30min  |
+| 48 | Consider unifying SSE delivery paths into a shared `sseWriter` abstraction | Structural fix for E5                                           | 1h     |
+| 49 | Review `prometheus.WithViews` for OTel SDK version compatibility           | Ensure `metric.View` type is stable across versions             | 10min  |
+| 50 | Update DiscordSync feedback doc with status of each gap                    | Close the loop with the consumer                                | 10min  |
 
 ---
 

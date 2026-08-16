@@ -143,43 +143,43 @@
 
 ### Immediate (this session or next)
 
-| #   | Task                                                 | Impact | Effort | Module      |
-| --- | ---------------------------------------------------- | ------ | ------ | ----------- |
-| 1   | **Tag v2.2.1** with unreleased changes + CHANGELOG   | HIGH   | 15 min | git tags    |
-| 2   | Fix `GOWORK=off` middleware build (re-tag memory/v2) | HIGH   | 10 min | memory      |
-| 3   | Run `go mod tidy` on testutil + all modules          | MEDIUM | 5 min  | testutil    |
-| 4   | Add golden test step to CI workflow                  | HIGH   | 5 min  | .github     |
-| 5   | encryption/v2 coverage → 80%+ (middleware tests)     | HIGH   | 30 min | encryption  |
-| 6   | storage/sql CommandSchema tests                      | MEDIUM | 15 min | storage/sql |
-| 7   | storage/sql OTel helper tests                        | MEDIUM | 15 min | storage/sql |
+| # | Task                                                 | Impact | Effort | Module      |
+| - | ---------------------------------------------------- | ------ | ------ | ----------- |
+| 1 | **Tag v2.2.1** with unreleased changes + CHANGELOG   | HIGH   | 15 min | git tags    |
+| 2 | Fix `GOWORK=off` middleware build (re-tag memory/v2) | HIGH   | 10 min | memory      |
+| 3 | Run `go mod tidy` on testutil + all modules          | MEDIUM | 5 min  | testutil    |
+| 4 | Add golden test step to CI workflow                  | HIGH   | 5 min  | .github     |
+| 5 | encryption/v2 coverage → 80%+ (middleware tests)     | HIGH   | 30 min | encryption  |
+| 6 | storage/sql CommandSchema tests                      | MEDIUM | 15 min | storage/sql |
+| 7 | storage/sql OTel helper tests                        | MEDIUM | 15 min | storage/sql |
 
 ### Short-term (this week)
 
-| #   | Task                                            | Impact | Effort | Module      |
-| --- | ----------------------------------------------- | ------ | ------ | ----------- |
-| 8   | watermill/v2 coverage → 50%+                    | HIGH   | 60 min | watermill   |
-| 9   | Commit benchmark baseline file                  | MEDIUM | 5 min  | root        |
-| 10  | LoadWithSpan integration test                   | MEDIUM | 20 min | storage/sql |
-| 11  | Encryption BDD: multi-event batch, key rotation | MEDIUM | 30 min | encryption  |
-| 12  | Strong-ID v3 migration plan (ADR)               | LOW    | 15 min | docs/adr    |
-| 13  | SSE handler integration test                    | MEDIUM | 20 min | middleware  |
-| 14  | Graceful shutdown integration test              | MEDIUM | 15 min | pkg         |
-| 15  | CI: add `nix run .#check-layers` step           | LOW    | 5 min  | .github     |
+| #  | Task                                            | Impact | Effort | Module      |
+| -- | ----------------------------------------------- | ------ | ------ | ----------- |
+| 8  | watermill/v2 coverage → 50%+                    | HIGH   | 60 min | watermill   |
+| 9  | Commit benchmark baseline file                  | MEDIUM | 5 min  | root        |
+| 10 | LoadWithSpan integration test                   | MEDIUM | 20 min | storage/sql |
+| 11 | Encryption BDD: multi-event batch, key rotation | MEDIUM | 30 min | encryption  |
+| 12 | Strong-ID v3 migration plan (ADR)               | LOW    | 15 min | docs/adr    |
+| 13 | SSE handler integration test                    | MEDIUM | 20 min | middleware  |
+| 14 | Graceful shutdown integration test              | MEDIUM | 15 min | pkg         |
+| 15 | CI: add `nix run .#check-layers` step           | LOW    | 5 min  | .github     |
 
 ### Medium-term (next 2 weeks)
 
-| #   | Task                                                          | Impact | Effort | Module     |
-| --- | ------------------------------------------------------------- | ------ | ------ | ---------- |
-| 16  | v3 roadmap: strong-ID migration, API cleanup                  | HIGH   | 60 min | docs       |
-| 17  | Event store benchmark suite (PG vs SQLite vs Pebble vs Turso) | MEDIUM | 90 min | storage    |
-| 18  | catalog/v2/schema coverage → 90%+                             | LOW    | 20 min | catalog    |
-| 19  | pebble/v2: add compaction/tombstone benchmarks                | LOW    | 30 min | pebble     |
-| 20  | turso/v2: add sync failure recovery tests                     | LOW    | 30 min | turso      |
-| 21  | projection/v2: add pause/resume test                          | LOW    | 20 min | projection |
-| 22  | signing/v2/multisig: add threshold signing test               | LOW    | 15 min | signing    |
-| 23  | cmd/api-stability: add encryption to tracked surface          | LOW    | 10 min | cmd        |
-| 24  | docs: add encryption module to architecture diagram           | LOW    | 10 min | docs       |
-| 25  | example/: add encryption example                              | LOW    | 20 min | example    |
+| #  | Task                                                          | Impact | Effort | Module     |
+| -- | ------------------------------------------------------------- | ------ | ------ | ---------- |
+| 16 | v3 roadmap: strong-ID migration, API cleanup                  | HIGH   | 60 min | docs       |
+| 17 | Event store benchmark suite (PG vs SQLite vs Pebble vs Turso) | MEDIUM | 90 min | storage    |
+| 18 | catalog/v2/schema coverage → 90%+                             | LOW    | 20 min | catalog    |
+| 19 | pebble/v2: add compaction/tombstone benchmarks                | LOW    | 30 min | pebble     |
+| 20 | turso/v2: add sync failure recovery tests                     | LOW    | 30 min | turso      |
+| 21 | projection/v2: add pause/resume test                          | LOW    | 20 min | projection |
+| 22 | signing/v2/multisig: add threshold signing test               | LOW    | 15 min | signing    |
+| 23 | cmd/api-stability: add encryption to tracked surface          | LOW    | 10 min | cmd        |
+| 24 | docs: add encryption module to architecture diagram           | LOW    | 10 min | docs       |
+| 25 | example/: add encryption example                              | LOW    | 20 min | example    |
 
 ---
 

@@ -157,38 +157,38 @@ Sorted by **impact × effort** (Pareto principle):
 
 ### Tier 1: Quick Wins (5 min each, high impact)
 
-| #   | Task                                                                                                               | Impact                         | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------ | ------ |
-| 1   | Add `String()` + `IsZero()` methods to all 17 catalog phantom types in `types_phantom.go`                          | Consistency, pattern alignment | 5 min  |
-| 2   | Add `String()` + `IsZero()` to `catalog.DisplayID`                                                                 | Same pattern                   | 1 min  |
-| 3   | Fix `example/todo/domain.Priority` — add `Int()` method (it's `type Priority int`, not string)                     | Cleaner boundary casts         | 2 min  |
-| 4   | Configure branching-flow to exclude serialization structs from phantom analysis (or add lint suppression comments) | Accurate violation count       | 5 min  |
-| 5   | Fix/Remove the broken BuildFlow pre-commit hook                                                                    | Prevent silent staging         | 5 min  |
+| # | Task                                                                                                               | Impact                         | Effort |
+| - | ------------------------------------------------------------------------------------------------------------------ | ------------------------------ | ------ |
+| 1 | Add `String()` + `IsZero()` methods to all 17 catalog phantom types in `types_phantom.go`                          | Consistency, pattern alignment | 5 min  |
+| 2 | Add `String()` + `IsZero()` to `catalog.DisplayID`                                                                 | Same pattern                   | 1 min  |
+| 3 | Fix `example/todo/domain.Priority` — add `Int()` method (it's `type Priority int`, not string)                     | Cleaner boundary casts         | 2 min  |
+| 4 | Configure branching-flow to exclude serialization structs from phantom analysis (or add lint suppression comments) | Accurate violation count       | 5 min  |
+| 5 | Fix/Remove the broken BuildFlow pre-commit hook                                                                    | Prevent silent staging         | 5 min  |
 
 ### Tier 2: Medium Effort, Good Value (15-30 min each)
 
-| #   | Task                                                                                                                                       | Impact                                     | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ | ------ |
-| 6   | Use catalog phantom types in builder/option functions (`build.go`, `channel_config.go`, `service_config.go`, `message_config.go`)          | ~15 violations eliminated                  | 20 min |
-| 7   | Use catalog phantom types in cattest helpers (`builders.go` title/summary params)                                                          | ~10 violations eliminated                  | 15 min |
-| 8   | Add `encoding.TextMarshaler` to catalog phantom types — enables direct JSON use                                                            | Eliminates ~40 string() casts in exporters | 30 min |
-| 9   | Type `query.Pagination` fields as `Page uint` and `PageSize uint` phantom types with validation                                            | Domain safety                              | 15 min |
-| 10  | Type `projection.HealthReport` fields — `Healthy` → `HealthStatus` enum, `Checkpoint` → typed                                              | Clarity                                    | 15 min |
-| 11  | Fix error context in `memory/store_load.go:35` and `middleware/recovery.go:34` (include `op`/`msgKind`/`typeName` in error format strings) | Error handling 95→97                       | 10 min |
+| #  | Task                                                                                                                                       | Impact                                     | Effort |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ | ------ |
+| 6  | Use catalog phantom types in builder/option functions (`build.go`, `channel_config.go`, `service_config.go`, `message_config.go`)          | ~15 violations eliminated                  | 20 min |
+| 7  | Use catalog phantom types in cattest helpers (`builders.go` title/summary params)                                                          | ~10 violations eliminated                  | 15 min |
+| 8  | Add `encoding.TextMarshaler` to catalog phantom types — enables direct JSON use                                                            | Eliminates ~40 string() casts in exporters | 30 min |
+| 9  | Type `query.Pagination` fields as `Page uint` and `PageSize uint` phantom types with validation                                            | Domain safety                              | 15 min |
+| 10 | Type `projection.HealthReport` fields — `Healthy` → `HealthStatus` enum, `Checkpoint` → typed                                              | Clarity                                    | 15 min |
+| 11 | Fix error context in `memory/store_load.go:35` and `middleware/recovery.go:34` (include `op`/`msgKind`/`typeName` in error format strings) | Error handling 95→97                       | 10 min |
 
 ### Tier 3: Lower ROI, Consider Carefully
 
-| #   | Task                                                                                          | Impact                       | Effort |
-| --- | --------------------------------------------------------------------------------------------- | ---------------------------- | ------ |
-| 12  | Type `storage/sql` query builder params (`table`, `aggType`, `prefix`)                        | Internal safety              | 30 min |
-| 13  | Type `pebble` store config fields (`prefix`, `journalPrefix`)                                 | Config safety                | 15 min |
-| 14  | Type `otel` helper params (`component`, `eventType`, `unit`)                                  | Constrained by OTel API      | 20 min |
-| 15  | Type `watermill` topic params                                                                 | Constrained by Watermill API | 10 min |
-| 16  | Type `memory` store internal params (`op`)                                                    | Internal only                | 10 min |
-| 17  | Type `listing` reader params                                                                  | Internal only                | 5 min  |
-| 18  | Type `dispatcher` lifecycle state                                                             | Internal only                | 5 min  |
-| 19  | Convert `bool` fields to enums where flagged (`Deprecated`, `Deleted`, `ownDB`, `syncWrites`) | Debatable value              | 45 min |
-| 20  | Extract shared phantom type generation pattern (go:generate or generic helper)                | DRY                          | 30 min |
+| #  | Task                                                                                          | Impact                       | Effort |
+| -- | --------------------------------------------------------------------------------------------- | ---------------------------- | ------ |
+| 12 | Type `storage/sql` query builder params (`table`, `aggType`, `prefix`)                        | Internal safety              | 30 min |
+| 13 | Type `pebble` store config fields (`prefix`, `journalPrefix`)                                 | Config safety                | 15 min |
+| 14 | Type `otel` helper params (`component`, `eventType`, `unit`)                                  | Constrained by OTel API      | 20 min |
+| 15 | Type `watermill` topic params                                                                 | Constrained by Watermill API | 10 min |
+| 16 | Type `memory` store internal params (`op`)                                                    | Internal only                | 10 min |
+| 17 | Type `listing` reader params                                                                  | Internal only                | 5 min  |
+| 18 | Type `dispatcher` lifecycle state                                                             | Internal only                | 5 min  |
+| 19 | Convert `bool` fields to enums where flagged (`Deprecated`, `Deleted`, `ownDB`, `syncWrites`) | Debatable value              | 45 min |
+| 20 | Extract shared phantom type generation pattern (go:generate or generic helper)                | DRY                          | 30 min |
 
 ### Tier 4: Strategic / Future
 

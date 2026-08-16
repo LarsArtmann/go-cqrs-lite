@@ -21,6 +21,7 @@ retried, dead-lettered, completed — is tracked via events appended to a
 per-command lifecycle stream.
 
 **Files:**
+
 - `events.go` — 5 lifecycle event types + payloads + stream ref
 - `recorder.go` — Recorder with best-effort/strict modes, version tracking
 - `middleware.go` — `New(recorder)` returns outer+attempt middleware with shared attempt tracker; standalone `Middleware()` and `AttemptMiddleware()`
@@ -39,6 +40,7 @@ without native graphBackend support (SQLite, MySQL, Pebble, bbolt) can still
 serve graph queries via MultimapBackend (O(N) BFS instead of O(degree^depth)).
 
 **Files:**
+
 - `metaengine/graph_fallback.go` — `graphAddEdgeFallback` + `graphNeighborsFallback` (BFS with cycle detection)
 - `metaengine/graph_fallback_test.go` — 4 tests (basic traversal, depth-limited, cycle safety, depth-0)
 - `metaengine/store.go` — applyFoldEdge falls back to multimap when graphBackend unavailable
@@ -94,6 +96,7 @@ failed to start).
 ## b) PARTIALLY DONE
 
 ### M8 remaining items:
+
 - **StreamLog fallback on Dgraph** — Dgraph doesn't implement StreamLogBackend; needs append-ordered node fallback
 - **Recursive CTE optimization on PG** — PG already declares ADTGraph support; could upgrade from brute-force BFS to native recursive CTE for O(degree^depth) instead of O(N)
 - **Vector search on memory engine** — Already supported via MemoryVectorIndex; no change needed
@@ -114,6 +117,7 @@ failed to start).
 ## d) Verify Gate Status
 
 **Full `nix run .#verify`:**
+
 - All 82+ modules pass EXCEPT `cmd/cqrs-bench` (pre-existing version-sequence issue)
 - **cmd/cqrs-bench failure:** `benchkit.Truncate`/`TitleCase` were added after `benchkit/v4.3.0` tag. Under `GOWORK=off` (CI per-module testing), the published tag doesn't have them. Fix: tag `benchkit/v4.4.0` and bump `cmd/cqrs-bench` dependency. Can't tag without push access.
 - **With workspace** (`go test ./...` without GOWORK=off): cmd/cqrs-bench passes ✓

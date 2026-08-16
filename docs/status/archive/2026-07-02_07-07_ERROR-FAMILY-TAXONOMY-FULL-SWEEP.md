@@ -1,7 +1,7 @@
 # Error Family Taxonomy — Full Monorepo Status Report
 
-**Date:** 2026-07-02 07:07  
-**Commit:** `00c1be89` — _Classify all remaining error sites with go-error-family taxonomy_  
+**Date:** 2026-07-02 07:07\
+**Commit:** `00c1be89` — _Classify all remaining error sites with go-error-family taxonomy_\
 **Branch:** `master` (pushed to `origin/master`)
 
 ---

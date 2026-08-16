@@ -170,16 +170,16 @@ Attempted (`e8d21b39`), reverted (`b1370a83`) due to genproto ambiguous import c
 
 ## c) NOT STARTED ⬜
 
-| #   | Item                                                                   | Effort | Why deferred                                                                                  |
-| --- | ---------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------- |
-| C1  | God-package splits (storage 38 files, event 30 files → sub-packages)   | High   | Major refactor; identified but separate session                                               |
-| C2  | `projection.Runner` (generic journal replay + live subscribe pipeline) | High   | `bundle.RunProjections` covers the common case; a standalone Runner is for advanced use cases |
-| C3  | Versioned schema migrations (`schema_migrations` table)                | Medium | Pre-existing gap                                                                              |
-| C4  | NATS / Redis transport adapters                                        | Medium | ADR-0025 accepted, zero code                                                                  |
-| C5  | Documentation site                                                     | High   | 45 modules need browsable docs                                                                |
-| C6  | Outbox DLQ + reference-based outbox                                    | Medium | Pre-existing gaps                                                                             |
-| C7  | Durability profiles (Sync/BatchedSync/Async)                           | Low    | Pre-existing gap                                                                              |
-| C8  | `RelationalStore` JOIN support or denormalization guidance             | Medium | Open question (see §g)                                                                        |
+| #  | Item                                                                   | Effort | Why deferred                                                                                  |
+| -- | ---------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------- |
+| C1 | God-package splits (storage 38 files, event 30 files → sub-packages)   | High   | Major refactor; identified but separate session                                               |
+| C2 | `projection.Runner` (generic journal replay + live subscribe pipeline) | High   | `bundle.RunProjections` covers the common case; a standalone Runner is for advanced use cases |
+| C3 | Versioned schema migrations (`schema_migrations` table)                | Medium | Pre-existing gap                                                                              |
+| C4 | NATS / Redis transport adapters                                        | Medium | ADR-0025 accepted, zero code                                                                  |
+| C5 | Documentation site                                                     | High   | 45 modules need browsable docs                                                                |
+| C6 | Outbox DLQ + reference-based outbox                                    | Medium | Pre-existing gaps                                                                             |
+| C7 | Durability profiles (Sync/BatchedSync/Async)                           | Low    | Pre-existing gap                                                                              |
+| C8 | `RelationalStore` JOIN support or denormalization guidance             | Medium | Open question (see §g)                                                                        |
 
 ---
 
@@ -239,43 +239,43 @@ Even after adding `bundle.RunProjections`, consumers build explicit structs (`Re
 
 ### Tier 1: Critical (ship-blockers or highest leverage)
 
-| #   | Task                                                                 | Impact   | Effort | Why                                                                                              |
-| --- | -------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------------------------------------------------------ |
-| 1   | **Migrate DiscordSync's projection layer to `RelationalProjection`** | Critical | 2-3h   | Original trigger for all this work; validates the entire relational tier against a real consumer |
-| 2   | **Fix BuildFlow pre-commit hook** (increase budget to 300s or scope) | High     | 30min  | Every commit needs --no-verify                                                                   |
-| 3   | **Fix transport/grpc genproto conflict** and wire into go.work       | High     | 1h     | Last module not in workspace                                                                     |
-| 4   | **Add per-module arch-lint for event/** (30-file god-package)        | High     | 15min  | Infrastructure ready; largest unchecked module                                                   |
-| 5   | **Unify `RelationalQuery` → `kv.ViewQuery`**                         | Medium   | 30min  | Eliminate duplicate type; small refactor                                                         |
+| # | Task                                                                 | Impact   | Effort | Why                                                                                              |
+| - | -------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------------------------------------------------------ |
+| 1 | **Migrate DiscordSync's projection layer to `RelationalProjection`** | Critical | 2-3h   | Original trigger for all this work; validates the entire relational tier against a real consumer |
+| 2 | **Fix BuildFlow pre-commit hook** (increase budget to 300s or scope) | High     | 30min  | Every commit needs --no-verify                                                                   |
+| 3 | **Fix transport/grpc genproto conflict** and wire into go.work       | High     | 1h     | Last module not in workspace                                                                     |
+| 4 | **Add per-module arch-lint for event/** (30-file god-package)        | High     | 15min  | Infrastructure ready; largest unchecked module                                                   |
+| 5 | **Unify `RelationalQuery` → `kv.ViewQuery`**                         | Medium   | 30min  | Eliminate duplicate type; small refactor                                                         |
 
 ### Tier 2: High-value improvements
 
-| #   | Task                                                                                      | Impact | Effort   | Why                                        |
-| --- | ----------------------------------------------------------------------------------------- | ------ | -------- | ------------------------------------------ |
-| 6   | **Migrate DiscordSync's query layer to `RelationalStore`**                                | High   | 2h       | Eliminates ~500 LOC hand-written SQL       |
-| 7   | **Add PostgreSQL integration tests** for relational tier (testcontainers)                 | High   | 1h       | Tested on SQLite only; PG path unproven    |
-| 8   | **Add per-module arch-lint** for middleware/, catalog/, command/, kv/                     | Medium | 1h total | 4 YAML files                               |
-| 9   | **Write `example/graph-demo/`** using GraphProjection + MemoryDriver                      | Medium | 1h       | First real consumer of graph tier          |
-| 10  | **Add `projection.Builder`** (typed handler: `On[P](builder, eventType, codec, handler)`) | Medium | 1h       | DiscordSync hand-writes this; it's generic |
-| 11  | **Add `RelationalStore` JOIN support or denormalization docs**                            | Medium | 1h       | See open question §g                       |
-| 12  | **God-package split: storage/** (38 files → sub-packages by concern)                      | High   | 4h+      | Largest god-package                        |
-| 13  | **God-package split: event/** (30 files → sub-packages by concern)                        | High   | 3h+      | Core module                                |
-| 14  | **Add versioned schema migrations**                                                       | Medium | 2h       | Pre-existing gap                           |
-| 15  | **Complete Pebble module** (SnapshotStore, CheckpointStore)                               | Medium | 2h       | Pre-existing gap                           |
+| #  | Task                                                                                      | Impact | Effort   | Why                                        |
+| -- | ----------------------------------------------------------------------------------------- | ------ | -------- | ------------------------------------------ |
+| 6  | **Migrate DiscordSync's query layer to `RelationalStore`**                                | High   | 2h       | Eliminates ~500 LOC hand-written SQL       |
+| 7  | **Add PostgreSQL integration tests** for relational tier (testcontainers)                 | High   | 1h       | Tested on SQLite only; PG path unproven    |
+| 8  | **Add per-module arch-lint** for middleware/, catalog/, command/, kv/                     | Medium | 1h total | 4 YAML files                               |
+| 9  | **Write `example/graph-demo/`** using GraphProjection + MemoryDriver                      | Medium | 1h       | First real consumer of graph tier          |
+| 10 | **Add `projection.Builder`** (typed handler: `On[P](builder, eventType, codec, handler)`) | Medium | 1h       | DiscordSync hand-writes this; it's generic |
+| 11 | **Add `RelationalStore` JOIN support or denormalization docs**                            | Medium | 1h       | See open question §g                       |
+| 12 | **God-package split: storage/** (38 files → sub-packages by concern)                      | High   | 4h+      | Largest god-package                        |
+| 13 | **God-package split: event/** (30 files → sub-packages by concern)                        | High   | 3h+      | Core module                                |
+| 14 | **Add versioned schema migrations**                                                       | Medium | 2h       | Pre-existing gap                           |
+| 15 | **Complete Pebble module** (SnapshotStore, CheckpointStore)                               | Medium | 2h       | Pre-existing gap                           |
 
 ### Tier 3: Quality and completeness
 
-| #   | Task                                                                     | Impact             | Effort | Why                                    |
-| --- | ------------------------------------------------------------------------ | ------------------ | ------ | -------------------------------------- |
-| 16  | **Add `Row` column-name validation** against RelationalSchema            | Medium             | 30min  | Catches typos before SQL               |
-| 17  | **Build Neo4j/Cypher GraphDriver** (`graph/neo4j/`)                      | High (when needed) | 3-4h   | Consumer-pulled                        |
-| 18  | **Add NATS JetStream transport adapter**                                 | Medium             | 3h     | ADR-0025 accepted                      |
-| 19  | **Add Outbox DLQ + reference-based outbox**                              | Medium             | 2h     | Pre-existing gaps                      |
-| 20  | **Add FTS5 full-text search to RelationalStore**                         | Medium             | 2h     | DiscordSync's SearchMessages           |
-| 21  | **Add Durability profiles** across backends                              | Low                | 1.5h   | Pre-existing gap                       |
-| 22  | **Documentation site** (Docusaurus/MkDocs)                               | Low                | 4h+    | 45 modules need browsable docs         |
-| 23  | **`bundle.RunProjections` should return a handle** with Start/Wait/Error | Low                | 30min  | Advanced error handling                |
-| 24  | **Add `RelationalProjectionOption` for batch checkpointing**             | Low                | 30min  | Performance for high-throughput replay |
-| 25  | **Integration test: RunProjections end-to-end** (replay → live → query)  | Medium             | 1h     | No end-to-end test exists yet          |
+| #  | Task                                                                     | Impact             | Effort | Why                                    |
+| -- | ------------------------------------------------------------------------ | ------------------ | ------ | -------------------------------------- |
+| 16 | **Add `Row` column-name validation** against RelationalSchema            | Medium             | 30min  | Catches typos before SQL               |
+| 17 | **Build Neo4j/Cypher GraphDriver** (`graph/neo4j/`)                      | High (when needed) | 3-4h   | Consumer-pulled                        |
+| 18 | **Add NATS JetStream transport adapter**                                 | Medium             | 3h     | ADR-0025 accepted                      |
+| 19 | **Add Outbox DLQ + reference-based outbox**                              | Medium             | 2h     | Pre-existing gaps                      |
+| 20 | **Add FTS5 full-text search to RelationalStore**                         | Medium             | 2h     | DiscordSync's SearchMessages           |
+| 21 | **Add Durability profiles** across backends                              | Low                | 1.5h   | Pre-existing gap                       |
+| 22 | **Documentation site** (Docusaurus/MkDocs)                               | Low                | 4h+    | 45 modules need browsable docs         |
+| 23 | **`bundle.RunProjections` should return a handle** with Start/Wait/Error | Low                | 30min  | Advanced error handling                |
+| 24 | **Add `RelationalProjectionOption` for batch checkpointing**             | Low                | 30min  | Performance for high-throughput replay |
+| 25 | **Integration test: RunProjections end-to-end** (replay → live → query)  | Medium             | 1h     | No end-to-end test exists yet          |
 
 ---
 

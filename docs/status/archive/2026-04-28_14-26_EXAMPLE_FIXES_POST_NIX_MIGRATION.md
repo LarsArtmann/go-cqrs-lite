@@ -1,10 +1,10 @@
 # Comprehensive Status Report — go-cqrs-lite
 
-**Date:** 2026-04-28 14:26  
-**Reporter:** Crush (AI Engineering Partner)  
-**Session Focus:** Example `go.mod` tidy drift fixes + `CatalogCore` API compilation fixes  
-**Git Branch:** master  
-**Last Commit:** `ccb7248` — fix(example): resolve go.mod tidy drift + fix CatalogCore compilation  
+**Date:** 2026-04-28 14:26\
+**Reporter:** Crush (AI Engineering Partner)\
+**Session Focus:** Example `go.mod` tidy drift fixes + `CatalogCore` API compilation fixes\
+**Git Branch:** master\
+**Last Commit:** `ccb7248` — fix(example): resolve go.mod tidy drift + fix CatalogCore compilation\
 **Commits Ahead of Origin:** 22
 
 ---
@@ -138,33 +138,33 @@ These are **gopls workspace state issues**, not real errors:
 
 ## f) Top #25 Things To Get Done Next
 
-| #   | Priority | Item                                           | Module                | Effort | Impact        |
-| --- | -------- | ---------------------------------------------- | --------------------- | ------ | ------------- |
-| 1   | 🔴 P0    | Restart gopls (clear false positives)          | Workspace             | 1min   | Hygiene       |
-| 2   | 🔴 P0    | Resolve `go-composable-business-types` privacy | Repo                  | 30min  | Nix purity    |
-| 3   | 🟡 P1    | Boost `core/command` coverage to >85%          | `core/command`        | 2h     | Quality       |
-| 4   | 🟡 P1    | Add `EventRetry` middleware tests              | `middleware/`         | 1h     | Parity        |
-| 5   | 🟡 P1    | Boost `pkg/id` coverage to >85%                | `core/pkg/id`         | 1h     | Quality       |
-| 6   | 🟡 P1    | Boost `pkg/dispatcher` coverage to >85%        | `core/pkg/dispatcher` | 1.5h   | Quality       |
-| 7   | 🟡 P1    | Add `testhelpers/` to test/coverage apps       | `flake.nix`           | 5min   | Completeness  |
-| 8   | 🟢 P2    | SQL event store (`storage/` module)            | New                   | 2d     | **BLOCKER**   |
-| 9   | 🟢 P2    | Design projection interface                    | New                   | 1d     | Architecture  |
-| 10  | 🟢 P2    | OpenTelemetry tracing middleware               | `middleware/`         | 4h     | Observability |
-| 11  | 🟢 P2    | Tag v0.1.0 release                             | Repo                  | 30min  | Milestone     |
-| 12  | 🟢 P2    | Archive old status reports                     | `docs/status/`        | 30min  | Hygiene       |
-| 13  | 🔵 P3    | SQL-backed snapshot store                      | New                   | 1d     | Feature       |
-| 14  | 🔵 P3    | Watermill pub/sub adapter                      | New                   | 2d     | Integration   |
-| 15  | 🔵 P3    | Projection/read-model implementation           | New                   | 3d     | Feature       |
-| 16  | 🔵 P3    | gRPC transport adapter                         | New                   | 2d     | Transport     |
-| 17  | 🔵 P3    | HTTP transport adapter                         | New                   | 2d     | Transport     |
-| 18  | 🔵 P3    | Event upcasting/schema evolution               | `core/event`          | 3d     | Long-term     |
-| 19  | 🔵 P3    | Saga/process manager                           | New                   | 5d     | Advanced      |
-| 20  | 🔵 P3    | Dead letter queue                              | `middleware/`         | 2d     | Resilience    |
-| 21  | 🔵 P3    | Health check endpoints                         | New                   | 1d     | Ops           |
-| 22  | 🔵 P3    | E-commerce example                             | `example/`            | 3d     | Documentation |
-| 23  | 🔵 P3    | Metrics endpoint example                       | `example/`            | 1d     | Documentation |
-| 24  | 🔵 P3    | Resolve `TypedCommand.Command()` validation    | `xtypes/`             | 2h     | API design    |
-| 25  | 🔵 P3    | Remove redundant state in `TypedAggregate`     | `xtypes/`             | 2h     | Cleanup       |
+| #  | Priority | Item                                           | Module                | Effort | Impact        |
+| -- | -------- | ---------------------------------------------- | --------------------- | ------ | ------------- |
+| 1  | 🔴 P0    | Restart gopls (clear false positives)          | Workspace             | 1min   | Hygiene       |
+| 2  | 🔴 P0    | Resolve `go-composable-business-types` privacy | Repo                  | 30min  | Nix purity    |
+| 3  | 🟡 P1    | Boost `core/command` coverage to >85%          | `core/command`        | 2h     | Quality       |
+| 4  | 🟡 P1    | Add `EventRetry` middleware tests              | `middleware/`         | 1h     | Parity        |
+| 5  | 🟡 P1    | Boost `pkg/id` coverage to >85%                | `core/pkg/id`         | 1h     | Quality       |
+| 6  | 🟡 P1    | Boost `pkg/dispatcher` coverage to >85%        | `core/pkg/dispatcher` | 1.5h   | Quality       |
+| 7  | 🟡 P1    | Add `testhelpers/` to test/coverage apps       | `flake.nix`           | 5min   | Completeness  |
+| 8  | 🟢 P2    | SQL event store (`storage/` module)            | New                   | 2d     | **BLOCKER**   |
+| 9  | 🟢 P2    | Design projection interface                    | New                   | 1d     | Architecture  |
+| 10 | 🟢 P2    | OpenTelemetry tracing middleware               | `middleware/`         | 4h     | Observability |
+| 11 | 🟢 P2    | Tag v0.1.0 release                             | Repo                  | 30min  | Milestone     |
+| 12 | 🟢 P2    | Archive old status reports                     | `docs/status/`        | 30min  | Hygiene       |
+| 13 | 🔵 P3    | SQL-backed snapshot store                      | New                   | 1d     | Feature       |
+| 14 | 🔵 P3    | Watermill pub/sub adapter                      | New                   | 2d     | Integration   |
+| 15 | 🔵 P3    | Projection/read-model implementation           | New                   | 3d     | Feature       |
+| 16 | 🔵 P3    | gRPC transport adapter                         | New                   | 2d     | Transport     |
+| 17 | 🔵 P3    | HTTP transport adapter                         | New                   | 2d     | Transport     |
+| 18 | 🔵 P3    | Event upcasting/schema evolution               | `core/event`          | 3d     | Long-term     |
+| 19 | 🔵 P3    | Saga/process manager                           | New                   | 5d     | Advanced      |
+| 20 | 🔵 P3    | Dead letter queue                              | `middleware/`         | 2d     | Resilience    |
+| 21 | 🔵 P3    | Health check endpoints                         | New                   | 1d     | Ops           |
+| 22 | 🔵 P3    | E-commerce example                             | `example/`            | 3d     | Documentation |
+| 23 | 🔵 P3    | Metrics endpoint example                       | `example/`            | 1d     | Documentation |
+| 24 | 🔵 P3    | Resolve `TypedCommand.Command()` validation    | `xtypes/`             | 2h     | API design    |
+| 25 | 🔵 P3    | Remove redundant state in `TypedAggregate`     | `xtypes/`             | 2h     | Cleanup       |
 
 ---
 

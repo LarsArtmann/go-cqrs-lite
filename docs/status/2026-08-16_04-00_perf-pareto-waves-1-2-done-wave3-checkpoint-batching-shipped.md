@@ -188,9 +188,9 @@
 47. F46: go-codec `UnwrapDecode` first-byte sniff (external repo PR).
 48. AGENTS.md gotcha: stale QEMU/port 33070 check before MySQL VM runs.
 49. AGENTS.md gotcha: `#integration-mysql-vm` default path = GOWORK=off published tags; use
-   `-- go test ...` (repo root, workspace mode) to verify uncommitted storage changes.
+    `-- go test ...` (repo root, workspace mode) to verify uncommitted storage changes.
 50. AGENTS.md gotcha: VM mode (MYSQL_TEST_DSN) shares ONE database — no per-test isolation;
-   count assertions must tolerate cross-test state.
+    count assertions must tolerate cross-test state.
 
 ## (g) Questions for you
 

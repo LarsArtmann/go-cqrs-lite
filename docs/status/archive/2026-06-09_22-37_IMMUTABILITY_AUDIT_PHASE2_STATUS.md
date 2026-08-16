@@ -134,33 +134,33 @@
 
 Sorted by Impact × Effort (Pareto):
 
-| #   | Priority | Task                                                                                | Impact               | Effort |
-| --- | -------- | ----------------------------------------------------------------------------------- | -------------------- | ------ |
-| 1   | P0       | Add unit test for `encodingForCopy()` — both `*ImmutableEvent` and fallback paths   | Test coverage        | S      |
-| 2   | P1       | `NewSliceStream` should `slices.Clone` the input event slice                        | Safety               | S      |
-| 3   | P1       | Add `go:generate` target for running immutability audits via a script               | DX                   | M      |
-| 4   | P1       | Consider `ReadonlyPayload()` unexported interface for internal zero-copy access     | Architecture         | M      |
-| 5   | P1       | Builder should use `buildEvent` directly instead of `NewEvent` (skip double-clone)  | Perf                 | S      |
-| 6   | P2       | Add property-based tests with `rapid` for all accessor methods                      | Test rigor           | M      |
-| 7   | P2       | Benchmark baseline comparison in CI (`nix run .#bench` before/after)                | Regression detection | S      |
-| 8   | P2       | Add fuzz tests to `codec/` module for JSON/Raw encode/decode                        | Robustness           | S      |
-| 9   | P2       | Integration test: tombstone roundtrip through MemoryStore                           | Test coverage        | S      |
-| 10  | P2       | `MemoryCommandStore.Save` should deep-copy `*PersistedCommand`                      | Safety               | S      |
-| 11  | P3       | Add allocation profiling to CI (`-allocspace`)                                      | Visibility           | M      |
-| 12  | P3       | Consider `sync.Pool` for event payload buffers in hot paths                         | Perf (GC pressure)   | M      |
-| 13  | P3       | Document the `payloadForDecode`/`encodingForCopy` pattern in a package-internal doc | Knowledge            | S      |
-| 14  | P3       | Evaluate `[]byte` → `string` for immutable payloads where possible                  | Perf                 | L      |
-| 15  | P3       | Review `example/` modules for mutability issues                                     | Safety               | M      |
-| 16  | P4       | Add fuzz tests for metadata JSON serialization roundtrip                            | Robustness           | S      |
-| 17  | P4       | Evaluate `google/uuid` vs `oklog/ulid` for event ID generation perf                 | Perf                 | M      |
-| 18  | P4       | Profile real-world event processing pipeline end-to-end                             | Visibility           | L      |
-| 19  | P4       | Consider `unsafe.String`/`unsafe.Slice` for zero-copy JSON interop                  | Perf (advanced)      | L      |
-| 20  | P4       | Add `PooledEvent` type for high-throughput scenarios                                | Perf                 | L      |
-| 21  | P4       | Evaluate `golang.org/x/exp/constraints` for type-safe payload generics              | DX                   | M      |
-| 22  | P5       | Write ADR for the `encodingForCopy` pattern (companion to ADR-0013)                 | Documentation        | S      |
-| 23  | P5       | Consider consolidating remaining `make+copy` patterns in other modules              | Consistency          | M      |
-| 24  | P5       | Add `io.Reader` for payload streaming (large payloads)                              | Architecture         | L      |
-| 25  | P5       | Consider `copier` or `deepcopy` library for complex struct cloning                  | DX                   | M      |
+| #  | Priority | Task                                                                                | Impact               | Effort |
+| -- | -------- | ----------------------------------------------------------------------------------- | -------------------- | ------ |
+| 1  | P0       | Add unit test for `encodingForCopy()` — both `*ImmutableEvent` and fallback paths   | Test coverage        | S      |
+| 2  | P1       | `NewSliceStream` should `slices.Clone` the input event slice                        | Safety               | S      |
+| 3  | P1       | Add `go:generate` target for running immutability audits via a script               | DX                   | M      |
+| 4  | P1       | Consider `ReadonlyPayload()` unexported interface for internal zero-copy access     | Architecture         | M      |
+| 5  | P1       | Builder should use `buildEvent` directly instead of `NewEvent` (skip double-clone)  | Perf                 | S      |
+| 6  | P2       | Add property-based tests with `rapid` for all accessor methods                      | Test rigor           | M      |
+| 7  | P2       | Benchmark baseline comparison in CI (`nix run .#bench` before/after)                | Regression detection | S      |
+| 8  | P2       | Add fuzz tests to `codec/` module for JSON/Raw encode/decode                        | Robustness           | S      |
+| 9  | P2       | Integration test: tombstone roundtrip through MemoryStore                           | Test coverage        | S      |
+| 10 | P2       | `MemoryCommandStore.Save` should deep-copy `*PersistedCommand`                      | Safety               | S      |
+| 11 | P3       | Add allocation profiling to CI (`-allocspace`)                                      | Visibility           | M      |
+| 12 | P3       | Consider `sync.Pool` for event payload buffers in hot paths                         | Perf (GC pressure)   | M      |
+| 13 | P3       | Document the `payloadForDecode`/`encodingForCopy` pattern in a package-internal doc | Knowledge            | S      |
+| 14 | P3       | Evaluate `[]byte` → `string` for immutable payloads where possible                  | Perf                 | L      |
+| 15 | P3       | Review `example/` modules for mutability issues                                     | Safety               | M      |
+| 16 | P4       | Add fuzz tests for metadata JSON serialization roundtrip                            | Robustness           | S      |
+| 17 | P4       | Evaluate `google/uuid` vs `oklog/ulid` for event ID generation perf                 | Perf                 | M      |
+| 18 | P4       | Profile real-world event processing pipeline end-to-end                             | Visibility           | L      |
+| 19 | P4       | Consider `unsafe.String`/`unsafe.Slice` for zero-copy JSON interop                  | Perf (advanced)      | L      |
+| 20 | P4       | Add `PooledEvent` type for high-throughput scenarios                                | Perf                 | L      |
+| 21 | P4       | Evaluate `golang.org/x/exp/constraints` for type-safe payload generics              | DX                   | M      |
+| 22 | P5       | Write ADR for the `encodingForCopy` pattern (companion to ADR-0013)                 | Documentation        | S      |
+| 23 | P5       | Consider consolidating remaining `make+copy` patterns in other modules              | Consistency          | M      |
+| 24 | P5       | Add `io.Reader` for payload streaming (large payloads)                              | Architecture         | L      |
+| 25 | P5       | Consider `copier` or `deepcopy` library for complex struct cloning                  | DX                   | M      |
 
 ---
 

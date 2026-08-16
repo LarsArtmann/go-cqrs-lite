@@ -11,15 +11,15 @@ Executed 6 improvements from the prioritized action plan. All tests pass, zero l
 
 ## Commits (7 total)
 
-| #   | Commit    | Description                                                                   |
-| --- | --------- | ----------------------------------------------------------------------------- |
-| 1   | `6511003` | `refactor(id)`: delegate serialization to go-branded-id (-143 lines)          |
-| 2   | `5348435` | `feat(event)`: add WithEventID and WithOccurredAt options                     |
-| 3   | `589b10d` | `fix(storage)`: preserve original event ID and timestamp when loading from DB |
-| 4   | `369777c` | `refactor`: remove 5 unnecessary .String() calls in fmt.Errorf                |
-| 5   | `4012488` | `feat(id)`: forward Ptr, FromPtr, and fmt.Formatter from go-branded-id        |
-| 6   | `7cb39d7` | `refactor(storage)`: use driver.Valuer for branded IDs in SQL params          |
-| 7   | `de6f333` | `docs`: update AGENTS.md with session 15 findings                             |
+| # | Commit    | Description                                                                   |
+| - | --------- | ----------------------------------------------------------------------------- |
+| 1 | `6511003` | `refactor(id)`: delegate serialization to go-branded-id (-143 lines)          |
+| 2 | `5348435` | `feat(event)`: add WithEventID and WithOccurredAt options                     |
+| 3 | `589b10d` | `fix(storage)`: preserve original event ID and timestamp when loading from DB |
+| 4 | `369777c` | `refactor`: remove 5 unnecessary .String() calls in fmt.Errorf                |
+| 5 | `4012488` | `feat(id)`: forward Ptr, FromPtr, and fmt.Formatter from go-branded-id        |
+| 6 | `7cb39d7` | `refactor(storage)`: use driver.Valuer for branded IDs in SQL params          |
+| 7 | `de6f333` | `docs`: update AGENTS.md with session 15 findings                             |
 
 ## What Was Done
 
@@ -60,13 +60,13 @@ Nothing broken. All changes are backwards-compatible.
 
 ### f) Top 5 Next Steps
 
-| #   | Item                                             | Effort |
-| --- | ------------------------------------------------ | ------ |
-| 1   | Storage integration tests with testcontainers    | Medium |
-| 2   | Tag go-branded-id v0.2.0 and update dependency   | Small  |
-| 3   | Watermill module (production event bus)          | Large  |
-| 4   | SQL-backed snapshot store                        | Medium |
-| 5   | Tag v0.1.0 releases for all go-cqrs-lite modules | Small  |
+| # | Item                                             | Effort |
+| - | ------------------------------------------------ | ------ |
+| 1 | Storage integration tests with testcontainers    | Medium |
+| 2 | Tag go-branded-id v0.2.0 and update dependency   | Small  |
+| 3 | Watermill module (production event bus)          | Large  |
+| 4 | SQL-backed snapshot store                        | Medium |
+| 5 | Tag v0.1.0 releases for all go-cqrs-lite modules | Small  |
 
 ### g) Question
 

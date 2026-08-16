@@ -8,19 +8,19 @@
 
 ## A. Fully Done (This Session)
 
-| #   | Commit     | What                                                                                        | Impact                                                  |
-| --- | ---------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| 1   | `9b4ab792` | Dependency bump: go-error-family v0.4.0, go-branded-id v0.3.1, internal modules v2.4.0      | Security/freshness                                      |
-| 2   | `9b4ab792` | AGENTS.md: corrected reactive bus docs (command + query now have CommandBus/QueryBus)       | Doc accuracy — was actively misleading                  |
-| 3   | `9b4ab792` | storage: extracted `errStoreClosed` package-level sentinel                                  | Perf — eliminates per-call allocation on hot path       |
-| 4   | `9b4ab792` | turso: extracted `syncEngine` interface for testable SyncDB                                 | Testability — coverage 54.5% → 83.3%                    |
-| 5   | `9b4ab792` | turso: 14 new sync unit tests (Push/Pull/Checkpoint/Stats/HealthCheck/Close error wrapping) | Coverage + correctness                                  |
-| 6   | `6f021475` | turso: CheckpointScheduler.Stop() now blocks until goroutine exits (done channel)           | **Critical race fix** — was causing intermittent panics |
-| 7   | `6f021475` | turso: added `OpenTemp()` — file-backed test DBs for parallel suites                        | **Eliminated ~20% flaky test rate** (30/30 stable)      |
-| 8   | `6f021475` | turso: migrated all tests from `:memory:` to `OpenTemp(t.TempDir())`                        | Stability                                               |
-| 9   | `6f021475` | example/todo: added missing `kv/v2` replace directive                                       | Build fix                                               |
-| 10  | `05336146` | go.sum sync across 14 modules after v2.4.0 bump                                             | Build integrity                                         |
-| 11  | `dc305b76` | TODO_LIST.md updated — reactive bus docs, PostgreSQL CI marked done                         | Doc accuracy                                            |
+| #  | Commit     | What                                                                                        | Impact                                                  |
+| -- | ---------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| 1  | `9b4ab792` | Dependency bump: go-error-family v0.4.0, go-branded-id v0.3.1, internal modules v2.4.0      | Security/freshness                                      |
+| 2  | `9b4ab792` | AGENTS.md: corrected reactive bus docs (command + query now have CommandBus/QueryBus)       | Doc accuracy — was actively misleading                  |
+| 3  | `9b4ab792` | storage: extracted `errStoreClosed` package-level sentinel                                  | Perf — eliminates per-call allocation on hot path       |
+| 4  | `9b4ab792` | turso: extracted `syncEngine` interface for testable SyncDB                                 | Testability — coverage 54.5% → 83.3%                    |
+| 5  | `9b4ab792` | turso: 14 new sync unit tests (Push/Pull/Checkpoint/Stats/HealthCheck/Close error wrapping) | Coverage + correctness                                  |
+| 6  | `6f021475` | turso: CheckpointScheduler.Stop() now blocks until goroutine exits (done channel)           | **Critical race fix** — was causing intermittent panics |
+| 7  | `6f021475` | turso: added `OpenTemp()` — file-backed test DBs for parallel suites                        | **Eliminated ~20% flaky test rate** (30/30 stable)      |
+| 8  | `6f021475` | turso: migrated all tests from `:memory:` to `OpenTemp(t.TempDir())`                        | Stability                                               |
+| 9  | `6f021475` | example/todo: added missing `kv/v2` replace directive                                       | Build fix                                               |
+| 10 | `05336146` | go.sum sync across 14 modules after v2.4.0 bump                                             | Build integrity                                         |
+| 11 | `dc305b76` | TODO_LIST.md updated — reactive bus docs, PostgreSQL CI marked done                         | Doc accuracy                                            |
 
 **Pre-session work (already merged in `7de8baa4`):**
 
@@ -126,33 +126,33 @@ A head-to-head benchmark would help consumers choose between backends and provid
 
 ## F. Top 25 Things To Do Next
 
-| #   | Task                                                 | Impact | Effort | Category                                          |
-| --- | ---------------------------------------------------- | ------ | ------ | ------------------------------------------------- |
-| 1   | ~~Query `errors.go` table test (10 funcs at 0%)~~    | Medium | 15min  | Coverage ✅ DONE (79%→88.1%)                      |
-| 2   | ~~Pebble adapter error-branch tests (closed store)~~ | High   | 30min  | Coverage ✅ DONE (82.9%→84.5%)                    |
-| 3   | ~~Turso `OpenSyncWithConfig` factory extraction~~    | High   | 45min  | Testability ✅ DONE (79%→83.3%)                   |
-| 4   | Prometheus metrics exporter                          | High   | 2h     | Feature                                           |
-| 5   | Structured logging middleware (slog)                 | High   | 2h     | Feature                                           |
-| 6   | Pebble vs SQL event store benchmark                  | Medium | 1h     | Benchmark                                         |
-| 7   | Pebble golden test (CBOR envelope)                   | Medium | 1h     | Regression                                        |
-| 8   | ~~Turso Backend facade integration test~~            | Medium | 30min  | Coverage ✅ DONE (E4 resolved)                    |
-| 9   | Schema registry middleware                           | High   | 3h     | Feature                                           |
-| 10  | Distributed checkpointing (ADR-0018)                 | High   | 4h     | Feature                                           |
-| 11  | Streaming event reads (`StreamLoader`)               | Medium | 2h     | Feature                                           |
-| 12  | cqrs-gen v2 improvements                             | Medium | 3h     | Tooling                                           |
-| 13  | `nix run .#tidy` target for all-module go mod tidy   | Low    | 20min  | DX                                                |
-| 14  | MemorySnapshotStore golden test                      | Low    | 30min  | Regression                                        |
-| 15  | Distributed tracing propagation                      | Medium | 3h     | Feature                                           |
-| 16  | gRPC transport adapter                               | High   | 4h     | Feature                                           |
-| 17  | Documentation site (Hugo/MkDocs)                     | Medium | 4h     | Docs                                              |
-| 18  | ~~Add `go.work` entry for kv module~~                | Low    | 5min   | Fix ✅ ALREADY PRESENT (D1 is gopls cache bug)    |
-| 19  | ~~Pebble `prefixUpperBound` edge-case test~~         | Low    | 15min  | Coverage ✅ DONE (60%→100%)                       |
-| 20  | ~~Query `Dispatcher.Close()` error path test~~       | Low    | 10min  | Coverage ✅ RESOLVED: dead defensive code (see G) |
-| 21  | Storage snapshot store edge-case tests               | Medium | 1h     | Coverage                                          |
-| 22  | NATS/Redis Stream adapter                            | High   | 4h     | Feature                                           |
-| 23  | jsonv2 codec experiment                              | Low    | 2h     | Experiment                                        |
-| 24  | Arena allocation experiment                          | Low    | 3h     | Experiment                                        |
-| 25  | WASM target for decider module                       | Medium | 4h     | Experiment                                        |
+| #  | Task                                                 | Impact | Effort | Category                                          |
+| -- | ---------------------------------------------------- | ------ | ------ | ------------------------------------------------- |
+| 1  | ~~Query `errors.go` table test (10 funcs at 0%)~~    | Medium | 15min  | Coverage ✅ DONE (79%→88.1%)                      |
+| 2  | ~~Pebble adapter error-branch tests (closed store)~~ | High   | 30min  | Coverage ✅ DONE (82.9%→84.5%)                    |
+| 3  | ~~Turso `OpenSyncWithConfig` factory extraction~~    | High   | 45min  | Testability ✅ DONE (79%→83.3%)                   |
+| 4  | Prometheus metrics exporter                          | High   | 2h     | Feature                                           |
+| 5  | Structured logging middleware (slog)                 | High   | 2h     | Feature                                           |
+| 6  | Pebble vs SQL event store benchmark                  | Medium | 1h     | Benchmark                                         |
+| 7  | Pebble golden test (CBOR envelope)                   | Medium | 1h     | Regression                                        |
+| 8  | ~~Turso Backend facade integration test~~            | Medium | 30min  | Coverage ✅ DONE (E4 resolved)                    |
+| 9  | Schema registry middleware                           | High   | 3h     | Feature                                           |
+| 10 | Distributed checkpointing (ADR-0018)                 | High   | 4h     | Feature                                           |
+| 11 | Streaming event reads (`StreamLoader`)               | Medium | 2h     | Feature                                           |
+| 12 | cqrs-gen v2 improvements                             | Medium | 3h     | Tooling                                           |
+| 13 | `nix run .#tidy` target for all-module go mod tidy   | Low    | 20min  | DX                                                |
+| 14 | MemorySnapshotStore golden test                      | Low    | 30min  | Regression                                        |
+| 15 | Distributed tracing propagation                      | Medium | 3h     | Feature                                           |
+| 16 | gRPC transport adapter                               | High   | 4h     | Feature                                           |
+| 17 | Documentation site (Hugo/MkDocs)                     | Medium | 4h     | Docs                                              |
+| 18 | ~~Add `go.work` entry for kv module~~                | Low    | 5min   | Fix ✅ ALREADY PRESENT (D1 is gopls cache bug)    |
+| 19 | ~~Pebble `prefixUpperBound` edge-case test~~         | Low    | 15min  | Coverage ✅ DONE (60%→100%)                       |
+| 20 | ~~Query `Dispatcher.Close()` error path test~~       | Low    | 10min  | Coverage ✅ RESOLVED: dead defensive code (see G) |
+| 21 | Storage snapshot store edge-case tests               | Medium | 1h     | Coverage                                          |
+| 22 | NATS/Redis Stream adapter                            | High   | 4h     | Feature                                           |
+| 23 | jsonv2 codec experiment                              | Low    | 2h     | Experiment                                        |
+| 24 | Arena allocation experiment                          | Low    | 3h     | Experiment                                        |
+| 25 | WASM target for decider module                       | Medium | 4h     | Experiment                                        |
 
 ---
 
@@ -186,7 +186,7 @@ The `if closeErr != nil` branch in `query/dispatcher.go:150` is unreachable beca
 | catalog        | 84.5%    | ✅ Green     |                               |
 | middleware     | 93.9%    | ✅ Green     |                               |
 | integration    | 92.3%    | ✅ Green     |                               |
-| storage        | 82.1%    | ⚠️ Yellow    | SQL error paths               |
+| storage        | 82.1%    | ⚠️ Yellow     | SQL error paths               |
 | projection     | 90.8%    | ✅ Green     |                               |
 | signing        | 94.5%    | ✅ Green     |                               |
 | encryption     | 86.9%    | ✅ Green     |                               |

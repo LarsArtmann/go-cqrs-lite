@@ -10,13 +10,13 @@
 
 ### This Session (6 commits, all pushed)
 
-| #   | Commit     | Category   | Description                                                                                                          |
-| --- | ---------- | ---------- | -------------------------------------------------------------------------------------------------------------------- |
-| 1   | `eeed8c01` | 🔴 Bug fix | Fix 4 `fmt.Errorf` wrapping classified errors — silent `errors.Is()` breakage in memory/, pebble/, storage/          |
-| 2   | `ba228407` | 🔴 Cleanup | Delete 168 lines of dead API surface: storage/options.go, pebble/config.go, 5 storage/doc.go re-exports, turso alias |
-| 3   | `eb035ec3` | 🟡 Feature | Add `IsZero()`, `ParseType()`, `MustParseType()` to `command.Type` and `query.Type` (matching `event.Type` API)      |
-| 4   | `b49d79fd` | 🟢 Quality | Add 6 targeted tests for `storage/sql/query_engine.go`, add `integration/doc.go`                                     |
-| 5   | `e1e080ec` | 🟢 Docs    | Update CHANGELOG.md with full details, fix 2 lint issues                                                             |
+| # | Commit     | Category   | Description                                                                                                          |
+| - | ---------- | ---------- | -------------------------------------------------------------------------------------------------------------------- |
+| 1 | `eeed8c01` | 🔴 Bug fix | Fix 4 `fmt.Errorf` wrapping classified errors — silent `errors.Is()` breakage in memory/, pebble/, storage/          |
+| 2 | `ba228407` | 🔴 Cleanup | Delete 168 lines of dead API surface: storage/options.go, pebble/config.go, 5 storage/doc.go re-exports, turso alias |
+| 3 | `eb035ec3` | 🟡 Feature | Add `IsZero()`, `ParseType()`, `MustParseType()` to `command.Type` and `query.Type` (matching `event.Type` API)      |
+| 4 | `b49d79fd` | 🟢 Quality | Add 6 targeted tests for `storage/sql/query_engine.go`, add `integration/doc.go`                                     |
+| 5 | `e1e080ec` | 🟢 Docs    | Update CHANGELOG.md with full details, fix 2 lint issues                                                             |
 
 ### Full Audit Chain (30+ commits across 3 sessions)
 
@@ -41,40 +41,40 @@
 
 ### Coverage by Module (sorted by coverage)
 
-| Module                    | Coverage | Δ        | Status                    |
-| ------------------------- | -------- | -------- | ------------------------- |
-| decider                   | 100.0%   | —        | ✅                        |
-| catalog/internal/caseutil | 100.0%   | —        | ✅                        |
-| catalog/openapi           | 100.0%   | —        | ✅                        |
-| dispatcher                | 98.0%    | —        | ✅                        |
-| memory                    | 98.2%    | —        | ✅                        |
-| id                        | 96.4%    | —        | ✅                        |
-| catalog                   | 95.9%    | —        | ✅                        |
-| middleware                | 95.7%    | —        | ✅                        |
-| listing                   | 94.9%    | —        | ✅                        |
-| signing                   | 94.1%    | —        | ✅                        |
-| signing/multisig          | 94.2%    | —        | ✅                        |
+| Module                    | Coverage | Δ        | Status                   |
+| ------------------------- | -------- | -------- | ------------------------ |
+| decider                   | 100.0%   | —        | ✅                       |
+| catalog/internal/caseutil | 100.0%   | —        | ✅                       |
+| catalog/openapi           | 100.0%   | —        | ✅                       |
+| dispatcher                | 98.0%    | —        | ✅                       |
+| memory                    | 98.2%    | —        | ✅                       |
+| id                        | 96.4%    | —        | ✅                       |
+| catalog                   | 95.9%    | —        | ✅                       |
+| middleware                | 95.7%    | —        | ✅                       |
+| listing                   | 94.9%    | —        | ✅                       |
+| signing                   | 94.1%    | —        | ✅                       |
+| signing/multisig          | 94.2%    | —        | ✅                       |
 | query                     | 84.6%    | -9.7% ↓  | ⚠️ (new methods untested) |
-| watermill                 | 94.3%    | —        | ✅                        |
-| codec                     | 93.3%    | —        | ✅                        |
-| snapshot                  | 92.3%    | —        | ✅                        |
-| catalog/eventcatalog      | 92.7%    | —        | ✅                        |
-| catalog/asyncapi          | 93.9%    | —        | ✅                        |
-| catalog/d2                | 95.0%    | —        | ✅                        |
-| catalog/docserver         | 90.1%    | —        | ✅                        |
-| projection                | 91.4%    | —        | ✅                        |
+| watermill                 | 94.3%    | —        | ✅                       |
+| codec                     | 93.3%    | —        | ✅                       |
+| snapshot                  | 92.3%    | —        | ✅                       |
+| catalog/eventcatalog      | 92.7%    | —        | ✅                       |
+| catalog/asyncapi          | 93.9%    | —        | ✅                       |
+| catalog/d2                | 95.0%    | —        | ✅                       |
+| catalog/docserver         | 90.1%    | —        | ✅                       |
+| projection                | 91.4%    | —        | ✅                       |
 | command                   | 90.5%    | -6.7% ↓  | ⚠️ (new methods untested) |
-| event                     | 89.6%    | —        | ✅                        |
-| schema                    | 89.7%    | —        | ✅                        |
-| storage                   | 88.6%    | +1.8% ↑  | ✅                        |
-| pebble                    | 86.1%    | -0.3% ↓  | ✅                        |
-| catalog/schema            | 86.0%    | —        | ✅                        |
+| event                     | 89.6%    | —        | ✅                       |
+| schema                    | 89.7%    | —        | ✅                       |
+| storage                   | 88.6%    | +1.8% ↑  | ✅                       |
+| pebble                    | 86.1%    | -0.3% ↓  | ✅                       |
+| catalog/schema            | 86.0%    | —        | ✅                       |
 | storage/sql               | 37.4%    | +12.2% ↑ | ⚠️ Low                    |
 | otel                      | 73.0%    | —        | ⚠️ Low                    |
-| turso                     | 28.6%    | —        | 🔴 Low                    |
+| turso                     | 28.6%    | —        | 🔴 Low                   |
 | event/eventtest           | 17.8%    | —        | ⚠️ (test helpers)         |
-| catalog/internal/cattest  | 0.0%     | —        | — (test helper)           |
-| signing/internal/testutil | 0.0%     | —        | — (test helper)           |
+| catalog/internal/cattest  | 0.0%     | —        | — (test helper)          |
+| signing/internal/testutil | 0.0%     | —        | — (test helper)          |
 
 **Note on coverage drops:** `command` dropped from 97.2% → 90.5% and `query` from 94.3% → 84.6% because the new `ParseType()`/`MustParseType()` methods were added without dedicated tests. These methods are trivial (empty-string check + panic wrapper) but should have tests for completeness.
 
@@ -162,33 +162,33 @@
 
 Sorted by impact × effort (highest value first):
 
-| #   | Item                                                                            | Impact                          | Effort | Category      |
-| --- | ------------------------------------------------------------------------------- | ------------------------------- | ------ | ------------- |
-| 1   | Add tests for `command.Type.IsZero/ParseType/MustParseType`                     | 🔴 High (coverage dropped 6.7%) | 15min  | coverage      |
-| 2   | Add tests for `query.Type.IsZero/ParseType/MustParseType`                       | 🔴 High (coverage dropped 9.7%) | 15min  | coverage      |
-| 3   | Add tests for `storage/sql/helpers.go` (SharedInsertEvents, SharedCheckVersion) | 🟡 Medium                       | 45min  | coverage      |
-| 4   | Add tests for `storage/sql/reconstruction.go` (ScanSlice, ReconstructEvent)     | 🟡 Medium                       | 30min  | coverage      |
-| 5   | Add tests for `storage/sql/helpers.go` (SharedCheckpointLoad/Save, CommitTx)    | 🟡 Medium                       | 30min  | coverage      |
-| 6   | Improve `otel/` coverage (73% → 85%+)                                           | 🟡 Medium                       | 45min  | coverage      |
-| 7   | Improve `turso/` coverage (28.6% → 50%+)                                        | 🟡 Medium                       | 60min  | coverage      |
-| 8   | Add `MetadataKey` validation via `ParseMetadataKey()`                           | 🟢 Low                          | 20min  | type safety   |
-| 9   | Add typed metadata accessors (`IsTombstone()`, `ClientOccurredAt()`)            | 🟢 Low                          | 30min  | DX            |
-| 10  | Add `SchemaVersion.Add(n int)` method                                           | 🟢 Low                          | 5min   | completeness  |
-| 11  | Add `Version.MarshalJSON`/`UnmarshalJSON`                                       | 🟢 Low                          | 15min  | serialization |
-| 12  | Add `SchemaVersion.MarshalJSON`/`UnmarshalJSON`                                 | 🟢 Low                          | 15min  | serialization |
-| 13  | Investigate `catalog.UserID` naming collision with `id.UserID`                  | 🟢 Low                          | 10min  | naming        |
-| 14  | Add `event.TypeOf[T]()` convenience function                                    | 🟢 Low                          | 30min  | DX            |
-| 15  | Consider branded `id.Of[T]` for catalog string aliases                          | 🟢 Low                          | 45min  | type safety   |
-| 16  | Add `MetadataKey` registry for cross-package enforcement                        | 🟢 Low                          | 30min  | type safety   |
-| 17  | Remove `omitempty` from `pebble.Metadata` struct tag (gopls hint)               | 🟢 Low                          | 5min   | quality       |
-| 18  | Add `integration/simulation` coverage (80% → 90%+)                              | 🟢 Low                          | 30min  | coverage      |
-| 19  | Investigate `event/eventtest` 17.8% — should it be excluded from coverage?      | 🟢 Low                          | 15min  | coverage      |
-| 20  | Add examples to `command.Type.ParseType` and `query.Type.ParseType` doc         | 🟢 Low                          | 10min  | docs          |
-| 21  | Consider deprecation notice for middleware HTTP code (SSE, healthcheck)         | 🟢 Low                          | 15min  | API surface   |
-| 22  | Add `Version.String()` method if missing                                        | 🟢 Low                          | 5min   | completeness  |
-| 23  | Document `event.TypeOf[T]()` naming convention decision                         | 🟢 Low                          | 10min  | docs          |
-| 24  | Update `AGENTS.md` with new Type methods and dead API removal                   | 🟢 Low                          | 10min  | docs          |
-| 25  | Update `docs/planning/` execution plan with completion status                   | 🟢 Low                          | 10min  | docs          |
+| #  | Item                                                                            | Impact                          | Effort | Category      |
+| -- | ------------------------------------------------------------------------------- | ------------------------------- | ------ | ------------- |
+| 1  | Add tests for `command.Type.IsZero/ParseType/MustParseType`                     | 🔴 High (coverage dropped 6.7%) | 15min  | coverage      |
+| 2  | Add tests for `query.Type.IsZero/ParseType/MustParseType`                       | 🔴 High (coverage dropped 9.7%) | 15min  | coverage      |
+| 3  | Add tests for `storage/sql/helpers.go` (SharedInsertEvents, SharedCheckVersion) | 🟡 Medium                       | 45min  | coverage      |
+| 4  | Add tests for `storage/sql/reconstruction.go` (ScanSlice, ReconstructEvent)     | 🟡 Medium                       | 30min  | coverage      |
+| 5  | Add tests for `storage/sql/helpers.go` (SharedCheckpointLoad/Save, CommitTx)    | 🟡 Medium                       | 30min  | coverage      |
+| 6  | Improve `otel/` coverage (73% → 85%+)                                           | 🟡 Medium                       | 45min  | coverage      |
+| 7  | Improve `turso/` coverage (28.6% → 50%+)                                        | 🟡 Medium                       | 60min  | coverage      |
+| 8  | Add `MetadataKey` validation via `ParseMetadataKey()`                           | 🟢 Low                          | 20min  | type safety   |
+| 9  | Add typed metadata accessors (`IsTombstone()`, `ClientOccurredAt()`)            | 🟢 Low                          | 30min  | DX            |
+| 10 | Add `SchemaVersion.Add(n int)` method                                           | 🟢 Low                          | 5min   | completeness  |
+| 11 | Add `Version.MarshalJSON`/`UnmarshalJSON`                                       | 🟢 Low                          | 15min  | serialization |
+| 12 | Add `SchemaVersion.MarshalJSON`/`UnmarshalJSON`                                 | 🟢 Low                          | 15min  | serialization |
+| 13 | Investigate `catalog.UserID` naming collision with `id.UserID`                  | 🟢 Low                          | 10min  | naming        |
+| 14 | Add `event.TypeOf[T]()` convenience function                                    | 🟢 Low                          | 30min  | DX            |
+| 15 | Consider branded `id.Of[T]` for catalog string aliases                          | 🟢 Low                          | 45min  | type safety   |
+| 16 | Add `MetadataKey` registry for cross-package enforcement                        | 🟢 Low                          | 30min  | type safety   |
+| 17 | Remove `omitempty` from `pebble.Metadata` struct tag (gopls hint)               | 🟢 Low                          | 5min   | quality       |
+| 18 | Add `integration/simulation` coverage (80% → 90%+)                              | 🟢 Low                          | 30min  | coverage      |
+| 19 | Investigate `event/eventtest` 17.8% — should it be excluded from coverage?      | 🟢 Low                          | 15min  | coverage      |
+| 20 | Add examples to `command.Type.ParseType` and `query.Type.ParseType` doc         | 🟢 Low                          | 10min  | docs          |
+| 21 | Consider deprecation notice for middleware HTTP code (SSE, healthcheck)         | 🟢 Low                          | 15min  | API surface   |
+| 22 | Add `Version.String()` method if missing                                        | 🟢 Low                          | 5min   | completeness  |
+| 23 | Document `event.TypeOf[T]()` naming convention decision                         | 🟢 Low                          | 10min  | docs          |
+| 24 | Update `AGENTS.md` with new Type methods and dead API removal                   | 🟢 Low                          | 10min  | docs          |
+| 25 | Update `docs/planning/` execution plan with completion status                   | 🟢 Low                          | 10min  | docs          |
 
 ---
 

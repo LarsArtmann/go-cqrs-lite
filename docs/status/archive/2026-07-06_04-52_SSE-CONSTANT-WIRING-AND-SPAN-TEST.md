@@ -1,7 +1,7 @@
 # Session Report: SSE Constant Wiring + ProjectionHost Span Test
 
-**Date:** 2026-07-06 04:52  
-**Session Type:** Test/Quality improvement — wire unused constants, add missing span test  
+**Date:** 2026-07-06 04:52\
+**Session Type:** Test/Quality improvement — wire unused constants, add missing span test\
 **Predecessor:** `2026-07-06_03-07_PROJECTIONHOST-HARDENING-SESSION-REPORT.md`, `2026-07-06_04-19_ERRORFAMILY-REFACTOR-STABILIZATION.md`
 
 ---
@@ -119,33 +119,33 @@ I changed the byte budget semantics but did not update the AGENTS.md "Key Patter
 
 ## f) Up to 25 Things We Should Get Done Next
 
-| #   | Priority     | Task                                                                                           | Module                     |
-| --- | ------------ | ---------------------------------------------------------------------------------------------- | -------------------------- |
-| 1   | **CRITICAL** | Fix breaking `WithReplayByteBudget(0)` semantics — add sentinel or revert auto-default         | `transport/http`           |
-| 2   | **CRITICAL** | Run `nix fmt` + `nix run .#lint` on all changed files                                          | workspace                  |
-| 3   | **HIGH**     | Add SSE test with >8MB payload data to verify byte budget boundary                             | `transport/http`           |
-| 4   | **HIGH**     | Update AGENTS.md SSE replay examples to reflect new default behavior (after fix #1)            | docs                       |
-| 5   | **HIGH**     | Document `projectionhost.drain` and `projectionhost.handle_event` span names in SPAN_NAMING.md | docs                       |
-| 6   | **HIGH**     | Reconcile `sseDedupRingCapacity` vs `dedup.DefaultCapacity` — pick one source of truth         | `transport/http` + `dedup` |
-| 7   | **MED**      | SSE integration test: concurrent client connections under load                                 | `transport/http`           |
-| 8   | **MED**      | SSE backfill endpoint edge case tests (auth bypass, invalid cursor, rate limit)                | `transport/http`           |
-| 9   | **MED**      | projectionhost `Reset` integration test with real SQL checkpoint store                         | `projectionhost`           |
-| 10  | **MED**      | projectionhost crash-restart backoff timing verification                                       | `projectionhost`           |
-| 11  | **MED**      | Watermill CatchUpSubscriber ordered-delivery contract test                                     | `watermill`                |
-| 12  | **MED**      | Restart gopls (editor restart needed) to clear 83 stale errors                                 | environment                |
-| 13  | **MED**      | Add `go mod tidy` guard script that prevents remote version pulls for internal modules         | tooling                    |
-| 14  | **LOW**      | SSE heartbeat test — verify keepalive frames under proxy idle timeout simulation               | `transport/http`           |
-| 15  | **LOW**      | projectionhost stress test with mixed event types + filtered projections                       | `projectionhost`           |
-| 16  | **LOW**      | Dedup ring concurrent-access test (Add/Has race detection)                                     | `dedup`                    |
-| 17  | **LOW**      | Watermill EventBus trace context propagation round-trip test                                   | `watermill`                |
-| 18  | **LOW**      | Catalog AsyncAPI export test for SSE event types                                               | `catalog`                  |
-| 19  | **LOW**      | Scheduling TimerStore persistence + recovery test after crash                                  | `scheduling`               |
-| 20  | **LOW**      | Graph projection Schema validation error message quality test                                  | `graph`                    |
-| 21  | **LOW**      | Codec CBOR streaming encoder/decoder round-trip test with large batches                        | `codec`                    |
-| 22  | **LOW**      | SQL RelationalProjection rollback test — verify atomicity on handler error                     | `storage`                  |
-| 23  | **LOW**      | Encryption HKDF multi-tenant key derivation test with edge-case tenant IDs                     | `encryption`               |
-| 24  | **LOW**      | Signing multisig threshold edge case tests (M-of-N with M=0, M=N+1)                            | `signing`                  |
-| 25  | **LOW**      | Commit current changes with proper message (user hasn't requested commit yet)                  | git                        |
+| #  | Priority     | Task                                                                                           | Module                     |
+| -- | ------------ | ---------------------------------------------------------------------------------------------- | -------------------------- |
+| 1  | **CRITICAL** | Fix breaking `WithReplayByteBudget(0)` semantics — add sentinel or revert auto-default         | `transport/http`           |
+| 2  | **CRITICAL** | Run `nix fmt` + `nix run .#lint` on all changed files                                          | workspace                  |
+| 3  | **HIGH**     | Add SSE test with >8MB payload data to verify byte budget boundary                             | `transport/http`           |
+| 4  | **HIGH**     | Update AGENTS.md SSE replay examples to reflect new default behavior (after fix #1)            | docs                       |
+| 5  | **HIGH**     | Document `projectionhost.drain` and `projectionhost.handle_event` span names in SPAN_NAMING.md | docs                       |
+| 6  | **HIGH**     | Reconcile `sseDedupRingCapacity` vs `dedup.DefaultCapacity` — pick one source of truth         | `transport/http` + `dedup` |
+| 7  | **MED**      | SSE integration test: concurrent client connections under load                                 | `transport/http`           |
+| 8  | **MED**      | SSE backfill endpoint edge case tests (auth bypass, invalid cursor, rate limit)                | `transport/http`           |
+| 9  | **MED**      | projectionhost `Reset` integration test with real SQL checkpoint store                         | `projectionhost`           |
+| 10 | **MED**      | projectionhost crash-restart backoff timing verification                                       | `projectionhost`           |
+| 11 | **MED**      | Watermill CatchUpSubscriber ordered-delivery contract test                                     | `watermill`                |
+| 12 | **MED**      | Restart gopls (editor restart needed) to clear 83 stale errors                                 | environment                |
+| 13 | **MED**      | Add `go mod tidy` guard script that prevents remote version pulls for internal modules         | tooling                    |
+| 14 | **LOW**      | SSE heartbeat test — verify keepalive frames under proxy idle timeout simulation               | `transport/http`           |
+| 15 | **LOW**      | projectionhost stress test with mixed event types + filtered projections                       | `projectionhost`           |
+| 16 | **LOW**      | Dedup ring concurrent-access test (Add/Has race detection)                                     | `dedup`                    |
+| 17 | **LOW**      | Watermill EventBus trace context propagation round-trip test                                   | `watermill`                |
+| 18 | **LOW**      | Catalog AsyncAPI export test for SSE event types                                               | `catalog`                  |
+| 19 | **LOW**      | Scheduling TimerStore persistence + recovery test after crash                                  | `scheduling`               |
+| 20 | **LOW**      | Graph projection Schema validation error message quality test                                  | `graph`                    |
+| 21 | **LOW**      | Codec CBOR streaming encoder/decoder round-trip test with large batches                        | `codec`                    |
+| 22 | **LOW**      | SQL RelationalProjection rollback test — verify atomicity on handler error                     | `storage`                  |
+| 23 | **LOW**      | Encryption HKDF multi-tenant key derivation test with edge-case tenant IDs                     | `encryption`               |
+| 24 | **LOW**      | Signing multisig threshold edge case tests (M-of-N with M=0, M=N+1)                            | `signing`                  |
+| 25 | **LOW**      | Commit current changes with proper message (user hasn't requested commit yet)                  | git                        |
 
 ---
 

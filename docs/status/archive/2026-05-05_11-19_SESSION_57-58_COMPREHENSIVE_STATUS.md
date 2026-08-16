@@ -175,33 +175,33 @@ The closest items to "fucked up" are:
 
 ## F. TOP 25 THINGS TO DO NEXT (Prioritized by Impact × Effort)
 
-| #   | Task                                                                                                     | Impact | Effort | Category |
-| --- | -------------------------------------------------------------------------------------------------------- | ------ | ------ | -------- |
-| 1   | Fix 4 remaining lint issues (gochecknoinits nolint, golines shorten, nestif refactor, wsl_v5 whitespace) | MED    | LOW    | Quality  |
-| 2   | Trim `decider.go` from 265→≤250 lines (extract more helpers)                                             | LOW    | LOW    | Quality  |
-| 3   | Trim `repository.go` from 262→≤250 lines (further decompose persistChanges)                              | LOW    | LOW    | Quality  |
-| 4   | Consolidate stale planning docs (archive Session 47/50/52 plans)                                         | MED    | LOW    | Docs     |
-| 5   | Update Session 50 execution plan to reflect actual completion status                                     | MED    | LOW    | Docs     |
-| 6   | Aggregate+decider coverage: add snapshot+outbox edge case tests (→94%+)                                  | MED    | LOW    | Test     |
-| 7   | Create CONTRIBUTING.md with module structure, test commands, PR workflow                                 | MED    | MED    | Docs     |
-| 8   | Add PostgreSQL testcontainers integration tests for storage module                                       | HIGH   | MED    | Test     |
-| 9   | Tag `v0.1.0-alpha` across all modules                                                                    | HIGH   | LOW    | Release  |
-| 10  | Implement Saga/Process Manager (design done, 18h estimate)                                               | HIGH   | HIGH   | Feature  |
-| 11  | Watermill pub/sub adapter module                                                                         | HIGH   | HIGH   | Feature  |
-| 12  | Consolidate CatalogMeta across event/command/query packages                                              | MED    | MED    | Refactor |
-| 13  | Strategy pattern for persistChanges to reduce nesting complexity                                         | MED    | MED    | Refactor |
-| 14  | Add fuzz tests for `reconstructEvent`, `scanEvents`, `SchemaFromType`                                    | MED    | MED    | Test     |
-| 15  | Web API example (HTTP handlers using the library)                                                        | MED    | MED    | Example  |
-| 16  | Remove `io.Closer` from interfaces (breaking, needs migration guide)                                     | MED    | MED    | API      |
-| 17  | Remove `replace` directives from go.mod (needs publishing strategy)                                      | MED    | MED    | Build    |
-| 18  | Set up pkg.go.dev documentation hosting                                                                  | MED    | LOW    | Docs     |
-| 19  | Convert key decisions from AGENTS.md to ADRs in docs/adr/                                                | LOW    | MED    | Docs     |
-| 20  | Benchmark: storage module with real PostgreSQL (not just go-sqlmock)                                     | MED    | MED    | Perf     |
-| 21  | Add `Event.Kind()` or similar to distinguish domain vs integration events                                | MED    | MED    | Feature  |
-| 22  | IdempotencyKey auto-generation helper for common patterns                                                | LOW    | LOW    | Feature  |
-| 23  | Add circuit breaker middleware                                                                           | MED    | MED    | Feature  |
-| 24  | Dead letter queue for failed projections                                                                 | MED    | HIGH   | Feature  |
-| 25  | Performance regression CI (benchmark comparison on each PR)                                              | MED    | MED    | CI       |
+| #  | Task                                                                                                     | Impact | Effort | Category |
+| -- | -------------------------------------------------------------------------------------------------------- | ------ | ------ | -------- |
+| 1  | Fix 4 remaining lint issues (gochecknoinits nolint, golines shorten, nestif refactor, wsl_v5 whitespace) | MED    | LOW    | Quality  |
+| 2  | Trim `decider.go` from 265→≤250 lines (extract more helpers)                                             | LOW    | LOW    | Quality  |
+| 3  | Trim `repository.go` from 262→≤250 lines (further decompose persistChanges)                              | LOW    | LOW    | Quality  |
+| 4  | Consolidate stale planning docs (archive Session 47/50/52 plans)                                         | MED    | LOW    | Docs     |
+| 5  | Update Session 50 execution plan to reflect actual completion status                                     | MED    | LOW    | Docs     |
+| 6  | Aggregate+decider coverage: add snapshot+outbox edge case tests (→94%+)                                  | MED    | LOW    | Test     |
+| 7  | Create CONTRIBUTING.md with module structure, test commands, PR workflow                                 | MED    | MED    | Docs     |
+| 8  | Add PostgreSQL testcontainers integration tests for storage module                                       | HIGH   | MED    | Test     |
+| 9  | Tag `v0.1.0-alpha` across all modules                                                                    | HIGH   | LOW    | Release  |
+| 10 | Implement Saga/Process Manager (design done, 18h estimate)                                               | HIGH   | HIGH   | Feature  |
+| 11 | Watermill pub/sub adapter module                                                                         | HIGH   | HIGH   | Feature  |
+| 12 | Consolidate CatalogMeta across event/command/query packages                                              | MED    | MED    | Refactor |
+| 13 | Strategy pattern for persistChanges to reduce nesting complexity                                         | MED    | MED    | Refactor |
+| 14 | Add fuzz tests for `reconstructEvent`, `scanEvents`, `SchemaFromType`                                    | MED    | MED    | Test     |
+| 15 | Web API example (HTTP handlers using the library)                                                        | MED    | MED    | Example  |
+| 16 | Remove `io.Closer` from interfaces (breaking, needs migration guide)                                     | MED    | MED    | API      |
+| 17 | Remove `replace` directives from go.mod (needs publishing strategy)                                      | MED    | MED    | Build    |
+| 18 | Set up pkg.go.dev documentation hosting                                                                  | MED    | LOW    | Docs     |
+| 19 | Convert key decisions from AGENTS.md to ADRs in docs/adr/                                                | LOW    | MED    | Docs     |
+| 20 | Benchmark: storage module with real PostgreSQL (not just go-sqlmock)                                     | MED    | MED    | Perf     |
+| 21 | Add `Event.Kind()` or similar to distinguish domain vs integration events                                | MED    | MED    | Feature  |
+| 22 | IdempotencyKey auto-generation helper for common patterns                                                | LOW    | LOW    | Feature  |
+| 23 | Add circuit breaker middleware                                                                           | MED    | MED    | Feature  |
+| 24 | Dead letter queue for failed projections                                                                 | MED    | HIGH   | Feature  |
+| 25 | Performance regression CI (benchmark comparison on each PR)                                              | MED    | MED    | CI       |
 
 ---
 
@@ -229,22 +229,22 @@ I genuinely don't know the right call here. Shipping v0.1.0-alpha signals "API m
 
 ## Test Coverage by Package
 
-| Package                | Coverage | Status           |
-| ---------------------- | -------- | ---------------- |
-| `core/command`         | 100.0%   | ✅               |
-| `core/query`           | 100.0%   | ✅               |
-| `core/pkg/dispatcher`  | 100.0%   | ✅               |
-| `core/pkg/id`          | 100.0%   | ✅               |
-| `middleware`           | 100.0%   | ✅               |
-| `catalog/adapters`     | 100.0%   | ✅               |
-| `memory`               | 99.5%    | ✅               |
-| `projection`           | 98.3%    | ✅               |
-| `catalog/d2`           | 97.6%    | ✅               |
-| `catalog/asyncapi`     | 95.8%    | ✅               |
-| `catalog/eventcatalog` | 95.6%    | ✅               |
-| `storage`              | 95.1%    | ✅               |
-| `catalog`              | 94.4%    | ✅               |
-| `core/event`           | 94.5%    | ✅               |
+| Package                | Coverage | Status          |
+| ---------------------- | -------- | --------------- |
+| `core/command`         | 100.0%   | ✅              |
+| `core/query`           | 100.0%   | ✅              |
+| `core/pkg/dispatcher`  | 100.0%   | ✅              |
+| `core/pkg/id`          | 100.0%   | ✅              |
+| `middleware`           | 100.0%   | ✅              |
+| `catalog/adapters`     | 100.0%   | ✅              |
+| `memory`               | 99.5%    | ✅              |
+| `projection`           | 98.3%    | ✅              |
+| `catalog/d2`           | 97.6%    | ✅              |
+| `catalog/asyncapi`     | 95.8%    | ✅              |
+| `catalog/eventcatalog` | 95.6%    | ✅              |
+| `storage`              | 95.1%    | ✅              |
+| `catalog`              | 94.4%    | ✅              |
+| `core/event`           | 94.5%    | ✅              |
 | `core/decider`         | 92.7%    | ⚠️ Below average |
 | `core/aggregate`       | 92.0%    | ⚠️ Below average |
 
@@ -265,26 +265,26 @@ core (no internal deps)
 
 ## Module Maturity
 
-| Module                 | Maturity   | Production-Ready?                 |
-| ---------------------- | ---------- | --------------------------------- |
-| `core/event`           | ✅ Mature  | Yes                               |
-| `core/command`         | ✅ Mature  | Yes                               |
-| `core/query`           | ✅ Mature  | Yes                               |
-| `core/aggregate`       | ✅ Mature  | Yes                               |
-| `core/decider`         | ✅ Mature  | Yes (recommended)                 |
-| `core/pkg/id`          | ✅ Mature  | Yes                               |
-| `core/pkg/dispatcher`  | ✅ Mature  | Yes (internal)                    |
-| `memory`               | ✅ Mature  | Test utility only                 |
-| `catalog`              | ✅ Mature  | Yes                               |
-| `catalog/asyncapi`     | ✅ Mature  | Yes                               |
-| `catalog/d2`           | ✅ Mature  | Yes                               |
-| `catalog/eventcatalog` | ✅ Mature  | Yes                               |
-| `middleware`           | ✅ Mature  | Yes                               |
-| `testhelpers`          | ✅ Mature  | Test utility only                 |
-| `projection`           | ✅ Mature  | Yes                               |
+| Module                 | Maturity  | Production-Ready?                 |
+| ---------------------- | --------- | --------------------------------- |
+| `core/event`           | ✅ Mature | Yes                               |
+| `core/command`         | ✅ Mature | Yes                               |
+| `core/query`           | ✅ Mature | Yes                               |
+| `core/aggregate`       | ✅ Mature | Yes                               |
+| `core/decider`         | ✅ Mature | Yes (recommended)                 |
+| `core/pkg/id`          | ✅ Mature | Yes                               |
+| `core/pkg/dispatcher`  | ✅ Mature | Yes (internal)                    |
+| `memory`               | ✅ Mature | Test utility only                 |
+| `catalog`              | ✅ Mature | Yes                               |
+| `catalog/asyncapi`     | ✅ Mature | Yes                               |
+| `catalog/d2`           | ✅ Mature | Yes                               |
+| `catalog/eventcatalog` | ✅ Mature | Yes                               |
+| `middleware`           | ✅ Mature | Yes                               |
+| `testhelpers`          | ✅ Mature | Test utility only                 |
+| `projection`           | ✅ Mature | Yes                               |
 | `storage`              | ⚠️ Partial | go-sqlmock only, no real DB tests |
-| `integration`          | ✅ Mature  | Test utility only                 |
-| `example/user`         | 💡 Demo    | Not for production                |
+| `integration`          | ✅ Mature | Test utility only                 |
+| `example/user`         | 💡 Demo   | Not for production                |
 
 ---
 

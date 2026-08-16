@@ -197,43 +197,43 @@ I added loopback to `excludedModules` in the catalog test ("sub-engine transport
 
 ## f) Up to 50 Things to Get Done Next
 
-| #   | Priority | Task                                                                             | Est     |
-| --- | -------- | -------------------------------------------------------------------------------- | ------- |
-| 1   | CRITICAL | Fix metaengine SSE race condition (Watcher.Close vs subscriberHub.notify)        | 30min   |
-| 2   | CRITICAL | Switch both transports from JSON to CBOR encoding (fixes int64→float64 bug)      | 30min   |
-| 3   | CRITICAL | Verify formatDuration is actually called in demo (or remove it)                  | 5min    |
-| 4   | HIGH     | Fix 65 lint issues in metaengine/irohengine, remove from lintExcluded            | 90min   |
-| 5   | HIGH     | Fix 96 lint issues in system, remove from lintExcluded                           | 120min  |
-| 6   | HIGH     | Write loopback README.md                                                         | 20min   |
-| 7   | HIGH     | Run loopback tests with -count=3 -race (verify stability)                        | 10min   |
-| 8   | HIGH     | Tag both new modules (loopback, quic) with annotated tags                        | 15min   |
-| 9   | HIGH     | Extract sortDurations/percentileIdx to shared location (eliminate duplication)   | 20min   |
-| 10  | MEDIUM   | Add partition recovery test (kill conn, write, reconnect, verify convergence)    | 30min   |
-| 11  | MEDIUM   | Add bug injection test for loopback (prove it catches framing bugs)              | 30min   |
-| 12  | MEDIUM   | Add connection health check (dead peer detection) to both transports             | 40min   |
-| 13  | MEDIUM   | Add auto-reconnect with exponential backoff to both transports                   | 40min   |
-| 14  | MEDIUM   | Add `nix run .#iroh-demo` flake app output                                       | 20min   |
-| 15  | MEDIUM   | Add loopback as a scored module in cqrs-lint catalog                             | 15min   |
-| 16  | MEDIUM   | Update quic README to mention loopback tier                                      | 10min   |
-| 17  | MEDIUM   | Document Transport interface contract (ordering, dedup, at-least-once semantics) | 20min   |
-| 18  | MEDIUM   | Add large-scale convergence test to quic module (100+ ops)                       | 20min   |
-| 19  | LOW      | Add tc netem shell script for real network shaping                               | 20min   |
-| 20  | LOW      | Add asciinema recording of multi-process demo                                    | 15min   |
-| 21  | LOW      | Add TUI dashboard (tview or bubbletea) showing live node state                   | 60min   |
-| 22  | LOW      | Add OTel distributed tracing across QUIC nodes                                   | 40min   |
-| 23  | LOW      | Add Docker compose file for 2-container CI demo                                  | 30min   |
-| 24  | LOW      | Add QUIC datagram mode for small ops (faster than BiStream)                      | 40min   |
-| 25  | LOW      | Add multi-relay topology test (A→relay→B, A→relay→C, B→relay→C)                  | 30min   |
-| 26  | LOW      | Add connection pooling (reuse BiStreams instead of opening new per op)           | 40min   |
-| 27  | LOW      | Add batch publish (send multiple ops in one BiStream)                            | 30min   |
-| 28  | LOW      | Add compression (zstd) for large WriteOps                                        | 20min   |
-| 29  | LOW      | Add per-node LatencyCollector for loopback (currently shared)                    | 20min   |
-| 30  | LOW      | Add WriteOp version field for forward compatibility                              | 10min   |
-| 31  | LOW      | Add protocol version negotiation on connect                                      | 15min   |
-| 32  | LOW      | Add metrics export (Prometheus) for transport layer                              | 30min   |
-| 33  | LOW      | Add structured logging (slog) for transport events                               | 20min   |
-| 34  | LOW      | Add fuzzing tests for frame decoder                                              | 30min   |
-| 35  | LOW      | Explore iroh-docs CRDT integration via Rust sidecar                              | 120min+ |
+| #  | Priority | Task                                                                             | Est     |
+| -- | -------- | -------------------------------------------------------------------------------- | ------- |
+| 1  | CRITICAL | Fix metaengine SSE race condition (Watcher.Close vs subscriberHub.notify)        | 30min   |
+| 2  | CRITICAL | Switch both transports from JSON to CBOR encoding (fixes int64→float64 bug)      | 30min   |
+| 3  | CRITICAL | Verify formatDuration is actually called in demo (or remove it)                  | 5min    |
+| 4  | HIGH     | Fix 65 lint issues in metaengine/irohengine, remove from lintExcluded            | 90min   |
+| 5  | HIGH     | Fix 96 lint issues in system, remove from lintExcluded                           | 120min  |
+| 6  | HIGH     | Write loopback README.md                                                         | 20min   |
+| 7  | HIGH     | Run loopback tests with -count=3 -race (verify stability)                        | 10min   |
+| 8  | HIGH     | Tag both new modules (loopback, quic) with annotated tags                        | 15min   |
+| 9  | HIGH     | Extract sortDurations/percentileIdx to shared location (eliminate duplication)   | 20min   |
+| 10 | MEDIUM   | Add partition recovery test (kill conn, write, reconnect, verify convergence)    | 30min   |
+| 11 | MEDIUM   | Add bug injection test for loopback (prove it catches framing bugs)              | 30min   |
+| 12 | MEDIUM   | Add connection health check (dead peer detection) to both transports             | 40min   |
+| 13 | MEDIUM   | Add auto-reconnect with exponential backoff to both transports                   | 40min   |
+| 14 | MEDIUM   | Add `nix run .#iroh-demo` flake app output                                       | 20min   |
+| 15 | MEDIUM   | Add loopback as a scored module in cqrs-lint catalog                             | 15min   |
+| 16 | MEDIUM   | Update quic README to mention loopback tier                                      | 10min   |
+| 17 | MEDIUM   | Document Transport interface contract (ordering, dedup, at-least-once semantics) | 20min   |
+| 18 | MEDIUM   | Add large-scale convergence test to quic module (100+ ops)                       | 20min   |
+| 19 | LOW      | Add tc netem shell script for real network shaping                               | 20min   |
+| 20 | LOW      | Add asciinema recording of multi-process demo                                    | 15min   |
+| 21 | LOW      | Add TUI dashboard (tview or bubbletea) showing live node state                   | 60min   |
+| 22 | LOW      | Add OTel distributed tracing across QUIC nodes                                   | 40min   |
+| 23 | LOW      | Add Docker compose file for 2-container CI demo                                  | 30min   |
+| 24 | LOW      | Add QUIC datagram mode for small ops (faster than BiStream)                      | 40min   |
+| 25 | LOW      | Add multi-relay topology test (A→relay→B, A→relay→C, B→relay→C)                  | 30min   |
+| 26 | LOW      | Add connection pooling (reuse BiStreams instead of opening new per op)           | 40min   |
+| 27 | LOW      | Add batch publish (send multiple ops in one BiStream)                            | 30min   |
+| 28 | LOW      | Add compression (zstd) for large WriteOps                                        | 20min   |
+| 29 | LOW      | Add per-node LatencyCollector for loopback (currently shared)                    | 20min   |
+| 30 | LOW      | Add WriteOp version field for forward compatibility                              | 10min   |
+| 31 | LOW      | Add protocol version negotiation on connect                                      | 15min   |
+| 32 | LOW      | Add metrics export (Prometheus) for transport layer                              | 30min   |
+| 33 | LOW      | Add structured logging (slog) for transport events                               | 20min   |
+| 34 | LOW      | Add fuzzing tests for frame decoder                                              | 30min   |
+| 35 | LOW      | Explore iroh-docs CRDT integration via Rust sidecar                              | 120min+ |
 
 ---
 

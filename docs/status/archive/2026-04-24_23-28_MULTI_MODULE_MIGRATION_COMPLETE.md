@@ -84,10 +84,10 @@ xtypes/        (core)
 | `catalog`              | 91.2%    | ✅ Good                     |
 | `catalog/eventcatalog` | 89.7%    | ✅ Good                     |
 | `pkg/id`               | 85.4%    | ✅ Good                     |
-| `middleware`           | 84.6%    | ⚠️ Adequate                 |
-| `command`              | 84.4%    | ⚠️ Adequate                 |
-| `aggregate`            | 77.3%    | ⚠️ Could improve            |
-| `pkg/dispatcher`       | 77.4%    | ⚠️ Could improve            |
+| `middleware`           | 84.6%    | ⚠️ Adequate                  |
+| `command`              | 84.4%    | ⚠️ Adequate                  |
+| `aggregate`            | 77.3%    | ⚠️ Could improve             |
+| `pkg/dispatcher`       | 77.4%    | ⚠️ Could improve             |
 | `catalog/adapters`     | 66.0%    | ❌ Lowest — needs attention |
 
 ### Linter State
@@ -226,33 +226,33 @@ The gitignore patterns (`example/*/catalog`, `example/*/user`) work for git trac
 
 Ranked by impact × feasibility:
 
-| #   | Task                                                                | Impact | Effort | Module     |
-| --- | ------------------------------------------------------------------- | ------ | ------ | ---------- |
-| 1   | Create `storage/` module with PostgreSQL event store (sqlc)         | 🔥🔥🔥 | Large  | New        |
-| 2   | Define `projection/` interface in `core/projection/`                | 🔥🔥🔥 | Small  | core       |
-| 3   | Update root README.md for 5-module structure                        | 🔥     | Small  | docs       |
-| 4   | Add `go.work.example` file for developer onboarding                 | 🔥     | Tiny   | root       |
-| 5   | Improve `catalog/adapters` test coverage (66% → 80%+)               | 🔥🔥   | Medium | catalog    |
-| 6   | Create `watermill/` module (implements event.Bus)                   | 🔥🔥🔥 | Large  | New        |
-| 7   | Create `projection/` module with samber/ro internally               | 🔥🔥🔥 | Large  | New        |
-| 8   | Add Event Codec interface in `core/event/`                          | 🔥🔥   | Small  | core       |
-| 9   | Remove cockroachdb/errors from middleware (use fmt.Errorf)          | 🔥     | Tiny   | middleware |
-| 10  | Clean up linter warnings (thelper, varnamelen in core)              | 🔥     | Medium | core       |
-| 11  | Implement or remove `Streamer` interface                            | 🔥     | Small  | core       |
-| 12  | Add Event Upcasting interface in `core/event/` or `core/upcasting/` | 🔥🔥   | Medium | core       |
-| 13  | Create `snapshot/` module (SQL-backed)                              | 🔥🔥   | Medium | New        |
-| 14  | Create `testutil/` module (AggregateTester, etc.)                   | 🔥🔥   | Medium | New        |
-| 15  | Remove core test-dep on memory (move to testutil/)                  | 🔥     | Medium | core       |
-| 16  | Add `go-import` meta tags (GitHub Pages)                            | 🔥     | Small  | infra      |
-| 17  | Add example to go.work for development convenience                  | 🔥     | Tiny   | root       |
-| 18  | Update CONTRIBUTING.md for multi-module workflow                    | 🔥     | Small  | docs       |
-| 19  | Add SQLite support to storage/ module                               | 🔥🔥   | Medium | storage    |
-| 20  | Add MySQL support to storage/ module                                | 🔥     | Medium | storage    |
-| 21  | Tag releases (core/v1.0.0, memory/v1.0.0, etc.)                     | 🔥     | Small  | infra      |
-| 22  | Add outbox pattern to storage/ module                               | 🔥🔥   | Medium | storage    |
-| 23  | Create benchmark suite for event store performance                  | 🔥     | Medium | storage    |
-| 24  | Add schema migration tool (golang-migrate or goose)                 | 🔥     | Small  | storage    |
-| 25  | Add CI step to verify examples build                                | 🔥     | Tiny   | CI         |
+| #  | Task                                                                | Impact | Effort | Module     |
+| -- | ------------------------------------------------------------------- | ------ | ------ | ---------- |
+| 1  | Create `storage/` module with PostgreSQL event store (sqlc)         | 🔥🔥🔥 | Large  | New        |
+| 2  | Define `projection/` interface in `core/projection/`                | 🔥🔥🔥 | Small  | core       |
+| 3  | Update root README.md for 5-module structure                        | 🔥     | Small  | docs       |
+| 4  | Add `go.work.example` file for developer onboarding                 | 🔥     | Tiny   | root       |
+| 5  | Improve `catalog/adapters` test coverage (66% → 80%+)               | 🔥🔥   | Medium | catalog    |
+| 6  | Create `watermill/` module (implements event.Bus)                   | 🔥🔥🔥 | Large  | New        |
+| 7  | Create `projection/` module with samber/ro internally               | 🔥🔥🔥 | Large  | New        |
+| 8  | Add Event Codec interface in `core/event/`                          | 🔥🔥   | Small  | core       |
+| 9  | Remove cockroachdb/errors from middleware (use fmt.Errorf)          | 🔥     | Tiny   | middleware |
+| 10 | Clean up linter warnings (thelper, varnamelen in core)              | 🔥     | Medium | core       |
+| 11 | Implement or remove `Streamer` interface                            | 🔥     | Small  | core       |
+| 12 | Add Event Upcasting interface in `core/event/` or `core/upcasting/` | 🔥🔥   | Medium | core       |
+| 13 | Create `snapshot/` module (SQL-backed)                              | 🔥🔥   | Medium | New        |
+| 14 | Create `testutil/` module (AggregateTester, etc.)                   | 🔥🔥   | Medium | New        |
+| 15 | Remove core test-dep on memory (move to testutil/)                  | 🔥     | Medium | core       |
+| 16 | Add `go-import` meta tags (GitHub Pages)                            | 🔥     | Small  | infra      |
+| 17 | Add example to go.work for development convenience                  | 🔥     | Tiny   | root       |
+| 18 | Update CONTRIBUTING.md for multi-module workflow                    | 🔥     | Small  | docs       |
+| 19 | Add SQLite support to storage/ module                               | 🔥🔥   | Medium | storage    |
+| 20 | Add MySQL support to storage/ module                                | 🔥     | Medium | storage    |
+| 21 | Tag releases (core/v1.0.0, memory/v1.0.0, etc.)                     | 🔥     | Small  | infra      |
+| 22 | Add outbox pattern to storage/ module                               | 🔥🔥   | Medium | storage    |
+| 23 | Create benchmark suite for event store performance                  | 🔥     | Medium | storage    |
+| 24 | Add schema migration tool (golang-migrate or goose)                 | 🔥     | Small  | storage    |
+| 25 | Add CI step to verify examples build                                | 🔥     | Tiny   | CI         |
 
 ---
 

@@ -167,33 +167,33 @@ Mostly `go mod tidy` complaints from gopls seeing stale module metadata. Not act
 
 Ranked by impact × urgency × effort (Pareto order):
 
-| #   | Task                                                              | Impact      | Effort | Category |
-| --- | ----------------------------------------------------------------- | ----------- | ------ | -------- |
-| 1   | Fix storage module build — finish `storage/sql` refactor          | 🔴 CRITICAL | 2h     | Fix      |
-| 2   | Clean all saga references from go.mod files                       | 🔴 HIGH     | 30min  | Fix      |
-| 3   | `go mod tidy` all modules — eliminate gopls noise                 | 🟡 HIGH     | 30min  | Fix      |
-| 4   | Implement `MemoryCommandStore` in memory/ module                  | 🟡 HIGH     | 2h     | Feature  |
-| 5   | Update FEATURES.md — add command.Store, remove stream             | 🟡 MEDIUM   | 15min  | Docs     |
-| 6   | Fix pre-commit hook / buildflow config                            | 🟡 MEDIUM   | 1h     | Fix      |
-| 7   | Renumber ADR-0007 duplicate                                       | 🟢 LOW      | 5min   | Docs     |
-| 8   | Update listing/README.md — stream → listing                       | 🟢 LOW      | 10min  | Docs     |
-| 9   | Implement `SQLCommandStore` in storage/ module                    | 🟡 HIGH     | 4h     | Feature  |
-| 10  | Command Journal + SeekableCommandJournal interfaces               | 🟡 MEDIUM   | 1h     | Feature  |
-| 11  | Command Outbox interface + SQL implementation                     | 🟡 MEDIUM   | 3h     | Feature  |
-| 12  | Break saga leak from testhelpers                                  | 🟡 MEDIUM   | 2h     | Refactor |
-| 13  | Clean self-referencing replace directives (7 modules)             | 🟢 LOW      | 30min  | Cleanup  |
-| 14  | Add command.Store to integration tests                            | 🟡 MEDIUM   | 2h     | Testing  |
-| 15  | Split core/event god-package into sub-packages                    | 🟡 HIGH     | 8h     | Refactor |
-| 16  | Move example/todo to own repository                               | 🟢 LOW      | 1h     | Cleanup  |
-| 17  | Add catalog diff / breaking-change detection tool                 | 🟢 LOW      | 4h     | Feature  |
-| 18  | Add high-level test utilities (AggregateTester, ProjectionTester) | 🟢 LOW      | 6h     | Feature  |
-| 19  | Push v1.0.0 tags — unblock replace directive removal              | 🔴 HIGH     | 30min  | Release  |
-| 20  | Remove replace directives after v1.0.0 tags                       | 🟡 MEDIUM   | 1h     | Cleanup  |
-| 21  | Turso module — verify it still works, add tests                   | 🟢 LOW      | 2h     | Fix      |
-| 22  | Add code-generated typed command handlers (cqrs-gen)              | 🟢 LOW      | 4h     | Feature  |
-| 23  | Add Pebble command store implementation                           | 🟢 LOW      | 3h     | Feature  |
-| 24  | Write CHANGELOG.md entries for recent work                        | 🟢 LOW      | 30min  | Docs     |
-| 25  | Add .github/ISSUE_TEMPLATE and CONTRIBUTING.md                    | 🟢 LOW      | 1h     | Docs     |
+| #  | Task                                                              | Impact      | Effort | Category |
+| -- | ----------------------------------------------------------------- | ----------- | ------ | -------- |
+| 1  | Fix storage module build — finish `storage/sql` refactor          | 🔴 CRITICAL | 2h     | Fix      |
+| 2  | Clean all saga references from go.mod files                       | 🔴 HIGH     | 30min  | Fix      |
+| 3  | `go mod tidy` all modules — eliminate gopls noise                 | 🟡 HIGH     | 30min  | Fix      |
+| 4  | Implement `MemoryCommandStore` in memory/ module                  | 🟡 HIGH     | 2h     | Feature  |
+| 5  | Update FEATURES.md — add command.Store, remove stream             | 🟡 MEDIUM   | 15min  | Docs     |
+| 6  | Fix pre-commit hook / buildflow config                            | 🟡 MEDIUM   | 1h     | Fix      |
+| 7  | Renumber ADR-0007 duplicate                                       | 🟢 LOW      | 5min   | Docs     |
+| 8  | Update listing/README.md — stream → listing                       | 🟢 LOW      | 10min  | Docs     |
+| 9  | Implement `SQLCommandStore` in storage/ module                    | 🟡 HIGH     | 4h     | Feature  |
+| 10 | Command Journal + SeekableCommandJournal interfaces               | 🟡 MEDIUM   | 1h     | Feature  |
+| 11 | Command Outbox interface + SQL implementation                     | 🟡 MEDIUM   | 3h     | Feature  |
+| 12 | Break saga leak from testhelpers                                  | 🟡 MEDIUM   | 2h     | Refactor |
+| 13 | Clean self-referencing replace directives (7 modules)             | 🟢 LOW      | 30min  | Cleanup  |
+| 14 | Add command.Store to integration tests                            | 🟡 MEDIUM   | 2h     | Testing  |
+| 15 | Split core/event god-package into sub-packages                    | 🟡 HIGH     | 8h     | Refactor |
+| 16 | Move example/todo to own repository                               | 🟢 LOW      | 1h     | Cleanup  |
+| 17 | Add catalog diff / breaking-change detection tool                 | 🟢 LOW      | 4h     | Feature  |
+| 18 | Add high-level test utilities (AggregateTester, ProjectionTester) | 🟢 LOW      | 6h     | Feature  |
+| 19 | Push v1.0.0 tags — unblock replace directive removal              | 🔴 HIGH     | 30min  | Release  |
+| 20 | Remove replace directives after v1.0.0 tags                       | 🟡 MEDIUM   | 1h     | Cleanup  |
+| 21 | Turso module — verify it still works, add tests                   | 🟢 LOW      | 2h     | Fix      |
+| 22 | Add code-generated typed command handlers (cqrs-gen)              | 🟢 LOW      | 4h     | Feature  |
+| 23 | Add Pebble command store implementation                           | 🟢 LOW      | 3h     | Feature  |
+| 24 | Write CHANGELOG.md entries for recent work                        | 🟢 LOW      | 30min  | Docs     |
+| 25 | Add .github/ISSUE_TEMPLATE and CONTRIBUTING.md                    | 🟢 LOW      | 1h     | Docs     |
 
 ---
 

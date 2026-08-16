@@ -13,60 +13,60 @@
 
 ### P1 — Prober + LatencyTracker (core)
 
-| Deliverable | File | Status |
-|---|---|---|
-| `LatencyTracker` (ring buffer + incremental EWMA + P50/P95/P99 + Mean/Max) | `metaengine/latency.go` | ✅ 6 unit tests pass |
-| `LatencyStats` snapshot, `Fresh()`, `Live()` freshness gating | `metaengine/latency.go` | ✅ |
-| `Prober` / `TransactMeasurer` optional interfaces | `metaengine/probe.go` | ✅ |
-| `ProbeEngine()` helper (interval, jitter, timeout, stop func, no-op for local engines) | `metaengine/probe.go` | ✅ |
-| `CalibrationCosts.NetworkRTT` prior field | `metaengine/reliability.go` | ✅ |
-| `Calibration` hosts live RTT + per-read trackers; `ApplyCalibration` merges live EWMA into `Profile()` | `metaengine/reliability.go` | ✅ |
-| `EngineProfile.RequiresNetwork` structural flag | `metaengine/engine.go` | ✅ |
-| `EngineProfile.IsRemote()` helper | `metaengine/replication.go` | ✅ |
-| PG `Prober` (`SELECT 1` timing) + `PG_NetworkRTT` prior + `RequiresNetwork` | `metaengine/pgengine/probe.go`, `engine.go` | ✅ builds |
-| Dgraph `Prober` (healthcheck timing) + `DG_NetworkRTT` prior + `RequiresNetwork` | `metaengine/dgraphengine/probe.go`, `engine.go` | ✅ builds |
-| **Gate test:** test-double engine proves a live RTT shift changes `Profile().NetworkRTT` | `metaengine/probe_live_test.go` `TestLiveRTT_OverridesPriorInProfile` | ✅ |
-| **Gate test:** background probe loop feeds `Profile()` via embedded Calibration | `metaengine/probe_live_test.go` `TestProbeEngine_FeedsProfileViaBackgroundLoop` | ✅ |
-| **Gate test:** `ProbeEngine` no-ops safely for local engines | `metaengine/probe_live_test.go` `TestProbeEngine_NoopForLocalEngine` | ✅ |
+| Deliverable                                                                                            | File                                                                            | Status               |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- | -------------------- |
+| `LatencyTracker` (ring buffer + incremental EWMA + P50/P95/P99 + Mean/Max)                             | `metaengine/latency.go`                                                         | ✅ 6 unit tests pass |
+| `LatencyStats` snapshot, `Fresh()`, `Live()` freshness gating                                          | `metaengine/latency.go`                                                         | ✅                   |
+| `Prober` / `TransactMeasurer` optional interfaces                                                      | `metaengine/probe.go`                                                           | ✅                   |
+| `ProbeEngine()` helper (interval, jitter, timeout, stop func, no-op for local engines)                 | `metaengine/probe.go`                                                           | ✅                   |
+| `CalibrationCosts.NetworkRTT` prior field                                                              | `metaengine/reliability.go`                                                     | ✅                   |
+| `Calibration` hosts live RTT + per-read trackers; `ApplyCalibration` merges live EWMA into `Profile()` | `metaengine/reliability.go`                                                     | ✅                   |
+| `EngineProfile.RequiresNetwork` structural flag                                                        | `metaengine/engine.go`                                                          | ✅                   |
+| `EngineProfile.IsRemote()` helper                                                                      | `metaengine/replication.go`                                                     | ✅                   |
+| PG `Prober` (`SELECT 1` timing) + `PG_NetworkRTT` prior + `RequiresNetwork`                            | `metaengine/pgengine/probe.go`, `engine.go`                                     | ✅ builds            |
+| Dgraph `Prober` (healthcheck timing) + `DG_NetworkRTT` prior + `RequiresNetwork`                       | `metaengine/dgraphengine/probe.go`, `engine.go`                                 | ✅ builds            |
+| **Gate test:** test-double engine proves a live RTT shift changes `Profile().NetworkRTT`               | `metaengine/probe_live_test.go` `TestLiveRTT_OverridesPriorInProfile`           | ✅                   |
+| **Gate test:** background probe loop feeds `Profile()` via embedded Calibration                        | `metaengine/probe_live_test.go` `TestProbeEngine_FeedsProfileViaBackgroundLoop` | ✅                   |
+| **Gate test:** `ProbeEngine` no-ops safely for local engines                                           | `metaengine/probe_live_test.go` `TestProbeEngine_NoopForLocalEngine`            | ✅                   |
 
 ### P3 — Open measurement ingress (StatSink)
 
-| Deliverable | File | Status |
-|---|---|---|
-| `StatSink` interface, `LatencySample`, `SampleKind` | `metaengine/probe.go` | ✅ |
+| Deliverable                                                 | File                                      | Status                                        |
+| ----------------------------------------------------------- | ----------------------------------------- | --------------------------------------------- |
+| `StatSink` interface, `LatencySample`, `SampleKind`         | `metaengine/probe.go`                     | ✅                                            |
 | `LatencyTracker` forwards every sample to a configured sink | `metaengine/latency.go` `WithTrackerSink` | ✅ test: `TestLatencyTracker_StatSinkIngress` |
-| `ProbeEngine` accepts `WithProbeSink` | `metaengine/probe.go` | ✅ |
+| `ProbeEngine` accepts `WithProbeSink`                       | `metaengine/probe.go`                     | ✅                                            |
 
 ### P2 — Live planner view + diagnostics (partial — see section b)
 
-| Deliverable | File | Status |
-|---|---|---|
-| `liveLatencyRule` — WARN when routing on prior/stale RTT for a remote engine | `metaengine/rule_live_latency.go` | ✅ registered in `rules.go` |
-| `WithNetworkRTT` doc updated to "prior, not constant" | `metaengine/planner.go` | ✅ |
-| **Gate test:** routing flips on a live RTT shift (re-plan picks up fresh numbers) | `metaengine/probe_live_test.go` `TestPlan_RoutingFlipsOnLiveRTTShift` | ✅ |
-| **Gate test:** WARN fires on prior RTT; clears with fresh tracker | `metaengine/probe_live_test.go` | ✅ |
+| Deliverable                                                                       | File                                                                  | Status                      |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------- |
+| `liveLatencyRule` — WARN when routing on prior/stale RTT for a remote engine      | `metaengine/rule_live_latency.go`                                     | ✅ registered in `rules.go` |
+| `WithNetworkRTT` doc updated to "prior, not constant"                             | `metaengine/planner.go`                                               | ✅                          |
+| **Gate test:** routing flips on a live RTT shift (re-plan picks up fresh numbers) | `metaengine/probe_live_test.go` `TestPlan_RoutingFlipsOnLiveRTTShift` | ✅                          |
+| **Gate test:** WARN fires on prior RTT; clears with fresh tracker                 | `metaengine/probe_live_test.go`                                       | ✅                          |
 
 ### UX — GetStats / Doctor / EXPLAIN
 
-| Deliverable | File | Status |
-|---|---|---|
-| `Store.GetEngineStats(ctx) []EngineStats` | `metaengine/engine_stats.go` | ✅ |
-| `EngineStats {profile, measured RTT, samples, lastProbe, stale}` | `metaengine/engine_stats.go` | ✅ |
-| `FormatLiveLatency()` renders `rtt=live … (p95, n)` / `rtt=prior … [stale]` / `rtt=0s (local)` | `metaengine/engine_stats.go` | ✅ |
-| `ExplainPlan()` shows live-latency line per remote engine | `metaengine/explain.go` | ✅ |
-| `Doctor()` adds `--- Latency ---` section | `metaengine/explain.go` | ✅ test: `TestDoctor_IncludesLatencySection` |
+| Deliverable                                                                                    | File                         | Status                                       |
+| ---------------------------------------------------------------------------------------------- | ---------------------------- | -------------------------------------------- |
+| `Store.GetEngineStats(ctx) []EngineStats`                                                      | `metaengine/engine_stats.go` | ✅                                           |
+| `EngineStats {profile, measured RTT, samples, lastProbe, stale}`                               | `metaengine/engine_stats.go` | ✅                                           |
+| `FormatLiveLatency()` renders `rtt=live … (p95, n)` / `rtt=prior … [stale]` / `rtt=0s (local)` | `metaengine/engine_stats.go` | ✅                                           |
+| `ExplainPlan()` shows live-latency line per remote engine                                      | `metaengine/explain.go`      | ✅                                           |
+| `Doctor()` adds `--- Latency ---` section                                                      | `metaengine/explain.go`      | ✅ test: `TestDoctor_IncludesLatencySection` |
 
 ### Docs / verification gates
 
-| Gate | Status |
-|---|---|
-| `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md` status updated to IMPLEMENTED + implementation-status table | ✅ |
-| `docs/api_surface.txt` golden regenerated (3981 exports, 11 new symbols) | ✅ |
-| `cmd/api-stability` verify passes | ✅ |
-| `cmd/doc-check` passes (695 references, 42 packages) | ✅ |
-| Full `metaengine/` test suite passes (15s) | ✅ |
-| Race test on all new concurrent code passes | ✅ |
-| gofumpt formatting clean on all changed files | ✅ |
+| Gate                                                                                                         | Status |
+| ------------------------------------------------------------------------------------------------------------ | ------ |
+| `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md` status updated to IMPLEMENTED + implementation-status table | ✅     |
+| `docs/api_surface.txt` golden regenerated (3981 exports, 11 new symbols)                                     | ✅     |
+| `cmd/api-stability` verify passes                                                                            | ✅     |
+| `cmd/doc-check` passes (695 references, 42 packages)                                                         | ✅     |
+| Full `metaengine/` test suite passes (15s)                                                                   | ✅     |
+| Race test on all new concurrent code passes                                                                  | ✅     |
+| gofumpt formatting clean on all changed files                                                                | ✅     |
 
 ---
 
@@ -133,17 +133,20 @@ Nothing is catastrophically broken. Everything that was committed builds, passes
 ## e) WHAT WE SHOULD IMPROVE
 
 ### Correctness
+
 1. **Fix `staleThresholdFor`** — either carry the configured stale-after in `LatencyStats` (so display and routing agree), or make `EngineStats.Stale` read directly from `LiveLatency.Fresh` (single source of truth).
 2. **Fix `LiveLatency.Fresh` semantics** — split into `RTTFresh` and `ReadFresh`, or make the WARN rule check RTT-freshness specifically.
 3. **Add a ProbeOption for window/alpha/stale** — currently `ProbeEngine` hardcodes tracker defaults; a consumer can't tune EWMA responsiveness through the probe API.
 
 ### Completeness
+
 4. **Wire mysqlengine + tursoengine** — same Prober + RequiresNetwork pattern as PG/Dgraph.
 5. **Migrate irohengine** onto the core `LatencyTracker` — eliminate the parallel `LatencyCollector` implementation.
 6. **Implement `TransactMeasurer` on at least one engine** (PG: time a real `SELECT ... LIMIT 1` read) — prove the per-read live path end-to-end.
 7. **Add `Store.Replan(ctx)`** — the missing in-place refresh for long-lived Stores.
 
 ### Quality
+
 8. **Run `nix run .#verify`** before claiming done — the session did build + test + gofumpt but NOT the full verify gate (lint, vet, coverage, duplication, doc-check together). This is a "stale GREEN" risk per AGENTS.md.
 9. **Consolidate percentile helpers** — core `percentileDur` vs iroh's `percentile` + `PercentileIdx` + `SortDurations`. DRY violation.
 10. **Update AGENTS.md metaengine section** — note the live-latency feature, the `RequiresNetwork` flag, and the `ProbeEngine` usage pattern.
@@ -153,6 +156,7 @@ Nothing is catastrophically broken. Everything that was committed builds, passes
 ## f) Up to 50 things to do next
 
 ### Immediate (correctness + close P2 gaps)
+
 1. Fix `staleThresholdFor` to use the tracker's actual stale-after (carry it in `LatencyStats` or read from `LiveLatency`).
 2. Split `LiveLatency.Fresh` into RTT-specific and Read-specific freshness; fix the WARN rule to check RTT-freshness.
 3. Add `WithProbeWindow`, `WithProbeAlpha`, `WithProbeStale` `ProbeOption`s.
@@ -160,6 +164,7 @@ Nothing is catastrophically broken. Everything that was committed builds, passes
 5. Implement `Store.RefreshProfile()` (or fold into Replan).
 
 ### Engine wiring (close the remote-engine gap)
+
 6. Wire mysqlengine: `Prober` (`SELECT 1`), `RequiresNetwork`, `NetworkRTT` prior.
 7. Wire tursoengine: `Prober`, `RequiresNetwork`, `NetworkRTT` prior.
 8. Implement `TransactMeasurer` on pgengine (time a real point-lookup read).
@@ -169,6 +174,7 @@ Nothing is catastrophically broken. Everything that was committed builds, passes
 12. Deprecate/remove irohengine's local `latency.go` `LatencyCollector` (or keep as a thin wrapper).
 
 ### Verification gates (the "stale GREEN" debt)
+
 13. Run `nix run .#lint` and fix any findings.
 14. Run `nix run .#check-duplication` and update `.art-dupl-baseline.json` if needed.
 15. Run `nix run .#check-coverage`.
@@ -177,6 +183,7 @@ Nothing is catastrophically broken. Everything that was committed builds, passes
 18. Run `nix run .#verify-fast` as a quicker sanity check.
 
 ### Testing
+
 19. Add an integration test: real PG testcontainer + `ProbeEngine` → verify `GetEngineStats` shows live RTT.
 20. Add a test: `TransactMeasurer` path (once wired on an engine).
 21. Add a test: `ProbeEngine` with erroring `Prober` — verify failed probes are dropped, not recorded.
@@ -187,6 +194,7 @@ Nothing is catastrophically broken. Everything that was committed builds, passes
 26. Add a bench: `LatencyTracker.Snapshot` with full window (512 samples).
 
 ### Docs / skill
+
 27. Update `AGENTS.md` metaengine section with live-latency feature.
 28. Add a recipe to `.agents/skills/go-cqrs-lite/references/recipes.md` for `ProbeEngine` usage.
 29. Add a section to `.agents/skills/go-cqrs-lite/references/advanced.md` for live-latency model.
@@ -196,6 +204,7 @@ Nothing is catastrophically broken. Everything that was committed builds, passes
 33. Add an ADR for the live-latency model (ADR-0093 follow-up).
 
 ### Design refinements
+
 34. Consider: should `RequiresNetwork` be auto-inferred from `Replication != None`? (Design says explicit is better — confirm.)
 35. Consider: should `ProbeEngine` be auto-wired by `stack/*` presets? (A `stack.WithProbing` option?)
 36. Consider: a `Store.StartProbing(opts...)` convenience that wires `ProbeEngine` for all remote engines and stops on `Store.Close`.
@@ -203,6 +212,7 @@ Nothing is catastrophically broken. Everything that was committed builds, passes
 38. Consider: OTel metrics for live RTT (a `metrics.WithLiveLatency` middleware).
 
 ### Code quality
+
 39. Consolidate `percentileDur` (core) with iroh's `percentile`/`PercentileIdx` — extract to a shared helper or delete the core one in favor of iroh's exported helpers.
 40. Remove the `staleThresholdFor` parameter smell.
 41. Add doc examples (`ExampleProbeEngine`, `ExampleLatencyTracker`) to the `metaengine` package.
@@ -210,6 +220,7 @@ Nothing is catastrophically broken. Everything that was committed builds, passes
 43. Audit: does `bboltengine` / `pebbleengine` / `badgerengine` need `RequiresNetwork`? (They're local — confirm `IsRemote()` returns false.)
 
 ### Future (P2 optional / beyond scope)
+
 44. Execution-time live re-scoring with hysteresis deadband.
 45. Background profile-refresh ticker on Store.
 46. `REPLAN-SUGGESTED` diagnostic when near-tied queries would flip on current RTT.

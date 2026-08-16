@@ -29,7 +29,7 @@ go-cqrs-lite is a **production-ready** CQRS/Event Sourcing library for Go, struc
 | `snapshot/`   | 88.9%    | ✅     | Snapshot, SnapshotSink/Source/Store, SnapshotStrategy, EveryNEvents                                                                                 |
 | `memory/`     | 98.5%    | ✅     | MemoryStore, MemoryBus, MemorySnapshotStore, MemoryCheckpointStore, MemoryCommandStore, MemoryCommandBus, MemoryQueryStore                          |
 | `middleware/` | 93.5%    | ✅     | Logging, Retry, Recovery, Validation, Metrics, OTel Tracing+Metrics, SSE broker, HealthCheck, HTTP metrics                                          |
-| `projection/` | 90.4%    | ✅     | Runner (replay+live), HandlerRegistry, Builder with On[T](<>), retry policies                                                                       |
+| `projection/` | 90.4%    | ✅     | Runner (replay+live), HandlerRegistry, Builder with On[T](), retry policies                                                                         |
 | `signing/`    | 94.5%    | ✅     | HMAC-SHA256, Ed25519, multisig (2-of-3, 3-of-5), sign+verify middleware                                                                             |
 | `encryption/` | 86.9%    | ✅     | XChaCha20-Poly1305, AES-256-GCM, codec wrapper, encrypt+decrypt middleware, key rotation                                                            |
 | `storage/`    | 86.3%    | ✅     | SQLEventStore, SQLSnapshotStore, SQLCheckpointStore, SQLCommandStore, SQLQueryStore (PG/SQLite/Turso), SQLBackend facade                            |
@@ -218,33 +218,33 @@ See "ROADMAP Documentation Drift" above. Not harmful but misleading.
 
 > Pareto-sorted by impact-to-effort ratio. Items 1–10 deliver 80% of the value.
 
-| #   | Task                                                                                         | Module      | Impact               | Effort |
-| --- | -------------------------------------------------------------------------------------------- | ----------- | -------------------- | ------ |
-| 1   | Fix flaky `TestRunner_Concurrency_RegisterThenRunAndHandle` — add sync after bus subscribe   | projection  | CI stability         | 30m    |
-| 2   | Update ROADMAP.md Sprint 7 — mark all 5 items ✅                                             | docs        | Accuracy             | 5m     |
-| 3   | Update ROADMAP.md Sprint 4 — mark Docker CI ✅                                               | docs        | Accuracy             | 5m     |
-| 4   | Update ROADMAP.md Sprint 5–6 — descoped items marked                                         | docs        | Accuracy             | 10m    |
-| 5   | Implement `SQLQueryStore` — SQL backend for query persistence                                | storage     | Feature parity       | 2hr    |
-| 6   | Add `SQLBackend.QueryStore()` facade method                                                  | storage     | Completeness         | 15m    |
-| 7   | Add `SQLCommandStore.ReadAll()` + `ReadFrom()` — journal support                             | storage     | Feature parity       | 1hr    |
-| 8   | Create `PebbleBackend` facade struct with `Open()` + accessors + `Close()`                   | pebble      | Consumer DX          | 1hr    |
-| 9   | Add OTel spans to pebble `EventStore` methods (Save/Load/ReadAll)                            | pebble      | Observability        | 45m    |
-| 10  | Add `SQLBackend.SnapshotStore()` + `CheckpointStore()` + `Close()`                           | storage     | Completeness         | 30m    |
-| 11  | Increase turso coverage from 49% → 80% — test error paths                                    | turso       | Quality              | 3hr    |
-| 12  | Add pebble golden tests (CBOR envelope, snapshot, checkpoint)                                | pebble      | Regression safety    | 1hr    |
-| 13  | Add pebble fuzz tests (encode/decode roundtrips)                                             | pebble      | Robustness           | 45m    |
-| 14  | Add pebble integration tests (EventStore + projection Runner, SnapshotStore + decider)       | integration | E2E safety           | 1.5hr  |
-| 15  | Write ADR for CBOR envelope format (pebble on-disk format)                                   | docs/adr    | Consumer trust       | 15m    |
-| 16  | Add `WithLogger(nil)` no-op option to pebble stores                                          | pebble      | DX                   | 15m    |
-| 17  | Add PostgreSQL integration tests via testcontainers-go                                       | storage     | Real DB testing      | 3hr    |
-| 18  | Benchmark pebble Save: before/after OTel overhead                                            | pebble      | Verify no regression | 20m    |
-| 19  | Write ADR for pebble EventStore.Close() vs SnapshotStore.Close() asymmetry                   | docs/adr    | Clarity              | 15m    |
-| 20  | Add reactive CommandBus example to command/doc.go                                            | command     | DX                   | 15m    |
-| 21  | Verify all ADR README index entries match actual ADR files                                   | docs        | Accuracy             | 10m    |
-| 22  | Add `Replace directive CI check` script (verify all go.mod replace directives match go.work) | ci          | Safety               | 30m    |
-| 23  | Document pebble shared-DB key prefix collision behavior in doc.go                            | pebble      | Safety docs          | 15m    |
-| 24  | Add structured logging middleware (slog-based, configurable levels)                          | middleware  | Observability        | 2hr    |
-| 25  | Design Outbox pattern module (ADR-0016 already exists, needs implementation)                 | new module  | HIGH reliability     | 8hr    |
+| #  | Task                                                                                         | Module      | Impact               | Effort |
+| -- | -------------------------------------------------------------------------------------------- | ----------- | -------------------- | ------ |
+| 1  | Fix flaky `TestRunner_Concurrency_RegisterThenRunAndHandle` — add sync after bus subscribe   | projection  | CI stability         | 30m    |
+| 2  | Update ROADMAP.md Sprint 7 — mark all 5 items ✅                                             | docs        | Accuracy             | 5m     |
+| 3  | Update ROADMAP.md Sprint 4 — mark Docker CI ✅                                               | docs        | Accuracy             | 5m     |
+| 4  | Update ROADMAP.md Sprint 5–6 — descoped items marked                                         | docs        | Accuracy             | 10m    |
+| 5  | Implement `SQLQueryStore` — SQL backend for query persistence                                | storage     | Feature parity       | 2hr    |
+| 6  | Add `SQLBackend.QueryStore()` facade method                                                  | storage     | Completeness         | 15m    |
+| 7  | Add `SQLCommandStore.ReadAll()` + `ReadFrom()` — journal support                             | storage     | Feature parity       | 1hr    |
+| 8  | Create `PebbleBackend` facade struct with `Open()` + accessors + `Close()`                   | pebble      | Consumer DX          | 1hr    |
+| 9  | Add OTel spans to pebble `EventStore` methods (Save/Load/ReadAll)                            | pebble      | Observability        | 45m    |
+| 10 | Add `SQLBackend.SnapshotStore()` + `CheckpointStore()` + `Close()`                           | storage     | Completeness         | 30m    |
+| 11 | Increase turso coverage from 49% → 80% — test error paths                                    | turso       | Quality              | 3hr    |
+| 12 | Add pebble golden tests (CBOR envelope, snapshot, checkpoint)                                | pebble      | Regression safety    | 1hr    |
+| 13 | Add pebble fuzz tests (encode/decode roundtrips)                                             | pebble      | Robustness           | 45m    |
+| 14 | Add pebble integration tests (EventStore + projection Runner, SnapshotStore + decider)       | integration | E2E safety           | 1.5hr  |
+| 15 | Write ADR for CBOR envelope format (pebble on-disk format)                                   | docs/adr    | Consumer trust       | 15m    |
+| 16 | Add `WithLogger(nil)` no-op option to pebble stores                                          | pebble      | DX                   | 15m    |
+| 17 | Add PostgreSQL integration tests via testcontainers-go                                       | storage     | Real DB testing      | 3hr    |
+| 18 | Benchmark pebble Save: before/after OTel overhead                                            | pebble      | Verify no regression | 20m    |
+| 19 | Write ADR for pebble EventStore.Close() vs SnapshotStore.Close() asymmetry                   | docs/adr    | Clarity              | 15m    |
+| 20 | Add reactive CommandBus example to command/doc.go                                            | command     | DX                   | 15m    |
+| 21 | Verify all ADR README index entries match actual ADR files                                   | docs        | Accuracy             | 10m    |
+| 22 | Add `Replace directive CI check` script (verify all go.mod replace directives match go.work) | ci          | Safety               | 30m    |
+| 23 | Document pebble shared-DB key prefix collision behavior in doc.go                            | pebble      | Safety docs          | 15m    |
+| 24 | Add structured logging middleware (slog-based, configurable levels)                          | middleware  | Observability        | 2hr    |
+| 25 | Design Outbox pattern module (ADR-0016 already exists, needs implementation)                 | new module  | HIGH reliability     | 8hr    |
 
 ---
 

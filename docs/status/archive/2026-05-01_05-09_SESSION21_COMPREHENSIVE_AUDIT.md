@@ -108,33 +108,33 @@
 
 Sorted by (impact × urgency) / effort:
 
-| #   | Task                                                                                        | Impact | Effort | Status   |
-| --- | ------------------------------------------------------------------------------------------- | ------ | ------ | -------- |
-| 1   | **Fix FEATURES.md: update storage from 🔴 to ⚠️ PARTIALLY_FUNCTIONAL, remove stale issues** | HIGH   | 10min  | DO NOW   |
-| 2   | **Fix FEATURES.md: remove stale upcaster `>=` bug (already fixed)**                         | HIGH   | 2min   | DO NOW   |
-| 3   | **Add `testhelpers` to flake.nix testModules**                                              | HIGH   | 2min   | DO NOW   |
-| 4   | **Delete stale binary `example/user/user`**                                                 | LOW    | 1min   | DO NOW   |
-| 5   | **Commit all uncommitted doc changes**                                                      | HIGH   | 5min   | DO NOW   |
-| 6   | **Update AGENTS.md coverage table with current numbers**                                    | MEDIUM | 5min   | DO NOW   |
-| 7   | **Add explicit JSON tags to `event.Metadata`**                                              | HIGH   | 15min  | NEXT     |
-| 8   | **Extract duplicate INSERT query to constant in storage**                                   | LOW    | 5min   | NEXT     |
-| 9   | **Add storage error path tests (bad parse, bad metadata, rows.Err())**                      | HIGH   | 30min  | NEXT     |
-| 10  | **Split `testhelpers/fakes.go` into per-fake files**                                        | MEDIUM | 20min  | NEXT     |
-| 11  | **Remove or implement `SQLEventStoreOption`**                                               | MEDIUM | 15min  | NEXT     |
-| 12  | **Document `Close()` DB ownership in storage godoc**                                        | MEDIUM | 5min   | NEXT     |
-| 13  | **Fix Postgres-specific DDL comment**                                                       | LOW    | 5min   | NEXT     |
-| 14  | **Consolidate `CatalogBuilder` on top of `Registry`**                                       | HIGH   | 90min  | LATER    |
-| 15  | **Add `example/user` smoke test**                                                           | MEDIUM | 45min  | LATER    |
-| 16  | **Fix FuzzParse case-sensitivity**                                                          | MEDIUM | 30min  | LATER    |
-| 17  | **Split `cattest/helpers.go` under 250 lines**                                              | LOW    | 20min  | LATER    |
-| 18  | **Add `event.Version` as concrete type (breaking change)**                                  | HIGH   | 60min  | DEFERRED |
-| 19  | **Consider `io.Closer` on `event.Store` (breaking change)**                                 | HIGH   | 30min  | DEFERRED |
-| 20  | **Tagged releases for all modules**                                                         | LOW    | 60min  | DEFERRED |
-| 21  | **Watermill pub/sub module**                                                                | HIGH   | 4hr    | PLANNED  |
-| 22  | **SQL SnapshotStore**                                                                       | MEDIUM | 2hr    | PLANNED  |
-| 23  | **SQL CheckpointStore**                                                                     | MEDIUM | 1hr    | PLANNED  |
-| 24  | **Outbox background publisher**                                                             | MEDIUM | 2hr    | PLANNED  |
-| 25  | **Saga/Process Manager**                                                                    | HIGH   | 8hr    | PLANNED  |
+| #  | Task                                                                                       | Impact | Effort | Status   |
+| -- | ------------------------------------------------------------------------------------------ | ------ | ------ | -------- |
+| 1  | **Fix FEATURES.md: update storage from 🔴 to ⚠️ PARTIALLY_FUNCTIONAL, remove stale issues** | HIGH   | 10min  | DO NOW   |
+| 2  | **Fix FEATURES.md: remove stale upcaster `>=` bug (already fixed)**                        | HIGH   | 2min   | DO NOW   |
+| 3  | **Add `testhelpers` to flake.nix testModules**                                             | HIGH   | 2min   | DO NOW   |
+| 4  | **Delete stale binary `example/user/user`**                                                | LOW    | 1min   | DO NOW   |
+| 5  | **Commit all uncommitted doc changes**                                                     | HIGH   | 5min   | DO NOW   |
+| 6  | **Update AGENTS.md coverage table with current numbers**                                   | MEDIUM | 5min   | DO NOW   |
+| 7  | **Add explicit JSON tags to `event.Metadata`**                                             | HIGH   | 15min  | NEXT     |
+| 8  | **Extract duplicate INSERT query to constant in storage**                                  | LOW    | 5min   | NEXT     |
+| 9  | **Add storage error path tests (bad parse, bad metadata, rows.Err())**                     | HIGH   | 30min  | NEXT     |
+| 10 | **Split `testhelpers/fakes.go` into per-fake files**                                       | MEDIUM | 20min  | NEXT     |
+| 11 | **Remove or implement `SQLEventStoreOption`**                                              | MEDIUM | 15min  | NEXT     |
+| 12 | **Document `Close()` DB ownership in storage godoc**                                       | MEDIUM | 5min   | NEXT     |
+| 13 | **Fix Postgres-specific DDL comment**                                                      | LOW    | 5min   | NEXT     |
+| 14 | **Consolidate `CatalogBuilder` on top of `Registry`**                                      | HIGH   | 90min  | LATER    |
+| 15 | **Add `example/user` smoke test**                                                          | MEDIUM | 45min  | LATER    |
+| 16 | **Fix FuzzParse case-sensitivity**                                                         | MEDIUM | 30min  | LATER    |
+| 17 | **Split `cattest/helpers.go` under 250 lines**                                             | LOW    | 20min  | LATER    |
+| 18 | **Add `event.Version` as concrete type (breaking change)**                                 | HIGH   | 60min  | DEFERRED |
+| 19 | **Consider `io.Closer` on `event.Store` (breaking change)**                                | HIGH   | 30min  | DEFERRED |
+| 20 | **Tagged releases for all modules**                                                        | LOW    | 60min  | DEFERRED |
+| 21 | **Watermill pub/sub module**                                                               | HIGH   | 4hr    | PLANNED  |
+| 22 | **SQL SnapshotStore**                                                                      | MEDIUM | 2hr    | PLANNED  |
+| 23 | **SQL CheckpointStore**                                                                    | MEDIUM | 1hr    | PLANNED  |
+| 24 | **Outbox background publisher**                                                            | MEDIUM | 2hr    | PLANNED  |
+| 25 | **Saga/Process Manager**                                                                   | HIGH   | 8hr    | PLANNED  |
 
 ---
 
@@ -174,8 +174,8 @@ Arguments AGAINST:
 | `catalog/asyncapi`     | 97.9%           | ✅                      |
 | `catalog/eventcatalog` | 95.5%           | ✅                      |
 | `middleware`           | 99.4%           | ✅                      |
-| `storage`              | 79.8%           | ⚠️                      |
-| `testhelpers`          | 0.0% (no tests) | ⚠️                      |
+| `storage`              | 79.8%           | ⚠️                       |
+| `testhelpers`          | 0.0% (no tests) | ⚠️                       |
 
 ---
 

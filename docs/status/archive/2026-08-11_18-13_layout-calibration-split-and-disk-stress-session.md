@@ -21,7 +21,7 @@
 
 ## 2. Environment/Cooperation notes (important context)
 
-- The **auto-commit daemon** (crush auto-git) was actively committing and *reverting* files **throughout the session**:
+- The **auto-commit daemon** (crush auto-git) was actively committing and _reverting_ files **throughout the session**:
   - It committed my in-progress work twice (`b2beac1c1`, `f50f9c64f`) including the disk calibration bench, the id-replace build fix, and a parallel **per-query developer priority API** (ADR-0125).
   - It **reverted** my first bench extension and my first scoring split at least once.
   - Net effect: the working tree was a moving target; I repeatedly had to re-check `git status` / `git log` before acting. This is the single biggest source of wasted cycles this session.
@@ -31,38 +31,38 @@
 
 ## 3. a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | Identified all 5 failing tests + root cause | `relayout_test.go:49,103`; `layout_followup_test.go:72,103,512`. Root cause: calibration commit `cda48b41d` re-scored KV/LSM with **memory-only** ratios, flipping Balanced→Normalize on KV/LSM and **breaking the ReadSpeed lever**. |
-| 2 | Built the **on-disk calibration bench** | `metaengine/bench/bench_layout_calibration_disk_test.go` (committed by daemon as `f50f9c64f`): real `NewPebbleEngine(dir)` (disk LSM) + `NewBboltEngine(path)` (disk B+Tree) × 4 ops. |
-| 3 | Ran **60s benchtime** stress suites (user requirement) | Memory: 4 benches ≈ 345s; Disk: 8 benches ≈ 674s. Both `goos linux amd64` on AMD Ryzen AI MAX+ 395. |
-| 4 | Captured authoritative ratios | See §4 table. Key: **bbolt normalize-write is NOT cheaper (1.05×)**; **Pebble read 1.49×**, **bbolt read 1.23×**; memory read 1.72×/write 0.65×. |
-| 5 | Split **KV vs LSM** scoring in `layout_scoring.go` | KV restored to embed-favoring (0.5/1.0/1.3 vs 2.0/0.5/0.7); LSM new disk-based (0.74/1.10/1.15 vs 1.45/0.75/0.80). |
-| 6 | **pebble + bbolt declare `LayoutLSM`** | `Profile()` now sets `Layouts[ADTMap]=LayoutLSM` (was previously falling through to default `LayoutKV`). This is the correctness fix: disk engines were scored as memory. |
-| 7 | Fixed **all 5 failing tests** | Full metaengine module: 208 specs → **green** (was 203/5). |
-| 8 | **Operator levers verified working** | Temporary lever-matrix test (since removed): KV+LSM Balanced→Embed, ReadSpeed→Embed, WriteSpeed→Normalize, StorageSpace→Normalize; Row ReadSpeed→Normalize. All pass. |
-| 9 | Build fix for engine modules | Added `replace record => ../../record` + `id => ../../id` to pebbleengine/bboltengine go.mod (+ tidy go.sum). |
-| 10 | Ran full verification | metaengine core+adttest green (race clean); pebble race clean; bbolt race clean; bench module green; workspace-wide build green; gofumpt + golines(120) clean; `go vet` clean; api-stability `TestEvery*` green. |
-| 11 | Confirmed pre-existing issues are NOT mine | module-layer gaps (94) identical at HEAD (verified via stash); the 5 failures are the only regression I fixed. |
-| 12 | Documented storage-overhead reality | Embed storage 2.06× @3 projections but only 1.09× @1, 3.11× @10 — depends on projection count. Single small projection: embed is near-parity, contradicting "embed is always cheaper on storage" intuition. |
+| #  | Item                                                   | Evidence                                                                                                                                                                                                                              |
+| -- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Identified all 5 failing tests + root cause            | `relayout_test.go:49,103`; `layout_followup_test.go:72,103,512`. Root cause: calibration commit `cda48b41d` re-scored KV/LSM with **memory-only** ratios, flipping Balanced→Normalize on KV/LSM and **breaking the ReadSpeed lever**. |
+| 2  | Built the **on-disk calibration bench**                | `metaengine/bench/bench_layout_calibration_disk_test.go` (committed by daemon as `f50f9c64f`): real `NewPebbleEngine(dir)` (disk LSM) + `NewBboltEngine(path)` (disk B+Tree) × 4 ops.                                                 |
+| 3  | Ran **60s benchtime** stress suites (user requirement) | Memory: 4 benches ≈ 345s; Disk: 8 benches ≈ 674s. Both `goos linux amd64` on AMD Ryzen AI MAX+ 395.                                                                                                                                   |
+| 4  | Captured authoritative ratios                          | See §4 table. Key: **bbolt normalize-write is NOT cheaper (1.05×)**; **Pebble read 1.49×**, **bbolt read 1.23×**; memory read 1.72×/write 0.65×.                                                                                      |
+| 5  | Split **KV vs LSM** scoring in `layout_scoring.go`     | KV restored to embed-favoring (0.5/1.0/1.3 vs 2.0/0.5/0.7); LSM new disk-based (0.74/1.10/1.15 vs 1.45/0.75/0.80).                                                                                                                    |
+| 6  | **pebble + bbolt declare `LayoutLSM`**                 | `Profile()` now sets `Layouts[ADTMap]=LayoutLSM` (was previously falling through to default `LayoutKV`). This is the correctness fix: disk engines were scored as memory.                                                             |
+| 7  | Fixed **all 5 failing tests**                          | Full metaengine module: 208 specs → **green** (was 203/5).                                                                                                                                                                            |
+| 8  | **Operator levers verified working**                   | Temporary lever-matrix test (since removed): KV+LSM Balanced→Embed, ReadSpeed→Embed, WriteSpeed→Normalize, StorageSpace→Normalize; Row ReadSpeed→Normalize. All pass.                                                                 |
+| 9  | Build fix for engine modules                           | Added `replace record => ../../record` + `id => ../../id` to pebbleengine/bboltengine go.mod (+ tidy go.sum).                                                                                                                         |
+| 10 | Ran full verification                                  | metaengine core+adttest green (race clean); pebble race clean; bbolt race clean; bench module green; workspace-wide build green; gofumpt + golines(120) clean; `go vet` clean; api-stability `TestEvery*` green.                      |
+| 11 | Confirmed pre-existing issues are NOT mine             | module-layer gaps (94) identical at HEAD (verified via stash); the 5 failures are the only regression I fixed.                                                                                                                        |
+| 12 | Documented storage-overhead reality                    | Embed storage 2.06× @3 projections but only 1.09× @1, 3.11× @10 — depends on projection count. Single small projection: embed is near-parity, contradicting "embed is always cheaper on storage" intuition.                           |
 
 ## 4. Measured data (the science)
 
 ### 4.1 ns/op (60s benchtime, count=1)
 
-| Op | Memory | Pebble-disk | bbolt-disk |
-|---|---|---|---|
-| EmbedRead | 78.5 | 3076 | 3244 |
-| EmbedWrite | 184.6 | 8206 | 14543 |
-| NormalizeRead | 135.4 | 4582 | 3978 |
-| NormalizeWrite | 119.6 | 4390 | 15301 |
+| Op             | Memory | Pebble-disk | bbolt-disk |
+| -------------- | ------ | ----------- | ---------- |
+| EmbedRead      | 78.5   | 3076        | 3244       |
+| EmbedWrite     | 184.6  | 8206        | 14543      |
+| NormalizeRead  | 135.4  | 4582        | 3978       |
+| NormalizeWrite | 119.6  | 4390        | 15301      |
 
 ### 4.2 Ratios (normalize/embed)
 
-| | Memory | Pebble | bbolt | LSM geomean |
-|---|---|---|---|---|
-| read | 1.72× | 1.49× | 1.23× | 1.35× |
-| write | 0.65× | 0.53× | **1.05×** | 0.75× |
+|       | Memory | Pebble | bbolt     | LSM geomean |
+| ----- | ------ | ------ | --------- | ----------- |
+| read  | 1.72×  | 1.49×  | 1.23×     | 1.35×       |
+| write | 0.65×  | 0.53×  | **1.05×** | 0.75×       |
 
 ### 4.3 Storage (byte-level, engine-independent)
 
@@ -78,42 +78,42 @@ Embed single 208B vs Normalize 191B → **embed is NOT cheaper even at 1 project
 
 ## 5. b) PARTIALLY DONE
 
-| # | Item | Status | Gap |
-|---|------|--------|-----|
-| 1 | LSM constants "measurement-faithful" | ~85% | Lever constraints force LSM embed-read 0.74 / norm-read 1.45 (2.09× ratio), which exaggerates the measured 1.35×-1.49×. I prioritized lever-decisiveness over raw fidelity and documented the tradeoff. A fully data-driven Balanced (normalize wins) would require changing the design invariant per user approval. |
-| 2 | Disk bench placement | Done (committed), but… | The bench lives in `metaengine/bench` (proper home) — good. But the Memory `layout_calibration_bench_test.go` in metaengine core was left with its stale "memory only" comment header; I did not update its doc comment to cross-reference the disk bench. |
-| 3 | Engine `Layouts` coverage | Partial | Only pebble + bbolt got explicit `LayoutLSM`. **badger** (LSM) still falls through to default KV; **memory** engine also falls through to KV (arguably correct). Badger should also declare LSM for consistency. Dgraph already declares KV correctly. |
-| 4 | go.mod hygiene for engines | Done | Added replaces; but the same ActorID build gap likely affects **other modules** (tursoengine, irohengine?…) — I only fixed pebble+bbolt because that's what I touched. |
-| 5 | The bench's `-benchtime` defaults | Partial | The disk bench header says `-benchtime=0.5s`; only my ad-hoc 60s runs produced the authoritative numbers. The checked-in default guidance is still the weak 0.5s. |
+| # | Item                                 | Status                 | Gap                                                                                                                                                                                                                                                                                                                  |
+| - | ------------------------------------ | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | LSM constants "measurement-faithful" | ~85%                   | Lever constraints force LSM embed-read 0.74 / norm-read 1.45 (2.09× ratio), which exaggerates the measured 1.35×-1.49×. I prioritized lever-decisiveness over raw fidelity and documented the tradeoff. A fully data-driven Balanced (normalize wins) would require changing the design invariant per user approval. |
+| 2 | Disk bench placement                 | Done (committed), but… | The bench lives in `metaengine/bench` (proper home) — good. But the Memory `layout_calibration_bench_test.go` in metaengine core was left with its stale "memory only" comment header; I did not update its doc comment to cross-reference the disk bench.                                                           |
+| 3 | Engine `Layouts` coverage            | Partial                | Only pebble + bbolt got explicit `LayoutLSM`. **badger** (LSM) still falls through to default KV; **memory** engine also falls through to KV (arguably correct). Badger should also declare LSM for consistency. Dgraph already declares KV correctly.                                                               |
+| 4 | go.mod hygiene for engines           | Done                   | Added replaces; but the same ActorID build gap likely affects **other modules** (tursoengine, irohengine?…) — I only fixed pebble+bbolt because that's what I touched.                                                                                                                                               |
+| 5 | The bench's `-benchtime` defaults    | Partial                | The disk bench header says `-benchtime=0.5s`; only my ad-hoc 60s runs produced the authoritative numbers. The checked-in default guidance is still the weak 0.5s.                                                                                                                                                    |
 
 ## 6. c) NOT STARTED
 
-| # | Item |
-|---|------|
-| 1 | Updating `docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md` to reflect the KV-vs-LSM split + new measured ratios (I updated code comments only, not the design doc). |
-| 2 | Updating `docs/adr/0124-operator-driven-layout-planning.md` with the calibration correction note. |
+| # | Item                                                                                                                                                                                                                                                                               |
+| - | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Updating `docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md` to reflect the KV-vs-LSM split + new measured ratios (I updated code comments only, not the design doc).                                                                                                              |
+| 2 | Updating `docs/adr/0124-operator-driven-layout-planning.md` with the calibration correction note.                                                                                                                                                                                  |
 | 3 | Adding a **regression test** that pins the operator-lever matrix (Balanced/Read/Write/Storage × KV/LSM/Row) in the permanent suite — my verification test was temporary and removed. The 5 fixed tests cover the KV fake path, but nothing pins **LSM** lever behavior explicitly. |
-| 4 | Verifying **badger** (and any other LSM engine) layout declaration + behavior. |
-| 5 | Running the full `nix run .#verify` (build+vet+test+race+lint+doc-check+doc-assertions) gate across all 79 modules — I ran the affected-module scope, not the whole repo. |
-| 6 | Benchmarking DuckDB/SQLite (Row/Columnar) calibration — they still use analytical estimates (documented in code). |
+| 4 | Verifying **badger** (and any other LSM engine) layout declaration + behavior.                                                                                                                                                                                                     |
+| 5 | Running the full `nix run .#verify` (build+vet+test+race+lint+doc-check+doc-assertions) gate across all 79 modules — I ran the affected-module scope, not the whole repo.                                                                                                          |
+| 6 | Benchmarking DuckDB/SQLite (Row/Columnar) calibration — they still use analytical estimates (documented in code).                                                                                                                                                                  |
 
 ## 7. d) TOTALLY FUCKED UP (honest list)
 
-| # | What | Why it happened | Impact / Recovery |
-|---|------|-----------------|--------------------|
-| 1 | **My first bench extension got reverted by the daemon mid-session** | I wrote a `calibEngine`-style extension of `layout_calibration_bench_test.go` in the core module (with bbolt/pebble imports) without first checking the auto-commit daemon state; the daemon overwrote it with the original. | Wasted ~20 min. Lesson: **check `git status`/`git log` before editing files that the daemon may be touching; expect reverts.** |
-| 2 | **I polluted `metaengine/go.mod` twice** (added pebble/bbolt deps to the zero-dep core) | Correct instinct (need engines for disk bench) but wrong module. `go mod tidy` dropped or pseudo-versioned them. | Detected and reverted; relocated bench into `metaengine/bench`. The `go get` also forced `go mod tidy` that removed `davecgh/go-spew`/`testify` indirects momentarily — final state is clean. |
-| 3 | **`go vet` initially failed on the stale published `record`** in pebble/bbolt/bench while I was mid-fix | The ActorID publish gap. | Fixed with replaces; but cost diagnosis time because the error surfaced in a module I hadn't touched yet. |
-| 4 | **Chasing a red herring: "ReadSpeed lever broken"** | My first reaction was to tune priority weights (Balanced w=0.5 storage etc.). | Realized the weights are public API and changing them cascades; reverted to the constant-split approach which is surgical. I burned ~3 analysis cycles here. |
-| 5 | **The `**/*.go` glob corruption in a grep** | `rg **/*.go` produced `LayoutKV, LayoutLSM`→`defaultn`/`n` artifacts in output, briefly confusing me into thinking the file was corrupted. | It was a shell glob expansion issue, not a repo issue. |
-| 6 | **We (the daemon + I) duplicated work**: the daemon independently committed the disk-calibration bench + per-query priority API while I was also building it | No communication channel between parallel agents. | Net: work landed, but confusion about ownership of files (`bench_layout_calibration_disk_test.go` appeared committed under daemon authorship while I believed it was mine). Keep authorship out of the equation; verify by content. |
+| # | What                                                                                                                                                         | Why it happened                                                                                                                                                                                                              | Impact / Recovery                                                                                                                                                                                                                   |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **My first bench extension got reverted by the daemon mid-session**                                                                                          | I wrote a `calibEngine`-style extension of `layout_calibration_bench_test.go` in the core module (with bbolt/pebble imports) without first checking the auto-commit daemon state; the daemon overwrote it with the original. | Wasted ~20 min. Lesson: **check `git status`/`git log` before editing files that the daemon may be touching; expect reverts.**                                                                                                      |
+| 2 | **I polluted `metaengine/go.mod` twice** (added pebble/bbolt deps to the zero-dep core)                                                                      | Correct instinct (need engines for disk bench) but wrong module. `go mod tidy` dropped or pseudo-versioned them.                                                                                                             | Detected and reverted; relocated bench into `metaengine/bench`. The `go get` also forced `go mod tidy` that removed `davecgh/go-spew`/`testify` indirects momentarily — final state is clean.                                       |
+| 3 | **`go vet` initially failed on the stale published `record`** in pebble/bbolt/bench while I was mid-fix                                                      | The ActorID publish gap.                                                                                                                                                                                                     | Fixed with replaces; but cost diagnosis time because the error surfaced in a module I hadn't touched yet.                                                                                                                           |
+| 4 | **Chasing a red herring: "ReadSpeed lever broken"**                                                                                                          | My first reaction was to tune priority weights (Balanced w=0.5 storage etc.).                                                                                                                                                | Realized the weights are public API and changing them cascades; reverted to the constant-split approach which is surgical. I burned ~3 analysis cycles here.                                                                        |
+| 5 | **The `**/*.go` glob corruption in a grep**                                                                                                                  | `rg **/*.go` produced `LayoutKV, LayoutLSM`→`defaultn`/`n` artifacts in output, briefly confusing me into thinking the file was corrupted.                                                                                   | It was a shell glob expansion issue, not a repo issue.                                                                                                                                                                              |
+| 6 | **We (the daemon + I) duplicated work**: the daemon independently committed the disk-calibration bench + per-query priority API while I was also building it | No communication channel between parallel agents.                                                                                                                                                                            | Net: work landed, but confusion about ownership of files (`bench_layout_calibration_disk_test.go` appeared committed under daemon authorship while I believed it was mine). Keep authorship out of the equation; verify by content. |
 
 ## 8. e) WHAT WE SHOULD IMPROVE (this session's lessons → process)
 
 1. **Daemon-awareness protocol**: Before every edit in this repo, run `git status --short` + `git log --oneline -3`; expect concurrent commits/reverts. If a file I'm about to edit is dirty or recently committed, re-read it first.
 2. **Bench placement standard**: Calibration benches requiring engine deps belong in `metaengine/bench` (zero-dep core must stay zero-dep). Add this to AGENTS.md gotchas.
 3. **Benchtime standards**: Document "calibration benches must be run with `-benchtime=60s`"; the 0.5s default guidance produced **wrong conclusions** (bbolt write ratio flipped 0.83→1.05; bbolt read 2.05→1.23). Add a note to the bench file header + AGENTS.md.
-4. **Regenerate/verify scoring tests when constants change**: The 5 tests were "anchored" to old constants; a better process would have caught the drift earlier (the scoring test explicitly asserted StorageSpace→Normalize — that's a lever spec, not a data spec; the followup tests asserted Balanced→Embed — those are the *default spec*. Both are now satisfied.)
+4. **Regenerate/verify scoring tests when constants change**: The 5 tests were "anchored" to old constants; a better process would have caught the drift earlier (the scoring test explicitly asserted StorageSpace→Normalize — that's a lever spec, not a data spec; the followup tests asserted Balanced→Embed — those are the _default spec_. Both are now satisfied.)
 5. **Pin the lever matrix in a permanent test** (see Not Started #3).
 6. **Don't tune public weights casually** — weight changes cascade; prefer surgical constant splits.
 7. **Use `git worktree` for long benchmark runs?** — not needed here, but a background-run discipline (shell IDs) worked well.
@@ -122,6 +122,7 @@ Embed single 208B vs Normalize 191B → **embed is NOT cheaper even at 1 project
 ## 9. f) UP TO 50 THINGS WE SHOULD DO NEXT (prioritized)
 
 **Immediate (finish this fix properly):**
+
 1. Add permanent **operator-lever regression test** (KV/LSM/Row × Balanced/Read/Write/Storage) asserting the exact lever matrix.
 2. Declare `LayoutLSM` for **badger** Profile (consistency; currently falls to KV default).
 3. Update `metaengine/layout_calibration_bench_test.go` memory header comment to cross-reference the disk bench and the 60s requirement.
@@ -148,7 +149,7 @@ Embed single 208B vs Normalize 191B → **embed is NOT cheaper even at 1 project
 20. Add a **PRIORITY_MISMATCH / JOIN_AMPLIFICATION**-style warning for "Normalize selected on KV under Balanced" since the operator's default may silently normalize (the LayoutWarnings already does JOIN_AMPLIFICATION; verify it fires).
 
 **Bench/observability:**
-21. Add EXPLAIN output showing the *measured* ns/op ratios per engine (surfacing calibration provenance in diagnostics).
+21. Add EXPLAIN output showing the _measured_ ns/op ratios per engine (surfacing calibration provenance in diagnostics).
 22. Add a `Doctor` section that flags "engine profile lacks explicit Layouts declaration" (would have caught pebble/bbolt).
 23. Add the disk-calibration bench to `flake.nix` `testModules`/`benchModules` so CI runs it (currently in bench module — verify it's in lint/test lists).
 24. Print a calibration table to stderr on every disk-ratio bench run (like StorageOverhead does) so numbers are captured without parsing ns/op.

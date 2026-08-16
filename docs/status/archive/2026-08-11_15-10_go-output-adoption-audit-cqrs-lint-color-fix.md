@@ -12,13 +12,13 @@
 
 ### Audit: go-output adoption across all 5 `cmd/` commands
 
-| cmd/ | go-output | Verdict |
-|------|-----------|---------|
-| `cqrs-bench` | ✅ direct | **SUPERB** — multi-format (table/text/json/csv/tsv/markdown/benchstat/manifest), uses `ColorModeAuto.ShouldColor()` idiomatically, uses `delimited` + `markdown` + `table` sub-modules correctly |
-| `cqrs-lint` | ✅ direct | **WAS NOT SUPERB → improved** (see below) |
-| `api-stability` | indirect only | **Correctly NOT used** — emits a golden API-surface Go file, not tabular data |
-| `cqrs-gen` | indirect only | **Correctly NOT used** — emits Go source code |
-| `doc-check` | indirect only | **Correctly NOT used** — prints pass/fail verification lines |
+| cmd/            | go-output     | Verdict                                                                                                                                                                                          |
+| --------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `cqrs-bench`    | ✅ direct     | **SUPERB** — multi-format (table/text/json/csv/tsv/markdown/benchstat/manifest), uses `ColorModeAuto.ShouldColor()` idiomatically, uses `delimited` + `markdown` + `table` sub-modules correctly |
+| `cqrs-lint`     | ✅ direct     | **WAS NOT SUPERB → improved** (see below)                                                                                                                                                        |
+| `api-stability` | indirect only | **Correctly NOT used** — emits a golden API-surface Go file, not tabular data                                                                                                                    |
+| `cqrs-gen`      | indirect only | **Correctly NOT used** — emits Go source code                                                                                                                                                    |
+| `doc-check`     | indirect only | **Correctly NOT used** — prints pass/fail verification lines                                                                                                                                     |
 
 **Conclusion on "are ALL using it?":** No, and that is correct. Forcing go-output onto non-tabular output (Go source, golden files, pass/fail lines) would be cargo-culting. Only the 2 commands that produce structured/tabular data use it. The 3 indirect-only deps are pulled transitively (catalog/cobra) and correctly never imported.
 
@@ -39,6 +39,7 @@
 **The raw ANSI constants (`ansiRed`, `ansiBold`, etc.) are KEPT — justified:** go-output has no styled-text/diagnostic API, only format renderers. Findings text is a custom diagnostic layout, not a table, so raw ANSI is the only option without a lipgloss dep.
 
 ### Verified locally
+
 - `go build -tags "goexperiment.jsonv2" ./...` ✅
 - `go vet -tags "goexperiment.jsonv2" ./...` ✅
 - `go test -tags "goexperiment.jsonv2" ./... -count=1` ✅ (all packages, incl. `TestParseColorMode`, color, grouping, scorecard tests)
@@ -87,11 +88,13 @@ After deleting `shouldColor`, the `val(cond, ifTrue, ifFalse)` helper and the `i
 ## e) WHAT WE SHOULD IMPROVE
 
 ### On this fix specifically
+
 1. **Add a regression test** that sets `NO_COLOR=1` + `t.Setenv` and asserts findings text is colorless while `ColorModeAuto` is passed — locks the bug from regressing.
 2. **Runtime-verify** with `NO_COLOR=1 go run . --rules` before/after.
 3. **Run `nix run .#verify`** to clear the stale-GREEN.
 
 ### On go-output adoption (broader, observed this session)
+
 4. **cqrs-lint findings could gain CSV/TSV/XML output formats** to match cqrs-bench's format richness. Today: text/json/sarif/markdown. A consumer who wants findings in a spreadsheet has no path. go-output's `RenderTable(data, format, opts)` + `Format` enum makes this nearly free once findings are modeled as a `Table`.
 5. **cqrs-lint scorecard could use the unified `RenderTable` dispatcher** instead of hand-routing table/markdown. I dismissed this as "stretch" but didn't actually measure the cleanup. The markdown scorecard is a full prose doc (not a lone table), so the win is partial — but the USED/MISSING module tables inside it could dispatch through go-output.
 6. **`doctor.go` reports `cfg.Format` and `cfg.Color` as raw strings** (line 216-217). These could use the typed `output.Format` / `output.ColorMode` enums for honest diagnostics — but that's a doctor-display nicety, not a bug.
@@ -99,6 +102,7 @@ After deleting `shouldColor`, the `val(cond, ifTrue, ifFalse)` helper and the `i
 8. **No central "how cqrs-lint renders" doc** — the color/format logic is spread across `output.go`, `output_grouping.go`, `scorecard_render.go`. A short header comment or doc.go would help future editors.
 
 ### Meta (about this session's process)
+
 9. **I should have loaded the `library-deep-dive` skill's Phase 5-7** (HTML report + git workflow). The skill prescribes a deliverable; I did the audit verbosely in-chat but produced no artifact. The user asked "superbly?" which is exactly the deep-dive trigger; I short-circuited to action without the report.
 10. **I didn't check `git status` / `git diff` before editing** to see if the auto-commit daemon had touched these files. AGENTS.md warns about this explicitly. I got lucky — the files were clean.
 
@@ -107,6 +111,7 @@ After deleting `shouldColor`, the `val(cond, ifTrue, ifFalse)` helper and the `i
 ## f) Up to 50 things to get done next
 
 **Verify & lock the current fix (P0):**
+
 1. Run `NO_COLOR=1 go run . --rules` BEFORE re-checking out the fix to photograph the bug (or reason from git stash).
 2. Run `NO_COLOR=1 go run . --rules` AFTER to prove resolution.
 3. Add regression test: `TestShouldColor_HonorsNoColorEnv` using `t.Setenv("NO_COLOR", "1")`.
@@ -189,15 +194,15 @@ I rated cqrs-bench "superb" from a quick read. I did not check its error paths, 
 
 ## Status summary
 
-| Area | State |
-|------|-------|
-| Audit (all 5 cmd/) | ✅ Complete |
+| Area                                      | State                        |
+| ----------------------------------------- | ---------------------------- |
+| Audit (all 5 cmd/)                        | ✅ Complete                  |
 | cqrs-lint fix (shouldColor → ShouldColor) | ✅ Written, local tests pass |
-| cqrs-lint fix (parseColorMode → library) | ✅ Written, local tests pass |
-| Regression test for NO_COLOR bug | ❌ Not added |
-| Runtime proof of bug/fix | ❌ Not done |
-| `nix run .#verify` | ❌ NOT RUN (stale GREEN) |
-| Commit | ❌ Not committed |
-| Memory/doc update | ❌ Not done |
+| cqrs-lint fix (parseColorMode → library)  | ✅ Written, local tests pass |
+| Regression test for NO_COLOR bug          | ❌ Not added                 |
+| Runtime proof of bug/fix                  | ❌ Not done                  |
+| `nix run .#verify`                        | ❌ NOT RUN (stale GREEN)     |
+| Commit                                    | ❌ Not committed             |
+| Memory/doc update                         | ❌ Not done                  |
 
 **Net:** The work is correct but **under-verified and uncommitted**. The biggest honest failure is claiming GREEN without running the project's own verify gate.

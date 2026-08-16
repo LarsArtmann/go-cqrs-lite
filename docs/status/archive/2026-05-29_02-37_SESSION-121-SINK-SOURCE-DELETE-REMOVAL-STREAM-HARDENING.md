@@ -107,43 +107,43 @@ Nothing. No broken code, no compilation errors, no test regressions from our cha
 
 ### P0 — Must Do (Wrong/misleading information)
 
-| #   | Task                                          | Impact    | Effort | File(s)                           |
-| --- | --------------------------------------------- | --------- | ------ | --------------------------------- |
-| 1   | Fix FEATURES.md: remove Delete, update naming | Very High | 15min  | FEATURES.md                       |
-| 2   | Fix storage/pebble_helpers.go comment         | High      | 1min   | storage/pebble_helpers.go:14      |
-| 3   | Update sql_backend.go return type             | High      | 2min   | storage/sql_backend.go:92         |
-| 4   | Update transactional_store.go assertion       | Medium    | 1min   | storage/transactional_store.go:99 |
-| 5   | Update storage/README.md                      | Medium    | 5min   | storage/README.md                 |
+| # | Task                                          | Impact    | Effort | File(s)                           |
+| - | --------------------------------------------- | --------- | ------ | --------------------------------- |
+| 1 | Fix FEATURES.md: remove Delete, update naming | Very High | 15min  | FEATURES.md                       |
+| 2 | Fix storage/pebble_helpers.go comment         | High      | 1min   | storage/pebble_helpers.go:14      |
+| 3 | Update sql_backend.go return type             | High      | 2min   | storage/sql_backend.go:92         |
+| 4 | Update transactional_store.go assertion       | Medium    | 1min   | storage/transactional_store.go:99 |
+| 5 | Update storage/README.md                      | Medium    | 5min   | storage/README.md                 |
 
 ### P1 — Should Do (Stale docs)
 
-| #   | Task                                         | Impact | Effort | File(s)                       |
-| --- | -------------------------------------------- | ------ | ------ | ----------------------------- |
-| 6   | Update AGENTS.md with Sink/Source concepts   | Medium | 5min   | AGENTS.md                     |
-| 7   | Fix docs/STORAGE_GUIDE.md method table       | Medium | 5min   | docs/STORAGE_GUIDE.md         |
-| 8   | Fix docs/ARCHITECTURE_PATTERNS.md            | Medium | 5min   | docs/ARCHITECTURE_PATTERNS.md |
-| 9   | Update core/README.md with Sink/Source split | Medium | 5min   | core/README.md                |
-| 10  | Fix catalog golden files (pre-existing)      | Low    | 5min   | catalog/testdata/golden/      |
+| #  | Task                                         | Impact | Effort | File(s)                       |
+| -- | -------------------------------------------- | ------ | ------ | ----------------------------- |
+| 6  | Update AGENTS.md with Sink/Source concepts   | Medium | 5min   | AGENTS.md                     |
+| 7  | Fix docs/STORAGE_GUIDE.md method table       | Medium | 5min   | docs/STORAGE_GUIDE.md         |
+| 8  | Fix docs/ARCHITECTURE_PATTERNS.md            | Medium | 5min   | docs/ARCHITECTURE_PATTERNS.md |
+| 9  | Update core/README.md with Sink/Source split | Medium | 5min   | core/README.md                |
+| 10 | Fix catalog golden files (pre-existing)      | Low    | 5min   | catalog/testdata/golden/      |
 
 ### P2 — Nice to Have (Architecture improvements)
 
-| #   | Task                                                                   | Impact | Effort | Notes                      |
-| --- | ---------------------------------------------------------------------- | ------ | ------ | -------------------------- |
-| 11  | Remove PebbleEventStore.Delete (orphaned method)                       | Medium | 5min   | Check if anything calls it |
-| 12  | Add stream/ to AGENTS.md module graph detail                           | Low    | 2min   | AGENTS.md                  |
-| 13  | Consider removing deprecated aliases in next major version             | Low    | 0min   | Future: v2                 |
-| 14  | Add TombstoneStatus to FEATURES.md                                     | Low    | 5min   | FEATURES.md                |
-| 15  | Add AggregateReader/Projection to FEATURES.md                          | Low    | 5min   | FEATURES.md                |
-| 16  | Fix saga BDD tests (pre-existing)                                      | Medium | 30min  | saga/saga_bdd_test.go      |
-| 17  | Add stream/ integration test with real Journal                         | Low    | 15min  | stream/                    |
-| 18  | Update docs/adr/ for Sink/Source split decision                        | Low    | 15min  | docs/adr/                  |
-| 19  | Add cursor-based pagination test for SQL reader                        | Low    | 10min  | stream/                    |
-| 20  | Verify example/user and example/todo still work with tombstone pattern | Low    | 10min  | example/                   |
-| 21  | Add TombstonePolicy string representation                              | Low    | 2min   | stream/types.go            |
-| 22  | Update signing/signer.go for new interfaces                            | Low    | 5min   | signing/                   |
-| 23  | Add AggregateStatus JSON marshaling                                    | Low    | 5min   | stream/types.go            |
-| 24  | Review stream/middleware.go for edge cases                             | Low    | 10min  | stream/                    |
-| 25  | Clean up replace directives planning                                   | Low    | 0min   | Future: v1.0.0             |
+| #  | Task                                                                   | Impact | Effort | Notes                      |
+| -- | ---------------------------------------------------------------------- | ------ | ------ | -------------------------- |
+| 11 | Remove PebbleEventStore.Delete (orphaned method)                       | Medium | 5min   | Check if anything calls it |
+| 12 | Add stream/ to AGENTS.md module graph detail                           | Low    | 2min   | AGENTS.md                  |
+| 13 | Consider removing deprecated aliases in next major version             | Low    | 0min   | Future: v2                 |
+| 14 | Add TombstoneStatus to FEATURES.md                                     | Low    | 5min   | FEATURES.md                |
+| 15 | Add AggregateReader/Projection to FEATURES.md                          | Low    | 5min   | FEATURES.md                |
+| 16 | Fix saga BDD tests (pre-existing)                                      | Medium | 30min  | saga/saga_bdd_test.go      |
+| 17 | Add stream/ integration test with real Journal                         | Low    | 15min  | stream/                    |
+| 18 | Update docs/adr/ for Sink/Source split decision                        | Low    | 15min  | docs/adr/                  |
+| 19 | Add cursor-based pagination test for SQL reader                        | Low    | 10min  | stream/                    |
+| 20 | Verify example/user and example/todo still work with tombstone pattern | Low    | 10min  | example/                   |
+| 21 | Add TombstonePolicy string representation                              | Low    | 2min   | stream/types.go            |
+| 22 | Update signing/signer.go for new interfaces                            | Low    | 5min   | signing/                   |
+| 23 | Add AggregateStatus JSON marshaling                                    | Low    | 5min   | stream/types.go            |
+| 24 | Review stream/middleware.go for edge cases                             | Low    | 10min  | stream/                    |
+| 25 | Clean up replace directives planning                                   | Low    | 0min   | Future: v1.0.0             |
 
 ---
 

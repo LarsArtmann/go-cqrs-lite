@@ -14,6 +14,7 @@ Items marked `[ ]` but containing "DONE 2026-08-09" in their body. Per AGENTS.md
 completed work belongs in CHANGELOG, not TODO_LIST.
 
 **Removed:**
+
 - Reclassify misclassified FPs in validation report
 - Improve B029-B031 `isBusName` heuristic
 - Improve D018 `collectEventNewTypes`
@@ -51,11 +52,11 @@ and verifies each is in the `.golangci.yml` depguard allow list. Wired as
 Created `helper_test.go` with `mustNewEngine(tb testing.TB)` +
 `newEngineOrSkip(tb testing.TB)` pattern (matching duckdbengine reference).
 
-| Module       | Files Refactored | Remaining | Status |
-|-------------|-----------------|-----------|--------|
-| badgerengine | 5/5             | 0         | DONE   |
-| dgraphengine | 10/10           | 0         | DONE   |
-| pebbleengine | 4/20            | **16**    | PARTIAL |
+| Module       | Files Refactored | Remaining | Status  |
+| ------------ | ---------------- | --------- | ------- |
+| badgerengine | 5/5              | 0         | DONE    |
+| dgraphengine | 10/10            | 0         | DONE    |
+| pebbleengine | 4/20             | **16**    | PARTIAL |
 
 Pebbleengine remaining files: `adt_matrix_test.go`, `calibration_bench_test.go`,
 `disk_backed_test.go`, `edge_cases_test.go`, `fuzz_test.go`,
@@ -73,6 +74,7 @@ reference helper uses `*testing.T` only. Not a bug, but an inconsistency.
 ### 5. golangci.yml Audit — Identified, NOT Narrowed
 
 Audited exclusion blocks. Key findings:
+
 - `system/`: 20 linters disabled, including **`staticcheck`** (correctness linter!)
 - `cmd/cqrs-lint/`: 17 linters disabled
 - `metaengine/`: 21 linters disabled
@@ -90,6 +92,7 @@ entry exists, falling back to linear scan for old data (backward compatible).
 **Files:** `storage/bbolt/base.go`, `store.go`, `stream.go`
 
 **What's missing:**
+
 - **No benchmark** proving the performance improvement
 - **AGENTS.md not updated** with the new bucket name
 - **No test** specifically for the Seek path (existing tests pass but don't
@@ -106,6 +109,7 @@ MultiGroupedAggregateReader, ExplainableAggregate.
 Wired into sqliteengine only. Not wired into duckdbengine (CGo) or pgengine.
 
 **What's missing:**
+
 - No `FilterSpec` test cases (all tests pass `nil` filters)
 - No edge cases (empty collection, NULL values, negative numbers)
 - No cross-engine parity run (only tested against expected values with 1 engine)
@@ -145,6 +149,7 @@ will find nothing.
 
 I created `scripts/check-depguard.sh` and wired it as `nix run .#check-depguard`,
 but:
+
 - NOT added to `.github/workflows/ci.yml`
 - NOT added to the `#verify` gate in `flake.nix`
 - The awk-based YAML parsing is fragile (breaks if indentation changes)

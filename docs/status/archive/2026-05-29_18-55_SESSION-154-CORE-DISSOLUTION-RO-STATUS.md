@@ -1,7 +1,7 @@
 # Session 154 — Core Dissolution, Schema/Snapshot Extraction, samber/ro Integration
 
-**Date:** 2026-05-29 18:55  
-**Branch:** master  
+**Date:** 2026-05-29 18:55\
+**Branch:** master\
 **Commits:** 11d9dc6 → e4e6112 → a40b71f → cc4ceb1
 
 ---
@@ -103,8 +103,8 @@ The impedance mismatch between context-aware handlers and ro's `Observer[T]` is 
 
 ### 2. Handler vs EventHandler Duplication
 
-`event/bus.go` defines `Handler func(ctx, Event) error`.  
-`event/reactive.go` defines `EventHandler func(ctx, Event) error`.  
+`event/bus.go` defines `Handler func(ctx, Event) error`.\
+`event/reactive.go` defines `EventHandler func(ctx, Event) error`.\
 **Two identical function types** in the same package. This is confusing.
 
 ---
@@ -143,48 +143,48 @@ The impedance mismatch between context-aware handlers and ro's `Observer[T]` is 
 
 ### Tier 1: High Impact, Low Effort (Do Now)
 
-| #   | Task                                                                   | Impact                                             | Effort |
-| --- | ---------------------------------------------------------------------- | -------------------------------------------------- | ------ |
-| 1   | **Fix AGENTS.md monorepo diagram** (edit failed)                       | 🔴 Missing context for all sessions                | 5 min  |
-| 2   | **Move `ErrSnapshotNotFound`/`ErrSnapshotStoreClosed` to `snapshot/`** | 🔴 Types in wrong package                          | 15 min |
-| 3   | **Remove duplicate `EventHandler` type** (identical to `Handler`)      | 🟡 Confusion                                       | 2 min  |
-| 4   | **Run `go mod tidy` on all 7 bloated go.mod files**                    | 🟡 Hygiene                                         | 10 min |
-| 5   | **Remove self-referencing replace directives** (6 files)               | 🟡 Hygiene                                         | 5 min  |
-| 6   | **Add missing modules to `flake.nix testModules`** (5 modules)         | 🔴 CI doesn't test codec/listing/otel/pebble/turso | 5 min  |
-| 7   | **Clean up `go.work.sum`** (stale core references)                     | 🟡 Stale cache                                     | 2 min  |
-| 8   | **Delete root `go.mod`** (3-line placeholder, no code)                 | 🟡 Clarity                                         | 2 min  |
+| # | Task                                                                   | Impact                                             | Effort |
+| - | ---------------------------------------------------------------------- | -------------------------------------------------- | ------ |
+| 1 | **Fix AGENTS.md monorepo diagram** (edit failed)                       | 🔴 Missing context for all sessions                | 5 min  |
+| 2 | **Move `ErrSnapshotNotFound`/`ErrSnapshotStoreClosed` to `snapshot/`** | 🔴 Types in wrong package                          | 15 min |
+| 3 | **Remove duplicate `EventHandler` type** (identical to `Handler`)      | 🟡 Confusion                                       | 2 min  |
+| 4 | **Run `go mod tidy` on all 7 bloated go.mod files**                    | 🟡 Hygiene                                         | 10 min |
+| 5 | **Remove self-referencing replace directives** (6 files)               | 🟡 Hygiene                                         | 5 min  |
+| 6 | **Add missing modules to `flake.nix testModules`** (5 modules)         | 🔴 CI doesn't test codec/listing/otel/pebble/turso | 5 min  |
+| 7 | **Clean up `go.work.sum`** (stale core references)                     | 🟡 Stale cache                                     | 2 min  |
+| 8 | **Delete root `go.mod`** (3-line placeholder, no code)                 | 🟡 Clarity                                         | 2 min  |
 
 ### Tier 2: High Impact, Medium Effort (Do Next)
 
-| #   | Task                                                                           | Impact                   | Effort   |
-| --- | ------------------------------------------------------------------------------ | ------------------------ | -------- |
-| 9   | **Resolve ro impedance mismatch** — Decide: full adoption or remove            | 🔴 Architectural clarity | Research |
-| 10  | **If keeping ro**: Replace `MemoryBus` with `ro.PublishSubject[Event]` wrapper | 🔴 218 lines deleted     | 1-2 hrs  |
-| 11  | **If keeping ro**: Convert `PublishMiddleware` chain to ro operators           | 🔴 Middleware rewrite    | 2-3 hrs  |
-| 12  | **If removing ro**: Delete `reactive.go` from event/ and command/              | 🟡 Clarity               | 5 min    |
-| 13  | **Update CHANGELOG.md** with all session 154 changes                           | 🟡 Documentation         | 20 min   |
-| 14  | **Update `docs/planning/` proposals** to mark as COMPLETE                      | 🟡 Documentation         | 10 min   |
-| 15  | **Remove stale `scripts/go-mod-graph-local/go.mod`** if unused                 | 🟡 Cleanup               | 5 min    |
+| #  | Task                                                                           | Impact                   | Effort   |
+| -- | ------------------------------------------------------------------------------ | ------------------------ | -------- |
+| 9  | **Resolve ro impedance mismatch** — Decide: full adoption or remove            | 🔴 Architectural clarity | Research |
+| 10 | **If keeping ro**: Replace `MemoryBus` with `ro.PublishSubject[Event]` wrapper | 🔴 218 lines deleted     | 1-2 hrs  |
+| 11 | **If keeping ro**: Convert `PublishMiddleware` chain to ro operators           | 🔴 Middleware rewrite    | 2-3 hrs  |
+| 12 | **If removing ro**: Delete `reactive.go` from event/ and command/              | 🟡 Clarity               | 5 min    |
+| 13 | **Update CHANGELOG.md** with all session 154 changes                           | 🟡 Documentation         | 20 min   |
+| 14 | **Update `docs/planning/` proposals** to mark as COMPLETE                      | 🟡 Documentation         | 10 min   |
+| 15 | **Remove stale `scripts/go-mod-graph-local/go.mod`** if unused                 | 🟡 Cleanup               | 5 min    |
 
 ### Tier 3: Medium Impact, Medium Effort (Do Soon)
 
-| #   | Task                                                                             | Impact           | Effort   |
-| --- | -------------------------------------------------------------------------------- | ---------------- | -------- |
-| 16  | **Stronger type branding** — `AggregateType`, `Version`, `Type` as branded types | 🟡 Safety        | 1-2 hrs  |
-| 17  | **Decide CommandBus semantics** — Subject (multicast) is wrong for commands      | 🟡 Correctness   | Research |
-| 18  | **Write migration guide** for consumers upgrading from `core/` imports           | 🟢 DX            | 30 min   |
-| 19  | **Add example using reactive EventBus** (if keeping ro)                          | 🟢 DX            | 30 min   |
-| 20  | **Audit `decider/go.mod`** — missing `codec` and `memory` deps                   | 🟡 Build hygiene | 10 min   |
+| #  | Task                                                                             | Impact           | Effort   |
+| -- | -------------------------------------------------------------------------------- | ---------------- | -------- |
+| 16 | **Stronger type branding** — `AggregateType`, `Version`, `Type` as branded types | 🟡 Safety        | 1-2 hrs  |
+| 17 | **Decide CommandBus semantics** — Subject (multicast) is wrong for commands      | 🟡 Correctness   | Research |
+| 18 | **Write migration guide** for consumers upgrading from `core/` imports           | 🟢 DX            | 30 min   |
+| 19 | **Add example using reactive EventBus** (if keeping ro)                          | 🟢 DX            | 30 min   |
+| 20 | **Audit `decider/go.mod`** — missing `codec` and `memory` deps                   | 🟡 Build hygiene | 10 min   |
 
 ### Tier 4: Lower Impact, Higher Effort (Do Later)
 
-| #   | Task                                                                     | Impact          | Effort   |
-| --- | ------------------------------------------------------------------------ | --------------- | -------- |
-| 21  | **Full memory/ split into sub-modules**                                  | 🟢 Architecture | 3-4 hrs  |
-| 22  | **Derived Event / CEP research** — docs/research/derived-event.md exists | 🟢 Features     | Research |
-| 23  | **Scheduled Event research** — docs/research/scheduled-event.md exists   | 🟢 Features     | Research |
-| 24  | **Version tagging** — Push v1.0.0 tags to remove replace directives      | 🔴 DX           | 1 hr     |
-| 25  | **CI pipeline update** — Ensure GOWORK=off per-module CI still works     | 🟡 CI           | 30 min   |
+| #  | Task                                                                     | Impact          | Effort   |
+| -- | ------------------------------------------------------------------------ | --------------- | -------- |
+| 21 | **Full memory/ split into sub-modules**                                  | 🟢 Architecture | 3-4 hrs  |
+| 22 | **Derived Event / CEP research** — docs/research/derived-event.md exists | 🟢 Features     | Research |
+| 23 | **Scheduled Event research** — docs/research/scheduled-event.md exists   | 🟢 Features     | Research |
+| 24 | **Version tagging** — Push v1.0.0 tags to remove replace directives      | 🔴 DX           | 1 hr     |
+| 25 | **CI pipeline update** — Ensure GOWORK=off per-module CI still works     | 🟡 CI           | 30 min   |
 
 ---
 

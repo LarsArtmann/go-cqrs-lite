@@ -18,14 +18,14 @@ No production bugs are known. No failing tests. No broken builds.
 
 ## Build & Test Matrix
 
-| Check             | Status      | Details                                                                                           |
-| ----------------- | ----------- | ------------------------------------------------------------------------------------------------- |
-| `nix run .#build` | ✅ PASS     | All 31 modules compile                                                                            |
-| `nix run .#test`  | ✅ PASS     | 38/38 test packages pass, 0 failures                                                              |
+| Check             | Status     | Details                                                                                           |
+| ----------------- | ---------- | ------------------------------------------------------------------------------------------------- |
+| `nix run .#build` | ✅ PASS    | All 31 modules compile                                                                            |
+| `nix run .#test`  | ✅ PASS    | 38/38 test packages pass, 0 failures                                                              |
 | `nix run .#lint`  | ⚠️ 7 issues | All 7 in `catalog/` (pre-existing), 0 in other 20 modules                                         |
-| Pre-commit hook   | ❌ BROKEN   | `buildflow` fails on `scripts/go-mod-graph-local` lint + `library-policy`; requires `--no-verify` |
-| Race detector     | ✅ PASS     | No race conditions detected                                                                       |
-| Total Go lines    | —           | ~69,821 (prod + test)                                                                             |
+| Pre-commit hook   | ❌ BROKEN  | `buildflow` fails on `scripts/go-mod-graph-local` lint + `library-policy`; requires `--no-verify` |
+| Race detector     | ✅ PASS    | No race conditions detected                                                                       |
+| Total Go lines    | —          | ~69,821 (prod + test)                                                                             |
 
 ---
 
@@ -34,7 +34,7 @@ No production bugs are known. No failing tests. No broken builds.
 | Module      |   LoC | Coverage | Lint | doc.go |  README  | errors.go | Score | Status                                                            |
 | ----------- | ----: | -------: | ---: | :----: | :------: | :-------: | :---: | ----------------------------------------------------------------- |
 | event       | 6,658 |    89.4% | ✅ 0 |   ❌   | ✅ fixed |    ✅     |  🟡   | README just rewritten; no doc.go; 10 long functions               |
-| catalog     | 9,319 |    86.0% | ⚠️ 7 |   ✅   |    ✅    |    ❌     |  🟡   | 7 lint issues; 20 long functions; largest module                  |
+| catalog     | 9,319 |    86.0% |  ⚠️ 7 |   ✅   |    ✅    |    ❌     |  🟡   | 7 lint issues; 20 long functions; largest module                  |
 | storage     | 4,538 |    89.3% | ✅ 0 |   ✅   |    ✅    | ✅ (sql/) |  🟢   | Command Store added; dialect tests added                          |
 | signing     | 3,123 |    94.1% | ✅ 0 |   ✅   |    ✅    |    ✅     |  🟢   | Solid                                                             |
 | integration | 3,024 |        — | ✅ 0 |   ❌   |    ❌    |    ❌     |  🟡   | Test-only; no README, no doc.go                                   |
@@ -267,33 +267,33 @@ This tool has lint failures that block the pre-commit hook. It's a development t
 
 Ranked by impact × urgency. Pareto order.
 
-| #   | Task                                                            | Module                                                  | Est  | Why                                      |
-| --- | --------------------------------------------------------------- | ------------------------------------------------------- | ---- | ---------------------------------------- |
-| 1   | Fix BuildFlow pre-commit hook (fix scripts/ lint or exclude it) | scripts                                                 | 30m  | Every commit bypasses CI — unacceptable  |
-| 2   | Fix 7 catalog/ lint issues                                      | catalog                                                 | 15m  | Only module with lint failures           |
-| 3   | Add doc.go to 9 modules missing it                              | event,decider,snapshot,dispatcher,codec,integration + 3 | 30m  | pkg.go.dev presentation                  |
-| 4   | Add README to projection/, decider/, command/                   | projection,decider,command                              | 30m  | Consumer discoverability                 |
-| 5   | Raise turso coverage from 28.6% to >85%                         | turso                                                   | 60m  | Only red module                          |
-| 6   | Archive 90+ stale status/planning docs                          | docs/                                                   | 20m  | Documentation hygiene                    |
-| 7   | Create ROADMAP.md                                               | root                                                    | 30m  | Referenced but doesn't exist             |
-| 8   | Execute Module Improvement Plan Phase 1 (6 tasks)               | all                                                     | 60m  | Critical correctness                     |
-| 9   | Write ADR for io.Closer in interfaces                           | docs/adr                                                | 30m  | 9 interfaces affected                    |
-| 10  | Implement pebble Journal + SeekableJournal                      | pebble                                                  | 90m  | Embedded use case gap                    |
-| 11  | Add storage/sql coverage tests                                  | storage/sql                                             | 45m  | 0% coverage on shared dialect code       |
-| 12  | Decompose top-5 longest functions (catalog 20, storage 15)      | catalog,storage                                         | 60m  | Readability + maintainability            |
-| 13  | Add errors.go to id/, schema/, watermill/, otel/, snapshot/     | 5 modules                                               | 30m  | Consistent error taxonomy                |
-| 14  | Write integration tests for Command Store                       | integration                                             | 45m  | Cross-module: command + memory + storage |
-| 15  | Add example_test.go to projection/, schema/, watermill/         | 3 modules                                               | 30m  | Adoption friction                        |
-| 16  | Fix ADR-0005 gap                                                | docs/adr                                                | 15m  | Sequence integrity                       |
-| 17  | Add `t.Parallel()` consistently to all test files               | all                                                     | 30m  | Test execution speed                     |
-| 18  | Verify all modules have `go 1.26.3` in go.mod                   | all                                                     | 10m  | Consistency                              |
-| 19  | Run `go mod tidy` on all 31 modules                             | all                                                     | 15m  | Housekeeping                             |
-| 20  | Create `readmodel/` design doc / ADR                            | docs/adr                                                | 60m  | Biggest architectural gap                |
-| 21  | Add PostgreSQL CI (Docker-based)                                | storage                                                 | 90m  | Credibility for SQL storage              |
-| 22  | Pebble SnapshotStore + CheckpointStore                          | pebble                                                  | 60m  | Parity with memory/storage backends      |
-| 23  | Query Store interfaces (Sink/Source/Store)                      | query                                                   | 60m  | Parity with command store                |
-| 24  | Consumer example: full-stack with all modules                   | examples                                                | 120m | Best documentation is working code       |
-| 25  | API stability golden file update for Command Store              | cmd/api-stability                                       | 15m  | Ensure no breaking changes               |
+| #  | Task                                                            | Module                                                  | Est  | Why                                      |
+| -- | --------------------------------------------------------------- | ------------------------------------------------------- | ---- | ---------------------------------------- |
+| 1  | Fix BuildFlow pre-commit hook (fix scripts/ lint or exclude it) | scripts                                                 | 30m  | Every commit bypasses CI — unacceptable  |
+| 2  | Fix 7 catalog/ lint issues                                      | catalog                                                 | 15m  | Only module with lint failures           |
+| 3  | Add doc.go to 9 modules missing it                              | event,decider,snapshot,dispatcher,codec,integration + 3 | 30m  | pkg.go.dev presentation                  |
+| 4  | Add README to projection/, decider/, command/                   | projection,decider,command                              | 30m  | Consumer discoverability                 |
+| 5  | Raise turso coverage from 28.6% to >85%                         | turso                                                   | 60m  | Only red module                          |
+| 6  | Archive 90+ stale status/planning docs                          | docs/                                                   | 20m  | Documentation hygiene                    |
+| 7  | Create ROADMAP.md                                               | root                                                    | 30m  | Referenced but doesn't exist             |
+| 8  | Execute Module Improvement Plan Phase 1 (6 tasks)               | all                                                     | 60m  | Critical correctness                     |
+| 9  | Write ADR for io.Closer in interfaces                           | docs/adr                                                | 30m  | 9 interfaces affected                    |
+| 10 | Implement pebble Journal + SeekableJournal                      | pebble                                                  | 90m  | Embedded use case gap                    |
+| 11 | Add storage/sql coverage tests                                  | storage/sql                                             | 45m  | 0% coverage on shared dialect code       |
+| 12 | Decompose top-5 longest functions (catalog 20, storage 15)      | catalog,storage                                         | 60m  | Readability + maintainability            |
+| 13 | Add errors.go to id/, schema/, watermill/, otel/, snapshot/     | 5 modules                                               | 30m  | Consistent error taxonomy                |
+| 14 | Write integration tests for Command Store                       | integration                                             | 45m  | Cross-module: command + memory + storage |
+| 15 | Add example_test.go to projection/, schema/, watermill/         | 3 modules                                               | 30m  | Adoption friction                        |
+| 16 | Fix ADR-0005 gap                                                | docs/adr                                                | 15m  | Sequence integrity                       |
+| 17 | Add `t.Parallel()` consistently to all test files               | all                                                     | 30m  | Test execution speed                     |
+| 18 | Verify all modules have `go 1.26.3` in go.mod                   | all                                                     | 10m  | Consistency                              |
+| 19 | Run `go mod tidy` on all 31 modules                             | all                                                     | 15m  | Housekeeping                             |
+| 20 | Create `readmodel/` design doc / ADR                            | docs/adr                                                | 60m  | Biggest architectural gap                |
+| 21 | Add PostgreSQL CI (Docker-based)                                | storage                                                 | 90m  | Credibility for SQL storage              |
+| 22 | Pebble SnapshotStore + CheckpointStore                          | pebble                                                  | 60m  | Parity with memory/storage backends      |
+| 23 | Query Store interfaces (Sink/Source/Store)                      | query                                                   | 60m  | Parity with command store                |
+| 24 | Consumer example: full-stack with all modules                   | examples                                                | 120m | Best documentation is working code       |
+| 25 | API stability golden file update for Command Store              | cmd/api-stability                                       | 15m  | Ensure no breaking changes               |
 
 **Estimated total: ~16 hours for all 25 items**
 

@@ -224,33 +224,33 @@ Plan said "Formally deprecate aggregate package." Instead it was entirely delete
 
 ## f) Top #25 Things to Get Done Next
 
-| #   | Task                                                         | Module                      | Impact  | Effort | Priority |
-| --- | ------------------------------------------------------------ | --------------------------- | ------- | ------ | -------- |
-| 1   | Migrate core/event `fmt.Errorf` wraps to structured          | `core/event`                | 🔥 High | 1 hr   | P0       |
-| 2   | Migrate saga `fmt.Errorf` wraps to structured                | `saga`                      | 🔥 High | 45 min | P0       |
-| 3   | Re-export `errorfamily.WithContext` as `event.WithContext`   | `core/event`                | 🔥 High | 10 min | P0       |
-| 4   | Fix `middleware/circuit_breaker.go` dupl + varnamelen        | `middleware`                | Medium  | 30 min | P0       |
-| 5   | Add `art-dupl -t 50` to CI pipeline                          | `.github/workflows`         | High    | 15 min | P1       |
-| 6   | Add signing benchmarks (`benchmark_test.go`)                 | `signing`                   | Medium  | 30 min | P1       |
-| 7   | Add signing docs guide in `docs/`                            | `docs`                      | Medium  | 30 min | P1       |
-| 8   | Verify signing integration with storage read path            | `storage`                   | Medium  | 1 hr   | P1       |
-| 9   | Optimize Pebble LoadToTimestamp with iterator bounds         | `storage`                   | High    | 2 hr   | P1       |
-| 10  | Run `go mod tidy` in catalog/ + `go work sync`               | `catalog`                   | Medium  | 10 min | P2       |
-| 11  | Add `go vet ./...` to pre-commit / CI                        | CI                          | Medium  | 10 min | P2       |
-| 12  | Split `decider_test.go` (~1200L)                             | `core/decider`              | Low     | 1 hr   | P2       |
-| 13  | Split `runner_test.go` (~1057L)                              | `core/event`                | Low     | 1 hr   | P2       |
-| 14  | Split `outbox_publisher_test.go` (617L)                      | `core/event`                | Low     | 1 hr   | P2       |
-| 15  | Split `outbox_test.go` (471L)                                | `storage`                   | Low     | 30 min | P2       |
-| 16  | Add fuzz tests for event creation / ID parsing               | `core/event`, `core/pkg/id` | Medium  | 2 hr   | P2       |
-| 17  | Add BDD tests for value types (Version, SchemaVersion, etc.) | `core/event`                | Low     | 1 hr   | P3       |
-| 18  | Parallelize CI matrix (one job per module)                   | `.github/workflows`         | High    | 1 hr   | P3       |
-| 19  | Add performance regression CI (benchmark comparison)         | `.github/workflows`         | Medium  | 1 hr   | P3       |
-| 20  | Add key rotation support to signing module                   | `signing`                   | High    | 3 hr   | P3       |
-| 21  | Build catch-up projection runner                             | `projection`                | High    | 3 hr   | P3       |
-| 22  | Add background polling for InMemoryRunner                    | `projection`                | Medium  | 2 hr   | P3       |
-| 23  | Add projection parallel processing (goroutine pool)          | `projection`                | Medium  | 2 hr   | P4       |
-| 24  | Rewrite example/user/ with full CQRS stack                   | `example/user`              | Medium  | 3 hr   | P4       |
-| 25  | Add `goexperiment` build tag tests to CI                     | CI                          | Low     | 30 min | P4       |
+| #  | Task                                                         | Module                      | Impact  | Effort | Priority |
+| -- | ------------------------------------------------------------ | --------------------------- | ------- | ------ | -------- |
+| 1  | Migrate core/event `fmt.Errorf` wraps to structured          | `core/event`                | 🔥 High | 1 hr   | P0       |
+| 2  | Migrate saga `fmt.Errorf` wraps to structured                | `saga`                      | 🔥 High | 45 min | P0       |
+| 3  | Re-export `errorfamily.WithContext` as `event.WithContext`   | `core/event`                | 🔥 High | 10 min | P0       |
+| 4  | Fix `middleware/circuit_breaker.go` dupl + varnamelen        | `middleware`                | Medium  | 30 min | P0       |
+| 5  | Add `art-dupl -t 50` to CI pipeline                          | `.github/workflows`         | High    | 15 min | P1       |
+| 6  | Add signing benchmarks (`benchmark_test.go`)                 | `signing`                   | Medium  | 30 min | P1       |
+| 7  | Add signing docs guide in `docs/`                            | `docs`                      | Medium  | 30 min | P1       |
+| 8  | Verify signing integration with storage read path            | `storage`                   | Medium  | 1 hr   | P1       |
+| 9  | Optimize Pebble LoadToTimestamp with iterator bounds         | `storage`                   | High    | 2 hr   | P1       |
+| 10 | Run `go mod tidy` in catalog/ + `go work sync`               | `catalog`                   | Medium  | 10 min | P2       |
+| 11 | Add `go vet ./...` to pre-commit / CI                        | CI                          | Medium  | 10 min | P2       |
+| 12 | Split `decider_test.go` (~1200L)                             | `core/decider`              | Low     | 1 hr   | P2       |
+| 13 | Split `runner_test.go` (~1057L)                              | `core/event`                | Low     | 1 hr   | P2       |
+| 14 | Split `outbox_publisher_test.go` (617L)                      | `core/event`                | Low     | 1 hr   | P2       |
+| 15 | Split `outbox_test.go` (471L)                                | `storage`                   | Low     | 30 min | P2       |
+| 16 | Add fuzz tests for event creation / ID parsing               | `core/event`, `core/pkg/id` | Medium  | 2 hr   | P2       |
+| 17 | Add BDD tests for value types (Version, SchemaVersion, etc.) | `core/event`                | Low     | 1 hr   | P3       |
+| 18 | Parallelize CI matrix (one job per module)                   | `.github/workflows`         | High    | 1 hr   | P3       |
+| 19 | Add performance regression CI (benchmark comparison)         | `.github/workflows`         | Medium  | 1 hr   | P3       |
+| 20 | Add key rotation support to signing module                   | `signing`                   | High    | 3 hr   | P3       |
+| 21 | Build catch-up projection runner                             | `projection`                | High    | 3 hr   | P3       |
+| 22 | Add background polling for InMemoryRunner                    | `projection`                | Medium  | 2 hr   | P3       |
+| 23 | Add projection parallel processing (goroutine pool)          | `projection`                | Medium  | 2 hr   | P4       |
+| 24 | Rewrite example/user/ with full CQRS stack                   | `example/user`              | Medium  | 3 hr   | P4       |
+| 25 | Add `goexperiment` build tag tests to CI                     | CI                          | Low     | 30 min | P4       |
 
 ---
 

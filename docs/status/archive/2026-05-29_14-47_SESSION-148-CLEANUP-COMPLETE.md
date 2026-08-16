@@ -198,53 +198,53 @@ The main remaining issues are: stale LSP cache (~140 phantom errors), one empty 
 
 ### P0 — Must Do Now (Build/Trust)
 
-| #   | Task                                                                   | Impact        | Effort |
-| --- | ---------------------------------------------------------------------- | ------------- | ------ |
-| 1   | Fix gopls cache (restart LSP, clear module cache)                      | 🔴 DX blocked | 5min   |
-| 2   | Commit remaining `docs/modularization/PROPOSAL.md` change              | 🔴 Dirty tree | 1min   |
-| 3   | Update CHANGELOG.md with sessions 138–148 work                         | 🟡 Stale docs | 30min  |
-| 4   | Fix stale `stream` references in listing/README.md, FEATURES.md, docs/ | 🟡 Confusion  | 15min  |
+| # | Task                                                                   | Impact        | Effort |
+| - | ---------------------------------------------------------------------- | ------------- | ------ |
+| 1 | Fix gopls cache (restart LSP, clear module cache)                      | 🔴 DX blocked | 5min   |
+| 2 | Commit remaining `docs/modularization/PROPOSAL.md` change              | 🔴 Dirty tree | 1min   |
+| 3 | Update CHANGELOG.md with sessions 138–148 work                         | 🟡 Stale docs | 30min  |
+| 4 | Fix stale `stream` references in listing/README.md, FEATURES.md, docs/ | 🟡 Confusion  | 15min  |
 
 ### P1 — Should Do Soon (Completeness)
 
-| #   | Task                                                                  | Impact               | Effort |
-| --- | --------------------------------------------------------------------- | -------------------- | ------ |
-| 5   | Add Pebble CheckpointStore implementation                             | 🟡 Feature parity    | 2h     |
-| 6   | Add Pebble SnapshotStore implementation                               | 🟡 Feature parity    | 2h     |
-| 7   | Create ROADMAP.md with v1.0.0 milestone criteria                      | 🟡 Strategic clarity | 1h     |
-| 8   | Add `example/user/` smoke test (compiles + basic flow)                | 🟡 Safety net        | 1h     |
-| 9   | Rewrite `example/user/` to use current API (AggregateRef, Checkpoint) | 🟡 Correctness       | 2h     |
-| 10  | Verify flake.nix and ci.yml reflect current module list (22 modules)  | 🟡 CI correctness    | 30min  |
+| #  | Task                                                                  | Impact               | Effort |
+| -- | --------------------------------------------------------------------- | -------------------- | ------ |
+| 5  | Add Pebble CheckpointStore implementation                             | 🟡 Feature parity    | 2h     |
+| 6  | Add Pebble SnapshotStore implementation                               | 🟡 Feature parity    | 2h     |
+| 7  | Create ROADMAP.md with v1.0.0 milestone criteria                      | 🟡 Strategic clarity | 1h     |
+| 8  | Add `example/user/` smoke test (compiles + basic flow)                | 🟡 Safety net        | 1h     |
+| 9  | Rewrite `example/user/` to use current API (AggregateRef, Checkpoint) | 🟡 Correctness       | 2h     |
+| 10 | Verify flake.nix and ci.yml reflect current module list (22 modules)  | 🟡 CI correctness    | 30min  |
 
 ### P2 — Good to Have (Quality)
 
-| #   | Task                                                              | Impact             | Effort |
-| --- | ----------------------------------------------------------------- | ------------------ | ------ |
-| 11  | Add fuzz tests for ID parsing (ulid round-trip)                   | 🟢 Robustness      | 2h     |
-| 12  | Add fuzz tests for event creation + metadata                      | 🟢 Robustness      | 2h     |
-| 13  | Split `decider_test.go` (~1200L) into focused files               | 🟢 Maintainability | 1h     |
-| 14  | Split `runner_test.go` (~1057L) into focused files                | 🟢 Maintainability | 1h     |
-| 15  | Add gofumpt + goimports to CI/pre-commit                          | 🟢 Code quality    | 30min  |
-| 16  | Update `docs/modularization/PROPOSAL.md` to reflect current state | 🟢 Doc accuracy    | 1h     |
+| #  | Task                                                              | Impact             | Effort |
+| -- | ----------------------------------------------------------------- | ------------------ | ------ |
+| 11 | Add fuzz tests for ID parsing (ulid round-trip)                   | 🟢 Robustness      | 2h     |
+| 12 | Add fuzz tests for event creation + metadata                      | 🟢 Robustness      | 2h     |
+| 13 | Split `decider_test.go` (~1200L) into focused files               | 🟢 Maintainability | 1h     |
+| 14 | Split `runner_test.go` (~1057L) into focused files                | 🟢 Maintainability | 1h     |
+| 15 | Add gofumpt + goimports to CI/pre-commit                          | 🟢 Code quality    | 30min  |
+| 16 | Update `docs/modularization/PROPOSAL.md` to reflect current state | 🟢 Doc accuracy    | 1h     |
 
 ### P3 — When Time Permits (Polish)
 
-| #   | Task                                                    | Impact                 | Effort |
-| --- | ------------------------------------------------------- | ---------------------- | ------ |
-| 17  | Benchmark storage backends (memory vs pebble vs SQLite) | 🔵 Performance insight | 3h     |
-| 18  | Add performance regression detection to CI              | 🔵 Safety net          | 2h     |
-| 19  | Add listing module integration tests                    | 🔵 Coverage            | 2h     |
-| 20  | Add listing SQL reader implementation                   | 🔵 Feature             | 4h     |
-| 21  | Parallelize CI matrix (per-module jobs)                 | 🔵 Speed               | 2h     |
+| #  | Task                                                    | Impact                 | Effort |
+| -- | ------------------------------------------------------- | ---------------------- | ------ |
+| 17 | Benchmark storage backends (memory vs pebble vs SQLite) | 🔵 Performance insight | 3h     |
+| 18 | Add performance regression detection to CI              | 🔵 Safety net          | 2h     |
+| 19 | Add listing module integration tests                    | 🔵 Coverage            | 2h     |
+| 20 | Add listing SQL reader implementation                   | 🔵 Feature             | 4h     |
+| 21 | Parallelize CI matrix (per-module jobs)                 | 🔵 Speed               | 2h     |
 
 ### P4 — Future (Strategic)
 
-| #   | Task                                                               | Impact            | Effort |
-| --- | ------------------------------------------------------------------ | ----------------- | ------ |
-| 22  | Remove `replace` directives (push v1.0.0 tags)                     | ⚪ Publishable    | 4h     |
-| 23  | Pebble OutboxStore + Journal implementation                        | ⚪ Feature parity | 4h     |
-| 24  | Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination | ⚪ Coverage       | 3h     |
-| 25  | Create public documentation site (catalog/docserver output)        | ⚪ Adoption       | 8h     |
+| #  | Task                                                               | Impact            | Effort |
+| -- | ------------------------------------------------------------------ | ----------------- | ------ |
+| 22 | Remove `replace` directives (push v1.0.0 tags)                     | ⚪ Publishable    | 4h     |
+| 23 | Pebble OutboxStore + Journal implementation                        | ⚪ Feature parity | 4h     |
+| 24 | Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination | ⚪ Coverage       | 3h     |
+| 25 | Create public documentation site (catalog/docserver output)        | ⚪ Adoption       | 8h     |
 
 ---
 
@@ -331,30 +331,30 @@ b7b6c94 docs: update AGENTS.md and FEATURES.md with current module inventory
 
 ## Module Inventory
 
-| Module                 | Type           | Status                                     |
-| ---------------------- | -------------- | ------------------------------------------ |
-| `core`                 | Library        | ✅ Production (6 sub-packages)             |
-| `memory`               | Library (test) | ✅ Complete                                |
-| `catalog`              | Library        | ✅ Production (7 sub-packages)             |
-| `middleware`           | Library        | ✅ Production                              |
-| `testhelpers`          | Library (test) | ✅ Complete                                |
-| `integration`          | Test suite     | ✅ Complete                                |
-| `storage`              | Library        | ✅ Production                              |
-| `projection`           | Library        | ✅ Production                              |
-| `signing`              | Library        | ✅ Production (2 packages)                 |
-| `otel`                 | Library        | ✅ Production                              |
-| `watermill`            | Library        | ✅ Production                              |
+| Module                 | Type           | Status                                    |
+| ---------------------- | -------------- | ----------------------------------------- |
+| `core`                 | Library        | ✅ Production (6 sub-packages)            |
+| `memory`               | Library (test) | ✅ Complete                               |
+| `catalog`              | Library        | ✅ Production (7 sub-packages)            |
+| `middleware`           | Library        | ✅ Production                             |
+| `testhelpers`          | Library (test) | ✅ Complete                               |
+| `integration`          | Test suite     | ✅ Complete                               |
+| `storage`              | Library        | ✅ Production                             |
+| `projection`           | Library        | ✅ Production                             |
+| `signing`              | Library        | ✅ Production (2 packages)                |
+| `otel`                 | Library        | ✅ Production                             |
+| `watermill`            | Library        | ✅ Production                             |
 | `pebble`               | Library        | ⚠️ Partial (missing checkpoints/snapshots) |
-| `codec`                | Library        | ✅ Complete                                |
-| `listing`              | Library        | ✅ Production                              |
-| `turso`                | Library        | ✅ Production                              |
+| `codec`                | Library        | ✅ Complete                               |
+| `listing`              | Library        | ✅ Production                             |
+| `turso`                | Library        | ✅ Production                             |
 | `cmd/cqrs-gen`         | Tool           | ⚠️ 70.8% coverage                          |
-| `example/projection`   | Example        | ✅ Working                                 |
-| `example/saga-pattern` | Example        | ✅ Working                                 |
-| `example/storage`      | Example        | ✅ Working                                 |
-| `example/todo`         | Example        | ✅ Working                                 |
+| `example/projection`   | Example        | ✅ Working                                |
+| `example/saga-pattern` | Example        | ✅ Working                                |
+| `example/storage`      | Example        | ✅ Working                                |
+| `example/todo`         | Example        | ✅ Working                                |
 | `example/user`         | Example        | ⚠️ Stale API                               |
-| `example/listing`      | Example        | ✅ Working                                 |
+| `example/listing`      | Example        | ✅ Working                                |
 
 ---
 

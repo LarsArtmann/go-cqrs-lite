@@ -113,15 +113,15 @@ Further splitting is possible but diminishing returns — many of these are tabl
 
 ### Architecture Improvements (Deferred from Session 8)
 
-| #   | Item                                                        | Impact | Effort | Breaking? |
-| --- | ----------------------------------------------------------- | ------ | ------ | --------- |
-| 1   | Generic `query.Handler[T]` instead of `any` return          | High   | Medium | Yes       |
-| 2   | Split `event.Store` god interface → `Writer/Reader/Deleter` | High   | Medium | Yes       |
-| 3   | `event.NewEvent` takes `event.Version` not `int`            | Medium | Low    | Yes       |
-| 4   | Generic `aggregate.Apply[T]` with codec integration         | Medium | Medium | Yes       |
-| 5   | Shared `MessageType` interface across command/query/event   | Medium | Low    | Yes       |
-| 6   | `FromEventBus` adapter in catalog/adapters                  | Low    | Low    | No        |
-| 7   | Replace `map[string]any` with typed structs in asyncapi     | Low    | Low    | No        |
+| # | Item                                                        | Impact | Effort | Breaking? |
+| - | ----------------------------------------------------------- | ------ | ------ | --------- |
+| 1 | Generic `query.Handler[T]` instead of `any` return          | High   | Medium | Yes       |
+| 2 | Split `event.Store` god interface → `Writer/Reader/Deleter` | High   | Medium | Yes       |
+| 3 | `event.NewEvent` takes `event.Version` not `int`            | Medium | Low    | Yes       |
+| 4 | Generic `aggregate.Apply[T]` with codec integration         | Medium | Medium | Yes       |
+| 5 | Shared `MessageType` interface across command/query/event   | Medium | Low    | Yes       |
+| 6 | `FromEventBus` adapter in catalog/adapters                  | Low    | Low    | No        |
+| 7 | Replace `map[string]any` with typed structs in asyncapi     | Low    | Low    | No        |
 
 ### Planned Modules (Phases 5-8)
 
@@ -190,48 +190,48 @@ All tests pass with `-race`. Zero lint. Clean build. All commits pushed. Working
 
 ### Immediate (low effort, high impact)
 
-| #   | Task                                                                           | Effort | Impact                   |
-| --- | ------------------------------------------------------------------------------ | ------ | ------------------------ |
-| 1   | Split `cattest/helpers.go` (305 lines → ~200 + ~100)                           | 15min  | File size compliance     |
-| 2   | Refactor `event.NewEvent` (66 lines → 2-3 functions)                           | 20min  | Function size compliance |
-| 3   | Refactor `asyncapi.addMessage` (54 lines → 2 functions)                        | 15min  | Function size compliance |
-| 4   | Refactor `eventcatalog.writeService` (47 lines → extract frontmatter building) | 15min  | Function size compliance |
-| 5   | Refactor `eventcatalog.writeLLMsTxt` (50 lines → per-section helpers)          | 15min  | Function size compliance |
-| 6   | Add `FromEventBus` adapter in `catalog/adapters`                               | 20min  | Feature parity           |
-| 7   | Add `EventRetry` tests (shares logic with `CommandRetry` but untested)         | 20min  | Coverage gap             |
+| # | Task                                                                           | Effort | Impact                   |
+| - | ------------------------------------------------------------------------------ | ------ | ------------------------ |
+| 1 | Split `cattest/helpers.go` (305 lines → ~200 + ~100)                           | 15min  | File size compliance     |
+| 2 | Refactor `event.NewEvent` (66 lines → 2-3 functions)                           | 20min  | Function size compliance |
+| 3 | Refactor `asyncapi.addMessage` (54 lines → 2 functions)                        | 15min  | Function size compliance |
+| 4 | Refactor `eventcatalog.writeService` (47 lines → extract frontmatter building) | 15min  | Function size compliance |
+| 5 | Refactor `eventcatalog.writeLLMsTxt` (50 lines → per-section helpers)          | 15min  | Function size compliance |
+| 6 | Add `FromEventBus` adapter in `catalog/adapters`                               | 20min  | Feature parity           |
+| 7 | Add `EventRetry` tests (shares logic with `CommandRetry` but untested)         | 20min  | Coverage gap             |
 
 ### Strategic (higher effort, high impact)
 
-| #   | Task                                                             | Effort   | Impact                |
-| --- | ---------------------------------------------------------------- | -------- | --------------------- |
-| 8   | Design `storage/` module with SQL event store (sqlc + pgx)       | 2-3 days | Unblocks Phases 6-8   |
-| 9   | Generic `query.Handler[T]` — eliminate `any` return type         | 1 day    | Type safety           |
-| 10  | Split `event.Store` → `Writer/Reader/Deleter` interfaces         | 1 day    | Interface segregation |
-| 11  | Integration test: command → aggregate → event → bus → projection | 3-4h     | Confidence            |
-| 12  | Working example app (user CRUD with event sourcing)              | 4-6h     | Documentation         |
-| 13  | Add OpenTelemetry spans to dispatchers                           | 2-3h     | Observability         |
-| 14  | `event.NewEvent` takes `event.Version` instead of `int`          | 1h       | Type safety           |
+| #  | Task                                                             | Effort   | Impact                |
+| -- | ---------------------------------------------------------------- | -------- | --------------------- |
+| 8  | Design `storage/` module with SQL event store (sqlc + pgx)       | 2-3 days | Unblocks Phases 6-8   |
+| 9  | Generic `query.Handler[T]` — eliminate `any` return type         | 1 day    | Type safety           |
+| 10 | Split `event.Store` → `Writer/Reader/Deleter` interfaces         | 1 day    | Interface segregation |
+| 11 | Integration test: command → aggregate → event → bus → projection | 3-4h     | Confidence            |
+| 12 | Working example app (user CRUD with event sourcing)              | 4-6h     | Documentation         |
+| 13 | Add OpenTelemetry spans to dispatchers                           | 2-3h     | Observability         |
+| 14 | `event.NewEvent` takes `event.Version` instead of `int`          | 1h       | Type safety           |
 
 ### Test Quality
 
-| #   | Task                                                             | Effort | Impact       |
-| --- | ---------------------------------------------------------------- | ------ | ------------ |
-| 15  | Split `id_test.go` (911 lines) into focused files                | 30min  | Organization |
-| 16  | Split `dispatcher_test.go` (597 lines) into Base + Catalog tests | 20min  | Organization |
-| 17  | Split `asyncapi/exporter_test.go` (470 lines)                    | 20min  | Organization |
-| 18  | Add `core/event/internal/evtest` tests (currently 0%)            | 1h     | Coverage     |
-| 19  | Add fuzz tests for `id.Parse` and `id.Of[T]`                     | 1h     | Robustness   |
+| #  | Task                                                             | Effort | Impact       |
+| -- | ---------------------------------------------------------------- | ------ | ------------ |
+| 15 | Split `id_test.go` (911 lines) into focused files                | 30min  | Organization |
+| 16 | Split `dispatcher_test.go` (597 lines) into Base + Catalog tests | 20min  | Organization |
+| 17 | Split `asyncapi/exporter_test.go` (470 lines)                    | 20min  | Organization |
+| 18 | Add `core/event/internal/evtest` tests (currently 0%)            | 1h     | Coverage     |
+| 19 | Add fuzz tests for `id.Parse` and `id.Of[T]`                     | 1h     | Robustness   |
 
 ### Infrastructure
 
-| #   | Task                                                     | Effort | Impact            |
-| --- | -------------------------------------------------------- | ------ | ----------------- |
-| 20  | Add `CONTRIBUTING.md` with multi-module workflow         | 30min  | Onboarding        |
-| 21  | Add release workflow (goreleaser or manual tagging)      | 1-2h   | Release readiness |
-| 22  | Add dependabot/renovate for dependency updates           | 30min  | Security          |
-| 23  | CI: add coverage report upload (codecov/coveralls)       | 30min  | Visibility        |
-| 24  | Add `Makefile` or `justfile` wrapper around nix commands | 1h     | DX                |
-| 25  | Tag v0.1.0 release                                       | 15min  | Milestone         |
+| #  | Task                                                     | Effort | Impact            |
+| -- | -------------------------------------------------------- | ------ | ----------------- |
+| 20 | Add `CONTRIBUTING.md` with multi-module workflow         | 30min  | Onboarding        |
+| 21 | Add release workflow (goreleaser or manual tagging)      | 1-2h   | Release readiness |
+| 22 | Add dependabot/renovate for dependency updates           | 30min  | Security          |
+| 23 | CI: add coverage report upload (codecov/coveralls)       | 30min  | Visibility        |
+| 24 | Add `Makefile` or `justfile` wrapper around nix commands | 1h     | DX                |
+| 25 | Tag v0.1.0 release                                       | 15min  | Milestone         |
 
 ---
 

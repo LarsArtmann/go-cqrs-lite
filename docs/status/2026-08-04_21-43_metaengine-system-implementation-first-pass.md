@@ -270,93 +270,93 @@
 
 ### Critical Path (blocks everything)
 
-| #   | Task                                                                      | Impact   | Effort |
-| --- | ------------------------------------------------------------------------- | -------- | ------ |
-| 1   | Fix Memory engine RunInTx to hold lock during transaction                 | Critical | 15min  |
-| 2   | Add event ID to stream journal entries (fix ReadFrom O(N) scan)           | Critical | 30min  |
-| 3   | Wire projections: import projectionadapter, register projections on host  | Critical | 60min  |
-| 4   | Test projection flow end-to-end (command → event → projection updated)    | Critical | 30min  |
-| 5   | Add event bus (GoChannel) to System constructor                           | High     | 45min  |
-| 6   | Wire bus as publisher to decider.Repository (events published after Save) | High     | 15min  |
+| # | Task                                                                      | Impact   | Effort |
+| - | ------------------------------------------------------------------------- | -------- | ------ |
+| 1 | Fix Memory engine RunInTx to hold lock during transaction                 | Critical | 15min  |
+| 2 | Add event ID to stream journal entries (fix ReadFrom O(N) scan)           | Critical | 30min  |
+| 3 | Wire projections: import projectionadapter, register projections on host  | Critical | 60min  |
+| 4 | Test projection flow end-to-end (command → event → projection updated)    | Critical | 30min  |
+| 5 | Add event bus (GoChannel) to System constructor                           | High     | 45min  |
+| 6 | Wire bus as publisher to decider.Repository (events published after Save) | High     | 15min  |
 
 ### SQLite Engine (M14 — production critical)
 
-| #   | Task                                                            | Impact | Effort |
-| --- | --------------------------------------------------------------- | ------ | ------ |
-| 7   | Design SQL schema for stream-keyed append-only log table        | High   | 30min  |
-| 8   | Implement StreamAppend on SQLite engine                         | High   | 45min  |
-| 9   | Implement StreamRead on SQLite engine                           | High   | 30min  |
-| 10  | Implement StreamVersion on SQLite engine                        | High   | 15min  |
-| 11  | Implement JournalReadAll + JournalReadFrom on SQLite            | High   | 45min  |
-| 12  | Add StreamLogBackend compile-time assertion on sqliteEngine     | Medium | 5min   |
-| 13  | Write SQLite StreamLogBackend roundtrip test                    | High   | 30min  |
-| 14  | Write SQLite crash recovery test (save → close → reopen → load) | High   | 30min  |
+| #  | Task                                                            | Impact | Effort |
+| -- | --------------------------------------------------------------- | ------ | ------ |
+| 7  | Design SQL schema for stream-keyed append-only log table        | High   | 30min  |
+| 8  | Implement StreamAppend on SQLite engine                         | High   | 45min  |
+| 9  | Implement StreamRead on SQLite engine                           | High   | 30min  |
+| 10 | Implement StreamVersion on SQLite engine                        | High   | 15min  |
+| 11 | Implement JournalReadAll + JournalReadFrom on SQLite            | High   | 45min  |
+| 12 | Add StreamLogBackend compile-time assertion on sqliteEngine     | Medium | 5min   |
+| 13 | Write SQLite StreamLogBackend roundtrip test                    | High   | 30min  |
+| 14 | Write SQLite crash recovery test (save → close → reopen → load) | High   | 30min  |
 
 ### Test Coverage (all the untested code)
 
-| #   | Task                                                                     | Impact | Effort |
-| --- | ------------------------------------------------------------------------ | ------ | ------ |
-| 15  | Test RegisterQuery + DispatchQuery roundtrip                             | High   | 15min  |
-| 16  | Test driver registry (RegisterDriver, lookup, unknown driver error)      | Medium | 15min  |
-| 17  | Test CachedEventStore (hit, miss, eviction)                              | Medium | 20min  |
-| 18  | Test SnapshotBackend (save, load, loadAtVersion, delete)                 | Medium | 15min  |
-| 19  | Test scream store rules (volatile source-of-truth, durability downgrade) | Medium | 20min  |
-| 20  | Test introspection API (Snapshot returns correct topology)               | Medium | 20min  |
-| 21  | Test multi-decider (two stream types on same System)                     | Medium | 20min  |
-| 22  | Test concurrent command dispatch (race detector)                         | High   | 30min  |
-| 23  | Test config loader (env var override)                                    | Low    | 10min  |
-| 24  | Write Example_* test function showing full consumer usage                | Medium | 20min  |
+| #  | Task                                                                     | Impact | Effort |
+| -- | ------------------------------------------------------------------------ | ------ | ------ |
+| 15 | Test RegisterQuery + DispatchQuery roundtrip                             | High   | 15min  |
+| 16 | Test driver registry (RegisterDriver, lookup, unknown driver error)      | Medium | 15min  |
+| 17 | Test CachedEventStore (hit, miss, eviction)                              | Medium | 20min  |
+| 18 | Test SnapshotBackend (save, load, loadAtVersion, delete)                 | Medium | 15min  |
+| 19 | Test scream store rules (volatile source-of-truth, durability downgrade) | Medium | 20min  |
+| 20 | Test introspection API (Snapshot returns correct topology)               | Medium | 20min  |
+| 21 | Test multi-decider (two stream types on same System)                     | Medium | 20min  |
+| 22 | Test concurrent command dispatch (race detector)                         | High   | 30min  |
+| 23 | Test config loader (env var override)                                    | Low    | 10min  |
+| 24 | Write Example_* test function showing full consumer usage                | Medium | 20min  |
 
 ### Code Quality
 
-| #   | Task                                                           | Impact | Effort |
-| --- | -------------------------------------------------------------- | ------ | ------ |
-| 25  | Split system.go into config.go + system.go + routing.go        | Medium | 20min  |
-| 26  | Fix global snapshotStore → field on System or engine           | High   | 15min  |
-| 27  | Fix CacheStats to use O(1) counter instead of iterating Keys() | Low    | 10min  |
-| 28  | Add `_ = ctx` markers where context is accepted but unused     | Low    | 5min   |
-| 29  | Add godoc examples to all exported functions                   | Low    | 30min  |
-| 30  | Run `gofumpt -w` on all new files                              | Low    | 5min   |
+| #  | Task                                                           | Impact | Effort |
+| -- | -------------------------------------------------------------- | ------ | ------ |
+| 25 | Split system.go into config.go + system.go + routing.go        | Medium | 20min  |
+| 26 | Fix global snapshotStore → field on System or engine           | High   | 15min  |
+| 27 | Fix CacheStats to use O(1) counter instead of iterating Keys() | Low    | 10min  |
+| 28 | Add `_ = ctx` markers where context is accepted but unused     | Low    | 5min   |
+| 29 | Add godoc examples to all exported functions                   | Low    | 30min  |
+| 30 | Run `gofumpt -w` on all new files                              | Low    | 5min   |
 
 ### Adapters
 
-| #   | Task                                                          | Impact | Effort |
-| --- | ------------------------------------------------------------- | ------ | ------ |
-| 31  | Implement CommandAdapter (command.Store on StreamLogBackend)  | Medium | 30min  |
-| 32  | Implement QueryAdapter (query.QueryStore on StreamLogBackend) | Medium | 30min  |
-| 33  | Wire CommandAdapter + QueryAdapter into System constructor    | Medium | 20min  |
+| #  | Task                                                          | Impact | Effort |
+| -- | ------------------------------------------------------------- | ------ | ------ |
+| 31 | Implement CommandAdapter (command.Store on StreamLogBackend)  | Medium | 30min  |
+| 32 | Implement QueryAdapter (query.QueryStore on StreamLogBackend) | Medium | 30min  |
+| 33 | Wire CommandAdapter + QueryAdapter into System constructor    | Medium | 20min  |
 
 ### Multi-Bus
 
-| #   | Task                                                             | Impact | Effort |
-| --- | ---------------------------------------------------------------- | ------ | ------ |
-| 34  | Implement MultiBus type (fan-out Publish to N buses)             | Medium | 30min  |
-| 35  | Register GoChannel bus driver                                    | Medium | 15min  |
-| 36  | Wire MultiBus into System (per InstanceConfig.Publish/Subscribe) | Medium | 30min  |
-| 37  | Test multi-bus publish + subscribe                               | Medium | 20min  |
+| #  | Task                                                             | Impact | Effort |
+| -- | ---------------------------------------------------------------- | ------ | ------ |
+| 34 | Implement MultiBus type (fan-out Publish to N buses)             | Medium | 30min  |
+| 35 | Register GoChannel bus driver                                    | Medium | 15min  |
+| 36 | Wire MultiBus into System (per InstanceConfig.Publish/Subscribe) | Medium | 30min  |
+| 37 | Test multi-bus publish + subscribe                               | Medium | 20min  |
 
 ### Scream Store
 
-| #   | Task                                                   | Impact | Effort |
-| --- | ------------------------------------------------------ | ------ | ------ |
-| 38  | Implement PlanDiff (compare two SerializablePlans)     | Medium | 45min  |
-| 39  | Implement PlanFingerprint (canonical hash)             | Medium | 20min  |
-| 40  | Implement pinned manifest (persist SerializablePlan)   | Medium | 30min  |
-| 41  | Implement full safety rules table from design doc §9.4 | Medium | 30min  |
-| 42  | Test SCREAM-tier blocks startup                        | Medium | 20min  |
+| #  | Task                                                   | Impact | Effort |
+| -- | ------------------------------------------------------ | ------ | ------ |
+| 38 | Implement PlanDiff (compare two SerializablePlans)     | Medium | 45min  |
+| 39 | Implement PlanFingerprint (canonical hash)             | Medium | 20min  |
+| 40 | Implement pinned manifest (persist SerializablePlan)   | Medium | 30min  |
+| 41 | Implement full safety rules table from design doc §9.4 | Medium | 30min  |
+| 42 | Test SCREAM-tier blocks startup                        | Medium | 20min  |
 
 ### Integration & Polish
 
-| #   | Task                                                               | Impact | Effort |
-| --- | ------------------------------------------------------------------ | ------ | ------ |
-| 43  | Add system/ to cmd/api-stability modules list                      | High   | 5min   |
-| 44  | Regenerate api-stability golden file                               | High   | 10min  |
-| 45  | Update AGENTS.md module list + test commands                       | High   | 15min  |
-| 46  | Wire cache tier into constructor (when Cache config present)       | Medium | 20min  |
-| 47  | Implement koanf YAML parsing (replace placeholder)                 | Medium | 30min  |
-| 48  | Migrate example/taskmanager to System (validate design end-to-end) | High   | 90min  |
-| 49  | Add system/ to cqrs-lint feature profile detection                 | Low    | 20min  |
-| 50  | Write system/ module README.md                                     | Low    | 30min  |
+| #  | Task                                                               | Impact | Effort |
+| -- | ------------------------------------------------------------------ | ------ | ------ |
+| 43 | Add system/ to cmd/api-stability modules list                      | High   | 5min   |
+| 44 | Regenerate api-stability golden file                               | High   | 10min  |
+| 45 | Update AGENTS.md module list + test commands                       | High   | 15min  |
+| 46 | Wire cache tier into constructor (when Cache config present)       | Medium | 20min  |
+| 47 | Implement koanf YAML parsing (replace placeholder)                 | Medium | 30min  |
+| 48 | Migrate example/taskmanager to System (validate design end-to-end) | High   | 90min  |
+| 49 | Add system/ to cqrs-lint feature profile detection                 | Low    | 20min  |
+| 50 | Write system/ module README.md                                     | Low    | 30min  |
 
 ---
 

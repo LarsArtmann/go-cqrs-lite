@@ -1,9 +1,9 @@
 # Session 109 — Comprehensive Status Report
 
-**Date:** 2026-05-27 03:14  
-**Branch:** master (9 commits ahead of origin)  
-**Commits This Session:** 3 (29efb13, 79fffc0, 01d5381)  
-**Commits Since Session 107:** 10 (62d2fcb..29efb13)  
+**Date:** 2026-05-27 03:14\
+**Branch:** master (9 commits ahead of origin)\
+**Commits This Session:** 3 (29efb13, 79fffc0, 01d5381)\
+**Commits Since Session 107:** 10 (62d2fcb..29efb13)\
 **Working Tree:** Clean
 
 ---
@@ -133,33 +133,33 @@ The project is in excellent shape. All core modules are production-quality with 
 
 ## F. Top 25 Things to Do Next
 
-| #   | Task                                                                | Module      | Impact                             | Effort | Dependency      |
-| --- | ------------------------------------------------------------------- | ----------- | ---------------------------------- | ------ | --------------- |
-| 1   | **Push v1.7.0 tags to remote** (all 13 modules)                     | CI/git      | 🔴 Unblocks external adoption      | 10 min | Git push access |
-| 2   | **Remove replace directives** from all go.mod files                 | all         | 🔴 Clean dependency graph          | 15 min | After #1        |
-| 3   | **Add `GOWORK=off` CI job** — per-module isolation test             | CI          | 🔴 Catch version drift             | 15 min | After #2        |
-| 4   | **Add PostgreSQL integration tests** with testcontainers            | storage     | 🟡 Primary target untested         | 2 hr   | Docker in CI    |
-| 5   | **Fix `core→memory` circular dependency** — extract test interfaces | core        | 🟡 Unblocks independent publishing | 1 hr   | Design decision |
-| 6   | **Add `Publish-side event middleware`**                             | core/event  | 🟡 Complete middleware story       | 1 hr   | None            |
-| 7   | **Fix `storage/dialect.go` `any` types**                            | storage     | 🟡 Code standards                  | 30 min | None            |
-| 8   | **Add example/projection** — projection runner demo                 | example     | 🟡 Consumer education              | 30 min | None            |
-| 9   | **Add example/storage** — SQLite event store demo                   | example     | 🟡 Consumer education              | 30 min | None            |
-| 10  | **Optimize Pebble LoadToTimestamp** — indexed lookup                | storage     | 🟢 Performance                     | 1 hr   | None            |
-| 11  | **Optimize projection filterEvents** — avoid O(n)                   | projection  | 🟢 Performance                     | 30 min | None            |
-| 12  | **Add benchmark suite** for storage module                          | storage     | 🟢 Performance visibility          | 1 hr   | None            |
-| 13  | **Add `slog.Warn` for corrupt Pebble IDs**                          | storage     | 🟢 Observability                   | 15 min | None            |
-| 14  | **Fix `FuzzParse` case-sensitivity**                                | core/pkg/id | 🟢 Correctness                     | 30 min | None            |
-| 15  | **Split `saga/saga_test.go`** (632 lines) into per-concern files    | saga        | 🟢 Maintainability                 | 20 min | None            |
-| 16  | **Add `PublishedAt` to `OutboxEntry`**                              | core/event  | 🟢 Observability                   | 30 min | None            |
-| 17  | **Make `time.Now()` injectable**                                    | core        | 🟢 Test determinism                | 1 hr   | Design decision |
-| 18  | **Add catalog diff/breaking-change detection**                      | catalog     | 🟢 API evolution                   | 2 hr   | None            |
-| 19  | **Add high-level test utilities** (AggregateTester, etc.)           | testhelpers | 🟢 Consumer DX                     | 2 hr   | None            |
-| 20  | **Add Turso integration test** (save→load→delete)                   | storage     | 🟢 Turso confidence                | 1 hr   | Turso account   |
-| 21  | **Add `EventRetry` middleware roundtrip test**                      | middleware  | 🟢 Already 100% but test quality   | 20 min | None            |
-| 22  | **Add `go.work sync` CI check**                                     | CI          | 🟢 Replace directive rot           | 15 min | None            |
-| 23  | **Add coverage tracking to CI workflow** (per-PR delta)             | CI          | 🟢 Visibility                      | 30 min | None            |
-| 24  | **Write migration guide: aggregate → decider**                      | docs        | 🟢 Consumer education              | 30 min | None            |
-| 25  | **Add API stability markers** (v1 stable vs v0 experimental)        | docs        | 🟢 Consumer confidence             | 30 min | Design decision |
+| #  | Task                                                                | Module      | Impact                             | Effort | Dependency      |
+| -- | ------------------------------------------------------------------- | ----------- | ---------------------------------- | ------ | --------------- |
+| 1  | **Push v1.7.0 tags to remote** (all 13 modules)                     | CI/git      | 🔴 Unblocks external adoption      | 10 min | Git push access |
+| 2  | **Remove replace directives** from all go.mod files                 | all         | 🔴 Clean dependency graph          | 15 min | After #1        |
+| 3  | **Add `GOWORK=off` CI job** — per-module isolation test             | CI          | 🔴 Catch version drift             | 15 min | After #2        |
+| 4  | **Add PostgreSQL integration tests** with testcontainers            | storage     | 🟡 Primary target untested         | 2 hr   | Docker in CI    |
+| 5  | **Fix `core→memory` circular dependency** — extract test interfaces | core        | 🟡 Unblocks independent publishing | 1 hr   | Design decision |
+| 6  | **Add `Publish-side event middleware`**                             | core/event  | 🟡 Complete middleware story       | 1 hr   | None            |
+| 7  | **Fix `storage/dialect.go` `any` types**                            | storage     | 🟡 Code standards                  | 30 min | None            |
+| 8  | **Add example/projection** — projection runner demo                 | example     | 🟡 Consumer education              | 30 min | None            |
+| 9  | **Add example/storage** — SQLite event store demo                   | example     | 🟡 Consumer education              | 30 min | None            |
+| 10 | **Optimize Pebble LoadToTimestamp** — indexed lookup                | storage     | 🟢 Performance                     | 1 hr   | None            |
+| 11 | **Optimize projection filterEvents** — avoid O(n)                   | projection  | 🟢 Performance                     | 30 min | None            |
+| 12 | **Add benchmark suite** for storage module                          | storage     | 🟢 Performance visibility          | 1 hr   | None            |
+| 13 | **Add `slog.Warn` for corrupt Pebble IDs**                          | storage     | 🟢 Observability                   | 15 min | None            |
+| 14 | **Fix `FuzzParse` case-sensitivity**                                | core/pkg/id | 🟢 Correctness                     | 30 min | None            |
+| 15 | **Split `saga/saga_test.go`** (632 lines) into per-concern files    | saga        | 🟢 Maintainability                 | 20 min | None            |
+| 16 | **Add `PublishedAt` to `OutboxEntry`**                              | core/event  | 🟢 Observability                   | 30 min | None            |
+| 17 | **Make `time.Now()` injectable**                                    | core        | 🟢 Test determinism                | 1 hr   | Design decision |
+| 18 | **Add catalog diff/breaking-change detection**                      | catalog     | 🟢 API evolution                   | 2 hr   | None            |
+| 19 | **Add high-level test utilities** (AggregateTester, etc.)           | testhelpers | 🟢 Consumer DX                     | 2 hr   | None            |
+| 20 | **Add Turso integration test** (save→load→delete)                   | storage     | 🟢 Turso confidence                | 1 hr   | Turso account   |
+| 21 | **Add `EventRetry` middleware roundtrip test**                      | middleware  | 🟢 Already 100% but test quality   | 20 min | None            |
+| 22 | **Add `go.work sync` CI check**                                     | CI          | 🟢 Replace directive rot           | 15 min | None            |
+| 23 | **Add coverage tracking to CI workflow** (per-PR delta)             | CI          | 🟢 Visibility                      | 30 min | None            |
+| 24 | **Write migration guide: aggregate → decider**                      | docs        | 🟢 Consumer education              | 30 min | None            |
+| 25 | **Add API stability markers** (v1 stable vs v0 experimental)        | docs        | 🟢 Consumer confidence             | 30 min | Design decision |
 
 ---
 

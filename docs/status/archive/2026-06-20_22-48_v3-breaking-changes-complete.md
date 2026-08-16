@@ -13,13 +13,13 @@ All five remaining v3 breaking changes are **implemented, tested, and committed*
 feature-complete; only the event-opts deep-copy remains as a minor v3 item.
 SSE has been moved to `transport/http/` and the wire format rewritten.
 
-| #   | Change                                                           | Commit     | Effort  | LOC delta  |
-| --- | ---------------------------------------------------------------- | ---------- | ------- | ---------- |
-| 1   | Break `command/query.Metadata = event.Metadata` alias (ADR-0031) | `318abb6e` | ~45 min | +120 / −40 |
-| 2   | Delete dead reactive-streams code (`event/reactive*.go`)         | `1a851c6a` | ~15 min | −343       |
-| 3   | Remove `io.Closer` from 9 core interfaces (ADR-0010)             | `8fee4d0f` | ~35 min | +40 / −25  |
-| 4   | Rename `Decider.Fold` → `Apply` (naming honesty)                 | `ca29a723` | ~25 min | mechanical |
-| 5   | Make `event.Event` a concrete type (`= *ImmutableEvent`)         | `5decab64` | ~40 min | −60        |
+| # | Change                                                           | Commit     | Effort  | LOC delta  |
+| - | ---------------------------------------------------------------- | ---------- | ------- | ---------- |
+| 1 | Break `command/query.Metadata = event.Metadata` alias (ADR-0031) | `318abb6e` | ~45 min | +120 / −40 |
+| 2 | Delete dead reactive-streams code (`event/reactive*.go`)         | `1a851c6a` | ~15 min | −343       |
+| 3 | Remove `io.Closer` from 9 core interfaces (ADR-0010)             | `8fee4d0f` | ~35 min | +40 / −25  |
+| 4 | Rename `Decider.Fold` → `Apply` (naming honesty)                 | `ca29a723` | ~25 min | mechanical |
+| 5 | Make `event.Event` a concrete type (`= *ImmutableEvent`)         | `5decab64` | ~40 min | −60        |
 
 **Pre-work:** committed two coherent dedup bases (`447b3ce9`, `3b59c128`) that
 extracted `id/idtest` + `query/querytest` MustParse\* helpers and migrated all

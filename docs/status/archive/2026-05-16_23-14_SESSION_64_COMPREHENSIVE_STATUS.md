@@ -26,33 +26,33 @@
 
 ### Session 63 — README Audit
 
-| #   | Item                        | Detail                                                                           |
-| --- | --------------------------- | -------------------------------------------------------------------------------- |
-| 1   | README.md Core Dependencies | Removed `cockroachdb/errors`, `go-json-experiment/json`; added `go-error-family` |
-| 2   | README "What It Does"       | Added Decider, Projections, Error Classification, Auto-documentation             |
-| 3   | README Installation         | Added projection module                                                          |
-| 4   | README Module Structure     | Added core/decider, projection, example/user with correct deps                   |
-| 5   | README Core Concepts        | Fixed `command.Base` → interface pattern; `aggregate.NewUser` → decider          |
-| 6   | README Events Example       | Added typed constructors (`event.Type`, `event.AggregateType`)                   |
-| 7   | README Strongly-Typed IDs   | Fixed `user_id.NewUserID()` → `id.NewAggregateID()`                              |
-| 8   | README Usage Example        | Fixed handler signature (`command.Command` not `*Core`)                          |
-| 9   | README Architecture Diagram | Added Aggregate, Decider, Projection; Infrastructure Layer                       |
-| 10  | README Event Builder        | Added `encoding/json`, typed constructors                                        |
-| 11  | README Project Status       | Added Decider, Projections, Storage phases                                       |
-| 12  | README References           | Fixed broken `HOW_TO_GOLANG.md` → `CONTEXT.md`                                   |
+| #  | Item                        | Detail                                                                           |
+| -- | --------------------------- | -------------------------------------------------------------------------------- |
+| 1  | README.md Core Dependencies | Removed `cockroachdb/errors`, `go-json-experiment/json`; added `go-error-family` |
+| 2  | README "What It Does"       | Added Decider, Projections, Error Classification, Auto-documentation             |
+| 3  | README Installation         | Added projection module                                                          |
+| 4  | README Module Structure     | Added core/decider, projection, example/user with correct deps                   |
+| 5  | README Core Concepts        | Fixed `command.Base` → interface pattern; `aggregate.NewUser` → decider          |
+| 6  | README Events Example       | Added typed constructors (`event.Type`, `event.AggregateType`)                   |
+| 7  | README Strongly-Typed IDs   | Fixed `user_id.NewUserID()` → `id.NewAggregateID()`                              |
+| 8  | README Usage Example        | Fixed handler signature (`command.Command` not `*Core`)                          |
+| 9  | README Architecture Diagram | Added Aggregate, Decider, Projection; Infrastructure Layer                       |
+| 10 | README Event Builder        | Added `encoding/json`, typed constructors                                        |
+| 11 | README Project Status       | Added Decider, Projections, Storage phases                                       |
+| 12 | README References           | Fixed broken `HOW_TO_GOLANG.md` → `CONTEXT.md`                                   |
 
 ### Session 64 — Critical Fixes
 
-| #   | Item                              | Detail                                                                                           |
-| --- | --------------------------------- | ------------------------------------------------------------------------------------------------ |
-| 13  | storage/go.mod replace directives | Added replace for core + memory (was missing, resolved published v1.1.0 without go-error-family) |
-| 14  | integration/go.mod deps           | Added projection + storage deps with replace directives                                          |
-| 15  | go mod tidy all modules           | Ran tidy in all 10 modules to sync indirect deps                                                 |
-| 16  | Golden test refresh               | Updated 3 golden files (asyncapi.yaml, eventcatalog-config.js, package.json)                     |
-| 17  | AGENTS.md dependencies            | Added go-error-family, updated ginkgo/gomega versions                                            |
-| 18  | AGENTS.md error pattern           | Replaced cockroachdb/errors wrapping with fmt.Errorf %w                                          |
-| 19  | AGENTS.md coverage table          | Updated to actual numbers, sorted by descending %                                                |
-| 20  | All 22 test packages pass         | From 3 failing → 0 failing                                                                       |
+| #  | Item                              | Detail                                                                                           |
+| -- | --------------------------------- | ------------------------------------------------------------------------------------------------ |
+| 13 | storage/go.mod replace directives | Added replace for core + memory (was missing, resolved published v1.1.0 without go-error-family) |
+| 14 | integration/go.mod deps           | Added projection + storage deps with replace directives                                          |
+| 15 | go mod tidy all modules           | Ran tidy in all 10 modules to sync indirect deps                                                 |
+| 16 | Golden test refresh               | Updated 3 golden files (asyncapi.yaml, eventcatalog-config.js, package.json)                     |
+| 17 | AGENTS.md dependencies            | Added go-error-family, updated ginkgo/gomega versions                                            |
+| 18 | AGENTS.md error pattern           | Replaced cockroachdb/errors wrapping with fmt.Errorf %w                                          |
+| 19 | AGENTS.md coverage table          | Updated to actual numbers, sorted by descending %                                                |
+| 20 | All 22 test packages pass         | From 3 failing → 0 failing                                                                       |
 
 ### Long-Standing Achievements (Sessions 1-62)
 
@@ -80,33 +80,33 @@
 
 ## B) PARTIALLY DONE ⚠️
 
-| #   | Item                     | Gap                                                                     | Impact              |
-| --- | ------------------------ | ----------------------------------------------------------------------- | ------------------- |
-| 1   | LSP Workspace Errors     | ~150 gopls errors from stale cache (not real compile errors)            | LOW — IDE usability |
-| 2   | Storage Coverage         | 85.1% (was 93.1% — dropped 8% after new SQLite/Pebble additions)        | MEDIUM              |
-| 3   | core/decider Coverage    | 92.7% (was 95.0%)                                                       | LOW                 |
-| 4   | core/event Coverage      | 93.9% (was 94.4%)                                                       | LOW                 |
-| 5   | Turso Connector Coverage | Several 0% functions (Push, Pull, Checkpoint, Stats, OpenTursoInMemory) | MEDIUM              |
-| 6   | Lint Warning             | gomodguard deprecated → should migrate to gomodguard_v2                 | LOW                 |
+| # | Item                     | Gap                                                                     | Impact              |
+| - | ------------------------ | ----------------------------------------------------------------------- | ------------------- |
+| 1 | LSP Workspace Errors     | ~150 gopls errors from stale cache (not real compile errors)            | LOW — IDE usability |
+| 2 | Storage Coverage         | 85.1% (was 93.1% — dropped 8% after new SQLite/Pebble additions)        | MEDIUM              |
+| 3 | core/decider Coverage    | 92.7% (was 95.0%)                                                       | LOW                 |
+| 4 | core/event Coverage      | 93.9% (was 94.4%)                                                       | LOW                 |
+| 5 | Turso Connector Coverage | Several 0% functions (Push, Pull, Checkpoint, Stats, OpenTursoInMemory) | MEDIUM              |
+| 6 | Lint Warning             | gomodguard deprecated → should migrate to gomodguard_v2                 | LOW                 |
 
 ---
 
 ## C) NOT STARTED ❌
 
-| #   | Item                               | Priority | Effort | Notes                                                    |
-| --- | ---------------------------------- | -------- | ------ | -------------------------------------------------------- |
-| 1   | Tag go-error-family v0.1.0         | HIGH     | 5min   | Currently v0.1.0 with local replace; needs published tag |
-| 2   | Storage coverage recovery (85→93%) | HIGH     | 3h     | Error paths in SQLite/Pebble/Turso                       |
-| 3   | Turso integration tests            | MEDIUM   | 2h     | OpenTursoSync, Push, Pull, Checkpoint untested           |
-| 4   | Pebble integration tests           | MEDIUM   | 2h     | Several 75-80% coverage functions                        |
-| 5   | SQLite init schema test            | LOW      | 30min  | `SQLiteInitSchema` is 0% covered                         |
-| 6   | Migrate gomodguard → gomodguard_v2 | LOW      | 15min  | Fix deprecation warning                                  |
-| 7   | Fix perfsprint lint issue          | LOW      | 5min   | `storage/helpers.go:342` fmt.Sprintf → concatenation     |
-| 8   | cattest internal package coverage  | LOW      | 1h     | 0% covered but only test helpers                         |
-| 9   | pkg.go.dev documentation           | MEDIUM   | 1h     | Generate and publish API docs                            |
-| 10  | CHANGELOG.md update                | LOW      | 30min  | Reflect all session 63-64 changes                        |
-| 11  | FEATURES.md update                 | LOW      | 30min  | Coverage numbers, storage status                         |
-| 12  | TODO_LIST.md review                | LOW      | 1h     | Verify items against current state                       |
+| #  | Item                               | Priority | Effort | Notes                                                    |
+| -- | ---------------------------------- | -------- | ------ | -------------------------------------------------------- |
+| 1  | Tag go-error-family v0.1.0         | HIGH     | 5min   | Currently v0.1.0 with local replace; needs published tag |
+| 2  | Storage coverage recovery (85→93%) | HIGH     | 3h     | Error paths in SQLite/Pebble/Turso                       |
+| 3  | Turso integration tests            | MEDIUM   | 2h     | OpenTursoSync, Push, Pull, Checkpoint untested           |
+| 4  | Pebble integration tests           | MEDIUM   | 2h     | Several 75-80% coverage functions                        |
+| 5  | SQLite init schema test            | LOW      | 30min  | `SQLiteInitSchema` is 0% covered                         |
+| 6  | Migrate gomodguard → gomodguard_v2 | LOW      | 15min  | Fix deprecation warning                                  |
+| 7  | Fix perfsprint lint issue          | LOW      | 5min   | `storage/helpers.go:342` fmt.Sprintf → concatenation     |
+| 8  | cattest internal package coverage  | LOW      | 1h     | 0% covered but only test helpers                         |
+| 9  | pkg.go.dev documentation           | MEDIUM   | 1h     | Generate and publish API docs                            |
+| 10 | CHANGELOG.md update                | LOW      | 30min  | Reflect all session 63-64 changes                        |
+| 11 | FEATURES.md update                 | LOW      | 30min  | Coverage numbers, storage status                         |
+| 12 | TODO_LIST.md review                | LOW      | 1h     | Verify items against current state                       |
 
 ---
 
@@ -148,33 +148,33 @@ The only "fucked up" thing was the **state we inherited**: 3 failing golden test
 
 Sorted by Impact × Effort (Pareto ranking):
 
-| #   | Item                                                          | Impact | Effort | Type     |
-| --- | ------------------------------------------------------------- | ------ | ------ | -------- |
-| 1   | Tag go-error-family v0.1.0 and publish                        | HIGH   | 5min   | Infra    |
-| 2   | Fix perfsprint lint in storage/helpers.go                     | LOW    | 2min   | Quality  |
-| 3   | Migrate gomodguard → gomodguard_v2 in .golangci.yml           | LOW    | 10min  | Quality  |
-| 4   | Storage coverage: add error path tests for SQLite             | HIGH   | 3h     | Testing  |
-| 5   | Storage coverage: add error path tests for Pebble             | HIGH   | 2h     | Testing  |
-| 6   | Turso connector: add integration tests or mock interface      | MEDIUM | 2h     | Testing  |
-| 7   | core/decider coverage recovery (92.7→95%)                     | MEDIUM | 1h     | Testing  |
-| 8   | core/event coverage recovery (93.9→95%)                       | MEDIUM | 1h     | Testing  |
-| 9   | Update CHANGELOG.md                                           | LOW    | 30min  | Docs     |
-| 10  | Update FEATURES.md coverage numbers                           | LOW    | 30min  | Docs     |
-| 11  | Review TODO_LIST.md for stale items                           | LOW    | 1h     | Docs     |
-| 12  | Generate pkg.go.dev API documentation                         | MEDIUM | 1h     | Docs     |
-| 13  | Remove local replace directives after go-error-family publish | HIGH   | 1h     | Infra    |
-| 14  | Add SQLiteInitSchema test                                     | LOW    | 30min  | Testing  |
-| 15  | Add SQLite Close() test (currently 0%)                        | LOW    | 15min  | Testing  |
-| 16  | Add example/user integration test                             | MEDIUM | 1h     | Testing  |
-| 17  | Review sync/ module for completeness                          | LOW    | 30min  | Review   |
-| 18  | Add Turso connector mock tests                                | MEDIUM | 1h     | Testing  |
-| 19  | Expand fuzzing tests                                          | LOW    | 2h     | Testing  |
-| 20  | Add more projection benchmarks                                | LOW    | 30min  | Testing  |
-| 21  | Review CONTRIBUTING.md accuracy                               | LOW    | 15min  | Docs     |
-| 22  | Review CODE_OF_CONDUCT.md                                     | LOW    | 5min   | Docs     |
-| 23  | Storage module: add Pebble error path tests                   | MEDIUM | 1h     | Testing  |
-| 24  | Module versioning audit (go.mod version consistency)          | LOW    | 30min  | Infra    |
-| 25  | Dependency audit (check for outdated/vulnerable deps)         | LOW    | 1h     | Security |
+| #  | Item                                                          | Impact | Effort | Type     |
+| -- | ------------------------------------------------------------- | ------ | ------ | -------- |
+| 1  | Tag go-error-family v0.1.0 and publish                        | HIGH   | 5min   | Infra    |
+| 2  | Fix perfsprint lint in storage/helpers.go                     | LOW    | 2min   | Quality  |
+| 3  | Migrate gomodguard → gomodguard_v2 in .golangci.yml           | LOW    | 10min  | Quality  |
+| 4  | Storage coverage: add error path tests for SQLite             | HIGH   | 3h     | Testing  |
+| 5  | Storage coverage: add error path tests for Pebble             | HIGH   | 2h     | Testing  |
+| 6  | Turso connector: add integration tests or mock interface      | MEDIUM | 2h     | Testing  |
+| 7  | core/decider coverage recovery (92.7→95%)                     | MEDIUM | 1h     | Testing  |
+| 8  | core/event coverage recovery (93.9→95%)                       | MEDIUM | 1h     | Testing  |
+| 9  | Update CHANGELOG.md                                           | LOW    | 30min  | Docs     |
+| 10 | Update FEATURES.md coverage numbers                           | LOW    | 30min  | Docs     |
+| 11 | Review TODO_LIST.md for stale items                           | LOW    | 1h     | Docs     |
+| 12 | Generate pkg.go.dev API documentation                         | MEDIUM | 1h     | Docs     |
+| 13 | Remove local replace directives after go-error-family publish | HIGH   | 1h     | Infra    |
+| 14 | Add SQLiteInitSchema test                                     | LOW    | 30min  | Testing  |
+| 15 | Add SQLite Close() test (currently 0%)                        | LOW    | 15min  | Testing  |
+| 16 | Add example/user integration test                             | MEDIUM | 1h     | Testing  |
+| 17 | Review sync/ module for completeness                          | LOW    | 30min  | Review   |
+| 18 | Add Turso connector mock tests                                | MEDIUM | 1h     | Testing  |
+| 19 | Expand fuzzing tests                                          | LOW    | 2h     | Testing  |
+| 20 | Add more projection benchmarks                                | LOW    | 30min  | Testing  |
+| 21 | Review CONTRIBUTING.md accuracy                               | LOW    | 15min  | Docs     |
+| 22 | Review CODE_OF_CONDUCT.md                                     | LOW    | 5min   | Docs     |
+| 23 | Storage module: add Pebble error path tests                   | MEDIUM | 1h     | Testing  |
+| 24 | Module versioning audit (go.mod version consistency)          | LOW    | 30min  | Infra    |
+| 25 | Dependency audit (check for outdated/vulnerable deps)         | LOW    | 1h     | Security |
 
 ---
 

@@ -35,7 +35,7 @@
 - **Middleware**: 8 concerns × 3 message types = 24 middleware factories (logging, retry, recovery, validation, metrics, OTel tracing, OTel metrics, circuit breaker)
 - **Event Signing**: HMAC-SHA256, Ed25519, multisig, middleware
 - **Storage Backends**: SQL (PostgreSQL/SQLite/Turso), Pebble KV, In-Memory
-- **Projection**: Runner (replay+live), HandlerRegistry, Builder with On[T](<>)
+- **Projection**: Runner (replay+live), HandlerRegistry, Builder with On[T]()
 - **Listing**: Aggregate listing, tombstone detection, InMemoryAggregateReader
 - **Codec**: JSON + Raw passthrough, pluggable encoding
 - **Code Generation**: `cqrs-gen` typed handler registration from Go structs
@@ -149,33 +149,33 @@
 
 Sorted by **Impact × Ease** (highest first):
 
-| #   | Item                                                          | Impact      | Effort | Category      |
-| --- | ------------------------------------------------------------- | ----------- | ------ | ------------- |
-| 1   | Push v2.0.0 tags to remote                                    | 🔴 Critical | Small  | Release       |
-| 2   | Remove `replace` directives from go.mod                       | 🔴 Critical | Small  | Release       |
-| 3   | Increase turso test coverage to 70%+                          | 🟠 High     | Medium | Quality       |
-| 4   | Increase storage test coverage to 85%+                        | 🟠 High     | Medium | Quality       |
-| 5   | Add ROADMAP.md                                                | 🟠 High     | Small  | Documentation |
-| 6   | Rewrite example/user/ as comprehensive demo                   | 🟡 Medium   | Medium | Documentation |
-| 7   | Add fuzz tests for event creation + ID parsing                | 🟡 Medium   | Medium | Robustness    |
-| 8   | Add PostgreSQL integration tests (testcontainers)             | 🟡 Medium   | Large  | Quality       |
-| 9   | Performance regression CI (benchmark comparison)              | 🟡 Medium   | Medium | CI/CD         |
-| 10  | Pre-commit hooks (gofumpt, goimports, line limits)            | 🟡 Medium   | Small  | DX            |
-| 11  | Parallelize CI matrix (one job per module)                    | 🟡 Medium   | Small  | CI/CD         |
-| 12  | Add BDD tests for Version, SchemaVersion, Pagination          | 🟡 Medium   | Medium | Quality       |
-| 13  | Archive/consolidate docs/status/ (88 → ~10 files)             | 🟢 Low      | Small  | Cleanup       |
-| 14  | Increase projection coverage to 95%+                          | 🟢 Low      | Small  | Quality       |
-| 15  | Add listing SQL reader tests                                  | 🟢 Low      | Small  | Quality       |
-| 16  | Benchmark storage backends (PG vs SQLite vs Pebble)           | 🟢 Low      | Medium | Performance   |
-| 17  | Add E2E throughput benchmarks                                 | 🟢 Low      | Medium | Performance   |
-| 18  | Document query.Handler `any` → TypedHandler pattern better    | 🟢 Low      | Small  | Documentation |
-| 19  | Consider AggregateRef branded type                            | 🟢 Low      | Small  | Architecture  |
-| 20  | Add ServerReceivedAt/ServerStoredAt timestamps                | 🟢 Low      | Medium | Feature       |
-| 21  | Add Filter/Predicate types for context queries                | 🟢 Low      | Medium | Feature       |
-| 22  | Catalog diff/breaking-change detection tool                   | 🔵 Future   | Large  | Tool          |
-| 23  | High-level test utilities (AggregateTester, ProjectionTester) | 🔵 Future   | Large  | DX            |
-| 24  | Make transactional projection contract explicit               | 🔵 Future   | Large  | Architecture  |
-| 25  | Move example/todo to own repository                           | 🔵 Future   | Small  | Cleanup       |
+| #  | Item                                                          | Impact      | Effort | Category      |
+| -- | ------------------------------------------------------------- | ----------- | ------ | ------------- |
+| 1  | Push v2.0.0 tags to remote                                    | 🔴 Critical | Small  | Release       |
+| 2  | Remove `replace` directives from go.mod                       | 🔴 Critical | Small  | Release       |
+| 3  | Increase turso test coverage to 70%+                          | 🟠 High     | Medium | Quality       |
+| 4  | Increase storage test coverage to 85%+                        | 🟠 High     | Medium | Quality       |
+| 5  | Add ROADMAP.md                                                | 🟠 High     | Small  | Documentation |
+| 6  | Rewrite example/user/ as comprehensive demo                   | 🟡 Medium   | Medium | Documentation |
+| 7  | Add fuzz tests for event creation + ID parsing                | 🟡 Medium   | Medium | Robustness    |
+| 8  | Add PostgreSQL integration tests (testcontainers)             | 🟡 Medium   | Large  | Quality       |
+| 9  | Performance regression CI (benchmark comparison)              | 🟡 Medium   | Medium | CI/CD         |
+| 10 | Pre-commit hooks (gofumpt, goimports, line limits)            | 🟡 Medium   | Small  | DX            |
+| 11 | Parallelize CI matrix (one job per module)                    | 🟡 Medium   | Small  | CI/CD         |
+| 12 | Add BDD tests for Version, SchemaVersion, Pagination          | 🟡 Medium   | Medium | Quality       |
+| 13 | Archive/consolidate docs/status/ (88 → ~10 files)             | 🟢 Low      | Small  | Cleanup       |
+| 14 | Increase projection coverage to 95%+                          | 🟢 Low      | Small  | Quality       |
+| 15 | Add listing SQL reader tests                                  | 🟢 Low      | Small  | Quality       |
+| 16 | Benchmark storage backends (PG vs SQLite vs Pebble)           | 🟢 Low      | Medium | Performance   |
+| 17 | Add E2E throughput benchmarks                                 | 🟢 Low      | Medium | Performance   |
+| 18 | Document query.Handler `any` → TypedHandler pattern better    | 🟢 Low      | Small  | Documentation |
+| 19 | Consider AggregateRef branded type                            | 🟢 Low      | Small  | Architecture  |
+| 20 | Add ServerReceivedAt/ServerStoredAt timestamps                | 🟢 Low      | Medium | Feature       |
+| 21 | Add Filter/Predicate types for context queries                | 🟢 Low      | Medium | Feature       |
+| 22 | Catalog diff/breaking-change detection tool                   | 🔵 Future   | Large  | Tool          |
+| 23 | High-level test utilities (AggregateTester, ProjectionTester) | 🔵 Future   | Large  | DX            |
+| 24 | Make transactional projection contract explicit               | 🔵 Future   | Large  | Architecture  |
+| 25 | Move example/todo to own repository                           | 🔵 Future   | Small  | Cleanup       |
 
 ---
 
@@ -250,7 +250,7 @@ This is the **single biggest blocker** for the project right now. Everything els
 | pebble                    | 88.0%     | ✅                  |
 | catalog/schema            | 86.1%     | ✅                  |
 | memory                    | 99.1%     | ✅                  |
-| **storage**               | **72.7%** | ⚠️ Below 80%        |
+| **storage**               | **72.7%** | ⚠️ Below 80%         |
 | **turso**                 | **28.6%** | 🔴 Far below target |
 
 ---

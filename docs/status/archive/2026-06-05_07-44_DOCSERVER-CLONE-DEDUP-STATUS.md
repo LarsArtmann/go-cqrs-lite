@@ -295,48 +295,48 @@ The `toward-perfect-go-cqrs-lite.html` proposal implies breaking changes that ha
 
 ### Tier 1: Immediate (This Session / Today)
 
-| #   | Task                                                                                     | Impact             | Effort    |
-| --- | ---------------------------------------------------------------------------------------- | ------------------ | --------- |
-| 1   | Decide on `storage-environment-mapping.html` (tracked `.md` exists; render is untracked) | Tree hygiene       | 30 sec    |
-| 2   | Commit `catalog/docserver/docserver_test.go` dedup                                       | Clean working tree | 1 minute  |
-| 3   | Push v2.1.0 tags to remote (`git push --follow-tags`)                                    | Prevents data loss | 1 command |
+| # | Task                                                                                     | Impact             | Effort    |
+| - | ---------------------------------------------------------------------------------------- | ------------------ | --------- |
+| 1 | Decide on `storage-environment-mapping.html` (tracked `.md` exists; render is untracked) | Tree hygiene       | 30 sec    |
+| 2 | Commit `catalog/docserver/docserver_test.go` dedup                                       | Clean working tree | 1 minute  |
+| 3 | Push v2.1.0 tags to remote (`git push --follow-tags`)                                    | Prevents data loss | 1 command |
 
 ### Tier 2: This Week
 
-| #   | Task                                                        | Impact                       | Effort    |
-| --- | ----------------------------------------------------------- | ---------------------------- | --------- |
-| 4   | Fix or remove BuildFlow pre-commit hook                     | Unblocks normal git workflow | 15 min    |
-| 5   | Archive 100+ stale status reports to `docs/status/archive/` | Signal over noise            | 10 min    |
-| 6   | Fill ADR-0005 gap (or renumber 0006-0009)                   | Documentation integrity      | 15 min    |
-| 7   | Fix 7 catalog lint issues                                   | Zero-lint across ALL modules | 30 min    |
-| 8   | Create `ROADMAP.md` with v3.0 vision from brainstorm pieces | Long-term clarity            | 2 hours   |
-| 9   | Implement SQL Journal (`ReadAll`/`ReadFrom`)                | Storage parity               | 2–4 hours |
-| 10  | Implement Pebble `BackwardsSource`                          | Interface completeness       | 1 hour    |
+| #  | Task                                                        | Impact                       | Effort    |
+| -- | ----------------------------------------------------------- | ---------------------------- | --------- |
+| 4  | Fix or remove BuildFlow pre-commit hook                     | Unblocks normal git workflow | 15 min    |
+| 5  | Archive 100+ stale status reports to `docs/status/archive/` | Signal over noise            | 10 min    |
+| 6  | Fill ADR-0005 gap (or renumber 0006-0009)                   | Documentation integrity      | 15 min    |
+| 7  | Fix 7 catalog lint issues                                   | Zero-lint across ALL modules | 30 min    |
+| 8  | Create `ROADMAP.md` with v3.0 vision from brainstorm pieces | Long-term clarity            | 2 hours   |
+| 9  | Implement SQL Journal (`ReadAll`/`ReadFrom`)                | Storage parity               | 2–4 hours |
+| 10 | Implement Pebble `BackwardsSource`                          | Interface completeness       | 1 hour    |
 
 ### Tier 3: Next Sprint
 
-| #   | Task                                                                                  | Impact                   | Effort  |
-| --- | ------------------------------------------------------------------------------------- | ------------------------ | ------- |
-| 11  | Turso integration tests (testcontainers)                                              | Coverage 29% → 80%+      | 4 hours |
-| 12  | Update all examples to v2.1.0                                                         | Consumer experience      | 30 min  |
-| 13  | `eventtest/fake_store.go` audit — reduce duplication with MemoryStore                 | Maintainability          | 1 hour  |
-| 14  | Benchmark baseline update post-v2.1.0 perf work                                       | Regression detection     | 1 hour  |
-| 15  | Integrate `cmd/api-stability` into CI pipeline                                        | API contract enforcement | 2 hours |
-| 16  | Convert `toward-perfect-go-cqrs-lite.html` into GitHub issues / ROADMAP.md sections   | Actionable design        | 2 hours |
-| 17  | Apply brainstorm renames in code (`data/`→`readmodel/`, `journalpublisher/`→`relay/`) | v3.0 first cut           | 4 hours |
+| #  | Task                                                                                  | Impact                   | Effort  |
+| -- | ------------------------------------------------------------------------------------- | ------------------------ | ------- |
+| 11 | Turso integration tests (testcontainers)                                              | Coverage 29% → 80%+      | 4 hours |
+| 12 | Update all examples to v2.1.0                                                         | Consumer experience      | 30 min  |
+| 13 | `eventtest/fake_store.go` audit — reduce duplication with MemoryStore                 | Maintainability          | 1 hour  |
+| 14 | Benchmark baseline update post-v2.1.0 perf work                                       | Regression detection     | 1 hour  |
+| 15 | Integrate `cmd/api-stability` into CI pipeline                                        | API contract enforcement | 2 hours |
+| 16 | Convert `toward-perfect-go-cqrs-lite.html` into GitHub issues / ROADMAP.md sections   | Actionable design        | 2 hours |
+| 17 | Apply brainstorm renames in code (`data/`→`readmodel/`, `journalpublisher/`→`relay/`) | v3.0 first cut           | 4 hours |
 
 ### Tier 4: Strategic
 
-| #   | Task                                                          | Impact                    | Effort  |
-| --- | ------------------------------------------------------------- | ------------------------- | ------- |
-| 18  | Documentation site (Docusaurus/MkDocs)                        | Public visibility         | 1 day   |
-| 19  | pkg.go.dev readiness audit                                    | Developer experience      | 4 hours |
-| 20  | Thin PostgreSQL adapter (no Watermill dep)                    | Adoption                  | 1 day   |
-| 21  | High-level test utilities (AggregateTester, ProjectionTester) | Testing ergonomics        | 1 day   |
-| 22  | Schema registry / event validation middleware                 | Runtime safety            | 1 day   |
-| 23  | Outbox pattern implementation                                 | Transactional consistency | 2 days  |
-| 24  | Bi-temporal support (ValidAt, WithValidAt)                    | Compliance use cases      | 1 day   |
-| 25  | Thin NATS bus adapter                                         | Transport flexibility     | 1 day   |
+| #  | Task                                                          | Impact                    | Effort  |
+| -- | ------------------------------------------------------------- | ------------------------- | ------- |
+| 18 | Documentation site (Docusaurus/MkDocs)                        | Public visibility         | 1 day   |
+| 19 | pkg.go.dev readiness audit                                    | Developer experience      | 4 hours |
+| 20 | Thin PostgreSQL adapter (no Watermill dep)                    | Adoption                  | 1 day   |
+| 21 | High-level test utilities (AggregateTester, ProjectionTester) | Testing ergonomics        | 1 day   |
+| 22 | Schema registry / event validation middleware                 | Runtime safety            | 1 day   |
+| 23 | Outbox pattern implementation                                 | Transactional consistency | 2 days  |
+| 24 | Bi-temporal support (ValidAt, WithValidAt)                    | Compliance use cases      | 1 day   |
+| 25 | Thin NATS bus adapter                                         | Transport flexibility     | 1 day   |
 
 ---
 

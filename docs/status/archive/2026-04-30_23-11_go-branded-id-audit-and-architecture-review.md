@@ -15,13 +15,13 @@ The `id` package was **not** properly using `go-branded-id`. It re-implemented a
 
 ### a) FULLY DONE
 
-| #   | Item                                                                                                                                                                              | Commit    |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 1   | **Delegation refactor**: Replaced 8 re-implemented serialization methods with one-line delegations to `cbid.ID[T, ulid.ULID]`                                                     | `6511003` |
-| 2   | **Dead code removal**: Removed `errNilReceiver`, `errUnsupportedType` (never referenced outside deleted code), `MaxULIDsPerMs` (zero references outside tests), `math` import     | `6511003` |
-| 3   | **Full audit**: Searched all 7 modules for: raw `string` where branded IDs belong, direct `ulid` imports outside `id` package, manual ULID parsing, unnecessary `.String()` calls | —         |
-| 4   | **All tests pass**: 17 packages, 0 failures                                                                                                                                       | —         |
-| 5   | **Zero lint**: All 6 linted modules clean                                                                                                                                         | —         |
+| # | Item                                                                                                                                                                              | Commit    |
+| - | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 1 | **Delegation refactor**: Replaced 8 re-implemented serialization methods with one-line delegations to `cbid.ID[T, ulid.ULID]`                                                     | `6511003` |
+| 2 | **Dead code removal**: Removed `errNilReceiver`, `errUnsupportedType` (never referenced outside deleted code), `MaxULIDsPerMs` (zero references outside tests), `math` import     | `6511003` |
+| 3 | **Full audit**: Searched all 7 modules for: raw `string` where branded IDs belong, direct `ulid` imports outside `id` package, manual ULID parsing, unnecessary `.String()` calls | —         |
+| 4 | **All tests pass**: 17 packages, 0 failures                                                                                                                                       | —         |
+| 5 | **Zero lint**: All 6 linted modules clean                                                                                                                                         | —         |
 
 ### b) PARTIALLY DONE
 
@@ -128,33 +128,33 @@ go-cqrs-lite/core/pkg/id/
 
 Sorted by **impact × ease** (highest first):
 
-| #   | Item                                                                  | Effort | Impact                       | Area                                  |
-| --- | --------------------------------------------------------------------- | ------ | ---------------------------- | ------------------------------------- |
-| 1   | **Fix scanEvents to preserve original event ID**                      | S      | 🔴 Critical                  | storage bug                           |
-| 2   | **Remove 5 unnecessary `.String()` calls in `fmt.Errorf`**            | XS     | Cleanliness                  | core/aggregate, core/command, storage |
-| 3   | **Use `sql.Scanner`/`driver.Valuer` in storage module**               | S      | Type safety                  | storage                               |
-| 4   | **Forward `Ptr()`/`FromPtr()` from cbid**                             | XS     | API completeness             | core/pkg/id                           |
-| 5   | **Forward `fmt.Formatter` from cbid**                                 | XS     | Debugging UX                 | core/pkg/id                           |
-| 6   | **Add `FromULID[T](ulid.ULID)` constructor**                          | XS     | Internal API                 | core/pkg/id                           |
-| 7   | **Brand `OutboxID` as `id.Of[outboxMarker]`**                         | S      | Consistency                  | core/event                            |
-| 8   | **Add `WithEventID` option or `ReconstructEvent`**                    | S      | 🔴 Critical fix prerequisite | core/event                            |
-| 9   | **Add ` occurredAt` injectable option to `NewEvent`**                 | S      | Testability                  | core/event                            |
-| 10  | **Upgrade go-branded-id to latest HEAD** (post-v0.1.0 changes)        | XS     | Maintenance                  | all modules                           |
-| 11  | **Add GoDoc examples for `id.New`, `id.Parse`, `id.Of`**              | S      | Documentation                | core/pkg/id                           |
-| 12  | **Add integration test for storage module with testcontainers**       | M      | Confidence                   | storage                               |
-| 13  | **Create Watermill module (event bus)**                               | L      | Production readiness         | watermill/                            |
-| 14  | **Create SQL-backed snapshot store**                                  | M      | Production readiness         | storage/                              |
-| 15  | **Add `id.Of[T].MarshalJSONv2` support for go-json-experiment/json**  | S      | Compatibility                | core/pkg/id                           |
-| 16  | **Add `contextEnricher` option to `NewEvent` for automatic metadata** | S      | DX                           | core/event                            |
-| 17  | **Audit catalog module for branded ID usage**                         | S      | Consistency                  | catalog                               |
-| 18  | **Add projection checkpoint SQL store**                               | M      | Production readiness         | storage/                              |
-| 19  | **Tag v0.1.0 releases for all modules**                               | M      | Distribution                 | all                                   |
-| 20  | **Add godoc for all exported types in storage module**                | S      | Documentation                | storage                               |
-| 21  | **Example app with HTTP handlers + SQL storage**                      | M      | Documentation                | example/                              |
-| 22  | **Add `encoding.BinaryMarshaler` usage in storage for payload**       | S      | Efficiency                   | storage                               |
-| 23  | **Create `CHANGELOG.md` entry for session 15**                        | XS     | Documentation                | root                                  |
-| 24  | **Update AGENTS.md with session 15 findings**                         | S      | Memory                       | root                                  |
-| 25  | **Add `go-branded-id` replace directive for local dev**               | XS     | DX                           | go.work                               |
+| #  | Item                                                                  | Effort | Impact                       | Area                                  |
+| -- | --------------------------------------------------------------------- | ------ | ---------------------------- | ------------------------------------- |
+| 1  | **Fix scanEvents to preserve original event ID**                      | S      | 🔴 Critical                  | storage bug                           |
+| 2  | **Remove 5 unnecessary `.String()` calls in `fmt.Errorf`**            | XS     | Cleanliness                  | core/aggregate, core/command, storage |
+| 3  | **Use `sql.Scanner`/`driver.Valuer` in storage module**               | S      | Type safety                  | storage                               |
+| 4  | **Forward `Ptr()`/`FromPtr()` from cbid**                             | XS     | API completeness             | core/pkg/id                           |
+| 5  | **Forward `fmt.Formatter` from cbid**                                 | XS     | Debugging UX                 | core/pkg/id                           |
+| 6  | **Add `FromULID[T](ulid.ULID)` constructor**                          | XS     | Internal API                 | core/pkg/id                           |
+| 7  | **Brand `OutboxID` as `id.Of[outboxMarker]`**                         | S      | Consistency                  | core/event                            |
+| 8  | **Add `WithEventID` option or `ReconstructEvent`**                    | S      | 🔴 Critical fix prerequisite | core/event                            |
+| 9  | **Add `occurredAt` injectable option to `NewEvent`**                  | S      | Testability                  | core/event                            |
+| 10 | **Upgrade go-branded-id to latest HEAD** (post-v0.1.0 changes)        | XS     | Maintenance                  | all modules                           |
+| 11 | **Add GoDoc examples for `id.New`, `id.Parse`, `id.Of`**              | S      | Documentation                | core/pkg/id                           |
+| 12 | **Add integration test for storage module with testcontainers**       | M      | Confidence                   | storage                               |
+| 13 | **Create Watermill module (event bus)**                               | L      | Production readiness         | watermill/                            |
+| 14 | **Create SQL-backed snapshot store**                                  | M      | Production readiness         | storage/                              |
+| 15 | **Add `id.Of[T].MarshalJSONv2` support for go-json-experiment/json**  | S      | Compatibility                | core/pkg/id                           |
+| 16 | **Add `contextEnricher` option to `NewEvent` for automatic metadata** | S      | DX                           | core/event                            |
+| 17 | **Audit catalog module for branded ID usage**                         | S      | Consistency                  | catalog                               |
+| 18 | **Add projection checkpoint SQL store**                               | M      | Production readiness         | storage/                              |
+| 19 | **Tag v0.1.0 releases for all modules**                               | M      | Distribution                 | all                                   |
+| 20 | **Add godoc for all exported types in storage module**                | S      | Documentation                | storage                               |
+| 21 | **Example app with HTTP handlers + SQL storage**                      | M      | Documentation                | example/                              |
+| 22 | **Add `encoding.BinaryMarshaler` usage in storage for payload**       | S      | Efficiency                   | storage                               |
+| 23 | **Create `CHANGELOG.md` entry for session 15**                        | XS     | Documentation                | root                                  |
+| 24 | **Update AGENTS.md with session 15 findings**                         | S      | Memory                       | root                                  |
+| 25 | **Add `go-branded-id` replace directive for local dev**               | XS     | DX                           | go.work                               |
 
 ---
 

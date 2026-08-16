@@ -10,27 +10,27 @@
 
 ### Design doc review + improvements
 
-| #   | Task                                            | File(s)                                                      | Evidence                                                                                                                                                                                                |
-| --- | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1  | Confirmed plan doc is superb                    | `docs/planning/meta-engine-eventual-consistency-and-iroh.md` | Full read of all 378 lines. Core insight (read models already eventual), DDIA-canonical correction (Replication/Lag/RTT), CALM theorem connection, RTT-additive cost model — all correct and rigorous.  |
-| D2  | Fixed stale status header                       | Same file                                                    | Was "Design exploration — EngineProfile fields implemented (commit pending)"; updated to "Replication model shipped (Phase 2 complete)"                                                                 |
-| D3  | Defined undefined `sync_cost`                   | Same file, Part 7                                            | Was hand-waved ("depends on peer count, bandwidth..."). Now has concrete formula: `write_rate × (peer_count × value_size / bandwidth + reconciliation_overhead)` with steady-state collapse explanation |
-| D4  | Added MapUpdate distributed-engine footgun note | Same file, after CRDT safety matrix                          | Documents that atomic RMW silently stays local on distributed engines. Recommends planner WARN diagnostic at plan time. Makes silent failure mode visible.                                              |
+| #  | Task                                            | File(s)                                                      | Evidence                                                                                                                                                                                                |
+| -- | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1 | Confirmed plan doc is superb                    | `docs/planning/meta-engine-eventual-consistency-and-iroh.md` | Full read of all 378 lines. Core insight (read models already eventual), DDIA-canonical correction (Replication/Lag/RTT), CALM theorem connection, RTT-additive cost model — all correct and rigorous.  |
+| D2 | Fixed stale status header                       | Same file                                                    | Was "Design exploration — EngineProfile fields implemented (commit pending)"; updated to "Replication model shipped (Phase 2 complete)"                                                                 |
+| D3 | Defined undefined `sync_cost`                   | Same file, Part 7                                            | Was hand-waved ("depends on peer count, bandwidth..."). Now has concrete formula: `write_rate × (peer_count × value_size / bandwidth + reconciliation_overhead)` with steady-state collapse explanation |
+| D4 | Added MapUpdate distributed-engine footgun note | Same file, after CRDT safety matrix                          | Documents that atomic RMW silently stays local on distributed engines. Recommends planner WARN diagnostic at plan time. Makes silent failure mode visible.                                              |
 
 ### ADR count fix
 
-| #   | Task                   | File(s)             | Evidence                                                                                                                                                                                                                                                       |
-| --- | ---------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A1  | Fixed ADR count header | `docs/README.md:42` | Was "90 ADRs" but there are 91 files and 91 indexed rows. Now says "91 ADRs". The `verify-docs.sh` gate passes regardless (it counts files vs rows, both 91), but the human-readable number was wrong by 1 since ADR-0092 was added without bumping the count. |
+| #  | Task                   | File(s)             | Evidence                                                                                                                                                                                                                                                       |
+| -- | ---------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A1 | Fixed ADR count header | `docs/README.md:42` | Was "90 ADRs" but there are 91 files and 91 indexed rows. Now says "91 ADRs". The `verify-docs.sh` gate passes regardless (it counts files vs rows, both 91), but the human-readable number was wrong by 1 since ADR-0092 was added without bumping the count. |
 
 ### Lint gate zero (FIRST TIME across 3 sessions)
 
-| #   | Task                                                | File(s)                        | Evidence                                                                                                    |
-| --- | --------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| L1  | Fixed gochecknoglobals on `commitHash`              | `cmd/cqrs-lint/main.go:23`     | Added `//nolint:gochecknoglobals` — these are ldflags-injected build metadata globals (standard Go pattern) |
-| L2  | Fixed gochecknoglobals on `buildDate`               | `cmd/cqrs-lint/main.go:24`     | Same — ldflags build metadata                                                                               |
-| L3  | Fixed noctx: `exec.Command` → `exec.CommandContext` | `cmd/cqrs-lint/commands.go:89` | `setupChangelogCommand` git log call — now propagates context                                               |
-| L4  | Fixed noctx: `exec.Command` → `exec.CommandContext` | `cmd/cqrs-lint/commands.go:95` | Fallback git log call — now propagates context                                                              |
+| #  | Task                                                | File(s)                        | Evidence                                                                                                    |
+| -- | --------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| L1 | Fixed gochecknoglobals on `commitHash`              | `cmd/cqrs-lint/main.go:23`     | Added `//nolint:gochecknoglobals` — these are ldflags-injected build metadata globals (standard Go pattern) |
+| L2 | Fixed gochecknoglobals on `buildDate`               | `cmd/cqrs-lint/main.go:24`     | Same — ldflags build metadata                                                                               |
+| L3 | Fixed noctx: `exec.Command` → `exec.CommandContext` | `cmd/cqrs-lint/commands.go:89` | `setupChangelogCommand` git log call — now propagates context                                               |
+| L4 | Fixed noctx: `exec.Command` → `exec.CommandContext` | `cmd/cqrs-lint/commands.go:95` | Fallback git log call — now propagates context                                                              |
 
 ### Full verify gate (GREEN — exit 0)
 
@@ -126,7 +126,7 @@ I caught this while writing the status report (section b). The doc currently mis
 
 1. **Extend `nix run .#verify` to include `check-layers`, `check-duplication`, `check-coverage`** — Three sessions have now missed these because they're separate apps. The verify gate's name implies completeness. Adding them to verify (even as `|| true` soft-fails initially) would close this gap permanently.
 
-2. _*Stop calling verify "GREEN" without confirming the three check-* apps pass_* — This is now a documented anti-pattern across 3 sessions. The verify gate passing is necessary but not sufficient.
+2. __Stop calling verify "GREEN" without confirming the three check-_ apps pass_* — This is now a documented anti-pattern across 3 sessions. The verify gate passing is necessary but not sufficient.
 
 3. **Fix the design doc MapUpdate claim** — Change "emits a WARN diagnostic" to "should emit a WARN diagnostic" or "Recommended: emit a WARN diagnostic." Current text is aspirational written as shipped.
 
@@ -146,7 +146,7 @@ I caught this while writing the status report (section b). The doc currently mis
 2. **Run `nix run .#check-duplication`** — clone group check (NOT RUN this session)
 3. **Run `nix run .#check-coverage`** — coverage drift check (NOT RUN this session)
 4. **Fix the design doc MapUpdate claim** — change "emits" to "should emit" or "Recommended:"
-5. _*Extend `nix run .#verify` to include the three check-* apps_* — systemic fix for the 3-session gap
+5. __Extend `nix run .#verify` to include the three check-_ apps_* — systemic fix for the 3-session gap
 6. **Clean up 6 `infertypeargs` hints in cmd/cqrs-lint** — Go 1.26 type inference makes them redundant
 
 ### Replication model (Phase 2 remaining polish)

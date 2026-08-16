@@ -175,78 +175,78 @@ The taskmanager registered handlers BEFORE configuring middleware. Since the dis
 
 ### Critical (blocks correctness/trust)
 
-| #   | Task                                                                               | Impact                               | Effort |
-| --- | ---------------------------------------------------------------------------------- | ------------------------------------ | ------ |
-| 1   | Fix 5 golden test failures (regenerate with `-update` or normalize json/v2 output) | Unblocks CI green                    | 30m    |
-| 2   | Add tests verifying dispatcher middleware actually runs after registration         | Prevents silent bypass bugs          | 20m    |
-| 3   | Write consumer migration guide for id/ + metadata/ extraction                      | Prevents consumer breakage confusion | 30m    |
-| 4   | Add unit tests for metadata/ package (Tracing.Merge, CustomData.Clone, edge cases) | Coverage for new module              | 20m    |
+| # | Task                                                                               | Impact                               | Effort |
+| - | ---------------------------------------------------------------------------------- | ------------------------------------ | ------ |
+| 1 | Fix 5 golden test failures (regenerate with `-update` or normalize json/v2 output) | Unblocks CI green                    | 30m    |
+| 2 | Add tests verifying dispatcher middleware actually runs after registration         | Prevents silent bypass bugs          | 20m    |
+| 3 | Write consumer migration guide for id/ + metadata/ extraction                      | Prevents consumer breakage confusion | 30m    |
+| 4 | Add unit tests for metadata/ package (Tracing.Merge, CustomData.Clone, edge cases) | Coverage for new module              | 20m    |
 
 ### High Value (architectural health)
 
-| #   | Task                                                                                 | Impact                                | Effort |
-| --- | ------------------------------------------------------------------------------------ | ------------------------------------- | ------ |
-| 5   | Document dispatcher "middleware at registration time" behavior prominently           | Prevents reuse of the taskmanager bug | 15m    |
-| 6   | Decompose event/ further — extract tombstone detection to `tombstone/` or `listing/` | Reduces god module                    | 2h     |
-| 7   | Decompose event/ further — extract command causality to its own concern              | Reduces god module                    | 1h     |
-| 8   | Execute storage/ split (proposal ready, awaiting approval)                           | 109 files → 4 focused packages        | 4h     |
-| 9   | Add `context.Context` support to Pebble KVAdapter (or document the limitation)       | Honesty about ctx propagation         | 30m    |
-| 10  | Add `doc.go` to metadata/ package                                                    | Package documentation                 | 10m    |
+| #  | Task                                                                                 | Impact                                | Effort |
+| -- | ------------------------------------------------------------------------------------ | ------------------------------------- | ------ |
+| 5  | Document dispatcher "middleware at registration time" behavior prominently           | Prevents reuse of the taskmanager bug | 15m    |
+| 6  | Decompose event/ further — extract tombstone detection to `tombstone/` or `listing/` | Reduces god module                    | 2h     |
+| 7  | Decompose event/ further — extract command causality to its own concern              | Reduces god module                    | 1h     |
+| 8  | Execute storage/ split (proposal ready, awaiting approval)                           | 109 files → 4 focused packages        | 4h     |
+| 9  | Add `context.Context` support to Pebble KVAdapter (or document the limitation)       | Honesty about ctx propagation         | 30m    |
+| 10 | Add `doc.go` to metadata/ package                                                    | Package documentation                 | 10m    |
 
 ### Medium Value (quality/observability)
 
-| #   | Task                                                                                                | Impact                    | Effort |
-| --- | --------------------------------------------------------------------------------------------------- | ------------------------- | ------ |
-| 11  | Add BDD tests for EventIdempotency middleware (only command+query have BDD)                         | Test parity               | 20m    |
-| 12  | Add idempotency demo endpoint to taskmanager HTTP API (POST /api/tasks with Idempotency-Key header) | Showcase feature          | 30m    |
-| 13  | Wire query idempotency into taskmanager (currently only command)                                    | Full demo coverage        | 15m    |
-| 14  | Add `.gitignore` for `coverage.out` and other generated files                                       | Clean repo                | 5m     |
-| 15  | Run `go mod tidy` across all 48 modules (many have stale indirect deps from this session's edits)   | Dependency hygiene        | 30m    |
-| 16  | Add CI check that all modules have matching require + replace for metadata/                         | Prevents go.sum drift     | 20m    |
-| 17  | Consider central go.mod dependency management script                                                | Reduces 27-file edit pain | 1h     |
-| 18  | Add integration test for the full idempotency + retry + recovery middleware stack                   | Defense in depth          | 30m    |
-| 19  | Benchmark kv/ with context.Context overhead vs without                                              | Performance verification  | 20m    |
-| 20  | Add lint rule: no `context.Background()` in production code (only tests)                            | Code quality              | 15m    |
+| #  | Task                                                                                                | Impact                    | Effort |
+| -- | --------------------------------------------------------------------------------------------------- | ------------------------- | ------ |
+| 11 | Add BDD tests for EventIdempotency middleware (only command+query have BDD)                         | Test parity               | 20m    |
+| 12 | Add idempotency demo endpoint to taskmanager HTTP API (POST /api/tasks with Idempotency-Key header) | Showcase feature          | 30m    |
+| 13 | Wire query idempotency into taskmanager (currently only command)                                    | Full demo coverage        | 15m    |
+| 14 | Add `.gitignore` for `coverage.out` and other generated files                                       | Clean repo                | 5m     |
+| 15 | Run `go mod tidy` across all 48 modules (many have stale indirect deps from this session's edits)   | Dependency hygiene        | 30m    |
+| 16 | Add CI check that all modules have matching require + replace for metadata/                         | Prevents go.sum drift     | 20m    |
+| 17 | Consider central go.mod dependency management script                                                | Reduces 27-file edit pain | 1h     |
+| 18 | Add integration test for the full idempotency + retry + recovery middleware stack                   | Defense in depth          | 30m    |
+| 19 | Benchmark kv/ with context.Context overhead vs without                                              | Performance verification  | 20m    |
+| 20 | Add lint rule: no `context.Background()` in production code (only tests)                            | Code quality              | 15m    |
 
 ### Lower Value (polish/nice-to-have)
 
-| #   | Task                                                                                     | Impact                    | Effort     |
-| --- | ---------------------------------------------------------------------------------------- | ------------------------- | ---------- |
-| 21  | Update SKILL.md with id/ + metadata/ module references                                   | AI consumer accuracy      | 20m        |
-| 22  | Update all module READMEs to reference four-tier model                                   | Documentation consistency | 30m        |
-| 23  | Add architecture decision record for command→event decoupling                            | Decision archaeology      | 20m        |
-| 24  | Document the deprecated alias removal timeline (v3.x → v4)                               | Consumer planning         | 15m        |
-| 25  | Add `nolint` comments where needed for unused ctx params (MemStore)                      | Lint clean                | 10m        |
-| 26  | Consider versioning metadata/ at v1 instead of v3 (it's a new module)                    | Versioning honesty        | 5m         |
-| 27  | Add example of custom idempotency key extractor to getting-started example               | Education                 | 15m        |
-| 28  | Add chaos test: what happens when idempotency store is unavailable mid-dispatch?         | Resilience                | 30m        |
-| 29  | Add projectionhost idempotency test (replay scenario)                                    | Replay safety             | 30m        |
-| 30  | Consider whether `context.Context` should be on kv.Iterator methods (Next/Key/Value)     | Interface completeness    | 20m        |
-| 31  | Add test that deprecated event/ aliases actually compile and delegate correctly          | Backward compat safety    | 15m        |
-| 32  | Add `go vet` check across workspace for common issues                                    | Code quality              | 10m        |
-| 33  | Update FEATURES.md with idempotency status (DONE) and metadata/ module                   | Feature inventory         | 15m        |
-| 34  | Update TODO_LIST.md with completed items from this session                               | Task tracking             | 10m        |
-| 35  | Consider adding `errgroup` support to projectionhost for parallel projection processing  | Performance               | 1h         |
-| 36  | Add distributed tracing test for idempotency middleware (span propagation through dedup) | Observability             | 30m        |
-| 37  | Document the kv/ context.Context migration path for third-party KV implementations       | Consumer guidance         | 15m        |
-| 38  | Add test for TTL expiry in idempotency store (MemoryStore + KVStore)                     | Correctness               | 20m        |
-| 39  | Consider whether `command.Bus` should support idempotency natively                       | Architecture              | Discussion |
-| 40  | Add SSE broker idempotency test (Last-Event-ID replay dedup)                             | Transport reliability     | 30m        |
+| #  | Task                                                                                     | Impact                    | Effort     |
+| -- | ---------------------------------------------------------------------------------------- | ------------------------- | ---------- |
+| 21 | Update SKILL.md with id/ + metadata/ module references                                   | AI consumer accuracy      | 20m        |
+| 22 | Update all module READMEs to reference four-tier model                                   | Documentation consistency | 30m        |
+| 23 | Add architecture decision record for command→event decoupling                            | Decision archaeology      | 20m        |
+| 24 | Document the deprecated alias removal timeline (v3.x → v4)                               | Consumer planning         | 15m        |
+| 25 | Add `nolint` comments where needed for unused ctx params (MemStore)                      | Lint clean                | 10m        |
+| 26 | Consider versioning metadata/ at v1 instead of v3 (it's a new module)                    | Versioning honesty        | 5m         |
+| 27 | Add example of custom idempotency key extractor to getting-started example               | Education                 | 15m        |
+| 28 | Add chaos test: what happens when idempotency store is unavailable mid-dispatch?         | Resilience                | 30m        |
+| 29 | Add projectionhost idempotency test (replay scenario)                                    | Replay safety             | 30m        |
+| 30 | Consider whether `context.Context` should be on kv.Iterator methods (Next/Key/Value)     | Interface completeness    | 20m        |
+| 31 | Add test that deprecated event/ aliases actually compile and delegate correctly          | Backward compat safety    | 15m        |
+| 32 | Add `go vet` check across workspace for common issues                                    | Code quality              | 10m        |
+| 33 | Update FEATURES.md with idempotency status (DONE) and metadata/ module                   | Feature inventory         | 15m        |
+| 34 | Update TODO_LIST.md with completed items from this session                               | Task tracking             | 10m        |
+| 35 | Consider adding `errgroup` support to projectionhost for parallel projection processing  | Performance               | 1h         |
+| 36 | Add distributed tracing test for idempotency middleware (span propagation through dedup) | Observability             | 30m        |
+| 37 | Document the kv/ context.Context migration path for third-party KV implementations       | Consumer guidance         | 15m        |
+| 38 | Add test for TTL expiry in idempotency store (MemoryStore + KVStore)                     | Correctness               | 20m        |
+| 39 | Consider whether `command.Bus` should support idempotency natively                       | Architecture              | Discussion |
+| 40 | Add SSE broker idempotency test (Last-Event-ID replay dedup)                             | Transport reliability     | 30m        |
 
 ### Speculative (future/v4+)
 
-| #   | Task                                                                                                  | Impact                | Effort     |
-| --- | ----------------------------------------------------------------------------------------------------- | --------------------- | ---------- |
-| 41  | Explore Redis-backed idempotency store                                                                | Multi-process support | 2h         |
-| 42  | Explore distributed event bus (NATS/Redis pub-sub via Watermill backend)                              | Multi-process         | 4h         |
-| 43  | Consider CQRS code generator (cqrs-gen) for idempotency middleware boilerplate                        | Developer experience  | 2h         |
-| 44  | Explore event/ decomposition: extract replay mode to `replay/` package                                | God module reduction  | 2h         |
-| 45  | Explore event/ decomposition: extract checkpoint to `checkpoint/` package                             | God module reduction  | 1h         |
-| 46  | Consider GraphQL transport module (was previously a HARD NO, revisit?)                                | API surface           | Discussion |
-| 47  | Add OpenTelemetry metrics for idempotency hit rate                                                    | Observability         | 30m        |
-| 48  | Consider whether the dispatcher should apply middleware at dispatch time instead of registration time | Architecture          | Discussion |
-| 49  | Explore Pebble multi-process via shared filesystem + flock                                            | Multi-process storage | 4h         |
-| 50  | Write "go-cqrs-lite v4 migration guide" covering all breaking changes                                 | Consumer planning     | 2h         |
+| #  | Task                                                                                                  | Impact                | Effort     |
+| -- | ----------------------------------------------------------------------------------------------------- | --------------------- | ---------- |
+| 41 | Explore Redis-backed idempotency store                                                                | Multi-process support | 2h         |
+| 42 | Explore distributed event bus (NATS/Redis pub-sub via Watermill backend)                              | Multi-process         | 4h         |
+| 43 | Consider CQRS code generator (cqrs-gen) for idempotency middleware boilerplate                        | Developer experience  | 2h         |
+| 44 | Explore event/ decomposition: extract replay mode to `replay/` package                                | God module reduction  | 2h         |
+| 45 | Explore event/ decomposition: extract checkpoint to `checkpoint/` package                             | God module reduction  | 1h         |
+| 46 | Consider GraphQL transport module (was previously a HARD NO, revisit?)                                | API surface           | Discussion |
+| 47 | Add OpenTelemetry metrics for idempotency hit rate                                                    | Observability         | 30m        |
+| 48 | Consider whether the dispatcher should apply middleware at dispatch time instead of registration time | Architecture          | Discussion |
+| 49 | Explore Pebble multi-process via shared filesystem + flock                                            | Multi-process storage | 4h         |
+| 50 | Write "go-cqrs-lite v4 migration guide" covering all breaking changes                                 | Consumer planning     | 2h         |
 
 ---
 

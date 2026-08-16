@@ -53,23 +53,23 @@
 
 ## c) NOT STARTED ⬜
 
-| #   | Item                                                                                              | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | Delete deprecated `core/aggregate` package entirely                                               | MED    | LOW    |
-| 2   | Delete deprecated `catalog/adapters/builder.go`                                                   | LOW    | LOW    |
-| 3   | Add test coverage for new Dispatch() closed-state path                                            | MED    | LOW    |
-| 4   | Unify `query.Handler` type alias → named type                                                     | MED    | MED    |
-| 5   | Extract `requireType[T]` helper from example/todo                                                 | LOW    | LOW    |
-| 6   | Extract `countingHandler` into testhelpers                                                        | LOW    | LOW    |
-| 7   | Split large test files (>250 lines: schema_test.go 605, store_test.go 512, outbox_test.go 415)    | LOW    | MED    |
-| 8   | `go-error-family` replacement with stdlib                                                         | HIGH   | HIGH   |
-| 9   | `go-branded-id` replacement with stdlib                                                           | HIGH   | HIGH   |
-| 10  | Module split: storage into sub-packages (SQL, Pebble, Turso)                                      | MED    | HIGH   |
-| 11  | Add `event.Result` type to decider `Execute` for publish failure visibility                       | MED    | MED    |
-| 12  | Add `NotFound` error family to `go-error-family`                                                  | LOW    | MED    |
-| 13  | Document `opError` wrapping pattern for `errors.Is` traceability                                  | LOW    | LOW    |
-| 14  | Add `LoadToVersion`/`LoadToTimestamp` override to FakeBus subscriber tests                        | LOW    | LOW    |
-| 15  | Rename `slog_test.go` → `logging_slog_test.go` (test is for logging, not a separate slog adapter) | LOW    | LOW    |
+| #  | Item                                                                                              | Impact | Effort |
+| -- | ------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1  | Delete deprecated `core/aggregate` package entirely                                               | MED    | LOW    |
+| 2  | Delete deprecated `catalog/adapters/builder.go`                                                   | LOW    | LOW    |
+| 3  | Add test coverage for new Dispatch() closed-state path                                            | MED    | LOW    |
+| 4  | Unify `query.Handler` type alias → named type                                                     | MED    | MED    |
+| 5  | Extract `requireType[T]` helper from example/todo                                                 | LOW    | LOW    |
+| 6  | Extract `countingHandler` into testhelpers                                                        | LOW    | LOW    |
+| 7  | Split large test files (>250 lines: schema_test.go 605, store_test.go 512, outbox_test.go 415)    | LOW    | MED    |
+| 8  | `go-error-family` replacement with stdlib                                                         | HIGH   | HIGH   |
+| 9  | `go-branded-id` replacement with stdlib                                                           | HIGH   | HIGH   |
+| 10 | Module split: storage into sub-packages (SQL, Pebble, Turso)                                      | MED    | HIGH   |
+| 11 | Add `event.Result` type to decider `Execute` for publish failure visibility                       | MED    | MED    |
+| 12 | Add `NotFound` error family to `go-error-family`                                                  | LOW    | MED    |
+| 13 | Document `opError` wrapping pattern for `errors.Is` traceability                                  | LOW    | LOW    |
+| 14 | Add `LoadToVersion`/`LoadToTimestamp` override to FakeBus subscriber tests                        | LOW    | LOW    |
+| 15 | Rename `slog_test.go` → `logging_slog_test.go` (test is for logging, not a separate slog adapter) | LOW    | LOW    |
 
 ---
 
@@ -113,30 +113,30 @@
 
 ## f) TOP #25 THINGS TO DO NEXT (sorted by impact × ease)
 
-| #   | What                                                            | Impact | Effort | ROI      |
-| --- | --------------------------------------------------------------- | ------ | ------ | -------- |
-| 1   | Delete deprecated `core/aggregate` package                      | MED    | LOW    | ⭐⭐⭐⭐ |
-| 2   | Delete deprecated `catalog/adapters/builder.go` functions       | LOW    | LOW    | ⭐⭐⭐   |
-| 3   | Add tests for new Dispatch() closed-state path                  | MED    | LOW    | ⭐⭐⭐⭐ |
-| 4   | Rename `slog_test.go` → `logging_slog_test.go`                  | LOW    | LOW    | ⭐⭐⭐   |
-| 5   | Extract `requireType[T]` helper from example/todo               | LOW    | LOW    | ⭐⭐⭐   |
-| 6   | Document `opError` wrapping pattern                             | LOW    | LOW    | ⭐⭐⭐   |
-| 7   | Unify `query.Handler` type alias → named type                   | MED    | MED    | ⭐⭐⭐   |
-| 8   | Add `NotFound` error family to go-error-family                  | LOW    | MED    | ⭐⭐     |
-| 9   | Validate snapshot+codec pair in NewRepository                   | MED    | MED    | ⭐⭐⭐   |
-| 10  | Simplify testhelpers event constructors (4→2)                   | LOW    | MED    | ⭐⭐     |
-| 11  | Add accessor methods to FakeBus/FakeOutbox                      | LOW    | MED    | ⭐⭐     |
-| 12  | Standardize testhelpers override pattern (pick one)             | LOW    | MED    | ⭐⭐     |
-| 13  | Extract `countingHandler` into testhelpers                      | LOW    | MED    | ⭐⭐     |
-| 14  | Split `schema_test.go` (605 lines) into focused files           | LOW    | MED    | ⭐⭐     |
-| 15  | Split `store_test.go` (512 lines) into focused files            | LOW    | MED    | ⭐⭐     |
-| 16  | Split `outbox_test.go` (415 lines) into focused files           | LOW    | MED    | ⭐⭐     |
-| 17  | Add `event.Result` type to decider Execute for publish failure  | MED    | MED    | ⭐⭐⭐   |
-| 18  | Unify `event.New()` serialization with Codec interface          | MED    | HIGH   | ⭐⭐     |
-| 21  | Split `storage/` into sub-packages (SQL, Pebble, Turso)         | MED    | HIGH   | ⭐       |
-| 23  | Eliminate double-fold in `saveSnapshotAfterEvents`              | MED    | MED    | ⭐⭐     |
-| 24  | Add `IsAggregateNew()` boolean to decider `loadByEvents` return | MED    | LOW    | ⭐⭐⭐   |
-| 25  | CI: add `go vet` and race detector to GitHub Actions            | HIGH   | LOW    | ⭐⭐⭐⭐ |
+| #  | What                                                            | Impact | Effort | ROI      |
+| -- | --------------------------------------------------------------- | ------ | ------ | -------- |
+| 1  | Delete deprecated `core/aggregate` package                      | MED    | LOW    | ⭐⭐⭐⭐ |
+| 2  | Delete deprecated `catalog/adapters/builder.go` functions       | LOW    | LOW    | ⭐⭐⭐   |
+| 3  | Add tests for new Dispatch() closed-state path                  | MED    | LOW    | ⭐⭐⭐⭐ |
+| 4  | Rename `slog_test.go` → `logging_slog_test.go`                  | LOW    | LOW    | ⭐⭐⭐   |
+| 5  | Extract `requireType[T]` helper from example/todo               | LOW    | LOW    | ⭐⭐⭐   |
+| 6  | Document `opError` wrapping pattern                             | LOW    | LOW    | ⭐⭐⭐   |
+| 7  | Unify `query.Handler` type alias → named type                   | MED    | MED    | ⭐⭐⭐   |
+| 8  | Add `NotFound` error family to go-error-family                  | LOW    | MED    | ⭐⭐     |
+| 9  | Validate snapshot+codec pair in NewRepository                   | MED    | MED    | ⭐⭐⭐   |
+| 10 | Simplify testhelpers event constructors (4→2)                   | LOW    | MED    | ⭐⭐     |
+| 11 | Add accessor methods to FakeBus/FakeOutbox                      | LOW    | MED    | ⭐⭐     |
+| 12 | Standardize testhelpers override pattern (pick one)             | LOW    | MED    | ⭐⭐     |
+| 13 | Extract `countingHandler` into testhelpers                      | LOW    | MED    | ⭐⭐     |
+| 14 | Split `schema_test.go` (605 lines) into focused files           | LOW    | MED    | ⭐⭐     |
+| 15 | Split `store_test.go` (512 lines) into focused files            | LOW    | MED    | ⭐⭐     |
+| 16 | Split `outbox_test.go` (415 lines) into focused files           | LOW    | MED    | ⭐⭐     |
+| 17 | Add `event.Result` type to decider Execute for publish failure  | MED    | MED    | ⭐⭐⭐   |
+| 18 | Unify `event.New()` serialization with Codec interface          | MED    | HIGH   | ⭐⭐     |
+| 21 | Split `storage/` into sub-packages (SQL, Pebble, Turso)         | MED    | HIGH   | ⭐       |
+| 23 | Eliminate double-fold in `saveSnapshotAfterEvents`              | MED    | MED    | ⭐⭐     |
+| 24 | Add `IsAggregateNew()` boolean to decider `loadByEvents` return | MED    | LOW    | ⭐⭐⭐   |
+| 25 | CI: add `go vet` and race detector to GitHub Actions            | HIGH   | LOW    | ⭐⭐⭐⭐ |
 
 ---
 

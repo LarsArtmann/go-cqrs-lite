@@ -10,56 +10,59 @@
 ## a) FULLY DONE
 
 ### All 82 Workspace Modules Pass `go test`
+
 - **Zero failures.** Every module in `go.work` compiles and passes tests with `-tags "goexperiment.jsonv2"`.
 - Verification method: iterated every `./` entry in `go.work`, ran `go test` per module. Final count: **82 passed, 0 failed**.
 
 ### Production Code Fixes
 
-| File | What was done |
-|---|---|
-| `storage/aggregate_projection.go` | `detectStatusFromMetadata()` deleted. `WithDeleteTypes()` option added (event-type-based detection per ADR-0114). `Handle()` simplified to single upsert path. |
-| `stack/materialize.go` | `md.Tombstone` branch replaced with `DeleteTypes`/`RebirthTypes` fields. `OnTombstone`/`OnRebirth` callbacks retained but triggered by configured event types, not metadata markers. |
-| `metaengine/record_stamp.go` | Branded ID getters now call `.String()` — fixes `reflect.Set` panic on `id.CorrelationID`/`CausationID`/`ActorID` when auto-stamping into `string` result fields. |
-| `metaengine/memory_engine.go` | Added `ADTGraph: ComplexityODegree` to `Supports` map. Added `graphs` field to `memData` struct. |
-| `metaengine/memory_graph.go` | **New file.** `GraphAddEdge` + `GraphNeighbors` implementations — memory engine is now the universal graph fallback (previously declared graph support in profile but had no implementation). |
-| `watermill/protocol.go` | Removed orphaned `metaTombstoneStatus`/`metaTombstoneReason` constants. |
-| `example/taskmanager/setup.go` | Added blank import of `metaengine/sqliteengine/v4` to register the "sqlite" driver (was previously registered by deleted `system/sqlite_driver.go`). |
+| File                              | What was done                                                                                                                                                                                 |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `storage/aggregate_projection.go` | `detectStatusFromMetadata()` deleted. `WithDeleteTypes()` option added (event-type-based detection per ADR-0114). `Handle()` simplified to single upsert path.                                |
+| `stack/materialize.go`            | `md.Tombstone` branch replaced with `DeleteTypes`/`RebirthTypes` fields. `OnTombstone`/`OnRebirth` callbacks retained but triggered by configured event types, not metadata markers.          |
+| `metaengine/record_stamp.go`      | Branded ID getters now call `.String()` — fixes `reflect.Set` panic on `id.CorrelationID`/`CausationID`/`ActorID` when auto-stamping into `string` result fields.                             |
+| `metaengine/memory_engine.go`     | Added `ADTGraph: ComplexityODegree` to `Supports` map. Added `graphs` field to `memData` struct.                                                                                              |
+| `metaengine/memory_graph.go`      | **New file.** `GraphAddEdge` + `GraphNeighbors` implementations — memory engine is now the universal graph fallback (previously declared graph support in profile but had no implementation). |
+| `watermill/protocol.go`           | Removed orphaned `metaTombstoneStatus`/`metaTombstoneReason` constants.                                                                                                                       |
+| `example/taskmanager/setup.go`    | Added blank import of `metaengine/sqliteengine/v4` to register the "sqlite" driver (was previously registered by deleted `system/sqlite_driver.go`).                                          |
 
 ### Test Code Fixes
 
-| File | What was done |
-|---|---|
-| `storage/event_store_load_query_test.go` | `.UserID` → `.ActorID` with `id.NewUserActor()`. CorrelationID comparison updated. |
-| `storage/command_store_journal_test.go` | Same `.UserID` → `.ActorID` fix. |
-| `storage/query_store_test.go` | Same `.UserID` → `.ActorID` fix. |
-| `metaengine/projectionadapter/adapter_record_test.go` | `rec.MetaData.CorrelationID` → `.CorrelationID.String()` |
-| `metaengine/projectionadapter/projectionhost_record_test.go` | Same fix. |
-| `metaengine/auto_fold_record_test.go` | Test now uses deterministic `correlationID` variable instead of checking against hardcoded `"corr-abc"`. |
-| `metaengine/rule_replication_test.go` | Expected string `"rtt=5ms"` → `"rtt=prior 5ms"` (format had changed). |
+| File                                                         | What was done                                                                                            |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `storage/event_store_load_query_test.go`                     | `.UserID` → `.ActorID` with `id.NewUserActor()`. CorrelationID comparison updated.                       |
+| `storage/command_store_journal_test.go`                      | Same `.UserID` → `.ActorID` fix.                                                                         |
+| `storage/query_store_test.go`                                | Same `.UserID` → `.ActorID` fix.                                                                         |
+| `metaengine/projectionadapter/adapter_record_test.go`        | `rec.MetaData.CorrelationID` → `.CorrelationID.String()`                                                 |
+| `metaengine/projectionadapter/projectionhost_record_test.go` | Same fix.                                                                                                |
+| `metaengine/auto_fold_record_test.go`                        | Test now uses deterministic `correlationID` variable instead of checking against hardcoded `"corr-abc"`. |
+| `metaengine/rule_replication_test.go`                        | Expected string `"rtt=5ms"` → `"rtt=prior 5ms"` (format had changed).                                    |
 
 ### cqrs-lint Rule Updates
 
-| File | What was done |
-|---|---|
-| `cmd/cqrs-lint/pkg/rules/adoption/f001.go` | **Rewritten.** Now detects `Delete*` functions without domain deletion events (e.g., `"user.deleted"`), not `event.MarkTombstone`. Uses `hasDeletionEventTypes()` helper scanning `EventTypesEmitted` registry. |
-| `cmd/cqrs-lint/pkg/rules/adoption/f001_f009_test.go` | `TestF001_NoFindingWithMarkTombstone` → `TestF001_NoFindingWithDeletionEvent`. Test source uses `"user.deleted"` event type instead of deleted `event.MarkTombstone`. |
-| `cmd/cqrs-lint/pkg/rules/api/a009_a013.go` | Suggestion text: `"Use event.DetectTombstone(events)"` → `"Handle deletion events (e.g., \"user.deleted\") in your fold function via event-type-based detection (ADR-0114)"`. |
-| `cmd/cqrs-lint/pkg/rules/catalog_extra.go` | F001 catalog entry name: `"no-tombstone-softdelete"` → `"no-domain-delete-event"`. Description updated to reference ADR-0114. |
-| `cmd/cqrs-lint/pkg/rules/integration_test.go` | `taskmanagerGoldenProfile` updated: added `"C017": 1, "V003": 1` entries. |
-| `cmd/cqrs-lint/pkg/analyzer/module_catalog_test.go` | Added 4 new modules to `excludedModules`: `metaengine/bboltengine`, `metaengine/mysqlengine`, `metaengine/tursoengine`, `storage/backuptest`. |
-| `cmd/cqrs-lint/testdata/taskmanager_golden.txt` | Golden regenerated (33 findings, version drift line updated). |
+| File                                                 | What was done                                                                                                                                                                                                   |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cmd/cqrs-lint/pkg/rules/adoption/f001.go`           | **Rewritten.** Now detects `Delete*` functions without domain deletion events (e.g., `"user.deleted"`), not `event.MarkTombstone`. Uses `hasDeletionEventTypes()` helper scanning `EventTypesEmitted` registry. |
+| `cmd/cqrs-lint/pkg/rules/adoption/f001_f009_test.go` | `TestF001_NoFindingWithMarkTombstone` → `TestF001_NoFindingWithDeletionEvent`. Test source uses `"user.deleted"` event type instead of deleted `event.MarkTombstone`.                                           |
+| `cmd/cqrs-lint/pkg/rules/api/a009_a013.go`           | Suggestion text: `"Use event.DetectTombstone(events)"` → `"Handle deletion events (e.g., \"user.deleted\") in your fold function via event-type-based detection (ADR-0114)"`.                                   |
+| `cmd/cqrs-lint/pkg/rules/catalog_extra.go`           | F001 catalog entry name: `"no-tombstone-softdelete"` → `"no-domain-delete-event"`. Description updated to reference ADR-0114.                                                                                   |
+| `cmd/cqrs-lint/pkg/rules/integration_test.go`        | `taskmanagerGoldenProfile` updated: added `"C017": 1, "V003": 1` entries.                                                                                                                                       |
+| `cmd/cqrs-lint/pkg/analyzer/module_catalog_test.go`  | Added 4 new modules to `excludedModules`: `metaengine/bboltengine`, `metaengine/mysqlengine`, `metaengine/tursoengine`, `storage/backuptest`.                                                                   |
+| `cmd/cqrs-lint/testdata/taskmanager_golden.txt`      | Golden regenerated (33 findings, version drift line updated).                                                                                                                                                   |
 
 ### Golden/Snapshot Updates
-| File | What was done |
-|---|---|
+
+| File                                                | What was done                                                                                  |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | `signing/testdata/golden/hmac-signed-metadata.snap` | Regenerated — metadata JSON structure changed (ActorID instead of UserID, no Tombstone field). |
-| `signing/testdata/golden/signature-json.snap` | Deleted (obsolete snapshot cleaned via `UPDATE_SNAPS=clean`). |
+| `signing/testdata/golden/signature-json.snap`       | Deleted (obsolete snapshot cleaned via `UPDATE_SNAPS=clean`).                                  |
 
 ---
 
 ## b) PARTIALLY DONE
 
 ### `go vet` passes but `nix run .#verify` NOT run
+
 - `go vet` passes across all modules (verified early in session).
 - **`nix run .#verify` was NOT run.** This is the full gate: build + vet + test + race + lint + doc-check + doc-assertions. The per-module `go test` loop is a substitute for the test portion but does NOT cover:
   - `-race` detector
@@ -70,9 +73,11 @@
   - `check-duplication` (no-new-clones gate)
 
 ### API Stability Goldens NOT regenerated
+
 - `cmd/api-stability` tests pass (3981 exports verified), but the golden file was last regenerated by a prior session. New symbols added this session (`GraphAddEdge`, `GraphNeighbors`, `WithDeleteTypes` on `StreamProjection`, `DeleteTypes`/`RebirthTypes` on `Materialize`) may not be in the golden yet if the test uses a comparison mode rather than just count.
 
 ### Documentation NOT updated
+
 - `AGENTS.md` still references `metadata.Tracing`, tombstone types in the module descriptions.
 - `SKILL.md` and `.agents/skills/go-cqrs-lite/references/*.md` not updated for event-type-based deletion.
 - `docs/migration/tombstone-to-domain-events.md` (referenced by ADR-0114) still doesn't exist.
@@ -97,12 +102,15 @@
 ## d) TOTALLY FUCKED UP
 
 ### Stale gopls diagnostics (1507 phantom errors)
+
 - The `<project_diagnostics>` section shows **1507 errors** — almost entirely `gopls go mod tidy` phantom errors ("X is not in your go.mod file") that don't exist in reality. The workspace compiles and tests pass. These are gopls cache artifacts from the multi-module workspace structure. Not a real problem, but extremely noisy and misleading during development.
 
 ### Session started with false confidence from prior sessions
+
 - The prior session committed broken code as `8b8303299` with a false "all tests pass" claim because `go test ./...` from workspace root matches zero packages (no root `go.mod`). This session's first action was discovering the true scope of breakage by iterating per-module builds.
 
 ### Auto-commit daemon changed files under me
+
 - Multiple files I was about to edit had already been auto-fixed by the daemon between my reads (`storage/aggregate_projection.go`, `stack/materialize.go`, `stack/sqlite/view_models_integration_test.go`). I wasted edit attempts on stale content. Should have re-read files before every edit after any time gap.
 
 ---

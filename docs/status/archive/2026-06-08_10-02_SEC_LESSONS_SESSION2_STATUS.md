@@ -15,13 +15,13 @@ Build: ✅ | Tests: ✅ 39/39 packages | Lint: ✅ 0 issues | Module layers: ✅
 
 |                                     | Metric                                                                              | Value |
 | ----------------------------------- | ----------------------------------------------------------------------------------- | ----- |
-| **Sprint 1 (Trust & Docs)**         | 100% complete                                                                       |
-| **Sprint 2 (Operational)**          | 100% complete                                                                       |
-| **Sprint 3 (Testing Rigor)**        | ~45% complete (PBT done for 5/5 core modules; snapshot tests partial)               |
-| **Sprint 4 (CI & Deployment)**      | ~20% (gosec + module-layers in CI; no benchmark regression or Docker CI)            |
-| **Sprint 5 (Consumer Experience)**  | ~15% (SSE, config, sim, dual-store examples done; no Playwright, no catalog-server) |
-| **Sprint 6 (Polish & Experiments)** | 0%                                                                                  |
-| **Overall completion**              | ~45% of 90 planned tasks                                                            |
+| **Sprint 1 (Trust & Docs)**         | 100% complete                                                                       |       |
+| **Sprint 2 (Operational)**          | 100% complete                                                                       |       |
+| **Sprint 3 (Testing Rigor)**        | ~45% complete (PBT done for 5/5 core modules; snapshot tests partial)               |       |
+| **Sprint 4 (CI & Deployment)**      | ~20% (gosec + module-layers in CI; no benchmark regression or Docker CI)            |       |
+| **Sprint 5 (Consumer Experience)**  | ~15% (SSE, config, sim, dual-store examples done; no Playwright, no catalog-server) |       |
+| **Sprint 6 (Polish & Experiments)** | 0%                                                                                  |       |
+| **Overall completion**              | ~45% of 90 planned tasks                                                            |       |
 
 ---
 
@@ -198,17 +198,17 @@ For a library SDK, option 1 (inline per-module) seems cleanest but tedious. Opti
 
 ## Verification Summary
 
-| Gate                     | Status      | Details                                                                     |
-| ------------------------ | ----------- | --------------------------------------------------------------------------- |
-| `nix run .#build`        | ✅ PASS     | All modules compile                                                         |
-| `nix run .#test`         | ✅ PASS     | 39/39 packages OK                                                           |
-| `nix run .#lint`         | ✅ PASS     | 0 issues across all modules                                                 |
-| `nix run .#check-layers` | ✅ PASS     | Module layer check passed                                                   |
+| Gate                     | Status     | Details                                                                     |
+| ------------------------ | ---------- | --------------------------------------------------------------------------- |
+| `nix run .#build`        | ✅ PASS    | All modules compile                                                         |
+| `nix run .#test`         | ✅ PASS    | 39/39 packages OK                                                           |
+| `nix run .#lint`         | ✅ PASS    | 0 issues across all modules                                                 |
+| `nix run .#check-layers` | ✅ PASS    | Module layer check passed                                                   |
 | Git working tree         | ⚠️ MODIFIED | `example/user/server.go` (fixed), `testutil/snaptest/snaptest.go` (deleted) |
 
 ## Git Changes (Uncommitted)
 
 ```
- M example/user/server.go        — removed unused params, cleaned imports
- D testutil/snaptest/snaptest.go — removed orphan package
+M example/user/server.go        — removed unused params, cleaned imports
+D testutil/snaptest/snaptest.go — removed orphan package
 ```

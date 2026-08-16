@@ -12,6 +12,7 @@
 ## Executive Summary
 
 Two Phase 2 "Quick Wins" from the v5 Unification plan were executed:
+
 1. **Delete `metaengine.GraphBackend`** (ADR-0113) — interface + memory engine implementations removed, all callers updated to local structural interfaces.
 2. **Replace bus driver factory registry with direct watermill wiring** in `system/` — `BusDriverFactory`, `RegisterBusDriver`, `RegisteredBusDrivers`, `lookupBusDriver` all deleted; `createEventBus` calls `watermill.NewEventBus()` directly.
 
@@ -23,44 +24,44 @@ Two Phase 2 "Quick Wins" from the v5 Unification plan were executed:
 
 ### Task 1: Delete `metaengine.GraphBackend` (ADR-0113)
 
-| What | Status | Files |
-| ---- | ------ | ----- |
-| Delete exported `GraphBackend` interface | ✅ | `metaengine/engine.go` (-13 lines) |
-| Delete `memoryEngine` GraphBackend assertion | ✅ | `metaengine/engine.go` |
-| Delete memory engine `GraphAddEdge`/`GraphNeighbors` methods | ✅ | `metaengine/memory_backends.go` (-50 lines) |
-| Delete `memGraph` struct, `graphs` field, `getGraphLocked`, `ADTGraph` from Profile | ✅ | `metaengine/memory_engine.go` (-16 lines) |
-| Remove GraphBackend assertion from graphadapter | ✅ | `metaengine/graphadapter/adapter.go` |
-| Remove GraphBackend assertion from dgraphengine | ✅ | `metaengine/dgraphengine/engine.go` |
-| Update adttest harness with local `graphBackend` interface | ✅ | `metaengine/adttest/harness.go` |
-| Update all 5 dgraphengine test files with local `graphBackend` | ✅ | `metaengine/dgraphengine/{bench,mixed_bench,stress,graphrag,engine}_test.go` |
-| Update `concurrent_gaps_test.go` with local interface | ✅ | `metaengine/concurrent_gaps_test.go` |
-| Update `graphadapter/adapter_test.go` to use `HasGraphSupport()` | ✅ | `metaengine/graphadapter/adapter_test.go` |
-| Update graphadapter package doc comment | ✅ | `metaengine/graphadapter/adapter.go` |
-| Update dgraphengine graph.go section comment | ✅ | `metaengine/dgraphengine/graph.go` |
-| API golden file regenerated | ✅ | `docs/api_surface.txt` |
-| Build passes (standalone per-module `GOWORK=off`) | ✅ | metaengine, adttest, graphadapter, dgraphengine |
-| `go vet` passes on all changed modules | ✅ | No errors (only pre-existing stdversion/deprecated warnings) |
-| Tests pass on submodules | ✅ | adttest (0.004s), graphadapter (0.007s), dgraphengine (0.097s) |
+| What                                                                                | Status | Files                                                                        |
+| ----------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------- |
+| Delete exported `GraphBackend` interface                                            | ✅     | `metaengine/engine.go` (-13 lines)                                           |
+| Delete `memoryEngine` GraphBackend assertion                                        | ✅     | `metaengine/engine.go`                                                       |
+| Delete memory engine `GraphAddEdge`/`GraphNeighbors` methods                        | ✅     | `metaengine/memory_backends.go` (-50 lines)                                  |
+| Delete `memGraph` struct, `graphs` field, `getGraphLocked`, `ADTGraph` from Profile | ✅     | `metaengine/memory_engine.go` (-16 lines)                                    |
+| Remove GraphBackend assertion from graphadapter                                     | ✅     | `metaengine/graphadapter/adapter.go`                                         |
+| Remove GraphBackend assertion from dgraphengine                                     | ✅     | `metaengine/dgraphengine/engine.go`                                          |
+| Update adttest harness with local `graphBackend` interface                          | ✅     | `metaengine/adttest/harness.go`                                              |
+| Update all 5 dgraphengine test files with local `graphBackend`                      | ✅     | `metaengine/dgraphengine/{bench,mixed_bench,stress,graphrag,engine}_test.go` |
+| Update `concurrent_gaps_test.go` with local interface                               | ✅     | `metaengine/concurrent_gaps_test.go`                                         |
+| Update `graphadapter/adapter_test.go` to use `HasGraphSupport()`                    | ✅     | `metaengine/graphadapter/adapter_test.go`                                    |
+| Update graphadapter package doc comment                                             | ✅     | `metaengine/graphadapter/adapter.go`                                         |
+| Update dgraphengine graph.go section comment                                        | ✅     | `metaengine/dgraphengine/graph.go`                                           |
+| API golden file regenerated                                                         | ✅     | `docs/api_surface.txt`                                                       |
+| Build passes (standalone per-module `GOWORK=off`)                                   | ✅     | metaengine, adttest, graphadapter, dgraphengine                              |
+| `go vet` passes on all changed modules                                              | ✅     | No errors (only pre-existing stdversion/deprecated warnings)                 |
+| Tests pass on submodules                                                            | ✅     | adttest (0.004s), graphadapter (0.007s), dgraphengine (0.097s)               |
 
 **Design decision:** The unexported `graphBackend` in `dispatch.go` remains as the production dispatch contract. Graph-capable engines (dgraphengine, graphadapter) keep their `GraphAddEdge`/`GraphNeighbors` methods and satisfy the unexported interface structurally. Memory engine no longer supports graph — consumers use `graphadapter.Adapter` exclusively.
 
 ### Task 2: Replace bus driver factory with direct watermill wiring
 
-| What | Status | Files |
-| ---- | ------ | ----- |
-| Rewrite `buildEventBus` → `createEventBus` (direct switch, no factory) | ✅ | `system/bus.go` (-22 lines net) |
-| Delete `BusDriverFactory` type | ✅ | `system/driver_registry.go` |
-| Delete `RegisterBusDriver` function | ✅ | `system/driver_registry.go` |
-| Delete `RegisteredBusDrivers` function | ✅ | `system/driver_registry.go` |
-| Delete `lookupBusDriver` function | ✅ | `system/driver_registry.go` |
-| Delete bus driver `init()` registration | ✅ | `system/driver_registry.go` (-58 lines total) |
-| Delete `ErrBusDriverNotEventBus` sentinel | ✅ | `system/errors.go` |
-| Update constructor to call `createEventBus` | ✅ | `system/constructor.go` |
-| Delete `TestSystem_GochannelBusDriverRegistered` test | ✅ | `system/system_wiring_test.go` |
-| Delete `TestBusDriverRegistry_GochannelRegistered` test | ✅ | `system/system_wiring_test.go` |
-| Rename `TestBusDriverRegistry_UnknownDriverErrors` → `TestUnknownBusDriverErrors` | ✅ | `system/system_wiring_test.go` |
-| Build passes (workspace mode) | ✅ | Pre-existing watermill/protocol.go errors are unrelated |
-| Zero remaining Go references to deleted symbols | ✅ | grep confirms 0 matches |
+| What                                                                              | Status | Files                                                   |
+| --------------------------------------------------------------------------------- | ------ | ------------------------------------------------------- |
+| Rewrite `buildEventBus` → `createEventBus` (direct switch, no factory)            | ✅     | `system/bus.go` (-22 lines net)                         |
+| Delete `BusDriverFactory` type                                                    | ✅     | `system/driver_registry.go`                             |
+| Delete `RegisterBusDriver` function                                               | ✅     | `system/driver_registry.go`                             |
+| Delete `RegisteredBusDrivers` function                                            | ✅     | `system/driver_registry.go`                             |
+| Delete `lookupBusDriver` function                                                 | ✅     | `system/driver_registry.go`                             |
+| Delete bus driver `init()` registration                                           | ✅     | `system/driver_registry.go` (-58 lines total)           |
+| Delete `ErrBusDriverNotEventBus` sentinel                                         | ✅     | `system/errors.go`                                      |
+| Update constructor to call `createEventBus`                                       | ✅     | `system/constructor.go`                                 |
+| Delete `TestSystem_GochannelBusDriverRegistered` test                             | ✅     | `system/system_wiring_test.go`                          |
+| Delete `TestBusDriverRegistry_GochannelRegistered` test                           | ✅     | `system/system_wiring_test.go`                          |
+| Rename `TestBusDriverRegistry_UnknownDriverErrors` → `TestUnknownBusDriverErrors` | ✅     | `system/system_wiring_test.go`                          |
+| Build passes (workspace mode)                                                     | ✅     | Pre-existing watermill/protocol.go errors are unrelated |
+| Zero remaining Go references to deleted symbols                                   | ✅     | grep confirms 0 matches                                 |
 
 ---
 
@@ -69,6 +70,7 @@ Two Phase 2 "Quick Wins" from the v5 Unification plan were executed:
 ### `nix run .#verify` — NOT RUN
 
 The full verification gate was not executed. It would take 3-4 minutes and would catch:
+
 - Doc-check failures (stale markdown references — see §d)
 - Coverage drift
 - Duplication baseline changes
@@ -117,15 +119,15 @@ Still named `TestGraphBackend` — should be renamed to `TestGraphOperations` or
 
 ### 3. Documentation not updated (58 stale references)
 
-| File | Count | Issue |
-| ---- | ----- | ----- |
-| `CHANGELOG.md` | 13 | Historical entries — acceptable as-is |
-| `ROADMAP.md` | 6 | Line 511 still lists `\| metaengine.GraphBackend \| graphadapter \|` as a migration mapping. Line 171 says "ADR-0113 Phases 3-4: Delete GraphBackend interface entirely — currently..." (now done!) |
-| `TODO_LIST.md` | 1 | Line 231: checkbox still `[ ]` unchecked for both Phase 2 items. Should be `[x]`. |
-| `METAENGINE_DOMAIN_LANGUAGE.md` | 2 | Lines 86, 374: Lists `GraphBackend` as a backend interface and maps `GraphBackend: GraphAddEdge/GraphNeighbors` |
-| `metaengine/README.md` | 2 | Lines 531, 533: Lists `GraphBackend` as a backend type, says "implemented by Memory, Dgraph, and graphadapter" |
-| `AGENTS.md` | 1 | Line 298: "GraphBackend is deleted" — actually correct! (describes the target state) |
-| Various planning docs | 28 | `simpleBus`/`BusDriverFactory`/`RegisterBusDriver` references — mostly historical |
+| File                            | Count | Issue                                                                                                                                                                                               |
+| ------------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CHANGELOG.md`                  | 13    | Historical entries — acceptable as-is                                                                                                                                                               |
+| `ROADMAP.md`                    | 6     | Line 511 still lists `\| metaengine.GraphBackend \| graphadapter \|` as a migration mapping. Line 171 says "ADR-0113 Phases 3-4: Delete GraphBackend interface entirely — currently..." (now done!) |
+| `TODO_LIST.md`                  | 1     | Line 231: checkbox still `[ ]` unchecked for both Phase 2 items. Should be `[x]`.                                                                                                                   |
+| `METAENGINE_DOMAIN_LANGUAGE.md` | 2     | Lines 86, 374: Lists `GraphBackend` as a backend interface and maps `GraphBackend: GraphAddEdge/GraphNeighbors`                                                                                     |
+| `metaengine/README.md`          | 2     | Lines 531, 533: Lists `GraphBackend` as a backend type, says "implemented by Memory, Dgraph, and graphadapter"                                                                                      |
+| `AGENTS.md`                     | 1     | Line 298: "GraphBackend is deleted" — actually correct! (describes the target state)                                                                                                                |
+| Various planning docs           | 28    | `simpleBus`/`BusDriverFactory`/`RegisterBusDriver` references — mostly historical                                                                                                                   |
 
 **The `doc-check` tool WILL fail** on markdown files that reference the deleted Go symbol `metaengine.GraphBackend` as a live type (METAENGINE_DOMAIN_LANGUAGE.md, metaengine/README.md).
 
@@ -242,6 +244,7 @@ Not my change, but the auto-commit daemon added `"storage/backuptest"` to the mo
 ### Q1: Should I mark the TODO_LIST Phase 2 items as done and update the docs now, or wait for `nix run .#verify` to pass first?
 
 The AGENTS.md says "every session that changes code must run `nix run .#verify` before claiming GREEN." But the verify gate is blocked by the pre-existing `storage/backuptest` tag issue. Should I:
+
 - (a) Mark them done now and note the verify gap, or
 - (b) Fix the backuptest tag issue first, then verify, then mark done?
 

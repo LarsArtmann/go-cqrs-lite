@@ -48,18 +48,18 @@ All test callers replaced with local `Parse` + error-handling helpers.
 
 ### Production Panics: 10 Remaining (down from 19)
 
-| #   | Location                                 | Function                    | Category          | Prod Callers | Convertible? |
-| --- | ---------------------------------------- | --------------------------- | ----------------- | ------------ | ------------ |
-| 1   | event/types.go:121                       | `Version.Decrement()`       | Arithmetic guard  | **0**        | ✅ Trivial   |
-| 2   | event/types.go:141                       | `Version.Sub(n)`            | Arithmetic guard  | **0**        | ✅ Trivial   |
-| 3   | event/types.go:191                       | `SchemaVersion.Decrement()` | Arithmetic guard  | **0**        | ✅ Trivial   |
-| 4   | signing/multisig/extract.go:89           | `VerifierMap()`             | Nil guard         | **0**        | ✅ Easy      |
-| 5   | pebble/store.go:46                       | `NewStore()`                | Nil guard         | **0**        | ⚠️ Moderate  |
-| 6   | middleware/circuit_breaker.go:96         | `circuitBreaker.allow()`    | Exhaustive switch | N/A          | Leave        |
-| 7   | listing/in_memory.go:182                 | `applyTombstonePolicy()`    | Exhaustive switch | N/A          | Leave        |
-| 8   | catalog/docserver/docserver.go:128       | `mustStaticFS()`            | Embed-time init   | N/A          | Leave        |
-| 9   | catalog/internal/cattest/builders.go:220 | `StringSchema()`            | Test helper       | N/A          | Leave        |
-| 10  | event/eventtest/handlers.go:44           | `PanicEventHandler()`       | Test helper       | N/A          | Leave        |
+| #  | Location                                 | Function                    | Category          | Prod Callers | Convertible? |
+| -- | ---------------------------------------- | --------------------------- | ----------------- | ------------ | ------------ |
+| 1  | event/types.go:121                       | `Version.Decrement()`       | Arithmetic guard  | **0**        | ✅ Trivial   |
+| 2  | event/types.go:141                       | `Version.Sub(n)`            | Arithmetic guard  | **0**        | ✅ Trivial   |
+| 3  | event/types.go:191                       | `SchemaVersion.Decrement()` | Arithmetic guard  | **0**        | ✅ Trivial   |
+| 4  | signing/multisig/extract.go:89           | `VerifierMap()`             | Nil guard         | **0**        | ✅ Easy      |
+| 5  | pebble/store.go:46                       | `NewStore()`                | Nil guard         | **0**        | ⚠️ Moderate   |
+| 6  | middleware/circuit_breaker.go:96         | `circuitBreaker.allow()`    | Exhaustive switch | N/A          | Leave        |
+| 7  | listing/in_memory.go:182                 | `applyTombstonePolicy()`    | Exhaustive switch | N/A          | Leave        |
+| 8  | catalog/docserver/docserver.go:128       | `mustStaticFS()`            | Embed-time init   | N/A          | Leave        |
+| 9  | catalog/internal/cattest/builders.go:220 | `StringSchema()`            | Test helper       | N/A          | Leave        |
+| 10 | event/eventtest/handlers.go:44           | `PanicEventHandler()`       | Test helper       | N/A          | Leave        |
 
 **Critical finding:** Items #1–5 have **zero production callers**. They are exclusively called from tests. Converting them to error returns is zero-risk.
 
@@ -174,33 +174,33 @@ Either all arithmetic methods guard (Add, Sub, Decrement, Increment) or none do.
 
 Sorted by **Impact × Feasibility / Work Required** (highest first):
 
-| #   | Task                                                                         | Impact | Work  | Risk                  |
-| --- | ---------------------------------------------------------------------------- | ------ | ----- | --------------------- |
-| 1   | Convert `Version.Decrement()` → `(Version, error)` with errorfamily taxonomy | High   | 30min | Zero — 0 prod callers |
-| 2   | Convert `Version.Sub()` → `(Version, error)` with errorfamily taxonomy       | High   | 30min | Zero — 0 prod callers |
-| 3   | Convert `SchemaVersion.Decrement()` → `(SchemaVersion, error)`               | High   | 30min | Zero — 0 prod callers |
-| 4   | Convert `VerifierMap()` → `(map, error)` with errorfamily taxonomy           | Medium | 30min | Zero — 0 prod callers |
-| 5   | Convert `pebble.NewStore()` → `(*EventStore, error)`                         | Medium | 1h    | Low — 9 test callers  |
-| 6   | Update FEATURES.md — remove MustNew feature entry                            | Low    | 10min | None                  |
-| 7   | Update AGENTS.md — reflect Must\* removal, add note about remaining panics   | Low    | 15min | None                  |
-| 8   | Regenerate `docs/api_surface.txt`                                            | Low    | 5min  | None                  |
-| 9   | Update CHANGELOG.md with Must\* removal entry                                | Low    | 10min | None                  |
-| 10  | Fix `Version.Add()` underflow gap — add guard matching Sub() behavior        | Medium | 30min | Low                   |
-| 11  | Consolidate error re-exports: pick facade OR direct import, not both         | Medium | 2h    | Medium — many files   |
-| 12  | Add `storage/sql` tests to improve 37.4% → 80%+ coverage                     | High   | 2h    | None                  |
-| 13  | Consider `errorfamily/bridge` for structured error context                   | Medium | 2h    | Low — additive        |
-| 14  | Fix `AggregateID` type split brain (string vs ulid.ULID base)                | High   | 4h    | High — breaking       |
-| 15  | Consider making `Version` unsigned to prevent negatives at compile time      | Medium | 3h    | High — breaking       |
-| 16  | Remove Pebble dead `Backend` type/constants                                  | Low    | 5min  | None                  |
-| 17  | Update TODO_LIST.md — all items are done/blocked                             | Low    | 30min | None                  |
-| 18  | Add module READMEs for remaining ~10 modules                                 | Medium | 2h    | None                  |
-| 19  | Add `doc.go` with pkg.go.dev examples for remaining ~10 modules              | Medium | 2h    | None                  |
-| 20  | Consolidate test helpers from ~30 files into shared testutil                 | Medium | 3h    | Low — test-only       |
-| 21  | Add PostgreSQL integration tests for storage/                                | High   | 4h    | None                  |
-| 22  | Add Pebble Journal/SeekableJournal implementation                            | Medium | 4h    | None                  |
-| 23  | Add `go test -race` to CI verification                                       | Medium | 30min | None                  |
-| 24  | Review and possibly adopt `samber/oops` for error enrichment                 | Medium | 2h    | Low                   |
-| 25  | Add catalog diff/breaking-change detection tool                              | Medium | 4h    | None                  |
+| #  | Task                                                                         | Impact | Work  | Risk                  |
+| -- | ---------------------------------------------------------------------------- | ------ | ----- | --------------------- |
+| 1  | Convert `Version.Decrement()` → `(Version, error)` with errorfamily taxonomy | High   | 30min | Zero — 0 prod callers |
+| 2  | Convert `Version.Sub()` → `(Version, error)` with errorfamily taxonomy       | High   | 30min | Zero — 0 prod callers |
+| 3  | Convert `SchemaVersion.Decrement()` → `(SchemaVersion, error)`               | High   | 30min | Zero — 0 prod callers |
+| 4  | Convert `VerifierMap()` → `(map, error)` with errorfamily taxonomy           | Medium | 30min | Zero — 0 prod callers |
+| 5  | Convert `pebble.NewStore()` → `(*EventStore, error)`                         | Medium | 1h    | Low — 9 test callers  |
+| 6  | Update FEATURES.md — remove MustNew feature entry                            | Low    | 10min | None                  |
+| 7  | Update AGENTS.md — reflect Must\* removal, add note about remaining panics   | Low    | 15min | None                  |
+| 8  | Regenerate `docs/api_surface.txt`                                            | Low    | 5min  | None                  |
+| 9  | Update CHANGELOG.md with Must\* removal entry                                | Low    | 10min | None                  |
+| 10 | Fix `Version.Add()` underflow gap — add guard matching Sub() behavior        | Medium | 30min | Low                   |
+| 11 | Consolidate error re-exports: pick facade OR direct import, not both         | Medium | 2h    | Medium — many files   |
+| 12 | Add `storage/sql` tests to improve 37.4% → 80%+ coverage                     | High   | 2h    | None                  |
+| 13 | Consider `errorfamily/bridge` for structured error context                   | Medium | 2h    | Low — additive        |
+| 14 | Fix `AggregateID` type split brain (string vs ulid.ULID base)                | High   | 4h    | High — breaking       |
+| 15 | Consider making `Version` unsigned to prevent negatives at compile time      | Medium | 3h    | High — breaking       |
+| 16 | Remove Pebble dead `Backend` type/constants                                  | Low    | 5min  | None                  |
+| 17 | Update TODO_LIST.md — all items are done/blocked                             | Low    | 30min | None                  |
+| 18 | Add module READMEs for remaining ~10 modules                                 | Medium | 2h    | None                  |
+| 19 | Add `doc.go` with pkg.go.dev examples for remaining ~10 modules              | Medium | 2h    | None                  |
+| 20 | Consolidate test helpers from ~30 files into shared testutil                 | Medium | 3h    | Low — test-only       |
+| 21 | Add PostgreSQL integration tests for storage/                                | High   | 4h    | None                  |
+| 22 | Add Pebble Journal/SeekableJournal implementation                            | Medium | 4h    | None                  |
+| 23 | Add `go test -race` to CI verification                                       | Medium | 30min | None                  |
+| 24 | Review and possibly adopt `samber/oops` for error enrichment                 | Medium | 2h    | Low                   |
+| 25 | Add catalog diff/breaking-change detection tool                              | Medium | 4h    | None                  |
 
 ---
 

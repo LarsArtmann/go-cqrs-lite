@@ -184,33 +184,33 @@ budget violations.
 
 ## f) Top 25 Things to Get Done Next (Pareto-ranked)
 
-| #   | Task                                                     | Impact                         | Effort |
-| --- | -------------------------------------------------------- | ------------------------------ | ------ |
-| 1   | Write `event/causality_test.go`                          | HIGH — untested critical infra | 30min  |
-| 2   | Update `docs/api_surface.txt` with 5 new catalog modules | HIGH — prevents breaking API   | 15min  |
-| 3   | Commit all uncommitted changes (lint fixes)              | HIGH — clean working tree      | 5min   |
-| 4   | Update FEATURES.md with catalog split + audit trail      | MEDIUM — accurate inventory    | 30min  |
-| 5   | Update AGENTS.md module count + structure tree           | MEDIUM — AI session context    | 15min  |
-| 6   | Fix turso dependency budget (8→6 or raise budget)        | MEDIUM — CI gate               | 20min  |
-| 7   | Fix catalog dependency budget (4→3 or raise budget)      | MEDIUM — CI gate               | 15min  |
-| 8   | Fix integration dependency budget (19→18 or raise)       | MEDIUM — CI gate               | 15min  |
-| 9   | Extract `kv/` interface module                           | HIGH — unlocks backend work    | 3-4hr  |
-| 10  | Refactor Pebble to use `kv.Store` adapter                | HIGH — simplifies pebble       | 2hr    |
-| 11  | Add cross-module contract tests (Store interface)        | MEDIUM — catches impl bugs     | 2hr    |
-| 12  | Write READMEs for remaining 22 modules                   | MEDIUM — DX                    | 4hr    |
-| 13  | Add doc.go to modules missing package docs               | LOW — pkg.go.dev               | 2hr    |
-| 14  | Tag new catalog exporter modules for publishing          | MEDIUM — consumer access       | 30min  |
-| 15  | Update TODO_LIST.md to reflect current state             | LOW — housekeeping             | 20min  |
-| 16  | Add eventcatalog integration test (replaces removed one) | LOW — coverage                 | 30min  |
-| 17  | Property-based tests for catalog exporters               | LOW — robustness               | 2hr    |
-| 18  | Property-based tests for command/query stores            | LOW — robustness               | 2hr    |
-| 19  | Consumer quickstart guide (docs/)                        | MEDIUM — adoption              | 1hr    |
-| 20  | Benchmark baseline for new catalog modules               | LOW — regression detection     | 1hr    |
-| 21  | CI workflow for GOWORK=off per-module builds             | MEDIUM — consumer safety       | 1hr    |
-| 22  | Add `go mod verify` to CI                                | LOW — supply chain             | 15min  |
-| 23  | Explore Badger adapter on kv.Store (post-kv/)            | LOW — future backend           | 2hr    |
-| 24  | Explore bbolt adapter on kv.Store (post-kv/)             | LOW — future backend           | 2hr    |
-| 25  | Update D2 architecture diagram with new module structure | LOW — visualization            | 30min  |
+| #  | Task                                                     | Impact                         | Effort |
+| -- | -------------------------------------------------------- | ------------------------------ | ------ |
+| 1  | Write `event/causality_test.go`                          | HIGH — untested critical infra | 30min  |
+| 2  | Update `docs/api_surface.txt` with 5 new catalog modules | HIGH — prevents breaking API   | 15min  |
+| 3  | Commit all uncommitted changes (lint fixes)              | HIGH — clean working tree      | 5min   |
+| 4  | Update FEATURES.md with catalog split + audit trail      | MEDIUM — accurate inventory    | 30min  |
+| 5  | Update AGENTS.md module count + structure tree           | MEDIUM — AI session context    | 15min  |
+| 6  | Fix turso dependency budget (8→6 or raise budget)        | MEDIUM — CI gate               | 20min  |
+| 7  | Fix catalog dependency budget (4→3 or raise budget)      | MEDIUM — CI gate               | 15min  |
+| 8  | Fix integration dependency budget (19→18 or raise)       | MEDIUM — CI gate               | 15min  |
+| 9  | Extract `kv/` interface module                           | HIGH — unlocks backend work    | 3-4hr  |
+| 10 | Refactor Pebble to use `kv.Store` adapter                | HIGH — simplifies pebble       | 2hr    |
+| 11 | Add cross-module contract tests (Store interface)        | MEDIUM — catches impl bugs     | 2hr    |
+| 12 | Write READMEs for remaining 22 modules                   | MEDIUM — DX                    | 4hr    |
+| 13 | Add doc.go to modules missing package docs               | LOW — pkg.go.dev               | 2hr    |
+| 14 | Tag new catalog exporter modules for publishing          | MEDIUM — consumer access       | 30min  |
+| 15 | Update TODO_LIST.md to reflect current state             | LOW — housekeeping             | 20min  |
+| 16 | Add eventcatalog integration test (replaces removed one) | LOW — coverage                 | 30min  |
+| 17 | Property-based tests for catalog exporters               | LOW — robustness               | 2hr    |
+| 18 | Property-based tests for command/query stores            | LOW — robustness               | 2hr    |
+| 19 | Consumer quickstart guide (docs/)                        | MEDIUM — adoption              | 1hr    |
+| 20 | Benchmark baseline for new catalog modules               | LOW — regression detection     | 1hr    |
+| 21 | CI workflow for GOWORK=off per-module builds             | MEDIUM — consumer safety       | 1hr    |
+| 22 | Add `go mod verify` to CI                                | LOW — supply chain             | 15min  |
+| 23 | Explore Badger adapter on kv.Store (post-kv/)            | LOW — future backend           | 2hr    |
+| 24 | Explore bbolt adapter on kv.Store (post-kv/)             | LOW — future backend           | 2hr    |
+| 25 | Update D2 architecture diagram with new module structure | LOW — visualization            | 30min  |
 
 ---
 

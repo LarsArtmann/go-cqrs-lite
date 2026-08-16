@@ -142,53 +142,53 @@ New Layer 0 leaf module with zero internal dependencies:
 
 ### Critical (blocks CI/CD)
 
-| #   | Task                                                                   | Impact                   | Effort |
-| --- | ---------------------------------------------------------------------- | ------------------------ | ------ |
-| 1   | Delete or commit `pebble/coverage_test.go` and `pebble/fuzz_test.go`   | Unblocks workspace build | 5 min  |
-| 2   | Fix turso `TestEventStore_LoadNonExistent` error classification        | Unblocks turso CI        | 30 min |
-| 3   | Fix pebble `fuzz_test.go` type conversion error (`[16]byte → EventID`) | Unblocks pebble CI       | 15 min |
+| # | Task                                                                   | Impact                   | Effort |
+| - | ---------------------------------------------------------------------- | ------------------------ | ------ |
+| 1 | Delete or commit `pebble/coverage_test.go` and `pebble/fuzz_test.go`   | Unblocks workspace build | 5 min  |
+| 2 | Fix turso `TestEventStore_LoadNonExistent` error classification        | Unblocks turso CI        | 30 min |
+| 3 | Fix pebble `fuzz_test.go` type conversion error (`[16]byte → EventID`) | Unblocks pebble CI       | 15 min |
 
 ### High Impact
 
-| #   | Task                                                                                         | Impact             | Effort  |
-| --- | -------------------------------------------------------------------------------------------- | ------------------ | ------- |
-| 4   | Update module layer budgets (codec→2, pebble→7, storage→11, integration→19)                  | Honest budgets     | 5 min   |
-| 5   | Write `pebble/adapter.go` implementing `kv.Store` (~80 lines)                                | First kv/ consumer | 2 hours |
-| 6   | Update FEATURES.md module count (28→34) and add kv/                                          | Doc accuracy       | 15 min  |
-| 7   | Add `kv/` to `.golangci.yml` depguard allow list if needed                                   | Lint correctness   | 5 min   |
-| 8   | Update `docs/research/2026-06-14_PERFORMANCE_CHARACTERISTICS_REPORT.html` module count to 34 | Report accuracy    | 5 min   |
+| # | Task                                                                                         | Impact             | Effort  |
+| - | -------------------------------------------------------------------------------------------- | ------------------ | ------- |
+| 4 | Update module layer budgets (codec→2, pebble→7, storage→11, integration→19)                  | Honest budgets     | 5 min   |
+| 5 | Write `pebble/adapter.go` implementing `kv.Store` (~80 lines)                                | First kv/ consumer | 2 hours |
+| 6 | Update FEATURES.md module count (28→34) and add kv/                                          | Doc accuracy       | 15 min  |
+| 7 | Add `kv/` to `.golangci.yml` depguard allow list if needed                                   | Lint correctness   | 5 min   |
+| 8 | Update `docs/research/2026-06-14_PERFORMANCE_CHARACTERISTICS_REPORT.html` module count to 34 | Report accuracy    | 5 min   |
 
 ### Medium Impact
 
-| #   | Task                                                                        | Impact              | Effort  |
-| --- | --------------------------------------------------------------------------- | ------------------- | ------- |
-| 9   | Refactor pebble event store to depend on `kv.Store` instead of `*pebble.DB` | Backend agnosticism | 4 hours |
-| 10  | Add `badger/` adapter module (~100 lines)                                   | Second KV backend   | 3 hours |
-| 11  | Add concurrent batch test (multiple goroutines committing batches)          | Test thoroughness   | 30 min  |
-| 12  | Add `kv.Store` conformance test suite (like `eventtest`)                    | Adapter validation  | 2 hours |
-| 13  | Add property-based test for MemStore ordering (rapid)                       | Test rigor          | 1 hour  |
-| 14  | Benchmark MemStore with 10K keys (scale test)                               | Performance data    | 30 min  |
-| 15  | Document kv/ in README.md root project file                                 | Discoverability     | 10 min  |
+| #  | Task                                                                        | Impact              | Effort  |
+| -- | --------------------------------------------------------------------------- | ------------------- | ------- |
+| 9  | Refactor pebble event store to depend on `kv.Store` instead of `*pebble.DB` | Backend agnosticism | 4 hours |
+| 10 | Add `badger/` adapter module (~100 lines)                                   | Second KV backend   | 3 hours |
+| 11 | Add concurrent batch test (multiple goroutines committing batches)          | Test thoroughness   | 30 min  |
+| 12 | Add `kv.Store` conformance test suite (like `eventtest`)                    | Adapter validation  | 2 hours |
+| 13 | Add property-based test for MemStore ordering (rapid)                       | Test rigor          | 1 hour  |
+| 14 | Benchmark MemStore with 10K keys (scale test)                               | Performance data    | 30 min  |
+| 15 | Document kv/ in README.md root project file                                 | Discoverability     | 10 min  |
 
 ### Refinement
 
-| #   | Task                                                     | Impact          | Effort                    |
-| --- | -------------------------------------------------------- | --------------- | ------------------------- |
-| 16  | Add `kv.ErrKeyEmpty` sentinel for empty key validation   | API robustness  | 15 min                    |
-| 17  | Consider `context.Context` on kv.Store methods           | Cancellation    | 1 hour (interface change) |
-| 18  | Add `Store.DeleteRange(prefix)` method                   | Bulk operations | 1 hour                    |
-| 19  | Consider `sync.Pool` for iterator allocation in MemStore | Performance     | 30 min                    |
-| 20  | Add fuzz test for MemStore (rapid-based)                 | Test rigor      | 1 hour                    |
+| #  | Task                                                     | Impact          | Effort                    |
+| -- | -------------------------------------------------------- | --------------- | ------------------------- |
+| 16 | Add `kv.ErrKeyEmpty` sentinel for empty key validation   | API robustness  | 15 min                    |
+| 17 | Consider `context.Context` on kv.Store methods           | Cancellation    | 1 hour (interface change) |
+| 18 | Add `Store.DeleteRange(prefix)` method                   | Bulk operations | 1 hour                    |
+| 19 | Consider `sync.Pool` for iterator allocation in MemStore | Performance     | 30 min                    |
+| 20 | Add fuzz test for MemStore (rapid-based)                 | Test rigor      | 1 hour                    |
 
 ### Documentation & Process
 
-| #   | Task                                                          | Impact              | Effort |
-| --- | ------------------------------------------------------------- | ------------------- | ------ |
-| 21  | Update ROADMAP.md with kv/ module and future adapters         | Planning            | 15 min |
-| 22  | Create `kv/example_test.go` with `ExampleMemStore` function   | pkg.go.dev          | 30 min |
-| 23  | Add kv/ benchmarks to performance report                      | Report completeness | 15 min |
-| 24  | Audit all modules for `io.Closer` consistency (ADR-0010/0021) | API consistency     | 1 hour |
-| 25  | Run `govulncheck` on kv/ module                               | Security            | 5 min  |
+| #  | Task                                                          | Impact              | Effort |
+| -- | ------------------------------------------------------------- | ------------------- | ------ |
+| 21 | Update ROADMAP.md with kv/ module and future adapters         | Planning            | 15 min |
+| 22 | Create `kv/example_test.go` with `ExampleMemStore` function   | pkg.go.dev          | 30 min |
+| 23 | Add kv/ benchmarks to performance report                      | Report completeness | 15 min |
+| 24 | Audit all modules for `io.Closer` consistency (ADR-0010/0021) | API consistency     | 1 hour |
+| 25 | Run `govulncheck` on kv/ module                               | Security            | 5 min  |
 
 ---
 

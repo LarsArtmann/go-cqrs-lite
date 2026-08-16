@@ -15,17 +15,17 @@
 
 All 8 engines that embed `metaengine.Calibration` were confirmed to use anonymous embedding (not a named `cal` field). The embedding fix was applied by the auto-commit daemon in commit `99f8601a6` before this session started, not by me. I verified each engine:
 
-| Engine | Struct location | Embeds Calibration? | TrackerHost assertion? |
-|--------|----------------|--------------------|-----------------------|
-| pgengine | engine.go:72 | Yes (anonymous) | Yes (engine.go:371) |
-| dgraphengine | engine.go:60 | Yes (anonymous) | Yes (engine.go:365) |
-| sqliteengine | engine.go:32 | Yes (anonymous) | Yes (engine.go:609) |
-| badgerengine | engine.go:55 | Yes (anonymous) | Yes (engine.go:224) |
-| bboltengine | engine.go:66 | Yes (anonymous) | Yes (engine.go:53) |
-| pebbleengine | engine.go:66 | Yes (anonymous) | Yes (engine.go:53) |
-| duckdbengine | engine.go:55 | Yes (anonymous) | Yes (engine.go:45) |
-| mysqlengine | engine.go:52 | Yes (anonymous) | Yes (engine.go:43) |
-| irohengine | engine.go:14 | No (wrapper design) | N/A |
+| Engine       | Struct location | Embeds Calibration? | TrackerHost assertion? |
+| ------------ | --------------- | ------------------- | ---------------------- |
+| pgengine     | engine.go:72    | Yes (anonymous)     | Yes (engine.go:371)    |
+| dgraphengine | engine.go:60    | Yes (anonymous)     | Yes (engine.go:365)    |
+| sqliteengine | engine.go:32    | Yes (anonymous)     | Yes (engine.go:609)    |
+| badgerengine | engine.go:55    | Yes (anonymous)     | Yes (engine.go:224)    |
+| bboltengine  | engine.go:66    | Yes (anonymous)     | Yes (engine.go:53)     |
+| pebbleengine | engine.go:66    | Yes (anonymous)     | Yes (engine.go:53)     |
+| duckdbengine | engine.go:55    | Yes (anonymous)     | Yes (engine.go:45)     |
+| mysqlengine  | engine.go:52    | Yes (anonymous)     | Yes (engine.go:43)     |
+| irohengine   | engine.go:14    | No (wrapper design) | N/A                    |
 
 ### 2. Added compile-time interface assertions to 4 engines
 

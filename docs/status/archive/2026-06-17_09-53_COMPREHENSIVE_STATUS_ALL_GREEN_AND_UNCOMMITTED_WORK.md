@@ -156,33 +156,33 @@ TestAdvisor_ScanDetection_Golden/aggregate_version_with_filter_scan
 
 ## f) Top #25 Things We Should Get Done Next! 🎯
 
-| #   | Task                                                                          | Impact | Effort | Rationale                                      |
-| --- | ----------------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------- |
-| 1   | **Fix uncommitted advisor golden test** — remove non-scanning subtest, commit | P0     | 5 min  | One red test in working tree                   |
-| 2   | **Commit pebble KV contract test refactor**                                   | P0     | 5 min  | 418 lines uncommitted, tests pass              |
-| 3   | **Push branch to remote** — `git push`                                        | P0     | 1 min  | 5 commits ahead of origin                      |
-| 4   | **Add `-race` to CI for all modules**                                         | P0     | 30 min | The checkpoint race existed for weeks          |
-| 5   | **Merge `consolidate-catalog` to master** — open PR                           | P0     | 30 min | Unblocks v2.4.0                                |
-| 6   | **Tag v2.4.0** — turso Backend, sync config, bug fixes, KV adapter            | P1     | 15 min | Consumers waiting for Backend facade           |
-| 7   | **Add doc-link checker script**                                               | P1     | 1 hr   | Docs drift is systemic                         |
-| 8   | **Pre-commit hook: validate fuzz corpus seeds**                               | P1     | 30 min | Prevents broken seed commits                   |
-| 9   | **Schema registry (T018–T020)** — JSON Schema validation middleware           | P1     | 2 hr   | Most-requested feature                         |
-| 10  | **Prometheus exporter (T024–T026)**                                           | P1     | 2 hr   | Observability gap                              |
-| 11  | **Structured logging middleware (T027–T029)**                                 | P1     | 1.5 hr | Production debugging                           |
-| 12  | **PostgreSQL CI service container (T033–T035)**                               | P1     | 1 hr   | PG integration tests exist but don't run in CI |
-| 13  | **Fix `storage.checkClosed()` sentinel**                                      | P2     | 20 min | Per-call allocation waste                      |
-| 14  | **Extract Turso sync interface** for testability                              | P2     | 1.5 hr | Enables testing 45% of turso                   |
-| 15  | **Reactive bus docs (T041–T043)**                                             | P2     | 45 min | Code done, undocumented                        |
-| 16  | **Pebble coverage 85%+ (T036–T038)**                                          | P2     | 1 hr   | Currently 82.9%                                |
-| 17  | **Module README for `kv/` (T059)**                                            | P2     | 30 min | Public API, no docs                            |
-| 18  | **Benchmark pebble vs SQL store (T044)**                                      | P2     | 1 hr   | No comparative baseline                        |
-| 19  | **Distributed checkpointing (T021–T023)**                                     | P2     | 3 hr   | Multi-instance projections                     |
-| 20  | **Distributed tracing propagation (T030–T032)**                               | P2     | 2.5 hr | Cross-module span context                      |
-| 21  | **pprof endpoints (T048–T049)**                                               | P2     | 1 hr   | Production profiling                           |
-| 22  | **cqrs-gen v2 (T045–T047)**                                                   | P2     | 3 hr   | Code generator improvement                     |
-| 23  | **Documentation site (T081–T082)**                                            | P3     | 3 hr   | Consumer onboarding                            |
-| 24  | **Streaming event reads (T075–T077)**                                         | P3     | 2.5 hr | Large aggregate loading                        |
-| 25  | **WASM target for decider (T080)**                                            | P3     | 3 hr   | Edge deployment                                |
+| #  | Task                                                                          | Impact | Effort | Rationale                                      |
+| -- | ----------------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------- |
+| 1  | **Fix uncommitted advisor golden test** — remove non-scanning subtest, commit | P0     | 5 min  | One red test in working tree                   |
+| 2  | **Commit pebble KV contract test refactor**                                   | P0     | 5 min  | 418 lines uncommitted, tests pass              |
+| 3  | **Push branch to remote** — `git push`                                        | P0     | 1 min  | 5 commits ahead of origin                      |
+| 4  | **Add `-race` to CI for all modules**                                         | P0     | 30 min | The checkpoint race existed for weeks          |
+| 5  | **Merge `consolidate-catalog` to master** — open PR                           | P0     | 30 min | Unblocks v2.4.0                                |
+| 6  | **Tag v2.4.0** — turso Backend, sync config, bug fixes, KV adapter            | P1     | 15 min | Consumers waiting for Backend facade           |
+| 7  | **Add doc-link checker script**                                               | P1     | 1 hr   | Docs drift is systemic                         |
+| 8  | **Pre-commit hook: validate fuzz corpus seeds**                               | P1     | 30 min | Prevents broken seed commits                   |
+| 9  | **Schema registry (T018–T020)** — JSON Schema validation middleware           | P1     | 2 hr   | Most-requested feature                         |
+| 10 | **Prometheus exporter (T024–T026)**                                           | P1     | 2 hr   | Observability gap                              |
+| 11 | **Structured logging middleware (T027–T029)**                                 | P1     | 1.5 hr | Production debugging                           |
+| 12 | **PostgreSQL CI service container (T033–T035)**                               | P1     | 1 hr   | PG integration tests exist but don't run in CI |
+| 13 | **Fix `storage.checkClosed()` sentinel**                                      | P2     | 20 min | Per-call allocation waste                      |
+| 14 | **Extract Turso sync interface** for testability                              | P2     | 1.5 hr | Enables testing 45% of turso                   |
+| 15 | **Reactive bus docs (T041–T043)**                                             | P2     | 45 min | Code done, undocumented                        |
+| 16 | **Pebble coverage 85%+ (T036–T038)**                                          | P2     | 1 hr   | Currently 82.9%                                |
+| 17 | **Module README for `kv/` (T059)**                                            | P2     | 30 min | Public API, no docs                            |
+| 18 | **Benchmark pebble vs SQL store (T044)**                                      | P2     | 1 hr   | No comparative baseline                        |
+| 19 | **Distributed checkpointing (T021–T023)**                                     | P2     | 3 hr   | Multi-instance projections                     |
+| 20 | **Distributed tracing propagation (T030–T032)**                               | P2     | 2.5 hr | Cross-module span context                      |
+| 21 | **pprof endpoints (T048–T049)**                                               | P2     | 1 hr   | Production profiling                           |
+| 22 | **cqrs-gen v2 (T045–T047)**                                                   | P2     | 3 hr   | Code generator improvement                     |
+| 23 | **Documentation site (T081–T082)**                                            | P3     | 3 hr   | Consumer onboarding                            |
+| 24 | **Streaming event reads (T075–T077)**                                         | P3     | 2.5 hr | Large aggregate loading                        |
+| 25 | **WASM target for decider (T080)**                                            | P3     | 3 hr   | Edge deployment                                |
 
 ---
 

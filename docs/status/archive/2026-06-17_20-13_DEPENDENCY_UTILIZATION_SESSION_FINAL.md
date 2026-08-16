@@ -224,33 +224,33 @@ These are new public API symbols that no code inside the repo uses. For a librar
 
 ## F. Top 25 Things to Do Next (sorted by impact ÷ effort)
 
-| #   | Task                                                                      | Impact | Effort  | Category          |
-| --- | ------------------------------------------------------------------------- | ------ | ------- | ----------------- |
-| 1   | Fix `id` layer violation (5 deps → budget 3)                              | High   | Medium  | Architecture      |
-| 2   | Fix `codec` layer violation (3 deps → budget 2)                           | High   | Medium  | Architecture      |
-| 3   | Integrate `DistinctByEventID` into projection Runner catch-up             | High   | Medium  | Ghost integration |
-| 4   | Add `seen.EventIDs` bloom filter to projection live handler               | High   | Medium  | Reliability       |
-| 5   | Use `BufferEncoder` in pebble serialization.go hot path                   | High   | Low     | Ghost integration |
-| 6   | Remove `EventSlice` ghost API (trivial wrapper)                           | Medium | Trivial | Cleanup           |
-| 7   | Remove `SeedFromEnv` (rapid has `-rapid.seed` flag)                       | Medium | Trivial | Cleanup           |
-| 8   | Fix `pebble` layer violation (9 deps → budget 8)                          | High   | Hard    | Architecture      |
-| 9   | Add real MeterProvider integration test for `NewCQRSViews`                | Medium | Low     | Ghost integration |
-| 10  | Add real Router integration test for Watermill middleware                 | Medium | Low     | Ghost integration |
-| 11  | Bridge OTel baggage → event enricher (optional `OTelCorrelationEnricher`) | Medium | Low     | Integration       |
-| 12  | Add `CompactionFilter` for time-based TTL in pebble                       | High   | Medium  | Storage           |
-| 13  | Add streaming `EventIterator` interface to event module                   | High   | Medium  | API               |
-| 14  | Schema validation middleware using catalog JSON Schemas                   | High   | Medium  | Data quality      |
-| 15  | Add PostgreSQL testcontainers integration tests                           | High   | Medium  | Test coverage     |
-| 16  | Document projection replay→live gap as known issue in ROADMAP             | Medium | Trivial | Docs              |
-| 17  | Remove `NewCBOREncoder`/`NewCBORDecoder` if no consumer emerges           | Low    | Trivial | Cleanup           |
-| 18  | Add `pprof` helper in middleware for production profiling                 | Medium | Low     | Observability     |
-| 19  | Add Prometheus exporter via OTel→Prometheus bridge                        | Medium | Medium  | Observability     |
-| 20  | Ginkgo `DescribeTable` adoption in BDD suites                             | Low    | Low     | Test quality      |
-| 21  | Custom gomega matchers (`HaveEventCount`, `HaveAggregateVersion`)         | Low    | Low     | Test quality      |
-| 22  | Evaluate jsonv2 codec behind build tag                                    | Low    | Medium  | Experimental      |
-| 23  | Arena allocation experiment for event creation                            | Low    | Medium  | Experimental      |
-| 24  | gRPC transport adapter (new module)                                       | Medium | High    | New capability    |
-| 25  | Multi-tenant store design                                                 | Medium | High    | Scalability       |
+| #  | Task                                                                      | Impact | Effort  | Category          |
+| -- | ------------------------------------------------------------------------- | ------ | ------- | ----------------- |
+| 1  | Fix `id` layer violation (5 deps → budget 3)                              | High   | Medium  | Architecture      |
+| 2  | Fix `codec` layer violation (3 deps → budget 2)                           | High   | Medium  | Architecture      |
+| 3  | Integrate `DistinctByEventID` into projection Runner catch-up             | High   | Medium  | Ghost integration |
+| 4  | Add `seen.EventIDs` bloom filter to projection live handler               | High   | Medium  | Reliability       |
+| 5  | Use `BufferEncoder` in pebble serialization.go hot path                   | High   | Low     | Ghost integration |
+| 6  | Remove `EventSlice` ghost API (trivial wrapper)                           | Medium | Trivial | Cleanup           |
+| 7  | Remove `SeedFromEnv` (rapid has `-rapid.seed` flag)                       | Medium | Trivial | Cleanup           |
+| 8  | Fix `pebble` layer violation (9 deps → budget 8)                          | High   | Hard    | Architecture      |
+| 9  | Add real MeterProvider integration test for `NewCQRSViews`                | Medium | Low     | Ghost integration |
+| 10 | Add real Router integration test for Watermill middleware                 | Medium | Low     | Ghost integration |
+| 11 | Bridge OTel baggage → event enricher (optional `OTelCorrelationEnricher`) | Medium | Low     | Integration       |
+| 12 | Add `CompactionFilter` for time-based TTL in pebble                       | High   | Medium  | Storage           |
+| 13 | Add streaming `EventIterator` interface to event module                   | High   | Medium  | API               |
+| 14 | Schema validation middleware using catalog JSON Schemas                   | High   | Medium  | Data quality      |
+| 15 | Add PostgreSQL testcontainers integration tests                           | High   | Medium  | Test coverage     |
+| 16 | Document projection replay→live gap as known issue in ROADMAP             | Medium | Trivial | Docs              |
+| 17 | Remove `NewCBOREncoder`/`NewCBORDecoder` if no consumer emerges           | Low    | Trivial | Cleanup           |
+| 18 | Add `pprof` helper in middleware for production profiling                 | Medium | Low     | Observability     |
+| 19 | Add Prometheus exporter via OTel→Prometheus bridge                        | Medium | Medium  | Observability     |
+| 20 | Ginkgo `DescribeTable` adoption in BDD suites                             | Low    | Low     | Test quality      |
+| 21 | Custom gomega matchers (`HaveEventCount`, `HaveAggregateVersion`)         | Low    | Low     | Test quality      |
+| 22 | Evaluate jsonv2 codec behind build tag                                    | Low    | Medium  | Experimental      |
+| 23 | Arena allocation experiment for event creation                            | Low    | Medium  | Experimental      |
+| 24 | gRPC transport adapter (new module)                                       | Medium | High    | New capability    |
+| 25 | Multi-tenant store design                                                 | Medium | High    | Scalability       |
 
 ---
 

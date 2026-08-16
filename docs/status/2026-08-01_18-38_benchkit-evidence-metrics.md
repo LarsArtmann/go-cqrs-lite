@@ -321,11 +321,11 @@ The new fields (`gcCount`, `allocBytes`, `coldReadLatency`, `writeAmplification`
 | `go build -tags "goexperiment.jsonv2" ./benchkit/...`      | ✅ GREEN                                                          |
 | `go vet -tags "goexperiment.jsonv2" ./benchkit/...`        | ✅ GREEN                                                          |
 | `go test -tags "goexperiment.jsonv2" ./benchkit/ -count=1` | ✅ GREEN (35s)                                                    |
-| `go test -race`                                            | ⚠️ NOT RUN                                                        |
+| `go test -race`                                            | ⚠️ NOT RUN                                                         |
 | `stack/bench` compiles                                     | ✅ GREEN                                                          |
 | `cmd/cqrs-bench` compiles                                  | ❌ Pre-existing break (unrelated: `storage.SQLiteSetSynchronous`) |
-| `nix run .#lint` (golangci-lint)                           | ⚠️ NOT RUN                                                        |
-| `nix run .#verify`                                         | ⚠️ NOT RUN                                                        |
+| `nix run .#lint` (golangci-lint)                           | ⚠️ NOT RUN                                                         |
+| `nix run .#verify`                                         | ⚠️ NOT RUN                                                         |
 | File line counts (max 350)                                 | ✅ All under 350                                                  |
 | API surface golden                                         | ✅ Regenerated (3088 exports)                                     |
 | `gofumpt` formatting                                       | ✅ Applied                                                        |

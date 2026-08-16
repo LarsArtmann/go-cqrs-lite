@@ -1,10 +1,10 @@
 # Session 44 — Comprehensive Status Report
 
-**Date:** 2026-05-03 05:57  
-**Branch:** `master`  
-**Commits since Session 42:** 6  
-**Test suites:** 21 packages, ALL PASS  
-**Total LOC:** 30,681 Go  
+**Date:** 2026-05-03 05:57\
+**Branch:** `master`\
+**Commits since Session 42:** 6\
+**Test suites:** 21 packages, ALL PASS\
+**Total LOC:** 30,681 Go\
 **Lint:** 46 pre-existing issues (0 new from this session)
 
 ---
@@ -53,8 +53,8 @@
 
 ## B) PARTIALLY DONE ⚠️
 
-| Item                          | Status     | What's Done                          | What's Missing                                                                                |
-| ----------------------------- | ---------- | ------------------------------------ | --------------------------------------------------------------------------------------------- |
+| Item                          | Status    | What's Done                          | What's Missing                                                                                |
+| ----------------------------- | --------- | ------------------------------------ | --------------------------------------------------------------------------------------------- |
 | **Function size compliance**  | ⚠️ Partial | Session 43 extracted worst offenders | 43 functions still exceed 30-line max (catalog exporters, validateEventParams at 51)          |
 | **CatalogMeta consolidation** | ⚠️ SKIPPED | Investigated                         | `event.CatalogMeta` has extra `AggregateType` field — not identical, no clean shared location |
 
@@ -161,12 +161,12 @@ This is an interface-breaking decision that requires consumer input.
 | `catalog/asyncapi`     | 95.9%    | >95%   | ✅     |
 | `catalog/eventcatalog` | 95.6%    | >95%   | ✅     |
 | `catalog/adapters`     | 95.5%    | >95%   | ✅     |
-| `core/decider`         | 94.3%    | >95%   | ⚠️     |
-| `catalog`              | 94.4%    | >95%   | ⚠️     |
-| `core/aggregate`       | 93.2%    | >95%   | ⚠️     |
-| `storage`              | 92.0%    | >95%   | ⚠️     |
-| `memory`               | 91.9%    | >95%   | ⚠️     |
-| `projection`           | 88.8%    | >95%   | ⚠️     |
+| `core/decider`         | 94.3%    | >95%   | ⚠️      |
+| `catalog`              | 94.4%    | >95%   | ⚠️      |
+| `core/aggregate`       | 93.2%    | >95%   | ⚠️      |
+| `storage`              | 92.0%    | >95%   | ⚠️      |
+| `memory`               | 91.9%    | >95%   | ⚠️      |
+| `projection`           | 88.8%    | >95%   | ⚠️      |
 
 ---
 

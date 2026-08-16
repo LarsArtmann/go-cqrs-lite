@@ -1,10 +1,10 @@
 # Session 39 — Comprehensive Status Report
 
-**Date:** 2026-05-03 03:05  
-**Branch:** master  
-**Commits:** 9 (Session 39 only)  
-**Net change:** -69 lines across 12 files  
-**Test status:** 21 packages pass, 0 fail  
+**Date:** 2026-05-03 03:05\
+**Branch:** master\
+**Commits:** 9 (Session 39 only)\
+**Net change:** -69 lines across 12 files\
+**Test status:** 21 packages pass, 0 fail\
 **Lint status:** 0 issues
 
 ---
@@ -73,35 +73,35 @@
 
 ### Bugs found but not yet fixed
 
-| #   | Severity  | Issue                                                                                | File                                 |
-| --- | --------- | ------------------------------------------------------------------------------------ | ------------------------------------ |
-| 1   | 🔴 HIGH   | `HandleParallel` goroutine has no panic recovery — panicking handler causes deadlock | `core/event/runner.go:127`           |
-| 2   | 🟡 MEDIUM | `OutboxPublisher.run()` goroutine has no panic recovery — panic crashes process      | `core/event/outbox_publisher.go:100` |
-| 3   | 🟡 MEDIUM | `FakeOutbox.PollPending` uses `Lock()` for read-only (should be `RLock()`)           | `testhelpers/fake_outbox.go:51`      |
-| 4   | 🟡 MEDIUM | `FakeStore.Save` reads `saveFn` without holding lock (data race)                     | `testhelpers/fake_store.go:54`       |
-| 5   | 🟢 LOW    | 5 FakeStore methods use manual unlock without `defer` (test utilities, low risk)     | `testhelpers/fake_store.go`          |
+| # | Severity  | Issue                                                                                | File                                 |
+| - | --------- | ------------------------------------------------------------------------------------ | ------------------------------------ |
+| 1 | 🔴 HIGH   | `HandleParallel` goroutine has no panic recovery — panicking handler causes deadlock | `core/event/runner.go:127`           |
+| 2 | 🟡 MEDIUM | `OutboxPublisher.run()` goroutine has no panic recovery — panic crashes process      | `core/event/outbox_publisher.go:100` |
+| 3 | 🟡 MEDIUM | `FakeOutbox.PollPending` uses `Lock()` for read-only (should be `RLock()`)           | `testhelpers/fake_outbox.go:51`      |
+| 4 | 🟡 MEDIUM | `FakeStore.Save` reads `saveFn` without holding lock (data race)                     | `testhelpers/fake_store.go:54`       |
+| 5 | 🟢 LOW    | 5 FakeStore methods use manual unlock without `defer` (test utilities, low risk)     | `testhelpers/fake_store.go`          |
 
 ### Test quality issues found but not fixed
 
-| #   | Severity  | Issue                                                                               | File                                          |
-| --- | --------- | ----------------------------------------------------------------------------------- | --------------------------------------------- |
-| 6   | 🔴 HIGH   | `TestCoreDoesNotImplementRootDirectly` has zero assertions — always passes          | `core/aggregate/aggregate_test.go:304-314`    |
-| 7   | 🔴 HIGH   | `OutboxPublisher.PublishNow_ContextCanceled` discards result — no assertion         | `core/event/outbox_publisher_test.go:457-473` |
-| 8   | 🟡 MEDIUM | 9× `time.Sleep(20-50ms)` in projection tests — flaky under CI load                  | `projection/runner_test.go`                   |
-| 9   | 🟡 MEDIUM | No concurrent access tests for MemoryBus, MemoryStore, MemoryOutbox, MemorySnapshot | `memory/*_test.go`                            |
-| 10  | 🟡 MEDIUM | Duplicate test `TestDispatcher_Register_ClosedDispatcher`                           | `core/command/dispatcher_test.go:280-289`     |
+| #  | Severity  | Issue                                                                               | File                                          |
+| -- | --------- | ----------------------------------------------------------------------------------- | --------------------------------------------- |
+| 6  | 🔴 HIGH   | `TestCoreDoesNotImplementRootDirectly` has zero assertions — always passes          | `core/aggregate/aggregate_test.go:304-314`    |
+| 7  | 🔴 HIGH   | `OutboxPublisher.PublishNow_ContextCanceled` discards result — no assertion         | `core/event/outbox_publisher_test.go:457-473` |
+| 8  | 🟡 MEDIUM | 9× `time.Sleep(20-50ms)` in projection tests — flaky under CI load                  | `projection/runner_test.go`                   |
+| 9  | 🟡 MEDIUM | No concurrent access tests for MemoryBus, MemoryStore, MemoryOutbox, MemorySnapshot | `memory/*_test.go`                            |
+| 10 | 🟡 MEDIUM | Duplicate test `TestDispatcher_Register_ClosedDispatcher`                           | `core/command/dispatcher_test.go:280-289`     |
 
 ### Architecture improvements identified but deferred
 
-| #   | Impact | Improvement                                                         | Reason deferred                                   |
-| --- | ------ | ------------------------------------------------------------------- | ------------------------------------------------- |
-| 11  | HIGH   | Split `event.Bus` into `Publisher` + `Subscriber` + `Bus` composite | Breaking API change, needs ADR                    |
-| 12  | HIGH   | `CatalogMeta` 3× consolidation across event/command/query           | Breaking change, needs ADR                        |
-| 13  | MEDIUM | `Command.IdempotencyKey()` is never checked by dispatcher           | Breaking to remove; needs pipeline implementation |
-| 14  | MEDIUM | `query.Handler` returns `any` — violates "no any" rule              | Requires generics redesign                        |
-| 15  | MEDIUM | `event.ProjectionName` branded type for `string` params             | Cross-module breaking change                      |
-| 16  | LOW    | `Store.AppendBatch` unused in production flows                      | May be needed for future consumers                |
-| 17  | LOW    | `SnapshotStore.LoadAtVersion` unused in production                  | Future point-in-time recovery                     |
+| #  | Impact | Improvement                                                         | Reason deferred                                   |
+| -- | ------ | ------------------------------------------------------------------- | ------------------------------------------------- |
+| 11 | HIGH   | Split `event.Bus` into `Publisher` + `Subscriber` + `Bus` composite | Breaking API change, needs ADR                    |
+| 12 | HIGH   | `CatalogMeta` 3× consolidation across event/command/query           | Breaking change, needs ADR                        |
+| 13 | MEDIUM | `Command.IdempotencyKey()` is never checked by dispatcher           | Breaking to remove; needs pipeline implementation |
+| 14 | MEDIUM | `query.Handler` returns `any` — violates "no any" rule              | Requires generics redesign                        |
+| 15 | MEDIUM | `event.ProjectionName` branded type for `string` params             | Cross-module breaking change                      |
+| 16 | LOW    | `Store.AppendBatch` unused in production flows                      | May be needed for future consumers                |
+| 17 | LOW    | `SnapshotStore.LoadAtVersion` unused in production                  | Future point-in-time recovery                     |
 
 ---
 
@@ -137,33 +137,33 @@ Nothing is broken. No regressions. No false-positive tests that slipped through 
 
 Sorted by impact × effort (highest first):
 
-| #   | Impact  | Effort | Task                                                                              |
-| --- | ------- | ------ | --------------------------------------------------------------------------------- |
-| 1   | 🔴 HIGH | S      | Add panic recovery to `HandleParallel` goroutine                                  |
-| 2   | 🔴 HIGH | S      | Add panic recovery to `OutboxPublisher.run` goroutine                             |
-| 3   | 🔴 HIGH | S      | Fix `TestCoreDoesNotImplementRootDirectly` — add compile-time check or assertions |
-| 4   | 🔴 HIGH | S      | Fix `PublishNow_ContextCanceled` — add error assertion                            |
-| 5   | 🔴 HIGH | S      | Fix `FakeOutbox.PollPending` — `Lock()` → `RLock()`                               |
-| 6   | 🟡 MED  | S      | Fix `FakeStore.Save` — read `saveFn` under lock                                   |
-| 7   | 🟡 MED  | S      | Add `defer` unlock to all FakeStore/FakeOutbox methods                            |
-| 8   | 🟡 MED  | S      | Remove duplicate test `TestDispatcher_Register_ClosedDispatcher`                  |
-| 9   | 🟡 MED  | S      | Consolidate `mustNewEvent` helper into `testhelpers/event_helpers.go`             |
-| 10  | 🟡 MED  | M      | Add concurrent access tests for MemoryBus                                         |
-| 11  | 🟡 MED  | M      | Add concurrent access tests for MemoryStore                                       |
-| 12  | 🟡 MED  | M      | Add concurrent access tests for MemoryOutbox                                      |
-| 13  | 🟡 MED  | M      | Add concurrent access tests for MemorySnapshot                                    |
-| 14  | 🟡 MED  | M      | Replace 9× `time.Sleep` in projection tests with channel sync                     |
-| 15  | 🟡 MED  | M      | Add concurrent access test for MemoryCheckpointStore                              |
-| 16  | 🟢 LOW  | S      | Convert `TestEveryNEvents_PanicsOnZeroOrNegative` to table-driven subtests        |
-| 17  | 🟢 LOW  | S      | Extract `newTestRepo` helper in `repository_test.go`                              |
-| 18  | 🟢 LOW  | M      | Add sentinel error tests (verify `errors.Is`, messages, immutability)             |
-| 19  | 🟢 LOW  | L      | Split `event.Bus` into `Publisher` + `Subscriber` + `Bus` (breaking, needs ADR)   |
-| 20  | 🟢 LOW  | L      | Consolidate `CatalogMeta` across event/command/query (breaking, needs ADR)        |
-| 21  | 🟢 LOW  | L      | Wire `Command.IdempotencyKey()` into dispatch pipeline                            |
-| 22  | 🟢 LOW  | L      | Redesign `query.Handler` to eliminate `any` return type                           |
-| 23  | 🟢 LOW  | L      | Add `event.ProjectionName` branded type                                           |
-| 24  | 🟢 LOW  | L      | Standardize error wrapping strategy across all modules                            |
-| 25  | 🟢 LOW  | L      | Evaluate `github.com/invopop/jsonschema` for catalog schema generation            |
+| #  | Impact  | Effort | Task                                                                              |
+| -- | ------- | ------ | --------------------------------------------------------------------------------- |
+| 1  | 🔴 HIGH | S      | Add panic recovery to `HandleParallel` goroutine                                  |
+| 2  | 🔴 HIGH | S      | Add panic recovery to `OutboxPublisher.run` goroutine                             |
+| 3  | 🔴 HIGH | S      | Fix `TestCoreDoesNotImplementRootDirectly` — add compile-time check or assertions |
+| 4  | 🔴 HIGH | S      | Fix `PublishNow_ContextCanceled` — add error assertion                            |
+| 5  | 🔴 HIGH | S      | Fix `FakeOutbox.PollPending` — `Lock()` → `RLock()`                               |
+| 6  | 🟡 MED  | S      | Fix `FakeStore.Save` — read `saveFn` under lock                                   |
+| 7  | 🟡 MED  | S      | Add `defer` unlock to all FakeStore/FakeOutbox methods                            |
+| 8  | 🟡 MED  | S      | Remove duplicate test `TestDispatcher_Register_ClosedDispatcher`                  |
+| 9  | 🟡 MED  | S      | Consolidate `mustNewEvent` helper into `testhelpers/event_helpers.go`             |
+| 10 | 🟡 MED  | M      | Add concurrent access tests for MemoryBus                                         |
+| 11 | 🟡 MED  | M      | Add concurrent access tests for MemoryStore                                       |
+| 12 | 🟡 MED  | M      | Add concurrent access tests for MemoryOutbox                                      |
+| 13 | 🟡 MED  | M      | Add concurrent access tests for MemorySnapshot                                    |
+| 14 | 🟡 MED  | M      | Replace 9× `time.Sleep` in projection tests with channel sync                     |
+| 15 | 🟡 MED  | M      | Add concurrent access test for MemoryCheckpointStore                              |
+| 16 | 🟢 LOW  | S      | Convert `TestEveryNEvents_PanicsOnZeroOrNegative` to table-driven subtests        |
+| 17 | 🟢 LOW  | S      | Extract `newTestRepo` helper in `repository_test.go`                              |
+| 18 | 🟢 LOW  | M      | Add sentinel error tests (verify `errors.Is`, messages, immutability)             |
+| 19 | 🟢 LOW  | L      | Split `event.Bus` into `Publisher` + `Subscriber` + `Bus` (breaking, needs ADR)   |
+| 20 | 🟢 LOW  | L      | Consolidate `CatalogMeta` across event/command/query (breaking, needs ADR)        |
+| 21 | 🟢 LOW  | L      | Wire `Command.IdempotencyKey()` into dispatch pipeline                            |
+| 22 | 🟢 LOW  | L      | Redesign `query.Handler` to eliminate `any` return type                           |
+| 23 | 🟢 LOW  | L      | Add `event.ProjectionName` branded type                                           |
+| 24 | 🟢 LOW  | L      | Standardize error wrapping strategy across all modules                            |
+| 25 | 🟢 LOW  | L      | Evaluate `github.com/invopop/jsonschema` for catalog schema generation            |
 
 **S** = Small (<30 min), **M** = Medium (30-90 min), **L** = Large (>90 min, often breaking)
 

@@ -89,23 +89,23 @@ Researched go-arch-lint capabilities and limitations:
 
 ## b) PARTIALLY DONE
 
-| #   | Task                        | What's done                                                                         | What's missing                                                                                                                                      |
-| --- | --------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Mermaid diagram in ADR-0046 | Full `flowchart TB` with all 68 modules, dependency arrows, CQRS separation callout | Not verified in a Mermaid renderer — syntax might have minor issues                                                                                 |
-| 2   | Stale reference cleanup     | Fixed 10 authoritative docs                                                         | ~10 historical references remain in CHANGELOG/status reports (deliberately left as point-in-time)                                                   |
-| 3   | `listing/` tier correction  | Fixed in bash script (Layer 3)                                                      | Not yet verified whether `storage/` depending on `listing/` (the old exception) still needs the exception or if the layer fix resolved it naturally |
+| # | Task                        | What's done                                                                         | What's missing                                                                                                                                      |
+| - | --------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Mermaid diagram in ADR-0046 | Full `flowchart TB` with all 68 modules, dependency arrows, CQRS separation callout | Not verified in a Mermaid renderer — syntax might have minor issues                                                                                 |
+| 2 | Stale reference cleanup     | Fixed 10 authoritative docs                                                         | ~10 historical references remain in CHANGELOG/status reports (deliberately left as point-in-time)                                                   |
+| 3 | `listing/` tier correction  | Fixed in bash script (Layer 3)                                                      | Not yet verified whether `storage/` depending on `listing/` (the old exception) still needs the exception or if the layer fix resolved it naturally |
 
 ---
 
 ## c) NOT STARTED
 
-| #   | Task                                                   | Why not                                                                                               |
-| --- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| 1   | Running `nix run .#verify` full gate                   | Takes 3-4 minutes; only ran `check-module-layers.sh` directly                                         |
-| 2   | Running `nix run .#check-arch` (includes go-arch-lint) | Didn't run after bash script changes                                                                  |
-| 3   | Expanding go-arch-lint to more modules                 | Only 6 of 68 modules have `.go-arch-lint.yml` configs — expanding would catch intra-module violations |
-| 4   | Verifying the Mermaid diagram renders                  | No Mermaid renderer available in CLI                                                                  |
-| 5   | Running `cmd/doc-check`                                | Edited multiple markdown files; doc-checker not run                                                   |
+| # | Task                                                   | Why not                                                                                               |
+| - | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| 1 | Running `nix run .#verify` full gate                   | Takes 3-4 minutes; only ran `check-module-layers.sh` directly                                         |
+| 2 | Running `nix run .#check-arch` (includes go-arch-lint) | Didn't run after bash script changes                                                                  |
+| 3 | Expanding go-arch-lint to more modules                 | Only 6 of 68 modules have `.go-arch-lint.yml` configs — expanding would catch intra-module violations |
+| 4 | Verifying the Mermaid diagram renders                  | No Mermaid renderer available in CLI                                                                  |
+| 5 | Running `cmd/doc-check`                                | Edited multiple markdown files; doc-checker not run                                                   |
 
 ---
 

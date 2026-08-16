@@ -71,12 +71,12 @@ The auto-commit daemon committed all changes. Working tree is clean.
 
 ### Lint gate — 4 issues remain
 
-| #   | File                                                   | Linter     | Issue                                                                       |
-| --- | ------------------------------------------------------ | ---------- | --------------------------------------------------------------------------- |
-| 1   | `metaengine/typed_reader_aggregate_test.go:33`         | tparallel  | `TestTypedReader_AggregateFallback` subtests should call `t.Parallel()`     |
-| 2   | `metaengine/duckdbengine/aggregations.go:135`          | revive     | unused parameter `col` in `fromClause`                                      |
-| 3   | `metaengine/duckdbengine/aggregations_cgo_test.go:660` | tparallel  | `TestDuckDB_ExplainAggregateQuery` subtests should call `t.Parallel()`      |
-| 4   | `system/constructor.go:23`                             | nolintlint | `//nolint:funlen` directive is unused (funlen already excluded for system/) |
+| # | File                                                   | Linter     | Issue                                                                       |
+| - | ------------------------------------------------------ | ---------- | --------------------------------------------------------------------------- |
+| 1 | `metaengine/typed_reader_aggregate_test.go:33`         | tparallel  | `TestTypedReader_AggregateFallback` subtests should call `t.Parallel()`     |
+| 2 | `metaengine/duckdbengine/aggregations.go:135`          | revive     | unused parameter `col` in `fromClause`                                      |
+| 3 | `metaengine/duckdbengine/aggregations_cgo_test.go:660` | tparallel  | `TestDuckDB_ExplainAggregateQuery` subtests should call `t.Parallel()`      |
+| 4 | `system/constructor.go:23`                             | nolintlint | `//nolint:funlen` directive is unused (funlen already excluded for system/) |
 
 **These are 4 trivial fixes** — I was about to fix them when the session was interrupted for this status report. Each is under 5 minutes.
 

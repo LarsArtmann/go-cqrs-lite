@@ -22,23 +22,23 @@ Plus: first real graph consumer (`example/graph-demo/`), two ADRs (0039 Graph Sc
 
 ## At a Glance
 
-| Metric                   | Value                                            |
-| ------------------------ | ------------------------------------------------ |
-| Modules                  | 47 `go.mod` files (46 in go.work + root)         |
-| Go version               | 1.26.4                                           |
-| API surface exports      | 1,707                                            |
-| ADRs                     | 39 (0039 + 0040 new this session)                |
-| Research docs            | 31 (1 new this session)                          |
-| Examples                 | 7 (graph-demo new this session)                  |
-| Stack presets            | 5 (memory, sqlite, pebble, postgres, turso)      |
-| Graph module LOC         | 2,384 (1,402 new this session)                   |
-| Graph tests              | 42 (37 new this session)                         |
-| Commits since v3.1.0     | ~75+                                             |
-| Build                    | ✅ PASS (workspace + all modules)                |
-| Vet                      | ✅ PASS (zero issues)                            |
-| Tests (graph + demo)     | ✅ 42 pass with `-race`                          |
+| Metric                   | Value                                           |
+| ------------------------ | ----------------------------------------------- |
+| Modules                  | 47 `go.mod` files (46 in go.work + root)        |
+| Go version               | 1.26.4                                          |
+| API surface exports      | 1,707                                           |
+| ADRs                     | 39 (0039 + 0040 new this session)               |
+| Research docs            | 31 (1 new this session)                         |
+| Examples                 | 7 (graph-demo new this session)                 |
+| Stack presets            | 5 (memory, sqlite, pebble, postgres, turso)     |
+| Graph module LOC         | 2,384 (1,402 new this session)                  |
+| Graph tests              | 42 (37 new this session)                        |
+| Commits since v3.1.0     | ~75+                                            |
+| Build                    | ✅ PASS (workspace + all modules)               |
+| Vet                      | ✅ PASS (zero issues)                           |
+| Tests (graph + demo)     | ✅ 42 pass with `-race`                         |
 | Architecture enforcement | ⚠️ 6/7 modules pass (transport/http budget over) |
-| Last release             | v3.1.0                                           |
+| Last release             | v3.1.0                                          |
 
 ---
 
@@ -244,43 +244,43 @@ I wrote `describeSchema()` in `schema.go` for error messages, but never called i
 
 ### Tier 1: Critical (CI-breaking or highest leverage)
 
-| #   | Task                                                                | Impact   | Effort | Why                                       |
-| --- | ------------------------------------------------------------------- | -------- | ------ | ----------------------------------------- |
-| 1   | **Fix transport/http dep budget** (bump to 3 or make otel indirect) | Critical | 5min   | check-layers gate is FAILING              |
-| 2   | **Commit or discard transport/http/sse.go** formatting change       | High     | 1min   | Uncommitted change in working tree        |
-| 3   | **Enforce or remove `PropertyType.Required`**                       | Medium   | 30min  | Field exists but doesn't work — lying API |
-| 4   | **Update AGENTS.md module count** (44 → 47) and add graph-demo      | Low      | 5min   | Stale docs                                |
-| 5   | **Cross-link ADR-0039 from projection-tiers.md**                    | Low      | 5min   | Discoverability                           |
+| # | Task                                                                | Impact   | Effort | Why                                       |
+| - | ------------------------------------------------------------------- | -------- | ------ | ----------------------------------------- |
+| 1 | **Fix transport/http dep budget** (bump to 3 or make otel indirect) | Critical | 5min   | check-layers gate is FAILING              |
+| 2 | **Commit or discard transport/http/sse.go** formatting change       | High     | 1min   | Uncommitted change in working tree        |
+| 3 | **Enforce or remove `PropertyType.Required`**                       | Medium   | 30min  | Field exists but doesn't work — lying API |
+| 4 | **Update AGENTS.md module count** (44 → 47) and add graph-demo      | Low      | 5min   | Stale docs                                |
+| 5 | **Cross-link ADR-0039 from projection-tiers.md**                    | Low      | 5min   | Discoverability                           |
 
 ### Tier 2: High-value improvements
 
-| #   | Task                                                                      | Impact   | Effort   | Why                                                                   |
-| --- | ------------------------------------------------------------------------- | -------- | -------- | --------------------------------------------------------------------- |
-| 6   | **Migrate DiscordSync's projection layer** to `RelationalProjection`      | Critical | 2-3h     | Original trigger for relational tier; validates against real consumer |
-| 7   | **Add PostgreSQL integration tests** for relational tier (testcontainers) | High     | 1h       | Tested on SQLite only; PG path unproven                               |
-| 8   | **Add `ReadableDriver` contract tests** to graphtest                      | Medium   | 1h       | No contract for read operations; future drivers unvalidated           |
-| 9   | **God-package split: storage/** (38 files → sub-packages)                 | High     | 4h+      | Largest god-package                                                   |
-| 10  | **God-package split: event/** (30 files → sub-packages)                   | High     | 3h+      | Core module                                                           |
-| 11  | **Build Neo4j/Cypher GraphDriver** (`graph/neo4j/`)                       | High     | 3-4h     | First real graph backend; validates Schema + Sink abstraction         |
-| 12  | **Implement Deriver module** (per ADR-0040)                               | Medium   | 1-2 days | Design done; event→command derivation                                 |
-| 13  | **Add versioned schema migrations**                                       | Medium   | 2h       | Pre-existing gap (goose/atlas-style)                                  |
-| 14  | **Complete Pebble module** (any remaining gaps)                           | Medium   | 2h       | Pre-existing gap                                                      |
+| #  | Task                                                                      | Impact   | Effort   | Why                                                                   |
+| -- | ------------------------------------------------------------------------- | -------- | -------- | --------------------------------------------------------------------- |
+| 6  | **Migrate DiscordSync's projection layer** to `RelationalProjection`      | Critical | 2-3h     | Original trigger for relational tier; validates against real consumer |
+| 7  | **Add PostgreSQL integration tests** for relational tier (testcontainers) | High     | 1h       | Tested on SQLite only; PG path unproven                               |
+| 8  | **Add `ReadableDriver` contract tests** to graphtest                      | Medium   | 1h       | No contract for read operations; future drivers unvalidated           |
+| 9  | **God-package split: storage/** (38 files → sub-packages)                 | High     | 4h+      | Largest god-package                                                   |
+| 10 | **God-package split: event/** (30 files → sub-packages)                   | High     | 3h+      | Core module                                                           |
+| 11 | **Build Neo4j/Cypher GraphDriver** (`graph/neo4j/`)                       | High     | 3-4h     | First real graph backend; validates Schema + Sink abstraction         |
+| 12 | **Implement Deriver module** (per ADR-0040)                               | Medium   | 1-2 days | Design done; event→command derivation                                 |
+| 13 | **Add versioned schema migrations**                                       | Medium   | 2h       | Pre-existing gap (goose/atlas-style)                                  |
+| 14 | **Complete Pebble module** (any remaining gaps)                           | Medium   | 2h       | Pre-existing gap                                                      |
 
 ### Tier 3: Quality and completeness
 
-| #   | Task                                                               | Impact | Effort     | Why                                |
-| --- | ------------------------------------------------------------------ | ------ | ---------- | ---------------------------------- |
-| 15  | **Add graph-demo Schema rejection demo** (show what bad labels do) | Low    | 15min      | Teaches the value proposition      |
-| 16  | **Stamp RESOLVED on remaining unmarked research docs**             | Low    | 15min each | Prevents confusion                 |
-| 17  | **Add FTS5 full-text search** to RelationalStore                   | Medium | 2h         | DiscordSync's SearchMessages       |
-| 18  | **Add NATS JetStream transport adapter**                           | Medium | 3h         | ADR-0025 accepted                  |
-| 19  | **Add Outbox DLQ + reference-based outbox**                        | Medium | 2h         | Pre-existing gaps                  |
-| 20  | **Add Durability profiles** across backends                        | Low    | 1.5h       | Pre-existing gap                   |
-| 21  | **Documentation site** (Docusaurus/MkDocs)                         | Low    | 4h+        | 47 modules need browsable docs     |
-| 22  | **Commit the BuildFlow hook config** or document install           | Low    | 15min      | Onboarding                         |
-| 23  | **Add `graph.Schema.Indexes`** for future driver backends          | Low    | 30min      | Neo4j driver would need it         |
-| 24  | **Property-based tests for graph read API** (rapid)                | Medium | 1h         | Traverse/ShortestPath edge cases   |
-| 25  | **Integration test: RunProjections with graph tier** end-to-end    | Medium | 1h         | No graph-in-bundle test exists yet |
+| #  | Task                                                               | Impact | Effort     | Why                                |
+| -- | ------------------------------------------------------------------ | ------ | ---------- | ---------------------------------- |
+| 15 | **Add graph-demo Schema rejection demo** (show what bad labels do) | Low    | 15min      | Teaches the value proposition      |
+| 16 | **Stamp RESOLVED on remaining unmarked research docs**             | Low    | 15min each | Prevents confusion                 |
+| 17 | **Add FTS5 full-text search** to RelationalStore                   | Medium | 2h         | DiscordSync's SearchMessages       |
+| 18 | **Add NATS JetStream transport adapter**                           | Medium | 3h         | ADR-0025 accepted                  |
+| 19 | **Add Outbox DLQ + reference-based outbox**                        | Medium | 2h         | Pre-existing gaps                  |
+| 20 | **Add Durability profiles** across backends                        | Low    | 1.5h       | Pre-existing gap                   |
+| 21 | **Documentation site** (Docusaurus/MkDocs)                         | Low    | 4h+        | 47 modules need browsable docs     |
+| 22 | **Commit the BuildFlow hook config** or document install           | Low    | 15min      | Onboarding                         |
+| 23 | **Add `graph.Schema.Indexes`** for future driver backends          | Low    | 30min      | Neo4j driver would need it         |
+| 24 | **Property-based tests for graph read API** (rapid)                | Medium | 1h         | Traverse/ShortestPath edge cases   |
+| 25 | **Integration test: RunProjections with graph tier** end-to-end    | Medium | 1h         | No graph-in-bundle test exists yet |
 
 ---
 

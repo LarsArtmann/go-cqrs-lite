@@ -149,53 +149,53 @@
 
 ### Tier 1: Direct dep reduction (continuing today's work)
 
-| #   | Task                                                                                        | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | Migrate middleware test files to otel/ re-exports → make OTel indirect in middleware/go.mod | HIGH   | 2h     |
-| 2   | Add tests for otel/types.go (type alias verification, helper functions)                     | MED    | 30min  |
-| 3   | Fix gomega in otel/go.mod — move to indirect                                                | LOW    | 1h     |
-| 4   | Remove stale binaries from example/ (user, todo/cmd/api, listing)                           | LOW    | 10min  |
-| 5   | Add .gitignore entries for compiled binaries in example/                                    | LOW    | 5min   |
+| # | Task                                                                                        | Impact | Effort |
+| - | ------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1 | Migrate middleware test files to otel/ re-exports → make OTel indirect in middleware/go.mod | HIGH   | 2h     |
+| 2 | Add tests for otel/types.go (type alias verification, helper functions)                     | MED    | 30min  |
+| 3 | Fix gomega in otel/go.mod — move to indirect                                                | LOW    | 1h     |
+| 4 | Remove stale binaries from example/ (user, todo/cmd/api, listing)                           | LOW    | 10min  |
+| 5 | Add .gitignore entries for compiled binaries in example/                                    | LOW    | 5min   |
 
 ### Tier 2: event/ dep cleanup (requires architectural decision)
 
-| #   | Task                                                                             | Impact | Effort     |
-| --- | -------------------------------------------------------------------------------- | ------ | ---------- |
-| 6   | Decision: Is eventtest separation worth the import path break for 40+ consumers? | HIGH   | Discussion |
-| 7   | If yes: create top-level `eventtests/` module, move 6 external test files        | HIGH   | 2h         |
-| 8   | If yes: update 40+ consumer import paths                                         | HIGH   | 1h         |
-| 9   | If no: document that event/ test deps are intentional                            | LOW    | 10min      |
-| 10  | Decision: Is reactive split worth a top-level `eventbus/` module?                | MED    | Discussion |
+| #  | Task                                                                             | Impact | Effort     |
+| -- | -------------------------------------------------------------------------------- | ------ | ---------- |
+| 6  | Decision: Is eventtest separation worth the import path break for 40+ consumers? | HIGH   | Discussion |
+| 7  | If yes: create top-level `eventtests/` module, move 6 external test files        | HIGH   | 2h         |
+| 8  | If yes: update 40+ consumer import paths                                         | HIGH   | 1h         |
+| 9  | If no: document that event/ test deps are intentional                            | LOW    | 10min      |
+| 10 | Decision: Is reactive split worth a top-level `eventbus/` module?                | MED    | Discussion |
 
 ### Tier 3: CI & Quality
 
-| #   | Task                                                                    | Impact | Effort |
-| --- | ----------------------------------------------------------------------- | ------ | ------ |
-| 11  | Create `.github/workflows/ci.yml` with nix build/test/lint/check-layers | HIGH   | 2h     |
-| 12  | Wire `nix run .#check-layers` into CI as required check                 | HIGH   | 15min  |
-| 13  | Fix storage/sql coverage (34.7% → 80%+)                                 | MED    | 4h     |
-| 14  | Fix middleware infertypeargs lint warnings (6 instances)                | LOW    | 15min  |
-| 15  | Fix event_type_clone_test.go unused write warning                       | LOW    | 5min   |
+| #  | Task                                                                    | Impact | Effort |
+| -- | ----------------------------------------------------------------------- | ------ | ------ |
+| 11 | Create `.github/workflows/ci.yml` with nix build/test/lint/check-layers | HIGH   | 2h     |
+| 12 | Wire `nix run .#check-layers` into CI as required check                 | HIGH   | 15min  |
+| 13 | Fix storage/sql coverage (34.7% → 80%+)                                 | MED    | 4h     |
+| 14 | Fix middleware infertypeargs lint warnings (6 instances)                | LOW    | 15min  |
+| 15 | Fix event_type_clone_test.go unused write warning                       | LOW    | 5min   |
 
 ### Tier 4: Developer experience
 
-| #   | Task                                                                  | Impact | Effort |
-| --- | --------------------------------------------------------------------- | ------ | ------ |
-| 16  | Add id/ README with configurable backing type examples                | MED    | 30min  |
-| 17  | Add otel/ README documenting the re-export pattern                    | MED    | 20min  |
-| 18  | Update decider/projection/storage READMEs to mention OTel is optional | LOW    | 20min  |
-| 19  | Fix example/user/server.go unused params (pre-commit flagged)         | LOW    | 10min  |
-| 20  | Fix CONTRIBUTING.md (modified but uncommitted)                        | LOW    | 10min  |
+| #  | Task                                                                  | Impact | Effort |
+| -- | --------------------------------------------------------------------- | ------ | ------ |
+| 16 | Add id/ README with configurable backing type examples                | MED    | 30min  |
+| 17 | Add otel/ README documenting the re-export pattern                    | MED    | 20min  |
+| 18 | Update decider/projection/storage READMEs to mention OTel is optional | LOW    | 20min  |
+| 19 | Fix example/user/server.go unused params (pre-commit flagged)         | LOW    | 10min  |
+| 20 | Fix CONTRIBUTING.md (modified but uncommitted)                        | LOW    | 10min  |
 
 ### Tier 5: Future architecture
 
-| #   | Task                                                                    | Impact | Effort |
-| --- | ----------------------------------------------------------------------- | ------ | ------ |
-| 21  | Investigate Go build tags for optional OTel (`//go:build !no_otel`)     | MED    | 4h     |
-| 22  | Consider Go 1.27+ lazy module loading if/when available                 | FUTURE | —      |
-| 23  | Evaluate moving eventtest/ to a separate repo                           | FUTURE | —      |
-| 24  | Write ADR for OTel abstraction pattern                                  | MED    | 30min  |
-| 25  | Benchmark: measure compile time difference with OTel indirect vs direct | LOW    | 1h     |
+| #  | Task                                                                    | Impact | Effort |
+| -- | ----------------------------------------------------------------------- | ------ | ------ |
+| 21 | Investigate Go build tags for optional OTel (`//go:build !no_otel`)     | MED    | 4h     |
+| 22 | Consider Go 1.27+ lazy module loading if/when available                 | FUTURE | —      |
+| 23 | Evaluate moving eventtest/ to a separate repo                           | FUTURE | —      |
+| 24 | Write ADR for OTel abstraction pattern                                  | MED    | 30min  |
+| 25 | Benchmark: measure compile time difference with OTel indirect vs direct | LOW    | 1h     |
 
 ---
 

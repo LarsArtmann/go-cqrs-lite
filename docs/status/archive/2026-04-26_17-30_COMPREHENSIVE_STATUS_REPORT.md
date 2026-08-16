@@ -157,33 +157,33 @@ All core interfaces now return branded ID types instead of `string`:
 
 ## F) TOP 25 THINGS TO DO NEXT
 
-| #   | Task                                                                                    | Impact      | Effort   | Priority           |
-| --- | --------------------------------------------------------------------------------------- | ----------- | -------- | ------------------ |
-| 1   | Storage module: sqlc PostgreSQL event store (Phase 5)                                   | 🔴 Critical | 2-3 days | P0                 |
-| 2   | Add `pkg/id` test coverage (MarshalBinary roundtrip, Scan edge cases, zero-value Value) | 🔴 High     | 30min    | P0                 |
-| 3   | Add `EventRetry` tests                                                                  | 🟡 High     | 20min    | P0                 |
-| 4   | Fix `go.work` version mismatch (`go work sync`)                                         | 🟡 Medium   | 5min     | P1                 |
-| 5   | Remove unnecessary type args in `id.go` (6 gopls warnings)                              | 🟡 Medium   | 10min    | P1                 |
-| 6   | Improve middleware test coverage to >80%                                                | 🟡 Medium   | 1hr      | P1                 |
-| 7   | Improve `internal/dispatcher` coverage to >80%                                          | 🟡 Medium   | 30min    | P1                 |
-| 8   | Watermill module (Phase 6) — pub/sub                                                    | 🟡 Medium   | 2-3 days | P2                 |
-| 9   | Projection module (Phase 7)                                                             | 🟡 Medium   | 2-3 days | P2                 |
-| 10  | Snapshot module (Phase 8) — SQL-backed                                                  | 🟡 Medium   | 1-2 days | P2                 |
-| 11  | Cache `TypedCommand.Command()` allocation                                               | 🟢 Low      | 15min    | P3                 |
-| 12  | Fix `toDotAddress` number handling                                                      | 🟢 Low      | 15min    | P3                 |
-| 13  | Add aggregate coverage to >90%                                                          | 🟢 Low      | 15min    | P3                 |
-| 14  | Document `MemoryBus.Publish` RLock behavior                                             | 🟢 Low      | 10min    | P3                 |
-| 15  | Remove unnecessary `memory` replace in `example/catalog/go.mod`                         | 🟢 Low      | 5min     | P3                 |
-| 16  | Tag v0.1.0 releases for all modules                                                     | 🔴 High     | 30min    | P1 (after storage) |
-| 17  | Test utilities module (Phase 9)                                                         | 🟢 Low      | 1 day    | P4                 |
-| 18  | Add integration test with full CQRS flow (command → event → aggregate → query)          | 🟡 Medium   | 2hr      | P2                 |
-| 19  | Add Go doc examples (playground-runnable) for `id.New`, `id.Parse`, `event.NewEvent`    | 🟡 Medium   | 1hr      | P2                 |
-| 20  | Remove `replace` directives once `go-composable-business-types` is published            | 🟢 Low      | 15min    | P4                 |
-| 21  | Add `go work sync` to CI pipeline                                                       | 🟢 Low      | 15min    | P3                 |
-| 22  | Add benchmark for ULID generation vs old UUID generation                                | 🟢 Low      | 15min    | P3                 |
-| 23  | Add `.goreleaser.yml` for multi-module releases                                         | 🟡 Medium   | 1hr      | P2                 |
-| 24  | Explore `go-json-experiment/json` v2 for struct-level marshaling of `id.Of[T]`          | 🟢 Low      | 30min    | P4                 |
-| 25  | Add CHANGELOG.md tracking breaking changes per module                                   | 🟡 Medium   | 30min    | P2                 |
+| #  | Task                                                                                    | Impact      | Effort   | Priority           |
+| -- | --------------------------------------------------------------------------------------- | ----------- | -------- | ------------------ |
+| 1  | Storage module: sqlc PostgreSQL event store (Phase 5)                                   | 🔴 Critical | 2-3 days | P0                 |
+| 2  | Add `pkg/id` test coverage (MarshalBinary roundtrip, Scan edge cases, zero-value Value) | 🔴 High     | 30min    | P0                 |
+| 3  | Add `EventRetry` tests                                                                  | 🟡 High     | 20min    | P0                 |
+| 4  | Fix `go.work` version mismatch (`go work sync`)                                         | 🟡 Medium   | 5min     | P1                 |
+| 5  | Remove unnecessary type args in `id.go` (6 gopls warnings)                              | 🟡 Medium   | 10min    | P1                 |
+| 6  | Improve middleware test coverage to >80%                                                | 🟡 Medium   | 1hr      | P1                 |
+| 7  | Improve `internal/dispatcher` coverage to >80%                                          | 🟡 Medium   | 30min    | P1                 |
+| 8  | Watermill module (Phase 6) — pub/sub                                                    | 🟡 Medium   | 2-3 days | P2                 |
+| 9  | Projection module (Phase 7)                                                             | 🟡 Medium   | 2-3 days | P2                 |
+| 10 | Snapshot module (Phase 8) — SQL-backed                                                  | 🟡 Medium   | 1-2 days | P2                 |
+| 11 | Cache `TypedCommand.Command()` allocation                                               | 🟢 Low      | 15min    | P3                 |
+| 12 | Fix `toDotAddress` number handling                                                      | 🟢 Low      | 15min    | P3                 |
+| 13 | Add aggregate coverage to >90%                                                          | 🟢 Low      | 15min    | P3                 |
+| 14 | Document `MemoryBus.Publish` RLock behavior                                             | 🟢 Low      | 10min    | P3                 |
+| 15 | Remove unnecessary `memory` replace in `example/catalog/go.mod`                         | 🟢 Low      | 5min     | P3                 |
+| 16 | Tag v0.1.0 releases for all modules                                                     | 🔴 High     | 30min    | P1 (after storage) |
+| 17 | Test utilities module (Phase 9)                                                         | 🟢 Low      | 1 day    | P4                 |
+| 18 | Add integration test with full CQRS flow (command → event → aggregate → query)          | 🟡 Medium   | 2hr      | P2                 |
+| 19 | Add Go doc examples (playground-runnable) for `id.New`, `id.Parse`, `event.NewEvent`    | 🟡 Medium   | 1hr      | P2                 |
+| 20 | Remove `replace` directives once `go-composable-business-types` is published            | 🟢 Low      | 15min    | P4                 |
+| 21 | Add `go work sync` to CI pipeline                                                       | 🟢 Low      | 15min    | P3                 |
+| 22 | Add benchmark for ULID generation vs old UUID generation                                | 🟢 Low      | 15min    | P3                 |
+| 23 | Add `.goreleaser.yml` for multi-module releases                                         | 🟡 Medium   | 1hr      | P2                 |
+| 24 | Explore `go-json-experiment/json` v2 for struct-level marshaling of `id.Of[T]`          | 🟢 Low      | 30min    | P4                 |
+| 25 | Add CHANGELOG.md tracking breaking changes per module                                   | 🟡 Medium   | 30min    | P2                 |
 
 ---
 

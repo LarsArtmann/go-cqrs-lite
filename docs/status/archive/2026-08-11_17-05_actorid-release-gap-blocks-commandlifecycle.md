@@ -24,25 +24,25 @@ build attempt in `commandlifecycle/` and `commandlifecycle/projections/` under
 
 ## Evidence
 
-| Check | Result |
-| --- | --- |
-| `git cat-file -e "id/v4.2.0:id/actor_id.go"` | **MISSING** (fatal: path exists on disk, not in tag) |
-| `git ls-tree --name-only id/v4.2.0 -- id/` | only `user_id.go` (no actor files) |
-| `git merge-base --is-ancestor 7e374b753 id/v4.2.0` | NOT ancestor (actor commit added after tag) |
-| `git show record/v4.1.0:record/record.go` | **uses** `id.ActorID` (lines 35-41, 80-81) |
-| `git show record/v4.1.0:record/go.mod` | requires `id/v4 v4.2.0` (lacks ActorID) |
-| `git show command/v4.4.0` grep ActorID | 2 files |
-| `git show metaengine/v4.8.0` grep ActorID | 5 files |
-| ActorID commit | `7e374b753` "feat(record): adopt branded ID types and ActorID taxonomy in CommonMetadata" |
+| Check                                              | Result                                                                                    |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `git cat-file -e "id/v4.2.0:id/actor_id.go"`       | **MISSING** (fatal: path exists on disk, not in tag)                                      |
+| `git ls-tree --name-only id/v4.2.0 -- id/`         | only `user_id.go` (no actor files)                                                        |
+| `git merge-base --is-ancestor 7e374b753 id/v4.2.0` | NOT ancestor (actor commit added after tag)                                               |
+| `git show record/v4.1.0:record/record.go`          | **uses** `id.ActorID` (lines 35-41, 80-81)                                                |
+| `git show record/v4.1.0:record/go.mod`             | requires `id/v4 v4.2.0` (lacks ActorID)                                                   |
+| `git show command/v4.4.0` grep ActorID             | 2 files                                                                                   |
+| `git show metaengine/v4.8.0` grep ActorID          | 5 files                                                                                   |
+| ActorID commit                                     | `7e374b753` "feat(record): adopt branded ID types and ActorID taxonomy in CommonMetadata" |
 
 ## Affected published modules (broken for consumers)
 
-| Module | Published tag | Status |
-| --- | --- | --- |
-| `id/v4` | v4.2.0 | Missing `ActorID` (never re-tagged) |
-| `record/v4` | v4.1.0 | Uses ActorID, requires id/v4 v4.2.0 → broken |
-| `command/v4` | v4.4.0 | Uses ActorID, requires id/v4 v4.2.0 → broken |
-| `metaengine/v4` | v4.8.0 | Uses ActorID, requires id/v4 v4.2.0 → broken |
+| Module          | Published tag | Status                                       |
+| --------------- | ------------- | -------------------------------------------- |
+| `id/v4`         | v4.2.0        | Missing `ActorID` (never re-tagged)          |
+| `record/v4`     | v4.1.0        | Uses ActorID, requires id/v4 v4.2.0 → broken |
+| `command/v4`    | v4.4.0        | Uses ActorID, requires id/v4 v4.2.0 → broken |
+| `metaengine/v4` | v4.8.0        | Uses ActorID, requires id/v4 v4.2.0 → broken |
 
 Consumers requiring `record/v4 v4.1.0` (61 modules), `command/v4 v4.4.0`,
 `metaengine/v4 v4.8.0` inherit the breakage via MVS (id pinned at v4.2.0).
@@ -50,19 +50,19 @@ Consumers requiring `record/v4 v4.1.0` (61 modules), `command/v4 v4.4.0`,
 ## Proposed fix (for dedicated release session)
 
 ~~1. **Tag `id/v4.3.0`** — publishes `actor_id.go`, `actor_id_json.go`, tests~~ done - id/v4.4.0 tagged 2026-08-13, contains actor_id.go (verified via git tag --contains)
-   (currently in workspace since 7e374b753). Additive; api_surface.txt already
-   contains the new exports (`id/func NewActorID`, `id/func ParseActorID`,
-   `id/struct ActorID`, constructors NewUserActor/NewBotActor/NewSystemActor/
-   NewServiceActor, `id/type ActorKind`).
+(currently in workspace since 7e374b753). Additive; api_surface.txt already
+contains the new exports (`id/func NewActorID`, `id/func ParseActorID`,
+`id/struct ActorID`, constructors NewUserActor/NewBotActor/NewSystemActor/
+NewServiceActor, `id/type ActorKind`).
 ~~2. **Re-tag `record/v4.2.0`** with go.mod requiring `id/v4 v4.3.0`.~~ done - record/v4.2.0 tagged (flattened string types; standalone green)
 ~~3. **Re-tag `command/v4.5.0`** with go.mod requiring `id/v4 v4.3.0`.~~ done - landed as command/v4.6.0 (WithActor wave, 2026-08-13)
 ~~4. **Re-tag `metaengine/v4.9.0`** with go.mod requiring `id/v4 v4.3.0`.~~ done - landed as metaengine/v4.10.0 (2026-08-13)
 ~~5. **Tag `commandlifecycle/v4.0.0`** and **`commandlifecycle/projections/v4.0.0`**~~ done - commandlifecycle/v4.0.0 + commandlifecycle/projections/v4.0.0 tagged 2026-08-13
-   (projections go.mod already pins `commandlifecycle/v4 v4.0.0`; tag in
-   dependency order).
+(projections go.mod already pins `commandlifecycle/v4 v4.0.0`; tag in
+dependency order).
 ~~6. **Bump downstream go.mod requires** for all modules that use ActorID~~ done - mass upgrade of 79 modules at 94261a568 (59 go.mod files)
-   (event, query, metadata, storage/bbolt, storage/pebble, watermill, etc. —
-   66 modules require id/v4) to avoid MVS pinning the broken id/v4.2.0.
+(event, query, metadata, storage/bbolt, storage/pebble, watermill, etc. —
+66 modules require id/v4) to avoid MVS pinning the broken id/v4.2.0.
 
 Always use `./scripts/tag-release.sh <module> vX.Y.Z "desc"` (strips local
 replaces, runs tidy, creates annotated tag). Update CHANGELOG.md Unreleased
@@ -75,7 +75,6 @@ go run . -update`) before tagging. Run `nix run .#verify` first.
   `Truncate`/`TitleCase` — TODO item can be closed.
 - This mirrors the DuckDB/PG go.mod drift note in CHANGELOG Unreleased
   (require pinned below actual published version).
-
 
 ---
 

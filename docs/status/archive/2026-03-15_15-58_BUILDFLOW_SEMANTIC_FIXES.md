@@ -41,8 +41,8 @@ BuildFlow identified **3 categories of issues**: error context problems, missing
 
 ## B) PARTIALLY DONE ⚠️
 
-| Task                       | Status        | Blocker                                    |
-| -------------------------- | ------------- | ------------------------------------------ |
+| Task                       | Status       | Blocker                                    |
+| -------------------------- | ------------ | ------------------------------------------ |
 | **Code Duplication Fixes** | ⚠️ IDENTIFIED | 8 clone groups found, not yet refactored   |
 | **Test Verification**      | ⚠️ BLOCKED    | Go cache corruption prevented test runs    |
 | **BuildFlow Re-run**       | ⚠️ BLOCKED    | Cannot verify fixes until Go cache rebuilt |
@@ -115,33 +115,33 @@ return nil, fmt.Errorf("aggregate ID is required for event type %q", eventType)
 
 ## F) TOP 25 NEXT ACTIONS
 
-| #   | Task                                                 | Priority | Effort | Category      |
-| --- | ---------------------------------------------------- | -------- | ------ | ------------- |
-| 1   | Wait for Go cache rebuild, verify tests pass         | CRITICAL | 2min   | Verification  |
-| 2   | Re-run `buildflow --semantic --fix`                  | CRITICAL | 5min   | Verification  |
-| 3   | Kill stale golangci-lint processes                   | HIGH     | 1min   | Fix           |
-| 4   | Create `.golangci.yml` config file                   | HIGH     | 5min   | Config        |
-| 5   | Refactor event With\* methods to reduce duplication  | MEDIUM   | 15min  | Refactor      |
-| 6   | Extract shared dispatcher mixin struct               | MEDIUM   | 20min  | Refactor      |
-| 7   | Add error assertion tests for new error messages     | MEDIUM   | 10min  | Testing       |
-| 8   | Run `art-dupl` again to verify duplication reduction | MEDIUM   | 2min   | Verification  |
-| 9   | Consider phantom types for AggregateID               | LOW      | 60min  | Enhancement   |
-| 10  | Consider phantom types for Version                   | LOW      | 30min  | Enhancement   |
-| 11  | Rename `Base` → `AggregateRoot` or similar           | LOW      | 15min  | Naming        |
-| 12  | Add fuzz tests for event creation                    | LOW      | 20min  | Testing       |
-| 13  | Add integration tests for dispatcher middleware      | LOW      | 15min  | Testing       |
-| 14  | Document error handling patterns in AGENTS.md        | LOW      | 5min   | Docs          |
-| 15  | Add error examples to README                         | LOW      | 5min   | Docs          |
-| 16  | Consider structured error types with codes           | LOW      | 30min  | Enhancement   |
-| 17  | Add telemetry/metrics for error paths                | LOW      | 20min  | Observability |
-| 18  | Review memory_bus.go for additional error context    | LOW      | 5min   | Review        |
-| 19  | Add context timeout handling in dispatchers          | LOW      | 15min  | Enhancement   |
-| 20  | Consider circuit breaker for event handlers          | LOW      | 30min  | Enhancement   |
-| 21  | Add retry middleware example                         | LOW      | 10min  | Examples      |
-| 22  | Create middleware package with common middleware     | LOW      | 30min  | Feature       |
-| 23  | Add benchmark tests for hot paths                    | LOW      | 20min  | Testing       |
-| 24  | Consider async event publishing option               | LOW      | 30min  | Feature       |
-| 25  | Add OpenTelemetry integration                        | LOW      | 45min  | Observability |
+| #  | Task                                                 | Priority | Effort | Category      |
+| -- | ---------------------------------------------------- | -------- | ------ | ------------- |
+| 1  | Wait for Go cache rebuild, verify tests pass         | CRITICAL | 2min   | Verification  |
+| 2  | Re-run `buildflow --semantic --fix`                  | CRITICAL | 5min   | Verification  |
+| 3  | Kill stale golangci-lint processes                   | HIGH     | 1min   | Fix           |
+| 4  | Create `.golangci.yml` config file                   | HIGH     | 5min   | Config        |
+| 5  | Refactor event With\* methods to reduce duplication  | MEDIUM   | 15min  | Refactor      |
+| 6  | Extract shared dispatcher mixin struct               | MEDIUM   | 20min  | Refactor      |
+| 7  | Add error assertion tests for new error messages     | MEDIUM   | 10min  | Testing       |
+| 8  | Run `art-dupl` again to verify duplication reduction | MEDIUM   | 2min   | Verification  |
+| 9  | Consider phantom types for AggregateID               | LOW      | 60min  | Enhancement   |
+| 10 | Consider phantom types for Version                   | LOW      | 30min  | Enhancement   |
+| 11 | Rename `Base` → `AggregateRoot` or similar           | LOW      | 15min  | Naming        |
+| 12 | Add fuzz tests for event creation                    | LOW      | 20min  | Testing       |
+| 13 | Add integration tests for dispatcher middleware      | LOW      | 15min  | Testing       |
+| 14 | Document error handling patterns in AGENTS.md        | LOW      | 5min   | Docs          |
+| 15 | Add error examples to README                         | LOW      | 5min   | Docs          |
+| 16 | Consider structured error types with codes           | LOW      | 30min  | Enhancement   |
+| 17 | Add telemetry/metrics for error paths                | LOW      | 20min  | Observability |
+| 18 | Review memory_bus.go for additional error context    | LOW      | 5min   | Review        |
+| 19 | Add context timeout handling in dispatchers          | LOW      | 15min  | Enhancement   |
+| 20 | Consider circuit breaker for event handlers          | LOW      | 30min  | Enhancement   |
+| 21 | Add retry middleware example                         | LOW      | 10min  | Examples      |
+| 22 | Create middleware package with common middleware     | LOW      | 30min  | Feature       |
+| 23 | Add benchmark tests for hot paths                    | LOW      | 20min  | Testing       |
+| 24 | Consider async event publishing option               | LOW      | 30min  | Feature       |
+| 25 | Add OpenTelemetry integration                        | LOW      | 45min  | Observability |
 
 ---
 

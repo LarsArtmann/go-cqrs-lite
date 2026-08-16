@@ -85,33 +85,33 @@ The session started with the goal of redoing the `stream/ → listing/` module r
 
 ## f) Top 25 Things to Get Done Next
 
-| #   | Task                                                                                                  | Impact                     | Effort | Priority |
-| --- | ----------------------------------------------------------------------------------------------------- | -------------------------- | ------ | -------- |
-| 1   | **Fix go.work** — remove `./saga` and `./example/saga` entries                                        | 🔴 Build broken            | 2 min  | CRITICAL |
-| 2   | **Fix listing/go.mod** — rename module path from `stream` to `listing`                                | 🔴 Identity crisis         | 10 min | CRITICAL |
-| 3   | **Update all importers of listing** — change `stream` → `listing` in go.mod/go.sum across all modules | 🔴 Build broken until done | 15 min | CRITICAL |
-| 4   | **Commit staged lint fixes** in core/store/eventstore.go + test                                       | 🟡 Cosmetic                | 1 min  | HIGH     |
-| 5   | **Build + test passes** after fixes above                                                             | 🔴 Currently broken        | 5 min  | CRITICAL |
-| 6   | **Delete storage/saga_store.go** — saga removal step 2                                                | 🟡 Coupling                | 5 min  | HIGH     |
-| 7   | **Remove saga schema from storage/dialect.go** — saga tables, inserts, queries                        | 🟡 Coupling                | 15 min | HIGH     |
-| 8   | **Remove saga from integration/ tests**                                                               | 🟡 Coupling                | 10 min | HIGH     |
-| 9   | **Clean go.work** — remove `./saga`, `./example/saga` (already #1)                                    | 🔴                         | —      | —        |
-| 10  | **Remove example/stream/ empty dir** (only .gitignore left)                                           | 🟢 Cleanup                 | 1 min  | MEDIUM   |
-| 11  | **Update cmd/api-stability/main.go** — remove `stream` from module list, add `listing`                | 🟡 Correctness             | 2 min  | HIGH     |
-| 12  | **Update AGENTS.md** — remove stream/ from module list, update listing/ description                   | 🟢 Docs                    | 5 min  | MEDIUM   |
-| 13  | **Update FEATURES.md** — remove saga/stream, add listing                                              | 🟢 Docs                    | 10 min | MEDIUM   |
-| 14  | **Update TODO_LIST.md** — mark saga removal as done/partial                                           | 🟢 Docs                    | 5 min  | MEDIUM   |
-| 15  | **Update flake.nix** — remove saga/stream from module list                                            | 🟡 CI                      | 5 min  | HIGH     |
-| 16  | **Create listing/README.md** — update from stream terminology                                         | 🟢 Docs                    | 10 min | LOW      |
-| 17  | **core/event god-package split** — extract sub-packages per proposal                                  | 🟡 Architecture            | 2-3 hr | MEDIUM   |
-| 18  | **Remove self-referencing replace directives** (7 modules)                                            | 🟢 Cleanup                 | 15 min | LOW      |
-| 19  | **Add `core/store` to go.work** — currently missing?                                                  | 🔴 Check                   | 2 min  | HIGH     |
-| 20  | **Write example/saga-pattern/** — teach the pattern with projection + command dispatch                | 🟢 Examples                | 45 min | LOW      |
-| 21  | **CI: remove saga/stream from ci.yml matrix**                                                         | 🟡 CI                      | 5 min  | HIGH     |
-| 22  | **Verify all modules build with GOWORK=off**                                                          | 🟡 CI                      | 10 min | HIGH     |
-| 23  | **Run full lint sweep** post-cleanup                                                                  | 🟡 Quality                 | 5 min  | MEDIUM   |
-| 24  | **Coverage report** — update docs/status/ with current numbers                                        | 🟢 Docs                    | 10 min | LOW      |
-| 25  | **v1.0.0 release planning** — tag strategy, remove replace directives                                 | 📐 Planning                | 30 min | FUTURE   |
+| #  | Task                                                                                                  | Impact                     | Effort | Priority |
+| -- | ----------------------------------------------------------------------------------------------------- | -------------------------- | ------ | -------- |
+| 1  | **Fix go.work** — remove `./saga` and `./example/saga` entries                                        | 🔴 Build broken            | 2 min  | CRITICAL |
+| 2  | **Fix listing/go.mod** — rename module path from `stream` to `listing`                                | 🔴 Identity crisis         | 10 min | CRITICAL |
+| 3  | **Update all importers of listing** — change `stream` → `listing` in go.mod/go.sum across all modules | 🔴 Build broken until done | 15 min | CRITICAL |
+| 4  | **Commit staged lint fixes** in core/store/eventstore.go + test                                       | 🟡 Cosmetic                | 1 min  | HIGH     |
+| 5  | **Build + test passes** after fixes above                                                             | 🔴 Currently broken        | 5 min  | CRITICAL |
+| 6  | **Delete storage/saga_store.go** — saga removal step 2                                                | 🟡 Coupling                | 5 min  | HIGH     |
+| 7  | **Remove saga schema from storage/dialect.go** — saga tables, inserts, queries                        | 🟡 Coupling                | 15 min | HIGH     |
+| 8  | **Remove saga from integration/ tests**                                                               | 🟡 Coupling                | 10 min | HIGH     |
+| 9  | **Clean go.work** — remove `./saga`, `./example/saga` (already #1)                                    | 🔴                         | —      | —        |
+| 10 | **Remove example/stream/ empty dir** (only .gitignore left)                                           | 🟢 Cleanup                 | 1 min  | MEDIUM   |
+| 11 | **Update cmd/api-stability/main.go** — remove `stream` from module list, add `listing`                | 🟡 Correctness             | 2 min  | HIGH     |
+| 12 | **Update AGENTS.md** — remove stream/ from module list, update listing/ description                   | 🟢 Docs                    | 5 min  | MEDIUM   |
+| 13 | **Update FEATURES.md** — remove saga/stream, add listing                                              | 🟢 Docs                    | 10 min | MEDIUM   |
+| 14 | **Update TODO_LIST.md** — mark saga removal as done/partial                                           | 🟢 Docs                    | 5 min  | MEDIUM   |
+| 15 | **Update flake.nix** — remove saga/stream from module list                                            | 🟡 CI                      | 5 min  | HIGH     |
+| 16 | **Create listing/README.md** — update from stream terminology                                         | 🟢 Docs                    | 10 min | LOW      |
+| 17 | **core/event god-package split** — extract sub-packages per proposal                                  | 🟡 Architecture            | 2-3 hr | MEDIUM   |
+| 18 | **Remove self-referencing replace directives** (7 modules)                                            | 🟢 Cleanup                 | 15 min | LOW      |
+| 19 | **Add `core/store` to go.work** — currently missing?                                                  | 🔴 Check                   | 2 min  | HIGH     |
+| 20 | **Write example/saga-pattern/** — teach the pattern with projection + command dispatch                | 🟢 Examples                | 45 min | LOW      |
+| 21 | **CI: remove saga/stream from ci.yml matrix**                                                         | 🟡 CI                      | 5 min  | HIGH     |
+| 22 | **Verify all modules build with GOWORK=off**                                                          | 🟡 CI                      | 10 min | HIGH     |
+| 23 | **Run full lint sweep** post-cleanup                                                                  | 🟡 Quality                 | 5 min  | MEDIUM   |
+| 24 | **Coverage report** — update docs/status/ with current numbers                                        | 🟢 Docs                    | 10 min | LOW      |
+| 25 | **v1.0.0 release planning** — tag strategy, remove replace directives                                 | 📐 Planning                | 30 min | FUTURE   |
 
 ---
 
@@ -152,32 +152,32 @@ Tests: CANNOT RUN — build broken
 
 ## Module Inventory (Current State on Disk)
 
-| Module               | On Disk      | In go.work        | Module Path (go.mod)     | Status                     |
-| -------------------- | ------------ | ----------------- | ------------------------ | -------------------------- |
-| `catalog`            | ✅           | ✅                | `.../catalog`            | ✅ Clean                   |
-| `cmd/cqrs-gen`       | ✅           | ✅                | `.../cmd/cqrs-gen`       | ✅ Clean                   |
-| `codec`              | ✅           | ✅                | `.../codec`              | ✅ Clean                   |
-| `core`               | ✅           | ✅                | `.../core`               | ✅ Clean                   |
+| Module               | On Disk      | In go.work        | Module Path (go.mod)     | Status                    |
+| -------------------- | ------------ | ----------------- | ------------------------ | ------------------------- |
+| `catalog`            | ✅           | ✅                | `.../catalog`            | ✅ Clean                  |
+| `cmd/cqrs-gen`       | ✅           | ✅                | `.../cmd/cqrs-gen`       | ✅ Clean                  |
+| `codec`              | ✅           | ✅                | `.../codec`              | ✅ Clean                  |
+| `core`               | ✅           | ✅                | `.../core`               | ✅ Clean                  |
 | `core/store`         | ✅           | ❓ Not in go.work | `.../core/store`         | ⚠️ May need go.work entry  |
-| `example/listing`    | ✅           | ✅                | `.../example/listing`    | ✅ Updated                 |
-| `example/projection` | ✅           | ✅                | `.../example/projection` | ✅ Clean                   |
-| `example/saga`       | ❌ Empty dir | ✅ STALE          | —                        | 🔴 Broken reference        |
-| `example/storage`    | ✅           | ✅                | `.../example/storage`    | ✅ Clean                   |
-| `example/todo`       | ✅           | ✅                | `.../example/todo`       | ✅ Clean                   |
-| `example/user`       | ✅           | ✅                | `.../example/user`       | ✅ Clean                   |
+| `example/listing`    | ✅           | ✅                | `.../example/listing`    | ✅ Updated                |
+| `example/projection` | ✅           | ✅                | `.../example/projection` | ✅ Clean                  |
+| `example/saga`       | ❌ Empty dir | ✅ STALE          | —                        | 🔴 Broken reference       |
+| `example/storage`    | ✅           | ✅                | `.../example/storage`    | ✅ Clean                  |
+| `example/todo`       | ✅           | ✅                | `.../example/todo`       | ✅ Clean                  |
+| `example/user`       | ✅           | ✅                | `.../example/user`       | ✅ Clean                  |
 | `integration`        | ✅           | ✅                | `.../integration`        | ⚠️ May reference saga      |
-| `listing`            | ✅           | ✅                | `.../stream` WRONG       | 🔴 Split-brain             |
-| `memory`             | ✅           | ✅                | `.../memory`             | ✅ Clean                   |
-| `middleware`         | ✅           | ✅                | `.../middleware`         | ✅ Clean                   |
-| `otel`               | ✅           | ✅                | `.../otel`               | ✅ Clean                   |
-| `pebble`             | ✅           | ✅                | `.../pebble`             | ✅ Clean                   |
-| `projection`         | ✅           | ✅                | `.../projection`         | ✅ Clean                   |
-| `saga`               | ❌ Deleted   | ✅ STALE          | —                        | 🔴 Broken reference        |
-| `signing`            | ✅           | ✅                | `.../signing`            | ✅ Clean                   |
+| `listing`            | ✅           | ✅                | `.../stream` WRONG       | 🔴 Split-brain            |
+| `memory`             | ✅           | ✅                | `.../memory`             | ✅ Clean                  |
+| `middleware`         | ✅           | ✅                | `.../middleware`         | ✅ Clean                  |
+| `otel`               | ✅           | ✅                | `.../otel`               | ✅ Clean                  |
+| `pebble`             | ✅           | ✅                | `.../pebble`             | ✅ Clean                  |
+| `projection`         | ✅           | ✅                | `.../projection`         | ✅ Clean                  |
+| `saga`               | ❌ Deleted   | ✅ STALE          | —                        | 🔴 Broken reference       |
+| `signing`            | ✅           | ✅                | `.../signing`            | ✅ Clean                  |
 | `storage`            | ✅           | ✅                | `.../storage`            | ⚠️ Still has saga_store.go |
-| `testhelpers`        | ✅           | ✅                | `.../testhelpers`        | ✅ Clean                   |
-| `turso`              | ✅           | ✅                | `.../turso`              | ✅ Clean                   |
-| `watermill`          | ✅           | ✅                | `.../watermill`          | ✅ Clean                   |
+| `testhelpers`        | ✅           | ✅                | `.../testhelpers`        | ✅ Clean                  |
+| `turso`              | ✅           | ✅                | `.../turso`              | ✅ Clean                  |
+| `watermill`          | ✅           | ✅                | `.../watermill`          | ✅ Clean                  |
 
 ---
 

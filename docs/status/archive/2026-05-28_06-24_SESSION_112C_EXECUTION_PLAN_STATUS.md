@@ -1,9 +1,9 @@
 # Session 112c — Comprehensive Status Update
 
-**Date:** 2026-05-28 06:24 CEST  
-**Branch:** master (ahead of origin by 1 commit)  
-**Working Tree:** Clean  
-**Go Version:** 1.26.3  
+**Date:** 2026-05-28 06:24 CEST\
+**Branch:** master (ahead of origin by 1 commit)\
+**Working Tree:** Clean\
+**Go Version:** 1.26.3\
 **Modules:** 13 (core, memory, catalog, middleware, testhelpers, integration, storage, projection, saga, watermill, cqrs-gen)
 
 ---
@@ -275,33 +275,33 @@ package aggregate
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Task                                                                      | Impact      | Effort | Module      |
-| --- | ------------------------------------------------------------------------- | ----------- | ------ | ----------- |
-| 1   | Convert remaining 19 `fmt.Errorf` wraps in `core/event/` to `event.Wrap*` | **HIGHEST** | 30min  | core/event  |
-| 2   | Re-export `errorfamily.WithContext` as `event.WithContext`                | **HIGH**    | 5min   | core/event  |
-| 3   | Add `.WithContext()` metadata to storage error wraps                      | **HIGH**    | 20min  | storage     |
-| 4   | Convert 17 `fmt.Errorf` wraps in `saga/` to structured                    | **HIGH**    | 20min  | saga        |
-| 5   | Fix DLQ test race condition (`callCount` → `atomic.Int32`)                | **MED**     | 5min   | projection  |
-| 6   | Run `go work sync` + `go mod tidy` across all modules                     | **MED**     | 10min  | all         |
-| 7   | Brand catalog ID types (ServiceID, DomainID, etc.)                        | **LOW**     | 40min  | catalog     |
-| 8   | Unify example/user with example/todo patterns                             | **MED**     | 30min  | example     |
-| 9   | Add `ErrorCode` branded type                                              | **LOW**     | 20min  | core/event  |
-| 10  | Add `ProcessedAt` to CheckpointStore                                      | **MED**     | 15min  | core/event  |
-| 11  | Add `ServerReceivedAt` / `ServerStoredAt` timestamps                      | **MED**     | 20min  | core/event  |
-| 12  | Build catch-up projection runner                                          | **HIGH**    | 2h     | projection  |
-| 13  | Add catalog.Exporter interface + WalkMessages                             | **MED**     | 1h     | catalog     |
-| 14  | Add high-level test utilities (AggregateTester, etc.)                     | **MED**     | 2h     | testhelpers |
-| 15  | Optimize Pebble LoadToTimestamp                                           | **MED**     | 30min  | storage     |
-| 16  | Add PostgreSQL integration tests                                          | **HIGH**    | 3h     | storage     |
-| 17  | Add background polling for InMemoryRunner                                 | **MED**     | 1h     | projection  |
-| 18  | Make transactional projection contract explicit                           | **MED**     | 1h     | projection  |
-| 19  | Simplify cattest/catalog.go                                               | **LOW**     | 30min  | catalog     |
-| 20  | Add event.Context propagation                                             | **MED**     | 1h     | core/event  |
-| 21  | Add catalog diff/breaking-change detection                                | **MED**     | 2h     | catalog     |
-| 22  | Push v1.0.0 release tags                                                  | **HIGH**    | 10min  | all         |
-| 23  | Remove replace directives from go.mod files                               | **HIGH**    | 10min  | all         |
-| 24  | Verify `go test -race` passes across all modules                          | **HIGH**    | 15min  | all         |
-| 25  | Document the unified error taxonomy for consumers                         | **MED**     | 30min  | docs        |
+| #  | Task                                                                      | Impact      | Effort | Module      |
+| -- | ------------------------------------------------------------------------- | ----------- | ------ | ----------- |
+| 1  | Convert remaining 19 `fmt.Errorf` wraps in `core/event/` to `event.Wrap*` | **HIGHEST** | 30min  | core/event  |
+| 2  | Re-export `errorfamily.WithContext` as `event.WithContext`                | **HIGH**    | 5min   | core/event  |
+| 3  | Add `.WithContext()` metadata to storage error wraps                      | **HIGH**    | 20min  | storage     |
+| 4  | Convert 17 `fmt.Errorf` wraps in `saga/` to structured                    | **HIGH**    | 20min  | saga        |
+| 5  | Fix DLQ test race condition (`callCount` → `atomic.Int32`)                | **MED**     | 5min   | projection  |
+| 6  | Run `go work sync` + `go mod tidy` across all modules                     | **MED**     | 10min  | all         |
+| 7  | Brand catalog ID types (ServiceID, DomainID, etc.)                        | **LOW**     | 40min  | catalog     |
+| 8  | Unify example/user with example/todo patterns                             | **MED**     | 30min  | example     |
+| 9  | Add `ErrorCode` branded type                                              | **LOW**     | 20min  | core/event  |
+| 10 | Add `ProcessedAt` to CheckpointStore                                      | **MED**     | 15min  | core/event  |
+| 11 | Add `ServerReceivedAt` / `ServerStoredAt` timestamps                      | **MED**     | 20min  | core/event  |
+| 12 | Build catch-up projection runner                                          | **HIGH**    | 2h     | projection  |
+| 13 | Add catalog.Exporter interface + WalkMessages                             | **MED**     | 1h     | catalog     |
+| 14 | Add high-level test utilities (AggregateTester, etc.)                     | **MED**     | 2h     | testhelpers |
+| 15 | Optimize Pebble LoadToTimestamp                                           | **MED**     | 30min  | storage     |
+| 16 | Add PostgreSQL integration tests                                          | **HIGH**    | 3h     | storage     |
+| 17 | Add background polling for InMemoryRunner                                 | **MED**     | 1h     | projection  |
+| 18 | Make transactional projection contract explicit                           | **MED**     | 1h     | projection  |
+| 19 | Simplify cattest/catalog.go                                               | **LOW**     | 30min  | catalog     |
+| 20 | Add event.Context propagation                                             | **MED**     | 1h     | core/event  |
+| 21 | Add catalog diff/breaking-change detection                                | **MED**     | 2h     | catalog     |
+| 22 | Push v1.0.0 release tags                                                  | **HIGH**    | 10min  | all         |
+| 23 | Remove replace directives from go.mod files                               | **HIGH**    | 10min  | all         |
+| 24 | Verify `go test -race` passes across all modules                          | **HIGH**    | 15min  | all         |
+| 25 | Document the unified error taxonomy for consumers                         | **MED**     | 30min  | docs        |
 
 ---
 
@@ -342,7 +342,7 @@ Possible explanations:
 | catalog/openapi      | ✅    | 94.4%    | ✅   | ✅   |                            |
 | middleware           | ✅    | 98.0%    | ✅   | ✅   |                            |
 | testhelpers          | ✅    | —        | ✅   | ✅   | No test coverage tracking  |
-| projection           | ✅    | 96.0%    | ✅   | ⚠️   | DLQ test has race          |
+| projection           | ✅    | 96.0%    | ✅   | ⚠️    | DLQ test has race          |
 | storage              | ✅    | 90.1%    | ✅   | ✅   |                            |
 | saga                 | ✅    | 93.4%    | ✅   | ✅   | 17 fmt.Errorf wraps remain |
 | watermill            | ✅    | —        | ✅   | ✅   |                            |
@@ -350,6 +350,6 @@ Possible explanations:
 
 ---
 
-_Report generated: 2026-05-28 06:24 CEST_  
-_Working tree: clean, 1 commit ahead of origin_  
+_Report generated: 2026-05-28 06:24 CEST_\
+_Working tree: clean, 1 commit ahead of origin_\
 _Latest commit: 8807c5c — feat: add DLQ handler, reset API, and batch projection interface_

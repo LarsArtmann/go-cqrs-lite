@@ -189,33 +189,33 @@ projectionhost, testing, and scheduling are wired into go.work and tagged, but n
 
 ## F) TOP 25 THINGS TO GET DONE NEXT
 
-| #   | Task                                                                                               | Impact | Effort | Why                                                                    |
-| --- | -------------------------------------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------------------------------- |
-| 1   | Update AGENTS.md + SKILL.md + FEATURES.md with 3 new modules (projectionhost, testing, scheduling) | High   | Low    | New modules are invisible to AI sessions and contributors without docs |
-| 2   | Rename `testing/v4` → `cqrs_testing/v4` or `scenario/v4` to avoid stdlib confusion                 | High   | Low    | Prevents import confusion; easier to do now than after adoption        |
-| 3   | Fix eventtest nested-module problem (flatten or document)                                          | High   | Low    | Every consumer's `go mod tidy` emits warnings                          |
-| 4   | Tag projectionhost/testing/scheduling go.work-clean versions                                       | Med    | Low    | Current tags may not match go.work state after auto-fixes              |
-| 5   | Write `scripts/tag-release.sh` for multi-module tag automation                                     | Med    | Med    | Prevents manual tag errors on future releases                          |
-| 6   | Integration test: projectionhost + storage/memory end-to-end                                       | High   | Med    | Verifies the composition works with a real store                       |
-| 7   | cqrs-htmx Phase 2b: SharedWorker + IndexedDB persistence                                           | High   | High   | ADR-0030 is ready; implementation is the next user-facing feature      |
-| 8   | Add `SetIfAbsent` to Pebble KV adapter                                                             | Med    | Low    | Unlocks prod idempotency on Pebble backend                             |
-| 9   | Write projectionhost example in `example/` directory                                               | Med    | Low    | Shows consumers how to use the host                                    |
-| 10  | Document the `command.Command.ID()` migration in a CHANGELOG                                       | Med    | Low    | Breaking change needs documentation for other consumers                |
-| 11  | cqrs-htmx FEATURES.md: add idempotency delegation + SSE delegation                                 | Low    | Low    | Docs should reflect the delegation                                     |
-| 12  | Add DLQ replay endpoint to projectionhost                                                          | Med    | Med    | Currently DLQ entries are stored but not easily replayable             |
-| 13  | Stress test projectionhost with 10K+ events                                                        | Med    | Med    | Verify checkpoint + batch performance at scale                         |
-| 14  | Add Pebble-backed CheckpointStore                                                                  | Med    | Med    | Production checkpoint persistence                                      |
-| 15  | Add SQL-backed CheckpointStore (Postgres/SQLite)                                                   | Med    | Med    | Production checkpoint persistence                                      |
-| 16  | Add Prometheus metrics to projectionhost (lag, processed, errors)                                  | Med    | Low    | Operational visibility                                                 |
-| 17  | cqrs-htmx: wire projectionhost into the admin-demo                                                 | Low    | Med    | Shows the host working in a real app                                   |
-| 18  | Write a projectionhost + idempotency + DLQ integration recipe in SKILL.md                          | Med    | Low    | Shows the reliability trio working together                            |
-| 19  | Consider extracting `projectionhost.DeadLetterStore` into its own module                           | Low    | Med    | If DLQ needs SQL/Redis backends independent of projectionhost          |
-| 20  | Profile the SSE zero-alloc writer vs the old fmt.Fprintf version                                   | Low    | Low    | Validate the "zero-alloc" claim with benchmarks                        |
-| 21  | Add `go.work` check to CI (verify all modules wired)                                               | Low    | Low    | Prevents modules from being orphaned                                   |
-| 22  | Document the BuildFlow `packages.default` pattern in AGENTS.md                                     | Low    | Low    | So future flake.nix files don't repeat the mistake                     |
-| 23  | Consider a `stack/projectionhost` preset (host + store + checkpoint + DLQ)                         | Low    | Med    | Batteries-included composition for common setup                        |
-| 24  | Add `WithLogger(slog.Logger)` to projectionhost (currently hardcoded)                              | Low    | Low    | Proper structured logging                                              |
-| 25  | Evaluate whether `scheduling` needs a SQL TimerStore                                               | Low    | Med    | Only if a concrete consumer needs durable timers across restarts       |
+| #  | Task                                                                                               | Impact | Effort | Why                                                                    |
+| -- | -------------------------------------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------------------------------- |
+| 1  | Update AGENTS.md + SKILL.md + FEATURES.md with 3 new modules (projectionhost, testing, scheduling) | High   | Low    | New modules are invisible to AI sessions and contributors without docs |
+| 2  | Rename `testing/v4` → `cqrs_testing/v4` or `scenario/v4` to avoid stdlib confusion                 | High   | Low    | Prevents import confusion; easier to do now than after adoption        |
+| 3  | Fix eventtest nested-module problem (flatten or document)                                          | High   | Low    | Every consumer's `go mod tidy` emits warnings                          |
+| 4  | Tag projectionhost/testing/scheduling go.work-clean versions                                       | Med    | Low    | Current tags may not match go.work state after auto-fixes              |
+| 5  | Write `scripts/tag-release.sh` for multi-module tag automation                                     | Med    | Med    | Prevents manual tag errors on future releases                          |
+| 6  | Integration test: projectionhost + storage/memory end-to-end                                       | High   | Med    | Verifies the composition works with a real store                       |
+| 7  | cqrs-htmx Phase 2b: SharedWorker + IndexedDB persistence                                           | High   | High   | ADR-0030 is ready; implementation is the next user-facing feature      |
+| 8  | Add `SetIfAbsent` to Pebble KV adapter                                                             | Med    | Low    | Unlocks prod idempotency on Pebble backend                             |
+| 9  | Write projectionhost example in `example/` directory                                               | Med    | Low    | Shows consumers how to use the host                                    |
+| 10 | Document the `command.Command.ID()` migration in a CHANGELOG                                       | Med    | Low    | Breaking change needs documentation for other consumers                |
+| 11 | cqrs-htmx FEATURES.md: add idempotency delegation + SSE delegation                                 | Low    | Low    | Docs should reflect the delegation                                     |
+| 12 | Add DLQ replay endpoint to projectionhost                                                          | Med    | Med    | Currently DLQ entries are stored but not easily replayable             |
+| 13 | Stress test projectionhost with 10K+ events                                                        | Med    | Med    | Verify checkpoint + batch performance at scale                         |
+| 14 | Add Pebble-backed CheckpointStore                                                                  | Med    | Med    | Production checkpoint persistence                                      |
+| 15 | Add SQL-backed CheckpointStore (Postgres/SQLite)                                                   | Med    | Med    | Production checkpoint persistence                                      |
+| 16 | Add Prometheus metrics to projectionhost (lag, processed, errors)                                  | Med    | Low    | Operational visibility                                                 |
+| 17 | cqrs-htmx: wire projectionhost into the admin-demo                                                 | Low    | Med    | Shows the host working in a real app                                   |
+| 18 | Write a projectionhost + idempotency + DLQ integration recipe in SKILL.md                          | Med    | Low    | Shows the reliability trio working together                            |
+| 19 | Consider extracting `projectionhost.DeadLetterStore` into its own module                           | Low    | Med    | If DLQ needs SQL/Redis backends independent of projectionhost          |
+| 20 | Profile the SSE zero-alloc writer vs the old fmt.Fprintf version                                   | Low    | Low    | Validate the "zero-alloc" claim with benchmarks                        |
+| 21 | Add `go.work` check to CI (verify all modules wired)                                               | Low    | Low    | Prevents modules from being orphaned                                   |
+| 22 | Document the BuildFlow `packages.default` pattern in AGENTS.md                                     | Low    | Low    | So future flake.nix files don't repeat the mistake                     |
+| 23 | Consider a `stack/projectionhost` preset (host + store + checkpoint + DLQ)                         | Low    | Med    | Batteries-included composition for common setup                        |
+| 24 | Add `WithLogger(slog.Logger)` to projectionhost (currently hardcoded)                              | Low    | Low    | Proper structured logging                                              |
+| 25 | Evaluate whether `scheduling` needs a SQL TimerStore                                               | Low    | Med    | Only if a concrete consumer needs durable timers across restarts       |
 
 ---
 

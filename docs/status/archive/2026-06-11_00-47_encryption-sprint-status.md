@@ -94,33 +94,33 @@ e15e744  feat(encryption): add XChaCha20-Poly1305 algorithm, composable codec wr
 
 Sorted by impact × ease (Pareto):
 
-| #   | Task                                                                            | Impact | Effort |
-| --- | ------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | Extract shared rejecting middleware helpers to `event/` (unexported)            | High   | 20m    |
-| 2   | Extract shared `attachBlob`/`extractBlob`/`hasBlob` to `event/` (unexported)    | High   | 30m    |
-| 3   | Refactor `signing/` to use shared `event/` helpers                              | High   | 30m    |
-| 4   | Refactor `encryption/` to use shared `event/` helpers                           | High   | 20m    |
-| 5   | Integration test: sign + encrypt round-trip through middleware                  | High   | 30m    |
-| 6   | Add algorithm identification to ciphertext (1-byte prefix or metadata field)    | Medium | 30m    |
-| 7   | Add key ID support to encryption metadata envelope                              | Medium | 30m    |
-| 8   | Fuzz test for AES-GCM Decrypt                                                   | Medium | 10m    |
-| 9   | Fuzz test for XChaCha20 Decrypt                                                 | Medium | 5m     |
-| 10  | Integration test: sign + encrypt via codec wrapper                              | Medium | 20m    |
-| 11  | Property-based test: encrypt/decrypt is involutory (rapid)                      | Medium | 30m    |
-| 12  | Verify nix build/lint passes for encryption module                              | Medium | 10m    |
-| 13  | Field-level encryption sub-package (`encryption/fieldlevel/`)                   | High   | 4h     |
-| 14  | Key envelope encryption helper (KMS pattern)                                    | Medium | 2h     |
-| 15  | Golden test for Ciphertext JSON serialization                                   | Low    | 15m    |
-| 16  | `testdata/golden/` fixtures for codec wrapper                                   | Low    | 15m    |
-| 17  | Update HTML design review in docs/status/ to reflect XChaCha20 addition         | Low    | 15m    |
-| 18  | Add codec wrapper to pkg.go.dev examples in doc.go                              | Low    | 10m    |
-| 19  | Add `encryption/v2` to flake.nix if applicable                                  | Low    | 10m    |
-| 20  | Add encryption to `.buildflow.yml` CI per-module test matrix                    | Low    | 5m     |
-| 21  | Consider `Nonce()`/`Data()` as package-level functions with algorithm parameter | Low    | 20m    |
-| 22  | Benchmark: encrypting codec wrapper overhead vs raw encrypt                     | Low    | 10m    |
-| 23  | Add `EncryptionEncoding` documentation to codec/ module                         | Low    | 10m    |
-| 24  | Consider `errors.Is` for codec wrapper decrypt failures                         | Low    | 5m     |
-| 25  | Push all commits and verify CI passes                                           | Medium | 5m     |
+| #  | Task                                                                            | Impact | Effort |
+| -- | ------------------------------------------------------------------------------- | ------ | ------ |
+| 1  | Extract shared rejecting middleware helpers to `event/` (unexported)            | High   | 20m    |
+| 2  | Extract shared `attachBlob`/`extractBlob`/`hasBlob` to `event/` (unexported)    | High   | 30m    |
+| 3  | Refactor `signing/` to use shared `event/` helpers                              | High   | 30m    |
+| 4  | Refactor `encryption/` to use shared `event/` helpers                           | High   | 20m    |
+| 5  | Integration test: sign + encrypt round-trip through middleware                  | High   | 30m    |
+| 6  | Add algorithm identification to ciphertext (1-byte prefix or metadata field)    | Medium | 30m    |
+| 7  | Add key ID support to encryption metadata envelope                              | Medium | 30m    |
+| 8  | Fuzz test for AES-GCM Decrypt                                                   | Medium | 10m    |
+| 9  | Fuzz test for XChaCha20 Decrypt                                                 | Medium | 5m     |
+| 10 | Integration test: sign + encrypt via codec wrapper                              | Medium | 20m    |
+| 11 | Property-based test: encrypt/decrypt is involutory (rapid)                      | Medium | 30m    |
+| 12 | Verify nix build/lint passes for encryption module                              | Medium | 10m    |
+| 13 | Field-level encryption sub-package (`encryption/fieldlevel/`)                   | High   | 4h     |
+| 14 | Key envelope encryption helper (KMS pattern)                                    | Medium | 2h     |
+| 15 | Golden test for Ciphertext JSON serialization                                   | Low    | 15m    |
+| 16 | `testdata/golden/` fixtures for codec wrapper                                   | Low    | 15m    |
+| 17 | Update HTML design review in docs/status/ to reflect XChaCha20 addition         | Low    | 15m    |
+| 18 | Add codec wrapper to pkg.go.dev examples in doc.go                              | Low    | 10m    |
+| 19 | Add `encryption/v2` to flake.nix if applicable                                  | Low    | 10m    |
+| 20 | Add encryption to `.buildflow.yml` CI per-module test matrix                    | Low    | 5m     |
+| 21 | Consider `Nonce()`/`Data()` as package-level functions with algorithm parameter | Low    | 20m    |
+| 22 | Benchmark: encrypting codec wrapper overhead vs raw encrypt                     | Low    | 10m    |
+| 23 | Add `EncryptionEncoding` documentation to codec/ module                         | Low    | 10m    |
+| 24 | Consider `errors.Is` for codec wrapper decrypt failures                         | Low    | 5m     |
+| 25 | Push all commits and verify CI passes                                           | Medium | 5m     |
 
 ## G) Top #1 Question I Cannot Figure Out Myself
 

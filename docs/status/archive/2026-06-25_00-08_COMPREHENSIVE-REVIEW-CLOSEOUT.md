@@ -1,7 +1,7 @@
 # Status Report — 2026-06-25
 
-**Date:** 2026-06-25 00:08  
-**Session Focus:** Multi-session comprehensive review, lint cleanup, and CI hardening  
+**Date:** 2026-06-25 00:08\
+**Session Focus:** Multi-session comprehensive review, lint cleanup, and CI hardening\
 **Status:** Production-ready. Build, test, vet, check-layers all green. Lint reduced 89%. Two structural items remain (genproto conflict, 22 residual lint findings).
 
 ---
@@ -19,7 +19,7 @@ Over 3 sessions (2026-06-24 to 2026-06-25), the codebase received a comprehensiv
 | `nix run .#vet`                | ✅ PASS           | Zero issues                                                                                              |
 | `nix run .#check-layers`       | ✅ PASS           | Module layer + dependency budget enforcement                                                             |
 | `nix run .#check-file-size`    | ✅ PASS           | All hand-written files ≤ 350 lines (generated code excluded)                                             |
-| golangci-lint (project config) | ⚠️ 22 findings    | Down from 200 (89% reduction). 25/37 modules clean. Remaining are test-file noise + documented patterns. |
+| golangci-lint (project config) | ⚠️ 22 findings     | Down from 200 (89% reduction). 25/37 modules clean. Remaining are test-file noise + documented patterns. |
 | art-dupl (threshold 15)        | ✅ 0 clone groups | Near-zero harmful duplication                                                                            |
 
 ### Key Metrics
@@ -125,33 +125,33 @@ Over 3 sessions (2026-06-24 to 2026-06-25), the codebase received a comprehensiv
 
 ## F) Top 25 Things to Do Next (sorted by impact/effort)
 
-| #   | Task                                                                                                         | Impact | Effort | Type         |
-| --- | ------------------------------------------------------------------------------------------------------------ | ------ | ------ | ------------ |
-| 1   | Review + commit the concurrent session's uncommitted work (metadata refactor, sqlopt, multidb)               | H      | M      | Process      |
-| 2   | Run `nix run .#coverage` and reconcile against AGENTS.md claims                                              | M      | S      | Verification |
-| 3   | Triage remaining 22 lint findings — fix/exclude/accept each                                                  | M      | M      | Quality      |
-| 4   | Add `transport/grpc` to CI via GOWORK=off test step in flake.nix                                             | H      | S      | CI           |
-| 5   | Surface Pebble Checkpoint from stack presets (ROADMAP)                                                       | M      | M      | Feature      |
-| 6   | Surface graceful shutdown from stack presets (ROADMAP)                                                       | M      | M      | Feature      |
-| 7   | Migrate remaining `query.Handler` usages internally (beyond AsQuery)                                         | M      | S      | API hygiene  |
-| 8   | Extract multidb shared helper (sqlite/postgres clone — currently 0 dup groups due to concurrent refactor)    | L      | M      | Architecture |
-| 9   | Add integration test that exercises transport/grpc end-to-end                                                | M      | M      | Testing      |
-| 10  | Add `nix run .#lint` to BuildFlow pre-commit (currently runs ad-hoc)                                         | M      | S      | CI           |
-| 11  | Add coverage threshold gate to CI (fail if core < 80%)                                                       | M      | S      | CI           |
-| 12  | Document the genproto conflict upstream (file issue on cockroachdb/errors)                                   | M      | S      | Community    |
-| 13  | Add property-based tests for tombstone state transitions                                                     | M      | M      | Testing      |
-| 14  | Add benchmarks for the new SQLViewStore query path                                                           | M      | M      | Performance  |
-| 15  | Review whether `makezero` linter should be re-enabled with `always:true` after fixing the index-fill pattern | L      | L      | Quality      |
-| 16  | Add NATS transport adapter (ROADMAP / ADR-0025)                                                              | M      | L      | Feature      |
-| 17  | Add Redis transport adapter (ROADMAP / ADR-0025)                                                             | M      | L      | Feature      |
-| 18  | Add secondary indexes for read-model Scan (ROADMAP)                                                          | M      | M      | Feature      |
-| 19  | Implement hot-state cache for decider (TODO_LIST)                                                            | M      | L      | Performance  |
-| 20  | Add WASM test CI for the 7 core modules that compile to WASM                                                 | L      | M      | CI           |
-| 21  | Generate API surface golden file and add to CI (`cmd/api-stability`)                                         | M      | S      | CI           |
-| 22  | Add `go test -race` to CI matrix (AGENTS.md claims it passes)                                                | M      | S      | CI           |
-| 23  | Create a consumer integration test (import from outside the workspace)                                       | M      | M      | Testing      |
-| 24  | Document the stack preset decision matrix in SKILL.md (which preset for which use case)                      | L      | S      | Docs         |
-| 25  | Evaluate `go-composable-business-types` adoption for richer domain types                                     | L      | M      | Architecture |
+| #  | Task                                                                                                         | Impact | Effort | Type         |
+| -- | ------------------------------------------------------------------------------------------------------------ | ------ | ------ | ------------ |
+| 1  | Review + commit the concurrent session's uncommitted work (metadata refactor, sqlopt, multidb)               | H      | M      | Process      |
+| 2  | Run `nix run .#coverage` and reconcile against AGENTS.md claims                                              | M      | S      | Verification |
+| 3  | Triage remaining 22 lint findings — fix/exclude/accept each                                                  | M      | M      | Quality      |
+| 4  | Add `transport/grpc` to CI via GOWORK=off test step in flake.nix                                             | H      | S      | CI           |
+| 5  | Surface Pebble Checkpoint from stack presets (ROADMAP)                                                       | M      | M      | Feature      |
+| 6  | Surface graceful shutdown from stack presets (ROADMAP)                                                       | M      | M      | Feature      |
+| 7  | Migrate remaining `query.Handler` usages internally (beyond AsQuery)                                         | M      | S      | API hygiene  |
+| 8  | Extract multidb shared helper (sqlite/postgres clone — currently 0 dup groups due to concurrent refactor)    | L      | M      | Architecture |
+| 9  | Add integration test that exercises transport/grpc end-to-end                                                | M      | M      | Testing      |
+| 10 | Add `nix run .#lint` to BuildFlow pre-commit (currently runs ad-hoc)                                         | M      | S      | CI           |
+| 11 | Add coverage threshold gate to CI (fail if core < 80%)                                                       | M      | S      | CI           |
+| 12 | Document the genproto conflict upstream (file issue on cockroachdb/errors)                                   | M      | S      | Community    |
+| 13 | Add property-based tests for tombstone state transitions                                                     | M      | M      | Testing      |
+| 14 | Add benchmarks for the new SQLViewStore query path                                                           | M      | M      | Performance  |
+| 15 | Review whether `makezero` linter should be re-enabled with `always:true` after fixing the index-fill pattern | L      | L      | Quality      |
+| 16 | Add NATS transport adapter (ROADMAP / ADR-0025)                                                              | M      | L      | Feature      |
+| 17 | Add Redis transport adapter (ROADMAP / ADR-0025)                                                             | M      | L      | Feature      |
+| 18 | Add secondary indexes for read-model Scan (ROADMAP)                                                          | M      | M      | Feature      |
+| 19 | Implement hot-state cache for decider (TODO_LIST)                                                            | M      | L      | Performance  |
+| 20 | Add WASM test CI for the 7 core modules that compile to WASM                                                 | L      | M      | CI           |
+| 21 | Generate API surface golden file and add to CI (`cmd/api-stability`)                                         | M      | S      | CI           |
+| 22 | Add `go test -race` to CI matrix (AGENTS.md claims it passes)                                                | M      | S      | CI           |
+| 23 | Create a consumer integration test (import from outside the workspace)                                       | M      | M      | Testing      |
+| 24 | Document the stack preset decision matrix in SKILL.md (which preset for which use case)                      | L      | S      | Docs         |
+| 25 | Evaluate `go-composable-business-types` adoption for richer domain types                                     | L      | M      | Architecture |
 
 ---
 

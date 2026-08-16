@@ -1,7 +1,7 @@
 # Status Report: cqrs-lint Self-Lint Run & Cleanup
 
-**Date:** 2026-08-07 20:54  
-**Session:** Single session, ~2 hours  
+**Date:** 2026-08-07 20:54\
+**Session:** Single session, ~2 hours\
 **Scope:** Ran `cqrs-lint --verbose` on the go-cqrs-lite repo itself (self-lint mode), then fixed everything actionable.
 
 ---

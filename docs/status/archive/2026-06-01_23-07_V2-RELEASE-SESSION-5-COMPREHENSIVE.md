@@ -136,33 +136,33 @@
 
 ## f) TOP 25 THINGS TO GET DONE NEXT (Pareto-sorted by impact × effort)
 
-| #   | Task                                                                   | Impact      | Effort | Why                                                    |
-| --- | ---------------------------------------------------------------------- | ----------- | ------ | ------------------------------------------------------ |
-| 1   | **Push v2.0.0 tags**                                                   | 🔴 Critical | 5 min  | Unblocks everything: replace removal, CI, consumers    |
-| 2   | **Remove replace directives** from all go.mod                          | 🔴 Critical | 30 min | Required for consumers to `go get` without workspace   |
-| 3   | **Verify GOWORK=off builds** for all modules                           | 🔴 Critical | 15 min | CI correctness gate                                    |
-| 4   | **Add storage/ SQL coverage** (options, aggregate_reader, projection)  | 🟠 High     | 2 hr   | 72.7% → 90%+ on biggest module                         |
-| 5   | **Add turso sync tests** (Push/Pull/Checkpoint mocks)                  | 🟠 High     | 1 hr   | Only module with <50% coverage                         |
-| 6   | **Add query.TypedHandler[T]** to match command pattern                 | 🟠 High     | 1 hr   | Eliminates last `any` return in core CQRS              |
-| 7   | **Increase projection coverage to 95%**                                | 🟡 Medium   | 1 hr   | 91.3% → 95%+ per TODO                                  |
-| 8   | **Add PostgreSQL CI** with testcontainers                              | 🟡 Medium   | 2 hr   | Storage module supports PG but only SQLite tested      |
-| 9   | **Parallelize CI matrix** per module                                   | 🟡 Medium   | 1 hr   | Faster feedback, isolation                             |
-| 10  | **Add metadata JSON tests** (Marshal/UnmarshalMetadataJSON)            | 🟡 Medium   | 30 min | Public API with 0% coverage                            |
-| 11  | **Add event/reconstruct tests** (ReconstructEventFromFields)           | 🟡 Medium   | 30 min | Public API with 0% coverage                            |
-| 12  | **Add event/stream tests** (EventStream.StreamKey)                     | 🟡 Medium   | 30 min | Public API with 0% coverage                            |
-| 13  | **Add storage/sql/ sub-package tests**                                 | 🟡 Medium   | 2 hr   | Dialect, helpers, reconstruction, otel                 |
-| 14  | **Fix BuildFlow pre-commit hook**                                      | 🟡 Medium   | 1 hr   | Developer experience — no-verify workaround is fragile |
-| 15  | **Rewrite example/user/** for full CQRS stack demo                     | 🟡 Medium   | 2 hr   | Primary onboarding artifact                            |
-| 16  | **Add fuzz tests** for event creation + ID parsing                     | 🟢 Low      | 2 hr   | Robustness for public API                              |
-| 17  | **Benchmark storage backends** (PG vs SQLite vs Pebble)                | 🟢 Low      | 3 hr   | Performance documentation for consumers                |
-| 18  | **Add performance regression CI**                                      | 🟢 Low      | 2 hr   | Prevent performance degradation                        |
-| 19  | **Add E2E throughput benchmarks**                                      | 🟢 Low      | 2 hr   | Scale validation                                       |
-| 20  | **Add gofumpt/goimports to pre-commit hook**                           | 🟢 Low      | 30 min | Consistent formatting                                  |
-| 21  | **Enforce 350-line test file limit** via hook                          | 🟢 Low      | 30 min | Prevents test file bloat                               |
-| 22  | **Extract withRLock/withLock** in memory/                              | 🟢 Low      | 30 min | Reduces repetitive lock patterns                       |
-| 23  | **Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination** | 🟢 Low      | 1 hr   | Spec-level documentation for value types               |
-| 24  | **Create v2 migration guide** (MIGRATION_v2.md)                        | 🟢 Low      | 1 hr   | Consumer-facing upgrade path                           |
-| 25  | **Set up pkg.go.dev documentation hosting**                            | 🟢 Low      | 30 min | API reference for consumers                            |
+| #  | Task                                                                   | Impact      | Effort | Why                                                    |
+| -- | ---------------------------------------------------------------------- | ----------- | ------ | ------------------------------------------------------ |
+| 1  | **Push v2.0.0 tags**                                                   | 🔴 Critical | 5 min  | Unblocks everything: replace removal, CI, consumers    |
+| 2  | **Remove replace directives** from all go.mod                          | 🔴 Critical | 30 min | Required for consumers to `go get` without workspace   |
+| 3  | **Verify GOWORK=off builds** for all modules                           | 🔴 Critical | 15 min | CI correctness gate                                    |
+| 4  | **Add storage/ SQL coverage** (options, aggregate_reader, projection)  | 🟠 High     | 2 hr   | 72.7% → 90%+ on biggest module                         |
+| 5  | **Add turso sync tests** (Push/Pull/Checkpoint mocks)                  | 🟠 High     | 1 hr   | Only module with <50% coverage                         |
+| 6  | **Add query.TypedHandler[T]** to match command pattern                 | 🟠 High     | 1 hr   | Eliminates last `any` return in core CQRS              |
+| 7  | **Increase projection coverage to 95%**                                | 🟡 Medium   | 1 hr   | 91.3% → 95%+ per TODO                                  |
+| 8  | **Add PostgreSQL CI** with testcontainers                              | 🟡 Medium   | 2 hr   | Storage module supports PG but only SQLite tested      |
+| 9  | **Parallelize CI matrix** per module                                   | 🟡 Medium   | 1 hr   | Faster feedback, isolation                             |
+| 10 | **Add metadata JSON tests** (Marshal/UnmarshalMetadataJSON)            | 🟡 Medium   | 30 min | Public API with 0% coverage                            |
+| 11 | **Add event/reconstruct tests** (ReconstructEventFromFields)           | 🟡 Medium   | 30 min | Public API with 0% coverage                            |
+| 12 | **Add event/stream tests** (EventStream.StreamKey)                     | 🟡 Medium   | 30 min | Public API with 0% coverage                            |
+| 13 | **Add storage/sql/ sub-package tests**                                 | 🟡 Medium   | 2 hr   | Dialect, helpers, reconstruction, otel                 |
+| 14 | **Fix BuildFlow pre-commit hook**                                      | 🟡 Medium   | 1 hr   | Developer experience — no-verify workaround is fragile |
+| 15 | **Rewrite example/user/** for full CQRS stack demo                     | 🟡 Medium   | 2 hr   | Primary onboarding artifact                            |
+| 16 | **Add fuzz tests** for event creation + ID parsing                     | 🟢 Low      | 2 hr   | Robustness for public API                              |
+| 17 | **Benchmark storage backends** (PG vs SQLite vs Pebble)                | 🟢 Low      | 3 hr   | Performance documentation for consumers                |
+| 18 | **Add performance regression CI**                                      | 🟢 Low      | 2 hr   | Prevent performance degradation                        |
+| 19 | **Add E2E throughput benchmarks**                                      | 🟢 Low      | 2 hr   | Scale validation                                       |
+| 20 | **Add gofumpt/goimports to pre-commit hook**                           | 🟢 Low      | 30 min | Consistent formatting                                  |
+| 21 | **Enforce 350-line test file limit** via hook                          | 🟢 Low      | 30 min | Prevents test file bloat                               |
+| 22 | **Extract withRLock/withLock** in memory/                              | 🟢 Low      | 30 min | Reduces repetitive lock patterns                       |
+| 23 | **Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination** | 🟢 Low      | 1 hr   | Spec-level documentation for value types               |
+| 24 | **Create v2 migration guide** (MIGRATION_v2.md)                        | 🟢 Low      | 1 hr   | Consumer-facing upgrade path                           |
+| 25 | **Set up pkg.go.dev documentation hosting**                            | 🟢 Low      | 30 min | API reference for consumers                            |
 
 ---
 
@@ -188,34 +188,34 @@ This is the single biggest decision remaining for the release. I cannot proceed 
 
 ## Coverage Summary (Current)
 
-| Module               | Coverage | Status        |
-| -------------------- | -------- | ------------- |
-| event                | 89.0%    | ✅ Good       |
-| command              | 94.9%    | ✅ Good       |
-| query                | 97.1%    | ✅ Excellent  |
-| decider              | 100.0%   | ✅ Perfect    |
-| id                   | 94.5%    | ✅ Good       |
-| dispatcher           | 97.0%    | ✅ Excellent  |
-| schema               | 91.4%    | ✅ Good       |
-| snapshot             | 92.3%    | ✅ Good       |
-| memory               | 99.1%    | ✅ Excellent  |
-| catalog              | 95.9%    | ✅ Good       |
-| catalog/asyncapi     | 93.7%    | ✅ Good       |
-| catalog/d2           | 95.0%    | ✅ Good       |
-| catalog/docserver    | 90.1%    | ✅ Good       |
-| catalog/eventcatalog | 92.8%    | ✅ Good       |
-| catalog/openapi      | 96.2%    | ✅ Excellent  |
+| Module               | Coverage | Status       |
+| -------------------- | -------- | ------------ |
+| event                | 89.0%    | ✅ Good      |
+| command              | 94.9%    | ✅ Good      |
+| query                | 97.1%    | ✅ Excellent |
+| decider              | 100.0%   | ✅ Perfect   |
+| id                   | 94.5%    | ✅ Good      |
+| dispatcher           | 97.0%    | ✅ Excellent |
+| schema               | 91.4%    | ✅ Good      |
+| snapshot             | 92.3%    | ✅ Good      |
+| memory               | 99.1%    | ✅ Excellent |
+| catalog              | 95.9%    | ✅ Good      |
+| catalog/asyncapi     | 93.7%    | ✅ Good      |
+| catalog/d2           | 95.0%    | ✅ Good      |
+| catalog/docserver    | 90.1%    | ✅ Good      |
+| catalog/eventcatalog | 92.8%    | ✅ Good      |
+| catalog/openapi      | 96.2%    | ✅ Excellent |
 | catalog/schema       | 86.1%    | ⚠️ OK         |
-| middleware           | 94.5%    | ✅ Good       |
-| projection           | 91.3%    | ✅ Good       |
-| signing              | 93.9%    | ✅ Good       |
-| signing/multisig     | 94.1%    | ✅ Good       |
+| middleware           | 94.5%    | ✅ Good      |
+| projection           | 91.3%    | ✅ Good      |
+| signing              | 93.9%    | ✅ Good      |
+| signing/multisig     | 94.1%    | ✅ Good      |
 | storage              | 72.7%    | ⚠️ Needs work |
-| watermill            | 96.0%    | ✅ Excellent  |
-| pebble               | 88.0%    | ✅ Good       |
-| codec                | 100.0%   | ✅ Perfect    |
-| listing              | 93.8%    | ✅ Good       |
-| otel                 | 96.4%    | ✅ Excellent  |
+| watermill            | 96.0%    | ✅ Excellent |
+| pebble               | 88.0%    | ✅ Good      |
+| codec                | 100.0%   | ✅ Perfect   |
+| listing              | 93.8%    | ✅ Good      |
+| otel                 | 96.4%    | ✅ Excellent |
 | turso                | 28.6%    | ⚠️ Needs work |
 
 **Average across tested modules: ~92.7%**

@@ -1,8 +1,8 @@
 # go-cqrs-lite — Session 30 Comprehensive Status Report
 
-**Date:** 2026-05-04 07:24  
-**Session:** 30  
-**Branch:** master (clean, up to date with origin)  
+**Date:** 2026-05-04 07:24\
+**Session:** 30\
+**Branch:** master (clean, up to date with origin)\
 **Last commit:** `af7b288` — fix(test): use event.Version in assertions and refresh golden files
 
 ---
@@ -189,33 +189,33 @@ All 19 test packages pass with **97.2% total coverage**. Zero vet errors. Zero l
 
 ## F) Top #25 Things to Do Next (Prioritized)
 
-| #   | Item                                               | Effort | Impact | Module               |
-| --- | -------------------------------------------------- | ------ | ------ | -------------------- |
-| 1   | PostgreSQL integration tests for `storage/`        | Medium | HIGH   | storage              |
-| 2   | Storage constructor nil-DB validation tests        | Small  | HIGH   | storage              |
-| 3   | `example/user/` end-to-end smoke tests             | Small  | HIGH   | example              |
-| 4   | Go version alignment (go.mod vs toolchain)         | Tiny   | MEDIUM | build                |
-| 5   | `d2.WithDirection` option test                     | Tiny   | LOW    | catalog/d2           |
-| 6   | `NewCore` validation error path tests              | Small  | MEDIUM | core/aggregate       |
-| 7   | `goTypeToJSON` map/slice/ptr test cases            | Small  | MEDIUM | catalog              |
-| 8   | `SchemaToAny` error handling test                  | Small  | LOW    | catalog/asyncapi     |
-| 9   | `MustNewCore` panic path test                      | Small  | LOW    | core/aggregate       |
-| 10  | `LoadFromHistory` empty history test               | Small  | LOW    | core/aggregate       |
-| 11  | `loadFromStore` snapshot-miss test                 | Small  | LOW    | core/aggregate       |
-| 12  | `saveSnapshot` error path test                     | Small  | LOW    | core/aggregate       |
-| 13  | `writePackageJSON` coverage                        | Small  | LOW    | catalog/eventcatalog |
-| 14  | `writeSchema` coverage                             | Small  | LOW    | catalog/eventcatalog |
-| 15  | `randInt64N` test in middleware retry              | Tiny   | LOW    | middleware           |
-| 16  | `publishPending` error visibility                  | Small  | MEDIUM | core/event           |
-| 17  | `CatalogMeta` deduplication across packages        | Medium | MEDIUM | core                 |
-| 18  | Version tagging (catalog, storage, projection)     | Small  | MEDIUM | release              |
-| 19  | `go-import` meta tags for custom domain            | Small  | MEDIUM | infra                |
-| 20  | `AggregateTester` fluent API in testhelpers        | Medium | MEDIUM | testhelpers          |
-| 21  | Schema migration framework                         | Medium | MEDIUM | storage              |
-| 22  | `Watermill/` module evaluation                     | Large  | HIGH   | watermill            |
-| 23  | Multi-engine storage (MySQL/SQLite)                | Large  | LOW    | storage              |
-| 24  | `MemoryBus.Publish` RLock → RWMutex pattern review | Small  | LOW    | memory               |
-| 25  | `query.Handler` typed return (breaking change)     | Large  | HIGH   | core/query           |
+| #  | Item                                               | Effort | Impact | Module               |
+| -- | -------------------------------------------------- | ------ | ------ | -------------------- |
+| 1  | PostgreSQL integration tests for `storage/`        | Medium | HIGH   | storage              |
+| 2  | Storage constructor nil-DB validation tests        | Small  | HIGH   | storage              |
+| 3  | `example/user/` end-to-end smoke tests             | Small  | HIGH   | example              |
+| 4  | Go version alignment (go.mod vs toolchain)         | Tiny   | MEDIUM | build                |
+| 5  | `d2.WithDirection` option test                     | Tiny   | LOW    | catalog/d2           |
+| 6  | `NewCore` validation error path tests              | Small  | MEDIUM | core/aggregate       |
+| 7  | `goTypeToJSON` map/slice/ptr test cases            | Small  | MEDIUM | catalog              |
+| 8  | `SchemaToAny` error handling test                  | Small  | LOW    | catalog/asyncapi     |
+| 9  | `MustNewCore` panic path test                      | Small  | LOW    | core/aggregate       |
+| 10 | `LoadFromHistory` empty history test               | Small  | LOW    | core/aggregate       |
+| 11 | `loadFromStore` snapshot-miss test                 | Small  | LOW    | core/aggregate       |
+| 12 | `saveSnapshot` error path test                     | Small  | LOW    | core/aggregate       |
+| 13 | `writePackageJSON` coverage                        | Small  | LOW    | catalog/eventcatalog |
+| 14 | `writeSchema` coverage                             | Small  | LOW    | catalog/eventcatalog |
+| 15 | `randInt64N` test in middleware retry              | Tiny   | LOW    | middleware           |
+| 16 | `publishPending` error visibility                  | Small  | MEDIUM | core/event           |
+| 17 | `CatalogMeta` deduplication across packages        | Medium | MEDIUM | core                 |
+| 18 | Version tagging (catalog, storage, projection)     | Small  | MEDIUM | release              |
+| 19 | `go-import` meta tags for custom domain            | Small  | MEDIUM | infra                |
+| 20 | `AggregateTester` fluent API in testhelpers        | Medium | MEDIUM | testhelpers          |
+| 21 | Schema migration framework                         | Medium | MEDIUM | storage              |
+| 22 | `Watermill/` module evaluation                     | Large  | HIGH   | watermill            |
+| 23 | Multi-engine storage (MySQL/SQLite)                | Large  | LOW    | storage              |
+| 24 | `MemoryBus.Publish` RLock → RWMutex pattern review | Small  | LOW    | memory               |
+| 25 | `query.Handler` typed return (breaking change)     | Large  | HIGH   | core/query           |
 
 ---
 
@@ -344,16 +344,16 @@ The codebase quality is publication-grade. But several infrastructure items sugg
 
 ## Quality Gates
 
-| Gate                     | Status                                                       |
-| ------------------------ | ------------------------------------------------------------ |
-| Static analysis (go vet) | ✅ PASS — zero issues                                        |
-| Type checking            | ✅ PASS — zero compiler errors                               |
-| Build                    | ✅ PASS — all 9 modules compile                              |
-| Tests                    | ✅ PASS — all 19 packages green                              |
-| Lint                     | ✅ PASS — 0 issues (golangci-lint)                           |
+| Gate                     | Status                                                      |
+| ------------------------ | ----------------------------------------------------------- |
+| Static analysis (go vet) | ✅ PASS — zero issues                                       |
+| Type checking            | ✅ PASS — zero compiler errors                              |
+| Build                    | ✅ PASS — all 9 modules compile                             |
+| Tests                    | ✅ PASS — all 19 packages green                             |
+| Lint                     | ✅ PASS — 0 issues (golangci-lint)                          |
 | Race conditions          | ⚠️ Cannot verify locally (Go version mismatch); CI validates |
-| No hardcoded secrets     | ✅ PASS — none found                                         |
-| No TODO/FIXME/HACK       | ✅ PASS — zero found                                         |
+| No hardcoded secrets     | ✅ PASS — none found                                        |
+| No TODO/FIXME/HACK       | ✅ PASS — zero found                                        |
 
 ---
 

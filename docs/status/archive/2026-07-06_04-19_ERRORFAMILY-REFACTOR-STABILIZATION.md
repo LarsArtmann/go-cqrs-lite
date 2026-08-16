@@ -138,58 +138,58 @@ I jumped to fixing `sse.go` before realizing that 218 files had uncommitted chan
 
 ### Critical (build stability)
 
-| #   | Task                                                                                                                                           | Impact   | Effort |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ |
-| 1   | **Commit the errorfamily refactor** — 218 files uncommitted is dangerous                                                                       | Critical | 10min  |
-| 2   | **Verify SSE `sse.go` final state** — determine if fanout/drop code exists or was removed by the concurrent process                            | Critical | 15min  |
-| 3   | **Fix the 2 unused constants** (`sseDedupRingCapacity`, `sseDefaultReplayByteBudget`) — wire them as defaults in `NewSSEBroker` or remove them | High     | 10min  |
-| 4   | **Investigate `example/taskmanager` flaky test** — `TestIntegration_FullLifecycle` fails on rapid re-runs with version conflict                | High     | 30min  |
+| # | Task                                                                                                                                           | Impact   | Effort |
+| - | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ |
+| 1 | **Commit the errorfamily refactor** — 218 files uncommitted is dangerous                                                                       | Critical | 10min  |
+| 2 | **Verify SSE `sse.go` final state** — determine if fanout/drop code exists or was removed by the concurrent process                            | Critical | 15min  |
+| 3 | **Fix the 2 unused constants** (`sseDedupRingCapacity`, `sseDefaultReplayByteBudget`) — wire them as defaults in `NewSSEBroker` or remove them | High     | 10min  |
+| 4 | **Investigate `example/taskmanager` flaky test** — `TestIntegration_FullLifecycle` fails on rapid re-runs with version conflict                | High     | 30min  |
 
 ### Coverage holes (from predecessor report)
 
-| #   | Task                                                                     | Impact   | Effort |
-| --- | ------------------------------------------------------------------------ | -------- | ------ |
-| 5   | Tests for SSE parallel fanout (WithParallelFanout dispatch, worker pool) | Critical | 45min  |
-| 6   | Tests for SSE dropOldest policy (eviction behavior, dropped counter)     | Critical | 30min  |
-| 7   | Test for projectionhost OTel span names/attributes                       | High     | 30min  |
-| 8   | Test dedup.Ring eviction at replay→live boundary (>1024 events)          | High     | 30min  |
+| # | Task                                                                     | Impact   | Effort |
+| - | ------------------------------------------------------------------------ | -------- | ------ |
+| 5 | Tests for SSE parallel fanout (WithParallelFanout dispatch, worker pool) | Critical | 45min  |
+| 6 | Tests for SSE dropOldest policy (eviction behavior, dropped counter)     | Critical | 30min  |
+| 7 | Test for projectionhost OTel span names/attributes                       | High     | 30min  |
+| 8 | Test dedup.Ring eviction at replay→live boundary (>1024 events)          | High     | 30min  |
 
 ### Production readiness
 
-| #   | Task                                                               | Impact | Effort |
-| --- | ------------------------------------------------------------------ | ------ | ------ |
-| 9   | `Pause(ctx, name)` / `Resume(ctx, name)` for projectionhost        | High   | 60min  |
-| 10  | `WithTracer(trace.Tracer)` option for projectionhost               | Medium | 20min  |
-| 11  | `projectionhost.WithDedupRingCapacity` option                      | Low    | 15min  |
-| 12  | SSE `Stats()` method — expose per-client dropped count             | Medium | 30min  |
-| 13  | SSE integration test: 100+ concurrent clients with parallel fanout | Medium | 45min  |
+| #  | Task                                                               | Impact | Effort |
+| -- | ------------------------------------------------------------------ | ------ | ------ |
+| 9  | `Pause(ctx, name)` / `Resume(ctx, name)` for projectionhost        | High   | 60min  |
+| 10 | `WithTracer(trace.Tracer)` option for projectionhost               | Medium | 20min  |
+| 11 | `projectionhost.WithDedupRingCapacity` option                      | Low    | 15min  |
+| 12 | SSE `Stats()` method — expose per-client dropped count             | Medium | 30min  |
+| 13 | SSE integration test: 100+ concurrent clients with parallel fanout | Medium | 45min  |
 
 ### Documentation
 
-| #   | Task                                                       | Impact | Effort |
-| --- | ---------------------------------------------------------- | ------ | ------ |
-| 14  | projectionhost README.md update with all new features      | Medium | 30min  |
-| 15  | SKILL.md `references/modules.md` update for projectionhost | Medium | 15min  |
-| 16  | Run `cmd/doc-check` to verify AGENTS.md import paths       | Medium | 5min   |
-| 17  | Update FEATURES.md with projectionhost hardening           | Low    | 15min  |
-| 18  | ADR for projectionhost OTel tracing convention             | Low    | 20min  |
+| #  | Task                                                       | Impact | Effort |
+| -- | ---------------------------------------------------------- | ------ | ------ |
+| 14 | projectionhost README.md update with all new features      | Medium | 30min  |
+| 15 | SKILL.md `references/modules.md` update for projectionhost | Medium | 15min  |
+| 16 | Run `cmd/doc-check` to verify AGENTS.md import paths       | Medium | 5min   |
+| 17 | Update FEATURES.md with projectionhost hardening           | Low    | 15min  |
+| 18 | ADR for projectionhost OTel tracing convention             | Low    | 20min  |
 
 ### Code quality
 
-| #   | Task                                                            | Impact | Effort |
-| --- | --------------------------------------------------------------- | ------ | ------ |
-| 19  | Verify `sendToClient` unreachable return — fix if still present | Medium | 5min   |
-| 20  | Remove redundant nolint directives where code fix is trivial    | Low    | 15min  |
-| 21  | Verify `go.work` includes `dedup` module correctly              | Low    | 5min   |
-| 22  | Add `//go:generate` directive for api_surface.txt               | Low    | 15min  |
+| #  | Task                                                            | Impact | Effort |
+| -- | --------------------------------------------------------------- | ------ | ------ |
+| 19 | Verify `sendToClient` unreachable return — fix if still present | Medium | 5min   |
+| 20 | Remove redundant nolint directives where code fix is trivial    | Low    | 15min  |
+| 21 | Verify `go.work` includes `dedup` module correctly              | Low    | 5min   |
+| 22 | Add `//go:generate` directive for api_surface.txt               | Low    | 15min  |
 
 ### Planning + cleanup
 
-| #   | Task                                                            | Impact | Effort |
-| --- | --------------------------------------------------------------- | ------ | ------ |
-| 23  | Update `docs/planning/` — mark projectionhost hardening as DONE | Low    | 5min   |
-| 24  | Clean up auto-generated planning docs                           | Low    | 10min  |
-| 25  | Status report for SSE hardening session                         | Low    | 15min  |
+| #  | Task                                                            | Impact | Effort |
+| -- | --------------------------------------------------------------- | ------ | ------ |
+| 23 | Update `docs/planning/` — mark projectionhost hardening as DONE | Low    | 5min   |
+| 24 | Clean up auto-generated planning docs                           | Low    | 10min  |
+| 25 | Status report for SSE hardening session                         | Low    | 15min  |
 
 ---
 

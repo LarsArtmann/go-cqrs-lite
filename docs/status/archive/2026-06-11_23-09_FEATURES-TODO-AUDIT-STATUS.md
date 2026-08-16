@@ -161,33 +161,33 @@ There's a hole in the ADR numbering. This creates confusion: did someone delete 
 
 Sorted by **Impact × (1 / Effort)** — highest first.
 
-| #   | Task                                           | Impact | Effort | Module                   | Priority |
-| --- | ---------------------------------------------- | ------ | ------ | ------------------------ | -------- |
-| 1   | Fix ADR README to index all 15 ADRs            | HIGH   | 10 min | docs/adr                 | **P0**   |
-| 2   | Fix ADR-0005 numbering gap                     | HIGH   | 5 min  | docs/adr                 | **P0**   |
-| 3   | Add cmd/api-stability smoke test               | HIGH   | 15 min | cmd/api-stability        | **P1**   |
-| 4   | Add ExampleCBORCodec                           | MED    | 3 min  | codec                    | **P1**   |
-| 5   | Fix event.ImmutableEvent.Clone opts sharing    | HIGH   | 20 min | event                    | **P1**   |
-| 6   | Add query.BasicQuery metadata                  | MED    | 30 min | query                    | **P1**   |
-| 7   | Optimize listing/InMemoryAggregateReader       | HIGH   | 45 min | listing                  | **P2**   |
-| 8   | Fix integration/go.mod version inconsistencies | LOW    | 10 min | integration              | **P2**   |
-| 9   | Fix CBOR cborEncMode error handling            | MED    | 5 min  | codec                    | **P2**   |
-| 10  | Add CBOR DecMode configuration                 | MED    | 15 min | codec                    | **P2**   |
-| 11  | Add godoc example for decider                  | MED    | 20 min | decider                  | **P2**   |
-| 12  | Add godoc example for projection               | MED    | 20 min | projection               | **P2**   |
-| 13  | Add godoc example for signing                  | MED    | 15 min | signing                  | **P2**   |
-| 14  | Fix 123 nolint suppressions                    | HIGH   | 2 hr   | all                      | **P2**   |
-| 15  | Add PostgreSQL integration tests               | HIGH   | 4 hr   | storage                  | **P2**   |
-| 16  | Extract eventtest as separate module           | HIGH   | 2 hr   | event                    | **P2**   |
-| 17  | Add outbox pattern ADR                         | MED    | 30 min | docs/planning            | **P3**   |
-| 18  | Document CBOR usage patterns                   | MED    | 20 min | docs                     | **P3**   |
-| 19  | Add godoc example for schema                   | LOW    | 15 min | schema                   | **P3**   |
-| 20  | Add godoc example for listing                  | LOW    | 15 min | listing                  | **P3**   |
-| 21  | Fix catalog nolint suppressions (36)           | MED    | 45 min | catalog                  | **P3**   |
-| 22  | Add go-snaps to remaining modules              | LOW    | 2 hr   | all                      | **P3**   |
-| 23  | Add arena allocation experiment                | LOW    | 3 hr   | event                    | **P4**   |
-| 24  | Add jsonv2 codec experiment                    | LOW    | 2 hr   | codec                    | **P4**   |
-| 25  | Remove io.Closer from interfaces (v3)          | HIGH   | 4 hr   | event, snapshot, command | **v3**   |
+| #  | Task                                           | Impact | Effort | Module                   | Priority |
+| -- | ---------------------------------------------- | ------ | ------ | ------------------------ | -------- |
+| 1  | Fix ADR README to index all 15 ADRs            | HIGH   | 10 min | docs/adr                 | **P0**   |
+| 2  | Fix ADR-0005 numbering gap                     | HIGH   | 5 min  | docs/adr                 | **P0**   |
+| 3  | Add cmd/api-stability smoke test               | HIGH   | 15 min | cmd/api-stability        | **P1**   |
+| 4  | Add ExampleCBORCodec                           | MED    | 3 min  | codec                    | **P1**   |
+| 5  | Fix event.ImmutableEvent.Clone opts sharing    | HIGH   | 20 min | event                    | **P1**   |
+| 6  | Add query.BasicQuery metadata                  | MED    | 30 min | query                    | **P1**   |
+| 7  | Optimize listing/InMemoryAggregateReader       | HIGH   | 45 min | listing                  | **P2**   |
+| 8  | Fix integration/go.mod version inconsistencies | LOW    | 10 min | integration              | **P2**   |
+| 9  | Fix CBOR cborEncMode error handling            | MED    | 5 min  | codec                    | **P2**   |
+| 10 | Add CBOR DecMode configuration                 | MED    | 15 min | codec                    | **P2**   |
+| 11 | Add godoc example for decider                  | MED    | 20 min | decider                  | **P2**   |
+| 12 | Add godoc example for projection               | MED    | 20 min | projection               | **P2**   |
+| 13 | Add godoc example for signing                  | MED    | 15 min | signing                  | **P2**   |
+| 14 | Fix 123 nolint suppressions                    | HIGH   | 2 hr   | all                      | **P2**   |
+| 15 | Add PostgreSQL integration tests               | HIGH   | 4 hr   | storage                  | **P2**   |
+| 16 | Extract eventtest as separate module           | HIGH   | 2 hr   | event                    | **P2**   |
+| 17 | Add outbox pattern ADR                         | MED    | 30 min | docs/planning            | **P3**   |
+| 18 | Document CBOR usage patterns                   | MED    | 20 min | docs                     | **P3**   |
+| 19 | Add godoc example for schema                   | LOW    | 15 min | schema                   | **P3**   |
+| 20 | Add godoc example for listing                  | LOW    | 15 min | listing                  | **P3**   |
+| 21 | Fix catalog nolint suppressions (36)           | MED    | 45 min | catalog                  | **P3**   |
+| 22 | Add go-snaps to remaining modules              | LOW    | 2 hr   | all                      | **P3**   |
+| 23 | Add arena allocation experiment                | LOW    | 3 hr   | event                    | **P4**   |
+| 24 | Add jsonv2 codec experiment                    | LOW    | 2 hr   | codec                    | **P4**   |
+| 25 | Remove io.Closer from interfaces (v3)          | HIGH   | 4 hr   | event, snapshot, command | **v3**   |
 
 ---
 

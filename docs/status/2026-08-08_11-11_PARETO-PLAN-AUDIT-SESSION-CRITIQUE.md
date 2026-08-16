@@ -29,12 +29,12 @@ The user asked: _"[~14 remaining Pareto backlog items] Is there still something 
 
 ## 2. What Was DONE This Session (FULLY)
 
-| #   | What                                                                               | Quality                                              |
-| --- | ---------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| 1   | Read the entire Pareto plan document                                               | ✅ Complete — both halves                            |
-| 2   | Classified 51 L1-items into done/open/skip                                         | ✅ Complete — 13 marked open, 5 reclassified as done |
-| 3   | Identified the root problem (plan is stale — items shipped but status not updated) | ✅ Correct diagnosis                                 |
-| 4   | Provided actionable recommendation (mark done, close skip items, do L1.15)         | ✅ Clear and prioritized                             |
+| # | What                                                                               | Quality                                              |
+| - | ---------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| 1 | Read the entire Pareto plan document                                               | ✅ Complete — both halves                            |
+| 2 | Classified 51 L1-items into done/open/skip                                         | ✅ Complete — 13 marked open, 5 reclassified as done |
+| 3 | Identified the root problem (plan is stale — items shipped but status not updated) | ✅ Correct diagnosis                                 |
+| 4 | Provided actionable recommendation (mark done, close skip items, do L1.15)         | ✅ Clear and prioritized                             |
 
 ---
 
@@ -100,12 +100,12 @@ The plan header says "~29 items remain" (update 07-31) then "~8 items remain" (u
 
 ## 6. What We Should Improve (Process-Level)
 
-| #   | Improvement                                                                                                                                                                          | Impact                                                                                     |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| 1   | **Verify sub-agent claims before reporting as fact** — at minimum spot-check 2-3 critical claims with direct file reads                                                              | High — prevents confident misinformation                                                   |
-| 2   | **Act, don't advise** — when the answer is "this is stale and should be cleaned up," offer to clean it up in the same turn                                                           | High — reduces round-trips                                                                 |
-| 3   | **Reconcile conflicting numbers** — when three sources say 29, 8, and 14 remaining items, flag and resolve                                                                           | Medium — prevents drift                                                                    |
-| 4   | **Update the plan file when shipping items** — the root cause of this entire audit is that items were implemented but the plan status column wasn't updated across multiple sessions | High — this is a recurring failure mode (noted in AGENTS.md as "stale GREEN" anti-pattern) |
+| # | Improvement                                                                                                                                                                          | Impact                                                                                     |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| 1 | **Verify sub-agent claims before reporting as fact** — at minimum spot-check 2-3 critical claims with direct file reads                                                              | High — prevents confident misinformation                                                   |
+| 2 | **Act, don't advise** — when the answer is "this is stale and should be cleaned up," offer to clean it up in the same turn                                                           | High — reduces round-trips                                                                 |
+| 3 | **Reconcile conflicting numbers** — when three sources say 29, 8, and 14 remaining items, flag and resolve                                                                           | Medium — prevents drift                                                                    |
+| 4 | **Update the plan file when shipping items** — the root cause of this entire audit is that items were implemented but the plan status column wasn't updated across multiple sessions | High — this is a recurring failure mode (noted in AGENTS.md as "stale GREEN" anti-pattern) |
 
 ---
 
@@ -113,80 +113,80 @@ The plan header says "~29 items remain" (update 07-31) then "~8 items remain" (u
 
 ### Tier 1: Close out the Pareto plan (cheap, high-clarity)
 
-| #   | Task                                                                                                                             | Effort |
-| --- | -------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1   | Update the Pareto plan: mark L1.5, L1.19, L1.20, L1.30, L1.31 as ✅ DONE                                                         | 10 min |
-| 2   | Close L1.45 (shared mutable state) and L1.51 (stack preset awareness) as won't-fix with one-line reasons                         | 10 min |
-| 3   | Update the plan header counts (reconcile 29/8/14 discrepancy)                                                                    | 5 min  |
-| 4   | Update TODO_LIST.md: replace "~14 remaining" with accurate count or remove the line entirely                                     | 5 min  |
-| 5   | Add a final closing note to the plan: "Pareto plan delivered — P1 through P20 complete. Remaining items spun to new evaluation." | 5 min  |
+| # | Task                                                                                                                             | Effort |
+| - | -------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1 | Update the Pareto plan: mark L1.5, L1.19, L1.20, L1.30, L1.31 as ✅ DONE                                                         | 10 min |
+| 2 | Close L1.45 (shared mutable state) and L1.51 (stack preset awareness) as won't-fix with one-line reasons                         | 10 min |
+| 3 | Update the plan header counts (reconcile 29/8/14 discrepancy)                                                                    | 5 min  |
+| 4 | Update TODO_LIST.md: replace "~14 remaining" with accurate count or remove the line entirely                                     | 5 min  |
+| 5 | Add a final closing note to the plan: "Pareto plan delivered — P1 through P20 complete. Remaining items spun to new evaluation." | 5 min  |
 
 ### Tier 2: The one cheap open item
 
-| #   | Task                                                                                                                                | Effort |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 6   | **L1.15: Add cqrs-lint self-lint CI gate** — add a step to `.github/workflows/ci.yml` that runs `cqrs-lint --self-lint` on the repo | 60 min |
-| 7   | Add `--fail-on-stale-suppressions` CI gate (from TODO_LIST.md)                                                                      | 30 min |
-| 8   | Tag cqrs-lint v4.5.0 with all false-positive fixes (from TODO_LIST.md)                                                              | 30 min |
+| # | Task                                                                                                                                | Effort |
+| - | ----------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 6 | **L1.15: Add cqrs-lint self-lint CI gate** — add a step to `.github/workflows/ci.yml` that runs `cqrs-lint --self-lint` on the repo | 60 min |
+| 7 | Add `--fail-on-stale-suppressions` CI gate (from TODO_LIST.md)                                                                      | 30 min |
+| 8 | Tag cqrs-lint v4.5.0 with all false-positive fixes (from TODO_LIST.md)                                                              | 30 min |
 
 ### Tier 3: Verify the session's claims independently
 
-| #   | Task                                                                                   | Effort |
-| --- | -------------------------------------------------------------------------------------- | ------ |
-| 9   | Open `feature_profile.go` and confirm `DomainKind` is fully wired (not a stub)         | 5 min  |
-| 10  | Open `scorecard.go` and confirm the scorecard command is functional (not a skeleton)   | 5 min  |
-| 11  | Open `output_grouping.go` and confirm `--group-by aggregate` works end-to-end          | 5 min  |
-| 12  | Open `ci.yml` and confirm no cqrs-lint step exists                                     | 2 min  |
-| 13  | Run `go test ./cmd/cqrs-lint/... -count=1` to confirm 192 detectors and all tests pass | 5 min  |
+| #  | Task                                                                                   | Effort |
+| -- | -------------------------------------------------------------------------------------- | ------ |
+| 9  | Open `feature_profile.go` and confirm `DomainKind` is fully wired (not a stub)         | 5 min  |
+| 10 | Open `scorecard.go` and confirm the scorecard command is functional (not a skeleton)   | 5 min  |
+| 11 | Open `output_grouping.go` and confirm `--group-by aggregate` works end-to-end          | 5 min  |
+| 12 | Open `ci.yml` and confirm no cqrs-lint step exists                                     | 2 min  |
+| 13 | Run `go test ./cmd/cqrs-lint/... -count=1` to confirm 192 detectors and all tests pass | 5 min  |
 
 ### Tier 4: L1.23 parallel safety (marginal but cheap)
 
-| #   | Task                                                                                   | Effort |
-| --- | -------------------------------------------------------------------------------------- | ------ |
-| 14  | Write a concurrent `-race` test that runs detectors against a shared `AnalysisContext` | 30 min |
+| #  | Task                                                                                   | Effort |
+| -- | -------------------------------------------------------------------------------------- | ------ |
+| 14 | Write a concurrent `-race` test that runs detectors against a shared `AnalysisContext` | 30 min |
 
 ### Tier 5: New category evaluation (DOC/OBS/RES/DI)
 
-| #   | Task                                                                                                                      | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 15  | Evaluate whether RES-series is already covered by scattered rules (E016/E017/P012/P013/E008/E011) — if yes, close as done | 30 min |
-| 16  | Evaluate whether DOC-series adds value beyond D014/D015/D016 (payload convention rules)                                   | 30 min |
-| 17  | Evaluate whether OBS-series adds value beyond existing middleware/otel detection rules                                    | 30 min |
-| 18  | Evaluate whether DI-series adds value beyond C036/C037 (backend mismatch) and idempotency rules                           | 30 min |
-| 19  | If any category survives evaluation, write a fresh Pareto plan for just that category                                     | 60 min |
+| #  | Task                                                                                                                      | Effort |
+| -- | ------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 15 | Evaluate whether RES-series is already covered by scattered rules (E016/E017/P012/P013/E008/E011) — if yes, close as done | 30 min |
+| 16 | Evaluate whether DOC-series adds value beyond D014/D015/D016 (payload convention rules)                                   | 30 min |
+| 17 | Evaluate whether OBS-series adds value beyond existing middleware/otel detection rules                                    | 30 min |
+| 18 | Evaluate whether DI-series adds value beyond C036/C037 (backend mismatch) and idempotency rules                           | 30 min |
+| 19 | If any category survives evaluation, write a fresh Pareto plan for just that category                                     | 60 min |
 
 ### Tier 6: Broader cqrs-lint health (from TODO_LIST.md)
 
-| #   | Task                                                                                 | Effort  |
-| --- | ------------------------------------------------------------------------------------ | ------- |
-| 20  | Add go-arch-lint config for `cmd/cqrs-lint` (16 production source files)             | 90 min  |
-| 21  | Audit all 192 rules for false-positive rate on the self-lint baseline                | 120 min |
-| 22  | Add SARIF rule metadata completeness check (every rule needs DocURL)                 | 45 min  |
-| 23  | Review E006/E005 orphan detection for adapter/bridge false negatives (items 136-137) | 60 min  |
-| 24  | Check if A015 should detect map mutation in handlers (item 173) or close it          | 30 min  |
+| #  | Task                                                                                 | Effort  |
+| -- | ------------------------------------------------------------------------------------ | ------- |
+| 20 | Add go-arch-lint config for `cmd/cqrs-lint` (16 production source files)             | 90 min  |
+| 21 | Audit all 192 rules for false-positive rate on the self-lint baseline                | 120 min |
+| 22 | Add SARIF rule metadata completeness check (every rule needs DocURL)                 | 45 min  |
+| 23 | Review E006/E005 orphan detection for adapter/bridge false negatives (items 136-137) | 60 min  |
+| 24 | Check if A015 should detect map mutation in handlers (item 173) or close it          | 30 min  |
 
 ### Tier 7: Documentation hygiene
 
-| #   | Task                                                                                  | Effort |
-| --- | ------------------------------------------------------------------------------------- | ------ |
-| 25  | Run `cmd/doc-check` on the Pareto plan to verify no broken references                 | 5 min  |
-| 26  | Add the Pareto plan to a "completed planning docs" index if one exists, or create one | 15 min |
-| 27  | Update AGENTS.md cqrs-lint description if rule count or features changed              | 10 min |
-| 28  | Update FEATURES.md if cqrs-lint features shifted                                      | 10 min |
+| #  | Task                                                                                  | Effort |
+| -- | ------------------------------------------------------------------------------------- | ------ |
+| 25 | Run `cmd/doc-check` on the Pareto plan to verify no broken references                 | 5 min  |
+| 26 | Add the Pareto plan to a "completed planning docs" index if one exists, or create one | 15 min |
+| 27 | Update AGENTS.md cqrs-lint description if rule count or features changed              | 10 min |
+| 28 | Update FEATURES.md if cqrs-lint features shifted                                      | 10 min |
 
 ### Tier 8: If new categories are approved (conditional)
 
-| #   | Task                                                       | Effort |
-| --- | ---------------------------------------------------------- | ------ |
-| 29  | RES-001: missing retry middleware in command dispatch      | 90 min |
-| 30  | RES-002: missing circuit breaker in external call paths    | 90 min |
-| 31  | RES-003: missing DLQ configuration in projectionhost       | 90 min |
-| 32  | OBS-001: missing OTel tracer setup in server-mode projects | 90 min |
-| 33  | OBS-002: missing structured logging (slog) in handlers     | 90 min |
-| 34  | DOC-001: missing catalog registration for event types      | 90 min |
-| 35  | DOC-002: stale AsyncAPI/OpenAPI export                     | 90 min |
-| 36  | DI-001: missing idempotency middleware on command handlers | 90 min |
-| 37  | DI-002: missing optimistic concurrency version check       | 90 min |
+| #  | Task                                                       | Effort |
+| -- | ---------------------------------------------------------- | ------ |
+| 29 | RES-001: missing retry middleware in command dispatch      | 90 min |
+| 30 | RES-002: missing circuit breaker in external call paths    | 90 min |
+| 31 | RES-003: missing DLQ configuration in projectionhost       | 90 min |
+| 32 | OBS-001: missing OTel tracer setup in server-mode projects | 90 min |
+| 33 | OBS-002: missing structured logging (slog) in handlers     | 90 min |
+| 34 | DOC-001: missing catalog registration for event types      | 90 min |
+| 35 | DOC-002: stale AsyncAPI/OpenAPI export                     | 90 min |
+| 36 | DI-001: missing idempotency middleware on command handlers | 90 min |
+| 37 | DI-002: missing optimistic concurrency version check       | 90 min |
 
 ### Tier 9: Stretch / nice-to-have
 

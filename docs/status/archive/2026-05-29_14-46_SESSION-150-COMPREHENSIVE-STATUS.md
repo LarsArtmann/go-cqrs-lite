@@ -151,33 +151,33 @@
 
 **Priority-ordered by impact × feasibility:**
 
-| #   | Task                                                               | Impact   | Effort | Module         |
-| --- | ------------------------------------------------------------------ | -------- | ------ | -------------- |
-| 1   | Commit dangling storage test fixes (payload_encoding)              | HIGH     | 5min   | storage        |
-| 2   | Finish AggregateRef migration across ALL modules                   | CRITICAL | 2-3h   | all            |
-| 3   | Push v1.0.0 tags, remove replace directives                        | HIGH     | 30min  | infra          |
-| 4   | Rewrite example/user/ as full-stack CQRS demo                      | HIGH     | 4h     | example        |
-| 5   | Add example/user/ smoke test                                       | MEDIUM   | 30min  | example        |
-| 6   | Increase projection coverage to 95%+                               | MEDIUM   | 2h     | projection     |
-| 7   | Build catch-up projection runner                                   | HIGH     | 4h     | projection     |
-| 8   | Benchmark storage backends (PG vs SQLite vs Pebble)                | MEDIUM   | 3h     | storage/pebble |
-| 9   | Add gofumpt/goimports to pre-commit hook                           | LOW      | 15min  | infra          |
-| 10  | Parallelize CI matrix (one job per module)                         | MEDIUM   | 1h     | CI             |
-| 11  | Fix storage test flake with -coverprofile                          | LOW      | 30min  | storage        |
-| 12  | Add E2E throughput benchmarks                                      | MEDIUM   | 2h     | cross-module   |
-| 13  | Add fuzz tests (event creation, ID parsing, upcaster)              | MEDIUM   | 3h     | core           |
-| 14  | Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination | LOW      | 1h     | core           |
-| 15  | Split decider_test.go (~1200L) into focused files                  | LOW      | 1h     | core/decider   |
-| 16  | Enforce 350-line test file limit via pre-commit                    | LOW      | 30min  | infra          |
-| 17  | Add stream/listing module integration tests                        | MEDIUM   | 2h     | listing        |
-| 18  | Performance regression CI (benchmark comparison per PR)            | MEDIUM   | 2h     | CI             |
-| 19  | Set up pkg.go.dev documentation hosting                            | LOW      | 30min  | infra          |
-| 20  | Create documentation site (Docusaurus/MkDocs)                      | MEDIUM   | 8h     | docs           |
-| 21  | Split core/event god-package into sub-packages                     | HIGH     | 8h     | core           |
-| 22  | Add high-level test utilities (AggregateTester, ProjectionTester)  | MEDIUM   | 4h     | testhelpers    |
-| 23  | Add catalog diff/breaking-change detection tool                    | MEDIUM   | 4h     | catalog        |
-| 24  | Add thin PostgreSQL store adapter (no Watermill)                   | HIGH     | 6h     | storage        |
-| 25  | Add thin NATS bus adapter (no Watermill)                           | HIGH     | 6h     | watermill      |
+| #  | Task                                                               | Impact   | Effort | Module         |
+| -- | ------------------------------------------------------------------ | -------- | ------ | -------------- |
+| 1  | Commit dangling storage test fixes (payload_encoding)              | HIGH     | 5min   | storage        |
+| 2  | Finish AggregateRef migration across ALL modules                   | CRITICAL | 2-3h   | all            |
+| 3  | Push v1.0.0 tags, remove replace directives                        | HIGH     | 30min  | infra          |
+| 4  | Rewrite example/user/ as full-stack CQRS demo                      | HIGH     | 4h     | example        |
+| 5  | Add example/user/ smoke test                                       | MEDIUM   | 30min  | example        |
+| 6  | Increase projection coverage to 95%+                               | MEDIUM   | 2h     | projection     |
+| 7  | Build catch-up projection runner                                   | HIGH     | 4h     | projection     |
+| 8  | Benchmark storage backends (PG vs SQLite vs Pebble)                | MEDIUM   | 3h     | storage/pebble |
+| 9  | Add gofumpt/goimports to pre-commit hook                           | LOW      | 15min  | infra          |
+| 10 | Parallelize CI matrix (one job per module)                         | MEDIUM   | 1h     | CI             |
+| 11 | Fix storage test flake with -coverprofile                          | LOW      | 30min  | storage        |
+| 12 | Add E2E throughput benchmarks                                      | MEDIUM   | 2h     | cross-module   |
+| 13 | Add fuzz tests (event creation, ID parsing, upcaster)              | MEDIUM   | 3h     | core           |
+| 14 | Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination | LOW      | 1h     | core           |
+| 15 | Split decider_test.go (~1200L) into focused files                  | LOW      | 1h     | core/decider   |
+| 16 | Enforce 350-line test file limit via pre-commit                    | LOW      | 30min  | infra          |
+| 17 | Add stream/listing module integration tests                        | MEDIUM   | 2h     | listing        |
+| 18 | Performance regression CI (benchmark comparison per PR)            | MEDIUM   | 2h     | CI             |
+| 19 | Set up pkg.go.dev documentation hosting                            | LOW      | 30min  | infra          |
+| 20 | Create documentation site (Docusaurus/MkDocs)                      | MEDIUM   | 8h     | docs           |
+| 21 | Split core/event god-package into sub-packages                     | HIGH     | 8h     | core           |
+| 22 | Add high-level test utilities (AggregateTester, ProjectionTester)  | MEDIUM   | 4h     | testhelpers    |
+| 23 | Add catalog diff/breaking-change detection tool                    | MEDIUM   | 4h     | catalog        |
+| 24 | Add thin PostgreSQL store adapter (no Watermill)                   | HIGH     | 6h     | storage        |
+| 25 | Add thin NATS bus adapter (no Watermill)                           | HIGH     | 6h     | watermill      |
 
 ---
 

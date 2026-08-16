@@ -230,48 +230,48 @@ At ~29% coverage, turso is the only module below 85%. The gap is error paths, co
 
 ### P0 — Critical (Do First)
 
-| #   | Task                                                                     | Module  | Est | Impact                                        |
-| --- | ------------------------------------------------------------------------ | ------- | --- | --------------------------------------------- |
-| 1   | Fix BuildFlow pre-commit hook — exclude scripts/, resolve library-policy | infra   | 30m | Every commit currently requires `--no-verify` |
-| 2   | Commit go.mod/go.sum drift across 42 files                               | all     | 5m  | 42 unstaged files accumulating                |
-| 3   | Fix catalog unused `jsonKeyType` constant                                | catalog | 2m  | Trivial lint fix                              |
-| 4   | Fix catalog `forcetypeassert` in schema/reflect.go                       | catalog | 5m  | Lint fix                                      |
-| 5   | Fix catalog `goconst` — extract "CreateOrder" test constant              | catalog | 3m  | Lint fix                                      |
-| 6   | Fix catalog `wrapcheck` in schema.ToAny                                  | catalog | 5m  | Lint fix                                      |
-| 7   | Fix catalog `godoclint`                                                  | catalog | 3m  | Lint fix                                      |
+| # | Task                                                                     | Module  | Est | Impact                                        |
+| - | ------------------------------------------------------------------------ | ------- | --- | --------------------------------------------- |
+| 1 | Fix BuildFlow pre-commit hook — exclude scripts/, resolve library-policy | infra   | 30m | Every commit currently requires `--no-verify` |
+| 2 | Commit go.mod/go.sum drift across 42 files                               | all     | 5m  | 42 unstaged files accumulating                |
+| 3 | Fix catalog unused `jsonKeyType` constant                                | catalog | 2m  | Trivial lint fix                              |
+| 4 | Fix catalog `forcetypeassert` in schema/reflect.go                       | catalog | 5m  | Lint fix                                      |
+| 5 | Fix catalog `goconst` — extract "CreateOrder" test constant              | catalog | 3m  | Lint fix                                      |
+| 6 | Fix catalog `wrapcheck` in schema.ToAny                                  | catalog | 5m  | Lint fix                                      |
+| 7 | Fix catalog `godoclint`                                                  | catalog | 3m  | Lint fix                                      |
 
 ### P1 — High (Do Soon)
 
-| #   | Task                                                                       | Module  | Est | Impact                           |
-| --- | -------------------------------------------------------------------------- | ------- | --- | -------------------------------- |
-| 8   | Add turso edge-case tests: error paths, concurrent access                  | turso   | 30m | Only module below 85% coverage   |
-| 9   | Split `catalog/internal/cattest/builders.go` (377L → 2 files)              | catalog | 5m  | Only test helper >350L           |
-| 10  | Split `scripts/go-mod-graph-local/main.go` (412L → 3 files)                | scripts | 8m  | Only tool file >350L             |
-| 11  | Decompose `storage/event_store_global.go:ReadFrom` (59L → 2 funcs)         | storage | 10m | Projection-critical path         |
-| 12  | Decompose `signing/multisig/middleware.go:RequireMultiSigMiddleware` (55L) | signing | 8m  | Complex verification logic       |
-| 13  | Add `storage/sql/` helpers tests: error paths                              | storage | 10m | Shared SQL helpers undertested   |
-| 14  | Add event/codec edge-case tests: malformed JSON, nil payload               | event   | 8m  | Codec is critical infrastructure |
+| #  | Task                                                                       | Module  | Est | Impact                           |
+| -- | -------------------------------------------------------------------------- | ------- | --- | -------------------------------- |
+| 8  | Add turso edge-case tests: error paths, concurrent access                  | turso   | 30m | Only module below 85% coverage   |
+| 9  | Split `catalog/internal/cattest/builders.go` (377L → 2 files)              | catalog | 5m  | Only test helper >350L           |
+| 10 | Split `scripts/go-mod-graph-local/main.go` (412L → 3 files)                | scripts | 8m  | Only tool file >350L             |
+| 11 | Decompose `storage/event_store_global.go:ReadFrom` (59L → 2 funcs)         | storage | 10m | Projection-critical path         |
+| 12 | Decompose `signing/multisig/middleware.go:RequireMultiSigMiddleware` (55L) | signing | 8m  | Complex verification logic       |
+| 13 | Add `storage/sql/` helpers tests: error paths                              | storage | 10m | Shared SQL helpers undertested   |
+| 14 | Add event/codec edge-case tests: malformed JSON, nil payload               | event   | 8m  | Codec is critical infrastructure |
 
 ### P2 — Medium (Do When Time)
 
-| #   | Task                                                       | Module          | Est | Impact                                    |
-| --- | ---------------------------------------------------------- | --------------- | --- | ----------------------------------------- |
-| 15  | Add CommandStore benchmark tests                           | memory, storage | 15m | Performance baseline missing              |
-| 16  | Add turso `t.Parallel()` to all tests                      | turso           | 3m  | Convention compliance                     |
-| 17  | Create ROADMAP.md — long-term direction                    | docs            | 15m | Referenced in AGENTS.md but never created |
-| 18  | Fill ADR-0005 gap — missing number                         | docs            | 10m | ADR sequence has gap                      |
-| 19  | Clean up docs/status/ — archive reports older than 2 weeks | docs            | 10m | 100+ reports, zero cleanup                |
-| 20  | Add catalog/asyncapi edge-case tests                       | catalog         | 10m | Least-tested exporter                     |
-| 21  | Add catalog/d2 edge-case tests                             | catalog         | 10m | Fewer tests than other exporters          |
+| #  | Task                                                       | Module          | Est | Impact                                    |
+| -- | ---------------------------------------------------------- | --------------- | --- | ----------------------------------------- |
+| 15 | Add CommandStore benchmark tests                           | memory, storage | 15m | Performance baseline missing              |
+| 16 | Add turso `t.Parallel()` to all tests                      | turso           | 3m  | Convention compliance                     |
+| 17 | Create ROADMAP.md — long-term direction                    | docs            | 15m | Referenced in AGENTS.md but never created |
+| 18 | Fill ADR-0005 gap — missing number                         | docs            | 10m | ADR sequence has gap                      |
+| 19 | Clean up docs/status/ — archive reports older than 2 weeks | docs            | 10m | 100+ reports, zero cleanup                |
+| 20 | Add catalog/asyncapi edge-case tests                       | catalog         | 10m | Least-tested exporter                     |
+| 21 | Add catalog/d2 edge-case tests                             | catalog         | 10m | Fewer tests than other exporters          |
 
 ### P3 — Low (Nice to Have)
 
-| #   | Task                                                 | Module  | Est | Impact                         |
-| --- | ---------------------------------------------------- | ------- | --- | ------------------------------ |
-| 22  | Add `readmodel/` module design doc                   | docs    | 15m | Critical gap but no code yet   |
-| 23  | Add PostgreSQL integration tests via testcontainers  | storage | 60m | Blocked on Docker              |
-| 24  | Add Pebble Journal + SeekableJournal implementations | pebble  | 30m | Identified as straightforward  |
-| 25  | Add SQL Journal (ReadAll/ReadFrom) implementation    | storage | 30m | Missing cross-aggregate replay |
+| #  | Task                                                 | Module  | Est | Impact                         |
+| -- | ---------------------------------------------------- | ------- | --- | ------------------------------ |
+| 22 | Add `readmodel/` module design doc                   | docs    | 15m | Critical gap but no code yet   |
+| 23 | Add PostgreSQL integration tests via testcontainers  | storage | 60m | Blocked on Docker              |
+| 24 | Add Pebble Journal + SeekableJournal implementations | pebble  | 30m | Identified as straightforward  |
+| 25 | Add SQL Journal (ReadAll/ReadFrom) implementation    | storage | 30m | Missing cross-aggregate replay |
 
 ---
 

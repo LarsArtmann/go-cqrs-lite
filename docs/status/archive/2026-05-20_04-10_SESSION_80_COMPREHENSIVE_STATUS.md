@@ -1,9 +1,9 @@
 # Session 79-80 — Comprehensive Status Report
 
-**Date:** 2026-05-20 04:10  
-**Author:** Crush (Session 79-80)  
-**Commits since last push:** 8  
-**Total commits:** 849  
+**Date:** 2026-05-20 04:10\
+**Author:** Crush (Session 79-80)\
+**Commits since last push:** 8\
+**Total commits:** 849\
 **Total LOC:** 45,040 (15,549 production + 29,491 test)
 
 ---
@@ -147,20 +147,20 @@ The library is in the best shape it has ever been: **0 lint issues across 8 modu
 
 ### From Session 78 Plan (48 tasks)
 
-| #   | Task                                     | Priority | Why Skipped                              |
-| --- | ---------------------------------------- | -------- | ---------------------------------------- |
-| 9   | query.TypedHandler[T] returns (T, error) | HIGH     | Already existed from Session 54          |
-| 10  | Tests for query.TypedHandler             | HIGH     | Already existed                          |
-| 16  | Pebble iterateEvents error return        | HIGH     | Low impact — corrupt events are logged   |
-| 19  | Clock injection WithClock option         | MEDIUM   | Not blocking any consumer                |
-| 20  | Pebble deserialization split             | MEDIUM   | Already under 250 lines                  |
-| 21  | Storage DDL on Dialect interface         | MEDIUM   | Nice-to-have refactor                    |
-| 22  | Turso integration test                   | HIGH     | Requires running Turso instance          |
-| 23  | Bump testhelpers v1.2.0                  | HIGH     | Tagged but not pushed                    |
-| 28  | Standardize go.mod versions              | LOW      | Cosmetic                                 |
-| 29  | Projection position optimization sketch  | MEDIUM   | PositionalLoader interface added instead |
-| 34  | Write CONTRIBUTING.md                    | MEDIUM   | DONE                                     |
-| 46  | Fix example/todo build                   | HIGH     | Stale API references remain              |
+| #  | Task                                     | Priority | Why Skipped                              |
+| -- | ---------------------------------------- | -------- | ---------------------------------------- |
+| 9  | query.TypedHandler[T] returns (T, error) | HIGH     | Already existed from Session 54          |
+| 10 | Tests for query.TypedHandler             | HIGH     | Already existed                          |
+| 16 | Pebble iterateEvents error return        | HIGH     | Low impact — corrupt events are logged   |
+| 19 | Clock injection WithClock option         | MEDIUM   | Not blocking any consumer                |
+| 20 | Pebble deserialization split             | MEDIUM   | Already under 250 lines                  |
+| 21 | Storage DDL on Dialect interface         | MEDIUM   | Nice-to-have refactor                    |
+| 22 | Turso integration test                   | HIGH     | Requires running Turso instance          |
+| 23 | Bump testhelpers v1.2.0                  | HIGH     | Tagged but not pushed                    |
+| 28 | Standardize go.mod versions              | LOW      | Cosmetic                                 |
+| 29 | Projection position optimization sketch  | MEDIUM   | PositionalLoader interface added instead |
+| 34 | Write CONTRIBUTING.md                    | MEDIUM   | DONE                                     |
+| 46 | Fix example/todo build                   | HIGH     | Stale API references remain              |
 
 ### Never Started (from earlier plans)
 

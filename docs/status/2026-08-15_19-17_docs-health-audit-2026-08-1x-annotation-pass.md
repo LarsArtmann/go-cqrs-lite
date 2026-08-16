@@ -47,7 +47,7 @@
    - `2026-08-12_10-24` + `2026-08-12_10-36` (43 + 50 inline + appendices)
    - `2026-08-12_12-45` lint-sweep saga (50/50 inline + appendix)
    - `2026-08-13_01-02` post-merge self-review (50/50 inline + appendix)
-   Open remnants carry `← OPEN — TODO_LIST §X` pointers, not silent gaps.
+     Open remnants carry `← OPEN — TODO_LIST §X` pointers, not silent gaps.
 
 ## b) PARTIALLY DONE
 

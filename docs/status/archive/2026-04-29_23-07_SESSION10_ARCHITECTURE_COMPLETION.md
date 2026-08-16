@@ -1,7 +1,7 @@
 # Comprehensive Status Report: go-cqrs-lite
 
-**Date:** 2026-04-29 23:07 UTC  
-**Session:** Session 10 — Architecture Improvements (continuation)  
+**Date:** 2026-04-29 23:07 UTC\
+**Session:** Session 10 — Architecture Improvements (continuation)\
 **Status:** BUILD PASSING, ZERO LINT, ALL TESTS GREEN
 
 ---
@@ -29,7 +29,7 @@ Today's work completed the outbox seam (Task 3.2 from the architecture plan), fi
 
 ### 1. Outbox Seam — COMPLETED ✅
 
-**Commit:** `2c1de1f`  
+**Commit:** `2c1de1f`\
 **Files:** `core/event/outbox.go`, `memory/outbox.go`, `memory/outbox_test.go`, `core/aggregate/repository.go`, `core/aggregate/outbox_test.go`
 
 - Defined `event.Outbox`, `event.OutboxEntry`, `event.OutboxID` interfaces in core
@@ -276,9 +276,9 @@ But if the goal is "zero legacy code" and "each module independently publishable
 | Lint issues         | 0               | 0      | ✅ Clean   |
 | Files >250 lines    | 0               | 0      | ✅ Clean   |
 | Functions >30 lines | <5%             | <10%   | ✅ Clean   |
-| Circular deps       | 1 (core↔memory) | 0      | ⚠️ Known   |
+| Circular deps       | 1 (core↔memory) | 0      | ⚠️ Known    |
 | Ghost systems       | 0               | 0      | ✅ Clean   |
-| Deprecated refs     | 2 docs files    | 0      | ⚠️ Minor   |
+| Deprecated refs     | 2 docs files    | 0      | ⚠️ Minor    |
 
 ---
 

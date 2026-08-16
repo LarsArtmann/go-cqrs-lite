@@ -1,8 +1,8 @@
 # Session 110 — Comprehensive Status Report
 
-**Date:** 2026-05-27 05:29  
-**Branch:** master (up to date with origin)  
-**Commits This Session:** 4 (bd4b1aa..pending)  
+**Date:** 2026-05-27 05:29\
+**Branch:** master (up to date with origin)\
+**Commits This Session:** 4 (bd4b1aa..pending)\
 **Working Tree:** Dirty (6 modified, 7 new files)
 
 ---
@@ -131,33 +131,33 @@ Session 110 focused on executing the unblocked items from Session 109's priority
 
 ## F. Top 25 Things to Do Next
 
-| #   | Task                                                                     | Module      | Impact                             | Effort | Dependency      |
-| --- | ------------------------------------------------------------------------ | ----------- | ---------------------------------- | ------ | --------------- |
-| 1   | **Push v1.7.0 tags to remote** (all 16 modules)                          | CI/git      | 🔴 Unblocks external adoption      | 10 min | Git push access |
-| 2   | **Remove replace directives** from all go.mod files                      | all         | 🔴 Clean dependency graph          | 15 min | After #1        |
-| 3   | **Add `GOWORK=off` CI job** — per-module isolation test                  | CI          | 🔴 Catch version drift             | 15 min | After #2        |
-| 4   | **Add PostgreSQL integration tests** with testcontainers                 | storage     | 🟡 Primary target untested         | 2 hr   | Docker in CI    |
-| 5   | **Fix `core→memory` circular dependency** — extract test interfaces      | core        | 🟡 Unblocks independent publishing | 1 hr   | Design decision |
-| 6   | **Add `Publish-side event middleware`**                                  | core/event  | 🟡 Complete middleware story       | 1 hr   | None            |
-| 7   | **Fix flaky outbox poller test**                                         | storage     | 🟡 Test reliability                | 30 min | None            |
-| 8   | **Add example/catalog** — catalog builder + AsyncAPI export demo         | example     | 🟡 Consumer education              | 30 min | None            |
-| 9   | **Add benchmark suite** for storage module                               | storage     | 🟢 Performance visibility          | 1 hr   | None            |
-| 10  | **Optimize Pebble LoadToTimestamp** — indexed lookup                     | storage     | 🟢 Performance                     | 1 hr   | None            |
-| 11  | **Add `slog.Warn` for corrupt Pebble IDs**                               | storage     | 🟢 Observability                   | 15 min | None            |
-| 12  | **Add `PublishedAt` to `OutboxEntry`**                                   | core/event  | 🟢 Observability                   | 30 min | None            |
-| 13  | **Make `time.Now()` injectable**                                         | core        | 🟢 Test determinism                | 1 hr   | Design decision |
-| 14  | **Add catalog diff/breaking-change detection**                           | catalog     | 🟢 API evolution                   | 2 hr   | None            |
-| 15  | **Add high-level test utilities** (AggregateTester, etc.)                | testhelpers | 🟢 Consumer DX                     | 2 hr   | None            |
-| 16  | **Add Turso integration test** (save→load→delete)                        | storage     | 🟢 Turso confidence                | 1 hr   | Turso account   |
-| 17  | **Add `EventRetry` middleware roundtrip test**                           | middleware  | 🟢 Already 100% but test quality   | 20 min | None            |
-| 18  | **Add `go.work sync` CI check**                                          | CI          | 🟢 Replace directive rot           | 15 min | None            |
-| 19  | **Add coverage tracking to CI workflow** (per-PR delta)                  | CI          | 🟢 Visibility                      | 30 min | None            |
-| 20  | **Write migration guide: aggregate → decider**                           | docs        | 🟢 Consumer education              | 30 min | None            |
-| 21  | **Add API stability markers** (v1 stable vs v0 experimental)             | docs        | 🟢 Consumer confidence             | 30 min | Design decision |
-| 22  | **Fix `query.Handler` returns `any`**                                    | core/query  | 🟡 Breaking change                 | 1 hr   | Design decision |
-| 23  | **Split `projection/runner_live.go`** — separate live subscription logic | projection  | 🟢 Maintainability                 | 20 min | None            |
-| 24  | **Add integration test for example modules**                             | example     | 🟢 Example correctness             | 1 hr   | None            |
-| 25  | **Add cqrs-gen CLI integration test**                                    | cqrs-gen    | 🟢 Codegen confidence              | 1 hr   | None            |
+| #  | Task                                                                     | Module      | Impact                             | Effort | Dependency      |
+| -- | ------------------------------------------------------------------------ | ----------- | ---------------------------------- | ------ | --------------- |
+| 1  | **Push v1.7.0 tags to remote** (all 16 modules)                          | CI/git      | 🔴 Unblocks external adoption      | 10 min | Git push access |
+| 2  | **Remove replace directives** from all go.mod files                      | all         | 🔴 Clean dependency graph          | 15 min | After #1        |
+| 3  | **Add `GOWORK=off` CI job** — per-module isolation test                  | CI          | 🔴 Catch version drift             | 15 min | After #2        |
+| 4  | **Add PostgreSQL integration tests** with testcontainers                 | storage     | 🟡 Primary target untested         | 2 hr   | Docker in CI    |
+| 5  | **Fix `core→memory` circular dependency** — extract test interfaces      | core        | 🟡 Unblocks independent publishing | 1 hr   | Design decision |
+| 6  | **Add `Publish-side event middleware`**                                  | core/event  | 🟡 Complete middleware story       | 1 hr   | None            |
+| 7  | **Fix flaky outbox poller test**                                         | storage     | 🟡 Test reliability                | 30 min | None            |
+| 8  | **Add example/catalog** — catalog builder + AsyncAPI export demo         | example     | 🟡 Consumer education              | 30 min | None            |
+| 9  | **Add benchmark suite** for storage module                               | storage     | 🟢 Performance visibility          | 1 hr   | None            |
+| 10 | **Optimize Pebble LoadToTimestamp** — indexed lookup                     | storage     | 🟢 Performance                     | 1 hr   | None            |
+| 11 | **Add `slog.Warn` for corrupt Pebble IDs**                               | storage     | 🟢 Observability                   | 15 min | None            |
+| 12 | **Add `PublishedAt` to `OutboxEntry`**                                   | core/event  | 🟢 Observability                   | 30 min | None            |
+| 13 | **Make `time.Now()` injectable**                                         | core        | 🟢 Test determinism                | 1 hr   | Design decision |
+| 14 | **Add catalog diff/breaking-change detection**                           | catalog     | 🟢 API evolution                   | 2 hr   | None            |
+| 15 | **Add high-level test utilities** (AggregateTester, etc.)                | testhelpers | 🟢 Consumer DX                     | 2 hr   | None            |
+| 16 | **Add Turso integration test** (save→load→delete)                        | storage     | 🟢 Turso confidence                | 1 hr   | Turso account   |
+| 17 | **Add `EventRetry` middleware roundtrip test**                           | middleware  | 🟢 Already 100% but test quality   | 20 min | None            |
+| 18 | **Add `go.work sync` CI check**                                          | CI          | 🟢 Replace directive rot           | 15 min | None            |
+| 19 | **Add coverage tracking to CI workflow** (per-PR delta)                  | CI          | 🟢 Visibility                      | 30 min | None            |
+| 20 | **Write migration guide: aggregate → decider**                           | docs        | 🟢 Consumer education              | 30 min | None            |
+| 21 | **Add API stability markers** (v1 stable vs v0 experimental)             | docs        | 🟢 Consumer confidence             | 30 min | Design decision |
+| 22 | **Fix `query.Handler` returns `any`**                                    | core/query  | 🟡 Breaking change                 | 1 hr   | Design decision |
+| 23 | **Split `projection/runner_live.go`** — separate live subscription logic | projection  | 🟢 Maintainability                 | 20 min | None            |
+| 24 | **Add integration test for example modules**                             | example     | 🟢 Example correctness             | 1 hr   | None            |
+| 25 | **Add cqrs-gen CLI integration test**                                    | cqrs-gen    | 🟢 Codegen confidence              | 1 hr   | None            |
 
 ---
 

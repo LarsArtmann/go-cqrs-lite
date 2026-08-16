@@ -131,33 +131,33 @@ The BuildFlow pre-commit hook runs golangci-lint on every module. Each lint fix 
 
 ## f) Top 25 Things to Get Done Next
 
-| #   | Task                                                                | Impact    | Effort | Ratio      |
-| --- | ------------------------------------------------------------------- | --------- | ------ | ---------- |
-| 1   | Commit the pending lint fixes (6 files, all ready)                  | 🟠 High   | Tiny   | ⭐⭐⭐⭐⭐ |
-| 2   | Write and commit the status report                                  | 🟠 High   | Tiny   | ⭐⭐⭐⭐⭐ |
-| 3   | `git push` all commits                                              | 🟠 High   | Tiny   | ⭐⭐⭐⭐⭐ |
-| 4   | Update AGENTS.md: modules, test cmd, layer graph, patterns          | 🟠 High   | Small  | ⭐⭐⭐⭐⭐ |
-| 5   | Update SKILL.md: gRPC section, MemoryBus, new view store features   | 🟠 High   | Small  | ⭐⭐⭐⭐   |
-| 6   | Add transport/grpc + cmd/doc-check to CI per-module matrix          | 🟡 Medium | Tiny   | ⭐⭐⭐⭐   |
-| 7   | Remove `var _ = errors.New` hack from command_server.go             | 🟢 Low    | Tiny   | ⭐⭐⭐⭐   |
-| 8   | Fix `toAnySlice` reflection → type switch                           | 🟢 Low    | Tiny   | ⭐⭐⭐⭐   |
-| 9   | Remove unused `fmt` import from doc-check/main.go                   | 🟢 Low    | Tiny   | ⭐⭐⭐⭐   |
-| 10  | Wire SEC's `NewCQRSAppFromBundle` into server.go                    | 🟡 Medium | Small  | ⭐⭐⭐     |
-| 11  | Fix transport/grpc genproto conflict for go.work inclusion          | 🟠 High   | Medium | ⭐⭐⭐     |
-| 12  | Decide: raw SQL `ViewQuery.Where` vs structured `ViewFilter`        | 🟡 Medium | Medium | ⭐⭐⭐     |
-| 13  | Write transport/grpc query round-trip test                          | 🟡 Medium | Small  | ⭐⭐⭐     |
-| 14  | Add proto regen target to flake.nix                                 | 🟡 Medium | Small  | ⭐⭐⭐     |
-| 15  | Document gRPC wire format in SKILL.md §6                            | 🟡 Medium | Small  | ⭐⭐⭐     |
-| 16  | Add `transport/grpc` to the module dependency layer graph           | 🟢 Low    | Tiny   | ⭐⭐⭐     |
-| 17  | Consider removing `kv.ViewQuery.Where` raw SQL entirely             | 🟡 Medium | Medium | ⭐⭐⭐     |
-| 18  | Write automated ViewStore contract test for SQLViewStore            | 🟡 Medium | Small  | ⭐⭐⭐     |
-| 19  | Add `nix run .#lint-grpc` target for standalone lint                | 🟢 Low    | Small  | ⭐⭐⭐     |
-| 20  | Migrate SEC to use `sqlite.New()` bundle in production              | 🟠 High   | Medium | ⭐⭐⭐     |
-| 21  | Add Postgres integration test for SQLViewStore                      | 🟡 Medium | Small  | ⭐⭐⭐     |
-| 22  | Consider structured filter replacing raw SQL as the ONLY API        | 🟡 Medium | Medium | ⭐⭐       |
-| 23  | Add `command.Bus` to Bundle (optional field)                        | 🟢 Low    | Small  | ⭐⭐       |
-| 24  | Explore `go-json-experiment/json` for transport/grpc proto encoding | 🟢 Low    | Medium | ⭐⭐       |
-| 25  | Consider NATS transport adapter (ADR-0025 next transport)           | 🟢 Low    | Large  | ⭐         |
+| #  | Task                                                                | Impact    | Effort | Ratio      |
+| -- | ------------------------------------------------------------------- | --------- | ------ | ---------- |
+| 1  | Commit the pending lint fixes (6 files, all ready)                  | 🟠 High   | Tiny   | ⭐⭐⭐⭐⭐ |
+| 2  | Write and commit the status report                                  | 🟠 High   | Tiny   | ⭐⭐⭐⭐⭐ |
+| 3  | `git push` all commits                                              | 🟠 High   | Tiny   | ⭐⭐⭐⭐⭐ |
+| 4  | Update AGENTS.md: modules, test cmd, layer graph, patterns          | 🟠 High   | Small  | ⭐⭐⭐⭐⭐ |
+| 5  | Update SKILL.md: gRPC section, MemoryBus, new view store features   | 🟠 High   | Small  | ⭐⭐⭐⭐   |
+| 6  | Add transport/grpc + cmd/doc-check to CI per-module matrix          | 🟡 Medium | Tiny   | ⭐⭐⭐⭐   |
+| 7  | Remove `var _ = errors.New` hack from command_server.go             | 🟢 Low    | Tiny   | ⭐⭐⭐⭐   |
+| 8  | Fix `toAnySlice` reflection → type switch                           | 🟢 Low    | Tiny   | ⭐⭐⭐⭐   |
+| 9  | Remove unused `fmt` import from doc-check/main.go                   | 🟢 Low    | Tiny   | ⭐⭐⭐⭐   |
+| 10 | Wire SEC's `NewCQRSAppFromBundle` into server.go                    | 🟡 Medium | Small  | ⭐⭐⭐     |
+| 11 | Fix transport/grpc genproto conflict for go.work inclusion          | 🟠 High   | Medium | ⭐⭐⭐     |
+| 12 | Decide: raw SQL `ViewQuery.Where` vs structured `ViewFilter`        | 🟡 Medium | Medium | ⭐⭐⭐     |
+| 13 | Write transport/grpc query round-trip test                          | 🟡 Medium | Small  | ⭐⭐⭐     |
+| 14 | Add proto regen target to flake.nix                                 | 🟡 Medium | Small  | ⭐⭐⭐     |
+| 15 | Document gRPC wire format in SKILL.md §6                            | 🟡 Medium | Small  | ⭐⭐⭐     |
+| 16 | Add `transport/grpc` to the module dependency layer graph           | 🟢 Low    | Tiny   | ⭐⭐⭐     |
+| 17 | Consider removing `kv.ViewQuery.Where` raw SQL entirely             | 🟡 Medium | Medium | ⭐⭐⭐     |
+| 18 | Write automated ViewStore contract test for SQLViewStore            | 🟡 Medium | Small  | ⭐⭐⭐     |
+| 19 | Add `nix run .#lint-grpc` target for standalone lint                | 🟢 Low    | Small  | ⭐⭐⭐     |
+| 20 | Migrate SEC to use `sqlite.New()` bundle in production              | 🟠 High   | Medium | ⭐⭐⭐     |
+| 21 | Add Postgres integration test for SQLViewStore                      | 🟡 Medium | Small  | ⭐⭐⭐     |
+| 22 | Consider structured filter replacing raw SQL as the ONLY API        | 🟡 Medium | Medium | ⭐⭐       |
+| 23 | Add `command.Bus` to Bundle (optional field)                        | 🟢 Low    | Small  | ⭐⭐       |
+| 24 | Explore `go-json-experiment/json` for transport/grpc proto encoding | 🟢 Low    | Medium | ⭐⭐       |
+| 25 | Consider NATS transport adapter (ADR-0025 next transport)           | 🟢 Low    | Large  | ⭐         |
 
 ---
 

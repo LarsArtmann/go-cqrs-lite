@@ -93,23 +93,23 @@
 
 ## b) DEFERRED (blocked or XL-effort)
 
-| #   | Item                                             | Why deferred                                                  |
-| --- | ------------------------------------------------ | ------------------------------------------------------------- |
-| 1   | Re-verify against real DiscordSync repo          | BLOCKED: needs external repo clone/access                     |
-| 2   | Second consumer feedback pass                    | BLOCKED: no second consumer identified                        |
-| 3   | Type-information-aware rules (go/types for A016) | XL effort: requires type checker integration                  |
-| 4   | Cross-rule correlation (C001+C009 escalate)      | M effort: needs pipeline post-processor                       |
-| 5   | Auto-fix mode expansion (--fix for more rules)   | XL effort: per-rule fix strategies                            |
-| 6   | ~~Telemetry for suppression rates~~              | **DONE (post-v0.2.0):** suppression count in output + doctor  |
-| 7   | Multi-module workspace support (go.work dedup)   | XL effort: cross-module finding dedup                         |
-| 8   | Versioned rule sets                              | L effort: rule-version pinning system                         |
-| 9   | Migration assistant (pre-v4 API detection)       | XL effort: legacy pattern database                            |
-| 10  | ~~`--fp-suspects` mode~~                         | **DONE (post-v0.2.0):** implemented + tested + documented     |
-| 11  | SARIF suppress suggestions                       | Depends on go-finding library SARIF format                    |
-| 12  | ~~`cqrs-lint config init` generator~~            | **DONE (already existed as `cqrs-lint init`)**                |
-| 13  | Property-based tests (rapid) for C008/D005       | Lower ROI than hand-written tests already covering edge cases |
-| 14  | Extract shared `asthelpers` package              | M effort refactor; current helpers are clean and scoped       |
-| 15  | Per-rule Info sub-cap                            | Current global cap works well; per-rule adds complexity       |
+| #  | Item                                             | Why deferred                                                  |
+| -- | ------------------------------------------------ | ------------------------------------------------------------- |
+| 1  | Re-verify against real DiscordSync repo          | BLOCKED: needs external repo clone/access                     |
+| 2  | Second consumer feedback pass                    | BLOCKED: no second consumer identified                        |
+| 3  | Type-information-aware rules (go/types for A016) | XL effort: requires type checker integration                  |
+| 4  | Cross-rule correlation (C001+C009 escalate)      | M effort: needs pipeline post-processor                       |
+| 5  | Auto-fix mode expansion (--fix for more rules)   | XL effort: per-rule fix strategies                            |
+| 6  | ~~Telemetry for suppression rates~~              | **DONE (post-v0.2.0):** suppression count in output + doctor  |
+| 7  | Multi-module workspace support (go.work dedup)   | XL effort: cross-module finding dedup                         |
+| 8  | Versioned rule sets                              | L effort: rule-version pinning system                         |
+| 9  | Migration assistant (pre-v4 API detection)       | XL effort: legacy pattern database                            |
+| 10 | ~~`--fp-suspects` mode~~                         | **DONE (post-v0.2.0):** implemented + tested + documented     |
+| 11 | SARIF suppress suggestions                       | Depends on go-finding library SARIF format                    |
+| 12 | ~~`cqrs-lint config init` generator~~            | **DONE (already existed as `cqrs-lint init`)**                |
+| 13 | Property-based tests (rapid) for C008/D005       | Lower ROI than hand-written tests already covering edge cases |
+| 14 | Extract shared `asthelpers` package              | M effort refactor; current helpers are clean and scoped       |
+| 15 | Per-rule Info sub-cap                            | Current global cap works well; per-rule adds complexity       |
 
 ---
 

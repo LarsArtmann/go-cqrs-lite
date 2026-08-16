@@ -160,33 +160,33 @@ Pure utility functions (New, Parse, MustParse, DeriveAggregateID). Already thoro
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #   | Priority | Item                                                                                   | Impact | Effort | Module      |
-| --- | -------- | -------------------------------------------------------------------------------------- | ------ | ------ | ----------- |
-| 1   | 🔴 P0    | Fix golangci-lint pre-commit hook (workspace mode)                                     | HIGH   | LOW    | infra       |
-| 2   | 🔴 P0    | Fix LSP workspace errors (configure per-module mode)                                   | HIGH   | LOW    | infra       |
-| 3   | 🔴 P0    | Complete circuit breaker BDD: HalfOpen→Closed, HalfOpen→Open, timeout transition       | HIGH   | LOW    | middleware  |
-| 4   | 🔴 P0    | Update FEATURES.md to reflect current state                                            | MEDIUM | LOW    | docs        |
-| 5   | 🟡 P1    | Add signing BDD: HMAC sign→verify, Ed25519 roundtrip, SignMiddleware, VerifyMiddleware | HIGH   | MEDIUM | signing     |
-| 6   | 🟡 P1    | Add outbox BDD: append→poll→ack lifecycle, poll returns empty after ack                | HIGH   | MEDIUM | core/event  |
-| 7   | 🟡 P1    | Consolidate BDD test helper types into testhelpers                                     | MEDIUM | LOW    | testhelpers |
-| 8   | 🟡 P1    | Add storage BDD: SQL event store save/load/version-conflict with SQLite in-memory      | HIGH   | HIGH   | storage     |
-| 9   | 🟡 P1    | Fix go-structure-linter noise (root go.sum, go-error-family dep)                       | MEDIUM | LOW    | infra       |
-| 10  | 🟡 P1    | Add snapshot strategy BDD: EveryNEvents triggers, skipped when not multiple            | MEDIUM | LOW    | core/event  |
-| 11  | 🟡 P1    | Add enricher BDD: ContextEnricher adds correlation/user IDs from context               | MEDIUM | LOW    | core/event  |
-| 12  | 🟢 P2    | Add event bus BDD in core/event (separate from integration/event)                      | MEDIUM | MEDIUM | core/event  |
-| 13  | 🟢 P2    | Add storage BDD: SQL outbox append→poll→ack with SQLite                                | MEDIUM | MEDIUM | storage     |
-| 14  | 🟢 P2    | Add storage BDD: SQL snapshot store roundtrip                                          | LOW    | MEDIUM | storage     |
-| 15  | 🟢 P2    | Add storage BDD: SQL checkpoint store roundtrip                                        | LOW    | MEDIUM | storage     |
-| 16  | 🟢 P2    | Add storage BDD: TransactionalStore atomic save+outbox                                 | HIGH   | MEDIUM | storage     |
-| 17  | 🟢 P2    | Add catalog BDD: Registry→Build produces correct catalog                               | MEDIUM | HIGH   | catalog     |
-| 18  | 🟢 P2    | Add catalog BDD: AsyncAPI/OpenAPI/D2/EventCatalog exporters                            | LOW    | HIGH   | catalog     |
-| 19  | 🟢 P2    | Add BDD tests for example/todo: full user-facing flow                                  | MEDIUM | MEDIUM | example     |
-| 20  | 🔵 P3    | Address `math_rand_crypto` linter warning in middleware/retry.go                       | LOW    | LOW    | middleware  |
-| 21  | 🔵 P3    | Add Ginkgo benchmarks to BDD suites                                                    | LOW    | LOW    | all         |
-| 22  | 🔵 P3    | Add chaos/fault injection BDD: context cancellation, concurrent access                 | MEDIUM | HIGH   | integration |
-| 23  | 🔵 P3    | Document BDD testing guide (Describe/Context/It pattern)                               | LOW    | LOW    | docs        |
-| 24  | 🔵 P3    | Resolve replace directive blocker → publish v1.0.0 tags                                | HIGH   | LOW    | release     |
-| 25  | 🔵 P3    | Add PebbleEventStore BDD: embedded KV store persistence                                | MEDIUM | MEDIUM | storage     |
+| #  | Priority | Item                                                                                   | Impact | Effort | Module      |
+| -- | -------- | -------------------------------------------------------------------------------------- | ------ | ------ | ----------- |
+| 1  | 🔴 P0    | Fix golangci-lint pre-commit hook (workspace mode)                                     | HIGH   | LOW    | infra       |
+| 2  | 🔴 P0    | Fix LSP workspace errors (configure per-module mode)                                   | HIGH   | LOW    | infra       |
+| 3  | 🔴 P0    | Complete circuit breaker BDD: HalfOpen→Closed, HalfOpen→Open, timeout transition       | HIGH   | LOW    | middleware  |
+| 4  | 🔴 P0    | Update FEATURES.md to reflect current state                                            | MEDIUM | LOW    | docs        |
+| 5  | 🟡 P1    | Add signing BDD: HMAC sign→verify, Ed25519 roundtrip, SignMiddleware, VerifyMiddleware | HIGH   | MEDIUM | signing     |
+| 6  | 🟡 P1    | Add outbox BDD: append→poll→ack lifecycle, poll returns empty after ack                | HIGH   | MEDIUM | core/event  |
+| 7  | 🟡 P1    | Consolidate BDD test helper types into testhelpers                                     | MEDIUM | LOW    | testhelpers |
+| 8  | 🟡 P1    | Add storage BDD: SQL event store save/load/version-conflict with SQLite in-memory      | HIGH   | HIGH   | storage     |
+| 9  | 🟡 P1    | Fix go-structure-linter noise (root go.sum, go-error-family dep)                       | MEDIUM | LOW    | infra       |
+| 10 | 🟡 P1    | Add snapshot strategy BDD: EveryNEvents triggers, skipped when not multiple            | MEDIUM | LOW    | core/event  |
+| 11 | 🟡 P1    | Add enricher BDD: ContextEnricher adds correlation/user IDs from context               | MEDIUM | LOW    | core/event  |
+| 12 | 🟢 P2    | Add event bus BDD in core/event (separate from integration/event)                      | MEDIUM | MEDIUM | core/event  |
+| 13 | 🟢 P2    | Add storage BDD: SQL outbox append→poll→ack with SQLite                                | MEDIUM | MEDIUM | storage     |
+| 14 | 🟢 P2    | Add storage BDD: SQL snapshot store roundtrip                                          | LOW    | MEDIUM | storage     |
+| 15 | 🟢 P2    | Add storage BDD: SQL checkpoint store roundtrip                                        | LOW    | MEDIUM | storage     |
+| 16 | 🟢 P2    | Add storage BDD: TransactionalStore atomic save+outbox                                 | HIGH   | MEDIUM | storage     |
+| 17 | 🟢 P2    | Add catalog BDD: Registry→Build produces correct catalog                               | MEDIUM | HIGH   | catalog     |
+| 18 | 🟢 P2    | Add catalog BDD: AsyncAPI/OpenAPI/D2/EventCatalog exporters                            | LOW    | HIGH   | catalog     |
+| 19 | 🟢 P2    | Add BDD tests for example/todo: full user-facing flow                                  | MEDIUM | MEDIUM | example     |
+| 20 | 🔵 P3    | Address `math_rand_crypto` linter warning in middleware/retry.go                       | LOW    | LOW    | middleware  |
+| 21 | 🔵 P3    | Add Ginkgo benchmarks to BDD suites                                                    | LOW    | LOW    | all         |
+| 22 | 🔵 P3    | Add chaos/fault injection BDD: context cancellation, concurrent access                 | MEDIUM | HIGH   | integration |
+| 23 | 🔵 P3    | Document BDD testing guide (Describe/Context/It pattern)                               | LOW    | LOW    | docs        |
+| 24 | 🔵 P3    | Resolve replace directive blocker → publish v1.0.0 tags                                | HIGH   | LOW    | release     |
+| 25 | 🔵 P3    | Add PebbleEventStore BDD: embedded KV store persistence                                | MEDIUM | MEDIUM | storage     |
 
 ---
 

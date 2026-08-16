@@ -96,33 +96,33 @@
 
 ## F. Top 25 Things to Get Done Next
 
-| #   | Task                                            | Impact   | Effort   |
-| --- | ----------------------------------------------- | -------- | -------- |
-| 1   | T10: Add `stack.Materialize()` accessor         | High     | 20min    |
-| 2   | T11: Add `stack.CatchUpSubscriber()` option     | High     | 20min    |
-| 3   | T12: Add `stack.TypedRepository()` accessor     | High     | 20min    |
-| 4   | T13: Wire AuditMiddleware into sqlite preset    | Medium   | 15min    |
-| 5   | T14: Build example/deployer-first consumer code | Critical | 40min    |
-| 6   | T15: Build deployer configs (SQLite multi-DB)   | High     | 30min    |
-| 7   | T16: Write integration test for all configs     | High     | 20min    |
-| 8   | T17: Migrate example/todo to Materialize        | Critical | 30min    |
-| 9   | T18: Migrate example/user to Materialize        | High     | 25min    |
-| 10  | T19: Update cqrs-gen for Materialize codegen    | Medium   | 20min    |
-| 11  | T20: Remove ProjectionRunner from stack/        | High     | 15min    |
-| 12  | T21: Delete projection/ module                  | Critical | 20min    |
-| 13  | T22: command.Metadata own struct                | High     | 25min    |
-| 14  | T23: query.Metadata own struct                  | High     | 25min    |
-| 15  | T24: Update storage scan helpers                | High     | 15min    |
-| 16  | T25: Update ADR statuses                        | Medium   | 10min    |
-| 17  | T26: Delete TransactionID ghost type            | Medium   | 15min    |
-| 18  | T27: Update FEATURES.md + ROADMAP.md            | Low      | 15min    |
-| 19  | Fix CBOR fuzz test (duplicate map key -17)      | Medium   | 30min-2h |
-| 20  | Add rapid property tests for Version            | Medium   | 20min    |
-| 21  | Fix PgxListener race condition                  | Medium   | 45min    |
-| 22  | Consider go-cache/otter for dedup               | Low      | 1h       |
-| 23  | Extract FakeBus to syncbus module               | Low      | 1h       |
-| 24  | Move indexing advisor to storage/sql/           | Low      | 30min    |
-| 25  | encoding/json/v2 migration                      | Low      | 2h       |
+| #  | Task                                            | Impact   | Effort   |
+| -- | ----------------------------------------------- | -------- | -------- |
+| 1  | T10: Add `stack.Materialize()` accessor         | High     | 20min    |
+| 2  | T11: Add `stack.CatchUpSubscriber()` option     | High     | 20min    |
+| 3  | T12: Add `stack.TypedRepository()` accessor     | High     | 20min    |
+| 4  | T13: Wire AuditMiddleware into sqlite preset    | Medium   | 15min    |
+| 5  | T14: Build example/deployer-first consumer code | Critical | 40min    |
+| 6  | T15: Build deployer configs (SQLite multi-DB)   | High     | 30min    |
+| 7  | T16: Write integration test for all configs     | High     | 20min    |
+| 8  | T17: Migrate example/todo to Materialize        | Critical | 30min    |
+| 9  | T18: Migrate example/user to Materialize        | High     | 25min    |
+| 10 | T19: Update cqrs-gen for Materialize codegen    | Medium   | 20min    |
+| 11 | T20: Remove ProjectionRunner from stack/        | High     | 15min    |
+| 12 | T21: Delete projection/ module                  | Critical | 20min    |
+| 13 | T22: command.Metadata own struct                | High     | 25min    |
+| 14 | T23: query.Metadata own struct                  | High     | 25min    |
+| 15 | T24: Update storage scan helpers                | High     | 15min    |
+| 16 | T25: Update ADR statuses                        | Medium   | 10min    |
+| 17 | T26: Delete TransactionID ghost type            | Medium   | 15min    |
+| 18 | T27: Update FEATURES.md + ROADMAP.md            | Low      | 15min    |
+| 19 | Fix CBOR fuzz test (duplicate map key -17)      | Medium   | 30min-2h |
+| 20 | Add rapid property tests for Version            | Medium   | 20min    |
+| 21 | Fix PgxListener race condition                  | Medium   | 45min    |
+| 22 | Consider go-cache/otter for dedup               | Low      | 1h       |
+| 23 | Extract FakeBus to syncbus module               | Low      | 1h       |
+| 24 | Move indexing advisor to storage/sql/           | Low      | 30min    |
+| 25 | encoding/json/v2 migration                      | Low      | 2h       |
 
 ---
 

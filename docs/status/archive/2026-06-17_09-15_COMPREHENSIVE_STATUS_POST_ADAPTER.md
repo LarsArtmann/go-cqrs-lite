@@ -145,33 +145,33 @@ The `consolidate-catalog` branch is in **excellent shape**. All major work items
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Task                                             | Impact | Effort | Priority |
-| --- | ------------------------------------------------ | ------ | ------ | -------- |
-| 1   | Merge `consolidate-catalog` → `master`           | 5      | 1      | P0       |
-| 2   | Tag v2.4.0 release                               | 5      | 1      | P0       |
-| 3   | Fix codec fuzz seed (`5c4177600a024103`)         | 4      | 1      | P0       |
-| 4   | Add kv contract tests vs pebble adapter          | 4      | 2      | P1       |
-| 5   | Module README: `kv/`                             | 3      | 1      | P1       |
-| 6   | Module README: `pebble/`                         | 3      | 1      | P1       |
-| 7   | PostgreSQL CI service container                  | 4      | 2      | P1       |
-| 8   | Schema registry validation middleware (ADR-0017) | 5      | 5      | P1       |
-| 9   | Prometheus metrics exporter                      | 4      | 4      | P1       |
-| 10  | Structured logging middleware (`slog`)           | 4      | 3      | P1       |
-| 11  | Distributed tracing propagation                  | 4      | 5      | P1       |
-| 12  | Distributed checkpointing (ADR-0018)             | 4      | 6      | P2       |
-| 13  | Pebble coverage → 85%+                           | 3      | 3      | P2       |
-| 14  | Pebble golden test (CBOR envelope)               | 3      | 3      | P2       |
-| 15  | Benchmark: pebble vs SQL store                   | 3      | 3      | P2       |
-| 16  | Performance baseline update                      | 3      | 1      | P2       |
-| 17  | cqrs-gen v2 (struct-tag scanning)                | 3      | 5      | P2       |
-| 18  | pprof endpoints in `middleware/`                 | 3      | 3      | P2       |
-| 19  | gRPC transport adapter                           | 3      | 6      | P3       |
-| 20  | NATS/Redis Stream adapter                        | 3      | 6      | P3       |
-| 21  | Streaming event reads (`StreamLoader`)           | 3      | 5      | P3       |
-| 22  | Documentation site                               | 3      | 5      | P3       |
-| 23  | WASM target for `decider`                        | 3      | 5      | P3       |
-| 24  | v3 breaking changes (branch: v3)                 | 4      | 15     | P4       |
-| 25  | v4 breaking changes (branch: v4)                 | 3      | 6      | P4       |
+| #  | Task                                             | Impact | Effort | Priority |
+| -- | ------------------------------------------------ | ------ | ------ | -------- |
+| 1  | Merge `consolidate-catalog` → `master`           | 5      | 1      | P0       |
+| 2  | Tag v2.4.0 release                               | 5      | 1      | P0       |
+| 3  | Fix codec fuzz seed (`5c4177600a024103`)         | 4      | 1      | P0       |
+| 4  | Add kv contract tests vs pebble adapter          | 4      | 2      | P1       |
+| 5  | Module README: `kv/`                             | 3      | 1      | P1       |
+| 6  | Module README: `pebble/`                         | 3      | 1      | P1       |
+| 7  | PostgreSQL CI service container                  | 4      | 2      | P1       |
+| 8  | Schema registry validation middleware (ADR-0017) | 5      | 5      | P1       |
+| 9  | Prometheus metrics exporter                      | 4      | 4      | P1       |
+| 10 | Structured logging middleware (`slog`)           | 4      | 3      | P1       |
+| 11 | Distributed tracing propagation                  | 4      | 5      | P1       |
+| 12 | Distributed checkpointing (ADR-0018)             | 4      | 6      | P2       |
+| 13 | Pebble coverage → 85%+                           | 3      | 3      | P2       |
+| 14 | Pebble golden test (CBOR envelope)               | 3      | 3      | P2       |
+| 15 | Benchmark: pebble vs SQL store                   | 3      | 3      | P2       |
+| 16 | Performance baseline update                      | 3      | 1      | P2       |
+| 17 | cqrs-gen v2 (struct-tag scanning)                | 3      | 5      | P2       |
+| 18 | pprof endpoints in `middleware/`                 | 3      | 3      | P2       |
+| 19 | gRPC transport adapter                           | 3      | 6      | P3       |
+| 20 | NATS/Redis Stream adapter                        | 3      | 6      | P3       |
+| 21 | Streaming event reads (`StreamLoader`)           | 3      | 5      | P3       |
+| 22 | Documentation site                               | 3      | 5      | P3       |
+| 23 | WASM target for `decider`                        | 3      | 5      | P3       |
+| 24 | v3 breaking changes (branch: v3)                 | 4      | 15     | P4       |
+| 25 | v4 breaking changes (branch: v4)                 | 3      | 6      | P4       |
 
 ---
 

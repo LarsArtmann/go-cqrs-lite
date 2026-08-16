@@ -135,33 +135,33 @@ The deployer-first stack (`example/deployer-first/`) is the canonical production
 
 ## f) Top 25 Things To Do Next
 
-| #   | Task                                                                                           | Impact   | Effort  | Category     |
-| --- | ---------------------------------------------------------------------------------------------- | -------- | ------- | ------------ |
-| 1   | **Push v3.0.0 tags to remote** (`git push --tags`)                                             | Critical | Trivial | Release      |
-| 2   | **Per-module `go mod tidy`** to clean stale go.sum v2 entries                                  | High     | Small   | Hygiene      |
-| 3   | **Archive `docs/status/*.md`** older than 7 days → `archive/`                                  | High     | Trivial | Hygiene      |
-| 4   | **Fix `doc-files-age-check` hook** to actually check `docs/status/`                            | High     | Small   | Tooling      |
-| 5   | **Fix remaining ~49 lint issues** (transport/http, codec, watermill)                           | Medium   | Medium  | Quality      |
-| 6   | **Add constructor-error tests to `stack/`** (45.9%→>70%)                                       | High     | Medium  | Testing      |
-| 7   | **Add constructor-error tests to `stack/postgres`** (21.2%→>50%)                               | High     | Medium  | Testing      |
-| 8   | **Document deployer-first pattern in README**                                                  | Medium   | Small   | Docs         |
-| 9   | **Write "first 15 minutes" quickstart** that runs without setup                                | High     | Small   | Adoption     |
-| 10  | **Clean stale `samber/ro` indirect deps** from go.mod files (9 modules)                        | Low      | Trivial | Hygiene      |
-| 11  | **Add `cmd/api-stability` tests** — tool guards breaking changes but is untested (0% coverage) | Medium   | Small   | Testing      |
-| 12  | **Add turso `OpenSync` error-path tests** (39%→50%)                                            | Medium   | Small   | Testing      |
-| 13  | **Add `storage/sql` `LoadWithSpan` error branch tests** (61%→70%)                              | Medium   | Small   | Testing      |
-| 14  | **Golden tests for `signing`** (HMAC/Ed25519 signature format stability)                       | Medium   | Small   | Testing      |
-| 15  | **Golden tests for `storage`** (DDL schemas, metadata roundtrip)                               | Medium   | Small   | Testing      |
-| 16  | **Document `POSTGRES_TEST_DSN`** prominently in CONTRIBUTING                                   | Low      | Trivial | Docs         |
-| 17  | **Write a short blog post / Reddit post** announcing v3.0.0                                    | High     | Small   | Adoption     |
-| 18  | **Link benchmarks from README** with a one-line perf claim                                     | Medium   | Trivial | Adoption     |
-| 19  | **Decide and ADR: is multi-master permanently out of scope?**                                  | Medium   | Small   | Architecture |
-| 20  | **Hot-State cache prototype** (only if a real hot-aggregate workload emerges)                  | Low      | Medium  | Feature      |
-| 21  | **Read-pressure snapshot strategy** (only after Hot-State cache)                               | Low      | Medium  | Feature      |
-| 22  | **Secondary indexes on `kv.Store`** (only if a workload needs them)                            | Low      | Large   | Feature      |
-| 23  | **gRPC transport adapter** (ADR-0025, only if consumer asks)                                   | Low      | Large   | Feature      |
-| 24  | **NATS/Redis transport adapters** (ADR-0025, only if consumer asks)                            | Low      | Large   | Feature      |
-| 25  | **Property-based integration testing** with state machine verification                         | Low      | Medium  | Testing      |
+| #  | Task                                                                                           | Impact   | Effort  | Category     |
+| -- | ---------------------------------------------------------------------------------------------- | -------- | ------- | ------------ |
+| 1  | **Push v3.0.0 tags to remote** (`git push --tags`)                                             | Critical | Trivial | Release      |
+| 2  | **Per-module `go mod tidy`** to clean stale go.sum v2 entries                                  | High     | Small   | Hygiene      |
+| 3  | **Archive `docs/status/*.md`** older than 7 days → `archive/`                                  | High     | Trivial | Hygiene      |
+| 4  | **Fix `doc-files-age-check` hook** to actually check `docs/status/`                            | High     | Small   | Tooling      |
+| 5  | **Fix remaining ~49 lint issues** (transport/http, codec, watermill)                           | Medium   | Medium  | Quality      |
+| 6  | **Add constructor-error tests to `stack/`** (45.9%→>70%)                                       | High     | Medium  | Testing      |
+| 7  | **Add constructor-error tests to `stack/postgres`** (21.2%→>50%)                               | High     | Medium  | Testing      |
+| 8  | **Document deployer-first pattern in README**                                                  | Medium   | Small   | Docs         |
+| 9  | **Write "first 15 minutes" quickstart** that runs without setup                                | High     | Small   | Adoption     |
+| 10 | **Clean stale `samber/ro` indirect deps** from go.mod files (9 modules)                        | Low      | Trivial | Hygiene      |
+| 11 | **Add `cmd/api-stability` tests** — tool guards breaking changes but is untested (0% coverage) | Medium   | Small   | Testing      |
+| 12 | **Add turso `OpenSync` error-path tests** (39%→50%)                                            | Medium   | Small   | Testing      |
+| 13 | **Add `storage/sql` `LoadWithSpan` error branch tests** (61%→70%)                              | Medium   | Small   | Testing      |
+| 14 | **Golden tests for `signing`** (HMAC/Ed25519 signature format stability)                       | Medium   | Small   | Testing      |
+| 15 | **Golden tests for `storage`** (DDL schemas, metadata roundtrip)                               | Medium   | Small   | Testing      |
+| 16 | **Document `POSTGRES_TEST_DSN`** prominently in CONTRIBUTING                                   | Low      | Trivial | Docs         |
+| 17 | **Write a short blog post / Reddit post** announcing v3.0.0                                    | High     | Small   | Adoption     |
+| 18 | **Link benchmarks from README** with a one-line perf claim                                     | Medium   | Trivial | Adoption     |
+| 19 | **Decide and ADR: is multi-master permanently out of scope?**                                  | Medium   | Small   | Architecture |
+| 20 | **Hot-State cache prototype** (only if a real hot-aggregate workload emerges)                  | Low      | Medium  | Feature      |
+| 21 | **Read-pressure snapshot strategy** (only after Hot-State cache)                               | Low      | Medium  | Feature      |
+| 22 | **Secondary indexes on `kv.Store`** (only if a workload needs them)                            | Low      | Large   | Feature      |
+| 23 | **gRPC transport adapter** (ADR-0025, only if consumer asks)                                   | Low      | Large   | Feature      |
+| 24 | **NATS/Redis transport adapters** (ADR-0025, only if consumer asks)                            | Low      | Large   | Feature      |
+| 25 | **Property-based integration testing** with state machine verification                         | Low      | Medium  | Testing      |
 
 ---
 

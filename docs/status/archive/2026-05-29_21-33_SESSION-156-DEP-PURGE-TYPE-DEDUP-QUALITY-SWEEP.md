@@ -25,37 +25,37 @@ The session eliminated 3 direct dependencies and 3 transitive dependencies from 
 
 ### Critical: Root Cause Fix (core v1.6.0 phantom dep — FINALLY solved)
 
-| #   | What                                                          | Root Cause                                                                                                                                                                                                                                             | Fix                                                                                         | Commit    |
-| --- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- | --------- |
-| 1   | core v1.6.0 kept re-appearing in command/decider/query go.mod | These modules require `testhelpers v1.6.0` (published when core/ existed) but **lacked local replace directives**. `go work sync` resolved the published module graph, pulling core as indirect. The buildflow pre-commit hook then auto-committed it. | Added missing replace directives: command/+testhelpers, decider/+memory, query/+testhelpers | `99d6f6a` |
+| # | What                                                          | Root Cause                                                                                                                                                                                                                                             | Fix                                                                                         | Commit    |
+| - | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- | --------- |
+| 1 | core v1.6.0 kept re-appearing in command/decider/query go.mod | These modules require `testhelpers v1.6.0` (published when core/ existed) but **lacked local replace directives**. `go work sync` resolved the published module graph, pulling core as indirect. The buildflow pre-commit hook then auto-committed it. | Added missing replace directives: command/+testhelpers, decider/+memory, query/+testhelpers | `99d6f6a` |
 
 **Key insight:** Session 155 treated the symptom (removing the core line) but not the cause (missing replaces). The buildflow hook re-added it every commit. The real fix was ensuring all local modules have replace directives so `go work sync` never needs to resolve published versions.
 
 ### Dependency Purge
 
-| #   | What                                                                                                        | Impact                                                                                                                                                               | Commit    |
-| --- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 2   | **Deleted `event/reactive.go`** — zero production consumers of EventBus, FilterEventType, HandlerToObserver | Removed `samber/ro` (direct) + `samber/lo` + `golang.org/x/exp` (indirect) from `event/` and all downstream modules                                                  | `2f9caf9` |
-| 3   | **Buildflow cascade tidy** — ro removal propagated to 47 files                                              | memory, decider, projection, listing, storage, otel, pebble, etc. all lost samber/lo + samber/ro + golang.org/x/exp. Net -199 lines removed from go.mod/go.sum files | `7d3f89e` |
+| # | What                                                                                                        | Impact                                                                                                                                                               | Commit    |
+| - | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 2 | **Deleted `event/reactive.go`** — zero production consumers of EventBus, FilterEventType, HandlerToObserver | Removed `samber/ro` (direct) + `samber/lo` + `golang.org/x/exp` (indirect) from `event/` and all downstream modules                                                  | `2f9caf9` |
+| 3 | **Buildflow cascade tidy** — ro removal propagated to 47 files                                              | memory, decider, projection, listing, storage, otel, pebble, etc. all lost samber/lo + samber/ro + golang.org/x/exp. Net -199 lines removed from go.mod/go.sum files | `7d3f89e` |
 
 **Before:** `event/` had 3 direct + 3 transitive deps from ro.
 **After:** `event/` has zero samber deps. The entire workspace lost ~6 dependency entries.
 
 ### Type Deduplication
 
-| #   | What                                                                 | How                                                                                                         | Commit                       |
-| --- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| 4   | `command.AggregateType` = `event.AggregateType`                      | Changed from duplicate `type AggregateType string` to type alias `type AggregateType = event.AggregateType` | `d8aa825`                    |
-| 5   | `command.AggregateRef` = `event.AggregateRef`                        | Changed from duplicate struct to type alias `type AggregateRef = event.AggregateRef`                        | `d8aa825`                    |
-| 6   | `command.ParseAggregateType` delegates to `event.ParseAggregateType` | Wrapper with `%w` error wrapping for lint compliance                                                        | `d8aa825` + pending lint fix |
+| # | What                                                                 | How                                                                                                         | Commit                       |
+| - | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| 4 | `command.AggregateType` = `event.AggregateType`                      | Changed from duplicate `type AggregateType string` to type alias `type AggregateType = event.AggregateType` | `d8aa825`                    |
+| 5 | `command.AggregateRef` = `event.AggregateRef`                        | Changed from duplicate struct to type alias `type AggregateRef = event.AggregateRef`                        | `d8aa825`                    |
+| 6 | `command.ParseAggregateType` delegates to `event.ParseAggregateType` | Wrapper with `%w` error wrapping for lint compliance                                                        | `d8aa825` + pending lint fix |
 
 ### Other Fixes
 
-| #   | What                                                                                                         | Commit    |
-| --- | ------------------------------------------------------------------------------------------------------------ | --------- |
-| 7   | Fixed misleading `otel.TraceIDLogger` docstring — claimed trace ID injection but only added `component=cqrs` | `3e9f88e` |
-| 8   | Fixed `snapshot.EveryNEvents` — bare `fmt.Errorf` → `event.NewRejection` for error-family consistency        | `6a633ba` |
-| 9   | Added `SchemaVersion.Increment()` — type-safe version arithmetic, used in `schema/registry.go`               | `6ccc2f5` |
+| # | What                                                                                                         | Commit    |
+| - | ------------------------------------------------------------------------------------------------------------ | --------- |
+| 7 | Fixed misleading `otel.TraceIDLogger` docstring — claimed trace ID injection but only added `component=cqrs` | `3e9f88e` |
+| 8 | Fixed `snapshot.EveryNEvents` — bare `fmt.Errorf` → `event.NewRejection` for error-family consistency        | `6a633ba` |
+| 9 | Added `SchemaVersion.Increment()` — type-safe version arithmetic, used in `schema/registry.go`               | `6ccc2f5` |
 
 ---
 
@@ -70,23 +70,23 @@ The session eliminated 3 direct dependencies and 3 transitive dependencies from 
 
 ## C. NOT STARTED
 
-| #   | Item                                                                                                      | Impact            | Effort                               |
-| --- | --------------------------------------------------------------------------------------------------------- | ----------------- | ------------------------------------ |
-| 1   | **Add `AggregateType()` to `Command` interface** — enables simplified `decider.Execute(ctx, cmd, decide)` | High (ergonomics) | Medium (breaking for external impls) |
-| 2   | **Add `ID()` to `Command` interface** — traceability                                                      | Medium            | Medium (breaking)                    |
-| 3   | **`Snapshot.Encoding` field** — future-proof against codec changes                                        | High              | Medium (20+ call sites)              |
-| 4   | **Fix `query.DispatchTyped` double-wrapping errors**                                                      | Low               | Tiny                                 |
-| 5   | **Remove `io.Closer` from `EventSink`/`EventSource`**                                                     | Low               | Large                                |
-| 6   | **Add `Unsubscribe` to `event.Bus`**                                                                      | Medium            | Medium                               |
-| 7   | **Paginated `Load` on `EventSource`**                                                                     | High              | Large                                |
-| 8   | **`listing.AggregateRef` — embed `event.AggregateRef`**                                                   | Low               | Small                                |
-| 9   | **Consolidate OTel helpers** (`StartSpan`, `SpanFromContext` are trivial wrappers)                        | Low               | Small                                |
-| 10  | **Simplify metrics middleware** — remove `MetricsRecorder` interface, keep only OTel-specific             | Low               | Medium                               |
-| 11  | **Fix `Metadata` struct `omitempty` on nested structs**                                                   | Low               | Tiny                                 |
-| 12  | **`CheckVersionConflict` should take `Version` not `int`**                                                | Low               | Tiny                                 |
-| 13  | **Standardize example/ placeholder versions**                                                             | Low               | Tiny                                 |
-| 14  | **Remove `StreamKey()` from `AggregateRef`** (duplicates `String()`)                                      | Low               | Tiny                                 |
-| 15  | **Publish v1.0.0 tags** to eliminate all replace directives                                               | High              | Medium                               |
+| #  | Item                                                                                                      | Impact            | Effort                               |
+| -- | --------------------------------------------------------------------------------------------------------- | ----------------- | ------------------------------------ |
+| 1  | **Add `AggregateType()` to `Command` interface** — enables simplified `decider.Execute(ctx, cmd, decide)` | High (ergonomics) | Medium (breaking for external impls) |
+| 2  | **Add `ID()` to `Command` interface** — traceability                                                      | Medium            | Medium (breaking)                    |
+| 3  | **`Snapshot.Encoding` field** — future-proof against codec changes                                        | High              | Medium (20+ call sites)              |
+| 4  | **Fix `query.DispatchTyped` double-wrapping errors**                                                      | Low               | Tiny                                 |
+| 5  | **Remove `io.Closer` from `EventSink`/`EventSource`**                                                     | Low               | Large                                |
+| 6  | **Add `Unsubscribe` to `event.Bus`**                                                                      | Medium            | Medium                               |
+| 7  | **Paginated `Load` on `EventSource`**                                                                     | High              | Large                                |
+| 8  | **`listing.AggregateRef` — embed `event.AggregateRef`**                                                   | Low               | Small                                |
+| 9  | **Consolidate OTel helpers** (`StartSpan`, `SpanFromContext` are trivial wrappers)                        | Low               | Small                                |
+| 10 | **Simplify metrics middleware** — remove `MetricsRecorder` interface, keep only OTel-specific             | Low               | Medium                               |
+| 11 | **Fix `Metadata` struct `omitempty` on nested structs**                                                   | Low               | Tiny                                 |
+| 12 | **`CheckVersionConflict` should take `Version` not `int`**                                                | Low               | Tiny                                 |
+| 13 | **Standardize example/ placeholder versions**                                                             | Low               | Tiny                                 |
+| 14 | **Remove `StreamKey()` from `AggregateRef`** (duplicates `String()`)                                      | Low               | Tiny                                 |
+| 15 | **Publish v1.0.0 tags** to eliminate all replace directives                                               | High              | Medium                               |
 
 ---
 

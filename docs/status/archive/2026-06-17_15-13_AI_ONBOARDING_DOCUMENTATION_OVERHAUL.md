@@ -1,7 +1,7 @@
 # Status Report: AI Onboarding & Documentation Overhaul
 
-**Date:** 2026-06-17 15:13  
-**Session Goal:** Make go-cqrs-lite easy for AI assistants to use to its full potential  
+**Date:** 2026-06-17 15:13\
+**Session Goal:** Make go-cqrs-lite easy for AI assistants to use to its full potential\
 **Result:** SKILL.md created, all 29 READMEs cross-linked, docs index fixed, 11 API errors caught and fixed
 
 ---
@@ -33,19 +33,19 @@ The user asked: _"How can we make it easier for people (especially AI) to use th
 
 Every code snippet was verified against actual source signatures. **11 APIs were wrong in the initial draft:**
 
-| #   | Error                                                   | Correct API                                                             |
-| --- | ------------------------------------------------------- | ----------------------------------------------------------------------- |
-| 1   | `storage.NewSQLBackend(db, dialect)`                    | `NewSQLBackend(db)` — dialect auto-inferred from driver                 |
-| 2   | `snapshot.EveryNEvents(100)` as direct arg              | Returns `(SnapshotStrategy, error)` — must handle error                 |
-| 3   | `catalog.NewRegistry()`                                 | `NewRegistry("title", "version")` — requires title+version              |
-| 4   | `encryption.NewStaticKeyResolver().With(...)` chainable | Takes `map[KeyID]Decrypter` — no `.With()` builder                      |
-| 5   | `listing.NewAggregateProjection(reader)`                | Lives in `storage/`, not `listing/`; takes `(ctx, db, prefix, dialect)` |
-| 6   | `listing.NewInMemoryAggregateReader()`                  | Requires `event.Journal` param                                          |
-| 7   | `pebble.NewKVAdapter(WithKVSyncWrites())`               | `pebble.NewKVStore(WithSyncWrites())` — both name and option wrong      |
-| 8   | `projection.Builder.On()/.Runner()`                     | Free function `projection.On[T](b, ...)` + method `.Build()`            |
-| 9   | `event.NewEvent(struct)` in upcaster                    | Takes `[]byte`, not struct — must encode first                          |
-| 10  | `watermill.NewPublisher/NewSubscriber`                  | `NewPublisherAdapter`/`NewSubscriberAdapter`                            |
-| 11  | `turso.Open(string, WithSync(...))`                     | `turso.OpenSync(ctx, path, url, token)` — different function            |
+| #  | Error                                                   | Correct API                                                             |
+| -- | ------------------------------------------------------- | ----------------------------------------------------------------------- |
+| 1  | `storage.NewSQLBackend(db, dialect)`                    | `NewSQLBackend(db)` — dialect auto-inferred from driver                 |
+| 2  | `snapshot.EveryNEvents(100)` as direct arg              | Returns `(SnapshotStrategy, error)` — must handle error                 |
+| 3  | `catalog.NewRegistry()`                                 | `NewRegistry("title", "version")` — requires title+version              |
+| 4  | `encryption.NewStaticKeyResolver().With(...)` chainable | Takes `map[KeyID]Decrypter` — no `.With()` builder                      |
+| 5  | `listing.NewAggregateProjection(reader)`                | Lives in `storage/`, not `listing/`; takes `(ctx, db, prefix, dialect)` |
+| 6  | `listing.NewInMemoryAggregateReader()`                  | Requires `event.Journal` param                                          |
+| 7  | `pebble.NewKVAdapter(WithKVSyncWrites())`               | `pebble.NewKVStore(WithSyncWrites())` — both name and option wrong      |
+| 8  | `projection.Builder.On()/.Runner()`                     | Free function `projection.On[T](b, ...)` + method `.Build()`            |
+| 9  | `event.NewEvent(struct)` in upcaster                    | Takes `[]byte`, not struct — must encode first                          |
+| 10 | `watermill.NewPublisher/NewSubscriber`                  | `NewPublisherAdapter`/`NewSubscriberAdapter`                            |
+| 11 | `turso.Open(string, WithSync(...))`                     | `turso.OpenSync(ctx, path, url, token)` — different function            |
 
 Also fixed stale references across AGENTS.md, pebble/README.md, kv/README.md.
 **Commit:** `53d2f495`

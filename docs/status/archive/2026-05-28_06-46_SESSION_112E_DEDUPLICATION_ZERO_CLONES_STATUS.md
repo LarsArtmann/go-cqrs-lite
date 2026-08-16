@@ -1,9 +1,9 @@
 # Session 112e: Deduplication to Zero Clones — Comprehensive Status Report
 
-**Date:** 2026-05-28 06:46 UTC  
-**Session Focus:** Semantic code deduplication via `art-dupl` — reduced clone groups from 8 to 0 at threshold t=50  
-**Branch:** master (ahead of origin by 6 commits)  
-**Total Go LOC:** ~29,000  
+**Date:** 2026-05-28 06:46 UTC\
+**Session Focus:** Semantic code deduplication via `art-dupl` — reduced clone groups from 8 to 0 at threshold t=50\
+**Branch:** master (ahead of origin by 6 commits)\
+**Total Go LOC:** ~29,000\
 **Modules:** 13 (core, memory, catalog, middleware, testhelpers, integration, storage, projection, saga, watermill, signing, cmd/cqrs-gen, example/\*)
 
 ---
@@ -159,33 +159,33 @@ The success of the watermill and cqrs-gen table-driven refactors suggests we sho
 
 ## f) Top #25 Things to Get Done Next
 
-| #   | Task                                                          | Module              | Impact  | Effort | Priority |
-| --- | ------------------------------------------------------------- | ------------------- | ------- | ------ | -------- |
-| 1   | Add `art-dupl -t 50` to CI (`ci.yml`)                         | `.github/workflows` | 🔥 High | 15 min | P0       |
-| 2   | Fix `middleware/circuit_breaker.go` dupl + varnamelen         | `middleware`        | 🔥 High | 30 min | P0       |
-| 3   | Run `go mod tidy` in `catalog/` and verify                    | `catalog`           | Medium  | 10 min | P1       |
-| 4   | Audit for more `must*` test helpers across modules            | All                 | Medium  | 30 min | P1       |
-| 5   | Table-drive `core/event/codec_test.go` validation tests       | `core/event`        | Medium  | 20 min | P1       |
-| 6   | Table-drive storage test patterns                             | `storage`           | Medium  | 45 min | P2       |
-| 7   | Document `signing/` module in `docs/`                         | `docs`              | Medium  | 30 min | P2       |
-| 8   | Verify `pebble_event_store.go` compiles + basic tests         | `storage`           | Medium  | 45 min | P2       |
-| 9   | Clean up `replace` directives (plan v1.0.0 tag strategy)      | All                 | High    | 2 hr   | P2       |
-| 10  | Add integration test for saga `newStep` helper                | `example/saga`      | Low     | 15 min | P3       |
-| 11  | Add `testhelpers.NewEventsOpts` (batch helper)                | `testhelpers`       | Low     | 10 min | P3       |
-| 12  | Review `projection/` for duplicate handler patterns           | `projection`        | Medium  | 30 min | P3       |
-| 13  | Review `storage/` SQL dialect patterns for duplication        | `storage`           | Medium  | 30 min | P3       |
-| 14  | Add benchmark tests for deduplicated helpers                  | `testhelpers`       | Low     | 20 min | P3       |
-| 15  | Document deduplication policy in `docs/adr/`                  | `docs/adr`          | Low     | 20 min | P3       |
-| 16  | Refactor `example/todo/aggregate/todo_test.go` table patterns | `example/todo`      | Low     | 20 min | P3       |
-| 17  | Verify all example modules compile independently              | `example/*`         | Medium  | 15 min | P3       |
-| 18  | Add `go vet ./...` to pre-commit / CI                         | CI                  | Medium  | 10 min | P3       |
-| 19  | Review `watermill/` for additional test deduplication         | `watermill`         | Low     | 15 min | P4       |
-| 20  | Consolidate `FakeBus` / `FakeStore` patterns if duplicated    | `testhelpers`       | Low     | 20 min | P4       |
-| 21  | Add property-based tests for event creation                   | `core/event`        | Medium  | 1 hr   | P4       |
-| 22  | Review `catalog/` exporter tests for shared setup             | `catalog`           | Low     | 20 min | P4       |
-| 23  | Add `t.Helper()` audit (ensure all test helpers call it)      | All                 | Low     | 20 min | P4       |
-| 24  | Document test helper conventions in `AGENTS.md`               | `AGENTS.md`         | Low     | 15 min | P4       |
-| 25  | Run `art-dupl -t 40` to find next threshold of clones         | All                 | Low     | 5 min  | P4       |
+| #  | Task                                                          | Module              | Impact  | Effort | Priority |
+| -- | ------------------------------------------------------------- | ------------------- | ------- | ------ | -------- |
+| 1  | Add `art-dupl -t 50` to CI (`ci.yml`)                         | `.github/workflows` | 🔥 High | 15 min | P0       |
+| 2  | Fix `middleware/circuit_breaker.go` dupl + varnamelen         | `middleware`        | 🔥 High | 30 min | P0       |
+| 3  | Run `go mod tidy` in `catalog/` and verify                    | `catalog`           | Medium  | 10 min | P1       |
+| 4  | Audit for more `must*` test helpers across modules            | All                 | Medium  | 30 min | P1       |
+| 5  | Table-drive `core/event/codec_test.go` validation tests       | `core/event`        | Medium  | 20 min | P1       |
+| 6  | Table-drive storage test patterns                             | `storage`           | Medium  | 45 min | P2       |
+| 7  | Document `signing/` module in `docs/`                         | `docs`              | Medium  | 30 min | P2       |
+| 8  | Verify `pebble_event_store.go` compiles + basic tests         | `storage`           | Medium  | 45 min | P2       |
+| 9  | Clean up `replace` directives (plan v1.0.0 tag strategy)      | All                 | High    | 2 hr   | P2       |
+| 10 | Add integration test for saga `newStep` helper                | `example/saga`      | Low     | 15 min | P3       |
+| 11 | Add `testhelpers.NewEventsOpts` (batch helper)                | `testhelpers`       | Low     | 10 min | P3       |
+| 12 | Review `projection/` for duplicate handler patterns           | `projection`        | Medium  | 30 min | P3       |
+| 13 | Review `storage/` SQL dialect patterns for duplication        | `storage`           | Medium  | 30 min | P3       |
+| 14 | Add benchmark tests for deduplicated helpers                  | `testhelpers`       | Low     | 20 min | P3       |
+| 15 | Document deduplication policy in `docs/adr/`                  | `docs/adr`          | Low     | 20 min | P3       |
+| 16 | Refactor `example/todo/aggregate/todo_test.go` table patterns | `example/todo`      | Low     | 20 min | P3       |
+| 17 | Verify all example modules compile independently              | `example/*`         | Medium  | 15 min | P3       |
+| 18 | Add `go vet ./...` to pre-commit / CI                         | CI                  | Medium  | 10 min | P3       |
+| 19 | Review `watermill/` for additional test deduplication         | `watermill`         | Low     | 15 min | P4       |
+| 20 | Consolidate `FakeBus` / `FakeStore` patterns if duplicated    | `testhelpers`       | Low     | 20 min | P4       |
+| 21 | Add property-based tests for event creation                   | `core/event`        | Medium  | 1 hr   | P4       |
+| 22 | Review `catalog/` exporter tests for shared setup             | `catalog`           | Low     | 20 min | P4       |
+| 23 | Add `t.Helper()` audit (ensure all test helpers call it)      | All                 | Low     | 20 min | P4       |
+| 24 | Document test helper conventions in `AGENTS.md`               | `AGENTS.md`         | Low     | 15 min | P4       |
+| 25 | Run `art-dupl -t 40` to find next threshold of clones         | All                 | Low     | 5 min  | P4       |
 
 ---
 
@@ -243,5 +243,5 @@ The next highest-value action is **adding `art-dupl` to CI** to prevent regressi
 
 ---
 
-_Generated with Crush_  
+_Generated with Crush_\
 _Assisted-by: Crush:hf:moonshotai/Kimi-K2.6_

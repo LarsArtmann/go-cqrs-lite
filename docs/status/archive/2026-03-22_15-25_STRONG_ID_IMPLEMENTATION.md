@@ -60,16 +60,16 @@ fa7acaa feat(xtypes): integrate strongly-typed branded IDs and simplify type-saf
 
 ### Documentation
 
-| Item             | Status      | Notes                                   |
-| ---------------- | ----------- | --------------------------------------- |
+| Item             | Status     | Notes                                   |
+| ---------------- | ---------- | --------------------------------------- |
 | README.md update | ⚠️ Not done | Should add xtypes usage section         |
 | GoDoc comments   | ⚠️ Partial  | Most types have comments, could improve |
 | Usage examples   | ⚠️ Not done | Should add `example/` directory         |
 
 ### Integration with Core Packages
 
-| Item                              | Status         | Notes                          |
-| --------------------------------- | -------------- | ------------------------------ |
+| Item                              | Status        | Notes                          |
+| --------------------------------- | ------------- | ------------------------------ |
 | event package uses string IDs     | ⚠️ Intentional | Core stays backward compatible |
 | command package uses string IDs   | ⚠️ Intentional | Core stays backward compatible |
 | aggregate package uses string IDs | ⚠️ Intentional | Core stays backward compatible |

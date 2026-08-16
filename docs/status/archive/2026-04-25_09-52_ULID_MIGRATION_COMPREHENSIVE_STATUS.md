@@ -1,7 +1,7 @@
 # ULID Migration — Comprehensive Status Report
 
-**Date:** 2026-04-25 09:52  
-**Author:** Crush (AI Assistant)  
+**Date:** 2026-04-25 09:52\
+**Author:** Crush (AI Assistant)\
 **Session:** Resume from interrupted session
 
 ---
@@ -165,33 +165,33 @@ Tests mix `id.AggregateID{}` and `var x id.AggregateID` for zero values. Pick on
 
 ## F) Top 25 Things to Do Next
 
-| #   | Priority | Task                                                                | Est. Effort |
-| --- | -------- | ------------------------------------------------------------------- | ----------- |
-| 1   | 🔴 HIGH  | Run `go test -race ./...` across all modules                        | 5 min       |
-| 2   | 🔴 HIGH  | Run `golangci-lint run` across all modules                          | 5 min       |
-| 3   | 🔴 HIGH  | Increase `core/pkg/id` test coverage to 80%+                        | 30 min      |
-| 4   | 🔴 HIGH  | Investigate root-level packages (`aggregate/`, `command/`, etc.)    | 15 min      |
-| 5   | 🟡 MED   | Add `-race` to CI / test commands in AGENTS.md                      | 5 min       |
-| 6   | 🟡 MED   | Run benchmarks: UUID v4 vs ULID performance comparison              | 15 min      |
-| 7   | 🟡 MED   | Audit `examples/` for stale UUID code                               | 15 min      |
-| 8   | 🟡 MED   | Write migration guide (BREAKING CHANGE docs for consumers)          | 30 min      |
-| 9   | 🟡 MED   | Standardize zero-value idiom in tests (`id.X{}` vs `var`)           | 10 min      |
-| 10  | 🟡 MED   | Add ULID validation to `Parse[T]()` (26 chars, Crockford Base32)    | 15 min      |
-| 11  | 🟡 MED   | Publish `go-composable-business-types` to remove replace directives | 30 min      |
-| 12  | 🟡 MED   | Add `go.work` or `go.work.use` at project root                      | 10 min      |
-| 13  | 🟡 MED   | Update AGENTS.md with ULID/IsZero/MustParse patterns                | 10 min      |
-| 14  | 🟢 LOW   | Add CHANGELOG.md entry for v0.x breaking change                     | 10 min      |
-| 15  | 🟢 LOW   | Add `testutil` helpers for common `MustParse*()` patterns           | 15 min      |
-| 16  | 🟢 LOW   | Add integration test spanning core → memory → xtypes                | 30 min      |
-| 17  | 🟢 LOW   | Document `go-composable-business-types` API surface used            | 10 min      |
-| 18  | 🟢 LOW   | Add example_test.go for `core/pkg/id` showing new patterns          | 15 min      |
-| 19  | 🟢 LOW   | Verify SQL NULL behavior with actual database driver                | 30 min      |
-| 20  | 🟢 LOW   | Add fuzz targets for `Parse()` and `MustParse()`                    | 15 min      |
-| 21  | 🟢 LOW   | Consider `fmt.Stringer` benchmark (hot path in logging)             | 10 min      |
-| 22  | 🟢 LOW   | Add `.IsZero()` check to `event.NewEvent()` for all ID fields       | 10 min      |
-| 23  | 🟢 LOW   | Update catalog schema generation for struct-based IDs               | 20 min      |
-| 24  | 🟢 LOW   | Clean up `docs/status/` — 26 files accumulated                      | 10 min      |
-| 25  | 🟢 LOW   | Git tag for the ULID migration milestone                            | 2 min       |
+| #  | Priority | Task                                                                | Est. Effort |
+| -- | -------- | ------------------------------------------------------------------- | ----------- |
+| 1  | 🔴 HIGH  | Run `go test -race ./...` across all modules                        | 5 min       |
+| 2  | 🔴 HIGH  | Run `golangci-lint run` across all modules                          | 5 min       |
+| 3  | 🔴 HIGH  | Increase `core/pkg/id` test coverage to 80%+                        | 30 min      |
+| 4  | 🔴 HIGH  | Investigate root-level packages (`aggregate/`, `command/`, etc.)    | 15 min      |
+| 5  | 🟡 MED   | Add `-race` to CI / test commands in AGENTS.md                      | 5 min       |
+| 6  | 🟡 MED   | Run benchmarks: UUID v4 vs ULID performance comparison              | 15 min      |
+| 7  | 🟡 MED   | Audit `examples/` for stale UUID code                               | 15 min      |
+| 8  | 🟡 MED   | Write migration guide (BREAKING CHANGE docs for consumers)          | 30 min      |
+| 9  | 🟡 MED   | Standardize zero-value idiom in tests (`id.X{}` vs `var`)           | 10 min      |
+| 10 | 🟡 MED   | Add ULID validation to `Parse[T]()` (26 chars, Crockford Base32)    | 15 min      |
+| 11 | 🟡 MED   | Publish `go-composable-business-types` to remove replace directives | 30 min      |
+| 12 | 🟡 MED   | Add `go.work` or `go.work.use` at project root                      | 10 min      |
+| 13 | 🟡 MED   | Update AGENTS.md with ULID/IsZero/MustParse patterns                | 10 min      |
+| 14 | 🟢 LOW   | Add CHANGELOG.md entry for v0.x breaking change                     | 10 min      |
+| 15 | 🟢 LOW   | Add `testutil` helpers for common `MustParse*()` patterns           | 15 min      |
+| 16 | 🟢 LOW   | Add integration test spanning core → memory → xtypes                | 30 min      |
+| 17 | 🟢 LOW   | Document `go-composable-business-types` API surface used            | 10 min      |
+| 18 | 🟢 LOW   | Add example_test.go for `core/pkg/id` showing new patterns          | 15 min      |
+| 19 | 🟢 LOW   | Verify SQL NULL behavior with actual database driver                | 30 min      |
+| 20 | 🟢 LOW   | Add fuzz targets for `Parse()` and `MustParse()`                    | 15 min      |
+| 21 | 🟢 LOW   | Consider `fmt.Stringer` benchmark (hot path in logging)             | 10 min      |
+| 22 | 🟢 LOW   | Add `.IsZero()` check to `event.NewEvent()` for all ID fields       | 10 min      |
+| 23 | 🟢 LOW   | Update catalog schema generation for struct-based IDs               | 20 min      |
+| 24 | 🟢 LOW   | Clean up `docs/status/` — 26 files accumulated                      | 10 min      |
+| 25 | 🟢 LOW   | Git tag for the ULID migration milestone                            | 2 min       |
 
 ---
 

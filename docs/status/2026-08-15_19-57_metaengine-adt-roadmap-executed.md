@@ -145,23 +145,23 @@ as the 2026-08-14 incident documented in AGENTS.md.
 
 ## f) Top next tasks (harvest-ready)
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Re-run `nix run .#verify` once the concurrent metaengine refactor lands; fix fallout | Critical | S | Quality |
-| 2 | Rebaseline `check-coverage.sh` (metaengine 83.3% → actual) after (1) | Critical | S | Quality |
-| 3 | Live-verify MariaDB dialect fix in the real nspawn env (`integration-mysql-nspawn`, needs root) | High | S | Quality |
-| 4 | pgtestcontainer: auto-heal "database already exists" on re-run after killed run | High | S | Bug |
-| 5 | Add pre-commit guard rejecting spaced `LAYER[...]`/`DEP_BUDGET[...]` keys in scripts/ (daemon-mangle prophylaxis) | High | S | Quality |
-| 6 | DuckDB recursive-CTE graph backend (recipe: pgengine/graph.go) | High | M | Feature |
-| 7 | Engine over-declaration census: align Profile().Supports/DegradedADTs with implemented interfaces (pebble Search/Spatial first) | High | M | Cleanup |
-| 8 | DuckDB `AggregateReader` aggregation pushdown (existing TODO) | High | L | Feature |
-| 9 | MariaDB ApplyLayout: virtual generated-column + index instead of no-op | Medium | M | Feature |
-| 10 | MariaDB type-aware JSON ORDER BY (numbers currently text-sorted) | Medium | M | Bug |
-| 11 | badgerengine VectorBackend (port from pebble/bbolt via keycodec) | Medium | S | Feature |
-| 12 | adttest: opt-in per-Factory collection suffix for server-backed matrices | Medium | S | Quality |
-| 13 | Journal true-seq resumption (existing TODO, O(offset) → O(log n)) | Medium | M | Feature |
-| 14 | Dgraph engine hardening (existing TODO: RunInTx decision, CI matrix) | Medium | M | Quality |
-| 15 | Engine declaration-vs-README sweep (pebble README bug class) | Low | M | Documentation |
+| #  | Task                                                                                                                            | Impact   | Effort | Category      |
+| -- | ------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------- |
+| 1  | Re-run `nix run .#verify` once the concurrent metaengine refactor lands; fix fallout                                            | Critical | S      | Quality       |
+| 2  | Rebaseline `check-coverage.sh` (metaengine 83.3% → actual) after (1)                                                            | Critical | S      | Quality       |
+| 3  | Live-verify MariaDB dialect fix in the real nspawn env (`integration-mysql-nspawn`, needs root)                                 | High     | S      | Quality       |
+| 4  | pgtestcontainer: auto-heal "database already exists" on re-run after killed run                                                 | High     | S      | Bug           |
+| 5  | Add pre-commit guard rejecting spaced `LAYER[...]`/`DEP_BUDGET[...]` keys in scripts/ (daemon-mangle prophylaxis)               | High     | S      | Quality       |
+| 6  | DuckDB recursive-CTE graph backend (recipe: pgengine/graph.go)                                                                  | High     | M      | Feature       |
+| 7  | Engine over-declaration census: align Profile().Supports/DegradedADTs with implemented interfaces (pebble Search/Spatial first) | High     | M      | Cleanup       |
+| 8  | DuckDB `AggregateReader` aggregation pushdown (existing TODO)                                                                   | High     | L      | Feature       |
+| 9  | MariaDB ApplyLayout: virtual generated-column + index instead of no-op                                                          | Medium   | M      | Feature       |
+| 10 | MariaDB type-aware JSON ORDER BY (numbers currently text-sorted)                                                                | Medium   | M      | Bug           |
+| 11 | badgerengine VectorBackend (port from pebble/bbolt via keycodec)                                                                | Medium   | S      | Feature       |
+| 12 | adttest: opt-in per-Factory collection suffix for server-backed matrices                                                        | Medium   | S      | Quality       |
+| 13 | Journal true-seq resumption (existing TODO, O(offset) → O(log n))                                                               | Medium   | M      | Feature       |
+| 14 | Dgraph engine hardening (existing TODO: RunInTx decision, CI matrix)                                                            | Medium   | M      | Quality       |
+| 15 | Engine declaration-vs-README sweep (pebble README bug class)                                                                    | Low      | M      | Documentation |
 
 ---
 

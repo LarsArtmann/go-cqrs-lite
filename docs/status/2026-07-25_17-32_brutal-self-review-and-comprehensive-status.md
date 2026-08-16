@@ -10,28 +10,28 @@
 
 ## a) FULLY DONE (verified this session)
 
-| #   | Item                                                                 | Evidence                                                      |
-| --- | -------------------------------------------------------------------- | ------------------------------------------------------------- |
-| 1   | `TestRun_SQLite_DurationAborts` race flake fixed                     | race-aware `hangThreshold`, 3x `-race` runs green             |
-| 2   | `TestRunSoak_TrendsPopulated` race flake fixed                       | race-aware `maxHeapLeak`, 3x `-race` runs green               |
-| 3   | `benchkit/race_off.go` + `race_on.go` build-tag helper               | compiles both tag sets                                        |
-| 4   | `idempotency/kvstore.Record` split-brain fixed (`Set`→`SetIfAbsent`) | matches MemoryStore + documented contract                     |
-| 5   | Regression: kvstore Record no-op-on-existing                         | `TestStore_Record_DoesNotExtendTTL`                           |
-| 6   | Regression: cross-impl Record contract (Memory+KV)                   | `TestStore_Record_MatchesMemoryStoreContract`                 |
-| 7   | Regression: metaengine MapUpdate atomicity                           | 50 concurrent increments, 0 lost                              |
-| 8   | Regression: metaengine multimap restart-safety                       | reopen DB, 5 values, no PK collision                          |
-| 9   | Regression: metaengine cross-engine reification                      | SQLite map[string]any → typed struct                          |
-| 10  | Regression: metaengine Cursor.Encode error path                      | 4 specs (nil, ok, error, String-vs-Encode divergence)         |
-| 11  | Regression: benchkit ScalingSweep NPE                                | synthesizes FAILED row + PrintSweep no panic                  |
-| 12  | Lint: metaengine reify.go wrapcheck (wrapped json errors)            | `fmt.Errorf` wrapping                                         |
-| 13  | Lint: metaengine cursor.go nlreturn                                  | blank line before return                                      |
-| 14  | Lint: metaengine cost.go package godoc                               | `Package metaengine ...` prefix                               |
-| 15  | Lint: metaengine sqlite_backends.go unused nolint                    | removed directive                                             |
-| 16  | `nix fmt` clean                                                      | 0 files changed                                               |
-| 17  | `nix run .#verify` → exit 0                                          | `✅ All verification checks passed`, 58 modules, 945 doc refs |
-| 18  | AGENTS.md updated (idempotency contract + metaengine hardening)      | 2 module lines                                                |
-| 19  | Design note marked Decided (Option A)                                | resolution block added                                        |
-| 20  | Status report written                                                | this file + prior session report                              |
+| #  | Item                                                                 | Evidence                                                      |
+| -- | -------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 1  | `TestRun_SQLite_DurationAborts` race flake fixed                     | race-aware `hangThreshold`, 3x `-race` runs green             |
+| 2  | `TestRunSoak_TrendsPopulated` race flake fixed                       | race-aware `maxHeapLeak`, 3x `-race` runs green               |
+| 3  | `benchkit/race_off.go` + `race_on.go` build-tag helper               | compiles both tag sets                                        |
+| 4  | `idempotency/kvstore.Record` split-brain fixed (`Set`→`SetIfAbsent`) | matches MemoryStore + documented contract                     |
+| 5  | Regression: kvstore Record no-op-on-existing                         | `TestStore_Record_DoesNotExtendTTL`                           |
+| 6  | Regression: cross-impl Record contract (Memory+KV)                   | `TestStore_Record_MatchesMemoryStoreContract`                 |
+| 7  | Regression: metaengine MapUpdate atomicity                           | 50 concurrent increments, 0 lost                              |
+| 8  | Regression: metaengine multimap restart-safety                       | reopen DB, 5 values, no PK collision                          |
+| 9  | Regression: metaengine cross-engine reification                      | SQLite map[string]any → typed struct                          |
+| 10 | Regression: metaengine Cursor.Encode error path                      | 4 specs (nil, ok, error, String-vs-Encode divergence)         |
+| 11 | Regression: benchkit ScalingSweep NPE                                | synthesizes FAILED row + PrintSweep no panic                  |
+| 12 | Lint: metaengine reify.go wrapcheck (wrapped json errors)            | `fmt.Errorf` wrapping                                         |
+| 13 | Lint: metaengine cursor.go nlreturn                                  | blank line before return                                      |
+| 14 | Lint: metaengine cost.go package godoc                               | `Package metaengine ...` prefix                               |
+| 15 | Lint: metaengine sqlite_backends.go unused nolint                    | removed directive                                             |
+| 16 | `nix fmt` clean                                                      | 0 files changed                                               |
+| 17 | `nix run .#verify` → exit 0                                          | `✅ All verification checks passed`, 58 modules, 945 doc refs |
+| 18 | AGENTS.md updated (idempotency contract + metaengine hardening)      | 2 module lines                                                |
+| 19 | Design note marked Decided (Option A)                                | resolution block added                                        |
+| 20 | Status report written                                                | this file + prior session report                              |
 
 ---
 

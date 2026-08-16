@@ -129,43 +129,43 @@ and several architectural decisions. No production code was changed — all work
 
 ### Tier 1: Unblock Production Use (Do First)
 
-| #   | Task                                                     | Module     | Effort |
-| --- | -------------------------------------------------------- | ---------- | ------ |
-| 1   | Fix query handler to include `context.Context`           | core/query | S      |
-| 2   | Create `go.work` + move into `core/` subdirectory        | root       | M      |
-| 3   | Extract memory implementations to `memory/` module       | memory     | M      |
-| 4   | Implement `storage/` module with sqlc (PostgreSQL first) | storage    | L      |
-| 5   | Implement outbox pattern in `storage/`                   | storage    | M      |
-| 6   | Implement `watermill/` module (Redis Streams first)      | watermill  | M      |
-| 7   | Implement `projection/` module with checkpoint tracking  | projection | L      |
+| # | Task                                                     | Module     | Effort |
+| - | -------------------------------------------------------- | ---------- | ------ |
+| 1 | Fix query handler to include `context.Context`           | core/query | S      |
+| 2 | Create `go.work` + move into `core/` subdirectory        | root       | M      |
+| 3 | Extract memory implementations to `memory/` module       | memory     | M      |
+| 4 | Implement `storage/` module with sqlc (PostgreSQL first) | storage    | L      |
+| 5 | Implement outbox pattern in `storage/`                   | storage    | M      |
+| 6 | Implement `watermill/` module (Redis Streams first)      | watermill  | M      |
+| 7 | Implement `projection/` module with checkpoint tracking  | projection | L      |
 
 ### Tier 2: Complete the SDK (Do Second)
 
-| #   | Task                                                             | Module      | Effort |
-| --- | ---------------------------------------------------------------- | ----------- | ------ |
-| 8   | Implement `snapshot/` module (SQL-backed)                        | snapshot    | M      |
-| 9   | Implement `testutil/` module (AggregateTester, ProjectionTester) | testutil    | M      |
-| 10  | Add Event Codec interface to core (JSON default)                 | core/event  | S      |
-| 11  | Migrate from google/uuid to oklog/ulid                           | core/pkg/id | M      |
-| 12  | Extract catalog to own module with go-faster/yaml                | catalog     | M      |
-| 13  | Extract middleware to own module                                 | middleware  | S      |
-| 14  | Extract xtypes to own module                                     | xtypes      | S      |
+| #  | Task                                                             | Module      | Effort |
+| -- | ---------------------------------------------------------------- | ----------- | ------ |
+| 8  | Implement `snapshot/` module (SQL-backed)                        | snapshot    | M      |
+| 9  | Implement `testutil/` module (AggregateTester, ProjectionTester) | testutil    | M      |
+| 10 | Add Event Codec interface to core (JSON default)                 | core/event  | S      |
+| 11 | Migrate from google/uuid to oklog/ulid                           | core/pkg/id | M      |
+| 12 | Extract catalog to own module with go-faster/yaml                | catalog     | M      |
+| 13 | Extract middleware to own module                                 | middleware  | S      |
+| 14 | Extract xtypes to own module                                     | xtypes      | S      |
 
 ### Tier 3: Polish & Production Hardening (Do Third)
 
-| #   | Task                                                | Module         | Effort |
-| --- | --------------------------------------------------- | -------------- | ------ |
-| 15  | Add MySQL + SQLite schemas to storage/              | storage        | M      |
-| 16  | Add Event Upcasting interface + implementation      | core/upcasting | M      |
-| 17  | Fix all err113 linter warnings (sentinel errors)    | all            | S      |
-| 18  | Raise catalog/adapters coverage to >80%             | catalog        | S      |
-| 19  | Delete pkg/errors (dead code)                       | pkg            | XS     |
-| 20  | Fix broken example modules, add to CI               | examples       | S      |
-| 21  | Add compatibility shim for old import paths         | root           | S      |
-| 22  | Set up go-import meta tag hosting (GitHub Pages)    | docs           | S      |
-| 23  | Add OpenTelemetry tracing middleware                | middleware     | M      |
-| 24  | Write getting-started guide + architecture overview | docs           | M      |
-| 25  | Tag v1.0.0 releases for all modules                 | all            | S      |
+| #  | Task                                                | Module         | Effort |
+| -- | --------------------------------------------------- | -------------- | ------ |
+| 15 | Add MySQL + SQLite schemas to storage/              | storage        | M      |
+| 16 | Add Event Upcasting interface + implementation      | core/upcasting | M      |
+| 17 | Fix all err113 linter warnings (sentinel errors)    | all            | S      |
+| 18 | Raise catalog/adapters coverage to >80%             | catalog        | S      |
+| 19 | Delete pkg/errors (dead code)                       | pkg            | XS     |
+| 20 | Fix broken example modules, add to CI               | examples       | S      |
+| 21 | Add compatibility shim for old import paths         | root           | S      |
+| 22 | Set up go-import meta tag hosting (GitHub Pages)    | docs           | S      |
+| 23 | Add OpenTelemetry tracing middleware                | middleware     | M      |
+| 24 | Write getting-started guide + architecture overview | docs           | M      |
+| 25 | Tag v1.0.0 releases for all modules                 | all            | S      |
 
 ---
 
@@ -197,8 +197,8 @@ This affects the dependency graph, the user experience, and how independent thes
 | command              | 84.4%    | ✅           |
 | middleware           | 84.6%    | ✅           |
 | catalog/yaml         | 84.4%    | ✅           |
-| internal/dispatcher  | 77.4%    | ⚠️           |
-| aggregate            | 77.3%    | ⚠️           |
+| internal/dispatcher  | 77.4%    | ⚠️            |
+| aggregate            | 77.3%    | ⚠️            |
 | catalog/adapters     | 66.0%    | 🔴           |
 | pkg/errors           | 0.0%     | 💀 dead code |
 

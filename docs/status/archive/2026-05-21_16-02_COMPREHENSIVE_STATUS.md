@@ -1,9 +1,9 @@
 # Comprehensive Status Report — 2026-05-21 16:02
 
-**Project:** go-cqrs-lite  
-**Type:** CQRS/Event Sourcing Library/SDK for Go  
-**Date:** 2026-05-21 16:02  
-**Branch:** master  
+**Project:** go-cqrs-lite\
+**Type:** CQRS/Event Sourcing Library/SDK for Go\
+**Date:** 2026-05-21 16:02\
+**Branch:** master\
 **Last 5 commits:**
 
 - `261c23d` chore: refresh golden fixtures and fix markdown escaping
@@ -55,10 +55,10 @@ The project is in **excellent health**: 24/24 test packages pass, 83.9% total co
 | `catalog/docserver`           | 91.0%    | ✅                 |
 | `catalog/eventcatalog`        | 91.3%    | ✅                 |
 | `catalog/internal/schemautil` | 84.2%    | ✅                 |
-| `catalog/internal/caseutil`   | 76.5%    | ⚠️                 |
+| `catalog/internal/caseutil`   | 76.5%    | ⚠️                  |
 | `catalog/internal/cattest`    | 0.0%     | N/A (test helpers) |
 | `projection`                  | 93.9%    | ✅                 |
-| `storage`                     | 88.1%    | ⚠️                 |
+| `storage`                     | 88.1%    | ⚠️                  |
 | `sync`                        | 92.2%    | ✅                 |
 | `testhelpers`                 | 10.5%    | N/A (test helpers) |
 
@@ -238,53 +238,53 @@ The BuildFlow pre-commit hook is in bad shape:
 
 ### Tier 1: Ship-Blockers (Do First)
 
-| #   | Item                                                                                      | Impact | Effort |
-| --- | ----------------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | **Reconcile TODO_LIST.md** — verify every item against code, mark done, delete stale      | High   | 2h     |
-| 2   | **Fix pre-commit hook** — gci config, silence false positives, math/rand exception        | High   | 1h     |
-| 3   | **Trim AGENTS.md to <400 lines** — extract session history to docs/sessions/              | Medium | 1h     |
-| 4   | **query.Handler generic migration** — make TypedHandler the default, deprecate `any` path | High   | 4h     |
+| # | Item                                                                                      | Impact | Effort |
+| - | ----------------------------------------------------------------------------------------- | ------ | ------ |
+| 1 | **Reconcile TODO_LIST.md** — verify every item against code, mark done, delete stale      | High   | 2h     |
+| 2 | **Fix pre-commit hook** — gci config, silence false positives, math/rand exception        | High   | 1h     |
+| 3 | **Trim AGENTS.md to <400 lines** — extract session history to docs/sessions/              | Medium | 1h     |
+| 4 | **query.Handler generic migration** — make TypedHandler the default, deprecate `any` path | High   | 4h     |
 
 ### Tier 2: Quality (Do Soon)
 
-| #   | Item                                                                         | Impact | Effort |
-| --- | ---------------------------------------------------------------------------- | ------ | ------ |
-| 5   | **Storage error-path tests** — push from 88.1% to 92%+                       | Medium | 3h     |
-| 6   | **Fix Pebble optimistic concurrency** — concurrent writes silently overwrite | High   | 2h     |
-| 7   | **Fix scanEvents event ID preservation** — data loss bug                     | High   | 1h     |
-| 8   | **Fix retry middleware timer leak** — add `defer timer.Stop()`               | Medium | 30m    |
-| 9   | **Fix decider Execute dual %w wrapping** — first error unreachable           | Medium | 30m    |
-| 10  | **PostgreSQL integration tests with testcontainers**                         | Medium | 4h     |
+| #  | Item                                                                         | Impact | Effort |
+| -- | ---------------------------------------------------------------------------- | ------ | ------ |
+| 5  | **Storage error-path tests** — push from 88.1% to 92%+                       | Medium | 3h     |
+| 6  | **Fix Pebble optimistic concurrency** — concurrent writes silently overwrite | High   | 2h     |
+| 7  | **Fix scanEvents event ID preservation** — data loss bug                     | High   | 1h     |
+| 8  | **Fix retry middleware timer leak** — add `defer timer.Stop()`               | Medium | 30m    |
+| 9  | **Fix decider Execute dual %w wrapping** — first error unreachable           | Medium | 30m    |
+| 10 | **PostgreSQL integration tests with testcontainers**                         | Medium | 4h     |
 
 ### Tier 3: Architecture (Plan Then Execute)
 
-| #   | Item                                                                | Impact | Effort |
-| --- | ------------------------------------------------------------------- | ------ | ------ |
-| 11  | **Consolidate CatalogMeta x3** into shared struct                   | Medium | 2h     |
-| 12  | **SQL dialect abstraction** — eliminate ~500 lines duplication      | Medium | 4h     |
-| 13  | **Outbox transaction co-participation** — atomic save+outbox append | High   | 3h     |
-| 14  | **IdempotencyKey on Command interface** — with BaseCommand embed    | High   | 3h     |
-| 15  | **Event middleware on Publish()** — symmetry with Subscribe         | Medium | 2h     |
+| #  | Item                                                                | Impact | Effort |
+| -- | ------------------------------------------------------------------- | ------ | ------ |
+| 11 | **Consolidate CatalogMeta x3** into shared struct                   | Medium | 2h     |
+| 12 | **SQL dialect abstraction** — eliminate ~500 lines duplication      | Medium | 4h     |
+| 13 | **Outbox transaction co-participation** — atomic save+outbox append | High   | 3h     |
+| 14 | **IdempotencyKey on Command interface** — with BaseCommand embed    | High   | 3h     |
+| 15 | **Event middleware on Publish()** — symmetry with Subscribe         | Medium | 2h     |
 
 ### Tier 4: Publishing (Do When Ready)
 
-| #   | Item                                                                  | Impact | Effort |
-| --- | --------------------------------------------------------------------- | ------ | ------ |
-| 16  | **Tag v0.1.0 releases** — core, memory, middleware, catalog           | High   | 2h     |
-| 17  | **Publish go-composable-business-types** — unblocks external adoption | High   | 4h     |
-| 18  | **Delete deprecated Catalogable/CatalogMeta/CatalogCore**             | Medium | 2h     |
-| 19  | **Move example/todo to own repository**                               | Low    | 1h     |
+| #  | Item                                                                  | Impact | Effort |
+| -- | --------------------------------------------------------------------- | ------ | ------ |
+| 16 | **Tag v0.1.0 releases** — core, memory, middleware, catalog           | High   | 2h     |
+| 17 | **Publish go-composable-business-types** — unblocks external adoption | High   | 4h     |
+| 18 | **Delete deprecated Catalogable/CatalogMeta/CatalogCore**             | Medium | 2h     |
+| 19 | **Move example/todo to own repository**                               | Low    | 1h     |
 
 ### Tier 5: Features (Future)
 
-| #   | Item                                                                        | Impact | Effort |
-| --- | --------------------------------------------------------------------------- | ------ | ------ |
-| 20  | **Saga/Process Manager** — design doc exists, needs implementation          | High   | 18h    |
-| 21  | **Watermill module** — message broker integration                           | High   | 12h    |
-| 22  | **Storage benchmarks** — SQL/Pebble performance characterization            | Medium | 4h     |
-| 23  | **Clock injection option** — `WithClock(func() time.Time)` for testing      | Low    | 1h     |
-| 24  | **SubscriptionScope enum** — per-type vs per-aggregate subscription control | Medium | 2h     |
-| 25  | **Catalog diff tool** — detect breaking changes between catalog versions    | Medium | 4h     |
+| #  | Item                                                                        | Impact | Effort |
+| -- | --------------------------------------------------------------------------- | ------ | ------ |
+| 20 | **Saga/Process Manager** — design doc exists, needs implementation          | High   | 18h    |
+| 21 | **Watermill module** — message broker integration                           | High   | 12h    |
+| 22 | **Storage benchmarks** — SQL/Pebble performance characterization            | Medium | 4h     |
+| 23 | **Clock injection option** — `WithClock(func() time.Time)` for testing      | Low    | 1h     |
+| 24 | **SubscriptionScope enum** — per-type vs per-aggregate subscription control | Medium | 2h     |
+| 25 | **Catalog diff tool** — detect breaking changes between catalog versions    | Medium | 4h     |
 
 ---
 

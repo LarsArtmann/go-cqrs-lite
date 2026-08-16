@@ -104,93 +104,93 @@ The user called out that `ReplicationLag = 100ms` and `NetworkRTT = 50ms` were h
 
 ### Critical (blocking CI / correctness)
 
-| #   | Task                                                                   | Est   |
-| --- | ---------------------------------------------------------------------- | ----- |
-| 1   | Run `nix fmt` on irohengine                                            | 2min  |
-| 2   | Run `nix run .#verify` and fix ALL failures                            | 30min |
-| 3   | Replace custom `itoa()` with `strconv.Itoa()`                          | 1min  |
-| 4   | Add `//nolint:gosec G404` for math/rand in transport.go + demo/main.go | 2min  |
-| 5   | Regenerate api-stability golden (new exports)                          | 5min  |
-| 6   | Run `go mod tidy -e` in irohengine (may need strconv import)           | 1min  |
+| # | Task                                                                   | Est   |
+| - | ---------------------------------------------------------------------- | ----- |
+| 1 | Run `nix fmt` on irohengine                                            | 2min  |
+| 2 | Run `nix run .#verify` and fix ALL failures                            | 30min |
+| 3 | Replace custom `itoa()` with `strconv.Itoa()`                          | 1min  |
+| 4 | Add `//nolint:gosec G404` for math/rand in transport.go + demo/main.go | 2min  |
+| 5 | Regenerate api-stability golden (new exports)                          | 5min  |
+| 6 | Run `go mod tidy -e` in irohengine (may need strconv import)           | 1min  |
 
 ### Correctness hardening
 
-| #   | Task                                                                                  | Est      |
-| --- | ------------------------------------------------------------------------------------- | -------- |
-| 7   | Add WriteOp.ID dedup ring in applyRemote (prevent double-apply on redelivery)         | 30min    |
-| 8   | Surface/log errors from applyRemote instead of `_ = mb.MapSet(...)`                   | 15min    |
-| 9   | Write test: redelivery idempotency (publish same op twice, verify single application) | 15min    |
-| 10  | Document LWW clock skew assumption (or implement HLC)                                 | 10-45min |
-| 11  | Make Publish async (channel + goroutine) to avoid blocking writes                     | 30min    |
+| #  | Task                                                                                  | Est      |
+| -- | ------------------------------------------------------------------------------------- | -------- |
+| 7  | Add WriteOp.ID dedup ring in applyRemote (prevent double-apply on redelivery)         | 30min    |
+| 8  | Surface/log errors from applyRemote instead of `_ = mb.MapSet(...)`                   | 15min    |
+| 9  | Write test: redelivery idempotency (publish same op twice, verify single application) | 15min    |
+| 10 | Document LWW clock skew assumption (or implement HLC)                                 | 10-45min |
+| 11 | Make Publish async (channel + goroutine) to avoid blocking writes                     | 30min    |
 
 ### Transport / network simulation
 
-| #   | Task                                                               | Est   |
-| --- | ------------------------------------------------------------------ | ----- |
-| 12  | Add per-node latency collectors (each node measures independently) | 30min |
-| 13  | Add network topology simulation (star, mesh, ring)                 | 30min |
-| 14  | Add asymmetric latency (A→B differs from A→C)                      | 20min |
-| 15  | Add partition simulation (split-brain test, then heal)             | 30min |
-| 16  | Add bandwidth limiting (large payloads take longer)                | 20min |
-| 17  | Add `WithNetworkReliability(0.99)` as alternative to raw drop rate | 10min |
+| #  | Task                                                               | Est   |
+| -- | ------------------------------------------------------------------ | ----- |
+| 12 | Add per-node latency collectors (each node measures independently) | 30min |
+| 13 | Add network topology simulation (star, mesh, ring)                 | 30min |
+| 14 | Add asymmetric latency (A→B differs from A→C)                      | 20min |
+| 15 | Add partition simulation (split-brain test, then heal)             | 30min |
+| 16 | Add bandwidth limiting (large payloads take longer)                | 20min |
+| 17 | Add `WithNetworkReliability(0.99)` as alternative to raw drop rate | 10min |
 
 ### Measurement improvements
 
-| #   | Task                                                               | Est   |
-| --- | ------------------------------------------------------------------ | ----- |
-| 18  | Measure convergence AFTER local apply completes, not at delivery   | 15min |
-| 19  | Add write-amplification measurement (ops published vs ops applied) | 20min |
-| 20  | Add throughput metric (ops/sec sustained)                          | 20min |
-| 21  | Add delivery success rate (messages delivered / messages sent)     | 15min |
-| 22  | Export LatencyStats as a structured report (JSON for dashboards)   | 15min |
-| 23  | Add historical trend (latency over time windows, not just rolling) | 30min |
+| #  | Task                                                               | Est   |
+| -- | ------------------------------------------------------------------ | ----- |
+| 18 | Measure convergence AFTER local apply completes, not at delivery   | 15min |
+| 19 | Add write-amplification measurement (ops published vs ops applied) | 20min |
+| 20 | Add throughput metric (ops/sec sustained)                          | 20min |
+| 21 | Add delivery success rate (messages delivered / messages sent)     | 15min |
+| 22 | Export LatencyStats as a structured report (JSON for dashboards)   | 15min |
+| 23 | Add historical trend (latency over time windows, not just rolling) | 30min |
 
 ### Planner integration
 
-| #   | Task                                                                                                     | Est   |
-| --- | -------------------------------------------------------------------------------------------------------- | ----- |
-| 24  | Integration test: `metaengine.Plan([irohEngine, sqliteEngine], query)` — verify planner routes correctly | 30min |
-| 25  | Verify `replicationRule` emits INFO diagnostic for irohengine with non-zero lag                          | 15min |
-| 26  | Verify `mapUpdateReplicationRule` emits WARN when MapUpdate routes to irohengine                         | 20min |
-| 27  | Test `WithReplication`/`WithNetworkRTT` "what-if" plan options                                           | 20min |
-| 28  | Verify measured Profile() values flow through to SerializablePlan                                        | 15min |
+| #  | Task                                                                                                     | Est   |
+| -- | -------------------------------------------------------------------------------------------------------- | ----- |
+| 24 | Integration test: `metaengine.Plan([irohEngine, sqliteEngine], query)` — verify planner routes correctly | 30min |
+| 25 | Verify `replicationRule` emits INFO diagnostic for irohengine with non-zero lag                          | 15min |
+| 26 | Verify `mapUpdateReplicationRule` emits WARN when MapUpdate routes to irohengine                         | 20min |
+| 27 | Test `WithReplication`/`WithNetworkRTT` "what-if" plan options                                           | 20min |
+| 28 | Verify measured Profile() values flow through to SerializablePlan                                        | 15min |
 
 ### Documentation & examples
 
-| #   | Task                                                                             | Est   |
-| --- | -------------------------------------------------------------------------------- | ----- |
-| 29  | Update ADR-0096 with measurement architecture (LatencyCollector, rolling window) | 20min |
-| 30  | Add CHANGELOG.md entry for measurement overhaul                                  | 5min  |
-| 31  | Add `metaengine/irohengine/README.md` with quickstart + measurement explanation  | 20min |
-| 32  | Update SKILL.md references with irohengine module + usage recipe                 | 30min |
-| 33  | Run `cmd/doc-check` on updated ADR-0096                                          | 5min  |
-| 34  | Update FEATURES.md with distributed engine prototype status                      | 10min |
-| 35  | Document that Profile() values are zero before traffic (design decision)         | 10min |
+| #  | Task                                                                             | Est   |
+| -- | -------------------------------------------------------------------------------- | ----- |
+| 29 | Update ADR-0096 with measurement architecture (LatencyCollector, rolling window) | 20min |
+| 30 | Add CHANGELOG.md entry for measurement overhaul                                  | 5min  |
+| 31 | Add `metaengine/irohengine/README.md` with quickstart + measurement explanation  | 20min |
+| 32 | Update SKILL.md references with irohengine module + usage recipe                 | 30min |
+| 33 | Run `cmd/doc-check` on updated ADR-0096                                          | 5min  |
+| 34 | Update FEATURES.md with distributed engine prototype status                      | 10min |
+| 35 | Document that Profile() values are zero before traffic (design decision)         | 10min |
 
 ### Test coverage
 
-| #   | Task                                                                                 | Est   |
-| --- | ------------------------------------------------------------------------------------ | ----- |
-| 36  | Property test: convergent state after random op sequences on N nodes                 | 45min |
-| 37  | Benchmark: replication overhead (local write + publish + apply) vs plain local write | 20min |
-| 38  | Test: large payload replication (1MB value across transport)                         | 15min |
-| 39  | Test: MapDelete convergence (delete on A, MapGet returns false on B)                 | 10min |
-| 40  | Test: concurrent writes to same key from 3 nodes, verify LWW convergence             | 15min |
-| 41  | Test: drop rate > 0 with redelivery (eventual convergence despite drops)             | 20min |
-| 42  | Test: latency stats rolling window eviction (512 samples, old data dropped)          | 15min |
-| 43  | Test: Profile() updates after each batch (not stale from first batch)                | 10min |
+| #  | Task                                                                                 | Est   |
+| -- | ------------------------------------------------------------------------------------ | ----- |
+| 36 | Property test: convergent state after random op sequences on N nodes                 | 45min |
+| 37 | Benchmark: replication overhead (local write + publish + apply) vs plain local write | 20min |
+| 38 | Test: large payload replication (1MB value across transport)                         | 15min |
+| 39 | Test: MapDelete convergence (delete on A, MapGet returns false on B)                 | 10min |
+| 40 | Test: concurrent writes to same key from 3 nodes, verify LWW convergence             | 15min |
+| 41 | Test: drop rate > 0 with redelivery (eventual convergence despite drops)             | 20min |
+| 42 | Test: latency stats rolling window eviction (512 samples, old data dropped)          | 15min |
+| 43 | Test: Profile() updates after each batch (not stale from first batch)                | 10min |
 
 ### Module hygiene
 
-| #   | Task                                                                               | Est   |
-| --- | ---------------------------------------------------------------------------------- | ----- |
-| 44  | Run `nix run .#check-layers` — verify irohengine dependency budget                 | 10min |
-| 45  | Run `nix run .#check-coverage` — verify coverage drift                             | 10min |
-| 46  | Check if irohengine introduces duplication (art-dupl baseline)                     | 15min |
-| 47  | Tag `metaengine/irohengine/v4` for consumer importability                          | 5min  |
-| 48  | Investigate whether daemon's StreamLogBackend addition needs irohengine delegation | 20min |
-| 49  | Verify `system/` module in api-stability (pre-existing failure from prior session) | 5min  |
-| 50  | Add Go doc examples to `NewNetwork()` and `Replicated()`                           | 10min |
+| #  | Task                                                                               | Est   |
+| -- | ---------------------------------------------------------------------------------- | ----- |
+| 44 | Run `nix run .#check-layers` — verify irohengine dependency budget                 | 10min |
+| 45 | Run `nix run .#check-coverage` — verify coverage drift                             | 10min |
+| 46 | Check if irohengine introduces duplication (art-dupl baseline)                     | 15min |
+| 47 | Tag `metaengine/irohengine/v4` for consumer importability                          | 5min  |
+| 48 | Investigate whether daemon's StreamLogBackend addition needs irohengine delegation | 20min |
+| 49 | Verify `system/` module in api-stability (pre-existing failure from prior session) | 5min  |
+| 50 | Add Go doc examples to `NewNetwork()` and `Replicated()`                           | 10min |
 
 ---
 

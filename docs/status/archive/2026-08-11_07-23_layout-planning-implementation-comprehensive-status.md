@@ -12,57 +12,58 @@
 
 ### Tier 1% — Correctness Fixes (T01-T03)
 
-| Task | What was done | Files |
-| --- | --- | --- |
-| T01 | Rewrote `metadata/README.md` — removed deleted `Tracing` type, documented `record.CommonMetadata` as the structural base, updated Related Modules | `metadata/README.md` |
-| T02 | Resolved design doc §4 contradiction — distinguished **constraint** (domain shape: what's physically possible) from **intent** (operator priority: what to optimize for) | `docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md` |
-| T03 | Separated fold inference gap from layout planning in TODO_LIST — added "Layout planning ≠ fold inference" note | `TODO_LIST.md` |
+| Task | What was done                                                                                                                                                            | Files                                               |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- |
+| T01  | Rewrote `metadata/README.md` — removed deleted `Tracing` type, documented `record.CommonMetadata` as the structural base, updated Related Modules                        | `metadata/README.md`                                |
+| T02  | Resolved design doc §4 contradiction — distinguished **constraint** (domain shape: what's physically possible) from **intent** (operator priority: what to optimize for) | `docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md` |
+| T03  | Separated fold inference gap from layout planning in TODO_LIST — added "Layout planning ≠ fold inference" note                                                           | `TODO_LIST.md`                                      |
 
 ### Tier 4% — Decision Anchoring (T04-T06)
 
-| Task | What was done | Files |
-| --- | --- | --- |
-| T04 | Wrote ADR-0124 (full: context, decision, 4 priority modes, 3 planner modes, runtime backends, re-layout trigger, obey+warn, 3 rejected alternatives, consequences). Added to ADR README index (also added 0098-0123 which were missing). | `docs/adr/0124-operator-driven-layout-planning.md`, `docs/adr/README.md` |
-| T05 | Registered design doc in AGENTS.md (new Canonical Design Docs entry + new "Operator-Driven Layout Planning" section), ROADMAP.md (Phase 6b + auto-denorm subsumed-by update), live-latency model cross-link | `AGENTS.md`, `ROADMAP.md`, `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md` |
-| T06 | Reconciled ADR-0116 — added Layer 4 cross-reference to status line + Layer 3 section | `docs/adr/0116-layered-auto-projection.md` |
+| Task | What was done                                                                                                                                                                                                                            | Files                                                                       |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| T04  | Wrote ADR-0124 (full: context, decision, 4 priority modes, 3 planner modes, runtime backends, re-layout trigger, obey+warn, 3 rejected alternatives, consequences). Added to ADR README index (also added 0098-0123 which were missing). | `docs/adr/0124-operator-driven-layout-planning.md`, `docs/adr/README.md`    |
+| T05  | Registered design doc in AGENTS.md (new Canonical Design Docs entry + new "Operator-Driven Layout Planning" section), ROADMAP.md (Phase 6b + auto-denorm subsumed-by update), live-latency model cross-link                              | `AGENTS.md`, `ROADMAP.md`, `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md` |
+| T06  | Reconciled ADR-0116 — added Layer 4 cross-reference to status line + Layer 3 section                                                                                                                                                     | `docs/adr/0116-layered-auto-projection.md`                                  |
 
 ### Tier 20% — Design Completion + Spikes (T07-T12)
 
-| Task | What was done | Files |
-| --- | --- | --- |
-| T07 | Audited `fold_inference.go` + `auto_fold.go` — documented exact behavior: `matchFields()` handles scalars + nested struct flattening but NOT slice decomposition. Wrote §13 "Current Infer() Behavior with Slice Fields" in design doc | `docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md` §13 |
-| T08 | Added 4-scenario worked example (ReadSpeed+Pebble, StorageSpace switch, re-layout rebuild, pathological obey+warn) as §14 | design doc §14 |
-| T09 | Specified WARN LOUDLY — 5 warning types, 4 surfaces (Doctor/EXPLAIN/logs/stats), priority conflict resolution rules as §15 | design doc §15 |
-| T10 | **Spike PASSED.** Priority type + cost model weight validation — the #1 risk (can the cost model accept priority weights?) is resolved: YES. | `metaengine/priority.go`, `metaengine/planner.go` |
-| T11 | **Spike PASSED.** Benchmark mode MVP — `BenchmarkPlan` compares N priority configs, reports P50/P95/P99/throughput/storage | `metaengine/benchmark.go` |
-| T12 | **Spike PASSED.** Runtime backend addition — `AddEngine`/`RemoveEngine`/`Backfill`, memory engine backfill via EventLog replay | `metaengine/runtime_backend.go` |
+| Task | What was done                                                                                                                                                                                                                          | Files                                                   |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| T07  | Audited `fold_inference.go` + `auto_fold.go` — documented exact behavior: `matchFields()` handles scalars + nested struct flattening but NOT slice decomposition. Wrote §13 "Current Infer() Behavior with Slice Fields" in design doc | `docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md` §13 |
+| T08  | Added 4-scenario worked example (ReadSpeed+Pebble, StorageSpace switch, re-layout rebuild, pathological obey+warn) as §14                                                                                                              | design doc §14                                          |
+| T09  | Specified WARN LOUDLY — 5 warning types, 4 surfaces (Doctor/EXPLAIN/logs/stats), priority conflict resolution rules as §15                                                                                                             | design doc §15                                          |
+| T10  | **Spike PASSED.** Priority type + cost model weight validation — the #1 risk (can the cost model accept priority weights?) is resolved: YES.                                                                                           | `metaengine/priority.go`, `metaengine/planner.go`       |
+| T11  | **Spike PASSED.** Benchmark mode MVP — `BenchmarkPlan` compares N priority configs, reports P50/P95/P99/throughput/storage                                                                                                             | `metaengine/benchmark.go`                               |
+| T12  | **Spike PASSED.** Runtime backend addition — `AddEngine`/`RemoveEngine`/`Backfill`, memory engine backfill via EventLog replay                                                                                                         | `metaengine/runtime_backend.go`                         |
 
 ### Tier 100% — Implementation (T13-T27)
 
-| Task | What was done | Lines | Tests |
-| --- | --- | --- | --- |
-| T13-T14 | `Priority` enum (4 values), `PriorityConfig` (3-level hierarchy), `Resolve()` with most-specific-wins, `Weights()`, `WithPriorityConfig` plan option | 138 | 24 tests |
-| T15-T16 | `LayoutOption` (Embed/Normalize/Hybrid), `LayoutCost`, per-backend `scoreEmbed`/`scoreNormalize`, `SelectLayout(profile, priority)` | 149 | 7 tests |
-| T17-T19 | `BenchmarkConfig`/`BenchmarkResult`/`BenchmarkSummary`, `BenchmarkPlan` runtime API, `FormatTable()` comparison output | 187 | 3 tests |
-| T20-T22 | `ProjectionRole` enum, `AddEngine`/`RemoveEngine`/`Backfill`, `ReplanLayout` + `LayoutDiff` + `RebuildThreshold` + `ConfirmRebuild` | 137+149 | 12 tests |
-| T23-T25 | `GetLayoutInfo`, `LayoutWarning`, `LayoutWarnings()` — observability surface | 102 | (covered indirectly) |
-| T27 | Domain language updated — new "Layout Planning (ADR-0124)" section with 11 terms | `docs/METAENGINE_DOMAIN_LANGUAGE.md` | — |
+| Task    | What was done                                                                                                                                        | Lines                                | Tests                |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | -------------------- |
+| T13-T14 | `Priority` enum (4 values), `PriorityConfig` (3-level hierarchy), `Resolve()` with most-specific-wins, `Weights()`, `WithPriorityConfig` plan option | 138                                  | 24 tests             |
+| T15-T16 | `LayoutOption` (Embed/Normalize/Hybrid), `LayoutCost`, per-backend `scoreEmbed`/`scoreNormalize`, `SelectLayout(profile, priority)`                  | 149                                  | 7 tests              |
+| T17-T19 | `BenchmarkConfig`/`BenchmarkResult`/`BenchmarkSummary`, `BenchmarkPlan` runtime API, `FormatTable()` comparison output                               | 187                                  | 3 tests              |
+| T20-T22 | `ProjectionRole` enum, `AddEngine`/`RemoveEngine`/`Backfill`, `ReplanLayout` + `LayoutDiff` + `RebuildThreshold` + `ConfirmRebuild`                  | 137+149                              | 12 tests             |
+| T23-T25 | `GetLayoutInfo`, `LayoutWarning`, `LayoutWarnings()` — observability surface                                                                         | 102                                  | (covered indirectly) |
+| T27     | Domain language updated — new "Layout Planning (ADR-0124)" section with 11 terms                                                                     | `docs/METAENGINE_DOMAIN_LANGUAGE.md` | —                    |
 
 ### Verification Gates Passed
 
-| Gate | Status |
-| --- | --- |
-| `go build -tags "goexperiment.jsonv2" ./...` | Clean |
-| `go vet -tags "goexperiment.jsonv2" ./...` | Clean |
-| `go test ./metaengine/ -run TestMetaengine` | **184 passed**, 0 failed |
-| `go test -race ./metaengine/` | Pass (92s) |
-| API stability golden (4080 exports) | Verified |
-| Doc-check (708 references, 42 packages) | All valid |
-| File lengths (max 350) | All under limit |
+| Gate                                         | Status                   |
+| -------------------------------------------- | ------------------------ |
+| `go build -tags "goexperiment.jsonv2" ./...` | Clean                    |
+| `go vet -tags "goexperiment.jsonv2" ./...`   | Clean                    |
+| `go test ./metaengine/ -run TestMetaengine`  | **184 passed**, 0 failed |
+| `go test -race ./metaengine/`                | Pass (92s)               |
+| API stability golden (4080 exports)          | Verified                 |
+| Doc-check (708 references, 42 packages)      | All valid                |
+| File lengths (max 350)                       | All under limit          |
 
 ### Session-Wide Commits
 
 13 commits shipped during this session (auto-commit daemon captured them):
+
 - `09a91632f` docs(metadata): drop removed tracing type
 - `a466f9d0f` docs(metaengine): separate layout constraints from storage intent
 - `dbf27ee78` feat(metaengine): operator-driven layout planning priorities + graph fallback
@@ -78,6 +79,7 @@
 
 **Done:** `BenchmarkPlan` runtime API, `BenchmarkConfig/Result/Summary`, `FormatTable()` text output.
 **Missing:**
+
 - **F072: `cqrs-bench layout` subcommand** — the CLI entry point for pre-deployment exploration is not wired
 - **F065: synthetic workload generator** — current implementation uses cost estimates as proxy, not real workload execution
 - **F066-F068: real trace format** — JSON-lines trace spec, trace recorder, trace player — all not started
@@ -87,6 +89,7 @@
 
 **Done:** `AddEngine`, `RemoveEngine`, `Backfill` (EventLog replay), `ProjectionRole` enum (4 values), `EngineNames()`.
 **Missing:**
+
 - **F079: fold-pipeline sync** — Active+DualUse should sync via fold pipeline in one transaction. The types exist but the fold pipeline doesn't check roles or do differential sync.
 - **F080: async replication** — Backup+Migration should sync via async replication. Not implemented at all.
 - **F081: role transition** — Backup→Active promotion, Migration→Active cutover. No API for this.
@@ -96,6 +99,7 @@
 
 **Done:** `ReplanLayout` computes diffs, `RebuildThreshold`, `LayoutDiff.AutoRebuild` flag, `ConfirmRebuild` (stub).
 **Missing:**
+
 - **Actual rebuild execution** — `ConfirmRebuild` is a stub that does nothing. It should trigger the actual event-log replay for the affected projections.
 - **F086-F087: threshold check in Store.Apply path** — priority changes are not detected at runtime; only via explicit `ReplanLayout` call.
 
@@ -103,6 +107,7 @@
 
 **Done:** `GetLayoutInfo()`, `LayoutWarnings()`, `LayoutWarning` type with 3 warning types.
 **Missing:**
+
 - **F028: `--- Layout Warnings ---` section in `Doctor()` output** — types exist but Doctor doesn't call `LayoutWarnings()`
 - **F029: layout annotations in `EXPLAIN` output** — not wired
 - **F030: structured log fields** (`layout.warn`, `priority.conflict`) — not emitted anywhere
@@ -112,6 +117,7 @@
 
 **Done:** `scoreEmbed`/`scoreNormalize` with hardcoded cost multipliers per `StorageLayout`.
 **Missing:**
+
 - **F090-F091: EngineProfile priority awareness** — profiles can't declare "denormalization is cheap here"; the scoring is purely layout-type-based
 - **F092: Materialize-vs-replay reconciliation** — layout planning should subsume the materialize decision, currently they're disconnected
 - **Data-driven costs** — the cost multipliers (0.5, 2.0, etc.) are guesses, not measured. Should be calibrated via live-latency model integration.
@@ -120,6 +126,7 @@
 
 **Done:** `WithPriorityConfig` plan option, `PriorityConfig` struct with JSON/YAML tags.
 **Missing:**
+
 - **F051: `Priority` field on `EngineConfig`/`DriverConfig`** — operator can't set per-engine priority in deployment YAML yet
 - **F052: `Priority` field on `QueryDecl`** — no `WithQueryPriority()` option
 - **F050: config validation** — invalid priority string in YAML doesn't error at config load time
@@ -130,32 +137,32 @@
 
 ### From the execution plan (F-tasks not touched):
 
-| ID | Task | Why it matters |
-| --- | --- | --- |
-| F049 | Validation: invalid priority string → error at config load | Safety |
-| F050 | Default: empty config → Balanced everywhere (done via `Resolve()` but not in YAML loader) | UX |
-| F065-F068 | Real workload trace format, recorder, player | Benchmark precision |
-| F070 | Scaling prediction (linear/poly fit extrapolation) | Operator planning |
-| F072 | `cqrs-bench layout` CLI subcommand | CLI tool |
-| F079-F082 | Fold-pipeline sync, async replication, role transition, engine drain | Multi-engine correctness |
-| F088 | `Store.ConfirmRebuild` actual execution | Re-layout is compute-only today |
-| F090-F092 | EngineProfile priority awareness + Materialize reconciliation | Cost model honesty |
-| F093-F095 | Aggregate boundary config (`WithSharedCollection`), local-child default, shared-by-type opt-in | Collection boundaries |
-| F096-F098 | Observability metrics (`layout.decision`, `priority.change`, `rebuild.event`), audit trail | Production readiness |
-| F099-F100 | Operator permission model + migration doc | Production readiness |
-| F105 | SKILL.md + skill references update (layout planning concepts) | Consumer docs |
-| F108 | Full `nix run .#verify` gate | CI gate |
+| ID        | Task                                                                                           | Why it matters                  |
+| --------- | ---------------------------------------------------------------------------------------------- | ------------------------------- |
+| F049      | Validation: invalid priority string → error at config load                                     | Safety                          |
+| F050      | Default: empty config → Balanced everywhere (done via `Resolve()` but not in YAML loader)      | UX                              |
+| F065-F068 | Real workload trace format, recorder, player                                                   | Benchmark precision             |
+| F070      | Scaling prediction (linear/poly fit extrapolation)                                             | Operator planning               |
+| F072      | `cqrs-bench layout` CLI subcommand                                                             | CLI tool                        |
+| F079-F082 | Fold-pipeline sync, async replication, role transition, engine drain                           | Multi-engine correctness        |
+| F088      | `Store.ConfirmRebuild` actual execution                                                        | Re-layout is compute-only today |
+| F090-F092 | EngineProfile priority awareness + Materialize reconciliation                                  | Cost model honesty              |
+| F093-F095 | Aggregate boundary config (`WithSharedCollection`), local-child default, shared-by-type opt-in | Collection boundaries           |
+| F096-F098 | Observability metrics (`layout.decision`, `priority.change`, `rebuild.event`), audit trail     | Production readiness            |
+| F099-F100 | Operator permission model + migration doc                                                      | Production readiness            |
+| F105      | SKILL.md + skill references update (layout planning concepts)                                  | Consumer docs                   |
+| F108      | Full `nix run .#verify` gate                                                                   | CI gate                         |
 
 ### Verification gates NOT run:
 
-| Gate | Why |
-| --- | --- |
-| `nix run .#lint` | Not run (golangci-lint across all modules) |
-| `nix run .#check-arch` | Not run (dependency budget enforcement) |
-| `nix run .#check-duplication` | Not run (no-new-clones gate) |
-| `nix run .#check-coverage` | Not run (coverage drift) |
-| `nix fmt` (full repo) | Not run — only `gofumpt` on touched files |
-| `nix run .#verify` | Not run (full CI gate) |
+| Gate                          | Why                                        |
+| ----------------------------- | ------------------------------------------ |
+| `nix run .#lint`              | Not run (golangci-lint across all modules) |
+| `nix run .#check-arch`        | Not run (dependency budget enforcement)    |
+| `nix run .#check-duplication` | Not run (no-new-clones gate)               |
+| `nix run .#check-coverage`    | Not run (coverage drift)                   |
+| `nix fmt` (full repo)         | Not run — only `gofumpt` on touched files  |
+| `nix run .#verify`            | Not run (full CI gate)                     |
 
 ---
 
@@ -303,17 +310,17 @@ The current implementation silently double-counts for Counter/Set folds. Options
 
 ## Statistics
 
-| Metric | Value |
-| --- | --- |
-| Tasks from plan attempted | 27/27 medium (T01-T27) |
-| Tasks fully done | 16/27 |
-| Tasks partially done | 8/27 |
-| Tasks not started | 3/27 (F105 SKILL.md, F108 full verify, F099 permission model) |
-| Fine tasks addressed | ~75/108 |
-| New production Go code | 862 lines (6 files) |
-| New test Go code | 798 lines (5 files) |
-| New docs/ADRs | 5 files (ADR-0124, design doc updates, domain language, 3 cross-refs) |
-| Total commits (session) | 13+ |
-| Tests | 184 pass (24 new), 0 fail |
-| Race detection | Pass |
-| Uncommitted files | 3 (planner.go, priority.go, TODO_LIST.md) |
+| Metric                    | Value                                                                 |
+| ------------------------- | --------------------------------------------------------------------- |
+| Tasks from plan attempted | 27/27 medium (T01-T27)                                                |
+| Tasks fully done          | 16/27                                                                 |
+| Tasks partially done      | 8/27                                                                  |
+| Tasks not started         | 3/27 (F105 SKILL.md, F108 full verify, F099 permission model)         |
+| Fine tasks addressed      | ~75/108                                                               |
+| New production Go code    | 862 lines (6 files)                                                   |
+| New test Go code          | 798 lines (5 files)                                                   |
+| New docs/ADRs             | 5 files (ADR-0124, design doc updates, domain language, 3 cross-refs) |
+| Total commits (session)   | 13+                                                                   |
+| Tests                     | 184 pass (24 new), 0 fail                                             |
+| Race detection            | Pass                                                                  |
+| Uncommitted files         | 3 (planner.go, priority.go, TODO_LIST.md)                             |

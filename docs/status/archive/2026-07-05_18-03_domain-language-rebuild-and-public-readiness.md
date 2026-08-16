@@ -25,10 +25,10 @@
 
 ### b) PARTIALLY DONE 🟡
 
-| Work item                           | What's done                                                                                                                                                          | What remains                                                                                                                                                           |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Public-readiness assessment**     | Identified 2 hard blockers (proprietary license, internal docs in git history) + soft checklist (Postgres 0% coverage, missing CONTRIBUTING/SECURITY, README polish) | License swap not executed; git history audit not performed; CONTRIBUTING/SECURITY not created                                                                          |
-| **DOMAIN_LANGUAGE.md verification** | 22+ spot-checks confirmed against source; doc-check tool ran successfully (0 errors)                                                                                 | doc-check tool only scans ` ```go ` code blocks — our prose tables aren't checked by it; a comprehensive integration test for all referenced symbols would catch drift |
+| Work item                           | What's done                                                                                                                                                          | What remains                                                                                                                                                             |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Public-readiness assessment**     | Identified 2 hard blockers (proprietary license, internal docs in git history) + soft checklist (Postgres 0% coverage, missing CONTRIBUTING/SECURITY, README polish) | License swap not executed; git history audit not performed; CONTRIBUTING/SECURITY not created                                                                            |
+| **DOMAIN_LANGUAGE.md verification** | 22+ spot-checks confirmed against source; doc-check tool ran successfully (0 errors)                                                                                 | doc-check tool only scans `` ```go `` code blocks — our prose tables aren't checked by it; a comprehensive integration test for all referenced symbols would catch drift |
 
 ### c) NOT STARTED ⬜
 
@@ -58,7 +58,7 @@
 
 1. **doc-check should warn on 0 references** — when it finds 0 Go code blocks, it should say "WARNING: no Go code blocks found, document was not verified" instead of "✓ All 0 references valid"
 2. **DOMAIN_LANGUAGE.md should be in doc-check's default scan path** — currently only SKILL.md + AGENTS.md are checked by default
-3. **Add a verification code block to DOMAIN_LANGUAGE.md** — a fenced ` ```go ` block at the bottom that references every symbol mentioned in prose, so doc-check actually validates them
+3. **Add a verification code block to DOMAIN_LANGUAGE.md** — a fenced `` ```go `` block at the bottom that references every symbol mentioned in prose, so doc-check actually validates them
 4. **docs-freshness-check skill should include DOMAIN_LANGUAGE.md** — the skill checks TODO_LIST.md, FEATURES.md, README.md, AGENTS.md but not the domain language
 
 ### Public Release Readiness
@@ -80,53 +80,53 @@
 
 ### Tier 1: High Impact, Low Effort (do first)
 
-| #   | Task                                                             | Impact                                         | Effort |
-| --- | ---------------------------------------------------------------- | ---------------------------------------------- | ------ |
-| 1   | Swap LICENSE to Apache-2.0                                       | Unblocks all public adoption                   | 5 min  |
-| 2   | Add `CONTRIBUTING.md` (basic: how to build, test, lint, PR flow) | Expected for public repos                      | 30 min |
-| 3   | Add `SECURITY.md` (reporting policy + signing/encryption scope)  | Expected for security-handling lib             | 15 min |
-| 4   | Fix doc-check to warn on 0 references                            | Prevents false confidence                      | 15 min |
-| 5   | Add DOMAIN_LANGUAGE.md to doc-check default path                 | Keeps domain vocabulary verified               | 5 min  |
-| 6   | Add a verification ` ```go ` block to DOMAIN_LANGUAGE.md         | Makes doc-check actually validate the glossary | 20 min |
+| # | Task                                                             | Impact                                         | Effort |
+| - | ---------------------------------------------------------------- | ---------------------------------------------- | ------ |
+| 1 | Swap LICENSE to Apache-2.0                                       | Unblocks all public adoption                   | 5 min  |
+| 2 | Add `CONTRIBUTING.md` (basic: how to build, test, lint, PR flow) | Expected for public repos                      | 30 min |
+| 3 | Add `SECURITY.md` (reporting policy + signing/encryption scope)  | Expected for security-handling lib             | 15 min |
+| 4 | Fix doc-check to warn on 0 references                            | Prevents false confidence                      | 15 min |
+| 5 | Add DOMAIN_LANGUAGE.md to doc-check default path                 | Keeps domain vocabulary verified               | 5 min  |
+| 6 | Add a verification `` ```go `` block to DOMAIN_LANGUAGE.md       | Makes doc-check actually validate the glossary | 20 min |
 
 ### Tier 2: High Impact, Medium Effort
 
-| #   | Task                                                        | Impact                                                                 | Effort  |
-| --- | ----------------------------------------------------------- | ---------------------------------------------------------------------- | ------- |
-| 7   | Audit git history for internal docs before going public     | Prevents strategy leak                                                 | 1-2 hrs |
-| 8   | Move `docs/ActaFlow-*` comparison to private repo or delete | Removes competitive intel from public history                          | 30 min  |
-| 9   | Add `docs/SPAN_NAMING.md` cross-link to DOMAIN_LANGUAGE.md  | OTel span naming convention is referenced but undocumented in glossary | 15 min  |
-| 10  | Polish README.md to "sales page" standard                   | First thing public users see                                           | 2-3 hrs |
-| 11  | Add Postgres CI service (GitHub Actions)                    | Exercises the 0%-coverage Postgres stack                               | 1 hr    |
-| 12  | Soften "Production ready" claims where coverage is weak     | Prevents trust erosion when users test paths                           | 30 min  |
+| #  | Task                                                        | Impact                                                                 | Effort  |
+| -- | ----------------------------------------------------------- | ---------------------------------------------------------------------- | ------- |
+| 7  | Audit git history for internal docs before going public     | Prevents strategy leak                                                 | 1-2 hrs |
+| 8  | Move `docs/ActaFlow-*` comparison to private repo or delete | Removes competitive intel from public history                          | 30 min  |
+| 9  | Add `docs/SPAN_NAMING.md` cross-link to DOMAIN_LANGUAGE.md  | OTel span naming convention is referenced but undocumented in glossary | 15 min  |
+| 10 | Polish README.md to "sales page" standard                   | First thing public users see                                           | 2-3 hrs |
+| 11 | Add Postgres CI service (GitHub Actions)                    | Exercises the 0%-coverage Postgres stack                               | 1 hr    |
+| 12 | Soften "Production ready" claims where coverage is weak     | Prevents trust erosion when users test paths                           | 30 min  |
 
 ### Tier 3: Medium Impact, Low Effort
 
-| #   | Task                                                                        | Impact                                               | Effort |
-| --- | --------------------------------------------------------------------------- | ---------------------------------------------------- | ------ |
-| 13  | Document the `event.Event = *ImmutableEvent` design decision in an ADR      | Preserves institutional knowledge                    | 30 min |
-| 14  | Add "Why not an interface?" doc comment on the Event type alias             | Helps contributors understand the hot-path rationale | 5 min  |
-| 15  | Cross-link ADRs from DOMAIN_LANGUAGE.md error taxonomy section              | Connects vocabulary to decisions                     | 15 min |
-| 16  | Add `eventtest` helpers to DOMAIN_LANGUAGE.md Tooling section with examples | Consumers need to know how to test                   | 20 min |
-| 17  | Document the `Deriver` function-type-with-methods pattern                   | Unusual Go pattern; needs explanation                | 15 min |
+| #  | Task                                                                        | Impact                                               | Effort |
+| -- | --------------------------------------------------------------------------- | ---------------------------------------------------- | ------ |
+| 13 | Document the `event.Event = *ImmutableEvent` design decision in an ADR      | Preserves institutional knowledge                    | 30 min |
+| 14 | Add "Why not an interface?" doc comment on the Event type alias             | Helps contributors understand the hot-path rationale | 5 min  |
+| 15 | Cross-link ADRs from DOMAIN_LANGUAGE.md error taxonomy section              | Connects vocabulary to decisions                     | 15 min |
+| 16 | Add `eventtest` helpers to DOMAIN_LANGUAGE.md Tooling section with examples | Consumers need to know how to test                   | 20 min |
+| 17 | Document the `Deriver` function-type-with-methods pattern                   | Unusual Go pattern; needs explanation                | 15 min |
 
 ### Tier 4: Medium Impact, Medium Effort
 
-| #   | Task                                                        | Impact                                                       | Effort  |
-| --- | ----------------------------------------------------------- | ------------------------------------------------------------ | ------- |
-| 18  | Run `docs-freshness-check` skill across all doc files       | Catches stale docs beyond DOMAIN_LANGUAGE.md                 | 1 hr    |
-| 19  | Add a "Getting Started" code example to DOMAIN_LANGUAGE.md  | Shows how terms connect in practice                          | 45 min  |
-| 20  | Create `docs/MIGRATION.md` for v3→v4 codec default changes  | v4 is documented as flipping defaults; consumers need a path | 1-2 hrs |
-| 21  | Add integration test that imports every module's public API | Catches breaking changes at compile time                     | 2 hrs   |
-| 22  | Run `architecture-review` skill                             | Comprehensive modularity assessment                          | 2-3 hrs |
+| #  | Task                                                        | Impact                                                       | Effort  |
+| -- | ----------------------------------------------------------- | ------------------------------------------------------------ | ------- |
+| 18 | Run `docs-freshness-check` skill across all doc files       | Catches stale docs beyond DOMAIN_LANGUAGE.md                 | 1 hr    |
+| 19 | Add a "Getting Started" code example to DOMAIN_LANGUAGE.md  | Shows how terms connect in practice                          | 45 min  |
+| 20 | Create `docs/MIGRATION.md` for v3→v4 codec default changes  | v4 is documented as flipping defaults; consumers need a path | 1-2 hrs |
+| 21 | Add integration test that imports every module's public API | Catches breaking changes at compile time                     | 2 hrs   |
+| 22 | Run `architecture-review` skill                             | Comprehensive modularity assessment                          | 2-3 hrs |
 
 ### Tier 5: Lower Priority
 
-| #   | Task                                                     | Impact                           | Effort |
-| --- | -------------------------------------------------------- | -------------------------------- | ------ |
-| 23  | Add `CODEOWNERS` file                                    | Standard open-source governance  | 10 min |
-| 24  | Add GitHub Issue templates (bug report, feature request) | Improves public feedback loop    | 30 min |
-| 25  | Add `CHANGELOG.md` if not present                        | Standard for versioned libraries | 1 hr   |
+| #  | Task                                                     | Impact                           | Effort |
+| -- | -------------------------------------------------------- | -------------------------------- | ------ |
+| 23 | Add `CODEOWNERS` file                                    | Standard open-source governance  | 10 min |
+| 24 | Add GitHub Issue templates (bug report, feature request) | Improves public feedback loop    | 30 min |
+| 25 | Add `CHANGELOG.md` if not present                        | Standard for versioned libraries | 1 hr   |
 
 ---
 

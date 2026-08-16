@@ -15,23 +15,23 @@
 
 ## A. FULLY DONE
 
-| #   | Item                                                       | Files                                                                  | Verification                             |
-| --- | ---------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------- |
-| 31  | projectionhost wrapcheck (11 violations)                   | `worker_drain.go`, `worker.go`, `sqlite_dlq.go`, `sqlite_dlq_admin.go` | Lint: 0 wrapcheck                        |
-| 32  | graph/graphtest wrapcheck + revive (8+4 violations)        | `contract.go`, `read_contract.go`                                      | Lint: 0 wrapcheck, 0 revive in graphtest |
-| 33  | idempotency wrapcheck (1 violation)                        | `kv_store.go`                                                          | Lint: 0 issues                           |
-| 34  | dedup exhaustruct + predeclared (1+2 violations)           | `ring.go`, `ring_test.go`                                              | Lint: 0 issues                           |
-| 35  | transport/http cognitive complexity (gocognit 36→under 35) | `sse_replay.go` (refactored into 4 helpers)                            | Lint: 0 gocognit                         |
-| 38  | README.md sections for encryption, turso, testutil         | `README.md`                                                            | Manual review                            |
-| 39  | ADR-0043 Part B (DeadLetterEntry types documented)         | Already complete — both types have cross-referencing doc comments      | Verified                                 |
-| 40  | DLQ index optimization audit                               | `sqlite_dlq.go` (added schema comment)                                 | Manual analysis                          |
-| 41  | NewEvent() encoding param evaluation (ADR-0052)            | `docs/adr/0052-*.md`                                                   | Written                                  |
-| 42  | SSE default JSON-out evaluation (ADR-0052)                 | `docs/adr/0052-*.md`                                                   | Written                                  |
-| 43  | WebSocket CBOR evaluation (ADR-0052)                       | `docs/adr/0052-*.md`                                                   | Written                                  |
-| 44  | fetch(arrayBuffer()) CBOR evaluation (ADR-0052)            | `docs/adr/0052-*.md`                                                   | Written                                  |
-| 45  | modules.md export verification                             | `references/modules.md`                                                | Updated 5 rows                           |
-| 46  | SKILL.md codec default decision                            | `SKILL.md` (section 3.3 expanded)                                      | doc-check: 875/875                       |
-| 47  | doc-check verification                                     | All docs                                                               | 875 references valid                     |
+| #  | Item                                                       | Files                                                                  | Verification                             |
+| -- | ---------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------- |
+| 31 | projectionhost wrapcheck (11 violations)                   | `worker_drain.go`, `worker.go`, `sqlite_dlq.go`, `sqlite_dlq_admin.go` | Lint: 0 wrapcheck                        |
+| 32 | graph/graphtest wrapcheck + revive (8+4 violations)        | `contract.go`, `read_contract.go`                                      | Lint: 0 wrapcheck, 0 revive in graphtest |
+| 33 | idempotency wrapcheck (1 violation)                        | `kv_store.go`                                                          | Lint: 0 issues                           |
+| 34 | dedup exhaustruct + predeclared (1+2 violations)           | `ring.go`, `ring_test.go`                                              | Lint: 0 issues                           |
+| 35 | transport/http cognitive complexity (gocognit 36→under 35) | `sse_replay.go` (refactored into 4 helpers)                            | Lint: 0 gocognit                         |
+| 38 | README.md sections for encryption, turso, testutil         | `README.md`                                                            | Manual review                            |
+| 39 | ADR-0043 Part B (DeadLetterEntry types documented)         | Already complete — both types have cross-referencing doc comments      | Verified                                 |
+| 40 | DLQ index optimization audit                               | `sqlite_dlq.go` (added schema comment)                                 | Manual analysis                          |
+| 41 | NewEvent() encoding param evaluation (ADR-0052)            | `docs/adr/0052-*.md`                                                   | Written                                  |
+| 42 | SSE default JSON-out evaluation (ADR-0052)                 | `docs/adr/0052-*.md`                                                   | Written                                  |
+| 43 | WebSocket CBOR evaluation (ADR-0052)                       | `docs/adr/0052-*.md`                                                   | Written                                  |
+| 44 | fetch(arrayBuffer()) CBOR evaluation (ADR-0052)            | `docs/adr/0052-*.md`                                                   | Written                                  |
+| 45 | modules.md export verification                             | `references/modules.md`                                                | Updated 5 rows                           |
+| 46 | SKILL.md codec default decision                            | `SKILL.md` (section 3.3 expanded)                                      | doc-check: 875/875                       |
+| 47 | doc-check verification                                     | All docs                                                               | 875 references valid                     |
 
 **Additional completed:**
 

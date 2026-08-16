@@ -230,38 +230,38 @@ The middleware extraction commit `563f126` had three syntax errors (detached if 
 
 ### HIGH IMPACT, MEDIUM EFFORT (Next Sprint)
 
-| #   | Action                                                                               | Effort | Impact | Why                            |
-| --- | ------------------------------------------------------------------------------------ | ------ | ------ | ------------------------------ |
-| 6   | Fix `pkg/id` test coverage to 80%+                                                   | 1h     | MEDIUM | Coverage below bar             |
-| 7   | Fix `wsl_v5` violations in `id_test.go`                                              | 15 min | LOW    | Code style                     |
-| 8   | Resolve `err113` in `id.go:53` and `repository.go:92`                                | 15 min | LOW    | Use sentinel + wrapping        |
-| 9   | Write CHANGELOG.md entries for post-migration work                                   | 1h     | MEDIUM | Release tracking               |
-| 10  | Publish `go-composable-business-types` as proper Go module                           | 1h     | HIGH   | Breaks portability             |
-| 11  | Or: inline ULID logic back into `core/pkg/id` to remove the dependency               | 2h     | HIGH   | Alternative to #10             |
-| 12  | Define `Projection` interface in `core/projection/`                                  | 1h     | HIGH   | Foundation for Phase 7         |
-| 13  | Write integration example using middleware + xtypes + core + memory                  | 2h     | HIGH   | First real validation of API   |
-| 14  | Add Go doc `Example*` test functions for command, event, query, aggregate            | 2h     | HIGH   | pkg.go.dev discoverability     |
-| 15  | Update `example/user/` for independent builds (remove composable-business-types dep) | 30 min | MEDIUM | Example should work standalone |
+| #  | Action                                                                               | Effort | Impact | Why                            |
+| -- | ------------------------------------------------------------------------------------ | ------ | ------ | ------------------------------ |
+| 6  | Fix `pkg/id` test coverage to 80%+                                                   | 1h     | MEDIUM | Coverage below bar             |
+| 7  | Fix `wsl_v5` violations in `id_test.go`                                              | 15 min | LOW    | Code style                     |
+| 8  | Resolve `err113` in `id.go:53` and `repository.go:92`                                | 15 min | LOW    | Use sentinel + wrapping        |
+| 9  | Write CHANGELOG.md entries for post-migration work                                   | 1h     | MEDIUM | Release tracking               |
+| 10 | Publish `go-composable-business-types` as proper Go module                           | 1h     | HIGH   | Breaks portability             |
+| 11 | Or: inline ULID logic back into `core/pkg/id` to remove the dependency               | 2h     | HIGH   | Alternative to #10             |
+| 12 | Define `Projection` interface in `core/projection/`                                  | 1h     | HIGH   | Foundation for Phase 7         |
+| 13 | Write integration example using middleware + xtypes + core + memory                  | 2h     | HIGH   | First real validation of API   |
+| 14 | Add Go doc `Example*` test functions for command, event, query, aggregate            | 2h     | HIGH   | pkg.go.dev discoverability     |
+| 15 | Update `example/user/` for independent builds (remove composable-business-types dep) | 30 min | MEDIUM | Example should work standalone |
 
 ### HIGH IMPACT, HIGH EFFORT (Major Features)
 
-| #   | Action                                                               | Effort   | Impact   | Why                                 |
-| --- | -------------------------------------------------------------------- | -------- | -------- | ----------------------------------- |
-| 16  | **Phase 5: Storage module** (sqlc PostgreSQL event store)            | 2-3 days | CRITICAL | First real persistence layer        |
-| 17  | **Phase 6: Watermill module** (pub/sub integrations)                 | 2-3 days | CRITICAL | Production-grade event distribution |
-| 18  | **Phase 7: Projection module** (event handlers → SQL tables)         | 2-3 days | HIGH     | Read-model generation               |
-| 19  | **Phase 8: Snapshot module** (SQL-backed snapshots)                  | 1-2 days | MEDIUM   | Aggregate load performance          |
-| 20  | Write comprehensive integration test suite (core + memory + storage) | 1 day    | HIGH     | Confidence in module interactions   |
+| #  | Action                                                               | Effort   | Impact   | Why                                 |
+| -- | -------------------------------------------------------------------- | -------- | -------- | ----------------------------------- |
+| 16 | **Phase 5: Storage module** (sqlc PostgreSQL event store)            | 2-3 days | CRITICAL | First real persistence layer        |
+| 17 | **Phase 6: Watermill module** (pub/sub integrations)                 | 2-3 days | CRITICAL | Production-grade event distribution |
+| 18 | **Phase 7: Projection module** (event handlers → SQL tables)         | 2-3 days | HIGH     | Read-model generation               |
+| 19 | **Phase 8: Snapshot module** (SQL-backed snapshots)                  | 1-2 days | MEDIUM   | Aggregate load performance          |
+| 20 | Write comprehensive integration test suite (core + memory + storage) | 1 day    | HIGH     | Confidence in module interactions   |
 
 ### MEDIUM IMPACT, VARIOUS EFFORT
 
-| #   | Action                                                            | Effort | Impact | Why                              |
-| --- | ----------------------------------------------------------------- | ------ | ------ | -------------------------------- |
-| 21  | Add benchmarks for Codec, ULID IDs, EventValidation middleware    | 2h     | MEDIUM | Performance regression detection |
-| 22  | Define `Upcaster` interface in `core/upcasting/`                  | 1h     | MEDIUM | Event schema evolution           |
-| 23  | Add fuzz targets for event parsing, ID parsing, schema reflection | 2h     | LOW    | Edge case coverage               |
-| 24  | Add `example/ecommerce/` full-stack example (all modules)         | 4h     | HIGH   | "Kitchen sink" demo              |
-| 25  | Investigate `go 1.26 ignore` directive for examples/ in go.work   | 30 min | LOW    | Clean `go test ./...`            |
+| #  | Action                                                            | Effort | Impact | Why                              |
+| -- | ----------------------------------------------------------------- | ------ | ------ | -------------------------------- |
+| 21 | Add benchmarks for Codec, ULID IDs, EventValidation middleware    | 2h     | MEDIUM | Performance regression detection |
+| 22 | Define `Upcaster` interface in `core/upcasting/`                  | 1h     | MEDIUM | Event schema evolution           |
+| 23 | Add fuzz targets for event parsing, ID parsing, schema reflection | 2h     | LOW    | Edge case coverage               |
+| 24 | Add `example/ecommerce/` full-stack example (all modules)         | 4h     | HIGH   | "Kitchen sink" demo              |
+| 25 | Investigate `go 1.26 ignore` directive for examples/ in go.work   | 30 min | LOW    | Clean `go test ./...`            |
 
 ---
 

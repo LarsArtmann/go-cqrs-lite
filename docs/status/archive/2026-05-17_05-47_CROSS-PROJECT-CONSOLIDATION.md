@@ -1,7 +1,7 @@
 # Cross-Project Consolidation Status Report
 
-**Date:** 2026-05-17 05:47  
-**Session:** Cross-Project Review + go-localfirst Archive  
+**Date:** 2026-05-17 05:47\
+**Session:** Cross-Project Review + go-localfirst Archive\
 **Projects:** go-cqrs-lite, cqrs-htmx, go-localsync, go-localfirst
 
 ---
@@ -140,33 +140,33 @@ Completed a full comparative review of all four Go projects in the LarsArtmann e
 
 ## f) TOP 25 THINGS TO DO NEXT
 
-| #   | Priority | Project       | Task                                                                                                            | Impact | Effort |
-| --- | -------- | ------------- | --------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | 🔴 P0    | go-cqrs-lite  | **Fix storage version mismatch** — `helpers.go:158` and `pebble_event_store.go:372` pass wrong type to NewEvent | HIGH   | 15min  |
-| 2   | 🔴 P0    | go-cqrs-lite  | **Tag v0.1.0-alpha** — First public release after storage fix                                                   | HIGH   | 30min  |
-| 3   | 🔴 P0    | go-localfirst | **Commit and push archival** — Commit the archive state, push to origin                                         | HIGH   | 10min  |
-| 4   | 🔴 P0    | go-cqrs-lite  | **Commit example/todo** — Commit the migrated Todo example                                                      | HIGH   | 10min  |
-| 5   | 🟡 P1    | go-localsync  | **Remove cockroachdb/errors** — Migrate to stdlib `fmt.Errorf` with `%w`                                        | MEDIUM | 2h     |
-| 6   | 🟡 P1    | go-localsync  | **Delete legacy storage (CQRS Phase 4)** — Remove pkg/storage, internal/database, sql/                          | HIGH   | 3h     |
-| 7   | 🟡 P1    | go-localsync  | **Wire error taxonomy** — Use event.RegisterClassification + MapError                                           | MEDIUM | 2h     |
-| 8   | 🟡 P1    | go-cqrs-lite  | **Fix TestUpdateTodo_InvalidID** — Todo example returns 500 instead of 400                                      | LOW    | 30min  |
-| 9   | 🟡 P1    | go-localsync  | **Migrate testify → Ginkgo** — Unblock pre-commit hooks                                                         | MEDIUM | 3h     |
-| 10  | 🟡 P1    | go-localsync  | **Update CLI to use CQRSStack** — Default `--backend cqrs`                                                      | MEDIUM | 2h     |
-| 11  | 🟡 P1    | go-cqrs-lite  | **CONTRIBUTING.md** — Architecture guidelines for contributors                                                  | MEDIUM | 1h     |
-| 12  | 🟢 P2    | go-cqrs-lite  | **PostgreSQL integration tests for storage** — Test against real PG                                             | MEDIUM | 4h     |
-| 13  | 🟢 P2    | cqrs-htmx     | **Add DecodeRequest[T]** — Access to both decoded body and \*http.Request                                       | HIGH   | 4h     |
-| 14  | 🟢 P2    | go-cqrs-lite  | **Consolidate CatalogMeta** — Share between event/command/query packages                                        | LOW    | 2h     |
-| 15  | 🟢 P2    | go-cqrs-lite  | **Implement Saga/Process Manager** — Design done, 18h estimate                                                  | HIGH   | 18h    |
-| 16  | 🟢 P2    | go-cqrs-lite  | **TransactionalStore implementation** — Atomic save+outbox in single DB tx                                      | HIGH   | 4h     |
-| 17  | 🟢 P2    | go-cqrs-lite  | **Update README** — Add example/todo, Pebble storage, sync module                                               | MEDIUM | 1h     |
-| 18  | 🟢 P2    | go-cqrs-lite  | **Update FEATURES.md** — Add example/todo to Module Maturity Matrix                                             | LOW    | 15min  |
-| 19  | 🟢 P2    | go-localsync  | **Real GitHub PAT smoke test** — Verify end-to-end with real API                                                | MEDIUM | 1h     |
-| 20  | 🟢 P2    | go-cqrs-lite  | **Watermill module** — Kafka/NATS adapter                                                                       | HIGH   | 20h    |
-| 21  | 🟢 P2    | go-localsync  | **Add JSON output flag** — Structured output for CLI                                                            | LOW    | 1h     |
-| 22  | 🟢 P2    | go-localsync  | **Add structured logging fields** — Consistent context in all log statements                                    | LOW    | 1h     |
-| 23  | 🟢 P2    | go-cqrs-lite  | **Document Pebble storage** — Add to README, AGENTS.md, FEATURES.md                                             | MEDIUM | 30min  |
-| 24  | 🟢 P2    | go-localsync  | **Adopt go-cqrs-lite projection.Runner** — Replace custom Projector                                             | MEDIUM | 2h     |
-| 25  | 🟢 P2    | cqrs-htmx     | **Add request logging middleware** — Documented as PLANNED in FEATURES.md                                       | LOW    | 2h     |
+| #  | Priority | Project       | Task                                                                                                            | Impact | Effort |
+| -- | -------- | ------------- | --------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1  | 🔴 P0    | go-cqrs-lite  | **Fix storage version mismatch** — `helpers.go:158` and `pebble_event_store.go:372` pass wrong type to NewEvent | HIGH   | 15min  |
+| 2  | 🔴 P0    | go-cqrs-lite  | **Tag v0.1.0-alpha** — First public release after storage fix                                                   | HIGH   | 30min  |
+| 3  | 🔴 P0    | go-localfirst | **Commit and push archival** — Commit the archive state, push to origin                                         | HIGH   | 10min  |
+| 4  | 🔴 P0    | go-cqrs-lite  | **Commit example/todo** — Commit the migrated Todo example                                                      | HIGH   | 10min  |
+| 5  | 🟡 P1    | go-localsync  | **Remove cockroachdb/errors** — Migrate to stdlib `fmt.Errorf` with `%w`                                        | MEDIUM | 2h     |
+| 6  | 🟡 P1    | go-localsync  | **Delete legacy storage (CQRS Phase 4)** — Remove pkg/storage, internal/database, sql/                          | HIGH   | 3h     |
+| 7  | 🟡 P1    | go-localsync  | **Wire error taxonomy** — Use event.RegisterClassification + MapError                                           | MEDIUM | 2h     |
+| 8  | 🟡 P1    | go-cqrs-lite  | **Fix TestUpdateTodo_InvalidID** — Todo example returns 500 instead of 400                                      | LOW    | 30min  |
+| 9  | 🟡 P1    | go-localsync  | **Migrate testify → Ginkgo** — Unblock pre-commit hooks                                                         | MEDIUM | 3h     |
+| 10 | 🟡 P1    | go-localsync  | **Update CLI to use CQRSStack** — Default `--backend cqrs`                                                      | MEDIUM | 2h     |
+| 11 | 🟡 P1    | go-cqrs-lite  | **CONTRIBUTING.md** — Architecture guidelines for contributors                                                  | MEDIUM | 1h     |
+| 12 | 🟢 P2    | go-cqrs-lite  | **PostgreSQL integration tests for storage** — Test against real PG                                             | MEDIUM | 4h     |
+| 13 | 🟢 P2    | cqrs-htmx     | **Add DecodeRequest[T]** — Access to both decoded body and \*http.Request                                       | HIGH   | 4h     |
+| 14 | 🟢 P2    | go-cqrs-lite  | **Consolidate CatalogMeta** — Share between event/command/query packages                                        | LOW    | 2h     |
+| 15 | 🟢 P2    | go-cqrs-lite  | **Implement Saga/Process Manager** — Design done, 18h estimate                                                  | HIGH   | 18h    |
+| 16 | 🟢 P2    | go-cqrs-lite  | **TransactionalStore implementation** — Atomic save+outbox in single DB tx                                      | HIGH   | 4h     |
+| 17 | 🟢 P2    | go-cqrs-lite  | **Update README** — Add example/todo, Pebble storage, sync module                                               | MEDIUM | 1h     |
+| 18 | 🟢 P2    | go-cqrs-lite  | **Update FEATURES.md** — Add example/todo to Module Maturity Matrix                                             | LOW    | 15min  |
+| 19 | 🟢 P2    | go-localsync  | **Real GitHub PAT smoke test** — Verify end-to-end with real API                                                | MEDIUM | 1h     |
+| 20 | 🟢 P2    | go-cqrs-lite  | **Watermill module** — Kafka/NATS adapter                                                                       | HIGH   | 20h    |
+| 21 | 🟢 P2    | go-localsync  | **Add JSON output flag** — Structured output for CLI                                                            | LOW    | 1h     |
+| 22 | 🟢 P2    | go-localsync  | **Add structured logging fields** — Consistent context in all log statements                                    | LOW    | 1h     |
+| 23 | 🟢 P2    | go-cqrs-lite  | **Document Pebble storage** — Add to README, AGENTS.md, FEATURES.md                                             | MEDIUM | 30min  |
+| 24 | 🟢 P2    | go-localsync  | **Adopt go-cqrs-lite projection.Runner** — Replace custom Projector                                             | MEDIUM | 2h     |
+| 25 | 🟢 P2    | cqrs-htmx     | **Add request logging middleware** — Documented as PLANNED in FEATURES.md                                       | LOW    | 2h     |
 
 ---
 

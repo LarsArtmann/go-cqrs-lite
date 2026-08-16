@@ -1,8 +1,8 @@
 # Comprehensive Status Report — 2026-06-01
 
-**Generated:** 2026-06-01 13:02 (CEST)  
-**Branch:** master (clean, up-to-date with origin)  
-**Go Version:** 1.26.3 linux/amd64  
+**Generated:** 2026-06-01 13:02 (CEST)\
+**Branch:** master (clean, up-to-date with origin)\
+**Go Version:** 1.26.3 linux/amd64\
 **Last Session:** Multi-phase code quality improvement pass (dedup t=45 → t=30 → t=15 + self-directed audit)
 
 ---
@@ -14,11 +14,11 @@
 | **Build**           | ✅ PASS        | All modules compile clean                                      |
 | **Tests**           | ✅ PASS        | 37/37 packages pass                                            |
 | **Dedup (t=30)**    | ✅ PASS        | 0 production clone groups                                      |
-| **Dedup (t=15)**    | ⚠️ 83 groups   | All verified non-actionable (see §5)                           |
+| **Dedup (t=15)**    | ⚠️ 83 groups    | All verified non-actionable (see §5)                           |
 | **TODO_LIST.md**    | 🔶 83%         | 235 done / 48 pending / 327 total                              |
 | **P0 bugs**         | 🔴 1 active    | cmd/cqrs-gen query signature mismatch                          |
 | **P1 issues**       | 🟡 1 incorrect | metricName\* constants ARE used in tests                       |
-| **LSP diagnostics** | ⚠️ Stale       | Pre-existing pebble test errors (38 issues, all in `_test.go`) |
+| **LSP diagnostics** | ⚠️ Stale        | Pre-existing pebble test errors (38 issues, all in `_test.go`) |
 
 ---
 

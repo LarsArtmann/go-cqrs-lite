@@ -35,12 +35,12 @@ go-cqrs-lite is a **mature, stable CQRS/Event Sourcing library SDK** at v2.3.0 w
 
 ### Persistence Backends
 
-| Backend            | EventStore | SnapshotStore | CheckpointStore | CommandStore | QueryStore | OTel       |
-| ------------------ | ---------- | ------------- | --------------- | ------------ | ---------- | ---------- |
-| `memory/` (98.5%)  | ✅         | ✅            | ✅              | ✅           | ✅         | N/A        |
-| `storage/` (86.3%) | ✅ SQL     | ✅ SQL        | ✅ SQL          | ✅ SQL       | ✅ SQL     | ✅         |
+| Backend            | EventStore | SnapshotStore | CheckpointStore | CommandStore | QueryStore | OTel      |
+| ------------------ | ---------- | ------------- | --------------- | ------------ | ---------- | --------- |
+| `memory/` (98.5%)  | ✅         | ✅            | ✅              | ✅           | ✅         | N/A       |
+| `storage/` (86.3%) | ✅ SQL     | ✅ SQL        | ✅ SQL          | ✅ SQL       | ✅ SQL     | ✅        |
 | `pebble/` (81.4%)  | ✅         | ✅            | ✅              | —            | —          | ⚠️ Partial |
-| `turso/` (63%)     | ✅         | —             | —               | —            | —          | —          |
+| `turso/` (63%)     | ✅         | —             | —               | —            | —          | —         |
 
 ### Cross-Cutting Concerns
 
@@ -51,7 +51,7 @@ go-cqrs-lite is a **mature, stable CQRS/Event Sourcing library SDK** at v2.3.0 w
 | `encryption/` | 86.9%    | ✅     | XChaCha20-Poly1305, AES-256-GCM, codec wrapper, encrypt/decrypt middleware                                                              |
 | `codec/`      | 88.9%    | ✅     | JSON, deterministic CBOR (RFC 7049), Raw passthrough                                                                                    |
 | `otel/`       | 97.3%    | ✅     | Shared OTel helpers: Tracer, Meter, Spans, Attributes — all modules import this instead of go.opentelemetry.io directly                 |
-| `projection/` | 90.4%    | ✅     | Runner (replay+live), HandlerRegistry, Builder with On[T](<>), event type caching                                                       |
+| `projection/` | 90.4%    | ✅     | Runner (replay+live), HandlerRegistry, Builder with On[T](), event type caching                                                         |
 | `listing/`    | 94.9%    | ✅     | AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware                                                                |
 | `watermill/`  | 94.3%    | ✅     | Watermill protocol adapter (publisher/subscriber)                                                                                       |
 
@@ -138,11 +138,11 @@ The SQL `Backend` facade exists but is **missing methods**:
 
 ### Coverage Gaps
 
-| Module    | Coverage | Target (80%) | Gap                         |
-| --------- | -------- | ------------ | --------------------------- |
+| Module    | Coverage | Target (80%) | Gap                        |
+| --------- | -------- | ------------ | -------------------------- |
 | `turso/`  | 49–77%   | 80%          | ⚠️ Below gate in some paths |
 | `query/`  | 72.9%    | 80%          | ⚠️ Below gate               |
-| `pebble/` | 81.4%    | 80%          | ✅ But thin margin          |
+| `pebble/` | 81.4%    | 80%          | ✅ But thin margin         |
 
 ### golangci-lint Typecheck Cache Issue
 
@@ -285,33 +285,33 @@ The golangci-lint typecheck false-positives in codec create a "boy who cried wol
 
 Pareto-sorted by impact-to-effort ratio:
 
-| #   | Task                                                                                          | Tier    | Est. | Impact                                           |
-| --- | --------------------------------------------------------------------------------------------- | ------- | ---- | ------------------------------------------------ |
-| 1   | **Change LICENSE to MIT or Apache-2.0**                                                       | Blocked | 5m   | 🔴 **Critical** — unblocks all consumer adoption |
-| 2   | **Add OTel spans to pebble EventStore** (Save/Load/ReadAll/ReadFrom)                          | T2      | 46m  | High — observability parity                      |
-| 3   | **Create PebbleBackend facade** (Open + EventStore + SnapshotStore + CheckpointStore + Close) | T2      | 35m  | High — consumer DX                               |
-| 4   | **Add SnapshotStore() + CheckpointStore() + Close() to SQL Backend**                          | T1      | 30m  | High — SQL facade completeness                   |
-| 5   | **Clear golangci-lint cache** / fix typecheck false-positives                                 | T1      | 10m  | High — unblocks CI lint gate                     |
-| 6   | **Fill ADR-0019 gap** or document skip in README                                              | T3      | 5m   | Med — decision history integrity                 |
-| 7   | **Update ROADMAP.md** — mark Sprint 4-7 items done/descoped                                   | T1      | 20m  | Med — doc freshness                              |
-| 8   | **Update FEATURES.md** — mark resolved issues + query sentinels done                          | T1      | 10m  | Med — doc freshness                              |
-| 9   | **Implement Outbox pattern** (ADR-0016)                                                       | T5      | 8hr  | High — production reliability                    |
-| 10  | **Add pebble serialization error branch tests**                                               | T3      | 40m  | Med — coverage lift                              |
-| 10  | **Add pebble nil-db / closed-db error path tests**                                            | T3      | 40m  | Med — coverage lift                              |
-| 12  | **Add pebble golden tests** (CBOR envelope, snapshot, checkpoint)                             | T3      | 30m  | Med — regression protection                      |
-| 13  | **Add pebble fuzz tests** (snapshot/checkpoint roundtrip)                                     | T3      | 22m  | Med — robustness                                 |
-| 14  | **Implement Schema Registry** (ADR-0017)                                                      | T5      | 6hr  | High — runtime validation                        |
-| 15  | **Add query/ coverage tests** (lift from 72.9% to ≥85%)                                       | T3      | 1hr  | Med — gate compliance margin                     |
-| 16  | **Write PebbleBackend integration test** (full stack: event+snapshot+checkpoint+projection)   | T3      | 12m  | Med — confidence                                 |
-| 17  | **Benchmark pebble Save before/after OTel** overhead                                          | T2      | 12m  | Med — perf validation                            |
-| 18  | **Add PostgreSQL integration tests** (testcontainers-go)                                      | T4      | 36m  | Med — backend confidence                         |
-| 19  | **Add Replace directive CI check** script + GitHub Action                                     | T2      | 22m  | Med — prevents replace drift                     |
-| 20  | **Implement Reactive CommandBus** (`ro.Subject[Command]`)                                     | T5      | 4hr  | Med — API completeness                           |
-| 21  | **Add `WithLogger(nil)` option** to pebble stores (no-op logger)                              | T1      | 10m  | Low — consumer convenience                       |
-| 22  | **Write ADR for CBOR envelope format** (pebble on-disk)                                       | T1      | 12m  | Low — documents decision                         |
-| 23  | **Write ADR for EventStore.Close() vs SnapshotStore.Close() asymmetry**                       | T1      | 10m  | Low — documents decision                         |
-| 24  | **Add structured logging middleware** (configurable slog levels)                              | T5      | 4hr  | Med — observability                              |
-| 25  | **Create documentation site** (Docusaurus/MkDocs)                                             | T5      | 8hr  | Med — discoverability                            |
+| #  | Task                                                                                          | Tier    | Est. | Impact                                           |
+| -- | --------------------------------------------------------------------------------------------- | ------- | ---- | ------------------------------------------------ |
+| 1  | **Change LICENSE to MIT or Apache-2.0**                                                       | Blocked | 5m   | 🔴 **Critical** — unblocks all consumer adoption |
+| 2  | **Add OTel spans to pebble EventStore** (Save/Load/ReadAll/ReadFrom)                          | T2      | 46m  | High — observability parity                      |
+| 3  | **Create PebbleBackend facade** (Open + EventStore + SnapshotStore + CheckpointStore + Close) | T2      | 35m  | High — consumer DX                               |
+| 4  | **Add SnapshotStore() + CheckpointStore() + Close() to SQL Backend**                          | T1      | 30m  | High — SQL facade completeness                   |
+| 5  | **Clear golangci-lint cache** / fix typecheck false-positives                                 | T1      | 10m  | High — unblocks CI lint gate                     |
+| 6  | **Fill ADR-0019 gap** or document skip in README                                              | T3      | 5m   | Med — decision history integrity                 |
+| 7  | **Update ROADMAP.md** — mark Sprint 4-7 items done/descoped                                   | T1      | 20m  | Med — doc freshness                              |
+| 8  | **Update FEATURES.md** — mark resolved issues + query sentinels done                          | T1      | 10m  | Med — doc freshness                              |
+| 9  | **Implement Outbox pattern** (ADR-0016)                                                       | T5      | 8hr  | High — production reliability                    |
+| 10 | **Add pebble serialization error branch tests**                                               | T3      | 40m  | Med — coverage lift                              |
+| 10 | **Add pebble nil-db / closed-db error path tests**                                            | T3      | 40m  | Med — coverage lift                              |
+| 12 | **Add pebble golden tests** (CBOR envelope, snapshot, checkpoint)                             | T3      | 30m  | Med — regression protection                      |
+| 13 | **Add pebble fuzz tests** (snapshot/checkpoint roundtrip)                                     | T3      | 22m  | Med — robustness                                 |
+| 14 | **Implement Schema Registry** (ADR-0017)                                                      | T5      | 6hr  | High — runtime validation                        |
+| 15 | **Add query/ coverage tests** (lift from 72.9% to ≥85%)                                       | T3      | 1hr  | Med — gate compliance margin                     |
+| 16 | **Write PebbleBackend integration test** (full stack: event+snapshot+checkpoint+projection)   | T3      | 12m  | Med — confidence                                 |
+| 17 | **Benchmark pebble Save before/after OTel** overhead                                          | T2      | 12m  | Med — perf validation                            |
+| 18 | **Add PostgreSQL integration tests** (testcontainers-go)                                      | T4      | 36m  | Med — backend confidence                         |
+| 19 | **Add Replace directive CI check** script + GitHub Action                                     | T2      | 22m  | Med — prevents replace drift                     |
+| 20 | **Implement Reactive CommandBus** (`ro.Subject[Command]`)                                     | T5      | 4hr  | Med — API completeness                           |
+| 21 | **Add `WithLogger(nil)` option** to pebble stores (no-op logger)                              | T1      | 10m  | Low — consumer convenience                       |
+| 22 | **Write ADR for CBOR envelope format** (pebble on-disk)                                       | T1      | 12m  | Low — documents decision                         |
+| 23 | **Write ADR for EventStore.Close() vs SnapshotStore.Close() asymmetry**                       | T1      | 10m  | Low — documents decision                         |
+| 24 | **Add structured logging middleware** (configurable slog levels)                              | T5      | 4hr  | Med — observability                              |
+| 25 | **Create documentation site** (Docusaurus/MkDocs)                                             | T5      | 8hr  | Med — discoverability                            |
 
 ---
 

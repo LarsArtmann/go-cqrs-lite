@@ -1,8 +1,8 @@
 # Session 92 — Comprehensive Status Report
 
-**Date:** 2026-05-22  
-**Branch:** master  
-**HEAD:** `3489b5a` (refactor(dispatcher): unexport internal plumbing)  
+**Date:** 2026-05-22\
+**Branch:** master\
+**HEAD:** `3489b5a` (refactor(dispatcher): unexport internal plumbing)\
 **Trigger:** Post-Session 92 quality audit + comprehensive status + Tier 1 deletion execution
 
 ---
@@ -236,53 +236,53 @@ Note: `catalog/adapters/benchmark_test.go` was deleted in this session, so that 
 
 ### Priority 1: Immediate Blockers
 
-| #   | Task                                                       | Impact   | Effort  |
-| --- | ---------------------------------------------------------- | -------- | ------- |
-| 1   | **Fix `cqrs-htmx` dependency** (blocks todo example build) | Critical | Low     |
-| 2   | **Refresh golden files** (`go test -update`)               | Medium   | Trivial |
-| 3   | **Investigate LSP errors** (10 phantom diagnostics)        | Medium   | Low     |
+| # | Task                                                       | Impact   | Effort  |
+| - | ---------------------------------------------------------- | -------- | ------- |
+| 1 | **Fix `cqrs-htmx` dependency** (blocks todo example build) | Critical | Low     |
+| 2 | **Refresh golden files** (`go test -update`)               | Medium   | Trivial |
+| 3 | **Investigate LSP errors** (10 phantom diagnostics)        | Medium   | Low     |
 
 ### Priority 2: API Cleanup (High Value)
 
-| #   | Task                                                                             | Impact | Effort |
-| --- | -------------------------------------------------------------------------------- | ------ | ------ |
-| 4   | **Delete `core/aggregate/` package** (1,756 lines deprecated)                    | High   | Medium |
-| 5   | **Delete `integration/aggregate/`** (tests for deprecated package)               | Medium | Low    |
-| 6   | **Remove `Command.IdempotencyKey()` from interface**                             | Medium | Medium |
-| 7   | **Delete `event.OutboxPublisher`** (206 lines, zero consumers)                   | Medium | Low    |
-| 8   | **Delete deprecated `catalog/adapters.CatalogBuilder`** + migrate `example/user` | Medium | Medium |
+| # | Task                                                                             | Impact | Effort |
+| - | -------------------------------------------------------------------------------- | ------ | ------ |
+| 4 | **Delete `core/aggregate/` package** (1,756 lines deprecated)                    | High   | Medium |
+| 5 | **Delete `integration/aggregate/`** (tests for deprecated package)               | Medium | Low    |
+| 6 | **Remove `Command.IdempotencyKey()` from interface**                             | Medium | Medium |
+| 7 | **Delete `event.OutboxPublisher`** (206 lines, zero consumers)                   | Medium | Low    |
+| 8 | **Delete deprecated `catalog/adapters.CatalogBuilder`** + migrate `example/user` | Medium | Medium |
 
 ### Priority 3: Quality
 
-| #   | Task                                                   | Impact | Effort |
-| --- | ------------------------------------------------------ | ------ | ------ |
-| 9   | **Fix `testhelpers` coverage** (10.5% → 60%+)          | Medium | Medium |
-| 10  | **Improve `storage` coverage** (86.9% → 90%+)          | Medium | Medium |
-| 11  | **Add `catalog/internal/cattest` basic tests**         | Low    | Low    |
-| 12  | **Improve `catalog/internal/caseutil`** (76.5% → 90%+) | Low    | Low    |
+| #  | Task                                                   | Impact | Effort |
+| -- | ------------------------------------------------------ | ------ | ------ |
+| 9  | **Fix `testhelpers` coverage** (10.5% → 60%+)          | Medium | Medium |
+| 10 | **Improve `storage` coverage** (86.9% → 90%+)          | Medium | Medium |
+| 11 | **Add `catalog/internal/cattest` basic tests**         | Low    | Low    |
+| 12 | **Improve `catalog/internal/caseutil`** (76.5% → 90%+) | Low    | Low    |
 
 ### Priority 4: Developer Experience
 
-| #   | Task                                                | Impact | Effort  |
-| --- | --------------------------------------------------- | ------ | ------- |
-| 13  | **Add CHANGELOG.md**                                | Medium | Low     |
-| 14  | **Golden file auto-refresh in CI**                  | Low    | Medium  |
-| 15  | **Archive old status reports** (18 in docs/status/) | Low    | Trivial |
-| 16  | **Decide fate of `sync` module**                    | Low    | Low     |
+| #  | Task                                                | Impact | Effort  |
+| -- | --------------------------------------------------- | ------ | ------- |
+| 13 | **Add CHANGELOG.md**                                | Medium | Low     |
+| 14 | **Golden file auto-refresh in CI**                  | Low    | Medium  |
+| 15 | **Archive old status reports** (18 in docs/status/) | Low    | Trivial |
+| 16 | **Decide fate of `sync` module**                    | Low    | Low     |
 
 ### Priority 5: Strategic
 
-| #   | Task                                                                   | Impact | Effort |
-| --- | ---------------------------------------------------------------------- | ------ | ------ |
-| 17  | **Versioned module tags** (git tag per module)                         | High   | Medium |
-| 18  | **Watermill integration module**                                       | High   | High   |
-| 19  | **Saga/Process Manager** (`docs/planning/SAGA_DESIGN.md`)              | High   | High   |
-| 20  | **Nix flake migration** (from justfile)                                | Medium | Medium |
-| 21  | **Query handler generics** (full rewrite, breaking)                    | High   | High   |
-| 22  | **Outbox transaction API** (`docs/planning/OUTBOX_TRANSACTION_API.md`) | Medium | Medium |
-| 23  | **Projection `OnError` callback option**                               | Medium | Low    |
-| 24  | **`event.New()` with schema validation**                               | Medium | Medium |
-| 25  | **`DeriveAggregateID` documentation + examples**                       | Low    | Low    |
+| #  | Task                                                                   | Impact | Effort |
+| -- | ---------------------------------------------------------------------- | ------ | ------ |
+| 17 | **Versioned module tags** (git tag per module)                         | High   | Medium |
+| 18 | **Watermill integration module**                                       | High   | High   |
+| 19 | **Saga/Process Manager** (`docs/planning/SAGA_DESIGN.md`)              | High   | High   |
+| 20 | **Nix flake migration** (from justfile)                                | Medium | Medium |
+| 21 | **Query handler generics** (full rewrite, breaking)                    | High   | High   |
+| 22 | **Outbox transaction API** (`docs/planning/OUTBOX_TRANSACTION_API.md`) | Medium | Medium |
+| 23 | **Projection `OnError` callback option**                               | Medium | Low    |
+| 24 | **`event.New()` with schema validation**                               | Medium | Medium |
+| 25 | **`DeriveAggregateID` documentation + examples**                       | Low    | Low    |
 
 ---
 

@@ -402,11 +402,11 @@ I can't decide whether to continue with T02-T03 (parallel quick wins) or jump to
 
 ## Test Status
 
-| Module             | Status     | Duration |
-| ------------------ | ---------- | -------- |
-| `system/`          | ✅ PASS    | 0.174s   |
-| `metaengine/`      | ✅ PASS    | 12.756s  |
-| `watermill/`       | ✅ PASS    | 0.071s   |
+| Module             | Status    | Duration |
+| ------------------ | --------- | -------- |
+| `system/`          | ✅ PASS   | 0.174s   |
+| `metaengine/`      | ✅ PASS   | 12.756s  |
+| `watermill/`       | ✅ PASS   | 0.071s   |
 | `nix run .#verify` | ⚠️ NOT RUN | —        |
 
 ---

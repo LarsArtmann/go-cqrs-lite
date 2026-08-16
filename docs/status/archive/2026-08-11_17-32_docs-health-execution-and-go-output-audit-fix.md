@@ -12,23 +12,24 @@
 
 ### Phase 1: Docs-Health Pareto Plan (9/9 tasks)
 
-| Task | What was done |
-|------|---------------|
-| T1: Fix verify-fast | Fixed `TestCatalogEveryGoWorkModuleCovered` (added `system/integration` to excludedModules) + `TestExceptionsAreMinimal` (normalized ` / ` → `/` in LAYER key parsing). Regenerated stale API golden (4085→4091). |
-| T2: Archive reports | All 36 `2026-08-1*` reports annotated + `git mv`'d to `docs/status/archive/`. Used 4 parallel sub-agents to research every open item. |
-| T3: Harvest open items | 6 genuinely open items harvested into TODO_LIST Phase 7 (engine test parity gaps, compile-time assertions, bench fold panic, pebble benchmark, batch rollback test). |
-| T4: verify-fast | Both fixed tests pass. Remaining failures are from concurrent sessions. |
-| T5: ROADMAP restructure | `[Unreleased]` cell: 2229-char wall-of-text → 11 `<br/>`-separated bullet points. |
-| T6: CHANGELOG audit | Strikethrough 1 resolved ADR-0117 gap (retry integration test now exists). |
-| T7: FEATURES spot-check | 3 claims verified against code (10 engines, commandlifecycle, layout planning). |
-| T8: AGENTS.md gotcha | Documented LAYER-key ` / ` vs EXCEPTIONS `/` convention. |
-| T9: Commit + push | All changes committed and pushed. |
+| Task                    | What was done                                                                                                                                                                                                   |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1: Fix verify-fast     | Fixed `TestCatalogEveryGoWorkModuleCovered` (added `system/integration` to excludedModules) + `TestExceptionsAreMinimal` (normalized `/` → `/` in LAYER key parsing). Regenerated stale API golden (4085→4091). |
+| T2: Archive reports     | All 36 `2026-08-1*` reports annotated + `git mv`'d to `docs/status/archive/`. Used 4 parallel sub-agents to research every open item.                                                                           |
+| T3: Harvest open items  | 6 genuinely open items harvested into TODO_LIST Phase 7 (engine test parity gaps, compile-time assertions, bench fold panic, pebble benchmark, batch rollback test).                                            |
+| T4: verify-fast         | Both fixed tests pass. Remaining failures are from concurrent sessions.                                                                                                                                         |
+| T5: ROADMAP restructure | `[Unreleased]` cell: 2229-char wall-of-text → 11 `<br/>`-separated bullet points.                                                                                                                               |
+| T6: CHANGELOG audit     | Strikethrough 1 resolved ADR-0117 gap (retry integration test now exists).                                                                                                                                      |
+| T7: FEATURES spot-check | 3 claims verified against code (10 engines, commandlifecycle, layout planning).                                                                                                                                 |
+| T8: AGENTS.md gotcha    | Documented LAYER-key `/` vs EXCEPTIONS `/` convention.                                                                                                                                                          |
+| T9: Commit + push       | All changes committed and pushed.                                                                                                                                                                               |
 
 ### Phase 2: doctor_audit.go go-output Rewrite
 
 **Problem:** `doctor_audit.go` (written by a concurrent session) hand-rolled `fmt.Fprintf`/`fmt.Fprintln` for all output — no color, no format flexibility, inconsistent with the rest of `cmd/cqrs-lint/` which uses `go-output`.
 
 **Fix:**
+
 - Threaded `ColorMode` from `cfg.Color` → `parseColorMode()` → `renderSuppressionAudit(w, entries, cm)`
 - Entry lists → `table.Render` with `output.NewTableBuilder()` (columns: File, Line, Rule, Reason)
 - Section headers/summary → kept as diagnostic `fmt.Fprintf` with `_, _ =` discards (matching `doctor.go` pattern)
@@ -142,7 +143,7 @@ The docs-health skill explicitly states: "Writing a banner at the top while leav
 37. **Add inline annotations to 36 archived reports** — per docs-health ANNOTATE spec.
 38. **Process 4 new concurrent session reports** — `15-57`, `15-58`, `15-59`, `17-05`.
 39. **Full cross-doc VERIFY pass** — README, SKILL.md, AGENTS.md module map.
-40. **Normalize `check-module-layers.sh` LAYER keys** — remove ` / ` spaces, use `/` everywhere.
+40. **Normalize `check-module-layers.sh` LAYER keys** — remove `/` spaces, use `/` everywhere.
 41. **Audit `.golangci.yml` exclusion blocks**.
 42. **macOS verification of ephemeral PG**.
 43. **Write actual Redis/NATS/Dgraph integration tests**.

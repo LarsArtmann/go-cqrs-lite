@@ -9,6 +9,7 @@
 ## a) FULLY DONE
 
 ### 1. Three-branch audit (cache-line / RAM / IO) — complete, evidence-backed
+
 Parallel sub-agent audits verified by direct file reads. Key verified findings:
 
 - **Zero cache-line padding anywhere in the repo** (no `CacheLinePad`, no `[64]byte` pads). Candidates found: `workloadMeter` (3 adjacent hot atomics, per-op on every Store read AND write), `projectionhost/worker.go:42-45` (4 adjacent atomics), `metaengine/latency.go` LatencyTracker (mutex-serialized), `sse_replay.go`, `sqliteengine/backends.go:139`.
@@ -19,18 +20,21 @@ Parallel sub-agent audits verified by direct file reads. Key verified findings:
 - **No PG COPY, no bbolt.Batch, no bufio in storage paths, pebble options nearly untuned, live-phase checkpoint saved per event, `storage/pebble` hardcodes `pebble.Sync`, SQLite durability PRAGMA skipped when WAL off, `codec.UnwrapDecode` full-JSON-sniffs every blind-store read, `ScanSlice` guesses cap 64, `idempotencyTracker` sync.Map grows forever.**
 
 ### 2. False-sharing fix: `workloadMeter` (metaengine/store_collaborators.go:56)
+
 - 128-byte pad between `writeCount` and `readCount` (covers 128B ARM + 64B x86 lines).
 - New contention benchmark `metaengine/workload_meter_bench_test.go` (parallel writer/readers, update-loss guard).
 - **Measured: 6.3→3.4 ns/op @4P (−46%), 6.6→3.2 ns/op @8P (−51%)**, 3 runs each, consistent.
 - Note: `reificationFailures` (rare, failure-path-only) intentionally NOT padded — negligible contention.
 
 ### 3. Dialect-aware SQL batch chunking
+
 - New `sql.MaxParametersForDialect(Dialect) int` (`storage/sql/helpers.go`): SQLite→999, everything else→32767 (inside PG extended-protocol 65535 and MySQL prepared-statement uint16 limits). Unknown/custom dialects conservatively get 999.
 - `SharedBatchInsertEvents`: PG/MySQL/DuckDB event batches now **99→3276 rows per statement (33x fewer round-trips)**.
 - `storage/view/batch.go` BatchSet: same fix via `s.Dialect` (DBHandle already embedded).
 - **Verified live: full `nix run .#integration-pg` suite PASSED** (ephemeral PG, real 3276-row batches executed).
 
 ### 4. Metadata JSON round-trip eliminated on read (pebble + bbolt)
+
 - New `event.ReconstructEventWithMetadata(...)` (event/reconstruct.go): reconstructs from an already-decoded `Metadata`, sharing one private `reconstructEvent` core with `ReconstructEventFromFields` — no logic fork.
 - `storage/pebble/serialization.go` and `storage/bbolt/serialization.go` switched to it.
 - New equivalence test `event/reconstruct_with_metadata_test.go` (empty / tracing+actor / custom-map metadata, plus nil-Custom preservation) — proves field-for-field equality with the JSON path. GREEN under `-race`.
@@ -38,6 +42,7 @@ Parallel sub-agent audits verified by direct file reads. Key verified findings:
 - bbolt win is extrapolated from the identical code shape, NOT separately benchmarked (see e).
 
 ### 5. Gates run and GREEN
+
 - Workspace build + full tests + `-race` for `./event/... ./storage/...` (GOTMPDIR workaround, see d).
 - metaengine root package tests (padded meter).
 - api-stability golden regenerated (`event/func ReconstructEventWithMetadata`, `storage/sql/func MaxParametersForDialect`) + `TestEvery*` meta-tests GREEN.
@@ -46,6 +51,7 @@ Parallel sub-agent audits verified by direct file reads. Key verified findings:
 - PG integration suite: PASS.
 
 ### 6. Memory updated
+
 AGENTS.md gotchas +2 entries: `GOTOOLCHAIN=auto` for go.work≥1.26.6 vs host 1.26.5; `/tmp` tmpfs exhaustion → `GOTMPDIR=/mnt/buildcache/tmp`.
 
 ---
@@ -110,6 +116,7 @@ Nothing destroyed, no false GREEN claims, no data loss. Honest near-misses and p
 ## f) NEXT — up to 50 things, prioritized
 
 **P0 — close this session's gaps**
+
 1. Add `MaxParametersForDialect` unit test (SQLite→999, PG→32767, custom→999).
 2. Run `nix run .#check-coverage`; fix any drift from new files/refactor.
 3. Run `#integration-mysql-nspawn` (or VM) — verify 3276-row batches on MariaDB.
@@ -179,4 +186,4 @@ Nothing destroyed, no false GREEN claims, no data loss. Honest near-misses and p
 
 ---
 
-*Baseline context: session started from a tree already carrying uncommitted metaengine/demote work (prior session), pre-existing lint + dupl failures at HEAD, and a full /tmp. Nothing outside this session's scope was modified except the two AGENTS.md gotcha entries.*
+_Baseline context: session started from a tree already carrying uncommitted metaengine/demote work (prior session), pre-existing lint + dupl failures at HEAD, and a full /tmp. Nothing outside this session's scope was modified except the two AGENTS.md gotcha entries._

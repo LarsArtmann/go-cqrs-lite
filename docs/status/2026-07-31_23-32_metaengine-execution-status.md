@@ -10,70 +10,70 @@
 
 ### Wave 1: P0-Critical Fixes (C1-C6) — ALL DONE
 
-| ID  | Task                                                                         | Status | Verification                                                                                                                                                      |
-| --- | ---------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C1  | PRAGMA busy_timeout=5000 + journal_mode=WAL on taskmanager metaengine SQLite | DONE   | Builds clean, taskmanager tests pass                                                                                                                              |
-| C2  | EventDecoder unit tests in projectionadapter                                 | DONE   | 2 tests pass: `TestAdapter_EventDecoder_ReceivesFullEvent`, `TestAdapter_EventDecoder_PrecedenceOverPayloadDecoder`                                               |
-| C3  | `go mod tidy` on example/taskmanager                                         | DONE   | Exit 0, builds clean                                                                                                                                              |
-| C4  | **benchkit race condition fix**                                              | DONE   | Root cause: shared `*rand.Rand` across reader goroutines in `phases_mixed.go:76/81`. Fixed with per-goroutine RNG. Verified with `-race -count=3` (129s, 0 races) |
-| C5  | mapupdate_fuzz_test.go verification                                          | DONE   | All fuzz tests PASS — confirmed gopls false positive (build tag issue)                                                                                            |
-| C6  | stack/memory go.mod verification                                             | DONE   | `go mod tidy -e` exit 0, no changes needed                                                                                                                        |
+| ID | Task                                                                         | Status | Verification                                                                                                                                                      |
+| -- | ---------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1 | PRAGMA busy_timeout=5000 + journal_mode=WAL on taskmanager metaengine SQLite | DONE   | Builds clean, taskmanager tests pass                                                                                                                              |
+| C2 | EventDecoder unit tests in projectionadapter                                 | DONE   | 2 tests pass: `TestAdapter_EventDecoder_ReceivesFullEvent`, `TestAdapter_EventDecoder_PrecedenceOverPayloadDecoder`                                               |
+| C3 | `go mod tidy` on example/taskmanager                                         | DONE   | Exit 0, builds clean                                                                                                                                              |
+| C4 | **benchkit race condition fix**                                              | DONE   | Root cause: shared `*rand.Rand` across reader goroutines in `phases_mixed.go:76/81`. Fixed with per-goroutine RNG. Verified with `-race -count=3` (129s, 0 races) |
+| C5 | mapupdate_fuzz_test.go verification                                          | DONE   | All fuzz tests PASS — confirmed gopls false positive (build tag issue)                                                                                            |
+| C6 | stack/memory go.mod verification                                             | DONE   | `go mod tidy -e` exit 0, no changes needed                                                                                                                        |
 
 ### Wave 2: Prove the Value (V1-V4) — ALL DONE
 
-| ID  | Task                                               | Status | Key Result                                                                                                                 |
-| --- | -------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------- |
-| V1  | Benchmark: metaengine filtered scan vs Memory O(N) | DONE   | **50x speedup at 10K rows**: SQLite 201μs vs Memory 10,051μs                                                               |
-| V2  | SortOnField("priority", true) on task_views        | DONE   | Added to query declaration + default sort in handleListTasks                                                               |
-| V3  | Cost model calibration test                        | DONE   | `TestCostModelCalibration` passes at N=100/1K/10K. Planned cost stable at 0.070ms                                          |
-| V4  | Stress test: 100K events                           | DONE   | `TestStress_100KEvents` — point lookup + filtered scan + sorted scan + memory stability all pass. 100K items seeded in ~2s |
+| ID | Task                                               | Status | Key Result                                                                                                                 |
+| -- | -------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------- |
+| V1 | Benchmark: metaengine filtered scan vs Memory O(N) | DONE   | **50x speedup at 10K rows**: SQLite 201μs vs Memory 10,051μs                                                               |
+| V2 | SortOnField("priority", true) on task_views        | DONE   | Added to query declaration + default sort in handleListTasks                                                               |
+| V3 | Cost model calibration test                        | DONE   | `TestCostModelCalibration` passes at N=100/1K/10K. Planned cost stable at 0.070ms                                          |
+| V4 | Stress test: 100K events                           | DONE   | `TestStress_100KEvents` — point lookup + filtered scan + sorted scan + memory stability all pass. 100K items seeded in ~2s |
 
 ### Wave 3: Superb DX (X1-X8) — ALL DONE
 
-| ID  | Task                                | Status | Artifact                                                                                 |
-| --- | ----------------------------------- | ------ | ---------------------------------------------------------------------------------------- |
-| X1  | AGENTS.md metaengine section update | DONE   | Added EventDecoder, FilterOnField, QueryBuilder, TypedReader, eventWithID patterns       |
-| X2  | Recipes in SKILL.md recipes.md      | DONE   | 3 new recipes: filtered scan, eventWithID wrapper, multi-engine distribution             |
-| X3  | Document eventWithID pattern        | DONE   | Included in X2 recipes                                                                   |
-| X4  | Migration guide kv → metaengine     | DONE   | `metaengine/MIGRATION.md` (7 steps)                                                      |
-| X5  | Doc-check verification              | DONE   | 923 references valid across 26 packages                                                  |
-| X6  | EventDecoder marked as recommended  | DONE   | Updated doc comments in `adapter.go`                                                     |
-| X7  | TieredStore + SwapEngine in README  | DONE   | + QueryBuilder + Observability sections                                                  |
-| X8  | Cookbook                            | DONE   | `metaengine/COOKBOOK.md` (counter patterns, map patterns, multi-query, engine selection) |
+| ID | Task                                | Status | Artifact                                                                                 |
+| -- | ----------------------------------- | ------ | ---------------------------------------------------------------------------------------- |
+| X1 | AGENTS.md metaengine section update | DONE   | Added EventDecoder, FilterOnField, QueryBuilder, TypedReader, eventWithID patterns       |
+| X2 | Recipes in SKILL.md recipes.md      | DONE   | 3 new recipes: filtered scan, eventWithID wrapper, multi-engine distribution             |
+| X3 | Document eventWithID pattern        | DONE   | Included in X2 recipes                                                                   |
+| X4 | Migration guide kv → metaengine     | DONE   | `metaengine/MIGRATION.md` (7 steps)                                                      |
+| X5 | Doc-check verification              | DONE   | 923 references valid across 26 packages                                                  |
+| X6 | EventDecoder marked as recommended  | DONE   | Updated doc comments in `adapter.go`                                                     |
+| X7 | TieredStore + SwapEngine in README  | DONE   | + QueryBuilder + Observability sections                                                  |
+| X8 | Cookbook                            | DONE   | `metaengine/COOKBOOK.md` (counter patterns, map patterns, multi-query, engine selection) |
 
 ### Wave 4: Test Coverage (T1-T9) — MOSTLY DONE (see partial section)
 
-| ID  | Task                      | Status |
-| --- | ------------------------- | ------ |
-| T1  | Cursor-based pagination   | DONE   |
-| T4  | WithPrefetch cache        | DONE   |
-| T5  | GetBatch multi-key lookup | DONE   |
-| T6  | Count                     | DONE   |
-| T8  | Plan output stability     | DONE   |
-| T9  | SwapEngine live migration | DONE   |
+| ID | Task                      | Status |
+| -- | ------------------------- | ------ |
+| T1 | Cursor-based pagination   | DONE   |
+| T4 | WithPrefetch cache        | DONE   |
+| T5 | GetBatch multi-key lookup | DONE   |
+| T6 | Count                     | DONE   |
+| T8 | Plan output stability     | DONE   |
+| T9 | SwapEngine live migration | DONE   |
 
 ### Wave 5: Observability (O3-O4) — DONE
 
-| ID  | Task          | Status | Artifact                                                                                         |
-| --- | ------------- | ------ | ------------------------------------------------------------------------------------------------ |
-| O3  | ExplainPlan() | DONE   | `metaengine/explain.go` — human-readable plan with engine capabilities, query assignments, costs |
-| O4  | Doctor()      | DONE   | `metaengine/explain.go` — health check + collection stats + poisoned collections                 |
+| ID | Task          | Status | Artifact                                                                                         |
+| -- | ------------- | ------ | ------------------------------------------------------------------------------------------------ |
+| O3 | ExplainPlan() | DONE   | `metaengine/explain.go` — human-readable plan with engine capabilities, query assignments, costs |
+| O4 | Doctor()      | DONE   | `metaengine/explain.go` — health check + collection stats + poisoned collections                 |
 
 ### Wave 6: Architecture (A1-A4) — DECISIONS MADE
 
-| ID  | Decision                  | Rationale                                                                                  |
-| --- | ------------------------- | ------------------------------------------------------------------------------------------ |
-| A1  | Keep Counter query        | O(1) counter reads are cheaper than O(N) scan+count for dashboard endpoints                |
-| A2  | Don't merge input structs | `taskCountsInput` and `listTasksInput` have different responsibilities                     |
-| A3  | No double decode          | Verified: EventDecoder decodes once, value flows directly to folds. No ApplyEncoded needed |
-| A4  | GraphBackend delegation   | Deferred — ADR-0077 already documents the recommendation                                   |
+| ID | Decision                  | Rationale                                                                                  |
+| -- | ------------------------- | ------------------------------------------------------------------------------------------ |
+| A1 | Keep Counter query        | O(1) counter reads are cheaper than O(N) scan+count for dashboard endpoints                |
+| A2 | Don't merge input structs | `taskCountsInput` and `listTasksInput` have different responsibilities                     |
+| A3 | No double decode          | Verified: EventDecoder decodes once, value flows directly to folds. No ApplyEncoded needed |
+| A4 | GraphBackend delegation   | Deferred — ADR-0077 already documents the recommendation                                   |
 
 ### Wave 7: Future Features (F3 only)
 
-| ID  | Task                     | Status                                                   |
-| --- | ------------------------ | -------------------------------------------------------- |
-| F3  | RegisterQuery at runtime | DONE — `metaengine/register_query.go` + test             |
-| F7  | Snapshot for backup      | N/A — `Store.Export()` / `Store.Import()` already exists |
+| ID | Task                     | Status                                                   |
+| -- | ------------------------ | -------------------------------------------------------- |
+| F3 | RegisterQuery at runtime | DONE — `metaengine/register_query.go` + test             |
+| F7 | Snapshot for backup      | N/A — `Store.Export()` / `Store.Import()` already exists |
 
 ### Bonus Work
 
@@ -96,18 +96,18 @@
 
 ### Wave 4: Test Coverage — 3 Tests Missing
 
-| ID  | Task                                    | Status      | What's Missing                                                                                                                                                   |
-| --- | --------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T2  | Watcher integration test in taskmanager | PARTIAL     | Watcher test written in `metaengine/coverage_test.go` but NOT as a taskmanager integration test (planned location was `example/taskmanager/integration_test.go`) |
-| T3  | ServeSSE integration test               | NOT STARTED | `metaengine.ServeSSE` exists and has its own tests, but no taskmanager integration test proving SSE delivery end-to-end                                          |
-| T7  | Crash recovery replay test              | NOT STARTED | No test proving projectionhost replay correctly rebuilds metaengine state after a simulated crash. This is an important reliability test.                        |
+| ID | Task                                    | Status      | What's Missing                                                                                                                                                   |
+| -- | --------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T2 | Watcher integration test in taskmanager | PARTIAL     | Watcher test written in `metaengine/coverage_test.go` but NOT as a taskmanager integration test (planned location was `example/taskmanager/integration_test.go`) |
+| T3 | ServeSSE integration test               | NOT STARTED | `metaengine.ServeSSE` exists and has its own tests, but no taskmanager integration test proving SSE delivery end-to-end                                          |
+| T7 | Crash recovery replay test              | NOT STARTED | No test proving projectionhost replay correctly rebuilds metaengine state after a simulated crash. This is an important reliability test.                        |
 
 ### Wave 5: O1/O2 — Documented but Not Wired
 
-| ID  | Task                       | Status  | What's Missing                                                                                                                             |
-| --- | -------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| O1  | OTel tracing on Apply/Scan | PARTIAL | Hooks + MetricsRecorder already exist in `metaengine/observability.go`. Documented in README. But no concrete OTel wiring example or test. |
-| O2  | Prometheus metrics         | PARTIAL | Same — MetricsRecorder interface exists, documented in README, but no concrete Prometheus wiring.                                          |
+| ID | Task                       | Status  | What's Missing                                                                                                                             |
+| -- | -------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| O1 | OTel tracing on Apply/Scan | PARTIAL | Hooks + MetricsRecorder already exist in `metaengine/observability.go`. Documented in README. But no concrete OTel wiring example or test. |
+| O2 | Prometheus metrics         | PARTIAL | Same — MetricsRecorder interface exists, documented in README, but no concrete Prometheus wiring.                                          |
 
 ---
 
@@ -130,11 +130,11 @@
 
 ### Tier 0: Blocking Decisions — Decided Autonomously
 
-| ID  | Decision Made                            | Rationale                                                                   |
-| --- | ---------------------------------------- | --------------------------------------------------------------------------- |
-| D1  | Defer tagging                            | Cannot push to remote per project rules; user must approve                  |
-| D2  | Keep `mat` projection                    | Used by test helpers; removal would break integration tests                 |
-| D3  | EventDecoder as recommended, not default | Backward compat — PayloadDecoder stays as the positional default in `New()` |
+| ID | Decision Made                            | Rationale                                                                   |
+| -- | ---------------------------------------- | --------------------------------------------------------------------------- |
+| D1 | Defer tagging                            | Cannot push to remote per project rules; user must approve                  |
+| D2 | Keep `mat` projection                    | Used by test helpers; removal would break integration tests                 |
+| D3 | EventDecoder as recommended, not default | Backward compat — PayloadDecoder stays as the positional default in `New()` |
 
 ---
 

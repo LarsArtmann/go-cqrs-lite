@@ -131,16 +131,16 @@ DiscordSync's `SearchMessages`/`RebuildFTS` uses SQLite FTS5. Neither projection
 
 ## c) NOT STARTED ⬜
 
-| #   | Item                                                                                             | Effort | Why deferred                                                           |
-| --- | ------------------------------------------------------------------------------------------------ | ------ | ---------------------------------------------------------------------- |
-| C1  | God-package splits (storage 38 files, event 30 files → sub-packages)                             | High   | Major refactor; identified but out of scope for this session           |
-| C2  | Versioned schema migrations (`schema_migrations` table, ALTER TABLE)                             | Medium | Pre-existing gap from first-principles analysis                        |
-| C3  | Pebble module completion (SnapshotStore, CheckpointStore, Outbox)                                | Medium | Pre-existing gap                                                       |
-| C4  | NATS / Redis transport adapters                                                                  | Medium | ADR-0025 accepted, zero code                                           |
-| C5  | Documentation site                                                                               | High   | Zero work; 45 modules need browsable docs                              |
-| C6  | Outbox DLQ + reference-based outbox                                                              | Medium | Pre-existing gaps                                                      |
-| C7  | Durability profiles (Sync/BatchedSync/Async)                                                     | Low    | Pre-existing gap                                                       |
-| C8  | `projection.Runner` — generic projection pipeline (journal replay + live subscribe + checkpoint) | High   | Identified during projection/ extraction; DiscordSync hand-writes this |
+| #  | Item                                                                                             | Effort | Why deferred                                                           |
+| -- | ------------------------------------------------------------------------------------------------ | ------ | ---------------------------------------------------------------------- |
+| C1 | God-package splits (storage 38 files, event 30 files → sub-packages)                             | High   | Major refactor; identified but out of scope for this session           |
+| C2 | Versioned schema migrations (`schema_migrations` table, ALTER TABLE)                             | Medium | Pre-existing gap from first-principles analysis                        |
+| C3 | Pebble module completion (SnapshotStore, CheckpointStore, Outbox)                                | Medium | Pre-existing gap                                                       |
+| C4 | NATS / Redis transport adapters                                                                  | Medium | ADR-0025 accepted, zero code                                           |
+| C5 | Documentation site                                                                               | High   | Zero work; 45 modules need browsable docs                              |
+| C6 | Outbox DLQ + reference-based outbox                                                              | Medium | Pre-existing gaps                                                      |
+| C7 | Durability profiles (Sync/BatchedSync/Async)                                                     | Low    | Pre-existing gap                                                       |
+| C8 | `projection.Runner` — generic projection pipeline (journal replay + live subscribe + checkpoint) | High   | Identified during projection/ extraction; DiscordSync hand-writes this |
 
 ---
 
@@ -204,48 +204,48 @@ Sorted by impact/effort (Pareto). Tier 1 first.
 
 ### Tier 1: Critical (ship-blockers or highest leverage)
 
-| #   | Task                                                                                    | Impact   | Effort | Why                                                         |
-| --- | --------------------------------------------------------------------------------------- | -------- | ------ | ----------------------------------------------------------- |
-| 1   | **Add tests for `projection/` module** (0% → ~95%)                                      | Critical | 20min  | Shipping a module with no tests violates quality gate       |
-| 2   | **Build `projection.Runner`** (journal replay + live subscribe + checkpoint + dispatch) | Critical | 2-3h   | The missing generic infrastructure every consumer reinvents |
-| 3   | **Write ADR for graph tier** (ADR-0037: writes-portable/reads-native decision)          | High     | 30min  | Design decision is in docstrings but not an ADR             |
-| 4   | **Write projection-tier decision guide** (`docs/projection-tiers.md` or ADR)            | High     | 45min  | 3 tiers exist, no "which do I pick?" guide                  |
-| 5   | **Fix BuildFlow pre-commit hook** (increase budget or scope)                            | High     | 30min  | Every commit requires --no-verify                           |
+| # | Task                                                                                    | Impact   | Effort | Why                                                         |
+| - | --------------------------------------------------------------------------------------- | -------- | ------ | ----------------------------------------------------------- |
+| 1 | **Add tests for `projection/` module** (0% → ~95%)                                      | Critical | 20min  | Shipping a module with no tests violates quality gate       |
+| 2 | **Build `projection.Runner`** (journal replay + live subscribe + checkpoint + dispatch) | Critical | 2-3h   | The missing generic infrastructure every consumer reinvents |
+| 3 | **Write ADR for graph tier** (ADR-0037: writes-portable/reads-native decision)          | High     | 30min  | Design decision is in docstrings but not an ADR             |
+| 4 | **Write projection-tier decision guide** (`docs/projection-tiers.md` or ADR)            | High     | 45min  | 3 tiers exist, no "which do I pick?" guide                  |
+| 5 | **Fix BuildFlow pre-commit hook** (increase budget or scope)                            | High     | 30min  | Every commit requires --no-verify                           |
 
 ### Tier 2: High-value improvements
 
-| #   | Task                                                                                  | Impact   | Effort     | Why                                                    |
-| --- | ------------------------------------------------------------------------------------- | -------- | ---------- | ------------------------------------------------------ |
-| 6   | **Add per-module arch-lint configs** for event/, middleware/, catalog/, command/, kv/ | High     | 1.5h total | Infrastructure ready, just need 5 config files         |
-| 7   | **Migrate DiscordSync's projection layer** to `storage.RelationalProjection`          | Critical | 2-3h       | The original trigger; capability now exists            |
-| 8   | **Migrate DiscordSync's query layer** to `storage.RelationalStore`                    | High     | 2h         | Eliminates ~500 LOC hand-written SQL                   |
-| 9   | **Add PostgreSQL integration tests** for relational tier (testcontainers)             | High     | 1h         | Tested on SQLite only; PG path unproven                |
-| 10  | **Create `graph/graphtest/contract.go`** shared contract test                         | High     | 45min      | Prevents driver divergence when Neo4j driver is built  |
-| 11  | **Wire `transport/grpc` into `go.work`**                                              | Low      | 5min       | Builds clean, just not added                           |
-| 12  | **Add `RelationalStore.QueryMulti` or JOIN helper**                                   | Medium   | 1h         | Needed for DiscordSync's attachment-by-channel queries |
+| #  | Task                                                                                  | Impact   | Effort     | Why                                                    |
+| -- | ------------------------------------------------------------------------------------- | -------- | ---------- | ------------------------------------------------------ |
+| 6  | **Add per-module arch-lint configs** for event/, middleware/, catalog/, command/, kv/ | High     | 1.5h total | Infrastructure ready, just need 5 config files         |
+| 7  | **Migrate DiscordSync's projection layer** to `storage.RelationalProjection`          | Critical | 2-3h       | The original trigger; capability now exists            |
+| 8  | **Migrate DiscordSync's query layer** to `storage.RelationalStore`                    | High     | 2h         | Eliminates ~500 LOC hand-written SQL                   |
+| 9  | **Add PostgreSQL integration tests** for relational tier (testcontainers)             | High     | 1h         | Tested on SQLite only; PG path unproven                |
+| 10 | **Create `graph/graphtest/contract.go`** shared contract test                         | High     | 45min      | Prevents driver divergence when Neo4j driver is built  |
+| 11 | **Wire `transport/grpc` into `go.work`**                                              | Low      | 5min       | Builds clean, just not added                           |
+| 12 | **Add `RelationalStore.QueryMulti` or JOIN helper**                                   | Medium   | 1h         | Needed for DiscordSync's attachment-by-channel queries |
 
 ### Tier 3: Quality and completeness
 
-| #   | Task                                                                 | Impact | Effort | Why                                                 |
-| --- | -------------------------------------------------------------------- | ------ | ------ | --------------------------------------------------- |
-| 13  | **Write `example/graph-demo/`** using GraphProjection + MemoryDriver | Medium | 1h     | Proves the tier with a runnable demo                |
-| 14  | **God-package split: storage/** (38 files → sub-packages by concern) | High   | 4h+    | Largest god-package; affects every storage consumer |
-| 15  | **God-package split: event/** (30 files → sub-packages by concern)   | High   | 3h+    | Core module; affects every consumer                 |
-| 16  | **Add versioned schema migrations**                                  | Medium | 2h     | Pre-existing gap                                    |
-| 17  | **Complete Pebble module** (SnapshotStore, CheckpointStore)          | Medium | 2h     | Pre-existing gap                                    |
-| 18  | **Add `Row` column-name validation** against RelationalSchema        | Medium | 30min  | Catches typos before SQL execution                  |
+| #  | Task                                                                 | Impact | Effort | Why                                                 |
+| -- | -------------------------------------------------------------------- | ------ | ------ | --------------------------------------------------- |
+| 13 | **Write `example/graph-demo/`** using GraphProjection + MemoryDriver | Medium | 1h     | Proves the tier with a runnable demo                |
+| 14 | **God-package split: storage/** (38 files → sub-packages by concern) | High   | 4h+    | Largest god-package; affects every storage consumer |
+| 15 | **God-package split: event/** (30 files → sub-packages by concern)   | High   | 3h+    | Core module; affects every consumer                 |
+| 16 | **Add versioned schema migrations**                                  | Medium | 2h     | Pre-existing gap                                    |
+| 17 | **Complete Pebble module** (SnapshotStore, CheckpointStore)          | Medium | 2h     | Pre-existing gap                                    |
+| 18 | **Add `Row` column-name validation** against RelationalSchema        | Medium | 30min  | Catches typos before SQL execution                  |
 
 ### Tier 4: Future / nice-to-have
 
-| #   | Task                                                                                                                | Impact             | Effort | Why                                                          |
-| --- | ------------------------------------------------------------------------------------------------------------------- | ------------------ | ------ | ------------------------------------------------------------ |
-| 19  | **Build Neo4j/Cypher GraphDriver** (`graph/neo4j/`)                                                                 | High (when needed) | 3-4h   | Consumer-pulled; build when someone deploys Neo4j            |
-| 20  | **Add NATS JetStream transport adapter**                                                                            | Medium             | 3h     | ADR-0025 accepted, zero code                                 |
-| 21  | **Add Outbox DLQ + reference-based outbox**                                                                         | Medium             | 2h     | Pre-existing gaps                                            |
-| 22  | **Add FTS5 full-text search to RelationalStore**                                                                    | Medium             | 2h     | DiscordSync's SearchMessages needs it                        |
-| 23  | **Add Durability profiles** across backends                                                                         | Low                | 1.5h   | Pre-existing gap                                             |
-| 24  | **Documentation site** (Docusaurus/MkDocs)                                                                          | Low                | 4h+    | 45 modules need browsable docs                               |
-| 25  | **Build `projection.Builder`** (typed handler registration: `projection.On[P](builder, eventType, codec, handler)`) | Medium             | 1h     | DiscordSync hand-writes this in its builder.go; it's generic |
+| #  | Task                                                                                                                | Impact             | Effort | Why                                                          |
+| -- | ------------------------------------------------------------------------------------------------------------------- | ------------------ | ------ | ------------------------------------------------------------ |
+| 19 | **Build Neo4j/Cypher GraphDriver** (`graph/neo4j/`)                                                                 | High (when needed) | 3-4h   | Consumer-pulled; build when someone deploys Neo4j            |
+| 20 | **Add NATS JetStream transport adapter**                                                                            | Medium             | 3h     | ADR-0025 accepted, zero code                                 |
+| 21 | **Add Outbox DLQ + reference-based outbox**                                                                         | Medium             | 2h     | Pre-existing gaps                                            |
+| 22 | **Add FTS5 full-text search to RelationalStore**                                                                    | Medium             | 2h     | DiscordSync's SearchMessages needs it                        |
+| 23 | **Add Durability profiles** across backends                                                                         | Low                | 1.5h   | Pre-existing gap                                             |
+| 24 | **Documentation site** (Docusaurus/MkDocs)                                                                          | Low                | 4h+    | 45 modules need browsable docs                               |
+| 25 | **Build `projection.Builder`** (typed handler registration: `projection.On[P](builder, eventType, codec, handler)`) | Medium             | 1h     | DiscordSync hand-writes this in its builder.go; it's generic |
 
 ---
 

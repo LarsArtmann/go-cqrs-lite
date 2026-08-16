@@ -48,11 +48,11 @@ Session 8 delivered the last major architectural improvement: collapsing middlew
 | Module                  | Coverage | Status         | Notes                                                                        |
 | ----------------------- | -------- | -------------- | ---------------------------------------------------------------------------- |
 | `middleware/`           | 98.5%    | **PRODUCTION** | Logging, Retry, Recovery, Validation, Metrics, OTel, Tracing, CircuitBreaker |
-| `projection/`           | 91.3%    | **PRODUCTION** | Runner (replay+live), HandlerRegistry, Builder with On[T](<>)                |
+| `projection/`           | 91.3%    | **PRODUCTION** | Runner (replay+live), HandlerRegistry, Builder with On[T]()                  |
 | `signing/`              | 93.9%    | **PRODUCTION** | HMAC-SHA256, Ed25519, multisig, middleware                                   |
 | `signing/multisig/`     | 94.1%    | **PRODUCTION** | Multi-signer verification                                                    |
 | `listing/`              | 93.8%    | **PRODUCTION** | Aggregate listing, tombstone detection, StatusMiddleware                     |
-| `catalog/`              | 95.9%    | **PRODUCTION** | Registry, SchemaFromType[T](<>), exporters                                   |
+| `catalog/`              | 95.9%    | **PRODUCTION** | Registry, SchemaFromType[T](), exporters                                     |
 | `catalog/asyncapi/`     | 93.7%    | **PRODUCTION** | AsyncAPI 2.x exporter                                                        |
 | `catalog/d2/`           | 95.0%    | **PRODUCTION** | D2 architecture diagram exporter                                             |
 | `catalog/docserver/`    | 90.1%    | **PRODUCTION** | Documentation HTTP server                                                    |
@@ -212,33 +212,33 @@ Total Go LOC: 62,727 (23,376 production + 39,351 test)
 
 ## f) Top #25 Things to Get Done Next
 
-| #   | Task                                           | Impact   | Effort | Status        |
-| --- | ---------------------------------------------- | -------- | ------ | ------------- |
-| 1   | **Push v2.0.0 tags** (owner action)            | CRITICAL | LOW    | BLOCKED       |
-| 2   | Script to remove 126 replace directives        | HIGH     | MED    | Ready         |
-| 3   | Verify GOWORK=off per-module builds            | HIGH     | LOW    | Blocked by #1 |
-| 4   | Fix BuildFlow pre-commit hook                  | HIGH     | MED    | Not started   |
-| 5   | Update TODO_LIST.md — mark 5+ stale items done | HIGH     | LOW    | Ready         |
-| 6   | turso test coverage: 28.6% → 70%+              | HIGH     | MED    | Partial       |
-| 7   | storage test coverage: 72.7% → 85%+            | MED      | MED    | Not started   |
-| 8   | Fix `logWithContext` → `logger.InfoContext`    | MED      | LOW    | Not started   |
-| 9   | Add shared `Message` interface across c/e/q    | HIGH     | MED    | Not started   |
-| 10  | `Chain[M]` middleware composition helper       | MED      | LOW    | Not started   |
-| 11  | `query.TypedHandler[T]` generic return type    | HIGH     | HIGH   | Planned (v2)  |
-| 12  | LSP diagnostic cleanup (12 items)              | LOW      | LOW    | Not started   |
-| 13  | Benchmark storage backends (PG/SQLite/Pebble)  | MED      | MED    | Not started   |
-| 14  | Performance regression CI                      | MED      | MED    | Not started   |
-| 15  | Projection coverage: 91.3% → 95%+              | MED      | LOW    | Not started   |
-| 16  | Fuzz tests for event/ID/schema                 | MED      | MED    | Not started   |
-| 17  | Rate limiter middleware (generic)              | MED      | MED    | Not started   |
-| 18  | Timeout middleware (generic)                   | MED      | LOW    | Not started   |
-| 19  | Rewrite example/user/ for full CQRS demo       | MED      | HIGH   | Not started   |
-| 20  | CI matrix parallelism (one job per module)     | LOW      | MED    | Not started   |
-| 21  | BDD tests for Version/SchemaVersion/Pagination | LOW      | MED    | Not started   |
-| 22  | Listing SQL reader tests                       | LOW      | LOW    | Not started   |
-| 23  | Extract withRLock/withWLock helpers in memory/ | LOW      | LOW    | Not started   |
-| 24  | ROADMAP.md creation                            | LOW      | LOW    | Not started   |
-| 25  | Documentation site setup                       | LOW      | HIGH   | Future        |
+| #  | Task                                           | Impact   | Effort | Status        |
+| -- | ---------------------------------------------- | -------- | ------ | ------------- |
+| 1  | **Push v2.0.0 tags** (owner action)            | CRITICAL | LOW    | BLOCKED       |
+| 2  | Script to remove 126 replace directives        | HIGH     | MED    | Ready         |
+| 3  | Verify GOWORK=off per-module builds            | HIGH     | LOW    | Blocked by #1 |
+| 4  | Fix BuildFlow pre-commit hook                  | HIGH     | MED    | Not started   |
+| 5  | Update TODO_LIST.md — mark 5+ stale items done | HIGH     | LOW    | Ready         |
+| 6  | turso test coverage: 28.6% → 70%+              | HIGH     | MED    | Partial       |
+| 7  | storage test coverage: 72.7% → 85%+            | MED      | MED    | Not started   |
+| 8  | Fix `logWithContext` → `logger.InfoContext`    | MED      | LOW    | Not started   |
+| 9  | Add shared `Message` interface across c/e/q    | HIGH     | MED    | Not started   |
+| 10 | `Chain[M]` middleware composition helper       | MED      | LOW    | Not started   |
+| 11 | `query.TypedHandler[T]` generic return type    | HIGH     | HIGH   | Planned (v2)  |
+| 12 | LSP diagnostic cleanup (12 items)              | LOW      | LOW    | Not started   |
+| 13 | Benchmark storage backends (PG/SQLite/Pebble)  | MED      | MED    | Not started   |
+| 14 | Performance regression CI                      | MED      | MED    | Not started   |
+| 15 | Projection coverage: 91.3% → 95%+              | MED      | LOW    | Not started   |
+| 16 | Fuzz tests for event/ID/schema                 | MED      | MED    | Not started   |
+| 17 | Rate limiter middleware (generic)              | MED      | MED    | Not started   |
+| 18 | Timeout middleware (generic)                   | MED      | LOW    | Not started   |
+| 19 | Rewrite example/user/ for full CQRS demo       | MED      | HIGH   | Not started   |
+| 20 | CI matrix parallelism (one job per module)     | LOW      | MED    | Not started   |
+| 21 | BDD tests for Version/SchemaVersion/Pagination | LOW      | MED    | Not started   |
+| 22 | Listing SQL reader tests                       | LOW      | LOW    | Not started   |
+| 23 | Extract withRLock/withWLock helpers in memory/ | LOW      | LOW    | Not started   |
+| 24 | ROADMAP.md creation                            | LOW      | LOW    | Not started   |
+| 25 | Documentation site setup                       | LOW      | HIGH   | Future        |
 
 ---
 
@@ -320,7 +320,7 @@ c9f689a refactor(middleware): extract generic middleware base types and MessageA
 | projection | 91.3%    | ✅   | ✅    | ✅        | ✅         | READY       |
 | signing    | 93.9%    | ✅   | ✅    | ✅        | ✅         | READY       |
 | listing    | 93.8%    | ✅   | ✅    | ✅        | ✅         | READY       |
-| catalog    | 95.9%    | ✅   | ✅    | ⚠️        | ✅         | READY       |
+| catalog    | 95.9%    | ✅   | ✅    | ⚠️         | ✅         | READY       |
 | codec      | 100%     | ✅   | ✅    | ✅        | ✅         | READY       |
 | otel       | —        | ✅   | —     | ✅        | ✅         | READY       |
 

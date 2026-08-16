@@ -192,33 +192,33 @@ The go-cqrs-lite project is a **production-ready CQRS library** that has complet
 
 ## F. TOP 25 THINGS TO DO NEXT
 
-| #   | Task                                       | Priority | Effort | Impact |
-| --- | ------------------------------------------ | -------- | ------ | ------ |
-| 1   | Add aggregate tests to reach 80% coverage  | HIGH     | 30min  | High   |
-| 2   | Create `.github/workflows/test.yml`        | HIGH     | 10min  | High   |
-| 3   | Create `.github/workflows/lint.yml`        | HIGH     | 10min  | High   |
-| 4   | Create `Makefile` with standard targets    | MEDIUM   | 15min  | Medium |
-| 5   | Create `example/user/` directory structure | HIGH     | 15min  | High   |
-| 6   | Create `example/user/commands.go`          | HIGH     | 10min  | High   |
-| 7   | Create `example/user/queries.go`           | HIGH     | 10min  | High   |
-| 8   | Create `example/user/events.go`            | HIGH     | 10min  | High   |
-| 9   | Create `example/user/handlers.go`          | HIGH     | 15min  | High   |
-| 10  | Create `example/main.go` working example   | HIGH     | 15min  | High   |
-| 11  | Create `CONTRIBUTING.md`                   | MEDIUM   | 15min  | Medium |
-| 12  | Add integration test for full CQRS flow    | MEDIUM   | 20min  | Medium |
-| 13  | Add integration test for event sourcing    | MEDIUM   | 15min  | Medium |
-| 14  | Add integration test for middleware chain  | MEDIUM   | 10min  | Medium |
-| 15  | Add benchmark tests for dispatcher         | LOW      | 15min  | Low    |
-| 16  | Add benchmark tests for event bus          | LOW      | 15min  | Low    |
-| 17  | Add fuzz tests for event parsing           | LOW      | 20min  | Low    |
-| 18  | Create `docs/architecture.md`              | LOW      | 15min  | Low    |
-| 19  | Create `CODE_OF_CONDUCT.md`                | LOW      | 5min   | Low    |
-| 20  | Add version constants to all packages      | LOW      | 5min   | Low    |
-| 21  | Add semantic versioning tags               | LOW      | 10min  | Low    |
-| 22  | Create release workflow                    | LOW      | 20min  | Low    |
-| 23  | Add Go report card badge to README         | LOW      | 5min   | Low    |
-| 24  | Add codecov integration                    | LOW      | 10min  | Low    |
-| 25  | Review and update TODO_LIST.md             | LOW      | 10min  | Low    |
+| #  | Task                                       | Priority | Effort | Impact |
+| -- | ------------------------------------------ | -------- | ------ | ------ |
+| 1  | Add aggregate tests to reach 80% coverage  | HIGH     | 30min  | High   |
+| 2  | Create `.github/workflows/test.yml`        | HIGH     | 10min  | High   |
+| 3  | Create `.github/workflows/lint.yml`        | HIGH     | 10min  | High   |
+| 4  | Create `Makefile` with standard targets    | MEDIUM   | 15min  | Medium |
+| 5  | Create `example/user/` directory structure | HIGH     | 15min  | High   |
+| 6  | Create `example/user/commands.go`          | HIGH     | 10min  | High   |
+| 7  | Create `example/user/queries.go`           | HIGH     | 10min  | High   |
+| 8  | Create `example/user/events.go`            | HIGH     | 10min  | High   |
+| 9  | Create `example/user/handlers.go`          | HIGH     | 15min  | High   |
+| 10 | Create `example/main.go` working example   | HIGH     | 15min  | High   |
+| 11 | Create `CONTRIBUTING.md`                   | MEDIUM   | 15min  | Medium |
+| 12 | Add integration test for full CQRS flow    | MEDIUM   | 20min  | Medium |
+| 13 | Add integration test for event sourcing    | MEDIUM   | 15min  | Medium |
+| 14 | Add integration test for middleware chain  | MEDIUM   | 10min  | Medium |
+| 15 | Add benchmark tests for dispatcher         | LOW      | 15min  | Low    |
+| 16 | Add benchmark tests for event bus          | LOW      | 15min  | Low    |
+| 17 | Add fuzz tests for event parsing           | LOW      | 20min  | Low    |
+| 18 | Create `docs/architecture.md`              | LOW      | 15min  | Low    |
+| 19 | Create `CODE_OF_CONDUCT.md`                | LOW      | 5min   | Low    |
+| 20 | Add version constants to all packages      | LOW      | 5min   | Low    |
+| 21 | Add semantic versioning tags               | LOW      | 10min  | Low    |
+| 22 | Create release workflow                    | LOW      | 20min  | Low    |
+| 23 | Add Go report card badge to README         | LOW      | 5min   | Low    |
+| 24 | Add codecov integration                    | LOW      | 10min  | Low    |
+| 25 | Review and update TODO_LIST.md             | LOW      | 10min  | Low    |
 
 ---
 

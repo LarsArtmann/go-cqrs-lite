@@ -1,8 +1,8 @@
 # Session 91 — Comprehensive Status Report
 
-**Date:** 2026-05-22 01:39  
-**Branch:** master  
-**HEAD:** `eb77445` (docs: Session 90 status)  
+**Date:** 2026-05-22 01:39\
+**Branch:** master\
+**HEAD:** `eb77445` (docs: Session 90 status)\
 **Trigger:** Full comprehensive status + deletion audit analysis
 
 ---
@@ -239,53 +239,53 @@ Full audit of dead/zero-consumer exports completed. Findings organized by tier:
 
 ### Priority 1: Immediate (This Session)
 
-| #   | Task                                                                         | Impact | Effort  |
-| --- | ---------------------------------------------------------------------------- | ------ | ------- |
-| 1   | **Execute Tier 1 deletion plan** (407 lines of dead exports)                 | High   | Low     |
-| 2   | **Refresh golden files** (`go test -update` for asyncapi + eventcatalog)     | Medium | Trivial |
-| 3   | **Fix LSP errors** (`ErrNilPayload`, `CatalogMeta` references in test files) | Medium | Low     |
+| # | Task                                                                         | Impact | Effort  |
+| - | ---------------------------------------------------------------------------- | ------ | ------- |
+| 1 | **Execute Tier 1 deletion plan** (407 lines of dead exports)                 | High   | Low     |
+| 2 | **Refresh golden files** (`go test -update` for asyncapi + eventcatalog)     | Medium | Trivial |
+| 3 | **Fix LSP errors** (`ErrNilPayload`, `CatalogMeta` references in test files) | Medium | Low     |
 
 ### Priority 2: API Cleanup (Next Session)
 
-| #   | Task                                                                             | Impact | Effort |
-| --- | -------------------------------------------------------------------------------- | ------ | ------ |
-| 4   | **Delete deprecated `catalog/adapters.CatalogBuilder`** + migrate `example/user` | Medium | Medium |
-| 5   | **Delete `FromCommandDispatcher` / `FromQueryDispatcher`**                       | Medium | Low    |
-| 6   | **Unexport `dispatcher.MiddlewareChain`, `GetHandler`**                          | Medium | Low    |
-| 7   | **Unexport or delete `event.OutboxPublisher`** (206 lines, zero consumers)       | Medium | Low    |
-| 8   | **Remove `Command.IdempotencyKey()` from interface**                             | Medium | Medium |
-| 9   | **Delete `query.Pagination` subsystem** (93 lines, zero consumers)               | Low    | Low    |
+| # | Task                                                                             | Impact | Effort |
+| - | -------------------------------------------------------------------------------- | ------ | ------ |
+| 4 | **Delete deprecated `catalog/adapters.CatalogBuilder`** + migrate `example/user` | Medium | Medium |
+| 5 | **Delete `FromCommandDispatcher` / `FromQueryDispatcher`**                       | Medium | Low    |
+| 6 | **Unexport `dispatcher.MiddlewareChain`, `GetHandler`**                          | Medium | Low    |
+| 7 | **Unexport or delete `event.OutboxPublisher`** (206 lines, zero consumers)       | Medium | Low    |
+| 8 | **Remove `Command.IdempotencyKey()` from interface**                             | Medium | Medium |
+| 9 | **Delete `query.Pagination` subsystem** (93 lines, zero consumers)               | Low    | Low    |
 
 ### Priority 3: Package Cleanup
 
-| #   | Task                                                                         | Impact | Effort |
-| --- | ---------------------------------------------------------------------------- | ------ | ------ |
-| 10  | **Delete `core/aggregate/` package** (1,756 lines deprecated)                | High   | Medium |
-| 11  | **Delete `integration/aggregate/`** (tests for deleted package)              | Medium | Low    |
-| 12  | **Delete `decider.Result` + `ExecuteWithResult`** (71 lines, zero consumers) | Low    | Low    |
-| 13  | **Delete `event.NewEvents` + `MustNewEvents` + `DecodePayloads`** (84 lines) | Low    | Low    |
-| 14  | **Investigate `sync` module** — does it have any consumers?                  | Medium | Low    |
+| #  | Task                                                                         | Impact | Effort |
+| -- | ---------------------------------------------------------------------------- | ------ | ------ |
+| 10 | **Delete `core/aggregate/` package** (1,756 lines deprecated)                | High   | Medium |
+| 11 | **Delete `integration/aggregate/`** (tests for deleted package)              | Medium | Low    |
+| 12 | **Delete `decider.Result` + `ExecuteWithResult`** (71 lines, zero consumers) | Low    | Low    |
+| 13 | **Delete `event.NewEvents` + `MustNewEvents` + `DecodePayloads`** (84 lines) | Low    | Low    |
+| 14 | **Investigate `sync` module** — does it have any consumers?                  | Medium | Low    |
 
 ### Priority 4: Quality
 
-| #   | Task                                                          | Impact | Effort |
-| --- | ------------------------------------------------------------- | ------ | ------ |
-| 15  | **Fix `testhelpers` coverage** (10.5% → 60%+)                 | Medium | Medium |
-| 16  | **Investigate `decider` coverage regression** (93.3% → 89.3%) | Medium | Low    |
-| 17  | **Improve `storage` coverage** (86.9% → 90%+)                 | Medium | Medium |
-| 18  | **Improve `catalog/internal/caseutil`** (76.5% → 90%+)        | Low    | Low    |
+| #  | Task                                                          | Impact | Effort |
+| -- | ------------------------------------------------------------- | ------ | ------ |
+| 15 | **Fix `testhelpers` coverage** (10.5% → 60%+)                 | Medium | Medium |
+| 16 | **Investigate `decider` coverage regression** (93.3% → 89.3%) | Medium | Low    |
+| 17 | **Improve `storage` coverage** (86.9% → 90%+)                 | Medium | Medium |
+| 18 | **Improve `catalog/internal/caseutil`** (76.5% → 90%+)        | Low    | Low    |
 
 ### Priority 5: Polish
 
-| #   | Task                                                                    | Impact | Effort  |
-| --- | ----------------------------------------------------------------------- | ------ | ------- |
-| 19  | **Add CHANGELOG.md**                                                    | Medium | Low     |
-| 20  | **Archive old status reports** (14 in root, some overlapping)           | Low    | Trivial |
-| 21  | **Fix `query.Handler` returns `any`** — see `QUERY_HANDLER_GENERICS.md` | High   | High    |
-| 22  | **Investigate `example/todo`** — not in go.work, unclear status         | Low    | Low     |
-| 23  | **Add CI golden file drift detection**                                  | Medium | Medium  |
-| 24  | **Rename `go-cqrs-lite`?** — 504 exports isn't "lite"                   | Low    | N/A     |
-| 25  | **Establish semver / release automation**                               | Medium | Medium  |
+| #  | Task                                                                    | Impact | Effort  |
+| -- | ----------------------------------------------------------------------- | ------ | ------- |
+| 19 | **Add CHANGELOG.md**                                                    | Medium | Low     |
+| 20 | **Archive old status reports** (14 in root, some overlapping)           | Low    | Trivial |
+| 21 | **Fix `query.Handler` returns `any`** — see `QUERY_HANDLER_GENERICS.md` | High   | High    |
+| 22 | **Investigate `example/todo`** — not in go.work, unclear status         | Low    | Low     |
+| 23 | **Add CI golden file drift detection**                                  | Medium | Medium  |
+| 24 | **Rename `go-cqrs-lite`?** — 504 exports isn't "lite"                   | Low    | N/A     |
+| 25 | **Establish semver / release automation**                               | Medium | Medium  |
 
 ---
 

@@ -125,15 +125,14 @@
 
 ## Session Metrics
 
-| Item | Value |
-|---|---|
-| Files modified (uncommitted) | 73 |
-| Pre-existing failures triaged | 6 groups → 4 fixed, 1 environmental, 1 open (soak) |
-| Docs updated | 6 files + 2 skill references |
-| go.mod bumps | command, integration, benchkit, system/integration, example/getting-started |
-| Lint issues resolved | gci ×95+ files |
-| Verify status | 1 failure remaining: `metaengine TestSoak_AutoCRUDByConvention` |
-
+| Item                          | Value                                                                       |
+| ----------------------------- | --------------------------------------------------------------------------- |
+| Files modified (uncommitted)  | 73                                                                          |
+| Pre-existing failures triaged | 6 groups → 4 fixed, 1 environmental, 1 open (soak)                          |
+| Docs updated                  | 6 files + 2 skill references                                                |
+| go.mod bumps                  | command, integration, benchkit, system/integration, example/getting-started |
+| Lint issues resolved          | gci ×95+ files                                                              |
+| Verify status                 | 1 failure remaining: `metaengine TestSoak_AutoCRUDByConvention`             |
 
 ---
 

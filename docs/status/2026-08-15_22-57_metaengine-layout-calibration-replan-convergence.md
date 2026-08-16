@@ -34,11 +34,11 @@ docs + full verify gate.
   MySQL via `nix run .#integration-mysql-vm` (QEMU, ratio-grade numbers).
 - Measured normalize/embed ratios:
 
-  | Engine | read | write | storage |
-  |---|---|---|---|
-  | SQLite | 1.95x | 0.66x | 0.327 |
-  | Postgres 16 | 1.00x | 0.375x | 0.326 |
-  | MySQL (VM) | 1.06x | 0.56x | 0.413 |
+  | Engine          | read      | write     | storage   |
+  | --------------- | --------- | --------- | --------- |
+  | SQLite          | 1.95x     | 0.66x     | 0.327     |
+  | Postgres 16     | 1.00x     | 0.375x    | 0.326     |
+  | MySQL (VM)      | 1.06x     | 0.56x     | 0.413     |
   | **Row geomean** | **1.27x** | **0.52x** | **0.35x** |
 
 - `layout_scoring.go` Row cell recalibrated: embed 0.89/1.39/1.68, normalize

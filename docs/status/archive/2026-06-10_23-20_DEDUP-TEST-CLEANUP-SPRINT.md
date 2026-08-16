@@ -85,33 +85,33 @@ Executed a code deduplication sprint using `art-dupl -t 27 --semantic` analysis.
 
 Sorted by **impact × effort⁻¹** (high impact + low effort first):
 
-| #   | Task                                                              | Impact | Effort  | Module            |
-| --- | ----------------------------------------------------------------- | ------ | ------- | ----------------- |
-| 1   | Protect golden files from `nix fmt`                               | High   | Low     | build             |
-| 2   | Fix or replace `buildflow` pre-commit hook                        | Medium | Low     | build             |
-| 3   | Extract shared error wrappers (command/event)                     | High   | Medium  | core              |
-| 4   | Generic `Type[T]` for command/event/query Type strings            | High   | Medium  | core              |
-| 5   | Add `testkit` package for shared test helpers                     | Medium | Medium  | testing           |
-| 6   | Remove remaining `panic()` calls in production code (10 left)     | High   | Medium  | all               |
-| 7   | Add integration tests for `storage/sql` with real SQLite          | High   | Medium  | storage           |
-| 8   | Add `pebble` store to shared test suite                           | Medium | Low     | pebble            |
-| 9   | Add `turso` store to shared test suite                            | Medium | Low     | turso             |
-| 10  | Consolidate `example/` main_test.go patterns                      | Low    | Low     | examples          |
-| 11  | Add API stability golden test for remaining modules               | High   | Medium  | cmd/api-stability |
-| 12  | Benchmark baseline regression in CI                               | Medium | Low     | CI                |
-| 13  | Add `go-cmp` for assertion quality                                | Medium | Low     | testing           |
-| 14  | Remove dead code in `example/user/server.go` (unused `runServer`) | Low    | Trivial | example           |
-| 15  | Add property-based tests for `id` module                          | Medium | Medium  | id                |
-| 16  | Add property-based tests for `event` immutable accessors          | Medium | Medium  | event             |
-| 17  | Document module boundaries in AGENTS.md                           | Medium | Low     | docs              |
-| 18  | Add `CHANGELOG.md` entry for v2.2.0                               | Medium | Low     | docs              |
-| 19  | Review `schema/upcaster.go` for interface simplification          | Low    | Low     | schema            |
-| 20  | Add fuzzing for `codec` JSON encode/decode                        | Medium | Medium  | codec             |
-| 21  | Review `watermill` adapter for completeness                       | Low    | Medium  | watermill         |
-| 22  | Add circuit breaker tests to integration                          | Medium | Medium  | integration       |
-| 23  | Review `projection` runner for edge cases                         | Medium | Medium  | projection        |
-| 24  | Add OpenTelemetry integration test                                | Medium | Medium  | otel              |
-| 25  | Consider `pgx` adapter for PostgreSQL storage                     | High   | High    | storage           |
+| #  | Task                                                              | Impact | Effort  | Module            |
+| -- | ----------------------------------------------------------------- | ------ | ------- | ----------------- |
+| 1  | Protect golden files from `nix fmt`                               | High   | Low     | build             |
+| 2  | Fix or replace `buildflow` pre-commit hook                        | Medium | Low     | build             |
+| 3  | Extract shared error wrappers (command/event)                     | High   | Medium  | core              |
+| 4  | Generic `Type[T]` for command/event/query Type strings            | High   | Medium  | core              |
+| 5  | Add `testkit` package for shared test helpers                     | Medium | Medium  | testing           |
+| 6  | Remove remaining `panic()` calls in production code (10 left)     | High   | Medium  | all               |
+| 7  | Add integration tests for `storage/sql` with real SQLite          | High   | Medium  | storage           |
+| 8  | Add `pebble` store to shared test suite                           | Medium | Low     | pebble            |
+| 9  | Add `turso` store to shared test suite                            | Medium | Low     | turso             |
+| 10 | Consolidate `example/` main_test.go patterns                      | Low    | Low     | examples          |
+| 11 | Add API stability golden test for remaining modules               | High   | Medium  | cmd/api-stability |
+| 12 | Benchmark baseline regression in CI                               | Medium | Low     | CI                |
+| 13 | Add `go-cmp` for assertion quality                                | Medium | Low     | testing           |
+| 14 | Remove dead code in `example/user/server.go` (unused `runServer`) | Low    | Trivial | example           |
+| 15 | Add property-based tests for `id` module                          | Medium | Medium  | id                |
+| 16 | Add property-based tests for `event` immutable accessors          | Medium | Medium  | event             |
+| 17 | Document module boundaries in AGENTS.md                           | Medium | Low     | docs              |
+| 18 | Add `CHANGELOG.md` entry for v2.2.0                               | Medium | Low     | docs              |
+| 19 | Review `schema/upcaster.go` for interface simplification          | Low    | Low     | schema            |
+| 20 | Add fuzzing for `codec` JSON encode/decode                        | Medium | Medium  | codec             |
+| 21 | Review `watermill` adapter for completeness                       | Low    | Medium  | watermill         |
+| 22 | Add circuit breaker tests to integration                          | Medium | Medium  | integration       |
+| 23 | Review `projection` runner for edge cases                         | Medium | Medium  | projection        |
+| 24 | Add OpenTelemetry integration test                                | Medium | Medium  | otel              |
+| 25 | Consider `pgx` adapter for PostgreSQL storage                     | High   | High    | storage           |
 
 ---
 

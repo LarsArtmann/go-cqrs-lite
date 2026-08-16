@@ -8,24 +8,24 @@
 
 ## a) FULLY DONE (shipped and verified)
 
-| #   | Task                                                                                                  | Evidence                              |
-| --- | ----------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| 1   | `flake.nix`: added `"stack/mysql"` to testModules                                                     | `flake.nix:205`                       |
-| 2   | `.golangci.yml`: added `go-sql-driver/mysql` to depguard                                              | `.golangci.yml:174`                   |
-| 3   | `storage/sql/dialect.go`: fixed stale "event-store-only" comment                                      | `dialect.go:199`                      |
-| 4   | `storage/sql/classify_init_test.go`: MySQL error classifier tests (7 test cases)                      | `classify_init_test.go` — passes      |
-| 5   | `stack/mysql/preset_test.go`: bundle construction, event roundtrip, idempotent close                  | Mirrors postgres pattern              |
-| 6   | `stack/mysql/README.md`: DSN format, quick start, MariaDB notes, multi-DB topology                    | Created                               |
-| 7   | `.agents/skills/go-cqrs-lite/references/core.md`: MySQL in decision matrix + preset list              | Updated                               |
-| 8   | `.agents/skills/go-cqrs-lite/references/modules.md`: MySQL row + idempotency MySQL store              | Updated                               |
-| 9   | `.agents/skills/go-cqrs-lite/references/recipes.md`: MySQL in preset table + multi-DB list            | Updated                               |
-| 10  | `.agents/skills/go-cqrs-lite/references/faq.md`: parseTime gotcha FAQ                                 | Updated                               |
-| 11  | `docs/adr/0080-dialect-interface-upsert-methods.md`: full ADR                                         | Written + indexed in `docs/README.md` |
-| 12  | `FEATURES.md`: MySQL event store row + dialect abstraction description updated                        | Updated                               |
-| 13  | `ROADMAP.md`: MySQL/MariaDB marked done with ADR-0080 reference                                       | Updated                               |
-| 14  | `cmd/cqrs-lint` feature detection: `StoreMySQL` const + detection + A009 suggestion + T007/T008 rules | 3 files updated, builds + lints clean |
-| 15  | `stack/mysql/multidb.go` + `preset.go`: lint fixes (wrapcheck, errcheck)                              | Lint passes                           |
-| 16  | Doc-check: 1079 references valid across 38 packages                                                   | Verified                              |
+| #  | Task                                                                                                  | Evidence                              |
+| -- | ----------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| 1  | `flake.nix`: added `"stack/mysql"` to testModules                                                     | `flake.nix:205`                       |
+| 2  | `.golangci.yml`: added `go-sql-driver/mysql` to depguard                                              | `.golangci.yml:174`                   |
+| 3  | `storage/sql/dialect.go`: fixed stale "event-store-only" comment                                      | `dialect.go:199`                      |
+| 4  | `storage/sql/classify_init_test.go`: MySQL error classifier tests (7 test cases)                      | `classify_init_test.go` — passes      |
+| 5  | `stack/mysql/preset_test.go`: bundle construction, event roundtrip, idempotent close                  | Mirrors postgres pattern              |
+| 6  | `stack/mysql/README.md`: DSN format, quick start, MariaDB notes, multi-DB topology                    | Created                               |
+| 7  | `.agents/skills/go-cqrs-lite/references/core.md`: MySQL in decision matrix + preset list              | Updated                               |
+| 8  | `.agents/skills/go-cqrs-lite/references/modules.md`: MySQL row + idempotency MySQL store              | Updated                               |
+| 9  | `.agents/skills/go-cqrs-lite/references/recipes.md`: MySQL in preset table + multi-DB list            | Updated                               |
+| 10 | `.agents/skills/go-cqrs-lite/references/faq.md`: parseTime gotcha FAQ                                 | Updated                               |
+| 11 | `docs/adr/0080-dialect-interface-upsert-methods.md`: full ADR                                         | Written + indexed in `docs/README.md` |
+| 12 | `FEATURES.md`: MySQL event store row + dialect abstraction description updated                        | Updated                               |
+| 13 | `ROADMAP.md`: MySQL/MariaDB marked done with ADR-0080 reference                                       | Updated                               |
+| 14 | `cmd/cqrs-lint` feature detection: `StoreMySQL` const + detection + A009 suggestion + T007/T008 rules | 3 files updated, builds + lints clean |
+| 15 | `stack/mysql/multidb.go` + `preset.go`: lint fixes (wrapcheck, errcheck)                              | Lint passes                           |
+| 16 | Doc-check: 1079 references valid across 38 packages                                                   | Verified                              |
 
 ---
 
@@ -64,16 +64,16 @@ This is uncommitted at HEAD and will fail `nix run .#lint`.
 
 ## c) NOT STARTED
 
-| #   | Task                                                              | Why skipped                                                                                                                |
-| --- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **`nix run .#verify`**                                            | NEVER RUN. The single most important verification command. The "stale GREEN" anti-pattern from AGENTS.md, committed AGAIN. |
-| 2   | MySQL idempotency conditional-update test (S24)                   | Plan task, deprioritized                                                                                                   |
-| 3   | MySQL-specific upsert correctness tests (S21)                     | Plan task, deprioritized                                                                                                   |
-| 4   | Release tags for stack/mysql, storage, idempotency/sqlstore (S24) | Plan task, not done                                                                                                        |
-| 5   | `nix fmt` on all changed files                                    | Used scoped gofumpt instead                                                                                                |
-| 6   | `.github/workflows/ci.yml` MySQL service container                | Decided testcontainers handles it, but never verified                                                                      |
-| 7   | cqrs-lint `StoreMySQL` detection test                             | Added the code but no test proving MySQL detection works                                                                   |
-| 8   | AGENTS.md update for MySQL                                        | Already done in previous session, not re-verified this session                                                             |
+| # | Task                                                              | Why skipped                                                                                                                |
+| - | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **`nix run .#verify`**                                            | NEVER RUN. The single most important verification command. The "stale GREEN" anti-pattern from AGENTS.md, committed AGAIN. |
+| 2 | MySQL idempotency conditional-update test (S24)                   | Plan task, deprioritized                                                                                                   |
+| 3 | MySQL-specific upsert correctness tests (S21)                     | Plan task, deprioritized                                                                                                   |
+| 4 | Release tags for stack/mysql, storage, idempotency/sqlstore (S24) | Plan task, not done                                                                                                        |
+| 5 | `nix fmt` on all changed files                                    | Used scoped gofumpt instead                                                                                                |
+| 6 | `.github/workflows/ci.yml` MySQL service container                | Decided testcontainers handles it, but never verified                                                                      |
+| 7 | cqrs-lint `StoreMySQL` detection test                             | Added the code but no test proving MySQL detection works                                                                   |
+| 8 | AGENTS.md update for MySQL                                        | Already done in previous session, not re-verified this session                                                             |
 
 ---
 

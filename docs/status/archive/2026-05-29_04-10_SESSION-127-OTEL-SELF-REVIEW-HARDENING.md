@@ -43,17 +43,17 @@ Completed a comprehensive self-review and hardening of the OpenTelemetry instrum
 
 ## c) NOT STARTED ⬜
 
-| #   | Item                                                                                        | Impact                                                 | Effort                                                     |
-| --- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------- |
-| 1   | Adopt OTel semconv v1.41+ standard attributes (`db.operation`, `messaging.system`, etc.)    | High — makes spans compatible with standard dashboards | Medium — need to add semconv dependency and map attributes |
-| 2   | OTel metrics for storage operations (histograms for store/query latency)                    | High — latency SLO monitoring                          | Medium — similar pattern to middleware metrics             |
-| 3   | Integration test with full trace propagation (command → decider → store → bus → projection) | High — validates end-to-end observability              | Medium                                                     |
-| 4   | stream/ module instrumentation                                                              | Medium — aggregate reader spans                        | Low — same pattern as storage                              |
-| 5   | signing/ module instrumentation                                                             | Medium — crypto operation timing                       | Low — same pattern                                         |
-| 6   | Example code showing how to wire up OTel provider                                           | Medium — consumer onboarding                           | Low                                                        |
-| 7   | PebbleEventStore spans                                                                      | Low — only SQL store instrumented                      | Low — same pattern                                         |
-| 8   | watermill/ module instrumentation                                                           | Low — protocol adapter                                 | Low                                                        |
-| 9   | OTel baggage propagation through decider → store                                            | Medium — cross-service correlation                     | Medium                                                     |
+| # | Item                                                                                        | Impact                                                 | Effort                                                     |
+| - | ------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------- |
+| 1 | Adopt OTel semconv v1.41+ standard attributes (`db.operation`, `messaging.system`, etc.)    | High — makes spans compatible with standard dashboards | Medium — need to add semconv dependency and map attributes |
+| 2 | OTel metrics for storage operations (histograms for store/query latency)                    | High — latency SLO monitoring                          | Medium — similar pattern to middleware metrics             |
+| 3 | Integration test with full trace propagation (command → decider → store → bus → projection) | High — validates end-to-end observability              | Medium                                                     |
+| 4 | stream/ module instrumentation                                                              | Medium — aggregate reader spans                        | Low — same pattern as storage                              |
+| 5 | signing/ module instrumentation                                                             | Medium — crypto operation timing                       | Low — same pattern                                         |
+| 6 | Example code showing how to wire up OTel provider                                           | Medium — consumer onboarding                           | Low                                                        |
+| 7 | PebbleEventStore spans                                                                      | Low — only SQL store instrumented                      | Low — same pattern                                         |
+| 8 | watermill/ module instrumentation                                                           | Low — protocol adapter                                 | Low                                                        |
+| 9 | OTel baggage propagation through decider → store                                            | Medium — cross-service correlation                     | Medium                                                     |
 
 ---
 
@@ -91,48 +91,48 @@ Completed a comprehensive self-review and hardening of the OpenTelemetry instrum
 
 ### High Impact, Low Effort (do first)
 
-| #   | Item                                                        | Effort |
-| --- | ----------------------------------------------------------- | ------ |
-| 1   | Extract `testTracerWithRecorder()` to `testhelpers/otel.go` | 30 min |
-| 2   | Add `stream/` module OTel spans (3 public methods)          | 30 min |
-| 3   | Add `signing/` module OTel spans (sign/verify)              | 30 min |
-| 4   | Adopt `db.operation` semconv attribute on storage spans     | 1 hr   |
-| 5   | Adopt `messaging.operation` semconv on event bus spans      | 1 hr   |
-| 6   | Add example code for OTel provider wiring                   | 1 hr   |
+| # | Item                                                        | Effort |
+| - | ----------------------------------------------------------- | ------ |
+| 1 | Extract `testTracerWithRecorder()` to `testhelpers/otel.go` | 30 min |
+| 2 | Add `stream/` module OTel spans (3 public methods)          | 30 min |
+| 3 | Add `signing/` module OTel spans (sign/verify)              | 30 min |
+| 4 | Adopt `db.operation` semconv attribute on storage spans     | 1 hr   |
+| 5 | Adopt `messaging.operation` semconv on event bus spans      | 1 hr   |
+| 6 | Add example code for OTel provider wiring                   | 1 hr   |
 
 ### High Impact, Medium Effort
 
-| #   | Item                                                              | Effort |
-| --- | ----------------------------------------------------------------- | ------ |
-| 7   | OTel metrics for storage operations (latency histograms)          | 2 hr   |
-| 8   | Integration test with full trace propagation                      | 2 hr   |
-| 9   | Span naming convention audit & normalization                      | 1 hr   |
-| 10  | Add `messaging.destination` attribute to event bus spans          | 1 hr   |
-| 11  | Consolidate per-module `otel.go` tracer/attrs into shared pattern | 2 hr   |
-| 12  | Add W3C trace context propagation through event bus               | 3 hr   |
+| #  | Item                                                              | Effort |
+| -- | ----------------------------------------------------------------- | ------ |
+| 7  | OTel metrics for storage operations (latency histograms)          | 2 hr   |
+| 8  | Integration test with full trace propagation                      | 2 hr   |
+| 9  | Span naming convention audit & normalization                      | 1 hr   |
+| 10 | Add `messaging.destination` attribute to event bus spans          | 1 hr   |
+| 11 | Consolidate per-module `otel.go` tracer/attrs into shared pattern | 2 hr   |
+| 12 | Add W3C trace context propagation through event bus               | 3 hr   |
 
 ### Medium Impact, Medium Effort
 
-| #   | Item                                                        | Effort |
-| --- | ----------------------------------------------------------- | ------ |
-| 13  | Option pattern API for span creation (`cqrsotel.Span(...)`) | 3 hr   |
-| 14  | OTel metrics for decider operations                         | 2 hr   |
-| 15  | watermill/ module OTel spans                                | 1 hr   |
-| 16  | memory/ module OTel spans (test observability)              | 1 hr   |
-| 17  | PebbleEventStore spans                                      | 1 hr   |
-| 18  | Add `error.type` attribute (error family classification)    | 1 hr   |
-| 19  | Span links between producer/consumer (event bus)            | 2 hr   |
+| #  | Item                                                        | Effort |
+| -- | ----------------------------------------------------------- | ------ |
+| 13 | Option pattern API for span creation (`cqrsotel.Span(...)`) | 3 hr   |
+| 14 | OTel metrics for decider operations                         | 2 hr   |
+| 15 | watermill/ module OTel spans                                | 1 hr   |
+| 16 | memory/ module OTel spans (test observability)              | 1 hr   |
+| 17 | PebbleEventStore spans                                      | 1 hr   |
+| 18 | Add `error.type` attribute (error family classification)    | 1 hr   |
+| 19 | Span links between producer/consumer (event bus)            | 2 hr   |
 
 ### Lower Impact, Higher Effort
 
-| #   | Item                                                            | Effort |
-| --- | --------------------------------------------------------------- | ------ |
-| 20  | `gosec` + `govulncheck` on otel dependencies                    | 1 hr   |
-| 21  | Performance benchmark for span overhead (noop vs real provider) | 2 hr   |
-| 22  | OTel logs integration (structured logging via slog → OTel)      | 3 hr   |
-| 23  | Custom OTel sampler for high-volume event streams               | 3 hr   |
-| 24  | Documentation: ADR for OTel instrumentation decisions           | 1 hr   |
-| 25  | CI pipeline addition: OTel integration test in GitHub Actions   | 2 hr   |
+| #  | Item                                                            | Effort |
+| -- | --------------------------------------------------------------- | ------ |
+| 20 | `gosec` + `govulncheck` on otel dependencies                    | 1 hr   |
+| 21 | Performance benchmark for span overhead (noop vs real provider) | 2 hr   |
+| 22 | OTel logs integration (structured logging via slog → OTel)      | 3 hr   |
+| 23 | Custom OTel sampler for high-volume event streams               | 3 hr   |
+| 24 | Documentation: ADR for OTel instrumentation decisions           | 1 hr   |
+| 25 | CI pipeline addition: OTel integration test in GitHub Actions   | 2 hr   |
 
 ---
 

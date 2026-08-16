@@ -191,33 +191,33 @@ The working tree has 52 modified files + 3 new files. Many of the modified go.mo
 
 ## f) Up to 25 things we should get done next
 
-| #   | Priority | Task                                                                           | Impact                                 |
-| --- | -------- | ------------------------------------------------------------------------------ | -------------------------------------- |
-| 1   | **P1**   | **COMMIT ALL WORK** — selectively stage only my files, commit                  | Prevent data loss                      |
-| 2   | **P1**   | Run `nix fmt` and fix any formatting issues                                    | CI compliance                          |
-| 3   | **P1**   | Run `nix run .#lint` and fix issues in new code                                | CI compliance                          |
-| 4   | **P1**   | Remove `var _ = context.Background` hack from `sse_backfill.go`                | Code smell                             |
-| 5   | **P2**   | Update AGENTS.md Key Patterns with new SSE features                            | Consumer documentation                 |
-| 6   | **P2**   | Update SKILL.md `references/advanced.md` with new SSE capabilities             | Consumer guidance                      |
-| 7   | **P2**   | Fix concurrent-agent layer violations (deriver, projectionhost, stack)         | CI green                               |
-| 8   | **P2**   | Test span attribute `cqrs.sse.dedup_ring_size` in `sse_span_test.go`           | Span attribute verification            |
-| 9   | **P2**   | Document JSON assumption in `BackfillHandler` or add CBOR support              | Correctness for CBOR event streams     |
-| 10  | **P2**   | Make `CloseWithGrace` poll-and-close-early instead of `time.Sleep`             | Faster shutdown when channels drained  |
-| 11  | **P3**   | Add `WithHeartbeatInterval` option (currently hardcoded `DefaultSSEHeartbeat`) | Tunability                             |
-| 12  | **P3**   | Add per-client event filtering (separate from broker-level `WithEventFilter`)  | Per-client bandwidth optimization      |
-| 13  | **P3**   | Add `BackfillHandler` `Content-Type: application/x-ndjson` streaming mode      | Memory-bounded backfill for large sets |
-| 14  | **P3**   | Add SSE connection counting metric (`cqrs.sse.connections` gauge)              | Dashboard observability                |
-| 15  | **P3**   | Add `WriteSSERetry` test (currently only integration-tested)                   | Unit coverage                          |
-| 16  | **P4**   | Add `SSEBroker.Run(ctx)` method for lifecycle-managed broker                   | Cleaner shutdown semantics             |
-| 17  | **P4**   | Add SSE CORS headers option (`WithCORS`)                                       | Browser cross-origin support           |
-| 18  | **P4**   | Add backfill cursor pagination (`Link` header)                                 | REST pagination convention             |
-| 19  | **P4**   | Add `Stats()` to CatchUpSubscriber (replay progress, dedup ring depth)         | Watermill observability                |
-| 20  | **P4**   | Add `WithChannelBufferSize(n)` to tune `sseChannelBufSize` per broker          | Tunability for different workloads     |
-| 21  | **P5**   | Add SSE event type to `BackfillHandler` response                               | Richer REST response                   |
-| 22  | **P5**   | Add `BackfillHandler` ETag/Last-Modified support                               | HTTP caching                           |
-| 23  | **P5**   | Add dedup ring capacity metric (`cqrs.sse.dedup_ring_capacity`)                | Capacity diagnostics                   |
-| 24  | **P5**   | Add SSE connection metadata (remote addr, user agent) to `ClientStats`         | Debugging                              |
-| 25  | **P5**   | Add `nix run .#test` (full workspace) to verify no regressions                 | Full CI confidence                     |
+| #  | Priority | Task                                                                           | Impact                                 |
+| -- | -------- | ------------------------------------------------------------------------------ | -------------------------------------- |
+| 1  | **P1**   | **COMMIT ALL WORK** — selectively stage only my files, commit                  | Prevent data loss                      |
+| 2  | **P1**   | Run `nix fmt` and fix any formatting issues                                    | CI compliance                          |
+| 3  | **P1**   | Run `nix run .#lint` and fix issues in new code                                | CI compliance                          |
+| 4  | **P1**   | Remove `var _ = context.Background` hack from `sse_backfill.go`                | Code smell                             |
+| 5  | **P2**   | Update AGENTS.md Key Patterns with new SSE features                            | Consumer documentation                 |
+| 6  | **P2**   | Update SKILL.md `references/advanced.md` with new SSE capabilities             | Consumer guidance                      |
+| 7  | **P2**   | Fix concurrent-agent layer violations (deriver, projectionhost, stack)         | CI green                               |
+| 8  | **P2**   | Test span attribute `cqrs.sse.dedup_ring_size` in `sse_span_test.go`           | Span attribute verification            |
+| 9  | **P2**   | Document JSON assumption in `BackfillHandler` or add CBOR support              | Correctness for CBOR event streams     |
+| 10 | **P2**   | Make `CloseWithGrace` poll-and-close-early instead of `time.Sleep`             | Faster shutdown when channels drained  |
+| 11 | **P3**   | Add `WithHeartbeatInterval` option (currently hardcoded `DefaultSSEHeartbeat`) | Tunability                             |
+| 12 | **P3**   | Add per-client event filtering (separate from broker-level `WithEventFilter`)  | Per-client bandwidth optimization      |
+| 13 | **P3**   | Add `BackfillHandler` `Content-Type: application/x-ndjson` streaming mode      | Memory-bounded backfill for large sets |
+| 14 | **P3**   | Add SSE connection counting metric (`cqrs.sse.connections` gauge)              | Dashboard observability                |
+| 15 | **P3**   | Add `WriteSSERetry` test (currently only integration-tested)                   | Unit coverage                          |
+| 16 | **P4**   | Add `SSEBroker.Run(ctx)` method for lifecycle-managed broker                   | Cleaner shutdown semantics             |
+| 17 | **P4**   | Add SSE CORS headers option (`WithCORS`)                                       | Browser cross-origin support           |
+| 18 | **P4**   | Add backfill cursor pagination (`Link` header)                                 | REST pagination convention             |
+| 19 | **P4**   | Add `Stats()` to CatchUpSubscriber (replay progress, dedup ring depth)         | Watermill observability                |
+| 20 | **P4**   | Add `WithChannelBufferSize(n)` to tune `sseChannelBufSize` per broker          | Tunability for different workloads     |
+| 21 | **P5**   | Add SSE event type to `BackfillHandler` response                               | Richer REST response                   |
+| 22 | **P5**   | Add `BackfillHandler` ETag/Last-Modified support                               | HTTP caching                           |
+| 23 | **P5**   | Add dedup ring capacity metric (`cqrs.sse.dedup_ring_capacity`)                | Capacity diagnostics                   |
+| 24 | **P5**   | Add SSE connection metadata (remote addr, user agent) to `ClientStats`         | Debugging                              |
+| 25 | **P5**   | Add `nix run .#test` (full workspace) to verify no regressions                 | Full CI confidence                     |
 
 ---
 

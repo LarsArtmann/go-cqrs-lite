@@ -42,19 +42,24 @@
 ### Bug 1: CounterBackend DQL syntax error (CRITICAL — production bug)
 
 **Test failures:**
+
 - `TestDgraphADTMatrix/Counter/dgraph`
 - `TestAdversarialDQLInjection/Counter_keys_are_literals`
 
 **Error:**
+
 ```
 line 1 column 35: Expecting a colon. Got: lex.Item [9] "string" at 1:35
 ```
 
 **Root cause:** `keyVarDecls()` in `counter.go:155-161` produces `$key0 string` (no colon), but DQL requires `$key0: string` (with colon). The generated query header is:
+
 ```
 query counters($col: string, $key0 string) {  // BROKEN — missing colon after $key0
 ```
+
 Should be:
+
 ```
 query counters($col: string, $key0: string) {
 ```
@@ -70,6 +75,7 @@ query counters($col: string, $key0: string) {
 **Test failure:** `TestStreamLog_JournalReadFrom` (pre-existing test, not mine)
 
 **Error:**
+
 ```
 stream_log_test.go:122: JournalReadFrom(1,0) returned 3 entries, expected fewer than 3
 ```
@@ -123,26 +129,26 @@ stream_log_test.go:122: JournalReadFrom(1,0) returned 3 entries, expected fewer 
 
 7. **Add `Transactional` support** — Implement `RunInTx` so `enginetest.RunTransactionalTest` can run. Dgraph supports transactions natively; the engine just doesn't expose the interface.
 8. **Add `ConcurrentTx` test** — Depends on #7. <- OPEN. RunConcurrentTxTest harness exists in enginetest - gated on item 7 (dgraph RunInTx)
-~~9. **Fix collection name collisions in parallel tests** — Use `t.Name()`-derived collection prefixes.~~ done - RunStreamLogBackendTestIn(t, eng, col) + events_parity collection (2026-08-15 session)
-10. **Add `integration` build tag** — Match PG convention for separating integration from unit tests.
-11. **Add per-test DropAll or namespace isolation** — Prevent parallel test interference.
-12. **Add `SearchBackend` integration test via enginetest** — No shared harness exists for SearchBackend; create one or add dgraph-specific.
-13. **Add `SetBackend` integration test via enginetest** — Same — no shared harness; create one.
-14. **Add `MultimapBackend` shared harness** — Currently only dgraph-specific tests exist in `multimap_log_edge_test.go`. Extract to `enginetest`.
-15. **Add `LogBackend` shared harness** — Same pattern.
-16. **Add Dgraph to `test-all-backends.sh`** — Currently `test-all-backends` deps include `pkgs.dgraph` but the script may not run dgraphengine tests.
-17. **Verify `integration-dgraph` works in CI** — GitHub Actions ci.yml doesn't reference it yet.
-18. **Add Dgraph to `integration-all` nix app** — Currently only PG + MySQL; add Dgraph.
-19. **Add Dgraph to `verify-integration` nix app** — Currently only PG VM + MySQL VM + ephemeral PG.
+   ~~9. **Fix collection name collisions in parallel tests** — Use `t.Name()`-derived collection prefixes.~~ done - RunStreamLogBackendTestIn(t, eng, col) + events_parity collection (2026-08-15 session)
+9. **Add `integration` build tag** — Match PG convention for separating integration from unit tests.
+10. **Add per-test DropAll or namespace isolation** — Prevent parallel test interference.
+11. **Add `SearchBackend` integration test via enginetest** — No shared harness exists for SearchBackend; create one or add dgraph-specific.
+12. **Add `SetBackend` integration test via enginetest** — Same — no shared harness; create one.
+13. **Add `MultimapBackend` shared harness** — Currently only dgraph-specific tests exist in `multimap_log_edge_test.go`. Extract to `enginetest`.
+14. **Add `LogBackend` shared harness** — Same pattern.
+15. **Add Dgraph to `test-all-backends.sh`** — Currently `test-all-backends` deps include `pkgs.dgraph` but the script may not run dgraphengine tests.
+16. **Verify `integration-dgraph` works in CI** — GitHub Actions ci.yml doesn't reference it yet.
+17. **Add Dgraph to `integration-all` nix app** — Currently only PG + MySQL; add Dgraph.
+18. **Add Dgraph to `verify-integration` nix app** — Currently only PG VM + MySQL VM + ephemeral PG.
 
 ### Engine test harness improvements
 
 20. **Add `RunSearchBackendTest`** to `enginetest/` — Search is a first-class ADT; dgraph and potentially Turso implement it. <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)' (adttest.RunMatrix; Search harness missing)
 21. **Add `RunSetBackendTest`** to `enginetest/` — Set ADT has no shared contract test. <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)' (Set harness missing)
 22. **Add `RunMultimapBackendTest`** to `enginetest/` — Multimap only has dgraph-specific tests. <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)' (Multimap harness missing)
-~~23. **Add `RunLogBackendTest`** to `enginetest/` — Log ADT only has dgraph-specific tests.~~ done - enginetest.RunStreamLogBackendTest(In) incl. interleaved-collections phase; dgraph parity wired
-24. **Add `RunGraphBackendTest`** to `enginetest/` — Graph is dgraph's killer feature but has no shared harness (only dgraph-specific GraphRAG tests). <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)'; graph work in flight in the concurrent session
-25. **Add `RunCounterBackendTest`** to `enginetest/` — Counter has no shared contract; bugs like the DQL colon issue would be caught across all engines. <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)' (Counter harness missing - would have caught the colon bug)
+    ~~23. **Add `RunLogBackendTest`** to `enginetest/` — Log ADT only has dgraph-specific tests.~~ done - enginetest.RunStreamLogBackendTest(In) incl. interleaved-collections phase; dgraph parity wired
+23. **Add `RunGraphBackendTest`** to `enginetest/` — Graph is dgraph's killer feature but has no shared harness (only dgraph-specific GraphRAG tests). <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)'; graph work in flight in the concurrent session
+24. **Add `RunCounterBackendTest`** to `enginetest/` — Counter has no shared contract; bugs like the DQL colon issue would be caught across all engines. <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)' (Counter harness missing - would have caught the colon bug)
 
 ### Documentation
 
@@ -150,7 +156,7 @@ stream_log_test.go:122: JournalReadFrom(1,0) returned 3 entries, expected fewer 
 27. **Update references/recipes.md** — Add Dgraph integration test recipe.
 28. **Add ADR** — Document why dgraphengine doesn't implement Transactional (Dgraph transaction semantics differ).
 29. **Update FEATURES.md** — Mark Dgraph integration testing as DONE (was likely PARTIALLY DONE or PLANNED).
-~~30. **Document the CounterBackend bug** — If not fixed in this session, add to TODO_LIST as critical.~~ done - the bug itself is fixed (2026-08-14) with counter_test.go regression guard; CHANGELOG covers it
+    ~~30. **Document the CounterBackend bug** — If not fixed in this session, add to TODO_LIST as critical.~~ done - the bug itself is fixed (2026-08-14) with counter_test.go regression guard; CHANGELOG covers it
 
 ### Broader metaengine improvements noticed
 
@@ -158,7 +164,7 @@ stream_log_test.go:122: JournalReadFrom(1,0) returned 3 entries, expected fewer 
 32. **Fix `atomic.Int64` modernization** — stress_test.go:90 uses `var idx int64` + `atomic.AddInt64` instead of `atomic.Int64`.
 33. **Fix go.mod version** — `go 1.26.5` vs AGENTS.md `Go 1.26.4` across all modules. <- OPEN. rides the Go 1.26.6 direction decision - ROADMAP 'Open Questions' #2
 34. **Add `json/v2` stdversion suppression** — 6 gopls `stdversion` warnings in counter.go and scan.go about `encoding/json/v2` requiring go1.27. These are expected under `goexperiment.jsonv2` but noisy.
-~~35. **Fix `commandlifecycle/projections` unused deps** — go.mod has 4 unused requires (failsafe-go, flightrecorder, idempotency, otel).~~ done at 94261a568 - mass tidy; standalone builds green
+    ~~35. **Fix `commandlifecycle/projections` unused deps** — go.mod has 4 unused requires (failsafe-go, flightrecorder, idempotency, otel).~~ done at 94261a568 - mass tidy; standalone builds green
 
 ### Dgraph engine deeper work
 
@@ -195,29 +201,29 @@ stream_log_test.go:122: JournalReadFrom(1,0) returned 3 entries, expected fewer 
 
 ## Test Results Summary
 
-| Test | Status | Time | Notes |
-|------|--------|------|-------|
-| `TestDgraph_ScanBackend` (NEW) | PASS | 1.8s | MapScan filter/sort/pagination |
-| `TestSoak_AutoCRUD_Dgraph` (NEW) | PASS | 56s | 45K events, 0 errors, 0.1 MB heap |
-| `TestStreamLog_AppendRead` | PASS | 0.8s | Pre-existing |
-| `TestStreamLog_Version` | PASS | 0.02s | Pre-existing |
-| `TestStreamLog_JournalReadAll` | PASS | 0.02s | Pre-existing |
-| `TestStreamLog_JournalReadFrom` | **FAIL** | 0.02s | Pre-existing bug: seq offset |
-| `TestStreamLog_AppendExpected` | PASS | 0.02s | Pre-existing |
-| `TestStreamLog_ProfileSupportsADT` | PASS | 0.01s | Pre-existing |
-| `TestDgraph_RecordStamping` | PASS | 2.0s | Pre-existing |
-| `TestMapBackend` | PASS | 0.9s | Pre-existing |
-| `TestProfile` | PASS | 0.03s | Pre-existing |
-| `TestGraphOperations` | PASS | 0.8s | Pre-existing |
-| `TestGraphRAG_SearchThenGraphTraverse` | PASS | 3.9s | Pre-existing |
-| `TestGraphRAG_DifferentQueries` | PASS | 1.8s | Pre-existing |
-| `TestGraphRAG_ConcurrentStress` | PASS | 4.9s | Pre-existing, 2972 qps |
-| `TestDgraph_Multimap_*` (2 tests) | PASS | — | Pre-existing |
-| `TestDgraph_Log_*` (2 tests) | PASS | — | Pre-existing |
-| `TestNoDQLInjectionPatterns` | PASS | 0.00s | Pre-existing (compile-time) |
-| `TestDgraphADTMatrix/Counter/dgraph` | **FAIL** | 0.07s | Pre-existing bug: DQL colon |
-| `TestAdversarialDQLInjection/Counter_keys` | **FAIL** | 0.00s | Same root cause |
-| `TestDgraphADTMatrix` (8 other ADTs) | PASS/SKIP | — | Vector/Spatial skip (not implemented) |
+| Test                                       | Status    | Time  | Notes                                 |
+| ------------------------------------------ | --------- | ----- | ------------------------------------- |
+| `TestDgraph_ScanBackend` (NEW)             | PASS      | 1.8s  | MapScan filter/sort/pagination        |
+| `TestSoak_AutoCRUD_Dgraph` (NEW)           | PASS      | 56s   | 45K events, 0 errors, 0.1 MB heap     |
+| `TestStreamLog_AppendRead`                 | PASS      | 0.8s  | Pre-existing                          |
+| `TestStreamLog_Version`                    | PASS      | 0.02s | Pre-existing                          |
+| `TestStreamLog_JournalReadAll`             | PASS      | 0.02s | Pre-existing                          |
+| `TestStreamLog_JournalReadFrom`            | **FAIL**  | 0.02s | Pre-existing bug: seq offset          |
+| `TestStreamLog_AppendExpected`             | PASS      | 0.02s | Pre-existing                          |
+| `TestStreamLog_ProfileSupportsADT`         | PASS      | 0.01s | Pre-existing                          |
+| `TestDgraph_RecordStamping`                | PASS      | 2.0s  | Pre-existing                          |
+| `TestMapBackend`                           | PASS      | 0.9s  | Pre-existing                          |
+| `TestProfile`                              | PASS      | 0.03s | Pre-existing                          |
+| `TestGraphOperations`                      | PASS      | 0.8s  | Pre-existing                          |
+| `TestGraphRAG_SearchThenGraphTraverse`     | PASS      | 3.9s  | Pre-existing                          |
+| `TestGraphRAG_DifferentQueries`            | PASS      | 1.8s  | Pre-existing                          |
+| `TestGraphRAG_ConcurrentStress`            | PASS      | 4.9s  | Pre-existing, 2972 qps                |
+| `TestDgraph_Multimap_*` (2 tests)          | PASS      | —     | Pre-existing                          |
+| `TestDgraph_Log_*` (2 tests)               | PASS      | —     | Pre-existing                          |
+| `TestNoDQLInjectionPatterns`               | PASS      | 0.00s | Pre-existing (compile-time)           |
+| `TestDgraphADTMatrix/Counter/dgraph`       | **FAIL**  | 0.07s | Pre-existing bug: DQL colon           |
+| `TestAdversarialDQLInjection/Counter_keys` | **FAIL**  | 0.00s | Same root cause                       |
+| `TestDgraphADTMatrix` (8 other ADTs)       | PASS/SKIP | —     | Vector/Spatial skip (not implemented) |
 
 **New tests: 2/2 PASS. Pre-existing failures: 3 (2 from same bug).**
 
@@ -225,15 +231,14 @@ stream_log_test.go:122: JournalReadFrom(1,0) returned 3 entries, expected fewer 
 
 ## Files Changed This Session
 
-| File | Change |
-|------|--------|
-| `metaengine/dgraphengine/scan_backend_test.go` | **NEW** — ScanBackend contract test |
-| `metaengine/dgraphengine/soak_autocrud_test.go` | **NEW** — AutoCRUD soak test |
-| `metaengine/dgraphengine/go.mod` | Fixed `replace` directives (add `id/v4`, remove `sqliteengine`) |
-| `scripts/ephemeral-dgraph.sh` | Added default test runner |
-| `flake.nix` | Added `integration-dgraph` app |
-| `TODO_LIST.md` | Marked task `[x]` |
-
+| File                                            | Change                                                          |
+| ----------------------------------------------- | --------------------------------------------------------------- |
+| `metaengine/dgraphengine/scan_backend_test.go`  | **NEW** — ScanBackend contract test                             |
+| `metaengine/dgraphengine/soak_autocrud_test.go` | **NEW** — AutoCRUD soak test                                    |
+| `metaengine/dgraphengine/go.mod`                | Fixed `replace` directives (add `id/v4`, remove `sqliteengine`) |
+| `scripts/ephemeral-dgraph.sh`                   | Added default test runner                                       |
+| `flake.nix`                                     | Added `integration-dgraph` app                                  |
+| `TODO_LIST.md`                                  | Marked task `[x]`                                               |
 
 ---
 

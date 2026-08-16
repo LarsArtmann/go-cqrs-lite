@@ -108,14 +108,14 @@ Nothing. All planned CBOR work is complete.
 
 These are future improvements that are NOT required for the CBOR feature:
 
-| #   | Item                                                   | Why deferred                                                       |
-| --- | ------------------------------------------------------ | ------------------------------------------------------------------ |
-| 1   | CoreDet (RFC 8949) encoding mode option                | Canonical and CoreDet produce identical bytes for typical payloads |
-| 2   | Streaming CBOR encoder for large payloads              | Premature for a library                                            |
-| 3   | Property-based tests with `pgregory/rapid`             | Fuzz tests already cover this                                      |
-| 4   | CBOR tag support docs (`cbor:"name"` vs `json:"name"`) | fxamacker reads `json` tags by default                             |
-| 5   | Module-level `codec/README.md`                         | `doc.go` + examples are sufficient                                 |
-| 6   | CBOR in `eventtest` golden assertions                  | eventtest uses JSON by default, correct                            |
+| # | Item                                                   | Why deferred                                                       |
+| - | ------------------------------------------------------ | ------------------------------------------------------------------ |
+| 1 | CoreDet (RFC 8949) encoding mode option                | Canonical and CoreDet produce identical bytes for typical payloads |
+| 2 | Streaming CBOR encoder for large payloads              | Premature for a library                                            |
+| 3 | Property-based tests with `pgregory/rapid`             | Fuzz tests already cover this                                      |
+| 4 | CBOR tag support docs (`cbor:"name"` vs `json:"name"`) | fxamacker reads `json` tags by default                             |
+| 5 | Module-level `codec/README.md`                         | `doc.go` + examples are sufficient                                 |
+| 6 | CBOR in `eventtest` golden assertions                  | eventtest uses JSON by default, correct                            |
 
 ---
 
@@ -129,23 +129,23 @@ These are future improvements that are NOT required for the CBOR feature:
 
 ### Across the project (not CBOR-specific)
 
-| #   | Issue                                                   | Module   | Effort |
-| --- | ------------------------------------------------------- | -------- | ------ |
-| 1   | `storage/` has 58 LSP errors (Dialect, DB, CheckClosed) | storage  | 30min  |
-| 2   | Catalog `unconvert` lint issue (pre-existing)           | catalog  | 2min   |
-| 3   | Compiled binaries in `example/` dirs (buildflow ERROR)  | examples | 5min   |
-| 4   | `turso/doc.go` missing package comment                  | turso    | 2min   |
-| 5   | Hardcoded `"json"` strings in storage test mocks        | storage  | 10min  |
-| 6   | `docs/status/` has 10+ status reports from one day      | docs     | 5min   |
+| # | Issue                                                   | Module   | Effort |
+| - | ------------------------------------------------------- | -------- | ------ |
+| 1 | `storage/` has 58 LSP errors (Dialect, DB, CheckClosed) | storage  | 30min  |
+| 2 | Catalog `unconvert` lint issue (pre-existing)           | catalog  | 2min   |
+| 3 | Compiled binaries in `example/` dirs (buildflow ERROR)  | examples | 5min   |
+| 4 | `turso/doc.go` missing package comment                  | turso    | 2min   |
+| 5 | Hardcoded `"json"` strings in storage test mocks        | storage  | 10min  |
+| 6 | `docs/status/` has 10+ status reports from one day      | docs     | 5min   |
 
 ### CBOR-specific (optional polish)
 
-| #   | Item                                                                      | Effort |
-| --- | ------------------------------------------------------------------------- | ------ |
-| 7   | Add CBORCodec to `integration/` cross-module tests                        | 15min  |
-| 8   | Add CBOR to `encryption/` integration (verify EncryptionCodec wraps CBOR) | 10min  |
-| 9   | Golden test for CBOR time encoding                                        | 5min   |
-| 10  | Size comparison benchmark (CBOR vs JSON for []byte payloads)              | 10min  |
+| #  | Item                                                                      | Effort |
+| -- | ------------------------------------------------------------------------- | ------ |
+| 7  | Add CBORCodec to `integration/` cross-module tests                        | 15min  |
+| 8  | Add CBOR to `encryption/` integration (verify EncryptionCodec wraps CBOR) | 10min  |
+| 9  | Golden test for CBOR time encoding                                        | 5min   |
+| 10 | Size comparison benchmark (CBOR vs JSON for []byte payloads)              | 10min  |
 
 ---
 
@@ -153,33 +153,33 @@ These are future improvements that are NOT required for the CBOR feature:
 
 Sorted by impact × effort (highest first). CBOR-specific items marked with 🔵.
 
-| #   | Task                                                            | Impact   | Effort | Module      |
-| --- | --------------------------------------------------------------- | -------- | ------ | ----------- |
-| 1   | Fix 58 LSP errors in storage/ (Dialect, DB, CheckClosed)        | Critical | 30min  | storage     |
-| 2   | Remove compiled binaries from example/ dirs                     | High     | 5min   | examples    |
-| 3   | Fix catalog unconvert lint                                      | Medium   | 2min   | catalog     |
-| 4   | Add turso/doc.go package comment                                | Medium   | 2min   | turso       |
-| 5   | 🔵 Add CBOR to encryption/ integration test                     | High     | 10min  | integration |
-| 6   | 🔵 Add CBOR to integration/ cross-module tests                  | Medium   | 15min  | integration |
-| 7   | Replace hardcoded "json" strings in storage test mocks          | Medium   | 10min  | storage     |
-| 8   | Clean up status reports from today's sessions                   | Low      | 5min   | docs        |
-| 9   | 🔵 Size comparison benchmark (CBOR vs JSON for []byte payloads) | Medium   | 10min  | codec       |
-| 10  | 🔵 Golden test for CBOR time encoding                           | Low      | 5min   | codec       |
-| 11  | Add `cbor` struct tag to `eventtest` test payloads              | Low      | 5min   | event       |
-| 12  | Document CBOR in `docs/DOMAIN_LANGUAGE.md`                      | Medium   | 10min  | docs        |
-| 13  | Verify pebble/ stores CBOR-encoded payloads correctly           | High     | 10min  | pebble      |
-| 14  | Verify signing/ produces stable signatures with CBOR payloads   | High     | 10min  | signing     |
-| 15  | Add `nix run .#check-layers` to verify CBOR dep budgets         | Medium   | 5min   | infra       |
-| 16  | Add CBORCodec to `memory/` round-trip test                      | Low      | 5min   | memory      |
-| 17  | Document `DupMapKeyEnforcedAPF` behavior in cbor.go             | Low      | 3min   | codec       |
-| 18  | Add CBOR to `projection/` builder integration test              | Medium   | 10min  | projection  |
-| 19  | Add CBOR example to `catalog/` schema generation                | Low      | 15min  | catalog     |
-| 20  | Add `cbor:"-"` field omission test                              | Low      | 3min   | codec       |
-| 21  | Evaluate CBOR for pebble envelope serialization                 | High     | 30min  | pebble      |
-| 22  | Write README section about CBOR adoption                        | Medium   | 30min  | docs        |
-| 23  | Add `APIstability` golden file check for CBORCodec exports      | Medium   | 10min  | cmd         |
-| 24  | Explore CBOR streaming for large batch operations               | Low      | 45min  | codec       |
-| 25  | Add CBOR to `watermill/` protocol adapter test                  | Low      | 10min  | watermill   |
+| #  | Task                                                            | Impact   | Effort | Module      |
+| -- | --------------------------------------------------------------- | -------- | ------ | ----------- |
+| 1  | Fix 58 LSP errors in storage/ (Dialect, DB, CheckClosed)        | Critical | 30min  | storage     |
+| 2  | Remove compiled binaries from example/ dirs                     | High     | 5min   | examples    |
+| 3  | Fix catalog unconvert lint                                      | Medium   | 2min   | catalog     |
+| 4  | Add turso/doc.go package comment                                | Medium   | 2min   | turso       |
+| 5  | 🔵 Add CBOR to encryption/ integration test                     | High     | 10min  | integration |
+| 6  | 🔵 Add CBOR to integration/ cross-module tests                  | Medium   | 15min  | integration |
+| 7  | Replace hardcoded "json" strings in storage test mocks          | Medium   | 10min  | storage     |
+| 8  | Clean up status reports from today's sessions                   | Low      | 5min   | docs        |
+| 9  | 🔵 Size comparison benchmark (CBOR vs JSON for []byte payloads) | Medium   | 10min  | codec       |
+| 10 | 🔵 Golden test for CBOR time encoding                           | Low      | 5min   | codec       |
+| 11 | Add `cbor` struct tag to `eventtest` test payloads              | Low      | 5min   | event       |
+| 12 | Document CBOR in `docs/DOMAIN_LANGUAGE.md`                      | Medium   | 10min  | docs        |
+| 13 | Verify pebble/ stores CBOR-encoded payloads correctly           | High     | 10min  | pebble      |
+| 14 | Verify signing/ produces stable signatures with CBOR payloads   | High     | 10min  | signing     |
+| 15 | Add `nix run .#check-layers` to verify CBOR dep budgets         | Medium   | 5min   | infra       |
+| 16 | Add CBORCodec to `memory/` round-trip test                      | Low      | 5min   | memory      |
+| 17 | Document `DupMapKeyEnforcedAPF` behavior in cbor.go             | Low      | 3min   | codec       |
+| 18 | Add CBOR to `projection/` builder integration test              | Medium   | 10min  | projection  |
+| 19 | Add CBOR example to `catalog/` schema generation                | Low      | 15min  | catalog     |
+| 20 | Add `cbor:"-"` field omission test                              | Low      | 3min   | codec       |
+| 21 | Evaluate CBOR for pebble envelope serialization                 | High     | 30min  | pebble      |
+| 22 | Write README section about CBOR adoption                        | Medium   | 30min  | docs        |
+| 23 | Add `APIstability` golden file check for CBORCodec exports      | Medium   | 10min  | cmd         |
+| 24 | Explore CBOR streaming for large batch operations               | Low      | 45min  | codec       |
+| 25 | Add CBOR to `watermill/` protocol adapter test                  | Low      | 10min  | watermill   |
 
 ---
 

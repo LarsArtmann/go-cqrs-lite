@@ -103,103 +103,103 @@ control, the CHANGELOG was never updated, and the full verify gate was never run
 
 ### Critical (blocking CI / correctness)
 
-| #   | Task                                                                            | Est   |
-| --- | ------------------------------------------------------------------------------- | ----- |
-| 1   | Split `engine.go` → `engine.go` + `engine_passthrough.go` (get under 350 lines) | 10min |
-| 2   | Run `nix run .#verify` and fix ALL failures                                     | 30min |
-| 3   | Add CHANGELOG.md entry for irohengine prototype                                 | 5min  |
-| 4   | Run `nix fmt` on irohengine module                                              | 2min  |
-| 5   | Add `//nolint:gosec` comment for `math/rand` in transport.go (G404)             | 2min  |
+| # | Task                                                                            | Est   |
+| - | ------------------------------------------------------------------------------- | ----- |
+| 1 | Split `engine.go` → `engine.go` + `engine_passthrough.go` (get under 350 lines) | 10min |
+| 2 | Run `nix run .#verify` and fix ALL failures                                     | 30min |
+| 3 | Add CHANGELOG.md entry for irohengine prototype                                 | 5min  |
+| 4 | Run `nix fmt` on irohengine module                                              | 2min  |
+| 5 | Add `//nolint:gosec` comment for `math/rand` in transport.go (G404)             | 2min  |
 
 ### Correctness hardening
 
-| #   | Task                                                                                              | Est   |
-| --- | ------------------------------------------------------------------------------------------------- | ----- |
-| 6   | Add WriteOp.ID (ULID or hash) + dedup ring in `applyRemote` to prevent double-apply on redelivery | 30min |
-| 7   | Log/surface errors from `applyRemote` instead of silently dropping                                | 15min |
-| 8   | Add `StreamLogBackend` support to irohengine (daemon added it to core metaengine)                 | 20min |
-| 9   | Write test: redelivery idempotency (publish same op twice, verify single application)             | 15min |
-| 10  | Document LWW clock skew assumption in transport.go                                                | 10min |
-| 11  | Consider HLC (Hybrid Logical Clock) instead of wall time for LWW                                  | 45min |
+| #  | Task                                                                                              | Est   |
+| -- | ------------------------------------------------------------------------------------------------- | ----- |
+| 6  | Add WriteOp.ID (ULID or hash) + dedup ring in `applyRemote` to prevent double-apply on redelivery | 30min |
+| 7  | Log/surface errors from `applyRemote` instead of silently dropping                                | 15min |
+| 8  | Add `StreamLogBackend` support to irohengine (daemon added it to core metaengine)                 | 20min |
+| 9  | Write test: redelivery idempotency (publish same op twice, verify single application)             | 15min |
+| 10 | Document LWW clock skew assumption in transport.go                                                | 10min |
+| 11 | Consider HLC (Hybrid Logical Clock) instead of wall time for LWW                                  | 45min |
 
 ### Transport improvements
 
-| #   | Task                                                                          | Est   |
-| --- | ----------------------------------------------------------------------------- | ----- |
-| 12  | Make `Publish` async (channel + goroutine) to avoid blocking writes           | 30min |
-| 13  | Add `WithNetworkReliability(0.99)` as alternative to raw drop rate            | 10min |
-| 14  | Add network topology simulation (star, mesh, ring) to Network                 | 30min |
-| 15  | Add partition simulation (split-brain test: nodes A+B can't see C, then heal) | 30min |
-| 16  | Add bandwidth limiting to Network (large payloads take longer)                | 20min |
+| #  | Task                                                                          | Est   |
+| -- | ----------------------------------------------------------------------------- | ----- |
+| 12 | Make `Publish` async (channel + goroutine) to avoid blocking writes           | 30min |
+| 13 | Add `WithNetworkReliability(0.99)` as alternative to raw drop rate            | 10min |
+| 14 | Add network topology simulation (star, mesh, ring) to Network                 | 30min |
+| 15 | Add partition simulation (split-brain test: nodes A+B can't see C, then heal) | 30min |
+| 16 | Add bandwidth limiting to Network (large payloads take longer)                | 20min |
 
 ### Planner integration
 
-| #   | Task                                                                                                     | Est   |
-| --- | -------------------------------------------------------------------------------------------------------- | ----- |
-| 17  | Integration test: `metaengine.Plan([irohEngine, sqliteEngine], query)` — verify planner routes correctly | 30min |
-| 18  | Verify `mapUpdateReplicationRule` emits WARN when query with MapUpdate routes to irohengine              | 20min |
-| 19  | Verify `replicationRule` emits INFO diagnostic for irohengine with non-zero lag                          | 15min |
-| 20  | Add `irohengine.Replicated()` factory to a `RunMatrix` test alongside pebble/sqlite                      | 15min |
-| 21  | Test `WithReplication`/`WithNetworkRTT` "what-if" plan options with irohengine                           | 20min |
+| #  | Task                                                                                                     | Est   |
+| -- | -------------------------------------------------------------------------------------------------------- | ----- |
+| 17 | Integration test: `metaengine.Plan([irohEngine, sqliteEngine], query)` — verify planner routes correctly | 30min |
+| 18 | Verify `mapUpdateReplicationRule` emits WARN when query with MapUpdate routes to irohengine              | 20min |
+| 19 | Verify `replicationRule` emits INFO diagnostic for irohengine with non-zero lag                          | 15min |
+| 20 | Add `irohengine.Replicated()` factory to a `RunMatrix` test alongside pebble/sqlite                      | 15min |
+| 21 | Test `WithReplication`/`WithNetworkRTT` "what-if" plan options with irohengine                           | 20min |
 
 ### Documentation & examples
 
-| #   | Task                                                                                 | Est   |
-| --- | ------------------------------------------------------------------------------------ | ----- |
-| 22  | Update SKILL.md references with irohengine module + usage recipe                     | 30min |
-| 23  | Write `example/` or test demonstrating 3-device offline sync + reconnect convergence | 45min |
-| 24  | Add irohengine section to `docs/architecture-understanding/` module map              | 15min |
-| 25  | Run `cmd/doc-check` on updated ADR-0096                                              | 5min  |
-| 26  | Add `metaengine/irohengine/README.md` with quickstart                                | 20min |
-| 27  | Update FEATURES.md with distributed engine prototype status                          | 10min |
+| #  | Task                                                                                 | Est   |
+| -- | ------------------------------------------------------------------------------------ | ----- |
+| 22 | Update SKILL.md references with irohengine module + usage recipe                     | 30min |
+| 23 | Write `example/` or test demonstrating 3-device offline sync + reconnect convergence | 45min |
+| 24 | Add irohengine section to `docs/architecture-understanding/` module map              | 15min |
+| 25 | Run `cmd/doc-check` on updated ADR-0096                                              | 5min  |
+| 26 | Add `metaengine/irohengine/README.md` with quickstart                                | 20min |
+| 27 | Update FEATURES.md with distributed engine prototype status                          | 10min |
 
 ### Module hygiene
 
-| #   | Task                                                                                | Est   |
-| --- | ----------------------------------------------------------------------------------- | ----- |
-| 28  | Add `system/` module to api-stability modules list (pre-existing failure)           | 5min  |
-| 29  | Verify `metaengine/go.sum` is consistent after daemon's `StreamLogBackend` addition | 5min  |
-| 30  | Add `.art-dupl-baseline.json` consideration — check if irohengine introduces clones | 15min |
-| 31  | Run `nix run .#check-layers` — verify irohengine dependency budget                  | 10min |
-| 32  | Run `nix run .#check-coverage` — verify coverage drift                              | 10min |
-| 33  | Tag `metaengine/irohengine/v4` for consumer importability                           | 5min  |
+| #  | Task                                                                                | Est   |
+| -- | ----------------------------------------------------------------------------------- | ----- |
+| 28 | Add `system/` module to api-stability modules list (pre-existing failure)           | 5min  |
+| 29 | Verify `metaengine/go.sum` is consistent after daemon's `StreamLogBackend` addition | 5min  |
+| 30 | Add `.art-dupl-baseline.json` consideration — check if irohengine introduces clones | 15min |
+| 31 | Run `nix run .#check-layers` — verify irohengine dependency budget                  | 10min |
+| 32 | Run `nix run .#check-coverage` — verify coverage drift                              | 10min |
+| 33 | Tag `metaengine/irohengine/v4` for consumer importability                           | 5min  |
 
 ### Advanced CRDT features
 
-| #   | Task                                                                                                                | Est   |
-| --- | ------------------------------------------------------------------------------------------------------------------- | ----- |
-| 34  | Implement MapDelete tombstone CRDT semantics (currently publishes but doesn't track tombstones vs physical deletes) | 30min |
-| 35  | Implement SetRemove (OR-Set tombstone removal)                                                                      | 30min |
-| 36  | Add per-author counter state inspection (`CounterGetByAuthor`)                                                      | 20min |
-| 37  | Add `SyncStatus()` method — returns per-collection convergence state (syncing/synced/unknown)                       | 30min |
-| 38  | Add `ForceSync(ctx)` method — trigger immediate reconciliation                                                      | 20min |
+| #  | Task                                                                                                                | Est   |
+| -- | ------------------------------------------------------------------------------------------------------------------- | ----- |
+| 34 | Implement MapDelete tombstone CRDT semantics (currently publishes but doesn't track tombstones vs physical deletes) | 30min |
+| 35 | Implement SetRemove (OR-Set tombstone removal)                                                                      | 30min |
+| 36 | Add per-author counter state inspection (`CounterGetByAuthor`)                                                      | 20min |
+| 37 | Add `SyncStatus()` method — returns per-collection convergence state (syncing/synced/unknown)                       | 30min |
+| 38 | Add `ForceSync(ctx)` method — trigger immediate reconciliation                                                      | 20min |
 
 ### Real Iroh preparation
 
-| #   | Task                                                                               | Est   |
-| --- | ---------------------------------------------------------------------------------- | ----- |
-| 39  | Research current `iroh-c-ffi` status (may have updated since ADR-0096)             | 30min |
-| 40  | Prototype `IrohTransport` stub (sidecar binary communicating via Unix socket)      | 60min |
-| 41  | Evaluate `decentral1se/iroh-go` for iroh-docs coverage (was Linux-only last check) | 30min |
-| 42  | Design sidecar protocol (gRPC? custom JSON over Unix socket?)                      | 45min |
+| #  | Task                                                                               | Est   |
+| -- | ---------------------------------------------------------------------------------- | ----- |
+| 39 | Research current `iroh-c-ffi` status (may have updated since ADR-0096)             | 30min |
+| 40 | Prototype `IrohTransport` stub (sidecar binary communicating via Unix socket)      | 60min |
+| 41 | Evaluate `decentral1se/iroh-go` for iroh-docs coverage (was Linux-only last check) | 30min |
+| 42 | Design sidecar protocol (gRPC? custom JSON over Unix socket?)                      | 45min |
 
 ### Test coverage
 
-| #   | Task                                                                                 | Est   |
-| --- | ------------------------------------------------------------------------------------ | ----- |
-| 43  | Property test: convergent state after random op sequences on N nodes                 | 45min |
-| 44  | Benchmark: replication overhead (local write + publish + apply) vs plain local write | 20min |
-| 45  | Test: MapDelete convergence (delete on A, MapGet returns false on B)                 | 10min |
-| 46  | Test: large payload replication (1MB value across transport)                         | 15min |
-| 47  | Test: concurrent writes to same key from 3 nodes, verify LWW convergence             | 15min |
+| #  | Task                                                                                 | Est   |
+| -- | ------------------------------------------------------------------------------------ | ----- |
+| 43 | Property test: convergent state after random op sequences on N nodes                 | 45min |
+| 44 | Benchmark: replication overhead (local write + publish + apply) vs plain local write | 20min |
+| 45 | Test: MapDelete convergence (delete on A, MapGet returns false on B)                 | 10min |
+| 46 | Test: large payload replication (1MB value across transport)                         | 15min |
+| 47 | Test: concurrent writes to same key from 3 nodes, verify LWW convergence             | 15min |
 
 ### Polish
 
-| #   | Task                                                     | Est   |
-| --- | -------------------------------------------------------- | ----- |
-| 48  | Add Go doc examples to `Replicated()` and `NewNetwork()` | 10min |
-| 49  | Add `Network.Peers()` introspection method               | 10min |
-| 50  | Add `Network.Topology()` visualization (text-based)      | 20min |
+| #  | Task                                                     | Est   |
+| -- | -------------------------------------------------------- | ----- |
+| 48 | Add Go doc examples to `Replicated()` and `NewNetwork()` | 10min |
+| 49 | Add `Network.Peers()` introspection method               | 10min |
+| 50 | Add `Network.Topology()` visualization (text-based)      | 20min |
 
 ---
 

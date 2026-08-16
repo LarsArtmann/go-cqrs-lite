@@ -109,33 +109,33 @@ These were in the original plan but were skipped due to time/scope:
 
 ## f) Next 25 Things to Get Done
 
-| #   | Task                                                                   | Impact   | Effort |
-| --- | ---------------------------------------------------------------------- | -------- | ------ |
-| 1   | Fix signing: cast publisher to `event.Bus` and wire `UsePublish`/`Use` | Critical | S      |
-| 2   | Investigate tombstone projection bug (live-bus path)                   | Critical | M      |
-| 3   | Update root `README.md` — remove all old example references            | Critical | S      |
-| 4   | Update `SKILL.md` + `.agents/skills/go-cqrs-lite/SKILL.md`             | Critical | S      |
-| 5   | Update `.agents/skills/go-cqrs-lite/references/*.md`                   | Critical | S      |
-| 6   | Wire `ProjectionHost` instead of raw CatchUpSubscriber                 | High     | M      |
-| 7   | Add graph projection for task dependencies                             | High     | M      |
-| 8   | Fix CBOR codec support (or document the asymmetry workaround)          | High     | M      |
-| 9   | Add getting-started test file                                          | Medium   | S      |
-| 10  | Add catalog generation (correct API)                                   | Medium   | M      |
-| 11  | Add scheduling demo (auto-archive after deadline)                      | Medium   | M      |
-| 12  | Add deriver demo (task.created → welcome notification)                 | Medium   | M      |
-| 13  | Add SSE endpoint to HTTP API                                           | Medium   | M      |
-| 14  | Add idempotency to command handlers                                    | Medium   | M      |
-| 15  | Add snapshot strategy (EveryNEvents)                                   | Medium   | S      |
-| 16  | Add encryption demo (XChaCha20 on event payloads)                      | Medium   | M      |
-| 17  | Remove dead `if false {}` block in features.go                         | Low      | XS     |
-| 18  | Remove duplicate OTel shutdown path                                    | Low      | XS     |
-| 19  | Fix `Start()` to accept configurable HTTP address                      | Low      | XS     |
-| 20  | Add input validation depth (max-length, priority bounds)               | Low      | S      |
-| 21  | Add consistent JSON response envelope across all HTTP handlers         | Low      | S      |
-| 21  | Add health check that verifies event store connectivity                | Low      | S      |
-| 23  | Add gRPC transport option                                              | Low      | M      |
-| 24  | Add Prometheus `/metrics` endpoint                                     | Low      | S      |
-| 25  | Run `nix fmt` and `nix run .#lint` to verify formatting/lint           | Low      | S      |
+| #  | Task                                                                   | Impact   | Effort |
+| -- | ---------------------------------------------------------------------- | -------- | ------ |
+| 1  | Fix signing: cast publisher to `event.Bus` and wire `UsePublish`/`Use` | Critical | S      |
+| 2  | Investigate tombstone projection bug (live-bus path)                   | Critical | M      |
+| 3  | Update root `README.md` — remove all old example references            | Critical | S      |
+| 4  | Update `SKILL.md` + `.agents/skills/go-cqrs-lite/SKILL.md`             | Critical | S      |
+| 5  | Update `.agents/skills/go-cqrs-lite/references/*.md`                   | Critical | S      |
+| 6  | Wire `ProjectionHost` instead of raw CatchUpSubscriber                 | High     | M      |
+| 7  | Add graph projection for task dependencies                             | High     | M      |
+| 8  | Fix CBOR codec support (or document the asymmetry workaround)          | High     | M      |
+| 9  | Add getting-started test file                                          | Medium   | S      |
+| 10 | Add catalog generation (correct API)                                   | Medium   | M      |
+| 11 | Add scheduling demo (auto-archive after deadline)                      | Medium   | M      |
+| 12 | Add deriver demo (task.created → welcome notification)                 | Medium   | M      |
+| 13 | Add SSE endpoint to HTTP API                                           | Medium   | M      |
+| 14 | Add idempotency to command handlers                                    | Medium   | M      |
+| 15 | Add snapshot strategy (EveryNEvents)                                   | Medium   | S      |
+| 16 | Add encryption demo (XChaCha20 on event payloads)                      | Medium   | M      |
+| 17 | Remove dead `if false {}` block in features.go                         | Low      | XS     |
+| 18 | Remove duplicate OTel shutdown path                                    | Low      | XS     |
+| 19 | Fix `Start()` to accept configurable HTTP address                      | Low      | XS     |
+| 20 | Add input validation depth (max-length, priority bounds)               | Low      | S      |
+| 21 | Add consistent JSON response envelope across all HTTP handlers         | Low      | S      |
+| 21 | Add health check that verifies event store connectivity                | Low      | S      |
+| 23 | Add gRPC transport option                                              | Low      | M      |
+| 24 | Add Prometheus `/metrics` endpoint                                     | Low      | S      |
+| 25 | Run `nix fmt` and `nix run .#lint` to verify formatting/lint           | Low      | S      |
 
 ---
 

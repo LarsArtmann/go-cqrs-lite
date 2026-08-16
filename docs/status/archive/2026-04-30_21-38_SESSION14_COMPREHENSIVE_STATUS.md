@@ -1,7 +1,7 @@
 # Comprehensive Status Report — Session 14 Complete
 
-**Date:** 2026-04-30 21:38 CEST  
-**Branch:** master (clean, up to date with origin)  
+**Date:** 2026-04-30 21:38 CEST\
+**Branch:** master (clean, up to date with origin)\
 **Sessions completed:** 14
 
 ---
@@ -196,33 +196,33 @@ The `SQLEventStore` implements the full `event.Store` interface with optimistic 
 
 ## F) Top 25 Things We Should Get Done Next
 
-| #   | Task                                                                        | Impact | Effort | Module              |
-| --- | --------------------------------------------------------------------------- | ------ | ------ | ------------------- |
-| 1   | Add PostgreSQL testcontainers tests for `SQLEventStore`                     | HIGH   | 90min  | storage             |
-| 2   | Add SQL-backed `SnapshotStore` to storage module                            | HIGH   | 60min  | storage             |
-| 3   | Add SQL-backed `CheckpointStore` to storage module                          | HIGH   | 45min  | storage             |
-| 4   | Fix memory coverage: add `MemoryCheckpointStore` direct tests               | MEDIUM | 15min  | memory              |
-| 5   | Enhance example: add projections, snapshots, middleware                     | MEDIUM | 60min  | example             |
-| 6   | Add publish-side event middleware (pre-publish interceptor)                 | HIGH   | 45min  | core/event          |
-| 7   | Make `InMemoryRunner` checkpoint-aware (resume from last)                   | MEDIUM | 30min  | core/event          |
-| 8   | Add error sentinels for projection/upcaster packages                        | LOW    | 15min  | core/event          |
-| 9   | Add `EventRetry` tests (shares logic with CommandRetry)                     | LOW    | 20min  | middleware          |
-| 10  | Remove stale `memory` replace from `testhelpers/go.mod`                     | LOW    | 5min   | testhelpers         |
-| 11  | Remove `example/user` from `go.work` (examples shouldn't be in workspace)   | LOW    | 5min   | root                |
-| 12  | Add benchmarks for projections, upcasters, snapshot strategy                | LOW    | 30min  | core                |
-| 13  | Write `docs/getting-started.md` guide                                       | HIGH   | 60min  | docs                |
-| 14  | Add Watermill module skeleton (pub/sub abstraction)                         | MEDIUM | 90min  | new module          |
-| 15  | Add `storage/outbox` — SQL-backed Outbox implementation                     | HIGH   | 60min  | storage             |
-| 16  | Add saga/process manager interface to core                                  | LOW    | 45min  | core                |
-| 17  | Tag `v0.3.0-alpha` release                                                  | LOW    | 15min  | root                |
-| 18  | Add CI pipeline for storage module (needs PostgreSQL service)               | MEDIUM | 30min  | .github             |
-| 19  | Add `WithSnapshotStateFunc` option for repository (custom state extraction) | MEDIUM | 20min  | core/aggregate      |
-| 20  | Add event store cursor-based streaming (load events in batches)             | MEDIUM | 45min  | core/event          |
-| 21  | Add `UpcasterRegistry` cycle detection                                      | LOW    | 15min  | core/event          |
-| 22  | Add projection parallel processing (goroutine pool)                         | LOW    | 45min  | core/event          |
-| 23  | Remove `dispatcher.Typed` or build actual cross-kind utilities              | LOW    | 20min  | core/pkg/dispatcher |
-| 24  | Add security test for SQL injection in `SQLEventStore`                      | MEDIUM | 15min  | storage             |
-| 25  | Add fuzz tests for `DecodePayload`, upcaster chain, projection filter       | LOW    | 30min  | core/event          |
+| #  | Task                                                                        | Impact | Effort | Module              |
+| -- | --------------------------------------------------------------------------- | ------ | ------ | ------------------- |
+| 1  | Add PostgreSQL testcontainers tests for `SQLEventStore`                     | HIGH   | 90min  | storage             |
+| 2  | Add SQL-backed `SnapshotStore` to storage module                            | HIGH   | 60min  | storage             |
+| 3  | Add SQL-backed `CheckpointStore` to storage module                          | HIGH   | 45min  | storage             |
+| 4  | Fix memory coverage: add `MemoryCheckpointStore` direct tests               | MEDIUM | 15min  | memory              |
+| 5  | Enhance example: add projections, snapshots, middleware                     | MEDIUM | 60min  | example             |
+| 6  | Add publish-side event middleware (pre-publish interceptor)                 | HIGH   | 45min  | core/event          |
+| 7  | Make `InMemoryRunner` checkpoint-aware (resume from last)                   | MEDIUM | 30min  | core/event          |
+| 8  | Add error sentinels for projection/upcaster packages                        | LOW    | 15min  | core/event          |
+| 9  | Add `EventRetry` tests (shares logic with CommandRetry)                     | LOW    | 20min  | middleware          |
+| 10 | Remove stale `memory` replace from `testhelpers/go.mod`                     | LOW    | 5min   | testhelpers         |
+| 11 | Remove `example/user` from `go.work` (examples shouldn't be in workspace)   | LOW    | 5min   | root                |
+| 12 | Add benchmarks for projections, upcasters, snapshot strategy                | LOW    | 30min  | core                |
+| 13 | Write `docs/getting-started.md` guide                                       | HIGH   | 60min  | docs                |
+| 14 | Add Watermill module skeleton (pub/sub abstraction)                         | MEDIUM | 90min  | new module          |
+| 15 | Add `storage/outbox` — SQL-backed Outbox implementation                     | HIGH   | 60min  | storage             |
+| 16 | Add saga/process manager interface to core                                  | LOW    | 45min  | core                |
+| 17 | Tag `v0.3.0-alpha` release                                                  | LOW    | 15min  | root                |
+| 18 | Add CI pipeline for storage module (needs PostgreSQL service)               | MEDIUM | 30min  | .github             |
+| 19 | Add `WithSnapshotStateFunc` option for repository (custom state extraction) | MEDIUM | 20min  | core/aggregate      |
+| 20 | Add event store cursor-based streaming (load events in batches)             | MEDIUM | 45min  | core/event          |
+| 21 | Add `UpcasterRegistry` cycle detection                                      | LOW    | 15min  | core/event          |
+| 22 | Add projection parallel processing (goroutine pool)                         | LOW    | 45min  | core/event          |
+| 23 | Remove `dispatcher.Typed` or build actual cross-kind utilities              | LOW    | 20min  | core/pkg/dispatcher |
+| 24 | Add security test for SQL injection in `SQLEventStore`                      | MEDIUM | 15min  | storage             |
+| 25 | Add fuzz tests for `DecodePayload`, upcaster chain, projection filter       | LOW    | 30min  | core/event          |
 
 ---
 

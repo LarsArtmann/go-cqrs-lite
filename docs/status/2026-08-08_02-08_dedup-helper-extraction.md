@@ -1,7 +1,7 @@
 # Status Report: Dedup Helper Extraction & Threshold-2 Investigation
 
-**Date:** 2026-08-08 02:08  
-**Session scope:** Dedup TODO items (t=2 investigation, renderTable extraction, DeferClose extraction)  
+**Date:** 2026-08-08 02:08\
+**Session scope:** Dedup TODO items (t=2 investigation, renderTable extraction, DeferClose extraction)\
 **Commit range:** Uncommitted changes on `master`
 
 ---

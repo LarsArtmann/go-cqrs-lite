@@ -51,7 +51,7 @@ E2. **Stage-and-commit my work in smaller batches immediately after each green t
 E3. **The TODO items "engine compile-time assertion gaps" (mysql Calibratable) is factually wrong** — either fix the TODO text or add the missing `SetCalibration` to mysqlengine as a real feature task. Today I only noted it.
 E4. **The mixed-commit hazard**: daemon's `b2beac1c1` bundled my test with its incomplete refactor, making blame/revert impossible. Recommend daemon exclude `*_test.go` from its own feature commits, or commit tests separately.
 E5. **Release hygiene**: the `id/v4.2.0`-without-ActorID gap means **consumers are broken TODAY** (not just commandlifecycle). `go get` of record/command/metaengine latest tags fails to compile for any consumer. This outranks most TODO items.
-E6. **Quick win #5 could have been caught as already-done**: an e2e test already existed in `graph_fallback_e2e_test.go` (memory wrapper). The TODO asked for a *real* engine; I added SQLite — but a 2-minute check earlier would have saved rediscovering it.
+E6. **Quick win #5 could have been caught as already-done**: an e2e test already existed in `graph_fallback_e2e_test.go` (memory wrapper). The TODO asked for a _real_ engine; I added SQLite — but a 2-minute check earlier would have saved rediscovering it.
 
 ## f) UP TO 50 THINGS TO GET DONE NEXT 📋
 
@@ -121,10 +121,9 @@ E6. **Quick win #5 could have been caught as already-done**: an e2e test already
 
 ## g) 3 Questions I CANNOT answer myself ❓
 
-1. **Push policy**: The `id/v4.3.0` + re-tag chain fixes *currently-broken consumers*. Do you want me to (a) prepare all tags locally and list them for your explicit push approval, or (b) keep this in the dedicated release session and NOT touch tags at all?
+1. **Push policy**: The `id/v4.3.0` + re-tag chain fixes _currently-broken consumers_. Do you want me to (a) prepare all tags locally and list them for your explicit push approval, or (b) keep this in the dedicated release session and NOT touch tags at all?
 2. **Daemon coordination**: The auto-commit daemon committed its incomplete layout refactor mixed into the commit carrying my tests. Should I (a) coordinate by committing my work in micro-batches first (recommended), or (b) disable/suspend the daemon during feature sessions, or (c) is this acceptable noise you'd rather I just work around?
 3. **Scope of "verify gate" for MY changes**: Since the daemon's layout WIP makes the full suite RED, is it acceptable that I validated only my affected modules (metaengine, bboltengine, mysqlengine) + race, deferring `nix run .#verify` until the layout WIP lands? Or do you want me to fix the 5 layout failures myself (they're the daemon's WIP, but I can take them over)?
-
 
 ---
 

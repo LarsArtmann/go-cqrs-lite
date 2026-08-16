@@ -164,48 +164,48 @@ Sorted by **Impact × Ease** (Pareto):
 
 ### 🔴 HIGH Impact, LOW Effort (Do First)
 
-| #   | Task                                                                              | Est   | Impact                                                |
-| --- | --------------------------------------------------------------------------------- | ----- | ----------------------------------------------------- |
-| 1   | Commit staged `signing/multisig_test.go` fix + untracked `saga/benchmark_test.go` | 5min  | Fixes last signing test failure, adds saga benchmarks |
-| 2   | Refresh 3 golden files (`-update` flag)                                           | 5min  | Makes test suite 100% green                           |
-| 3   | Add `.gitignore` for `coverage.out`, `*.out`, binaries                            | 5min  | Prevents accidental commits                           |
-| 4   | Fix `middleware/retry.go` `math/rand` → `math/rand/v2`                            | 10min | Eliminates pre-commit security warning                |
-| 5   | Commit and push all accumulated work                                              | 5min  | Gets code to remote                                   |
+| # | Task                                                                              | Est   | Impact                                                |
+| - | --------------------------------------------------------------------------------- | ----- | ----------------------------------------------------- |
+| 1 | Commit staged `signing/multisig_test.go` fix + untracked `saga/benchmark_test.go` | 5min  | Fixes last signing test failure, adds saga benchmarks |
+| 2 | Refresh 3 golden files (`-update` flag)                                           | 5min  | Makes test suite 100% green                           |
+| 3 | Add `.gitignore` for `coverage.out`, `*.out`, binaries                            | 5min  | Prevents accidental commits                           |
+| 4 | Fix `middleware/retry.go` `math/rand` → `math/rand/v2`                            | 10min | Eliminates pre-commit security warning                |
+| 5 | Commit and push all accumulated work                                              | 5min  | Gets code to remote                                   |
 
 ### 🟡 HIGH Impact, MEDIUM Effort (Do Next)
 
-| #   | Task                                                                  | Est   | Impact                                                   |
-| --- | --------------------------------------------------------------------- | ----- | -------------------------------------------------------- |
-| 6   | Wire signing middleware into `example/user` event bus + add tests     | 45min | Validates signing module end-to-end, first real consumer |
-| 7   | Write signing ADR (`docs/adr/0008-signing-module.md`)                 | 30min | Documents architectural decision                         |
-| 8   | Add storage benchmarks (Save/Load for SQL + Pebble)                   | 30min | Performance baseline for heaviest module                 |
-| 9   | Generic middleware factory to eliminate `*ErrMiddleware` triplication | 45min | Removes the biggest remaining clone category             |
-| 10  | Update `TODO_LIST.md` to reflect current state                        | 20min | Clean slate for future sessions                          |
-| 11  | Update `AGENTS.md` with signing, upcasting, benchmarks info           | 20min | Better AI session memory                                 |
-| 12  | Add catalog exporter benchmarks                                       | 20min | Performance visibility                                   |
+| #  | Task                                                                  | Est   | Impact                                                   |
+| -- | --------------------------------------------------------------------- | ----- | -------------------------------------------------------- |
+| 6  | Wire signing middleware into `example/user` event bus + add tests     | 45min | Validates signing module end-to-end, first real consumer |
+| 7  | Write signing ADR (`docs/adr/0008-signing-module.md`)                 | 30min | Documents architectural decision                         |
+| 8  | Add storage benchmarks (Save/Load for SQL + Pebble)                   | 30min | Performance baseline for heaviest module                 |
+| 9  | Generic middleware factory to eliminate `*ErrMiddleware` triplication | 45min | Removes the biggest remaining clone category             |
+| 10 | Update `TODO_LIST.md` to reflect current state                        | 20min | Clean slate for future sessions                          |
+| 11 | Update `AGENTS.md` with signing, upcasting, benchmarks info           | 20min | Better AI session memory                                 |
+| 12 | Add catalog exporter benchmarks                                       | 20min | Performance visibility                                   |
 
 ### 🟢 MEDIUM Impact, MEDIUM Effort (Do When Time Permits)
 
-| #   | Task                                                                   | Est   | Impact                           |
-| --- | ---------------------------------------------------------------------- | ----- | -------------------------------- |
-| 13  | Add godoc examples for `command.Dispatcher` and `event.Store`          | 20min | pkg.go.dev readiness             |
-| 14  | Improve `example/saga` with real OrderSaga + compensation              | 60min | Onboarding quality               |
-| 15  | Improve `example/projection` with real OrderProjection                 | 45min | Onboarding quality               |
-| 16  | CI coverage gate (80% minimum)                                         | 30min | Quality enforcement              |
-| 17  | CI file-size enforcement (fail on >350 lines)                          | 15min | Quality enforcement              |
-| 18  | Unify `saga.CommandDispatcher` with `command.Dispatcher`               | 30min | Eliminates split-brain interface |
-| 19  | Make `event.Type` and `event.AggregateType` branded types consistently | 45min | Type safety                      |
-| 20  | Add `.golangci.yml` to root for consistent linting                     | 15min | Standardized lint config         |
+| #  | Task                                                                   | Est   | Impact                           |
+| -- | ---------------------------------------------------------------------- | ----- | -------------------------------- |
+| 13 | Add godoc examples for `command.Dispatcher` and `event.Store`          | 20min | pkg.go.dev readiness             |
+| 14 | Improve `example/saga` with real OrderSaga + compensation              | 60min | Onboarding quality               |
+| 15 | Improve `example/projection` with real OrderProjection                 | 45min | Onboarding quality               |
+| 16 | CI coverage gate (80% minimum)                                         | 30min | Quality enforcement              |
+| 17 | CI file-size enforcement (fail on >350 lines)                          | 15min | Quality enforcement              |
+| 18 | Unify `saga.CommandDispatcher` with `command.Dispatcher`               | 30min | Eliminates split-brain interface |
+| 19 | Make `event.Type` and `event.AggregateType` branded types consistently | 45min | Type safety                      |
+| 20 | Add `.golangci.yml` to root for consistent linting                     | 15min | Standardized lint config         |
 
 ### 🔵 LOWER Impact, HIGHER Effort (Backlog)
 
-| #   | Task                                                  | Est    | Impact                 |
-| --- | ----------------------------------------------------- | ------ | ---------------------- |
-| 21  | v2: Generic `query.Handler[T]` returning `(T, error)` | 60min  | Type safety (breaking) |
-| 22  | PostgreSQL/Turso integration tests                    | 90min  | Real DB validation     |
-| 23  | Event encryption module                               | 120min | Security feature       |
-| 24  | Watermill DLQ handler implementation                  | 60min  | Production resilience  |
-| 25  | Saga SQL state store                                  | 90min  | Production persistence |
+| #  | Task                                                  | Est    | Impact                 |
+| -- | ----------------------------------------------------- | ------ | ---------------------- |
+| 21 | v2: Generic `query.Handler[T]` returning `(T, error)` | 60min  | Type safety (breaking) |
+| 22 | PostgreSQL/Turso integration tests                    | 90min  | Real DB validation     |
+| 23 | Event encryption module                               | 120min | Security feature       |
+| 24 | Watermill DLQ handler implementation                  | 60min  | Production resilience  |
+| 25 | Saga SQL state store                                  | 90min  | Production persistence |
 
 ---
 

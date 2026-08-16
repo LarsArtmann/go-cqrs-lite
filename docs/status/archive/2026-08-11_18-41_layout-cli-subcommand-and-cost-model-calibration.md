@@ -20,16 +20,19 @@ StorageSpace), it shows which layout option (Embed vs Normalize) the planner
 would select, with cost breakdowns and margin analysis.
 
 **Files created:**
+
 - `cmd/cqrs-bench/layout.go` (212 lines) — handler, rendering, command registration
 - `cmd/cqrs-bench/layout_test.go` (106 lines) — 5 integration tests
 - `cmd/cqrs-bench/phases.go` (47 lines) — extracted `listPhasesHandler` from main.go to stay under 350 lines
 
 **Files modified:**
+
 - `cmd/cqrs-bench/main.go` — calls `registerLayoutCommand(cli)` (327 lines, under 350 limit)
 - `cmd/cqrs-bench/flags.go` — added `LayoutFlags` struct with --priority, --layout, --format, --output, --verbose
 - `cmd/cqrs-bench/go.mod` — metaengine moved from indirect to direct dependency
 
 **Features:**
+
 - Shows all 4 storage layouts × 4 priorities (16 cells) by default
 - `--priority <name>` filters to one priority
 - `--layout <name>` filters to one storage layout
@@ -38,6 +41,7 @@ would select, with cost breakdowns and margin analysis.
 - `--output <file>` writes to file instead of stdout
 
 **Tests:** 5 tests, all passing:
+
 - `TestLayoutCommand_AllLayouts` — default output has all 4 layouts × 4 priorities
 - `TestLayoutCommand_PriorityFilter` — `--priority write-speed` filters correctly
 - `TestLayoutCommand_LayoutFilter` — `--layout kv` filters correctly
@@ -50,19 +54,21 @@ would select, with cost breakdowns and margin analysis.
 measured values from calibration benchmarks.
 
 **Calibration benchmark created:**
+
 - `metaengine/layout_calibration_bench_test.go` — 5 benchmarks measuring embed vs normalize on the memory engine (KV layout)
 
 **Measured values (AMD Ryzen AI MAX+ 395, 2026-08-11, 3 runs):**
 
-| Operation | Embed (ns/op) | Normalize (ns/op) | Ratio |
-|-----------|--------------|-------------------|-------|
-| Read | ~90 | ~200 | 2.2x |
-| Write | ~313 | ~146 | 2.1x |
-| Storage (3 proj) | 546B | 265B | 2.06x |
+| Operation        | Embed (ns/op) | Normalize (ns/op) | Ratio |
+| ---------------- | ------------- | ----------------- | ----- |
+| Read             | ~90           | ~200              | 2.2x  |
+| Write            | ~313          | ~146              | 2.1x  |
+| Storage (3 proj) | 546B          | 265B              | 2.06x |
 
 **Constants updated in `layout_scoring.go`:**
 
 KV Normalize (LayoutKV):
+
 - ReadCost: 2.0 → **1.8** (calibrated from 2.2x measured ratio)
 - WriteCost: 0.5 → **0.48** (calibrated from 2.1x measured ratio)
 - StorageCost: 0.7 → **0.63** (calibrated from 2.06x measured ratio)
@@ -74,6 +80,7 @@ values (Read: 0.74, Write: 1.10, Storage: 1.15 for Embed; Read: 1.45, Write:
 0.75, Storage: 0.80 for Normalize).
 
 **Verification:** All 4 priority decisions verified correct with the new values:
+
 - Balanced → Embed (margin 3.8% on KV)
 - ReadSpeed → Embed (margin 28.6%)
 - WriteSpeed → Normalize (margin 26.2%)
@@ -94,6 +101,7 @@ This was from the unverified fold inference work (ADR-0116).
 
 The Row (SQLite/PostgreSQL/MySQL) and Columnar (DuckDB) layout cost values
 remain analytical estimates. They were NOT calibrated with benchmarks because:
+
 - Row requires SQLite engine benchmarks (INSERT+SELECT with JSON columns vs JOIN)
 - Columnar requires DuckDB engine benchmarks (nested columns vs long/narrow tables)
 
@@ -115,6 +123,7 @@ Nothing from my assigned scope was left unstarted.
 The daemon merged my work (layout.go, calibration, layout_scoring.go changes)
 into commit `f8d876741` alongside a HUGE amount of unrelated work from a
 concurrent session:
+
 - `metaengine/infer_composite.go` (270 new lines)
 - `metaengine/infer_filters.go` (122 new lines)
 - `metaengine/infer_gaps_test.go` (417 new lines)
@@ -140,6 +149,7 @@ version semantics.
 
 The `layout` subcommand only does static analysis of the cost model. It does
 NOT:
+
 - Connect to running engines
 - Call `Store.ReplanLayout()` for actual "what if" planning
 - Show actual query-to-engine routing
@@ -204,6 +214,7 @@ exploration"), but it's much less useful than it could be.
 ## f) Next 50 Things to Get Done
 
 ### Layout CLI Enhancements (Phase 6b)
+
 1. Add `--markdown` and `--csv` output formats to match other subcommands
 2. Add `--explain` flag that shows which cost dimension was decisive
 3. Add live engine mode: `cqrs-bench layout --backend sqlite --dsn ":memory:"` connects to a real Store and calls `ReplanLayout`
@@ -216,6 +227,7 @@ exploration"), but it's much less useful than it could be.
 10. Add a README section in `cmd/cqrs-bench/README.md` for the layout subcommand
 
 ### Cost Model Calibration
+
 11. Calibrate Row layout (SQLite JSON column vs JOIN, 1000+ aggregates)
 12. Calibrate Columnar layout (DuckDB nested vs long/narrow child table)
 13. Add CI regression gate for `BenchmarkLayoutCalibration_*` (3x threshold)
@@ -228,6 +240,7 @@ exploration"), but it's much less useful than it could be.
 20. Add Postgres layout calibration (JSONB column vs normalized tables)
 
 ### Fold Inference (from concurrent session — needs verification)
+
 21. **Run `nix run .#verify` clean for fold inference** — the fold inference work was committed but never verify-gated
 22. Fix `TestInfer_SortInference` failure (descending order bug)
 23. Fix the `reflect.Call` panic in bench fold tests (TODO item)
@@ -240,6 +253,7 @@ exploration"), but it's much less useful than it could be.
 30. Regenerate `docs/api_surface.txt` if any exports changed
 
 ### Layout Planning Follow-ups (from TODO_LIST)
+
 31. Run `nix run .#verify` clean for layout planning (explain.go line count)
 32. Fold-pipeline sync for Active+DualUse roles
 33. Async replication for Backup+Migration roles
@@ -255,6 +269,7 @@ exploration"), but it's much less useful than it could be.
 43. Document commandlifecycle in skill references
 
 ### Quality / Infrastructure
+
 44. Run full `nix run .#verify` gate (was interrupted — lint passed, build/test not confirmed)
 45. Run `nix run .#check-coverage` for metaengine and cmd/cqrs-bench
 46. Run `nix run .#test-integration` to verify no integration regressions

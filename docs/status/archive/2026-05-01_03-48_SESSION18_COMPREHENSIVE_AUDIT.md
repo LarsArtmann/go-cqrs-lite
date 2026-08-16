@@ -237,48 +237,48 @@ Priority-ordered by verified value (not hypothetical):
 
 ### 🔴 Critical — Do First
 
-| #   | Task                                               | Why                                             | Effort | Impact   |
-| --- | -------------------------------------------------- | ----------------------------------------------- | ------ | -------- |
-| 1   | Update TODO_LIST.md — remove 6+ already-done items | Stale TODO causes duplicated work and confusion | 10min  | HIGH     |
-| 2   | Update FEATURES.md — mark storage items as fixed   | Currently says "🔴 BROKEN" for fixed bugs       | 10min  | HIGH     |
-| 3   | Write storage unit tests with go-sqlmock           | 346 lines of untested SQL is a time bomb        | 90min  | CRITICAL |
-| 4   | Add storage metadata roundtrip test                | Verify the fix actually works end-to-end        | 15min  | CRITICAL |
-| 5   | Add `storage` to flake.nix test/build/lint matrix  | CI doesn't catch storage regressions            | 5min   | HIGH     |
-| 6   | Push to origin — 3 local commits not on remote     | At risk of local data loss                      | 1min   | HIGH     |
+| # | Task                                               | Why                                             | Effort | Impact   |
+| - | -------------------------------------------------- | ----------------------------------------------- | ------ | -------- |
+| 1 | Update TODO_LIST.md — remove 6+ already-done items | Stale TODO causes duplicated work and confusion | 10min  | HIGH     |
+| 2 | Update FEATURES.md — mark storage items as fixed   | Currently says "🔴 BROKEN" for fixed bugs       | 10min  | HIGH     |
+| 3 | Write storage unit tests with go-sqlmock           | 346 lines of untested SQL is a time bomb        | 90min  | CRITICAL |
+| 4 | Add storage metadata roundtrip test                | Verify the fix actually works end-to-end        | 15min  | CRITICAL |
+| 5 | Add `storage` to flake.nix test/build/lint matrix  | CI doesn't catch storage regressions            | 5min   | HIGH     |
+| 6 | Push to origin — 3 local commits not on remote     | At risk of local data loss                      | 1min   | HIGH     |
 
 ### 🟡 High — Do Soon
 
-| #   | Task                                                         | Why                                                  | Effort | Impact |
-| --- | ------------------------------------------------------------ | ---------------------------------------------------- | ------ | ------ |
-| 7   | Fix `Save()` sentinel error — use `event.ErrVersionConflict` | Currently returns plain string, breaks `errors.Is()` | 5min   | HIGH   |
-| 8   | Recover `core/event` coverage from 86.7% → 95%+              | Add InMemoryRunner + UpcasterRegistry unit tests     | 30min  | MEDIUM |
-| 9   | Unify `streamKey` separator (`:` vs `/`)                     | Test/prod behavioral divergence                      | 15min  | MEDIUM |
-| 10  | Remove dead `ProjectionRunner` interface                     | Exported but never used — YAGNI                      | 5min   | LOW    |
-| 11  | Remove/unexport dead `ContextEnricher`/`CompositeEnricher`   | Exported API surface with zero callers               | 10min  | LOW    |
-| 12  | Consolidate `CatalogBuilder` to wrap `Registry`              | Eliminate split brain                                | 45min  | MEDIUM |
-| 13  | Add example/user smoke test                                  | Only consumer of catalog builder API                 | 15min  | MEDIUM |
+| #  | Task                                                         | Why                                                  | Effort | Impact |
+| -- | ------------------------------------------------------------ | ---------------------------------------------------- | ------ | ------ |
+| 7  | Fix `Save()` sentinel error — use `event.ErrVersionConflict` | Currently returns plain string, breaks `errors.Is()` | 5min   | HIGH   |
+| 8  | Recover `core/event` coverage from 86.7% → 95%+              | Add InMemoryRunner + UpcasterRegistry unit tests     | 30min  | MEDIUM |
+| 9  | Unify `streamKey` separator (`:` vs `/`)                     | Test/prod behavioral divergence                      | 15min  | MEDIUM |
+| 10 | Remove dead `ProjectionRunner` interface                     | Exported but never used — YAGNI                      | 5min   | LOW    |
+| 11 | Remove/unexport dead `ContextEnricher`/`CompositeEnricher`   | Exported API surface with zero callers               | 10min  | LOW    |
+| 12 | Consolidate `CatalogBuilder` to wrap `Registry`              | Eliminate split brain                                | 45min  | MEDIUM |
+| 13 | Add example/user smoke test                                  | Only consumer of catalog builder API                 | 15min  | MEDIUM |
 
 ### 🟢 Medium — Next Sprint
 
-| #   | Task                                                    | Why                                             | Effort | Impact |
-| --- | ------------------------------------------------------- | ----------------------------------------------- | ------ | ------ |
-| 14  | Resolve JSON v1/v2 in storage                           | Use `go-json-experiment/json` consistently      | 15min  | MEDIUM |
-| 15  | Add `FuzzParse` case-sensitivity fix                    | Pre-existing fuzz test failure in `core/pkg/id` | 10min  | LOW    |
-| 16  | Refactor `event.NewEvent` (66 → 2-3 functions)          | Function size compliance (max 30 lines)         | 20min  | LOW    |
-| 17  | Refactor `storage/event_store.go` (346 → 2 files)       | File size compliance (max 250 lines)            | 15min  | LOW    |
-| 18  | Refactor `core/aggregate/repository.go` (268 → 2 files) | File size compliance (max 250 lines)            | 15min  | LOW    |
-| 19  | Add Go `Example*` test functions                        | Runnable godoc examples for id, event, command  | 30min  | MEDIUM |
-| 20  | Wire `ContextEnricher` into repository OR remove it     | Currently dead code with public API             | 20min  | MEDIUM |
+| #  | Task                                                    | Why                                             | Effort | Impact |
+| -- | ------------------------------------------------------- | ----------------------------------------------- | ------ | ------ |
+| 14 | Resolve JSON v1/v2 in storage                           | Use `go-json-experiment/json` consistently      | 15min  | MEDIUM |
+| 15 | Add `FuzzParse` case-sensitivity fix                    | Pre-existing fuzz test failure in `core/pkg/id` | 10min  | LOW    |
+| 16 | Refactor `event.NewEvent` (66 → 2-3 functions)          | Function size compliance (max 30 lines)         | 20min  | LOW    |
+| 17 | Refactor `storage/event_store.go` (346 → 2 files)       | File size compliance (max 250 lines)            | 15min  | LOW    |
+| 18 | Refactor `core/aggregate/repository.go` (268 → 2 files) | File size compliance (max 250 lines)            | 15min  | LOW    |
+| 19 | Add Go `Example*` test functions                        | Runnable godoc examples for id, event, command  | 30min  | MEDIUM |
+| 20 | Wire `ContextEnricher` into repository OR remove it     | Currently dead code with public API             | 20min  | MEDIUM |
 
 ### 📐 Planned — Future Work
 
-| #   | Task                             | Why                                               | Effort | Impact |
-| --- | -------------------------------- | ------------------------------------------------- | ------ | ------ |
-| 21  | SQL SnapshotStore (PostgreSQL)   | Production persistence for snapshots              | 2h     | HIGH   |
-| 22  | SQL CheckpointStore (PostgreSQL) | Production persistence for projection checkpoints | 1h     | HIGH   |
-| 23  | Outbox background publisher      | Goroutine polling outbox → bus                    | 2h     | HIGH   |
-| 24  | Watermill module (pub/sub)       | Kafka/NATS/RabbitMQ adapter                       | 4h+    | HIGH   |
-| 25  | Tag `v0.1.0-alpha` releases      | Go module versioning                              | 30min  | MEDIUM |
+| #  | Task                             | Why                                               | Effort | Impact |
+| -- | -------------------------------- | ------------------------------------------------- | ------ | ------ |
+| 21 | SQL SnapshotStore (PostgreSQL)   | Production persistence for snapshots              | 2h     | HIGH   |
+| 22 | SQL CheckpointStore (PostgreSQL) | Production persistence for projection checkpoints | 1h     | HIGH   |
+| 23 | Outbox background publisher      | Goroutine polling outbox → bus                    | 2h     | HIGH   |
+| 24 | Watermill module (pub/sub)       | Kafka/NATS/RabbitMQ adapter                       | 4h+    | HIGH   |
+| 25 | Tag `v0.1.0-alpha` releases      | Go module versioning                              | 30min  | MEDIUM |
 
 ---
 
@@ -307,21 +307,21 @@ Arguments for extracting:
 
 ## Current Coverage Summary
 
-| Package                | Coverage | Trend                                         |
-| ---------------------- | -------- | --------------------------------------------- |
-| `core/command`         | 100.0%   | Stable                                        |
-| `core/query`           | 100.0%   | Stable                                        |
+| Package                | Coverage | Trend                                        |
+| ---------------------- | -------- | -------------------------------------------- |
+| `core/command`         | 100.0%   | Stable                                       |
+| `core/query`           | 100.0%   | Stable                                       |
 | `core/event`           | 86.7%    | ⬇️ Dropped from 99.1% (projection test split) |
-| `core/aggregate`       | 95.6%    | Stable                                        |
-| `core/pkg/id`          | 92.9%    | Stable                                        |
-| `core/pkg/dispatcher`  | 100.0%   | Stable                                        |
-| `memory`               | 94.9%    | Stable                                        |
-| `catalog`              | 94.4%    | Stable                                        |
-| `catalog/adapters`     | 98.8%    | Stable                                        |
-| `catalog/asyncapi`     | 97.9%    | Stable                                        |
-| `catalog/eventcatalog` | 95.5%    | Stable                                        |
-| `middleware`           | 99.4%    | Stable                                        |
-| `storage`              | 0.0%     | 💀                                            |
+| `core/aggregate`       | 95.6%    | Stable                                       |
+| `core/pkg/id`          | 92.9%    | Stable                                       |
+| `core/pkg/dispatcher`  | 100.0%   | Stable                                       |
+| `memory`               | 94.9%    | Stable                                       |
+| `catalog`              | 94.4%    | Stable                                       |
+| `catalog/adapters`     | 98.8%    | Stable                                       |
+| `catalog/asyncapi`     | 97.9%    | Stable                                       |
+| `catalog/eventcatalog` | 95.5%    | Stable                                       |
+| `middleware`           | 99.4%    | Stable                                       |
+| `storage`              | 0.0%     | 💀                                           |
 
 **Weighted average (excl. storage): ~95.6%**
 **Weighted average (incl. storage): ~88.7%**

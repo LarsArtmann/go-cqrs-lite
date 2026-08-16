@@ -134,33 +134,33 @@ The closest to "problems":
 
 ## f) TOP 25 THINGS TO DO NEXT (Sorted by Impact × Effort)
 
-| #   | Task                                                                               | Effort | Impact | Category    |
-| --- | ---------------------------------------------------------------------------------- | ------ | ------ | ----------- |
-| 1   | **Tag `v0.1.0-alpha`**                                                             | 1h     | 🔥🔥🔥 | Release     |
-| 2   | **Fix stale FEATURES.md claims** (JSONCodec, coverage numbers)                     | 1h     | 🔥🔥   | Docs        |
-| 3   | **Regenerate go.sum files** — run `go mod tidy` in all modules                     | 2h     | 🔥🔥   | Hygiene     |
-| 4   | **Create CONTRIBUTING.md**                                                         | 3h     | 🔥🔥   | Community   |
-| 5   | **PostgreSQL integration tests for storage**                                       | 8h     | 🔥🔥🔥 | Quality     |
-| 6   | **Implement TransactionalStore**                                                   | 8h     | 🔥🔥🔥 | Feature     |
-| 7   | **Audit and remove stale transitive deps** (sentry-go, etc.)                       | 2h     | 🔥     | Hygiene     |
-| 8   | **Refresh `example/user/` deps** after Session 54 changes                          | 1h     | 🔥     | Hygiene     |
-| 9   | **Error string format audit** — consistent `%w` placement                          | 2h     | 🔥     | Quality     |
-| 10  | **Document `any` usage justifications** in each package                            | 3h     | 🔥     | Docs        |
-| 11  | **Replace `go-branded-id` with inline code**                                       | 4h     | 🔥     | Deps        |
-| 12  | **Add godoc to remaining undocumented exports**                                    | 4h     | 🔥     | Docs        |
-| 13  | **Implement Saga/Process Manager** (Phase 1 only)                                  | 12h    | 🔥🔥   | Feature     |
-| 14  | **Add `event.TypedSubscriber[T]`** — type-safe event subscription                  | 4h     | 🔥🔥   | API         |
-| 15  | **Add `command.TypedHandler[T]`** — type-safe command handling                     | 4h     | 🔥🔥   | API         |
-| 16  | **Consolidate CatalogMeta** (or document acceptance)                               | 2h     | 🔥     | Design      |
-| 17  | **Add integration test for full CQRS flow** (command → event → projection → query) | 4h     | 🔥🔥   | Quality     |
-| 18  | **Add OpenTelemetry tracing middleware**                                           | 4h     | 🔥🔥   | Feature     |
-| 19  | **Create GoDoc badge + pkg.go.dev link**                                           | 1h     | 🔥     | Community   |
-| 20  | **Add CI badge + test coverage badge** to README                                   | 1h     | 🔥     | Community   |
-| 21  | **Write README overhaul** (architecture diagram, quick start, module guide)        | 6h     | 🔥🔥   | Docs        |
-| 22  | **Add versioning strategy** (semver, changelog automation)                         | 3h     | 🔥     | Release     |
-| 23  | **Replace `samber/ro` in testhelpers** with stdlib                                 | 2h     | 🔥     | Deps        |
-| 24  | **Add storage/benchmark_test.go** — SQL performance benchmarks                     | 4h     | 🔥     | Quality     |
-| 25  | **Investigate `HandleParallel` performance** — goroutine pool?                     | 4h     | 🔥     | Performance |
+| #  | Task                                                                               | Effort | Impact | Category    |
+| -- | ---------------------------------------------------------------------------------- | ------ | ------ | ----------- |
+| 1  | **Tag `v0.1.0-alpha`**                                                             | 1h     | 🔥🔥🔥 | Release     |
+| 2  | **Fix stale FEATURES.md claims** (JSONCodec, coverage numbers)                     | 1h     | 🔥🔥   | Docs        |
+| 3  | **Regenerate go.sum files** — run `go mod tidy` in all modules                     | 2h     | 🔥🔥   | Hygiene     |
+| 4  | **Create CONTRIBUTING.md**                                                         | 3h     | 🔥🔥   | Community   |
+| 5  | **PostgreSQL integration tests for storage**                                       | 8h     | 🔥🔥🔥 | Quality     |
+| 6  | **Implement TransactionalStore**                                                   | 8h     | 🔥🔥🔥 | Feature     |
+| 7  | **Audit and remove stale transitive deps** (sentry-go, etc.)                       | 2h     | 🔥     | Hygiene     |
+| 8  | **Refresh `example/user/` deps** after Session 54 changes                          | 1h     | 🔥     | Hygiene     |
+| 9  | **Error string format audit** — consistent `%w` placement                          | 2h     | 🔥     | Quality     |
+| 10 | **Document `any` usage justifications** in each package                            | 3h     | 🔥     | Docs        |
+| 11 | **Replace `go-branded-id` with inline code**                                       | 4h     | 🔥     | Deps        |
+| 12 | **Add godoc to remaining undocumented exports**                                    | 4h     | 🔥     | Docs        |
+| 13 | **Implement Saga/Process Manager** (Phase 1 only)                                  | 12h    | 🔥🔥   | Feature     |
+| 14 | **Add `event.TypedSubscriber[T]`** — type-safe event subscription                  | 4h     | 🔥🔥   | API         |
+| 15 | **Add `command.TypedHandler[T]`** — type-safe command handling                     | 4h     | 🔥🔥   | API         |
+| 16 | **Consolidate CatalogMeta** (or document acceptance)                               | 2h     | 🔥     | Design      |
+| 17 | **Add integration test for full CQRS flow** (command → event → projection → query) | 4h     | 🔥🔥   | Quality     |
+| 18 | **Add OpenTelemetry tracing middleware**                                           | 4h     | 🔥🔥   | Feature     |
+| 19 | **Create GoDoc badge + pkg.go.dev link**                                           | 1h     | 🔥     | Community   |
+| 20 | **Add CI badge + test coverage badge** to README                                   | 1h     | 🔥     | Community   |
+| 21 | **Write README overhaul** (architecture diagram, quick start, module guide)        | 6h     | 🔥🔥   | Docs        |
+| 22 | **Add versioning strategy** (semver, changelog automation)                         | 3h     | 🔥     | Release     |
+| 23 | **Replace `samber/ro` in testhelpers** with stdlib                                 | 2h     | 🔥     | Deps        |
+| 24 | **Add storage/benchmark_test.go** — SQL performance benchmarks                     | 4h     | 🔥     | Quality     |
+| 25 | **Investigate `HandleParallel` performance** — goroutine pool?                     | 4h     | 🔥     | Performance |
 
 ---
 

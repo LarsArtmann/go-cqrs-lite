@@ -84,7 +84,7 @@
 
 ### Auto-Documentation (FULLY_FUNCTIONAL)
 
-- **catalog** — Registry, SchemaFromType[T](<>), immutable Catalog, validation, rich resource model
+- **catalog** — Registry, SchemaFromType[T](), immutable Catalog, validation, rich resource model
 - **catalog/asyncapi** — AsyncAPI 3.0 YAML/JSON export
 - **catalog/d2** — D2 diagram generation with cross-service flows
 - **catalog/openapi** — OpenAPI 3.0.3 export
@@ -100,7 +100,7 @@
 
 ### Projection & Read Models (FULLY_FUNCTIONAL)
 
-- **projection** — Runner (replay → live), Builder + On[T](<>), HandlerRegistry, dead letter queue, retry with backoff, parallelism option
+- **projection** — Runner (replay → live), Builder + On[T](), HandlerRegistry, dead letter queue, retry with backoff, parallelism option
 - **listing** — Aggregate listing, tombstone detection, StatusMiddleware, InMemoryAggregateReader, SQL reader
 
 ### Infrastructure (FULLY_FUNCTIONAL)
@@ -235,33 +235,33 @@
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #   | Task                                                                           | Impact | Effort  |
-| --- | ------------------------------------------------------------------------------ | ------ | ------- |
-| 1   | Fix FEATURES.md stale "Not Yet Implemented" section                            | HIGH   | Low     |
-| 2   | Fix snaptest.go compiler error (`:=` → `=`)                                    | HIGH   | Trivial |
-| 3   | Run `go mod tidy` on integration/ to fix indirect directive                    | HIGH   | Trivial |
-| 4   | Middleware deduplication: extract generic middleware functions                 | HIGH   | Medium  |
-| 5   | Unify ErrHandlerNotFound into single sentinel or family                        | HIGH   | Low     |
-| 6   | Hide VersionedStore embedded Store (prevent upcast bypass)                     | HIGH   | Low     |
-| 7   | Deduplicate command.Metadata (reuse event.Metadata or shared pkg)              | HIGH   | Medium  |
-| 8   | Add snapshot tests for catalog exporters (AsyncAPI, OpenAPI, D2, EventCatalog) | MEDIUM | Medium  |
-| 9   | Add PBT (rapid) to command/ and query/ modules                                 | MEDIUM | Medium  |
-| 10  | Add go-snaps snapshot tests to remaining 11 modules                            | MEDIUM | Medium  |
-| 11  | Fix catalog/ToAny to properly propagate marshal errors                         | MEDIUM | Low     |
-| 12  | Classify remaining unclassified errors in decider/pebble                       | MEDIUM | Low     |
-| 13  | Add direct unit tests for storage/sql/ helpers (34.7% → 80%+)                  | MEDIUM | Medium  |
-| 14  | Add Turso-specific integration tests beyond delegation                         | MEDIUM | Low     |
-| 15  | Clean up example/ module lint issues                                           | MEDIUM | Low     |
-| 16  | Document golines + nolint conventions in AGENTS.md                             | MEDIUM | Trivial |
-| 17  | Fix LSP golangci-lint gomodguard_v2 version mismatch                           | LOW    | Low     |
-| 18  | SSE handler + JavaScript client in example/user/                               | MEDIUM | Medium  |
-| 19  | Dual store runtime switching demo in example/user/                             | MEDIUM | Medium  |
-| 20  | Playwright E2E setup + health endpoint test                                    | MEDIUM | Medium  |
-| 21  | Bump command/ coverage from 80.5% to 90%+                                      | LOW    | Medium  |
-| 22  | Add example/listing/ and example/projection/ lint + README                     | LOW    | Low     |
-| 23  | Write architectural decision: "Why no saga module"                             | LOW    | Trivial |
-| 24  | Validate ROADMAP.md items against actual code state                            | LOW    | Low     |
-| 25  | Docker build CI step for linux amd64 + arm64                                   | LOW    | Low     |
+| #  | Task                                                                           | Impact | Effort  |
+| -- | ------------------------------------------------------------------------------ | ------ | ------- |
+| 1  | Fix FEATURES.md stale "Not Yet Implemented" section                            | HIGH   | Low     |
+| 2  | Fix snaptest.go compiler error (`:=` → `=`)                                    | HIGH   | Trivial |
+| 3  | Run `go mod tidy` on integration/ to fix indirect directive                    | HIGH   | Trivial |
+| 4  | Middleware deduplication: extract generic middleware functions                 | HIGH   | Medium  |
+| 5  | Unify ErrHandlerNotFound into single sentinel or family                        | HIGH   | Low     |
+| 6  | Hide VersionedStore embedded Store (prevent upcast bypass)                     | HIGH   | Low     |
+| 7  | Deduplicate command.Metadata (reuse event.Metadata or shared pkg)              | HIGH   | Medium  |
+| 8  | Add snapshot tests for catalog exporters (AsyncAPI, OpenAPI, D2, EventCatalog) | MEDIUM | Medium  |
+| 9  | Add PBT (rapid) to command/ and query/ modules                                 | MEDIUM | Medium  |
+| 10 | Add go-snaps snapshot tests to remaining 11 modules                            | MEDIUM | Medium  |
+| 11 | Fix catalog/ToAny to properly propagate marshal errors                         | MEDIUM | Low     |
+| 12 | Classify remaining unclassified errors in decider/pebble                       | MEDIUM | Low     |
+| 13 | Add direct unit tests for storage/sql/ helpers (34.7% → 80%+)                  | MEDIUM | Medium  |
+| 14 | Add Turso-specific integration tests beyond delegation                         | MEDIUM | Low     |
+| 15 | Clean up example/ module lint issues                                           | MEDIUM | Low     |
+| 16 | Document golines + nolint conventions in AGENTS.md                             | MEDIUM | Trivial |
+| 17 | Fix LSP golangci-lint gomodguard_v2 version mismatch                           | LOW    | Low     |
+| 18 | SSE handler + JavaScript client in example/user/                               | MEDIUM | Medium  |
+| 19 | Dual store runtime switching demo in example/user/                             | MEDIUM | Medium  |
+| 20 | Playwright E2E setup + health endpoint test                                    | MEDIUM | Medium  |
+| 21 | Bump command/ coverage from 80.5% to 90%+                                      | LOW    | Medium  |
+| 22 | Add example/listing/ and example/projection/ lint + README                     | LOW    | Low     |
+| 23 | Write architectural decision: "Why no saga module"                             | LOW    | Trivial |
+| 24 | Validate ROADMAP.md items against actual code state                            | LOW    | Low     |
+| 25 | Docker build CI step for linux amd64 + arm64                                   | LOW    | Low     |
 
 ---
 

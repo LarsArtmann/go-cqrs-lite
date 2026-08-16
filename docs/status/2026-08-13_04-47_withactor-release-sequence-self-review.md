@@ -104,19 +104,19 @@ The workspace is now in an inconsistent state: 4 modules have metadata v4.4.0 / 
 ### Critical (blocking — do first)
 
 1. **Cut `command/v4.6.1`** — Bump `storage/memory/v4` to v4.3.0 in `command/go.mod`, re-tag, re-push. Consumers currently have a broken test suite. <- OPEN. command/v4.6.1 recovery tag still uncut - TODO_LIST 'Release / Tagging' (Q1 below)
-~~2. **Run `nix run .#deps`** — Refresh go.mod/go.sum across all 78 modules to pick up metadata v4.4.0, event v4.6.0, command v4.6.0, query v4.5.0.~~ done at 94261a568 (mass upgrade of 79 modules / 59 go.mod files)
-~~3. **Verify the deps sweep didn't break anything** — `go build -tags "goexperiment.jsonv2" ./...`.~~ done - build green in every verify since
-~~4. **Commit the deps sweep** — `chore(deps): refresh workspace after metadata/event/command/query releases`.~~ done - 94261a568 (daemon-committed)
-~~5. **Run `nix run .#verify`** after the deps sweep to confirm GREEN.~~ done at 5f2198189 (three fully-green verifies since)
+   ~~2. **Run `nix run .#deps`** — Refresh go.mod/go.sum across all 78 modules to pick up metadata v4.4.0, event v4.6.0, command v4.6.0, query v4.5.0.~~ done at 94261a568 (mass upgrade of 79 modules / 59 go.mod files)
+   ~~3. **Verify the deps sweep didn't break anything** — `go build -tags "goexperiment.jsonv2" ./...`.~~ done - build green in every verify since
+   ~~4. **Commit the deps sweep** — `chore(deps): refresh workspace after metadata/event/command/query releases`.~~ done - 94261a568 (daemon-committed)
+   ~~5. **Run `nix run .#verify`** after the deps sweep to confirm GREEN.~~ done at 5f2198189 (three fully-green verifies since)
 
 ### Documentation
 
 6. **Update `.agents/skills/go-cqrs-lite/references/core.md`** — Add `WithActor` to the options section alongside `WithUserID`. <- OPEN. TODO_LIST 'WithActor Hardening' (Document WithActor in skill references)
 7. **Update `.agents/skills/go-cqrs-lite/references/recipes.md`** — Add actor-chain audit trail recipe if applicable. <- OPEN. TODO_LIST 'WithActor Hardening' (same item)
 8. **Update `.agents/skills/go-cqrs-lite/references/modules.md`** — Document `Tracing.ActorID` field. <- OPEN. TODO_LIST 'WithActor Hardening' (same item)
-~~9. **Run `cmd/doc-check`** — Verify markdown import paths are consistent.~~ done - doc-check green (797 refs) since the sweep
-10. **Create GitHub Releases** — `gh release create` for metadata/v4.4.0, event/v4.6.0, command/v4.6.0 (+ v4.6.1), query/v4.5.0. <- OPEN. TODO_LIST 'Release / Tagging' (GitHub Releases item)
-11. **Trigger pkg.go.dev** — Fetch the doc-generation URLs for each module. <- OPEN. TODO_LIST 'Release / Tagging' (pkg.go.dev trigger)
+   ~~9. **Run `cmd/doc-check`** — Verify markdown import paths are consistent.~~ done - doc-check green (797 refs) since the sweep
+9. **Create GitHub Releases** — `gh release create` for metadata/v4.4.0, event/v4.6.0, command/v4.6.0 (+ v4.6.1), query/v4.5.0. <- OPEN. TODO_LIST 'Release / Tagging' (GitHub Releases item)
+10. **Trigger pkg.go.dev** — Fetch the doc-generation URLs for each module. <- OPEN. TODO_LIST 'Release / Tagging' (pkg.go.dev trigger)
 
 ### Test coverage gaps (from prior session's list, still applicable)
 
@@ -165,15 +165,15 @@ The workspace is now in an inconsistent state: 4 modules have metadata v4.4.0 / 
 ### Meta
 
 41. **Move this status report to `docs/status/archive/`** once the command/v4.6.1 fix is complete.
-~~42. **Move the prior session's status report** (`docs/status/2026-08-13_04-04_withactor-implementation-self-review.md`) to archive too.~~ done - by this docs-health pass (2026-08-15)
-43. **Update AGENTS.md module map** if any new version numbers need documenting. <- NOT-DO - the module map carries no version numbers; nothing to update
-~~44. **Update the `.art-dupl-baseline.json`** — The 11 "new" clone groups are pre-existing, not from our changes. Run `art-dupl baseline . --threshold 3 --semantic` to update.~~ done at 875bb689b-wave (baseline re-pinned 92->97)
-~~45. **Fix the `check-arch` LAYER map** — 94 modules missing is a pre-existing config issue that should be addressed.~~ done at 8c384f0f5 (layer keys repaired; check-arch green in #verify)
-46. **Investigate the `decider/TestStateCache_FrequencyProtectsHotEntry` flaky test** — Timing-sensitive cache eviction under race detector.
-~~47. **Run `nix run .#check-coverage`** — Verify our new test code maintains coverage thresholds.~~ done - gate repaired at 875bb689b; green in every verify since
-48. **Add `WithActor` to the `stack/` bundle presets** — If the stack layer exposes metadata options. <- OPEN. TODO_LIST 'WithActor Hardening' (Ecosystem lane)
-49. **Verify `system/` deployer layer propagates `ActorID`** — The composition root should pass actors through. <- OPEN. TODO_LIST 'WithActor Hardening' (Ecosystem lane - system deployer)
-50. **Consider adding `ActorID` to `catalog/` schema generation** — AsyncAPI/OpenAPI exporters should document the actorId field. <- OPEN. WithActor lane - catalog schema actors not yet ticketed
+    ~~42. **Move the prior session's status report** (`docs/status/2026-08-13_04-04_withactor-implementation-self-review.md`) to archive too.~~ done - by this docs-health pass (2026-08-15)
+42. **Update AGENTS.md module map** if any new version numbers need documenting. <- NOT-DO - the module map carries no version numbers; nothing to update
+    ~~44. **Update the `.art-dupl-baseline.json`** — The 11 "new" clone groups are pre-existing, not from our changes. Run `art-dupl baseline . --threshold 3 --semantic` to update.~~ done at 875bb689b-wave (baseline re-pinned 92->97)
+    ~~45. **Fix the `check-arch` LAYER map** — 94 modules missing is a pre-existing config issue that should be addressed.~~ done at 8c384f0f5 (layer keys repaired; check-arch green in #verify)
+43. **Investigate the `decider/TestStateCache_FrequencyProtectsHotEntry` flaky test** — Timing-sensitive cache eviction under race detector.
+    ~~47. **Run `nix run .#check-coverage`** — Verify our new test code maintains coverage thresholds.~~ done - gate repaired at 875bb689b; green in every verify since
+44. **Add `WithActor` to the `stack/` bundle presets** — If the stack layer exposes metadata options. <- OPEN. TODO_LIST 'WithActor Hardening' (Ecosystem lane)
+45. **Verify `system/` deployer layer propagates `ActorID`** — The composition root should pass actors through. <- OPEN. TODO_LIST 'WithActor Hardening' (Ecosystem lane - system deployer)
+46. **Consider adding `ActorID` to `catalog/` schema generation** — AsyncAPI/OpenAPI exporters should document the actorId field. <- OPEN. WithActor lane - catalog schema actors not yet ticketed
 
 ---
 
@@ -190,7 +190,6 @@ The workspace is in a half-migrated state: 4 modules reference the new versions,
 ### Q3: Should the `record.CommonMetadata.ActorID` (string) be changed to `id.ActorID`?
 
 `record/` is Tier 0 (zero dependencies). Importing `id.ActorID` would add the `id/v4` dependency to record's go.mod. This changes the dependency graph for a foundational module. The type split (string in record, branded type in metadata) is either intentional design (record stays zero-dep) or an oversight that should be aligned. I cannot determine the architectural intent.
-
 
 ---
 
