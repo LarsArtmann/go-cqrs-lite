@@ -497,7 +497,7 @@ and is **never** duplicated here.
       (`decider/load.go`, `context.WithoutCancel`); per-handler command
       middleware (`command/memory_bus_test.go`); query audit fake RequestIDs
       (`query/audit_test.go`); `Pagination.Offset()` underflow
-           (`query/pagination_test.go`). STILL OPEN: `kv.Cache` shared `*T`;
+      (`query/pagination_test.go`). STILL OPEN: `kv.Cache` shared `*T`;
       TypedQueryStore hardcoded JSON decode (`query/typed.go`); ghost
       `event.ErrBinaryNotFound` (document or delete).
       _(Effort: M)_

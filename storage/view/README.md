@@ -29,15 +29,15 @@ tag the key field. Fields without a `view:"..."` tag are skipped.
 
 ### SQL type inference
 
-| Go type                  | SQL type |
-| ------------------------ | -------- |
-| `string`, `*string`      | TEXT     |
-| `int`, `int32`, `int64`  | INTEGER  |
-| `uint`, `uint32`, `uint64` | INTEGER |
-| `float32`, `float64`     | REAL     |
-| `bool`                   | INTEGER  |
-| `time.Time`              | TEXT     |
-| `[]byte`                 | BLOB     |
+| Go type                    | SQL type |
+| -------------------------- | -------- |
+| `string`, `*string`        | TEXT     |
+| `int`, `int32`, `int64`    | INTEGER  |
+| `uint`, `uint32`, `uint64` | INTEGER  |
+| `float32`, `float64`       | REAL     |
+| `bool`                     | INTEGER  |
+| `time.Time`                | TEXT     |
+| `[]byte`                   | BLOB     |
 
 Use `view:"-"` to explicitly skip a field.
 

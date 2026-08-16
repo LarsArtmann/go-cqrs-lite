@@ -164,11 +164,11 @@ The driver registry lives in **metaengine** (the `database/sql` model).
 Drivers self-register at `init()` time; the operator picks which to activate
 via config.
 
-| Symbol                                  | Description                                              |
-| --------------------------------------- | -------------------------------------------------------- |
-| `metaengine.RegisterDriver(name, f)`    | Register a storage engine factory (like `database/sql`). |
-| `metaengine.LookupDriver(name)`         | Look up a registered driver factory by name.             |
-| `metaengine.RegisteredDrivers()`        | List registered engine driver names.                     |
+| Symbol                               | Description                                              |
+| ------------------------------------ | -------------------------------------------------------- |
+| `metaengine.RegisterDriver(name, f)` | Register a storage engine factory (like `database/sql`). |
+| `metaengine.LookupDriver(name)`      | Look up a registered driver factory by name.             |
+| `metaengine.RegisteredDrivers()`     | List registered engine driver names.                     |
 
 Built-in drivers: `memory` (always available). Additional drivers
 (`sqlite`, `pebble`, `badger`, `duckdb`, `postgres`, `dgraph`) self-register

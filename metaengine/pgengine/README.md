@@ -37,13 +37,13 @@ Vector search runs as a degraded O(N) scan (no native vector index).
 
 ## Cost Profile
 
-| ADT     | Complexity   | Notes                                        |
-| ------- | ------------ | -------------------------------------------- |
-| Map     | O(log N)     | B-tree point lookup via primary key          |
-| Counter | O(N)         | Native GROUP BY aggregation                  |
-| Scan    | O(N)         | Sequential scan with filter/sort pushdown    |
-| Graph   | O(degree)    | Native `WITH RECURSIVE` per-hop index lookup |
-| Vector  | O(N)         | Degraded: brute-force scan, no ANN index     |
+| ADT     | Complexity | Notes                                        |
+| ------- | ---------- | -------------------------------------------- |
+| Map     | O(log N)   | B-tree point lookup via primary key          |
+| Counter | O(N)       | Native GROUP BY aggregation                  |
+| Scan    | O(N)       | Sequential scan with filter/sort pushdown    |
+| Graph   | O(degree)  | Native `WITH RECURSIVE` per-hop index lookup |
+| Vector  | O(N)       | Degraded: brute-force scan, no ANN index     |
 
 Calibrated from benchmark measurements (see `calibration_bench_test.go`).
 
