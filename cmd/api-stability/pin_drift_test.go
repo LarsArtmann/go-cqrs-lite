@@ -13,7 +13,9 @@ import (
 )
 
 // Sibling-module requires: path + version, with optional trailing comment.
-var siblingRequireRe = regexp.MustCompile(`^\s*(github\.com/larsartmann/go-cqrs-lite/[^\s]+)\s+(v[0-9][^\s]+)`)
+var siblingRequireRe = regexp.MustCompile(
+	`^\s*(github\.com/larsartmann/go-cqrs-lite/[^\s]+)\s+(v[0-9][^\s]+)`,
+)
 
 var versionSuffixRe = regexp.MustCompile(`^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$`)
 
@@ -35,7 +37,9 @@ func TestSiblingModulePinsResolve(t *testing.T) {
 	root := repoRoot(t)
 
 	if !gitAvailable(t, root) {
-		t.Skip("git tags unavailable (hermetic/nix source) — pin drift check requires a git checkout")
+		t.Skip(
+			"git tags unavailable (hermetic/nix source) — pin drift check requires a git checkout",
+		)
 	}
 
 	allTags := listTags(t, root)
@@ -73,14 +77,24 @@ func TestSiblingModulePinsResolve(t *testing.T) {
 				case !tagExists(allTags, depDir, version) && isPseudoVersion(version):
 					broken = append(
 						broken,
-						fmt.Sprintf("%s requires %s %s — pseudo-version pin; replace with a real tag",
-							mod, depDir, version),
+						fmt.Sprintf(
+							"%s requires %s %s — pseudo-version pin; replace with a real tag",
+							mod,
+							depDir,
+							version,
+						),
 					)
 				case !tagExists(allTags, depDir, version):
 					broken = append(broken, fmt.Sprintf("%s requires %s %s — no such tag exists",
 						mod, depDir, version))
 				case compareVersions(version, latest) < 0:
-					msg := fmt.Sprintf("%s requires %s %s (latest tag: %s)", mod, depDir, version, latest)
+					msg := fmt.Sprintf(
+						"%s requires %s %s (latest tag: %s)",
+						mod,
+						depDir,
+						version,
+						latest,
+					)
 					if enforceStaleness {
 						broken = append(broken, msg+" — stale pin")
 					} else {

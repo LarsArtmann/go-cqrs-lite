@@ -70,7 +70,7 @@ jobs:
       - name: Doc cross-reference check
         run:
           cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" .
-          # No explicit args needed: auto-discovers repo root + all .agents/skills/*/references/*.md
+      # No explicit args needed: auto-discovers repo root + all .agents/skills/*/references/*.md
 
       - name: Documentation assertions
         run: |
