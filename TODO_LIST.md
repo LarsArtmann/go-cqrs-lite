@@ -473,6 +473,13 @@ and is **never** duplicated here.
 
 ## Code Quality / Infrastructure
 
+- [ ] **CHANGELOG honesty gate** — lint that every `pkg.Symbol` identifier
+      cited in CHANGELOG Added/Changed entries exists in the api-stability
+      golden. Kills the reverted-work fiction class mechanically (the
+      2026-08-10/11 tombstone entries described `e406edcfb`, which was
+      reverted by `a6613ef0d` before any tag — CHANGELOG never recorded the
+      reversion; corrected 2026-08-16).
+      _(Effort: S)_
 - [ ] **api-stability: fail loudly on parse-skip** — the checker prints `skip
       <module>:` and proceeds when a file is unparseable, so a corrupted
       module looks identical to a legitimately-removed one in the golden
@@ -591,9 +598,16 @@ and is **never** duplicated here.
       `reports/coverage.out` (empty), `reports/jscpd-report.json`; drop the
       orphaned `stash@{0}` (WIP @ `e87be3143`, pre-recovery leftovers).
       _(Effort: XS)_
-- [ ] **One bench system** — keep benchkit + cqrs-bench; delete the redundant
-      harnesses (metaengine/bench, integration/ bench files, v2-era baseline);
-      make the CI regression check fail on breach.
+- [x] **One bench system** — DONE 2026-08-16, revised on research: keep benchkit
+      (SDK) + cqrs-bench (CLI) + stack/bench (go test -bench entry, feeds the
+      gate); metaengine/bench SLIMMED, not deleted (31 of 36 benchmarks test
+      planner internals + layout calibration via direct engine imports that the
+      factory-driven, engine-agnostic benchkit cannot reach; only the 5
+      benchkit-redundant ones removed). Deleted: 15 integration bench files +
+      1 bench func, v2-era `benchmarks/` dir + root baseline. CI regression
+      gate now FAILS on breach (median-based `scripts/benchmark-regression.sh`,
+      25% threshold, artifact-baseline self-refresh).
+      Plan: `docs/planning/2026-08-16_15-09_one-bench-system-consolidation.md`.
       _(Effort: M)_
 - [x] **`DecorateJournal` for `VersionedSeekableJournal`** — DONE 2026-08-16:
       `event.DecorateJournal(journal, sourceT)` added (ADR-0126 journal
@@ -746,6 +760,17 @@ and is **never** duplicated here.
       v4.x patch releases of both modules (see Release section), drop
       the modules from `go.work`/flake `testModules`/api-stability list, then
       delete at the v5 cut.
+      _(Effort: M)_
+- [ ] **Delete deprecated tombstone metadata API (ADR-0114 completion)** —
+      remove `event.DetectTombstone`/`MarkTombstone`/`MarkRebirth`/
+      `TombstoneStatus`/`Metadata.Tombstone`; make deletion purely
+      event-type-driven (metaengine already is; auto-projection replaces
+      `stack.Materialize`, whose `OnTombstone`/`OnRebirth` are the last
+      metadata-triggered path; `listing` needs type-based status to replace
+      `StatusMiddleware` + the `event.DetectTombstone` call at
+      `listing/in_memory.go:155`). The 2026-08-10 attempt (`e406edcfb`) was
+      reverted (`a6613ef0d`) before release; docs realigned 2026-08-16.
+      Owner decision M20 (2026-08-11): full rename deferred to v5.
       _(Effort: M)_
 - [ ] **Write v5 migration guide** — document the path from v4 (stack presets,
       v1 tiers, transport/*, manual RelationalProjection/view reads) to v5

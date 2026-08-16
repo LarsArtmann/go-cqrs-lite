@@ -1273,7 +1273,6 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | Chaos testing        | Error propagation, panic recovery, retry logic, context cancellation           | ✅     |
 | Cross-module BDD     | Event, command, query, signing, encryption integration via Ginkgo v2           | ✅     |
 | Simulation framework | `EventGenerator` — single/multi-stream event generation for testing            | ✅     |
-| Benchmarking         | 17 scale benchmarks (10K-1M events), realistic pipeline/concurrent benchmarks  | ✅     |
 | OTel integration     | End-to-end OpenTelemetry tracing verification                                  | ✅     |
 
 ---
@@ -1435,7 +1434,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | storage/SQLite | Save           | 41,042 |  4,080 |        92 |
 | storage/SQLite | Load           | 48,505 | 20,233 |       554 |
 
-Full results: `benchmarks/2026-06-02_20-18-40.md` · Regression pipeline: `scripts/benchstat-compare.sh`
+Full results: `nix run .#bench` · Regression gate: `scripts/benchmark-regression.sh` (median-based, fails CI above 25%)
 
 ---
 

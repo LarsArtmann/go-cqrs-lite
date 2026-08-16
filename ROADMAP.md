@@ -175,9 +175,13 @@ Evidence-grade metrics added (2026-08-01, ADR-0090).
   silently measured empty stores)
 - ✅ **5-backend comparison** — `docs/benchmarks/2026-07-31_backend-comparison.md`
 - **Run-to-run variance** — ~20-25% on the memory backend. `--repeat N`
-  (median-of-N) mitigates it; real-world regression tracking is the next step.
-- **Real-world validation** — the first run verified plumbing and plausibility;
-  a regression baseline + CI integration is the path to trustworthy numbers.
+  (median-of-N) mitigates it; the CI gate compares medians for the same reason.
+- ✅ **Regression gate** (2026-08-16) — CI `regression` job compares median
+  ns/op of the gate set against the previous run's baseline artifact and FAILS
+  above 25% (`scripts/benchmark-regression.sh`, artifact self-refreshes). The
+  one-bench-system consolidation also removed the redundant integration and
+  v2-era harnesses — benchkit (SDK) + cqrs-bench (CLI) + stack/bench (gate
+  entry) + slimmed metaengine/bench (planner calibration) remain.
 
 ### 3. cqrs-lint → Trustworthy
 
