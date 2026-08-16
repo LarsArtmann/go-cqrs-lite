@@ -24,10 +24,9 @@ import (
 //     WHERE filter + ORDER BY. DuckDB decodes JSON per row but still pushes
 //     filter/sort into SQL (better than Go-side, worse than native columns).
 //
-//  3. Memory (O(N) Go-side filter): The Memory engine loads every row and
-//     applies the filter closure in Go. Baseline for comparison.
-//
-// Expected ordering: Columnar fastest, Pushdown second, Memory slowest.
+// Expected ordering: Columnar fastest, Pushdown second. The Go-side Memory
+// baseline for the same filtered scan lives in benchkit (map filtered-Scan
+// phase), which is engine-agnostic and does not need DuckDB to build.
 
 type benchColumnarItem struct {
 	ID       string
@@ -146,48 +145,6 @@ func BenchmarkPushdownScan_DuckDB(b *testing.B) {
 			eng := newDuckDBEngine(b)
 
 			store, err := metaengine.Plan([]metaengine.Engine{eng}, pushdownScanQuery())
-			if err != nil {
-				b.Fatalf("Plan: %v", err)
-			}
-
-			defer store.Close()
-
-			seedColumnarItems(b, store, n)
-
-			reader := metaengine.NewReader[benchColumnarItem](store, "pushdown_scan")
-			ctx := context.Background()
-
-			b.ResetTimer()
-
-			for range b.N {
-				results, err := reader.Scan(ctx,
-					metaengine.WithFilter("Status", metaengine.FilterEq, "active"),
-					metaengine.WithLimit(0))
-				if err != nil {
-					b.Fatal(err)
-				}
-
-				if len(results) == 0 {
-					b.Fatal("expected results, got 0")
-				}
-			}
-
-			b.StopTimer()
-			b.ReportMetric(float64(n), "rows-scanned")
-		})
-	}
-}
-
-// BenchmarkFilteredScan_Memory measures the same filtered+sorted scan on the
-// Memory engine — O(N) Go-side filter with closure evaluation. This is the
-// baseline: every row is loaded and the filter closure runs in Go.
-func BenchmarkFilteredScan_Memory(b *testing.B) {
-	for _, n := range []int{1_000, 10_000, 100_000} {
-		b.Run(fmt.Sprintf("n=%d", n), func(b *testing.B) {
-			store, err := metaengine.Plan(
-				[]metaengine.Engine{metaengine.NewMemoryEngine()},
-				pushdownScanQuery(),
-			)
 			if err != nil {
 				b.Fatalf("Plan: %v", err)
 			}

@@ -158,12 +158,15 @@ There is **no `Delete` on Store**. Soft-delete by emitting a domain event
 
 ```go
 // Delete: append a deletion event to the stream
-deleted := event.New(ref, "user.deleted", payload, version)
+deleted, _ := event.New("user.deleted", streamID, "User", version, UserDeleted{})
 store.Save(ctx, ref, []event.Event{deleted}, expectedVersion)
 ```
 
-Use `listing/` for tombstone-aware stream status read models
-(`listing.StatusActive` / `listing.StatusDeleted` via `ListWithStatus`).
+Use `listing/` for tombstone-aware stream status read models: `ListWithStatus`
+returns `StreamStatus` with `event.TombstoneStatus`. For type-driven detection,
+install `listing.StatusMiddleware(deleteTypes, rebirthTypes)` on the publish
+bus (deprecated metadata machinery behind it; ADR-0114 full implementation
+pending).
 
 ### 3.2 Sink/Source split — use the right interface
 

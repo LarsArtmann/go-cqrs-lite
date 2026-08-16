@@ -37,14 +37,3 @@ func TestEventGenerator_GenerateMulti(t *testing.T) {
 		t.Fatalf("expected 100 events, got %d", len(events))
 	}
 }
-
-func BenchmarkEventGenerator_Generate(b *testing.B) {
-	gen := DefaultUserGenerator()
-
-	for b.Loop() {
-		_, err := gen.Generate(100)
-		if err != nil {
-			b.Fatalf("generate: %v", err)
-		}
-	}
-}

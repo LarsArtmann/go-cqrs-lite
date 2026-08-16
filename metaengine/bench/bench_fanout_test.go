@@ -12,38 +12,9 @@ import (
 // it updates ALL queries that declare a fold for that event type. With 6
 // queries, OrderCreated fans out to 5 of them. This reveals the write
 // amplification of the multi-query pattern.
-
-// BenchmarkMultiQuery_EventFanOut measures event ingestion throughput with all
-// 6 promise queries active (realistic multi-projection scenario). Compare with
-// single-query throughput to see the fan-out overhead.
-func BenchmarkMultiQuery_EventFanOut(b *testing.B) {
-	for _, n := range []int{1_000, 10_000} {
-		b.Run(fmt.Sprintf("events=%d", n), func(b *testing.B) {
-			events := generatePromiseEvents(n)
-			ctx := context.Background()
-
-			b.ResetTimer()
-
-			for range b.N {
-				b.StopTimer()
-				store := planPromiseStore(b, []metaengine.Engine{metaengine.NewMemoryEngine()})
-				b.StartTimer()
-
-				for _, e := range events {
-					if err := store.Apply(ctx, e.typeName, e.payload); err != nil {
-						b.Fatal(err)
-					}
-				}
-
-				b.StopTimer()
-				store.Close()
-				b.StartTimer()
-			}
-
-			b.ReportMetric(float64(n)*float64(b.N)/b.Elapsed().Seconds(), "events/sec")
-		})
-	}
-}
+//
+// (Plain Apply-throughput with all queries active is covered by benchkit's
+// map Apply phase — engine-agnostic, no direct engine imports needed.)
 
 // BenchmarkWriteAmplification_Scaling measures Apply throughput as the number
 // of active projections scales from 1 to 6. Each projection adds write overhead.

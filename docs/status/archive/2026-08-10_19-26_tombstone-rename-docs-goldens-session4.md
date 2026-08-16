@@ -1,6 +1,13 @@
 # Status Report: TombstonePolicy Rename + Docs + Goldens — Session 4
 
 > **ARCHIVED 2026-08-11 — All work in this report is complete. Open items were resolved by later sessions, captured in TODO_LIST.md, or determined to be minor polish. Original content retained below for historical context.**
+>
+> **⚠ CORRECTION 2026-08-16:** The rename described in §2 below was landed as
+> commit `e406edcfb` (2026-08-10), then the full rename was **deferred to v5 by
+> owner decision** (see `2026-08-11_08-44` §7/M20) and the code was **reverted
+> by `a6613ef0d` (2026-08-12) before any module tag was cut**. It never shipped.
+> The shipped API remains `TombstonePolicy` (`TombstoneExclude/Include/Only`).
+> See the CHANGELOG correction entry (2026-08-16).
 
 **Date:** 2026-08-10 19:26
 **Session goal:** Finish 4 remaining tasks from the ADR-0114 migration cleanup.
@@ -18,6 +25,8 @@
 - Captured both the rename symbols and daemon-added exports (`DefaultRoutingHysteresis`, `CheckRouting`, `StartAutoReplan`).
 
 ### 2. TombstonePolicy → DeletePolicy Rename (listing/ + stack/)
+
+> ~~Rename landed~~ REVERTED 2026-08-12 (`a6613ef0d`), never released — see correction above. Items below describe the (now-reverted) commit `e406edcfb`.
 
 - **listing/types.go**: `TombstonePolicy` → `DeletePolicy`, consts `TombstoneExclude/Include/Only` → `DeleteExclude/Include/Only`, `ListOptions.Tombstone` field → `ListOptions.DeletePolicy`.
 - **listing/builder.go**: `Tombstone` references updated, comments cleaned.

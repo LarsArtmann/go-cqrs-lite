@@ -187,7 +187,8 @@ jobs:
           path: benchmarks/
           retention-days: 90
 
-  # Regression detection: compares against cached baseline using benchstat
+  # Regression gate: median-based threshold compare against the previous
+  # run's baseline artifact (same runner class). FAILS the build on breach.
   regression:
     name: Benchmark Regression Detection
     runs-on: ubuntu-latest
@@ -197,13 +198,6 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-      - uses: cachix/install-nix-action@ba0dd844c9180cbf77aa72a116d6fbc515d0e87b
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-
-      - name: Install benchstat
-        run: nix profile install nixpkgs#benchstat
-
       - name: Download baseline
         continue-on-error: true
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
@@ -211,25 +205,22 @@ jobs:
           name: benchmark-baseline
           path: baseline/
 
-      - name: Run benchmarks
+      - name: Run gate benchmarks
         run: |
           cd stack/bench && \
           GOEXPERIMENT=jsonv2 go test -tags "goexperiment.jsonv2" \
             -bench='BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$' \
-            -benchmem -benchtime=10x -count=5 \
+            -run='^$' -benchmem -benchtime=10x -count=5 \
             -timeout 10m 2>&1 | tee ../current.txt
 
-      - name: Compare with baseline
+      - name: Compare with baseline (fails on >25% median regression)
         run: |
-          if [ -f baseline/baseline.txt ]; then
-            echo "=== Regression Check ==="
-            benchstat baseline/baseline.txt current.txt || true
-          else
-            echo "No baseline found — saving current results as baseline"
-          fi
+          ./scripts/benchmark-regression.sh \
+            --baseline baseline/baseline.txt \
+            --current current.txt \
+            --threshold 25
 
-      - name: Update baseline
-        if: github.event_name == 'push'
+      - name: Refresh baseline for next run
         run: |
           mkdir -p baseline
           cp current.txt baseline/baseline.txt

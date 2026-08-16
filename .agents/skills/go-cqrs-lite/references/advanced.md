@@ -21,10 +21,12 @@
 
 ```go
 // Delete: append a deletion event to the stream (ADR-0114)
-deleted := event.New(ref, "user.deleted", payload, version)
+deleted, _ := event.New("user.deleted", streamID, "User", version, UserDeleted{})
 store.Save(ctx, ref, []event.Event{deleted}, expectedVersion)
 
-// Detect: use listing/ to check stream status
+// Detect: use listing/ to check stream status (install
+// listing.StatusMiddleware(deleteTypes, rebirthTypes) on the publish bus
+// for type-driven detection)
 page, _ := listingBuilder.ListWithStatus(ctx)
 // page.Items[i].Status → event.TombstoneActive | event.TombstoneTombstoned
 

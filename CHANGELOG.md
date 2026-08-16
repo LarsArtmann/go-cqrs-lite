@@ -4,6 +4,40 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — 2026-08-16
+
+### Corrected — 2026-08-10/11 tombstone sections described work that was reverted before release
+
+> The 2026-08-10/11 sections below — "Fixed — ADR-0114 tombstone migration
+> unblock", "Added — ADR-0114 tombstone migration APIs", "Changed —
+> TombstonePolicy → DeletePolicy rename (ADR-0114 cleanup)", the
+> `listing.Status` / `listing.WithDeleteTypes` / `listing.Option` "Added"
+> bullets, and the `storage/sql_aggregate_reader.go` / `stack/materialize.go`
+> rework bullets — described real commits (`e406edcfb`, 2026-08-10) that were
+> **reverted on 2026-08-12 by `a6613ef0d` ("snapshot concurrent agent refactor
+> state") before any module tag was cut**. No published module version ever
+> contained these APIs, and this changelog failed to record the reversion.
+> The shipped API is — and remains — the pre-rename one:
+
+- `listing.TombstonePolicy` with `TombstoneExclude`/`TombstoneInclude`/
+  `TombstoneOnly`; `ListOptions.Tombstone`; builder methods
+  `IncludeDeleted()`/`OnlyDeleted()`; `StreamStatus.Status` is
+  `event.TombstoneStatus`. `listing.DeletePolicy`, `listing.Status`,
+  and `listing.WithDeleteTypes` do **not** exist.
+- `stack.TombstonePolicy` with `IncludeTombstoned`/`ExcludeTombstoned`/
+  `OnlyTombstoned`; `stack.FilterTombstoned`; `Materialize.OnTombstone` /
+  `OnRebirth` are **metadata-triggered** (`event.TombstoneMark`).
+  `stack.Materialize.DeleteTypes` / `RebirthTypes` and `stack.FilterDeleted`
+  do **not** exist.
+- `storage.StreamProjection` exists, but has no `WithDeleteTypes` option.
+- `event.DetectTombstone` / `MarkTombstone` / `MarkRebirth` /
+  `TombstoneStatus` are **Deprecated, not removed** (removal planned for
+  v5). The shipped event-type → status bridge is
+  `listing.StatusMiddleware(deleteTypes, rebirthTypes)`.
+- ADR-0114 (deletion as domain events) remains the accepted direction; its
+  full implementation is tracked in TODO_LIST. Documentation and the
+  migration guide were realigned to the shipped API on 2026-08-16.
+
 ## [storage/v4.7.1] — 2026-08-16
 
 > Module-only patch release of `storage/v4`. Retracts the broken `v4.7.0`

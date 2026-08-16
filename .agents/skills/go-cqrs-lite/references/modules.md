@@ -19,7 +19,7 @@
 | --------- | ------------ | ------------------------------------------------------------------------------------------------------------- |
 | `kv`      | `kv/v4`      | `ViewStore[V,K]` interface, `TypedStore[V,K]`, `Cache[V,K]`, `MemStore`. Foundation for all read models.      |
 | `stack`   | `stack/v4`   | `Materialize[V,K]` (deployer-first projection builder), `Bundle`, presets. Accepts any `kv.ViewStore`.        |
-| `listing` | `listing/v4` | `StreamListing`, `StreamStatus` (Active/Deleted), `WithDeleteTypes`, `DeletePolicy` (Exclude/Include/Only), `InMemoryStreamReader`, `ListBuilder`. |
+| `listing` | `listing/v4` | `StreamListing`, `StreamStatus` (`event.TombstoneStatus`), `TombstonePolicy` (TombstoneExclude/Include/Only), `InMemoryStreamReader`, `ListBuilder`, `StatusMiddleware`. |
 | `query`   | `query/v4`   | (see Core) — query the read model.                                                                            |
 
 ### Storage (Layer 5)

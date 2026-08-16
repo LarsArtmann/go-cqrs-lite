@@ -334,8 +334,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          fetch-depth: 0
 
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
@@ -344,27 +342,8 @@ jobs:
       - name: Run benchmarks
         run: nix run .#bench 2>&1 | tee benchmark-results.txt
 
-      - name: Check for regressions (>2x slowdown vs main)
-        run: |
-          if git show origin/${{ github.base_ref || 'master' }}:benchmark-baseline.txt >/dev/null 2>&1; then
-            echo "Baseline found, comparing..."
-            git show origin/${{ github.base_ref || 'master' }}:benchmark-baseline.txt > baseline.txt
-            grep -E '^Benchmark' benchmark-results.txt | while read -r line; do
-              name=$(echo "$line" | awk '{print $1}')
-              ns=$(echo "$line" | awk '{print $3}')
-              base_ns=$(grep "^${name} " baseline.txt 2>/dev/null | awk '{print $3}')
-              if [ -n "$base_ns" ] && [ -n "$ns" ]; then
-                ratio=$(echo "scale=2; $ns / $base_ns" | bc)
-                echo "  $name: ${ns}ns (baseline: ${base_ns}ns, ratio: ${ratio}x)"
-                threshold=$(echo "$ratio > 2.0" | bc)
-                if [ "$threshold" -eq 1 ]; then
-                  echo "::warning::$name regressed ${ratio}x vs baseline (${base_ns}ns → ${ns}ns)"
-                fi
-              fi
-            done
-          else
-            echo "No baseline found. Skipping comparison."
-          fi
+      # Regression enforcement lives in benchmarks.yml (regression job): a
+      # median-based gate that fails the build. This job is informational.
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

@@ -2,6 +2,12 @@
 
 > **ARCHIVED 2026-08-11 — This report is fully complete. ~~Original content retained for historical context below.~~**
 >
+> **⚠ CORRECTION 2026-08-16:** §5 below ("Build Fix: TombstonePolicy →
+> DeletePolicy") describes work on the then-unreleased rename. The rename was
+> **reverted by `a6613ef0d` (2026-08-12)** before any module tag was cut —
+> the shipped API remains `TombstonePolicy`. See the CHANGELOG correction
+> entry (2026-08-16).
+>
 > ```
 > ~~`nix run .#verify` passes end-to-end (exit 0).~~ Build, vet, test, race, lint, arch, dedup, coverage, api-stability, doc-check — all green.
 > ```

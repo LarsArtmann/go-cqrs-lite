@@ -1,6 +1,13 @@
 # Status Report: 2026-08-11 08:44 — DeletePolicy Unification, Tombstone Aliases, Session Cleanup
 
 > **ARCHIVED 2026-08-11 — All work in this report is complete. Open items were resolved by later sessions, captured in TODO_LIST.md, or determined to be minor polish. Original content retained below for historical context.**
+>
+> **⚠ CORRECTION 2026-08-16:** The DeletePolicy work described here (incl. §7
+> and the `stack.DeletePolicy = listing.DeletePolicy` alias) was **reverted by
+> `a6613ef0d` (2026-08-12)** before any module tag was cut and never shipped.
+> This report's own M20 decision ("full rename deferred to v5") is the standing
+> one: the shipped API remains `TombstonePolicy`. See the CHANGELOG correction
+> entry (2026-08-16).
 
 ## Session Summary
 

@@ -3,8 +3,6 @@ package bench_test
 import (
 	"context"
 	"fmt"
-	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -473,81 +471,4 @@ func mustApply(
 	if err := store.Apply(ctx, eventType, payload); err != nil {
 		t.Fatalf("Apply %s: %v", eventType, err)
 	}
-}
-
-// ─── Micro-benchmark: Apply throughput at scale ───
-
-// BenchmarkPromise_ApplyThroughput measures raw event ingestion throughput
-// as N increases. This reveals whether the fan-out cost scales linearly.
-func BenchmarkPromise_ApplyThroughput(b *testing.B) {
-	for _, n := range []int{100, 1_000, 10_000} {
-		b.Run(fmt.Sprintf("events=%d", n), func(b *testing.B) {
-			events := generatePromiseEvents(n)
-			ctx := context.Background()
-
-			b.ResetTimer()
-
-			for range b.N {
-				b.StopTimer()
-				store := planPromiseStore(b, []metaengine.Engine{metaengine.NewMemoryEngine()})
-				b.StartTimer()
-
-				for _, e := range events {
-					if err := store.Apply(ctx, e.typeName, e.payload); err != nil {
-						b.Fatal(err)
-					}
-				}
-
-				b.StopTimer()
-				store.Close()
-				b.StartTimer()
-			}
-
-			b.ReportMetric(float64(n)/b.Elapsed().Seconds()*float64(b.N), "events/sec")
-		})
-	}
-}
-
-// BenchmarkPromise_ConcurrentApply measures concurrent Apply throughput with
-// 8 goroutines pushing events into a single store. Reveals contention behavior.
-func BenchmarkPromise_ConcurrentApply(b *testing.B) {
-	concurrency := 8
-	n := 1_000
-	events := generatePromiseEvents(n)
-
-	b.ResetTimer()
-
-	for range b.N {
-		store := planPromiseStore(b, []metaengine.Engine{metaengine.NewMemoryEngine()})
-		ctx := context.Background()
-		var errCount atomic.Int64
-
-		var wg sync.WaitGroup
-		wg.Add(concurrency)
-
-		for w := range concurrency {
-			go func(workerID int) {
-				defer wg.Done()
-				start := (n / concurrency) * workerID
-				end := start + n/concurrency
-				if end > n {
-					end = n
-				}
-				for i := start; i < end; i++ {
-					if err := store.Apply(ctx, events[i].typeName, events[i].payload); err != nil {
-						errCount.Add(1)
-						return
-					}
-				}
-			}(w)
-		}
-		wg.Wait()
-		store.Close()
-
-		if errCount.Load() > 0 {
-			b.Fatalf("%d workers failed", errCount.Load())
-		}
-	}
-
-	b.ReportMetric(float64(n)*float64(b.N)/b.Elapsed().Seconds(), "events/sec")
 }
