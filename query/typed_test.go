@@ -91,7 +91,7 @@ func TestTypedQueryStore_CBORPreservesActor(t *testing.T) {
 	}
 }
 
-func TestTypedQueryStore_NilCodecDefaultsToJSON(t *testing.T) {
+func TestTypedQueryStore_NilCodecDefaultsToCBOR(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -114,5 +114,76 @@ func TestTypedQueryStore_NilCodecDefaultsToJSON(t *testing.T) {
 
 	if loaded[0].Payload.Filter != "nil codec" {
 		t.Errorf("Filter = %q, want %q", loaded[0].Payload.Filter, "nil codec")
+	}
+}
+
+func TestTypedQueryStore_LegacyPayloadsDecodeAcrossCodecs(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	seed := func(t *testing.T, data []byte) *memory.MemoryQueryStore {
+		t.Helper()
+
+		store := memory.NewMemoryQueryStore()
+		pq, err := query.NewPersistedQuery("user.list", data)
+		if err != nil {
+			t.Fatalf("NewPersistedQuery: %v", err)
+		}
+		if err = store.SaveQuery(ctx, pq); err != nil {
+			t.Fatalf("seed SaveQuery: %v", err)
+		}
+
+		return store
+	}
+
+	rawJSON := []byte(`{"filter":"legacy-json","limit":3}`)
+
+	rawCBOR, err := codec.CBORCodec{}.Encode(listUsersPayload{Filter: "legacy-cbor", Limit: 4})
+	if err != nil {
+		t.Fatalf("encode raw CBOR: %v", err)
+	}
+
+	cborDefault := query.NewTypedQueryStore[listUsersPayload](seed(t, rawJSON), nil)
+	loaded, err := cborDefault.LoadQueries(ctx, time.Time{})
+	if err != nil {
+		t.Fatalf("LoadQueries legacy raw JSON: %v", err)
+	}
+	if len(loaded) != 1 || loaded[0].Payload.Filter != "legacy-json" ||
+		loaded[0].Payload.Limit != 3 {
+		t.Fatalf("legacy raw JSON under CBOR default: got %+v", loaded)
+	}
+
+	jsonConfigured := query.NewTypedQueryStore[listUsersPayload](
+		seed(t, rawCBOR),
+		codec.JSONCodec{},
+	)
+	loaded, err = jsonConfigured.LoadQueries(ctx, time.Time{})
+	if err != nil {
+		t.Fatalf("LoadQueries legacy raw CBOR: %v", err)
+	}
+	if len(loaded) != 1 || loaded[0].Payload.Filter != "legacy-cbor" ||
+		loaded[0].Payload.Limit != 4 {
+		t.Fatalf("legacy raw CBOR under JSON config: got %+v", loaded)
+	}
+}
+
+func TestTypedQueryStore_GarbagePayloadStillErrors(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := memory.NewMemoryQueryStore()
+
+	pq, err := query.NewPersistedQuery("user.list", []byte{0xc1, 0xff, 0xfe, 0x00})
+	if err != nil {
+		t.Fatalf("NewPersistedQuery: %v", err)
+	}
+	if err = store.SaveQuery(ctx, pq); err != nil {
+		t.Fatalf("seed SaveQuery: %v", err)
+	}
+
+	ts := query.NewTypedQueryStore[listUsersPayload](store, nil)
+	if _, err = ts.LoadQueries(ctx, time.Time{}); err == nil {
+		t.Fatal("expected decode error for garbage payload")
 	}
 }

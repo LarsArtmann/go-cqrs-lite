@@ -131,7 +131,7 @@ func TestTypedCommandStore_CBORPreservesActor(t *testing.T) {
 	}
 }
 
-func TestTypedCommandStore_NilCodecDefaultsToJSON(t *testing.T) {
+func TestTypedCommandStore_NilCodecDefaultsToCBOR(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryCommandStore()
@@ -156,6 +156,58 @@ func TestTypedCommandStore_NilCodecDefaultsToJSON(t *testing.T) {
 
 	if loaded[0].Payload.Title != "nil codec test" {
 		t.Errorf("Title = %q, want %q", loaded[0].Payload.Title, "nil codec test")
+	}
+}
+
+func TestTypedCommandStore_LegacyPayloadsDecodeAcrossCodecs(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	ref := command.NewStreamRef("Todo", id.NewStreamID())
+
+	seed := func(t *testing.T, data []byte) *memory.MemoryCommandStore {
+		t.Helper()
+
+		store := memory.NewMemoryCommandStore()
+		pc, err := command.NewPersistedCommand("todo.create", ref, data)
+		if err != nil {
+			t.Fatalf("NewPersistedCommand: %v", err)
+		}
+		if err = store.Save(ctx, ref, pc); err != nil {
+			t.Fatalf("seed Save: %v", err)
+		}
+
+		return store
+	}
+
+	rawJSON := []byte(`{"title":"legacy-json","description":"from disk"}`)
+
+	rawCBOR, err := codec.CBORCodec{}.Encode(createTodoPayload{Title: "legacy-cbor"})
+	if err != nil {
+		t.Fatalf("encode raw CBOR: %v", err)
+	}
+
+	// Raw JSON payload read by the CBOR-default store.
+	cborDefault := command.NewTypedCommandStore[createTodoPayload](seed(t, rawJSON), nil)
+	loaded, err := cborDefault.Load(ctx, ref)
+	if err != nil {
+		t.Fatalf("Load legacy raw JSON: %v", err)
+	}
+	if len(loaded) != 1 || loaded[0].Payload.Title != "legacy-json" {
+		t.Fatalf("legacy raw JSON under CBOR default: got %+v", loaded)
+	}
+
+	// Raw CBOR payload read by a JSON-configured store.
+	jsonConfigured := command.NewTypedCommandStore[createTodoPayload](
+		seed(t, rawCBOR),
+		codec.JSONCodec{},
+	)
+	loaded, err = jsonConfigured.Load(ctx, ref)
+	if err != nil {
+		t.Fatalf("Load legacy raw CBOR: %v", err)
+	}
+	if len(loaded) != 1 || loaded[0].Payload.Title != "legacy-cbor" {
+		t.Fatalf("legacy raw CBOR under JSON config: got %+v", loaded)
 	}
 }
 

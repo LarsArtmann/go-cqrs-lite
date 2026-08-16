@@ -1041,7 +1041,6 @@ event/v4/eventtest/struct TimelineEvent
 event/var DecodeBase64String
 event/var DefaultCodec
 event/var ErrAggregateNotFound
-event/var ErrBinaryNotFound
 event/var ErrBusClosed
 event/var ErrEmptyAggregateType
 event/var ErrEmptyEventType

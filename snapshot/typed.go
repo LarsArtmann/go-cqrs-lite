@@ -69,7 +69,9 @@ type TypedStore[State any] struct {
 
 // NewTypedStore creates a typed adapter over store using c for State
 // serialization. If c is nil, [codec.CBORCodec] is used.
-// Pre-envelope data (raw JSON) is auto-detected on read.
+// Pre-envelope data decodes via the configured codec with a JSON↔CBOR
+// cross-retry, so legacy snapshots written with either standard codec read
+// correctly regardless of the codec configured now.
 func NewTypedStore[State any](store SnapshotStore, c codec.Codec) *TypedStore[State] {
 	if c == nil {
 		c = codec.CBORCodec{}
@@ -168,7 +170,7 @@ func (t *TypedStore[State]) decode(raw *Snapshot) (*TypedSnapshot[State], error)
 // existed (raw JSON under a CBOR-configured store, or vice versa), keeping
 // ADR-0050's permanent-readability guarantee.
 //
-//art-dupl:accept duplicated across dep-isolated blind stores (kv/snapshot/command/query); sharing would add a cross-module dependency
+// art-dupl:accept duplicated across dep-isolated blind stores (kv/snapshot/command/query); sharing would add a cross-module dependency
 func decodeEnvelopeOrLegacy[State any](data []byte, configured codec.Codec) (State, error) {
 	c, inner := codec.UnwrapDecode(data, configured)
 

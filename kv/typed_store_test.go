@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/larsartmann/go-codec"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
@@ -90,7 +92,8 @@ func TestTypedStore_Migration_OldRawJSON_ReadByNewCBORDefault(t *testing.T) {
 		t.Fatalf("seed raw JSON: %v", err)
 	}
 
-	// New TypedStore defaults to CBORCodec — but UnwrapDecode falls back to JSON.
+	// New TypedStore defaults to CBORCodec — the JSON↔CBOR cross-retry rescues
+	// the legacy raw-JSON bytes (ADR-0050 permanent readability).
 	ts := kv.NewTypedStore[testUser, testID](store)
 
 	val, err := ts.Get(ctx, id)
@@ -146,6 +149,64 @@ func TestTypedStore_Migration_MixedOldAndNewData(t *testing.T) {
 	}
 	if len(results) != 2 {
 		t.Fatalf("expected 2 results, got %d", len(results))
+	}
+}
+
+func TestTypedStore_Migration_OldRawCBOR_ReadByJSONConfigured(t *testing.T) {
+	t.Parallel()
+
+	store := kv.NewMemStore()
+	defer store.Close()
+
+	ctx := context.Background()
+	id := testID("legacy-cbor")
+
+	// Pre-envelope data written with an explicitly-configured CBOR codec.
+	rawCBOR, err := codec.CBORCodec{}.Encode(testUser{Name: "LegacyCBOR", Age: 7})
+	if err != nil {
+		t.Fatalf("encode raw CBOR: %v", err)
+	}
+	if err = store.Set(ctx, []byte(id), rawCBOR); err != nil {
+		t.Fatalf("seed raw CBOR: %v", err)
+	}
+
+	ts := kv.NewTypedStore[testUser, testID](store,
+		kv.WithTypedCodec[testUser, testID](codec.JSONCodec{}))
+
+	val, err := ts.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("Get legacy CBOR through JSON-configured store: %v", err)
+	}
+	if val.Name != "LegacyCBOR" || val.Age != 7 {
+		t.Fatalf("got %+v, want {LegacyCBOR 7}", val)
+	}
+
+	results, err := ts.Scan(ctx, nil)
+	if err != nil {
+		t.Fatalf("Scan legacy CBOR through JSON-configured store: %v", err)
+	}
+	if len(results) != 1 || results[0].Name != "LegacyCBOR" {
+		t.Fatalf("Scan: got %+v", results)
+	}
+}
+
+func TestTypedStore_GarbageDataStillErrors(t *testing.T) {
+	t.Parallel()
+
+	store := kv.NewMemStore()
+	defer store.Close()
+
+	ctx := context.Background()
+	id := testID("corrupt")
+
+	if err := store.Set(ctx, []byte(id), []byte{0xc1, 0xff, 0xfe, 0x00}); err != nil {
+		t.Fatalf("seed garbage: %v", err)
+	}
+
+	ts := kv.NewTypedStore[testUser, testID](store)
+
+	if _, err := ts.Get(ctx, id); err == nil {
+		t.Fatal("expected decode error for garbage data")
 	}
 }
 

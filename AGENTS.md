@@ -175,7 +175,7 @@ The default codec differs by layer. Events are self-describing (`evt.Encoding()`
 | command typed store             | CBORCodec     | positional arg: `NewTypedCommandStore(store, c)`                           |
 | query typed store               | CBORCodec     | positional arg: `NewTypedQueryStore(store, c)`                             |
 
-Blind stores (kv/snapshot/command/query) are self-describing too via the ADR-0044 envelope: `WrapEncode`/`UnwrapDecode` stamp the codec on write and auto-detect it on read. The `UnwrapDecode` fallback uses JSONCodec for backward compat with pre-envelope data.
+Blind stores (kv/snapshot/command/query) are self-describing too via the ADR-0044 envelope: `WrapEncode`/`UnwrapDecode` stamp the codec on write and auto-detect it on read. Non-envelope data decodes via the store's configured codec with a JSON↔CBOR cross-retry, so pre-envelope rows written with either standard codec stay readable (ADR-0050 addendum; `decodeEnvelopeOrLegacy` per blind-store module).
 
 One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, stack.WithEventCodec(codec.CBORCodec{}))`
 

@@ -358,10 +358,14 @@ and is **never** duplicated here.
 > From `docs/reviews/2026-08-14_14-25_brutal-self-review.md`. All other
 > verified findings shipped 2026-08-15/16 — see CHANGELOG. These remain:
 
-- [ ] **Correctness-sweep leftovers** — `kv.Cache` shared `*T`;
+- [x] **Correctness-sweep leftovers** — `kv.Cache` shared `*T`;
       TypedQueryStore hardcoded JSON decode (`query/typed.go`); ghost
       `event.ErrBinaryNotFound` (document or delete).
-      _(Effort: M)_
+      _(Effort: M)_ — done 2026-08-16: kv.Cache copy-isolates values (Get
+      returns a deep copy, Set caches a private copy); all four blind stores
+      decode non-envelope data via the configured codec + JSON↔CBOR
+      cross-retry (ADR-0050 addendum); ErrBinaryNotFound deleted (orphan of
+      the removed event/blob.go helpers).
 
 ---
 

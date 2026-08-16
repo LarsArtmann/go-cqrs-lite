@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Fixed — correctness-sweep leftovers (brutal-review backlog) — 2026-08-16
+
+- **Blind stores respect their configured codec on read** (kv.TypedStore,
+  snapshot.TypedStore, command.TypedCommandStore, query.TypedQueryStore):
+  non-envelope data now decodes via the store's configured codec with a
+  JSON↔CBOR cross-retry, so pre-envelope rows written with EITHER standard
+  codec read correctly regardless of the codec configured now (previously a
+  hard-coded `codec.JSONCodec{}` fallback made legacy raw-CBOR rows — written
+  by an explicitly-CBOR-configured store — unreadable). Envelope data is
+  unaffected; garbage still fails with the same Corruption error. See the
+  ADR-0050 addendum. Fixed `query/typed.go:97` and the equivalent sites in
+  kv/snapshot/command.
+- **`kv.Cache` no longer shares `*T` between callers**: `Get` returns a deep
+  copy (one codec round-trip) and `Set` caches a private copy, so mutations by
+  one reader never leak into the cache or other readers. A cache hit now costs
+  roughly one decode; hot paths with immutable values can use the underlying
+  `TypedStore` directly.
+- Stale test names renamed to match actual defaults:
+  `TestTypedQueryStore_NilCodecDefaultsToJSON` → `...DefaultsToCBOR` (and the
+  command/snapshot equivalents) — the nil-codec default has been CBOR since
+  ADR-0051.
+
+### Removed — 2026-08-16
+
+- **`event.ErrBinaryNotFound`** (ghost symbol): sentinel error from the deleted
+  `event/blob.go` binary-attachment helpers (`AttachBinary`/`ExtractBinary`),
+  referenced nowhere in the codebase after that removal. Nothing ever returned
+  it, so no behavior change is possible.
+
 ### Changed — catalog: EventCatalog layout correctness + docserver templ UI — 2026-08-16
 
 - **EventCatalog exporter layout fixed** (correctness fix — the old output was

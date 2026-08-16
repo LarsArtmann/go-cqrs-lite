@@ -1,6 +1,6 @@
 # ADR 0050: Envelope JSON Fallback — Keep Forever
 
-> **Status:** ACCEPTED
+> **Status:** ACCEPTED (amended 2026-08-16 — see Addendum)
 > **Date:** 2026-07-10
 > **Related:** ADR-0044 (blind store encoding stamps), v4 codec flip
 
@@ -60,3 +60,29 @@ compatibility layer doing exactly what it should.
   not a transitional measure.
 - Future documentation should describe the fallback as a feature, not a
   deprecation path.
+
+## Addendum (2026-08-16): the fallback is now the store's configured codec
+
+The 2026-08-14 brutal review found that the hard-coded `JSONCodec{}`
+fallback made blind stores ignore their configured codec on read:
+`UnwrapDecode` returns the fallback verbatim for non-envelope bytes, so
+pre-envelope data written by an explicitly-CBOR-configured store (or any
+custom codec) could never be read back.
+
+Resolution — preserving this ADR's permanent-readability guarantee:
+
+- Blind stores pass their **configured codec** as the `UnwrapDecode`
+  fallback.
+- When the primary decode fails on non-envelope bytes, one cross-retry with
+  the other standard codec (JSON↔CBOR) rescues legacy data in BOTH
+  directions: raw JSON under a CBOR-configured store and raw CBOR under a
+  JSON-configured store.
+- Envelope data is unaffected: it always decodes via its stamped codec on the
+  first attempt. Truly undecodable data still fails with the same Corruption
+  error.
+- Custom codecs (e.g. encryption wrappers) get the first attempt via the
+  configured codec — strictly better than the old unconditional JSON.
+
+The decision itself is unchanged: old data stays readable forever, there is
+no strict mode, and no deprecation path. The "Consequences" bullet above
+("all blind stores pass `codec.JSONCodec{}`") is superseded by this addendum.

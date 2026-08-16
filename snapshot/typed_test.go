@@ -121,7 +121,7 @@ func TestTypedStore_Delete(t *testing.T) {
 	}
 }
 
-func TestTypedStore_NilCodecDefaultsToJSON(t *testing.T) {
+func TestTypedStore_NilCodecDefaultsToCBOR(t *testing.T) {
 	t.Parallel()
 
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), nil)
@@ -137,7 +137,7 @@ func TestTypedStore_NilCodecDefaultsToJSON(t *testing.T) {
 		Version:    1,
 		State:      counterState{Count: 99},
 	}); err != nil {
-		t.Fatalf("Save with default JSON codec: %v", err)
+		t.Fatalf("Save with default CBOR codec: %v", err)
 	}
 
 	got, err := store.Load(ctx, ref)
@@ -147,5 +147,58 @@ func TestTypedStore_NilCodecDefaultsToJSON(t *testing.T) {
 
 	if got.State.Count != 99 {
 		t.Fatalf("count = %d, want 99", got.State.Count)
+	}
+}
+
+func TestTypedStore_LegacyStateDecodesAcrossCodecs(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	seed := func(t *testing.T, state []byte) (*fakeStore, id.StreamRef) {
+		t.Helper()
+
+		fake := newFakeStore()
+		streamID := id.NewStreamID()
+		ref := id.NewStreamRef("Counter", streamID)
+		if err := fake.Save(ctx, snapshot.Snapshot{
+			StreamID:   streamID,
+			StreamType: "Counter",
+			Version:    1,
+			State:      state,
+		}); err != nil {
+			t.Fatalf("seed Save: %v", err)
+		}
+
+		return fake, ref
+	}
+
+	rawJSON := []byte(`{"count":11,"label":"legacy-json"}`)
+
+	rawCBOR, err := codec.CBORCodec{}.Encode(counterState{Count: 22, Label: "legacy-cbor"})
+	if err != nil {
+		t.Fatalf("encode raw CBOR: %v", err)
+	}
+
+	// Raw JSON state read by the CBOR-default store.
+	cborFake, cborRef := seed(t, rawJSON)
+	cborDefault := snapshot.NewTypedStore[counterState](cborFake, nil)
+	loaded, err := cborDefault.Load(ctx, cborRef)
+	if err != nil {
+		t.Fatalf("Load legacy raw JSON: %v", err)
+	}
+	if loaded.State.Count != 11 || loaded.State.Label != "legacy-json" {
+		t.Fatalf("legacy raw JSON under CBOR default: got %+v", loaded.State)
+	}
+
+	// Raw CBOR state read by a JSON-configured store.
+	jsonFake, jsonRef := seed(t, rawCBOR)
+	jsonConfigured := snapshot.NewTypedStore[counterState](jsonFake, codec.JSONCodec{})
+	loaded, err = jsonConfigured.Load(ctx, jsonRef)
+	if err != nil {
+		t.Fatalf("Load legacy raw CBOR: %v", err)
+	}
+	if loaded.State.Count != 22 || loaded.State.Label != "legacy-cbor" {
+		t.Fatalf("legacy raw CBOR under JSON config: got %+v", loaded.State)
 	}
 }

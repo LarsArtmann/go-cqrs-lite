@@ -7,23 +7,31 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
-func TestCache_GetSetDelete(t *testing.T) {
-	t.Parallel()
+func newTestCache(t *testing.T) *kv.Cache[testUser, testID] {
+	t.Helper()
 
 	store := kv.NewMemStore()
-	defer store.Close()
+	t.Cleanup(func() { _ = store.Close() })
 
 	ts := kv.NewTypedStore[testUser, testID](store)
 	cache, err := kv.NewCache[testUser, testID](ts)
 	if err != nil {
 		t.Fatalf("NewCache: %v", err)
 	}
-	defer cache.Close()
+	t.Cleanup(cache.Close)
+
+	return cache
+}
+
+func TestCache_GetSetDelete(t *testing.T) {
+	t.Parallel()
+
+	cache := newTestCache(t)
 
 	ctx := context.Background()
 	id := testID("u1")
 
-	err = cache.Set(ctx, id, &testUser{Name: "Alice", Age: 30})
+	err := cache.Set(ctx, id, &testUser{Name: "Alice", Age: 30})
 	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
@@ -73,15 +81,7 @@ func TestCache_InvalidCapacity(t *testing.T) {
 func TestCache_Has(t *testing.T) {
 	t.Parallel()
 
-	store := kv.NewMemStore()
-	defer store.Close()
-
-	ts := kv.NewTypedStore[testUser, testID](store)
-	cache, err := kv.NewCache[testUser, testID](ts)
-	if err != nil {
-		t.Fatalf("NewCache: %v", err)
-	}
-	defer cache.Close()
+	cache := newTestCache(t)
 
 	id := testID("user-1")
 	ctx := context.Background()
@@ -108,15 +108,7 @@ func TestCache_Has(t *testing.T) {
 func TestCache_Scan(t *testing.T) {
 	t.Parallel()
 
-	store := kv.NewMemStore()
-	defer store.Close()
-
-	ts := kv.NewTypedStore[testUser, testID](store)
-	cache, err := kv.NewCache[testUser, testID](ts)
-	if err != nil {
-		t.Fatalf("NewCache: %v", err)
-	}
-	defer cache.Close()
+	cache := newTestCache(t)
 
 	ctx := context.Background()
 	_ = cache.Set(ctx, testID("user-1"), &testUser{Name: "Alice"})
@@ -134,15 +126,7 @@ func TestCache_Scan(t *testing.T) {
 func TestCache_BackendAndStore(t *testing.T) {
 	t.Parallel()
 
-	store := kv.NewMemStore()
-	defer store.Close()
-
-	ts := kv.NewTypedStore[testUser, testID](store)
-	cache, err := kv.NewCache[testUser, testID](ts)
-	if err != nil {
-		t.Fatalf("NewCache: %v", err)
-	}
-	defer cache.Close()
+	cache := newTestCache(t)
 
 	if cache.Backend() == nil {
 		t.Fatal("Backend should not be nil")
@@ -155,22 +139,14 @@ func TestCache_BackendAndStore(t *testing.T) {
 func TestCache_DeleteInvalidates(t *testing.T) {
 	t.Parallel()
 
-	store := kv.NewMemStore()
-	defer store.Close()
-
-	ts := kv.NewTypedStore[testUser, testID](store)
-	cache, err := kv.NewCache[testUser, testID](ts)
-	if err != nil {
-		t.Fatalf("NewCache: %v", err)
-	}
-	defer cache.Close()
+	cache := newTestCache(t)
 
 	ctx := context.Background()
 	id := testID("user-1")
 	_ = cache.Set(ctx, id, &testUser{Name: "Alice"})
 	_ = cache.Delete(ctx, id)
 
-	_, err = cache.Get(ctx, id)
+	_, err := cache.Get(ctx, id)
 	if err == nil {
 		t.Fatal("Get after Delete should return error")
 	}
@@ -179,28 +155,22 @@ func TestCache_DeleteInvalidates(t *testing.T) {
 func TestCache_GetReturnsIsolatedCopy(t *testing.T) {
 	t.Parallel()
 
-	store := kv.NewMemStore()
-	defer store.Close()
-
-	ts := kv.NewTypedStore[testUser, testID](store)
-	cache, err := kv.NewCache[testUser, testID](ts)
-	if err != nil {
-		t.Fatalf("NewCache: %v", err)
-	}
-	defer cache.Close()
+	cache := newTestCache(t)
 
 	ctx := context.Background()
 	id := testID("user-1")
 
-	first, err := cache.Get(ctx, id)
+	_, err := cache.Get(ctx, id)
 	if err == nil {
 		t.Fatal("expected miss before Set")
 	}
 
-	_ = cache.Set(ctx, id, &testUser{Name: "Alice", Age: 30})
+	if err := cache.Set(ctx, id, &testUser{Name: "Alice", Age: 30}); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
 
 	// Miss path: the returned value is fresh from the store.
-	first, err = cache.Get(ctx, id)
+	first, err := cache.Get(ctx, id)
 	if err != nil {
 		t.Fatalf("Get (miss path): %v", err)
 	}
@@ -233,15 +203,7 @@ func TestCache_GetReturnsIsolatedCopy(t *testing.T) {
 func TestCache_SetDoesNotShareValueWithCache(t *testing.T) {
 	t.Parallel()
 
-	store := kv.NewMemStore()
-	defer store.Close()
-
-	ts := kv.NewTypedStore[testUser, testID](store)
-	cache, err := kv.NewCache[testUser, testID](ts)
-	if err != nil {
-		t.Fatalf("NewCache: %v", err)
-	}
-	defer cache.Close()
+	cache := newTestCache(t)
 
 	ctx := context.Background()
 	id := testID("user-1")
@@ -267,15 +229,7 @@ func TestCache_SetDoesNotShareValueWithCache(t *testing.T) {
 func TestCache_TwoReadersGetDistinctValues(t *testing.T) {
 	t.Parallel()
 
-	store := kv.NewMemStore()
-	defer store.Close()
-
-	ts := kv.NewTypedStore[testUser, testID](store)
-	cache, err := kv.NewCache[testUser, testID](ts)
-	if err != nil {
-		t.Fatalf("NewCache: %v", err)
-	}
-	defer cache.Close()
+	cache := newTestCache(t)
 
 	ctx := context.Background()
 	id := testID("user-1")

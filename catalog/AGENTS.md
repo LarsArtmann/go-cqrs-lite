@@ -46,11 +46,19 @@ fallbacks — keep both when adding pages.
 
 - Output layout: messages deduplicated into top-level `commands|events|queries/`;
   data stores go to `containers/` (EventCatalog 4.x); config carries a stable `cId`.
+- The `cId` is a UUIDv5 of the catalog title under the fixed namespace literal in
+  `catalogid.go`. Changing that namespace (or the derivation) changes EVERY
+  catalog's identity — treat it as frozen. (The original hex-parsing helper
+  silently zeroed the dash characters; the byte literal replaced it 2026-08-16.)
 - `@eventcatalog/core` is pinned via the `eventCatalogCoreVersion` constant
   (exporter.go). Bump only after verifying the new release renders the generated
-  MDX; then regen goldens (`UPDATE_SNAPS=true go test ./...` from the module root —
-  NOTE: run it on the whole module, the golden dir is shared across packages and a
-  single-package update run deletes other packages' snaps).
+  MDX; then regen goldens.
+
+## Golden tests
+
+`testdata/golden/` is shared by every package's suite. `UPDATE_SNAPS=true go
+test ./<pkg>/...` treats snaps owned by OTHER packages as obsolete and DELETES
+them. Always regen module-wide: `UPDATE_SNAPS=true go test ./...`.
 
 ## Budgets
 
