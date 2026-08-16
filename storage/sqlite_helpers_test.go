@@ -10,13 +10,13 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 )
 
-// TestOpenSQLiteInMemory_SingleSharedDatabase pins the single-connection
-// guarantee of OpenSQLiteInMemory. modernc.org/sqlite gives each pooled
-// connection to "file::memory:" a private empty database; before the pool was
-// pinned, a write that overlapped an open transaction (which holds the first
-// connection) landed on a fresh connection with no schema — flaking under
-// parallel load as "no such table" and double dispatches.
-func TestOpenSQLiteInMemory_SingleSharedDatabase(t *testing.T) {
+// TestOpenSQLiteInMemory_SharedCacheDatabase pins the shared-cache guarantee
+// of OpenSQLiteInMemory. modernc.org/sqlite gives each pooled connection to
+// "file::memory:" a private empty database; OpenSQLiteInMemory uses a unique
+// named shared-cache DSN (file:<random>?mode=memory&cache=shared) so all
+// pooled connections share one in-memory schema. This test verifies that a
+// write on one connection is visible to a concurrent reader on another.
+func TestOpenSQLiteInMemory_SharedCacheDatabase(t *testing.T) {
 	t.Parallel()
 
 	db, err := OpenSQLiteInMemory()
@@ -35,9 +35,9 @@ func TestOpenSQLiteInMemory_SingleSharedDatabase(t *testing.T) {
 		t.Fatalf("seed insert: %v", err)
 	}
 
-	// The transaction pins the (only) connection; the concurrent write must
-	// queue on that same connection instead of opening a second, empty
-	// in-memory database.
+	// The transaction holds one connection; the concurrent write should
+	// succeed on a different pooled connection AND see the same schema
+	// (shared-cache DSN), not land on an empty private database.
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		t.Fatalf("BeginTx: %v", err)
@@ -45,33 +45,22 @@ func TestOpenSQLiteInMemory_SingleSharedDatabase(t *testing.T) {
 
 	writeErr := make(chan error, 1)
 	go func() {
-		_, err := db.ExecContext(ctx, "INSERT INTO probe (k) VALUES ('queued')")
+		_, err := db.ExecContext(ctx, "INSERT INTO probe (k) VALUES ('concurrent')")
 		writeErr <- err
 	}()
 
 	select {
 	case err := <-writeErr:
-		// The write completed while the transaction still held a connection,
-		// so it used a different one — the pool pin regressed.
 		if err != nil {
-			t.Fatalf("write on second connection saw no schema: %v", err)
+			t.Fatalf("concurrent write on second connection failed: %v", err)
 		}
-		t.Fatal("write completed on a second connection while tx held the first")
-	case <-time.After(50 * time.Millisecond):
-		// Still queued on the pinned connection — expected.
+		// Success — the second connection saw the probe table (shared cache).
+	case <-time.After(2 * time.Second):
+		t.Fatal("concurrent write timed out — pool may be pinned to one connection")
 	}
 
 	if err := tx.Rollback(); err != nil {
 		t.Fatalf("rollback: %v", err)
-	}
-
-	select {
-	case err := <-writeErr:
-		if err != nil {
-			t.Fatalf("queued write: %v", err)
-		}
-	case <-time.After(2 * time.Second):
-		t.Fatal("queued write never ran after tx release")
 	}
 
 	var wg sync.WaitGroup
@@ -91,7 +80,7 @@ func TestOpenSQLiteInMemory_SingleSharedDatabase(t *testing.T) {
 		t.Fatalf("count: %v", err)
 	}
 	if want := 2 + 8; n != want {
-		t.Fatalf("expected %d rows in the single shared database, got %d", want, n)
+		t.Fatalf("expected %d rows in the shared database, got %d", want, n)
 	}
 }
 
