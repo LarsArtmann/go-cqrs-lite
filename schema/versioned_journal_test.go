@@ -200,3 +200,65 @@ func TestVersionedSeekableJournal_NilUpcasters(t *testing.T) {
 
 // Compile-time: VersionedSeekableJournal implements event.SeekableJournal.
 var _ event.SeekableJournal = (*schema.VersionedSeekableJournal)(nil)
+
+// TestVersionedSeekableJournal_MatchesCanonicalDecorateJournal proves the
+// deprecated shell delegates to the ADR-0126 canonical form: both produce
+// identical upcasted reads, and the decorated journal still satisfies
+// event.SeekableJournal (what projectionhost.New requires).
+func TestVersionedSeekableJournal_MatchesCanonicalDecorateJournal(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	defer store.Close()
+
+	ctx := context.Background()
+	streamID := id.NewStreamID()
+
+	events := make([]event.Event, 0, 3)
+	for i := range 3 {
+		evt, _ := event.NewEvent(
+			"test.upcast", streamID, "Test", event.Version(i+1), []byte("v1"),
+			event.WithSchemaVersion(1),
+		)
+		events = append(events, evt)
+	}
+	saveTestEvents(t, ctx, store, streamID, events...)
+
+	shell, err := schema.NewVersionedSeekableJournal(store, versionUpcaster{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	canonical, ok := event.DecorateJournal(
+		store, schema.UpcastSourceTransform(versionUpcaster{}),
+	).(event.SeekableJournal)
+	if !ok {
+		t.Fatal("DecorateJournal must preserve SeekableJournal")
+	}
+
+	shellAll, err := shell.ReadAll(ctx)
+	if err != nil {
+		t.Fatalf("shell ReadAll: %v", err)
+	}
+
+	canonicalAll, err := canonical.ReadAll(ctx)
+	if err != nil {
+		t.Fatalf("canonical ReadAll: %v", err)
+	}
+
+	if len(shellAll) != len(canonicalAll) {
+		t.Fatalf("event count mismatch: shell=%d canonical=%d", len(shellAll), len(canonicalAll))
+	}
+
+	for i := range shellAll {
+		if string(shellAll[i].Payload()) != string(canonicalAll[i].Payload()) {
+			t.Errorf("event %d payload mismatch: shell=%q canonical=%q",
+				i, shellAll[i].Payload(), canonicalAll[i].Payload())
+		}
+
+		if shellAll[i].SchemaVersion() != canonicalAll[i].SchemaVersion() {
+			t.Errorf("event %d schemaVersion mismatch: shell=%d canonical=%d",
+				i, shellAll[i].SchemaVersion(), canonicalAll[i].SchemaVersion())
+		}
+	}
+}

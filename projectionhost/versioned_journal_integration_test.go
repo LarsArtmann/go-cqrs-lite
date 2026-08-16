@@ -13,11 +13,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/schema/v4"
 )
 
-// TestVersionedSeekableJournal_WithProjectionHost proves that
-// schema.VersionedSeekableJournal works when passed to projectionhost.New —
-// the real-world composition this feature was built for. Events stored at
-// schema version 1 are upcasted to version 2 before reaching the projection.
-func TestVersionedSeekableJournal_WithProjectionHost(t *testing.T) {
+// TestDecorateJournalUpcast_WithProjectionHost proves that
+// event.DecorateJournal composed with schema.UpcastSourceTransform works
+// when passed to projectionhost.New — the real-world composition this
+// feature was built for. Events stored at schema version 1 are upcasted to
+// version 2 before reaching the projection.
+func TestDecorateJournalUpcast_WithProjectionHost(t *testing.T) {
 	t.Parallel()
 
 	journal := &memoryJournal{}
@@ -34,10 +35,14 @@ func TestVersionedSeekableJournal_WithProjectionHost(t *testing.T) {
 		journal.append(evt)
 	}
 
-	// Wrap the journal with an upcaster that transforms v1→v2.
-	versionedJournal, err := schema.NewVersionedSeekableJournal(journal, v1ToV2Upcaster{})
-	if err != nil {
-		t.Fatalf("NewVersionedSeekableJournal: %v", err)
+	// Wrap the journal with an upcaster that transforms v1→v2 (ADR-0126
+	// canonical form; the deprecated schema.NewVersionedSeekableJournal shell
+	// delegates to exactly this).
+	versionedJournal, ok := event.DecorateJournal(
+		journal, schema.UpcastSourceTransform(v1ToV2Upcaster{}),
+	).(event.SeekableJournal)
+	if !ok {
+		t.Fatal("DecorateJournal must preserve SeekableJournal")
 	}
 
 	// Create a projection that captures the upcasted payload.

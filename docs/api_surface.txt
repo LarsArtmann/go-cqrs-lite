@@ -720,6 +720,7 @@ event/func CompositeEnricher
 event/func DecodePayload
 event/func DecodePayloadAuto
 event/func DecodePayloads
+event/func DecorateJournal
 event/func DecorateStore
 event/func DetectTombstone
 event/func EnsureCustom
@@ -816,6 +817,8 @@ event/method Clone
 event/method Clone
 event/method Close
 event/method Close
+event/method Close
+event/method Close
 event/method Cmp
 event/method Cmp
 event/method Deadline
@@ -862,13 +865,18 @@ event/method Merge
 event/method Metadata
 event/method Mod
 event/method Next
+event/method Next
 event/method NextOccurrence
 event/method OccurredAt
 event/method Payload
 event/method PreviousOccurrence
 event/method Publish
 event/method ReadAll
+event/method ReadAll
 event/method ReadFrom
+event/method ReadFrom
+event/method ReadStream
+event/method ReadStreamFrom
 event/method Save
 event/method SaveMultiBatch
 event/method SchemaVersion
@@ -1043,6 +1051,7 @@ event/var ErrInnerStoreNotBackwards
 event/var ErrInnerStoreNotJournal
 event/var ErrInnerStoreNotMultiSink
 event/var ErrInnerStoreNotSeekable
+event/var ErrInnerStoreNotStreaming
 event/var ErrInvalidDate
 event/var ErrInvalidHour
 event/var ErrInvalidMinute

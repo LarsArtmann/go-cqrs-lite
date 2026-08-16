@@ -92,6 +92,10 @@ var (
 		"event.inner_store_not_multi_sink",
 		"inner store does not implement MultiSink",
 	)
+	ErrInnerStoreNotStreaming = errorfamily.NewRejection(
+		"event.inner_store_not_streaming",
+		"inner journal does not implement StreamingJournal",
+	)
 
 	// Time and date validation errors — returned by NewDate and NewWallTime.
 	ErrInvalidDate = errorfamily.NewRejection("event.invalid_date", "invalid calendar date")

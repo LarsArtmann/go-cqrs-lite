@@ -51,29 +51,32 @@ and is **never** duplicated here.
       `WithMemTableSize`/`WithBlockCacheSize`/`WithWALBytesPerSync`/
       `WithPebbleCompression`; defaults byte-identical (pinned by test); block
       cache ref released after Open.
-- [ ] **SQLite durability tier when WAL off** — preset.go:243 applies the tier
-      PRAGMA only `if cfg.WAL`; non-WAL Relaxed silently FULL-fsyncs
-      (bugfix-class).
-      _(Effort: S)_
+- [x] **SQLite durability tier when WAL off** — DONE 2026-08-16:
+      `ApplySQLiteDurability` now applies every non-empty tier (Normal
+      early-return was WAL-specific); tier application de-nested from
+      `if cfg.WAL` in stack/sqlite/preset.go + stack/turso/backend.go.
+      Tests: `WithoutWAL` table (relaxed=OFF≠FULL pin), preset-level
+      `RelaxedWithoutWAL`; stack/sqlite/turso suites green.
 - [ ] [BLOCKED] **Durability tier→per-write-sync mapping** (storage/pebble
       hardcodes `pebble.Sync`; metaengine engines no NoSync path) — real win
       (fsync per append) but a behavior change for existing Normal-tier
       consumers. AWAITS USER DECISION (status §g Q3).
       _(Effort: M)_
-- [ ] **Reconstruct payload adopt-variant** — `NewEvent` re-clones the
-      already-fresh payload on every store read (event_construct.go:53);
-      adopt-semantics internal path first.
-      _(Effort: M)_
-- [ ] **Bound `idempotencyTracker`** — unbounded sync.Map in metaengine
-      ApplyIdempotent (store_collaborators.go:40); slow leak for long-lived
-      at-least-once stores.
-      _(Effort: S)_
+- [x] **Reconstruct payload adopt-variant** — DONE 2026-08-16:
+      `event.ReconstructEventWithAdoptedPayload` (ownership-transfer contract;
+      `Payload()` stays defensive) wired into pebble+bbolt deserialize.
+      Measured: bbolt 2815→2521 ns/op (−10%), pebble 3316→2872 (−13%),
+      −32 B/op. Equivalence + alias + race tests green.
+- [x] **Bound `idempotencyTracker`** — DONE 2026-08-16: mutex-guarded
+      `dedup.Ring`, default window 131072 IDs (~10 MB) via
+      `WithIdempotencyCapacity` (≤0 = legacy unbounded). 1M-ID memory-bound,
+      eviction, and concurrent exactly-once tests race-green.
 - [ ] **Envelope first-byte sniff in `UnwrapDecode`** — full JSON parse per
       blind-store read just to detect codec (go-codec, external repo).
       _(Effort: M)_
-- [ ] **bbolt deserialize benchmark** — bbolt win extrapolated from pebble
-      (identical shape); make it measured.
-      _(Effort: XS)_
+- [x] **bbolt deserialize benchmark** — DONE 2026-08-16:
+      `BenchmarkEventDeserialize` (storage/bbolt): 2815 ns/op, 1210 B/op,
+      20 allocs pre-adopt → 2521 ns/op with adopt; ledger updated.
 - [ ] **Measure-then-pad cache-line candidates** — worker counters, multiSeqCounter,
       SSEReplay.seq @-cpu=16,32; pad ONLY if contended >10% (worker counters
       analyzed single-writer: padding would NOT pay — keep as documented
@@ -84,12 +87,13 @@ and is **never** duplicated here.
       measured numbers. REMAINS: benchstat baselines for the 3 new benchmarks
       (kept open below).
       _(Effort: S)_
-- [ ] **Fix ignored `MarshalMetadataJSON` error** —
-      system/adapter_event_serial.go:31 `metaJSON, _ :=`.
-      _(Effort: XS)_
-- [ ] **ScanSlice `RowCount()` pre-size** (fixed cap 64 today) + Custom map
-      size hints.
-      _(Effort: S)_
+- [x] **Fix ignored `MarshalMetadataJSON` error** — DONE 2026-08-16:
+      explicit discard with ADR-0126 constraint documented + nil fallback on
+      marshal failure (zero metadata instead of partial JSON).
+- [x] **ScanSlice `RowCount()` pre-size** — VERIFIED NO-OP 2026-08-16:
+      database/sql has no RowCount API; cap-64 pre-size, `maps.Clone`, and
+      `MergeCustomMaps(len+len)` already applied. Changing the exported
+      generic signature would buy nothing.
 
 ---
 
@@ -147,11 +151,12 @@ and is **never** duplicated here.
 > it: `#verify` resolves local modules, CI runs GOWORK=off per-module — and
 > the CI "Benchmarks" job is currently RED.
 
-- [ ] 🔥 **Pin-drift meta-test** — compare each in-repo module's required
-      versions of sibling modules against the latest tag
-      (`git tag -l '<module>/v4*' | sort -V | tail -1`); fail on staleness.
-      Would have caught both known skew classes at test time.
-      _(Effort: M)_
+- [x] 🔥 **Pin-drift meta-test** — DONE 2026-08-16:
+      `cmd/api-stability/pin_drift_test.go` `TestSiblingModulePinsResolve`:
+      hard-fails unreplaced pins referencing nonexistent tags or
+      pseudo-versions; staleness warns (16 stale today, all replace-governed)
+      until the pin-sweep policy decision flips `enforceStaleness`.
+      Handles nested-module tag pollution; skips hermetic nix builds.
 - [ ] 🔥 **Repo-wide stale-pin sweep** — benchkit still pins
       `sqliteengine v4.0.1` (pre-JournalReadFrom-fix), `decider v4.3.0`,
       `event v4.6.0`… Mechanical bump of ~50 go.mod files, gate-verified.
@@ -165,15 +170,12 @@ and is **never** duplicated here.
 - [ ] **Add CI leg for GOWORK=off standalone builds of leaf modules**
       (integration/, examples/, benchkit/) to catch pin rot early.
       _(Effort: S)_
-- [ ] **`system/integration` DuckDB standalone failure** —
-      `TestIntegration_DuckDBSource_HealthCheck` fails GOWORK=off with
-      `unknown driver "duckdb"` although the blank import chain
-      (test → duckdbengine v4.0.1 → drivers.go `//go:build cgo` →
-      duckdb-go/v2 `sql.Register`) looks complete; verified pre-existing at
-      `d807deebb` (2026-08-15). Workspace mode unaffected. Probably needs a
-      `replace metaengine/duckdbengine/v4 => ../../metaengine/duckdbengine`
-      in `system/integration/go.mod` or a driver-name guard.
-      _(Effort: S)_
+- [x] **`system/integration` DuckDB standalone failure** — FIXED
+      2026-08-16: root cause was published duckdbengine v4.0.1 predating
+      register.go's `metaengine.RegisterDriver` self-registration (workspace
+      mode masked it). Added replace via `go mod edit` + tidy; standalone
+      GOWORK=off suite green. Drop the replace once duckdbengine v4.0.2+
+      tags the registration.
 
 ---
 
@@ -461,9 +463,15 @@ and is **never** duplicated here.
       harnesses (metaengine/bench, integration/ bench files, v2-era baseline);
       make the CI regression check fail on breach.
       _(Effort: M)_
-- [ ] **`DecorateJournal` for `VersionedSeekableJournal`** — schema upcasting
-      path still hand-wraps Journal+upcasters; the DecorateStore-equivalent
-      for journals is the missing piece of ADR-0126.
+- [x] **`DecorateJournal` for `VersionedSeekableJournal`** — DONE 2026-08-16:
+      `event.DecorateJournal(journal, sourceT)` added (ADR-0126 journal
+      counterpart; preserves Journal + SeekableJournal + StreamingJournal +
+      io.Closer, applies the transform per 128-event chunk on streaming reads;
+      new `event.ErrInnerStoreNotStreaming` sentinel). The old hand-wrapper
+      silently dropped StreamingJournal (bbolt/pebble/memory/eventstore all
+      implement it). `schema.NewVersionedSeekableJournal` is now a deprecated
+      shell delegating to `DecorateJournal` + `UpcastSourceTransform`;
+      canonical recipe documented in skill core.md.
       _(Effort: M)_
 - [ ] **Decide + implement (or permanently drop) `brandedString` extraction
       into `record/`** — the asrecord clone pair is larger than the helper;

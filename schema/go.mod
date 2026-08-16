@@ -24,7 +24,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0 // indirect
@@ -39,3 +39,7 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/larsartmann/go-cqrs-lite/event/v4 => ../event
+
+replace github.com/larsartmann/go-cqrs-lite/metadata/v4 => ../metadata

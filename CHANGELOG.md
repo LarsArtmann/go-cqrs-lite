@@ -21,6 +21,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — Wave-4: `event.DecorateJournal` (ADR-0126 completion) — 2026-08-16
+
+- **Journal-side store transform**: `event.DecorateJournal(journal,
+  sourceT)` — the DecorateStore equivalent for read-only journals. Preserves
+  ALL journal capabilities (Journal, SeekableJournal, StreamingJournal,
+  io.Closer) where the previous hand-written wrapper silently dropped
+  StreamingJournal. Streaming reads apply the transform per 128-event chunk.
+  New sentinel `event.ErrInnerStoreNotStreaming`.
+- **`schema.NewVersionedSeekableJournal` deprecated**: now a compatibility
+  shell delegating to `DecorateJournal` + `UpcastSourceTransform` (same
+  pattern as the `VersionedStore` shell; removal at v5). Canonical form:
+  `event.DecorateJournal(j, schema.UpcastSourceTransform(upcasters...))`.
+- **Standalone-build hygiene**: `event` now pins `metadata/v4 v4.5.0` with a
+  local replace (wave-3 `BrandedString` is not yet tagged — the module could
+  not build GOWORK=off); `schema` gained `event`+`metadata` replaces for the
+  same reason. All three replaces drop once `metadata` v4.5.1+ and `event`
+  are tagged.
+
 ### Added — Wave-3 IO wins: bbolt group commit, PG COPY, pebble operator knobs, checkpoint batching — 2026-08-16
 
 - **bbolt opt-in group commit**: `bbolt.WithBatchCommit()` on

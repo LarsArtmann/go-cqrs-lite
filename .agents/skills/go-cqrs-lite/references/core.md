@@ -100,7 +100,7 @@ with projection + read model.
 | Generic key-value abstraction                                         | `kv`                                                                                           | advanced §6.6   |
 | Snapshot streams for speed                                            | `snapshot`                                                                                     | recipes §2.4    |
 | Evolve event schemas over time                                        | `schema`                                                                                       | recipes §2.5    |
-| Upcast events during projection replay                                | `schema` (`VersionedSeekableJournal`)                                                          | advanced §6.9   |
+| Upcast events during projection replay                                | `schema` (`UpcastSourceTransform` + `event.DecorateJournal`)                                   | advanced §6.9   |
 | Make event streams tamper-proof                                       | `signing`                                                                                      | recipes §2.6    |
 | Encrypt confidential payloads                                         | `encryption`                                                                                   | recipes §2.7    |
 | Add logging/retry/recovery/circuit-breaker                            | `middleware`                                                                                   | recipes §2.8    |
@@ -410,9 +410,9 @@ repo, _ := decider.NewRepository[State](store, bus, d,
     decider.WithEnricher(event.ActorEnricher))          // context → event metadata
 who := evt.Metadata().ActorID.PrefixedString()          // "system:scheduler"
 
-// Schema evolution — VersionedSeekableJournal (upcast events during projection replay)
-vjournal, _ := schema.NewVersionedSeekableJournal(journal, upcaster1, upcaster2)
-host, _ := projectionhost.New(vjournal, cpStore)  // transparent upcasting on ReadFrom
+// Schema evolution — upcast events during projection replay (ADR-0126 canonical form)
+vjournal := event.DecorateJournal(journal, schema.UpcastSourceTransform(upcaster1, upcaster2))
+host, _ := projectionhost.New(vjournal.(event.SeekableJournal), cpStore)  // transparent upcasting on ReadFrom
 
 // Prometheus metrics with CQRS histogram views
 metricsProvider, _ := cqrsprometheus.Setup(
