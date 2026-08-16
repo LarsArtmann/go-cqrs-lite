@@ -67,6 +67,15 @@ jobs:
       - name: Coverage drift check
         run: nix run .#check-coverage
 
+      - name: CHANGELOG honesty gate
+        run: bash scripts/check-changelog-symbols.sh
+
+      - name: Heap-measurement contract
+        run: bash scripts/check-heap-parallel.sh
+
+      - name: Lint config check
+        run: nix run .#check-lint-config
+
       - name: Doc cross-reference check
         run:
           cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" .
@@ -684,6 +693,24 @@ jobs:
 
       - name: Run PG integration tests via ephemeral PostgreSQL
         run: nix run .#integration-pg -- -short
+
+    timeout-minutes: 10
+
+  # Redis Streams broker tests — ephemeral nixpkgs redis, no Docker/VM.
+  # Covers the watermill adapter edges gochannel cannot catch: Nack
+  # redelivery, consumer-group exactly-once, 2 MiB payload integrity.
+  redis-integration:
+    name: Redis Broker Integration (ephemeral)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677268
+
+      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
+
+      - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+
+      - name: Run watermill broker tests via ephemeral Redis
+        run: nix run .#integration-redis
 
     timeout-minutes: 10
 

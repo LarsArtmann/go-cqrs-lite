@@ -463,6 +463,19 @@ git push origin "event/v4.0.1"
 GOPROXY=proxy.golang.org go list -m "github.com/larsartmann/go-cqrs-lite/event/v4@v4.0.1"
 ```
 
+#### Changelog policy: root CHANGELOG only
+
+The **root `CHANGELOG.md` is the single changelog** for every module. Per-module
+`CHANGELOG.md` files are forbidden: they were tried once (catalog, benchkit,
+cqrs-lint, turso/indexing) and drifted into orphans — nothing read them, and
+their `[Unreleased]` sections kept describing work already shipped via module
+tags (consolidated 2026-08-16). Enforcement that keeps the root honest:
+`TestTagContentMatchesChangelog` (api-stability meta-test),
+`scripts/check-changelog-symbols.sh` (every `pkg.Symbol` cited in the
+`[Unreleased]` Added/Changed sections must exist in the api-stability golden
+or repo source), and the exactly-one-`[Unreleased]` assertion in
+`scripts/verify-docs.sh`.
+
 Preview a release safely with `--dry-run` (strips + verifies + prints what
 would be tagged, then restores the working tree without committing):
 
