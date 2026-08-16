@@ -6,9 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	bolt "go.etcd.io/bbolt"
-
 	"github.com/cockroachdb/pebble"
+	bolt "go.etcd.io/bbolt"
 
 	bboltengine "github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"
 	pebbleengine "github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"

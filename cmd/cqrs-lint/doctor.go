@@ -18,7 +18,7 @@ import (
 // doctorFlags adds subcommand-level flags to the doctor command.
 type doctorFlags struct {
 	AuditSuppressions bool `default:"false" flag:"audit-suppressions" help:"Audit all inline suppressions: show active vs stale vs unknown-rule status"`
-	Fix               bool `default:"false" flag:"fix" help:"Auto-remove stale whole-line suppressions (implies --audit-suppressions)"`
+	Fix               bool `default:"false" flag:"fix" help:"Remove stale whole-line suppressions (implies audit)"`
 }
 
 func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {

@@ -169,6 +169,32 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > storage/pebble, storage/memory, benchkit, catalog, system, cmd/\*) and the
 > Wave-3/Wave-4 entries dated 2026-08-16 remain unreleased.
 
+### Changed — metaengine KV/LSM layout constants re-derived from size-stable benches — 2026-08-16
+
+- **Both KV/LSM calibration benches were defective and are fixed.** The memory
+  `EmbedWrite` bench appended a child per iteration (values grew unboundedly,
+  drifting mid-run); the disk `EmbedWrite` bench asserted a typed value that
+  `MapUpdate` never produces on disk engines, so its mutation silently no-oped
+  — the old LSM write number measured an unchanged-value rewrite. Both now
+  replace the child slice at fixed size and self-verify that the mutation
+  actually applied (a silent no-op now fails the bench). Derivation protocol
+  (exclusive machine, median of 10 runs) is encoded in the bench headers.
+- **Constants updated in `metaengine/layout_scoring.go`** (honest medians;
+  embed anchor rows unchanged): KV normalize 1.8 / **0.84** / 0.63; LSM
+  normalize **1.67** / **0.62** / **0.98**. All 16 matrix winners unchanged;
+  the fragile LSM × Balanced margin improved 0.01 → 0.28. The LSM read
+  constant is pinned at the lever-preserving floor (measured 1.59; honest
+  anchored 1.18 would flip Balanced/ReadSpeed to Normalize) — the retained
+  2026-08-11 tradeoff, now explicitly disclosed in the `scoreEmbed` comment.
+- **New `BenchmarkDiskLayoutCalibration_Storage`** measures REAL on-disk bytes
+  for the LSM family (3 projection collections per side; Pebble flushed to
+  SSTables before measuring, bbolt sized via page-accurate `Tx.Size()` since
+  the file size is mmap-quantized). Finding: the JSON 3-projection model
+  overstated normalize's storage advantage ~2x — real ratios are 0.89x
+  (Pebble) / 0.82x (bbolt) because every multimap child carries a ~41-byte
+  seq-suffixed key. `metaengine/bench` gains direct pebble/bbolt test-only
+  deps (budget-exempt: imported exclusively from `_test.go` files).
+
 ### Added — Wave-4: `event.DecorateJournal` (ADR-0126 completion) — 2026-08-16
 
 - **Journal-side store transform**: `event.DecorateJournal(journal,

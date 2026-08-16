@@ -3,6 +3,7 @@ package sqliteengine
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"sync"
 	"testing"
@@ -52,13 +53,13 @@ func journalDrainFixture(b *testing.B) *drainFixture {
 
 		log, ok := eng.(metaengine.StreamLogBackend)
 		if !ok {
-			drainErr = fmt.Errorf("engine does not implement StreamLogBackend")
+			drainErr = errors.New("engine does not implement StreamLogBackend")
 			return
 		}
 
 		seqLog, ok := eng.(metaengine.SeqSeekableStreamLog)
 		if !ok {
-			drainErr = fmt.Errorf("engine does not implement SeqSeekableStreamLog")
+			drainErr = errors.New("engine does not implement SeqSeekableStreamLog")
 			return
 		}
 

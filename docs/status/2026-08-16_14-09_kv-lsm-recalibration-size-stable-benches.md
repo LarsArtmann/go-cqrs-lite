@@ -1,5 +1,14 @@
 # Status: KV/LSM Layout Recalibration from Size-Stable Benches — 2026-08-16 14:09
 
+> CLOSED 2026-08-16 (later session): all remaining items executed. Q1 answered
+> YES (real-bytes disk storage bench written + measured), Q2 resolved as
+> "keep lever-pinning" (2026-08-11 deferral stands — flip needs user
+> approval), Q3 resolved as "keep family geomean" (spread documented;
+> per-engine overrides would be a structural design change). Final constants:
+> KV norm 1.8/0.84/0.63; LSM norm 1.67/0.62/0.98. All 16 matrix winners
+> preserved; LSM × Balanced margin 0.01 → 0.28, LSM × StorageSpace is now the
+> tight cell (0.07, deterministic). See the resolution notes at the bottom.
+
 Task: TODO_LIST §"Layout roles" — "Re-derive KV/LSM layout constants from
 size-stable benches": make the pre-2026-08-15 calibration benches
 (`metaengine/layout_calibration_bench_test.go`,
@@ -99,20 +108,70 @@ numeric constant edits and all downstream steps are still pending.
 9. Unify the memory StorageOverhead bench on `b.ReportMetric`.
 10. Make bench mutations self-verifying (e.4).
 
-## g) QUESTIONS
+## g) QUESTIONS — RESOLVED 2026-08-16
 
 1. **LSM storage pair**: measure real Pebble/bbolt on-disk bytes now (new
    bench, effort S/M, matches the Row/Columnar precedent and likely moves the
    1.15/0.80 pair), or keep the engine-independent JSON 3-projection model for
    KV/LSM and re-derive only read/write from the size-stable benches?
+
+   **→ RESOLVED: measured.** New
+   `BenchmarkDiskLayoutCalibration_Storage`
+   (`metaengine/bench/bench_layout_calibration_disk_storage_test.go`):
+   three projection collections per side, normalize adds one shared child
+   multimap; Pebble measured after explicit memtable `Flush()` (Close does NOT
+   flush — data would sit uncompressed in the WAL), bbolt sized via
+   page-accurate `Tx.Size()` (the FILE size is mmap-quantized: both sides
+   measured exactly 16 MiB before the fix). Results (deterministic, 3 runs
+   identical): Pebble 0.893x, bbolt 0.820x, geomean 0.856x. The JSON model
+   (0.485x) overstated normalize's advantage ~2x — per-child ~41-byte
+   seq-suffixed keys eat the dedup saving. New LSM storage pair: 1.15/0.98.
+   Pebble/bbolt promoted to direct test-only deps of metaengine/bench
+   (budget-exempt: imported exclusively from _test.go files).
 2. **Lever-pinning vs full honesty**: the 2026-08-11 session deferred going
    fully data-driven ("would require changing the design invariant per user
    approval"). With honest read ratios (KV 0.90, LSM 1.18), KV flips to
    Normalize in ALL four priority cells and LSM in three of four (only LSM
    ReadSpeed stays Embed, margin 0.07). Keep lever-pinning (current choice,
    documented in the constants), or go fully honest and update the matrix?
+
+   **→ RESOLVED: lever-pinning retained.** The 2026-08-11 deferral to user
+   approval still stands; flipping 7 of 8 cells unilaterally is not the
+   resuming session's call. The constants disclose the honest values and the
+   floor mechanism in the `scoreEmbed` doc comment (wording fixed: "at or
+   above the floor" — KV 1.80 sits naturally above its 1.43 floor, only LSM
+   1.59→1.67 is pinned). If the user later approves full honesty, flip
+   `expectedLayout` in `layout_matrix_test.go` per the numbers above.
 3. **bbolt vs pebble write spread** (1.00x vs 0.32x): keep the family geomean
    (current) or introduce per-engine layout cost overrides?
 
-— next step (unless redirected): item 1 (apply the numeric constants), then 2
-(tests), then 3/4 pending the answers above.
+   **→ RESOLVED: family geomean kept**, spread (3x on write, ~0.07 on storage)
+   documented next to the constants and in the bench header. Per-engine
+   overrides are a structural design change (score tables key on
+   StorageLayout, not engine) — deferred to a dedicated session if ever
+   wanted.
+
+## h) RESOLUTION LOG (2026-08-16, later session)
+
+- Numeric constants applied (`metaengine/layout_scoring.go`): KV norm read 1.8
+  (kept, measured 1.80), write 0.48→0.84, storage 0.63 (kept); LSM norm read
+  1.45→1.67 (floor-pinned from measured 1.59), write 0.75→0.62, storage
+  0.80→0.98 (real bytes). Floor wording fixed to "at or above the floor".
+- `layout_matrix_test.go`: all 16 cells pass; fragile-cell docs updated (LSM ×
+  Balanced 0.01 → 0.28 margin; LSM × StorageSpace is the new tight cell at
+  0.065 — safe because storage bytes are deterministic, not machine-variance
+  sensitive).
+- Improvements shipped: memory `StorageOverhead` bench unified on
+  `b.ReportMetric` (norm/embed-bytes 0.4853, matches the disk bench metric
+  names); self-verifying mutations in memory + disk EmbedWrite benches (a
+  silent no-op now `b.Fatal`s); derivation protocol (exclusive, median-of-10)
+  encoded in both bench headers.
+- Full `metaengine` module tests green (20s); `metaengine/bench` module tests
+  green; gofumpt/vet clean; docs updated: TODO_LIST checked off, CHANGELOG
+  Unreleased entry added, ADR-0124 supersede note + new 2026-08-16 addendum,
+  METAENGINE-LAYOUT-PLANNING-MODEL.md table refreshed.
+- NOT done (deliberate): checking in the median-analysis script (the protocol
+  is now in the bench headers; a checked-in Go script would need its own
+  module home); per-engine layout cost overrides (Q3); KV in-memory storage
+  measurement (native Go values have no stable byte size — JSON model kept,
+  asymmetry documented in the bench comment).

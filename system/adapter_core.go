@@ -198,7 +198,7 @@ func (c *AdapterCore[T]) resolveSeqToken(
 	for cursor := int64(0); ; {
 		entries, err := seeker.JournalReadFromSeq(ctx, c.Collection, cursor, page)
 		if err != nil {
-			return 0, err //nolint:wrapcheck // wrapped by caller
+			return 0, err
 		}
 
 		if len(entries) == 0 {

@@ -2,9 +2,9 @@
 
 Session executing `docs/planning/2026-08-15_21-03_SUPERB-PARETO-EXECUTION-PLAN.md`. Decision gates
 collected from the user up front (G1=all, G4=latest, G3=migrate, G6=ADR), then Tier-20% ungated work
-executed while the concurrent engine session owns `metaengine/*`. The 1% tag chain is fully prepared
+executed while the concurrent engine session owns `metaengine/*`. ~~The 1% tag chain is fully prepared
 but physically blocked by the live engine session's uncommitted files (tag-release.sh requires a
-clean tree).
+clean tree).~~ Chain later executed 04:12–04:24 — all 22 tags + 3 aux (graphadapter, loopback, quic); see 04-24 report.
 
 > Format note: written as `.md` per the user's explicit instruction (status-report skill default is
 > styled HTML — user override honored).
@@ -67,7 +67,7 @@ clean tree).
 
 ## b) PARTIALLY DONE
 
-1. **T1 tag chain — prepared, not executed.** Baseline done; full tag plan built in dependency
+1. ~~**T1 tag chain — prepared, not executed.**~~ (executed later that morning — 22-tag chain, 04-24 report) Baseline done; full tag plan built in dependency
    order (see f). First tag attempt (`id v4.5.0`) correctly aborted by tag-release.sh's clean-tree
    check: the engine session's uncommitted files (roles.go, demote.go, layout_scoring.go,
    middleware/actor_test.go, bench integration test, watermill snap, TODO/CHANGELOG/ADR/skill
@@ -136,20 +136,31 @@ clean tree).
 
 ## f) NEXT — up to 50, in order
 
-1. Resolve Q1 (engine-session tree) → tag `id` **v4.5.0**.
-2. Tag wave 1: `record` **v4.3.0**, `metadata` **v4.5.0**, `schema` **v4.3.0**.
-3. Bump event's requires (id/metadata/record) → tag `event` **v4.7.0**.
-4. Tag `query` **v4.6.0**, `middleware` **v4.5.0**, `command` **v4.7.0**.
-5. Tag `metaengine` **v4.11.0**.
-6. Bump engine requires → tag `sqliteengine`/`pebbleengine`/`pgengine` **v4.1.0**,
-   `badgerengine` **v4.0.2**.
-7. Tag `watermill` **v4.5.0**.
-8. First releases (pending Q2): `mysqlengine` v4.0.0, `bboltengine` v4.0.0 (un-poisons bench's
-   pseudo-version), `tursoengine` v4.0.0, `irohengine` v4.0.0; verify graphadapter/loopback/quic.
-9. Push tags + master; verify proxy serves each tag (scratch dir, `GOPROXY=off go get`).
-10. Drop the 7 chain replaces (system ×6, cqrs-bench ×1) + integration's event/middleware +
-    command's metadata replaces; `go mod tidy`; standalone re-verify (F1.9).
-11. Update TODO_LIST Release section + plan doc §T1 with corrected versions (F1.10).
+~~1. Resolve Q1 (engine-session tree) → tag `id` **v4.5.0**.~~ done — `id/v4.5.0` tagged 04:12 (chain start), see 04-24 report
+
+~~2. Tag wave 1: `record` **v4.3.0**, `metadata` **v4.5.0**, `schema` **v4.3.0**.~~ done — all three tagged in the chain
+
+~~3. Bump event's requires (id/metadata/record) → tag `event` **v4.7.0**.~~ done — `event/v4.7.0` tagged (requires bumped)
+
+~~4. Tag `query` **v4.6.0**, `middleware` **v4.5.0**, `command` **v4.7.0**.~~ done — tagged; `query/v4.6.0` → retracted → `v4.6.1`, `command/v4.7.0` → retracted → `v4.7.1` (10-51 report)
+
+~~5. Tag `metaengine` **v4.11.0**.~~ done — `metaengine/v4.11.0`
+
+~~6. Bump engine requires → tag `sqliteengine`/`pebbleengine`/`pgengine` **v4.1.0**,
+   `badgerengine` **v4.0.2**.~~ done — sqlite/pebble/pg `v4.1.0` + `badgerengine/v4.0.2`
+
+~~7. Tag `watermill` **v4.5.0**.~~ done — `watermill/v4.5.0`
+
+~~8. First releases (pending Q2): `mysqlengine` v4.0.0, `bboltengine` v4.0.0 (un-poisons bench's
+   pseudo-version), `tursoengine` v4.0.0, `irohengine` v4.0.0; verify graphadapter/loopback/quic.~~ done — all four `v4.0.0` first releases tagged; graphadapter, loopback, quic also `v4.0.0`
+
+~~9. Push tags + master; verify proxy serves each tag (scratch dir, `GOPROXY=off go get`).~~ done — tags + master pushed, chain LIVE on the proxy (TODO_LIST Release section); storage retract handled via `v4.7.1`
+
+~~10. Drop the 7 chain replaces (system ×6, cqrs-bench ×1) + integration's event/middleware +
+    command's metadata replaces; `go mod tidy`; standalone re-verify (F1.9).~~ partial — the 7 chain replaces (system ×6, cqrs-bench ×1) dropped; integration's event/middleware + command/query/event/middleware metadata replaces remain until `metadata/v4.5.1+` (BrandedString) ships — tracked in TODO_LIST Release batch (wave-4)
+
+~~11. Update TODO_LIST Release section + plan doc §T1 with corrected versions (F1.10).~~ partial — TODO_LIST Release section records the corrected chain; plan §T1 left as-written (pre-classification versions), superseded by TODO_LIST + CHANGELOG truth
+
 12. **T2**: transport/http + transport/grpc final v4.x tags with deprecation notes;
     `gh release create` ×9; pkg.go.dev fetch triggers.
 13. **T3**: indirect-ref tidy sweep (~49 go.mod), verify zero stale shim refs.

@@ -267,13 +267,20 @@ and is **never** duplicated here.
       re-routed replay, `engine-demoted` audit trigger; PromoteEngine hardened
       through the same atomic path. Exactly-once proven by a concurrent-apply
       race test. See METAENGINE-LAYOUT-ROLES.md §4.4.
-- [ ] **Re-derive KV/LSM layout constants from size-stable benches** — the
-      pre-2026-08-15 calibration benches (`layout_calibration_bench_test.go`,
-      `bench_layout_calibration_disk_test.go` EmbedWrite) append a child per
-      iteration, so values grow unboundedly and drift mid-run (SQLite
-      embed-write drifted 41µs → 85µs). Make them size-stable (replace-only
-      mutation, as the Row/Columnar benches do) and re-measure.
-      _(Effort: M)_
+- [x] **`Re-derive KV/LSM layout constants from size-stable benches`** — DONE
+      2026-08-16: both benches fixed (memory EmbedWrite drifted via unbounded
+      append; disk EmbedWrite's typed assertion never matched the map form disk
+      engines decode into, so the mutation silently no-oped — the TODO's
+      premise was wrong for the disk bench), re-measured exclusively with
+      median-of-10, and constants updated (KV norm write 0.84; LSM norm
+      1.67/0.62/0.98). Includes a NEW real-bytes storage bench
+      (`BenchmarkDiskLayoutCalibration_Storage`): the JSON model overstated
+      normalize's LSM storage advantage ~2x (real 0.86x geomean — per-child
+      seq-suffixed keys eat the dedup saving). All 16 matrix winners preserved;
+      LSM × Balanced margin 0.01 → 0.28. See
+      [ADR-0124 addendum](docs/adr/0124-operator-driven-layout-planning.md)
+      and
+      [`docs/status/2026-08-16_14-09_kv-lsm-recalibration-size-stable-benches.md`](docs/status/2026-08-16_14-09_kv-lsm-recalibration-size-stable-benches.md).
 
 ---
 
