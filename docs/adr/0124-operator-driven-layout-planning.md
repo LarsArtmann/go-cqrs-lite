@@ -224,6 +224,12 @@ corrected this to a per-priority split. The measured ratios are encoded in
 | **KV** (memory engine)            | 0.5 / 1.0 / 1.3            | 1.8 / 0.48 / 0.63              | Embed            | **Normalize**     | **Normalize**       |
 | **LSM** (Pebble + bbolt, geomean) | 0.74 / 1.10 / 1.15         | 1.45 / 0.75 / 0.80             | Embed            | **Normalize**     | **Normalize**       |
 
+> Superseded 2026-08-16: both calibration benches were defective (memory
+> embed-write appended a child per iteration — unbounded growth; disk
+> embed-write's typed assertion never matched the map form disk engines
+> decode into — silent no-op). See the final addendum for the size-stable
+> re-measurement.
+
 Conclusions:
 
 - Embedding's single-key read advantage survived measurement (normalize reads

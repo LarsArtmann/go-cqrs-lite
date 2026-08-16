@@ -37,20 +37,30 @@ multi-engine.
 
 The choice isn't universal. It's per-engine, per-query.
 
-**On-disk calibration addendum (2026-08-11):** 60s benchmarks on real Pebble
-and bbolt databases plus the memory engine (see `metaengine/layout_scoring.go`)
-show the per-priority split on KV/LSM is the OPPOSITE of the naive "KV always
-embeds" reading of the table above:
+**On-disk calibration addendum (2026-08-11, re-measured 2026-08-16):**
+benchmarks on real Pebble and bbolt databases plus the memory engine (see
+`metaengine/layout_scoring.go`) show the per-priority split on KV/LSM is the
+OPPOSITE of the naive "KV always embeds" reading of the table above. The
+2026-08-16 re-measurement fixed two bench defects (the memory embed-write grew
+values unboundedly; the disk embed-write's typed assertion never matched, so
+the mutation silently no-oped) and switched to median-of-10 exclusive runs:
 
-| Priority     | Winner on KV/LSM | Measured ratios (normalize ÷ embed)              |
-| ------------ | ---------------- | ------------------------------------------------ |
-| ReadSpeed    | **Embed**        | KV read 1.8 vs 0.5; LSM read 1.45 vs 0.74        |
-| WriteSpeed   | **Normalize**    | KV write 0.48 vs 1.0; LSM write 0.75 vs 1.10     |
-| StorageSpace | **Normalize**    | KV storage 0.63 vs 1.3; LSM storage 0.80 vs 1.15 |
+| Priority     | Winner on KV/LSM | Measured ratios (normalize ÷ embed)                            |
+| ------------ | ---------------- | -------------------------------------------------------------- |
+| ReadSpeed    | **Embed**        | KV read 1.8 vs 0.5; LSM read 1.67 (floor-pinned) vs 0.74       |
+| WriteSpeed   | **Normalize**    | KV write 0.84 vs 1.0; LSM write 0.62 vs 1.10                   |
+| StorageSpace | **Normalize**    | KV storage 0.63 vs 1.3 (JSON model); LSM storage 0.98 vs 1.15 |
 
 Embedding's single-key read advantage survives measurement; its assumed write
 and storage advantage does not. Normalized child inserts are O(1) with no
 read-modify-write, and embedding duplicates the aggregate across projections.
+
+On LSM the storage gap is much narrower than the JSON size model claimed
+(real Pebble/bbolt bytes: normalize ÷ embed = 0.89 / 0.82, geomean 0.86): every
+multimap child carries a ~41-byte seq-suffixed key, which eats most of the
+deduplication saving. The LSM read constant is pinned at the lever-preserving
+floor (measured 1.59; honest 1.18 would flip Balanced/ReadSpeed to Normalize) —
+deliberate 2026-08-11 tradeoff, documented in `layout_scoring.go`.
 
 **Row/Columnar calibration addendum (2026-08-15):** benchmarks on file-backed
 SQLite, Postgres 16, MySQL (QEMU), and DuckDB (60s confirmation run) measured

@@ -3,10 +3,17 @@
 > Perf follow-up to the 2026-08-15 `JournalReadFrom` positional-contract fix.
 > Correctness is now guaranteed everywhere; this design removes the remaining
 > **O(offset) per page** cost on SQL engines and the **cursor-reconstruction
-> scans** in the `system` adapters. Design-only — no code written for this
-> proposal beyond the referenced current-state facts.
+> scans** in the `system` adapters.
 >
-> **Status:** PROPOSED (TODO_LIST "Seq-carrying journal reads (perf follow-up)").
+> **Status:** IMPLEMENTED (2026-08-16) — all rollout steps §5.1–§5.5 complete.
+> 8 engines implement `SeqSeekableStreamLog` (memory, sqlite, pg, mysql,
+> duckdb, pebble, bbolt, badger; turso inherits via sqliteengine; dgraph/iroh
+> intentionally out per §7). `enginetest.RunSeqSeekableStreamLogTest`
+> conformance gates each engine; adapters resume on true tokens (§3).
+> Measured per §5.5 (sqlite, 100k-entry drain, page 500, benchstat):
+> position 761.8 ms ±17% → token 106.8 ms ±20% = **7.1x** — see
+> `docs/BENCHMARKS.md`. DuckDB SEQUENCE risk (§7) resolved by its passing
+> conformance test.
 > **Date:** 2026-08-16.
 
 ---

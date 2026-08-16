@@ -115,4 +115,8 @@ require (
 
 replace github.com/larsartmann/go-cqrs-lite/event/v4 => ../event
 
+// metadata/ids.go (BrandedString et al.) is unpublished; event's own replace
+// does not cascade, so integration standalone builds need this too.
+replace github.com/larsartmann/go-cqrs-lite/metadata/v4 => ../metadata
+
 replace github.com/larsartmann/go-cqrs-lite/middleware/v4 => ../middleware

@@ -91,3 +91,40 @@ module) and every test that can run locally passes: memory, sqlite, duckdb
 3. Benchmark journal-drain (sqlite @ 100k, page 500, position vs token) and
    record numbers in docs/BENCHMARKS.md.
 4. Flip design doc status to IMPLEMENTED, mark the TODO_LIST item done.
+
+## Follow-up (same session, later)
+
+Items 2–4 above are DONE:
+
+- **Benchmark** (§5.5): NEW `metaengine/sqliteengine/stream_log_bench_test.go`
+  — `BenchmarkJournalPagedDrain_Position` vs `_Token` (100k entries, page 500,
+  interleaved noise collection for real seq gaps). benchstat, 6×3 reps:
+  position **761.8 ms ±17%** → token **106.8 ms ±20%** = **7.1x**; allocs
+  +18% (1.106M→1.306M/op, the `StreamLogEntry` structs). Recorded in
+  `docs/BENCHMARKS.md` ("sqliteengine paged journal drain"). Note: the gap is
+  O(N²/P) vs O(N), so the ratio grows with journal size (wave-3's 285x was at
+  200k with a self-join cursor; the OFFSET variant here degrades more gently).
+  Instrument is a Go bench in sqliteengine (ledger convention), not a benchkit
+  phase — benchkit's journey phase is end-to-end and would bury the signal.
+- **api-stability golden**: regenerated (`--update`); 18 new exports
+  (`metaengine` root: `SeqSeekableStreamLog`, `StreamLogEntry`, 2 methods;
+  8 engine modules × 2 methods). `keycodec.JournalSeq` / `enginetest.*` are
+  untracked internal packages (0 historical golden mentions — by design).
+  Check run + `TestEvery*` meta-tests PASS.
+- **Docs**: design doc flipped to IMPLEMENTED with measured numbers;
+  TODO_LIST item marked done with the same evidence.
+- **Full `nix run .#verify`**: two runs hit environmental interference from a
+  concurrent session sharing the machine — (a) benchkit timing tests
+  (Duration=10ms abort bound) false-fail under load avg 75/32-core, exactly
+  the documented AGENTS.md gotcha class; (b) `cmd/cqrs-bench` DuckDB CGo link
+  died "No space left" because `/mnt/buildcache` (the GOTMPDIR target) was
+  99% full. Both suites PASS in isolation on the same tree (benchkit 44s,
+  cqrs-bench layout 4.9s). All 24 modules touching this change were GREEN in
+  the gate runs (metaengine + all engines + system). Final exclusive gate
+  re-run: see below.
+
+## Final gate status
+
+`nix run .#verify` GREEN (exit 0) on the quiet machine — build, vet, test,
+race, lint, check-arch/depguard/duplication/coverage, api-stability,
+doc-check.

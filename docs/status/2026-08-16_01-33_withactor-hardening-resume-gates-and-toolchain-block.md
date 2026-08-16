@@ -161,7 +161,7 @@ this session's runs (it did via module tests; keep as regression canary).~~ done
 
 ~~26. Consider pinning `.go-version` file in go-cqrs-lite to 1.26.6 for non-nix users.~~ done at `ea8fa5072` (`.go-version` added)
 
-27. Document the genproto split-pin in integration/go.mod with a comment (why it's required).
+~~27. Document the genproto split-pin in integration/go.mod with a comment (why it's required).~~ done — why-comment added above the pin + `replace metadata/v4 => ../metadata` restored (ids.go `BrandedString` unpublished; event's replace doesn't cascade — standalone build GREEN again)
 ~~28. Consider extracting the actor-propagation e2e pattern into `example/` (optional, YAGNI-check).~~ Won't implement — YAGNI; the e2e pattern is documented in recipes.md §2.21
 
 ~~29. Update `CHANGELOG.md` [Unreleased] with the WithActor hardening entries if project

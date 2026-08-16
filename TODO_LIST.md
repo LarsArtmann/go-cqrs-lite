@@ -289,18 +289,22 @@ and is **never** duplicated here.
 > Follow-ups below harvested from
 > `docs/status/2026-08-15_22-04_metaengine-followup-closeout.md` §f.
 
-- [ ] **Seq-carrying journal reads (perf follow-up)** — the OFFSET-based
-      positional skip scans past skipped index rows (O(offset) per page);
-      true-seq resumption (`JournalReadAllWithSeq` or `StreamLogEntry{Seq,
-      Value}`, adapters resume on engine seqs) would make it O(log n) via
-      index seek. Correctness is now guaranteed; this is purely a
-      large-journal performance item.
-      **Design DONE 2026-08-16** — see
-      [`docs/planning/SEQ-CARRYING-JOURNAL-READS.md`](docs/planning/SEQ-CARRYING-JOURNAL-READS.md)
-      (`SeqSeekableStreamLog` capability + `StreamLogEntry{Seq,Value}`,
-      per-engine token table, adapter integration, rollout, risks).
-      Implementation remains open (Effort M).
-      _(Effort: M)_
+- [x] **Seq-carrying journal reads (perf follow-up)** — DONE 2026-08-16:
+      `metaengine.SeqSeekableStreamLog` capability
+      (`JournalReadAllWithSeq`/`JournalReadFromSeq`, `StreamLogEntry{Seq,Value}`)
+      implemented by 8 engines (memory, sqlite, pg, mysql, duckdb, pebble,
+      bbolt, badger; turso inherits via sqliteengine; dgraph/iroh intentionally
+      out per design §7). Resume is a pure `collection+seq` index seek —
+      O(log n) per page instead of O(offset) — and gap-tolerant by
+      construction. `enginetest.RunSeqSeekableStreamLogTest` conformance gates
+      every engine; memory gap-tolerance test covers journal-entry deletion.
+      `system` EventAdapter + AdapterCore resume on true engine tokens
+      (zero-cursor reads skip journal scanning entirely; cursor resolution
+      paged 512/batch). Measured (sqlite, 100k-entry drain, page 500,
+      benchstat): **761.8 ms ±17% → 106.8 ms ±20% = 7.1x** —
+      [ledger](docs/BENCHMARKS.md). Design +
+      implementation: [`docs/planning/SEQ-CARRYING-JOURNAL-READS.md`](docs/planning/SEQ-CARRYING-JOURNAL-READS.md)
+      (IMPLEMENTED).
 - [x] **Engine capability conformance test** — DONE 2026-08-16 (F60 +
       Doctor wiring): `metaengine.CapabilityAudit` (root package) enforces
       the three rules (over-declaration, under-declaration, Degraded ⊆
