@@ -13,6 +13,84 @@ and is **never** duplicated here.
 
 ---
 
+## Performance — 2026-08-16 audit backlog 🔥
+
+> From the RAM/cache-line + IO audit session
+> ([status](status/2026-08-16_03-10_perf-audit-cache-line-sql-batching-deserialize-wins.md),
+> [Pareto plan](planning/2026-08-16_03-18_PERF-PARETO-SAFETY-FIRST-EXECUTION.md)).
+> Shipped: workloadMeter cache-line pad (−46..51% contended ops), dialect-aware SQL
+> batching (99→3276 rows on PG/MySQL/DuckDB; PG integration GREEN), pebble+bbolt
+> deserialize JSON round-trip elimination (−46% ns / −53% allocs) — commits
+> `cdc525fd5` + `a298ea388`.
+
+- [ ] 🔥 **MySQL/MariaDB byte guard for multi-VALUES batches** — the 33x batch
+      size can exceed default `max_allowed_packet` (16MB) with realistic
+      payloads (~5KB × 3276 ≈ 16MB). Add estimated-bytes chunk cap (~8MB),
+      unit tests with oversized payloads, and verify on
+      `#integration-mysql-vm`. MUST land before any tag.
+      _(Effort: M)_
+- [ ] **`MaxParametersForDialect` unit test** — table test SQLite→999 /
+      PG→32767 / unknown→999 (shipped without one).
+      _(Effort: XS)_
+- [ ] **DuckDB verification of larger batch chunks** (view BatchSet now 32767).
+      _(Effort: M)_
+- [ ] **Session verification gap** — `#verify-fast` + `#check-coverage` never
+      run end-to-end after the perf session (component gates only).
+      _(Effort: M)_
+- [ ] **Projectionhost live-checkpoint batching** — checkpoint saved per live
+      event (worker_drain.go:205); add opt-in `WithCheckpointInterval`/N-batch
+      flush (default unchanged), tests incl. crash-replay window.
+      _(Effort: M)_
+- [ ] **bbolt opt-in `db.Batch` group commit path** — zero Batch usage
+      repo-wide; document callback-retry caveat.
+      _(Effort: M)_
+- [ ] **PG `COPY FROM` bulk path** for stream-log replay/backfill (pgx via
+      database/sql today; INSERT stays default). Bench COPY vs multi-VALUES.
+      _(Effort: L)_
+- [ ] **Pebble tuning knobs** — expose MemTableSize/Cache/WALBytesPerSync/
+      Compression (options.go sets only bloom + 4 compactions; defaults
+      unchanged).
+      _(Effort: M)_
+- [ ] **SQLite durability tier when WAL off** — preset.go:243 applies the tier
+      PRAGMA only `if cfg.WAL`; non-WAL Relaxed silently FULL-fsyncs
+      (bugfix-class).
+      _(Effort: S)_
+- [ ] [BLOCKED] **Durability tier→per-write-sync mapping** (storage/pebble
+      hardcodes `pebble.Sync`; metaengine engines no NoSync path) — real win
+      (fsync per append) but a behavior change for existing Normal-tier
+      consumers. AWAITS USER DECISION (status §g Q3).
+      _(Effort: M)_
+- [ ] **Reconstruct payload adopt-variant** — `NewEvent` re-clones the
+      already-fresh payload on every store read (event_construct.go:53);
+      adopt-semantics internal path first.
+      _(Effort: M)_
+- [ ] **Bound `idempotencyTracker`** — unbounded sync.Map in metaengine
+      ApplyIdempotent (store_collaborators.go:40); slow leak for long-lived
+      at-least-once stores.
+      _(Effort: S)_
+- [ ] **Envelope first-byte sniff in `UnwrapDecode`** — full JSON parse per
+      blind-store read just to detect codec (go-codec, external repo).
+      _(Effort: M)_
+- [ ] **bbolt deserialize benchmark** — bbolt win extrapolated from pebble
+      (identical shape); make it measured.
+      _(Effort: XS)_
+- [ ] **Measure-then-pad cache-line candidates** — worker counters, multiSeqCounter,
+      SSEReplay.seq @-cpu=16,32; pad ONLY if contended >10% (worker counters
+      analyzed single-writer: padding would NOT pay — keep as documented
+      decision).
+      _(Effort: S)_
+- [ ] **Perf ledger** — `docs/BENCHMARKS.md` (path→benchmark→baseline) so wins
+      can't silently regress; benchstat baselines for the 3 new benchmarks.
+      _(Effort: S)_
+- [ ] **Fix ignored `MarshalMetadataJSON` error** —
+      system/adapter_event_serial.go:31 `metaJSON, _ :=`.
+      _(Effort: XS)_
+- [ ] **ScanSlice `RowCount()` pre-size** (fixed cap 64 today) + Custom map
+      size hints.
+      _(Effort: S)_
+
+---
+
 ## Release / Tagging 🔥
 
 > Blocked on user authorization (never tag/push without explicit instruction).
