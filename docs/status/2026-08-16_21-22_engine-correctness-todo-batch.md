@@ -1,5 +1,47 @@
 # Status Report — 2026-08-16 21:22 — Engine Correctness TODO Batch (6/10 shipped, 1 mid-flight)
 
+> **COMPLETION ADDENDUM (2026-08-16 ~22:30): the batch is now 9/10 done.**
+> Items 1-9 shipped and verified; item 10 (nspawn) remains blocked on root.
+>
+> - **adttest suffix landed + twin bug fixed** — `Scenarios()` derives a per-RUN
+>   token (`_<r><unix-nano>`); all 17 collection literals scoped. Verified from a
+>   CLEAN server (recreated datadir): mysqlengine `-count=3` GREEN, DB shows only
+>   suffixed collections with exact expected state per run. Stale test renamed to
+>   `TestScenarios_AllADTs` (count-neutral) + the 4 missing scenario names added
+>   to its coverage list.
+> - **Item 2 shipped — MariaDB generated columns** (`mysqlengine/layout.go`):
+>   VIRTUAL TEXT generated column per field (metadata-only ALTER — no table
+>   rebuild; same mechanics as MySQL's hidden functional-index columns) +
+>   composite `(collection, gc(N))` prefix index (1785-byte key, full-value
+>   recheck — no truncation semantics). **Empirical discovery:** MariaDB 11.4
+>   does NOT substitute generated columns into `JSON_UNQUOTE(JSON_EXTRACT(...))`
+>   predicates (EXPLAIN `access_type: ALL` with the index listed in
+>   possible_keys) — so `filterExpr` rewrites pushdown filters to the gc column
+>   for laid-out fields; EXPLAIN then reports `ref` access on the composite
+>   index. Integration test `TestMariaDBApplyLayout_GeneratedColumnFilter` pins
+>   DDL + index usage + missing-field/long-value semantics + idempotency.
+>   Answering open question 2: VIRTUAL dissolves the ALTER-risk concern —
+>   in-place is safe and is what shipped.
+> - **Items 8+9 shipped — benches** (`graph_bench_test.go`, `sort_bench_test.go`):
+>   crossover tables recorded in `METAENGINE-LIVE-LATENCY-MODEL.md` §9. Graph:
+>   iterative wins depth 1 (2-4x), parity depth 2, CTE wins depth ≥3 (up to 6x),
+>   size-independent, identical shape on MariaDB 11.4 + MySQL 8.4 (Docker).
+>   Sort: dual-key +26% vs single-expression on both servers; MySQL JSON-typed
+>   arrow 2.5x faster than MariaDB dual-key. New TODO: depth-1 graph
+>   short-circuit (XS, measured 2-4x win).
+> - **`stack/mysql` suite GREEN `-count=3`** against the userspace MariaDB
+>   (nspawn substitute; needed `GRANT ON `cqrs_%`.*` for derived multidb DBs).
+>   Found + fixed a rerun-isolation bug: `createMySQLDB` now DROPs derived
+>   databases before CREATE (testcontainers always fresh, shared servers were not).
+> - **All wrap-up gates:** api-stability golden regenerated; `nix fmt` + doc-check
+>   GREEN (910 refs); duckdbengine pushdown (CGo) 8/8 GREEN; metaengine core
+>   tests GREEN; mysqlengine full suite `-count=2` GREEN.
+> - **Ops lessons recorded:** `/dev/tcp` redirections silently fail in the tool
+>   shell (mvdan/sh) → false "server down" readings; use `mysqladmin ping`.
+>   `kill` is not a builtin here → `/run/current-system/sw/bin/kill`. A live
+>   mysqld whose datadir was trashed keeps serving from unlinked inodes —
+>   `pgrep -a mysqld` + `@@datadir`-vs-start-time before concluding server state.
+
 Scope: the 10-item engine-correctness TODO batch from `paste_1.txt` (mysqlengine upsert audit,
 MariaDB functional indexes, enginetest per-run suffixes, adttest graph/vector coverage,
 convergence order-tolerance, quic ordering docs, 3 benches, nspawn integration).

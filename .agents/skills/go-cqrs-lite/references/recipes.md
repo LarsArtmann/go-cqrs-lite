@@ -12,6 +12,7 @@
 > - [§2.7 Encrypted Payloads](#27-encrypted-payloads-encryption)
 > - [§2.8 Observability & Middleware](#28-observability--middleware-otel--middleware)
 > - [§2.9 Auto-Documentation](#29-auto-documentation-catalog)
+> - [§2.12 Capability Diagnostics](#212-capability-diagnostics--declared-vs-implemented-audit-metaengine)
 > - [§2.21 Actor Propagation — "Who Did It" Audit Trail](#221-actor-propagation--who-did-it-audit-trail-id--command--middleware--event)
 
 ### 2.0 Bundle Presets — one-call infrastructure wiring
@@ -619,7 +620,38 @@ Key types: `LatencyTracker`, `Prober`, `TransactMeasurer`, `StatSink`,
 `ProbeHandle`, `EngineStats`, `DefaultRoutingHysteresis`, `DefaultRoutingMinDelta`,
 `WithRoutingHysteresis`, `WithRoutingMinDelta`.
 
-### 2.12 SQL-Backed Idempotency (idempotency/sqlstore)
+### 2.12 Capability Diagnostics — declared-vs-implemented audit (metaengine)
+
+`CapabilityAudit` verifies an engine's `Profile()` declarations against its
+actual method surface, catching lying engines (declared native but no backend;
+backend implemented but undeclared → the planner cannot route to it):
+
+```go
+// Audit one engine (rules: over-declaration, under-declaration, degraded
+// consistency). Gaps documents KNOWN exceptions with a reason — they render
+// as "KNOWN GAP" instead of violations.
+res := metaengine.CapabilityAudit("postgres", pg, metaengine.CapabilityGaps{
+    metaengine.ADTStreamLog: "routed structurally, declaration not required",
+})
+for _, row := range res.Table {
+    fmt.Println(row) // ADT | declared | implemented | verdict
+}
+if len(res.Violations) > 0 {
+    return errors.New("engine declarations are lying") // surfaced, not silent
+}
+
+// Runtime view: Doctor() renders the same audit per engine in its
+// "--- Capability ---" section for every registered engine.
+fmt.Println(store.Doctor(ctx))
+```
+
+As a test gate, `metaengine/adttest.RunCapabilityConformance` runs the audit
+for every engine in the conformance matrix — engines that drift from their
+declarations fail CI, not production routing.
+
+Key types: `CapabilityAudit`, `CapabilityAuditResult`, `CapabilityGaps`.
+
+### 2.13 SQL-Backed Idempotency (idempotency/sqlstore)
 
 Durable dedup for at-least-once delivery, surviving process restarts.
 
