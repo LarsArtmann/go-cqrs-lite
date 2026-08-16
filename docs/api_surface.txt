@@ -1679,6 +1679,8 @@ metaengine/func WithColumnarLayout
 metaengine/func WithCursor
 metaengine/func WithCursorString
 metaengine/func WithDebug
+metaengine/func WithDemoteForce
+metaengine/func WithDemoteRole
 metaengine/func WithDryRun
 metaengine/func WithEngineRole
 metaengine/func WithEventLog
@@ -1914,6 +1916,7 @@ metaengine/method CounterGet
 metaengine/method CounterIncrement
 metaengine/method Cursor
 metaengine/method DDL
+metaengine/method DemoteEngine
 metaengine/method Distinct
 metaengine/method Do
 metaengine/method Doctor
@@ -2435,6 +2438,7 @@ metaengine/type AggregateFn
 metaengine/type BackfillOption
 metaengine/type Complexity
 metaengine/type Delta
+metaengine/type DemoteOption
 metaengine/type Diagnostics
 metaengine/type DriverFactory
 metaengine/type FilterOp
