@@ -98,6 +98,15 @@ func createMySQLDB(t *testing.T, adminDSN, dbDSN string) {
 	}
 	defer func() { _ = sqlDB.Close() }()
 
+	// Drop first so reruns against a shared server (MYSQL_TEST_DSN pointing
+	// at a long-lived instance) start from empty derived databases — the
+	// contract suite asserts absolute row counts. Testcontainers databases
+	// are fresh anyway, so the DROP is a no-op there.
+	if _, err := sqlDB.ExecContext(context.Background(),
+		fmt.Sprintf("DROP DATABASE IF EXISTS `%s`", dbName)); err != nil {
+		t.Fatalf("drop database %s: %v", dbName, err)
+	}
+
 	_, err = sqlDB.ExecContext(context.Background(),
 		fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`", dbName))
 	if err != nil {

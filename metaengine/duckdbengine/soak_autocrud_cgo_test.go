@@ -21,6 +21,10 @@ import (
 //
 // NOT parallel: RunAutoCRUDSoak asserts on the process-global heap.
 func TestSoak_AutoCRUD_DuckDB(t *testing.T) {
+	if testing.Short() {
+		t.Skip("DuckDB soak: skipped in -short mode (own budget; run via #test/#test-all-backends)")
+	}
+
 	if os.Getenv("SOAK_SKIP_DUCKDB") == "1" {
 		t.Skip("DuckDB soak: skipped by SOAK_SKIP_DUCKDB=1")
 	}

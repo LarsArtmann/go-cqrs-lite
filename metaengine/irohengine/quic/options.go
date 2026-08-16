@@ -67,9 +67,9 @@ func WithBindAddr(addr string) Option {
 // given peer in FIRST-IN-FIRST-OUT order. Three mechanisms combine:
 //   - QUIC guarantees byte order within a single stream.
 //   - The sender serializes the write-frame → read-ack cycle per peer under
-// 	 pc.streamMu, so op N is fully acked before op N+1 is written.
+//     pc.streamMu, so op N is fully acked before op N+1 is written.
 //   - The receiver (handlePooledStream) processes frames strictly sequentially
-// 	 in one loop — decode and dispatch complete before the next frame is read.
+//     in one loop — decode and dispatch complete before the next frame is read.
 //
 // Scope: ordering is per (sender, peer) pair. Ops from DIFFERENT peers to the
 // same receiver interleave arbitrarily (separate streams), and relayed ops are
