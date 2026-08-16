@@ -539,6 +539,14 @@ store, _ := metaengine.Plan(
 result, _ := store.Execute(FindTaskInput{ID: "task-1"})
 ```
 
+Cost-model hints: `metaengine.Volume(n)` sets the expected item count for
+latency estimates — without it the planner assumes 1000 and emits an INFO
+diagnostic ("volume not set") so the default is visible. Filtered scan queries
+report estimated selectivity (`QueryConfig.FilterCount()` counts declared
+filters; 0.1^n, clamped at 0.001) as an INFO diagnostic — selectivity is NOT
+applied to routing cost, and engines with index pushdown
+(`FilterOnField`) avoid the scan entirely.
+
 ### 2.11 Live Latency Measurement — Dynamic RTT + Auto-Replan (metaengine)
 
 `NetworkRTT` is a runtime observation, not a compile-time constant. `ProbeEngine`

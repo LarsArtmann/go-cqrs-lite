@@ -6,6 +6,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — StreamRef validation, planner diagnostics, lock-free ID generation
+
+- `record`: `StreamRef.Validate()` + `ErrInvalidStreamRef` — a missing `/`
+  or empty entity ID is invalid; empty streamType stays legal (command/query
+  asrecord). `Split()` aligned with `Validate()`: a leading slash now returns
+  `("", entityID)` instead of `("", "")`; `NewStreamRef`→`Split` round-trip
+  tested. Breaking `(StreamRef, error)` constructor queued for v5.
+- `metaengine`: volume-not-set INFO diagnostic (the 1000-item default is now
+  visible, not silent); filter-selectivity INFO diagnostic on scan reads —
+  `QueryConfig.FilterCount()` counts declared filters, selectivity 0.1^n
+  clamped at 0.001, deliberately NOT applied to routing cost (applying it
+  flipped engine ranking and broke cursor pagination). Regression-locked by
+  `cost_unit_test.go` + `cost_diagnostics_test.go`.
+- `id`: lock-free ULID generation (`id/entropy.go`) replacing the global
+  mutex + shared monotonic reader. Per-millisecond 48-bit crypto prefix +
+  32-bit global atomic counter: same-ms IDs are strictly ordered across ALL
+  goroutines, uniqueness holds under any concurrency, backwards clock steps
+  pin the millisecond (IDs never regress). Parallel `id.New` is 10.6x faster
+  (155→15 ns/op, 0 allocs); race-clean.
+
+### Fixed — cost model + flaky tests
+
+- `metaengine`: graph traversal cost is `branching^depth` (100 with the
+  defaults) — was `branching*depth` (20). The selectivity diagnostic gates on
+  the effective READ complexity (`rankedEngine.readComplexity`), so Map-ADT
+  filtered scans (the common case) now emit it.
+- `system`: `TestSystem_ResetProjection_RestartAndReplay` no longer overlaps
+  the parallel health-check test; projection-wait budget 5s→15s, ctx
+  20s→30s (load flake on busy machines).
+
+### Security — 2026-08-16 correctness sweep
+
+- `SECURITY.md`: supported-version table updated v3→v4; new "Supply-Chain
+  Notes" section disclosing the `git.coopcloud.tech/decentral1se/iroh-go`
+  fork pin (opt-in, isolated module, off the module proxy).
+- `.github/workflows/release.yml`: per-module govulncheck failures now
+  propagate — previously swallowed via `|| echo "WARN"` with stderr dropped.
+- Pre-commit: api-stability golden verification enforced (canonical
+  `scripts/pre-commit.sh` + appended block in the installed BuildFlow hook;
+  BuildFlow reinstall wipes the block — see AGENTS.md).
+
 ### Corrected — 2026-08-10/11 tombstone sections described work that was reverted before release
 
 > The 2026-08-10/11 sections below — "Fixed — ADR-0114 tombstone migration

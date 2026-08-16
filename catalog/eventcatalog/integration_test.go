@@ -115,11 +115,11 @@ func TestIntegration_FullEventCatalogExport(t *testing.T) {
 	// Verify complete directory structure
 	expectedFiles := []string{
 		"services/order-svc/index.mdx",
-		"services/order-svc/commands/CreateOrder/index.mdx",
-		"services/order-svc/events/OrderCreated/index.mdx",
+		"commands/CreateOrder/index.mdx",
+		"events/OrderCreated/index.mdx",
 		"domains/orders/index.mdx",
 		"entities/order/index.mdx",
-		"data/order-db/index.mdx",
+		"containers/order-db/index.mdx",
 		"data-products/order-metrics/index.mdx",
 		"agents/order-bot/index.mdx",
 		"channels/order-channel/index.mdx",
@@ -208,7 +208,7 @@ func TestIntegration_RestOperationsExport(t *testing.T) {
 	}
 
 	// Verify command MDX has operation and response frontmatter
-	cmdPath := filepath.Join(tmpDir, "services/user-svc/commands/CreateUser/index.mdx")
+	cmdPath := filepath.Join(tmpDir, "commands/CreateUser/index.mdx")
 	cmdData, err := os.ReadFile(cmdPath)
 	if err != nil {
 		t.Fatalf("read command MDX: %v", err)
@@ -232,7 +232,7 @@ func TestIntegration_RestOperationsExport(t *testing.T) {
 	}
 
 	// Verify query MDX has GET operation
-	qryPath := filepath.Join(tmpDir, "services/user-svc/queries/GetUser/index.mdx")
+	qryPath := filepath.Join(tmpDir, "queries/GetUser/index.mdx")
 	qryData, err := os.ReadFile(qryPath)
 	if err != nil {
 		t.Fatalf("read query MDX: %v", err)

@@ -476,8 +476,8 @@ func TestExporter_Export_FullIntegration(t *testing.T) {
 
 	expectedFiles := []string{
 		"services/order-svc/index.mdx",
-		"services/order-svc/commands/CreateOrder/index.mdx",
-		"services/order-svc/events/OrderCreated/index.mdx",
+		"commands/CreateOrder/index.mdx",
+		"events/OrderCreated/index.mdx",
 		"domains/orders/index.mdx",
 		"channels/order-events/index.mdx",
 		"data/orders-db/index.mdx",

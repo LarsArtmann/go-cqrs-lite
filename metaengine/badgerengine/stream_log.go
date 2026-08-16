@@ -174,13 +174,14 @@ func (e *badgerEngine) journalEntries(
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
+		//art-dupl:accept dep-isolated engines; same StreamLog tail as bboltengine
+		if err != nil {
+			return nil, err
+		}
 
-	if result == nil {
-		result = []metaengine.StreamLogEntry{}
-	}
+		if result == nil {
+			result = []metaengine.StreamLogEntry{}
+		}
 
 	return result, nil
 }

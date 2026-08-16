@@ -657,17 +657,40 @@ and is **never** duplicated here.
       TypedQueryStore hardcoded JSON decode (`query/typed.go`); ghost
       `event.ErrBinaryNotFound` (document or delete).
       _(Effort: M)_
-- [ ] **Planner cost model** — graph cost `branching^depth`; volume without
+- [x] **Planner cost model** — graph cost `branching^depth`; volume without
       silent default; filter selectivity.
+      DONE 2026-08-16: `metaengine/cost.go` graph cost is
+      `math.Pow(10, 2)`=100 (was `10*2`=20); volume default 1000 surfaced via
+      INFO diagnostic ("volume not set"); `filterSelectivity()` (0.1^n,
+      clamp 0.001) emits an INFO diagnostic gated on the effective READ
+      complexity (`rankedEngine.readComplexity`) — deliberately NOT applied to
+      routing cost (applying it flipped engine ranking and broke cursor
+      pagination; reverted in `157ed48e1`). Regression-locked by
+      `cost_unit_test.go` + `cost_diagnostics_test.go`.
       _(Effort: M)_
-- [ ] **Strong types** — `record.NewStreamRef` validation (+ `Split()` on
+- [x] **Strong types** — `record.NewStreamRef` validation (+ `Split()` on
       `/`); `id` global-mutex ULID entropy (sharded).
+      DONE 2026-08-16: `StreamRef.Validate()` + `ErrInvalidStreamRef` added
+      (non-breaking; empty streamType legal for command/query asrecord);
+      `Split()` aligned with `Validate()` on leading-slash + round-trip
+      tested; breaking `(StreamRef, error)` constructor queued for v5 (Phase
+      8 item below). ULID entropy: global mutex REPLACED by lock-free
+      millisecond-epoch generator (`id/entropy.go`): 48-bit crypto prefix per
+      ms + 32-bit global atomic counter — same-ms IDs strictly ordered across
+      ALL goroutines, 10.6x faster under contention (155→15 ns/op parallel,
+      0 allocs), race-clean 3x.
       _(Effort: M)_
-- [ ] **Security hygiene** — SECURITY.md v3 table stale; govulncheck failures
+- [x] **Security hygiene** — SECURITY.md v3 table stale; govulncheck failures
       swallowed in release.yml; remove iroh fork pin (`git.coopcloud.tech`
       supply-chain flag).
+      DONE 2026-08-16: SECURITY.md table v3→v4 + "Supply-Chain Notes" section
+      disclosing the iroh fork; release.yml govulncheck failures now propagate
+      (no `|| echo WARN`, no stderr swallow). Fork pin kept as documented
+      opt-in risk — migration decision open (see status report
+      2026-08-16_17-39 §g). govulncheck baseline sweep still owed before next
+      release.
       _(Effort: S)_
-- [ ] **Serialize or re-budget the system projection-wait tests** —
+- [x] **Serialize or re-budget the system projection-wait tests** —
       `TestSystem_ResetProjection_RestartAndReplay` (tight 5s
       `waitForProjectionProcessed` budget) overlaps the `t.Parallel`-ed
       `TestSystem_HealthCheck_FailedProjection`; load-flaky on busy machines
@@ -677,12 +700,19 @@ and is **never** duplicated here.
       began closing self-opened `*sql.DB`; fixed by `5d66308c3` (file-backed
       `sqliteFileDSN`), verified green 3x. Evidence:
       `docs/status/2026-08-16_03-44_withactor-resume-gate-investigation-two-defects.md` §h.
+      DONE 2026-08-16: `t.Parallel()` removed from the replay test + wait
+      budget 5s→15s + ctx 20s→30s; verified 3x with `-race`.
       _(Effort: S)_
-- [ ] **Enforce api-stability golden regen mechanically** — three consecutive
+- [x] **Enforce api-stability golden regen mechanically** — three consecutive
       feature commits (`842741cab`, `313d14b02`, plus sqliteengine DSN/OwnDB)
       shipped new exports without regenerating `docs/api_surface.txt`; every
       fresh checkout of those revisions fails the gate. Add the checker as a
       pre-commit hook step (fast: ~1s GOWORK=off run) so the drift cannot land.
+      DONE 2026-08-16: canonical `scripts/pre-commit.sh` runs the checker with
+      `-tags "goexperiment.jsonv2"` and fails hard; the INSTALLED
+      `.git/hooks/pre-commit` (BuildFlow-generated) got an appended scoped
+      api-stability block. Caveat: BuildFlow owns the hook file — reinstall
+      wipes the block (AGENTS.md gotcha documented).
       _(Effort: S)_
 
 ---
@@ -717,6 +747,15 @@ and is **never** duplicated here.
       (interpolates column names/operators); `BuildWhereClauseChecked` is
       the validated replacement.
       _(Effort: XS)_
+- [ ] **Breaking `record.NewStreamRef` validation** — v4 kept the constructor
+      non-breaking and added `StreamRef.Validate()` + `ErrInvalidStreamRef`
+      (2026-08-16); `Split()` accepts the empty-streamType form that
+      command/query asrecord produces. At v5, change to
+      `NewStreamRef(streamType, entityID string) (StreamRef, error)` rejecting
+      an empty entityID at construction (empty streamType stays legal) and
+      migrate the call sites. Note: `id.NewStreamRef` is a separate,
+      unrelated function.
+      _(Effort: M)_
 - [ ] **Delete `transport/http` + `transport/grpc` modules** (ADR-0127) —
       delivery is `watermill/` + go-sse + cqrs-htmx. `example/taskmanager` is
       migrated (metaengine.ServeSSE on the task_views watcher); cqrs-lint F030
