@@ -204,7 +204,10 @@ func (s *Store) capabilityDoctorSection() string {
 }
 
 // degradedSubsetViolations enforces rule 3 plus the degraded-ADTs note.
-func degradedSubsetViolations(engineName string, profile EngineProfile) (violations, notes []string) {
+func degradedSubsetViolations(
+	engineName string,
+	profile EngineProfile,
+) (violations, notes []string) {
 	for adt := range profile.DegradedADTs {
 		if _, declared := profile.Supports[adt]; !declared {
 			violations = append(violations, fmt.Sprintf(
