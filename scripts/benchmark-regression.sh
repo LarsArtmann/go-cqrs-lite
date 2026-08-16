@@ -108,6 +108,14 @@ medians() {
 current_file=$(mktemp)
 trap 'rm -f "$current_file"' EXIT
 
+# Snapshot the baseline BEFORE --save can overwrite it — otherwise a
+# save+compare run compares current against itself and always passes.
+had_baseline=false
+if [[ -f "$BASELINE" ]] && [[ -n "$(medians "$BASELINE")" ]]; then
+	base_medians=$(medians "$BASELINE" | LC_ALL=C sort)
+	had_baseline=true
+fi
+
 if [[ -n "$CURRENT_INPUT" ]]; then
 	cp "$CURRENT_INPUT" "$current_file"
 else
@@ -120,54 +128,54 @@ else
 	) | tee "$current_file"
 fi
 
+compare_status=0
+if [[ "$had_baseline" == true ]]; then
+	cur_medians=$(medians "$current_file" | LC_ALL=C sort)
+
+	# Benchmarks that vanished or appeared are informational, never a failure.
+	comm -23 <(printf '%s\n' "$base_medians" | awk '{print $1}') \
+		<(printf '%s\n' "$cur_medians" | awk '{print $1}') |
+		grep '^.' | sed 's/^/  removed from current: /' || true
+	comm -13 <(printf '%s\n' "$base_medians" | awk '{print $1}') \
+		<(printf '%s\n' "$cur_medians" | awk '{print $1}') |
+		grep '^.' | sed 's/^/  new in current: /' || true
+
+	echo ""
+	echo "==> Comparing medians (threshold: ${THRESHOLD}%)"
+
+	LC_ALL=C join <(printf '%s\n' "$base_medians") <(printf '%s\n' "$cur_medians") |
+		awk -v t="$THRESHOLD" '{
+			name = $1
+			base = $2 + 0
+			cur = $4 + 0
+			if (base <= 0 || cur <= 0) next
+			pct = (cur - base) * 100 / base
+			if (pct > t) {
+				printf "REGRESSION  %-55s %12.1f → %12.1f ns/op  (+%.1f%%)\n", name, base, cur, pct
+				regressions++
+			} else if (pct < -5) {
+				improvements++
+			} else {
+				stable++
+			}
+		}
+		END {
+			printf "\nSummary: %d regression(s), %d improvement(s), %d stable\n", regressions + 0, improvements + 0, stable + 0
+			exit (regressions > 0) ? 1 : 0
+		}' || compare_status=$?
+else
+	echo "WARN: no parseable baseline at $BASELINE — skipping comparison (save-only run)."
+fi
+
+# --save runs AFTER the comparison and regardless of its outcome: re-baselining
+# after an intentional perf change must overwrite even a "regressed" baseline.
 if [[ -n "$SAVE" ]]; then
 	mkdir -p "$(dirname "$SAVE")"
 	cp "$current_file" "$SAVE"
 	echo "==> Current results saved to $SAVE"
 fi
 
-if [[ ! -f "$BASELINE" ]] || [[ -z "$(medians "$BASELINE")" ]]; then
-	echo "WARN: no parseable baseline at $BASELINE — skipping comparison (save-only run)."
-	exit 0
-fi
-
-base_medians=$(medians "$BASELINE" | LC_ALL=C sort)
-cur_medians=$(medians "$current_file" | LC_ALL=C sort)
-
-# Benchmarks that vanished or appeared are informational, never a failure.
-comm -23 <(printf '%s\n' "$base_medians" | awk '{print $1}') \
-	<(printf '%s\n' "$cur_medians" | awk '{print $1}') |
-	grep '^.' | sed 's/^/  removed from current: /' || true
-comm -13 <(printf '%s\n' "$base_medians" | awk '{print $1}') \
-	<(printf '%s\n' "$cur_medians" | awk '{print $1}') |
-	grep '^.' | sed 's/^/  new in current: /' || true
-
-echo ""
-echo "==> Comparing medians (threshold: ${THRESHOLD}%)"
-
-status=0
-LC_ALL=C join <(printf '%s\n' "$base_medians") <(printf '%s\n' "$cur_medians") |
-	awk -v t="$THRESHOLD" '{
-		name = $1
-		base = $2 + 0
-		cur = $4 + 0
-		if (base <= 0 || cur <= 0) next
-		pct = (cur - base) * 100 / base
-		if (pct > t) {
-			printf "REGRESSION  %-55s %12.1f → %12.1f ns/op  (+%.1f%%)\n", name, base, cur, pct
-			regressions++
-		} else if (pct < -5) {
-			improvements++
-		} else {
-			stable++
-		}
-	}
-	END {
-		printf "\nSummary: %d regression(s), %d improvement(s), %d stable\n", regressions + 0, improvements + 0, stable + 0
-		exit (regressions > 0) ? 1 : 0
-	}' || status=$?
-
-if [[ $status -ne 0 ]]; then
+if [[ $compare_status -ne 0 ]]; then
 	echo "FAIL: benchmark regression above ${THRESHOLD}% threshold"
 	exit 1
 fi

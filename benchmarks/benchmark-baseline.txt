@@ -1,0 +1,20 @@
+go: downloading github.com/mattn/go-sqlite3 v1.14.49
+go: downloading turso.tech/database/tursogo v0.7.2
+go: downloading github.com/tursodatabase/turso-go-platform-libs v0.7.2
+go: downloading github.com/ebitengine/purego v0.10.2
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/stack/bench/v4
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkBenchkitSuite_Memory-32    	      10	   2299950 ns/op	    291358 events/sec	         5.000 gc-cycles	         2.521 gc-percent	      8160 ns/cold-read-p99	    276351 ns/gc-max-pause	       150.0 ns/load-p50	      2500 ns/load-p99	       340.0 ns/raw-sink-p50	      3620 ns/raw-sink-p99	       680.0 ns/readall	      2399 ns/readfrom	       180.0 ns/write-p50	      2409 ns/write-p99	       600.0 projection-events	   1463619 raw_sink_events/sec	        16.67 tail-ratio	        13.38 write-tail-ratio	   12161 B/op	     167 allocs/op
+BenchmarkBenchkitSuite_Memory-32    	      10	   2245894 ns/op	    275455 events/sec	         5.000 gc-cycles	         1.800 gc-percent	     10300 ns/cold-read-p99	    138336 ns/gc-max-pause	       230.0 ns/load-p50	      3560 ns/load-p99	       360.0 ns/raw-sink-p50	      2360 ns/raw-sink-p99	      8970 ns/readall	      2970 ns/readfrom	       230.0 ns/write-p50	      2300 ns/write-p99	       600.0 projection-events	   1578487 raw_sink_events/sec	        15.48 tail-ratio	        10.00 write-tail-ratio	   12173 B/op	     171 allocs/op
+BenchmarkBenchkitSuite_Memory-32    	      10	   2163996 ns/op	    328630 events/sec	         5.000 gc-cycles	         1.774 gc-percent	      6660 ns/cold-read-p99	    108917 ns/gc-max-pause	       170.0 ns/load-p50	      6660 ns/load-p99	       290.0 ns/raw-sink-p50	      1050 ns/raw-sink-p99	      3160 ns/readall	      4770 ns/readfrom	       170.0 ns/write-p50	      1500 ns/write-p99	       600.0 projection-events	   1891568 raw_sink_events/sec	        39.18 tail-ratio	         8.824 write-tail-ratio	   12153 B/op	     167 allocs/op
+BenchmarkBenchkitSuite_Memory-32    	      10	   2111995 ns/op	    289610 events/sec	         5.000 gc-cycles	         1.429 gc-percent	      4900 ns/cold-read-p99	     93057 ns/gc-max-pause	       160.0 ns/load-p50	      1630 ns/load-p99	       310.0 ns/raw-sink-p50	      1310 ns/raw-sink-p99	      1500 ns/readall	      2050 ns/readfrom	       170.0 ns/write-p50	      2060 ns/write-p99	       600.0 projection-events	   1767034 raw_sink_events/sec	        10.19 tail-ratio	        12.12 write-tail-ratio	   12009 B/op	     164 allocs/op
+BenchmarkBenchkitSuite_Memory-32    	      10	   2190624 ns/op	    312851 events/sec	         5.000 gc-cycles	         1.594 gc-percent	      7630 ns/cold-read-p99	    149995 ns/gc-max-pause	       160.0 ns/load-p50	      1460 ns/load-p99	       190.0 ns/raw-sink-p50	       710.0 ns/raw-sink-p99	       679.0 ns/readall	      1120 ns/readfrom	       210.0 ns/write-p50	      2060 ns/write-p99	       600.0 projection-events	   2707327 raw_sink_events/sec	         9.125 tail-ratio	         9.810 write-tail-ratio	   12152 B/op	     170 allocs/op
+BenchmarkFullPipeline_Memory-32     	      10	     14492 ns/op	     69001 pipelines/sec	    5390 B/op	      54 allocs/op
+BenchmarkFullPipeline_Memory-32     	      10	      6640 ns/op	    150607 pipelines/sec	    4191 B/op	      34 allocs/op
+BenchmarkFullPipeline_Memory-32     	      10	      5210 ns/op	    191942 pipelines/sec	    4215 B/op	      34 allocs/op
+BenchmarkFullPipeline_Memory-32     	      10	      4092 ns/op	    244391 pipelines/sec	    4215 B/op	      34 allocs/op
+BenchmarkFullPipeline_Memory-32     	      10	      5847 ns/op	    171034 pipelines/sec	    4215 B/op	      34 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/stack/bench/v4	0.240s

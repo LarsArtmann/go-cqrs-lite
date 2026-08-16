@@ -33,9 +33,12 @@ engine, err := pebbleengine.NewPebbleEngine("")
 ## Backends
 
 MapBackend, ScanBackend, SetBackend, CounterBackend, MultimapBackend,
-LogBackend, and VectorBackend (degraded brute-force). Graph traversals use
-the multimap BFS fallback — declare a graph-capable engine alongside Pebble
-for O(degree^depth) traversal.
+LogBackend, StreamLogBackend, and VectorBackend (degraded brute-force).
+Search and Spatial are served via degraded brute-force scans. **Graph is
+unsupported** — Pebble implements no GraphBackend and its profile declares no
+graph ADT, so the planner will not route graph traversals here; declare a
+graph-capable engine (e.g. `pgengine`/`mysqlengine` via recursive CTE, or
+`dgraphengine`) alongside Pebble if your app needs graph queries.
 
 Plus RawValueReader and RawScanReader for zero-JSON-decode point lookups
 and filtered scans — eliminates the JSON decode tax on hot paths.
