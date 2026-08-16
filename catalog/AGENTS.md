@@ -54,6 +54,7 @@ fallbacks — keep both when adding pages.
 
 ## Budgets
 
-- `DEP_BUDGET[catalog]=4` and it is FULL: go-faster/yaml, go-error-family, templ,
-  templ-components. Any new production dependency needs an explicit budget review.
+- `DEP_BUDGET[catalog]=5` and it is FULL: go-faster/yaml, go-error-family,
+  go-snaps (via the cattest golden helpers), templ, templ-components. Any new
+  production dependency needs an explicit budget review.
 - test-only deps (go-snaps, ginkgo, gomega) don't count.

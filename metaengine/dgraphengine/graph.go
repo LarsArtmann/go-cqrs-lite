@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json/v2"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/dgraph-io/dgo/v240/protos/api"
 
@@ -16,6 +18,38 @@ import (
 // degradation. Edges are stored as uid→uid predicates with @reverse for
 // bidirectional traversal. GraphAddEdge adds both directions (matching the
 // memory engine's symmetric adjacency semantics).
+
+// doWithAbortRetry runs a mutation with retry on transaction abort. The
+// read-then-write upsert pattern (query + @if mutation) aborts when a
+// concurrent transaction commits first ("Transaction has been aborted.
+// Please retry") — retrying the whole request is Dgraph's documented
+// resolution and keeps parallel graph operations reliable.
+func (e *dgraphEngine) doWithAbortRetry(
+	ctx context.Context,
+	req *api.Request,
+) (*api.Response, error) {
+	var lastErr error
+
+	for attempt := range 3 {
+		resp, err := e.client.NewTxn().Do(ctx, req)
+		if err == nil {
+			return resp, nil
+		}
+
+		lastErr = err
+		if !strings.Contains(err.Error(), "aborted") {
+			return nil, err
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(time.Duration(attempt+1) * 10 * time.Millisecond):
+		}
+	}
+
+	return nil, lastErr
+}
 
 func (e *dgraphEngine) GraphAddEdge(
 	ctx context.Context,
@@ -57,7 +91,7 @@ func (e *dgraphEngine) GraphAddEdge(
 		{SetJson: toJSON, Cond: "@if(eq(len(to_node), 0))"},
 	}
 
-	if _, err := e.client.NewTxn().Do(ctx, req); err != nil {
+	if _, err := e.doWithAbortRetry(ctx, req); err != nil {
 		return fmt.Errorf("dgraphengine.GraphAddEdge: upsert nodes: %w", err)
 	}
 
@@ -71,7 +105,7 @@ func (e *dgraphEngine) GraphAddEdge(
 		{SetNquads: fmt.Appendf(nil, "uid(to_node) <%s> uid(from_node) .", pred)},
 	}
 
-	if _, err := e.client.NewTxn().Do(ctx, req2); err != nil {
+	if _, err := e.doWithAbortRetry(ctx, req2); err != nil {
 		return fmt.Errorf("dgraphengine.GraphAddEdge: add edges: %w", err)
 	}
 
@@ -104,7 +138,7 @@ func (e *dgraphEngine) GraphRemoveEdge(
 		{DelNquads: fmt.Appendf(nil, "uid(to_node) <%s> uid(from_node) .", pred)},
 	}
 
-	if _, err := e.client.NewTxn().Do(ctx, req); err != nil {
+	if _, err := e.doWithAbortRetry(ctx, req); err != nil {
 		return fmt.Errorf("dgraphengine.GraphRemoveEdge: %w", err)
 	}
 
