@@ -101,14 +101,6 @@ func estimateCost(
 		ops = n
 	}
 
-	// Apply filter selectivity: each filter reduces the rows touched.
-	// This only applies to scan-based complexities (O(N), O(NlogN)) where
-	// the engine must walk the collection. Point lookups and graph traversals
-	// are not discounted — they already target specific entries.
-	if filterCount > 0 && (complexity == ComplexityON || complexity == ComplexityONLogN) {
-		ops *= filterSelectivity(filterCount)
-	}
-
 	if nsPerOp <= 0 {
 		nsPerOp = defaultNsPerOp
 	}
@@ -130,6 +122,8 @@ func estimateCost(
 //
 // This is a rough first-order heuristic, not a calibrated statistics engine.
 // Real selectivity depends on data distribution and index availability.
+// Used only for diagnostics — not applied to the routing cost, since
+// selectivity discounts can flip engine ranking in unexpected ways.
 func filterSelectivity(filterCount int) float64 {
 	const perFilterSelectivity = 0.1
 	const minSelectivity = 0.001
