@@ -63,15 +63,13 @@ const defaultNsPerOp = 100.0
 // The volume represents the expected number of items in the projection.
 // If volume is zero or negative, a default of 1000 is assumed — the planner
 // also emits an INFO diagnostic so the assumption is visible, not silent.
-// filterCount is the number of declarative filters on the query; each filter
-// reduces the estimated rows touched via a selectivity discount.
 // nsPerOp is the calibrated per-operation cost for the engine being evaluated.
 // networkRTT is the fixed per-query network overhead (0 for in-process engines).
 // It is additive: total_latency = (ops × nsPerOp / 1e6) + networkRTT.
+// Filter selectivity is deliberately NOT applied here — see filterSelectivity.
 func estimateCost(
 	complexity Complexity,
 	volume int64,
-	filterCount int,
 	nsPerOp float64,
 	networkRTT time.Duration,
 ) CostEstimate {

@@ -1,8 +1,6 @@
 package id
 
 import (
-	"crypto/rand"
-	"sync"
 	"time"
 
 	cbid "github.com/larsartmann/go-branded-id"
@@ -18,28 +16,8 @@ import (
 // Reset, Get, Ptr, FromPtr, String, GoString, Format, etc.).
 type Of[T any] = cbid.ID[T, ulid.ULID]
 
-// ulidMu guards the monotonic entropy source to ensure thread-safe
-// ULID generation with guaranteed ordering within the same millisecond.
-//
-//nolint:gochecknoglobals // guards the monotonic entropy source
-var ulidMu sync.Mutex
-
-// mono is a monotonic entropy source that guarantees ULIDs generated within
-// the same millisecond are monotonically ordered — critical for event sourcing
-// where event ordering must be deterministic.
-//
-//nolint:gochecknoglobals // package-level monotonic entropy, guarded by ulidMu
-//nolint:gochecknoglobals // thread-safe monotonic entropy source
-var mono = ulid.Monotonic(rand.Reader, 0)
-
-func newULID() ulid.ULID {
-	ulidMu.Lock()
-	defer ulidMu.Unlock()
-
-	return ulid.MustNew(ulid.Timestamp(time.Now()), mono)
-}
-
-// New generates a new random ULID-backed ID.
+// New generates a new random ULID-backed ID. Generation is concurrency-safe
+// and monotonic within the same millisecond; see entropy.go for the design.
 func New[T any]() Of[T] {
 	return cbid.NewID[T](newULID())
 }

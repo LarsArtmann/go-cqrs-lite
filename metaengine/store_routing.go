@@ -162,7 +162,6 @@ func checkQueryRouting(
 		cost := estimateCost(
 			readC,
 			cfg.Volume,
-			cfg.FilterCount(),
 			profile.NsForRead(rp),
 			profile.NetworkRTT,
 		)

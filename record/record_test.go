@@ -38,10 +38,15 @@ func TestStreamRef_SplitInvalid(t *testing.T) {
 func TestStreamRef_SplitLeadingSlash(t *testing.T) {
 	t.Parallel()
 
-	// Leading slash = empty stream type → invalid.
+	// Leading slash = empty stream type → allowed (matches Validate and the
+	// command/query asrecord pattern); the entity ID is still returned.
 	streamType, entityID := record.StreamRef("/01JTEST").Split()
-	if streamType != "" || entityID != "" {
-		t.Errorf("Split() on leading-slash ref = (%q, %q), want (\"\", \"\")", streamType, entityID)
+	if streamType != "" || entityID != "01JTEST" {
+		t.Errorf(
+			"Split() on leading-slash ref = (%q, %q), want (\"\", \"01JTEST\")",
+			streamType,
+			entityID,
+		)
 	}
 }
 
@@ -88,6 +93,33 @@ func TestStreamRef_Validate(t *testing.T) {
 
 		if !tt.wantErr && err != nil {
 			t.Errorf("Validate(%q) = %v, want nil", tt.ref, err)
+		}
+	}
+}
+
+func TestStreamRef_ConstructSplitRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct{ streamType, entityID string }{
+		{"User", "01JTEST"},
+		{"", "01JTEST"}, // empty streamType (command/query asrecord pattern)
+	}
+
+	for _, tc := range cases {
+		ref := record.NewStreamRef(tc.streamType, tc.entityID)
+
+		if err := ref.Validate(); err != nil {
+			t.Errorf("Validate(NewStreamRef(%q, %q)) = %v, want nil", tc.streamType, tc.entityID, err)
+		}
+
+		gotType, gotID := ref.Split()
+		if gotType != tc.streamType || gotID != tc.entityID {
+			t.Errorf(
+				"Split(NewStreamRef(%q, %q)) = (%q, %q), want (%q, %q)",
+				tc.streamType, tc.entityID,
+				gotType, gotID,
+				tc.streamType, tc.entityID,
+			)
 		}
 	}
 }

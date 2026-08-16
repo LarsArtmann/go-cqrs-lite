@@ -118,11 +118,13 @@ func (s StreamRef) Validate() error {
 }
 
 // Split returns the stream type and entity ID components of the StreamRef.
-// Returns ("", "") if the format is invalid (no '/' found, or empty
-// component before/after the first '/').
+// The stream type may be empty (for refs like "/entityID" — command and
+// query records store the type separately in Record.StreamType).
+// Returns ("", "") if the format is invalid: no '/' found, or the entity ID
+// (component after the first '/') is empty.
 func (s StreamRef) Split() (string, string) {
 	idx := strings.IndexByte(string(s), '/')
-	if idx <= 0 || idx == len(s)-1 {
+	if idx < 0 || idx == len(s)-1 {
 		return "", ""
 	}
 

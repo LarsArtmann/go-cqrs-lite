@@ -9,6 +9,7 @@ import (
 type rankedEngine struct {
 	engine            Engine
 	complexity        Complexity
+	readComplexity    Complexity // effective READ complexity (scan degradation applied) — the axis the cost model used
 	cost              CostEstimate
 	weightedLatencyMs float64 // priority-adjusted latency for ranking (ADR-0124)
 }
@@ -261,7 +262,6 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 			cost := estimateCost(
 				readC,
 				cfg.Volume,
-				cfg.FilterCount(),
 				profile.NsForRead(meta.QueryReadPattern()),
 				profile.NetworkRTT,
 			)
@@ -275,6 +275,7 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 			ranked = append(ranked, rankedEngine{
 				engine:            eng,
 				complexity:        c,
+				readComplexity:    readC,
 				cost:              cost,
 				weightedLatencyMs: weightedMs,
 			})
@@ -364,7 +365,7 @@ func planDiagnostics(meta queryMeta, best rankedEngine, cfg QueryConfig) []Diagn
 	}
 
 	if fc := cfg.FilterCount(); fc > 0 &&
-		(best.complexity == ComplexityON || best.complexity == ComplexityONLogN) {
+		(best.readComplexity == ComplexityON || best.readComplexity == ComplexityONLogN) {
 		sel := filterSelectivity(fc)
 		diags = append(diags, Diagnostic{
 			Level: DiagLevelInfo,
@@ -373,7 +374,7 @@ func planDiagnostics(meta queryMeta, best rankedEngine, cfg QueryConfig) []Diagn
 				"%d filter(s) on %s scan; estimated selectivity %.4f (not applied to routing cost). "+
 					"Engines with index pushdown (FilterOnField) avoid the full scan.",
 				fc,
-				best.complexity,
+				best.readComplexity,
 				sel,
 			),
 		})

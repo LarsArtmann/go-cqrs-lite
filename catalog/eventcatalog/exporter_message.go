@@ -10,16 +10,15 @@ import (
 )
 
 func (e *Exporter) writeMessage(
-	serviceID catalog.ServiceID,
 	kind string,
 	msg catalog.Message,
 ) error {
 	messageID := catalog.Key(msg)
-	dir := filepath.Join(e.outputDir, "services", string(serviceID), kind, string(messageID))
+	dir := filepath.Join(e.outputDir, kind, string(messageID))
 
 	if err := os.MkdirAll(dir, dirPerm); err != nil {
 		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_message.1",
-			"create message dir for %s/%s: %v", serviceID, kind, err)
+			"create message dir for %s: %v", messageID, err)
 	}
 
 	fm := messageFM{
@@ -48,18 +47,18 @@ func (e *Exporter) writeMessage(
 	content, err := renderMDX(fm, string(msg.Name), string(msg.Summary), false)
 	if err != nil {
 		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_message.2",
-			"render message %s/%s: %v", serviceID, kind, err)
+			"render message %s: %v", messageID, err)
 	}
 
 	if err := e.writeMDXFile(filepath.Join(dir, indexFile), content); err != nil {
 		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_message.3",
-			"write message file for %s/%s: %v", serviceID, kind, err)
+			"write message file for %s: %v", messageID, err)
 	}
 
 	if msg.Schema != nil {
 		if err := e.writeSchema(dir, msg.Schema); err != nil {
 			return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_message.4",
-				"write schema for %s/%s: %v", serviceID, kind, err)
+				"write schema for %s: %v", messageID, err)
 		}
 	}
 

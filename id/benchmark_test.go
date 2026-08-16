@@ -11,6 +11,18 @@ func BenchmarkNew(b *testing.B) {
 	}
 }
 
+// BenchmarkNewParallel measures generation under contention — the case the
+// global-mutex entropy source serialized. Compare against BenchmarkNew to
+// separate per-ID cost from lock contention.
+func BenchmarkNewParallel(b *testing.B) {
+	b.ReportAllocs()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			New[StreamID]()
+		}
+	})
+}
+
 func BenchmarkParse(b *testing.B) {
 	b.ReportAllocs()
 	validID := "01HK1549P84T9XF8R94E960633"

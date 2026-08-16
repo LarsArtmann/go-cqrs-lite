@@ -57,8 +57,8 @@ func TestEstimateCostWithNetworkRTT(t *testing.T) {
 	// NetworkRTT is additive — it doesn't scale with volume.
 	// Two engines with identical compute cost but different RTT:
 	// the one with higher RTT should have proportionally higher latency.
-	base := estimateCost(ComplexityO1, 1000, 0, 500.0, 0)
-	withRTT := estimateCost(ComplexityO1, 1000, 0, 500.0, 1*time.Millisecond)
+	base := estimateCost(ComplexityO1, 1000, 500.0, 0)
+	withRTT := estimateCost(ComplexityO1, 1000, 500.0, 1*time.Millisecond)
 
 	rttMs := float64(time.Millisecond.Microseconds()) / 1e3
 
@@ -76,8 +76,8 @@ func TestEstimateCostNetworkRTTDoesNotScaleWithVolume(t *testing.T) {
 	// A scan (O(N)) with RTT: the RTT component should be constant
 	// regardless of whether N=100 or N=10000.
 	rtt := 10 * time.Millisecond
-	small := estimateCost(ComplexityON, 100, 0, 7000.0, rtt)
-	large := estimateCost(ComplexityON, 10000, 0, 7000.0, rtt)
+	small := estimateCost(ComplexityON, 100, 7000.0, rtt)
+	large := estimateCost(ComplexityON, 10000, 7000.0, rtt)
 
 	rttMs := float64(rtt.Microseconds()) / 1e3
 

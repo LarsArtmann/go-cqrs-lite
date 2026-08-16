@@ -41,11 +41,10 @@ func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop // strai
 				err,
 			)
 		}
+	}
 
-		err = e.writeServiceMessages(svc)
-		if err != nil {
-			return err
-		}
+	if err := e.writeAllMessages(enriched); err != nil {
+		return err
 	}
 
 	for _, domain := range enriched.Domains {
@@ -200,49 +199,72 @@ func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop // strai
 	return e.writeSchemasTxt(cat)
 }
 
-func (e *Exporter) writeServiceMessages(svc catalog.Service) error {
-	serviceID := svc.ID
-
-	for _, cmd := range svc.Commands {
-		err := e.writeMessage(serviceID, "commands", cmd)
-		if err != nil {
-			return errorfamily.Newf(
-				errorfamily.Infrastructure,
-				"catalog.exporter.9",
-				"write command %s: %v",
-				cmd.ID,
-				err,
-			)
-		}
+// writeAllMessages writes every event, command, and query exactly once to
+// the canonical top-level EventCatalog directories (events/, commands/,
+// queries/). A message shared by several services (e.g. an event that one
+// service sends and another receives) previously produced one duplicate page
+// per service under services/<svc>/...; the dedupe map writes it once, with
+// producers/consumers derived across all services by
+// autoDeriveProducersConsumers.
+func (e *Exporter) writeAllMessages(cat *catalog.Catalog) error {
+	type kindMessages struct {
+		kind     string
+		messages []catalog.Message
 	}
 
-	for _, evt := range svc.Events {
-		err := e.writeMessage(serviceID, "events", evt)
-		if err != nil {
-			return errorfamily.Newf(
-				errorfamily.Infrastructure,
-				"catalog.exporter.10",
-				"write event %s: %v",
-				evt.ID,
-				err,
-			)
-		}
-	}
+	written := make(map[string]struct{})
 
-	for _, q := range svc.Queries {
-		err := e.writeMessage(serviceID, "queries", q)
-		if err != nil {
-			return errorfamily.Newf(
-				errorfamily.Infrastructure,
-				"catalog.exporter.11",
-				"write query %s: %v",
-				q.ID,
-				err,
-			)
+	for _, group := range []kindMessages{
+		{kind: "commands", messages: commandsOf(cat)},
+		{kind: "events", messages: eventsOf(cat)},
+		{kind: "queries", messages: queriesOf(cat)},
+	} {
+		for _, msg := range group.messages {
+			key := group.kind + "/" + string(catalog.Key(msg))
+			if _, seen := written[key]; seen {
+				continue
+			}
+			written[key] = struct{}{}
+
+			err := e.writeMessage(group.kind, msg)
+			if err != nil {
+				return errorfamily.Newf(
+					errorfamily.Infrastructure,
+					"catalog.exporter.9",
+					"write %s %s: %v",
+					group.kind,
+					catalog.Key(msg),
+					err,
+				)
+			}
 		}
 	}
 
 	return nil
+}
+
+func commandsOf(cat *catalog.Catalog) []catalog.Message {
+	var out []catalog.Message
+	for _, svc := range cat.Services {
+		out = append(out, svc.Commands...)
+	}
+	return out
+}
+
+func eventsOf(cat *catalog.Catalog) []catalog.Message {
+	var out []catalog.Message
+	for _, svc := range cat.Services {
+		out = append(out, svc.Events...)
+	}
+	return out
+}
+
+func queriesOf(cat *catalog.Catalog) []catalog.Message {
+	var out []catalog.Message
+	for _, svc := range cat.Services {
+		out = append(out, svc.Queries...)
+	}
+	return out
 }
 
 func (e *Exporter) writeService(svc catalog.Service) error {

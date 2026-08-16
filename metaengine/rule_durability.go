@@ -57,7 +57,6 @@ func (r *durabilityRule) Apply(result *PlanResult, ctx PlanContext) error {
 			altCost := estimateCost(
 				altReadComplexity,
 				q.Cost.Volume,
-				meta.QueryConfig().FilterCount(),
 				altReadNs,
 				altProfile.NetworkRTT,
 			)

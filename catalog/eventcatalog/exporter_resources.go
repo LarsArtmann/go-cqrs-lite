@@ -58,7 +58,9 @@ func (e *Exporter) writeChannel(ch catalog.Channel) error {
 }
 
 func (e *Exporter) writeDataStore(ds catalog.DataStore) error {
-	dir := filepath.Join(e.outputDir, "data", string(ds.ID))
+	// Current EventCatalog collects data containers from containers/ (there is
+	// no data/ collection anymore), so the store must be written there.
+	dir := filepath.Join(e.outputDir, "containers", string(ds.ID))
 
 	if err := os.MkdirAll(dir, dirPerm); err != nil {
 		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_resources.2",
