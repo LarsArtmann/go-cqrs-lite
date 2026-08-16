@@ -8,17 +8,17 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
-
-const sqliteMaxParams = 999
 
 // BatchSet upserts multiple records atomically (within each chunk). This
 // implements [kv.ViewBatchSetter] and is designed for projection replay
 // throughput — replaying thousands of events one Set at a time is O(n) round
 // trips; BatchSet reduces that to O(n / batchSize).
 //
-// The batch is chunked automatically to respect the SQLite 999-parameter
-// limit. Each chunk runs in its own INSERT ... ON CONFLICT statement; the
+// The batch is chunked automatically to respect the dialect's
+// bound-parameter limit (999 for SQLite, 32767 for PostgreSQL/MySQL/DuckDB).
+// Each chunk runs in its own INSERT ... ON CONFLICT statement; the
 // entire operation is NOT wrapped in a single transaction (callers that need
 // all-or-nothing semantics should wrap in their own transaction).
 func (s *SQLViewStore[V, K]) BatchSet(ctx context.Context, items []kv.ViewItem[V, K]) error {
@@ -27,7 +27,7 @@ func (s *SQLViewStore[V, K]) BatchSet(ctx context.Context, items []kv.ViewItem[V
 	}
 
 	paramsPerRow := s.colCount + 1 // key + data columns
-	maxRows := max(sqliteMaxParams/paramsPerRow, 1)
+	maxRows := max(sqlpkg.MaxParametersForDialect(s.Dialect)/paramsPerRow, 1)
 
 	for offset := 0; offset < len(items); offset += maxRows {
 		end := min(offset+maxRows, len(items))

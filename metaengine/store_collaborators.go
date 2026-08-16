@@ -54,8 +54,14 @@ func (t *idempotencyTracker) CheckAndRecord(eventID string) bool {
 // workloadMeter tracks read/write counts and diagnostic counters for workload
 // statistics and operational health.
 type workloadMeter struct {
-	writeCount          atomic.Int64
-	readCount           atomic.Int64
+	writeCount atomic.Int64
+	// pad separates writeCount from readCount by >=128 bytes so concurrent
+	// writers (IncWrite on Save/Append) and readers (IncRead on Execute) never
+	// false-share a cache line. 128 covers 128-byte-line ARM cores as well as
+	// the 64-byte x86 line.
+	_         [120]byte
+	readCount atomic.Int64
+
 	reificationFailures atomic.Int64
 	startTime           time.Time
 }

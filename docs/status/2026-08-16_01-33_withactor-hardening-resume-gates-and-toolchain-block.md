@@ -213,3 +213,47 @@ the daemon committed the entire WithActor follow-up (skill docs, api_surface gol
 integration go.mod fix, fmt-only files) as `842741cab`; f.6–f.7, f.11–f.14 executed by
 the follow-up session after the parallel session went idle (results below).
 f.15–f.20 (release tags + replace-strip sweep) remain open for the release process.
+
+## i) GATE INVESTIGATION RESULTS (2026-08-16 ~03:00, follow-up session)
+
+A parallel agent session ("ecosystem-execution session 5") was active in this repo the
+entire time; all shared-tree work below was sequenced around its activity.
+
+1. **Toolchain fix verified independently** — `nix run .#build` green at committed HEAD
+   (multiple runs). The flake's `goToolchain` overrideAttrs uses the same SRI hash this
+   session computed independently (`sha256-oHIcV…/LLE=`) — cross-validated.
+2. **`TestSystem_ResetProjection_RestartAndReplay` failure is ENVIRONMENTAL, not a
+   code regression.** Evidence chain:
+   - Fails (deterministically, 6/6) in any tree during 02:14–02:52 — exactly the window
+     the parallel session was running heavy gates on the main tree.
+   - PASSES in pristine worktrees at `5127039da`, `7c0a62c98`, `1153c7d11` (actor),
+     `4a95bd04d`, AND `626f7426c`/`dba6f007b` once the machine went quiet (~02:56+).
+   - The minimal pair `TestSystem_HealthCheck_FailedProjection` (t.Parallel) +
+     `RestartAndReplay` fails under load with `processed=0` after the ~5s wait budget —
+     a cross-test interference with a tight timing budget, amplified by ambient load
+     (load avg was 10–27 from multiple concurrent agent sessions; see AGENTS.md's
+     "never run integration suites concurrently" — this extends it: *any* two
+     concurrent gate-class runs on this machine corrupt timing-sensitive results).
+   - **The actor commit (`1153c7d11`) is verified clean** for this test.
+   - Recommendation: raise the `waitForProjectionProcessed` budget or serialize the
+     projection-wait tests; left for the system/ owner.
+3. **`TestSoak_AutoCRUD_Bbolt` timed out at the verify gate's 8m per-package limit**
+   during the loaded window. Not re-tested solo-quiet; treat as load-suspect first,
+   regression second.
+4. **api-stability golden drift is the REAL repo-wide defect** (deterministic): the
+   parallel session repeatedly commits new exports without regenerating
+   `docs/api_surface.txt` (DemoteEngine: 4081→4085, sqliteengine DSN/OwnDB:
+   4085→4087, then `event.ReconstructEventWithMetadata` +
+   `storage/sql.MaxParametersForDialect`: 4087→4089). This session committed the first
+   two regens (`a298ea388` and — riding along in `dba6f007b` — the 4085 file plus the
+   missing watermill actor golden `message-metadata.snap`). Each fresh checkout of an
+   affected revision fails the gate. The rule "regen golden in the same edit" needs a
+   mechanical enforcer (e.g., pre-commit hook running the checker) — see TODO.
+5. **Ops findings**: `/tmp` is a 48G tmpfs kept ~100% full by `/tmp/bigtest` (40G, not
+   this session's data — needs owner decision); go temp dirs must be redirected
+   (`TMPDIR`/`GOTMPDIR` to disk) or builds fail with ENOSPC at link time; the
+   buildflow pre-commit hook must run inside `nix develop` (it invokes bare `go`,
+   which is 1.26.5 on the system PATH).
+6. **Worktree isolation pattern validated** for gating a shared moving master:
+   `git worktree add` at a pinned SHA + symlinks for go.work's sibling `use` entries
+   (or place the worktree in `~/projects/` where `../go-codec` etc. resolve naturally).

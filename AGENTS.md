@@ -204,6 +204,8 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 - **"Stale GREEN" anti-pattern** — every session that changes code, go.mod, or docs must run `nix run .#verify` (or at minimum `nix run .#verify-fast`) before claiming GREEN. A stale GREEN claim is worse than no claim.
 - **Exit codes after pipes lie** — `cmd | tail -N; echo "EXIT=$?"` prints tail's exit code, not cmd's (and `PIPESTATUS[0]` can come back empty in this shell). A golangci run with 11 issues printed `EXIT=0` this way. Always capture gates as `cmd > /tmp/x.log 2>&1; echo $?` and grep the full log — never trust a `| tail` view or a post-pipe `$?`.
 - **Never run integration suites concurrently with `#verify`** — benchkit's timing tests (Duration=10ms abort bound) and the per-package `-timeout=5m` are load-sensitive; a concurrent Dgraph soak produced 3 benchkit + 1 duckdb false failures (~25 min wasted). Run the full gate exclusively, nothing else heavy running.
+- **Host toolchain may be older than go.work requires** — `go: go.work requires go >= 1.26.6 (running go 1.26.5)` means prefix the command with `GOTOOLCHAIN=auto` (the newer toolchain is already cached). The same error in gopls/golangci LSP diagnostics is noise; `go build -tags "goexperiment.jsonv2"` is authoritative.
+- **/tmp tmpfs fills up (48G, shared) — link jobs die with "no space left on device"** — set `GOTMPDIR=/mnt/buildcache/tmp` (plus `TMPDIR` for the linker) on workspace-wide `go test ./...` runs. Never delete /tmp/bigtest (unknown ownership); `trash-empty` reclaims ~6.6G when needed.
 - **NEVER use `git checkout <commit> -- .`** — destructively overwrites the working tree. Use `git worktree add /tmp/work <commit>` instead.
 
 ### Module & Dependency Management

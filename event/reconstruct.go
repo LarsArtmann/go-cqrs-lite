@@ -43,6 +43,47 @@ func ReconstructEventFromFields(
 		)
 	}
 
+	return reconstructEvent(eventID, eventType, aggType, aggID, version, schemaVersion,
+		payload, metaOpts, occurredAt, encoding, errCodePrefix)
+}
+
+// ReconstructEventWithMetadata rebuilds an Event from an already-decoded
+// Metadata value, skipping the marshal-to-JSON/unmarshal round-trip that
+// [ReconstructEventFromFields] performs. Engines that decode the whole event
+// envelope (including metadata) in one step (CBOR envelopes in Pebble, bbolt)
+// should use this variant: it avoids two serializations and an intermediate
+// buffer per event read.
+//
+// The metadata value is merged into the event as-is; the caller must not
+// retain or mutate it afterwards (treat it as transferred).
+func ReconstructEventWithMetadata(
+	eventID id.EventID,
+	eventType Type,
+	aggType id.StreamType,
+	aggID id.StreamID,
+	version, schemaVersion int,
+	payload []byte,
+	metadata Metadata,
+	occurredAt time.Time,
+	encoding codec.Encoding,
+	errCodePrefix string,
+) (Event, error) {
+	return reconstructEvent(eventID, eventType, aggType, aggID, version, schemaVersion,
+		payload, []Option{WithMetadata(metadata)}, occurredAt, encoding, errCodePrefix)
+}
+
+func reconstructEvent(
+	eventID id.EventID,
+	eventType Type,
+	aggType id.StreamType,
+	aggID id.StreamID,
+	version, schemaVersion int,
+	payload []byte,
+	metaOpts []Option,
+	occurredAt time.Time,
+	encoding codec.Encoding,
+	errCodePrefix string,
+) (Event, error) {
 	opts := make([]Option, 0, 3+len(metaOpts))
 
 	opts = append(opts, WithEventID(eventID), WithOccurredAt(occurredAt))

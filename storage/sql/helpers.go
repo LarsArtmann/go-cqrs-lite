@@ -89,11 +89,32 @@ func SharedInsertEvents(
 
 const eventColumnsPerRow = 10
 
+// maxSQLiteParameters is SQLite's hard per-statement host-parameter limit.
 const maxSQLiteParameters = 999
+
+// maxNonSQLiteParameters bounds bound parameters per statement for dialects
+// without SQLite's 999 limit. PostgreSQL (extended protocol) and MySQL
+// (prepared statements) both accept 65535 placeholders; DuckDB has no
+// documented hard limit. 32767 stays comfortably inside every protocol limit
+// while bounding single-statement parse cost and memory.
+const maxNonSQLiteParameters = 32767
+
+// MaxParametersForDialect returns the maximum number of bound parameters a
+// single statement may carry for the given dialect. SQLite is capped at 999;
+// all other known dialects get 32767. Unknown dialects keep the conservative
+// SQLite limit so custom Dialect implementations stay correct by default.
+func MaxParametersForDialect(dialect Dialect) int {
+	if _, isSQLite := dialect.(SQLiteDialect); isSQLite {
+		return maxSQLiteParameters
+	}
+
+	return maxNonSQLiteParameters
+}
 
 // SharedBatchInsertEvents inserts multiple events using a single multi-VALUES
 // INSERT statement, reducing network round-trips for batch writes.
-// For SQLite, events are chunked to respect the 999-parameter limit.
+// Events are chunked to respect the dialect's bound-parameter limit
+// (999 for SQLite, 32767 for PostgreSQL/MySQL/DuckDB).
 func SharedBatchInsertEvents(
 	ctx context.Context,
 	tx *sql.Tx,
@@ -106,7 +127,7 @@ func SharedBatchInsertEvents(
 		return nil
 	}
 
-	maxPerBatch := maxSQLiteParameters / eventColumnsPerRow
+	maxPerBatch := MaxParametersForDialect(dialect) / eventColumnsPerRow
 
 	for start := 0; start < len(events); start += maxPerBatch {
 		end := min(start+maxPerBatch, len(events))

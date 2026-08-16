@@ -73,16 +73,10 @@ func deserializeEvent(data []byte) (event.Event, error) {
 		return nil, err
 	}
 
-	metadataJSON, err := event.MarshalMetadataJSON(s.Metadata, "bbolt.marshal_metadata")
-	if err != nil {
-		return nil, errorfamily.WrapCorruption(err, "bbolt.marshal_metadata",
-			"failed to marshal metadata for deserialization")
-	}
-
-	evt, err := event.ReconstructEventFromFields(
+	evt, err := event.ReconstructEventWithMetadata(
 		s.ID, event.Type(s.Type), id.StreamType(s.StreamType), s.StreamID,
 		s.Version, s.SchemaVersion,
-		s.Payload, metadataJSON,
+		s.Payload, s.Metadata,
 		time.Unix(0, s.OccurredAt).UTC(),
 		codec.Encoding(s.Encoding), "bbolt",
 	)
