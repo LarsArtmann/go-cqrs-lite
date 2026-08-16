@@ -1426,3 +1426,71 @@ Key types: `Priority`, `PriorityConfig`, `PriorityWeights`, `SelectLayout`,
 `ScoreLayouts`, `LayoutOption` (`LayoutEmbed`/`LayoutNormalize`),
 `LayoutDiff`, `SetPriority`, `ReplanLayout`, `ConfirmRebuild`,
 `PlanHistory`, `PlanAuditEntry`.
+
+### 2.22 MySQL/MariaDB JSON Dialect + Numeric-Safe Sorting (mysqlengine)
+
+MariaDB is wire-compatible with MySQL but rejects `value->'$.x'` and
+`CAST(? AS JSON)` with Error 1064, and its `JSON_EXTRACT` returns LONGTEXT —
+so a bare `ORDER BY JSON_EXTRACT(...)` text-sorts numbers ("10" < "2").
+`mysqlengine` detects the server once at construction (`SELECT VERSION()`)
+and renders dialect-correct SQL automatically. When you hand-write SQL
+against MariaDB JSON columns, use the same two forms the engine uses:
+
+```sql
+-- Universal filter (works on both; MariaDB needs JSON_UNQUOTE for scalars):
+SELECT * FROM meta_map
+WHERE JSON_UNQUOTE(JSON_EXTRACT(value, '$.status')) = ?;
+
+-- Numeric-safe sort (dual sort key: numeric first, text as tiebreaker):
+SELECT * FROM meta_map
+ORDER BY CAST(JSON_EXTRACT(value, '$.score') AS DECIMAL(65,10)),
+         JSON_UNQUOTE(JSON_EXTRACT(value, '$.score'));
+```
+
+Rules of thumb (empirically verified against MySQL 8.4 + MariaDB 11.8):
+
+- Never use `->` / `->>` on MariaDB — Error 1064.
+- Never bind `CAST(? AS JSON)` on MariaDB — bind plain scalars and compare
+  against `JSON_UNQUOTE(JSON_EXTRACT(...))`.
+- Cursor predicates must match the cursor's Go type: numeric cursors ride
+  the DECIMAL cast, string cursors the JSON_UNQUOTE text.
+- For graph traversal, MariaDB supports `WITH RECURSIVE` (CTE) — mysqlengine
+  CTE-probes the server and falls back to iterative BFS when unavailable.
+
+Source: `metaengine/mysqlengine/dialect.go`.
+
+### 2.23 Hand-Rolled Catch-Up: Subscribe BEFORE You Drain (projectionhost TOCTOU)
+
+`projectionhost.Host` workers are batch-drainers: they catch up from the
+last checkpoint, then flip to live. A TOCTOU race used to live in that flip:
+events published **between** the end of the journal drain and the
+`SubscribeAll` registration were permanently lost with non-blocking
+(in-process) subscribers. The fix (2026-08-13, `d60d72ed4`) reordered the
+sequence — and if you hand-roll your own catch-up loop, you must apply the
+same order:
+
+```go
+// WRONG (TOCTOU): drain the journal, THEN subscribe —
+// anything published in between is lost forever.
+drainJournal(checkpoint)
+sub := bus.SubscribeAll(ctx, handler) // ← events published above: never seen
+
+// RIGHT: subscribe first, then drain from the checkpoint. Events that
+// arrive during the drain hit the live handler (serialized with the drain
+// via a mutex); after the drain, the subscription is the only source.
+sub := bus.SubscribeAll(ctx, handler)
+drainJournal(checkpoint) // duplicates are possible → make handlers idempotent
+// only NOW report the worker as live (WorkerLive)
+```
+
+Two invariants make this safe:
+
+1. **Subscribe-then-drain ordering** closes the gap; the subscriber buffer
+   holds events that arrive mid-drain.
+2. **Serialized processing** (a mutex or single goroutine) between the drain
+   path and the live callback keeps ordering; `projectionhost` does this
+   with `handleMu`.
+
+Prefer `projectionhost.Host` over hand-rolling: it ships this ordering,
+crash-restart, checkpoints, and a DLQ. Regression tests live in
+`projectionhost/catchup_drain_test.go`.
