@@ -754,6 +754,7 @@ event/func ParseVersion
 event/func PayloadReadOnly
 event/func ProcessingModeFrom
 event/func ReconstructEventFromFields
+event/func ReconstructEventWithMetadata
 event/func RejectingHandlerMiddleware
 event/func RejectingPublishMiddleware
 event/func Single
@@ -3503,6 +3504,7 @@ storage/sql/func DuckDBSchemaEmbed
 storage/sql/func IsDuplicateKeyError
 storage/sql/func LoadWithSpan
 storage/sql/func MarshalMetadata
+storage/sql/func MaxParametersForDialect
 storage/sql/func MySQLSchemaEmbed
 storage/sql/func NewBorrowedDBHandle
 storage/sql/func NewDBHandle
