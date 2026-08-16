@@ -6,7 +6,7 @@ require (
 	github.com/duckdb/duckdb-go/v2 v2.10505.0
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/jackc/pgx/v5 v5.10.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.0.0-20260812202622-996a79dc3ce4
+	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.0.0
