@@ -260,14 +260,19 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 ### Changed — storage: `OpenSQLiteInMemory` uses named shared-cache DSNs — 2026-08-16
 
 - **The in-memory SQLite helper now generates a unique
-  `file:<random>?mode=memory&cache=shared` DSN per call**, replacing the
-  previous single-connection pool pin (`SetMaxOpenConns(1)`). All pooled
-  connections within one `*sql.DB` share the same in-memory schema via the
-  shared-cache, so concurrent reads no longer serialize on a single
-  connection. The `view` package's local `openSQLiteInMemory` test helper
-  was updated to match. Race tests no longer need manual `SetMaxOpenConns(1)`.
-  Regression test renamed to `TestOpenSQLiteInMemory_SharedCacheDatabase`,
-  verifying that a write on a second pooled connection sees the same schema.
+  `file:<random>?mode=memory&cache=shared&_pragma=busy_timeout(5000)` DSN
+  per call**, replacing the previous single-connection pool pin
+  (`SetMaxOpenConns(1)`). All pooled connections within one `*sql.DB` share
+  the same in-memory schema via the shared-cache, so concurrent reads no
+  longer serialize on a single connection. The `view` package's local
+  `openSQLiteInMemory` test helper was updated to match (accepts
+  `testing.TB`, same DSN pattern). Race tests no longer need manual
+  `SetMaxOpenConns(1)`. The DSN-level `busy_timeout(5000)` prevents
+  `SQLITE_BUSY` errors when concurrent connections contend for the
+  shared-cache write lock. Regression test renamed to
+  `TestOpenSQLiteInMemory_SharedCacheDatabase`, verifying that a write on
+  a second pooled connection sees the same schema (the opposite of the old
+  test which verified writes would queue on one pinned connection).
 
 ### Fixed — storage: `OpenSQLiteInMemory` per-connection database flake — 2026-08-16
 

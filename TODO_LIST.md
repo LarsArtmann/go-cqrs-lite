@@ -124,7 +124,7 @@ and is **never** duplicated here.
 - [ ] [BLOCKED] 🔥 **Tag the wave-4 module batch** — `event` (DecorateJournal),
       `metadata` v4.5.1+ (BrandedString), `schema`, `metaengine` (capability
       audit + iroh exports), `metaengine/irohengine`, `projectionhost`, and
-      `storage` v4.7.2 (SQLite `OpenSQLiteInMemory` pool pin). Constraint: the
+      `storage` v4.7.2 (SQLite `OpenSQLiteInMemory` shared-cache DSNs). Constraint: the
       batch must tag event+metadata+schema before/with projectionhost (its
       released go.mod needs them — the release flow strips the sibling
       replaces). Via `scripts/tag-release.sh` from a clean tree.
