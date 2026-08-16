@@ -23,7 +23,12 @@ import (
 type sqliteEngine struct {
 	metaengine.Calibration
 
-	db      *sql.DB
+	db *sql.DB
+	// ownsDB marks that this engine opened its own *sql.DB (driver-factory
+	// path via NewSQLiteEngineFromDSN): Close then also closes the database.
+	// Engines wrapping a caller-supplied pool leave it false — the caller
+	// keeps ownership.
+	ownsDB  bool
 	queries sqliteQuerySet
 	cache   *stmtCache
 	// graphCTE enables the single-query recursive-CTE traversal when the
@@ -163,6 +168,10 @@ func (e *sqliteEngine) Profile() metaengine.EngineProfile {
 func (e *sqliteEngine) Close() error {
 	if e.cache != nil {
 		e.cache.close()
+	}
+
+	if e.ownsDB {
+		return e.db.Close() //nolint:wrapcheck // driver-provided close error
 	}
 
 	return nil

@@ -71,3 +71,58 @@ func PlanFromDSN(dsn string, args ...any) (*metaengine.Store, *sql.DB, error) {
 
 	return store, db, nil
 }
+
+// NewSQLiteEngineFromDSN creates a SQLite-backed engine that OWNS its database
+// connection: Close also closes the *sql.DB. This is the variant for
+// driver-factory paths (and any caller that cannot keep the handle) — it plugs
+// the leak where a self-opened database is never closed. Extra pragmas are
+// applied after the WAL/busy_timeout production defaults. Callers that want to
+// keep the handle (or pass their own pool) should use [NewFromDSN] or
+// [NewSQLiteEngine], where the caller owns the database.
+func NewSQLiteEngineFromDSN(dsn string, pragmas ...string) (metaengine.Engine, error) {
+	if dsn == "" {
+		dsn = ":memory:"
+	}
+
+	db, err := sql.Open("sqlite", dsn)
+	if err != nil {
+		return nil, fmt.Errorf("sqliteengine: open sqlite %q: %w", dsn, err)
+	}
+
+	db.SetMaxOpenConns(1)
+
+	applied := append([]string{
+		"journal_mode=WAL",
+		"busy_timeout=5000",
+	}, pragmas...)
+
+	for _, pragma := range applied {
+		if _, err := db.ExecContext(context.Background(), "PRAGMA "+pragma); err != nil {
+			_ = db.Close()
+
+			return nil, fmt.Errorf("sqliteengine: pragma %q: %w", pragma, err)
+		}
+	}
+
+	eng, err := NewSQLiteEngine(db)
+	if err != nil {
+		_ = db.Close()
+
+		return nil, err
+	}
+
+	OwnDB(eng)
+
+	return eng, nil
+}
+
+// OwnDB marks an engine created via [NewSQLiteEngine] as the owner of its
+// *sql.DB: Close will then also close the database. For driver-factory and
+// adapter paths (e.g. the Turso engine, which opens a libSQL connection with
+// its own driver) where no caller exists to own the handle. Engines wrapping
+// a caller-supplied pool must NOT be marked.
+func OwnDB(eng metaengine.Engine) {
+	if se, ok := eng.(*sqliteEngine); ok {
+		se.ownsDB = true
+	}
+}

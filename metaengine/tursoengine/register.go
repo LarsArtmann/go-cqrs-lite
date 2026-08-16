@@ -113,6 +113,10 @@ func New(dsn string) (metaengine.Engine, error) {
 		return nil, fmt.Errorf("tursoengine: init: %w", err)
 	}
 
+	// Nobody outside this function holds the *sql.DB handle, so the engine
+	// must own (and on Close, close) the connection.
+	sqliteengine.OwnDB(eng)
+
 	if isRemoteDSN(dsn) {
 		if cal, ok := eng.(metaengine.Calibratable); ok {
 			cal.SetCalibration(metaengine.CalibrationCosts{

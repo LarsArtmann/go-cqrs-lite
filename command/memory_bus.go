@@ -111,32 +111,30 @@ func (b *MemoryBus) dispatch(ctx context.Context, cmd Command, mw []Middleware) 
 	all := b.allHandlers
 	b.mu.RUnlock()
 
-	// Wrap each handler with middleware.
-	applyMW := func(h Handler) Handler {
-		for _, v := range slices.Backward(mw) {
-			h = v(h)
+	// Middleware wraps the dispatch of ONE command ONCE — not each handler
+	// separately. Wrapping per handler double-counts side effects (metrics,
+	// idempotency records, retries) when several handlers are registered.
+	run := func(ctx context.Context, cmd Command) error {
+		for _, h := range typed {
+			if err := h(ctx, cmd); err != nil {
+				return err
+			}
 		}
 
-		return h
-	}
-
-	// Dispatch to typed handlers first.
-	for _, h := range typed {
-		err := applyMW(h)(ctx, cmd)
-		if err != nil {
-			return err
+		for _, h := range all {
+			if err := h(ctx, cmd); err != nil {
+				return err
+			}
 		}
+
+		return nil
 	}
 
-	// Then to catch-all handlers.
-	for _, h := range all {
-		err := applyMW(h)(ctx, cmd)
-		if err != nil {
-			return err
-		}
+	for _, v := range slices.Backward(mw) {
+		run = v(run)
 	}
 
-	return nil
+	return run(ctx, cmd)
 }
 
 // Compile-time assertion.

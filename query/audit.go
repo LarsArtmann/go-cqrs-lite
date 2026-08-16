@@ -79,6 +79,21 @@ func AuditMiddleware(sink QuerySink, level AuditLevel, logger *slog.Logger) Midd
 	}
 }
 
+// requestIDOf returns the query's real request ID when the query carries
+// metadata, so audit records correlate with the live request. Falls back to a
+// freshly minted ID for queries without one.
+func requestIDOf(q Query) id.RequestID {
+	type metadatable interface{ Metadata() Metadata }
+
+	if m, ok := q.(metadatable); ok {
+		if rid := m.Metadata().RequestID; rid.String() != "" {
+			return rid
+		}
+	}
+
+	return id.NewRequestID()
+}
+
 func buildAuditQuery(q Query, level AuditLevel, receivedAt time.Time) (*PersistedQuery, error) {
 	var payload []byte
 
@@ -88,10 +103,19 @@ func buildAuditQuery(q Query, level AuditLevel, receivedAt time.Time) (*Persiste
 		}
 	}
 
-	return NewPersistedQuery(
-		q.Type(),
-		payload,
+	opts := []QueryPersistOption{
 		WithQueryReceivedAt(receivedAt),
-		WithQueryID(id.NewRequestID()),
-	)
+		WithQueryID(requestIDOf(q)),
+	}
+
+	// Carry the query's own metadata (correlation, causation, actor, user)
+	// onto the audit record so it correlates with the live request instead of
+	// arriving stripped.
+	type metadatable interface{ Metadata() Metadata }
+
+	if m, ok := q.(metadatable); ok {
+		opts = append(opts, WithQueryMetadata(m.Metadata()))
+	}
+
+	return NewPersistedQuery(q.Type(), payload, opts...)
 }

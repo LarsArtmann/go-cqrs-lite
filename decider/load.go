@@ -29,8 +29,14 @@ func (r *Repository[State]) loadFromStore(
 
 			key := ref.Type.String() + "/" + ref.ID.String()
 
+			// The shared load runs detached from any single caller's
+			// cancellation: without this, the leader's cancelled context
+			// would abort the load for every coalesced follower too.
+			// Values (tracing, actor) still propagate.
+			loadCtx := context.WithoutCancel(ctx)
+
 			v, loadErr, _ := r.loadGroup.Do(key, func() (any, error) {
-				return r.store.Load(ctx, ref)
+				return r.store.Load(loadCtx, ref)
 			})
 			if loadErr != nil {
 				return nil, loadErr //nolint:wrapcheck // passthrough from our own store.Load via singleflight

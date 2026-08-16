@@ -36,8 +36,14 @@ func NewPagination(page, pageSize uint) Pagination {
 	return Pagination{Page: page, PageSize: pageSize}
 }
 
-// Offset calculates the zero-based skip for database queries.
+// Offset calculates the zero-based skip for database queries. A zero Page
+// (pagination not constructed via [NewPagination]) yields 0 instead of
+// underflowing to an astronomically large skip.
 func (p Pagination) Offset() int {
+	if p.Page == 0 {
+		return 0
+	}
+
 	return int((p.Page - 1) * p.PageSize)
 }
 
