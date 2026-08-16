@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -255,7 +256,7 @@ func (s *Store) demotePreflight(name string) (served, missing map[string]bool, e
 	}
 
 	if len(s.queries) > 0 && s.eventLog == nil {
-		return nil, nil, fmt.Errorf(
+		return nil, nil, errors.New(
 			"metaengine.DemoteEngine: an EventLog is required to catch up the demoted engine " +
 				"and the re-routed queries — attach one via WithEventLog",
 		)

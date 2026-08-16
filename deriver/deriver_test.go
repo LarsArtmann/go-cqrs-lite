@@ -311,6 +311,7 @@ func TestDeriver_Idempotent_PreservesActor(t *testing.T) {
 
 	d := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
 		cmd, _ := cqrscommand.New("cmd.derived", streamID, cqrscommand.WithActor(actor))
+
 		return []cqrscommand.Command{cmd}, nil
 	}).Idempotent()
 

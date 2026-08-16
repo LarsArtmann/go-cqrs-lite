@@ -233,9 +233,47 @@ Conclusions:
   0.75x (LSM) of an embed write.
 - Embedding duplicates the aggregate across projections; normalize stores one
   copy of each fact (0.63x / 0.80x storage).
-- Row (SQLite/PG/MySQL) and Columnar (DuckDB) multipliers remain analytical
-  estimates pending the same 60s disk calibration (tracked in TODO_LIST.md).
+- Row (SQLite/PG/MySQL) and Columnar (DuckDB) multipliers were analytical
+  estimates until the 2026-08-15 calibration below.
 
 The planner behavior is unchanged — it already selects by weighted score — but
 the design doc's "defaults to embedding" phrasing was corrected to reflect that
 the default depends on priority, not engine family.
+
+## Addendum: Row/Columnar Calibration + Replan Convergence + DemoteEngine (2026-08-15)
+
+**Row and Columnar multipliers are now measurement-derived**
+(`BenchmarkRowLayoutCalibration_*` on file-backed SQLite, Postgres 16, and
+MySQL; `BenchmarkColumnarLayoutCalibration_*` on file-backed DuckDB with a
+literal 60s confirmation run within 2%). The `layout_scoring.go` cells:
+
+| Storage layout | Embed (read/write/storage) | Normalize (read/write/storage) | ReadSpeed winner | WriteSpeed winner | StorageSpace winner |
+| --- | --- | --- | --- | --- | --- |
+| **Row** (SQLite/PG/MySQL geomean 1.27x/0.52x/0.35x) | 0.89 / 1.39 / 1.68 | 1.13 / 0.72 / 0.59 | **Normalize** | **Normalize** | **Normalize** |
+| **Columnar** (DuckDB 2.62x/0.20x/0.59x) | 0.62 / 2.23 / 1.30 | 1.62 / 0.45 / 0.77 | **Embed** | **Normalize** | **Normalize** |
+
+The analytical guess that a LEFT JOIN read beats a JSON-column read was
+wrong (measured ≈1.0x on server engines, 1.95x on SQLite). The
+float-fragility of the old exact-tie Columnar × ReadSpeed cell (2.65 vs
+2.65) is resolved as a measured 0.08-margin Embed win; the 16-cell
+regression matrix passes on real constants.
+
+**`ReplanLayout` converged (§5).** The separate scoring/priority-resolution
+copy in `relayout.go` is deleted. `ReplanLayout(ctx, pc)` applies `pc` as the
+store priority config (non-nil is now equivalent to `SetPriority` + `Replan`,
+audited `priority-change`), funnels through the single `replanWithTrigger`
+path, and returns old-plan vs new-plan layout diffs computed from the two
+plan snapshots (planQuery records `Layout` in both).
+
+**`DemoteEngine` closes the role-transition square (§7).** Active → shadow
+(Backup/Migration) is the inverse of `PromoteEngine`, implemented as an
+atomic drain-then-unroute: role flip, replicator registration, EventLog
+snapshot, and query re-assignment happen under one write-lock section inside
+the re-plan (`replanWithTransition` hook, trigger `engine-demoted`).
+Targeted catch-up replays the demoted engine's never-served collections onto
+its mirror and the re-routed queries' history onto their new engines
+(non-idempotent folds demand `WithDemoteForce`). `applyWithRecord` records,
+dispatches, and replicates under one read-lock section so the EventLog
+snapshot splits history at exactly the routing flip — exactly-once delivery
+per engine, race-tested. `PromoteEngine` is hardened through the same atomic
+path. Full design: `METAENGINE-LAYOUT-ROLES.md` §4.4.

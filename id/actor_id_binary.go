@@ -20,6 +20,7 @@ func (a ActorID) MarshalBinary() ([]byte, error) {
 func (a *ActorID) UnmarshalBinary(data []byte) error {
 	if len(data) == 0 {
 		*a = ActorID{}
+
 		return nil
 	}
 

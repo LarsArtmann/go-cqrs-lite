@@ -68,8 +68,10 @@ func (lc LayoutCost) ScoreWeighted(w PriorityWeights) float64 {
 //	read  1.27x   write 0.52x   storage 0.35x
 //
 // Columnar values are CALIBRATED 2026-08-15 via
-// BenchmarkColumnarLayoutCalibration_* on file-backed DuckDB. Measured
-// normalize/embed ratios:
+// BenchmarkColumnarLayoutCalibration_* on file-backed DuckDB; a literal
+// -benchtime=60s confirmation run reproduced the ratios within 2%
+// (read 2.66x, write 0.19x, storage unchanged). Measured normalize/embed
+// ratios:
 //
 //	read  2.62x (point lookups on OLAP engine favor embed strongly)
 //	write 0.20x (DuckDB row UPDATE costs ~5x an insert)

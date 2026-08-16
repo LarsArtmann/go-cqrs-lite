@@ -895,12 +895,24 @@ if st, ok := store.ReplicationStatus("backup-1"); ok && st.Stale {
 // replans (trigger "engine-promoted"). Refuses stale shadows.
 if err := store.PromoteEngine(ctx, "backup-1"); err != nil { ... }
 role, known := store.EngineRole("backup-1") // → RoleActive, true
+
+// Demote: the inverse transition (Active → shadow). Atomically un-routes
+// the engine's queries, replays their history onto the survivors (needs
+// WithDemoteForce for non-idempotent folds — same contract as Backfill),
+// and mirrors it (trigger "engine-demoted"). Requires an EventLog.
+if err := store.DemoteEngine(ctx, "primary-1"); err != nil { ... }
+// or: store.DemoteEngine(ctx, "primary-1",
+//     metaengine.WithDemoteRole(metaengine.RoleMigration),
+//     metaengine.WithDemoteForce())
+role, _ = store.EngineRole("primary-1") // → RoleBackup
 ```
 
 Invariants (proven by test): shadows are never routed (I1); shadows mirror
 ALL collections (I2); a failing/hung shadow cannot stall primaries beyond the
 3s per-op timeout (I3); there is no cross-engine atomicity (I4) — promote
-drains first, then flips.
+drains first, then flips; every event reaches each engine exactly once across
+a promote/demote transition (I5 — record + dispatch + replicate under one
+read lock, the transition under one write lock; race-tested).
 
 **Record and replay a workload trace** (JSONL, for benchmark calibration):
 
@@ -1356,8 +1368,10 @@ _ = store.SetPriority(ctx, &metaengine.PriorityConfig{
     Global: metaengine.PriorityWriteSpeed,
 })
 
-// Preview which projections would change layout:
-diffs, _ := store.ReplanLayout(ctx, nil) // nil = use Store's active config
+// Re-plan under the current config and report layout diffs (nil = keep the
+// active priority config; a non-nil config is APPLIED first — equivalent to
+// SetPriority + Replan, audited "priority-change"):
+diffs, _ := store.ReplanLayout(ctx, nil)
 for _, d := range diffs {
     fmt.Printf("%s: %s → %s (rebuild ~%d events)\n",
         d.QueryName, d.From, d.To, d.EstimatedRebuildEvents)

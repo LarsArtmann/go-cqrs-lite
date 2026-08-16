@@ -52,6 +52,23 @@ Embedding's single-key read advantage survives measurement; its assumed write
 and storage advantage does not. Normalized child inserts are O(1) with no
 read-modify-write, and embedding duplicates the aggregate across projections.
 
+**Row/Columnar calibration addendum (2026-08-15):** benchmarks on file-backed
+SQLite, Postgres 16, MySQL (QEMU), and DuckDB (60s confirmation run) measured
+the normalize÷embed ratios below (see `metaengine/layout_scoring.go`):
+
+| Engine | read | write | storage | Per-priority winner |
+| --- | --- | --- | --- | --- |
+| SQLite (Row) | 1.95x | 0.66x | 0.33 | Normalize in all Row priority cells (write+storage dominate) |
+| Postgres 16 (Row) | 1.00x | 0.38x | 0.33 | — |
+| MySQL (Row) | 1.06x | 0.56x | 0.41 | — |
+| DuckDB (Columnar) | 2.62x | 0.20x | 0.59 | Columnar: Embed for ReadSpeed, Normalize otherwise |
+
+Notable correction vs the analytical estimate: a LEFT JOIN read is NOT cheaper
+than a JSON-column read on server engines (≈1.0x) and is 2x+ worse on SQLite —
+the old 0.8 guess was wrong. The old exact-tie Columnar × ReadSpeed cell is
+now a measured 0.08-margin Embed win. All calibrated pairs are
+geomean-centered (embed × normalize = 1.0 per dimension).
+
 ---
 
 ## 3. The Event-Sourcing Wrinkle (Write Side)

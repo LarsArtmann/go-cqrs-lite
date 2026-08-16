@@ -145,7 +145,7 @@ func (s *Store) roleOfNameLocked(name string) ProjectionRole {
 // Promotion drains the replication backlog and flips the role atomically with
 // the re-plan's engine re-assignment (one write-lock section), so there is no
 // window where events bypass the engine: before the transition it is mirrored,
-// after it it receives primary folds. The store re-plans with trigger
+// after it receives primary folds. The store re-plans with trigger
 // "engine-promoted" so queries can be routed to the promoted engine.
 //
 // Promoting a stale engine fails: recover it first (remove, fix, re-add,

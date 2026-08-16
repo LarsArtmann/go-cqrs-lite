@@ -105,19 +105,23 @@ and is **never** duplicated here.
 > split with 60s on-disk calibration. Layout docs + ADR-0124 addendum
 > corrected 2026-08-14. See ADR-0124, ADR-0125.
 
-- [ ] **Calibrate DuckDB (Columnar)** — the Columnar × ReadSpeed cell is an
-      exact tie (2.65 vs 2.65); float-comparison fragility. Run 60s disk bench.
-      _(Effort: M)_
-- [ ] **Calibrate SQLite/Postgres/MySQL (Row)** — Row-layout multipliers remain
-      analytical estimates, not benchmark-derived.
-      _(Effort: M)_
-- [ ] **Multi-engine integration test with two real backends** — current test
-      uses one MemoryEngine + Backfill replay. Need two live engines with data,
-      verify both serve correct query results after `AddEngine` + `Backfill`.
-      _(Effort: M)_
-- [ ] **Converge `ReplanLayout` into `Store.Replan`** — two replan entry
-      points with overlapping semantics (relayout.go still separate).
-      _(Effort: M)_
+- [x] **Calibrate DuckDB (Columnar)** — DONE 2026-08-15: benchmarked via
+      `BenchmarkColumnarLayoutCalibration_*` (cgo-gated); the exact-tie cell is
+      now a measured 0.08-margin Embed win; a literal 60s confirmation run
+      reproduced ratios within 2%.
+- [x] **Calibrate SQLite/Postgres/MySQL (Row)** — DONE 2026-08-15: measured on
+      file-backed SQLite, Postgres 16 (`.#integration-pg`), MySQL
+      (`.#integration-mysql-vm`); geomean read 1.27x / write 0.52x / storage
+      0.35x; normalize-reads-cheaper myth corrected.
+- [x] **Multi-engine integration test with two real backends** — DONE
+      2026-08-15: `metaengine/bench/multi_engine_integration_test.go` drives
+      SQLite + Pebble through plan → AddEngine(Migration) → Backfill →
+      Promote → Demote → live mirroring; both engines serve identical results.
+- [x] **Converge `ReplanLayout` into `Store.Replan`** — DONE 2026-08-15:
+      ReplanLayout funnels through the single `replanWithTrigger` path and
+      diffs plan snapshots; the duplicate scoring loop is deleted. Semantic
+      change: ReplanLayout now APPLIES the priority config (SetPriority+Replan
+      equivalent).
 
 ### Layout roles (long-horizon, depend on a design doc first)
 
@@ -126,8 +130,18 @@ and is **never** duplicated here.
 > See CHANGELOG and
 > [`docs/planning/METAENGINE-LAYOUT-ROLES.md`](docs/planning/METAENGINE-LAYOUT-ROLES.md).
 
-- [ ] **`DemoteEngine` (role transition v2)** — `PromoteEngine` shipped;
-      demotion (Active → shadow) deferred to replication v2.
+- [x] **`DemoteEngine` (role transition v2)** — DONE 2026-08-15: atomic
+      drain-then-unroute via `replanWithTransition` (role flip + replicator +
+      EventLog snapshot under one write lock), targeted mirror catch-up +
+      re-routed replay, `engine-demoted` audit trigger; PromoteEngine hardened
+      through the same atomic path. Exactly-once proven by a concurrent-apply
+      race test. See METAENGINE-LAYOUT-ROLES.md §4.4.
+- [ ] **Re-derive KV/LSM layout constants from size-stable benches** — the
+      pre-2026-08-15 calibration benches (`layout_calibration_bench_test.go`,
+      `bench_layout_calibration_disk_test.go` EmbedWrite) append a child per
+      iteration, so values grow unboundedly and drift mid-run (SQLite
+      embed-write drifted 41µs → 85µs). Make them size-stable (replace-only
+      mutation, as the Row/Columnar benches do) and re-measure.
       _(Effort: M)_
 
 ---

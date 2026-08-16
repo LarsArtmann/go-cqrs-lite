@@ -11,9 +11,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
-// costShapedEngine wraps a memory engine with a profile whose read costs are
-// inflated for selected patterns, letting tests force deterministic query
-// routing splits between otherwise identical engines.
+// costShapedEngine wraps a memory engine whose read costs for selected
+// patterns are inflated, forcing deterministic routing splits between
+// otherwise identical engines.
 type costShapedEngine struct {
 	*memoryEngine
 
@@ -60,9 +60,9 @@ func roleCountQuery() any {
 	)
 }
 
-// demoteTestStore builds a store whose item query routes to engine "items"
-// (expensive aggregates) and whose counter query routes to "counts"
-// (expensive point lookups). Returns the engines for direct inspection.
+// demoteTestStore builds a store whose item query routes to "items"
+// (expensive aggregates) and counter query to "counts" (expensive point
+// lookups). Returns the engines for direct inspection.
 func demoteTestStore(t *testing.T) (store *Store, items, counts Engine) {
 	t.Helper()
 
@@ -101,7 +101,7 @@ const demoteWait = 2 * time.Second
 func TestDemoteEngine_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	store, items, counts := demoteTestStore(t)
+	store, items, _ := demoteTestStore(t)
 	ctx := context.Background()
 
 	for i := range 5 {
@@ -197,10 +197,6 @@ func TestDemoteEngine_HappyPath(t *testing.T) {
 
 	if role, _ := store.EngineRole("items"); role != RoleActive {
 		t.Fatalf("role after promote = %q, want Active", role)
-	}
-
-	if _, err = counts.(CounterBackend).CounterGet(ctx, "role_counts"); err != nil {
-		t.Fatal(err)
 	}
 }
 

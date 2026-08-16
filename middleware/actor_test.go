@@ -25,6 +25,7 @@ func TestCommandActorContext(t *testing.T) {
 	handler := middleware.CommandActorContext()(
 		func(ctx context.Context, _ command.Command) error {
 			gotCtx = ctx
+
 			return nil
 		},
 	)
@@ -56,6 +57,7 @@ func TestCommandActorContext_NoActor(t *testing.T) {
 	handler := middleware.CommandActorContext()(
 		func(ctx context.Context, _ command.Command) error {
 			gotCtx = ctx
+
 			return nil
 		},
 	)

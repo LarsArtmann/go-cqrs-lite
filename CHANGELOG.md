@@ -6,6 +6,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — metaengine layout calibration + DemoteEngine + replan convergence — 2026-08-15
+
+- **Row layout calibration (SQLite/Postgres/MySQL)**: new
+  `BenchmarkRowLayoutCalibration_*` benches measure normalize÷embed ratios
+  through the engine MapBackend API (embed) vs dedicated parent/child tables
+  with LEFT JOIN reads and O(1) child inserts (normalize). Geomean across
+  SQLite 1.95x/PG 1.00x/MySQL 1.06x reads: read 1.27x, write 0.52x, storage
+  0.35x. Sign-flip corrected: normalized JOIN reads are NOT cheaper than
+  JSON-column reads. `layout_scoring.go` Row cell is measurement-derived.
+  MySQL storage sizes require `ANALYZE TABLE` first (InnoDB stats are stale
+  otherwise — first run reported 54x instead of 0.41x).
+- **Columnar layout calibration (DuckDB)**: new
+  `BenchmarkColumnarLayoutCalibration_*` (cgo-gated) on file-backed DuckDB:
+  read 2.62x / write 0.20x / storage 0.59x; a literal `-benchtime=60s` run
+  reproduced all ratios within 2%. The fragile exact-tie cell (Columnar ×
+  ReadSpeed, 2.65 vs 2.65) is gone — now a measured 0.08-margin Embed win;
+  the 16-cell layout matrix regression passes on real constants.
+- **`Store.DemoteEngine(ctx, name, opts...)`**: Active → shadow transition
+  (Backup default, Migration via `WithDemoteRole`), the inverse of
+  PromoteEngine. Atomic drain-then-unroute: role flip + replicator
+  registration + EventLog snapshot + query re-assignment under one write-lock
+  section (`replanWithTransition`, audited trigger `engine-demoted`);
+  targeted catch-up replays history for collections the demoted engine never
+  served onto its mirror and re-routes served queries (non-idempotent folds
+  require `WithDemoteForce`, same contract as `WithBackfillForce`).
+  Exactly-once under concurrent applies is race-tested. Preflight refuses:
+  unknown/shadow engines, last-routable-engine demotion, ADT loss, missing
+  EventLog. `METAENGINE-LAYOUT-ROLES.md` §4.4 rewritten from "future API"
+  to the shipped design.
+- **Promote/demote transition atomicity**: `applyWithRecord` now records to
+  the EventLog, dispatches primary folds, and fans out replication under ONE
+  read-lock section; `dispatchFolds` skips engines registered as replicas;
+  `PromoteEngine` drains + flips inside the same transition lock. Together
+  these close the windows where an event could reach an engine twice or not
+  at all across a role transition.
+- **Multi-engine integration test on real backends**
+  (`metaengine/bench/multi_engine_integration_test.go`): SQLite + Pebble
+  through plan → AddEngine(Migration) → Backfill → live mirroring →
+  PromoteEngine → DemoteEngine → both engines serve identical, complete
+  state; plus a Backfill non-idempotent-guard check on live engines.
+
+### Changed
+
+- **`ReplanLayout` applies its config** (ADR-0124 §5 convergence): the
+  duplicate scoring/priority-resolution loop in `relayout.go` is deleted;
+  ReplanLayout funnels through the single `replanWithTrigger` path (audited
+  `priority-change`/`manual`) and returns old-plan vs new-plan layout diffs.
+  `pc != nil` is now equivalent to `SetPriority` + `Replan` — no longer a
+  pure what-if. Signature unchanged.
+
 ### Added — metaengine ADT roadmap: MariaDB dialect, LSM vector search, native graph dispatch — 2026-08-15
 
 - **mysqlengine MariaDB compatibility**: the server dialect is detected once
