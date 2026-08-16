@@ -116,17 +116,82 @@ mat := stack.Materialize[TodoView, id.StreamID]{
 configureMaterialize(&mat)  // OnCreate, OnUpdate, OnTombstone — identical
 
 // 4. Query with SQL power (the killer feature):
-//    WHERE, ORDER BY, LIMIT/OFFSET — pushed to the database.
+//    WHERE, ORDER BY, pagination — pushed to the database.
+//    Conditions are VALIDATED fail-closed: columns must be declared mapper
+//    columns and operators must be in the supported set (=, !=, <, <=, >, >=,
+//    LIKE, IN, IS NULL, IS NOT NULL) — request-derived names can never reach
+//    the SQL string.
 results, _ := store.Query(ctx, kv.ViewQuery{
-    Where:   "completed = ?",
-    Args:    []any{0},
-    OrderBy: "title",
-    Limit:   20,
+    Conditions: []kv.Condition{{Column: "completed", Op: kv.OpEq, Value: 0}},
+    OrderBy:    "title",
+    Limit:      20,
 })
 
 // 5. List automatically uses server-side tombstone filtering when
 //    TombstoneColumn is configured (no full-table load).
 active, _ := mat.List(ctx, stack.ExcludeTombstoned)
+```
+
+#### Validated WHERE, keyset pagination, and the RawWhere escape hatch
+
+`SQLViewStore.Query` (implements `kv.ViewQuerier`) validates every query
+fail-closed before SQL is rendered (2026-08-15 SQL-injection guards):
+
+- **Columns** must be declared mapper columns — an unknown column is a
+  `Rejection` error, never interpolated SQL. Covers filter conditions,
+  `Order`/`OrderBy`, and keyset cursor columns.
+- **Operators** must be one of the 10 `kv.Operator` constants
+  (`OpEq`, `OpNeq`, `OpLt`, `OpLte`, `OpGt`, `OpGte`, `OpLike`, `OpIn`,
+  `OpIsNull`, `OpIsNotNull`).
+- **Values are always bound parameters** — never spliced into the string.
+- **`RawWhere` + `RawArgs`** is the explicit escape hatch for what
+  `Condition` cannot express (OR groups, subqueries, date arithmetic):
+  it is AND-joined after the validated conditions, and YOU own
+  parameterisation of the raw fragment.
+
+```go
+q := kv.ViewQuery{
+    Conditions: []kv.Condition{
+        {Column: "guild_id", Op: kv.OpEq, Value: gid},
+        {Column: "status", Op: kv.OpIn, Values: []any{"active", "pending"}},
+    },
+    RawWhere: "(deleted_at IS NULL OR deleted_at > ?)",
+    RawArgs:  []any{cutoff},
+}
+```
+
+For deep pagination, prefer keyset (seek) pagination over `Offset` —
+performance is constant regardless of depth, and concurrent inserts do not
+shift the window. Cursor columns default to the effective `Order` with the
+key column appended as tiebreaker:
+
+```go
+page1, _ := store.Query(ctx, kv.ViewQuery{
+    Order: []kv.OrderClause{{Column: "created_at", Desc: true}},
+    Limit: 50,
+})
+last := page1[len(page1)-1]
+page2, _ := store.Query(ctx, kv.ViewQuery{
+    Order:  []kv.OrderClause{{Column: "created_at", Desc: true}},
+    Keyset: &kv.Keyset{Columns: []string{"created_at", "id"},
+        Values: []any{last.CreatedAt, last.ID}},
+    Limit: 50,
+})
+```
+
+Note for hand-rolled SQL: `storage/sql.BuildWhereClause` is deprecated
+(interpolates column names/operators); `BuildWhereClauseChecked` is the
+validated replacement.
+
+Schema ownership: all view-store constructors auto-create the table and
+indexes unless you pass `storage.WithoutViewAutoMigrate()`. Use it when your
+migration tooling (goose, golang-migrate, embedded `storage/migrations` DDL)
+owns the DDL — the store then assumes the table exists and never issues
+`CREATE TABLE`:
+
+```go
+store, _ := storage.NewSQLiteViewStore[TodoView, id.StreamID](
+    db, mapper, storage.WithoutViewAutoMigrate())
 ```
 
 Shortcut: auto-generate the mapper from struct tags:
