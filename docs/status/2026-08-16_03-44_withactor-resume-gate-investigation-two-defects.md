@@ -200,8 +200,11 @@ User answered all three questions; both defects closed. Full `#verify` unblocked
 
 ## Gate status (post-resolution)
 
-Both blockers closed. Fresh HEAD soak measurement (post-`cdc525fd5`) captured in
-`/tmp/bbolt-head-measure.log`. Remaining gate work: full `#verify` re-run
+Both blockers closed. Fresh HEAD soak measurement (post-`cdc525fd5`): **PASS at
+1145.001s** (`06e046c2f`, ~20 concurrent agent processes; log
+`/tmp/bbolt-head-measure.log`) — cdc525fd5 did NOT shorten it; the 509→1145s
+spread is load-driven. Dedicated-run budgets (`#test`/`#test-race`) therefore
+bumped to `-timeout=30m`. Remaining gate work: full `#verify` re-run
 (exclusive window), then `#verify-fast`. Known risk: the parallel session's
 in-flight WIP (storage/view batch exports, `docs/api_surface.txt` drift) may
 trip check-api-stability before it lands its own regen.

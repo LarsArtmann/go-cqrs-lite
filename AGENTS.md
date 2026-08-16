@@ -186,7 +186,7 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 - **Postgres integration tests** use `testcontainers-go` (postgres:16-alpine). Each test gets its own fresh database. `POSTGRES_TEST_DSN`/`DATABASE_URL` env var overrides.
 - **Nix-based integration tests (no Docker)**: ephemeral PG/Redis/NATS/Dgraph via nixpkgs services. See Quick Reference for commands.
 - **Race-aware test thresholds**: `-race` inflates allocations/CPU 5-10x. Use `testutil.RaceEnabled` (or `enginetest.RaceEnabled` for metaengine modules) to pick relaxed bounds. Three lean-budget modules (`benchkit`, `transport/grpc`, `idempotency/kvstore`) keep local copies because adding testutil/enginetest would exceed dep budget. Always run affected test 3x with `-count=3 -race` after touching a threshold.
-- **Soak test env vars**: `SOAK_SKIP_10M=1` skips 10M-event soak (~5s/25s-race). `SOAK_SKIP_DUCKDB=1` skips DuckDB AutoCRUD soak (~80s/100s-race). `SOAK_SKIP_BOLT=1` skips bbolt AutoCRUD soak (~509-708s; exported by the full `nix run .#verify` app, whose 8m per-package timeout it exceeds). The 50K-event `TestSoak_MemoryBounded` always runs as smoke.
+- **Soak test env vars**: `SOAK_SKIP_10M=1` skips 10M-event soak (~5s/25s-race). `SOAK_SKIP_DUCKDB=1` skips DuckDB AutoCRUD soak (~80s/100s-race). `SOAK_SKIP_BOLT=1` skips bbolt AutoCRUD soak (509-1145s under load; exported by the full `nix run .#verify` app, whose 8m per-package timeout it exceeds). The 50K-event `TestSoak_MemoryBounded` always runs as smoke.
 - Coverage drift checked by `nix run .#check-coverage` (`scripts/check-coverage.sh`).
 
 ## Gotchas & Non-Obvious Behaviors

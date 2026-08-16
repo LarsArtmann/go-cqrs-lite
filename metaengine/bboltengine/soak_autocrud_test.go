@@ -8,9 +8,10 @@ import (
 )
 
 // TestSoak_AutoCRUD_Bbolt runs the AutoCRUDByConvention soak against the bbolt
-// engine. Measured 509-708s solo (2026-08-16, loaded machine) — above the full
-// verify gate's 8m per-package timeout, which is why that gate exports
-// SOAK_SKIP_BOLT=1 and this soak is covered by dedicated runs instead.
+// engine. Measured 509-1145s under load (2026-08-16; 1145s with ~20 concurrent
+// agent processes) — above the full verify gate's 8m per-package timeout, which
+// is why that gate exports SOAK_SKIP_BOLT=1 and this soak is covered by
+// dedicated runs instead.
 //
 // Skips in -short mode. Skips when SOAK_SKIP_BOLT=1.
 //
