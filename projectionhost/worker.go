@@ -60,6 +60,14 @@ type worker struct {
 	// concurrent projection.Handle calls and races on seenIDs/cpStore.
 	handleMu sync.Mutex
 
+	// Live-phase checkpoint batching state (guarded by handleMu together with
+	// the subscriber callback that drives it). cpHasPending=false means the
+	// durable checkpoint is current.
+	cpPending    event.Checkpoint
+	cpHasPending bool
+	cpSinceSave  int
+	cpLastSave   time.Time
+
 	stop chan struct{}
 	done chan struct{}
 }
@@ -133,6 +141,8 @@ func (w *worker) captureFlightRecorder(ctx context.Context, failedErr error) {
 }
 
 func (w *worker) run(ctx context.Context) {
+	// Detached context: the worker ctx is cancelled before deferred flushes run.
+	defer w.flushPendingCheckpoint(context.WithoutCancel(ctx))
 	defer close(w.done)
 	defer func() {
 		if w.snapshot().Status != WorkerFailed {

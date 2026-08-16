@@ -40,6 +40,12 @@ type hostOptions struct {
 	onFailed              func(projectionName, lastError string)
 	flightRecorder        *flightrecorder.Recorder
 	flightRecorderTrigger flightrecorder.TriggerFunc
+
+	// cpEvery/cpInterval batch LIVE-phase checkpoint saves (see
+	// WithCheckpointEvery / WithCheckpointInterval). Zero values keep the
+	// default save-after-every-event behavior.
+	cpEvery    int
+	cpInterval time.Duration
 }
 
 func defaultOptions() hostOptions {
@@ -152,5 +158,36 @@ func WithFlightRecorder(
 	return func(o *hostOptions) {
 		o.flightRecorder = recorder
 		o.flightRecorderTrigger = trigger
+	}
+}
+
+// WithCheckpointEvery batches live-phase checkpoint saves: the checkpoint is
+// persisted after every n processed live events instead of after each one,
+// reducing checkpoint-store round-trips (e.g. fsync-per-event on SQL stores).
+// Default: 1 (every event, durable after each one).
+//
+// Trade-off: a crash reprocesses at most n-1 live events — delivery stays
+// at-least-once, the same contract the replay→live overlap already requires,
+// so projections must be idempotent. Any pending checkpoint is flushed at
+// worker shutdown. The catch-up/replay drain always saves once per batch and
+// is unaffected. n < 2 keeps the default behavior.
+func WithCheckpointEvery(n int) HostOption {
+	return func(o *hostOptions) {
+		if n > 1 {
+			o.cpEvery = n
+		}
+	}
+}
+
+// WithCheckpointInterval batches live-phase checkpoint saves by time: a
+// pending checkpoint is persisted once at least d has elapsed since the last
+// save (checked when the next live event arrives). Default: 0 (disabled).
+// Combine with [WithCheckpointEvery] — whichever threshold hits first wins.
+// Same at-least-once trade-off and shutdown flush as [WithCheckpointEvery].
+func WithCheckpointInterval(d time.Duration) HostOption {
+	return func(o *hostOptions) {
+		if d > 0 {
+			o.cpInterval = d
+		}
 	}
 }

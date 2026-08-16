@@ -146,36 +146,44 @@ func (r *JournalReader[T]) ReadFrom(ctx context.Context, afterID string, limit i
 		return items, nil
 	}
 
-	positionColumns := r.PositionColumns
-
-	p1 := r.Dialect.Placeholder(1)
-	p2 := r.Dialect.Placeholder(2)
-	p3 := r.Dialect.Placeholder(3)
-	ts := r.TimestampColumn
-	query := fmt.Sprintf(
-		`SELECT %s
-		FROM %s e
-		JOIN %s c ON c.id = %s
-		WHERE (e.%s > c.%s) OR (e.%s = c.%s AND e.id > %s)
-		ORDER BY e.%s ASC, e.id ASC`,
-		positionColumns,
-		r.Table, r.Table, p1,
-		ts, ts, ts, ts, p2,
-		ts,
-	)
-
-	rows, err := QueryFromPosition(
+	// Keyset pagination: resolve the cursor row's timestamp with a point
+	// lookup, then range-scan from it. The former self-JOIN formulation
+	// defeated the timestamp index in SQLite and made batched drains O(N²)
+	// (see KeysetPositionQuery).
+	cursorTS, found, err := ResolveCursorTimestamp(
 		ctx,
 		r.DB,
-		span,
-		query,
+		r.Dialect,
+		r.Table,
+		r.TimestampColumn,
 		afterID,
-		limit,
-		p3,
-		r.EntityNounPlural,
 	)
 	if err != nil {
-		return nil, err
+		cqrsotel.RecordError(span, err)
+
+		return nil, errorfamily.Wrapf(err, errorfamily.Infrastructure, r.ErrCodeReadFrom,
+			"read from %s store (limit=%d, after=%s)", r.EntityNoun, limit, afterID)
+	}
+
+	if !found {
+		// Dangling cursor (the row was pruned): the former self-JOIN
+		// returned zero rows here, ending the drain. Preserve that
+		// contract instead of silently replaying from the start.
+		span.SetAttributes(cqrsotel.AttrInt(r.CountAttr, 0))
+
+		return []T{}, nil
+	}
+
+	query := KeysetPositionQuery(r.Dialect, r.PositionColumns, r.Table, r.TimestampColumn)
+	args := []any{cursorTS, cursorTS, afterID}
+	query, args = AppendLimit(query, args, limit, r.Dialect.Placeholder(4))
+
+	rows, err := r.DB.QueryContext(ctx, query, args...)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return nil, errorfamily.WrapInfrastructure(err, r.ErrCodeQueryStart,
+			fmt.Sprintf("read %s from position (limit=%d)", r.EntityNounPlural, limit))
 	}
 	defer CloseRows(rows)
 

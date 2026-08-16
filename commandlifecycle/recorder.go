@@ -188,12 +188,20 @@ type metadataProvider interface {
 // that failed?". Commands that do not expose metadata are recorded without
 // tracing; zero identifiers do not overwrite anything (Merge semantics).
 func commandTracing(cmd command.Command) event.Option {
-	mp, ok := cmd.(metadataProvider)
+	provider, ok := cmd.(metadataProvider)
 	if !ok {
 		return func(*event.ImmutableEvent) {}
 	}
 
-	return event.WithMetadata(event.Metadata{Tracing: mp.Metadata().Tracing})
+	return event.WithMetadata(event.Metadata{
+		Tracing:   provider.Metadata().Tracing,
+		Source:    event.Source(""),
+		IPAddress: event.IPAddress(""),
+		UserAgent: event.UserAgent(""),
+		Tombstone: nil,
+		Causation: nil,
+		Custom:    nil,
+	})
 }
 
 func (r *Recorder) nextVersion(

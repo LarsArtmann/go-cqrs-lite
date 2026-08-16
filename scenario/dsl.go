@@ -121,15 +121,23 @@ func (s *DeciderScenario[Cmd, State]) prepareThen(method string) State {
 	return s.foldGiven()
 }
 
-// Then asserts that the decide function produced the expected event types.
-// It compares event types (not payloads) — use ThenFull for deep comparison.
-func (s *DeciderScenario[Cmd, State]) Then(expectedEventTypes ...event.Type) {
-	state := s.prepareThen("Then")
+// decideEvents prepares the Then-step state, runs decide, and fails the test
+// if decide errors — the shared prologue of Then and ThenEvents.
+func (s *DeciderScenario[Cmd, State]) decideEvents(method string) []event.Event {
+	state := s.prepareThen(method)
 
 	events, err := s.decide(state, s.cmd)
 	if err != nil {
-		s.t.Fatalf("When: decide returned error: %v", err)
+		s.t.Fatalf("%s: decide returned error: %v", method, err)
 	}
+
+	return events
+}
+
+// Then asserts that the decide function produced the expected event types.
+// It compares event types (not payloads) — use ThenFull for deep comparison.
+func (s *DeciderScenario[Cmd, State]) Then(expectedEventTypes ...event.Type) {
+	events := s.decideEvents("Then")
 
 	gotTypes := make([]event.Type, len(events))
 	for i, e := range events {
@@ -157,12 +165,7 @@ func (s *DeciderScenario[Cmd, State]) Then(expectedEventTypes ...event.Type) {
 func (s *DeciderScenario[Cmd, State]) ThenEvents(
 	inspect func(events []event.Event),
 ) *DeciderScenario[Cmd, State] {
-	state := s.prepareThen("ThenEvents")
-
-	events, err := s.decide(state, s.cmd)
-	if err != nil {
-		s.t.Fatalf("When: decide returned error: %v", err)
-	}
+	events := s.decideEvents("ThenEvents")
 
 	inspect(events)
 

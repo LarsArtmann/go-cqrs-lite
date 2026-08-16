@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
@@ -202,12 +200,8 @@ func (w *worker) liveHandler(ctx context.Context) event.Handler {
 			})
 		}
 
-		if saveErr := w.cpStore.Save(ctx, w.name, event.Checkpoint{
-			EventID:     evt.ID(),
-			ProcessedAt: time.Now(),
-		}); saveErr != nil {
-			return errorfamily.WrapInfrastructure(saveErr, "projectionhost.save_checkpoint_live",
-				"save checkpoint after live event")
+		if saveErr := w.recordLiveCheckpoint(ctx, evt); saveErr != nil {
+			return saveErr
 		}
 
 		w.processed.Add(1)

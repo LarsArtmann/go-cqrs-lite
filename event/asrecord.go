@@ -51,7 +51,7 @@ func AsRecord(evt Event) record.Record {
 	md := evt.Metadata()
 	tracing := md.Tracing
 
-	causationID := brandedString(tracing.CausationID)
+	causationID := metadata.BrandedString(tracing.CausationID)
 	if md.Causation != nil && !md.Causation.CommandID.IsZero() {
 		causationID = md.Causation.CommandID.String()
 	}
@@ -65,38 +65,14 @@ func AsRecord(evt Event) record.Record {
 		StreamType: streamType,
 		Version:    int64(evt.Version()),
 		MetaData: record.CommonMetadata{
-			CorrelationID:   brandedString(tracing.CorrelationID),
+			CorrelationID:   metadata.BrandedString(tracing.CorrelationID),
 			CausationID:     causationID,
-			ActorID:         actorString(tracing),
+			ActorID:         metadata.ActorString(tracing),
 			ClientCreatedAt: evt.OccurredAt(),
 			SchemaVersion:   int(evt.SchemaVersion()),
 		},
 	}
 }
 
-// brandedString returns the string form of a branded ID, or "" if it is zero.
-// Prevents zero-value ULIDs from leaking as "0000..." into Record metadata.
-func brandedString[T interface {
-	String() string
-	IsZero() bool
-}](v T) string {
-	if v.IsZero() {
-		return ""
-	}
-
-	return v.String()
-}
-
-// actorString resolves the Record's ActorID: the kind-discriminated
-// Tracing.ActorID in its self-describing "kind:raw" form when set, falling
-// back to the bare Tracing.UserID for records that predate ActorID.
-func actorString(tracing metadata.Tracing) string {
-	if !tracing.ActorID.IsZero() {
-		return tracing.ActorID.PrefixedString()
-	}
-
-	return brandedString(tracing.UserID)
-}
-
 // Compile-time: verify the branded ID types satisfy the constraint.
-var _ = brandedString[id.CorrelationID]
+var _ = metadata.BrandedString[id.CorrelationID]

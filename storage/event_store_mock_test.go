@@ -20,11 +20,12 @@ const loadToTimestampQuery = `SELECT id, event_type, aggregate_type, aggregate_i
 		FROM events
 		WHERE aggregate_type = $1 AND aggregate_id = $2 AND occurred_at <= $3 ORDER BY version ASC`
 
-const loadAllFromPositionQuery = `SELECT e.id, e.event_type, e.aggregate_type, e.aggregate_id, e.version, e.schema_version, e.payload, e.payload_encoding, e.metadata, e.occurred_at
+const resolveCursorTimestampQuery = `SELECT occurred_at FROM events WHERE id = $1`
+
+const keysetFromPositionQuery = `SELECT e.id, e.event_type, e.aggregate_type, e.aggregate_id, e.version, e.schema_version, e.payload, e.payload_encoding, e.metadata, e.occurred_at
 		FROM events e
-		JOIN events c ON c.id = $1
-		WHERE (e.occurred_at > c.occurred_at) OR (e.occurred_at = c.occurred_at AND e.id > $2)
-		ORDER BY e.occurred_at ASC, e.id ASC LIMIT $3`
+		WHERE e.occurred_at >= $1 AND (e.occurred_at > $2 OR e.id > $3)
+		ORDER BY e.occurred_at ASC, e.id ASC LIMIT $4`
 
 func mockEventRowsForTest(evt event.Event, streamID id.StreamID) *sqlmock.Rows {
 	return sqlmock.NewRows(eventColumns()).AddRow(
@@ -138,8 +139,12 @@ func TestSQLEventStore_LoadToTimestamp_Mock_QueryError(t *testing.T) {
 }
 
 func mockLoadAllFromPosition(mock sqlmock.Sqlmock, evt event.Event) {
-	mock.ExpectQuery(regexp.QuoteMeta(loadAllFromPositionQuery)).
-		WithArgs(evt.ID().String(), evt.ID().String(), 10).
+	mock.ExpectQuery(regexp.QuoteMeta(resolveCursorTimestampQuery)).
+		WithArgs(evt.ID().String()).
+		WillReturnRows(sqlmock.NewRows([]string{"occurred_at"}).AddRow(evt.OccurredAt()))
+
+	mock.ExpectQuery(regexp.QuoteMeta(keysetFromPositionQuery)).
+		WithArgs(evt.OccurredAt(), evt.OccurredAt(), evt.ID().String(), 10).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
 			evt.ID(), "UserCreated", "User", evt.StreamID(),
 			1, 1, evt.Payload(), "json", nil, evt.OccurredAt(),
@@ -188,9 +193,14 @@ func TestSQLEventStore_ReadFrom_Mock_QueryError(t *testing.T) {
 
 	store, mock := newTestStore(t)
 	evtID := id.NewEventID()
+	cursorTS := testEventWithAggID(t, "UserCreated", id.NewStreamID(), 1).OccurredAt()
 
-	mock.ExpectQuery(regexp.QuoteMeta(loadAllFromPositionQuery)).
-		WithArgs(evtID.String(), evtID.String(), 10).
+	mock.ExpectQuery(regexp.QuoteMeta(resolveCursorTimestampQuery)).
+		WithArgs(evtID.String()).
+		WillReturnRows(sqlmock.NewRows([]string{"occurred_at"}).AddRow(cursorTS))
+
+	mock.ExpectQuery(regexp.QuoteMeta(keysetFromPositionQuery)).
+		WithArgs(cursorTS, cursorTS, evtID.String(), 10).
 		WillReturnError(errors.New("connection lost"))
 
 	_, err := store.ReadFrom(context.Background(), evtID, 10)

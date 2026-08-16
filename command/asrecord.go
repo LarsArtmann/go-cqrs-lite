@@ -45,33 +45,9 @@ func AsRecord(cmd *BasicCommand) record.Record {
 		StreamID:   record.NewStreamRef("", cmd.StreamID().String()),
 		StreamType: "",
 		MetaData: record.CommonMetadata{
-			CorrelationID: brandedString(tracing.CorrelationID),
-			CausationID:   brandedString(tracing.CausationID),
-			ActorID:       actorString(tracing),
+			CorrelationID: metadata.BrandedString(tracing.CorrelationID),
+			CausationID:   metadata.BrandedString(tracing.CausationID),
+			ActorID:       metadata.ActorString(tracing),
 		},
 	}
-}
-
-// brandedString returns the string form of a branded ID, or "" if it is zero.
-// Prevents zero-value ULIDs from leaking as "0000..." into Record metadata.
-func brandedString[T interface {
-	String() string
-	IsZero() bool
-}](v T) string {
-	if v.IsZero() {
-		return ""
-	}
-
-	return v.String()
-}
-
-// actorString resolves the Record's ActorID: the kind-discriminated
-// Tracing.ActorID in its self-describing "kind:raw" form when set, falling
-// back to the bare Tracing.UserID for records that predate ActorID.
-func actorString(tracing metadata.Tracing) string {
-	if !tracing.ActorID.IsZero() {
-		return tracing.ActorID.PrefixedString()
-	}
-
-	return brandedString(tracing.UserID)
 }

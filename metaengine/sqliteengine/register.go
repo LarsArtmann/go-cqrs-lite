@@ -14,7 +14,8 @@ func init() {
 		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
 			// Owning variant: the driver factory cannot hand the *sql.DB to
 			// the caller, so the engine must close it on Close.
-			return NewSQLiteEngineFromDSN(cfg.DSN, cfg.Pragmas...) //nolint:wrapcheck
+			// Engine API takes no ctx (same as benchkit/phases_metaengine_sqlite.go).
+			return NewSQLiteEngineFromDSN(cfg.DSN, cfg.Pragmas...) //nolint:contextcheck,wrapcheck
 		},
 	)
 }

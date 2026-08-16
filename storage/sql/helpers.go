@@ -101,20 +101,27 @@ const maxNonSQLiteParameters = 32767
 
 // MaxParametersForDialect returns the maximum number of bound parameters a
 // single statement may carry for the given dialect. SQLite is capped at 999;
-// all other known dialects get 32767. Unknown dialects keep the conservative
-// SQLite limit so custom Dialect implementations stay correct by default.
+// PostgreSQL, MySQL, and DuckDB get 32767. Unknown dialects keep the
+// conservative SQLite limit so custom Dialect implementations stay correct by
+// default (custom dialects can inherit the wider limit by embedding one of
+// the known dialects).
 func MaxParametersForDialect(dialect Dialect) int {
-	if _, isSQLite := dialect.(SQLiteDialect); isSQLite {
+	switch dialect.(type) {
+	case SQLiteDialect:
+		return maxSQLiteParameters
+	case PostgresDialect, MySQLDialect, DuckDBDialect:
+		return maxNonSQLiteParameters
+	default:
 		return maxSQLiteParameters
 	}
-
-	return maxNonSQLiteParameters
 }
 
 // SharedBatchInsertEvents inserts multiple events using a single multi-VALUES
 // INSERT statement, reducing network round-trips for batch writes.
-// Events are chunked to respect the dialect's bound-parameter limit
-// (999 for SQLite, 32767 for PostgreSQL/MySQL/DuckDB).
+// Events are chunked to respect BOTH the dialect's bound-parameter limit
+// (999 for SQLite, 32767 for PostgreSQL/MySQL/DuckDB) and an estimated
+// serialized-statement byte cap (MaxStatementBytes), so large payloads shrink
+// chunks instead of exceeding MariaDB/MySQL max_allowed_packet.
 func SharedBatchInsertEvents(
 	ctx context.Context,
 	tx *sql.Tx,
@@ -127,19 +134,52 @@ func SharedBatchInsertEvents(
 		return nil
 	}
 
+	metadataJSON, err := marshalAllEventMetadata(events)
+	if err != nil {
+		return err
+	}
+
 	maxPerBatch := MaxParametersForDialect(dialect) / eventColumnsPerRow
 
-	for start := 0; start < len(events); start += maxPerBatch {
-		end := min(start+maxPerBatch, len(events))
-		batch := events[start:end]
+	for start := 0; start < len(events); {
+		rows := RowsWithinByteCap(start, len(events), maxPerBatch, func(i int) int {
+			return len(
+				event.PayloadReadOnly(events[i]),
+			) + len(
+				metadataJSON[i],
+			) + bytesPerEventOverhead
+		})
 
-		err := insertMultiValues(ctx, tx, ref, batch, dialect, formatTime)
+		err := insertMultiValues(
+			ctx,
+			tx,
+			ref,
+			events[start:start+rows],
+			metadataJSON[start:start+rows],
+			dialect,
+			formatTime,
+		)
 		if err != nil {
 			return err
 		}
+		start += rows
 	}
 
 	return nil
+}
+
+func marshalAllEventMetadata(events []event.Event) ([][]byte, error) {
+	marshaled := make([][]byte, len(events))
+	for i, evt := range events {
+		metadata, err := MarshalMetadata(evt.Metadata())
+		if err != nil {
+			return nil, errorfamily.WrapCorruption(err, "storage.marshal_metadata",
+				"marshal metadata for event "+string(evt.Type()))
+		}
+		marshaled[i] = metadata
+	}
+
+	return marshaled, nil
 }
 
 func insertMultiValues(
@@ -147,6 +187,7 @@ func insertMultiValues(
 	tx *sql.Tx,
 	ref id.StreamRef,
 	events []event.Event,
+	metadataJSON [][]byte,
 	dialect Dialect,
 	formatTime func(time.Time) any,
 ) error {
@@ -155,12 +196,6 @@ func insertMultiValues(
 	args := make([]any, 0, n*eventColumnsPerRow)
 
 	for i, evt := range events {
-		metadata, err := MarshalMetadata(evt.Metadata())
-		if err != nil {
-			return errorfamily.WrapCorruption(err, "storage.marshal_metadata",
-				"marshal metadata for event "+string(evt.Type()))
-		}
-
 		offset := i * eventColumnsPerRow
 		valueGroups[i] = "(" + Placeholders(dialect, eventColumnsPerRow, offset) + ")"
 
@@ -174,7 +209,7 @@ func insertMultiValues(
 			evt.SchemaVersion().Int(),
 			event.PayloadReadOnly(evt),
 			string(evt.Encoding()),
-			metadata,
+			metadataJSON[i],
 			formatTime(evt.OccurredAt()),
 		)
 	}

@@ -158,19 +158,39 @@ func (s *SQLEventStore) ReadStreamFrom(
 		return s.streamFromStart(ctx, limit)
 	}
 
-	p1, p2, p3 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2), s.Dialect.Placeholder(3)
-	query := fmt.Sprintf(
-		`SELECT e.id, e.event_type, e.aggregate_type, e.aggregate_id, e.version, e.schema_version, e.payload, e.payload_encoding, e.metadata, e.occurred_at
-		FROM `+sqlpkg.TableEvents+` e
-		JOIN `+sqlpkg.TableEvents+` c ON c.id = %s
-		WHERE (e.occurred_at > c.occurred_at) OR (e.occurred_at = c.occurred_at AND e.id > %s)
-		ORDER BY e.occurred_at ASC, e.id ASC`,
-		p1,
-		p2,
+	afterID := afterEventID.String()
+
+	// Keyset pagination: resolve the cursor row's timestamp with a point
+	// lookup, then range-scan from it. The former self-JOIN formulation
+	// defeated the timestamp index in SQLite (see sqlpkg.KeysetPositionQuery).
+	cursorTS, found, err := sqlpkg.ResolveCursorTimestamp(
+		ctx, s.DB, s.Dialect, sqlpkg.TableEvents, "occurred_at", afterID,
 	)
-	args := []any{afterEventID.String(), afterEventID.String()}
+	if err != nil {
+		return nil, errorfamily.Wrapf(
+			err,
+			errorfamily.Infrastructure,
+			"storage.stream_resolve_cursor",
+			"stream events from position (limit=%d, after=%s)",
+			limit,
+			afterID,
+		)
+	}
+
+	if !found {
+		// Dangling cursor: the former self-JOIN returned zero rows here.
+		return &emptySQLEventIterator{}, nil
+	}
+
+	query := sqlpkg.KeysetPositionQuery(
+		s.Dialect,
+		sqlpkg.EventColumns,
+		sqlpkg.TableEvents,
+		"occurred_at",
+	)
+	args := []any{cursorTS, cursorTS, afterID}
 	if limit > 0 {
-		query += " LIMIT " + p3
+		query += " LIMIT " + s.Dialect.Placeholder(4)
 		args = append(args, limit)
 	}
 
@@ -182,6 +202,14 @@ func (s *SQLEventStore) ReadStreamFrom(
 
 	return newSQLEventIterator(rows, s.scanEvent), nil
 }
+
+// emptySQLEventIterator yields no events. Returned by ReadStreamFrom when the
+// cursor references a row that no longer exists (dangling cursor after journal
+// pruning) — the former self-JOIN query returned zero rows in that case.
+type emptySQLEventIterator struct{}
+
+func (emptySQLEventIterator) Next() (event.Event, error) { return nil, io.EOF }
+func (emptySQLEventIterator) Close() error               { return nil }
 
 func (s *SQLEventStore) streamFromStart(
 	ctx context.Context,

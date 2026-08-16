@@ -204,6 +204,13 @@ func (h *Host) Stop() error {
 
 	select {
 	case <-done:
+		// Persist any staged live-phase checkpoints (WithCheckpointEvery /
+		// WithCheckpointInterval) so a graceful Stop does not widen the
+		// reprocessing window. No-op for workers without pending state.
+		for _, w := range h.workers {
+			w.flushPendingCheckpoint(context.Background())
+		}
+
 		return nil
 	case <-time.After(h.opts.shutdownTimeout):
 		return errorfamily.NewInfrastructure(

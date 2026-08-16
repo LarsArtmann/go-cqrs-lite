@@ -73,8 +73,9 @@ func (j *memoryJournal) append(evt event.Event) {
 
 // memoryCheckpointStore is a minimal event.CheckpointStore for testing.
 type memoryCheckpointStore struct {
-	mu   sync.Mutex
-	data map[string]event.Checkpoint
+	mu    sync.Mutex
+	data  map[string]event.Checkpoint
+	saves atomic.Int64
 }
 
 func newMemoryCheckpointStore() *memoryCheckpointStore {
@@ -85,6 +86,7 @@ func (s *memoryCheckpointStore) Save(_ context.Context, name string, cp event.Ch
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.data[name] = cp
+	s.saves.Add(1)
 
 	return nil
 }

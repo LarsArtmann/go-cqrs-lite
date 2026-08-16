@@ -43,6 +43,20 @@ defer host.Stop()    // graceful drain (30s timeout)
 // For live push delivery, pair with watermill/CatchUpSubscriber (Option B).
 ```
 
+**Checkpoint tuning (live-phase throughput vs. reprocessing window).** By default
+`projectionhost` saves the checkpoint after **every** live event. If your checkpoint
+store is slow (remote SQL, per-write fsync), two opt-in knobs batch those saves:
+
+```go
+projectionhost.WithCheckpointEvery(100),      // save after every 100 live events
+projectionhost.WithCheckpointInterval(500 * time.Millisecond), // or/and: next event after 500ms idle
+```
+
+Both default to off (save-per-event). On crash or `Stop()`, pending checkpoints are
+flushed; only a hard crash can lose progress, in which case **at most n−1 live events
+are reprocessed on restart** — the same at-least-once contract as the replay→live
+overlap. Catch-up (drain) phase always saves per batch, independent of these knobs.
+
 **Option B — `CatchUpSubscriber` (push-based, live tail after replay).** Pairs with `stack.Materialize` for ordered, durable projections. See §2.3 "Canonical projection pattern" below and advanced.md §6.9 for the full `projectionhost` lifecycle.
 
 Query the read model with type-safe dispatch:

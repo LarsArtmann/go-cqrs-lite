@@ -6,6 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — projectionhost: opt-in live-checkpoint batching — 2026-08-16
+
+- **`WithCheckpointEvery(n)` / `WithCheckpointInterval(d)`**: batch live-phase
+  checkpoint saves instead of the default save-per-event. Either threshold
+  triggers a flush (interval is evaluated at event arrival). Pending
+  checkpoints are flushed on `Host.Stop()` and worker exit; a hard crash
+  reprocesses at most n−1 live events on restart (at-least-once, same
+  contract as the replay→live overlap). Catch-up phase still saves per batch.
+  Default behavior unchanged.
+
+### Changed — storage perf: packet-safe SQL batching, cache-line pad, deserialize fast path — 2026-08-16
+
+- **Dialect-aware SQL batch chunking (33x fewer round-trips, now
+  packet-safe)**: `SharedBatchInsertEvents` and `view.BatchSet` chunk
+  multi-VALUES INSERTs by the dialect's bound-parameter limit (SQLite 999;
+  PostgreSQL/MySQL/DuckDB 32767 — 99 → 3276 rows per statement) AND by an
+  estimated statement-size cap (`sql.MaxStatementBytes`, 8 MiB = 50% of
+  MariaDB's default `max_allowed_packet`), so large payloads shrink chunks
+  instead of failing the whole batch write with a packet error. New exports:
+  `sql.MaxParametersForDialect`, `sql.MaxStatementBytes`,
+  `sql.RowsWithinByteCap`. Unknown custom dialects conservatively get the
+  SQLite limit; metadata is marshaled once per Save instead of per chunk.
+  Verified on real Postgres (ephemeral nix env) and MariaDB-in-VM (2000
+  events × 8 KiB regression test in `stack/mysql`).
+- **False-sharing pad on metaengine `workloadMeter`**: 128-byte separation of
+  adjacent hot counters cut contended ops −46..51% (6.3→3.4 ns/op @4 procs,
+  6.6→3.2 @8).
+- **Pebble/bbolt read fast path via `event.ReconstructEventWithMetadata`**:
+  passing decoded metadata directly (no JSON round-trip) cut pebble
+  deserialize −46% ns/op and −53% allocs (5000→2680 ns/op, 2247→1205 B/op,
+  43→20 allocs/op); bbolt adopts the identical shape.
+
 ### Added — metaengine layout calibration + DemoteEngine + replan convergence — 2026-08-15
 
 - **Row layout calibration (SQLite/Postgres/MySQL)**: new
