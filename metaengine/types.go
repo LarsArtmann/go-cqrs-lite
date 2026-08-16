@@ -40,6 +40,19 @@ type Edge struct {
 	To   any
 }
 
+// EdgeRemoval is a sentinel return type for tombstone-driven edge deletion
+// (ADR-0114 style): the event that added Edge{From, To} is retracted, so the
+// edge is removed. Return it from OnRecord to classify the fold as an edge
+// removal:
+//
+//	metaengine.OnRecord(Unfollowed{}, func(_ record.Record, e Unfollowed) metaengine.EdgeRemoval {
+//	    return metaengine.EdgeRemoval{From: e.Follower, To: e.Followee}
+//	})
+type EdgeRemoval struct {
+	From any
+	To   any
+}
+
 // MultiEntry is a sentinel return type for multimap folds: one key maps to many values.
 // Return it from OnRecord to classify the fold as a multimap insert:
 //

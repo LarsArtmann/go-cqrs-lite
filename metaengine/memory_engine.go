@@ -278,6 +278,17 @@ func (m *memoryEngine) VectorSearch(
 	return m.vectorIdx.Search(ctx, col, query, k, metric)
 }
 
+func (m *memoryEngine) VectorSearchFiltered(
+	ctx context.Context,
+	col string,
+	query []float32,
+	k int,
+	metric string,
+	filters []VectorFilter,
+) ([]VectorResult, error) {
+	return m.vectorIdx.SearchFiltered(ctx, col, query, k, metric, filters)
+}
+
 // --- SearchBackend ---
 
 func (m *memoryEngine) SearchInsert(ctx context.Context, col string, doc IndexedText) error {

@@ -5,19 +5,20 @@ import (
 	"reflect"
 )
 
-// extractVectorQuery reads the query vector, metric, and k from a query input
-// struct by field name. Recognized field names:
+// extractVectorQuery reads the query vector, metric, k, and optional metadata
+// filters from a query input struct by field name. Recognized field names:
 //   - Values or Vector or Query ([]float32) — the query embedding
 //   - Metric or Distance (string) — distance metric: "cosine", "euclidean", "dot"
 //   - K or TopK or Limit (int) — number of neighbors to return
-func extractVectorQuery(input any) (vec []float32, metric string, k int) {
+//   - Filters ([]VectorFilter) — metadata-filtered k-NN predicates (AND)
+func extractVectorQuery(input any) (vec []float32, metric string, k int, filters []VectorFilter) {
 	v := reflect.ValueOf(input)
 	if v.Kind() == reflect.Pointer {
 		v = v.Elem()
 	}
 
 	if v.Kind() != reflect.Struct {
-		return nil, "euclidean", 10
+		return nil, "euclidean", 10, nil
 	}
 
 	t := v.Type()
@@ -39,6 +40,11 @@ func extractVectorQuery(input any) (vec []float32, metric string, k int) {
 
 		case (name == "K" || name == "TopK" || name == "Limit") && field.Type.Kind() == reflect.Int:
 			k = int(v.Field(i).Int())
+
+		case name == "Filters" || name == "Filter":
+			if fs, ok := v.Field(i).Interface().([]VectorFilter); ok {
+				filters = fs
+			}
 		}
 	}
 
@@ -50,7 +56,7 @@ func extractVectorQuery(input any) (vec []float32, metric string, k int) {
 		k = 10
 	}
 
-	return vec, metric, k
+	return vec, metric, k, filters
 }
 
 // extractSearchQuery reads the query text and limit from a query input struct.

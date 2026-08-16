@@ -62,6 +62,16 @@ var (
 	errUnsupportedVectorOps   = errors.New("engine does not support Vector operations")
 	errUnsupportedSearchOps   = errors.New("engine does not support Search operations")
 
+	errUnsupportedVectorFilters = errors.New(
+		"engine does not support metadata-filtered vector searches (VectorFilterBackend)",
+	)
+	errUndirectedGraph = errors.New(
+		"engine does not support undirected graph traversal (GraphNeighborsUndirected)",
+	)
+	errEdgeRemoval = errors.New(
+		"engine does not support graph edge removal (GraphRemoveEdge)",
+	)
+
 	errUnsupportedSpatialReads = errors.New("engine does not support Spatial reads")
 	errUnsupportedSpatialOps   = errors.New("engine does not support Spatial operations")
 

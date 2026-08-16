@@ -18,15 +18,42 @@ const ADTSearch ADT = "search"
 // Embedding is a vector with an ID and optional metadata. The Values field
 // holds the float dimensions. This is the fold input type for vector
 // projections — an event carrying an Embedding adds it to the index.
+// Metadata is optional per-embedding filter data (e.g. {"tenant": "acme"})
+// consumed by metadata-filtered k-NN (VectorFilterBackend).
 type Embedding struct {
-	ID     string
-	Values []float32
+	ID       string
+	Values   []float32
+	Metadata map[string]any
 }
 
 // VectorResult is a single neighbor in a k-NN search result.
 type VectorResult struct {
 	ID       string
 	Distance float32
+}
+
+// VectorFilter is a metadata predicate for filtered k-NN: the search only
+// scores embeddings whose Metadata[Field] satisfies Op against Value. Ops are
+// the standard FilterOp constants (FilterEq, FilterNe, FilterLt, FilterLe,
+// FilterGt, FilterGe, FilterIn). All filters must match (AND semantics).
+type VectorFilter struct {
+	Field string
+	Op    FilterOp
+	Value any
+}
+
+// VectorMatchesFilters reports whether an embedding's metadata satisfies
+// every filter (AND). Missing fields match nothing except FilterNe. Engines
+// with brute-force VectorSearchFiltered implementations call this so filter
+// semantics are identical across engines.
+func VectorMatchesFilters(meta map[string]any, filters []VectorFilter) bool {
+	for _, f := range filters {
+		if !evalFilterOp(f.Op, meta[f.Field], f.Value) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // VectorBackend is an optional engine capability for vector similarity
@@ -44,6 +71,27 @@ type VectorBackend interface {
 		query []float32,
 		k int,
 		metric string,
+	) ([]VectorResult, error)
+}
+
+// VectorFilterBackend is an optional extension of VectorBackend for
+// metadata-filtered k-NN: filter + top-k in one query. Embeddings that do not
+// match the filters are excluded BEFORE ranking, so the k results are the k
+// nearest MATCHING neighbors (unlike post-filtering a bare top-k, which can
+// return fewer than k results while matches exist). Engines that persist
+// Embedding.Metadata implement this; the executor falls back to a full
+// unfiltered scan + filter + truncate for plain VectorBackend engines.
+type VectorFilterBackend interface {
+	// VectorSearchFiltered returns the k nearest neighbors whose metadata
+	// matches every filter (AND semantics). An empty filter slice behaves
+	// exactly like VectorSearch.
+	VectorSearchFiltered(
+		ctx context.Context,
+		collection string,
+		query []float32,
+		k int,
+		metric string,
+		filters []VectorFilter,
 	) ([]VectorResult, error)
 }
 
@@ -75,22 +123,38 @@ type SearchBackend interface {
 
 // --- Memory implementations (brute-force) ---
 
+// memoryVectorEntry is one stored embedding: its dimensions plus optional
+// filter metadata.
+type memoryVectorEntry struct {
+	values   []float32
+	metadata map[string]any
+}
+
 // MemoryVectorIndex is a brute-force in-memory vector index. It computes
-// distances on every search — O(N*D) per query. Suitable for small
-// collections (<10K vectors) or testing. For production scale, use an
-// engine with ANN (HNSW, PQ).
+// distances on every search — O(N*D) per query. Collections are isolated
+// namespaces: the same embedding ID in two collections is two entries.
+// Suitable for small collections (<10K vectors) or testing. For production
+// scale, use an engine with ANN search (HNSW, PQ).
 type MemoryVectorIndex struct {
-	embeddings map[string][]float32 // key → values
+	embeddings map[string]map[string]memoryVectorEntry // collection → id → entry
 }
 
 // NewMemoryVectorIndex creates a brute-force vector index.
 func NewMemoryVectorIndex() *MemoryVectorIndex {
-	return &MemoryVectorIndex{embeddings: make(map[string][]float32)}
+	return &MemoryVectorIndex{embeddings: make(map[string]map[string]memoryVectorEntry)}
 }
 
-// Insert adds an embedding to the index.
-func (m *MemoryVectorIndex) Insert(_ context.Context, _ string, emb Embedding) error {
-	m.embeddings[emb.ID] = emb.Values
+func (m *MemoryVectorIndex) collection(col string) map[string]memoryVectorEntry {
+	if m.embeddings[col] == nil {
+		m.embeddings[col] = make(map[string]memoryVectorEntry)
+	}
+
+	return m.embeddings[col]
+}
+
+// Insert adds an embedding to the index (upsert by collection+ID).
+func (m *MemoryVectorIndex) Insert(_ context.Context, collection string, emb Embedding) error {
+	m.collection(collection)[emb.ID] = memoryVectorEntry{values: emb.Values, metadata: emb.Metadata}
 
 	return nil
 }
@@ -98,31 +162,46 @@ func (m *MemoryVectorIndex) Insert(_ context.Context, _ string, emb Embedding) e
 // Search returns the k nearest neighbors of the query vector.
 func (m *MemoryVectorIndex) Search(
 	_ context.Context,
-	_ string,
+	collection string,
 	query []float32,
 	k int,
 	metric string,
 ) ([]VectorResult, error) {
-	return m.search(query, k, metric), nil
+	return m.search(collection, query, k, metric, nil), nil
 }
 
-func (m *MemoryVectorIndex) search(query []float32, k int, metric string) []VectorResult {
+// SearchFiltered returns the k nearest neighbors whose metadata matches all
+// filters. Implements the filter semantics of VectorFilterBackend.
+func (m *MemoryVectorIndex) SearchFiltered(
+	_ context.Context,
+	collection string,
+	query []float32,
+	k int,
+	metric string,
+	filters []VectorFilter,
+) ([]VectorResult, error) {
+	return m.search(collection, query, k, metric, filters), nil
+}
+
+func (m *MemoryVectorIndex) search(
+	collection string,
+	query []float32,
+	k int,
+	metric string,
+	filters []VectorFilter,
+) []VectorResult {
 	var results []VectorResult
 
-	for id, vec := range m.embeddings {
-		dist := computeDistance(query, vec, metric)
+	for id, entry := range m.embeddings[collection] {
+		if !VectorMatchesFilters(entry.metadata, filters) {
+			continue
+		}
+
+		dist := computeDistance(query, entry.values, metric)
 		results = append(results, VectorResult{ID: id, Distance: dist})
 	}
 
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].Distance < results[j].Distance
-	})
-
-	if k > 0 && k < len(results) {
-		results = results[:k]
-	}
-
-	return results
+	return TopKNearest(results, k)
 }
 
 // VectorDistance returns the distance between two vectors under the given

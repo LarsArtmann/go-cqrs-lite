@@ -308,7 +308,11 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryMeta, input any)
 }
 
 func (s *Store) executeVectorSearch(ctx context.Context, q queryMeta, input any) (any, error) {
-	queryVec, metric, k := extractVectorQuery(input)
+	queryVec, metric, k, filters := extractVectorQuery(input)
+
+	if len(filters) > 0 {
+		return s.executeVectorSearchFiltered(ctx, q, queryVec, k, metric, filters)
+	}
 
 	if vb, ok := q.QueryEngine().(VectorBackend); ok {
 		results, err := vb.VectorSearch(ctx, q.QueryName(), queryVec, k, metric)
@@ -320,6 +324,33 @@ func (s *Store) executeVectorSearch(ctx context.Context, q queryMeta, input any)
 	}
 
 	return nil, unsupportedEngine(errUnsupportedVectorReads, q.QueryEngine().Profile().Name)
+}
+
+// executeVectorSearchFiltered runs metadata-filtered k-NN. Engines with the
+// VectorFilterBackend capability filter before ranking, so the k results are
+// the k nearest MATCHING neighbors (unlike post-filtering a bare top-k, which
+// silently drops results). Plain VectorBackend engines cannot serve filtered
+// searches — results carry no metadata — so they fail explicitly instead of
+// returning unfiltered rows.
+func (s *Store) executeVectorSearchFiltered(
+	ctx context.Context,
+	q queryMeta,
+	queryVec []float32,
+	k int,
+	metric string,
+	filters []VectorFilter,
+) (any, error) {
+	fb, ok := q.QueryEngine().(VectorFilterBackend)
+	if !ok {
+		return nil, unsupportedEngine(errUnsupportedVectorFilters, q.QueryEngine().Profile().Name)
+	}
+
+	results, err := fb.VectorSearchFiltered(ctx, q.QueryName(), queryVec, k, metric, filters)
+	if err != nil {
+		return nil, fmt.Errorf("vector search filtered %s: %w", q.QueryName(), err)
+	}
+
+	return results, nil
 }
 
 func (s *Store) executeFullTextSearch(ctx context.Context, q queryMeta, input any) (any, error) {

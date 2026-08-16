@@ -9,6 +9,36 @@ import (
 // All methods in this file are LOCAL PASSTHROUGH — they delegate to the wrapped
 // engine without replication. These ADTs are either non-CRDT-safe (require
 // coordination) or read-only, so they cannot converge via leaderless replication.
+//
+// # Optional-capability forwarding policy (audited 2026-08-16)
+//
+// The `Replicated` wrapper must decide, per optional capability, whether the
+// wrapper promotes the local engine's method set. Interface embedding does NOT
+// promote these methods, so each capability is an explicit decision:
+//
+//   - Closer: FORWARDED (engine.go) — Close shuts down transport first, then
+//     the local engine. Both halves always run.
+//   - MapUpdater, ScanBackend, VectorBackend, SearchBackend, SpatialBackend,
+//     graph dispatch: FORWARDED as local passthrough (this file). Reads are
+//     trivially safe; the write-shaped members (VectorInsert, SearchInsert,
+//     SpatialInsert, GraphAddEdge) do NOT replicate — the wire protocol has no
+//     WriteOp kinds for them; documented on each method.
+//   - Transactional (RunInTx): DELIBERATELY NOT FORWARDED. A transaction that
+//     writes through the wrapper would replicate per-write (not atomically),
+//     and one that writes through the local engine would never replicate.
+//     Either way forwarding creates silent divergence, so the wrapper does not
+//     implement Transactional and callers see the honest LogBackend path.
+//   - StreamLogBackend / SeqSeekableStreamLog / AtomicAppender:
+//     DELIBERATELY NOT FORWARDED. StreamAppend is a write the replication
+//     protocol does not carry; exposing it would make event streams silently
+//     local-only. The system adapters type-assert StreamLogBackend and fall
+//     back to the replicated LogBackend (LogAppend/LogTail) path — the
+//     degraded route is the correct, converging one.
+//   - Prober / TransactMeasurer: DELIBERATELY NOT FORWARDED. A forwarded
+//     probe measures local-engine RTT (~0), and live calibration would then
+//     override the honest replication-derived NetworkRTT from the wrapper's
+//     own latency tracker (latency.go). For replicated engines the transport
+//     IS the network hop that matters.
 
 // --- ScanBackend (local passthrough) ---
 
