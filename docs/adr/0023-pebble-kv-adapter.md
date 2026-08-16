@@ -1,7 +1,7 @@
 # ADR-0023: Pebble KV Store Adapter
 
-**Date:** 2026-06-17  
-**Status:** Accepted  
+**Date:** 2026-06-17\
+**Status:** Accepted\
 **Deciders:** Lars Artmann, Crush
 
 ## Context

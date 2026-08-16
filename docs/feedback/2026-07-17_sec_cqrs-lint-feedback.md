@@ -627,18 +627,18 @@ indicators (`Projection`, `ReadModel`, `View`) before flagging. Types like
 
 ## Summary Table
 
-| #   | Bug                                                  | Severity | Findings | Fix | Effort |
-| --- | ---------------------------------------------------- | -------- | -------- | --- | ------ |
-| 1   | E005/E007 misses `*ast.SelectorExpr` in registration | HIGH     | 15       | 1   | S      |
-| 2   | `cqrs-lint init` generates unparseable config        | HIGH     | -        | 2   | XS     |
-| 3   | No config-level per-rule disable                     | MED      | -        | 3   | M      |
-| 4   | C009 `isMustFunc` case-sensitive prefix              | LOW      | 1        | 4   | XS     |
-| 5   | C009 test-package detection too narrow               | LOW      | 1        | 5   | S      |
-| 6   | Doctor/lint tracing disagreement                     | MED      | -        | 6   | S      |
-| 7   | C008 substring matching on field names               | MED      | 3        | 7   | S      |
-| 8   | D003 treats slog backends as competing               | LOW      | 1        | 8   | S      |
-| 9   | A005 flags all named-function subscribers            | MED      | 3        | 9   | M      |
-| 10  | D005 version regex has no package attribution        | LOW      | -        | -   | S      |
+| #  | Bug                                                  | Severity | Findings | Fix | Effort |
+| -- | ---------------------------------------------------- | -------- | -------- | --- | ------ |
+| 1  | E005/E007 misses `*ast.SelectorExpr` in registration | HIGH     | 15       | 1   | S      |
+| 2  | `cqrs-lint init` generates unparseable config        | HIGH     | -        | 2   | XS     |
+| 3  | No config-level per-rule disable                     | MED      | -        | 3   | M      |
+| 4  | C009 `isMustFunc` case-sensitive prefix              | LOW      | 1        | 4   | XS     |
+| 5  | C009 test-package detection too narrow               | LOW      | 1        | 5   | S      |
+| 6  | Doctor/lint tracing disagreement                     | MED      | -        | 6   | S      |
+| 7  | C008 substring matching on field names               | MED      | 3        | 7   | S      |
+| 8  | D003 treats slog backends as competing               | LOW      | 1        | 8   | S      |
+| 9  | A005 flags all named-function subscribers            | MED      | 3        | 9   | M      |
+| 10 | D005 version regex has no package attribution        | LOW      | -        | -   | S      |
 
 Fixes 1-2 are the minimum to make the tool usable without workarounds on this
 project. Fix 1 alone eliminates 50% of all false positives.

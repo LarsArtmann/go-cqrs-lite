@@ -1,6 +1,6 @@
 # ADR-0021: Store Close() Semantics — Shared DB Pattern
 
-**Date:** 2026-06-16  
+**Date:** 2026-06-16\
 **Status:** Accepted
 
 ## Context

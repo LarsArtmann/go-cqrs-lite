@@ -124,9 +124,9 @@ Downstream packages can integrate `go-branded-id`'s `BrandNamer`, JSON formatter
 
 ## Summary
 
-| #   | Package         | Change                                                    | Impact on cqrs-htmx                     |
-| --- | --------------- | --------------------------------------------------------- | --------------------------------------- |
-| 1   | `projection/v2` | Expose `RunReplay()` + `RunLive()`                        | Eliminates `time.Sleep(50ms)` race hack |
-| 2   | `id`            | Export `UserMarker`, `CorrelationMarker`, `RequestMarker` | Enables `BrandNamer` integration        |
+| # | Package         | Change                                                    | Impact on cqrs-htmx                     |
+| - | --------------- | --------------------------------------------------------- | --------------------------------------- |
+| 1 | `projection/v2` | Expose `RunReplay()` + `RunLive()`                        | Eliminates `time.Sleep(50ms)` race hack |
+| 2 | `id`            | Export `UserMarker`, `CorrelationMarker`, `RequestMarker` | Enables `BrandNamer` integration        |
 
 Both are small, additive, backward-compatible changes (no existing API removed or renamed).

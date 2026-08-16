@@ -50,13 +50,13 @@ Metaengine stays single-collection. The tension between "metaengine as projectio
 
 ## Summary
 
-| Item | Status | Action |
-| --- | --- | --- |
-| 5 sink API gaps | Rejected | `Tx()` escape hatch is the intended design |
-| WithoutViewAutoMigrate docs | ✅ Done | Doc comment + README |
-| AutoMapper as default | ✅ Done | README with quick-start example |
-| Increment non-clamping philosophy | ✅ Done | Already documented in sink.go |
-| ADTStreamLog inconsistency | ✅ Fixed | Already in AllADTs() |
-| DuckDB aggregation pushdown | Strategic | Approved, high effort, future work |
-| Cross-projection JOIN | Strategic | Deferred to separate ADR |
-| `sink.Tx()` code-smell doc | Rejected | Existing `Tx()` doc is sufficient |
+| Item                              | Status    | Action                                     |
+| --------------------------------- | --------- | ------------------------------------------ |
+| 5 sink API gaps                   | Rejected  | `Tx()` escape hatch is the intended design |
+| WithoutViewAutoMigrate docs       | ✅ Done   | Doc comment + README                       |
+| AutoMapper as default             | ✅ Done   | README with quick-start example            |
+| Increment non-clamping philosophy | ✅ Done   | Already documented in sink.go              |
+| ADTStreamLog inconsistency        | ✅ Fixed  | Already in AllADTs()                       |
+| DuckDB aggregation pushdown       | Strategic | Approved, high effort, future work         |
+| Cross-projection JOIN             | Strategic | Deferred to separate ADR                   |
+| `sink.Tx()` code-smell doc        | Rejected  | Existing `Tx()` doc is sufficient          |

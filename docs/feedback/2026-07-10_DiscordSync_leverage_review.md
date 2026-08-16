@@ -331,13 +331,13 @@ registry. No duplicate metrics, no port conflicts. Simple, correct.
 
 ## Priority Summary
 
-| #   | Gap                               | Priority | Effort | Consumer LOC eliminated                         |
-| --- | --------------------------------- | -------- | ------ | ----------------------------------------------- |
-| 1   | `VersionedSeekableJournal`        | HIGH     | ~1h    | ~142 lines                                      |
-| 2   | SSEBroker `WithPayloadTransform`  | HIGH     | ~30min | ~67 lines (+enables adoption of 5 SSE features) |
-| 3   | SQLite `projectionhost` DLQ store | MEDIUM   | ~2h    | ~226 lines                                      |
-| 4   | otel+prometheus meter composition | LOW      | ~20min | 0 (docs/ergonomics)                             |
-| 5   | `PayloadReadOnly` naming          | LOW      | v4     | 0 (nitpick)                                     |
+| # | Gap                               | Priority | Effort | Consumer LOC eliminated                         |
+| - | --------------------------------- | -------- | ------ | ----------------------------------------------- |
+| 1 | `VersionedSeekableJournal`        | HIGH     | ~1h    | ~142 lines                                      |
+| 2 | SSEBroker `WithPayloadTransform`  | HIGH     | ~30min | ~67 lines (+enables adoption of 5 SSE features) |
+| 3 | SQLite `projectionhost` DLQ store | MEDIUM   | ~2h    | ~226 lines                                      |
+| 4 | otel+prometheus meter composition | LOW      | ~20min | 0 (docs/ergonomics)                             |
+| 5 | `PayloadReadOnly` naming          | LOW      | v4     | 0 (nitpick)                                     |
 
 **Total consumer code eliminatable: ~435 lines across 3 gaps, all of which
 already have working reference implementations in DiscordSync.**

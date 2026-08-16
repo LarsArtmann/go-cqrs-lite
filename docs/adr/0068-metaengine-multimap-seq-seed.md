@@ -19,7 +19,7 @@ expect 5 total) would fail.
 ## Decision
 
 Seed the in-memory `seq` counter lazily on first use of a `(collection, key)`
-via `SELECT MAX(seq) … ` guarded by `sync.Once` per key. The first `MultiAdd`
+via `SELECT MAX(seq) …` guarded by `sync.Once` per key. The first `MultiAdd`
 after (re)open reads the persisted high-water mark and continues from there, so
 the sequence is monotonic across restarts without paying a `SELECT` on the hot
 path after the first write.

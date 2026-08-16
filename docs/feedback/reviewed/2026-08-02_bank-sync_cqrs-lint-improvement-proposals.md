@@ -220,12 +220,15 @@ Without config-level disabling, I'm forced to add inline comments to every file,
 
 ```json
 {
-	"disabled-rules": ["P012", "P013"],
-	"disabled-rules-reason": "WAL + busy_timeout are applied in internal/storage/sqlite/storage.go via PRAGMA",
-	"rule-overrides": {
-		"E003": { "severity": "info" },
-		"F009": { "enabled": false, "reason": "TickerScheduler is intentional (see ADR)" }
-	}
+  "disabled-rules": ["P012", "P013"],
+  "disabled-rules-reason": "WAL + busy_timeout are applied in internal/storage/sqlite/storage.go via PRAGMA",
+  "rule-overrides": {
+    "E003": { "severity": "info" },
+    "F009": {
+      "enabled": false,
+      "reason": "TickerScheduler is intentional (see ADR)"
+    }
+  }
 }
 ```
 
@@ -233,10 +236,10 @@ Or simpler:
 
 ```json
 {
-	"rules": {
-		"disable": ["P012", "P013", "F009", "F015", "F017"],
-		"external-api-struct-prefixes": ["..."]
-	}
+  "rules": {
+    "disable": ["P012", "P013", "F009", "F015", "F017"],
+    "external-api-struct-prefixes": ["..."]
+  }
 }
 ```
 
@@ -426,9 +429,9 @@ Alternatively, let the user override in config:
 
 ```json
 {
-	"features": {
-		"server": "local" // "local" = local dev server, "production" = real server
-	}
+  "features": {
+    "server": "local" // "local" = local dev server, "production" = real server
+  }
 }
 ```
 

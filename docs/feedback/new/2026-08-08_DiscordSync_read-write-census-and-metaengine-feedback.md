@@ -206,14 +206,14 @@ Two counters incremented atomically in one statement. `Increment` handles only o
 
 DiscordSync has ~121 SELECT query methods. Complete census:
 
-| Tier | SQL shape                                 | Count | View store? | Metaengine?     |
-| ---- | ----------------------------------------- | ----- | ----------- | --------------- |
-| T1   | Simple single-table WHERE/ORDER/LIMIT     | ~45   | ✅          | ✅              |
-| T2   | LIKE/range/IN/cursor pagination           | ~10   | ✅          | ✅              |
-| T3   | Multi-table JOIN                          | ~8    | ❌ no JOINs | ❌ no JOINs     |
+| Tier | SQL shape                                 | Count | View store? | Metaengine?    |
+| ---- | ----------------------------------------- | ----- | ----------- | -------------- |
+| T1   | Simple single-table WHERE/ORDER/LIMIT     | ~45   | ✅          | ✅             |
+| T2   | LIKE/range/IN/cursor pagination           | ~10   | ✅          | ✅             |
+| T3   | Multi-table JOIN                          | ~8    | ❌ no JOINs | ❌ no JOINs    |
 | T4   | GROUP BY/aggregation (COUNT/SUM/AVG)      | ~30   | ❌          | ⚠️ Go-side only |
-| T5   | Date functions/FTS5/PRAGMA/json_extract   | ~16   | ❌          | ❌              |
-| T6   | Already view store (bans/audit_log pilot) | 2     | ✅          | —               |
+| T5   | Date functions/FTS5/PRAGMA/json_extract   | ~16   | ❌          | ❌             |
+| T6   | Already view store (bans/audit_log pilot) | 2     | ✅          | —              |
 
 **~54 queries (T3+T4+T5) are impossible** in the current view store AND in metaengine. Both are single-collection by design.
 
@@ -315,18 +315,18 @@ Deep, load-bearing adoption with one real friction area (write-side Tx() bypass)
 
 ## Part 6: Recommended Next Steps (for go-cqrs-lite)
 
-| #   | Action                                                | Impact                                  | Effort       | Priority  |
-| --- | ----------------------------------------------------- | --------------------------------------- | ------------ | --------- |
-| 1   | Implement `IncrementClamped` on ProjectionSink        | Eliminates 2 irreducible Tx() sites     | Low (10 LOC) | P0        |
-| 2   | Implement `MultiIncrement` on ProjectionSink          | Eliminates 2 irreducible Tx() sites     | Low (15 LOC) | P0        |
-| 3   | Implement `UpdateExpr` on ProjectionSink              | Eliminates 2 irreducible Tx() sites     | Low (20 LOC) | P1        |
-| 4   | Implement `QueryRow` (multi-column) on ProjectionSink | Eliminates 1 irreducible Tx() site      | Low (10 LOC) | P1        |
-| 5   | Implement `InsertSelect` on ProjectionSink            | Eliminates 1 irreducible Tx() site      | Low (15 LOC) | P2        |
-| 6   | Document `WithoutViewAutoMigrate`                     | Lowers barrier to view store adoption   | Trivial      | P1        |
-| 7   | Document `sink.Tx()` as code smell with guidance      | Prevents future bypass                  | Trivial      | P2        |
-| 8   | Design metaengine cross-projection JOIN story         | Unlocks metaengine for relational apps  | High         | Strategic |
-| 9   | Add DuckDB analytical tier to metaengine              | Handles GROUP BY/aggregation natively   | High         | Strategic |
-| 10  | Write `relational → metaengine` migration guide       | Enables incremental metaengine adoption | Medium       | P2        |
+| #  | Action                                                | Impact                                  | Effort       | Priority  |
+| -- | ----------------------------------------------------- | --------------------------------------- | ------------ | --------- |
+| 1  | Implement `IncrementClamped` on ProjectionSink        | Eliminates 2 irreducible Tx() sites     | Low (10 LOC) | P0        |
+| 2  | Implement `MultiIncrement` on ProjectionSink          | Eliminates 2 irreducible Tx() sites     | Low (15 LOC) | P0        |
+| 3  | Implement `UpdateExpr` on ProjectionSink              | Eliminates 2 irreducible Tx() sites     | Low (20 LOC) | P1        |
+| 4  | Implement `QueryRow` (multi-column) on ProjectionSink | Eliminates 1 irreducible Tx() site      | Low (10 LOC) | P1        |
+| 5  | Implement `InsertSelect` on ProjectionSink            | Eliminates 1 irreducible Tx() site      | Low (15 LOC) | P2        |
+| 6  | Document `WithoutViewAutoMigrate`                     | Lowers barrier to view store adoption   | Trivial      | P1        |
+| 7  | Document `sink.Tx()` as code smell with guidance      | Prevents future bypass                  | Trivial      | P2        |
+| 8  | Design metaengine cross-projection JOIN story         | Unlocks metaengine for relational apps  | High         | Strategic |
+| 9  | Add DuckDB analytical tier to metaengine              | Handles GROUP BY/aggregation natively   | High         | Strategic |
+| 10 | Write `relational → metaengine` migration guide       | Enables incremental metaengine adoption | Medium       | P2        |
 
 ---
 

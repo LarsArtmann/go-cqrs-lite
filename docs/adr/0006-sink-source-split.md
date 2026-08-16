@@ -1,6 +1,6 @@
 # ADR-0006: Sink/Source Split for Event Store Interface
 
-**Status:** Accepted  
+**Status:** Accepted\
 **Date:** 2026-05-29
 
 ## Context

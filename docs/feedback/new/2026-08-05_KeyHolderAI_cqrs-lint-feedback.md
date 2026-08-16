@@ -389,9 +389,9 @@ KeyHolderAI has **no `.cqrs-lint.json`** today. This is a consumer gap (same as 
 
 ```json
 {
-	"rules": {
-		"disable": ["B004"]
-	}
+  "rules": {
+    "disable": ["B004"]
+  }
 }
 ```
 
@@ -408,16 +408,16 @@ The remaining findings (A009, A018, A025, E009, S006, F007, A016) should resolve
 
 ## Summary of Recommendations
 
-| #   | Issue                                                 | Type      | Fix effort                    | Impact                                                 |
-| --- | ----------------------------------------------------- | --------- | ----------------------------- | ------------------------------------------------------ |
-| 1   | C031 false positive on `(any, error)` returns         | BUG       | Medium (parse return arity)   | HIGH — flags the library's recommended handler pattern |
-| 2   | F007/A016 suggests non-existent `CommandIdempotency`  | IMAGINARY | Small (fix suggestion text)   | HIGH — erodes trust in all suggestions                 |
-| 3   | D005 indirect-marker false positive on multi-module   | DESIGN    | Small (check direct lines)    | MEDIUM — noisy after real drift is fixed               |
-| 4   | `server: false` misses `http.Server`+`ListenAndServe` | DETECTOR  | Medium (broaden patterns)     | MEDIUM — cascades into E009/S006 false positives       |
-| 5   | S006 self-contradicts on local-only projects          | DESIGN    | Small (suppress or DEBUG)     | LOW — noise, but corrosive                             |
-| 6   | E009 doesn't recognize `cqrs-htmx` as transport       | DETECTOR  | Small (add pattern)           | MEDIUM — false positive on every cqrs-htmx consumer    |
-| 7   | A018 conflates "no event sourcing" with "dead import" | DESIGN    | Small (split finding)         | LOW — misleading wording                               |
-| 8   | B004 fires when constructors already exist            | DETECTOR  | Small (check for `New<Type>`) | LOW — cosmetic noise (×7)                              |
+| # | Issue                                                 | Type      | Fix effort                    | Impact                                                 |
+| - | ----------------------------------------------------- | --------- | ----------------------------- | ------------------------------------------------------ |
+| 1 | C031 false positive on `(any, error)` returns         | BUG       | Medium (parse return arity)   | HIGH — flags the library's recommended handler pattern |
+| 2 | F007/A016 suggests non-existent `CommandIdempotency`  | IMAGINARY | Small (fix suggestion text)   | HIGH — erodes trust in all suggestions                 |
+| 3 | D005 indirect-marker false positive on multi-module   | DESIGN    | Small (check direct lines)    | MEDIUM — noisy after real drift is fixed               |
+| 4 | `server: false` misses `http.Server`+`ListenAndServe` | DETECTOR  | Medium (broaden patterns)     | MEDIUM — cascades into E009/S006 false positives       |
+| 5 | S006 self-contradicts on local-only projects          | DESIGN    | Small (suppress or DEBUG)     | LOW — noise, but corrosive                             |
+| 6 | E009 doesn't recognize `cqrs-htmx` as transport       | DETECTOR  | Small (add pattern)           | MEDIUM — false positive on every cqrs-htmx consumer    |
+| 7 | A018 conflates "no event sourcing" with "dead import" | DESIGN    | Small (split finding)         | LOW — misleading wording                               |
+| 8 | B004 fires when constructors already exist            | DETECTOR  | Small (check for `New<Type>`) | LOW — cosmetic noise (×7)                              |
 
 ---
 

@@ -389,14 +389,14 @@ preserved:
 
 ## Prioritized Action Items
 
-| #   | Gap                                              | Severity | Effort | Action                                                                                                                              |
-| --- | ------------------------------------------------ | -------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `stack/v4` lacks health checks                   | HIGH     | Medium | Add `HealthChecker` interface + `Bundle.HealthCheck(ctx)` method. ~4h.                                                              |
-| 2   | `stack/v4` lacks topological shutdown            | HIGH     | Medium | Add `WithDependency()` option for shutdown ordering, OR document that consumers should wrap Bundle in samber/do. ~4h or ~1h (docs). |
-| 3   | `schema/v4` undervalued by consumers             | HIGH     | Low    | Reframe as "Schema Evolution" in docs. Add decision guide + failure-mode recipe. ~2h.                                               |
-| 4   | JSON serialization convention undocumented       | MEDIUM   | Low    | Add convention to SKILL.md: "Use Go default (PascalCase)." Add `sql.Null*` gotcha. ~1h.                                             |
-| 5   | `catalog/v4` doesn't document REST endpoints     | MEDIUM   | High   | Add endpoint registration API to catalog builder. ~8h.                                                                              |
-| 6   | `schema/v4` — no SDK guidance on version bumping | MEDIUM   | Low    | Add to conventions: "Bump `event.Version` when payload struct changes shape." ~30min.                                               |
+| # | Gap                                              | Severity | Effort | Action                                                                                                                              |
+| - | ------------------------------------------------ | -------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `stack/v4` lacks health checks                   | HIGH     | Medium | Add `HealthChecker` interface + `Bundle.HealthCheck(ctx)` method. ~4h.                                                              |
+| 2 | `stack/v4` lacks topological shutdown            | HIGH     | Medium | Add `WithDependency()` option for shutdown ordering, OR document that consumers should wrap Bundle in samber/do. ~4h or ~1h (docs). |
+| 3 | `schema/v4` undervalued by consumers             | HIGH     | Low    | Reframe as "Schema Evolution" in docs. Add decision guide + failure-mode recipe. ~2h.                                               |
+| 4 | JSON serialization convention undocumented       | MEDIUM   | Low    | Add convention to SKILL.md: "Use Go default (PascalCase)." Add `sql.Null*` gotcha. ~1h.                                             |
+| 5 | `catalog/v4` doesn't document REST endpoints     | MEDIUM   | High   | Add endpoint registration API to catalog builder. ~8h.                                                                              |
+| 6 | `schema/v4` — no SDK guidance on version bumping | MEDIUM   | Low    | Add to conventions: "Bump `event.Version` when payload struct changes shape." ~30min.                                               |
 
 ---
 

@@ -24,7 +24,7 @@ The consumer's `pkg/deadletter/deadletter.go` is an application-level retry queu
 
 ## Summary
 
-| Request | Disposition | Rationale |
-| --- | --- | --- |
-| `circuitbreaker/v4` | Docs pointer, no module | failsafe-go IS the standalone breaker |
-| `dlq/v4` | No module, out of scope | Consumer needs app-level retry queue, not event-specific DLQ |
+| Request             | Disposition             | Rationale                                                    |
+| ------------------- | ----------------------- | ------------------------------------------------------------ |
+| `circuitbreaker/v4` | Docs pointer, no module | failsafe-go IS the standalone breaker                        |
+| `dlq/v4`            | No module, out of scope | Consumer needs app-level retry queue, not event-specific DLQ |

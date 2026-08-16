@@ -120,13 +120,13 @@ The linter correctly suggests this function. The consumer's confusion stems from
 
 ## Summary
 
-| #   | Issue                                         | Status          | Files Changed                                  |
-| --- | --------------------------------------------- | --------------- | ---------------------------------------------- |
-| 1   | C031 false positive on `(any, error)` returns | Fixed           | `c031.go`, `c031_test.go`                      |
-| 2   | F007/A016 "imaginary API"                     | Not a bug       | None — function exists                         |
-| 3   | D005 indirect-marker false positive           | Fixed           | `d003_d005.go`, `d005_internal_test.go`        |
-| 4   | `server: false` misses HTTP frameworks        | Fixed           | `feature_detect.go`, `feature_profile_test.go` |
-| 5   | S006 self-contradicts on local-only           | Fixed           | `s006.go`                                      |
-| 6   | E009 doesn't recognize cqrs-htmx              | Already handled | `e008_e011.go` (suggestion text only)          |
-| 7   | A018 conflates no-ES with dead import         | Fixed           | `a015_a019.go`                                 |
-| 8   | B004 fires when constructors exist            | Fixed           | `b004_b008.go`                                 |
+| # | Issue                                         | Status          | Files Changed                                  |
+| - | --------------------------------------------- | --------------- | ---------------------------------------------- |
+| 1 | C031 false positive on `(any, error)` returns | Fixed           | `c031.go`, `c031_test.go`                      |
+| 2 | F007/A016 "imaginary API"                     | Not a bug       | None — function exists                         |
+| 3 | D005 indirect-marker false positive           | Fixed           | `d003_d005.go`, `d005_internal_test.go`        |
+| 4 | `server: false` misses HTTP frameworks        | Fixed           | `feature_detect.go`, `feature_profile_test.go` |
+| 5 | S006 self-contradicts on local-only           | Fixed           | `s006.go`                                      |
+| 6 | E009 doesn't recognize cqrs-htmx              | Already handled | `e008_e011.go` (suggestion text only)          |
+| 7 | A018 conflates no-ES with dead import         | Fixed           | `a015_a019.go`                                 |
+| 8 | B004 fires when constructors exist            | Fixed           | `b004_b008.go`                                 |

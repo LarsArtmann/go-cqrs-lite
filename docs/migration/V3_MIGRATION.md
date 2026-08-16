@@ -11,19 +11,19 @@ v3 is the next major version of go-cqrs-lite. It removes ghost code, tightens
 type safety, and consolidates the module structure. All 11 breaking changes
 are complete and shipped.
 
-| #   | Breaking Change                                       | ADR                                                     | Severity | Status                                                                        |
-| --- | ----------------------------------------------------- | ------------------------------------------------------- | -------- | ----------------------------------------------------------------------------- |
-| 1   | Delete ghost bus implementations                      | [0028](../adr/0028-watermill-as-delivery-layer.md)      | High     | **Done** — memory buses + event/reactive\*.go deleted                         |
-| 2   | Move memory/ stores → stack/memory/                   | [0029](../adr/0029-storage-consolidation.md)            | Done     | Shipped in v2.8                                                               |
-| 3   | Break command/query Metadata = event.Metadata alias   | [0031](../adr/0031-metadata-split.md)                   | Medium   | **Done** — each module owns its Metadata embedding event.Tracing              |
-| 4   | Version → uint64                                      | —                                                       | Done     | Shipped in v2.8                                                               |
-| 5   | Remove io.Closer from core interfaces                 | [0010](../adr/0010-remove-io-closer-from-interfaces.md) | Medium   | **Done** — callers type-assert to io.Closer                                   |
-| 6   | Delete readmodel/ module (merged into kv/)            | [0032](../adr/0032-merge-readmodel-into-kv.md)          | Done     | Shipped in v2.8                                                               |
-| 7   | query.Handler signature: any → generic                | —                                                       | Medium   | TypedHandler shipped                                                          |
-| 8   | Rename Decider.Fold → Apply                           | —                                                       | Medium   | **Done** — field, errors, helpers renamed                                     |
-| 9   | Make event.Event a concrete type                      | —                                                       | Low      | **Done** — `type Event = *ImmutableEvent`; zero call-site changes             |
-| 10  | encoding/json/v2 migration                            | [0026](../adr/0026-experimental-features.md)            | Low      | Deferred — pending Go stdlib stabilization                                    |
-| 11  | Move SSE → transport/http/, delete generic HTTP utils | [0025](../adr/0025-transport-adapter-strategy.md)       | Medium   | **Done** — SSE moved; healthcheck/metrics_http/pprof deleted (zero consumers) |
+| #  | Breaking Change                                       | ADR                                                     | Severity | Status                                                                        |
+| -- | ----------------------------------------------------- | ------------------------------------------------------- | -------- | ----------------------------------------------------------------------------- |
+| 1  | Delete ghost bus implementations                      | [0028](../adr/0028-watermill-as-delivery-layer.md)      | High     | **Done** — memory buses + event/reactive\*.go deleted                         |
+| 2  | Move memory/ stores → stack/memory/                   | [0029](../adr/0029-storage-consolidation.md)            | Done     | Shipped in v2.8                                                               |
+| 3  | Break command/query Metadata = event.Metadata alias   | [0031](../adr/0031-metadata-split.md)                   | Medium   | **Done** — each module owns its Metadata embedding event.Tracing              |
+| 4  | Version → uint64                                      | —                                                       | Done     | Shipped in v2.8                                                               |
+| 5  | Remove io.Closer from core interfaces                 | [0010](../adr/0010-remove-io-closer-from-interfaces.md) | Medium   | **Done** — callers type-assert to io.Closer                                   |
+| 6  | Delete readmodel/ module (merged into kv/)            | [0032](../adr/0032-merge-readmodel-into-kv.md)          | Done     | Shipped in v2.8                                                               |
+| 7  | query.Handler signature: any → generic                | —                                                       | Medium   | TypedHandler shipped                                                          |
+| 8  | Rename Decider.Fold → Apply                           | —                                                       | Medium   | **Done** — field, errors, helpers renamed                                     |
+| 9  | Make event.Event a concrete type                      | —                                                       | Low      | **Done** — `type Event = *ImmutableEvent`; zero call-site changes             |
+| 10 | encoding/json/v2 migration                            | [0026](../adr/0026-experimental-features.md)            | Low      | Deferred — pending Go stdlib stabilization                                    |
+| 11 | Move SSE → transport/http/, delete generic HTTP utils | [0025](../adr/0025-transport-adapter-strategy.md)       | Medium   | **Done** — SSE moved; healthcheck/metrics_http/pprof deleted (zero consumers) |
 
 ---
 

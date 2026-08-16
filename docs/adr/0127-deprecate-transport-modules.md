@@ -41,11 +41,11 @@ Four facts argue against both:
    in `doc.go` + README. Removal at v5 (per ADR-0123's breaking-cut horizon).
 2. **The sanctioned external-delivery paths are:**
 
-   | Need | Path |
-   | --- | --- |
-   | SSE delivery | `github.com/larsartmann/go-sse` (already used by `metaengine.ServeSSE`) |
+   | Need                                | Path                                                                                                           |
+   | ----------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+   | SSE delivery                        | `github.com/larsartmann/go-sse` (already used by `metaengine.ServeSSE`)                                        |
    | Broker transport (NATS/Redis/Kafka) | `watermill/` bridge: `NewEventPublisher` / `NewCommandPublisher` / `WithBackend()` + official Watermill plugin |
-   | HTTP UI delivery | cqrs-htmx |
+   | HTTP UI delivery                    | cqrs-htmx                                                                                                      |
 
 3. **cqrs-lint coaches the sanctioned paths.** `HasTransport` now detects
    `watermill/`, `go-sse`, `cqrs-htmx`, and (for legacy projects) the
@@ -70,13 +70,13 @@ Four facts argue against both:
 
 ## Migration
 
-| Deprecated | Replacement |
-| --- | --- |
-| `http.NewSSEBroker(bus)` | go-sse broker (`metaengine.ServeSSE` for materialized views) |
-| `http.BackfillHandler` | watermill `CatchUpSubscriber` (checkpointing + DLQ) |
-| `http.CBORToJSONTransform` | go-codec transcode (CBOR decode → JSON encode) |
+| Deprecated                    | Replacement                                                           |
+| ----------------------------- | --------------------------------------------------------------------- |
+| `http.NewSSEBroker(bus)`      | go-sse broker (`metaengine.ServeSSE` for materialized views)          |
+| `http.BackfillHandler`        | watermill `CatchUpSubscriber` (checkpointing + DLQ)                   |
+| `http.CBORToJSONTransform`    | go-codec transcode (CBOR decode → JSON encode)                        |
 | `grpc.RegisterCommandService` | grpc-go server bridging dispatcher directly, or watermill command bus |
-| `grpc.NewCommandClient` | watermill `NewCommandPublisher` over a broker |
+| `grpc.NewCommandClient`       | watermill `NewCommandPublisher` over a broker                         |
 
 ---
 

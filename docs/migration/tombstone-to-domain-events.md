@@ -99,17 +99,17 @@ page, _ := reader.ListWithStatus(ctx, listing.ListOptions{
 
 ## API Mapping
 
-| Old (Removed)                                     | New (Domain Events)                                               |
-| ------------------------------------------------- | ----------------------------------------------------------------- |
-| `event.MarkTombstone(evt)`                        | Emit `"entity.deleted"` event directly                            |
-| `event.MarkRebirth(evt)`                          | Emit `"entity.restored"` event directly                           |
-| `event.DetectTombstone(events)`                   | Check last event type: `events[len-1].Type() == "entity.deleted"` |
-| `event.TombstoneStatus` + `IsTombstoned()`        | Custom logic based on event types                                 |
-| `listing.TombstonePolicy` (Exclude/Include/Only)  | `listing.DeletePolicy` (DeleteExclude/DeleteInclude/DeleteOnly)   |
-| `stack.TombstonePolicy` (Include/Exclude/Only)    | `stack.DeletePolicy` (IncludeDeleted/ExcludeDeleted/OnlyDeleted)  |
-| `stack.FilterTombstoned(results, policy)`         | `stack.FilterDeleted(results, policy)`                            |
-| `stack.Materialize` triggered by metadata         | `stack.Materialize` triggered by `DeleteTypes`/`RebirthTypes`     |
-| `kv.TombstoneQuerier` / `QueryByTombstone`        | Unchanged — still works for server-side SQL filtering             |
+| Old (Removed)                                    | New (Domain Events)                                               |
+| ------------------------------------------------ | ----------------------------------------------------------------- |
+| `event.MarkTombstone(evt)`                       | Emit `"entity.deleted"` event directly                            |
+| `event.MarkRebirth(evt)`                         | Emit `"entity.restored"` event directly                           |
+| `event.DetectTombstone(events)`                  | Check last event type: `events[len-1].Type() == "entity.deleted"` |
+| `event.TombstoneStatus` + `IsTombstoned()`       | Custom logic based on event types                                 |
+| `listing.TombstonePolicy` (Exclude/Include/Only) | `listing.DeletePolicy` (DeleteExclude/DeleteInclude/DeleteOnly)   |
+| `stack.TombstonePolicy` (Include/Exclude/Only)   | `stack.DeletePolicy` (IncludeDeleted/ExcludeDeleted/OnlyDeleted)  |
+| `stack.FilterTombstoned(results, policy)`        | `stack.FilterDeleted(results, policy)`                            |
+| `stack.Materialize` triggered by metadata        | `stack.Materialize` triggered by `DeleteTypes`/`RebirthTypes`     |
+| `kv.TombstoneQuerier` / `QueryByTombstone`       | Unchanged — still works for server-side SQL filtering             |
 
 ## listing/ Module
 

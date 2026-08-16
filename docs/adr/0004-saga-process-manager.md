@@ -1,6 +1,6 @@
 # ADR-0004: Saga / Process Manager Module
 
-**Status:** Superseded  
+**Status:** Superseded\
 **Date:** 2026-05-26
 **Superseded:** 2026-05-29
 

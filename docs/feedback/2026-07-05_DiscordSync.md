@@ -190,22 +190,22 @@ The skill file (`/.agents/skills/go-cqrs-lite/SKILL.md`) is **the best skill fil
 
 ### What's Painful
 
-| #   | Feedback Item                                        | Status            | What changed                                                                                                                                                                     |
-| --- | ---------------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | eventtest tagless nested module breaks `go mod tidy` | ✅ **Documented** | Added to skill FAQ with exact `replace` directive fix. Structural fix (tag/restructure) is a maintainer decision — see open question in status report.                           |
-| 2   | 28 modules cognitive overhead                        | ✅ **Documented** | No structural change (inherent to design). Bundle meta-module idea noted as P3.                                                                                                  |
-| 3   | projectionhost API opaque                            | ✅ **Documented** | Added full lifecycle sequence (replay → checkpoint → live → DLQ) to `references/advanced.md`.                                                                                    |
-| 4   | No built-in idempotency for projection handlers      | ✅ **Documented** | Added projection idempotency patterns (INSERT OR REPLACE / IGNORE / content-hash) to `references/advanced.md`. Cross-restart replay idempotency at framework level: not started. |
-| 5   | Storage restructure (v3.5.0) path confusion          | ✅ **Documented** | Added old → new path migration table to skill FAQ.                                                                                                                               |
+| # | Feedback Item                                        | Status            | What changed                                                                                                                                                                     |
+| - | ---------------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | eventtest tagless nested module breaks `go mod tidy` | ✅ **Documented** | Added to skill FAQ with exact `replace` directive fix. Structural fix (tag/restructure) is a maintainer decision — see open question in status report.                           |
+| 2 | 28 modules cognitive overhead                        | ✅ **Documented** | No structural change (inherent to design). Bundle meta-module idea noted as P3.                                                                                                  |
+| 3 | projectionhost API opaque                            | ✅ **Documented** | Added full lifecycle sequence (replay → checkpoint → live → DLQ) to `references/advanced.md`.                                                                                    |
+| 4 | No built-in idempotency for projection handlers      | ✅ **Documented** | Added projection idempotency patterns (INSERT OR REPLACE / IGNORE / content-hash) to `references/advanced.md`. Cross-restart replay idempotency at framework level: not started. |
+| 5 | Storage restructure (v3.5.0) path confusion          | ✅ **Documented** | Added old → new path migration table to skill FAQ.                                                                                                                               |
 
 ### What's Missing
 
-| #   | Feedback Item                                 | Status                     | What changed                                                                                                                                        |
-| --- | --------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | ~~No projection parallelism~~                 | ✅ **Already the default** | Projections always ran in parallel — one goroutine each with independent checkpoints. Feedback was based on a misunderstanding of the architecture. |
-| 2   | No projection lag metric built-in             | ✅ **SHIPPED**             | `projectionhost.Host.LagDuration() time.Duration` added. Register as Prometheus gauge directly.                                                     |
-| 3   | No guidance on "shared database" architecture | ✅ **SHIPPED**             | Added shared-DB recipe to `references/recipes.md` §2.0 — manual wiring with one `*sql.DB`.                                                          |
-| 4   | No `event.CaptureFromGateway` convenience     | ❌ **Not started**         | Noted as P2 feature request.                                                                                                                        |
+| # | Feedback Item                                 | Status                     | What changed                                                                                                                                        |
+| - | --------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | ~~No projection parallelism~~                 | ✅ **Already the default** | Projections always ran in parallel — one goroutine each with independent checkpoints. Feedback was based on a misunderstanding of the architecture. |
+| 2 | No projection lag metric built-in             | ✅ **SHIPPED**             | `projectionhost.Host.LagDuration() time.Duration` added. Register as Prometheus gauge directly.                                                     |
+| 3 | No guidance on "shared database" architecture | ✅ **SHIPPED**             | Added shared-DB recipe to `references/recipes.md` §2.0 — manual wiring with one `*sql.DB`.                                                          |
+| 4 | No `event.CaptureFromGateway` convenience     | ❌ **Not started**         | Noted as P2 feature request.                                                                                                                        |
 
 ### Skill Feedback
 

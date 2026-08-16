@@ -12,11 +12,11 @@
 Four utility packages were extracted from go-cqrs-lite into standalone repos
 and left behind deprecated re-export shim modules inside the monorepo:
 
-| Shim module | External repo (published) | Extraction ADR |
-| --- | --- | --- |
-| `codec/v4` | `github.com/larsartmann/go-codec` (v0.1.0) | none — this ADR |
-| `retry/v4` | `github.com/larsartmann/go-retry` (v0.3.1) | ADR-0064 |
-| `idempotency/v4` | `github.com/larsartmann/go-idempotency` (v0.1.2) | ADR-0065 |
+| Shim module         | External repo (published)                           | Extraction ADR  |
+| ------------------- | --------------------------------------------------- | --------------- |
+| `codec/v4`          | `github.com/larsartmann/go-codec` (v0.1.0)          | none — this ADR |
+| `retry/v4`          | `github.com/larsartmann/go-retry` (v0.3.1)          | ADR-0064        |
+| `idempotency/v4`    | `github.com/larsartmann/go-idempotency` (v0.1.2)    | ADR-0065        |
 | `flightrecorder/v4` | `github.com/larsartmann/go-flightrecorder` (v0.2.0) | none — this ADR |
 
 The shims were pure alias layers (`type X = gorepo.X`, forwarding funcs). Their
@@ -24,7 +24,7 @@ costs: four extra go.mod files in the workspace, four entries in
 flake `testModules`, api-stability, cqrs-lint's catalog, and the layer-check
 script; plus deprecation lint exclusions in `.golangci.yml`.
 
-At the time of removal, all *internal* source had already been migrated to the
+At the time of removal, all _internal_ source had already been migrated to the
 external imports, with three exceptions this ADR's removal also fixed:
 `decider`, `middleware`, `projectionhost`, and `stack` still imported the
 `flightrecorder` shim; `middleware`, `idempotency/kvstore`, and

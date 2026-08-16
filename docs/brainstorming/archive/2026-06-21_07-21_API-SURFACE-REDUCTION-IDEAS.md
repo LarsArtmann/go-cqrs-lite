@@ -307,15 +307,15 @@ The only real problem is `Version` (event vs catalog) and `AggregateType` (event
 
 ## Summary: Impact Ranking
 
-| #   | Problem                            | Exports Removed | Effort      | Breaking | Priority       |
-| --- | ---------------------------------- | --------------- | ----------- | -------- | -------------- |
-| 1   | catalog string-newtypes            | 18              | 1h          | Yes      | High           |
-| 2   | catalog option verbosity           | ~30             | 2h          | Yes      | High           |
-| 3   | storage/sql internals              | ~50             | 2h          | No       | **Highest**    |
-| 4   | encryption interface proliferation | 1               | 30min       | Yes      | Medium         |
-| 5   | Option type proliferation          | 0               | —           | —        | Not actionable |
-| 6   | catalog module scope               | 222             | 5min (move) | No       | High           |
-| 7   | Duplicate type names               | 0               | —           | —        | Not actionable |
+| # | Problem                            | Exports Removed | Effort      | Breaking | Priority       |
+| - | ---------------------------------- | --------------- | ----------- | -------- | -------------- |
+| 1 | catalog string-newtypes            | 18              | 1h          | Yes      | High           |
+| 2 | catalog option verbosity           | ~30             | 2h          | Yes      | High           |
+| 3 | storage/sql internals              | ~50             | 2h          | No       | **Highest**    |
+| 4 | encryption interface proliferation | 1               | 30min       | Yes      | Medium         |
+| 5 | Option type proliferation          | 0               | —           | —        | Not actionable |
+| 6 | catalog module scope               | 222             | 5min (move) | No       | High           |
+| 7 | Duplicate type names               | 0               | —           | —        | Not actionable |
 
 ### Non-Breaking Quick Wins (can do NOW)
 

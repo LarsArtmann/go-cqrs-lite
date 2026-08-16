@@ -265,10 +265,10 @@ workspace. This inflated the suppression count significantly.
 ```json
 // Root .cqrs-lint.json — applies to library modules
 {
-	"preset": "library",
-	"rules": {
-		"disable": ["F002", "F006", "F009", "F010", "F011", "S002", "S003", "S007"]
-	}
+  "preset": "library",
+  "rules": {
+    "disable": ["F002", "F006", "F009", "F010", "F011", "S002", "S003", "S007"]
+  }
 }
 ```
 
@@ -277,7 +277,7 @@ And per-module overrides for examples:
 ```json
 // examples/*/.cqrs-lint.json
 {
-	"preset": "production"
+  "preset": "production"
 }
 ```
 
@@ -420,7 +420,7 @@ server-local:  false       ← Correct (server=false)
 ```json
 // .cqrs-lint.json (root — applies to library modules)
 {
-	"preset": "library"
+  "preset": "library"
 }
 ```
 
@@ -432,7 +432,7 @@ For examples, a separate `.cqrs-lint.json` per example directory:
 ```json
 // examples/dashboard-demo/.cqrs-lint.json
 {
-	"preset": "production"
+  "preset": "production"
 }
 ```
 
@@ -440,13 +440,13 @@ For examples, a separate `.cqrs-lint.json` per example directory:
 
 ## Summary of Recommendations
 
-| #   | Issue                                     | Type     | Fix effort                | Impact                                              |
-| --- | ----------------------------------------- | -------- | ------------------------- | --------------------------------------------------- |
-| 1   | End-of-line suppressions silently ignored | BUG      | Small (parser fix)        | HIGH — eliminates silent DX failures                |
-| 2   | Per-module feature profiles               | DESIGN   | Medium (group by go.mod)  | HIGH — eliminates ~10 false positives per workspace |
-| 3   | Extend `library` preset                   | DESIGN   | Small (add rule disables) | MEDIUM — eliminates ~25 suppressions per library    |
-| 4   | B025 helper-function tracing              | DETECTOR | Medium (AST tracing)      | LOW — 4 findings in this project                    |
-| 5   | `examples` exclusion or `demo` preset     | DESIGN   | Small                     | MEDIUM — eliminates ~30 suppressions                |
+| # | Issue                                     | Type     | Fix effort                | Impact                                              |
+| - | ----------------------------------------- | -------- | ------------------------- | --------------------------------------------------- |
+| 1 | End-of-line suppressions silently ignored | BUG      | Small (parser fix)        | HIGH — eliminates silent DX failures                |
+| 2 | Per-module feature profiles               | DESIGN   | Medium (group by go.mod)  | HIGH — eliminates ~10 false positives per workspace |
+| 3 | Extend `library` preset                   | DESIGN   | Small (add rule disables) | MEDIUM — eliminates ~25 suppressions per library    |
+| 4 | B025 helper-function tracing              | DETECTOR | Medium (AST tracing)      | LOW — 4 findings in this project                    |
+| 5 | `examples` exclusion or `demo` preset     | DESIGN   | Small                     | MEDIUM — eliminates ~30 suppressions                |
 
 ---
 

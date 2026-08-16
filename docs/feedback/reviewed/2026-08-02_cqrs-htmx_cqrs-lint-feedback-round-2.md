@@ -295,14 +295,14 @@ Even with the stale binary, the stale-suppression detector caught 18 misplaced s
 
 ## Summary Table
 
-| #   | Issue                                  | Severity | Status in source                  | Status in installed binary | Fix                        |
-| --- | -------------------------------------- | -------- | --------------------------------- | -------------------------- | -------------------------- |
-| 1   | Stale Nix binary missing round-2 fixes | HIGH     | ✅ Fixed (b4554cdc)               | ❌ Not fixed               | Publish new Nix binary     |
-| 2   | Version constant not bumped            | MED      | ❌ Still 0.2.2                    | ❌ 0.2.2                   | Bump to 0.3.0              |
-| 3   | gofmt/space conflict                   | HIGH     | ✅ Fixed (normalizeCommentPrefix) | ❌ Active problem          | Resolved by Fix 1          |
-| 4   | One-suppression-per-line               | HIGH     | ✅ Fixed (comma-separated)        | ❌ Active problem          | Resolved by Fix 1          |
-| 5   | Blank line breaks suppression          | LOW      | ❌ Same behavior                  | ❌ Same behavior           | Skip blanks in upward scan |
-| 6   | Field-level suppression undocumented   | LOW      | ❌ Undocumented                   | ❌ Undocumented            | Add to --help / docs       |
+| # | Issue                                  | Severity | Status in source                  | Status in installed binary | Fix                        |
+| - | -------------------------------------- | -------- | --------------------------------- | -------------------------- | -------------------------- |
+| 1 | Stale Nix binary missing round-2 fixes | HIGH     | ✅ Fixed (b4554cdc)               | ❌ Not fixed               | Publish new Nix binary     |
+| 2 | Version constant not bumped            | MED      | ❌ Still 0.2.2                    | ❌ 0.2.2                   | Bump to 0.3.0              |
+| 3 | gofmt/space conflict                   | HIGH     | ✅ Fixed (normalizeCommentPrefix) | ❌ Active problem          | Resolved by Fix 1          |
+| 4 | One-suppression-per-line               | HIGH     | ✅ Fixed (comma-separated)        | ❌ Active problem          | Resolved by Fix 1          |
+| 5 | Blank line breaks suppression          | LOW      | ❌ Same behavior                  | ❌ Same behavior           | Skip blanks in upward scan |
+| 6 | Field-level suppression undocumented   | LOW      | ❌ Undocumented                   | ❌ Undocumented            | Add to --help / docs       |
 
 Fixes 1 and 2 are the priority. They would eliminate all 16 remaining findings and make the gofmt-dirty workaround unnecessary.
 
@@ -310,8 +310,8 @@ Fixes 1 and 2 are the priority. They would eliminate all 16 remaining findings a
 
 ## Resolution Appendix (2026-08-02)
 
-| #   | Issue                                | Resolution                                                                                                                                                                                                                                                                                    |
-| --- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2   | Version constant not bumped          | **FIXED.** Bumped `const version` from `0.2.2` to `0.3.0` in `main.go:18`.                                                                                                                                                                                                                    |
-| 5   | Blank line breaks suppression        | **FIXED.** `checkSuppressionInFile` now skips blank lines when scanning upward from the finding. A suppression comment separated from the finding by blank lines now works correctly. Tests: `TestSuppression_SkipsBlankLinesWhenScanningUpward`, `TestSuppression_DoesNotSkipNonBlankLines`. |
-| 6   | Field-level suppression undocumented | Documented in the CLI `--help` long text (`rootCmd.Long`) which shows both inline and block suppression patterns.                                                                                                                                                                             |
+| # | Issue                                | Resolution                                                                                                                                                                                                                                                                                    |
+| - | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2 | Version constant not bumped          | **FIXED.** Bumped `const version` from `0.2.2` to `0.3.0` in `main.go:18`.                                                                                                                                                                                                                    |
+| 5 | Blank line breaks suppression        | **FIXED.** `checkSuppressionInFile` now skips blank lines when scanning upward from the finding. A suppression comment separated from the finding by blank lines now works correctly. Tests: `TestSuppression_SkipsBlankLinesWhenScanningUpward`, `TestSuppression_DoesNotSkipNonBlankLines`. |
+| 6 | Field-level suppression undocumented | Documented in the CLI `--help` long text (`rootCmd.Long`) which shows both inline and block suppression patterns.                                                                                                                                                                             |

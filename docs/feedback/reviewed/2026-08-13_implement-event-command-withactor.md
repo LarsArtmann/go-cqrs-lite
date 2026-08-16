@@ -12,6 +12,7 @@
 `event.WithActor` is documented in `docs/api_surface.txt` and already called by cqrs-htmx master (`context.go:246`), but the function does not exist in the `event` package source. `command.WithActor` has no documentation and no implementation, but is the natural symmetric counterpart. Both are needed for the actor-chain audit trail that cqrs-htmx's `EventOptionsFromContext` and `CommandOptionsFromContext` already attempt to propagate.
 
 Every prerequisite type already exists and is fully implemented:
+
 - `id.ActorID` — kind-discriminated struct (`id/actor_id.go:64`) with constructors, `IsZero()`, `Equal()`, `PrefixedString()`, and JSON marshal/unmarshal (`id/actor_id_json.go`).
 - `metadata.Tracing` — shared struct embedded by both `event.Metadata` and `command.Metadata` (`metadata/metadata.go:16`), already holds `UserID`, `CorrelationID`, `CausationID`, `RequestID`.
 - The `apply` helper and `Option` pattern — identical across event and command packages.
@@ -179,9 +180,9 @@ The `omitempty` tag works because `ActorID.MarshalJSON` returns `"null"` for the
 
 `ActorID` and `UserID` are related but serve different purposes:
 
-| Field | Scope | Granularity | Use case |
-|-------|-------|-------------|----------|
-| `UserID` | Authentication identity | One type: user only | "Who is authenticated?" |
+| Field     | Scope                      | Granularity                                    | Use case                       |
+| --------- | -------------------------- | ---------------------------------------------- | ------------------------------ |
+| `UserID`  | Authentication identity    | One type: user only                            | "Who is authenticated?"        |
 | `ActorID` | Effective identity (audit) | Kind-discriminated: user, bot, system, service | "Who/what caused this record?" |
 
 When `ActorID.Kind() == ActorUser`, the `Raw()` value SHOULD match `UserID.String()`. They are NOT redundant: `UserID` answers "who logged in"; `ActorID` answers "who is the system acting on behalf of" (which may be a bot, a scheduler, or an impersonated user). Both fields should be populated when available.
@@ -195,6 +196,7 @@ cqrs-htmx already models this correctly: `EventOptionsFromContext` propagates BO
 ### Breaking changes
 
 None. This is purely additive:
+
 - New field on `Tracing` (zero value = no actor, backward-compatible)
 - New option functions (callers that don't use them are unaffected)
 - `Tracing.IsZero` gains a check (was true before, still true for zero ActorID)

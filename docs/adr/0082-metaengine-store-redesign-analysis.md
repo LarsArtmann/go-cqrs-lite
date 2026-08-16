@@ -10,12 +10,12 @@
 
 The current `Store` has 4 runtime cast sites, all caused by Go's inability to express heterogeneous generic containers (see [ADR-0081](0081-metaengine-runtime-casts.md)):
 
-| #   | Site       | Signature     | Root Cause                                                         |
-| --- | ---------- | ------------- | ------------------------------------------------------------------ |
-| 1   | `Plan`     | `args ...any` | Heterogeneous `Query[I1,V1]`, `Query[I2,V2]` in one call           |
-| 2   | `Apply`    | `payload any` | One event type fans out to folds expecting different payload types |
-| 3   | `Execute`  | returns `any` | Return type depends on which query was dispatched                  |
-| 4   | `reify[V]` | `row any → V` | Engine stores values as `any`/`[]byte`; reader reifies             |
+| # | Site       | Signature     | Root Cause                                                         |
+| - | ---------- | ------------- | ------------------------------------------------------------------ |
+| 1 | `Plan`     | `args ...any` | Heterogeneous `Query[I1,V1]`, `Query[I2,V2]` in one call           |
+| 2 | `Apply`    | `payload any` | One event type fans out to folds expecting different payload types |
+| 3 | `Execute`  | returns `any` | Return type depends on which query was dispatched                  |
+| 4 | `reify[V]` | `row any → V` | Engine stores values as `any`/`[]byte`; reader reifies             |
 
 The question: **can a Store redesign eliminate some or all of these casts?**
 

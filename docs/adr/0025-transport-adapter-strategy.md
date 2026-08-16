@@ -1,10 +1,10 @@
 # ADR-0025: Transport Adapter Strategy
 
-| Field   | Value        |
-| ------- | ------------ |
-| Date    | 2026-06-19   |
+| Field   | Value                                                                                                                              |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Date    | 2026-06-19                                                                                                                         |
 | Status  | Superseded by [ADR-0127](0127-deprecate-transport-modules.md) (transport/* deprecated; watermill/ + go-sse are the delivery paths) |
-| Decider | Lars Artmann |
+| Decider | Lars Artmann                                                                                                                       |
 
 ## Context
 

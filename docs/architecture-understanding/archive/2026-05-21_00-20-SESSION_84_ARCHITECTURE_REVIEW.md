@@ -136,30 +136,30 @@ Zero imports from any other module. Only stdlib. The most isolated package. Coul
 
 ### Critical (Should Fix Next)
 
-| #   | Recommendation                                      | Impact | Effort | Breaking |
-| --- | --------------------------------------------------- | ------ | ------ | -------- |
-| 1   | Unify event serialization (3→1 reconstruction path) | High   | 3h     | No       |
-| 2   | Remove deprecated catalog API (21 exports)          | High   | 2h     | Yes      |
-| 3   | Rename `CQRSAdapter` → `PebbleEventStore`           | Medium | 1h     | Yes      |
-| 4   | Extract `middleware/tracing` to separate module     | Medium | 1h     | No       |
+| # | Recommendation                                      | Impact | Effort | Breaking |
+| - | --------------------------------------------------- | ------ | ------ | -------- |
+| 1 | Unify event serialization (3→1 reconstruction path) | High   | 3h     | No       |
+| 2 | Remove deprecated catalog API (21 exports)          | High   | 2h     | Yes      |
+| 3 | Rename `CQRSAdapter` → `PebbleEventStore`           | Medium | 1h     | Yes      |
+| 4 | Extract `middleware/tracing` to separate module     | Medium | 1h     | No       |
 
 ### High Impact (Should Plan)
 
-| #   | Recommendation                                               | Impact | Effort | Breaking |
-| --- | ------------------------------------------------------------ | ------ | ------ | -------- |
-| 5   | Formally deprecate `aggregate` package                       | High   | 2h     | Yes      |
-| 6   | Rename `helpers.go` files to domain-specific names           | Low    | 1h     | No       |
-| 7   | Rename `Mixin` suffixes to idiomatic Go names                | Low    | 30m    | Yes      |
-| 8   | Fix inconsistent `memory/` constructor naming                | Low    | 30m    | Yes      |
-| 9   | Share handler dispatch between HandlerRegistry and MemoryBus | Medium | 2h     | No       |
+| # | Recommendation                                               | Impact | Effort | Breaking |
+| - | ------------------------------------------------------------ | ------ | ------ | -------- |
+| 5 | Formally deprecate `aggregate` package                       | High   | 2h     | Yes      |
+| 6 | Rename `helpers.go` files to domain-specific names           | Low    | 1h     | No       |
+| 7 | Rename `Mixin` suffixes to idiomatic Go names                | Low    | 30m    | Yes      |
+| 8 | Fix inconsistent `memory/` constructor naming                | Low    | 30m    | Yes      |
+| 9 | Share handler dispatch between HandlerRegistry and MemoryBus | Medium | 2h     | No       |
 
 ### Future (Consider for v2)
 
-| #   | Recommendation                                          | Impact | Effort |
-| --- | ------------------------------------------------------- | ------ | ------ |
-| 10  | Move `sync` to its own repository                       | Low    | 1h     |
-| 11  | Consolidate `Core` naming across packages               | Low    | 4h     |
-| 12  | Replace `init()` error registration with explicit setup | Medium | 3h     |
+| #  | Recommendation                                          | Impact | Effort |
+| -- | ------------------------------------------------------- | ------ | ------ |
+| 10 | Move `sync` to its own repository                       | Low    | 1h     |
+| 11 | Consolidate `Core` naming across packages               | Low    | 4h     |
+| 12 | Replace `init()` error registration with explicit setup | Medium | 3h     |
 
 ---
 

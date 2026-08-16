@@ -19,9 +19,9 @@ fields via reflection. **This was wrong** for three reasons:
    the metaengine's core cost-based value.
 
 2. **It puts storage intent on the developer.** The project's north star is
-   unambiguous: *"Developers declare ONLY Commands + Events + Queries and their
+   unambiguous: _"Developers declare ONLY Commands + Events + Queries and their
    relationships... developers REALLY NEVER need to think about the storage
-   layer."* M9 forced the developer to model types carefully to influence layout
+   layer."_ M9 forced the developer to model types carefully to influence layout
    — a direct violation.
 
 3. **It ignores the cost model.** The metaengine exists to be cost-based and
@@ -35,11 +35,11 @@ Full design rationale: [`docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md`](../
 The type distinction (`[]Attachment` vs `[]AttachmentID`) is **payload reality**,
 not storage intent:
 
-- `[]Attachment` (full struct values) → embed is *possible* (bytes exist)
-- `[]AttachmentID` (IDs only) → embed is *impossible* (no bytes to embed)
+- `[]Attachment` (full struct values) → embed is _possible_ (bytes exist)
+- `[]AttachmentID` (IDs only) → embed is _impossible_ (no bytes to embed)
 
-The developer's type choice *constrains* the planner's option set (domain shape).
-The operator's priority *selects within* that option set (storage intent). A
+The developer's type choice _constrains_ the planner's option set (domain shape).
+The operator's priority _selects within_ that option set (storage intent). A
 constraint that eliminates an option is not the same as an intent that expresses
 a preference.
 
@@ -55,33 +55,33 @@ storage intent — ever.
 
 ADR-0116 defines three layers of auto-projection:
 
-| Layer | ADR-0116 | Concern |
-| --- | --- | --- |
-| Layer 1 | Auto-Generate | Fold inference from event/query struct shapes |
-| Layer 2 | Explicit Folds | Consumer-written `On(...)` handlers |
-| Layer 3 | Auto-Route | Cost-based engine selection per query |
+| Layer   | ADR-0116       | Concern                                       |
+| ------- | -------------- | --------------------------------------------- |
+| Layer 1 | Auto-Generate  | Fold inference from event/query struct shapes |
+| Layer 2 | Explicit Folds | Consumer-written `On(...)` handlers           |
+| Layer 3 | Auto-Route     | Cost-based engine selection per query         |
 
 **This ADR adds Layer 4:**
 
-| Layer | This ADR | Concern |
-| --- | --- | --- |
+| Layer       | This ADR            | Concern                                      |
+| ----------- | ------------------- | -------------------------------------------- |
 | **Layer 4** | **Physical Layout** | Embed vs. normalize within the chosen engine |
 
 Layer 4 is orthogonal to Layers 1–3. It does not replace any layer. Fold
-inference (Layer 1) generates *how events map to projection entries*. Layout
-planning (Layer 4) decides *the physical storage shape of those entries* (one
+inference (Layer 1) generates _how events map to projection entries_. Layout
+planning (Layer 4) decides _the physical storage shape of those entries_ (one
 embedded row vs. parent + child collection). Both run independently.
 
 ### Operator Priority System
 
 Four priorities that weight the cost model's scoring function:
 
-| Priority | Planner behavior |
-| --- | --- |
-| `WriteSpeed` | Penalize layouts that rewrite large rows on child mutation (favor normalized) |
-| `ReadSpeed` | Penalize layouts requiring joins/secondary lookups (favor denormalized) |
-| `StorageSpace` | Penalize data duplication (favor normalized) |
-| `Balanced` | Even weighting — the default |
+| Priority       | Planner behavior                                                              |
+| -------------- | ----------------------------------------------------------------------------- |
+| `WriteSpeed`   | Penalize layouts that rewrite large rows on child mutation (favor normalized) |
+| `ReadSpeed`    | Penalize layouts requiring joins/secondary lookups (favor denormalized)       |
+| `StorageSpace` | Penalize data duplication (favor normalized)                                  |
+| `Balanced`     | Even weighting — the default                                                  |
 
 ### Priority Hierarchy (most specific wins)
 
@@ -89,9 +89,9 @@ Four priorities that weight the cost model's scoring function:
 GLOBAL (whole deployment)  →  per-Engine  →  per-Query
 ```
 
-An operator can say: *"The whole deployment optimizes for ReadSpeed, but the
+An operator can say: _"The whole deployment optimizes for ReadSpeed, but the
 Pebble engine prioritizes WriteSpeed, and this one analytics query prioritizes
-StorageSpace."*
+StorageSpace."_
 
 ### Three Planner Modes
 
@@ -112,12 +112,12 @@ StorageSpace."*
 The planner maintains **parallel projections** across engines simultaneously,
 with explicit roles:
 
-| Role | Sync strategy | Purpose |
-| --- | --- | --- |
-| **Active** | Fold pipeline (strong) | Serving live queries |
-| **DualUse** | Fold pipeline (strong) | Two engines serving different query shapes |
-| **Migration** | Async replication | New engine being populated; cutover when caught up |
-| **Backup** | Async replication | Redundant copy for disaster recovery |
+| Role          | Sync strategy          | Purpose                                            |
+| ------------- | ---------------------- | -------------------------------------------------- |
+| **Active**    | Fold pipeline (strong) | Serving live queries                               |
+| **DualUse**   | Fold pipeline (strong) | Two engines serving different query shapes         |
+| **Migration** | Async replication      | New engine being populated; cutover when caught up |
+| **Backup**    | Async replication      | Redundant copy for disaster recovery               |
 
 New backends can be added at runtime. The planner generates a plan for the new
 engine, backfills from the event log, and brings it online.
@@ -219,10 +219,10 @@ bbolt databases, plus `BenchmarkLayoutCalibration_*` on the memory engine)
 corrected this to a per-priority split. The measured ratios are encoded in
 `metaengine/layout_scoring.go`:
 
-| Storage layout | Embed (read/write/storage) | Normalize (read/write/storage) | ReadSpeed winner | WriteSpeed winner | StorageSpace winner |
-| --- | --- | --- | --- | --- | --- |
-| **KV** (memory engine) | 0.5 / 1.0 / 1.3 | 1.8 / 0.48 / 0.63 | Embed | **Normalize** | **Normalize** |
-| **LSM** (Pebble + bbolt, geomean) | 0.74 / 1.10 / 1.15 | 1.45 / 0.75 / 0.80 | Embed | **Normalize** | **Normalize** |
+| Storage layout                    | Embed (read/write/storage) | Normalize (read/write/storage) | ReadSpeed winner | WriteSpeed winner | StorageSpace winner |
+| --------------------------------- | -------------------------- | ------------------------------ | ---------------- | ----------------- | ------------------- |
+| **KV** (memory engine)            | 0.5 / 1.0 / 1.3            | 1.8 / 0.48 / 0.63              | Embed            | **Normalize**     | **Normalize**       |
+| **LSM** (Pebble + bbolt, geomean) | 0.74 / 1.10 / 1.15         | 1.45 / 0.75 / 0.80             | Embed            | **Normalize**     | **Normalize**       |
 
 Conclusions:
 
@@ -247,10 +247,10 @@ the default depends on priority, not engine family.
 MySQL; `BenchmarkColumnarLayoutCalibration_*` on file-backed DuckDB with a
 literal 60s confirmation run within 2%). The `layout_scoring.go` cells:
 
-| Storage layout | Embed (read/write/storage) | Normalize (read/write/storage) | ReadSpeed winner | WriteSpeed winner | StorageSpace winner |
-| --- | --- | --- | --- | --- | --- |
-| **Row** (SQLite/PG/MySQL geomean 1.27x/0.52x/0.35x) | 0.89 / 1.39 / 1.68 | 1.13 / 0.72 / 0.59 | **Normalize** | **Normalize** | **Normalize** |
-| **Columnar** (DuckDB 2.62x/0.20x/0.59x) | 0.62 / 2.23 / 1.30 | 1.62 / 0.45 / 0.77 | **Embed** | **Normalize** | **Normalize** |
+| Storage layout                                      | Embed (read/write/storage) | Normalize (read/write/storage) | ReadSpeed winner | WriteSpeed winner | StorageSpace winner |
+| --------------------------------------------------- | -------------------------- | ------------------------------ | ---------------- | ----------------- | ------------------- |
+| **Row** (SQLite/PG/MySQL geomean 1.27x/0.52x/0.35x) | 0.89 / 1.39 / 1.68         | 1.13 / 0.72 / 0.59             | **Normalize**    | **Normalize**     | **Normalize**       |
+| **Columnar** (DuckDB 2.62x/0.20x/0.59x)             | 0.62 / 2.23 / 1.30         | 1.62 / 0.45 / 0.77             | **Embed**        | **Normalize**     | **Normalize**       |
 
 The analytical guess that a LEFT JOIN read beats a JSON-column read was
 wrong (measured ≈1.0x on server engines, 1.95x on SQLite). The

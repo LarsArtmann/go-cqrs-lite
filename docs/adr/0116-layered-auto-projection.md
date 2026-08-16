@@ -76,8 +76,8 @@ the best available engine. The consumer never touches infrastructure.
 > **Layer 4 (Physical Layout)** was added by
 > [ADR-0124](0124-operator-driven-layout-planning.md). It is orthogonal to
 > Layers 1–3: it decides embed vs. normalize within the chosen engine, based on
-> operator priorities. Layers 1–3 decide *which fold* and *which engine*;
-> Layer 4 decides *what physical shape the projection entries take*.
+> operator priorities. Layers 1–3 decide _which fold_ and _which engine_;
+> Layer 4 decides _what physical shape the projection entries take_.
 
 ```
 Consumer: defines Commands, Events, Queries + relationships
@@ -146,6 +146,7 @@ q := metaengine.Query[GetUser, UserView]("users",
 ```
 
 The planner infers at `Plan()` time:
+
 - **Convention detection** — `*Created` → insert, `*Updated` → update, `*Deleted` → remove
 - **Key field auto-detection** — from the query input type Q (if Q has one field whose Go type unambiguously matches a Created event field), falling back to `"ID"`
 - **Field-name matching** — event fields map to result fields by name, including nested struct flattening (event `Address{City, Zip}` → result `City`, `Zip`)

@@ -17,6 +17,7 @@ Events published between the projection worker's journal drain (phase 1) and its
 ## The Fix (Option A: Post-Subscribe Catch-Up Drain)
 
 **Files changed:**
+
 - `projectionhost/worker.go` — added `handleMu sync.Mutex` to serialize event processing between catch-up drain and live handler
 - `projectionhost/worker_drain.go` — rewrote `processLive` to subscribe first, then catch-up drain; added `liveHandler` and `drainCatchUp` methods
 

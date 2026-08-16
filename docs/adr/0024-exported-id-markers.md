@@ -1,7 +1,7 @@
 # ADR-0024: Exported ID Marker Types
 
-**Date:** 2026-06-18  
-**Status:** Accepted  
+**Date:** 2026-06-18\
+**Status:** Accepted\
 **Deciders:** Lars Artmann, Crush
 
 ## Context

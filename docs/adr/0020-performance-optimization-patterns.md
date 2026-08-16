@@ -1,6 +1,6 @@
 # ADR-0020: Performance Optimization Patterns
 
-**Date:** 2026-06-14  
+**Date:** 2026-06-14\
 **Status:** Accepted
 
 ## Context

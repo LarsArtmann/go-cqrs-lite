@@ -1,6 +1,6 @@
 # ADR-0001: Decider Pattern Over OO Aggregate
 
-**Status:** Accepted  
+**Status:** Accepted\
 **Date:** 2026-05-03
 
 ## Context

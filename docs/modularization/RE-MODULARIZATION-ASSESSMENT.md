@@ -23,7 +23,7 @@
 | decider           |       5        |       3        |      ✅      | **Keep**                                             |
 | memory            |       5        |       3        |      ✅      | **Keep**                                             |
 | signing           |       4        |       4        |      ✅      | **Keep**                                             |
-| middleware        |       3        |       2        |      ⚠️      | **Reorganize** — reduce to generic[H]                |
+| middleware        |       3        |       2        |      ⚠️       | **Reorganize** — reduce to generic[H]                |
 | storage           |       4        |       3        |      ✅      | **Keep** — unify errors                              |
 | pebble            |       4        |       4        |      ✅      | **Keep** — unify errors                              |
 | turso             |       4        |       3        |      ✅      | **Keep**                                             |
@@ -125,10 +125,10 @@ Only `query/` has a single replace directive (for event/eventtest test dependenc
 | Error                    | Location                      | Used by                  | Accessible? | Issue                     |
 | ------------------------ | ----------------------------- | ------------------------ | :---------- | ------------------------- |
 | ErrVersionConflict       | event/                        | storage, pebble, decider | ✅          | Correct placement         |
-| ErrHandlerNotFound       | dispatcher/, command/, query/ | cross-module             | ⚠️          | Three separate sentinels  |
-| ErrDispatcherClosed      | dispatcher/, command/, query/ | cross-module             | ⚠️          | Three separate sentinels  |
-| ErrAggregateTypeMismatch | pebble/, storage/sql/         | backend-specific         | ⚠️          | Duplicate across backends |
-| ErrCircuitBreakerOpen    | middleware/                   | consumers                | ⚠️          | Bypasses error taxonomy   |
+| ErrHandlerNotFound       | dispatcher/, command/, query/ | cross-module             | ⚠️           | Three separate sentinels  |
+| ErrDispatcherClosed      | dispatcher/, command/, query/ | cross-module             | ⚠️           | Three separate sentinels  |
+| ErrAggregateTypeMismatch | pebble/, storage/sql/         | backend-specific         | ⚠️           | Duplicate across backends |
+| ErrCircuitBreakerOpen    | middleware/                   | consumers                | ⚠️           | Bypasses error taxonomy   |
 | ErrAggregateNotFound     | event/                        | all backends             | ✅          | Correct placement         |
 
 **Key issues:** Sentinel error fragmentation (3× ErrHandlerNotFound, 2× ErrVersionMismatch). These should be consolidated.

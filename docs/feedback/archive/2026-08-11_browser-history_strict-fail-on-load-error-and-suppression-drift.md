@@ -43,14 +43,14 @@ After fixing the compile error, the same command analyzed **99 files** (not 20) 
 
 ### Concrete data
 
-| Metric | Broken (before fix) | Correct (after fix) |
-|--------|--------------------:|--------------------:|
-| Files analyzed | 20 | 99 |
-| Total findings | 9 | 27 |
-| Suppressed | 9 | 23 |
-| Unsuppressed | 0 | 4 |
-| Exit code | 0 | 0 |
-| Output | "No findings. Clean!" | "No findings. Clean!" |
+| Metric         |   Broken (before fix) |   Correct (after fix) |
+| -------------- | --------------------: | --------------------: |
+| Files analyzed |                    20 |                    99 |
+| Total findings |                     9 |                    27 |
+| Suppressed     |                     9 |                    23 |
+| Unsuppressed   |                     0 |                     4 |
+| Exit code      |                     0 |                     0 |
+| Output         | "No findings. Clean!" | "No findings. Clean!" |
 
 ### Reproduction
 
@@ -66,6 +66,7 @@ Two options (ideally both):
 **Option A (exit code):** When `--strict` is set, any `Load errors (N > 0)` should cause `os.Exit(1)`. The current text says "Use --strict to fail on any load error" but `--strict` doesn't actually do this.
 
 **Option B (output):** When packages fail to load, replace "No findings. Clean!" with a loud banner:
+
 ```
 ⚠ INCOMPLETE ANALYSIS — 1 package(s) failed to load (79 files skipped)
   /path/to/api: ./ingest.go:78:6: req redeclared in this block
@@ -100,6 +101,7 @@ Had to discover by trial and error that bare filename globs work:
 ### Expected behavior
 
 Either:
+
 1. **Document the glob syntax** in `cqrs-lint explain` output (currently says `"exclude": "Paths to exclude (comma-separated glob patterns)"` — doesn't clarify that these are filename patterns, not path patterns)
 2. **Support both** `**/*_templ.go` (path glob) and `*_templ.go` (filename glob) like `.gitignore` does
 
@@ -120,6 +122,7 @@ During this session's audit of 23 inline suppressions, I found that **4 suppress
 ```
 
 This claim ("1-event-per-stream") was **wrong**. The actual stream lengths:
+
 - BrowserHistory: max 2 events per stream (not 1)
 - DomainSettings/DomainOverride/GoalSettings: technically **unbounded** (tag→retag→untag cycles accumulate), but trivially small in practice (<5)
 
@@ -137,6 +140,7 @@ Add a `cqrs-lint doctor --audit-suppressions` mode that:
 ### Why this matters
 
 Suppressions are silent debt. They accumulate over time and are never re-audited unless someone manually reads every one. A periodic "suppression health check" would surface:
+
 - Suppressions for bugs that have been fixed (remove the suppression)
 - Suppressions for heuristics that have been improved (remove the suppression)
 - Suppressions with wrong reasoning (fix the comment before it misleads someone)
@@ -168,6 +172,7 @@ Pinning the workspace-level profile would silence correct findings in the `api` 
 ### Suggested fix
 
 Either:
+
 1. The suggested config should use the **most permissive** profile across all modules (so nothing gets silenced)
 2. Or `doctor` should warn that pinning the workspace profile may hide findings in sub-modules with richer profiles
 3. Or support per-module `.cqrs-lint.json` files (monorepo inheritance)

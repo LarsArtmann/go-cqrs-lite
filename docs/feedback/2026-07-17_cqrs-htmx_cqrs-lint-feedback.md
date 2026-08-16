@@ -171,7 +171,7 @@ go-cqrs-lite found" message.
 `DetectFeatures` iterates `ctx.Packages` — **all** packages returned by
 `go/packages`, including ones with errors. A package can have `len(pkg.Errors)
 
-> 0`and still have a partially-populated`pkg.Imports`. So `DetectFeatures`finds the`go-cqrs-lite/stack/postgres/v4`import (real — it's in`usermgmt/postgres_setup.go:10`) and sets `Store = StorePostgres`.
+> 0`and still have a partially-populated`pkg.Imports`. So`DetectFeatures`finds the`go-cqrs-lite/stack/postgres/v4`import (real — it's in`usermgmt/postgres_setup.go:10`) and sets`Store = StorePostgres`.
 
 Meanwhile, `main.go` and the rule detectors iterate `ctx.GoFiles`, which is
 populated only from error-free CQRS-importing packages (loader.go:107-124). On
@@ -447,13 +447,13 @@ architectural.
 
 ## Summary Table
 
-| #   | Bug                                                      | Severity | Fix   | Effort |
-| --- | -------------------------------------------------------- | -------- | ----- | ------ |
-| 1   | `BuildContext` swallows per-module load errors           | HIGH     | Fix 1 | S      |
-| 2   | "No Go files found" returned as success on broken builds | HIGH     | Fix 2 | S      |
-| 3   | `doctor` reports a profile from partial/broken data      | HIGH     | Fix 3 | S      |
-| 4   | `lint` and `doctor` read different package subsets       | HIGH     | Fix 4 | M      |
-| 5   | No way to inspect loader decisions                       | MED      | Fix 5 | S      |
+| # | Bug                                                      | Severity | Fix   | Effort |
+| - | -------------------------------------------------------- | -------- | ----- | ------ |
+| 1 | `BuildContext` swallows per-module load errors           | HIGH     | Fix 1 | S      |
+| 2 | "No Go files found" returned as success on broken builds | HIGH     | Fix 2 | S      |
+| 3 | `doctor` reports a profile from partial/broken data      | HIGH     | Fix 3 | S      |
+| 4 | `lint` and `doctor` read different package subsets       | HIGH     | Fix 4 | M      |
+| 5 | No way to inspect loader decisions                       | MED      | Fix 5 | S      |
 
 All five are in the same file cluster (`loader.go`, `main.go`, `doctor.go`,
 `feature_detect.go`) and can be addressed in one PR. Fixes 1-3 are the minimum

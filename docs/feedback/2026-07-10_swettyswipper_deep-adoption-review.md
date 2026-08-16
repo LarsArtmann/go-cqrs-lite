@@ -231,17 +231,17 @@ There are ~500+ timestamped files across `docs/planning/` and `docs/status/`. Th
 
 ## Appendix: Prior Feedback Resolution Tracking
 
-| #   | July 5 Item                       | July 10 Status     | Notes                                                             |
-| --- | --------------------------------- | ------------------ | ----------------------------------------------------------------- |
-| C1  | eventtest module path split-brain | ⚠️ **Still open**  | Documented but structurally unfixed. Biggest consumer pain point. |
-| C2  | FakeBus naming                    | ✅ **Resolved**    | watermill.NewEventBus() shipped and adopted.                      |
-| C3  | RegisterTyped type safety         | ❌ **Not started** | Still 60 lines of boilerplate across 12 handlers.                 |
-| C4  | event.WithCommandCausality        | ✅ **Resolved**    | Our claim was false — functions exist.                            |
-| C5  | Projection On as free function    | ❌ **Not started** | Low priority, minor ergonomics.                                   |
-| M1  | Query middleware docs             | ✅ **Resolved**    | Now in recipes.                                                   |
-| M2  | Snapshot guidance                 | ✅ **Resolved**    | FAQ threshold exists.                                             |
-| M3  | Prometheus without OTel           | ❌ **Not started** | Still requires OTel infrastructure.                               |
-| M4  | Dead-letter SQL store docs        | ✅ **Documented**  | Pattern documented, SQL impl still P2.                            |
+| #  | July 5 Item                       | July 10 Status     | Notes                                                             |
+| -- | --------------------------------- | ------------------ | ----------------------------------------------------------------- |
+| C1 | eventtest module path split-brain | ⚠️ **Still open**   | Documented but structurally unfixed. Biggest consumer pain point. |
+| C2 | FakeBus naming                    | ✅ **Resolved**    | watermill.NewEventBus() shipped and adopted.                      |
+| C3 | RegisterTyped type safety         | ❌ **Not started** | Still 60 lines of boilerplate across 12 handlers.                 |
+| C4 | event.WithCommandCausality        | ✅ **Resolved**    | Our claim was false — functions exist.                            |
+| C5 | Projection On as free function    | ❌ **Not started** | Low priority, minor ergonomics.                                   |
+| M1 | Query middleware docs             | ✅ **Resolved**    | Now in recipes.                                                   |
+| M2 | Snapshot guidance                 | ✅ **Resolved**    | FAQ threshold exists.                                             |
+| M3 | Prometheus without OTel           | ❌ **Not started** | Still requires OTel infrastructure.                               |
+| M4 | Dead-letter SQL store docs        | ✅ **Documented**  | Pattern documented, SQL impl still P2.                            |
 
 ---
 

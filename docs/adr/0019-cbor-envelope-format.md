@@ -1,6 +1,6 @@
 # ADR-0019: CBOR Envelope Format for Pebble Stores
 
-**Date:** 2026-06-16  
+**Date:** 2026-06-16\
 **Status:** Accepted
 
 ## Context

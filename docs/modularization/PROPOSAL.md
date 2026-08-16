@@ -158,19 +158,19 @@ type EventSink = store.EventSink
 ## Proposed Dependency DAG
 
 ```
-                    otel (leaf)
-                      ↑
-                      |
-          core ──→ codec (leaf)
-            ↑
-     ┌──────┼──────┬────────┬──────────┐
-     |      |      |        |          |
-   saga  memory  signing  middleware  catalog
-     ↑      ↑                ↑
-     |      |                |
-  storage  stream      projection
-     ↑
-   turso
+                  otel (leaf)
+                    ↑
+                    |
+        core ──→ codec (leaf)
+          ↑
+   ┌──────┼──────┬────────┬──────────┐
+   |      |      |        |          |
+ saga  memory  signing  middleware  catalog
+   ↑      ↑                ↑
+   |      |                |
+storage  stream      projection
+   ↑
+ turso
 ```
 
 **After changes:**

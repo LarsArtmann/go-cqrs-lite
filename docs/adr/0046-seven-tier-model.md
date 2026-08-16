@@ -345,7 +345,6 @@ Rejected: Would place `catalog/` and `otel/` in Tier 0 alongside `id/` and
 even if it has zero deps. Conceptual role must be able to raise the tier.
 
 ```
-
 ---
 
 ## Addendum 2026-08-06: Metaengine Reclassified

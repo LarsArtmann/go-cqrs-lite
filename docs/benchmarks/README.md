@@ -220,11 +220,11 @@ Fix: `InMemoryAggregateReader` now caches a sorted aggregate index. First `List(
 
 ### Session 143–144 (2026-06-03)
 
-|     | Change                      | Before                     | After                     | Improvement                |
-| --- | --------------------------- | -------------------------- | ------------------------- | -------------------------- |
-|     | MemoryStore global log      | 98μs, 52KB, 12 allocs (1K) | 3.3μs, 16KB, 1 alloc (1K) | **-96% time, -92% allocs** |
-|     | Listing projection cache    | 840ms, 809MB, 1M allocs    | 33ms, 165MB, 10K allocs   | **-96% time, -99% allocs** |
-|     | ImmutableEvent opts pointer | 336B per event             | 304B per event            | -10% memory per event      |
+|   | Change                      | Before                     | After                     | Improvement                |
+| - | --------------------------- | -------------------------- | ------------------------- | -------------------------- |
+|   | MemoryStore global log      | 98μs, 52KB, 12 allocs (1K) | 3.3μs, 16KB, 1 alloc (1K) | **-96% time, -92% allocs** |
+|   | Listing projection cache    | 840ms, 809MB, 1M allocs    | 33ms, 165MB, 10K allocs   | **-96% time, -99% allocs** |
+|   | ImmutableEvent opts pointer | 336B per event             | 304B per event            | -10% memory per event      |
 
 ### What can't be optimized (accepted costs)
 

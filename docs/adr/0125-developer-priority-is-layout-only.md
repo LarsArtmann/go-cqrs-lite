@@ -22,9 +22,9 @@ influence engine ranking, or only layout selection within the assigned engine?**
 
 The metaengine has two independent scoring paths that both consume `Priority`:
 
-| Path | Function | What it decides | Inputs |
-| --- | --- | --- | --- |
-| **Engine ranking** | `planQuery` → `priorityFactor` | Which engine serves the query | Operator `PriorityConfig` only |
+| Path                 | Function                              | What it decides                       | Inputs                                                         |
+| -------------------- | ------------------------------------- | ------------------------------------- | -------------------------------------------------------------- |
+| **Engine ranking**   | `planQuery` → `priorityFactor`        | Which engine serves the query         | Operator `PriorityConfig` only                                 |
 | **Layout selection** | `SelectLayout` via `priorityForQuery` | Embed vs. Normalize within the engine | Operator `PriorityConfig` **+** developer `WithLayoutPriority` |
 
 `Store.priorityForQuery` resolves across five levels:
@@ -48,19 +48,19 @@ design boundary**, for the reasons below.
 
 ### Ownership Split
 
-| Concern | Owner | API | Code Path |
-| --- | --- | --- | --- |
-| **Engine selection** ("where data lives") | **Operator** (deployment-time) | `DeploymentConfig.Priority` (YAML/koanf) | `planQuery` → `priorityFactor` |
-| **Layout selection** ("physical shape within the engine") | **Developer** (code-time) + operator override | `WithLayoutPriority` (Go API) | `priorityForQuery` → `SelectLayout` |
+| Concern                                                   | Owner                                         | API                                      | Code Path                           |
+| --------------------------------------------------------- | --------------------------------------------- | ---------------------------------------- | ----------------------------------- |
+| **Engine selection** ("where data lives")                 | **Operator** (deployment-time)                | `DeploymentConfig.Priority` (YAML/koanf) | `planQuery` → `priorityFactor`      |
+| **Layout selection** ("physical shape within the engine") | **Developer** (code-time) + operator override | `WithLayoutPriority` (Go API)            | `priorityForQuery` → `SelectLayout` |
 
-The developer says: *"When this query's data is materialized, prefer the
-read-optimized physical layout."* The operator says: *"This query is served by
-PostgreSQL, not Pebble."*
+The developer says: _"When this query's data is materialized, prefer the
+read-optimized physical layout."_ The operator says: _"This query is served by
+PostgreSQL, not Pebble."_
 
 ### Why This Is Correct
 
-1. **North star alignment.** The project's guiding principle states: *"where
-   data lives is up to operators at DEPLOYMENT time."* Engine ranking IS "where
+1. **North star alignment.** The project's guiding principle states: _"where
+   data lives is up to operators at DEPLOYMENT time."_ Engine ranking IS "where
    data lives." Allowing a developer's Go code to influence engine routing would
    violate deployment-time isolation — a code change would override an operator's
    topology decision.
@@ -93,9 +93,9 @@ physical layout (Embed vs Normalize) based on the resolved priority:
 - `StorageSpace` → favor Normalize (less duplication)
 - `Balanced` → cost model picks the best tradeoff
 
-The developer's `WithLayoutPriority(ReadSpeed)` means: *"on whatever engine this
-query lands, prefer the embed layout."* It does NOT mean: *"route this query to
-the fastest-reading engine."*
+The developer's `WithLayoutPriority(ReadSpeed)` means: _"on whatever engine this
+query lands, prefer the embed layout."_ It does NOT mean: _"route this query to
+the fastest-reading engine."_
 
 ### Resolution Precedence (Final)
 

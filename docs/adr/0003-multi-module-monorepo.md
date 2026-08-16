@@ -1,6 +1,6 @@
 # ADR-0003: Multi-Module Monorepo Structure
 
-**Status:** Accepted  
+**Status:** Accepted\
 **Date:** 2026-05-03
 
 ## Context

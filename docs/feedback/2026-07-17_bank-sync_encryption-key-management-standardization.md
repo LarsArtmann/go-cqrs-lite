@@ -98,14 +98,14 @@ An encryption key protects data-at-rest against an attacker who has the storage 
 
 ### The key-source strategies
 
-| Strategy                        | Key location                                          | Disk theft                             | Friction | When appropriate              |
-| ------------------------------- | ----------------------------------------------------- | -------------------------------------- | -------- | ----------------------------- |
-| **Machine-bound (OS keychain)** | macOS Keychain / Linux secret-service / Windows DPAPI | ✅ Protected                           | **Zero** | Local tools, CLI apps (ideal) |
-| **Derived key (HKDF)**          | Derived from master at runtime                        | ✅ Protected                           | Medium   | Multi-tenant, KMS-backed      |
-| **Passphrase (argon2id)**       | User's memory                                         | ✅ Protected                           | Medium   | High-security, human-operated |
+| Strategy                        | Key location                                          | Disk theft                            | Friction | When appropriate              |
+| ------------------------------- | ----------------------------------------------------- | ------------------------------------- | -------- | ----------------------------- |
+| **Machine-bound (OS keychain)** | macOS Keychain / Linux secret-service / Windows DPAPI | ✅ Protected                          | **Zero** | Local tools, CLI apps (ideal) |
+| **Derived key (HKDF)**          | Derived from master at runtime                        | ✅ Protected                          | Medium   | Multi-tenant, KMS-backed      |
+| **Passphrase (argon2id)**       | User's memory                                         | ✅ Protected                          | Medium   | High-security, human-operated |
 | **Raw key (env var)**           | Env var                                               | ⚠️ Weak — leaks to all child processes | Low      | CI/automation only (NOT prod) |
-| **Raw key (separated file)**    | Config file with `chmod 600`, separate volume         | Medium (if separated)                  | Low      | Server, headless fallback     |
-| **Auto-gen on disk**            | `~/.config/app/key` (plaintext file)                  | ❌ **Useless**                         | Zero     | **Never** (theater)           |
+| **Raw key (separated file)**    | Config file with `chmod 600`, separate volume         | Medium (if separated)                 | Low      | Server, headless fallback     |
+| **Auto-gen on disk**            | `~/.config/app/key` (plaintext file)                  | ❌ **Useless**                        | Zero     | **Never** (theater)           |
 
 ### Why environment variables are a weak key source
 
@@ -147,12 +147,12 @@ The key is generated once, stored in the OS keychain (bound to the user session,
 
 ### Resolution for bank-sync
 
-| Option                | Threat mitigated              | Key-loss risk           | Friction | Verdict                                                 |
-| --------------------- | ----------------------------- | ----------------------- | -------- | ------------------------------------------------------- |
-| OS keychain           | Disk theft                    | Low (OS-managed)        | Zero     | ✅✅ **Correct default for a local tool**               |
-| Passphrase (argon2id) | Disk theft                    | Low (user memorizes)    | Medium   | ✅ High-security option                                 |
+| Option                | Threat mitigated              | Key-loss risk           | Friction | Verdict                                                |
+| --------------------- | ----------------------------- | ----------------------- | -------- | ------------------------------------------------------ |
+| OS keychain           | Disk theft                    | Low (OS-managed)        | Zero     | ✅✅ **Correct default for a local tool**              |
+| Passphrase (argon2id) | Disk theft                    | Low (user memorizes)    | Medium   | ✅ High-security option                                |
 | Explicit env var      | Disk theft (if env separated) | Low (user chose)        | Low      | ⚠️ CI/headless fallback only — leaks to child processes |
-| Auto-gen to disk      | Partial-file leak only        | **High** (catastrophic) | Zero     | ❌ Theater + data-loss risk                             |
+| Auto-gen to disk      | Partial-file leak only        | **High** (catastrophic) | Zero     | ❌ Theater + data-loss risk                            |
 
 **The correct default for bank-sync is OS keychain integration**, not env vars.
 

@@ -1,7 +1,7 @@
 # Project Groups Improvement Report — go-cqrs-lite
 
-**Date:** 2026-05-18  
-**Scope:** Multi-module Go monorepo (`core`, `memory`, `storage`, `projection`, `catalog`, `middleware`, `testhelpers`, `sync`, `integration`)  
+**Date:** 2026-05-18\
+**Scope:** Multi-module Go monorepo (`core`, `memory`, `storage`, `projection`, `catalog`, `middleware`, `testhelpers`, `sync`, `integration`)\
 **Status:** Critical fixes applied, architectural recommendations documented
 
 ---
@@ -266,38 +266,38 @@ Plus a final "integration" job that runs `nix run .#test` (workspace-level) afte
 ## 3. Dependency Graph (After Fixes)
 
 ```
-                    ┌─────────────┐
-                    │     sync    │  ← standalone (no deps)
-                    └─────────────┘
-                          │
-                    ┌─────▼─────┐
-                    │  pkg/id   │  ← proposed extraction
-                    └─────┬─────┘
-                          │
-              ┌───────────┼───────────┐
-              │           │           │
-        ┌─────▼─────┐ ┌──▼────┐ ┌────▼────┐
-        │   core    │ │memory │ │testhelpers│
-        │ (domain)  │ │(impl) │ │ (fakes)  │
-        └─────┬─────┘ └───┬───┘ └────┬────┘
-              │           │          │
-        ┌─────▼─────┐ ┌──▼────┐     │
-        │  storage  │ │projection│   │
-        │(SQL/Pebble)│ └─────────┘   │
-        └───────────┘               │
-              │                      │
-        ┌─────▼─────┐               │
-        │middleware │ ←─────────────┘
-        └───────────┘
-              │
-        ┌─────▼─────┐
-        │  catalog  │
-        │(doc gen)  │
-        └───────────┘
-              │
-        ┌─────▼─────┐
-        │integration│  ← test-only
-        └───────────┘
+            ┌─────────────┐
+            │     sync    │  ← standalone (no deps)
+            └─────────────┘
+                  │
+            ┌─────▼─────┐
+            │  pkg/id   │  ← proposed extraction
+            └─────┬─────┘
+                  │
+      ┌───────────┼───────────┐
+      │           │           │
+┌─────▼─────┐ ┌──▼────┐ ┌────▼────┐
+│   core    │ │memory │ │testhelpers│
+│ (domain)  │ │(impl) │ │ (fakes)  │
+└─────┬─────┘ └───┬───┘ └────┬────┘
+      │           │          │
+┌─────▼─────┐ ┌──▼────┐     │
+│  storage  │ │projection│   │
+│(SQL/Pebble)│ └─────────┘   │
+└───────────┘               │
+      │                      │
+┌─────▼─────┐               │
+│middleware │ ←─────────────┘
+└───────────┘
+      │
+┌─────▼─────┐
+│  catalog  │
+│(doc gen)  │
+└───────────┘
+      │
+┌─────▼─────┐
+│integration│  ← test-only
+└───────────┘
 ```
 
 **Verified DAG:** No cycles. All arrows point downward. `core` has zero internal dependencies.

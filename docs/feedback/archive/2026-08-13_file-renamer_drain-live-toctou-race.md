@@ -130,6 +130,7 @@ name=projections status=stopped processed=3 errors=0 restarts=0 lastError=
 3. Worker goroutine hasn't been scheduled yet (or is in stagger delay)
 
 The race is amplified by:
+
 - `-race` detector overhead (widens scheduling gaps)
 - High parallelism (many goroutines competing for CPU)
 - Multiple projections (stagger delay: `i * workerStartStaggerMs` per worker)
@@ -257,6 +258,7 @@ Each worker is started with a `i * 10ms` stagger delay (`host.go:170`). With N p
 ### 3. ~~No `System.WaitReady(ctx)` API~~ **Won't implement — declined in the TOCTOU review round (TODO_LIST "Declined / Rejected"); polling Status() is the supported readiness signal.**
 
 There is no public API to wait for projection readiness. Consumers must either:
+
 - Poll `ProjectionHost().Status()` (requires knowing worker state semantics)
 - Use `time.Sleep` (unreliable)
 - Accept the race (data loss)
@@ -267,16 +269,15 @@ A `System.WaitReady(ctx) error` method that blocks until all projections have re
 
 ## Files referenced
 
-| File (version) | Lines | What |
-|---|---|---|
-| `projectionhost/v4@v4.3.0/worker_drain.go` | 18-122 | `process()` — journal drain (phase 1) |
-| `projectionhost/v4@v4.3.0/worker_drain.go` | 157-211 | `processLive()` — live subscription (phase 2), race site |
-| `projectionhost/v4@v4.3.0/host.go` | 134-174 | `Start()` — spawns workers with stagger delay |
-| `system/v4@v4.3.0/bus.go` | 94-111 | `simpleBus.Publish()` — synchronous dispatch |
-| `system/v4@v4.3.0/bus.go` | 113-151 | `simpleBus.dispatch()` — iterates handlers at call time |
-| `system/v4@v4.3.0/bus.go` | 162-169 | `simpleBus.SubscribeAll()` — appends handler, returns immediately |
-| `system/v4@v4.3.0/constructor.go` | 194-201 | Auto-wires `simpleBus` as projection subscriber |
-
+| File (version)                             | Lines   | What                                                              |
+| ------------------------------------------ | ------- | ----------------------------------------------------------------- |
+| `projectionhost/v4@v4.3.0/worker_drain.go` | 18-122  | `process()` — journal drain (phase 1)                             |
+| `projectionhost/v4@v4.3.0/worker_drain.go` | 157-211 | `processLive()` — live subscription (phase 2), race site          |
+| `projectionhost/v4@v4.3.0/host.go`         | 134-174 | `Start()` — spawns workers with stagger delay                     |
+| `system/v4@v4.3.0/bus.go`                  | 94-111  | `simpleBus.Publish()` — synchronous dispatch                      |
+| `system/v4@v4.3.0/bus.go`                  | 113-151 | `simpleBus.dispatch()` — iterates handlers at call time           |
+| `system/v4@v4.3.0/bus.go`                  | 162-169 | `simpleBus.SubscribeAll()` — appends handler, returns immediately |
+| `system/v4@v4.3.0/constructor.go`          | 194-201 | Auto-wires `simpleBus` as projection subscriber                   |
 
 ---
 

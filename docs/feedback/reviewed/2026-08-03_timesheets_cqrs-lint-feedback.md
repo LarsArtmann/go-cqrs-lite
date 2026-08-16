@@ -311,7 +311,7 @@ in source code. For architectural decisions that span an entire project (e.g.,
 
 ```json
 {
-	"exclude": "F003,F004,B014"
+  "exclude": "F003,F004,B014"
 }
 ```
 
@@ -319,10 +319,13 @@ Or per-rule with reason:
 
 ```json
 {
-	"suppress": [
-		{ "rule": "F003", "reason": "CLI tool — no distributed tracing needed" },
-		{ "rule": "A020", "reason": "SyncBus is intentional — no memory bus in v4.2.0" }
-	]
+  "suppress": [
+    { "rule": "F003", "reason": "CLI tool — no distributed tracing needed" },
+    {
+      "rule": "A020",
+      "reason": "SyncBus is intentional — no memory bus in v4.2.0"
+    }
+  ]
 }
 ```
 

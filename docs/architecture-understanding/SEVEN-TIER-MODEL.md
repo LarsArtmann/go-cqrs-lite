@@ -130,13 +130,13 @@ middleware, observability, and security. The largest tier.
 
 ### Storage Backends
 
-| Module            | Purpose                                                                            |
-| ----------------- | ---------------------------------------------------------------------------------- |
-| `storage/`        | SQL facade: EventStore, CommandStore, QueryStore, KV, relational, view, migrations |
-| `storage/pebble/` | PebbleDB: EventStore, KVAdapter, Backend facade                                    |
-| `storage/bbolt/`  | bbolt: EventStore, KVAdapter, Backend facade (B+tree, pure Go)                     |
-| `storage/backuptest/` | Shared backup lifecycle test suite (Backend interface, Factory, RunFullLifecycle) |
-| `storage/turso/`  | Turso embedded database connector                                                  |
+| Module                | Purpose                                                                            |
+| --------------------- | ---------------------------------------------------------------------------------- |
+| `storage/`            | SQL facade: EventStore, CommandStore, QueryStore, KV, relational, view, migrations |
+| `storage/pebble/`     | PebbleDB: EventStore, KVAdapter, Backend facade                                    |
+| `storage/bbolt/`      | bbolt: EventStore, KVAdapter, Backend facade (B+tree, pure Go)                     |
+| `storage/backuptest/` | Shared backup lifecycle test suite (Backend interface, Factory, RunFullLifecycle)  |
+| `storage/turso/`      | Turso embedded database connector                                                  |
 
 ### Observability
 

@@ -71,7 +71,7 @@ The comment on line 251 claims to accept both variants. But the logic is broken:
 **With space (`// cqrs-lint:ignore(C007)`):**
 
 1. `TrimSpace` → `// cqrs-lint:ignore(C007)`
-2. `TrimPrefix(line, "// ")` → `cqrs-lint:ignore(C007)` (strips the `// ` prefix)
+2. `TrimPrefix(line, "// ")` → `cqrs-lint:ignore(C007)` (strips the `//` prefix)
 3. `HasPrefix("cqrs-lint:ignore(C007)", "//cqrs-lint:ignore")` → **FALSE** (string no longer starts with `//`)
 4. `continue` — suppression not recognized
 
@@ -82,7 +82,7 @@ The comment on line 251 claims to accept both variants. But the logic is broken:
 3. `HasPrefix("//cqrs-lint:ignore(C007)", "//cqrs-lint:ignore")` → **TRUE**
 4. Suppression parsed correctly
 
-The `TrimPrefix(line, "// ")` strips the `// ` from the space variant, leaving `cqrs-lint:ignore(...)` which then fails the `HasPrefix(commentPrefix)` check because `commentPrefix` starts with `//`.
+The `TrimPrefix(line, "// ")` strips the `//` from the space variant, leaving `cqrs-lint:ignore(...)` which then fails the `HasPrefix(commentPrefix)` check because `commentPrefix` starts with `//`.
 
 #### Impact
 

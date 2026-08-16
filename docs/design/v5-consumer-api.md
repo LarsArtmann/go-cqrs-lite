@@ -872,7 +872,7 @@ Returns the same sealed `EvolutionSpec`. No `[]any` leak.
 | **State type**                  | Separate `TaskState` struct                               | **Unified.** Evolution result type IS the state type.                                                     |
 | **View**                        | `system.View[R,K]("name")`                                | **Deleted.** Queries (`Lookup`, `QuerySet`, `Count`, `Traversal`) replace it.                             |
 | **Decider**                     | `decider.Decider[State]{Initial, Fold}`                   | **Auto-generated.** System builds from Evolution fold.                                                    |
-| **Fold**                        | `metaengine.OnRecord(...)` / `OnRecordTyped(...)`          | **On Evolution.** Auto-generated for L1/L2.                                                               |
+| **Fold**                        | `metaengine.OnRecord(...)` / `OnRecordTyped(...)`         | **On Evolution.** Auto-generated for L1/L2.                                                               |
 | **ADT**                         | Manual classification                                     | **Inferred** from result type shape (struct → Map, From/To fields → Graph, map\[string\]int64 → Counter). |
 | **Decoder**                     | `ProjectionTypeDecoder`, `EventDecoder`, `PayloadDecoder` | **Auto-generated** from event struct types.                                                               |
 | **Projection adapter**          | `projectionadapter.New(...)`                              | **Auto-wired.**                                                                                           |
