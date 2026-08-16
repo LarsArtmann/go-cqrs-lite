@@ -74,6 +74,7 @@ func main() {
 
 	for _, section := range sections {
 		fmt.Printf("\n═══ %s ═══\n", section.title)
+
 		if err := section.run(ctx); err != nil {
 			log.Fatalf("%s: %v", section.title, err)
 		}
