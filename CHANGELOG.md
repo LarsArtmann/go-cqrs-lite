@@ -90,13 +90,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   command + snapshot (kv and query already had them), and corrected the stale
   "fallback uses JSONCodec" claims in the migration guide, ADR-0051, and
   ADR-0053 to the shipped configured-codec + cross-retry behavior.
+- The per-module `decodeEnvelopeOrLegacy`/`otherStandardCodec` helpers were
+  promoted upstream into go-codec v0.2.0 as `codec.DecodeEnvelopeOrLegacy[T]`
+  and deleted from all four blind stores (single authoritative implementation;
+  the `art-dupl:accept` annotations went with them). event, kv, snapshot,
+  command, and query now require go-codec v0.2.0.
 
 ### Removed — 2026-08-16
 
 - **`event.ErrBinaryNotFound`** (ghost symbol): sentinel error from the deleted
   `event/blob.go` binary-attachment helpers (`AttachBinary`/`ExtractBinary`),
   referenced nowhere in the codebase after that removal. Nothing ever returned
-  it, so no behavior change is possible.
+  it, so no behavior change is possible. Ships in the next v4.x patch release
+  (decided 2026-08-16: an unreferenced sentinel is a safe patch removal, not a
+  breaking change — held out of the v5 batch).
 
 ### Changed — catalog: EventCatalog layout correctness + docserver templ UI — 2026-08-16
 

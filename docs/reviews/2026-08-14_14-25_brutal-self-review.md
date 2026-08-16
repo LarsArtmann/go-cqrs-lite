@@ -133,7 +133,7 @@ pg/mysql/duckdb own and close their `*sql.DB`; sqliteengine documents "caller ow
 - ~~`kv.Cache` hands the same `*T` to all readers (mutation hazard)~~ **FIXED (2026-08-16): Get/Set copy-isolate values via codec round-trip (`3161eb182`)**
 - `id` serializes ALL generation behind one global mutex (process-wide ceiling)
 - ~~TypedQueryStore decodes with hardcoded JSON fallback while ignoring its configured codec on read (`query/typed.go:97`)~~ **FIXED (2026-08-16): all four blind stores decode via configured codec + JSON↔CBOR cross-retry (ADR-0050 addendum)**
-- ~~Ghost symbol: `event.ErrBinaryNotFound` referenced nowhere (`event/errors.go:69`)~~ **FIXED (2026-08-16): deleted (`3161eb182`)**
+- ~~Ghost symbol: `event.ErrBinaryNotFound` referenced nowhere (`event/errors.go:69`)~~ **FIXED (2026-08-16): deleted (`3161eb182`); ships in next v4.x patch (decided 2026-08-16, not held for v5)**
 
 ---
 
