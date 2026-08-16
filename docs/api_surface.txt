@@ -2285,6 +2285,8 @@ metaengine/projectionadapter/var ErrNoFoldForEventType
 metaengine/sqliteengine/func NewFromDSN
 metaengine/sqliteengine/func NewPlannedSQLiteEngine
 metaengine/sqliteengine/func NewSQLiteEngine
+metaengine/sqliteengine/func NewSQLiteEngineFromDSN
+metaengine/sqliteengine/func OwnDB
 metaengine/sqliteengine/func PlanFromDSN
 metaengine/sqliteengine/interface ProberSetter
 metaengine/sqliteengine/method Aggregate
