@@ -16,33 +16,33 @@ mappings, and inconsistent import conventions _at the boundaries between repos_.
 ## The Layering (Correct As-Is)
 
 ```
-                    go-branded-id          go-error-family
-                    (public, foundation)   (public, foundation)
-                            │                     │
-                            └──────────┬──────────┘
-                                       │
-                              go-cqrs-lite (v3)
-                          ┌─────────────┴─────────────┐
-                          │ CQRS + Event Sourcing     │
-                          │ 42 modules, library-only  │
-                          │ id/, event/, command/,    │
-                          │ query/, decider/, codec/, │
-                          │ storage/, catalog/, ...   │
-                          └─────────────┬─────────────┘
-                                        │
-                    ┌───────────────────┴───────────────────┐
-                    │                                       │
-              cqrs-htmx (v3)                        go-localsync (v0.2)
-          ┌─────────┴─────────┐                  (contract SDK, no provider)
-          │ HTTP + HTMX +     │                        │
-          │ templ + Casbin    │                        │
-          │ + CSRF + SSE/WS   │                        │
-          │ + usermgmt (IAM)  │                        │
-          │ + catalog (HTTP)  │                        │
-          └───────────────────┘                        │
-                                                        │
-                                               github-local-sync
-                                            (consumer app: GitHub provider + CLI)
+          go-branded-id          go-error-family
+          (public, foundation)   (public, foundation)
+                  │                     │
+                  └──────────┬──────────┘
+                             │
+                    go-cqrs-lite (v3)
+                ┌─────────────┴─────────────┐
+                │ CQRS + Event Sourcing     │
+                │ 42 modules, library-only  │
+                │ id/, event/, command/,    │
+                │ query/, decider/, codec/, │
+                │ storage/, catalog/, ...   │
+                └─────────────┬─────────────┘
+                              │
+          ┌───────────────────┴───────────────────┐
+          │                                       │
+    cqrs-htmx (v3)                        go-localsync (v0.2)
+┌─────────┴─────────┐                  (contract SDK, no provider)
+│ HTTP + HTMX +     │                        │
+│ templ + Casbin    │                        │
+│ + CSRF + SSE/WS   │                        │
+│ + usermgmt (IAM)  │                        │
+│ + catalog (HTTP)  │                        │
+└───────────────────┘                        │
+                                              │
+                                     github-local-sync
+                                  (consumer app: GitHub provider + CLI)
 ```
 
 | Repo           | Role               | Depends on                         | Consumers depend on it           |
@@ -143,7 +143,7 @@ These are the real problems. Ordered by severity.
 | ------------------------------- | ------------------------------------- | -------------------- |
 | `go-cqrs-lite/id/user_id.go:10` | `id.UserID = Of[UserMarker]`          | `ulid.ULID` (binary) |
 | `cqrs-htmx/context.go:13`       | `type UserID = id.UserID` (re-export) | `ulid.ULID` ✅       |
-| `cqrs-htmx/usermgmt/id.go:15`   | `brandid.ID[userBrand, string]`       | `string` ⚠️          |
+| `cqrs-htmx/usermgmt/id.go:15`   | `brandid.ID[userBrand, string]`       | `string` ⚠️           |
 
 `cqrshtmx.UserID` and `usermgmt.UserID` are **named identically but are
 type-incompatible**: different backing type (`ulid.ULID` vs `string`) AND different
