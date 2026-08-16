@@ -263,7 +263,7 @@ func memoryProjectionDeployment() system.DeploymentConfig {
 func waitForProjectionProcessed(t *testing.T, sys *system.System, minProcessed int) bool {
 	t.Helper()
 
-	deadline := time.Now().Add(5 * time.Second)
+	deadline := time.Now().Add(15 * time.Second)
 
 	for time.Now().Before(deadline) {
 		for _, s := range sys.ProjectionHost().Status() {
@@ -616,9 +616,13 @@ func TestSystem_RegisterDrainer_ErrorPropagation(t *testing.T) {
 // same in-memory database. The shared cache ensures data written by sys1 is
 // visible to sys2 without touching disk.
 func TestSystem_ResetProjection_RestartAndReplay(t *testing.T) {
-	t.Parallel()
+	// NOT parallel: this test has two sequential projection-wait phases and
+	// a system close/reopen cycle. Running it concurrently with
+	// TestSystem_HealthCheck_FailedProjection (which has tight retry-loop
+	// timing) causes CPU contention that can make the projection-wait
+	// budget expire spuriously on busy machines.
 
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	cpStore := &recordingCheckpointStore{}

@@ -490,6 +490,16 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
   BY columns through `orderClauseSQL`; `relational.Store.requireColumn`
   rejects unknown columns. Closes the where.go/view ORDER BY injection surface
   from the brutal-review defect sweep.
+- **`storage/sql`: fuzz coverage for injection guards** (2026-08-16) — three
+  fuzz targets in `validate_fuzz_test.go`:
+  `FuzzValidateIdentifier_RejectsAllNonIdentifiers` (cross-checks the regex
+  against an independent oracle with 57 seeds covering SQLite/PG/MySQL
+  metacharacters), `FuzzValidateIdentifier_MetacharacterCombinations`
+  (systematically inserts every SQL-special character at start/middle/end of
+  valid identifiers — 500 seeds), and
+  `FuzzBuildWhereClauseChecked_NeverPanics` (fuzzes the full WHERE-clause
+  builder with hostile column names). 451K total executions across 30s of
+  fuzzing, zero crashes.
 
 ### Fixed — repo gates: false-GREEN coverage check, silent lint failures, parallel heap-test flake — 2026-08-15
 

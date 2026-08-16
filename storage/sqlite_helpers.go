@@ -65,9 +65,13 @@ func OpenSQLiteInMemory() (*sql.DB, error) {
 		"file:%s?mode=memory&cache=shared&_loc=auto&_time_format=sqlite&_pragma=busy_timeout(5000)",
 		name,
 	)
-	db, err := OpenSQLite(dsn)
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
-		return nil, err
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"storage.open_sqlite_in_memory",
+			"open in-memory sqlite database",
+		)
 	}
 	return db, nil
 }

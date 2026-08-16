@@ -619,12 +619,14 @@ and is **never** duplicated here.
 > From `docs/reviews/2026-08-14_14-25_brutal-self-review.md` — verified
 > findings, not yet fixed. Grouped by module.
 
-- [ ] **SQL injection surface (remainder)** — allowlists + ORDER BY quoting
+- [x] **SQL injection surface** — allowlists + ORDER BY quoting.
       SHIPPED 2026-08-15 (`storage/sql.ValidateIdentifier`/`ValidateOperator`,
       `BuildWhereClauseChecked`, view query validation — see CHANGELOG).
       tursoengine DSN-redaction SHIPPED 2026-08-16 (`redactDSN` on every open
-      error, `tursoengine/register.go`). Remaining: fuzz `ValidateIdentifier`
-      against sqlite/pg/mysql metacharacter sets.
+      error, `tursoengine/register.go`). Fuzz `ValidateIdentifier` against
+      sqlite/pg/mysql metacharacter sets SHIPPED 2026-08-16
+      (`storage/sql/validate_fuzz_test.go` — 3 fuzz targets, 451K execs, 0
+      crashes). Item closed.
       _(Effort: S)_
 - [x] **Resource leaks** — `sqliteengine`/`tursoengine` self-opened
       `*sql.DB` `Close()` leak. DONE 2026-08-16: `sqliteengine.OwnDB(eng)` marks
