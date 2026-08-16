@@ -19,7 +19,7 @@ func TestStreamLog_AppendRead(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	col := "test_stream_append_read"
+	col := uniqueCollection(t, "test_stream_append_read")
 
 	if err := sl.StreamAppend(ctx, col, "s1", []any{"a", "b", "c"}); err != nil {
 		t.Fatalf("StreamAppend: %v", err)
@@ -47,7 +47,7 @@ func TestStreamLog_Version(t *testing.T) {
 
 	sl := eng.(metaengine.StreamLogBackend)
 	ctx := context.Background()
-	col := "test_stream_version"
+	col := uniqueCollection(t, "test_stream_version")
 
 	if v, err := sl.StreamVersion(ctx, col, "s1"); err != nil || v != 0 {
 		t.Fatalf("empty stream version = %d, want 0 (err=%v)", v, err)
@@ -68,7 +68,7 @@ func TestStreamLog_JournalReadAll(t *testing.T) {
 
 	sl := eng.(metaengine.StreamLogBackend)
 	ctx := context.Background()
-	col := "test_stream_journal_all"
+	col := uniqueCollection(t, "test_stream_journal_all")
 
 	if err := sl.StreamAppend(ctx, col, "s1", []any{"s1-0"}); err != nil {
 		t.Fatalf("StreamAppend s1: %v", err)
@@ -100,7 +100,7 @@ func TestStreamLog_JournalReadFrom(t *testing.T) {
 
 	sl := eng.(metaengine.StreamLogBackend)
 	ctx := context.Background()
-	col := "test_stream_journal_from"
+	col := uniqueCollection(t, "test_stream_journal_from")
 
 	if err := sl.StreamAppend(ctx, col, "s1", []any{"v0", "v1", "v2"}); err != nil {
 		t.Fatalf("StreamAppend: %v", err)
@@ -160,7 +160,7 @@ func TestStreamLog_JournalReadFrom(t *testing.T) {
 // Uses a unique collection — the Dgraph server persists across tests, and
 // the default "events" collection is also written by the ADT matrix.
 func TestStreamLog_HarnessParity(t *testing.T) {
-	enginetest.RunStreamLogBackendTestIn(t, mustNewDgraphEngine(t), "events_parity")
+	enginetest.RunStreamLogBackendTestIn(t, mustNewDgraphEngine(t), uniqueCollection(t, "events_parity"))
 }
 
 // TestStreamLog_AppendExpected verifies optimistic concurrency control.
@@ -169,7 +169,7 @@ func TestStreamLog_AppendExpected(t *testing.T) {
 
 	aa := eng.(metaengine.AtomicAppender)
 	ctx := context.Background()
-	col := "test_stream_append_expected"
+	col := uniqueCollection(t, "test_stream_append_expected")
 
 	// First append at version 0 should succeed.
 	if err := aa.StreamAppendExpected(ctx, col, "s1", 0, []any{"first"}); err != nil {

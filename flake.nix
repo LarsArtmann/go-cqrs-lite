@@ -670,6 +670,8 @@
               pkgs.gcc
               pkgs.redis
               pkgs.nats-server
+              pkgs.postgresql
+              pkgs.mariadb-client
             ];
 
             GOWORK = "off";
@@ -1168,6 +1170,7 @@
                   goPkg
                   pkgs.gcc
                   pkgs.postgresql
+                  pkgs.mariadb-client
                 ]
                 ''
                   export CGO_ENABLED=1

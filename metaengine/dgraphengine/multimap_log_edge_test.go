@@ -33,7 +33,7 @@ func TestDgraph_Multimap_AddAndGetRoundtrip(t *testing.T) {
 	ctx := context.Background()
 	mb := eng.(metaengine.MultimapBackend)
 
-	col := "mm-roundtrip"
+	col := uniqueCollection(t, "mm_roundtrip")
 
 	// Add multiple values to the same key.
 	for _, v := range []string{"alpha", "beta", "gamma"} {
@@ -87,7 +87,7 @@ func TestDgraph_Log_AppendAndTailRoundtrip(t *testing.T) {
 	ctx := context.Background()
 	lb := eng.(metaengine.LogBackend)
 
-	col := "log-roundtrip"
+	col := uniqueCollection(t, "log_roundtrip")
 
 	for i, v := range []string{"first", "second", "third"} {
 		if err := lb.LogAppend(ctx, col, v); err != nil {

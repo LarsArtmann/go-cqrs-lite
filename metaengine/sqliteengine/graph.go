@@ -29,6 +29,10 @@ import (
 
 const graphNeighborsDirectSQL = `SELECT to_node FROM meta_graph_edges WHERE collection = ? AND from_node = ?`
 
+// graphNeighborsReverseSQL expands against the reverse direction (incoming
+// edges): used by undirected traversal. Served by idx_graph_edges_to.
+const graphNeighborsReverseSQL = `SELECT from_node FROM meta_graph_edges WHERE collection = ? AND to_node = ?`
+
 // graphNeighborsCTE walks the depth-limited neighborhood in one query.
 // UNION deduplicates (node, depth) pairs; SELECT DISTINCT collapses a node
 // reached at multiple depths; the outer WHERE excludes the start node (the
@@ -165,11 +169,51 @@ func (e *sqliteEngine) graphNeighborsIterative(
 	return result, nil
 }
 
+// GraphRemoveEdge deletes the specific directed edge (ADR-0114 style
+// tombstone dispatch). Idempotent: deleting a missing edge affects 0 rows.
+func (e *sqliteEngine) GraphRemoveEdge(
+	ctx context.Context,
+	col string,
+	edge metaengine.Edge,
+) error {
+	const q = `DELETE FROM meta_graph_edges WHERE collection = ? AND from_node = ? AND to_node = ?`
+
+	if _, err := e.xc().exec(ctx, q, col, encodeKey(edge.From), encodeKey(edge.To)); err != nil {
+		return fmt.Errorf("sqliteengine.GraphRemoveEdge: %w", err)
+	}
+
+	return nil
+}
+
 func (e *sqliteEngine) queryGraphNeighbors(
 	ctx context.Context,
 	col, node string,
 ) ([]string, error) {
 	rows, err := e.xc().query(ctx, graphNeighborsDirectSQL, col, node)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+
+	var neighbors []string
+
+	for rows.Next() {
+		var nb string
+		if err := rows.Scan(&nb); err != nil {
+			return nil, err
+		}
+
+		neighbors = append(neighbors, nb)
+	}
+
+	return neighbors, rows.Err()
+}
+
+func (e *sqliteEngine) queryGraphReverseNeighbors(
+	ctx context.Context,
+	col, node string,
+) ([]string, error) {
+	rows, err := e.xc().query(ctx, graphNeighborsReverseSQL, col, node)
 	if err != nil {
 		return nil, err
 	}

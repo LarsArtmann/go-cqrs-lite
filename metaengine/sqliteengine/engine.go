@@ -113,6 +113,7 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		PRIMARY KEY (collection, from_node, to_node)
 	);
 	CREATE INDEX IF NOT EXISTS idx_graph_edges_from ON meta_graph_edges(collection, from_node);
+	CREATE INDEX IF NOT EXISTS idx_graph_edges_to ON meta_graph_edges(collection, to_node);
 	CREATE TABLE IF NOT EXISTS meta_snapshot (
 		collection TEXT NOT NULL, stream_id TEXT NOT NULL, version INTEGER NOT NULL, data BLOB NOT NULL,
 		PRIMARY KEY (collection, stream_id)

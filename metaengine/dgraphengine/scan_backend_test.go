@@ -15,5 +15,5 @@ func TestDgraph_ScanBackend(t *testing.T) {
 
 	eng := mustNewDgraphEngine(t)
 
-	enginetest.RunScanBackendTest(t, eng, "products")
+	enginetest.RunScanBackendTest(t, eng, uniqueCollection(t, "products"))
 }

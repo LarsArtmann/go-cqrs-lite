@@ -42,7 +42,7 @@ func TestAdversarialDQLInjection(t *testing.T) {
 
 	t.Run("Map_keys_are_literals", func(t *testing.T) {
 		t.Parallel()
-		const col = "injection-test-map"
+		col := uniqueCollection(t, "injection_test_map")
 		for i, attack := range attackVectors {
 			key := attack
 			value := map[string]any{"index": i, "original": attack}
@@ -86,7 +86,7 @@ func TestAdversarialDQLInjection(t *testing.T) {
 
 	t.Run("Search_content_is_literal", func(t *testing.T) {
 		t.Parallel()
-		const col = "injection-test-search"
+		col := uniqueCollection(t, "injection_test_search")
 		for i, attack := range attackVectors {
 			doc := metaengine.IndexedText{
 				ID:      attack,
@@ -128,7 +128,7 @@ func TestAdversarialDQLInjection(t *testing.T) {
 
 	t.Run("Counter_keys_are_literals", func(t *testing.T) {
 		t.Parallel()
-		const col = "injection-test-counter"
+		col := uniqueCollection(t, "injection_test_counter")
 		for i, attack := range attackVectors {
 			if err := cb.CounterIncrement(
 				ctx,

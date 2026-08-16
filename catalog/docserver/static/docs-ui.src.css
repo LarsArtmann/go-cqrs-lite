@@ -1,0 +1,26 @@
+/*
+ * docserver UI stylesheet SOURCE (Tailwind v4 entry point).
+ *
+ * Compiled into static/docs-ui.css by scripts/build-docserver-css.sh:
+ *   nix run .#build-docserver-css            # rebuild + write docs-ui.css
+ *   scripts/build-docserver-css.sh --check   # drift gate (CI/verify)
+ *
+ * The build script replaces __DOCSERVER_DIR__ placeholders with absolute
+ * paths, appends @source lines for the templ-components module sources, and
+ * imports the library's custom.css + theme.css from the Go module cache.
+ * Never edit docs-ui.css directly - edit this file or the .templ sources
+ * and rebuild.
+ */
+@import "tailwindcss" source(none);
+
+/* docserver page sources: class names from .templ markup and .go class maps. */
+@source "__DOCSERVER_DIR__/*.templ";
+@source "__DOCSERVER_DIR__/*.go";
+
+/* Class-based dark mode - required by layout.ThemeScript/ThemeToggle. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Brand overrides for the docs UI (indigo primary, matching the favicon). */
+@theme {
+  --color-tc-primary: #4f46e5;
+}
