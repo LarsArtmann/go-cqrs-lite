@@ -26,6 +26,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -105,13 +106,16 @@ var backendInterfaces = map[string]reflect.Type{ //nolint:gochecknoglobals // im
 // Factory.Supports is non-nil, it is called as an additional capability gate.
 // Cross-engine parity is checked in a cleanup hook.
 //
-// Scenario collections are FIXED constants (e.g. "events", "tasks_by_user")
-// and scenario assertions are absolute (exact values, versions, counts).
-// Engines backed by a server shared across tests (e.g. one persistent Dgraph
-// instance) must point each RunMatrix invocation at a fresh database or
-// namespace, and must never run RunMatrix twice against the same server or
-// share these collections with other tests in the same run — accumulated
-// state breaks both the assertions and the cross-engine parity check.
+// Scenario collections are scoped per Scenarios() invocation (each fixed
+// name gains a "_<r><unix-nano>" suffix) and scenario assertions are
+// absolute (exact values, versions, counts). RunMatrix calls Scenarios()
+// once per run, so every factory in that run shares one suffix — required
+// by the cross-engine parity check — while separate runs (reruns,
+// -count>1 repeats inside one test binary) land in disjoint collections,
+// so engines backed by a server shared across runs never observe
+// accumulated state. Factories sharing ONE server WITHIN a run (e.g. two
+// factories over the same database) remain unsupported: additive scenarios
+// (Counter, Log, StreamLog) would double-apply and break parity.
 func RunMatrix(t *testing.T, factories []Factory) {
 	t.Helper()
 
@@ -193,6 +197,13 @@ func RunMatrix(t *testing.T, factories []Factory) {
 // via its backend interface (not the Store/Execute path — that's covered by
 // the cross_engine_meta_test.go Ginkgo suite).
 func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
+	runSuffix := "r" + strconv.FormatInt(time.Now().UnixNano(), 10)
+
+	// col scopes a fixed scenario collection name to this Scenarios()
+	// invocation, isolating repeated runs against shared servers (see the
+	// RunMatrix doc comment for the parity-vs-isolation contract).
+	col := func(name string) string { return name + "_" + runSuffix }
+
 	return []Scenario{
 		// --- Map ADT: MapSet + MapGet ---
 		{
@@ -202,7 +213,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 				mb := eng.(metaengine.MapBackend)
 				if err := mb.MapSet(
 					ctx,
-					"users",
+					col("users"),
 					"u1",
 					map[string]any{"name": "Alice", "age": float64(30)},
 				); err != nil {
@@ -211,14 +222,14 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 
 				return mb.MapSet(
 					ctx,
-					"users",
+					col("users"),
 					"u2",
 					map[string]any{"name": "Bob", "age": float64(25)},
 				)
 			},
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				mb := eng.(metaengine.MapBackend)
-				v, _, err := mb.MapGet(ctx, "users", "u1")
+				v, _, err := mb.MapGet(ctx, col("users"), "u1")
 
 				return v, err //nolint:wrapcheck
 			},
@@ -232,7 +243,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
 				sb := eng.(metaengine.SetBackend)
 				for _, k := range []string{"apple", "banana", "cherry"} {
-					if err := sb.SetAdd(ctx, "fruits", k); err != nil {
+					if err := sb.SetAdd(ctx, col("fruits"), k); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -243,7 +254,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 				sb := eng.(metaengine.SetBackend)
 				results := make(map[string]bool)
 				for _, k := range []string{"apple", "banana", "cherry", "date"} {
-					contains, err := sb.SetContains(ctx, "fruits", k)
+					contains, err := sb.SetContains(ctx, col("fruits"), k)
 					if err != nil {
 						return nil, err //nolint:wrapcheck
 					}
@@ -269,7 +280,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 					{"alpha": 10},
 				}
 				for _, d := range deltas {
-					if err := cb.CounterIncrement(ctx, "counters", d); err != nil {
+					if err := cb.CounterIncrement(ctx, col("counters"), d); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -279,7 +290,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				cb := eng.(metaengine.CounterBackend)
 
-				return cb.CounterGet(ctx, "counters")
+				return cb.CounterGet(ctx, col("counters"))
 			},
 			Canonicalize: CanonicalizeCounter,
 		},
@@ -296,7 +307,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 					{From: "B", To: "D"},
 				}
 				for _, e := range edges {
-					if err := gb.GraphAddEdge(ctx, "graph", e); err != nil {
+					if err := gb.GraphAddEdge(ctx, col("graph"), e); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -306,7 +317,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				gb := eng.(graphBackend)
 
-				return gb.GraphNeighbors(ctx, "graph", "A", 1)
+				return gb.GraphNeighbors(ctx, col("graph"), "A", 1)
 			},
 			Canonicalize: CanonicalizeNeighbors,
 		},
@@ -322,7 +333,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 					{From: "A", To: "C"},
 				}
 				for _, e := range edges {
-					if err := gr.GraphAddEdge(ctx, "graph_rm", e); err != nil {
+					if err := gr.GraphAddEdge(ctx, col("graph_rm"), e); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -330,7 +341,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 				// Tombstone: retract A→B, then idempotently re-remove it.
 				if err := gr.GraphRemoveEdge(
 					ctx,
-					"graph_rm",
+					col("graph_rm"),
 					metaengine.Edge{From: "A", To: "B"},
 				); err != nil {
 					return err //nolint:wrapcheck
@@ -338,14 +349,14 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 
 				return gr.GraphRemoveEdge(
 					ctx,
-					"graph_rm",
+					col("graph_rm"),
 					metaengine.Edge{From: "A", To: "B"},
 				) //nolint:wrapcheck
 			},
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				gr := eng.(graphRemovalBackend)
 
-				return gr.GraphNeighbors(ctx, "graph_rm", "A", 1)
+				return gr.GraphNeighbors(ctx, col("graph_rm"), "A", 1)
 			},
 			Canonicalize: CanonicalizeNeighbors,
 		},
@@ -361,7 +372,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 					{From: "A", To: "C"}, // outgoing edge for A
 				}
 				for _, e := range edges {
-					if err := ug.GraphAddEdge(ctx, "graph_und", e); err != nil {
+					if err := ug.GraphAddEdge(ctx, col("graph_und"), e); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -371,7 +382,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				ug := eng.(undirectedGraphBackend)
 
-				return ug.GraphNeighborsUndirected(ctx, "graph_und", "A", 1)
+				return ug.GraphNeighborsUndirected(ctx, col("graph_und"), "A", 1)
 			},
 			Canonicalize: CanonicalizeNeighbors,
 		},
@@ -398,7 +409,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 					{From: "D", To: "E"},
 				}
 				for _, e := range edges {
-					if err := gb.GraphAddEdge(ctx, "graph_deep", e); err != nil {
+					if err := gb.GraphAddEdge(ctx, col("graph_deep"), e); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -408,7 +419,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				gb := eng.(graphBackend)
 
-				return gb.GraphNeighbors(ctx, "graph_deep", "A", 3)
+				return gb.GraphNeighbors(ctx, col("graph_deep"), "A", 3)
 			},
 			Canonicalize: CanonicalizeNeighbors,
 		},
@@ -433,7 +444,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 					{From: "D", To: "B"},
 				}
 				for _, e := range edges {
-					if err := gb.GraphAddEdge(ctx, "graph_cycle", e); err != nil {
+					if err := gb.GraphAddEdge(ctx, col("graph_cycle"), e); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -443,7 +454,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				gb := eng.(graphBackend)
 
-				return gb.GraphNeighbors(ctx, "graph_cycle", "A", 4)
+				return gb.GraphNeighbors(ctx, col("graph_cycle"), "A", 4)
 			},
 			Canonicalize: CanonicalizeNeighbors,
 		},
@@ -465,7 +476,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 					{From: "D", To: "E"},
 				}
 				for _, e := range edges {
-					if err := gb.GraphAddEdge(ctx, "graph_bound", e); err != nil {
+					if err := gb.GraphAddEdge(ctx, col("graph_bound"), e); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -475,7 +486,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				gb := eng.(graphBackend)
 
-				return gb.GraphNeighbors(ctx, "graph_bound", "A", 2)
+				return gb.GraphNeighbors(ctx, col("graph_bound"), "A", 2)
 			},
 			Canonicalize: CanonicalizeNeighbors,
 		},
@@ -495,7 +506,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 					{"s3", map[string]any{"status": "done", "priority": float64(2)}},
 				}
 				for _, item := range items {
-					if err := mb.MapSet(ctx, "sorted", item.key, item.value); err != nil {
+					if err := mb.MapSet(ctx, col("sorted"), item.key, item.value); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -506,7 +517,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 				sb := eng.(metaengine.ScanBackend)
 
 				return sb.MapScan(
-					ctx, "sorted",
+					ctx, col("sorted"),
 					func(item any) bool {
 						m, ok := item.(map[string]any)
 						if !ok {
@@ -542,7 +553,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
 				lb := eng.(metaengine.LogBackend)
 				for _, v := range []string{"e1", "e2", "e3", "e4", "e5"} {
-					if err := lb.LogAppend(ctx, "log", v); err != nil {
+					if err := lb.LogAppend(ctx, col("log"), v); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -552,7 +563,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				lb := eng.(metaengine.LogBackend)
 
-				return lb.LogTail(ctx, "log", 3)
+				return lb.LogTail(ctx, col("log"), 3)
 			},
 			Canonicalize: CanonicalizeAny,
 		},
@@ -573,7 +584,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 					{"alice", "t4"},
 				}
 				for _, e := range entries {
-					if err := mb.MultiAdd(ctx, "tasks_by_user", e.key, e.value); err != nil {
+					if err := mb.MultiAdd(ctx, col("tasks_by_user"), e.key, e.value); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -583,7 +594,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				mb := eng.(metaengine.MultimapBackend)
 
-				return mb.MultiGet(ctx, "tasks_by_user", "alice")
+				return mb.MultiGet(ctx, col("tasks_by_user"), "alice")
 			},
 			Canonicalize: CanonicalizeAny,
 		},
@@ -596,23 +607,23 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 				slb := eng.(metaengine.StreamLogBackend)
 				if err := slb.StreamAppend(
 					ctx,
-					"events",
+					col("events"),
 					"s1",
 					[]any{"e1", "e2", "e3"},
 				); err != nil {
 					return err //nolint:wrapcheck
 				}
 
-				return slb.StreamAppend(ctx, "events", "s2", []any{"e4", "e5"})
+				return slb.StreamAppend(ctx, col("events"), "s2", []any{"e4", "e5"})
 			},
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				slb := eng.(metaengine.StreamLogBackend)
-				values, err := slb.StreamRead(ctx, "events", "s1")
+				values, err := slb.StreamRead(ctx, col("events"), "s1")
 				if err != nil {
 					return nil, err //nolint:wrapcheck
 				}
 
-				ver, err := slb.StreamVersion(ctx, "events", "s1")
+				ver, err := slb.StreamVersion(ctx, col("events"), "s1")
 				if err != nil {
 					return nil, err //nolint:wrapcheck
 				}
@@ -634,7 +645,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 					{ID: "v3", Values: []float32{0.0, 1.0, 0.0}},
 				}
 				for _, emb := range embeddings {
-					if err := vb.VectorInsert(ctx, "vectors", emb); err != nil {
+					if err := vb.VectorInsert(ctx, col("vectors"), emb); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -644,7 +655,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				vb := eng.(metaengine.VectorBackend)
 
-				return vb.VectorSearch(ctx, "vectors", []float32{1.0, 0.0, 0.0}, 2, "cosine")
+				return vb.VectorSearch(ctx, col("vectors"), []float32{1.0, 0.0, 0.0}, 2, "cosine")
 			},
 			Canonicalize: CanonicalizeVector,
 		},
@@ -673,7 +684,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 					},
 				}
 				for _, emb := range embeddings {
-					if err := vf.VectorInsert(ctx, "vectors_filtered", emb); err != nil {
+					if err := vf.VectorInsert(ctx, col("vectors_filtered"), emb); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -685,7 +696,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 
 				return vf.VectorSearchFiltered(
 					ctx,
-					"vectors_filtered",
+					col("vectors_filtered"),
 					[]float32{1.0, 0.0, 0.0},
 					2,
 					"cosine",
@@ -709,7 +720,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 					{ID: "d3", Content: "quick thinking saves time"},
 				}
 				for _, doc := range docs {
-					if err := sb.SearchInsert(ctx, "docs", doc); err != nil {
+					if err := sb.SearchInsert(ctx, col("docs"), doc); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -719,7 +730,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				sb := eng.(metaengine.SearchBackend)
 
-				return sb.SearchQuery(ctx, "docs", "quick", 5)
+				return sb.SearchQuery(ctx, col("docs"), "quick", 5)
 			},
 			Canonicalize: CanonicalizeSearch,
 		},
@@ -736,7 +747,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 					{ID: "p3", X: 2.3522, Y: 48.8566},  // Paris (far)
 				}
 				for _, pt := range points {
-					if err := sp.SpatialInsert(ctx, "places", pt); err != nil {
+					if err := sp.SpatialInsert(ctx, col("places"), pt); err != nil {
 						return err //nolint:wrapcheck
 					}
 				}
@@ -746,7 +757,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				sp := eng.(metaengine.SpatialBackend)
 
-				return sp.SpatialRange(ctx, "places", 13.4050, 52.5200, 10000, 5)
+				return sp.SpatialRange(ctx, col("places"), 13.4050, 52.5200, 10000, 5)
 			},
 			Canonicalize: CanonicalizeSpatial,
 		},

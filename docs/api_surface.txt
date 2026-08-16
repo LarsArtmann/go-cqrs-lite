@@ -2333,6 +2333,9 @@ metaengine/pgengine/method StreamAppend
 metaengine/pgengine/method StreamAppendExpected
 metaengine/pgengine/method StreamRead
 metaengine/pgengine/method StreamVersion
+metaengine/pgengine/method VectorInsert
+metaengine/pgengine/method VectorSearch
+metaengine/pgengine/method VectorSearchFiltered
 metaengine/pgengine/type Option
 metaengine/projectionadapter/func New
 metaengine/projectionadapter/func NewTypeDecoder

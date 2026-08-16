@@ -175,9 +175,10 @@ func collectAllModuleExports(modules []string, projectRoot string) ([]string, er
 
 		exps, err := collectExports(modPath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "skip %s: %v\n", mod, err)
-
-			continue
+			// Fail loudly: an unparseable module must never be mistaken for a
+			// legitimately-shrinking golden (corruption looks identical to
+			// removal otherwise).
+			return nil, fmt.Errorf("module %s: %w", mod, err)
 		}
 
 		for _, e := range exps {

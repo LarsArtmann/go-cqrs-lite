@@ -127,7 +127,7 @@ func TestCanonicalizeScanResults_NonSliceFallback(t *testing.T) {
 	}
 }
 
-func TestScenarios_AllFourteenADTs(t *testing.T) {
+func TestScenarios_AllADTs(t *testing.T) {
 	t.Parallel()
 
 	scenarios := Scenarios()
@@ -148,6 +148,7 @@ func TestScenarios_AllFourteenADTs(t *testing.T) {
 
 	for _, name := range []string{
 		"Map", "Set", "Counter", "Graph", "SortedMap", "Log", "Multimap",
+		"StreamLog", "Vector", "Search", "Spatial",
 		"GraphRemove", "GraphUndirected", "GraphDepth3Diamond", "GraphCycle",
 		"GraphDepthBound", "VectorFiltered",
 	} {
