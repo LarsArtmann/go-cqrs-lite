@@ -325,9 +325,16 @@ and is **never** duplicated here.
       `Replicated` now forwards `GraphAddEdge`/`GraphNeighbors` as local
       passthrough (+ `ErrGraphBackendNotImplemented`, regression tests);
       all 9 engines green in the conformance loop.
-- [ ] **Run the 9-engine conformance loop under `#test-integration`** —
-      mysql/dgraph/turso rows only execute against real servers (they skip
-      cleanly without them; loopback/quic have their own matrices).
+- [x] **Run the 9-engine conformance loop under `#test-integration`** — DONE
+      2026-08-16, ALL GREEN. Real-server rows executed: PG via
+      `nix run .#integration-pg`, Dgraph via `nix run .#ephemeral-dgraph`,
+      MySQL via ephemeral `mysql:8.4` container + `MYSQL_TEST_DSN`;
+      pebble/bbolt/badger/iroh/turso/duckdb(cgo) local; root module
+      (memory+sqlite) green. Gotchas: `go test -C <dir>` must be the FIRST
+      flag through the ephemeral scripts' `go` passthrough, and prefix
+      `GOWORK=off`. Incidental: storage `TestPostgresEventStore_CRUD` flaked
+      ("expected 2 events, got 27") via shared-journal cross-test
+      contamination under the full default PG suite — pre-existing, unrelated.
       _(Effort: S)_
 - [ ] **iroh graph `WriteOp` replication** — `GraphAddEdge`/`GraphNeighbors`
       are local passthrough; the replication wire protocol has no graph

@@ -361,3 +361,23 @@ for this session: `GOCACHE=$HOME/.cache/go-build GOMODCACHE=$HOME/go/pkg/mod`
 fsck + remount (root) — and the disk is at 99% capacity, which likely
 contributed. Until fixed, nix-based gates may also misbehave if they read
 /mnt/buildcache.
+
+### §j) govulncheck baseline triage (2026-08-16, vuln DB 2026-08-14)
+
+Full per-module sweep with nixpkgs govulncheck (built with go1.26.5):
+**every finding is a Go 1.26.5 STDLIB vulnerability, all fixed in 1.26.6** —
+
+| ID             | Package       | Where it appears                              |
+| -------------- | ------------- | --------------------------------------------- |
+| GO-2026-5972   | encoding/asn1 | ~50 modules (universal)                       |
+| GO-2026-6090   | crypto/tls    | modules whose graph reaches TLS               |
+| GO-2026-6089   | net/http      | example/taskmanager                           |
+| GO-2026-6088   | encoding/xml  | metaengine/pgengine, stack/postgres           |
+| GO-2026-6218   | net/url       | stack/turso, storage/turso, testutil/pgtestcontainer |
+
+**Zero third-party dependency vulnerabilities** (incl. the iroh fork,
+watermill, dgraph clients). CI installs govulncheck with `GO_VERSION: "1.26"`
+(≥1.26.6), so its binary scans the 1.26.6 stdlib and these findings do not
+fire there — the now-strict release gate is expected GREEN. The old swallow
+was not hiding third-party landmines. (Local sweeps with an older-toolchain
+govulncheck reproduce the table above — keep the CI Go version floating.)

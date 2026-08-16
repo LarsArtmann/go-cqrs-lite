@@ -32,6 +32,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 => ../../metaengine/projectionadapter
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../../metaengine/sqliteengine
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../metaengine
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 => ../../metadata
 	github.com/larsartmann/go-cqrs-lite/projection/v4 => ../../projection
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 => ../../projectionhost
 	github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record

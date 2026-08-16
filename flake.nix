@@ -266,6 +266,7 @@
 
           examplePaths = builtins.concatStringsSep " " [
             "./example/getting-started/..."
+            "./example/metaengine-quickstart/..."
             "./example/readme-quickstart/..."
             "./example/taskmanager/..."
           ];
