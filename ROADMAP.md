@@ -4,19 +4,17 @@
 
 ---
 
-**v4.7.0 tagged** (2026-08-10); **v5 unification in progress** (ADR-0123). 82
-`go.mod` files. The `[Unreleased]` window covers the largest change set in the
-project's history: full v5 unification (Phases 1-7 — type foundation, dead-code
-removal, self-registration, all-engine porting, record-typed default folds,
-planner-time fold inference, operator-driven layout planning, universal ADT
-coverage), WAL unification (ADR-0126: `metadata.Metadata[K]`, `DecorateStore`,
-`LogStore`/`Inserter`/`AdapterCore` shared cores), transport deprecation
-(ADR-0127), shim-module deletion (ADR-0128: codec/retry/idempotency/
-flightrecorder go fully external), command lifecycle as event streams
-(ADR-0117), per-module cqrs-lint coaching, live cost measurement (dynamic
-NetworkRTT), a calibrated KV/LSM layout cost model, and positional
-`JournalReadFrom` fixes across Dgraph + all SQL engines. See CHANGELOG
-`[Unreleased]` for the full per-entry detail.
+**2026-08-16: 22 module tags cut** (largest release day in the project's
+history — event/v4.7.0, metaengine/v4.11.0 + engines, watermill/v4.5.0,
+storage/v4.7.1, and the core chain), with three broken versions retracted +
+repaired same-day (command/v4.7.0, query/v4.6.0, storage/v4.7.0 — see
+CHANGELOG `[2026-08-16 module releases]`). **v5 unification in progress**
+(ADR-0123). 82 `go.mod` files. The remaining `[Unreleased]` window is the
+wave-3/4 work on master: bbolt group commit, PG COPY append, pebble operator
+knobs, projectionhost checkpoint batching, `event.DecorateJournal`, the
+capability-audit + false-sharing campaign, iroh graph forwarding, and the
+`OpenSQLiteInMemory` pool pin. See CHANGELOG `[Unreleased]` for the full
+per-entry detail.
 
 ---
 
@@ -24,6 +22,7 @@ NetworkRTT), a calibrated KV/LSM layout cost model, and positional
 
 | Version      | Date       | Highlights                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | ------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [2026-08-16 module releases] | 2026-08-16 | 22 coordinated tags: `id/v4.5.0`, `record/v4.3.0`, `metadata/v4.5.0` (`Metadata[K]` generic), `schema/v4.3.0` (`UpcastSourceTransform`), `event/v4.7.0` (store transforms + actor context), `command/v4.7.1`, `query/v4.6.1` (`AsRecord`), `middleware/v4.5.0` (`CommandActorContext`), `watermill/v4.5.0` (CatchUpSubscriber replay fix), `metaengine/v4.11.0` (layout roles, DemoteEngine, MariaDB dialect, live-cost) + 8 engine tags, `storage/v4.7.0→v4.7.1` (keyset pagination ~285x, packet-safe chunking). **Retracted + repaired:** command/v4.7.0, query/v4.6.0, storage/v4.7.0 (standalone-build breaks) |
 | [Unreleased] | —          | • **v5 unification Phases 1-7** (ADR-0123): type foundation, dead-code removal, self-registration, all-engine porting, record-typed default folds (`OnRecord`), planner-time fold inference (`Infer`/`Override`), operator-driven layout planning, universal ADT coverage<br/>• **Operator-driven layout planning** (ADR-0124/0125): priority system, KV/LSM cost split (60s on-disk calibrated), `ReplanLayout`, audit trail, `cqrs-bench layout` CLI<br/>• **WAL unification** (ADR-0126): `metadata.Metadata[K]` canonical, `event.DecorateStore` + Sink/SourceTransforms, shared `LogStore`/`Inserter`/`AdapterCore` cores<br/>• __transport/_ deprecated_* (ADR-0127): watermill + go-sse are the delivery paths; cqrs-lint F030 coaching; taskmanager migrated to `metaengine.ServeSSE`; real Redis Streams broker roundtrip test<br/>• **Shim modules deleted** (ADR-0128): codec/retry/idempotency/flightrecorder fully external<br/>• **Command lifecycle as events** (ADR-0117): `commandlifecycle/` + projections<br/>• **Live cost measurement**: dynamic NetworkRTT, ProbeEngine, auto-replan<br/>• **cqrs-lint**: all 28 adoption+resilience rules per-module, `--strict`, suppression-drift audit, CSV/TSV output, 203 rules<br/>• **Dgraph**: StreamLog, native graph on SQLite/Turso; positional `JournalReadFrom` fixes on Dgraph + all SQL engines (2026-08-15)<br/>• **WithActor** actor lifecycle: `event/command/query.WithActor` + `Tracing.ActorID` (released 2026-08-13) |
 | v4.2.0       | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | v4.1.0       | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
@@ -67,9 +66,11 @@ The production maturity chain is complete. Highlights (full per-entry detail in
   `enginetest` shared contract suites (incl. StreamLog positional semantics),
   `AtomicAppender` optimistic concurrency, boundary key validation
 
-**Remaining (short-term):** See [TODO_LIST.md](TODO_LIST.md) — DuckDB
-`DecodeFloatResults` bounds guard, layout calibration, seq-carrying journal
-reads.
+**Remaining (short-term):** See [TODO_LIST.md](TODO_LIST.md) — iroh graph
+`WriteOp` convergence (edges do not replicate cross-peer yet),
+capability-conformance wiring under `#test-integration`, and the wave-4 tag
+batch. (Layout calibration, seq-carrying journal reads, and the DuckDB float
+decode guard have shipped.)
 
 **Metaengine v2 (ADRs 0111-0119) — ES-native architecture shipped:**
 
@@ -562,37 +563,36 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
 > Standing questions from recent sessions that block or shape work. Answers
 > should be folded into TODO_LIST once decided.
 
-1. **Tag + push authorization** (critical, standing since 2026-08-14): engine
-   v4.0.2+ tags (sqlite/badger/pebble/pg) + watermill/v4.5.0 + command/v4.6.1 —
-   the `JournalReadFrom` re-delivery fix is invisible to consumers until tagged.
-   Tag now as a standalone pass, or batched with the final transport/* v4.x
-   patches? Is pushing tags + master to the remote authorized?
-2. **Go 1.26.6 direction**: adopt repo-wide (go.mod sweep + CI + nix go pin +
-   .go-version) or hold at 1.26.5? The go.work-only bump is a half-state that
-   keeps gopls noisy.
-3. **SA1019 exclusion permanence**: keep the scoped
+1. **Wave-4 tag batch** (updated 2026-08-16): the 08-16 chain (22 tags incl.
+   engines + watermill + storage) is cut, pushed, and live on the proxy —
+   the original tag-authorization question is resolved. Still open: when to
+   cut the wave-3/4 features now on master (bbolt group commit, PG COPY
+   append, pebble knobs, checkpoint batching, `DecorateJournal`, capability
+   audit) — one batched pass after the conformance follow-ups, or
+   per-module on demand?
+2. **SA1019 exclusion permanence**: keep the scoped
    `(middleware|idempotency)/.*_test\.go$` exclusion permanently, or migrate
    kvstore test matrices onto the go-idempotency contract suite before v5?
-4. **Stale-pin sweep policy**: may future sessions bump ALL sibling-module pins
+3. **Stale-pin sweep policy**: may future sessions bump ALL sibling-module pins
    repo-wide to latest tags mechanically (gate-verified), or only on breakage?
    A yes also greenlights the pin-drift meta-test failing on staleness.
-5. **Vulncheck placement**: check-coverage / check-duplication / check-arch /
+4. **Vulncheck placement**: check-coverage / check-duplication / check-arch /
    check-depguard already run inside `#verify` (wired since `6f7c88388`,
    2026-08-03 — the Aug-14 "gates are unwired" premise was wrong; check-coverage
    rotted while WIRED because the script was broken). Only `#vulncheck` sits
    outside `#verify`. Fold it in (+time per run), keep it a manual pre-tag
    step (current TODO_LIST pre-tag checklist), or wire it into CI?
-6. **Tracing JSON `omitempty` standardization** (from the WithActor review):
+5. **Tracing JSON `omitempty` standardization** (from the WithActor review):
    only `ActorID` omits zero; `CorrelationID`/`CausationID`/`UserID`/`RequestID`
    serialize as empty strings. Making them all omit-zero is cleaner but a
    breaking JSON change for consumers parsing the raw shape. Standardize
    (needs ADR) or leave asymmetric?
-7. **MySQL-8 nix backend** (2026-08-15): the nix integration envs run MariaDB
+6. **MySQL-8 nix backend** (2026-08-15): the nix integration envs run MariaDB
    (`pkgs.mariadb`), but MySQL 8 has meaningfully different JSON behavior
    (functional indexes, native JSON type). Add a real MySQL-8 nix VM check
    (`mysql8-vm`, ~130s in CI), or stay MariaDB-only and treat MySQL via
    docker probes as today?
-8. **`mysqlengine.Dialect()` export** (2026-08-15): mysqlengine exports
+7. **`mysqlengine.Dialect()` export** (2026-08-15): mysqlengine exports
    `Dialect() string` ("mysql"/"mariadb"). Keep as stable public API, or
    demote to internal and expose via `Profile()` metadata (avoids a
    stringly-typed API surface before the v5 freeze)?
