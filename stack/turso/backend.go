@@ -57,13 +57,13 @@ func applySchemaAndPragmas(sqlDB *sql.DB, cfg config) error {
 			return errorfamily.WrapInfrastructure(err, "turso.enable_wal",
 				"enable WAL")
 		}
+	}
 
-		// Apply durability tier after WAL setup so the override takes
-		// precedence over the NORMAL default.
-		if err := sqlopt.ApplySQLiteDurability(ctx, sqlDB, cfg.durability); err != nil {
-			return errorfamily.WrapInfrastructure(err, "turso.apply_durability",
-				"apply durability tier")
-		}
+	// Apply the durability tier in both WAL and non-WAL mode (same rationale
+	// as the sqlite preset: without WAL this is the only path the tier takes).
+	if err := sqlopt.ApplySQLiteDurability(ctx, sqlDB, cfg.durability); err != nil {
+		return errorfamily.WrapInfrastructure(err, "turso.apply_durability",
+			"apply durability tier")
 	}
 
 	if cfg.AutoMigrate {

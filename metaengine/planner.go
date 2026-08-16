@@ -17,6 +17,13 @@ type rankedEngine struct {
 // an event may update before the planner emits a write amplification warning.
 const DefaultWriteAmplificationBudget = 3
 
+// DefaultIdempotencyCapacity is the default dedup window for
+// Store.ApplyIdempotent: 131072 event IDs (~10 MB worst case). Large enough
+// that realistic duplicate-delivery windows (retries, at-least-once redrive)
+// are covered, small enough that a long-lived store cannot leak memory
+// without bound. See WithIdempotencyCapacity.
+const DefaultIdempotencyCapacity = 1 << 17
+
 type planConfig struct {
 	writeAmplificationBudget int
 	dryRun                   bool
@@ -27,6 +34,7 @@ type planConfig struct {
 	routingMinDeltaMs        float64         // min absolute improvement (ms) for re-routing suggestions
 	priority                 *PriorityConfig // operator-driven layout priorities (ADR-0124)
 	sharedCollections        map[string]bool // child Go types shared across collections (ADR-0124 aggregate boundaries)
+	idempotencyCapacity      int             // dedup ring capacity for ApplyIdempotent; <=0 → unbounded legacy mode
 }
 
 type planOption func(*planConfig)
@@ -102,6 +110,17 @@ func WithRoutingMinDelta(delta time.Duration) planOption {
 	}
 }
 
+// WithIdempotencyCapacity bounds the in-memory dedup window used by
+// Store.ApplyIdempotent. When the window is full the oldest event IDs are
+// evicted — dedup stays best-effort (duplicates older than the window
+// re-apply, which is within the at-least-once contract; use an external
+// idempotency store for durable dedup). Defaults to
+// DefaultIdempotencyCapacity. Pass <= 0 for the legacy unbounded behavior,
+// accepting the unbounded memory growth that comes with it.
+func WithIdempotencyCapacity(n int) planOption {
+	return func(c *planConfig) { c.idempotencyCapacity = n }
+}
+
 // Plan creates a storage plan from available engines and declared queries.
 // Each query gets its own independent projection — the same event updates
 // each matching query's projection separately.
@@ -112,7 +131,10 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 
 	var queries []any
 
-	cfg := planConfig{writeAmplificationBudget: DefaultWriteAmplificationBudget}
+	cfg := planConfig{
+		writeAmplificationBudget: DefaultWriteAmplificationBudget,
+		idempotencyCapacity:      DefaultIdempotencyCapacity,
+	}
 
 	for _, arg := range args {
 		switch a := arg.(type) {
@@ -134,7 +156,7 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 		byInputType:       make(map[string]string),
 		queryDecls:        queries,
 		poison:            newPoisonTracker(),
-		idempotency:       newIdempotencyTracker(),
+		idempotency:       newIdempotencyTracker(cfg.idempotencyCapacity),
 		meter:             newWorkloadMeter(),
 		subs:              newSubscriberHub(),
 		foldLocks:         newFoldLocks(),

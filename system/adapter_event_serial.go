@@ -28,7 +28,15 @@ type serializedEvent struct {
 }
 
 func (a *EventAdapter) encodeEvent(evt event.Event) string {
-	metaJSON, _ := event.MarshalMetadataJSON(evt.Metadata(), "system")
+	// encodeEvent cannot propagate errors: AdapterCore.Encode is `func(T) string`
+	// by design (ADR-0126 core constraint). MarshalMetadataJSON returns nil data
+	// on failure, so a failed metadata marshal persists a nil Metadata field
+	// (decodes to zero-value metadata) instead of partial JSON. Marshal errors
+	// are impossible for serializedEvent's marshal-safe field types.
+	metaJSON, metaErr := event.MarshalMetadataJSON(evt.Metadata(), "system")
+	if metaErr != nil {
+		metaJSON = nil
+	}
 
 	env := serializedEvent{
 		ID:            evt.ID().String(),

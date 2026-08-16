@@ -245,13 +245,15 @@ func openBackend(
 					return errorfamily.WrapInfrastructure(err, "sqlite_preset.enable_wal",
 						"enable WAL mode")
 				}
+			}
 
-				// Apply durability tier after WAL setup so the override
-				// takes precedence over the NORMAL default.
-				if err := sqlopt.ApplySQLiteDurability(ctx, sqlDB, cfg.durability); err != nil {
-					return errorfamily.WrapInfrastructure(err, "sqlite_preset.apply_durability",
-						"apply durability tier")
-				}
+			// Apply the durability tier in both WAL and non-WAL mode: with WAL
+			// it overrides the NORMAL default SQLiteEnableWAL sets; without WAL
+			// it is the only place the tier reaches SQLite (Relaxed must not
+			// silently stay at the FULL default).
+			if err := sqlopt.ApplySQLiteDurability(ctx, sqlDB, cfg.durability); err != nil {
+				return errorfamily.WrapInfrastructure(err, "sqlite_preset.apply_durability",
+					"apply durability tier")
 			}
 
 			// SQLite WAL serializes writes; capping at 1 connection prevents

@@ -4,6 +4,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 )
 
 // poisonTracker tracks collections that have been poisoned by fold panics.
@@ -36,19 +38,65 @@ func (p *poisonTracker) Check(collection string) error {
 
 // idempotencyTracker deduplicates event application by event ID.
 // Used by ApplyIdempotent for at-least-once delivery scenarios.
+//
+// Memory is bounded by capacity: tracked IDs live in a fixed-capacity ring
+// (dedup.Ring) and the oldest is evicted when full. Dedup is best-effort — a
+// duplicate arriving after its ID was evicted re-applies, which stays within
+// the at-least-once contract ApplyIdempotent serves (it narrows duplicate
+// delivery, it does not eliminate it; durable dedup requires an external
+// idempotency store). capacity <= 0 keeps the legacy unbounded behavior.
 type idempotencyTracker struct {
-	applied sync.Map // event ID → struct{}
+	mu   sync.Mutex
+	ring *dedup.Ring // nil → unbounded legacy mode
+	seen sync.Map    // event ID → struct{}, used only when ring == nil
 }
 
-func newIdempotencyTracker() *idempotencyTracker {
-	return &idempotencyTracker{}
+func newIdempotencyTracker(capacity int) *idempotencyTracker {
+	if capacity <= 0 {
+		return &idempotencyTracker{}
+	}
+
+	return &idempotencyTracker{ring: dedup.NewRing(capacity)}
 }
 
 // CheckAndRecord returns true if the eventID was already seen (duplicate).
 // If not seen, it records the eventID and returns false.
 func (t *idempotencyTracker) CheckAndRecord(eventID string) bool {
-	_, exists := t.applied.LoadOrStore(eventID, struct{}{})
+	if t.ring != nil {
+		t.mu.Lock()
+		defer t.mu.Unlock()
+
+		if t.ring.Has(eventID) {
+			return true
+		}
+
+		t.ring.Add(eventID)
+
+		return false
+	}
+
+	_, exists := t.seen.LoadOrStore(eventID, struct{}{})
+
 	return exists
+}
+
+// Len reports how many IDs are currently tracked. Test/diagnostic helper.
+func (t *idempotencyTracker) Len() int {
+	if t.ring != nil {
+		t.mu.Lock()
+		defer t.mu.Unlock()
+
+		return t.ring.Len()
+	}
+
+	count := 0
+
+	t.seen.Range(func(_, _ any) bool {
+		count++
+		return true
+	})
+
+	return count
 }
 
 // workloadMeter tracks read/write counts and diagnostic counters for workload

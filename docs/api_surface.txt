@@ -1437,6 +1437,7 @@ metaengine/const ComplexityODegree
 metaengine/const ComplexityOLogN
 metaengine/const ComplexityON
 metaengine/const ComplexityONLogN
+metaengine/const DefaultIdempotencyCapacity
 metaengine/const DefaultRoutingHysteresis
 metaengine/const DefaultRoutingMinDelta
 metaengine/const DefaultWriteAmplificationBudget
@@ -1689,6 +1690,7 @@ metaengine/func WithEngineRole
 metaengine/func WithEventLog
 metaengine/func WithFilter
 metaengine/func WithHooks
+metaengine/func WithIdempotencyCapacity
 metaengine/func WithIn
 metaengine/func WithLatencyBudget
 metaengine/func WithLayoutPriority
@@ -2022,6 +2024,7 @@ metaengine/method Kind
 metaengine/method LatestSeq
 metaengine/method LayoutDoctorSection
 metaengine/method LayoutWarnings
+metaengine/method Len
 metaengine/method Len
 metaengine/method Limit
 metaengine/method Live

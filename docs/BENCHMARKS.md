@@ -22,7 +22,7 @@
 | Path | Benchmark | How to run | Baseline | Last measured |
 | --- | --- | --- | --- | --- |
 | Pebble event deserialize | `BenchmarkDeserialize*` (`storage/pebble`) | `go test ./storage/pebble/ -bench Deserialize` | JSON metadata round-trip per read: 5000 ns/op, 2247 B/op, 43 allocs/op | `ReconstructEventWithMetadata` direct pass: 2680 ns/op, 1205 B/op, 20 allocs/op (−46% ns, −53% allocs) |
-| bbolt event deserialize | (mirror of pebble bench; dedicated bench pending TODO) | — | JSON round-trip | same reconstruct shape adopted; measured bench owed to TODO_LIST |
+| bbolt event deserialize | `BenchmarkEventDeserialize` (`storage/bbolt`) | `go test ./storage/bbolt/ -bench EventDeserialize -run XXX` | JSON round-trip | same reconstruct shape as pebble; measured 2026-08-16: 2815 ns/op, 1210 B/op, 20 allocs/op (pebble parity: 3316 ns/op, 1216 B, 20 allocs) |
 | SQL journal ReadFrom (keyset) | storage integration suite | `nix run .#integration-pg` | O(N²) OFFSET-style self-join cursor | keyset `(occurred_at, id)` seek — ~285x faster full drains (browser-history restart case: ~4.5 min CPU → seconds) |
 
 ## CPU / memory micro-paths

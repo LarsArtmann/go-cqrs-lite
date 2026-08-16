@@ -72,6 +72,39 @@ func ReconstructEventWithMetadata(
 		payload, []Option{WithMetadata(metadata)}, occurredAt, encoding, errCodePrefix)
 }
 
+// ReconstructEventWithAdoptedPayload is the zero-copy variant of
+// [ReconstructEventWithMetadata]: the payload slice is ADOPTED (stored by
+// reference) instead of defensively cloned. It exists for engine read paths
+// that decode a fresh envelope buffer per event (Pebble and bbolt CBOR
+// envelopes) where the intake clone would copy bytes that have no other
+// owner — saving one payload-sized allocation per event read.
+//
+// CONTRACT — payload ownership is TRANSFERRED to the returned event: after
+// this call the caller must not read, write, or retain the payload slice.
+// Downstream safety is unchanged: Payload() on the returned event still
+// returns a defensive clone.
+func ReconstructEventWithAdoptedPayload(
+	eventID id.EventID,
+	eventType Type,
+	aggType id.StreamType,
+	aggID id.StreamID,
+	version, schemaVersion int,
+	payload []byte,
+	metadata Metadata,
+	occurredAt time.Time,
+	encoding codec.Encoding,
+	errCodePrefix string,
+) (Event, error) {
+	if err := validateEventParams(eventType, aggID, aggType, Version(version), payload); err != nil {
+		return nil, errorfamily.WrapCorruption(err, errCodePrefix+".reconstruct_event",
+			"reconstruct event "+string(eventType))
+	}
+
+	opts := reconstructOpts(eventID, occurredAt, schemaVersion, encoding, []Option{WithMetadata(metadata)})
+
+	return buildEvent(eventType, aggID, aggType, Version(version), payload, opts), nil
+}
+
 func reconstructEvent(
 	eventID id.EventID,
 	eventType Type,
@@ -84,18 +117,7 @@ func reconstructEvent(
 	encoding codec.Encoding,
 	errCodePrefix string,
 ) (Event, error) {
-	opts := make([]Option, 0, 3+len(metaOpts))
-
-	opts = append(opts, WithEventID(eventID), WithOccurredAt(occurredAt))
-	if schemaVersion > 0 {
-		opts = append(opts, WithSchemaVersion(SchemaVersion(schemaVersion)))
-	}
-
-	opts = append(opts, metaOpts...)
-
-	if encoding != "" {
-		opts = append(opts, WithEncoding(encoding))
-	}
+	opts := reconstructOpts(eventID, occurredAt, schemaVersion, encoding, metaOpts)
 
 	evt, err := NewEvent(
 		eventType,
@@ -111,4 +133,29 @@ func reconstructEvent(
 	}
 
 	return evt, nil
+}
+
+// reconstructOpts assembles the Option slice shared by every reconstruct
+// path: identity, timestamp, schema version, engine metadata, encoding.
+func reconstructOpts(
+	eventID id.EventID,
+	occurredAt time.Time,
+	schemaVersion int,
+	encoding codec.Encoding,
+	metaOpts []Option,
+) []Option {
+	opts := make([]Option, 0, 3+len(metaOpts))
+
+	opts = append(opts, WithEventID(eventID), WithOccurredAt(occurredAt))
+	if schemaVersion > 0 {
+		opts = append(opts, WithSchemaVersion(SchemaVersion(schemaVersion)))
+	}
+
+	opts = append(opts, metaOpts...)
+
+	if encoding != "" {
+		opts = append(opts, WithEncoding(encoding))
+	}
+
+	return opts
 }

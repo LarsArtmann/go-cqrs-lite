@@ -8,6 +8,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 )
 
 func querySynchronous(t *testing.T, db *sql.DB) int {
@@ -104,5 +105,30 @@ func TestNew_WithDurability_Normal(t *testing.T) {
 
 	if level := querySynchronous(t, bundleDB(t, b)); level != 1 {
 		t.Fatalf("synchronous = %d, want 1 (NORMAL)", level)
+	}
+}
+
+// TestNew_WithDurability_RelaxedWithoutWAL pins the non-WAL path end to end:
+// with WAL disabled the durability tier must still reach SQLite. Before this
+// was fixed the tier was nested under the WAL flag, so Relaxed silently kept
+// the SQLite FULL (2) default.
+func TestNew_WithDurability_RelaxedWithoutWAL(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	dsn := filepath.Join(dir, "relaxed-nowal.db")
+
+	b, err := sqlite.New(dsn,
+		sqlite.WithDurability(stack.DurabilityRelaxed),
+		sqlite.WithPragmas(sqlopt.WithoutWAL()),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	defer func() { _ = b.Close() }()
+
+	if level := querySynchronous(t, bundleDB(t, b)); level != 0 {
+		t.Fatalf("synchronous = %d, want 0 (OFF) — Relaxed must not stay FULL without WAL", level)
 	}
 }
