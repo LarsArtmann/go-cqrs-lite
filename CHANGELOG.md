@@ -4,7 +4,42 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [storage/v4.7.0] — 2026-08-16
+
+> Module-only release of the `storage/v4` module (sql, eventstore, view,
+> memory, bbolt, pebble trees). Cuts the wave-3 storage work + the journal
+> keyset-pagination fix so downstream consumers (browser-history et al.) can
+> pick up the O(N²) drain fix without waiting for the next full release.
+
+- Journal `ReadFrom`/`ReadStreamFrom` keyset pagination — full drains drop
+  from O(N²) to index-driven range scans (~285x on a 200k-event SQLite
+  journal; production browser-history restarts ~4.5 min → seconds).
+- Dialect-aware, packet-safe SQL batch INSERT chunking
+  (`sql.MaxParametersForDialect`, `sql.MaxStatementBytes`,
+  `sql.RowsWithinByteCap`); `view.BatchSet` INSERT…SELECT UNION ALL shuttle.
+- Pebble/bbolt deserialize fast path via `event.ReconstructEventWithMetadata`.
+
 ## [Unreleased]
+
+### Fixed — storage: journal `ReadFrom` keyset pagination replaces O(N²) self-JOIN cursor — 2026-08-16
+
+- **`sql.JournalReader.ReadFrom` and `eventstore.ReadStreamFrom` now paginate
+  with keyset pagination** (`sql.ResolveCursorTimestamp` point lookup +
+  `sql.KeysetPositionQuery` timestamp-range scan) instead of a self-JOIN on the
+  cursor row (`e.ts > c.ts OR (e.ts = c.ts AND e.id > c.id)`). The self-JOIN
+  defeated `idx_events_occurred_at` in SQLite — `EXPLAIN QUERY PLAN` showed a
+  MULTI-INDEX OR plan plus a temp B-tree sort of the remaining tail on EVERY
+  batch, making a full journal drain O(N²) in batch count. Measured on a
+  200k-event SQLite journal drained in batches of 100: 62.9s before → 0.22s
+  after (~285x). Real-world impact: projectionhost workers with in-memory
+  checkpoint stores (full replay each start) burned ~4.5 min CPU per restart
+  on a production browser-history journal; drains are now single-digit
+  seconds. Dangling cursors (pruned journal rows) keep the former contract of
+  returning zero rows instead of silently replaying from the start. Verified
+  on SQLite (equivalence with tie-broken `(occurred_at, id)` ordering across
+  tie-groups, dangling-cursor, EXPLAIN QUERY PLAN regression pin, full-drain
+  benchmark: 5k events in 29ms) and real Postgres (placeholder numbering +
+  time.Time round-trip; `pg_integration_readfrom_test.go`).
 
 ### Added — projectionhost: opt-in live-checkpoint batching — 2026-08-16
 
