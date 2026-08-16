@@ -1,3 +1,8 @@
+> **RETIRED 2026-08-16** — stale since 2026-08-11; content below is sessions-1–3 era.
+> Session history now lives in `CHANGELOG.md`, `docs/status/`, and git log.
+> Flagged dead in `docs/reviews/2026-08-14_14-25_brutal-self-review.md` §"dead docs".
+> Retiring is reversible: `git mv` back to `docs/sessions/`.
+
 ## Branded Return Types Migration (Session 3)
 
 Interfaces now return branded types instead of primitives:

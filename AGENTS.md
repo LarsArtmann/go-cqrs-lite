@@ -352,4 +352,4 @@ storage layer!"
 
 > **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from bus.SubscribeAll + command dispatch. See `example/taskmanager/`.
 
-> **Historical details**: Session milestones in [`docs/sessions/SESSION_MILESTONES.md`](docs/sessions/SESSION_MILESTONES.md), catalog architecture in [`docs/planning/CATALOG_ARCHITECTURE.md`](docs/planning/CATALOG_ARCHITECTURE.md).
+> **Historical details**: Early session notes are retired under [`docs/sessions/archive/`](docs/sessions/archive/) (superseded by `CHANGELOG.md`, `docs/status/`, and git log). Catalog architecture in [`docs/planning/CATALOG_ARCHITECTURE.md`](docs/planning/CATALOG_ARCHITECTURE.md).
