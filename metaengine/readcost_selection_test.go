@@ -84,8 +84,8 @@ func TestReadCosts_PlannerPicksDuckDBForAggregate(t *testing.T) {
 	// Aggregation at 10K rows: Memory (500 × 10000) vs DuckDB (150 × 10000).
 	volume := int64(10_000)
 
-	memAgg := estimateCost(ComplexityO1, volume, memProfile.NsForRead(ReadAggregate), 0)
-	duckAgg := estimateCost(ComplexityO1, volume, duckdbProfile.NsForRead(ReadAggregate), 0)
+	memAgg := estimateCost(ComplexityO1, volume, 0, memProfile.NsForRead(ReadAggregate), 0)
+	duckAgg := estimateCost(ComplexityO1, volume, 0, duckdbProfile.NsForRead(ReadAggregate), 0)
 
 	if duckAgg.EstimatedLatencyMs >= memAgg.EstimatedLatencyMs {
 		t.Errorf("aggregate @ %d rows: DuckDB (%.3fms) should be cheaper than Memory (%.3fms)",

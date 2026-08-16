@@ -159,7 +159,13 @@ func checkQueryRouting(
 		}
 
 		readC := effectiveReadComplexity(rp, c)
-		cost := estimateCost(readC, cfg.Volume, profile.NsForRead(rp), profile.NetworkRTT)
+		cost := estimateCost(
+			readC,
+			cfg.Volume,
+			cfg.FilterCount(),
+			profile.NsForRead(rp),
+			profile.NetworkRTT,
+		)
 
 		if profile.Name == qa.EngineName {
 			currentCost = cost.EstimatedLatencyMs

@@ -19,6 +19,10 @@ type QueryConfig struct {
 	layoutPriority  Priority // developer per-query layout priority (ADR-0124 Layer 4)
 }
 
+// FilterCount returns the number of declarative filters on this query.
+// Used by the cost model for selectivity estimation.
+func (c QueryConfig) FilterCount() int { return len(c.filterAccessors) }
+
 // Volume sets the expected query volume (events/sec) for cost estimation.
 func Volume(n int64) QueryOption {
 	return func(c *QueryConfig) { c.Volume = n }

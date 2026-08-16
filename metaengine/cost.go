@@ -63,12 +63,15 @@ const defaultNsPerOp = 100.0
 // The volume represents the expected number of items in the projection.
 // If volume is zero or negative, a default of 1000 is assumed — the planner
 // also emits an INFO diagnostic so the assumption is visible, not silent.
+// filterCount is the number of declarative filters on the query; each filter
+// reduces the estimated rows touched via a selectivity discount.
 // nsPerOp is the calibrated per-operation cost for the engine being evaluated.
 // networkRTT is the fixed per-query network overhead (0 for in-process engines).
 // It is additive: total_latency = (ops × nsPerOp / 1e6) + networkRTT.
 func estimateCost(
 	complexity Complexity,
 	volume int64,
+	filterCount int,
 	nsPerOp float64,
 	networkRTT time.Duration,
 ) CostEstimate {
@@ -98,6 +101,14 @@ func estimateCost(
 		ops = n
 	}
 
+	// Apply filter selectivity: each filter reduces the rows touched.
+	// This only applies to scan-based complexities (O(N), O(NlogN)) where
+	// the engine must walk the collection. Point lookups and graph traversals
+	// are not discounted — they already target specific entries.
+	if filterCount > 0 && (complexity == ComplexityON || complexity == ComplexityONLogN) {
+		ops *= filterSelectivity(filterCount)
+	}
+
 	if nsPerOp <= 0 {
 		nsPerOp = defaultNsPerOp
 	}
@@ -110,6 +121,25 @@ func estimateCost(
 		EstimatedOps:       ops,
 		EstimatedLatencyMs: latencyMs,
 	}
+}
+
+// filterSelectivity estimates the fraction of rows that survive all filters.
+// Each equality filter is assumed to match ~10% of rows (selectivity 0.1).
+// Multiple filters compose multiplicatively: 2 filters → 0.1 × 0.1 = 0.01.
+// The result is clamped to a minimum of 0.001 (always at least 1 scan unit).
+//
+// This is a rough first-order heuristic, not a calibrated statistics engine.
+// Real selectivity depends on data distribution and index availability.
+func filterSelectivity(filterCount int) float64 {
+	const perFilterSelectivity = 0.1
+	const minSelectivity = 0.001
+
+	s := math.Pow(perFilterSelectivity, float64(filterCount))
+	if s < minSelectivity {
+		return minSelectivity
+	}
+
+	return s
 }
 
 // ScaleThreshold describes the optimal cardinality range for a data structure.
