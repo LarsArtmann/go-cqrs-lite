@@ -28,20 +28,20 @@ engines, metaengine-gen, chaos testing).
 These three items resolve the only known correctness bugs and establish verification truth.
 Without correct code and a verified build, nothing else matters.
 
-| #   | Item                                 | Why it's 1%→51%                                                                                                                                                                          |
-| --- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P1  | Fix Pebble LayoutPlanner numeric bug | REAL CORRECTNESS BUG: range filters silently return wrong results for values like `2` vs `10`. Undermines trust in the entire LayoutPlanner. Small fix (zero-pad or numeric comparator). |
-| P2  | Fix `TestSSE_DropOldSemantics` hang  | BLOCKS THE ENTIRE metaengine test suite. Every session uses `-run` filters to avoid it. Goroutine leak in `forwardWithDropOld`.                                                          |
-| P3  | Run `nix run .#verify`               | The verify gate has NOT been run this session. "Stale GREEN" is the #1 documented anti-pattern. Running it establishes ground truth.                                                     |
+| #  | Item                                 | Why it's 1%→51%                                                                                                                                                                          |
+| -- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P1 | Fix Pebble LayoutPlanner numeric bug | REAL CORRECTNESS BUG: range filters silently return wrong results for values like `2` vs `10`. Undermines trust in the entire LayoutPlanner. Small fix (zero-pad or numeric comparator). |
+| P2 | Fix `TestSSE_DropOldSemantics` hang  | BLOCKS THE ENTIRE metaengine test suite. Every session uses `-run` filters to avoid it. Goroutine leak in `forwardWithDropOld`.                                                          |
+| P3 | Run `nix run .#verify`               | The verify gate has NOT been run this session. "Stale GREEN" is the #1 documented anti-pattern. Running it establishes ground truth.                                                     |
 
 ### The 4% that delivers 64% of the result (add 4 items = 7 total)
 
-| #   | Item                                   | Why                                                                                    |
-| --- | -------------------------------------- | -------------------------------------------------------------------------------------- |
-| P4  | Tag `stack/duckdb/v4`                  | RELEASE BLOCKER: consumers get 404 from Go proxy. Root cause of govalid auth failures. |
-| P5  | Add Pebble to ADT matrix test          | No triple-parity test exists. Memory + SQLite could silently diverge from Pebble.      |
-| P6  | Add suppression tests for 12 new rules | Suppression system untested for the rules most likely to need it.                      |
-| P7  | Update SKILL.md references (3 files)   | Canonical AI consumer guide is stale. Directly impacts how AI agents use the library.  |
+| #  | Item                                   | Why                                                                                    |
+| -- | -------------------------------------- | -------------------------------------------------------------------------------------- |
+| P4 | Tag `stack/duckdb/v4`                  | RELEASE BLOCKER: consumers get 404 from Go proxy. Root cause of govalid auth failures. |
+| P5 | Add Pebble to ADT matrix test          | No triple-parity test exists. Memory + SQLite could silently diverge from Pebble.      |
+| P6 | Add suppression tests for 12 new rules | Suppression system untested for the rules most likely to need it.                      |
+| P7 | Update SKILL.md references (3 files)   | Canonical AI consumer guide is stale. Directly impacts how AI agents use the library.  |
 
 ### The 20% that delivers 80% of the result (add 13 items = 20 total)
 

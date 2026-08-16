@@ -190,12 +190,12 @@ The consumer passes `*sql.DB` and a `Dialect` directly into a projection constru
 
 ### Leak Summary Table
 
-| #   | Leak                                   | Severity | Consumer must...                        | Fix                                  |
-| --- | -------------------------------------- | -------- | --------------------------------------- | ------------------------------------ |
-| 1   | `bundle.Database()` returns `any`      | Medium   | Import `database/sql`, assert `*sql.DB` | Move tuning to preset options        |
-| 2   | `ViewMapper.Type` uses SQL strings     | High     | Write SQL DDL (column types)            | Neutral `ColumnType` enum            |
-| 3   | `SQLViewModel` returns concrete type   | High     | Hold `*storage.SQLViewStore`            | Return `kv.ViewStore[V,K]` interface |
-| 4   | `RelationalProjection` takes `*sql.DB` | High     | Pass `*sql.DB` + `Dialect`              | Bundle method provides DB internally |
+| # | Leak                                   | Severity | Consumer must...                        | Fix                                  |
+| - | -------------------------------------- | -------- | --------------------------------------- | ------------------------------------ |
+| 1 | `bundle.Database()` returns `any`      | Medium   | Import `database/sql`, assert `*sql.DB` | Move tuning to preset options        |
+| 2 | `ViewMapper.Type` uses SQL strings     | High     | Write SQL DDL (column types)            | Neutral `ColumnType` enum            |
+| 3 | `SQLViewModel` returns concrete type   | High     | Hold `*storage.SQLViewStore`            | Return `kv.ViewStore[V,K]` interface |
+| 4 | `RelationalProjection` takes `*sql.DB` | High     | Pass `*sql.DB` + `Dialect`              | Bundle method provides DB internally |
 
 ---
 

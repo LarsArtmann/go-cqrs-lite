@@ -1,7 +1,7 @@
 # Improve Codebase Architecture — Execution Plan
 
-**Date:** 2026-04-29  
-**Scope:** go-cqrs-lite monorepo  
+**Date:** 2026-04-29\
+**Scope:** go-cqrs-lite monorepo\
 **Goal:** Deepen modules, eliminate shallow pass-throughs, improve type safety, and fix orphaned infrastructure.
 
 ---
@@ -48,7 +48,7 @@
 
 **Benefits:** Compile-time validation of validator signatures. Tests catch mismatches before runtime.
 
-**Effort:** LOW (~15 min)  
+**Effort:** LOW (~15 min)\
 **Impact:** MEDIUM (type safety improvement)
 
 ---
@@ -68,7 +68,7 @@
 
 **Benefits:** Useful builder lives where events are defined. One less module to maintain.
 
-**Effort:** LOW (~20 min)  
+**Effort:** LOW (~20 min)\
 **Impact:** MEDIUM (better organization)
 
 ---
@@ -101,7 +101,7 @@ Command, Event, Query all satisfy this implicitly via `Type() string` (since `Ty
 
 **Benefits:** Enables generic middleware that operates on any typed message.
 
-**Effort:** LOW (~10 min)  
+**Effort:** LOW (~10 min)\
 **Impact:** MEDIUM (enables generic code)
 
 ---
@@ -116,7 +116,7 @@ Command, Event, Query all satisfy this implicitly via `Type() string` (since `Ty
 
 **Benefits:** Confidence in retry behavior for all three message kinds. One test suite covers all.
 
-**Effort:** LOW (~20 min)  
+**Effort:** LOW (~20 min)\
 **Impact:** MEDIUM (coverage gap closed)
 
 ---
@@ -154,7 +154,7 @@ Then `CommandRecovery` = `ErrorRecovery[command.Command]`, etc.
 
 **Benefits:** Fix once, fixed everywhere. One test suite for recovery/validation covers both command and event.
 
-**Effort:** MEDIUM (~45 min)  
+**Effort:** MEDIUM (~45 min)\
 **Impact:** MEDIUM (DRY, locality)
 
 ---
@@ -175,7 +175,7 @@ Then `CommandRecovery` = `ErrorRecovery[command.Command]`, etc.
 
 **Benefits:** One place for test utilities. No indirection seam that adds nothing.
 
-**Effort:** MEDIUM (~30 min, many files)  
+**Effort:** MEDIUM (~30 min, many files)\
 **Impact:** MEDIUM (cleaner architecture)
 
 ---
@@ -194,7 +194,7 @@ Then `CommandRecovery` = `ErrorRecovery[command.Command]`, etc.
 
 **Benefits:** Removes ~250 lines and one module from the dependency graph.
 
-**Effort:** LOW (~15 min)  
+**Effort:** LOW (~15 min)\
 **Impact:** MEDIUM (simpler monorepo)
 
 ---
@@ -209,7 +209,7 @@ Then `CommandRecovery` = `ErrorRecovery[command.Command]`, etc.
 
 **Benefits:** Catalog mutation lives in one place. Thread-safety benefits all callers.
 
-**Effort:** MEDIUM (~40 min)  
+**Effort:** MEDIUM (~40 min)\
 **Impact:** MEDIUM (locality, consistency)
 
 ---
@@ -242,7 +242,7 @@ func Dispatch[T any](ctx context.Context, query Query[T]) (T, error)
 
 **Benefits:** Compile-time type safety for the entire query path.
 
-**Effort:** HIGH (~3-4 hours, touches many files)  
+**Effort:** HIGH (~3-4 hours, touches many files)\
 **Impact:** HIGH (type safety)
 
 ---
@@ -266,7 +266,7 @@ type OutboxStore interface {
 
 **Benefits:** Atomicity guarantee for the write-then-publish pattern. All aggregates get the same reliability semantics.
 
-**Effort:** HIGH (~3-4 hours, new interface + tests + memory adapter)  
+**Effort:** HIGH (~3-4 hours, new interface + tests + memory adapter)\
 **Impact:** HIGH (production readiness)
 
 ---
@@ -288,7 +288,7 @@ type OutboxStore interface {
 
 **Benefits:** Verifies the new snapshot integration works end-to-end.
 
-**Effort:** MEDIUM (~30 min)  
+**Effort:** MEDIUM (~30 min)\
 **Impact:** MEDIUM (coverage for new feature)
 
 ---

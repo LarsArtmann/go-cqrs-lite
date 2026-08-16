@@ -59,25 +59,25 @@ Test and catalog modules still produce plain errors. While lower consumer impact
 
 ## Comprehensive Plan (30-100min tasks)
 
-| #   | Task                                                                                               | Est.  | Priority | Impact               |
-| --- | -------------------------------------------------------------------------------------------------- | ----- | -------- | -------------------- |
-| 1   | Convert core/event/codec.go + versioned_store.go wraps (4 wraps)                                   | 45min | P0       | Consumer-facing      |
-| 2   | Convert core/event/runner.go wraps (4 wraps)                                                       | 30min | P0       | Consumer-facing      |
-| 3   | Convert core/event/event_new.go + batch.go wraps (4 wraps)                                         | 30min | P0       | Consumer-facing      |
-| 4   | Convert core/event/outbox_publisher.go + publish_helper.go + builder.go + types.go wraps (8 wraps) | 45min | P0       | Consumer-facing      |
-| 5   | Add missing re-exports: `WithContext`, `Wrapf`, `Newf`, `ExitCode`                                 | 30min | P0       | API completeness     |
-| 6   | Convert saga/runner.go + runner_execute.go wraps (13 wraps)                                        | 45min | P1       | Consumer-facing      |
-| 7   | Convert saga/compensate.go + memory_store.go wraps (4 wraps)                                       | 30min | P1       | Consumer-facing      |
-| 8   | Fix DLQ test race (`callCount` → `atomic.Int32`)                                                   | 30min | P1       | Test quality         |
-| 9   | Add `HandleError`, `HandleErrorDetailed`, `RegisterTemplate` re-exports                            | 30min | P1       | CLI boundary         |
-| 10  | Write tests for new re-exports (`WithContext`, `Wrapf`, `Newf`, `ExitCode`, `HandleError`)         | 60min | P1       | Test coverage        |
-| 11  | Convert memory/ all 19 fmt.Errorf wraps                                                            | 60min | P2       | Internal consistency |
-| 12  | Convert catalog/ all 29 fmt.Errorf wraps                                                           | 60min | P2       | Internal consistency |
-| 13  | Convert signing/ all 24 fmt.Errorf wraps                                                           | 45min | P2       | Internal consistency |
-| 14  | Convert watermill/ all 8 fmt.Errorf wraps                                                          | 30min | P2       | Internal consistency |
-| 15  | Convert example/ all 51 fmt.Errorf wraps                                                           | 60min | P2       | Example quality      |
-| 16  | Convert core/command/ + core/query/ 10 fmt.Errorf wraps                                            | 30min | P2       | Core consistency     |
-| 17  | Run go work sync + go mod tidy + final test verification                                           | 30min | P2       | Build hygiene        |
+| #  | Task                                                                                               | Est.  | Priority | Impact               |
+| -- | -------------------------------------------------------------------------------------------------- | ----- | -------- | -------------------- |
+| 1  | Convert core/event/codec.go + versioned_store.go wraps (4 wraps)                                   | 45min | P0       | Consumer-facing      |
+| 2  | Convert core/event/runner.go wraps (4 wraps)                                                       | 30min | P0       | Consumer-facing      |
+| 3  | Convert core/event/event_new.go + batch.go wraps (4 wraps)                                         | 30min | P0       | Consumer-facing      |
+| 4  | Convert core/event/outbox_publisher.go + publish_helper.go + builder.go + types.go wraps (8 wraps) | 45min | P0       | Consumer-facing      |
+| 5  | Add missing re-exports: `WithContext`, `Wrapf`, `Newf`, `ExitCode`                                 | 30min | P0       | API completeness     |
+| 6  | Convert saga/runner.go + runner_execute.go wraps (13 wraps)                                        | 45min | P1       | Consumer-facing      |
+| 7  | Convert saga/compensate.go + memory_store.go wraps (4 wraps)                                       | 30min | P1       | Consumer-facing      |
+| 8  | Fix DLQ test race (`callCount` → `atomic.Int32`)                                                   | 30min | P1       | Test quality         |
+| 9  | Add `HandleError`, `HandleErrorDetailed`, `RegisterTemplate` re-exports                            | 30min | P1       | CLI boundary         |
+| 10 | Write tests for new re-exports (`WithContext`, `Wrapf`, `Newf`, `ExitCode`, `HandleError`)         | 60min | P1       | Test coverage        |
+| 11 | Convert memory/ all 19 fmt.Errorf wraps                                                            | 60min | P2       | Internal consistency |
+| 12 | Convert catalog/ all 29 fmt.Errorf wraps                                                           | 60min | P2       | Internal consistency |
+| 13 | Convert signing/ all 24 fmt.Errorf wraps                                                           | 45min | P2       | Internal consistency |
+| 14 | Convert watermill/ all 8 fmt.Errorf wraps                                                          | 30min | P2       | Internal consistency |
+| 15 | Convert example/ all 51 fmt.Errorf wraps                                                           | 60min | P2       | Example quality      |
+| 16 | Convert core/command/ + core/query/ 10 fmt.Errorf wraps                                            | 30min | P2       | Core consistency     |
+| 17 | Run go work sync + go mod tidy + final test verification                                           | 30min | P2       | Build hygiene        |
 
 **Total estimated time:** 12 hours 30 minutes
 

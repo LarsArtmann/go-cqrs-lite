@@ -143,7 +143,7 @@ Each Level 1 task decomposed into implementation steps. Sorted by importance/imp
 | S09 | Write `internal/ast/scan.go`: scanCallExpr — find event.New/NewEvent, RegisterTyped, catalog.Event calls                                              | L02           | 12           |
 | S10 | Write `pkg/analyzer/builder.go`: crossReference() — link commands to handlers, events to projections                                                  | L02           | 12           |
 | S11 | Write `pkg/analyzer/context.go`: AnalysisContext struct + constructor that takes []*packages.Package                                                  | L03           | 8            |
-| S12 | Write `internal/ast/loader.go`: loadPackages() — packages.Load with NeedTypes                                                                         | NeedTypesInfo | NeedSyntax   | NeedImports | L03 | 10  |
+| S12 | Write `internal/ast/loader.go`: loadPackages() — packages.Load with NeedTypes                                                                         | NeedTypesInfo | NeedSyntax   |
 | S13 | Write `pkg/rules/correctness/c006.go`: detect `event.Version(X.Int()+1)` AST pattern                                                                  | L04           | 10           |
 | S14 | Write `pkg/rules/correctness/c006_test.go`: unit test with inline AST                                                                                 | L04           | 10           |
 | S15 | Write `pkg/rules/correctness/c003.go`: detect fold with switch default returning nil error                                                            | L05           | 12           |

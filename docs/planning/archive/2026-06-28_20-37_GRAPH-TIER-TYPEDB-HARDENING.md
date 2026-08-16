@@ -42,46 +42,46 @@ Add **`example/graph-demo/`** (first real consumer, validates end-to-end), **rew
 
 ### Phase A — Graph Schema (the 1%)
 
-| #   | Task                                                                                                            | Impact   | Effort | Why                                            |
-| --- | --------------------------------------------------------------------------------------------------------------- | -------- | ------ | ---------------------------------------------- |
-| A1  | Define `graph.Schema` types: `Schema`, `NodeType`, `EdgeType`, `PropertyType`                                   | Critical | 30min  | Foundation; mirrors `RelationalSchema` shape   |
-| A2  | Implement `Schema.Validate()`: duplicate labels, empty names, key prop declared                                 | Critical | 30min  | Catches schema-declaration bugs early          |
-| A3  | Add validation to `GraphSink`: check label/prop/key against schema in `MergeNode`/`MergeEdge`/`SetNodeProperty` | Critical | 45min  | The actual type-safety enforcement at boundary |
-| A4  | Add `WithSchema` option to `NewGraphProjection` + `NewMemoryDriver`                                             | High     | 30min  | Schema is opt-in (zero breaking changes)       |
-| A5  | Wire schema into `MemoryDriver`: `schemaSink` wrapper validates before write                                    | High     | 45min  | Runtime enforcement for reference driver       |
-| A6  | Add `SchemaValidation` contract to `graphtest` suite                                                            | High     | 40min  | Every future driver validates schema           |
-| A7  | Comprehensive schema unit tests (valid, unknown label, unknown prop, edge mismatch, missing key)                | High     | 45min  | Verify all error paths                         |
+| #  | Task                                                                                                            | Impact   | Effort | Why                                            |
+| -- | --------------------------------------------------------------------------------------------------------------- | -------- | ------ | ---------------------------------------------- |
+| A1 | Define `graph.Schema` types: `Schema`, `NodeType`, `EdgeType`, `PropertyType`                                   | Critical | 30min  | Foundation; mirrors `RelationalSchema` shape   |
+| A2 | Implement `Schema.Validate()`: duplicate labels, empty names, key prop declared                                 | Critical | 30min  | Catches schema-declaration bugs early          |
+| A3 | Add validation to `GraphSink`: check label/prop/key against schema in `MergeNode`/`MergeEdge`/`SetNodeProperty` | Critical | 45min  | The actual type-safety enforcement at boundary |
+| A4 | Add `WithSchema` option to `NewGraphProjection` + `NewMemoryDriver`                                             | High     | 30min  | Schema is opt-in (zero breaking changes)       |
+| A5 | Wire schema into `MemoryDriver`: `schemaSink` wrapper validates before write                                    | High     | 45min  | Runtime enforcement for reference driver       |
+| A6 | Add `SchemaValidation` contract to `graphtest` suite                                                            | High     | 40min  | Every future driver validates schema           |
+| A7 | Comprehensive schema unit tests (valid, unknown label, unknown prop, edge mismatch, missing key)                | High     | 45min  | Verify all error paths                         |
 
 ### Phase B — MemoryDriver Read API (the rest of 4%)
 
-| #   | Task                                                                                   | Impact   | Effort | Why                                                   |
-| --- | -------------------------------------------------------------------------------------- | -------- | ------ | ----------------------------------------------------- |
-| B1  | Define read API types: `Pattern`, `NodeView`, `EdgeView`, `ReadableDriver` interface   | Critical | 30min  | The typed read surface; Go-native, not a DSL          |
-| B2  | Implement `MemoryDriver.Query(Pattern) []NodeView` — label filter + predicate function | Critical | 45min  | The basic read operation; replaces raw Snapshot       |
-| B3  | Implement `MemoryDriver.Traverse(from, edgeType, maxDepth) []NodeView` — BFS traversal | High     | 45min  | Variable-depth traversal (reply chains, social graph) |
-| B4  | Implement `MemoryDriver.Neighbors(of) ([]NodeView, []EdgeView)` — 1-hop adjacency      | High     | 30min  | The most common graph query                           |
-| B5  | Implement `MemoryDriver.ShortestPath(from, to) ([]NodeRef, error)` — BFS shortest path | Medium   | 45min  | Causation DAGs, dependency chains                     |
-| B6  | Read API unit tests (query, traverse, neighbors, shortest path, empty graph, depth 0)  | High     | 60min  | Verify correctness on real graph shapes               |
+| #  | Task                                                                                   | Impact   | Effort | Why                                                   |
+| -- | -------------------------------------------------------------------------------------- | -------- | ------ | ----------------------------------------------------- |
+| B1 | Define read API types: `Pattern`, `NodeView`, `EdgeView`, `ReadableDriver` interface   | Critical | 30min  | The typed read surface; Go-native, not a DSL          |
+| B2 | Implement `MemoryDriver.Query(Pattern) []NodeView` — label filter + predicate function | Critical | 45min  | The basic read operation; replaces raw Snapshot       |
+| B3 | Implement `MemoryDriver.Traverse(from, edgeType, maxDepth) []NodeView` — BFS traversal | High     | 45min  | Variable-depth traversal (reply chains, social graph) |
+| B4 | Implement `MemoryDriver.Neighbors(of) ([]NodeView, []EdgeView)` — 1-hop adjacency      | High     | 30min  | The most common graph query                           |
+| B5 | Implement `MemoryDriver.ShortestPath(from, to) ([]NodeRef, error)` — BFS shortest path | Medium   | 45min  | Causation DAGs, dependency chains                     |
+| B6 | Read API unit tests (query, traverse, neighbors, shortest path, empty graph, depth 0)  | High     | 60min  | Verify correctness on real graph shapes               |
 
 ### Phase C — Example + Docs (the 20%)
 
-| #   | Task                                                                               | Impact | Effort | Why                                              |
-| --- | ---------------------------------------------------------------------------------- | ------ | ------ | ------------------------------------------------ |
-| C1  | Create `example/graph-demo/` module scaffolding (`go.mod`, `main.go`, README)      | High   | 30min  | First real graph consumer; validates entire tier |
-| C2  | Implement graph-demo: define Schema, project events → graph via GraphProjection    | High   | 60min  | Proves Schema + Projection work together         |
-| C3  | Implement graph-demo: Query + Traverse + display results via read API              | High   | 45min  | Proves read API is usable for real queries       |
-| C4  | Write graph-demo test (`main_test.go` asserting graph shape + query results)       | Medium | 45min  | End-to-end validation                            |
-| C5  | Rewrite `docs/projection-tiers.md` with opinionated "why three tiers" comparison   | Medium | 45min  | Closes the "no doc helps consumers CHOOSE" gap   |
-| C6  | Write ADR-0039: Graph Schema (decision, constraints, what we rejected from TypeDB) | Medium | 40min  | Lock in design decisions                         |
+| #  | Task                                                                               | Impact | Effort | Why                                              |
+| -- | ---------------------------------------------------------------------------------- | ------ | ------ | ------------------------------------------------ |
+| C1 | Create `example/graph-demo/` module scaffolding (`go.mod`, `main.go`, README)      | High   | 30min  | First real graph consumer; validates entire tier |
+| C2 | Implement graph-demo: define Schema, project events → graph via GraphProjection    | High   | 60min  | Proves Schema + Projection work together         |
+| C3 | Implement graph-demo: Query + Traverse + display results via read API              | High   | 45min  | Proves read API is usable for real queries       |
+| C4 | Write graph-demo test (`main_test.go` asserting graph shape + query results)       | Medium | 45min  | End-to-end validation                            |
+| C5 | Rewrite `docs/projection-tiers.md` with opinionated "why three tiers" comparison   | Medium | 45min  | Closes the "no doc helps consumers CHOOSE" gap   |
+| C6 | Write ADR-0039: Graph Schema (decision, constraints, what we rejected from TypeDB) | Medium | 40min  | Lock in design decisions                         |
 
 ### Phase D — Polish + Verification
 
-| #   | Task                                                                            | Impact   | Effort | Why                                                  |
-| --- | ------------------------------------------------------------------------------- | -------- | ------ | ---------------------------------------------------- |
-| D1  | Update `graph/README.md` with Schema + Read API sections + examples             | Medium   | 30min  | Module docs match new capabilities                   |
-| D2  | Update `AGENTS.md`: graph module description + Key Patterns + layer graph       | Medium   | 30min  | Session-level context stays current                  |
-| D3  | Write ADR-0040: Deriver module design (TypeDB rule model as reference)          | Low      | 40min  | Capture TypeDB's when/then lesson for future Deriver |
-| D4  | Full verification: build + vet + test (race) + lint + check-arch + check-layers | Critical | 30min  | DO NOT BREAK BUILD                                   |
+| #  | Task                                                                            | Impact   | Effort | Why                                                  |
+| -- | ------------------------------------------------------------------------------- | -------- | ------ | ---------------------------------------------------- |
+| D1 | Update `graph/README.md` with Schema + Read API sections + examples             | Medium   | 30min  | Module docs match new capabilities                   |
+| D2 | Update `AGENTS.md`: graph module description + Key Patterns + layer graph       | Medium   | 30min  | Session-level context stays current                  |
+| D3 | Write ADR-0040: Deriver module design (TypeDB rule model as reference)          | Low      | 40min  | Capture TypeDB's when/then lesson for future Deriver |
+| D4 | Full verification: build + vet + test (race) + lint + check-arch + check-layers | Critical | 30min  | DO NOT BREAK BUILD                                   |
 
 **Total estimated effort:** ~13.5 hours across 23 tasks
 

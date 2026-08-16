@@ -72,17 +72,17 @@ intercept-local-write → publish → apply-remote pattern. Now all 5 monotonic 
 
 ## Task Breakdown (30-100 min tasks)
 
-| #   | Task                                                                                      | Impact   | Effort | Dependencies |
-| --- | ----------------------------------------------------------------------------------------- | -------- | ------ | ------------ |
-| T1  | Module scaffolding: go.mod, go.work entry, api-stability list                             | Medium   | 15min  | None         |
-| T2  | Core types: WriteOp, Transport interface, Network mock, Options                           | High     | 45min  | T1           |
-| T3  | Replicated engine: Profile() override + Map/Set/Counter/Multimap/Log backend interception | Critical | 60min  | T2           |
-| T4  | Non-CRDT delegation: ScanBackend, MapUpdater, Graph/Vector/Search/Spatial passthrough     | Medium   | 30min  | T3           |
-| T5  | Convergence tests: 2-node Map convergence, 3-node, LWW, PN-Counter                        | Critical | 45min  | T3           |
-| T6  | adttest.RunMatrix parity test                                                             | High     | 20min  | T3, T4       |
-| T7  | MapUpdate replication warning test                                                        | Medium   | 15min  | T3           |
-| T8  | Docs: ADR-0096 update, AGENTS.md, ROADMAP, TODO_LIST                                      | Medium   | 30min  | T3-T6        |
-| T9  | api-stability golden regen + verify gate                                                  | Medium   | 20min  | T1-T8        |
+| #  | Task                                                                                      | Impact   | Effort | Dependencies |
+| -- | ----------------------------------------------------------------------------------------- | -------- | ------ | ------------ |
+| T1 | Module scaffolding: go.mod, go.work entry, api-stability list                             | Medium   | 15min  | None         |
+| T2 | Core types: WriteOp, Transport interface, Network mock, Options                           | High     | 45min  | T1           |
+| T3 | Replicated engine: Profile() override + Map/Set/Counter/Multimap/Log backend interception | Critical | 60min  | T2           |
+| T4 | Non-CRDT delegation: ScanBackend, MapUpdater, Graph/Vector/Search/Spatial passthrough     | Medium   | 30min  | T3           |
+| T5 | Convergence tests: 2-node Map convergence, 3-node, LWW, PN-Counter                        | Critical | 45min  | T3           |
+| T6 | adttest.RunMatrix parity test                                                             | High     | 20min  | T3, T4       |
+| T7 | MapUpdate replication warning test                                                        | Medium   | 15min  | T3           |
+| T8 | Docs: ADR-0096 update, AGENTS.md, ROADMAP, TODO_LIST                                      | Medium   | 30min  | T3-T6        |
+| T9 | api-stability golden regen + verify gate                                                  | Medium   | 20min  | T1-T8        |
 
 **Total: ~280 min (4.7 hours)**
 

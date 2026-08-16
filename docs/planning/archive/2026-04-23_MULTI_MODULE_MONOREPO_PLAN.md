@@ -818,8 +818,8 @@ and working. The remaining work is the "last mile": specialized storage modules
 | `integration/`  | ✅ Exists     | Cross-module BDD + integration tests (not in original plan — valuable addition)        |
 | `example/user/` | ✅ Exists     | Full CQRS lifecycle demo + EventCatalog export                                         |
 | `watermill/`    | ❌ Missing    | Planned Phase 6                                                                        |
-| `projection/`   | ⚠️ Partial    | `Projection`, `InMemoryRunner`, `CheckpointStore` in `core/event/`. No separate module |
-| `snapshot/`     | ⚠️ Partial    | `SnapshotStore` interface in `core/event/`. No separate SQL-backed module              |
+| `projection/`   | ⚠️ Partial     | `Projection`, `InMemoryRunner`, `CheckpointStore` in `core/event/`. No separate module |
+| `snapshot/`     | ⚠️ Partial     | `SnapshotStore` interface in `core/event/`. No separate SQL-backed module              |
 | `xtypes/`       | ❌ Skipped    | Was empty concept; functionality absorbed into core                                    |
 | `testutil/`     | ✅ (renamed)  | Named `testhelpers/` instead. Same role, different name                                |
 
@@ -1048,16 +1048,16 @@ Production-to-test ratio: **1:2.15** (excellent test density).
 
 ### Open Questions Resolution (from original plan)
 
-| #   | Question                            | Resolution                                                                                                                                                       |
-| --- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Should core be truly zero-dep?      | **No** — `cockroachdb/errors` + `oklog/ulid` + `go-branded-id` + `go-json-experiment/json` remain. Value > purity.                                               |
-| 2   | Should middleware be split further? | **No** — `tracing.go` adds OTel dep but it's optional (users who don't use tracing don't import it). The dep is in `go.mod` but only invoked at runtime if used. |
-| 3   | Module priorities?                  | **Validated** — `storage/` was highest-value (done). `projection/` second (done). `watermill/` third (not started).                                              |
-| 4   | go-import hosting strategy?         | **Unresolved** — Still not configured. Needed before public discovery works.                                                                                     |
-| 5   | sqlc query sharing?                 | **Deferred** — Single-engine (PostgreSQL) with hand-written SQL. sqlc remains a future option.                                                                   |
-| 6   | Event Codec?                        | **In core** — `Codec` interface + `JSONCodec` in `core/event/codec.go`. Not a separate module.                                                                   |
-| 7   | Event Upcasting?                    | **In core** — `Upcaster` interface + `UpcasterRegistry` with cycle detection in `core/event/`.                                                                   |
-| 8   | Schema migration tool?              | **Unresolved** — `Schema()`, `SnapshotSchema()`, `CheckpointSchema()` return DDL strings. No migration tool yet.                                                 |
+| # | Question                            | Resolution                                                                                                                                                       |
+| - | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Should core be truly zero-dep?      | **No** — `cockroachdb/errors` + `oklog/ulid` + `go-branded-id` + `go-json-experiment/json` remain. Value > purity.                                               |
+| 2 | Should middleware be split further? | **No** — `tracing.go` adds OTel dep but it's optional (users who don't use tracing don't import it). The dep is in `go.mod` but only invoked at runtime if used. |
+| 3 | Module priorities?                  | **Validated** — `storage/` was highest-value (done). `projection/` second (done). `watermill/` third (not started).                                              |
+| 4 | go-import hosting strategy?         | **Unresolved** — Still not configured. Needed before public discovery works.                                                                                     |
+| 5 | sqlc query sharing?                 | **Deferred** — Single-engine (PostgreSQL) with hand-written SQL. sqlc remains a future option.                                                                   |
+| 6 | Event Codec?                        | **In core** — `Codec` interface + `JSONCodec` in `core/event/codec.go`. Not a separate module.                                                                   |
+| 7 | Event Upcasting?                    | **In core** — `Upcaster` interface + `UpcasterRegistry` with cycle detection in `core/event/`.                                                                   |
+| 8 | Schema migration tool?              | **Unresolved** — `Schema()`, `SnapshotSchema()`, `CheckpointSchema()` return DDL strings. No migration tool yet.                                                 |
 
 ### Remaining Work (Prioritized)
 
@@ -1079,12 +1079,12 @@ Production-to-test ratio: **1:2.15** (excellent test density).
 
 ### Remaining Items from "What Gets Fixed" (Original Plan)
 
-| Issue                                   | Status     | Notes                                                  |
-| --------------------------------------- | ---------- | ------------------------------------------------------ |
-| Query handler missing `context.Context` | ✅ Fixed   | Done in Phase 0                                        |
-| `err113` sentinel errors                | ✅ Fixed   | All modules use sentinel errors                        |
-| `marshalValue` complexity (14)          | ✅ Fixed   | Deleted, replaced by `go-faster/yaml`                  |
-| `catalog/adapters` coverage 66%         | ✅ Fixed   | Now 100% (session 30; recovered from 95.5% regression) |
+| Issue                                   | Status    | Notes                                                  |
+| --------------------------------------- | --------- | ------------------------------------------------------ |
+| Query handler missing `context.Context` | ✅ Fixed  | Done in Phase 0                                        |
+| `err113` sentinel errors                | ✅ Fixed  | All modules use sentinel errors                        |
+| `marshalValue` complexity (14)          | ✅ Fixed  | Deleted, replaced by `go-faster/yaml`                  |
+| `catalog/adapters` coverage 66%         | ✅ Fixed  | Now 100% (session 30; recovered from 95.5% regression) |
 | Examples not CI-tested                  | ⚠️ Partial | `example/user/` is in `go.work` but has no test files  |
 
 ### Summary

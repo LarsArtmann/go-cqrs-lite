@@ -39,11 +39,11 @@
 
 ## Execution Plan
 
-| #   | Task                                           | Impact | Effort | Priority |
-| --- | ---------------------------------------------- | ------ | ------ | -------- |
-| 1   | Fix SQLSnapshotStore double-marshal bug        | HIGH   | LOW    | P0       |
-| 2   | Fix storage Close() ownership (don't close DB) | HIGH   | LOW    | P0       |
-| 3   | Add io.Closer to CheckpointStore + impls       | MED    | LOW    | P1       |
-| 4   | Add SQLSnapshotStore tests (go-sqlmock)        | MED    | MED    | P1       |
-| 5   | Add SQLCheckpointStore tests (go-sqlmock)      | MED    | MED    | P1       |
-| 6   | Change Version() to return event.Version       | HIGH   | HIGH   | P2       |
+| # | Task                                           | Impact | Effort | Priority |
+| - | ---------------------------------------------- | ------ | ------ | -------- |
+| 1 | Fix SQLSnapshotStore double-marshal bug        | HIGH   | LOW    | P0       |
+| 2 | Fix storage Close() ownership (don't close DB) | HIGH   | LOW    | P0       |
+| 3 | Add io.Closer to CheckpointStore + impls       | MED    | LOW    | P1       |
+| 4 | Add SQLSnapshotStore tests (go-sqlmock)        | MED    | MED    | P1       |
+| 5 | Add SQLCheckpointStore tests (go-sqlmock)      | MED    | MED    | P1       |
+| 6 | Change Version() to return event.Version       | HIGH   | HIGH   | P2       |

@@ -1,7 +1,7 @@
 # Performance Optimization Plan — go-cqrs-lite
 
-> Generated: 2026-06-03 02:25  
-> Focus: **Benchmark-driven performance optimization** — measure, optimize, verify.  
+> Generated: 2026-06-03 02:25\
+> Focus: **Benchmark-driven performance optimization** — measure, optimize, verify.\
 > All tasks max 100min, split into subtasks max 15min.
 
 ---

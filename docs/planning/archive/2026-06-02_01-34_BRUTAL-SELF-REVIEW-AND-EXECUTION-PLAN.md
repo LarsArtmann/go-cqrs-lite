@@ -82,47 +82,47 @@ Sorted by **impact / effort** (Pareto: 1%→51%, 4%→64%, 20%→80%).
 
 ### Phase 1: Quick Wins (1% → 51% impact, ~30min each)
 
-| #   | Task                                                                                                | Impact                           | Effort | Files                   |
-| --- | --------------------------------------------------------------------------------------------------- | -------------------------------- | ------ | ----------------------- |
-| 1   | Replace testify with gomega in 5 test files                                                         | Policy compliance                | 30min  | 5 test files + 2 go.mod |
-| 2   | Consolidate ErrHandlerNotFound + ErrDispatcherClosed into dispatcher/, re-export from command/query | Eliminates 4 duplicate sentinels | 30min  | 6 error files + callers |
-| 3   | Fix command/aggregate_ref.go boundary violation — remove event type re-exports                      | Clean module boundary            | 15min  | 1-2 files               |
+| # | Task                                                                                                | Impact                           | Effort | Files                   |
+| - | --------------------------------------------------------------------------------------------------- | -------------------------------- | ------ | ----------------------- |
+| 1 | Replace testify with gomega in 5 test files                                                         | Policy compliance                | 30min  | 5 test files + 2 go.mod |
+| 2 | Consolidate ErrHandlerNotFound + ErrDispatcherClosed into dispatcher/, re-export from command/query | Eliminates 4 duplicate sentinels | 30min  | 6 error files + callers |
+| 3 | Fix command/aggregate_ref.go boundary violation — remove event type re-exports                      | Clean module boundary            | 15min  | 1-2 files               |
 
 ### Phase 2: Type Model Fixes (4% → 64% impact, ~30-60min each)
 
-| #   | Task                                                                            | Impact                 | Effort | Files     |
-| --- | ------------------------------------------------------------------------------- | ---------------------- | ------ | --------- |
-| 4   | Extract shared Metadata — command.Metadata embeds event.Metadata or shared base | Eliminates split brain | 45min  | 3-4 files |
-| 5   | Fix schema.VersionedStore — hide embedded event.Store                           | Prevents bypass        | 15min  | 1-2 files |
-| 6   | Extract ImmutableEvent to immutable.go (from event.go)                          | Single responsibility  | 15min  | 2 files   |
+| # | Task                                                                            | Impact                 | Effort | Files     |
+| - | ------------------------------------------------------------------------------- | ---------------------- | ------ | --------- |
+| 4 | Extract shared Metadata — command.Metadata embeds event.Metadata or shared base | Eliminates split brain | 45min  | 3-4 files |
+| 5 | Fix schema.VersionedStore — hide embedded event.Store                           | Prevents bypass        | 15min  | 1-2 files |
+| 6 | Extract ImmutableEvent to immutable.go (from event.go)                          | Single responsibility  | 15min  | 2 files   |
 
 ### Phase 3: Middleware Generics (20% → 80% impact, ~2-3h)
 
-| #   | Task                                                                                                    | Impact                            | Effort | Files   |
-| --- | ------------------------------------------------------------------------------------------------------- | --------------------------------- | ------ | ------- |
-| 7   | Create generic Middleware[H] per concern in middleware/ — retry, recovery, logging, validation, metrics | Removes ~300 lines of duplication | 2h     | 9 files |
+| # | Task                                                                                                    | Impact                            | Effort | Files   |
+| - | ------------------------------------------------------------------------------------------------------- | --------------------------------- | ------ | ------- |
+| 7 | Create generic Middleware[H] per concern in middleware/ — retry, recovery, logging, validation, metrics | Removes ~300 lines of duplication | 2h     | 9 files |
 
 ### Phase 4: Reactive Integration (post-v2, ~1-2h)
 
-| #   | Task                                                                        | Impact                  | Effort | Files     |
-| --- | --------------------------------------------------------------------------- | ----------------------- | ------ | --------- |
-| 8   | Embed ro.Subject[M] in Dispatcher[H,M] — emit on every dispatch             | Eliminates ghost system | 1h     | 3-5 files |
-| 9   | Remove standalone reactive.go type aliases from command/ and query/         | Dead code removal       | 15min  | 2-4 files |
-| 10  | Clean up event/reactive.go — keep utilities, remove dead bus/filter aliases | Split brain fix         | 30min  | 1-2 files |
+| #  | Task                                                                        | Impact                  | Effort | Files     |
+| -- | --------------------------------------------------------------------------- | ----------------------- | ------ | --------- |
+| 8  | Embed ro.Subject[M] in Dispatcher[H,M] — emit on every dispatch             | Eliminates ghost system | 1h     | 3-5 files |
+| 9  | Remove standalone reactive.go type aliases from command/ and query/         | Dead code removal       | 15min  | 2-4 files |
+| 10 | Clean up event/reactive.go — keep utilities, remove dead bus/filter aliases | Split brain fix         | 30min  | 1-2 files |
 
 ### Phase 5: Test Quality (~1h)
 
-| #   | Task                                                                                | Impact       | Effort | Files    |
-| --- | ----------------------------------------------------------------------------------- | ------------ | ------ | -------- |
-| 11  | Move misplaced integration/command + integration/query tests to their home packages | Test hygiene | 15min  | 4 files  |
-| 12  | Extract withRLock/withWLock helpers in memory/                                      | DRY          | 15min  | ~5 files |
+| #  | Task                                                                                | Impact       | Effort | Files    |
+| -- | ----------------------------------------------------------------------------------- | ------------ | ------ | -------- |
+| 11 | Move misplaced integration/command + integration/query tests to their home packages | Test hygiene | 15min  | 4 files  |
+| 12 | Extract withRLock/withWLock helpers in memory/                                      | DRY          | 15min  | ~5 files |
 
 ### Phase 6: Documentation & Final Cleanup
 
-| #   | Task                                         | Impact            | Effort | Files  |
-| --- | -------------------------------------------- | ----------------- | ------ | ------ |
-| 13  | Update AGENTS.md with new architecture state | Memory freshness  | 15min  | 1 file |
-| 14  | Update TODO_LIST.md — mark completed items   | Tracking accuracy | 15min  | 1 file |
+| #  | Task                                         | Impact            | Effort | Files  |
+| -- | -------------------------------------------- | ----------------- | ------ | ------ |
+| 13 | Update AGENTS.md with new architecture state | Memory freshness  | 15min  | 1 file |
+| 14 | Update TODO_LIST.md — mark completed items   | Tracking accuracy | 15min  | 1 file |
 
 ---
 

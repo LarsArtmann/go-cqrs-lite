@@ -39,30 +39,30 @@ Logging, recovery, validation, retry middleware. EventCatalog generation without
 
 ## Comprehensive Plan (30-100 min tasks, sorted by impact)
 
-| #   | Task                                                                                  | Impact   | Effort | Phase |
-| --- | ------------------------------------------------------------------------------------- | -------- | ------ | ----- |
-| 1   | Create `core/decider` package — Decider[State] type, Repository[State], Execute, Load | CRITICAL | 45min  | P1    |
-| 2   | Create `core/decider/errors.go` — sentinel errors (ErrNilStore, ErrNilBus, etc.)      | HIGH     | 15min  | P1    |
-| 3   | Create `core/decider/decider_test.go` — full test coverage                            | HIGH     | 60min  | P1    |
-| 4   | Add `core/decider` to go.work + verify module builds                                  | HIGH     | 15min  | P1    |
-| 5   | Create `example/user/events.go` — shared event payload types                          | HIGH     | 15min  | P2    |
-| 6   | Create `example/user/state.go` — UserState + foldUser function                        | HIGH     | 20min  | P2    |
-| 7   | Create `example/user/decide.go` — decideCreateUser, decideChangeName                  | HIGH     | 20min  | P2    |
-| 8   | Create `example/user/commands.go` — CreateUserCmd, ChangeUserNameCmd                  | HIGH     | 20min  | P2    |
-| 9   | Create `example/user/queries.go` — GetUserQuery, ListUsersQuery                       | MED      | 15min  | P2    |
-| 10  | Create `example/user/projection.go` — UserProjection + read model                     | HIGH     | 30min  | P2    |
-| 11  | Create `example/user/handlers.go` — command + query handler wiring                    | HIGH     | 25min  | P2    |
-| 12  | Create `example/user/logger.go` — slog adapter for middleware                         | MED      | 20min  | P3    |
-| 13  | Create `example/user/metrics.go` — simple MetricsRecorder                             | MED      | 15min  | P3    |
-| 14  | Rewrite `example/user/catalog.go` — no split-brain, shared types                      | MED      | 25min  | P3    |
-| 15  | Rewrite `example/user/main.go` — full wiring + demo flow                              | HIGH     | 45min  | P4    |
-| 16  | Update `example/user/go.mod` — add core/decider dependency                            | MED      | 10min  | P2    |
-| 17  | Create `example/user/README.md` — architecture + explanation                          | MED      | 20min  | P4    |
-| 18  | Verify: `go run .` works end-to-end                                                   | HIGH     | 15min  | P4    |
-| 19  | Update `AGENTS.md` with decider package info                                          | MED      | 15min  | P4    |
-| 20  | Run all tests across all modules                                                      | HIGH     | 15min  | P4    |
-| 21  | Lint check                                                                            | MED      | 10min  | P4    |
-| 22  | Git commit with detailed messages                                                     | MED      | 10min  | P4    |
+| #  | Task                                                                                  | Impact   | Effort | Phase |
+| -- | ------------------------------------------------------------------------------------- | -------- | ------ | ----- |
+| 1  | Create `core/decider` package — Decider[State] type, Repository[State], Execute, Load | CRITICAL | 45min  | P1    |
+| 2  | Create `core/decider/errors.go` — sentinel errors (ErrNilStore, ErrNilBus, etc.)      | HIGH     | 15min  | P1    |
+| 3  | Create `core/decider/decider_test.go` — full test coverage                            | HIGH     | 60min  | P1    |
+| 4  | Add `core/decider` to go.work + verify module builds                                  | HIGH     | 15min  | P1    |
+| 5  | Create `example/user/events.go` — shared event payload types                          | HIGH     | 15min  | P2    |
+| 6  | Create `example/user/state.go` — UserState + foldUser function                        | HIGH     | 20min  | P2    |
+| 7  | Create `example/user/decide.go` — decideCreateUser, decideChangeName                  | HIGH     | 20min  | P2    |
+| 8  | Create `example/user/commands.go` — CreateUserCmd, ChangeUserNameCmd                  | HIGH     | 20min  | P2    |
+| 9  | Create `example/user/queries.go` — GetUserQuery, ListUsersQuery                       | MED      | 15min  | P2    |
+| 10 | Create `example/user/projection.go` — UserProjection + read model                     | HIGH     | 30min  | P2    |
+| 11 | Create `example/user/handlers.go` — command + query handler wiring                    | HIGH     | 25min  | P2    |
+| 12 | Create `example/user/logger.go` — slog adapter for middleware                         | MED      | 20min  | P3    |
+| 13 | Create `example/user/metrics.go` — simple MetricsRecorder                             | MED      | 15min  | P3    |
+| 14 | Rewrite `example/user/catalog.go` — no split-brain, shared types                      | MED      | 25min  | P3    |
+| 15 | Rewrite `example/user/main.go` — full wiring + demo flow                              | HIGH     | 45min  | P4    |
+| 16 | Update `example/user/go.mod` — add core/decider dependency                            | MED      | 10min  | P2    |
+| 17 | Create `example/user/README.md` — architecture + explanation                          | MED      | 20min  | P4    |
+| 18 | Verify: `go run .` works end-to-end                                                   | HIGH     | 15min  | P4    |
+| 19 | Update `AGENTS.md` with decider package info                                          | MED      | 15min  | P4    |
+| 20 | Run all tests across all modules                                                      | HIGH     | 15min  | P4    |
+| 21 | Lint check                                                                            | MED      | 10min  | P4    |
+| 22 | Git commit with detailed messages                                                     | MED      | 10min  | P4    |
 
 ---
 

@@ -15,9 +15,9 @@
 
 The original M9 task (TODO_LIST.md Phase 6):
 
-> *"When an event has a `[]Attachment` field and a query requests `MessageView`
+> _"When an event has a `[]Attachment` field and a query requests `MessageView`
 > (which has `Attachments`), auto-generate a second collection for attachments.
-> Planner sees the relationship and generates a join-aware read path."*
+> Planner sees the relationship and generates a join-aware read path."_
 
 **This assumes normalization is always correct.** It isn't. The right layout
 depends on the backend AND the workload. Hardcoding "always split into a child
@@ -28,12 +28,12 @@ multi-engine.
 
 ## 2. Normalization vs. Denormalization: The Per-Backend Truth
 
-| Backend | Denormalize (embed slice) | Normalize (child collection + join) | Winner |
-| --- | --- | --- | --- |
-| **Pebble / bbolt / memory** (KV/log) | **Native.** One key lookup → whole aggregate. O(1). | Two lookups + in-memory merge. Pessimistic. | **Denormalize** |
-| **SQLite / PG / MySQL / Turso** (SQL) | JSON/TEXT column. Loses queryability into children. | **Native.** Child table + FK + index-backed JOIN. | **Normalize** |
-| **Dgraph** (graph) | Predicate with list value. OK. | Edges to attachment nodes. **Native.** | **Normalize** (graph-shaped) |
-| **DuckDB** (columnar) | Nested/repeated column. **Fast** for analytics. | Long/narrow child table. Also fine. | **Either** (workload-dependent) |
+| Backend                               | Denormalize (embed slice)                           | Normalize (child collection + join)               | Winner                          |
+| ------------------------------------- | --------------------------------------------------- | ------------------------------------------------- | ------------------------------- |
+| **Pebble / bbolt / memory** (KV/log)  | **Native.** One key lookup → whole aggregate. O(1). | Two lookups + in-memory merge. Pessimistic.       | **Denormalize**                 |
+| **SQLite / PG / MySQL / Turso** (SQL) | JSON/TEXT column. Loses queryability into children. | **Native.** Child table + FK + index-backed JOIN. | **Normalize**                   |
+| **Dgraph** (graph)                    | Predicate with list value. OK.                      | Edges to attachment nodes. **Native.**            | **Normalize** (graph-shaped)    |
+| **DuckDB** (columnar)                 | Nested/repeated column. **Fast** for analytics.     | Long/narrow child table. Also fine.               | **Either** (workload-dependent) |
 
 The choice isn't universal. It's per-engine, per-query.
 
@@ -42,11 +42,11 @@ and bbolt databases plus the memory engine (see `metaengine/layout_scoring.go`)
 show the per-priority split on KV/LSM is the OPPOSITE of the naive "KV always
 embeds" reading of the table above:
 
-| Priority | Winner on KV/LSM | Measured ratios (normalize ÷ embed) |
-| --- | --- | --- |
-| ReadSpeed | **Embed** | KV read 1.8 vs 0.5; LSM read 1.45 vs 0.74 |
-| WriteSpeed | **Normalize** | KV write 0.48 vs 1.0; LSM write 0.75 vs 1.10 |
-| StorageSpace | **Normalize** | KV storage 0.63 vs 1.3; LSM storage 0.80 vs 1.15 |
+| Priority     | Winner on KV/LSM | Measured ratios (normalize ÷ embed)              |
+| ------------ | ---------------- | ------------------------------------------------ |
+| ReadSpeed    | **Embed**        | KV read 1.8 vs 0.5; LSM read 1.45 vs 0.74        |
+| WriteSpeed   | **Normalize**    | KV write 0.48 vs 1.0; LSM write 0.75 vs 1.10     |
+| StorageSpace | **Normalize**    | KV storage 0.63 vs 1.3; LSM storage 0.80 vs 1.15 |
 
 Embedding's single-key read advantage survives measurement; its assumed write
 and storage advantage does not. Normalized child inserts are O(1) with no
@@ -56,12 +56,12 @@ read-modify-write, and embedding duplicates the aggregate across projections.
 SQLite, Postgres 16, MySQL (QEMU), and DuckDB (60s confirmation run) measured
 the normalize÷embed ratios below (see `metaengine/layout_scoring.go`):
 
-| Engine | read | write | storage | Per-priority winner |
-| --- | --- | --- | --- | --- |
-| SQLite (Row) | 1.95x | 0.66x | 0.33 | Normalize in all Row priority cells (write+storage dominate) |
-| Postgres 16 (Row) | 1.00x | 0.38x | 0.33 | — |
-| MySQL (Row) | 1.06x | 0.56x | 0.41 | — |
-| DuckDB (Columnar) | 2.62x | 0.20x | 0.59 | Columnar: Embed for ReadSpeed, Normalize otherwise |
+| Engine            | read  | write | storage | Per-priority winner                                          |
+| ----------------- | ----- | ----- | ------- | ------------------------------------------------------------ |
+| SQLite (Row)      | 1.95x | 0.66x | 0.33    | Normalize in all Row priority cells (write+storage dominate) |
+| Postgres 16 (Row) | 1.00x | 0.38x | 0.33    | —                                                            |
+| MySQL (Row)       | 1.06x | 0.56x | 0.41    | —                                                            |
+| DuckDB (Columnar) | 2.62x | 0.20x | 0.59    | Columnar: Embed for ReadSpeed, Normalize otherwise           |
 
 Notable correction vs the analytical estimate: a LEFT JOIN read is NOT cheaper
 than a JSON-column read on server engines (≈1.0x) and is 2x+ worse on SQLite —
@@ -95,25 +95,25 @@ could express developer storage intent (embed vs. normalize).
 
 **Corrected.** There are two orthogonal axes that must not be conflated:
 
-| Axis | Who controls it | What it means |
-| --- | --- | --- |
-| **Domain shape (constraint)** | Developer (involuntarily) | What layouts are *physically possible* given the payload bytes |
-| **Storage intent (objective)** | Operator (voluntarily) | What layout to *prefer* given cost trade-offs |
+| Axis                           | Who controls it           | What it means                                                  |
+| ------------------------------ | ------------------------- | -------------------------------------------------------------- |
+| **Domain shape (constraint)**  | Developer (involuntarily) | What layouts are _physically possible_ given the payload bytes |
+| **Storage intent (objective)** | Operator (voluntarily)    | What layout to _prefer_ given cost trade-offs                  |
 
 `[]AttachmentID` is not storage intent — it is **payload reality.** The developer
 chose to put IDs in the event (a domain modeling decision), and that choice
-*constrains* what the planner can do. It does not express a preference for any
+_constrains_ what the planner can do. It does not express a preference for any
 particular layout.
 
-| Event field type | What's in the payload | Embed possible? | Split possible? | Shared collection possible? |
-| --- | --- | --- | --- | --- |
-| `[]Attachment` | Full struct values | **Yes** (has bytes) | **Yes** (can decompose) | Yes — if same type appears across events |
-| `[]*Attachment` | Full struct values (ptr encoding) | **Yes** | **Yes** | Yes |
-| `[]AttachmentID` | Only IDs (no payload) | **No** — nothing to embed | **Yes** (store IDs) | **Yes** — but join requires the Attachment collection to exist elsewhere |
-| `[]*AttachmentID` | Only IDs | **No** | **Yes** | **Yes** — same as above |
+| Event field type  | What's in the payload             | Embed possible?           | Split possible?         | Shared collection possible?                                              |
+| ----------------- | --------------------------------- | ------------------------- | ----------------------- | ------------------------------------------------------------------------ |
+| `[]Attachment`    | Full struct values                | **Yes** (has bytes)       | **Yes** (can decompose) | Yes — if same type appears across events                                 |
+| `[]*Attachment`   | Full struct values (ptr encoding) | **Yes**                   | **Yes**                 | Yes                                                                      |
+| `[]AttachmentID`  | Only IDs (no payload)             | **No** — nothing to embed | **Yes** (store IDs)     | **Yes** — but join requires the Attachment collection to exist elsewhere |
+| `[]*AttachmentID` | Only IDs                          | **No**                    | **Yes**                 | **Yes** — same as above                                                  |
 
 The planner can't embed bytes it wasn't given. When the event carries
-`[]AttachmentID`, normalization is the *only valid layout* — not because the
+`[]AttachmentID`, normalization is the _only valid layout_ — not because the
 developer "wanted" normalization, but because embedding is physically
 impossible. Conversely, when the event carries `[]Attachment` full struct
 values, the planner CAN embed OR normalize — and the operator's priority
@@ -124,8 +124,8 @@ planner's option set (domain shape). The operator's priority selects within
 that option set (storage intent). A constraint that eliminates an option is not
 the same as an intent that expresses a preference.
 
-> **Key distinction:** `[]AttachmentID` *constrains* the planner (can't embed
-> absent data) but does NOT express storage *intent*. The developer expresses
+> **Key distinction:** `[]AttachmentID` _constrains_ the planner (can't embed
+> absent data) but does NOT express storage _intent_. The developer expresses
 > zero storage intent — ever. Layout selection within the constraint set is
 > 100% the operator's call via priorities + the cost model.
 
@@ -135,23 +135,23 @@ the same as an intent that expresses a preference.
 
 Two cleanly separated concerns:
 
-### Developer expresses: *what the data IS*
+### Developer expresses: _what the data IS_
 
 - Event types, field types, query shapes.
 - This defines the **constraint set** — what layouts are even valid (you can't
   embed data that isn't in the payload; you can always normalize data that is).
 - The developer NEVER makes a storage decision.
 
-### Operator expresses: *what to optimize FOR*
+### Operator expresses: _what to optimize FOR_
 
 A priority objective that weights the cost model:
 
-| Priority | Planner behavior |
-| --- | --- |
-| `WriteSpeed` | Penalize layouts that rewrite large rows on child mutation (favor normalized) |
-| `ReadSpeed` | Penalize layouts requiring joins/secondary lookups (favor denormalized) |
-| `StorageSpace` | Penalize data duplication (favor normalized) |
-| `Balanced` | Even weighting — the sane default |
+| Priority       | Planner behavior                                                              |
+| -------------- | ----------------------------------------------------------------------------- |
+| `WriteSpeed`   | Penalize layouts that rewrite large rows on child mutation (favor normalized) |
+| `ReadSpeed`    | Penalize layouts requiring joins/secondary lookups (favor denormalized)       |
+| `StorageSpace` | Penalize data duplication (favor normalized)                                  |
+| `Balanced`     | Even weighting — the sane default                                             |
 
 ### Priority Hierarchy (most specific wins)
 
@@ -159,9 +159,9 @@ A priority objective that weights the cost model:
 GLOBAL (whole deployment)  →  per-Engine  →  per-Query
 ```
 
-An operator can say: *"The whole deployment optimizes for ReadSpeed, but the
+An operator can say: _"The whole deployment optimizes for ReadSpeed, but the
 Pebble engine specifically prioritizes WriteSpeed (KV rewrites are cheap
-there), and this one analytics query optimizes for StorageSpace."*
+there), and this one analytics query optimizes for StorageSpace."_
 
 ---
 
@@ -190,6 +190,7 @@ This is the answer to "how does the operator know what priority to set?" — the
 don't guess, they **measure**.
 
 Capabilities:
+
 - Try all (or a Pareto-frontier subset of) valid plans for a workload.
 - Show real latency, throughput, storage size per plan.
 - Predict scaling (what happens at 10x, 100x data volume).
@@ -210,12 +211,12 @@ calibration when precision matters.
 The planner isn't picking one layout per query — it can maintain **parallel
 projections** across engines simultaneously, with explicit roles:
 
-| Role | Purpose |
-| --- | --- |
-| **Active read** | Serving live queries (the primary projection) |
-| **Migration target** | New engine being populated; switch over when caught up |
-| **Backup replica** | Redundant copy for disaster recovery |
-| **Dual-use** | Two engines serving different query shapes simultaneously |
+| Role                 | Purpose                                                   |
+| -------------------- | --------------------------------------------------------- |
+| **Active read**      | Serving live queries (the primary projection)             |
+| **Migration target** | New engine being populated; switch over when caught up    |
+| **Backup replica**   | Redundant copy for disaster recovery                      |
+| **Dual-use**         | Two engines serving different query shapes simultaneously |
 
 **New backends can be added at runtime.** The planner generates a plan for the
 new engine, backfills from the event log, and brings it online.
@@ -241,11 +242,11 @@ If `Message` has `[]Attachment` and `Order` has `[]Attachment`, are those the
 same Attachment collection or two different ones? Without the developer telling
 the planner, how are boundaries discovered?
 
-| Approach | How it works | Trade-off |
-| --- | --- | --- |
-| **Always local child** (recommended default) | Each `[]T` is a child of whatever event carries it. `Message.attachments` and `Order.attachments` are separate. | Simple. No sharing. Matches DDD aggregate boundaries. |
-| **Shared by Go type** (operator opt-in) | Same `Attachment` type anywhere = one global collection, referenced by FK from multiple parents. | True normalization. Assumes same type = same lifecycle (not always true: `Address` on `User` and `Order`). |
-| **Operator decides** | Planner proposes, operator confirms boundaries in deployment config. | Maximum flexibility. More operator burden. |
+| Approach                                     | How it works                                                                                                    | Trade-off                                                                                                  |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Always local child** (recommended default) | Each `[]T` is a child of whatever event carries it. `Message.attachments` and `Order.attachments` are separate. | Simple. No sharing. Matches DDD aggregate boundaries.                                                      |
+| **Shared by Go type** (operator opt-in)      | Same `Attachment` type anywhere = one global collection, referenced by FK from multiple parents.                | True normalization. Assumes same type = same lifecycle (not always true: `Address` on `User` and `Order`). |
+| **Operator decides**                         | Planner proposes, operator confirms boundaries in deployment config.                                            | Maximum flexibility. More operator burden.                                                                 |
 
 **Recommendation:** Local child by default, shared-by-type when operator opts
 in. Matches the "developer says nothing, operator tunes" model.
@@ -269,8 +270,8 @@ If the operator configures a priority that produces pathological layouts (e.g.,
 `StorageSpace` globally → 20-way joins on Pebble), the planner **obeys but
 warns loudly.** This is consistent with the project's north star:
 
-> *"Graceful degradation, never failure. Unsupported/unsuited query shapes emit
-> advisory diagnostics (WARN: slow), not errors."*
+> _"Graceful degradation, never failure. Unsupported/unsuited query shapes emit
+> advisory diagnostics (WARN: slow), not errors."_
 
 The operator is the decision-maker. The planner's job is to inform, not to
 refuse. Benchmark mode (§6.3) is the tool that prevents the operator from
@@ -282,12 +283,12 @@ choosing blind.
 
 All four open questions resolved 2026-08-11:
 
-| Decision | Choice | Rationale |
-| --- | --- | --- |
-| **Benchmark delivery** | Both (CLI + runtime) | CLI for pre-deployment "what if" exploration. Runtime API for ongoing monitoring + adaptive re-tuning. |
-| **Benchmark workload** | Both (synthesize + real trace) | Synthesize from declared queries by default (zero operator effort). Accept real traces for calibration when precision matters. |
-| **Dual-use sync** | Role-based | Fold pipeline (strong) for active read + dual-use. Async replication (eventual) for backup + migration. Matches operational reality. |
-| **Re-layout trigger** | Threshold-based | Small projections (<N events) rebuild automatically. Large ones require explicit operator confirmation. Balances safety and automation. |
+| Decision               | Choice                         | Rationale                                                                                                                               |
+| ---------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Benchmark delivery** | Both (CLI + runtime)           | CLI for pre-deployment "what if" exploration. Runtime API for ongoing monitoring + adaptive re-tuning.                                  |
+| **Benchmark workload** | Both (synthesize + real trace) | Synthesize from declared queries by default (zero operator effort). Accept real traces for calibration when precision matters.          |
+| **Dual-use sync**      | Role-based                     | Fold pipeline (strong) for active read + dual-use. Async replication (eventual) for backup + migration. Matches operational reality.    |
+| **Re-layout trigger**  | Threshold-based                | Small projections (<N events) rebuild automatically. Large ones require explicit operator confirmation. Balances safety and automation. |
 
 ### Re-layout Trigger (detail)
 
@@ -317,14 +318,14 @@ reflection") is **wrong** because it:
 
 **What replaces it:**
 
-| Dimension | M9 (original) | This model |
-| --- | --- | --- |
-| Who decides layout | Developer (via types) + reflection | **Operator** (via priorities) |
-| When decided | Planner-time (reflection) | Static + adaptive + benchmark |
-| Normalization trigger | Slice-of-struct field detected | Cost model + operator priority |
-| Backend awareness | None (always splits) | **Per-engine cost** (the whole point) |
-| Developer burden | Must model types carefully | **Zero** — developer is silent |
-| Layout migration | Not considered | Rebuild from event log (retroactive) |
+| Dimension             | M9 (original)                      | This model                            |
+| --------------------- | ---------------------------------- | ------------------------------------- |
+| Who decides layout    | Developer (via types) + reflection | **Operator** (via priorities)         |
+| When decided          | Planner-time (reflection)          | Static + adaptive + benchmark         |
+| Normalization trigger | Slice-of-struct field detected     | Cost model + operator priority        |
+| Backend awareness     | None (always splits)               | **Per-engine cost** (the whole point) |
+| Developer burden      | Must model types carefully         | **Zero** — developer is silent        |
+| Layout migration      | Not considered                     | Rebuild from event log (retroactive)  |
 
 **One sentence:** The planner selects the layout from the operator priority
 plus the calibrated cost model — on KV/LSM, ReadSpeed selects Embed while
@@ -349,7 +350,7 @@ domain, and the operator's job is to tune the deployment.
    maps `City` and `Zip` individually to result fields. ✓
 
 3. **Collection result types** — `collectionElementType()` handles `Items []T`
-   in *result* types: extracts element type T and uses it for field matching.
+   in _result_ types: extracts element type T and uses it for field matching.
    A query returning `Result{Items []UserView}` matches against `UserView`
    fields, not the wrapper. ✓
 
@@ -372,9 +373,9 @@ mechanism to:
 ### Why this is correct (not a bug)
 
 Slice decomposition is a **layout planning** concern (Layer 4, ADR-0124), not
-a fold inference concern (Layer 1, ADR-0116). Fold inference generates *how
-events map to projection entries*. Layout planning decides *the physical shape
-of those entries* (one embedded row vs. parent + child collection).
+a fold inference concern (Layer 1, ADR-0116). Fold inference generates _how
+events map to projection entries_. Layout planning decides _the physical shape
+of those entries_ (one embedded row vs. parent + child collection).
 
 The pre-Phase-6b behavior — embed the whole slice as a single field — was a
 reasonable starting point, but on-disk calibration corrected the assumed
@@ -393,7 +394,7 @@ When layout planning decides to normalize a `[]T` field:
 2. This is a **fold transformation** applied at plan time, not a fold inference
    change
 3. The existing `OnRecord` fold API already supports this — consumers can write
-   explicit folds that iterate slices. The gap is only in *auto-inferred* folds.
+   explicit folds that iterate slices. The gap is only in _auto-inferred_ folds.
 
 **Action item:** When implementing layout planning (Phase 6b), add a fold
 transformer that converts an embedded-slice fold into a normalized multi-
@@ -445,12 +446,14 @@ type MessageDetail struct {
 ### Scenario 1: Static plan, ReadSpeed priority, Pebble engine
 
 Operator config:
+
 ```yaml
 priority:
   global: ReadSpeed
 ```
 
 Planner reasoning:
+
 - Pebble is a KV engine → embedding is native (O(1) lookup)
 - ReadSpeed penalizes joins → embedding wins (no join needed)
 - **Selected layout:** `MessageDetail` stores `Attachments` as a single CBOR-
@@ -462,12 +465,14 @@ Cost: write amplification on `AttachmentAdded`, but O(1) reads.
 ### Scenario 2: Operator switches to StorageSpace priority
 
 Operator config change:
+
 ```yaml
 priority:
   global: StorageSpace
 ```
 
 Planner re-plans:
+
 - StorageSpace penalizes data duplication
 - Attachments are duplicated across `MessageDetail` and the event log
 - Normalization eliminates duplication: `attachments` becomes a child collection
@@ -493,14 +498,16 @@ projections:
 ### Scenario 4: Pathological layout — obey + warn
 
 Operator config:
+
 ```yaml
 priority:
   global: StorageSpace
   engines:
-    pebble: StorageSpace  # KV engine, normalization is expensive
+    pebble: StorageSpace # KV engine, normalization is expensive
 ```
 
 Planner:
+
 - Normalization on Pebble requires in-memory joins (no native JOIN)
 - WARN LOUDLY: "StorageSpace on Pebble: 12 queries require multi-lookup joins
   (estimated 3x read latency increase). Consider ReadSpeed for this engine."
@@ -515,22 +522,22 @@ Planner:
 
 ### Where warnings appear
 
-| Surface | What it shows |
-| --- | --- |
-| `Doctor()` output | `--- Layout Warnings ---` section: priority conflicts, pathological layouts, rebuild backlog |
-| `EXPLAIN <query>` | Layout annotation: "embedded (ReadSpeed priority)", "normalized via child collection (StorageSpace priority)", "WARNING: 3-way join on KV engine" |
-| Structured logs | `slog.Warn` with fields: `layout.warn`, `priority.conflict`, `engine.name`, `query.name`, `cost.estimate` |
-| `GetEngineStats()` | `LayoutWarnings []LayoutWarning` field: machine-readable warning list |
+| Surface            | What it shows                                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Doctor()` output  | `--- Layout Warnings ---` section: priority conflicts, pathological layouts, rebuild backlog                                                      |
+| `EXPLAIN <query>`  | Layout annotation: "embedded (ReadSpeed priority)", "normalized via child collection (StorageSpace priority)", "WARNING: 3-way join on KV engine" |
+| Structured logs    | `slog.Warn` with fields: `layout.warn`, `priority.conflict`, `engine.name`, `query.name`, `cost.estimate`                                         |
+| `GetEngineStats()` | `LayoutWarnings []LayoutWarning` field: machine-readable warning list                                                                             |
 
 ### Warning types
 
-| Warning | Trigger | Severity |
-| --- | --- | --- |
-| `PRIORITY_MISMATCH` | Engine can't efficiently serve the selected layout (e.g., normalized on KV) | WARN |
-| `REBUILD_BACKLOG` | Large projections pending rebuild after priority change | WARN |
-| `JOIN_AMPLIFICATION` | Query requires N-way join where N > 2 on a non-SQL engine | WARN |
-| `WRITE_AMPLIFICATION` | Embedded layout with high child-mutation rate (write amplification) | INFO |
-| `COST_MODEL_STALE` | Cost estimates based on compile-time priors, no live calibration | INFO |
+| Warning               | Trigger                                                                     | Severity |
+| --------------------- | --------------------------------------------------------------------------- | -------- |
+| `PRIORITY_MISMATCH`   | Engine can't efficiently serve the selected layout (e.g., normalized on KV) | WARN     |
+| `REBUILD_BACKLOG`     | Large projections pending rebuild after priority change                     | WARN     |
+| `JOIN_AMPLIFICATION`  | Query requires N-way join where N > 2 on a non-SQL engine                   | WARN     |
+| `WRITE_AMPLIFICATION` | Embedded layout with high child-mutation rate (write amplification)         | INFO     |
+| `COST_MODEL_STALE`    | Cost estimates based on compile-time priors, no live calibration            | INFO     |
 
 ### Priority conflict resolution
 

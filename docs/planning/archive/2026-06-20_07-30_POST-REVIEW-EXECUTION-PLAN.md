@@ -27,48 +27,48 @@
 
 ### TIER 1: Quick Wins (1% effort → 51% value)
 
-| #   | Task                                            | Impact      | Effort | Status  | Commit     |
-| --- | ----------------------------------------------- | ----------- | ------ | ------- | ---------- |
-| 1   | Fix CI file-size gate subshell bug              | 🔴 Critical | 5 min  | ✅ Done | `ee3ed3a8` |
-| 2   | Remove 3 dead build tags + add jsonv2           | 🟡 High     | 3 min  | ✅ Done | `9170c5dc` |
-| 3   | Remove security theater (-no-fail, \|\| true)   | 🔴 Critical | 10 min | ✅ Done | `9170c5dc` |
-| 4   | Rename ADR-0027 (defer → implemented)           | 🟡 High     | 2 min  | ✅ Done | `9170c5dc` |
-| 5   | Delete wasm/main.go + add WASM CI job           | 🟡 High     | 10 min | ✅ Done | `9170c5dc` |
-| 6   | Split 6 oversized files (pg_bus, advisor, etc.) | 🔴 Critical | 60 min | ✅ Done | `ee3ed3a8` |
-| 7   | Add Deprecated notices to ghost bus code        | 🟡 High     | 10 min | ✅ Done | `02f7eaa8` |
-| 8   | Reconcile AGENTS.md with reality                | 🟡 High     | 12 min | ✅ Done | `02f7eaa8` |
+| # | Task                                            | Impact      | Effort | Status  | Commit     |
+| - | ----------------------------------------------- | ----------- | ------ | ------- | ---------- |
+| 1 | Fix CI file-size gate subshell bug              | 🔴 Critical | 5 min  | ✅ Done | `ee3ed3a8` |
+| 2 | Remove 3 dead build tags + add jsonv2           | 🟡 High     | 3 min  | ✅ Done | `9170c5dc` |
+| 3 | Remove security theater (-no-fail, \|\| true)   | 🔴 Critical | 10 min | ✅ Done | `9170c5dc` |
+| 4 | Rename ADR-0027 (defer → implemented)           | 🟡 High     | 2 min  | ✅ Done | `9170c5dc` |
+| 5 | Delete wasm/main.go + add WASM CI job           | 🟡 High     | 10 min | ✅ Done | `9170c5dc` |
+| 6 | Split 6 oversized files (pg_bus, advisor, etc.) | 🔴 Critical | 60 min | ✅ Done | `ee3ed3a8` |
+| 7 | Add Deprecated notices to ghost bus code        | 🟡 High     | 10 min | ✅ Done | `02f7eaa8` |
+| 8 | Reconcile AGENTS.md with reality                | 🟡 High     | 12 min | ✅ Done | `02f7eaa8` |
 
 ### TIER 2: Hardening (4% effort → 64% value)
 
-| #   | Task                                          | Impact      | Effort | Status  | Commit     |
-| --- | --------------------------------------------- | ----------- | ------ | ------- | ---------- |
-| 9   | Classify remaining 10 unclassified errors → 0 | 🔴 Critical | 20 min | ✅ Done | `85d5eb70` |
-| 10  | Add TransactionID branded type                | 🟡 High     | 12 min | ✅ Done | `02f7eaa8` |
-| 11  | Promote TypedHandler; deprecate any-Handler   | 🟡 High     | 5 min  | ✅ Done | `02f7eaa8` |
-| 12  | Add version drift CI check script             | 🟡 High     | 12 min | ✅ Done | `02f7eaa8` |
-| 13  | Build watermill.EventBus adapter              | 🔴 Critical | 45 min | ✅ Done | `85d5eb70` |
+| #  | Task                                          | Impact      | Effort | Status  | Commit     |
+| -- | --------------------------------------------- | ----------- | ------ | ------- | ---------- |
+| 9  | Classify remaining 10 unclassified errors → 0 | 🔴 Critical | 20 min | ✅ Done | `85d5eb70` |
+| 10 | Add TransactionID branded type                | 🟡 High     | 12 min | ✅ Done | `02f7eaa8` |
+| 11 | Promote TypedHandler; deprecate any-Handler   | 🟡 High     | 5 min  | ✅ Done | `02f7eaa8` |
+| 12 | Add version drift CI check script             | 🟡 High     | 12 min | ✅ Done | `02f7eaa8` |
+| 13 | Build watermill.EventBus adapter              | 🔴 Critical | 45 min | ✅ Done | `85d5eb70` |
 
 ### TIER 3: Structural (20% effort → 80% value)
 
-| #   | Task                     | Impact    | Effort | Status     | Commit      |
-| --- | ------------------------ | --------- | ------ | ---------- | ----------- |
-| 14  | Write v3 migration guide | 🟡 High   | 20 min | ✅ Done    | this commit |
-| 15  | Docs prune pass          | 🟠 Medium | 20 min | ⏸ Deferred | —           |
+| #  | Task                     | Impact    | Effort | Status     | Commit      |
+| -- | ------------------------ | --------- | ------ | ---------- | ----------- |
+| 14 | Write v3 migration guide | 🟡 High   | 20 min | ✅ Done    | this commit |
+| 15 | Docs prune pass          | 🟠 Medium | 20 min | ⏸ Deferred | —           |
 
 ### TIER 4: v3 Breaking (design docs only — not executed)
 
-| #   | Task                                       | Impact      | Effort  | Status     | Why deferred                                 |
-| --- | ------------------------------------------ | ----------- | ------- | ---------- | -------------------------------------------- |
-| 16  | Delete ghost bus code (memory/bus.go etc.) | 🔴 Critical | 45 min  | 📋 v3      | External consumers; needs deprecation period |
-| 17  | Move memory/ → storage/memory/             | 🔴 Critical | 60 min  | 📋 v3      | 73 importing files; needs bus deletion first |
-| 18  | Version → uint64                           | 🔴 Critical | 120 min | 📋 v3      | 164 files; deeply invasive                   |
-| 19  | Break Metadata alias                       | 🟡 High     | 60 min  | 📋 v3      | Cascades through SQL stores                  |
-| 20  | Remove io.Closer from interfaces           | 🟡 High     | 30 min  | 📋 v3      | Implementor contract change                  |
-| 21  | encoding/json/v2 migration                 | 🟠 Medium   | 60 min  | 📋 v3+     | Requires GOEXPERIMENT=jsonv2                 |
-| 22  | catalog.Message/Service splits             | 🟠 Medium   | 90 min  | 📋 v4      | Internal types, lower priority               |
-| 23  | Split example/todo run()                   | 🟢 Low      | 20 min  | ⏸ Deferred | Cosmetic                                     |
-| 24  | Switch presets to Watermill                | 🟡 High     | 45 min  | ⏸ Deferred | Needs EventBus integration testing           |
-| 25  | Move HTTP → transport/ module              | 🟠 Medium   | 45 min  | 📋 v3      | Additive extraction possible later           |
+| #  | Task                                       | Impact      | Effort  | Status     | Why deferred                                 |
+| -- | ------------------------------------------ | ----------- | ------- | ---------- | -------------------------------------------- |
+| 16 | Delete ghost bus code (memory/bus.go etc.) | 🔴 Critical | 45 min  | 📋 v3      | External consumers; needs deprecation period |
+| 17 | Move memory/ → storage/memory/             | 🔴 Critical | 60 min  | 📋 v3      | 73 importing files; needs bus deletion first |
+| 18 | Version → uint64                           | 🔴 Critical | 120 min | 📋 v3      | 164 files; deeply invasive                   |
+| 19 | Break Metadata alias                       | 🟡 High     | 60 min  | 📋 v3      | Cascades through SQL stores                  |
+| 20 | Remove io.Closer from interfaces           | 🟡 High     | 30 min  | 📋 v3      | Implementor contract change                  |
+| 21 | encoding/json/v2 migration                 | 🟠 Medium   | 60 min  | 📋 v3+     | Requires GOEXPERIMENT=jsonv2                 |
+| 22 | catalog.Message/Service splits             | 🟠 Medium   | 90 min  | 📋 v4      | Internal types, lower priority               |
+| 23 | Split example/todo run()                   | 🟢 Low      | 20 min  | ⏸ Deferred | Cosmetic                                     |
+| 24 | Switch presets to Watermill                | 🟡 High     | 45 min  | ⏸ Deferred | Needs EventBus integration testing           |
+| 25 | Move HTTP → transport/ module              | 🟠 Medium   | 45 min  | 📋 v3      | Additive extraction possible later           |
 
 ---
 

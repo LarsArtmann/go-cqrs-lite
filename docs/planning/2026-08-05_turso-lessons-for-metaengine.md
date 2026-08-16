@@ -239,15 +239,15 @@ The "degraded" classification is the honest answer: "this engine CAN serve this 
 
 ## Part 5: Concrete Action Items
 
-| #   | Action                                                                                          | Priority | Effort     |
-| --- | ----------------------------------------------------------------------------------------------- | -------- | ---------- |
-| 1   | Rewrite the metaengine positioning to lead with "cost-based auto-updating materialized views"   | High     | Low (docs) |
-| 2   | Add "The ADT IR" architecture section to meta-engine-design.md                                  | Medium   | Low (docs) |
-| 3   | Add property-based cross-engine Oracle testing (rapid) to adttest                               | Medium   | Medium     |
-| 4   | Quote Turso's "inside, databases are not that different" in assumptions-and-query-planning.md   | Low      | Trivial    |
-| 5   | Frame deployment-time planning as an advantage in project-definition.md                         | Medium   | Low (docs) |
-| 6   | Document Pareto engine coverage as an explicit design principle                                 | Low      | Low (docs) |
-| 7   | Add an "Anti-Patterns" section to design docs: no bytecode VM, no storage engine, no wire proto | Medium   | Low (docs) |
+| # | Action                                                                                          | Priority | Effort     |
+| - | ----------------------------------------------------------------------------------------------- | -------- | ---------- |
+| 1 | Rewrite the metaengine positioning to lead with "cost-based auto-updating materialized views"   | High     | Low (docs) |
+| 2 | Add "The ADT IR" architecture section to meta-engine-design.md                                  | Medium   | Low (docs) |
+| 3 | Add property-based cross-engine Oracle testing (rapid) to adttest                               | Medium   | Medium     |
+| 4 | Quote Turso's "inside, databases are not that different" in assumptions-and-query-planning.md   | Low      | Trivial    |
+| 5 | Frame deployment-time planning as an advantage in project-definition.md                         | Medium   | Low (docs) |
+| 6 | Document Pareto engine coverage as an explicit design principle                                 | Low      | Low (docs) |
+| 7 | Add an "Anti-Patterns" section to design docs: no bytecode VM, no storage engine, no wire proto | Medium   | Low (docs) |
 
 ---
 

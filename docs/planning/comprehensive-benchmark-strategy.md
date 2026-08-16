@@ -120,24 +120,24 @@ Same-stream contention only measured on Memory. SQLite/Postgres/BBolt serializat
 
 The benchmark that tests "EVERYTHING" — exercises the complete CQRS pipeline with realistic data across all configurations.
 
-| #   | Task                                                                                                                          | Impact   | Effort | Customer Value                              |
-| --- | ----------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------------------------------------- |
-| A1  | Define 3 multi-domain model types (Order, Task, User) with create/update/delete events + state + fold + decide                | CRITICAL | 10m    | HIGH — realistic data shapes                |
-| A2  | Build realistic workload generator: mixed domain types + mixed payload sizes (64B/256B/1KB/10KB distribution)                 | CRITICAL | 12m    | HIGH — real-world data                      |
-| A3  | Implement full-pipeline benchmark: command→decider→save→publish→projection→readmodel→query (memory backend, single-goroutine) | CRITICAL | 12m    | CRITICAL — answers "how fast is my system?" |
-| A4  | Add concurrent full-pipeline benchmark: N goroutines running the complete pipeline, report throughput + latency               | HIGH     | 10m    | HIGH — real production load                 |
-| A5  | Parameterize pipeline by backend factory: memory, sqlite, sqlite-cgo, pebble, bbolt sub-benchmarks                            | HIGH     | 10m    | HIGH — backend comparison                   |
-| A6  | Add codec variant sub-benchmarks: pipeline/json, pipeline/cbor                                                                | HIGH     | 8m     | HIGH — codec decision support               |
-| A7  | Add middleware stack variant sub-benchmarks: none, logging-only, tracing-only, full-stack (logging+recovery+retry+OTel)       | HIGH     | 10m    | HIGH — production overhead visibility       |
-| A8  | Add payload size variant sub-benchmarks: 128B, 1KB, 10KB, mixed-distribution                                                  | MEDIUM   | 8m     | MEDIUM — sizing guidance                    |
-| A9  | Add concurrency variant sub-benchmarks: workers=1, 4, 8, 16                                                                   | MEDIUM   | 8m     | MEDIUM — scaling guidance                   |
+| #  | Task                                                                                                                          | Impact   | Effort | Customer Value                              |
+| -- | ----------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------------------------------------- |
+| A1 | Define 3 multi-domain model types (Order, Task, User) with create/update/delete events + state + fold + decide                | CRITICAL | 10m    | HIGH — realistic data shapes                |
+| A2 | Build realistic workload generator: mixed domain types + mixed payload sizes (64B/256B/1KB/10KB distribution)                 | CRITICAL | 12m    | HIGH — real-world data                      |
+| A3 | Implement full-pipeline benchmark: command→decider→save→publish→projection→readmodel→query (memory backend, single-goroutine) | CRITICAL | 12m    | CRITICAL — answers "how fast is my system?" |
+| A4 | Add concurrent full-pipeline benchmark: N goroutines running the complete pipeline, report throughput + latency               | HIGH     | 10m    | HIGH — real production load                 |
+| A5 | Parameterize pipeline by backend factory: memory, sqlite, sqlite-cgo, pebble, bbolt sub-benchmarks                            | HIGH     | 10m    | HIGH — backend comparison                   |
+| A6 | Add codec variant sub-benchmarks: pipeline/json, pipeline/cbor                                                                | HIGH     | 8m     | HIGH — codec decision support               |
+| A7 | Add middleware stack variant sub-benchmarks: none, logging-only, tracing-only, full-stack (logging+recovery+retry+OTel)       | HIGH     | 10m    | HIGH — production overhead visibility       |
+| A8 | Add payload size variant sub-benchmarks: 128B, 1KB, 10KB, mixed-distribution                                                  | MEDIUM   | 8m     | MEDIUM — sizing guidance                    |
+| A9 | Add concurrency variant sub-benchmarks: workers=1, 4, 8, 16                                                                   | MEDIUM   | 8m     | MEDIUM — scaling guidance                   |
 
 ### Workstream B: Configuration Matrix Runner
 
-| #   | Task                                                                                                                               | Impact | Effort | Customer Value                              |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------------------------------------- |
-| B1  | Create `scripts/bench-matrix.sh`: runs full-pipeline benchmark across all valid backend×codec×middleware×size combos, outputs JSON | HIGH   | 12m    | HIGH — one-command comprehensive comparison |
-| B2  | Add `--matrix` flag to bench-all.sh that invokes the matrix runner                                                                 | MEDIUM | 8m     | MEDIUM — discoverability                    |
+| #  | Task                                                                                                                               | Impact | Effort | Customer Value                              |
+| -- | ---------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------------------------------------- |
+| B1 | Create `scripts/bench-matrix.sh`: runs full-pipeline benchmark across all valid backend×codec×middleware×size combos, outputs JSON | HIGH   | 12m    | HIGH — one-command comprehensive comparison |
+| B2 | Add `--matrix` flag to bench-all.sh that invokes the matrix runner                                                                 | MEDIUM | 8m     | MEDIUM — discoverability                    |
 
 ### Workstream C: Gap-Filling Benchmarks
 
@@ -159,12 +159,12 @@ The benchmark that tests "EVERYTHING" — exercises the complete CQRS pipeline w
 
 ### Workstream D: CI & Infrastructure
 
-| #   | Task                                                                                      | Impact | Effort | Customer Value                                     |
-| --- | ----------------------------------------------------------------------------------------- | ------ | ------ | -------------------------------------------------- |
-| D1  | Wire benchstat regression detection into CI: per-PR benchmark comparison against baseline | HIGH   | 10m    | HIGH — catch performance regressions automatically |
-| D2  | Expand nightly CI to all embedded backends: add BBolt, DuckDB, Turso                      | MEDIUM | 10m    | MEDIUM — broader nightly coverage                  |
-| D3  | Add matrix benchmark job to nightly CI (invokes bench-matrix.sh)                          | MEDIUM | 8m     | MEDIUM — comprehensive nightly comparison          |
-| D4  | Update benchmark baseline after all new benchmarks are added                              | MEDIUM | 8m     | MEDIUM — regression detection foundation           |
+| #  | Task                                                                                      | Impact | Effort | Customer Value                                     |
+| -- | ----------------------------------------------------------------------------------------- | ------ | ------ | -------------------------------------------------- |
+| D1 | Wire benchstat regression detection into CI: per-PR benchmark comparison against baseline | HIGH   | 10m    | HIGH — catch performance regressions automatically |
+| D2 | Expand nightly CI to all embedded backends: add BBolt, DuckDB, Turso                      | MEDIUM | 10m    | MEDIUM — broader nightly coverage                  |
+| D3 | Add matrix benchmark job to nightly CI (invokes bench-matrix.sh)                          | MEDIUM | 8m     | MEDIUM — comprehensive nightly comparison          |
+| D4 | Update benchmark baseline after all new benchmarks are added                              | MEDIUM | 8m     | MEDIUM — regression detection foundation           |
 
 ---
 

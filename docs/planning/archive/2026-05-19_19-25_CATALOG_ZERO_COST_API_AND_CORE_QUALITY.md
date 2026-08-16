@@ -1,7 +1,7 @@
 # Comprehensive Execution Plan: Zero-Cost Catalog API & Core Quality Sweep
 
-**Date:** 2026-05-19  
-**Scope:** go-cqrs-lite library/SDK — catalog module redesign + core quality improvements  
+**Date:** 2026-05-19\
+**Scope:** go-cqrs-lite library/SDK — catalog module redesign + core quality improvements\
 **Goal:** Make catalog documentation generation "free" for consumers; eliminate split brains, duplication, and type safety gaps.
 
 ---
@@ -74,37 +74,37 @@ cat := catalog.Build("User Service", "1.0.0",
 
 ### 2.1 CatalogMeta Consolidation
 
-**File:** `core/{command,event,query}/catalog.go`  
-**Issue:** 3× identical structs (`Name, Version, Summary`). Event adds `AggregateType`.  
+**File:** `core/{command,event,query}/catalog.go`\
+**Issue:** 3× identical structs (`Name, Version, Summary`). Event adds `AggregateType`.\
 **Fix:** Extract `catalog.CatalogMetaBase{Name, Version, Summary}`. Embed in event's `CatalogMeta` with `AggregateType` field. Use type aliases for backward compat.
 
 ### 2.2 OutboxPublisher Lifecycle Split Brain
 
-**File:** `core/event/outbox_publisher.go`  
-**Issue:** `closed bool` + `cancel context.CancelFunc` represent same state. Can drift.  
+**File:** `core/event/outbox_publisher.go`\
+**Issue:** `closed bool` + `cancel context.CancelFunc` represent same state. Can drift.\
 **Fix:** Remove `closed`. Use `cancel != nil` as single source of truth.
 
 ### 2.3 Aggregate Version Split Brain
 
-**File:** `core/aggregate/aggregate.go`  
-**Issue:** `version` field + `changes` slice can drift if `SetVersion` called without clearing `changes`.  
+**File:** `core/aggregate/aggregate.go`\
+**Issue:** `version` field + `changes` slice can drift if `SetVersion` called without clearing `changes`.\
 **Fix:** Make `SetVersion` private or validate consistency.
 
 ### 2.4 Missing Compile-Time Interface Checks
 
-**Files:** `projection/runner.go`, `projection/handler.go`, `catalog/registry.go`  
+**Files:** `projection/runner.go`, `projection/handler.go`, `catalog/registry.go`\
 **Fix:** Add `var _ io.Closer = (*Runner)(nil)`, etc.
 
 ### 2.5 BaseDispatcher Useless Abstraction
 
-**File:** `core/pkg/dispatcher/base.go`  
-**Issue:** Every method is a 1-line delegate. Adds no value, forces double embedding.  
+**File:** `core/pkg/dispatcher/base.go`\
+**Issue:** Every method is a 1-line delegate. Adds no value, forces double embedding.\
 **Fix:** Inline into `command.Dispatcher` / `query.Dispatcher` or delete.
 
 ### 2.6 DispatchTyped as Method
 
-**File:** `core/query/dispatcher.go`  
-**Issue:** `DispatchTyped` is a free function, not discoverable.  
+**File:** `core/query/dispatcher.go`\
+**Issue:** `DispatchTyped` is a free function, not discoverable.\
 **Fix:** `func (d *Dispatcher) DispatchTyped[T any](...)`.
 
 ---
@@ -113,12 +113,12 @@ cat := catalog.Build("User Service", "1.0.0",
 
 ### 3.1 Storage SQL/SQLite Deduplication
 
-**Files:** 10 files with ~90% duplicated logic  
+**Files:** 10 files with ~90% duplicated logic\
 **Fix:** Introduce `storage.Dialect` interface (`Placeholder(n int) string`, `FormatTime(t time.Time) any`). Single implementations parameterized by dialect.
 
 ### 3.2 File Size Compliance
 
-**Files:** 7 files over 250 lines  
+**Files:** 7 files over 250 lines\
 **Fix:** Split by concern:
 
 - `example/todo/cmd/api/main.go` (331) → extract handlers, middleware setup
@@ -131,28 +131,28 @@ cat := catalog.Build("User Service", "1.0.0",
 
 ### 3.3 Version/SchemaVersion as uint
 
-**Files:** `core/event/types.go`, `core/event/snapshot_strategy.go`, `storage/*`  
+**Files:** `core/event/types.go`, `core/event/snapshot_strategy.go`, `storage/*`\
 **Fix:** Change backing type from `int` to `uint`. Update all call sites. Breaking but correct.
 
 ### 3.4 Event Subscription Wildcard Enum
 
-**Files:** `core/event/runner.go`, `projection/runner.go`  
+**Files:** `core/event/runner.go`, `projection/runner.go`\
 **Fix:** Replace `nil EventTypes = all` with explicit `SubscriptionScope` enum.
 
 ### 3.5 Missing Unit Tests
 
-**Files:** 12+ public APIs without dedicated tests  
+**Files:** 12+ public APIs without dedicated tests\
 **Fix:** Add `*_test.go` for: `builder.go`, `options.go`, `enricher.go`, `snapshot_helper.go`, `publish_helper.go`, `registry_helpers.go`, `projection/options.go`.
 
 ### 3.6 MemoryBus Handler Storage Consolidation
 
-**File:** `memory/bus.go`  
-**Issue:** `handlers` + `allHandlers` must be kept in sync.  
+**File:** `memory/bus.go`\
+**Issue:** `handlers` + `allHandlers` must be kept in sync.\
 **Fix:** Single `map[subscriptionKey][]Handler` where `subscriptionKey` is either a type or wildcard.
 
 ### 3.7 Error Wrapping Consistency
 
-**Files:** `storage/*.go`  
+**Files:** `storage/*.go`\
 **Fix:** Standardize error wrapping patterns. Remove remaining dynamic errors where sentinels exist.
 
 ---
@@ -200,35 +200,35 @@ graph TD
 
 ## Task Breakdown: 100–30 Minute Tasks (27 tasks)
 
-| #   | Task                                                                         | Effort | Module              | Value    | Depends On |
-| --- | ---------------------------------------------------------------------------- | ------ | ------------------- | -------- | ---------- |
-| 1   | Create `catalog.CatalogMetaBase` + embed in 3 packages                       | 30min  | core                | High     | —          |
-| 2   | Implement `catalog.Build()`, `catalog.Service()`                             | 30min  | catalog             | Critical | —          |
-| 3   | Implement `catalog.Command[T]()`, `catalog.Event[T]()`, `catalog.Query[T]()` | 30min  | catalog             | Critical | #2         |
-| 4   | Implement auto-naming (CamelCase → human)                                    | 30min  | catalog             | High     | #2         |
-| 5   | Add `MessageOption` funcs (Name, Summary, Version)                           | 15min  | catalog             | Medium   | #3         |
-| 6   | Deprecate `Catalogable`/`CatalogCore`/`CatalogMeta` in core                  | 30min  | core                | High     | #1         |
-| 7   | Delete `adapters/{command,event,query,message}.go`                           | 15min  | catalog             | Medium   | #3         |
-| 8   | Simplify `adapters/builder.go` to wrap new API                               | 30min  | catalog             | Medium   | #2, #7     |
-| 9   | Rewrite `example/user/catalog.go` with new API                               | 30min  | example             | Critical | #2, #3     |
-| 10  | Add golden + unit tests for new catalog API                                  | 60min  | catalog             | High     | #2–#5      |
-| 11  | Fix OutboxPublisher split brain (closed + cancel)                            | 30min  | core/event          | High     | —          |
-| 12  | Fix Aggregate version consistency                                            | 30min  | core/aggregate      | High     | —          |
-| 13  | Add missing compile-time interface checks                                    | 15min  | multiple            | Medium   | —          |
-| 14  | Delete `BaseDispatcher`, inline into command/query                           | 30min  | core/pkg/dispatcher | Medium   | —          |
-| 15  | `DispatchTyped` as method on `*Dispatcher`                                   | 30min  | core/query          | Medium   | —          |
-| 16  | Design `storage.Dialect` interface                                           | 30min  | storage             | High     | —          |
-| 17  | Merge SQL/SQLite event stores via Dialect                                    | 60min  | storage             | Critical | #16        |
-| 18  | Merge SQL/SQLite snapshot stores via Dialect                                 | 45min  | storage             | High     | #16        |
-| 19  | Merge SQL/SQLite checkpoint stores via Dialect                               | 30min  | storage             | Medium   | #16        |
-| 20  | Merge SQL/SQLite outbox stores via Dialect                                   | 45min  | storage             | High     | #16        |
-| 21  | Merge SQL/SQLite transactional stores via Dialect                            | 30min  | storage             | Medium   | #16        |
-| 22  | Split 7 oversized files (test + production)                                  | 90min  | multiple            | Medium   | —          |
-| 23  | Version/SchemaVersion → uint                                                 | 60min  | core + storage      | Medium   | —          |
-| 24  | `SubscriptionScope` enum for wildcard                                        | 30min  | core + projection   | Low      | —          |
-| 25  | Add missing unit tests (builder, options, enricher, helpers)                 | 90min  | multiple            | Medium   | —          |
-| 26  | MemoryBus handler storage consolidation                                      | 30min  | memory              | Low      | —          |
-| 27  | Error wrapping consistency sweep                                             | 30min  | storage             | Low      | —          |
+| #  | Task                                                                         | Effort | Module              | Value    | Depends On |
+| -- | ---------------------------------------------------------------------------- | ------ | ------------------- | -------- | ---------- |
+| 1  | Create `catalog.CatalogMetaBase` + embed in 3 packages                       | 30min  | core                | High     | —          |
+| 2  | Implement `catalog.Build()`, `catalog.Service()`                             | 30min  | catalog             | Critical | —          |
+| 3  | Implement `catalog.Command[T]()`, `catalog.Event[T]()`, `catalog.Query[T]()` | 30min  | catalog             | Critical | #2         |
+| 4  | Implement auto-naming (CamelCase → human)                                    | 30min  | catalog             | High     | #2         |
+| 5  | Add `MessageOption` funcs (Name, Summary, Version)                           | 15min  | catalog             | Medium   | #3         |
+| 6  | Deprecate `Catalogable`/`CatalogCore`/`CatalogMeta` in core                  | 30min  | core                | High     | #1         |
+| 7  | Delete `adapters/{command,event,query,message}.go`                           | 15min  | catalog             | Medium   | #3         |
+| 8  | Simplify `adapters/builder.go` to wrap new API                               | 30min  | catalog             | Medium   | #2, #7     |
+| 9  | Rewrite `example/user/catalog.go` with new API                               | 30min  | example             | Critical | #2, #3     |
+| 10 | Add golden + unit tests for new catalog API                                  | 60min  | catalog             | High     | #2–#5      |
+| 11 | Fix OutboxPublisher split brain (closed + cancel)                            | 30min  | core/event          | High     | —          |
+| 12 | Fix Aggregate version consistency                                            | 30min  | core/aggregate      | High     | —          |
+| 13 | Add missing compile-time interface checks                                    | 15min  | multiple            | Medium   | —          |
+| 14 | Delete `BaseDispatcher`, inline into command/query                           | 30min  | core/pkg/dispatcher | Medium   | —          |
+| 15 | `DispatchTyped` as method on `*Dispatcher`                                   | 30min  | core/query          | Medium   | —          |
+| 16 | Design `storage.Dialect` interface                                           | 30min  | storage             | High     | —          |
+| 17 | Merge SQL/SQLite event stores via Dialect                                    | 60min  | storage             | Critical | #16        |
+| 18 | Merge SQL/SQLite snapshot stores via Dialect                                 | 45min  | storage             | High     | #16        |
+| 19 | Merge SQL/SQLite checkpoint stores via Dialect                               | 30min  | storage             | Medium   | #16        |
+| 20 | Merge SQL/SQLite outbox stores via Dialect                                   | 45min  | storage             | High     | #16        |
+| 21 | Merge SQL/SQLite transactional stores via Dialect                            | 30min  | storage             | Medium   | #16        |
+| 22 | Split 7 oversized files (test + production)                                  | 90min  | multiple            | Medium   | —          |
+| 23 | Version/SchemaVersion → uint                                                 | 60min  | core + storage      | Medium   | —          |
+| 24 | `SubscriptionScope` enum for wildcard                                        | 30min  | core + projection   | Low      | —          |
+| 25 | Add missing unit tests (builder, options, enricher, helpers)                 | 90min  | multiple            | Medium   | —          |
+| 26 | MemoryBus handler storage consolidation                                      | 30min  | memory              | Low      | —          |
+| 27 | Error wrapping consistency sweep                                             | 30min  | storage             | Low      | —          |
 
 ---
 

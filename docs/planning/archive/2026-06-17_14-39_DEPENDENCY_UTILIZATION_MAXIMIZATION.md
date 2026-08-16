@@ -32,14 +32,14 @@ changes to public APIs, wire formats, or stored data.
 
 These 6 changes are each under 60 minutes and deliver more than half the total value:
 
-| #   | Change                                               | Library | Impact                               | Effort |
-| --- | ---------------------------------------------------- | ------- | ------------------------------------ | ------ |
-| 1   | Narrow `ReadFrom` scan using ULID timestamp          | pebble  | O(n)→O(log n) on projection catch-up | 45 min |
-| 2   | Add `Int64Counter` rate metrics to middleware        | otel    | Events/sec dashboards                | 60 min |
-| 3   | Add `span.AddEvent()` to projection retry/checkpoint | otel    | Projection observability             | 45 min |
-| 4   | Add SQLite `busy_timeout` PRAGMA                     | sqlite  | Eliminates "database is locked"      | 30 min |
-| 5   | Add explicit histogram boundaries                    | otel    | Better latency resolution            | 30 min |
-| 6   | Switch to `ulid.Monotonic` entropy                   | ulid    | Guaranteed ordering within ms        | 30 min |
+| # | Change                                               | Library | Impact                               | Effort |
+| - | ---------------------------------------------------- | ------- | ------------------------------------ | ------ |
+| 1 | Narrow `ReadFrom` scan using ULID timestamp          | pebble  | O(n)→O(log n) on projection catch-up | 45 min |
+| 2 | Add `Int64Counter` rate metrics to middleware        | otel    | Events/sec dashboards                | 60 min |
+| 3 | Add `span.AddEvent()` to projection retry/checkpoint | otel    | Projection observability             | 45 min |
+| 4 | Add SQLite `busy_timeout` PRAGMA                     | sqlite  | Eliminates "database is locked"      | 30 min |
+| 5 | Add explicit histogram boundaries                    | otel    | Better latency resolution            | 30 min |
+| 6 | Switch to `ulid.Monotonic` entropy                   | ulid    | Guaranteed ordering within ms        | 30 min |
 
 **Total: ~4 hours for 51% of value.**
 
@@ -47,25 +47,25 @@ These 6 changes are each under 60 minutes and deliver more than half the total v
 
 Add these 4 changes (~3 more hours):
 
-| #   | Change                                               | Library | Impact                                 | Effort |
-| --- | ---------------------------------------------------- | ------- | -------------------------------------- | ------ |
-| 7   | `DefaultOptions()` with bloom filter + EventListener | pebble  | Faster reads, operational visibility   | 45 min |
-| 8   | `CBORCompactCodec` opt-in (toarray, non-breaking)    | cbor    | 35% smaller payloads for new consumers | 60 min |
-| 9   | Shared rapid generators in testutil                  | rapid   | DRY across 4+ modules                  | 45 min |
-| 10  | OTel resource attributes helper                      | otel    | Service identification in traces       | 30 min |
+| #  | Change                                               | Library | Impact                                 | Effort |
+| -- | ---------------------------------------------------- | ------- | -------------------------------------- | ------ |
+| 7  | `DefaultOptions()` with bloom filter + EventListener | pebble  | Faster reads, operational visibility   | 45 min |
+| 8  | `CBORCompactCodec` opt-in (toarray, non-breaking)    | cbor    | 35% smaller payloads for new consumers | 60 min |
+| 9  | Shared rapid generators in testutil                  | rapid   | DRY across 4+ modules                  | 45 min |
+| 10 | OTel resource attributes helper                      | otel    | Service identification in traces       | 30 min |
 
 ### The 20% that delivers 80% of the result
 
 Add these 6 changes (~5 more hours):
 
-| #   | Change                                  | Library   | Impact                                 | Effort |
-| --- | --------------------------------------- | --------- | -------------------------------------- | ------ |
-| 11  | `Backend.Metrics()` → key Pebble stats  | pebble    | LSM visibility                         | 60 min |
-| 12  | `singleflight` for aggregate load dedup | x/sync    | Load amplification ↓ under contention  | 90 min |
-| 13  | YAML round-trip tests                   | yaml      | Verify generated specs parse correctly | 30 min |
-| 14  | gomega `MatchJSON`/`ConsistOf` adoption | gomega    | Cleaner test assertions                | 45 min |
-| 15  | Watermill `TestSuite` conformance       | watermill | Adapter validation                     | 60 min |
-| 16  | `CBORDiagnose()` debug helper           | cbor      | Human-readable CBOR for debugging      | 30 min |
+| #  | Change                                  | Library   | Impact                                 | Effort |
+| -- | --------------------------------------- | --------- | -------------------------------------- | ------ |
+| 11 | `Backend.Metrics()` → key Pebble stats  | pebble    | LSM visibility                         | 60 min |
+| 12 | `singleflight` for aggregate load dedup | x/sync    | Load amplification ↓ under contention  | 90 min |
+| 13 | YAML round-trip tests                   | yaml      | Verify generated specs parse correctly | 30 min |
+| 14 | gomega `MatchJSON`/`ConsistOf` adoption | gomega    | Cleaner test assertions                | 45 min |
+| 15 | Watermill `TestSuite` conformance       | watermill | Adapter validation                     | 60 min |
+| 16 | `CBORDiagnose()` debug helper           | cbor      | Human-readable CBOR for debugging      | 30 min |
 
 ---
 

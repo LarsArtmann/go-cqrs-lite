@@ -1,6 +1,6 @@
 # Architecture Improvements Execution Plan
 
-**Date:** 2026-04-29 22:42  
+**Date:** 2026-04-29 22:42\
 **Context:** Session 10 identified ghost systems, shallow modules, and untested code. This plan addresses them systematically.
 
 ---
@@ -9,22 +9,22 @@
 
 Sorted by **impact ÷ effort** (Pareto principle). Start at the top.
 
-| #   | Task                                        | Module         | Effort  | Impact     | Customer Value       | Why                                                                                                    |
-| --- | ------------------------------------------- | -------------- | ------- | ---------- | -------------------- | ------------------------------------------------------------------------------------------------------ |
-| 1   | **Snapshot integration tests**              | core/aggregate | 30 min  | **HIGH**   | Reliability          | Fixes 12.7% coverage drop. Tests the ghost system we built.                                            |
-| 2   | **Generic ErrorRecovery + ErrorValidation** | middleware     | 45 min  | **HIGH**   | Maintainability      | Eliminates copy-paste (Command/Event share identical recovery/validation). Fix once, fixed everywhere. |
-| 3   | **Outbox seam interface + memory adapter**  | core/event     | 60 min  | **HIGH**   | Production readiness | Answers the #1 architectural question: atomic save+publish without coupling core to databases.         |
-| 4   | **Query generic result types**              | core/query     | 180 min | **HIGH**   | Type safety          | `Handler[T any]` eliminates runtime type assertions. Compile-time guarantees.                          |
-| 5   | **CatalogBuilder wraps Registry**           | catalog        | 40 min  | **MEDIUM** | Maintainability      | Two builders with identical internals. Consolidate for locality.                                       |
-| 6   | **MemorySnapshotStore deep copy**           | memory         | 15 min  | **MEDIUM** | Correctness          | `Snapshot.State []byte` is shared on load. Silent data corruption risk.                                |
-| 7   | **OpenTelemetry tracing middleware**        | middleware     | 60 min  | **MEDIUM** | Observability        | Production systems need distributed tracing. We have zero.                                             |
-| 8   | **Remove core→memory replace directive**    | core/go.mod    | 30 min  | **MEDIUM** | Modularity           | Circular dependency means core cannot be published independently.                                      |
-| 9   | **Event upcasting infrastructure design**   | core/event     | 60 min  | **MEDIUM** | Evolution            | Schema evolution is required for any long-lived event store. Design now, implement later.              |
-| 10  | **Add event.Builder benchmark**             | core/event     | 15 min  | **LOW**    | Performance          | Baseline for event construction hot path.                                                              |
-| 11  | **PostgreSQL event store design**           | new/storage    | 90 min  | **HIGH**   | Production readiness | In-memory is fine for tests; production needs persistence. Design the interface now.                   |
-| 12  | **Saga/process manager design**             | new/saga       | 90 min  | **MEDIUM** | Feature expansion    | Long-running workflows are a common CQRS need. Research and design.                                    |
+| #  | Task                                        | Module         | Effort  | Impact     | Customer Value       | Why                                                                                                    |
+| -- | ------------------------------------------- | -------------- | ------- | ---------- | -------------------- | ------------------------------------------------------------------------------------------------------ |
+| 1  | **Snapshot integration tests**              | core/aggregate | 30 min  | **HIGH**   | Reliability          | Fixes 12.7% coverage drop. Tests the ghost system we built.                                            |
+| 2  | **Generic ErrorRecovery + ErrorValidation** | middleware     | 45 min  | **HIGH**   | Maintainability      | Eliminates copy-paste (Command/Event share identical recovery/validation). Fix once, fixed everywhere. |
+| 3  | **Outbox seam interface + memory adapter**  | core/event     | 60 min  | **HIGH**   | Production readiness | Answers the #1 architectural question: atomic save+publish without coupling core to databases.         |
+| 4  | **Query generic result types**              | core/query     | 180 min | **HIGH**   | Type safety          | `Handler[T any]` eliminates runtime type assertions. Compile-time guarantees.                          |
+| 5  | **CatalogBuilder wraps Registry**           | catalog        | 40 min  | **MEDIUM** | Maintainability      | Two builders with identical internals. Consolidate for locality.                                       |
+| 6  | **MemorySnapshotStore deep copy**           | memory         | 15 min  | **MEDIUM** | Correctness          | `Snapshot.State []byte` is shared on load. Silent data corruption risk.                                |
+| 7  | **OpenTelemetry tracing middleware**        | middleware     | 60 min  | **MEDIUM** | Observability        | Production systems need distributed tracing. We have zero.                                             |
+| 8  | **Remove core→memory replace directive**    | core/go.mod    | 30 min  | **MEDIUM** | Modularity           | Circular dependency means core cannot be published independently.                                      |
+| 9  | **Event upcasting infrastructure design**   | core/event     | 60 min  | **MEDIUM** | Evolution            | Schema evolution is required for any long-lived event store. Design now, implement later.              |
+| 10 | **Add event.Builder benchmark**             | core/event     | 15 min  | **LOW**    | Performance          | Baseline for event construction hot path.                                                              |
+| 11 | **PostgreSQL event store design**           | new/storage    | 90 min  | **HIGH**   | Production readiness | In-memory is fine for tests; production needs persistence. Design the interface now.                   |
+| 12 | **Saga/process manager design**             | new/saga       | 90 min  | **MEDIUM** | Feature expansion    | Long-running workflows are a common CQRS need. Research and design.                                    |
 
-**Pareto rule:** Tasks 1–3 deliver ~51% of the value in ~135 min (the 1%).  
+**Pareto rule:** Tasks 1–3 deliver ~51% of the value in ~135 min (the 1%).\
 **Tasks 1–6 deliver ~80% of the value in ~370 min (the 20%).**
 
 ---

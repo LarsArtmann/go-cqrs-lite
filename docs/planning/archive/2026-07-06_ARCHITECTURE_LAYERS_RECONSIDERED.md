@@ -148,34 +148,34 @@ command/command.go:         event.WrapRejection(...)
 ## 3. The Core Problem: One Package, Three Concerns
 
 ```
-                    ┌──────────────────────────────────────┐
-                    │              event/                   │
-                    │                                       │
-                    │  ┌─────────────────────────────────┐  │
-                    │  │  DOMAIN MODEL                   │  │
-                    │  │  ImmutableEvent, NewEvent       │  │
-                    │  │  Type, Metadata, Causality      │  │
-                    │  │  SchemaVersion, Tombstone       │  │
-                    │  │  AggregateRef, AggregateID      │  │
-                    │  └─────────────────────────────────┘  │
-                    │  ┌─────────────────────────────────┐  │
-                    │  │  ERROR TAXONOMY                 │  │
-                    │  │  NewConflict, NewRejection      │  │
-                    │  │  Wrapf, Classify, Transient     │  │
-                    │  │  (1:1 re-export of              │  │
-                    │  │   go-error-family)              │  │
-                    │  └─────────────────────────────────┘  │
-                    │  ┌─────────────────────────────────┐  │
-                    │  │  INFRASTRUCTURE CONTRACTS       │  │
-                    │  │  EventSink, EventSource, Store  │  │
-                    │  │  Journal, SeekableJournal       │  │
-                    │  │  Bus, Publisher, PublishMW      │  │
-                    │  └─────────────────────────────────┘  │
-                    └──────────────────────────────────────┘
-                                       │
-                    Every module that imports event/ gets
-                    ALL THREE concerns whether it needs
-                    them or not.
+┌──────────────────────────────────────┐
+│              event/                   │
+│                                       │
+│  ┌─────────────────────────────────┐  │
+│  │  DOMAIN MODEL                   │  │
+│  │  ImmutableEvent, NewEvent       │  │
+│  │  Type, Metadata, Causality      │  │
+│  │  SchemaVersion, Tombstone       │  │
+│  │  AggregateRef, AggregateID      │  │
+│  └─────────────────────────────────┘  │
+│  ┌─────────────────────────────────┐  │
+│  │  ERROR TAXONOMY                 │  │
+│  │  NewConflict, NewRejection      │  │
+│  │  Wrapf, Classify, Transient     │  │
+│  │  (1:1 re-export of              │  │
+│  │   go-error-family)              │  │
+│  └─────────────────────────────────┘  │
+│  ┌─────────────────────────────────┐  │
+│  │  INFRASTRUCTURE CONTRACTS       │  │
+│  │  EventSink, EventSource, Store  │  │
+│  │  Journal, SeekableJournal       │  │
+│  │  Bus, Publisher, PublishMW      │  │
+│  └─────────────────────────────────┘  │
+└──────────────────────────────────────┘
+                   │
+Every module that imports event/ gets
+ALL THREE concerns whether it needs
+them or not.
 ```
 
 **Who needs what:**

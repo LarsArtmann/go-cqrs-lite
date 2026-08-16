@@ -24,37 +24,37 @@ The linter was designed for **consumers** of go-cqrs-lite, not the library itsel
 
 ### The 1% that delivers 51% of the result
 
-| #   | Action                                                              | Findings Eliminated      | Effort |
-| --- | ------------------------------------------------------------------- | ------------------------ | ------ |
-| 1   | Fix suppression parser to accept `// cqrs-lint:ignore` (with space) | Unlocks C001 suppression | 10min  |
-| 2   | Remove 7 stale suppression comments                                 | 7 warnings eliminated    | 10min  |
+| # | Action                                                              | Findings Eliminated      | Effort |
+| - | ------------------------------------------------------------------- | ------------------------ | ------ |
+| 1 | Fix suppression parser to accept `// cqrs-lint:ignore` (with space) | Unlocks C001 suppression | 10min  |
+| 2 | Remove 7 stale suppression comments                                 | 7 warnings eliminated    | 10min  |
 
 ### The 4% that delivers 64% of the result
 
-| #   | Action                                                                                                            | Findings Eliminated                     | Effort |
-| --- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ------ |
-| 3   | Fix C017 detector: skip when event store is also `memory.NewMemoryStore()`                                        | 4 ERRORs → 2 false positives eliminated | 30min  |
-| 4   | Add `//cqrs-lint:ignore` on library self-detection sites (A001/A020/A021/A023/E005/E007/A004/A011/B001/B008/C019) | ~40 false positives suppressed          | 45min  |
+| # | Action                                                                                                            | Findings Eliminated                     | Effort |
+| - | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ------ |
+| 3 | Fix C017 detector: skip when event store is also `memory.NewMemoryStore()`                                        | 4 ERRORs → 2 false positives eliminated | 30min  |
+| 4 | Add `//cqrs-lint:ignore` on library self-detection sites (A001/A020/A021/A023/E005/E007/A004/A011/B001/B008/C019) | ~40 false positives suppressed          | 45min  |
 
 ### The 20% that delivers 80% of the result
 
-| #   | Action                                                                                     | Findings Eliminated     | Effort |
-| --- | ------------------------------------------------------------------------------------------ | ----------------------- | ------ |
-| 5   | Suppress C023 (`_ = .Close()`) in cleanup/shutdown code across stack/, benchkit/, example/ | 76 warnings suppressed  | 40min  |
-| 6   | Suppress C027 (Subscribe alongside projectionhost) in library transport/adapter code       | 10 warnings suppressed  | 15min  |
-| 7   | Suppress A014 (`event.NewEvent`) in library adapter/test code                              | 14 warnings suppressed  | 15min  |
-| 8   | Suppress C009 panics in legitimate constructor/test-helper sites                           | 8 warnings suppressed   | 20min  |
-| 9   | Handle C004 deriver async pattern (suppress with explanation)                              | 1 ERROR suppressed      | 5min   |
-| 10  | Handle remaining example/library coaching findings (A005, A017, B00x, C013, C025, etc.)    | ~20 findings suppressed | 30min  |
+| #  | Action                                                                                     | Findings Eliminated     | Effort |
+| -- | ------------------------------------------------------------------------------------------ | ----------------------- | ------ |
+| 5  | Suppress C023 (`_ = .Close()`) in cleanup/shutdown code across stack/, benchkit/, example/ | 76 warnings suppressed  | 40min  |
+| 6  | Suppress C027 (Subscribe alongside projectionhost) in library transport/adapter code       | 10 warnings suppressed  | 15min  |
+| 7  | Suppress A014 (`event.NewEvent`) in library adapter/test code                              | 14 warnings suppressed  | 15min  |
+| 8  | Suppress C009 panics in legitimate constructor/test-helper sites                           | 8 warnings suppressed   | 20min  |
+| 9  | Handle C004 deriver async pattern (suppress with explanation)                              | 1 ERROR suppressed      | 5min   |
+| 10 | Handle remaining example/library coaching findings (A005, A017, B00x, C013, C025, etc.)    | ~20 findings suppressed | 30min  |
 
 ### The remaining 20% for 100%
 
-| #   | Action                                                                                        | Findings Eliminated  | Effort |
-| --- | --------------------------------------------------------------------------------------------- | -------------------- | ------ |
-| 11  | Investigate C022 (`_ = ctx` in kv_sql.go:255) — appears legitimate (tx.Commit is non-context) | 1 finding suppressed | 5min   |
-| 12  | Investigate C015 (pebble closer) — pebble closers don't return meaningful errors              | 1 finding suppressed | 5min   |
-| 13  | Fix C017 taskmanager (in-memory DLQ with SQLite store) — real issue, suppress with TODO       | 1 ERROR suppressed   | 10min  |
-| 14  | Final verification run — confirm 0 unsuppressed findings                                      | Validation           | 10min  |
+| #  | Action                                                                                        | Findings Eliminated  | Effort |
+| -- | --------------------------------------------------------------------------------------------- | -------------------- | ------ |
+| 11 | Investigate C022 (`_ = ctx` in kv_sql.go:255) — appears legitimate (tx.Commit is non-context) | 1 finding suppressed | 5min   |
+| 12 | Investigate C015 (pebble closer) — pebble closers don't return meaningful errors              | 1 finding suppressed | 5min   |
+| 13 | Fix C017 taskmanager (in-memory DLQ with SQLite store) — real issue, suppress with TODO       | 1 ERROR suppressed   | 10min  |
+| 14 | Final verification run — confirm 0 unsuppressed findings                                      | Validation           | 10min  |
 
 ---
 

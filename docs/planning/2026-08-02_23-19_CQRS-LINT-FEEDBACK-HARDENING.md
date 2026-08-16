@@ -249,41 +249,41 @@ graph TD
 
 All 36 tasks sorted by impact/effort/customer-value. Execute top-to-bottom.
 
-| #   | Phase | Task                                                                 | Est   | Impact   | Effort | Customer Value         |
-| --- | ----- | -------------------------------------------------------------------- | ----- | -------- | ------ | ---------------------- |
-| 1   | 1.1   | Add ldflags (`-X main.commitHash`, `-X main.buildDate`) to flake.nix | 8min  | CRITICAL | LOW    | Every consumer         |
-| 2   | 1.2   | Add `commitHash`/`buildDate` vars + update `--version` output format | 5min  | CRITICAL | LOW    | Every consumer         |
-| 3   | 1.4   | Tag `cqrs-lint/v0.3.0` (annotated tag)                               | 3min  | CRITICAL | LOW    | Every consumer         |
-| 4   | 1.5   | Build Nix binary, verify commit hash, smoke-test vs example/         | 10min | CRITICAL | MED    | Every consumer         |
-| 5   | 2e.1  | F017: skip when `!fp.HasAsyncBus` (sync bus = no dedup)              | 8min  | HIGH     | LOW    | crush-daily, bank-sync |
-| 6   | 2e.2  | Test F017 HasAsyncBus gating                                         | 8min  | HIGH     | LOW    | —                      |
-| 7   | 2a.1  | Detect `cqrs-htmx/v4` import → set `HasTransport`                    | 8min  | HIGH     | LOW    | crush-daily            |
-| 8   | 2a.2  | Suppress F013 when `HasTransport` is true                            | 5min  | HIGH     | LOW    | crush-daily            |
-| 9   | 2a.3  | Add `HasTransport` to FeatureProfile struct + String()               | 5min  | HIGH     | LOW    | —                      |
-| 10  | 2a.4  | Test F013 + cqrs-htmx suppression                                    | 8min  | HIGH     | LOW    | —                      |
-| 11  | 2b.1  | C009: skip panic inside `New*`/`Must*` constructors                  | 10min | MED      | LOW    | crush-daily            |
-| 12  | 2b.2  | Test C009 must-pattern                                               | 8min  | MED      | LOW    | —                      |
-| 13  | 2c.1  | C016: skip `context.Background()` near Shutdown/ListenAndServe       | 10min | MED      | MED    | crush-daily            |
-| 14  | 2c.2  | Test C016 shutdown exemption                                         | 8min  | MED      | LOW    | —                      |
-| 15  | 2d.1  | Add `--adoption` flag to CLI                                         | 3min  | HIGH     | LOW    | Standup-Killer         |
-| 16  | 2d.2  | Wire `--adoption` to exclude F-series from score (still visible)     | 8min  | HIGH     | MED    | Standup-Killer         |
-| 17  | 2d.3  | Test `--adoption` flag                                               | 10min | HIGH     | LOW    | —                      |
-| 18  | 2f.1  | Add field-level suppression docs to `--help`                         | 8min  | LOW      | LOW    | cqrs-htmx              |
-| 19  | 3c.1  | F015: skip when `fp.Store == StoreSQLite`                            | 5min  | MED      | LOW    | bank-sync              |
-| 20  | 3c.2  | Test F015 SQLite gating                                              | 5min  | MED      | LOW    | —                      |
-| 21  | 1.3   | Test `--version` format includes commit + date                       | 5min  | MED      | LOW    | —                      |
-| 22  | 3b.1  | E016: detect `/health`, `/healthz`, `/ready`, `/readyz` routes       | 10min | MED      | MED    | browser-history        |
-| 23  | 3b.2  | Test E016 alternative endpoints                                      | 8min  | MED      | LOW    | —                      |
-| 24  | 3a.1  | ServerLocal heuristic (ListenAndServe w/o TLS/Shutdown/health)       | 12min | MED      | HIGH   | bank-sync              |
-| 25  | 3a.2  | Suppress E016/F004/F013 when ServerLocal                             | 5min  | MED      | LOW    | bank-sync              |
-| 26  | 3a.3  | Test ServerLocal detection                                           | 10min | MED      | LOW    | —                      |
-| 27  | 3d.1  | C008: add `c008-ignore-fields` config option                         | 10min | LOW      | MED    | crush-daily            |
-| 28  | 3d.2  | Test C008 config opt-out                                             | 8min  | LOW      | LOW    | —                      |
-| 29  | 4.1   | Full test suite run                                                  | 5min  | CRITICAL | LOW    | —                      |
-| 30  | 4.2   | `nix run .#lint`                                                     | 5min  | HIGH     | LOW    | —                      |
-| 31  | 4.3   | Self-lint `go run ./cmd/cqrs-lint --strict ./...`                    | 5min  | HIGH     | LOW    | —                      |
-| 32  | 4.4   | Update README rule count if needed                                   | 3min  | LOW      | LOW    | —                      |
-| 33  | 4.5   | Commit + push                                                        | 5min  | CRITICAL | LOW    | —                      |
+| #  | Phase | Task                                                                 | Est   | Impact   | Effort | Customer Value         |
+| -- | ----- | -------------------------------------------------------------------- | ----- | -------- | ------ | ---------------------- |
+| 1  | 1.1   | Add ldflags (`-X main.commitHash`, `-X main.buildDate`) to flake.nix | 8min  | CRITICAL | LOW    | Every consumer         |
+| 2  | 1.2   | Add `commitHash`/`buildDate` vars + update `--version` output format | 5min  | CRITICAL | LOW    | Every consumer         |
+| 3  | 1.4   | Tag `cqrs-lint/v0.3.0` (annotated tag)                               | 3min  | CRITICAL | LOW    | Every consumer         |
+| 4  | 1.5   | Build Nix binary, verify commit hash, smoke-test vs example/         | 10min | CRITICAL | MED    | Every consumer         |
+| 5  | 2e.1  | F017: skip when `!fp.HasAsyncBus` (sync bus = no dedup)              | 8min  | HIGH     | LOW    | crush-daily, bank-sync |
+| 6  | 2e.2  | Test F017 HasAsyncBus gating                                         | 8min  | HIGH     | LOW    | —                      |
+| 7  | 2a.1  | Detect `cqrs-htmx/v4` import → set `HasTransport`                    | 8min  | HIGH     | LOW    | crush-daily            |
+| 8  | 2a.2  | Suppress F013 when `HasTransport` is true                            | 5min  | HIGH     | LOW    | crush-daily            |
+| 9  | 2a.3  | Add `HasTransport` to FeatureProfile struct + String()               | 5min  | HIGH     | LOW    | —                      |
+| 10 | 2a.4  | Test F013 + cqrs-htmx suppression                                    | 8min  | HIGH     | LOW    | —                      |
+| 11 | 2b.1  | C009: skip panic inside `New*`/`Must*` constructors                  | 10min | MED      | LOW    | crush-daily            |
+| 12 | 2b.2  | Test C009 must-pattern                                               | 8min  | MED      | LOW    | —                      |
+| 13 | 2c.1  | C016: skip `context.Background()` near Shutdown/ListenAndServe       | 10min | MED      | MED    | crush-daily            |
+| 14 | 2c.2  | Test C016 shutdown exemption                                         | 8min  | MED      | LOW    | —                      |
+| 15 | 2d.1  | Add `--adoption` flag to CLI                                         | 3min  | HIGH     | LOW    | Standup-Killer         |
+| 16 | 2d.2  | Wire `--adoption` to exclude F-series from score (still visible)     | 8min  | HIGH     | MED    | Standup-Killer         |
+| 17 | 2d.3  | Test `--adoption` flag                                               | 10min | HIGH     | LOW    | —                      |
+| 18 | 2f.1  | Add field-level suppression docs to `--help`                         | 8min  | LOW      | LOW    | cqrs-htmx              |
+| 19 | 3c.1  | F015: skip when `fp.Store == StoreSQLite`                            | 5min  | MED      | LOW    | bank-sync              |
+| 20 | 3c.2  | Test F015 SQLite gating                                              | 5min  | MED      | LOW    | —                      |
+| 21 | 1.3   | Test `--version` format includes commit + date                       | 5min  | MED      | LOW    | —                      |
+| 22 | 3b.1  | E016: detect `/health`, `/healthz`, `/ready`, `/readyz` routes       | 10min | MED      | MED    | browser-history        |
+| 23 | 3b.2  | Test E016 alternative endpoints                                      | 8min  | MED      | LOW    | —                      |
+| 24 | 3a.1  | ServerLocal heuristic (ListenAndServe w/o TLS/Shutdown/health)       | 12min | MED      | HIGH   | bank-sync              |
+| 25 | 3a.2  | Suppress E016/F004/F013 when ServerLocal                             | 5min  | MED      | LOW    | bank-sync              |
+| 26 | 3a.3  | Test ServerLocal detection                                           | 10min | MED      | LOW    | —                      |
+| 27 | 3d.1  | C008: add `c008-ignore-fields` config option                         | 10min | LOW      | MED    | crush-daily            |
+| 28 | 3d.2  | Test C008 config opt-out                                             | 8min  | LOW      | LOW    | —                      |
+| 29 | 4.1   | Full test suite run                                                  | 5min  | CRITICAL | LOW    | —                      |
+| 30 | 4.2   | `nix run .#lint`                                                     | 5min  | HIGH     | LOW    | —                      |
+| 31 | 4.3   | Self-lint `go run ./cmd/cqrs-lint --strict ./...`                    | 5min  | HIGH     | LOW    | —                      |
+| 32 | 4.4   | Update README rule count if needed                                   | 3min  | LOW      | LOW    | —                      |
+| 33 | 4.5   | Commit + push                                                        | 5min  | CRITICAL | LOW    | —                      |
 
 **Deferred (Verschlimmbesserung risk — do NOT implement without explicit approval):**
 
@@ -327,4 +327,4 @@ All 36 tasks sorted by impact/effort/customer-value. Execute top-to-bottom.
 | Phase 1: Release + version stamping | ✅ DONE                                               | v4.3.0 tagged, 185 rules                              |
 | Phase 2: High-freq FP elimination   | ✅ DONE                                               | F013, C009, C016, `--adoption` shipped                |
 | Phase 3: Feature-profile smarts     | ✅ DONE                                               | ServerLocal, E016 narrowing, F015 gating, C008 config |
-| Deferred items (D1–D10)             | Still deferred — see TODO_LIST.md "Declined/Rejected" |
+| Deferred items (D1–D10)             | Still deferred — see TODO_LIST.md "Declined/Rejected" |                                                       |

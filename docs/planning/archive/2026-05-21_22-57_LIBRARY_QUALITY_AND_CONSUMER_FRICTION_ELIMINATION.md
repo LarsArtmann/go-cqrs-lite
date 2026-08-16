@@ -21,21 +21,21 @@ Three problems cause **80% of consumer pain**: `Execute` returns only `error`, `
 
 The three highest-leverage changes. Each unlocks downstream improvements.
 
-| #   | What                                  | Why                                                                                                                        | Consumer Impact                                          |
-| --- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| P1  | **Delete `sync/` ghost module**       | 1,640 lines of dead code with zero consumers. Confuses newcomers, inflates module count.                                   | Removes dead weight from go.work                         |
-| P2  | **`NewEvent` accepts typed payloads** | Both consumers build marshal helpers because `NewEvent` takes raw `[]byte` while `NewEvents` takes `[]any`. Inconsistent.  | Eliminates ~55 lines of marshal helpers across consumers |
-| P3  | **`Execute` returns `Result` type**   | Both consumers hack around this: `countingDecide` in go-localsync, reverse-engineering in SEC. The single biggest API gap. | Eliminates ~60 lines of workarounds per consumer         |
+| #  | What                                  | Why                                                                                                                        | Consumer Impact                                          |
+| -- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| P1 | **Delete `sync/` ghost module**       | 1,640 lines of dead code with zero consumers. Confuses newcomers, inflates module count.                                   | Removes dead weight from go.work                         |
+| P2 | **`NewEvent` accepts typed payloads** | Both consumers build marshal helpers because `NewEvent` takes raw `[]byte` while `NewEvents` takes `[]any`. Inconsistent.  | Eliminates ~55 lines of marshal helpers across consumers |
+| P3 | **`Execute` returns `Result` type**   | Both consumers hack around this: `countingDecide` in go-localsync, reverse-engineering in SEC. The single biggest API gap. | Eliminates ~60 lines of workarounds per consumer         |
 
 ### 4% → 64% of Result (5 more tasks, ~130min)
 
-| #   | What                                                   | Why                                                                                                        | Consumer Impact                   |
-| --- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| P4  | **Delete deprecated `CatalogMeta`**                    | Identical structs in 3 packages, all deprecated but still exported. Dead code in public API.               | Clean public API surface          |
-| P5  | **Bug fixes: RetryConfig nil + Runner.Register mutex** | `RetryConfig.IsRetryable` nil causes runtime panic. `Runner.Register` has data race.                       | Safety                            |
-| P6  | **`id.DeriveAggregateID` helper**                      | go-localsync hand-rolled SHA256 + sync.Map cache. Deterministic IDs from natural keys is a common pattern. | Eliminates ~25 lines per consumer |
-| P7  | **Storage `WithOwnership` option**                     | SEC wrote 150-line wrapper because `SQLEventStore` doesn't close its `*sql.DB`.                            | Eliminates ~150 lines wrapper     |
-| P8  | **Deprecate `aggregate` package**                      | 9-method `Root` interface anti-pattern. `decider` is the recommended path. Signal intent.                  | Clear direction for consumers     |
+| #  | What                                                   | Why                                                                                                        | Consumer Impact                   |
+| -- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| P4 | **Delete deprecated `CatalogMeta`**                    | Identical structs in 3 packages, all deprecated but still exported. Dead code in public API.               | Clean public API surface          |
+| P5 | **Bug fixes: RetryConfig nil + Runner.Register mutex** | `RetryConfig.IsRetryable` nil causes runtime panic. `Runner.Register` has data race.                       | Safety                            |
+| P6 | **`id.DeriveAggregateID` helper**                      | go-localsync hand-rolled SHA256 + sync.Map cache. Deterministic IDs from natural keys is a common pattern. | Eliminates ~25 lines per consumer |
+| P7 | **Storage `WithOwnership` option**                     | SEC wrote 150-line wrapper because `SQLEventStore` doesn't close its `*sql.DB`.                            | Eliminates ~150 lines wrapper     |
+| P8 | **Deprecate `aggregate` package**                      | 9-method `Root` interface anti-pattern. `decider` is the recommended path. Signal intent.                  | Clear direction for consumers     |
 
 ### 20% → 80% of Result (7 more tasks, ~285min)
 
@@ -53,13 +53,13 @@ The three highest-leverage changes. Each unlocks downstream improvements.
 
 These are valuable but high-effort or breaking. Track for v2.
 
-| #   | What                                                | Why Deferred                                                                  |
-| --- | --------------------------------------------------- | ----------------------------------------------------------------------------- |
-| D1  | Middleware generics (write once, not 3×)            | ~1200 lines refactored. High risk of regression. Needs careful design.        |
-| D2  | Decompose `event.Store` (8 → composable interfaces) | Breaking interface change. All store implementations + consumers must update. |
-| D3  | Read model base (`memory.ReadModel[T]`)             | New feature. Needs design + storage implementations.                          |
-| D4  | Fix `query.Handler` returns `any`                   | Breaking signature change.                                                    |
-| D5  | `Metadata` immutability (deep copy `Custom` map)    | Behavior change. May break consumers relying on mutation.                     |
+| #  | What                                                | Why Deferred                                                                  |
+| -- | --------------------------------------------------- | ----------------------------------------------------------------------------- |
+| D1 | Middleware generics (write once, not 3×)            | ~1200 lines refactored. High risk of regression. Needs careful design.        |
+| D2 | Decompose `event.Store` (8 → composable interfaces) | Breaking interface change. All store implementations + consumers must update. |
+| D3 | Read model base (`memory.ReadModel[T]`)             | New feature. Needs design + storage implementations.                          |
+| D4 | Fix `query.Handler` returns `any`                   | Breaking signature change.                                                    |
+| D5 | `Metadata` immutability (deep copy `Custom` map)    | Behavior change. May break consumers relying on mutation.                     |
 
 ---
 
@@ -312,15 +312,15 @@ graph TD
 
 ## Deferred Items (v2 / Future)
 
-| #   | What                                                   | Why                                           | Effort | Risk |
-| --- | ------------------------------------------------------ | --------------------------------------------- | ------ | ---- |
-| D1  | Middleware generics over `Dispatcher[H, M]`            | ~1200 lines refactored, high regression risk  | 4h     | HIGH |
-| D2  | Decompose `event.Store` into composable interfaces     | Breaking change for all store implementations | 3h     | HIGH |
-| D3  | Read model base (`memory.ReadModel[T]`)                | New feature, needs design                     | 4h     | MED  |
-| D4  | Fix `query.Handler` returns `any`                      | Breaking signature change                     | 2h     | HIGH |
-| D5  | `Metadata` deep copy on `Custom` map                   | Behavior change                               | 1h     | MED  |
-| D6  | `reconstructEvent` 9 params → struct                   | Internal refactor                             | 30min  | LOW  |
-| D7  | Catalog IDs (`ServiceID` etc.) — add `Parse` functions | API improvement                               | 2h     | LOW  |
+| #  | What                                                   | Why                                           | Effort | Risk |
+| -- | ------------------------------------------------------ | --------------------------------------------- | ------ | ---- |
+| D1 | Middleware generics over `Dispatcher[H, M]`            | ~1200 lines refactored, high regression risk  | 4h     | HIGH |
+| D2 | Decompose `event.Store` into composable interfaces     | Breaking change for all store implementations | 3h     | HIGH |
+| D3 | Read model base (`memory.ReadModel[T]`)                | New feature, needs design                     | 4h     | MED  |
+| D4 | Fix `query.Handler` returns `any`                      | Breaking signature change                     | 2h     | HIGH |
+| D5 | `Metadata` deep copy on `Custom` map                   | Behavior change                               | 1h     | MED  |
+| D6 | `reconstructEvent` 9 params → struct                   | Internal refactor                             | 30min  | LOW  |
+| D7 | Catalog IDs (`ServiceID` etc.) — add `Parse` functions | API improvement                               | 2h     | LOW  |
 
 ---
 

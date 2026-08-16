@@ -116,7 +116,7 @@ graph TD
 | T7  | Implement MemoryQueryStore                                      | memory/query_store.go (new)            | 45min  | 4%   | ✅ New file   |
 | T8  | Command-event causality enricher                                | event/enricher.go                      | 30min  | 4%   | ✅ Additive   |
 | T9  | Implement MemoryCommandBus                                      | memory/command_bus.go (new)            | 45min  | 4%   | ✅ New file   |
-| T10 | Implement CommandJournal on SQLCommandStore                     | storage/command*store*\*.go            | 1hr    | 20%  | ✅ Additive   |
+| T10 | Implement CommandJournal on SQLCommandStore                     | storage/command_store_\*.go            | 1hr    | 20%  | ✅ Additive   |
 | T11 | Add Journal + SeekableJournal to pebble                         | pebble/journal.go (new)                | 1hr    | 20%  | ✅ New file   |
 | T12 | Add SnapshotStore to pebble                                     | pebble/snapshot.go (new)               | 1hr    | 20%  | ✅ New file   |
 | T13 | Add CheckpointStore to pebble                                   | pebble/checkpoint.go (new)             | 30min  | 20%  | ✅ New file   |

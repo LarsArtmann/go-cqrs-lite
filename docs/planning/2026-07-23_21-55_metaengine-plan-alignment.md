@@ -27,16 +27,16 @@ The design doc is THE specification — the prototype must conform to it, not vi
 
 ### The 8 Divergences
 
-| #   | Divergence                 | Plan Says                                       | Code Does                                    | Impact                                      |
-| --- | -------------------------- | ----------------------------------------------- | -------------------------------------------- | ------------------------------------------- |
-| 1   | Fold declaration           | Single `On(sample, fn)` — return type = ADT     | Split: `OnInsert`/`OnUpdate`/`OnRemove`/etc. | **Critical** — this IS the core abstraction |
-| 2   | Remove/Skip sentinels      | `Remove[V]()` + `Skip` type                     | Deleted as "dead code"                       | **Critical** — part of `On` API             |
-| 3   | Per-query projections      | Each query owns its folds, own projection       | ReadModel dedup (shared projections)         | **Critical** — opposite architecture        |
-| 4   | Filter/sort declaration    | `FilterOn(fn)` / `SortOn(fn)` typed accessors   | Struct tags `metaengine:"sort"`              | Medium — works but less idiomatic           |
-| 5   | Pagination location        | In domain input struct: `Limit`, `After`        | Via `ExecOption`: `WithLimit`, `After`       | Medium — works but not domain-native        |
-| 6   | Metadata in folds          | `func(e, md Metadata) (K,V)` — optional 2nd arg | Not supported                                | High for audit/observability vision         |
-| 7   | Domain result types        | `CheckEmailResult{Taken bool}`                  | Raw `bool`, `map[string]int64`, `[]any`      | Low — cosmetic                              |
-| 8   | Key extraction for updates | Implicit (type-matched from insert fold)        | Explicit `keyFn` parameter                   | Medium — more boilerplate                   |
+| # | Divergence                 | Plan Says                                       | Code Does                                    | Impact                                      |
+| - | -------------------------- | ----------------------------------------------- | -------------------------------------------- | ------------------------------------------- |
+| 1 | Fold declaration           | Single `On(sample, fn)` — return type = ADT     | Split: `OnInsert`/`OnUpdate`/`OnRemove`/etc. | **Critical** — this IS the core abstraction |
+| 2 | Remove/Skip sentinels      | `Remove[V]()` + `Skip` type                     | Deleted as "dead code"                       | **Critical** — part of `On` API             |
+| 3 | Per-query projections      | Each query owns its folds, own projection       | ReadModel dedup (shared projections)         | **Critical** — opposite architecture        |
+| 4 | Filter/sort declaration    | `FilterOn(fn)` / `SortOn(fn)` typed accessors   | Struct tags `metaengine:"sort"`              | Medium — works but less idiomatic           |
+| 5 | Pagination location        | In domain input struct: `Limit`, `After`        | Via `ExecOption`: `WithLimit`, `After`       | Medium — works but not domain-native        |
+| 6 | Metadata in folds          | `func(e, md Metadata) (K,V)` — optional 2nd arg | Not supported                                | High for audit/observability vision         |
+| 7 | Domain result types        | `CheckEmailResult{Taken bool}`                  | Raw `bool`, `map[string]int64`, `[]any`      | Low — cosmetic                              |
+| 8 | Key extraction for updates | Implicit (type-matched from insert fold)        | Explicit `keyFn` parameter                   | Medium — more boilerplate                   |
 
 ---
 

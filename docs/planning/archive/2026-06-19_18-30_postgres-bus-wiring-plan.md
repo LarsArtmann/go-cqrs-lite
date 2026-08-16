@@ -9,17 +9,17 @@ The previous session shipped `storage.PostgresBus` (LISTEN/NOTIFY event bus) but
 
 ## Brutal Self-Review Findings
 
-| #   | Finding                                                            | Severity |
-| --- | ------------------------------------------------------------------ | -------- |
-| 1   | PostgresBus UNWIRED into stack/postgres                            | CRITICAL |
-| 2   | pgx v5.7.1 has 2 CVEs (memory-safety + SQL-injection)              | CRITICAL |
-| 3   | No real-Postgres integration test for the bus                      | HIGH     |
-| 4   | Split-brain error sentinel (errors.New vs event.NewInfrastructure) | MED      |
-| 5   | notifyPayload stringly-typed (should use branded types)            | MED      |
-| 6   | NotificationListener missing Listen(channel) method                | MED      |
-| 7   | No otel spans on PostgresBus                                       | MED      |
-| 8   | Pebble lacks LoadByEventID                                         | LOW      |
-| 9   | ADR-0027 status stale                                              | LOW      |
+| # | Finding                                                            | Severity |
+| - | ------------------------------------------------------------------ | -------- |
+| 1 | PostgresBus UNWIRED into stack/postgres                            | CRITICAL |
+| 2 | pgx v5.7.1 has 2 CVEs (memory-safety + SQL-injection)              | CRITICAL |
+| 3 | No real-Postgres integration test for the bus                      | HIGH     |
+| 4 | Split-brain error sentinel (errors.New vs event.NewInfrastructure) | MED      |
+| 5 | notifyPayload stringly-typed (should use branded types)            | MED      |
+| 6 | NotificationListener missing Listen(channel) method                | MED      |
+| 7 | No otel spans on PostgresBus                                       | MED      |
+| 8 | Pebble lacks LoadByEventID                                         | LOW      |
+| 9 | ADR-0027 status stale                                              | LOW      |
 
 ## Pareto Breakdown
 

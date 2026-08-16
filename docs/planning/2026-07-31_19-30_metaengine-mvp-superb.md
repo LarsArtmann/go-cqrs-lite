@@ -19,29 +19,29 @@
 
 ### The 20% that delivers 80%
 
-| #   | Task                           | Impact              | Why                                               |
-| --- | ------------------------------ | ------------------- | ------------------------------------------------- |
-| 1   | Migrate `handleListTasks`      | Proves value        | First real filtered-scan query                    |
-| 2   | Migrate `handleGetTask`        | Completes migration | Point lookup via Map.Get                          |
-| 3   | Remove dead `ReadModel` field  | Cleanup             | Assigned, never read by any handler               |
-| 4   | Delete FluentBuilder           | Kill ghost          | Zero consumers, broken example                    |
-| 5   | Fix SSE lying comments         | Trust               | Both files reference nonexistent ADR              |
-| 6   | Fix TTL doc honesty            | Trust               | No engine honors it; comment implies otherwise    |
-| 7   | Multi-engine distribution test | Prove headline      | "Different queries on different engines" untested |
-| 8   | Graph reconciliation ADR       | Kill ghost          | GraphBackend reinvents graph/ module              |
+| # | Task                           | Impact              | Why                                               |
+| - | ------------------------------ | ------------------- | ------------------------------------------------- |
+| 1 | Migrate `handleListTasks`      | Proves value        | First real filtered-scan query                    |
+| 2 | Migrate `handleGetTask`        | Completes migration | Point lookup via Map.Get                          |
+| 3 | Remove dead `ReadModel` field  | Cleanup             | Assigned, never read by any handler               |
+| 4 | Delete FluentBuilder           | Kill ghost          | Zero consumers, broken example                    |
+| 5 | Fix SSE lying comments         | Trust               | Both files reference nonexistent ADR              |
+| 6 | Fix TTL doc honesty            | Trust               | No engine honors it; comment implies otherwise    |
+| 7 | Multi-engine distribution test | Prove headline      | "Different queries on different engines" untested |
+| 8 | Graph reconciliation ADR       | Kill ghost          | GraphBackend reinvents graph/ module              |
 
 ### The other 20% (to reach 100%)
 
-| #   | Task                               | Impact                                      |
-| --- | ---------------------------------- | ------------------------------------------- |
-| 9   | Query-layer direction ADR          | Unblock migration decisions                 |
-| 10  | SSE consolidation ADR              | Document the split                          |
-| 11  | Typed read API builder             | Superb DX — `store.ByStatus(ctx, "active")` |
-| 12  | README: document Watcher/ServeSSE  | Discoverability                             |
-| 13  | Preset end-to-end integration test | Close the claimed-but-untested gap          |
-| 14  | Mark vision docs as aspirational   | Stop misleading readers                     |
-| 15  | Regenerate api-stability golden    | After deletions                             |
-| 16  | Tag + push                         | Publish                                     |
+| #  | Task                               | Impact                                      |
+| -- | ---------------------------------- | ------------------------------------------- |
+| 9  | Query-layer direction ADR          | Unblock migration decisions                 |
+| 10 | SSE consolidation ADR              | Document the split                          |
+| 11 | Typed read API builder             | Superb DX — `store.ByStatus(ctx, "active")` |
+| 12 | README: document Watcher/ServeSSE  | Discoverability                             |
+| 13 | Preset end-to-end integration test | Close the claimed-but-untested gap          |
+| 14 | Mark vision docs as aspirational   | Stop misleading readers                     |
+| 15 | Regenerate api-stability golden    | After deletions                             |
+| 16 | Tag + push                         | Publish                                     |
 
 ---
 
@@ -92,30 +92,30 @@ graph TD
 
 Sorted by impact ÷ effort (highest first).
 
-| ID  | Task                                                                                   | Impact   | Effort (min) | Files                                        | Risk                                       |
-| --- | -------------------------------------------------------------------------------------- | -------- | ------------ | -------------------------------------------- | ------------------------------------------ |
-| A1  | Declare `task_views` Map query with FilterOnField for Status in metaengine.go          | CRITICAL | 45           | metaengine.go, projection.go                 | Low — additive                             |
-| A2  | Wire SQLite engine (open *sql.DB from DSN for metaengine tables)                       | CRITICAL | 30           | setup.go                                     | Low — separate connection, separate tables |
-| A3  | Register task_views projection adapter with projectionhost                             | HIGH     | 20           | setup.go                                     | Low — same pattern as counter adapter      |
-| A4  | Migrate `handleListTasks` to metaengine reader.Scan with FilterOnField                 | CRITICAL | 30           | http.go                                      | Medium — read path change                  |
-| A5  | Migrate `handleGetTask` to metaengine reader.Get                                       | HIGH     | 15           | http.go                                      | Medium — read path change                  |
-| A6  | Run taskmanager tests, verify both endpoints work                                      | CRITICAL | 30           | integration_test.go                          | —                                          |
-| B1  | Delete FluentBuilder code (dx.go:1-128), keep Watcher/PrefetchCache/TTL/MapUpdateTyped | HIGH     | 20           | dx.go                                        | Low — zero consumers confirmed             |
-| B2  | Remove dead `ReadModel` field from Server struct                                       | MEDIUM   | 10           | setup.go                                     | Low — assigned but never read              |
-| B3  | Remove unused `rmStore` creation (stack.ReadModel call)                                | MEDIUM   | 10           | setup.go                                     | Low — dead code                            |
-| C1  | Fix SSE lying comments in both sse.go files                                            | HIGH     | 10           | sse.go, transport/http/sse.go                | None                                       |
-| C2  | Fix TTL doc comment: mark as advisory-only, no engine enforces                         | MEDIUM   | 10           | dx.go                                        | None                                       |
-| C3  | Add multi-engine distribution test (2 engines, assert split)                           | HIGH     | 45           | planner_test.go or new                       | Low — additive test                        |
-| C4  | Write graph reconciliation ADR                                                         | HIGH     | 30           | docs/adr/00XX                                | None                                       |
-| D1  | Typed read API builder pattern (TaskQuery with ByStatus method)                        | SUPERB   | 60           | new typed_query.go or dx.go                  | Medium — new API                           |
-| D2  | Write query-layer direction ADR (replace vs coexist)                                   | HIGH     | 30           | docs/adr/00XX                                | None                                       |
-| D3  | Write SSE consolidation ADR                                                            | MEDIUM   | 20           | docs/adr/00XX                                | None                                       |
-| D4  | README: document Watcher, ServeSSE, optional interfaces                                | MEDIUM   | 30           | README.md                                    | None                                       |
-| D5  | Preset end-to-end integration test (sqlite.New → WithMetaEngine → query)               | MEDIUM   | 45           | integration/                                 | Low — additive test                        |
-| D6  | Mark vision docs as aspirational (not current API)                                     | MEDIUM   | 15           | meta-engine-design.md, project-definition.md | None                                       |
-| E1  | Regenerate api-stability golden after all changes                                      | REQUIRED | 10           | cmd/api-stability                            | None                                       |
-| E2  | Run `nix run .#verify` to FULL GREEN                                                   | REQUIRED | 60           | —                                            | —                                          |
-| E3  | Tag new module versions + push                                                         | REQUIRED | 20           | git                                          | Low                                        |
+| ID | Task                                                                                   | Impact   | Effort (min) | Files                                        | Risk                                       |
+| -- | -------------------------------------------------------------------------------------- | -------- | ------------ | -------------------------------------------- | ------------------------------------------ |
+| A1 | Declare `task_views` Map query with FilterOnField for Status in metaengine.go          | CRITICAL | 45           | metaengine.go, projection.go                 | Low — additive                             |
+| A2 | Wire SQLite engine (open *sql.DB from DSN for metaengine tables)                       | CRITICAL | 30           | setup.go                                     | Low — separate connection, separate tables |
+| A3 | Register task_views projection adapter with projectionhost                             | HIGH     | 20           | setup.go                                     | Low — same pattern as counter adapter      |
+| A4 | Migrate `handleListTasks` to metaengine reader.Scan with FilterOnField                 | CRITICAL | 30           | http.go                                      | Medium — read path change                  |
+| A5 | Migrate `handleGetTask` to metaengine reader.Get                                       | HIGH     | 15           | http.go                                      | Medium — read path change                  |
+| A6 | Run taskmanager tests, verify both endpoints work                                      | CRITICAL | 30           | integration_test.go                          | —                                          |
+| B1 | Delete FluentBuilder code (dx.go:1-128), keep Watcher/PrefetchCache/TTL/MapUpdateTyped | HIGH     | 20           | dx.go                                        | Low — zero consumers confirmed             |
+| B2 | Remove dead `ReadModel` field from Server struct                                       | MEDIUM   | 10           | setup.go                                     | Low — assigned but never read              |
+| B3 | Remove unused `rmStore` creation (stack.ReadModel call)                                | MEDIUM   | 10           | setup.go                                     | Low — dead code                            |
+| C1 | Fix SSE lying comments in both sse.go files                                            | HIGH     | 10           | sse.go, transport/http/sse.go                | None                                       |
+| C2 | Fix TTL doc comment: mark as advisory-only, no engine enforces                         | MEDIUM   | 10           | dx.go                                        | None                                       |
+| C3 | Add multi-engine distribution test (2 engines, assert split)                           | HIGH     | 45           | planner_test.go or new                       | Low — additive test                        |
+| C4 | Write graph reconciliation ADR                                                         | HIGH     | 30           | docs/adr/00XX                                | None                                       |
+| D1 | Typed read API builder pattern (TaskQuery with ByStatus method)                        | SUPERB   | 60           | new typed_query.go or dx.go                  | Medium — new API                           |
+| D2 | Write query-layer direction ADR (replace vs coexist)                                   | HIGH     | 30           | docs/adr/00XX                                | None                                       |
+| D3 | Write SSE consolidation ADR                                                            | MEDIUM   | 20           | docs/adr/00XX                                | None                                       |
+| D4 | README: document Watcher, ServeSSE, optional interfaces                                | MEDIUM   | 30           | README.md                                    | None                                       |
+| D5 | Preset end-to-end integration test (sqlite.New → WithMetaEngine → query)               | MEDIUM   | 45           | integration/                                 | Low — additive test                        |
+| D6 | Mark vision docs as aspirational (not current API)                                     | MEDIUM   | 15           | meta-engine-design.md, project-definition.md | None                                       |
+| E1 | Regenerate api-stability golden after all changes                                      | REQUIRED | 10           | cmd/api-stability                            | None                                       |
+| E2 | Run `nix run .#verify` to FULL GREEN                                                   | REQUIRED | 60           | —                                            | —                                          |
+| E3 | Tag new module versions + push                                                         | REQUIRED | 20           | git                                          | Low                                        |
 
 **Total estimated effort: ~10.5 hours**
 

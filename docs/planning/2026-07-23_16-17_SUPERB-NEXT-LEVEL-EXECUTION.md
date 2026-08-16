@@ -1,9 +1,9 @@
 # Superb Next-Level Execution Plan
 
-**Created:** 2026-07-23 16:17 CEST  
-**Status:** ~~Active execution plan~~ **Executed** (2026-07-23 through 2026-07-26). See [Resolution](#resolution-2026-07-26) below.  
-**Working tree:** Clean (all previous work committed)  
-**Build:** Passing  
+**Created:** 2026-07-23 16:17 CEST\
+**Status:** ~~Active execution plan~~ **Executed** (2026-07-23 through 2026-07-26). See [Resolution](#resolution-2026-07-26) below.\
+**Working tree:** Clean (all previous work committed)\
+**Build:** Passing\
 **Lint:** ~~17 issues across 5 modules (command, query, decider, schema, storage/relational)~~ **0 issues across all 58 modules** (achieved 2026-07-23).
 
 ---
@@ -26,50 +26,50 @@ gaps (SQLTimerStore, SQLAggregateReader) unblocks real adoption.
 
 The single highest-impact action: **achieve zero-lint across all 52 modules**.
 
-| #   | Task                                                 | Impact       | Effort | Module  |
-| --- | ---------------------------------------------------- | ------------ | ------ | ------- |
-| 1   | Fix `command/` exhaustruct (2x `Metadata{}`)         | Trust        | 4min   | command |
-| 2   | Fix `command/` wrapcheck (3x dispatcher wrappers)    | Trust        | 5min   | command |
-| 3   | Fix `query/` exhaustruct (2x `Metadata{}`)           | Trust        | 4min   | query   |
-| 4   | Fix `query/` wrapcheck (3x dispatcher wrappers)      | Trust        | 5min   | query   |
-| 5   | Fix `decider/` ireturn (2x test helpers)             | Trust        | 4min   | decider |
-| 6   | Fix `schema/` ireturn (1x public API + 1x test)      | Trust        | 4min   | schema  |
-| 7   | Fix `storage/relational/` gci formatting             | Trust        | 1min   | storage |
-| 8   | Fix `storage/relational/` gocritic appendAssign (2x) | Correctness  | 8min   | storage |
-| 9   | Run `nix fmt` + verify zero lint                     | Verification | 5min   | all     |
-| 10  | Run `nix run .#build` + `nix run .#test`             | Verification | 10min  | all     |
+| #  | Task                                                 | Impact       | Effort | Module  |
+| -- | ---------------------------------------------------- | ------------ | ------ | ------- |
+| 1  | Fix `command/` exhaustruct (2x `Metadata{}`)         | Trust        | 4min   | command |
+| 2  | Fix `command/` wrapcheck (3x dispatcher wrappers)    | Trust        | 5min   | command |
+| 3  | Fix `query/` exhaustruct (2x `Metadata{}`)           | Trust        | 4min   | query   |
+| 4  | Fix `query/` wrapcheck (3x dispatcher wrappers)      | Trust        | 5min   | query   |
+| 5  | Fix `decider/` ireturn (2x test helpers)             | Trust        | 4min   | decider |
+| 6  | Fix `schema/` ireturn (1x public API + 1x test)      | Trust        | 4min   | schema  |
+| 7  | Fix `storage/relational/` gci formatting             | Trust        | 1min   | storage |
+| 8  | Fix `storage/relational/` gocritic appendAssign (2x) | Correctness  | 8min   | storage |
+| 9  | Run `nix fmt` + verify zero lint                     | Verification | 5min   | all     |
+| 10 | Run `nix run .#build` + `nix run .#test`             | Verification | 10min  | all     |
 
 ### 4% Tier (delivers 64% of value) — ~45min total
 
-| #   | Task                                     | Impact         | Effort | Module         |
-| --- | ---------------------------------------- | -------------- | ------ | -------------- |
-| 11  | Add `projectionhost.Host.LagDuration()`  | Consumer value | 15min  | projectionhost |
-| 12  | Add test for `LagDuration()`             | Quality        | 10min  | projectionhost |
-| 13  | Update `TODO_LIST.md` to reflect reality | Clarity        | 10min  | docs           |
-| 14  | Update `FEATURES.md` audit date          | Clarity        | 5min   | docs           |
-| 15  | Run full `nix run .#verify`              | Verification   | 5min   | all            |
+| #  | Task                                     | Impact         | Effort | Module         |
+| -- | ---------------------------------------- | -------------- | ------ | -------------- |
+| 11 | Add `projectionhost.Host.LagDuration()`  | Consumer value | 15min  | projectionhost |
+| 12 | Add test for `LagDuration()`             | Quality        | 10min  | projectionhost |
+| 13 | Update `TODO_LIST.md` to reflect reality | Clarity        | 10min  | docs           |
+| 14 | Update `FEATURES.md` audit date          | Clarity        | 5min   | docs           |
+| 15 | Run full `nix run .#verify`              | Verification   | 5min   | all            |
 
 ### 20% Tier (delivers 80% of value) — ~3-4h total
 
-| #   | Task                                              | Impact              | Effort | Module       |
-| --- | ------------------------------------------------- | ------------------- | ------ | ------------ |
-| 16  | Implement `scheduling.SQLTimerStore`              | Production adoption | 90min  | scheduling   |
-| 17  | Add tests for `SQLTimerStore`                     | Quality             | 45min  | scheduling   |
-| 18  | Implement `listing.SQLAggregateReader`            | Production adoption | 60min  | listing      |
-| 19  | Add tests for `SQLAggregateReader`                | Quality             | 30min  | listing      |
-| 20  | Compile-verify `docs/getting-started.md` examples | Consumer trust      | 30min  | docs/example |
+| #  | Task                                              | Impact              | Effort | Module       |
+| -- | ------------------------------------------------- | ------------------- | ------ | ------------ |
+| 16 | Implement `scheduling.SQLTimerStore`              | Production adoption | 90min  | scheduling   |
+| 17 | Add tests for `SQLTimerStore`                     | Quality             | 45min  | scheduling   |
+| 18 | Implement `listing.SQLAggregateReader`            | Production adoption | 60min  | listing      |
+| 19 | Add tests for `SQLAggregateReader`                | Quality             | 30min  | listing      |
+| 20 | Compile-verify `docs/getting-started.md` examples | Consumer trust      | 30min  | docs/example |
 
 ### Remaining 20% (polish and blocked items)
 
-| #   | Task                           | Impact          | Effort | Status         |
-| --- | ------------------------------ | --------------- | ------ | -------------- |
-| 21  | README "sales page" rewrite    | Consumer entry  | 90min  | Open           |
-| 22  | Deprecated API removal batch 2 | Cleanup         | 60min  | v4.1 cut       |
-| 23  | Postgres CI coverage matrix    | Test coverage   | 60min  | Open           |
-| 24  | Archive README files           | Clarity         | 20min  | Open           |
-| 25  | Delete wrong remote tag        | Cleanup         | 2min   | BLOCKED (push) |
-| 26  | License swap                   | Public adoption | 5min   | BLOCKED (user) |
-| 27  | Git history scrub              | Public adoption | 30min  | BLOCKED (user) |
+| #  | Task                           | Impact          | Effort | Status         |
+| -- | ------------------------------ | --------------- | ------ | -------------- |
+| 21 | README "sales page" rewrite    | Consumer entry  | 90min  | Open           |
+| 22 | Deprecated API removal batch 2 | Cleanup         | 60min  | v4.1 cut       |
+| 23 | Postgres CI coverage matrix    | Test coverage   | 60min  | Open           |
+| 24 | Archive README files           | Clarity         | 20min  | Open           |
+| 25 | Delete wrong remote tag        | Cleanup         | 2min   | BLOCKED (push) |
+| 26 | License swap                   | Public adoption | 5min   | BLOCKED (user) |
+| 27 | Git history scrub              | Public adoption | 30min  | BLOCKED (user) |
 
 ---
 

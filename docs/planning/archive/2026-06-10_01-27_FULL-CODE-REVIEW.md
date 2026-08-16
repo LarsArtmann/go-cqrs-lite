@@ -6,33 +6,33 @@
 
 ### 1% → 51% Impact (Fix These First)
 
-| #   | Issue                                                               | Module(s)                        | Impact                          |
-| --- | ------------------------------------------------------------------- | -------------------------------- | ------------------------------- |
-| 1   | **Circular deps: event↔command, event↔memory, memory↔snapshot**     | event, command, memory, snapshot | Prevents independent versioning |
-| 2   | **Storage event/command store duplication (~300 lines)**            | storage                          | Maintenance burden, bug hiding  |
-| 3   | **Error taxonomy split-brain: event/errors.go ≈ command/errors.go** | event, command                   | Confusing API surface           |
+| # | Issue                                                               | Module(s)                        | Impact                          |
+| - | ------------------------------------------------------------------- | -------------------------------- | ------------------------------- |
+| 1 | **Circular deps: event↔command, event↔memory, memory↔snapshot**     | event, command, memory, snapshot | Prevents independent versioning |
+| 2 | **Storage event/command store duplication (~300 lines)**            | storage                          | Maintenance burden, bug hiding  |
+| 3 | **Error taxonomy split-brain: event/errors.go ≈ command/errors.go** | event, command                   | Confusing API surface           |
 
 ### 4% → 64% Impact
 
-| #   | Issue                                                       | Module(s)        | Impact                                      |
-| --- | ----------------------------------------------------------- | ---------------- | ------------------------------------------- |
-| 4   | **Test deps in production go.mod (12 modules)**             | 12 of 22         | Binary bloat for consumers                  |
-| 5   | **command re-exports event types (AggregateRef, Metadata)** | command          | Split brain, error wrapping incompatibility |
-| 6   | **Lifecycle exported field on Dispatcher**                  | dispatcher       | Exposes internal mutex                      |
-| 7   | **WithReplay has no IsReplay getter**                       | event            | Write-only context value                    |
-| 8   | **listRefsFromStatus duplicated across listing/storage**    | listing, storage | Copy-paste bug risk                         |
+| # | Issue                                                       | Module(s)        | Impact                                      |
+| - | ----------------------------------------------------------- | ---------------- | ------------------------------------------- |
+| 4 | **Test deps in production go.mod (12 modules)**             | 12 of 22         | Binary bloat for consumers                  |
+| 5 | **command re-exports event types (AggregateRef, Metadata)** | command          | Split brain, error wrapping incompatibility |
+| 6 | **Lifecycle exported field on Dispatcher**                  | dispatcher       | Exposes internal mutex                      |
+| 7 | **WithReplay has no IsReplay getter**                       | event            | Write-only context value                    |
+| 8 | **listRefsFromStatus duplicated across listing/storage**    | listing, storage | Copy-paste bug risk                         |
 
 ### 20% → 80% Impact
 
-| #   | Issue                                                            | Module(s)  | Impact                                |
-| --- | ---------------------------------------------------------------- | ---------- | ------------------------------------- |
-| 9   | HTTP code (SSE, healthcheck) mixed into middleware               | middleware | Cohesion violation                    |
-| 10  | Retry logic reimplemented in projection                          | projection | Duplication                           |
-| 11  | defaultClock mutable global in event                             | event      | Data race in parallel tests           |
-| 12  | AggregateProjection uses hardcoded `?` placeholders              | storage    | Postgres incompatible                 |
-| 13  | query.Handler has different signature than command/event Handler | query      | Asymmetric API                        |
-| 14  | Map/ScanState/Tap reactive wrappers are test-only dead API       | event      | API surface pollution                 |
-| 15  | pebble locks sync.Map grows unbounded                            | pebble     | Memory leak in long-running processes |
+| #  | Issue                                                            | Module(s)  | Impact                                |
+| -- | ---------------------------------------------------------------- | ---------- | ------------------------------------- |
+| 9  | HTTP code (SSE, healthcheck) mixed into middleware               | middleware | Cohesion violation                    |
+| 10 | Retry logic reimplemented in projection                          | projection | Duplication                           |
+| 11 | defaultClock mutable global in event                             | event      | Data race in parallel tests           |
+| 12 | AggregateProjection uses hardcoded `?` placeholders              | storage    | Postgres incompatible                 |
+| 13 | query.Handler has different signature than command/event Handler | query      | Asymmetric API                        |
+| 14 | Map/ScanState/Tap reactive wrappers are test-only dead API       | event      | API surface pollution                 |
+| 15 | pebble locks sync.Map grows unbounded                            | pebble     | Memory leak in long-running processes |
 
 ## Module-by-Module Findings
 

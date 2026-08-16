@@ -30,19 +30,19 @@
 
 ### The 1% that delivers 51%
 
-| #   | Task                                  | Why                                                                    |
-| --- | ------------------------------------- | ---------------------------------------------------------------------- |
-| P1  | **Run `nix run .#verify` to GREEN**   | The ONLY source of truth. Everything else is speculation without this. |
-| P2  | **Regen api-stability golden** (DONE) | Unblocks the CI gate that catches breaking API changes.                |
+| #  | Task                                  | Why                                                                    |
+| -- | ------------------------------------- | ---------------------------------------------------------------------- |
+| P1 | **Run `nix run .#verify` to GREEN**   | The ONLY source of truth. Everything else is speculation without this. |
+| P2 | **Regen api-stability golden** (DONE) | Unblocks the CI gate that catches breaking API changes.                |
 
 ### The 4% that delivers 64%
 
-| #   | Task                                    | Why                                                                                                     |
-| --- | --------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| P3  | **Update CHANGELOG for 14 new tags**    | `TestTagContentMatchesChangelog` is a CI gate. Without these entries, the release is broken.            |
-| P4  | **Run `nix fmt`**                       | Code committed without formatting will fail the lint gate.                                              |
-| P5  | **Run `cmd/doc-check` on edited files** | Verifies Go import paths in markdown are valid.                                                         |
-| P6  | **Run `nix run .#vulncheck`**           | GOWORK=off consumer resolution — if tagged modules don't build standalone, consumers can't import them. |
+| #  | Task                                    | Why                                                                                                     |
+| -- | --------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| P3 | **Update CHANGELOG for 14 new tags**    | `TestTagContentMatchesChangelog` is a CI gate. Without these entries, the release is broken.            |
+| P4 | **Run `nix fmt`**                       | Code committed without formatting will fail the lint gate.                                              |
+| P5 | **Run `cmd/doc-check` on edited files** | Verifies Go import paths in markdown are valid.                                                         |
+| P6 | **Run `nix run .#vulncheck`**           | GOWORK=off consumer resolution — if tagged modules don't build standalone, consumers can't import them. |
 
 ### The 20% that delivers 80%
 

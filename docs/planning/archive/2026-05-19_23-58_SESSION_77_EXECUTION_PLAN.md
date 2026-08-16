@@ -10,49 +10,49 @@
 
 These 5 items are the absolute highest-impact. Fixing them eliminates build failures, lint violations, and the biggest architectural wart.
 
-| #   | Task                                                       | Impact                                       | Effort |
-| --- | ---------------------------------------------------------- | -------------------------------------------- | ------ |
-| 1   | Fix catalog lint (depguard testify, golines id_parse.go)   | Zero lint → green CI                         | 10min  |
-| 2   | Fix middleware staticcheck SA1019 (deprecated CatalogMeta) | Zero lint → green CI                         | 10min  |
-| 3   | Move test deps out of core/go.mod production requires      | Breaks circular dep, enables isolated builds | 15min  |
-| 4   | Bump testhelpers to use `event.Version` + tag v1.2.0       | Fixes GOWORK=off builds                      | 15min  |
-| 5   | Split `example/todo/cmd/api/main.go` (330 lines → ≤250)    | File size compliance                         | 10min  |
+| # | Task                                                       | Impact                                       | Effort |
+| - | ---------------------------------------------------------- | -------------------------------------------- | ------ |
+| 1 | Fix catalog lint (depguard testify, golines id_parse.go)   | Zero lint → green CI                         | 10min  |
+| 2 | Fix middleware staticcheck SA1019 (deprecated CatalogMeta) | Zero lint → green CI                         | 10min  |
+| 3 | Move test deps out of core/go.mod production requires      | Breaks circular dep, enables isolated builds | 15min  |
+| 4 | Bump testhelpers to use `event.Version` + tag v1.2.0       | Fixes GOWORK=off builds                      | 15min  |
+| 5 | Split `example/todo/cmd/api/main.go` (330 lines → ≤250)    | File size compliance                         | 10min  |
 
 ### 4% → 64% Impact (Architecture Hygiene)
 
 These 8 items clean up module boundaries, remove dead code, and improve API consistency.
 
-| #   | Task                                                                    | Impact                            | Effort |
-| --- | ----------------------------------------------------------------------- | --------------------------------- | ------ |
-| 6   | Remove deprecated `CatalogMeta`/`CatalogCore` from core/event           | Dead code removal, less confusion | 15min  |
-| 7   | Replace `fmt.Errorf("...")` with sentinel errors in catalog/id_parse.go | Error consistency                 | 10min  |
-| 8   | Remove `testify` from catalog, use stdlib `testing`                     | Dependency reduction              | 15min  |
-| 9   | Clean `example/todo` build — add missing replace directives             | Isolated build works              | 10min  |
-| 10  | Remove `example/todo/cmd/api/main.go` — move logic to proper packages   | File size + architecture          | 20min  |
-| 11  | Add `nolint:err113` comments to catalog/id_parse.go if needed           | Lint compliance                   | 5min   |
-| 12  | Remove `ginkgo`/`gomega` from `core/go.mod` direct requires             | Clean dependency graph            | 5min   |
-| 13  | Verify all modules build in isolation (GOWORK=off)                      | CI correctness                    | 10min  |
+| #  | Task                                                                    | Impact                            | Effort |
+| -- | ----------------------------------------------------------------------- | --------------------------------- | ------ |
+| 6  | Remove deprecated `CatalogMeta`/`CatalogCore` from core/event           | Dead code removal, less confusion | 15min  |
+| 7  | Replace `fmt.Errorf("...")` with sentinel errors in catalog/id_parse.go | Error consistency                 | 10min  |
+| 8  | Remove `testify` from catalog, use stdlib `testing`                     | Dependency reduction              | 15min  |
+| 9  | Clean `example/todo` build — add missing replace directives             | Isolated build works              | 10min  |
+| 10 | Remove `example/todo/cmd/api/main.go` — move logic to proper packages   | File size + architecture          | 20min  |
+| 11 | Add `nolint:err113` comments to catalog/id_parse.go if needed           | Lint compliance                   | 5min   |
+| 12 | Remove `ginkgo`/`gomega` from `core/go.mod` direct requires             | Clean dependency graph            | 5min   |
+| 13 | Verify all modules build in isolation (GOWORK=off)                      | CI correctness                    | 10min  |
 
 ### 20% → 80% Impact (Quality Improvements)
 
 These 14 items improve test coverage, add missing tests, and tighten type safety.
 
-| #   | Task                                                      | Impact                    | Effort |
-| --- | --------------------------------------------------------- | ------------------------- | ------ |
-| 14  | Add test for `NewLWWResolver` nil panic                   | Safety                    | 10min  |
-| 15  | Add test for decider snapshot fold error early return     | Safety                    | 10min  |
-| 16  | Add test for Pebble optimistic concurrency check          | Safety                    | 10min  |
-| 17  | Add test for `OutboxPublisher.publishPending` warning log | Observability             | 10min  |
-| 18  | Add `MemoryStore.LoadAll()` for `event.GlobalLoader`      | Projection replay support | 20min  |
-| 19  | Unify `CatalogMeta` → remove from command/query/event     | API cleanup               | 15min  |
-| 20  | Add `sync` module test for `SyncMessage` JSON round-trip  | Coverage                  | 10min  |
-| 21  | Add `sync` module test for `NewSyncContextMixin`          | Coverage                  | 5min   |
-| 22  | Fix `sync/conflict_test.go` unnecessary type args (gopls) | Code quality              | 5min   |
-| 23  | Remove stale `coverage.out` from root                     | Clean repo                | 2min   |
-| 24  | Add `.gitignore` entry for `coverage.out`                 | Prevent recurrence        | 2min   |
-| 25  | Verify all 23 packages pass with `-race` flag             | Concurrency safety        | 10min  |
-| 26  | Update AGENTS.md with Session 77 findings                 | Documentation             | 10min  |
-| 27  | Write final status report                                 | Documentation             | 10min  |
+| #  | Task                                                      | Impact                    | Effort |
+| -- | --------------------------------------------------------- | ------------------------- | ------ |
+| 14 | Add test for `NewLWWResolver` nil panic                   | Safety                    | 10min  |
+| 15 | Add test for decider snapshot fold error early return     | Safety                    | 10min  |
+| 16 | Add test for Pebble optimistic concurrency check          | Safety                    | 10min  |
+| 17 | Add test for `OutboxPublisher.publishPending` warning log | Observability             | 10min  |
+| 18 | Add `MemoryStore.LoadAll()` for `event.GlobalLoader`      | Projection replay support | 20min  |
+| 19 | Unify `CatalogMeta` → remove from command/query/event     | API cleanup               | 15min  |
+| 20 | Add `sync` module test for `SyncMessage` JSON round-trip  | Coverage                  | 10min  |
+| 21 | Add `sync` module test for `NewSyncContextMixin`          | Coverage                  | 5min   |
+| 22 | Fix `sync/conflict_test.go` unnecessary type args (gopls) | Code quality              | 5min   |
+| 23 | Remove stale `coverage.out` from root                     | Clean repo                | 2min   |
+| 24 | Add `.gitignore` entry for `coverage.out`                 | Prevent recurrence        | 2min   |
+| 25 | Verify all 23 packages pass with `-race` flag             | Concurrency safety        | 10min  |
+| 26 | Update AGENTS.md with Session 77 findings                 | Documentation             | 10min  |
+| 27 | Write final status report                                 | Documentation             | 10min  |
 
 ---
 

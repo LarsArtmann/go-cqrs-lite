@@ -24,28 +24,28 @@ LOW EFFORT────┼────HIGH EFFORT
 
 ## Tier 1: Quick Wins (P1 — Low Effort, High Impact)
 
-| #   | Task                                            | Status  | Commit     | Notes                                                |
-| --- | ----------------------------------------------- | ------- | ---------- | ---------------------------------------------------- |
-| 1   | Fix 2 catalog lint issues (goconst, nolintlint) | ✅ DONE | `b7df8d75` | message_config.go goconst fix                        |
-| 2   | Fix encryption/static_resolver.go mapsloop hint | ✅ DONE | `b7df8d75` | Uses `maps.Copy` now                                 |
-| 3   | Fix nil context warnings in encryption tests    | ✅ DONE | `b7df8d75` | nil → context.Background() (4 sites)                 |
-| 4   | Fix codec/TestGolden_JSONCodec_Encode golden    | ✅ DONE | `3d5ec978` | Golden file regenerated                              |
-| 5   | Clean up pkg/ directory                         | ✅ DONE | `b7df8d75` | Orphaned pkg/config/ + pkg/gracefulshutdown/ removed |
+| # | Task                                            | Status  | Commit     | Notes                                                |
+| - | ----------------------------------------------- | ------- | ---------- | ---------------------------------------------------- |
+| 1 | Fix 2 catalog lint issues (goconst, nolintlint) | ✅ DONE | `b7df8d75` | message_config.go goconst fix                        |
+| 2 | Fix encryption/static_resolver.go mapsloop hint | ✅ DONE | `b7df8d75` | Uses `maps.Copy` now                                 |
+| 3 | Fix nil context warnings in encryption tests    | ✅ DONE | `b7df8d75` | nil → context.Background() (4 sites)                 |
+| 4 | Fix codec/TestGolden_JSONCodec_Encode golden    | ✅ DONE | `3d5ec978` | Golden file regenerated                              |
+| 5 | Clean up pkg/ directory                         | ✅ DONE | `b7df8d75` | Orphaned pkg/config/ + pkg/gracefulshutdown/ removed |
 
 ## Tier 2: Medium Effort (P2 — Medium Effort, High Impact)
 
-| #   | Task                                                  | Status  | Commit     | Notes                                                            |
-| --- | ----------------------------------------------------- | ------- | ---------- | ---------------------------------------------------------------- |
-| 6   | Update README.md with encryption + turso sections     | ✅ DONE | `654be757` | README updated with encryption/turso/example-encryption sections |
-| 7   | Extract shared base64 decode helper (check existing!) | ✅ DONE | `b7df8d75` | event.DecodeBase64String + event.ExtractCustomBytes (`42e17f4f`) |
-| 8   | Parameterize SQL load helpers in storage/             | ✅ DONE | `4002fa87` | storage/sql/helpers.go: SharedInsertEvents, SharedCheckpointLoad |
+| # | Task                                                  | Status  | Commit     | Notes                                                            |
+| - | ----------------------------------------------------- | ------- | ---------- | ---------------------------------------------------------------- |
+| 6 | Update README.md with encryption + turso sections     | ✅ DONE | `654be757` | README updated with encryption/turso/example-encryption sections |
+| 7 | Extract shared base64 decode helper (check existing!) | ✅ DONE | `b7df8d75` | event.DecodeBase64String + event.ExtractCustomBytes (`42e17f4f`) |
+| 8 | Parameterize SQL load helpers in storage/             | ✅ DONE | `4002fa87` | storage/sql/helpers.go: SharedInsertEvents, SharedCheckpointLoad |
 
 ## Tier 3: High Value (P2 — Higher Effort, High Impact)
 
-| #   | Task                       | Status  | Commit     | Notes                                                   |
-| --- | -------------------------- | ------- | ---------- | ------------------------------------------------------- |
-| 9   | Add BDD test for catalog/  | ✅ DONE | `b7df8d75` | catalog/catalog_bdd_suite_test.go + catalog_bdd_test.go |
-| 10  | Add testutil/ to AGENTS.md | ✅ DONE | `654be757` | testutil documented in AGENTS.md module tree            |
+| #  | Task                       | Status  | Commit     | Notes                                                   |
+| -- | -------------------------- | ------- | ---------- | ------------------------------------------------------- |
+| 9  | Add BDD test for catalog/  | ✅ DONE | `b7df8d75` | catalog/catalog_bdd_suite_test.go + catalog_bdd_test.go |
+| 10 | Add testutil/ to AGENTS.md | ✅ DONE | `654be757` | testutil documented in AGENTS.md module tree            |
 
 ## D2 Execution Graph
 

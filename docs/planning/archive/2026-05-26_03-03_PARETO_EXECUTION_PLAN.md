@@ -1,7 +1,7 @@
 # Pareto Execution Plan: Making go-cqrs-lite the Best CQRS SDK
 
-**Date:** 2026-05-26 03:03 CEST  
-**Status:** Approved — Build backlog first, then release v1.0  
+**Date:** 2026-05-26 03:03 CEST\
+**Status:** Approved — Build backlog first, then release v1.0\
 **Strategy:** Pareto principle — 1% → 51%, 4% → 64%, 20% → 80%
 
 ---
@@ -36,37 +36,37 @@ Full implementation of: OpenTelemetry tracing, code generation for typed handler
 
 ## Medium-Granularity Tasks (30-100 min each)
 
-| #   | Task                                                                                       | Est. | Impact    | Effort | Pareto Tier |
-| --- | ------------------------------------------------------------------------------------------ | ---- | --------- | ------ | ----------- |
-| 1   | **Create `saga/` module with go.mod**                                                      | 30m  | High      | Low    | 1% → 51%    |
-| 2   | **Implement saga core types** (`saga.go`: Core, Step, Instance, Status)                    | 45m  | High      | Low    | 1% → 51%    |
-| 3   | **Implement saga errors** (`errors.go`: sentinel errors)                                   | 30m  | Medium    | Low    | 1% → 51%    |
-| 4   | **Implement saga options** (`options.go`: RunnerOption functional options)                 | 45m  | Medium    | Low    | 1% → 51%    |
-| 5   | **Implement saga store interface** (`store.go`: Save/Load/Update)                          | 45m  | High      | Low    | 1% → 51%    |
-| 6   | **Implement in-memory saga store** (`memory_store.go`)                                     | 60m  | High      | Medium | 1% → 51%    |
-| 7   | **Implement saga runner** (`runner.go`: Register, Start, step execution)                   | 90m  | Very High | High   | 1% → 51%    |
-| 8   | **Implement saga compensation logic** (`compensation.go`: backward rollback)               | 60m  | Very High | Medium | 1% → 51%    |
-| 9   | **Add saga unit tests** (`saga_test.go`, `runner_test.go`)                                 | 90m  | High      | High   | 1% → 51%    |
-| 10  | **Add saga integration with example/todo** (demonstrate saga pattern)                      | 60m  | High      | Medium | 1% → 51%    |
-| 11  | **Implement `TransactionalStore` in storage/** (`transactional_store.go`)                  | 60m  | Very High | Medium | 4% → 64%    |
-| 12  | **Add `SaveWithOutbox` to SQL event store**                                                | 60m  | Very High | Medium | 4% → 64%    |
-| 13  | **Add outbox transaction tests**                                                           | 60m  | High      | Medium | 4% → 64%    |
-| 14  | **Create `watermill/` module with go.mod**                                                 | 30m  | High      | Low    | 4% → 64%    |
-| 15  | **Implement Watermill publisher adapter** (`publisher.go`)                                 | 60m  | High      | Medium | 4% → 64%    |
-| 16  | **Implement Watermill subscriber adapter** (`subscriber.go`)                               | 60m  | High      | Medium | 4% → 64%    |
-| 17  | **Add Watermill integration tests**                                                        | 60m  | High      | Medium | 4% → 64%    |
-| 18  | **Add OpenTelemetry middleware** (`middleware/otel.go`: spans for commands/events/queries) | 90m  | High      | High   | 20% → 80%   |
-| 19  | **Implement event versioning registry** (`core/event/upcaster_registry.go`)                | 60m  | Medium    | Medium | 20% → 80%   |
-| 20  | **Add code generation tool** (`cmd/cqrs-gen/`: generate typed dispatchers from markers)    | 90m  | Very High | High   | 20% → 80%   |
-| 21  | **Implement stream-based event loading** (`core/event/stream_loader.go`: iterator pattern) | 60m  | Medium    | Medium | 20% → 80%   |
-| 22  | **Add semantic version tags to all modules**                                               | 45m  | Medium    | Low    | 20% → 80%   |
-| 23  | **Split `catalog/eventcatalog/writer.go`** (408 lines → 3 files)                           | 60m  | Medium    | Medium | 20% → 80%   |
-| 24  | **Improve eventcatalog coverage** (85.7% → 90%+)                                           | 60m  | Medium    | Medium | 20% → 80%   |
-| 25  | **Update README with saga + outbox examples**                                              | 45m  | High      | Low    | 20% → 80%   |
-| 26  | **Add architecture decision records (ADRs)** for saga + outbox                             | 45m  | Medium    | Low    | 20% → 80%   |
-| 27  | **Final integration test: full CQRS + Saga + Outbox + Projection flow**                    | 60m  | Very High | Medium | 20% → 80%   |
+| #  | Task                                                                                       | Est. | Impact    | Effort | Pareto Tier |
+| -- | ------------------------------------------------------------------------------------------ | ---- | --------- | ------ | ----------- |
+| 1  | **Create `saga/` module with go.mod**                                                      | 30m  | High      | Low    | 1% → 51%    |
+| 2  | **Implement saga core types** (`saga.go`: Core, Step, Instance, Status)                    | 45m  | High      | Low    | 1% → 51%    |
+| 3  | **Implement saga errors** (`errors.go`: sentinel errors)                                   | 30m  | Medium    | Low    | 1% → 51%    |
+| 4  | **Implement saga options** (`options.go`: RunnerOption functional options)                 | 45m  | Medium    | Low    | 1% → 51%    |
+| 5  | **Implement saga store interface** (`store.go`: Save/Load/Update)                          | 45m  | High      | Low    | 1% → 51%    |
+| 6  | **Implement in-memory saga store** (`memory_store.go`)                                     | 60m  | High      | Medium | 1% → 51%    |
+| 7  | **Implement saga runner** (`runner.go`: Register, Start, step execution)                   | 90m  | Very High | High   | 1% → 51%    |
+| 8  | **Implement saga compensation logic** (`compensation.go`: backward rollback)               | 60m  | Very High | Medium | 1% → 51%    |
+| 9  | **Add saga unit tests** (`saga_test.go`, `runner_test.go`)                                 | 90m  | High      | High   | 1% → 51%    |
+| 10 | **Add saga integration with example/todo** (demonstrate saga pattern)                      | 60m  | High      | Medium | 1% → 51%    |
+| 11 | **Implement `TransactionalStore` in storage/** (`transactional_store.go`)                  | 60m  | Very High | Medium | 4% → 64%    |
+| 12 | **Add `SaveWithOutbox` to SQL event store**                                                | 60m  | Very High | Medium | 4% → 64%    |
+| 13 | **Add outbox transaction tests**                                                           | 60m  | High      | Medium | 4% → 64%    |
+| 14 | **Create `watermill/` module with go.mod**                                                 | 30m  | High      | Low    | 4% → 64%    |
+| 15 | **Implement Watermill publisher adapter** (`publisher.go`)                                 | 60m  | High      | Medium | 4% → 64%    |
+| 16 | **Implement Watermill subscriber adapter** (`subscriber.go`)                               | 60m  | High      | Medium | 4% → 64%    |
+| 17 | **Add Watermill integration tests**                                                        | 60m  | High      | Medium | 4% → 64%    |
+| 18 | **Add OpenTelemetry middleware** (`middleware/otel.go`: spans for commands/events/queries) | 90m  | High      | High   | 20% → 80%   |
+| 19 | **Implement event versioning registry** (`core/event/upcaster_registry.go`)                | 60m  | Medium    | Medium | 20% → 80%   |
+| 20 | **Add code generation tool** (`cmd/cqrs-gen/`: generate typed dispatchers from markers)    | 90m  | Very High | High   | 20% → 80%   |
+| 21 | **Implement stream-based event loading** (`core/event/stream_loader.go`: iterator pattern) | 60m  | Medium    | Medium | 20% → 80%   |
+| 22 | **Add semantic version tags to all modules**                                               | 45m  | Medium    | Low    | 20% → 80%   |
+| 23 | **Split `catalog/eventcatalog/writer.go`** (408 lines → 3 files)                           | 60m  | Medium    | Medium | 20% → 80%   |
+| 24 | **Improve eventcatalog coverage** (85.7% → 90%+)                                           | 60m  | Medium    | Medium | 20% → 80%   |
+| 25 | **Update README with saga + outbox examples**                                              | 45m  | High      | Low    | 20% → 80%   |
+| 26 | **Add architecture decision records (ADRs)** for saga + outbox                             | 45m  | Medium    | Low    | 20% → 80%   |
+| 27 | **Final integration test: full CQRS + Saga + Outbox + Projection flow**                    | 60m  | Very High | Medium | 20% → 80%   |
 
-**Total estimated effort:** ~28.5 hours  
+**Total estimated effort:** ~28.5 hours\
 **Critical path (1% + 4%):** ~11.5 hours
 
 ---
@@ -294,22 +294,22 @@ coverage -> readme
 
 ### Phase 1: 1% → 51% (Saga Core)
 
-**Timeline:** Day 1-2  
+**Timeline:** Day 1-2\
 **Tasks:** 1.1 through 3.10 (70 fine-grain tasks)
 
 ### Phase 2: 4% → 64% (Outbox + Watermill)
 
-**Timeline:** Day 3-4  
+**Timeline:** Day 3-4\
 **Tasks:** 4.1 through 5.16 (36 fine-grain tasks)
 
 ### Phase 3: 20% → 80% (Completeness)
 
-**Timeline:** Day 5-7  
+**Timeline:** Day 5-7\
 **Tasks:** 6.1 through 7.50 (90 fine-grain tasks)
 
 ### Phase 4: Polish & Release
 
-**Timeline:** Day 8  
+**Timeline:** Day 8\
 **Tasks:** Integration testing, documentation, tagging
 
 ---

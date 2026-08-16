@@ -8,9 +8,9 @@
 
 | #                                                  | Linter       | Issue                                                                               | Severity | Impact | Effort | Est.     |
 | -------------------------------------------------- | ------------ | ----------------------------------------------------------------------------------- | -------- | ------ | ------ | -------- |
-| **PANIC (1 issue)**                                |
+| **PANIC (1 issue)**                                |              |                                                                                     |          |        |        |          |
 | 1                                                  | panic        | gracefulshutdown send on closed channel                                             | medium   | high   | low    | 8min     |
-| **CONTEXT — Error Context Loss (13 issues)**       |
+| **CONTEXT — Error Context Loss (13 issues)**       |              |                                                                                     |          |        |        |          |
 | 2                                                  | context      | pebble/journal.go:84 — missing `limit` in error                                     | medium   | medium | low    | 5min     |
 | 3                                                  | context      | storage/event_store_global.go:47 — missing `limit` in error                         | medium   | medium | low    | 5min     |
 | 4                                                  | context      | storage/sql/query_engine.go:48 — missing `aggType` in error                         | medium   | high   | low    | 8min     |
@@ -19,7 +19,7 @@
 | 7                                                  | context      | memory/store_load.go:35 — missing `op` in error                                     | medium   | medium | low    | 5min     |
 | 8                                                  | context      | middleware/logging.go:42 — missing `prefix`, `msgType` in error                     | medium   | medium | low    | 8min     |
 | 9                                                  | context      | middleware/recovery.go:34 — missing `msgKind`, `typeName` in error                  | medium   | medium | low    | 8min     |
-| **STRONG-ID — Weak ID Types (21 issues)**          |
+| **STRONG-ID — Weak ID Types (21 issues)**          |              |                                                                                     |          |        |        |          |
 | 10                                                 | strong-id    | catalog/d2/connections.go — `serviceDisplayID`, `eventDisplayID` as string          | medium   | medium | medium | 10min    |
 | 11                                                 | strong-id    | catalog/openapi/types.go:49 — `OperationID` as string                               | medium   | medium | low    | 8min     |
 | 12                                                 | strong-id    | catalog/types_helpers.go:49 — `ID` as string (RefID)                                | medium   | medium | low    | 8min     |
@@ -28,20 +28,20 @@
 | 15                                                 | strong-id    | example/saga-pattern — `OrderID` as string (7 occurrences)                          | medium   | low    | low    | 10min    |
 | 16                                                 | strong-id    | middleware/healthcheck.go — `ReleaseID`, `ComponentID` as string                    | medium   | medium | low    | 10min    |
 | 17                                                 | strong-id    | middleware/sse.go — `id` as string (2 occurrences)                                  | high     | high   | low    | 8min     |
-| **DUPE — Duplicate Types (15 issues in 6 groups)** |
+| **DUPE — Duplicate Types (15 issues in 6 groups)** |              |                                                                                     |          |        |        |          |
 | 18                                                 | dupe         | example/catalog-server vs example/user — `CreateUserPayload` + 4 others             | low      | low    | low    | 10min    |
 | 19                                                 | dupe         | catalog/asyncapi vs openapi — `Info` struct                                         | medium   | medium | medium | 12min    |
 | 20                                                 | dupe         | example/projection — `ItemAdded`, `ItemRemoved` near-dupes                          | low      | low    | low    | 5min     |
 | 21                                                 | dupe         | example/user/commands.go — `CreateUserCmd`, `RebirthUserCmd` near-dupes             | low      | low    | low    | 5min     |
 | 22                                                 | dupe         | storage — `AggregateProjection` vs `SQLAggregateReader` near-dupes                  | medium   | medium | medium | 12min    |
 | 23                                                 | dupe         | projection — `Builder` vs `builtProjection` near-dupes                              | medium   | low    | medium | 10min    |
-| **ANTI-PATTERNS (5 issues)**                       |
+| **ANTI-PATTERNS (5 issues)**                       |              |                                                                                     |          |        |        |          |
 | 24                                                 | anti-pattern | catalog.Message — large struct (17 fields)                                          | medium   | high   | high   | 12min    |
 | 25                                                 | anti-pattern | catalog.Service — large struct (16 fields)                                          | medium   | high   | high   | 12min    |
 | 26                                                 | anti-pattern | example/todo/storage/PebbleBase — base-naming                                       | low      | low    | low    | 5min     |
 | 27                                                 | anti-pattern | storage/sql.Base — base-naming                                                      | low      | medium | low    | 8min     |
 | 28                                                 | anti-pattern | storage/sql.ClosableBase — base-naming                                              | low      | medium | low    | 8min     |
-| **MIXINS — Composition Opportunities (19 issues)** |
+| **MIXINS — Composition Opportunities (19 issues)** |              |                                                                                     |          |        |        |          |
 | 29                                                 | mixins       | catalog/asyncapi.Info ↔ openapi.Info — shared InfoMixin                             | low      | medium | medium | 10min    |
 | 30                                                 | mixins       | catalog/d2.Exporter — ExporterMixin                                                 | low      | low    | low    | 5min     |
 | 31                                                 | mixins       | catalog/openapi.RequestBody — RequestBodyMixin                                      | low      | low    | low    | 5min     |
@@ -53,7 +53,7 @@
 | 37                                                 | mixins       | memory.MemoryCommandStore — MemoryMixin (medium confidence)                         | low      | low    | low    | 5min     |
 | 38                                                 | mixins       | projection.Builder — BuilderMixin (medium confidence)                               | low      | low    | low    | 5min     |
 | 39                                                 | mixins       | storage.AggregateProjection — AggregateProjectionMixin (medium confidence)          | low      | low    | low    | 5min     |
-| **PHANTOM — Primitive Obsession (315 issues)**     |
+| **PHANTOM — Primitive Obsession (315 issues)**     |              |                                                                                     |          |        |        |          |
 | 40                                                 | phantom      | catalog — channelKey, ref, version, description, name, title etc.                   | low      | medium | high   | deferred |
 | 41                                                 | phantom      | event — encoding strings, event type strings                                        | low      | medium | high   | deferred |
 | 42                                                 | phantom      | example modules — string primitives throughout                                      | low      | low    | high   | deferred |

@@ -39,35 +39,35 @@ Scream store PlanDiff/Fingerprint/Manifest, koanf config loading, bus driver reg
 
 Sorted by importance/impact/effort/customer-value. P0 = blocker, P1 = high value, P2 = important, P3 = future.
 
-| #   | Task                                                                    | Impact   | Effort | Tier | Customer Value              |
-| --- | ----------------------------------------------------------------------- | -------- | ------ | ---- | --------------------------- |
-| 1   | Replace `createEngine()` with `createEngineFromDriver()` in constructor | CRITICAL | 15min  | P0   | SQLite becomes usable       |
-| 2   | Register SQLite driver in `init()` (open DB, create engine)             | CRITICAL | 20min  | P0   | SQLite becomes usable       |
-| 3   | Auto-detect serialization: pass `WithSerialization()` for non-Memory    | CRITICAL | 15min  | P0   | SQL events decode correctly |
-| 4   | Write SQLite-through-System integration test                            | CRITICAL | 60min  | P0   | Proves G4 works             |
-| 5   | Write projection E2E test (command→event→projection)                    | CRITICAL | 60min  | P0   | Proves G6 works             |
-| 6   | Split `constructor.go` (369→<350): extract projection wiring            | HIGH     | 30min  | P0   | CI gate passes              |
-| 7   | Split `adapter_event.go` (372→<350): extract serialization              | HIGH     | 30min  | P0   | CI gate passes              |
-| 8   | Add `system/` to api-stability modules list + regen golden              | HIGH     | 30min  | P0   | CI gate passes              |
-| 9   | Fix simpleBus handler independence (each handler called separately)     | HIGH     | 30min  | P1   | Correct event delivery      |
-| 10  | Wire MultiBus into `New()` when multiple Publish targets                | HIGH     | 45min  | P1   | D9 multi-bus works          |
-| 11  | Wire SnapshotBackend into `New()` + System lifecycle                    | HIGH     | 45min  | P1   | Snapshots persist           |
-| 12  | Fix introspection: real health checks + real handler counts             | HIGH     | 45min  | P1   | Admin UI gets real data     |
-| 13  | Wire scream store into `New()` — call CheckSafety on startup            | MEDIUM   | 30min  | P1   | Safety enforcement          |
-| 14  | Update AGENTS.md with system/ module entry                              | MEDIUM   | 30min  | P1   | Docs current                |
-| 15  | Implement `PlanDiff(prev, current)` in metaengine                       | MEDIUM   | 90min  | P2   | Scream store foundation     |
-| 16  | Implement `PlanFingerprint(plan)` canonical hash                        | MEDIUM   | 45min  | P2   | Scream store foundation     |
-| 17  | Implement `Manifest` type + pinned plan persistence                     | MEDIUM   | 60min  | P2   | Scream store foundation     |
-| 18  | Integrate koanf for YAML + env config loading                           | MEDIUM   | 90min  | P2   | G2 deployer decides         |
-| 19  | Register gochannel bus driver (wrap simpleBus or watermill)             | MEDIUM   | 45min  | P2   | Bus type configurable       |
-| 20  | Implement Pebble StreamLogBackend (5 methods)                           | MEDIUM   | 90min  | P2   | G7 add backends             |
-| 21  | Implement DuckDB StreamLogBackend (5 methods)                           | LOW      | 90min  | P3   | G7 add backends             |
-| 22  | Implement Postgres StreamLogBackend (5 methods)                         | LOW      | 90min  | P3   | G7 add backends             |
-| 23  | Implement System.Verify/Plan/Explain methods                            | LOW      | 60min  | P2   | Introspection complete      |
-| 24  | Implement StreamReadAsOf on StreamLogBackend + Memory + SQLite          | LOW      | 90min  | P3   | Temporal reads              |
-| 25  | Fix design doc claims (StreamLogBackend = 2/5 not 5/5)                  | LOW      | 15min  | P2   | Doc accuracy                |
-| 26  | Implement SnapshotBackend in metaengine (engines implement)             | LOW      | 60min  | P3   | D12 complete                |
-| 27  | Add SCREAM severity to Diagnostics + durability-aware rules             | LOW      | 60min  | P3   | G10 scream store            |
+| #  | Task                                                                    | Impact   | Effort | Tier | Customer Value              |
+| -- | ----------------------------------------------------------------------- | -------- | ------ | ---- | --------------------------- |
+| 1  | Replace `createEngine()` with `createEngineFromDriver()` in constructor | CRITICAL | 15min  | P0   | SQLite becomes usable       |
+| 2  | Register SQLite driver in `init()` (open DB, create engine)             | CRITICAL | 20min  | P0   | SQLite becomes usable       |
+| 3  | Auto-detect serialization: pass `WithSerialization()` for non-Memory    | CRITICAL | 15min  | P0   | SQL events decode correctly |
+| 4  | Write SQLite-through-System integration test                            | CRITICAL | 60min  | P0   | Proves G4 works             |
+| 5  | Write projection E2E test (command→event→projection)                    | CRITICAL | 60min  | P0   | Proves G6 works             |
+| 6  | Split `constructor.go` (369→<350): extract projection wiring            | HIGH     | 30min  | P0   | CI gate passes              |
+| 7  | Split `adapter_event.go` (372→<350): extract serialization              | HIGH     | 30min  | P0   | CI gate passes              |
+| 8  | Add `system/` to api-stability modules list + regen golden              | HIGH     | 30min  | P0   | CI gate passes              |
+| 9  | Fix simpleBus handler independence (each handler called separately)     | HIGH     | 30min  | P1   | Correct event delivery      |
+| 10 | Wire MultiBus into `New()` when multiple Publish targets                | HIGH     | 45min  | P1   | D9 multi-bus works          |
+| 11 | Wire SnapshotBackend into `New()` + System lifecycle                    | HIGH     | 45min  | P1   | Snapshots persist           |
+| 12 | Fix introspection: real health checks + real handler counts             | HIGH     | 45min  | P1   | Admin UI gets real data     |
+| 13 | Wire scream store into `New()` — call CheckSafety on startup            | MEDIUM   | 30min  | P1   | Safety enforcement          |
+| 14 | Update AGENTS.md with system/ module entry                              | MEDIUM   | 30min  | P1   | Docs current                |
+| 15 | Implement `PlanDiff(prev, current)` in metaengine                       | MEDIUM   | 90min  | P2   | Scream store foundation     |
+| 16 | Implement `PlanFingerprint(plan)` canonical hash                        | MEDIUM   | 45min  | P2   | Scream store foundation     |
+| 17 | Implement `Manifest` type + pinned plan persistence                     | MEDIUM   | 60min  | P2   | Scream store foundation     |
+| 18 | Integrate koanf for YAML + env config loading                           | MEDIUM   | 90min  | P2   | G2 deployer decides         |
+| 19 | Register gochannel bus driver (wrap simpleBus or watermill)             | MEDIUM   | 45min  | P2   | Bus type configurable       |
+| 20 | Implement Pebble StreamLogBackend (5 methods)                           | MEDIUM   | 90min  | P2   | G7 add backends             |
+| 21 | Implement DuckDB StreamLogBackend (5 methods)                           | LOW      | 90min  | P3   | G7 add backends             |
+| 22 | Implement Postgres StreamLogBackend (5 methods)                         | LOW      | 90min  | P3   | G7 add backends             |
+| 23 | Implement System.Verify/Plan/Explain methods                            | LOW      | 60min  | P2   | Introspection complete      |
+| 24 | Implement StreamReadAsOf on StreamLogBackend + Memory + SQLite          | LOW      | 90min  | P3   | Temporal reads              |
+| 25 | Fix design doc claims (StreamLogBackend = 2/5 not 5/5)                  | LOW      | 15min  | P2   | Doc accuracy                |
+| 26 | Implement SnapshotBackend in metaengine (engines implement)             | LOW      | 60min  | P3   | D12 complete                |
+| 27 | Add SCREAM severity to Diagnostics + durability-aware rules             | LOW      | 60min  | P3   | G10 scream store            |
 
 **Total: 27 tasks. Estimated: ~28 hours.**
 

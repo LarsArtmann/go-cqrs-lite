@@ -69,35 +69,35 @@ graph TD
 
 ## Detailed Task Breakdown (100-30min tasks, max 27)
 
-| #   | Task                                              | Phase | Impact   | Effort | Status  |
-| --- | ------------------------------------------------- | ----- | -------- | ------ | ------- |
-| 1   | Re-run buildflow --semantic --fix                 | 1     | CRITICAL | 5min   | pending |
-| 2   | Analyze buildflow output and score                | 1     | CRITICAL | 5min   | pending |
-| 3   | Create .golangci-lint.yml with recommended config | 1     | HIGH     | 10min  | pending |
-| 4   | Run golangci-lint and fix any issues              | 1     | HIGH     | 10min  | pending |
-| 5   | Refactor WithCorrelationID to use helper          | 2     | HIGH     | 10min  | pending |
-| 6   | Refactor WithCausationID to use helper            | 2     | HIGH     | 5min   | pending |
-| 7   | Refactor WithUserID to use helper                 | 2     | HIGH     | 5min   | pending |
-| 8   | Refactor WithRequestID to use helper              | 2     | HIGH     | 5min   | pending |
-| 9   | Refactor WithSource to use helper                 | 2     | HIGH     | 5min   | pending |
-| 10  | Refactor WithIPAddress to use helper              | 2     | HIGH     | 5min   | pending |
-| 11  | Refactor WithUserAgent to use helper              | 2     | HIGH     | 5min   | pending |
-| 12  | Refactor WithCustom to use helper                 | 2     | HIGH     | 5min   | pending |
-| 13  | Add error assertion tests for event.go            | 2     | HIGH     | 15min  | pending |
-| 14  | Add error assertion tests for memory_bus.go       | 2     | HIGH     | 10min  | pending |
-| 15  | Add error assertion tests for dispatcher.go       | 2     | HIGH     | 10min  | pending |
-| 16  | Run tests and verify coverage                     | 2     | HIGH     | 5min   | pending |
-| 17  | Extract Close() pattern to shared utility         | 3     | MEDIUM   | 15min  | pending |
-| 18  | Update all Close() implementations                | 3     | MEDIUM   | 10min  | pending |
-| 19  | Extract Use() middleware pattern                  | 3     | MEDIUM   | 15min  | pending |
-| 20  | Update all Use() implementations                  | 3     | MEDIUM   | 10min  | pending |
-| 21  | Add integration test for full CQRS flow           | 3     | MEDIUM   | 30min  | pending |
-| 22  | Add fuzz test for event creation                  | 3     | MEDIUM   | 15min  | pending |
-| 23  | Add fuzz test for command dispatch                | 3     | MEDIUM   | 15min  | pending |
-| 24  | Update AGENTS.md with error patterns              | 3     | LOW      | 10min  | pending |
-| 25  | Update README with examples                       | 3     | LOW      | 10min  | pending |
-| 26  | Final buildflow verification                      | 3     | CRITICAL | 5min   | pending |
-| 27  | Commit and push all changes                       | 3     | HIGH     | 5min   | pending |
+| #  | Task                                              | Phase | Impact   | Effort | Status  |
+| -- | ------------------------------------------------- | ----- | -------- | ------ | ------- |
+| 1  | Re-run buildflow --semantic --fix                 | 1     | CRITICAL | 5min   | pending |
+| 2  | Analyze buildflow output and score                | 1     | CRITICAL | 5min   | pending |
+| 3  | Create .golangci-lint.yml with recommended config | 1     | HIGH     | 10min  | pending |
+| 4  | Run golangci-lint and fix any issues              | 1     | HIGH     | 10min  | pending |
+| 5  | Refactor WithCorrelationID to use helper          | 2     | HIGH     | 10min  | pending |
+| 6  | Refactor WithCausationID to use helper            | 2     | HIGH     | 5min   | pending |
+| 7  | Refactor WithUserID to use helper                 | 2     | HIGH     | 5min   | pending |
+| 8  | Refactor WithRequestID to use helper              | 2     | HIGH     | 5min   | pending |
+| 9  | Refactor WithSource to use helper                 | 2     | HIGH     | 5min   | pending |
+| 10 | Refactor WithIPAddress to use helper              | 2     | HIGH     | 5min   | pending |
+| 11 | Refactor WithUserAgent to use helper              | 2     | HIGH     | 5min   | pending |
+| 12 | Refactor WithCustom to use helper                 | 2     | HIGH     | 5min   | pending |
+| 13 | Add error assertion tests for event.go            | 2     | HIGH     | 15min  | pending |
+| 14 | Add error assertion tests for memory_bus.go       | 2     | HIGH     | 10min  | pending |
+| 15 | Add error assertion tests for dispatcher.go       | 2     | HIGH     | 10min  | pending |
+| 16 | Run tests and verify coverage                     | 2     | HIGH     | 5min   | pending |
+| 17 | Extract Close() pattern to shared utility         | 3     | MEDIUM   | 15min  | pending |
+| 18 | Update all Close() implementations                | 3     | MEDIUM   | 10min  | pending |
+| 19 | Extract Use() middleware pattern                  | 3     | MEDIUM   | 15min  | pending |
+| 20 | Update all Use() implementations                  | 3     | MEDIUM   | 10min  | pending |
+| 21 | Add integration test for full CQRS flow           | 3     | MEDIUM   | 30min  | pending |
+| 22 | Add fuzz test for event creation                  | 3     | MEDIUM   | 15min  | pending |
+| 23 | Add fuzz test for command dispatch                | 3     | MEDIUM   | 15min  | pending |
+| 24 | Update AGENTS.md with error patterns              | 3     | LOW      | 10min  | pending |
+| 25 | Update README with examples                       | 3     | LOW      | 10min  | pending |
+| 26 | Final buildflow verification                      | 3     | CRITICAL | 5min   | pending |
+| 27 | Commit and push all changes                       | 3     | HIGH     | 5min   | pending |
 
 ---
 

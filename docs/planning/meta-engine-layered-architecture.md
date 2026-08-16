@@ -40,8 +40,7 @@ what are actually **two orthogonal axes**:
 The central observation: **databases historically bundle these two axes into one product.**
 PostgreSQL is Relational × B-Tree. Cassandra is Wide-Column × LSM. Neo4j is Graph ×
 adjacency-list. But the axes are independent — the same data model can be backed by many
-storage engines, and the same storage engine can power many data models (see the [cross-reference
-matrix](../research/database-architecture-taxonomy.md) in the taxonomy doc).
+storage engines, and the same storage engine can power many data models (see the [cross-reference matrix](../research/database-architecture-taxonomy.md) in the taxonomy doc).
 
 ### Today's Problem: The Axes Are Bundled
 

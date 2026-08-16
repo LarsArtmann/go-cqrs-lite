@@ -23,22 +23,22 @@
 
 **5 within-module / shared-parent extractions** — these are the real duplication kills:
 
-| #   | Clone                                                                                                                                 | Lines saved | Risk | Why it matters                                                     |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---- | ------------------------------------------------------------------ |
-| A   | `seq_seeding.go`: `seedStreamSeqs()` is literally `seedCollectionSeqs("sl", &e.streamSeq)` — the generic version already exists!      | ~20         | Zero | One-function elimination, generic already exists                   |
-| B   | `sortDurations` + `percentileIdx` byte-identical in loopback + quic → move to shared `irohengine` package (both already depend on it) | ~20         | Low  | Cross-module byte-identical code, shared parent exists             |
-| C   | `explain.go`: `renderTopLevelKeys` + `renderFeatures` have identical column-width + table-printing structure (~30 lines each)         | ~25         | Low  | Clear table-rendering pattern, same file                           |
-| D   | `system/adapter_event.go`: `LoadFromVersion` + `LoadToVersion` share temporal-fast-path-then-fallback template                        | ~15         | Low  | Same template as the CommandAdapter.loadFiltered already extracted |
-| E   | `lintutil`: Extract `SelectorIdent(sel) (string, bool)` — d007 + c037 both do `sel.X.(*ast.Ident)` guard                              | ~8          | Low  | Small but clear, lintutil already exists                           |
+| # | Clone                                                                                                                                 | Lines saved | Risk | Why it matters                                                     |
+| - | ------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---- | ------------------------------------------------------------------ |
+| A | `seq_seeding.go`: `seedStreamSeqs()` is literally `seedCollectionSeqs("sl", &e.streamSeq)` — the generic version already exists!      | ~20         | Zero | One-function elimination, generic already exists                   |
+| B | `sortDurations` + `percentileIdx` byte-identical in loopback + quic → move to shared `irohengine` package (both already depend on it) | ~20         | Low  | Cross-module byte-identical code, shared parent exists             |
+| C | `explain.go`: `renderTopLevelKeys` + `renderFeatures` have identical column-width + table-printing structure (~30 lines each)         | ~25         | Low  | Clear table-rendering pattern, same file                           |
+| D | `system/adapter_event.go`: `LoadFromVersion` + `LoadToVersion` share temporal-fast-path-then-fallback template                        | ~15         | Low  | Same template as the CommandAdapter.loadFiltered already extracted |
+| E | `lintutil`: Extract `SelectorIdent(sel) (string, bool)` — d007 + c037 both do `sel.X.(*ast.Ident)` guard                              | ~8          | Low  | Small but clear, lintutil already exists                           |
 
 ### The 20% that gets to ~90%
 
-| #   | Clone                                                       | Action                                                                                                                                                                   | Why                                              |
-| --- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
-| F   | `DurabilityTier` (stack ↔ system)                           | **Document as intentional** — 3 string constants, values are stable ("strict"/"normal"/"relaxed"), adding a module dependency for 3 constants is verschlimmbessern       | Split brain risk is real but cure is worse       |
-| G   | `Dialect` enum (idempotency/sqlstore ↔ scheduling/sqlstore) | **Document as intentional** — same iota enum, but each module's doc comments describe module-specific behavior. Extracting would force one module to depend on the other | Same reasoning                                   |
-| H   | Update `.art-dupl-baseline.json`                            | After all extractions                                                                                                                                                    | Lock in the new state                            |
-| I   | Run api-stability golden regen                              | After all extractions                                                                                                                                                    | All new helpers are unexported → should be no-op |
+| # | Clone                                                       | Action                                                                                                                                                                   | Why                                              |
+| - | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| F | `DurabilityTier` (stack ↔ system)                           | **Document as intentional** — 3 string constants, values are stable ("strict"/"normal"/"relaxed"), adding a module dependency for 3 constants is verschlimmbessern       | Split brain risk is real but cure is worse       |
+| G | `Dialect` enum (idempotency/sqlstore ↔ scheduling/sqlstore) | **Document as intentional** — same iota enum, but each module's doc comments describe module-specific behavior. Extracting would force one module to depend on the other | Same reasoning                                   |
+| H | Update `.art-dupl-baseline.json`                            | After all extractions                                                                                                                                                    | Lock in the new state                            |
+| I | Run api-stability golden regen                              | After all extractions                                                                                                                                                    | All new helpers are unexported → should be no-op |
 
 ### The remaining 10% (explicitly ACCEPT)
 
@@ -114,13 +114,13 @@ graph TD
 
 ## Task Breakdown — Phase 1: HIGH IMPACT Extractions (100-30min tasks)
 
-| ID  | Task                                                                                                                | Module                     | Files touched                                                         | Est.  | Impact  | Risk |
-| --- | ------------------------------------------------------------------------------------------------------------------- | -------------------------- | --------------------------------------------------------------------- | ----- | ------- | ---- |
-| A   | Eliminate `seedStreamSeqs()` — call `seedCollectionSeqs("sl", &e.streamSeq)` instead                                | pebbleengine               | `seq_seeding.go`                                                      | 10min | Med     | Zero |
-| B   | Move `sortDurations` + `percentileIdx` to `irohengine` package, update loopback + quic imports                      | irohengine, loopback, quic | `irohengine/latency.go` (new), `loopback/frame.go`, `quic/latency.go` | 20min | Med     | Low  |
-| C   | Extract `renderKeyTable(b, headers, widths, rows)` helper, refactor `renderTopLevelKeys` + `renderFeatures`         | cqrs-lint                  | `explain.go`                                                          | 25min | Med     | Low  |
-| D   | Extract `(*EventAdapter).loadTemporal(ctx, ref, readFn, errLabel)` helper, refactor LoadFromVersion + LoadToVersion | system                     | `adapter_event.go`                                                    | 15min | Low-Med | Low  |
-| E   | Extract `lintutil.SelectorIdent(sel *ast.SelectorExpr) (*ast.Ident, bool)`, refactor d007 + c037                    | cqrs-lint                  | `lintutil/lintutil.go`, `d007_d008_d013.go`, `c037.go`                | 15min | Low     | Low  |
+| ID | Task                                                                                                                | Module                     | Files touched                                                         | Est.  | Impact  | Risk |
+| -- | ------------------------------------------------------------------------------------------------------------------- | -------------------------- | --------------------------------------------------------------------- | ----- | ------- | ---- |
+| A  | Eliminate `seedStreamSeqs()` — call `seedCollectionSeqs("sl", &e.streamSeq)` instead                                | pebbleengine               | `seq_seeding.go`                                                      | 10min | Med     | Zero |
+| B  | Move `sortDurations` + `percentileIdx` to `irohengine` package, update loopback + quic imports                      | irohengine, loopback, quic | `irohengine/latency.go` (new), `loopback/frame.go`, `quic/latency.go` | 20min | Med     | Low  |
+| C  | Extract `renderKeyTable(b, headers, widths, rows)` helper, refactor `renderTopLevelKeys` + `renderFeatures`         | cqrs-lint                  | `explain.go`                                                          | 25min | Med     | Low  |
+| D  | Extract `(*EventAdapter).loadTemporal(ctx, ref, readFn, errLabel)` helper, refactor LoadFromVersion + LoadToVersion | system                     | `adapter_event.go`                                                    | 15min | Low-Med | Low  |
+| E  | Extract `lintutil.SelectorIdent(sel *ast.SelectorExpr) (*ast.Ident, bool)`, refactor d007 + c037                    | cqrs-lint                  | `lintutil/lintutil.go`, `d007_d008_d013.go`, `c037.go`                | 15min | Low     | Low  |
 
 ## Task Breakdown — Phase 2: Verify per-module (after each extraction)
 
@@ -133,18 +133,18 @@ graph TD
 
 ## Task Breakdown — Phase 3: Document split brains
 
-| ID  | Task                                                                                                                                    | Est. | Impact |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------ |
-| F   | Add `// Intentional duplicate: see stack/durability.go. Values MUST match.` comment to `system/system.go` DurabilityTier                | 5min | Low    |
-| G   | Add `// Intentional duplicate: see idempotency/sqlstore/store.go. Values MUST match.` comment to `scheduling/sqlstore/store.go` Dialect | 5min | Low    |
+| ID | Task                                                                                                                                    | Est. | Impact |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------ |
+| F  | Add `// Intentional duplicate: see stack/durability.go. Values MUST match.` comment to `system/system.go` DurabilityTier                | 5min | Low    |
+| G  | Add `// Intentional duplicate: see idempotency/sqlstore/store.go. Values MUST match.` comment to `scheduling/sqlstore/store.go` Dialect | 5min | Low    |
 
 ## Task Breakdown — Phase 4: Baseline + Gate
 
-| ID  | Task                                                        | Est.   | Impact       |
-| --- | ----------------------------------------------------------- | ------ | ------------ |
-| H   | `art-dupl baseline . --threshold 3 --semantic`              | 2min   | Critical     |
-| I   | `cd cmd/api-stability && GOWORK=off go run main.go -update` | 5min   | High         |
-| J   | `nix run .#verify`                                          | 3-4min | **THE GATE** |
+| ID | Task                                                        | Est.   | Impact       |
+| -- | ----------------------------------------------------------- | ------ | ------------ |
+| H  | `art-dupl baseline . --threshold 3 --semantic`              | 2min   | Critical     |
+| I  | `cd cmd/api-stability && GOWORK=off go run main.go -update` | 5min   | High         |
+| J  | `nix run .#verify`                                          | 3-4min | **THE GATE** |
 
 ## Task Breakdown — Phase 5: Sub-task breakdown (max 12min each)
 

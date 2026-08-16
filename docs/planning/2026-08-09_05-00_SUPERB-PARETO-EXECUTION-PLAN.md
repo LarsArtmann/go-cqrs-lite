@@ -23,12 +23,12 @@ This is THE foundation. It has been skipped for 10+ sessions (the "stale GREEN" 
 
 ### The 4% that delivers 64%
 
-| #   | Task                                                    | Why                                                                       | Effort |
-| --- | ------------------------------------------------------- | ------------------------------------------------------------------------- | ------ |
-| M1  | Run `nix run .#verify` + fix failures                   | Foundation — everything depends on GREEN                                  | 60min  |
-| M2  | Cut CHANGELOG `[Unreleased]` → `[v4.7.0]` + tag modules | 4800-line changelog is unread; consumers need versioned tags              | 90min  |
-| M3  | Fix benchkit timing flakes (3 tests)                    | CI flakiness blocks every PR; hardcoded 5s thresholds under parallel load | 30min  |
-| M4  | Add meta-test: `testModules == all go.mod dirs`         | 8 modules were silently untested; prevents recurrence                     | 30min  |
+| #  | Task                                                    | Why                                                                       | Effort |
+| -- | ------------------------------------------------------- | ------------------------------------------------------------------------- | ------ |
+| M1 | Run `nix run .#verify` + fix failures                   | Foundation — everything depends on GREEN                                  | 60min  |
+| M2 | Cut CHANGELOG `[Unreleased]` → `[v4.7.0]` + tag modules | 4800-line changelog is unread; consumers need versioned tags              | 90min  |
+| M3 | Fix benchkit timing flakes (3 tests)                    | CI flakiness blocks every PR; hardcoded 5s thresholds under parallel load | 30min  |
+| M4 | Add meta-test: `testModules == all go.mod dirs`         | 8 modules were silently untested; prevents recurrence                     | 30min  |
 
 4 tasks. ~210min. These four give us: GREEN verify, a versioned release, reliable CI, and a guard against silent test gaps.
 

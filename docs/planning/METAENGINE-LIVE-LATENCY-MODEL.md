@@ -2,7 +2,7 @@
 
 > The critique that triggered this report: declaring `NetworkRTT` as a
 > compile-time constant on `EngineProfile` is modeling a runtime measurement
-> as a static fact. Latency changes *constantly* — it is an observation, not an
+> as a static fact. Latency changes _constantly_ — it is an observation, not an
 > assertion. And the same applies to the per-op `NsPerOp/NsPerRead/NsPerWrite`
 > and `ReadCosts` constants.
 >
@@ -27,7 +27,7 @@ You're right, and the codebase half-agrees with you already:
 - **The ecosystem already has the right pattern**: `irohengine` measures
   delivery/convergence at runtime with a `LatencyCollector` (windowed
   percentiles) and feeds them back through `Profile()` — but even iroh consumes
-  them as a *snapshot*, not a *live value*. The missing piece is everywhere:
+  them as a _snapshot_, not a _live value_. The missing piece is everywhere:
   **a runtime path from measurement → cost estimation, that doesn't require a
   re-plan.**
 - The good news: the planner **reads `profile.NsForRead(ReadPattern)` and
@@ -35,22 +35,22 @@ You're right, and the codebase half-agrees with you already:
   returns a live view, a re-plan (or a re-score against latencies on the fly)
   automatically sees current numbers — no API break, no new `Plan` call shape.
 
-**Proposed model** — the engine declares a *network contact* and a *measurement
-strategy*; the runtime measures true RTT/per-op latency in the background; the
+**Proposed model** — the engine declares a _network contact_ and a _measurement
+strategy_; the runtime measures true RTT/per-op latency in the background; the
 planner consumes a dynamic profile. Three phases, each independently shippable:
 
-| Phase | Ships | Into |
-| --- | --- | --- |
-| **P1 — Probe & measure** | `Prober`/`TransactMeasurer` interface, `LatencyTracker` (EWMA + percentile), `ProbeEngine()` helper. Engines report `NetworkRTT`/`NsPerRead` from a live tracker. | `metaengine` core |
-| **P2 — Live planner view** | Store holds a snapshot of each engine's profile; `Profile()` returns the live view; the Store re-reads profiles at interval/`GetStats()` and re-scores near-cheap alternatives; `GetStats()` exposes measurement artifacts. `WithNetworkRTT` becomes a *prior*, not a constant. | `Store` + planner |
-| **P3 — Latency telemetry into routing** | `OperatingSetReporter` sampled mechanism writes measured per-op/per-RTT (with a neutral ingress via `StatSink`) so external engines can feed real-time costs without a hard interface dependency. | external engines, iles |
+| Phase                                   | Ships                                                                                                                                                                                                                                                                           | Into                   |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| **P1 — Probe & measure**                | `Prober`/`TransactMeasurer` interface, `LatencyTracker` (EWMA + percentile), `ProbeEngine()` helper. Engines report `NetworkRTT`/`NsPerRead` from a live tracker.                                                                                                               | `metaengine` core      |
+| **P2 — Live planner view**              | Store holds a snapshot of each engine's profile; `Profile()` returns the live view; the Store re-reads profiles at interval/`GetStats()` and re-scores near-cheap alternatives; `GetStats()` exposes measurement artifacts. `WithNetworkRTT` becomes a _prior_, not a constant. | `Store` + planner      |
+| **P3 — Latency telemetry into routing** | `OperatingSetReporter` sampled mechanism writes measured per-op/per-RTT (with a neutral ingress via `StatSink`) so external engines can feed real-time costs without a hard interface dependency.                                                                               | external engines, iles |
 
 **Sizing** — P1 is small; P2 is medium; P3 is the largest and can stand alone.
 
-**Why this beats "just put a number in the constructor"?** It separates *deployment
-knowledge* (which the consumer has: topology, expected RTT, allowed latency
-budget) from *live observation* (which only the running system has). The
-compile-time profile declares who is remote and a *prior*; the runtime keeps
+**Why this beats "just put a number in the constructor"?** It separates _deployment
+knowledge_ (which the consumer has: topology, expected RTT, allowed latency
+budget) from _live observation_ (which only the running system has). The
+compile-time profile declares who is remote and a _prior_; the runtime keeps
 the number honest.
 
 ---
@@ -59,13 +59,13 @@ the number honest.
 
 All four work items plus the Phase 3 improvement backlog are implemented and covered by tests in `metaengine/`:
 
-| Phase | What shipped | Code |
-| --- | --- | --- |
-| **P1 — Probe & measure** | `Prober` / `TransactMeasurer` interfaces, `LatencyTracker` (ring buffer + incremental EWMA + P50/P95/P99), `ProbeEngine()` helper returning `ProbeHandle` (Stop + Failures), `CalibrationCosts.NetworkRTT` prior, `Calibration` hosts live RTT + per-read trackers whose EWMA `ApplyCalibration` merges into `Profile()`. Test-double engine proves a live RTT shift changes `Profile()`. PG `SELECT 1` + `meta_map` point lookup, MySQL `SELECT 1` + `meta_map`, Dgraph healthcheck + predicate index seek, Turso `PingContext` via `sqliteengine.SetProber`. | `latency.go`, `probe.go`, `reliability.go`, `engine.go` (`RequiresNetwork`), `pgengine/probe.go`, `dgraphengine/probe.go`, `mysqlengine/probe.go`, `sqliteengine/probe.go`, `tursoengine/register.go` |
-| **P2 — Live planner view + Store stats** | `Store.GetEngineStats()` returns `EngineStats {profile, measured RTT, samples, lastProbe, stale}`; `EXPLAIN`/`Doctor` show `rtt=live … (p95, n)` and stale labelling; `liveLatencyRule` emits a WARN when routing relies on a prior/stale RTT for a remote engine; `WithNetworkRTT` doc now says "prior, not constant." The plan-time `Profile()` read is already live, so a re-plan automatically picks up fresh numbers (gate test: routing flips on an RTT shift). | `engine_stats.go`, `rule_live_latency.go`, `explain.go`, `planner.go`, `rules.go` |
-| **P3 — Open measurement ingress** | Exported `StatSink` / `LatencySample` / `SampleKind`; `LatencyTracker` forwards every sample to a configured sink; `ProbeEngine` accepts `WithProbeSink`. External engines can push measurements through a sink without internal helpers. Test: fake prober drives planner decisions with/without live stats. | `probe.go`, `latency.go` (`WithTrackerSink`) |
-| **UX — GetStats / Doctor** | `Doctor` adds `--- Latency ---` + `--- Routing ---` sections (plan version, replan count, hysteresis, drift summary); `ExplainPlan` shows the live-latency line per remote engine; `FormatLiveLatency` renders live/stale/local. | `explain.go`, `engine_stats.go` |
-| **Phase 3 — Improvement backlog** | `Store.Replan(ctx)` three-phase locking; `Store.CheckRouting(ctx)` differential re-scoring with configurable hysteresis (`WithRoutingHysteresis`, `WithRoutingMinDelta`); `Store.StartAutoReplan(ctx, interval)` with parent context; `ProbeHandle` with `Failures()` counter + `WithProbeErrorHandler`; turso live probing via `sqliteengine.SetProber`; RTT amortization for scan-pattern fallback costs; slog-based observability for CheckRouting and Replan; concurrency stress test. | `store.go`, `store_routing.go`, `probe.go`, `engine.go`, `planner.go`, `sqliteengine/probe.go` |
+| Phase                                    | What shipped                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Code                                                                                                                                                                                                  |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **P1 — Probe & measure**                 | `Prober` / `TransactMeasurer` interfaces, `LatencyTracker` (ring buffer + incremental EWMA + P50/P95/P99), `ProbeEngine()` helper returning `ProbeHandle` (Stop + Failures), `CalibrationCosts.NetworkRTT` prior, `Calibration` hosts live RTT + per-read trackers whose EWMA `ApplyCalibration` merges into `Profile()`. Test-double engine proves a live RTT shift changes `Profile()`. PG `SELECT 1` + `meta_map` point lookup, MySQL `SELECT 1` + `meta_map`, Dgraph healthcheck + predicate index seek, Turso `PingContext` via `sqliteengine.SetProber`. | `latency.go`, `probe.go`, `reliability.go`, `engine.go` (`RequiresNetwork`), `pgengine/probe.go`, `dgraphengine/probe.go`, `mysqlengine/probe.go`, `sqliteengine/probe.go`, `tursoengine/register.go` |
+| **P2 — Live planner view + Store stats** | `Store.GetEngineStats()` returns `EngineStats {profile, measured RTT, samples, lastProbe, stale}`; `EXPLAIN`/`Doctor` show `rtt=live … (p95, n)` and stale labelling; `liveLatencyRule` emits a WARN when routing relies on a prior/stale RTT for a remote engine; `WithNetworkRTT` doc now says "prior, not constant." The plan-time `Profile()` read is already live, so a re-plan automatically picks up fresh numbers (gate test: routing flips on an RTT shift).                                                                                          | `engine_stats.go`, `rule_live_latency.go`, `explain.go`, `planner.go`, `rules.go`                                                                                                                     |
+| **P3 — Open measurement ingress**        | Exported `StatSink` / `LatencySample` / `SampleKind`; `LatencyTracker` forwards every sample to a configured sink; `ProbeEngine` accepts `WithProbeSink`. External engines can push measurements through a sink without internal helpers. Test: fake prober drives planner decisions with/without live stats.                                                                                                                                                                                                                                                  | `probe.go`, `latency.go` (`WithTrackerSink`)                                                                                                                                                          |
+| **UX — GetStats / Doctor**               | `Doctor` adds `--- Latency ---` + `--- Routing ---` sections (plan version, replan count, hysteresis, drift summary); `ExplainPlan` shows the live-latency line per remote engine; `FormatLiveLatency` renders live/stale/local.                                                                                                                                                                                                                                                                                                                               | `explain.go`, `engine_stats.go`                                                                                                                                                                       |
+| **Phase 3 — Improvement backlog**        | `Store.Replan(ctx)` three-phase locking; `Store.CheckRouting(ctx)` differential re-scoring with configurable hysteresis (`WithRoutingHysteresis`, `WithRoutingMinDelta`); `Store.StartAutoReplan(ctx, interval)` with parent context; `ProbeHandle` with `Failures()` counter + `WithProbeErrorHandler`; turso live probing via `sqliteengine.SetProber`; RTT amortization for scan-pattern fallback costs; slog-based observability for CheckRouting and Replan; concurrency stress test.                                                                     | `store.go`, `store_routing.go`, `probe.go`, `engine.go`, `planner.go`, `sqliteengine/probe.go`                                                                                                        |
 
 Backward compatibility: the `Engine` interface is unchanged (`Profile()+Close()`); `Profile()` is free to return a live view. Engines without a tracker behave exactly as before. The new profile field `RequiresNetwork` and `CalibrationCosts.NetworkRTT` default to zero (local / no override), so every existing engine compiles and plans unchanged.
 
@@ -76,15 +76,15 @@ Backward compatibility: the `Engine` interface is unchanged (`Profile()+Close()`
 The cost model uses several superficially-similar numbers with different
 epistemology:
 
-| Number | What it models | Static or dynamic? | Who knows it? |
-| --- | --- | --- | --- |
-| `NetworkRTT` | the single fixed RTT to a *remote* engine | **dynamic** (network health, load, distance) | only the running system |
-| `ReplicationLag` | staleness of a replicated copy | **dynamic** (load, partition healing) | only the running system |
+| Number                              | What it models                                 | Static or dynamic?                                   | Who knows it?                                   |
+| ----------------------------------- | ---------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------- |
+| `NetworkRTT`                        | the single fixed RTT to a _remote_ engine      | **dynamic** (network health, load, distance)         | only the running system                         |
+| `ReplicationLag`                    | staleness of a replicated copy                 | **dynamic** (load, partition healing)                | only the running system                         |
 | `NsPerOp/Read/Write`, `ReadCosts.*` | compute cost of an operation on given hardware | **quasi-static** (hardware-fixed, workload-variable) | engine author + calibration, runtime under load |
-| `Replication` mode | topology (`SingleLeader`, …) | **static** | engine author |
-| `Persistence` | durable vs volatile | **static** (except memory-vs-file choice) | engine author |
-| `DegradedADTs` | capability fallback | **static** | engine author |
-| `Complexity` (O(1), O(N)) | asymptotic class | **static** | engine author |
+| `Replication` mode                  | topology (`SingleLeader`, …)                   | **static**                                           | engine author                                   |
+| `Persistence`                       | durable vs volatile                            | **static** (except memory-vs-file choice)            | engine author                                   |
+| `DegradedADTs`                      | capability fallback                            | **static**                                           | engine author                                   |
+| `Complexity` (O(1), O(N))           | asymptotic class                               | **static**                                           | engine author                                   |
 
 The user's critique targets the two dynamic rows (`NetworkRTT` and the
 `NsPerOp`/`ReadCosts` family). The current model treats all rows as static
@@ -93,9 +93,9 @@ compile-time facts; that is the core modeling error.
 ### The "compile-time vs runtime" distinction
 
 - **Compile-time / structural** (`Replication`, `Persistence`, `DegradedADTs`,
-  `Complexity`, support map): what the engine *is*. Stay in `EngineProfile`.
+  `Complexity`, support map): what the engine _is_. Stay in `EngineProfile`.
 - **Runtime / observed** (`NetworkRTT`, per-op latency): what the environment
-  *does*. Should come from measurement, not from a constant.
+  _does_. Should come from measurement, not from a constant.
 
 ---
 
@@ -111,7 +111,7 @@ NetworkRTT, Persistence, DegradedADTs). Doc comments call the cost fields
 ### 3.2 Calibration exists — but is half-finished
 
 `reliability.go` has a full `Calibration`/`Calibratable` machinery intended for
-*measured* costs:
+_measured_ costs:
 
 - `CalibrationCosts` { NsPerOp, NsPerRead, NsPerWrite, ReadCosts }
 - `Calibration` struct with `SetCalibration` / `ApplyCalibration` (applies only
@@ -120,7 +120,7 @@ NetworkRTT, Persistence, DegradedADTs). Doc comments call the cost fields
 - `CalibrateEngine(eng, iterations)` — a **micro-benchmark** that runs MapSet/
   MapGet/MapDelete in a loop and sets `NsPerOp/Read/Write`.
 
-**What it lacks:** any `NetworkRTT` slot in `CalibrationCosts`; any *live*
+**What it lacks:** any `NetworkRTT` slot in `CalibrationCosts`; any _live_
 (traffic-derived) measurement; any background re-measurement. `CalibrateEngine`
 measures synthetic micro-benchmark traffic once, then freezes the result — it
 is "cold calibration," not "live observation."
@@ -139,9 +139,9 @@ The Store's per-query `QueryCost` snapshot (`store.go:54`, `serializable.go`)
 is filled at **plan time** and frozen. `planDiagnostics` warns when a volatile
 engine is routed, etc.
 
-**Key structural fact:** the planner reads the profile *through the engine* —
+**Key structural fact:** the planner reads the profile _through the engine_ —
 there is no caching of the EngineProfile in the Store. So if `Profile()` itself
-returned a *live view* (e.g., from an internal `LatencyTracker`), a re-plan
+returned a _live view_ (e.g., from an internal `LatencyTracker`), a re-plan
 would automatically use fresh numbers. **The architecture already supports
 live costs if engines provide them.** It just doesn't do anything with them.
 
@@ -165,12 +165,12 @@ RTT at plan time. Useful as an operator knob, but it's a constant again.
 - `irohengine/engine.go:46-60` `Profile()` **reports measured values**:
   `ReplicationLag = ConvergenceP99`, `NetworkRTT = DeliveryP50 × 2`.
 
-**What this shows:** (a) the engine already *measures* live latency; (b) it
+**What this shows:** (a) the engine already _measures_ live latency; (b) it
 feeds it back into the profile; (c) **however** — it's still a snapshot: the
 network transport delivers per-op, the collector holds a window, but nothing
-*reacts* to a worsening RTT, and the planner sees a fixed profile copy unless
+_reacts_ to a worsening RTT, and the planner sees a fixed profile copy unless
 re-planned. Iroh is the philosophical proof-of-concept; the missing step is
-making the *consumer* of the profile live too — plus measuring point-to-point
+making the _consumer_ of the profile live too — plus measuring point-to-point
 RTT of actual I/O (not just replication control traffic).
 
 ### 3.6 `ReplicationLag`: declared, not measured
@@ -181,16 +181,16 @@ else does.
 
 ### 3.7 The relevant code, mapped
 
-| Concern | File / symbol |
-| --- | --- |
-| Profile struct | `metaengine/engine.go` (`EngineProfile`) |
-| Cost estimator | `metaengine/cost.go` (`estimateCost`) |
-| Planner profile reading | `metaengine/planner.go:178-201` |
-| Store profile copies | `metaengine/store.go:54,78`, `serializable.go:95` |
-| Calibration machinery | `metaengine/reliability.go` (`Calibration`, `Calibratable`, `CalibrateEngine`) |
-| Iroh live latency | `metaengine/irohengine/latency.go`, `engine.go:46-60` |
-| ADR defining NetworkRTT | `docs/adr/0093-metaengine-replication-model.md` (says "auto-calibration considered but deferred") |
-| ReadCosts variance doc | `docs/planning/2026-08-04_07-00_READ-COSTS-PER-OPERATION-VARIANCE.md` ("values are compile-time… do not evolve at runtime. This is acceptable for now") |
+| Concern                 | File / symbol                                                                                                                                           |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profile struct          | `metaengine/engine.go` (`EngineProfile`)                                                                                                                |
+| Cost estimator          | `metaengine/cost.go` (`estimateCost`)                                                                                                                   |
+| Planner profile reading | `metaengine/planner.go:178-201`                                                                                                                         |
+| Store profile copies    | `metaengine/store.go:54,78`, `serializable.go:95`                                                                                                       |
+| Calibration machinery   | `metaengine/reliability.go` (`Calibration`, `Calibratable`, `CalibrateEngine`)                                                                          |
+| Iroh live latency       | `metaengine/irohengine/latency.go`, `engine.go:46-60`                                                                                                   |
+| ADR defining NetworkRTT | `docs/adr/0093-metaengine-replication-model.md` (says "auto-calibration considered but deferred")                                                       |
+| ReadCosts variance doc  | `docs/planning/2026-08-04_07-00_READ-COSTS-PER-OPERATION-VARIANCE.md` ("values are compile-time… do not evolve at runtime. This is acceptable for now") |
 
 ---
 
@@ -200,7 +200,7 @@ else does.
 
 > **Static facts belong in the profile; measured facts belong in the runtime.**
 > The engine declares its topology (`Replication`, `Persistence`,
-> `DegradedADTs`, `Complexity`) and a *prior* for costs. The runtime measures
+> `DegradedADTs`, `Complexity`) and a _prior_ for costs. The runtime measures
 > `NetworkRTT` (point-to-point, from real I/O), per-op latency, and staleness.
 > The planner consumes a **live profile** — same shape, dynamic numbers.
 
@@ -232,7 +232,7 @@ type TransactMeasurer interface {
 
 `Probe` is for engines that can answer "how far away are you right now?"
 (e.g., FDB: a `txn.Get(readVersion only)`; PG: `SELECT 1`; Dgraph: a
-`healthcheck`/query). This is the *honest* `NetworkRTT`.
+`healthcheck`/query). This is the _honest_ `NetworkRTT`.
 
 #### b) `LatencyTracker` (live, EWMA + percentiles)
 
@@ -250,7 +250,7 @@ func (t *LatencyTracker) Snapshot() LatencyStats
 ```
 
 Provides the `P50/P95/P99/EWMA` shape iroh proved works, but reusable
-in core, and *updatable live*.
+in core, and _updatable live_.
 
 #### c) `ProbeEngine(eng, opts)` (helper)
 
@@ -288,8 +288,9 @@ No interface break: engines that don't call these behave exactly as today.
 
 #### e) Store: live profile snapshot + `GetStats()`
 
-The Store keeps a *runtime snapshot* per engine (profile + measured stats)
+The Store keeps a _runtime snapshot_ per engine (profile + measured stats)
 that it refreshes:
+
 - at plan time (as today),
 - on `GetStats()` / explicit `store.RefreshProfile()` (for the diagnostics/UX
   path, no background goroutine requirement),
@@ -317,7 +318,7 @@ and emit a diagnostic instead of silently trusting an old number.
 
 #### f) Diagnostics
 
-Add a planner diagnostic whenever routing relies on a *stale or prior-only*
+Add a planner diagnostic whenever routing relies on a _stale or prior-only_
 RTT for a remote engine: `[WARN] routing on prior RTT (no live samples)`.
 This keeps the "graceful degradation, never silent lies" spirit.
 
@@ -332,7 +333,7 @@ re-plan, `Profile()` is re-read — so live values flow in. Two options:
    re-plan can churn assignments.
 2. **Live re-scoring without re-plan** — at execution time, when a query is
    routed, the executor re-reads `engine.Profile().NetworkRTT` and compares
-   against the plan-time cost for the second-best candidate that was *close*;
+   against the plan-time cost for the second-best candidate that was _close_;
    if the current measured RTT makes the alternative strictly cheaper (with a
    hysteresis deadband), route to it (or emit a `REPLAN-SUGGESTED`
    diagnostic). **This makes routing react to RTT shifts without a plan
@@ -344,12 +345,12 @@ supplies measured instead of constant values).
 
 ### 4.4 Concrete mapping to user's complaint
 
-| User's call | Design answer |
-| --- | --- |
-| "We should declare NETWORK CALL NEEDED at compile time" | ✅ **Yes** — that's a *structural* fact: add/keep a boolean-ish `RequiresNetwork` (or `Replication != None` implies it, but explicit is better). The profile declares "this engine does network I/O"; the *value* is measured. |
-| "RTT is always a runtime measurement and CAN CHANGE" | ✅ **Yes** — `Prober`/`LatencyTracker` measure live RTT; `Profile()` returns it; planner/executor consume it; `GetStats` reports it with freshness. |
-| "NsPerOp / NsPerRead / NsPerWrite / ReadCosts are runtime too" | ✅ **Yes** — same mechanism: live `TransactMeasurer` per-op samples → `Calibration`'s read/write fields → profile, rather than only frozen micro-benchmark constants. |
-| "We need to model that better" | ✅ This design — structural facts static, observed facts live, freshness tracked, diagnostics honest. |
+| User's call                                                    | Design answer                                                                                                                                                                                                                  |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| "We should declare NETWORK CALL NEEDED at compile time"        | ✅ **Yes** — that's a _structural_ fact: add/keep a boolean-ish `RequiresNetwork` (or `Replication != None` implies it, but explicit is better). The profile declares "this engine does network I/O"; the _value_ is measured. |
+| "RTT is always a runtime measurement and CAN CHANGE"           | ✅ **Yes** — `Prober`/`LatencyTracker` measure live RTT; `Profile()` returns it; planner/executor consume it; `GetStats` reports it with freshness.                                                                            |
+| "NsPerOp / NsPerRead / NsPerWrite / ReadCosts are runtime too" | ✅ **Yes** — same mechanism: live `TransactMeasurer` per-op samples → `Calibration`'s read/write fields → profile, rather than only frozen micro-benchmark constants.                                                          |
+| "We need to model that better"                                 | ✅ This design — structural facts static, observed facts live, freshness tracked, diagnostics honest.                                                                                                                          |
 
 ---
 
@@ -380,7 +381,7 @@ shows samples + freshness. Decay/expiry of stale samples handled.
 
 ### Phase 2 — Live planner view + Store stats (core, medium)
 
-**Goal:** make the planner and operators *see* live numbers without an API
+**Goal:** make the planner and operators _see_ live numbers without an API
 break.
 
 - Store keeps a runtime profile snapshot; refresh on plan, on `GetStats()`,
@@ -397,7 +398,7 @@ planner diagnostics, and — with re-planning — the assignment.
 
 ### Phase 3 — Open telemetry ingress for external engines (largest, independent)
 
-**Goal:** let *any* engine (especially future FDB engine and existing
+**Goal:** let _any_ engine (especially future FDB engine and existing
 remote engines) feed live measurements without a hard core dependency.
 
 - Optional `StatSink` interface (exported): `Report(EngineStats)` — engines
@@ -416,12 +417,12 @@ without live stats.
 - **`Engine` interface** (`Profile()+Close()`) stays — `Profile()` is already
   the single source; a live `Profile()` needs no new method. ✅ backward-compatible.
 - **`estimateCost` formula** stays `(ops×nsPerOp/1e6) + RTT` — the user is right
-  that RTT is additive; the fix is *whose* RTT, not *how it combines*.
+  that RTT is additive; the fix is _whose_ RTT, not _how it combines_.
 - **Capability/ADT scheduling logic** — unchanged.
 - **`WithNetworkRTT` override** stays, but its doc changes to "a prior for the
   initial plan, replaced by live measurement when available."
 - **Everything the existing `Calibration` already does** — `CalibrateEngine`
-  still provides cold micro-benchmark priors; live measurement *updates* them.
+  still provides cold micro-benchmark priors; live measurement _updates_ them.
 
 ---
 
@@ -436,7 +437,7 @@ without live stats.
 3. **`Probe` measures reachability, not necessarily query path** — an FDB
    read-version probe measures client→GRV-proxy→logs, but storage-read latency
    is different. Docs: "read <1ms, commit 1.5-2.5ms" — a fitness measurement
-   must choose a probe that matches the *query* it will serve (or use
+   must choose a probe that matches the _query_ it will serve (or use
    `TransactMeasurer` on real ops).
 4. **P50 vs P95 for routing.** Averages hide tail latency; routing on EWMA can
    oscillate. Use EWMA (or P50) for steady-state routing, P95/P99 for
@@ -444,9 +445,9 @@ without live stats.
 5. **Don't over-react.** Hysteresis + minimum cooldown between re-plans (e.g.
    30s) prevents routing flapping on a flapping network.
 6. **Stale priors are still better than nothing.** When no samples exist,
-   fall back to the prior and *label* it stale — don't refuse to route.
+   fall back to the prior and _label_ it stale — don't refuse to route.
 7. **Scope honesty.** This report is a design; the FDB-engine cost profile from
-   the earlier report is a *prior* and must be re-derived from live
+   the earlier report is a _prior_ and must be re-derived from live
    measurement once a probe exists.
 
 ---

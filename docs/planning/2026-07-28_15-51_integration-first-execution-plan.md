@@ -42,32 +42,32 @@ Set) and materialize it via `projectionadapter`. This single integration proves
 
 ### The 4% that delivers 64%
 
-| #   | Task                                                                                                                | Why it's here                                  |
-| --- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| 1   | metaengine → taskmanager (the 1%)                                                                                   | Proves the future                              |
-| 2   | **Fix deriver split-brain:** rewrite `taskmanager/deriver.go` to use the `deriver/` package instead of hand-rolling | Removes a split brain AND proves the package   |
-| 3   | **Cache split-brain fix:** rewrite `decider/cache.go` on `maypok86/otter/v2` (already in dep graph)                 | One cache strategy, not two; policy compliance |
+| # | Task                                                                                                                | Why it's here                                  |
+| - | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 1 | metaengine → taskmanager (the 1%)                                                                                   | Proves the future                              |
+| 2 | **Fix deriver split-brain:** rewrite `taskmanager/deriver.go` to use the `deriver/` package instead of hand-rolling | Removes a split brain AND proves the package   |
+| 3 | **Cache split-brain fix:** rewrite `decider/cache.go` on `maypok86/otter/v2` (already in dep graph)                 | One cache strategy, not two; policy compliance |
 
 ### The 20% that delivers 80%
 
-| #   | Task                                                                                                                                                            |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 4   | **catalog → taskmanager:** generate AsyncAPI/OpenAPI/EventCatalog docs from taskmanager types                                                                   |
-| 5   | **graph → taskmanager:** add a task-dependency DAG projection (tasks block tasks)                                                                               |
-| 6   | **Delete 4 dead error aliases** (`ErrAggregateTypeMismatch`/`ErrAggregateIDMismatch` in storage/sql + storage/pebble) — true deletion, not integration-eligible |
-| 7   | **transport/grpc demo:** add a gRPC client/server path to taskmanager or a dedicated example                                                                    |
+| # | Task                                                                                                                                                            |
+| - | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 4 | **catalog → taskmanager:** generate AsyncAPI/OpenAPI/EventCatalog docs from taskmanager types                                                                   |
+| 5 | **graph → taskmanager:** add a task-dependency DAG projection (tasks block tasks)                                                                               |
+| 6 | **Delete 4 dead error aliases** (`ErrAggregateTypeMismatch`/`ErrAggregateIDMismatch` in storage/sql + storage/pebble) — true deletion, not integration-eligible |
+| 7 | **transport/grpc demo:** add a gRPC client/server path to taskmanager or a dedicated example                                                                    |
 
 ### The other 20% (to reach 100%)
 
-| #   | Task                                                                                                |
-| --- | --------------------------------------------------------------------------------------------------- |
-| 8   | turso indexing wiring into `stack/turso` default path (or documented opt-in with a demo)            |
-| 9   | Retry module: document the zero-dep + errorfamily rationale (keep as-is, close the policy question) |
-| 10  | Documentation alignment: FEATURES.md + AGENTS.md status corrections for metaengine/catalog          |
-| 11  | CI gate: "no new module without an example consumer or EXPERIMENTAL marker"                         |
-| 12  | Modernize `dedup/ring_bench_test.go` (`b.N` → `b.Loop()`) — 3 gopls warnings                        |
-| 13  | Module merge evaluation: projection/ (57 LOC), metadata/ (140 LOC), dispatcher/ (303 LOC)           |
-| 14  | Audit `storage/` (15,404 LOC) for internal split candidates                                         |
+| #  | Task                                                                                                |
+| -- | --------------------------------------------------------------------------------------------------- |
+| 8  | turso indexing wiring into `stack/turso` default path (or documented opt-in with a demo)            |
+| 9  | Retry module: document the zero-dep + errorfamily rationale (keep as-is, close the policy question) |
+| 10 | Documentation alignment: FEATURES.md + AGENTS.md status corrections for metaengine/catalog          |
+| 11 | CI gate: "no new module without an example consumer or EXPERIMENTAL marker"                         |
+| 12 | Modernize `dedup/ring_bench_test.go` (`b.N` → `b.Loop()`) — 3 gopls warnings                        |
+| 13 | Module merge evaluation: projection/ (57 LOC), metadata/ (140 LOC), dispatcher/ (303 LOC)           |
+| 14 | Audit `storage/` (15,404 LOC) for internal split candidates                                         |
 
 ---
 
@@ -190,24 +190,24 @@ The high-impact tasks (T1-T9, the 4%) broken into 12-min execution units.
 
 ### deriver split-brain fix (T6-T7 → D1-D5)
 
-| ID  | Parent | Task                                                                                             | Time  |
-| --- | ------ | ------------------------------------------------------------------------------------------------ | ----- |
-| D1  | T6     | Read `deriver/deriver.go` + `deriver/doc.go`: `Then`, `Filter`, `Idempotent`, `AsHandler`        | 10min |
-| D2  | T6     | Read current `example/taskmanager/deriver.go`: understand the hand-rolled logic                  | 5min  |
-| D3  | T6     | Rewrite `newDeriverProjection` using `deriver.Then(evtTaskCreated).AsHandler(...)` or equivalent | 12min |
-| D4  | T6     | Update `example/taskmanager/go.mod` to add `deriver/v4` dependency                               | 5min  |
-| D5  | T7     | Run taskmanager tests, confirm auto-assign still works                                           | 10min |
+| ID | Parent | Task                                                                                             | Time  |
+| -- | ------ | ------------------------------------------------------------------------------------------------ | ----- |
+| D1 | T6     | Read `deriver/deriver.go` + `deriver/doc.go`: `Then`, `Filter`, `Idempotent`, `AsHandler`        | 10min |
+| D2 | T6     | Read current `example/taskmanager/deriver.go`: understand the hand-rolled logic                  | 5min  |
+| D3 | T6     | Rewrite `newDeriverProjection` using `deriver.Then(evtTaskCreated).AsHandler(...)` or equivalent | 12min |
+| D4 | T6     | Update `example/taskmanager/go.mod` to add `deriver/v4` dependency                               | 5min  |
+| D5 | T7     | Run taskmanager tests, confirm auto-assign still works                                           | 10min |
 
 ### cache split-brain fix (T8-T9 → C1-C6)
 
-| ID  | Parent | Task                                                                                                                                        | Time  |
-| --- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
-| C1  | T8     | Read `kv/cache.go`: how otter is constructed (`otter.Cache[string, *T]`, capacity, TTL)                                                     | 8min  |
-| C2  | T8     | Read `decider/cache.go`: the `StateCache[State]` interface + `lruCache` impl                                                                | 8min  |
-| C3  | T8     | Rewrite `decider/cache.go`: replace `lruCache` with otter-backed impl, keep the `StateCache[State]` interface                               | 12min |
-| C4  | T8     | Handle the `Get` return signature (otter returns `(V, bool)`, interface returns `(State, Version, bool)` — may need a wrapper struct value) | 12min |
-| C5  | T9     | Run `decider/cache_test.go` + `decider/decider_cache_test.go`                                                                               | 10min |
-| C6  | T9     | Run `decider/benchmark_cache_test.go` — confirm otter is not slower than hand-rolled LRU                                                    | 10min |
+| ID | Parent | Task                                                                                                                                        | Time  |
+| -- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| C1 | T8     | Read `kv/cache.go`: how otter is constructed (`otter.Cache[string, *T]`, capacity, TTL)                                                     | 8min  |
+| C2 | T8     | Read `decider/cache.go`: the `StateCache[State]` interface + `lruCache` impl                                                                | 8min  |
+| C3 | T8     | Rewrite `decider/cache.go`: replace `lruCache` with otter-backed impl, keep the `StateCache[State]` interface                               | 12min |
+| C4 | T8     | Handle the `Get` return signature (otter returns `(V, bool)`, interface returns `(State, Version, bool)` — may need a wrapper struct value) | 12min |
+| C5 | T9     | Run `decider/cache_test.go` + `decider/decider_cache_test.go`                                                                               | 10min |
+| C6 | T9     | Run `decider/benchmark_cache_test.go` — confirm otter is not slower than hand-rolled LRU                                                    | 10min |
 
 ### catalog integration (T10-T11 → CAT1-CAT5)
 
@@ -221,12 +221,12 @@ The high-impact tasks (T1-T9, the 4%) broken into 12-min execution units.
 
 ### graph integration (T12-T13 → G1-G4)
 
-| ID  | Parent | Task                                                                                       | Time  |
-| --- | ------ | ------------------------------------------------------------------------------------------ | ----- |
-| G1  | T12    | Read `graph/graph_projection.go`: `GraphProjection`, `MergeNode`, `MergeEdge`, `GraphSink` | 10min |
-| G2  | T12    | Read `graph/memory_driver.go`: `Query`, `Traverse`, `Neighbors`, `ShortestPath`            | 8min  |
-| G3  | T12    | Create `example/taskmanager/graph_projection.go`: task nodes + BLOCKED_BY edges            | 12min |
-| G4  | T13    | **VERIFY:** write a test that creates blocking relationships and traverses the DAG         | 12min |
+| ID | Parent | Task                                                                                       | Time  |
+| -- | ------ | ------------------------------------------------------------------------------------------ | ----- |
+| G1 | T12    | Read `graph/graph_projection.go`: `GraphProjection`, `MergeNode`, `MergeEdge`, `GraphSink` | 10min |
+| G2 | T12    | Read `graph/memory_driver.go`: `Query`, `Traverse`, `Neighbors`, `ShortestPath`            | 8min  |
+| G3 | T12    | Create `example/taskmanager/graph_projection.go`: task nodes + BLOCKED_BY edges            | 12min |
+| G4 | T13    | **VERIFY:** write a test that creates blocking relationships and traverses the DAG         | 12min |
 
 ### dead code deletion (T14-T15 → DEL1-DEL4)
 

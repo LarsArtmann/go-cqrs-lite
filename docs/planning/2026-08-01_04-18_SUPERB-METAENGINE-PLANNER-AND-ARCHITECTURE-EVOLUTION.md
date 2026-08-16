@@ -92,12 +92,12 @@ These survive from Acts I–III but are NOT on the critical path:
 
 The four inline decisions to extract:
 
-| #   | Inline decision                                                 | Location today                          | Lines |
-| --- | --------------------------------------------------------------- | --------------------------------------- | ----- |
-| A   | Schema enforcement (fold valueType ≠ result type)               | `planner.go:90-106`                     | ~17   |
-| B   | Auto-layout (detect LayoutPlanner, build LayoutPlan, apply DDL) | `planner.go:113-143`                    | ~31   |
-| C   | Write-amplification detection                                   | `plan_types.go:checkWriteAmplification` | ~22   |
-| D   | Scale-threshold check                                           | `cost.go:checkScaleThreshold`           | ~22   |
+| # | Inline decision                                                 | Location today                          | Lines |
+| - | --------------------------------------------------------------- | --------------------------------------- | ----- |
+| A | Schema enforcement (fold valueType ≠ result type)               | `planner.go:90-106`                     | ~17   |
+| B | Auto-layout (detect LayoutPlanner, build LayoutPlan, apply DDL) | `planner.go:113-143`                    | ~31   |
+| C | Write-amplification detection                                   | `plan_types.go:checkWriteAmplification` | ~22   |
+| D | Scale-threshold check                                           | `cost.go:checkScaleThreshold`           | ~22   |
 
 **Why this is the 1%→51%** (defended, not assumed):
 
@@ -486,22 +486,22 @@ graph TD
 
 ## Appendix A: Source Document Inventory
 
-| #   | File                                                         | Domain     | Role in synthesis                                                                    |
-| --- | ------------------------------------------------------------ | ---------- | ------------------------------------------------------------------------------------ |
-| 1   | `07-30_01-46_cqrs-lint-superb-improvement-plan`              | cqrs-lint  | Act I — validate against real code (largely done)                                    |
-| 2   | `07-30_14-41_SELF-LINT-CLEANUP`                              | cqrs-lint  | Act I — self-lint cleanup (done)                                                     |
-| 3   | `07-30_18-15_cqrs-lint-self-analysis-precision-fixes`        | cqrs-lint  | Act I — S006/C030 precision (done)                                                   |
-| 4   | `07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN`      | cqrs-lint  | Act I — backlog triage (17 done, ~17 open → Tier 3-4)                                |
-| 5   | `07-31_03-46_metaengine-fix-and-finish`                      | metaengine | Act II — fix damage (done)                                                           |
-| 6   | `07-31_17-34_metaengine-first-class-integration`             | metaengine | Act III — WithMetaEngine (done)                                                      |
-| 7   | `07-31_17-53_SUPERB-PARETO-EXECUTION-PLAN`                   | ALL        | Umbrella — aggregated all open work (Tier 1-2 done, 3-4 open)                        |
-| 8   | `07-31_19-30_metaengine-mvp-superb`                          | metaengine | Act III — prove value (done)                                                         |
-| 9   | `07-31_19-46_mysql-support-polish-and-completion`            | MySQL      | Act III — CI wiring (done)                                                           |
-| 10  | `07-31_20-30_metaengine-remaining-work-master-plan`          | metaengine | Act III residual → benchmarks/docs (Tier 3)                                          |
-| 11  | `07-31_datafusion-lessons-for-metaengine`                    | metaengine | Act IV theory — rule pipeline is #1 lesson → **this plan's 1%**                      |
-| 12  | `07-31_23-30_SUPERB-METAENGINE-PLANNER-EVOLUTION`            | metaengine | Act IV execution — rule pipeline + materialize-vs-replay → **this plan's Tiers 1-2** |
-| 13  | `07-31_23-34_metaengine-layered-architecture-execution-plan` | metaengine | Act IV expansion — StorageLayout + new ADTs → **this plan's Tiers 3-4**              |
-| 14  | `07-31_18-53_backend-optimization-and-tradeoff-framework`    | backends   | DurabilityTier (done); mixed-workload bench (Tier 4)                                 |
+| #  | File                                                         | Domain     | Role in synthesis                                                                    |
+| -- | ------------------------------------------------------------ | ---------- | ------------------------------------------------------------------------------------ |
+| 1  | `07-30_01-46_cqrs-lint-superb-improvement-plan`              | cqrs-lint  | Act I — validate against real code (largely done)                                    |
+| 2  | `07-30_14-41_SELF-LINT-CLEANUP`                              | cqrs-lint  | Act I — self-lint cleanup (done)                                                     |
+| 3  | `07-30_18-15_cqrs-lint-self-analysis-precision-fixes`        | cqrs-lint  | Act I — S006/C030 precision (done)                                                   |
+| 4  | `07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN`      | cqrs-lint  | Act I — backlog triage (17 done, ~17 open → Tier 3-4)                                |
+| 5  | `07-31_03-46_metaengine-fix-and-finish`                      | metaengine | Act II — fix damage (done)                                                           |
+| 6  | `07-31_17-34_metaengine-first-class-integration`             | metaengine | Act III — WithMetaEngine (done)                                                      |
+| 7  | `07-31_17-53_SUPERB-PARETO-EXECUTION-PLAN`                   | ALL        | Umbrella — aggregated all open work (Tier 1-2 done, 3-4 open)                        |
+| 8  | `07-31_19-30_metaengine-mvp-superb`                          | metaengine | Act III — prove value (done)                                                         |
+| 9  | `07-31_19-46_mysql-support-polish-and-completion`            | MySQL      | Act III — CI wiring (done)                                                           |
+| 10 | `07-31_20-30_metaengine-remaining-work-master-plan`          | metaengine | Act III residual → benchmarks/docs (Tier 3)                                          |
+| 11 | `07-31_datafusion-lessons-for-metaengine`                    | metaengine | Act IV theory — rule pipeline is #1 lesson → **this plan's 1%**                      |
+| 12 | `07-31_23-30_SUPERB-METAENGINE-PLANNER-EVOLUTION`            | metaengine | Act IV execution — rule pipeline + materialize-vs-replay → **this plan's Tiers 1-2** |
+| 13 | `07-31_23-34_metaengine-layered-architecture-execution-plan` | metaengine | Act IV expansion — StorageLayout + new ADTs → **this plan's Tiers 3-4**              |
+| 14 | `07-31_18-53_backend-optimization-and-tradeoff-framework`    | backends   | DurabilityTier (done); mixed-workload bench (Tier 4)                                 |
 
 ---
 
@@ -551,7 +551,7 @@ _This plan is the synthesis. The 14 predecessors are the evidence._
 | WatchTyped                                             | ✅ DONE                                 | commit `1246fb44`                        |
 | cqrs-lint 185 rules                                    | ✅ DONE                                 | Tagged `cmd/cqrs-lint/v4.3.0`            |
 | Iroh evaluation                                        | ✅ DONE                                 | ADR-0096                                 |
-| Extract retry/ + idempotency/                          | Open — see TODO_LIST.md "Deferred Debt" |
-| Postgres GIN indexes                                   | Open — see TODO_LIST.md                 |
-| metaengine-gen code generator                          | Open — see ROADMAP.md                   |
-| Generic ScanResult[T]                                  | Open — see ROADMAP.md                   |
+| Extract retry/ + idempotency/                          | Open — see TODO_LIST.md "Deferred Debt" |                                          |
+| Postgres GIN indexes                                   | Open — see TODO_LIST.md                 |                                          |
+| metaengine-gen code generator                          | Open — see ROADMAP.md                   |                                          |
+| Generic ScanResult[T]                                  | Open — see ROADMAP.md                   |                                          |

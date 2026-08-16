@@ -282,49 +282,49 @@ graph TD
 
 ### 12-Minute Subtasks (ALL tasks, sorted by impact/effort)
 
-| #   | Subtask                                            | Phase | Time  | Impact                             |
-| --- | -------------------------------------------------- | ----- | ----- | ---------------------------------- |
-| 1   | T1.4: C002 skip transport adapters                 | 1     | 8min  | Eliminates 5 **critical** FPs      |
-| 2   | T1.5: A001 skip transport adapters                 | 1     | 8min  | Eliminates 5 **error** FPs         |
-| 3   | T1.1: Add `TransportAdapter` flag to `CommandInfo` | 1     | 8min  | Foundation for T1.4-T1.6           |
-| 4   | T1.2: Scan for `.toDomain()` methods               | 1     | 12min | Detects transport adapters         |
-| 5   | T1.3: Scan for dispatch call sites                 | 1     | 12min | Confirms "actually dispatched"     |
-| 6   | T1.6: E005 skip transport adapters                 | 1     | 8min  | Eliminates 5 **warning** FPs       |
-| 7   | T1.7: Unit test transport adapter                  | 1     | 12min | Regression guard                   |
-| 8   | T1.8: Run existing test suite                      | 1     | 8min  | Verify no regressions              |
-| 9   | T2.2: E007 require `Type()` method                 | 2     | 10min | Eliminates DTO false positives     |
-| 10  | T2.1: Track `HasTypeMethod` in scanner             | 2     | 10min | Foundation for T2.2                |
-| 11  | T2.3: Trace wrapper registration functions         | 2     | 15min | Catches helper-based registration  |
-| 12  | T2.4: E007 lower confidence to 0.25                | 2     | 5min  | Makes fp-suspects effective        |
-| 13  | T2.5: Unit test E007 fixes                         | 2     | 12min | Regression guard                   |
-| 14  | T3.1: D005 skip code blocks                        | 3a    | 10min | Eliminates code-block FPs          |
-| 15  | T3.2: D005 skip import paths                       | 3a    | 10min | Eliminates import-path FPs         |
-| 16  | T3.3: D005 require prose context                   | 3a    | 10min | Only flag real version references  |
-| 17  | T3.4: Unit test D005 fixes                         | 3a    | 12min | Regression guard                   |
-| 18  | T4.1: Build `receiverIsEventBus` helper            | 3b    | 12min | Foundation for T4.2-T4.3           |
-| 19  | T4.2: A005 filter on bus type                      | 3b    | 10min | Eliminates ErrorBus FP             |
-| 20  | T4.3: C027 filter on bus type                      | 3b    | 10min | Eliminates SSE Broadcaster FP      |
-| 21  | T4.4: S010 verify middleware wired                 | 3b    | 15min | Eliminates dead-code FP            |
-| 22  | T4.5: Unit test type-blind fixes                   | 3b    | 12min | Regression guard                   |
-| 23  | T5.1: A032 skip structs with `form:` tags          | 4a    | 10min | Eliminates DTO FPs                 |
-| 24  | T5.2: A032 skip UI/view packages                   | 4a    | 10min | Eliminates dashboard FPs           |
-| 25  | T5.3: Unit test A032 fixes                         | 4a    | 10min | Regression guard                   |
-| 26  | T6.1: Skip stub files (≤3 lines)                   | 4b    | 8min  | Eliminates empty doc.go FPs        |
-| 27  | T6.4: C013 skip `json:"-"` fields                  | 4b    | 5min  | Eliminates excluded-field FP       |
-| 28  | T6.2: C034 check for `ctx.Done()/Shutdown()`       | 4b    | 10min | Eliminates HTTP-shutdown FP        |
-| 29  | T6.3: C035 skip serialization DTOs                 | 4b    | 8min  | Eliminates per-request-struct FP   |
-| 30  | T6.5: E009 check for custom HTTP layer             | 4b    | 10min | Eliminates custom-transport FP     |
-| 31  | T6.6: Unit tests for pattern fixes                 | 4b    | 12min | Regression guard                   |
-| 32  | T7.1: Cap E005/E007 confidence at 0.25             | 5a    | 5min  | Makes fp-suspects catch edge cases |
-| 33  | T7.2: Cap S010 confidence at 0.5                   | 5a    | 5min  | Makes fp-suspects catch edge cases |
-| 34  | T7.3: Cap C027 confidence at 0.25                  | 5a    | 5min  | Makes fp-suspects catch edge cases |
-| 35  | T7.4: Cap E014 confidence at 0.25                  | 5a    | 5min  | Makes fp-suspects catch edge cases |
-| 36  | T7.5: Document confidence calibration policy       | 5a    | 10min | Developer documentation            |
-| 37  | T8.1: Rebuild linter binary                        | 5b    | 5min  | Build for integration test         |
-| 38  | T8.2: Re-run all 8 repos                           | 5b    | 15min | Collect post-fix data              |
-| 39  | T8.3: Compare FP rate before/after                 | 5b    | 15min | Verify FP rate < 5%                |
-| 40  | T8.4: Verify no TPs lost                           | 5b    | 15min | Regression check                   |
-| 41  | T8.5: Update validation report                     | 5b    | 10min | Document results                   |
+| #  | Subtask                                            | Phase | Time  | Impact                             |
+| -- | -------------------------------------------------- | ----- | ----- | ---------------------------------- |
+| 1  | T1.4: C002 skip transport adapters                 | 1     | 8min  | Eliminates 5 **critical** FPs      |
+| 2  | T1.5: A001 skip transport adapters                 | 1     | 8min  | Eliminates 5 **error** FPs         |
+| 3  | T1.1: Add `TransportAdapter` flag to `CommandInfo` | 1     | 8min  | Foundation for T1.4-T1.6           |
+| 4  | T1.2: Scan for `.toDomain()` methods               | 1     | 12min | Detects transport adapters         |
+| 5  | T1.3: Scan for dispatch call sites                 | 1     | 12min | Confirms "actually dispatched"     |
+| 6  | T1.6: E005 skip transport adapters                 | 1     | 8min  | Eliminates 5 **warning** FPs       |
+| 7  | T1.7: Unit test transport adapter                  | 1     | 12min | Regression guard                   |
+| 8  | T1.8: Run existing test suite                      | 1     | 8min  | Verify no regressions              |
+| 9  | T2.2: E007 require `Type()` method                 | 2     | 10min | Eliminates DTO false positives     |
+| 10 | T2.1: Track `HasTypeMethod` in scanner             | 2     | 10min | Foundation for T2.2                |
+| 11 | T2.3: Trace wrapper registration functions         | 2     | 15min | Catches helper-based registration  |
+| 12 | T2.4: E007 lower confidence to 0.25                | 2     | 5min  | Makes fp-suspects effective        |
+| 13 | T2.5: Unit test E007 fixes                         | 2     | 12min | Regression guard                   |
+| 14 | T3.1: D005 skip code blocks                        | 3a    | 10min | Eliminates code-block FPs          |
+| 15 | T3.2: D005 skip import paths                       | 3a    | 10min | Eliminates import-path FPs         |
+| 16 | T3.3: D005 require prose context                   | 3a    | 10min | Only flag real version references  |
+| 17 | T3.4: Unit test D005 fixes                         | 3a    | 12min | Regression guard                   |
+| 18 | T4.1: Build `receiverIsEventBus` helper            | 3b    | 12min | Foundation for T4.2-T4.3           |
+| 19 | T4.2: A005 filter on bus type                      | 3b    | 10min | Eliminates ErrorBus FP             |
+| 20 | T4.3: C027 filter on bus type                      | 3b    | 10min | Eliminates SSE Broadcaster FP      |
+| 21 | T4.4: S010 verify middleware wired                 | 3b    | 15min | Eliminates dead-code FP            |
+| 22 | T4.5: Unit test type-blind fixes                   | 3b    | 12min | Regression guard                   |
+| 23 | T5.1: A032 skip structs with `form:` tags          | 4a    | 10min | Eliminates DTO FPs                 |
+| 24 | T5.2: A032 skip UI/view packages                   | 4a    | 10min | Eliminates dashboard FPs           |
+| 25 | T5.3: Unit test A032 fixes                         | 4a    | 10min | Regression guard                   |
+| 26 | T6.1: Skip stub files (≤3 lines)                   | 4b    | 8min  | Eliminates empty doc.go FPs        |
+| 27 | T6.4: C013 skip `json:"-"` fields                  | 4b    | 5min  | Eliminates excluded-field FP       |
+| 28 | T6.2: C034 check for `ctx.Done()/Shutdown()`       | 4b    | 10min | Eliminates HTTP-shutdown FP        |
+| 29 | T6.3: C035 skip serialization DTOs                 | 4b    | 8min  | Eliminates per-request-struct FP   |
+| 30 | T6.5: E009 check for custom HTTP layer             | 4b    | 10min | Eliminates custom-transport FP     |
+| 31 | T6.6: Unit tests for pattern fixes                 | 4b    | 12min | Regression guard                   |
+| 32 | T7.1: Cap E005/E007 confidence at 0.25             | 5a    | 5min  | Makes fp-suspects catch edge cases |
+| 33 | T7.2: Cap S010 confidence at 0.5                   | 5a    | 5min  | Makes fp-suspects catch edge cases |
+| 34 | T7.3: Cap C027 confidence at 0.25                  | 5a    | 5min  | Makes fp-suspects catch edge cases |
+| 35 | T7.4: Cap E014 confidence at 0.25                  | 5a    | 5min  | Makes fp-suspects catch edge cases |
+| 36 | T7.5: Document confidence calibration policy       | 5a    | 10min | Developer documentation            |
+| 37 | T8.1: Rebuild linter binary                        | 5b    | 5min  | Build for integration test         |
+| 38 | T8.2: Re-run all 8 repos                           | 5b    | 15min | Collect post-fix data              |
+| 39 | T8.3: Compare FP rate before/after                 | 5b    | 15min | Verify FP rate < 5%                |
+| 40 | T8.4: Verify no TPs lost                           | 5b    | 15min | Regression check                   |
+| 41 | T8.5: Update validation report                     | 5b    | 10min | Document results                   |
 
 **Total: 41 subtasks, ~412min (6.9h)**
 

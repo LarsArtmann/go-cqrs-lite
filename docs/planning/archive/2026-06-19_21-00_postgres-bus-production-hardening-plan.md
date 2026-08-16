@@ -22,10 +22,10 @@ This plan addresses ALL actionable items from the self-review.
 
 ### 1% → 51% of value (quick wins, critical trust)
 
-| #   | Task                                                                                       | Impact                          | Effort | Status |
-| --- | ------------------------------------------------------------------------------------------ | ------------------------------- | ------ | ------ |
-| T1  | ROADMAP: mark 4 stale `[ ]` items as done (schema validator, prometheus, tracing, logging) | 🔴 HIGH (dishonest docs)        | 5m     | ✅     |
-| T2  | `TestPgxListener_CloseDoesNotDeadlock` regression test with explicit 2s timeout            | 🔴 HIGH (prevents critical bug) | 10m    | ✅     |
+| #  | Task                                                                                       | Impact                          | Effort | Status |
+| -- | ------------------------------------------------------------------------------------------ | ------------------------------- | ------ | ------ |
+| T1 | ROADMAP: mark 4 stale `[ ]` items as done (schema validator, prometheus, tracing, logging) | 🔴 HIGH (dishonest docs)        | 5m     | ✅     |
+| T2 | `TestPgxListener_CloseDoesNotDeadlock` regression test with explicit 2s timeout            | 🔴 HIGH (prevents critical bug) | 10m    | ✅     |
 
 ### 4% → 64% of value (production reliability)
 
@@ -36,11 +36,11 @@ This plan addresses ALL actionable items from the self-review.
 
 ### 20% → 80% of value (robustness + documentation)
 
-| #   | Task                                                                                | Impact | Effort | Status |
-| --- | ----------------------------------------------------------------------------------- | ------ | ------ | ------ |
-| T3  | Property-based test for `validateChannelName` (3 properties × 100 inputs via rapid) | 🟡 MED | 12m    | ✅     |
-| T7  | Document graceful drain behavior on `PgxListener.Close()`                           | 🟡 MED | 8m     | ✅     |
-| T8  | Document PostgresBus backpressure strategy (channel fullness → server-side queue)   | 🟡 MED | 8m     | ✅     |
+| #  | Task                                                                                | Impact | Effort | Status |
+| -- | ----------------------------------------------------------------------------------- | ------ | ------ | ------ |
+| T3 | Property-based test for `validateChannelName` (3 properties × 100 inputs via rapid) | 🟡 MED | 12m    | ✅     |
+| T7 | Document graceful drain behavior on `PgxListener.Close()`                           | 🟡 MED | 8m     | ✅     |
+| T8 | Document PostgresBus backpressure strategy (channel fullness → server-side queue)   | 🟡 MED | 8m     | ✅     |
 
 ---
 

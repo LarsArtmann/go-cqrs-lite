@@ -24,24 +24,24 @@ Sort priority: `Tier → Impact → Customer Value → Effort (ascending)`
 
 These gate downstream work. Cannot proceed without answers.
 
-| ID  | Decision                                                          | Gates                            | Impact |
-| --- | ----------------------------------------------------------------- | -------------------------------- | ------ |
-| D1  | Tag metaengine/v4 + projectionadapter/v4 as v4.3.0 and push?      | F12 (tagging), consumer adoption | H      |
-| D2  | Remove old kv.Materialize projection (`mat`) from taskmanager?    | A1 (counter removal), cleanup    | M      |
-| D3  | Make EventDecoder the default decoder (deprecate PayloadDecoder)? | A3 (API change), X8 (docs)       | M      |
+| ID | Decision                                                          | Gates                            | Impact |
+| -- | ----------------------------------------------------------------- | -------------------------------- | ------ |
+| D1 | Tag metaengine/v4 + projectionadapter/v4 as v4.3.0 and push?      | F12 (tagging), consumer adoption | H      |
+| D2 | Remove old kv.Materialize projection (`mat`) from taskmanager?    | A1 (counter removal), cleanup    | M      |
+| D3 | Make EventDecoder the default decoder (deprecate PayloadDecoder)? | A3 (API change), X8 (docs)       | M      |
 
 ---
 
 ## TIER 1: P0-CRITICAL — Correctness, Safety, Data-Loss Prevention
 
-| ID  | Task                                                                            | Impact | Cust.Val | Effort | Subtasks | Est.Min | Files                                        |
-| --- | ------------------------------------------------------------------------------- | ------ | -------- | ------ | -------- | ------- | -------------------------------------------- |
-| C1  | Add PRAGMA busy_timeout=5000 + journal_mode=WAL to metaengine SQLite connection | H      | H        | S      | 3        | 20      | example/taskmanager/metaengine.go            |
-| C2  | Add EventDecoder unit test in projectionadapter                                 | H      | M        | S      | 4        | 35      | metaengine/projectionadapter/adapter_test.go |
-| C3  | Run go mod tidy on example/taskmanager (verify kv dep is clean)                 | M      | L        | S      | 2        | 10      | example/taskmanager/go.mod                   |
-| C4  | Fix benchkit race condition (TestRunSoak, TestMixedWorkload, TestCompare)       | H      | M        | M      | 6        | 60      | benchkit/                                    |
-| C5  | Verify mapupdate_fuzz_test.go compiles + runs clean (gopls false positive?)     | L      | L        | S      | 2        | 10      | metaengine/mapupdate_fuzz_test.go            |
-| C6  | Verify stack/memory go.mod metaengine dep is correct                            | L      | L        | S      | 1        | 5       | stack/memory/go.mod                          |
+| ID | Task                                                                            | Impact | Cust.Val | Effort | Subtasks | Est.Min | Files                                        |
+| -- | ------------------------------------------------------------------------------- | ------ | -------- | ------ | -------- | ------- | -------------------------------------------- |
+| C1 | Add PRAGMA busy_timeout=5000 + journal_mode=WAL to metaengine SQLite connection | H      | H        | S      | 3        | 20      | example/taskmanager/metaengine.go            |
+| C2 | Add EventDecoder unit test in projectionadapter                                 | H      | M        | S      | 4        | 35      | metaengine/projectionadapter/adapter_test.go |
+| C3 | Run go mod tidy on example/taskmanager (verify kv dep is clean)                 | M      | L        | S      | 2        | 10      | example/taskmanager/go.mod                   |
+| C4 | Fix benchkit race condition (TestRunSoak, TestMixedWorkload, TestCompare)       | H      | M        | M      | 6        | 60      | benchkit/                                    |
+| C5 | Verify mapupdate_fuzz_test.go compiles + runs clean (gopls false positive?)     | L      | L        | S      | 2        | 10      | metaengine/mapupdate_fuzz_test.go            |
+| C6 | Verify stack/memory go.mod metaengine dep is correct                            | L      | L        | S      | 1        | 5       | stack/memory/go.mod                          |
 
 ### C1: Add SQLite Pragmas to Metaengine Connection
 
@@ -95,12 +95,12 @@ These gate downstream work. Cannot proceed without answers.
 
 ## TIER 2: P1-HIGH — Prove the Value (Performance, Benchmarks)
 
-| ID  | Task                                                                | Impact | Cust.Val | Effort | Subtasks | Est.Min | Files                             |
-| --- | ------------------------------------------------------------------- | ------ | -------- | ------ | -------- | ------- | --------------------------------- |
-| V1  | Benchmark: metaengine filtered scan vs Materialize.List + Go filter | H      | H        | M      | 5        | 50      | metaengine/ (new bench file)      |
-| V2  | Add SortOnField("priority", true) to task_views query               | M      | H        | S      | 3        | 20      | example/taskmanager/metaengine.go |
-| V3  | Cost model calibration benchmarks for task_views query              | M      | M        | M      | 4        | 40      | metaengine/                       |
-| V4  | Metaengine stress test: 100K events, verify scan perf + correctness | H      | M        | M      | 5        | 55      | metaengine/ (new test)            |
+| ID | Task                                                                | Impact | Cust.Val | Effort | Subtasks | Est.Min | Files                             |
+| -- | ------------------------------------------------------------------- | ------ | -------- | ------ | -------- | ------- | --------------------------------- |
+| V1 | Benchmark: metaengine filtered scan vs Materialize.List + Go filter | H      | H        | M      | 5        | 50      | metaengine/ (new bench file)      |
+| V2 | Add SortOnField("priority", true) to task_views query               | M      | H        | S      | 3        | 20      | example/taskmanager/metaengine.go |
+| V3 | Cost model calibration benchmarks for task_views query              | M      | M        | M      | 4        | 40      | metaengine/                       |
+| V4 | Metaengine stress test: 100K events, verify scan perf + correctness | H      | M        | M      | 5        | 55      | metaengine/ (new test)            |
 
 ### V1: Benchmark Metaengine vs Materialize
 
@@ -143,16 +143,16 @@ These gate downstream work. Cannot proceed without answers.
 
 ## TIER 3: P1-HIGH — Superb DX (Documentation, Discoverability)
 
-| ID  | Task                                                                                               | Impact | Cust.Val | Effort | Subtasks | Est.Min | Files                                                    |
-| --- | -------------------------------------------------------------------------------------------------- | ------ | -------- | ------ | -------- | ------- | -------------------------------------------------------- |
-| X1  | Update AGENTS.md metaengine section (EventDecoder, QueryBuilder, task_views, FilterOnField recipe) | H      | H        | M      | 4        | 45      | AGENTS.md                                                |
-| X2  | Add metaengine recipes to SKILL.md (recipes.md)                                                    | H      | H        | M      | 4        | 40      | .agents/skills/go-cqrs-lite/references/recipes.md        |
-| X3  | Document eventWithID wrapper pattern as a recipe                                                   | M      | M        | S      | 2        | 15      | .agents/skills/go-cqrs-lite/references/recipes.md        |
-| X4  | Write migration guide: kv.ViewStore → metaengine (step-by-step)                                    | M      | H        | M      | 4        | 45      | metaengine/MIGRATION.md                                  |
-| X5  | Run doc-check verification on new README content                                                   | M      | L        | S      | 2        | 15      | cmd/doc-check                                            |
-| X6  | Mark EventDecoder as recommended decoder in projectionadapter docs                                 | M      | M        | S      | 2        | 10      | metaengine/projectionadapter/adapter.go (doc), README.md |
-| X7  | Document TieredStore and SwapEngine in README                                                      | L      | M        | S      | 3        | 25      | metaengine/README.md                                     |
-| X8  | Add metaengine cookbook/recipes doc (beyond README examples)                                       | L      | M        | M      | 4        | 40      | metaengine/COOKBOOK.md                                   |
+| ID | Task                                                                                               | Impact | Cust.Val | Effort | Subtasks | Est.Min | Files                                                    |
+| -- | -------------------------------------------------------------------------------------------------- | ------ | -------- | ------ | -------- | ------- | -------------------------------------------------------- |
+| X1 | Update AGENTS.md metaengine section (EventDecoder, QueryBuilder, task_views, FilterOnField recipe) | H      | H        | M      | 4        | 45      | AGENTS.md                                                |
+| X2 | Add metaengine recipes to SKILL.md (recipes.md)                                                    | H      | H        | M      | 4        | 40      | .agents/skills/go-cqrs-lite/references/recipes.md        |
+| X3 | Document eventWithID wrapper pattern as a recipe                                                   | M      | M        | S      | 2        | 15      | .agents/skills/go-cqrs-lite/references/recipes.md        |
+| X4 | Write migration guide: kv.ViewStore → metaengine (step-by-step)                                    | M      | H        | M      | 4        | 45      | metaengine/MIGRATION.md                                  |
+| X5 | Run doc-check verification on new README content                                                   | M      | L        | S      | 2        | 15      | cmd/doc-check                                            |
+| X6 | Mark EventDecoder as recommended decoder in projectionadapter docs                                 | M      | M        | S      | 2        | 10      | metaengine/projectionadapter/adapter.go (doc), README.md |
+| X7 | Document TieredStore and SwapEngine in README                                                      | L      | M        | S      | 3        | 25      | metaengine/README.md                                     |
+| X8 | Add metaengine cookbook/recipes doc (beyond README examples)                                       | L      | M        | M      | 4        | 40      | metaengine/COOKBOOK.md                                   |
 
 ### X1: Update AGENTS.md Metaengine Section
 
@@ -223,17 +223,17 @@ These gate downstream work. Cannot proceed without answers.
 
 ## TIER 4: P2-MEDIUM — Test Coverage (Integration Tests)
 
-| ID  | Task                                                           | Impact | Cust.Val | Effort | Subtasks | Est.Min | Files                                   |
-| --- | -------------------------------------------------------------- | ------ | -------- | ------ | -------- | ------- | --------------------------------------- |
-| T1  | Cursor-based pagination test through TaskReader                | M      | M        | S      | 3        | 25      | example/taskmanager/integration_test.go |
-| T2  | Watcher integration test in taskmanager                        | M      | M        | S      | 3        | 30      | example/taskmanager/integration_test.go |
-| T3  | ServeSSE integration test                                      | M      | M        | S      | 3        | 30      | example/taskmanager/integration_test.go |
-| T4  | WithPrefetch integration test                                  | L      | L        | S      | 2        | 15      | metaengine/                             |
-| T5  | TypedReader.GetBatch test                                      | L      | L        | S      | 2        | 15      | metaengine/                             |
-| T6  | StreamScan integration test                                    | L      | L        | S      | 2        | 15      | metaengine/                             |
-| T7  | Metaengine + projectionhost replay (crash recovery) test       | M      | M        | M      | 4        | 45      | metaengine/projectionadapter/           |
-| T8  | Metaengine golden test for plan output (stable cost estimates) | M      | L        | S      | 3        | 25      | metaengine/                             |
-| T9  | SwapEngine live migration test                                 | L      | L        | M      | 3        | 30      | metaengine/                             |
+| ID | Task                                                           | Impact | Cust.Val | Effort | Subtasks | Est.Min | Files                                   |
+| -- | -------------------------------------------------------------- | ------ | -------- | ------ | -------- | ------- | --------------------------------------- |
+| T1 | Cursor-based pagination test through TaskReader                | M      | M        | S      | 3        | 25      | example/taskmanager/integration_test.go |
+| T2 | Watcher integration test in taskmanager                        | M      | M        | S      | 3        | 30      | example/taskmanager/integration_test.go |
+| T3 | ServeSSE integration test                                      | M      | M        | S      | 3        | 30      | example/taskmanager/integration_test.go |
+| T4 | WithPrefetch integration test                                  | L      | L        | S      | 2        | 15      | metaengine/                             |
+| T5 | TypedReader.GetBatch test                                      | L      | L        | S      | 2        | 15      | metaengine/                             |
+| T6 | StreamScan integration test                                    | L      | L        | S      | 2        | 15      | metaengine/                             |
+| T7 | Metaengine + projectionhost replay (crash recovery) test       | M      | M        | M      | 4        | 45      | metaengine/projectionadapter/           |
+| T8 | Metaengine golden test for plan output (stable cost estimates) | M      | L        | S      | 3        | 25      | metaengine/                             |
+| T9 | SwapEngine live migration test                                 | L      | L        | M      | 3        | 30      | metaengine/                             |
 
 ### T1: Cursor-Based Pagination Test
 
@@ -309,12 +309,12 @@ These gate downstream work. Cannot proceed without answers.
 
 ## TIER 5: P2-MEDIUM — Observability
 
-| ID  | Task                                                                       | Impact | Cust.Val | Effort | Subtasks | Est.Min | Files                    |
-| --- | -------------------------------------------------------------------------- | ------ | -------- | ------ | -------- | ------- | ------------------------ |
-| O1  | Add OpenTelemetry tracing to metaengine Apply/Scan hot paths               | M      | M        | M      | 4        | 45      | metaengine/              |
-| O2  | Add Prometheus metrics for metaengine (query latency, engine distribution) | M      | M        | M      | 4        | 45      | metaengine/, prometheus/ |
-| O3  | Add metaengine.Explain(query) for plan visualization                       | M      | H        | M      | 4        | 40      | metaengine/              |
-| O4  | Add metaengine.Doctor() diagnostic function                                | L      | M        | M      | 3        | 30      | metaengine/              |
+| ID | Task                                                                       | Impact | Cust.Val | Effort | Subtasks | Est.Min | Files                    |
+| -- | -------------------------------------------------------------------------- | ------ | -------- | ------ | -------- | ------- | ------------------------ |
+| O1 | Add OpenTelemetry tracing to metaengine Apply/Scan hot paths               | M      | M        | M      | 4        | 45      | metaengine/              |
+| O2 | Add Prometheus metrics for metaengine (query latency, engine distribution) | M      | M        | M      | 4        | 45      | metaengine/, prometheus/ |
+| O3 | Add metaengine.Explain(query) for plan visualization                       | M      | H        | M      | 4        | 40      | metaengine/              |
+| O4 | Add metaengine.Doctor() diagnostic function                                | L      | M        | M      | 3        | 30      | metaengine/              |
 
 ### O1: OTel Tracing
 
@@ -355,12 +355,12 @@ These gate downstream work. Cannot proceed without answers.
 
 ## TIER 6: P2-MEDIUM — Architecture Cleanup
 
-| ID  | Task                                                                     | Impact | Cust.Val | Effort | Subtasks | Est.Min | Files                             |
-| --- | ------------------------------------------------------------------------ | ------ | -------- | ------ | -------- | ------- | --------------------------------- |
-| A1  | Consider removing Counter query (task_counts_by_status) — Map can derive | L      | L        | S      | 2        | 15      | example/taskmanager/metaengine.go |
-| A2  | Consolidate taskCountsInput and listTasksInput                           | L      | L        | S      | 2        | 10      | example/taskmanager/metaengine.go |
-| A3  | ApplyEncoded path for EventDecoder (avoid double decode)                 | M      | L        | M      | 3        | 30      | metaengine/projectionadapter/     |
-| A4  | Investigate GraphBackend delegation to graph.GraphDriver (per ADR-0077)  | L      | L        | M      | 3        | 35      | metaengine/                       |
+| ID | Task                                                                     | Impact | Cust.Val | Effort | Subtasks | Est.Min | Files                             |
+| -- | ------------------------------------------------------------------------ | ------ | -------- | ------ | -------- | ------- | --------------------------------- |
+| A1 | Consider removing Counter query (task_counts_by_status) — Map can derive | L      | L        | S      | 2        | 15      | example/taskmanager/metaengine.go |
+| A2 | Consolidate taskCountsInput and listTasksInput                           | L      | L        | S      | 2        | 10      | example/taskmanager/metaengine.go |
+| A3 | ApplyEncoded path for EventDecoder (avoid double decode)                 | M      | L        | M      | 3        | 30      | metaengine/projectionadapter/     |
+| A4 | Investigate GraphBackend delegation to graph.GraphDriver (per ADR-0077)  | L      | L        | M      | 3        | 35      | metaengine/                       |
 
 ### A1: Consider Removing Counter Query
 

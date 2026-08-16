@@ -14,30 +14,30 @@ GREEN verify gate. Leave no stale claims.
 
 ### The 1% That Delivers 51%
 
-| #   | Task                                   | Why                                                                                    | Impact                                         |
-| --- | -------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| 1   | **Run verify gate + fix failures**     | Validates ALL work from 52+ sessions. Without it, every "done" claim is stale GREEN.   | Eliminates the single biggest credibility risk |
-| 2   | **Regenerate api-stability golden**    | ~20+ exports stale. Guarantees `TestAPIStability` fails. The #1 verify blocker.        | Unblocks verify GREEN                          |
-| 3   | **Run `cmd/doc-check` on living docs** | My FEATURES/ROADMAP/CHANGELOG edits added Go import paths. Must validate they resolve. | Catches broken docs before they mislead        |
+| # | Task                                   | Why                                                                                    | Impact                                         |
+| - | -------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 1 | **Run verify gate + fix failures**     | Validates ALL work from 52+ sessions. Without it, every "done" claim is stale GREEN.   | Eliminates the single biggest credibility risk |
+| 2 | **Regenerate api-stability golden**    | ~20+ exports stale. Guarantees `TestAPIStability` fails. The #1 verify blocker.        | Unblocks verify GREEN                          |
+| 3 | **Run `cmd/doc-check` on living docs** | My FEATURES/ROADMAP/CHANGELOG edits added Go import paths. Must validate they resolve. | Catches broken docs before they mislead        |
 
 ### The 4% That Delivers 64%
 
-| #   | Task                                                                    | Why                                                                                                    | Impact                               |
-| --- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------ |
-| 4   | **Update AGENTS.md** (detector count "26"→"~20", cqrs-lint description) | The most-read doc by AI sessions. Stale detector count misleads every future session.                  | Every future session starts accurate |
-| 5   | **Bump cqrs-lint version `4.3.0`→`4.4.0`**                              | 1-line fix. Unblocks tagging. Every post-v4.3.0 feature is unreleased.                                 | Unblocks release                     |
-| 6   | **Update `recipes.md`** (metaengine old-pattern → DX helpers)           | The Crush skill is "single source of truth for AI consumers". Stale recipes mislead every consumer AI. | Consumer DX                          |
-| 7   | **Update `example/taskmanager/metaengine.go`** (49 old refs)            | The canonical consumer example. Consumers copy from this file.                                         | Consumer trust                       |
+| # | Task                                                                    | Why                                                                                                    | Impact                               |
+| - | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------ |
+| 4 | **Update AGENTS.md** (detector count "26"→"~20", cqrs-lint description) | The most-read doc by AI sessions. Stale detector count misleads every future session.                  | Every future session starts accurate |
+| 5 | **Bump cqrs-lint version `4.3.0`→`4.4.0`**                              | 1-line fix. Unblocks tagging. Every post-v4.3.0 feature is unreleased.                                 | Unblocks release                     |
+| 6 | **Update `recipes.md`** (metaengine old-pattern → DX helpers)           | The Crush skill is "single source of truth for AI consumers". Stale recipes mislead every consumer AI. | Consumer DX                          |
+| 7 | **Update `example/taskmanager/metaengine.go`** (49 old refs)            | The canonical consumer example. Consumers copy from this file.                                         | Consumer trust                       |
 
 ### The 20% That Delivers 80%
 
-| #   | Task                                                       | Why                                                                                     | Impact                 |
-| --- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------- | ---------------------- |
-| 8   | **Split 3 system/ files** (382/364/357 → all <350)         | CI-enforced 350-line limit. Build will FAIL without this.                               | Unblocks CI            |
-| 9   | **Split `feature_detect.go`** (502→<350)                   | Same CI limit. cqrs-lint build will FAIL.                                               | Unblocks CI            |
-| 10  | **Fix `benchkit` build failure**                           | `phases_metaengine.go:82` references undefined `stack.Bundle.MetaEngine`. Pre-existing. | Unblocks benchkit      |
-| 11  | **Update CONTRIBUTING.md**                                 | JSONC, explain, scorecard, group-by, SARIF undocumented.                                | Consumer onboarding    |
-| 12  | **Annotate Aug 5 reports** (fully-resolved ones → archive) | 3rd session skipping ANNOTATE. Resolve the #1 docs-health failure mode.                 | Historical doc hygiene |
+| #  | Task                                                       | Why                                                                                     | Impact                 |
+| -- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------- | ---------------------- |
+| 8  | **Split 3 system/ files** (382/364/357 → all <350)         | CI-enforced 350-line limit. Build will FAIL without this.                               | Unblocks CI            |
+| 9  | **Split `feature_detect.go`** (502→<350)                   | Same CI limit. cqrs-lint build will FAIL.                                               | Unblocks CI            |
+| 10 | **Fix `benchkit` build failure**                           | `phases_metaengine.go:82` references undefined `stack.Bundle.MetaEngine`. Pre-existing. | Unblocks benchkit      |
+| 11 | **Update CONTRIBUTING.md**                                 | JSONC, explain, scorecard, group-by, SARIF undocumented.                                | Consumer onboarding    |
+| 12 | **Annotate Aug 5 reports** (fully-resolved ones → archive) | 3rd session skipping ANNOTATE. Resolve the #1 docs-health failure mode.                 | Historical doc hygiene |
 
 ### The Other 80% → 100%
 

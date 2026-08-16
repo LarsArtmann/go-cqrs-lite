@@ -186,8 +186,9 @@ Minimize total cost:
 
 $$
 \min \sum_{q \in \mathcal{Q}} \text{freq}(q) \cdot \sum_{v \in \mathcal{V}} \sum_{s \in \math meta-engine-design.md ~	 meta-engine-design.md \mathcal{S}} y_{q,v,s} \cdot \text{cost}(q, v, s)
-+ \lambda \cdot \sum_{v \in \mathcal{V}} \sum_{s \in \mathcal{S}} x_{v,s} \cdot \text{cost}(v, s)
-$$
+
+- \lambda \cdot \sum_{v \in \mathcal{V}} \sum_{s \in \mathcal{S}} x_{v,s} \cdot \text{cost}(v, s)
+  $$
 
 (Read cost weighted by frequency, plus write cost weighted by amplification penalty $\lambda$.)
 
@@ -609,5 +610,4 @@ The generated read API.
 | **Total**                               | **~11 weeks (3 months)** |
 
 ```
-
 ```

@@ -14,14 +14,16 @@ cost, command lifecycle, bbolt/mysql/turso engines), and archived 1 of 33
 status reports. Two `verify-fast` failures are pre-existing but blocking.
 
 **Current state of `docs/status/`:**
+
 - 33 reports matching `2026-08-1*`
 - 1 already archived (`2026-08-11_04-04_verify-green-and-lint-cleanup.md`)
 - 21 classified as **FULLY_DONE** (all work complete, open items harvested into TODO_LIST)
 - 12 classified as **MIXED** (contain some open items — need cross-reference to verify whether later sessions resolved them)
 
 **Two verify-fast failures:**
+
 1. `TestCatalogEveryGoWorkModuleCovered` — `system/integration` missing from cqrs-lint excludedModules map
-2. `TestExceptionsAreMinimal` — LAYER map keys have ` / ` (spaces) but EXCEPTIONS deps have `/` (no spaces); also `testutil/pgtestcontainer` missing from LAYER
+2. `TestExceptionsAreMinimal` — LAYER map keys have `/` (spaces) but EXCEPTIONS deps have `/` (no spaces); also `testutil/pgtestcontainer` missing from LAYER
 
 ---
 
@@ -84,17 +86,17 @@ status reports. Two `verify-fast` failures are pre-existing but blocking.
 
 > Sorted by impact (highest first), then effort (lowest first).
 
-| ID | Task | Impact | Effort | Rationale |
-|----|------|--------|--------|-----------|
-| T1 | Fix 2 verify-fast test failures | 🔥 CRITICAL | 20min | Unblocks verify gate for all sessions; 2-line code fixes |
-| T2 | Bulk-archive 21 FULLY_DONE reports | 🔥 HIGH | 45min | Reduces docs/status/ from 33→12 active; mechanical operation |
-| T3 | Cross-reference + annotate 12 MIXED reports | HIGH | 90min | Completes HARVEST+ANNOTATE; verifies no open items lost |
-| T4 | Verify-fast clean run | HIGH | 10min | Confidence gate after T1-T3 |
-| T5 | ROADMAP `[Unreleased]` cell restructure | MEDIUM | 30min | Readability; cell is ~200 words in one table row |
-| T6 | CHANGELOG Known Gaps audit | MEDIUM | 20min | Remove stale entries; ADR-0117 gaps may be partially resolved |
-| T7 | Cross-doc consistency spot-check (5 samples) | MEDIUM | 25min | Catch drift between FEATURES.md claims and actual API |
-| T8 | Process improvements (AGENTS.md gotcha) | LOW | 15min | Document LAYER-key-format issue for future sessions |
-| T9 | Final commit + push | HIGH | 10min | Ship the work |
+| ID | Task                                         | Impact      | Effort | Rationale                                                     |
+| -- | -------------------------------------------- | ----------- | ------ | ------------------------------------------------------------- |
+| T1 | Fix 2 verify-fast test failures              | 🔥 CRITICAL | 20min  | Unblocks verify gate for all sessions; 2-line code fixes      |
+| T2 | Bulk-archive 21 FULLY_DONE reports           | 🔥 HIGH     | 45min  | Reduces docs/status/ from 33→12 active; mechanical operation  |
+| T3 | Cross-reference + annotate 12 MIXED reports  | HIGH        | 90min  | Completes HARVEST+ANNOTATE; verifies no open items lost       |
+| T4 | Verify-fast clean run                        | HIGH        | 10min  | Confidence gate after T1-T3                                   |
+| T5 | ROADMAP `[Unreleased]` cell restructure      | MEDIUM      | 30min  | Readability; cell is ~200 words in one table row              |
+| T6 | CHANGELOG Known Gaps audit                   | MEDIUM      | 20min  | Remove stale entries; ADR-0117 gaps may be partially resolved |
+| T7 | Cross-doc consistency spot-check (5 samples) | MEDIUM      | 25min  | Catch drift between FEATURES.md claims and actual API         |
+| T8 | Process improvements (AGENTS.md gotcha)      | LOW         | 15min  | Document LAYER-key-format issue for future sessions           |
+| T9 | Final commit + push                          | HIGH        | 10min  | Ship the work                                                 |
 
 **Total estimated effort:** ~4.2 hours
 
@@ -107,12 +109,12 @@ status reports. Two `verify-fast` failures are pre-existing but blocking.
 
 ### T1: Fix verify-fast failures (4 sub-tasks)
 
-| ID | Sub-task | Effort |
-|----|----------|--------|
-| T1a | Add `system/integration` to `excludedModules` in `module_catalog_test.go` | 3min |
-| T1b | Normalize LAYER key parsing in `main_test.go` — replace ` / ` with `/` on parse | 5min |
-| T1c | Add `testutil/pgtestcontainer` and `system/integration` to LAYER map in `check-module-layers.sh` | 4min |
-| T1d | Run the 2 failing tests individually to confirm green | 3min |
+| ID  | Sub-task                                                                                         | Effort |
+| --- | ------------------------------------------------------------------------------------------------ | ------ |
+| T1a | Add `system/integration` to `excludedModules` in `module_catalog_test.go`                        | 3min   |
+| T1b | Normalize LAYER key parsing in `main_test.go` — replace `/` with `/` on parse                    | 5min   |
+| T1c | Add `testutil/pgtestcontainer` and `system/integration` to LAYER map in `check-module-layers.sh` | 4min   |
+| T1d | Run the 2 failing tests individually to confirm green                                            | 3min   |
 
 ### T2: Bulk-archive 21 FULLY_DONE reports (5 sub-tasks)
 
@@ -120,13 +122,13 @@ status reports. Two `verify-fast` failures are pre-existing but blocking.
 > (1) read header to confirm FULLY_DONE, (2) add `> **ARCHIVED**` banner at top,
 > (3) `git mv` to `docs/status/archive/`.
 
-| ID | Sub-task | Reports | Effort |
-|----|----------|---------|--------|
-| T2a | Archive batch 1 | `04-04_live-latency-phase2-complete`, `05-08_live-latency-phase3-improvement-backlog`, `05-09_fold-inference-adr0116-layer1-status`, `05-28_bboltengine-source-of-truth-tests`, `06-37_m9-reframe-layout-planning-design` | 10min |
-| T2b | Archive batch 2 | `06-42_bench-fold-fix-lint-driver-consolidation`, `06-24_live-latency-regression-prevention-audit`, `06-18_pareto-execution-override-batch-atomicity-calibration-fix`, `07-23_layout-planning-implementation-comprehensive-status`, `08-20_layout-planning-followups-safe-backfill-real-rebuilds` | 10min |
-| T2c | Archive batch 3 | `08-44_deletepolicy-unification-tombstone-aliases-cleanup`, `08-44_layout-planning-quality-sort-explainplan-annotations-test-coverage`, `09-03_pebble-calibration-bbolt-parity-duckdb-cgo-isolation`, `13-37_docs-health-living-docs-cleanup` | 8min |
-| T2d | Archive batch 4 (2026-08-10 reports) | `14-53_phase3-self-registration-cleanup`, `15-25_record-consolidation-phase3-4-session2`, `16-15_graphbackend-cleanup-and-adr0114-tombstone-unblock`, `18-49_metadata-roundtrip-fix-and-ci-failure-triage`, `19-06_record-consolidation-fallout-fix-session3` | 10min |
-| T2e | Archive batch 5 (2026-08-10 reports) | `19-26_tombstone-rename-docs-goldens-session4`, `09-32_hotspot-analysis-and-flightrecorder-extraction` | 4min |
+| ID  | Sub-task                             | Reports                                                                                                                                                                                                                                                                                           | Effort |
+| --- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| T2a | Archive batch 1                      | `04-04_live-latency-phase2-complete`, `05-08_live-latency-phase3-improvement-backlog`, `05-09_fold-inference-adr0116-layer1-status`, `05-28_bboltengine-source-of-truth-tests`, `06-37_m9-reframe-layout-planning-design`                                                                         | 10min  |
+| T2b | Archive batch 2                      | `06-42_bench-fold-fix-lint-driver-consolidation`, `06-24_live-latency-regression-prevention-audit`, `06-18_pareto-execution-override-batch-atomicity-calibration-fix`, `07-23_layout-planning-implementation-comprehensive-status`, `08-20_layout-planning-followups-safe-backfill-real-rebuilds` | 10min  |
+| T2c | Archive batch 3                      | `08-44_deletepolicy-unification-tombstone-aliases-cleanup`, `08-44_layout-planning-quality-sort-explainplan-annotations-test-coverage`, `09-03_pebble-calibration-bbolt-parity-duckdb-cgo-isolation`, `13-37_docs-health-living-docs-cleanup`                                                     | 8min   |
+| T2d | Archive batch 4 (2026-08-10 reports) | `14-53_phase3-self-registration-cleanup`, `15-25_record-consolidation-phase3-4-session2`, `16-15_graphbackend-cleanup-and-adr0114-tombstone-unblock`, `18-49_metadata-roundtrip-fix-and-ci-failure-triage`, `19-06_record-consolidation-fallout-fix-session3`                                     | 10min  |
+| T2e | Archive batch 5 (2026-08-10 reports) | `19-26_tombstone-rename-docs-goldens-session4`, `09-32_hotspot-analysis-and-flightrecorder-extraction`                                                                                                                                                                                            | 4min   |
 
 ### T3: Cross-reference + annotate 12 MIXED reports (12 sub-tasks)
 
@@ -134,33 +136,33 @@ status reports. Two `verify-fast` failures are pre-existing but blocking.
 > or already in TODO_LIST, (3) inline-strikethrough resolved items, (4) harvest
 > any genuinely-missing open items into TODO_LIST, (5) `git mv` to archive/.
 
-| ID | Sub-task | Report | Effort |
-|----|----------|--------|--------|
-| T3a | Annotate + archive `07-07_adr-0117-command-lifecycle` | Open items already in TODO_LIST → archive | 8min |
-| T3b | Annotate + archive `14-53_record-consolidation-phase3-4` | Test fixes done by later sessions → verify + archive | 10min |
-| T3c | Annotate + archive `18-49_live-latency-model-implementation` | P2 gaps fixed by phase2-complete → archive | 8min |
-| T3d | Annotate + archive `15-26_graphbackend-deadcode-cleanup-followups` | Follow-ups done by later sessions → verify + archive | 10min |
-| T3e | Annotate + archive `13-52_v4.7-release-and-v5-unification-execution` | M11/M12 done by later sessions → verify + archive | 10min |
-| T3f | Annotate + archive `07-24_session-self-audit-gaps-and-incomplete-work` | M8 gaps in TODO_LIST → archive | 8min |
-| T3g | Annotate + archive `14-20_backuptest-extraction-and-pebbleengine-scan` | GOWORK=off fixed by record/v4.1.0 → archive | 8min |
-| T3h | Annotate + archive `16-14_metaengine-backend-porting-bbolt-turso-mysql` | Gaps fixed by later sessions → verify + archive | 10min |
-| T3i | Annotate + archive `07-20_m11-command-lifecycle-m8-graph-fallback-race-fix` | M8 partial in TODO_LIST → archive | 8min |
-| T3j | Annotate + archive `05-48_onrecord-migration-override-api-partial-execution` | Override API shipped → verify + archive | 10min |
-| T3k | Annotate + archive `14-17_phase2-graphbackend-delete-bus-driver-registry-removal` | Follow-ups done by later sessions → verify + archive | 10min |
-| T3l | Annotate + archive `05-53_pg-probeengine-integration-test-calibration-embedding-fix` | All engines fixed by `06-18` session → archive | 8min |
+| ID  | Sub-task                                                                             | Report                                               | Effort |
+| --- | ------------------------------------------------------------------------------------ | ---------------------------------------------------- | ------ |
+| T3a | Annotate + archive `07-07_adr-0117-command-lifecycle`                                | Open items already in TODO_LIST → archive            | 8min   |
+| T3b | Annotate + archive `14-53_record-consolidation-phase3-4`                             | Test fixes done by later sessions → verify + archive | 10min  |
+| T3c | Annotate + archive `18-49_live-latency-model-implementation`                         | P2 gaps fixed by phase2-complete → archive           | 8min   |
+| T3d | Annotate + archive `15-26_graphbackend-deadcode-cleanup-followups`                   | Follow-ups done by later sessions → verify + archive | 10min  |
+| T3e | Annotate + archive `13-52_v4.7-release-and-v5-unification-execution`                 | M11/M12 done by later sessions → verify + archive    | 10min  |
+| T3f | Annotate + archive `07-24_session-self-audit-gaps-and-incomplete-work`               | M8 gaps in TODO_LIST → archive                       | 8min   |
+| T3g | Annotate + archive `14-20_backuptest-extraction-and-pebbleengine-scan`               | GOWORK=off fixed by record/v4.1.0 → archive          | 8min   |
+| T3h | Annotate + archive `16-14_metaengine-backend-porting-bbolt-turso-mysql`              | Gaps fixed by later sessions → verify + archive      | 10min  |
+| T3i | Annotate + archive `07-20_m11-command-lifecycle-m8-graph-fallback-race-fix`          | M8 partial in TODO_LIST → archive                    | 8min   |
+| T3j | Annotate + archive `05-48_onrecord-migration-override-api-partial-execution`         | Override API shipped → verify + archive              | 10min  |
+| T3k | Annotate + archive `14-17_phase2-graphbackend-delete-bus-driver-registry-removal`    | Follow-ups done by later sessions → verify + archive | 10min  |
+| T3l | Annotate + archive `05-53_pg-probeengine-integration-test-calibration-embedding-fix` | All engines fixed by `06-18` session → archive       | 8min   |
 
 ### T4-T9: Polish tasks (6 sub-tasks)
 
-| ID | Sub-task | Effort |
-|----|----------|--------|
-| T4a | Run `nix run .#verify-fast` — confirm ALL GREEN | 10min |
-| T5a | Restructure ROADMAP `[Unreleased]` cell into bullet list | 12min |
-| T5b | Run doc-check to verify ROADMAP references still valid | 3min |
-| T6a | Audit CHANGELOG ADR-0117 Known Gaps — remove fixed items | 8min |
-| T7a | Spot-check 3 FEATURES.md rows against actual exports | 12min |
-| T8a | Add LAYER-key-format gotcha to AGENTS.md | 5min |
-| T9a | Final commit with detailed message | 5min |
-| T9b | `git push` | 2min |
+| ID  | Sub-task                                                 | Effort |
+| --- | -------------------------------------------------------- | ------ |
+| T4a | Run `nix run .#verify-fast` — confirm ALL GREEN          | 10min  |
+| T5a | Restructure ROADMAP `[Unreleased]` cell into bullet list | 12min  |
+| T5b | Run doc-check to verify ROADMAP references still valid   | 3min   |
+| T6a | Audit CHANGELOG ADR-0117 Known Gaps — remove fixed items | 8min   |
+| T7a | Spot-check 3 FEATURES.md rows against actual exports     | 12min  |
+| T8a | Add LAYER-key-format gotcha to AGENTS.md                 | 5min   |
+| T9a | Final commit with detailed message                       | 5min   |
+| T9b | `git push`                                               | 2min   |
 
 ---
 

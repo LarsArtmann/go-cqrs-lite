@@ -136,20 +136,20 @@ graph TD
 
 ## Detailed Task Breakdown (30-min chunks)
 
-| #   | Task                                       | Impact   | Effort | Files                                                                                    |
-| --- | ------------------------------------------ | -------- | ------ | ---------------------------------------------------------------------------------------- |
-| 1   | SQLite CGo vs pure-Go comparison benchmark | CRITICAL | 15min  | `stack/bench/benchkit_suite_sqlite_cgo_test.go`, `stack/bench/sqlite_cgo_driver_test.go` |
-| 2   | BBolt stack benchmark                      | HIGH     | 10min  | `stack/bench/benchkit_suite_bbolt_test.go`                                               |
-| 3   | Turso stack benchmark                      | HIGH     | 10min  | `stack/bench/benchkit_suite_turso_test.go`                                               |
-| 4   | MySQL stack benchmark (skip-by-default)    | MEDIUM   | 10min  | `stack/bench/benchkit_suite_mysql_test.go`                                               |
-| 5   | Postgres stack benchmark (skip-by-default) | MEDIUM   | 10min  | `stack/bench/benchkit_suite_postgres_test.go`                                            |
-| 6   | Update go.mod + go mod tidy                | HIGH     | 10min  | `stack/bench/go.mod`                                                                     |
-| 7   | Build verification (CGO=1, jsonv2)         | HIGH     | 5min   | —                                                                                        |
-| 8   | Run all 9 embedded benchmarks              | CRITICAL | 15min  | —                                                                                        |
-| 9   | Create bench-all.sh script                 | HIGH     | 15min  | `scripts/bench-all.sh`                                                                   |
-| 10  | Run full suite via script                  | HIGH     | 15min  | —                                                                                        |
-| 11  | Write status report                        | MEDIUM   | 15min  | `docs/status/...`                                                                        |
-| 12  | Commit                                     | LOW      | 5min   | —                                                                                        |
+| #  | Task                                       | Impact   | Effort | Files                                                                                    |
+| -- | ------------------------------------------ | -------- | ------ | ---------------------------------------------------------------------------------------- |
+| 1  | SQLite CGo vs pure-Go comparison benchmark | CRITICAL | 15min  | `stack/bench/benchkit_suite_sqlite_cgo_test.go`, `stack/bench/sqlite_cgo_driver_test.go` |
+| 2  | BBolt stack benchmark                      | HIGH     | 10min  | `stack/bench/benchkit_suite_bbolt_test.go`                                               |
+| 3  | Turso stack benchmark                      | HIGH     | 10min  | `stack/bench/benchkit_suite_turso_test.go`                                               |
+| 4  | MySQL stack benchmark (skip-by-default)    | MEDIUM   | 10min  | `stack/bench/benchkit_suite_mysql_test.go`                                               |
+| 5  | Postgres stack benchmark (skip-by-default) | MEDIUM   | 10min  | `stack/bench/benchkit_suite_postgres_test.go`                                            |
+| 6  | Update go.mod + go mod tidy                | HIGH     | 10min  | `stack/bench/go.mod`                                                                     |
+| 7  | Build verification (CGO=1, jsonv2)         | HIGH     | 5min   | —                                                                                        |
+| 8  | Run all 9 embedded benchmarks              | CRITICAL | 15min  | —                                                                                        |
+| 9  | Create bench-all.sh script                 | HIGH     | 15min  | `scripts/bench-all.sh`                                                                   |
+| 10 | Run full suite via script                  | HIGH     | 15min  | —                                                                                        |
+| 11 | Write status report                        | MEDIUM   | 15min  | `docs/status/...`                                                                        |
+| 12 | Commit                                     | LOW      | 5min   | —                                                                                        |
 
 ---
 

@@ -1,7 +1,7 @@
 # Comprehensive TODO Plan — go-cqrs-lite
 
-> Generated: 2026-06-03  
-> All known work items from TODO_LIST.md, FEATURES.md, code quality scan, benchmark bottlenecks, and documentation gaps.  
+> Generated: 2026-06-03\
+> All known work items from TODO_LIST.md, FEATURES.md, code quality scan, benchmark bottlenecks, and documentation gaps.\
 > Tasks split into max 12-minute units. Sorted by **impact × urgency ÷ effort**.
 
 ---

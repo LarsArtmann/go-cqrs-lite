@@ -14,15 +14,15 @@
 
 ### Real issues to fix (ordered by impact/effort):
 
-| #   | Task                                                    | Impact | Effort | Why                    |
-| --- | ------------------------------------------------------- | ------ | ------ | ---------------------- |
-| 1   | Fix doc comment: claim RFC 7049 Canonical, not RFC 8949 | High   | 2min   | Doc currently lies     |
-| 2   | Add `cbor:"name"` tag test (verify dual-tag compat)     | Medium | 3min   | Consumers need to know |
-| 3   | Add CBOR size comparison test (vs JSON)                 | High   | 3min   | Proves CBOR value      |
-| 4   | Add signing determinism integration test                | High   | 8min   | Core use case          |
-| 5   | Add `TestCBORCodec_RoundTrip_Slice`                     | Low    | 2min   | Coverage gap           |
-| 6   | Add `TestCBORCodec_RoundTrip_NestedStruct`              | Low    | 3min   | Coverage gap           |
-| 7   | Run full test+lint, commit, push                        | -      | 5min   | Gate                   |
+| # | Task                                                    | Impact | Effort | Why                    |
+| - | ------------------------------------------------------- | ------ | ------ | ---------------------- |
+| 1 | Fix doc comment: claim RFC 7049 Canonical, not RFC 8949 | High   | 2min   | Doc currently lies     |
+| 2 | Add `cbor:"name"` tag test (verify dual-tag compat)     | Medium | 3min   | Consumers need to know |
+| 3 | Add CBOR size comparison test (vs JSON)                 | High   | 3min   | Proves CBOR value      |
+| 4 | Add signing determinism integration test                | High   | 8min   | Core use case          |
+| 5 | Add `TestCBORCodec_RoundTrip_Slice`                     | Low    | 2min   | Coverage gap           |
+| 6 | Add `TestCBORCodec_RoundTrip_NestedStruct`              | Low    | 3min   | Coverage gap           |
+| 7 | Run full test+lint, commit, push                        | -      | 5min   | Gate                   |
 
 ### What we should NOT do (YAGNI):
 

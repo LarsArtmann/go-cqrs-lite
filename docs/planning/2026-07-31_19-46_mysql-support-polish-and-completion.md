@@ -13,14 +13,14 @@
 
 The CI/lint blockers. Without these, the feature is **invisible** to the entire Nix pipeline. `nix run .#build`, `.#test`, `.#lint` all skip the module. These are 3 one-line edits + 2 commands:
 
-| #   | Task                                                                        | Effort    |
-| --- | --------------------------------------------------------------------------- | --------- |
-| 1   | Add `"stack/mysql"` to `flake.nix` testModules                              | 30 sec    |
-| 2   | Add `github.com/go-sql-driver/mysql` to `.golangci.yml` depguard            | 30 sec    |
-| 3   | Add `github.com/testcontainers/testcontainers-go/modules/mysql` to depguard | 30 sec    |
-| 4   | Fix stale "event-store-only" comment on `MySQLDialect` (dialect.go:199)     | 10 sec    |
-| 5   | `nix fmt` on all changed files                                              | 1 min     |
-| 6   | Run `nix run .#verify` and fix any issues                                   | 10-15 min |
+| # | Task                                                                        | Effort    |
+| - | --------------------------------------------------------------------------- | --------- |
+| 1 | Add `"stack/mysql"` to `flake.nix` testModules                              | 30 sec    |
+| 2 | Add `github.com/go-sql-driver/mysql` to `.golangci.yml` depguard            | 30 sec    |
+| 3 | Add `github.com/testcontainers/testcontainers-go/modules/mysql` to depguard | 30 sec    |
+| 4 | Fix stale "event-store-only" comment on `MySQLDialect` (dialect.go:199)     | 10 sec    |
+| 5 | `nix fmt` on all changed files                                              | 1 min     |
+| 6 | Run `nix run .#verify` and fix any issues                                   | 10-15 min |
 
 **Total: ~13 min. This is the difference between "invisible broken feature" and "CI-green feature".**
 
@@ -28,40 +28,40 @@ The CI/lint blockers. Without these, the feature is **invisible** to the entire 
 
 Above + consumer-facing basics that make the feature usable and trustworthy:
 
-| #   | Task                                                 | Effort |
-| --- | ---------------------------------------------------- | ------ |
-| 7   | Write `stack/mysql/README.md`                        | 10 min |
-| 8   | Write `stack/mysql/preset_test.go` smoke test        | 10 min |
-| 9   | Run `cmd/doc-check` to verify AGENTS.md import paths | 2 min  |
+| # | Task                                                 | Effort |
+| - | ---------------------------------------------------- | ------ |
+| 7 | Write `stack/mysql/README.md`                        | 10 min |
+| 8 | Write `stack/mysql/preset_test.go` smoke test        | 10 min |
+| 9 | Run `cmd/doc-check` to verify AGENTS.md import paths | 2 min  |
 
 ### The 20% that delivers 80%
 
 Above + documentation + test coverage + CI integration:
 
-| #   | Task                                                        | Effort |
-| --- | ----------------------------------------------------------- | ------ |
-| 10  | Update SKILL.md + references/core.md module decision matrix | 15 min |
-| 11  | Write ADR-0080 for Dialect interface expansion              | 15 min |
-| 12  | `classifyMySQLError` unit test with mock `mysqlNumberError` | 10 min |
-| 13  | MySQL idempotency conditional-update test                   | 15 min |
-| 14  | Add MySQL service container to CI workflow                  | 15 min |
-| 15  | Update cqrs-lint E-series stack preset detection            | 10 min |
-| 16  | Update FEATURES.md with MySQL entry                         | 5 min  |
+| #  | Task                                                        | Effort |
+| -- | ----------------------------------------------------------- | ------ |
+| 10 | Update SKILL.md + references/core.md module decision matrix | 15 min |
+| 11 | Write ADR-0080 for Dialect interface expansion              | 15 min |
+| 12 | `classifyMySQLError` unit test with mock `mysqlNumberError` | 10 min |
+| 13 | MySQL idempotency conditional-update test                   | 15 min |
+| 14 | Add MySQL service container to CI workflow                  | 15 min |
+| 15 | Update cqrs-lint E-series stack preset detection            | 10 min |
+| 16 | Update FEATURES.md with MySQL entry                         | 5 min  |
 
 ### The other 20% (to get to 100%)
 
 Full polish: all reference docs, advanced tests, release tags:
 
-| #   | Task                                                                     | Effort |
-| --- | ------------------------------------------------------------------------ | ------ |
-| 17  | Update references/recipes.md with MySQL recipe                           | 10 min |
-| 18  | Update references/modules.md with MySQL entry                            | 10 min |
-| 19  | Update references/faq.md with MySQL FAQ                                  | 10 min |
-| 20  | Write multidb_test.go (RunMultiDBSuite)                                  | 15 min |
-| 21  | MySQL-specific upsert correctness tests (snapshot, KV, view, relational) | 20 min |
-| 22  | ROADMAP.md update                                                        | 5 min  |
-| 23  | doc-check verification of all SKILL references                           | 5 min  |
-| 24  | Release tags (stack/mysql, storage, idempotency/sqlstore)                | 10 min |
+| #  | Task                                                                     | Effort |
+| -- | ------------------------------------------------------------------------ | ------ |
+| 17 | Update references/recipes.md with MySQL recipe                           | 10 min |
+| 18 | Update references/modules.md with MySQL entry                            | 10 min |
+| 19 | Update references/faq.md with MySQL FAQ                                  | 10 min |
+| 20 | Write multidb_test.go (RunMultiDBSuite)                                  | 15 min |
+| 21 | MySQL-specific upsert correctness tests (snapshot, KV, view, relational) | 20 min |
+| 22 | ROADMAP.md update                                                        | 5 min  |
+| 23 | doc-check verification of all SKILL references                           | 5 min  |
+| 24 | Release tags (stack/mysql, storage, idempotency/sqlstore)                | 10 min |
 
 ---
 

@@ -84,37 +84,37 @@ These create the **shared vocabulary** and **honest tests** that make everything
 
 Sorted by impact (desc) > effort (asc) > customer-value (desc).
 
-| #   | Task                                                              | Impact   | Effort | Customer Value                                                 | Phase               | Depends On |
-| --- | ----------------------------------------------------------------- | -------- | ------ | -------------------------------------------------------------- | ------------------- | ---------- |
-| 1   | Apply Pebble `DefaultOptions()` in preset + test                  | CRITICAL | 30min  | Every Pebble consumer gets faster reads/writes for free        | Quick Win           | —          |
-| 2   | Design `DurabilityTier` type in `stack/` package                  | CRITICAL | 45min  | Unified vocabulary enables honest comparisons                  | Foundation          | —          |
-| 3   | `DurabilityTier` translation: SQLite preset                       | HIGH     | 45min  | Consumers can pick `synchronous` level declaratively           | Foundation          | 2          |
-| 4   | `DurabilityTier` translation: Pebble preset                       | HIGH     | 30min  | Consumers can pick sync vs async writes                        | Foundation          | 2          |
-| 5   | `DurabilityTier` translation: Postgres preset                     | HIGH     | 45min  | The 387x lever becomes a one-liner                             | Foundation          | 2          |
-| 6   | `DurabilityTier` translation: Turso preset                        | MEDIUM   | 30min  | Parity with SQLite                                             | Foundation          | 2          |
-| 7   | Test `DurabilityTier` across all backends                         | HIGH     | 45min  | Verify translations are correct                                | Foundation          | 3,4,5,6    |
-| 8   | Postgres: add `WithPoolSize`, `WithStatementTimeout`              | HIGH     | 45min  | Postgres goes from worst to competitive                        | Backend Surfacing   | 5          |
-| 9   | SQLite: add `WithSynchronous`, `WithCacheSize`, `WithBusyTimeout` | HIGH     | 60min  | Granular control over the most common backend                  | Backend Surfacing   | 3          |
-| 10  | Turso: wire `indexing.*` API into preset options                  | MEDIUM   | 60min  | Unlocks orphaned optimization API                              | Backend Surfacing   | 6          |
-| 11  | Write `docs/BACKEND_TRADEOFFS.md`                                 | CRITICAL | 90min  | Single source of truth for "which backend?"                    | Documentation       | 7          |
-| 12  | Design mixed read-during-write benchmark phase                    | HIGH     | 60min  | Tests the real production question                             | Benchmark           | —          |
-| 13  | Implement `mixedWorkloadPhase` in benchkit                        | HIGH     | 90min  | Interleaved reads + writes with contention                     | Benchmark           | 12         |
-| 14  | Test mixed-workload phase on memory + sqlite                      | HIGH     | 45min  | Verify no race conditions, sane numbers                        | Benchmark           | 13         |
-| 15  | Add `--durability` flag to cqrs-bench                             | MEDIUM   | 30min  | Lets users benchmark at specific durability tiers              | Tooling             | 7          |
-| 16  | Add Turso factory to cqrs-bench                                   | LOW      | 30min  | Turso benchmarkable from CLI                                   | Tooling             | —          |
-| 17  | `Bundle.Capabilities()` method + per-preset impl                  | MEDIUM   | 60min  | Machine-checkable tradeoff matrix                              | Capability Metadata | —          |
-| 18  | Add `Capabilities` to each preset                                 | MEDIUM   | 60min  | Each backend declares what it supports                         | Capability Metadata | 17         |
-| 19  | Warm/cold read split in `readPhase`                               | LOW      | 45min  | More honest read latency numbers                               | Benchmark           | —          |
-| 20  | Update `docs/performance.md` with optimized numbers               | MEDIUM   | 45min  | Current numbers reflect pre-optimization baselines             | Documentation       | 1,7,8,9    |
-| 21  | Update `docs/STORAGE_GUIDE.md` with tradeoff vocabulary           | MEDIUM   | 45min  | Cross-link to `BACKEND_TRADEOFFS.md`, use `DurabilityTier`     | Documentation       | 11         |
-| 22  | Update `docs/CONSISTENCY_MODEL.md` with per-backend durability    | MEDIUM   | 45min  | Tie consistency guarantees to backend choice                   | Documentation       | 11         |
-| 23  | DuckDB: surface `WithPreserveInsertionOrder`, `WithTempDirectory` | LOW      | 45min  | More DuckDB config reachable                                   | Backend Surfacing   | —          |
-| 24  | Design DuckDB analytical benchmark phase                          | LOW      | 45min  | Fair OLAP benchmark                                            | Benchmark           | —          |
-| 25  | Implement DuckDB analytical phase in benchkit                     | LOW      | 60min  | Tests scans + GROUP BY, not point writes                       | Benchmark           | 24         |
-| 26  | Extend `metaengine.CostEstimate` with durability/space dimensions | MEDIUM   | 60min  | Planner reasons beyond latency                                 | Metaengine          | 2          |
-| 27  | Add budget-based planning to metaengine                           | MEDIUM   | 90min  | Multi-constraint optimizer (latency + disk + RAM + durability) | Metaengine          | 26         |
-| 28  | Update `docs/benchmarks/` with new comparison data                | LOW      | 45min  | Honest numbers post-optimization                               | Documentation       | 14,20      |
-| 29  | Final verification: all docs consistent, all tests pass           | HIGH     | 30min  | Ship-ready                                                     | Verification        | ALL        |
+| #  | Task                                                              | Impact   | Effort | Customer Value                                                 | Phase               | Depends On |
+| -- | ----------------------------------------------------------------- | -------- | ------ | -------------------------------------------------------------- | ------------------- | ---------- |
+| 1  | Apply Pebble `DefaultOptions()` in preset + test                  | CRITICAL | 30min  | Every Pebble consumer gets faster reads/writes for free        | Quick Win           | —          |
+| 2  | Design `DurabilityTier` type in `stack/` package                  | CRITICAL | 45min  | Unified vocabulary enables honest comparisons                  | Foundation          | —          |
+| 3  | `DurabilityTier` translation: SQLite preset                       | HIGH     | 45min  | Consumers can pick `synchronous` level declaratively           | Foundation          | 2          |
+| 4  | `DurabilityTier` translation: Pebble preset                       | HIGH     | 30min  | Consumers can pick sync vs async writes                        | Foundation          | 2          |
+| 5  | `DurabilityTier` translation: Postgres preset                     | HIGH     | 45min  | The 387x lever becomes a one-liner                             | Foundation          | 2          |
+| 6  | `DurabilityTier` translation: Turso preset                        | MEDIUM   | 30min  | Parity with SQLite                                             | Foundation          | 2          |
+| 7  | Test `DurabilityTier` across all backends                         | HIGH     | 45min  | Verify translations are correct                                | Foundation          | 3,4,5,6    |
+| 8  | Postgres: add `WithPoolSize`, `WithStatementTimeout`              | HIGH     | 45min  | Postgres goes from worst to competitive                        | Backend Surfacing   | 5          |
+| 9  | SQLite: add `WithSynchronous`, `WithCacheSize`, `WithBusyTimeout` | HIGH     | 60min  | Granular control over the most common backend                  | Backend Surfacing   | 3          |
+| 10 | Turso: wire `indexing.*` API into preset options                  | MEDIUM   | 60min  | Unlocks orphaned optimization API                              | Backend Surfacing   | 6          |
+| 11 | Write `docs/BACKEND_TRADEOFFS.md`                                 | CRITICAL | 90min  | Single source of truth for "which backend?"                    | Documentation       | 7          |
+| 12 | Design mixed read-during-write benchmark phase                    | HIGH     | 60min  | Tests the real production question                             | Benchmark           | —          |
+| 13 | Implement `mixedWorkloadPhase` in benchkit                        | HIGH     | 90min  | Interleaved reads + writes with contention                     | Benchmark           | 12         |
+| 14 | Test mixed-workload phase on memory + sqlite                      | HIGH     | 45min  | Verify no race conditions, sane numbers                        | Benchmark           | 13         |
+| 15 | Add `--durability` flag to cqrs-bench                             | MEDIUM   | 30min  | Lets users benchmark at specific durability tiers              | Tooling             | 7          |
+| 16 | Add Turso factory to cqrs-bench                                   | LOW      | 30min  | Turso benchmarkable from CLI                                   | Tooling             | —          |
+| 17 | `Bundle.Capabilities()` method + per-preset impl                  | MEDIUM   | 60min  | Machine-checkable tradeoff matrix                              | Capability Metadata | —          |
+| 18 | Add `Capabilities` to each preset                                 | MEDIUM   | 60min  | Each backend declares what it supports                         | Capability Metadata | 17         |
+| 19 | Warm/cold read split in `readPhase`                               | LOW      | 45min  | More honest read latency numbers                               | Benchmark           | —          |
+| 20 | Update `docs/performance.md` with optimized numbers               | MEDIUM   | 45min  | Current numbers reflect pre-optimization baselines             | Documentation       | 1,7,8,9    |
+| 21 | Update `docs/STORAGE_GUIDE.md` with tradeoff vocabulary           | MEDIUM   | 45min  | Cross-link to `BACKEND_TRADEOFFS.md`, use `DurabilityTier`     | Documentation       | 11         |
+| 22 | Update `docs/CONSISTENCY_MODEL.md` with per-backend durability    | MEDIUM   | 45min  | Tie consistency guarantees to backend choice                   | Documentation       | 11         |
+| 23 | DuckDB: surface `WithPreserveInsertionOrder`, `WithTempDirectory` | LOW      | 45min  | More DuckDB config reachable                                   | Backend Surfacing   | —          |
+| 24 | Design DuckDB analytical benchmark phase                          | LOW      | 45min  | Fair OLAP benchmark                                            | Benchmark           | —          |
+| 25 | Implement DuckDB analytical phase in benchkit                     | LOW      | 60min  | Tests scans + GROUP BY, not point writes                       | Benchmark           | 24         |
+| 26 | Extend `metaengine.CostEstimate` with durability/space dimensions | MEDIUM   | 60min  | Planner reasons beyond latency                                 | Metaengine          | 2          |
+| 27 | Add budget-based planning to metaengine                           | MEDIUM   | 90min  | Multi-constraint optimizer (latency + disk + RAM + durability) | Metaengine          | 26         |
+| 28 | Update `docs/benchmarks/` with new comparison data                | LOW      | 45min  | Honest numbers post-optimization                               | Documentation       | 14,20      |
+| 29 | Final verification: all docs consistent, all tests pass           | HIGH     | 30min  | Ship-ready                                                     | Verification        | ALL        |
 
 **Total estimated effort: ~22 hours**
 

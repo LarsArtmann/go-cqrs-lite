@@ -87,16 +87,16 @@ This is read-only/additive work. Zero VERSCHLIMMBESSER risk.
 
 ## VERSCHLIMMBESSER Risk Assessment
 
-| Task                      | Risk                                   | What could go wrong                                                                                                          | Mitigation                                                  | Outcome                                                                                             |
-| ------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Benchmark assertions      | **None**                               | Purely additive — adds checks, changes no logic                                                                              | N/A                                                         | ✅ Done. Found real bug (missing JSON tags).                                                        |
-| Cost constant changes     | **⚠️ HIGH** (discovered post-hoc)      | Changing constants without understanding their intended scope (point lookup vs analytical) can regress planner routing       | Benchmark the INTENDED use case, not just one path          | ⚠️ DuckDB constants changed based on point-lookup benchmark. May need revert — see Open Risk above. |
-| SSE ADR (documentation)   | **None**                               | Just paper                                                                                                                   | N/A                                                         | ✅ Done (ADR-0097).                                                                                 |
-| SKILL.md matrix           | **None**                               | Just paper                                                                                                                   | N/A                                                         | ✅ Done (4 matrices).                                                                               |
-| Metadata alias conversion | **Low**                                | Breaking if consumers assign `command.Metadata` = `event.Metadata` (already not possible — different types since v3 repoint) | Verify no cross-assignments exist                           | ✅ Done. All modules build, all tests pass.                                                         |
-| PostgresBus removal       | **Medium**                             | Consumers using `storage.PostgresBus` break                                                                                  | Search consumers first; provide migration path to Watermill | ✅ Done. Zero external consumers confirmed. 1,226 LOC removed.                                      |
-| event.Bus removal         | **HIGH** (was misclassified as Medium) | Consumers using `event.Bus` break                                                                                            | ~~Search consumers first~~                                  | ❌ CANCELLED. 14 external projects use it. NOT ghost code.                                          |
-| SSE refactor              | **Medium**                             | SSEBroker has features go-sse lacks (filter, transform, budget, backfill, OTel) — must preserve ALL of them                  | Internal-only refactor; external API unchanged              | ⏳ Not started.                                                                                     |
+| Task                      | Risk                                   | What could go wrong                                                                                                          | Mitigation                                                  | Outcome                                                                                            |
+| ------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Benchmark assertions      | **None**                               | Purely additive — adds checks, changes no logic                                                                              | N/A                                                         | ✅ Done. Found real bug (missing JSON tags).                                                       |
+| Cost constant changes     | **⚠️ HIGH** (discovered post-hoc)       | Changing constants without understanding their intended scope (point lookup vs analytical) can regress planner routing       | Benchmark the INTENDED use case, not just one path          | ⚠️ DuckDB constants changed based on point-lookup benchmark. May need revert — see Open Risk above. |
+| SSE ADR (documentation)   | **None**                               | Just paper                                                                                                                   | N/A                                                         | ✅ Done (ADR-0097).                                                                                |
+| SKILL.md matrix           | **None**                               | Just paper                                                                                                                   | N/A                                                         | ✅ Done (4 matrices).                                                                              |
+| Metadata alias conversion | **Low**                                | Breaking if consumers assign `command.Metadata` = `event.Metadata` (already not possible — different types since v3 repoint) | Verify no cross-assignments exist                           | ✅ Done. All modules build, all tests pass.                                                        |
+| PostgresBus removal       | **Medium**                             | Consumers using `storage.PostgresBus` break                                                                                  | Search consumers first; provide migration path to Watermill | ✅ Done. Zero external consumers confirmed. 1,226 LOC removed.                                     |
+| event.Bus removal         | **HIGH** (was misclassified as Medium) | Consumers using `event.Bus` break                                                                                            | ~~Search consumers first~~                                  | ❌ CANCELLED. 14 external projects use it. NOT ghost code.                                         |
+| SSE refactor              | **Medium**                             | SSEBroker has features go-sse lacks (filter, transform, budget, backfill, OTel) — must preserve ALL of them                  | Internal-only refactor; external API unchanged              | ⏳ Not started.                                                                                    |
 | retry/ extraction         | **Low**                                | Re-export pattern proven by cqrs-htmx                                                                                        | Verify middleware consumer after alias swap                 | ✅ Core done. ⚠️ Missing commit/tag/push.                                                           |
 | idempotency/ extraction   | **Low**                                | Same re-export pattern                                                                                                       | Verify all 4 consumers after alias swap                     | ✅ Core done. ⚠️ Missing commit/tag/push + sub-module extraction.                                   |
 
@@ -110,7 +110,7 @@ Sorted by importance × impact ÷ effort, with risk as tiebreaker.
 | ----- | ------------------------------------------------------------------------------- | ----- | -------- | ------ | ------ | ------------ | ------------------------------ | ----------------------------------------------------------- |
 | L1.01 | Add correctness assertions to 22 unasserted benchmarks                          | P0    | Critical | 100min | None   | None         | Trust in planner routing       | ✅ Done                                                     |
 | L1.02 | Create DuckDB + Postgres engine benchmarks (0 exist today)                      | P0    | Critical | 100min | None   | None         | Trust in planner routing       | ✅ Done                                                     |
-| L1.03 | Run all benchmarks with assertions, document findings                           | P0    | Critical | 30min  | ⚠️     | L1.01, L1.02 | Evidence-grade constants       | ✅ Done (see Open Risk)                                     |
+| L1.03 | Run all benchmarks with assertions, document findings                           | P0    | Critical | 30min  | ⚠️      | L1.01, L1.02 | Evidence-grade constants       | ✅ Done (see Open Risk)                                     |
 | L1.04 | Write ADR-0097: SSE three-repo finding + go-sse consumption plan                | P1    | High     | 30min  | None   | None         | Architecture honesty           | ✅ Done                                                     |
 | L1.05 | Update ADR-0091 cross-reference to ADR-0097                                     | P1    | Medium   | 12min  | None   | L1.04        | ADR accuracy                   | ✅ Done                                                     |
 | L1.06 | Convert command.Metadata + query.Metadata to standalone structs                 | P2b   | Medium   | 30min  | Low    | None         | Type safety                    | ✅ Done                                                     |
@@ -125,9 +125,9 @@ Sorted by importance × impact ÷ effort, with risk as tiebreaker.
 | L1.15 | Execute SSE refactor: transport/http.SSEBroker internal swap                    | P1    | High     | 100min | Medium | L1.14        | ~300 LOC dedup                 | ⏳ Not started                                              |
 | L1.16 | Execute SSE refactor: metaengine.ServeSSE internal swap                         | P1    | Medium   | 60min  | Low    | L1.14        | ~200 LOC dedup                 | ⏳ Not started                                              |
 | L1.17 | Full test suite verification post-SSE-refactor                                  | P1    | High     | 30min  | None   | L1.15, L1.16 | Confidence                     | ⏳ Not started                                              |
-| L1.18 | Create go-retry repo, copy source, tag v1.0.0                                   | P2c   | Medium   | 60min  | Low    | None         | Independent consumption        | ⚠️ Repo created, missing commit/tag                         |
+| L1.18 | Create go-retry repo, copy source, tag v1.0.0                                   | P2c   | Medium   | 60min  | Low    | None         | Independent consumption        | ⚠️ Repo created, missing commit/tag                          |
 | L1.19 | Replace go-cqrs-lite/retry/ with re-export aliases, verify middleware           | P2c   | Medium   | 30min  | Low    | L1.18        | Backward-compatible extraction | ✅ Done                                                     |
-| L1.20 | Create go-idempotency repo, copy source (3 modules), tag v1.0.0                 | P2d   | Medium   | 100min | Low    | None         | Independent consumption        | ⚠️ Core done, missing sub-modules + commit/tag              |
+| L1.20 | Create go-idempotency repo, copy source (3 modules), tag v1.0.0                 | P2d   | Medium   | 100min | Low    | None         | Independent consumption        | ⚠️ Core done, missing sub-modules + commit/tag               |
 | L1.21 | Replace go-cqrs-lite/idempotency/ with re-export aliases, verify consumers      | P2d   | Medium   | 60min  | Low    | L1.20        | Backward-compatible extraction | ✅ Done (core only)                                         |
 | L1.22 | Run doc-check on all changed documentation                                      | P3    | Low      | 30min  | None   | All          | Doc integrity                  | ✅ Done (1197 refs valid)                                   |
 
@@ -141,30 +141,30 @@ Sorted by importance × impact ÷ effort, with risk as tiebreaker.
 
 ### Phase P0: Benchmark Trust Verification — ✅ DONE
 
-| #     | Task                                                                               | Est.  | Deps        | Status                                                 |
-| ----- | ---------------------------------------------------------------------------------- | ----- | ----------- | ------------------------------------------------------ |
-| P0.01 | List all 43 benchmark functions across metaengine + engine modules                 | 3min  | —           | ✅ Done (44 found)                                     |
-| P0.02 | Identify the 22 zero-assertion benchmarks (results discarded with `_`)             | 5min  | P0.01       | ✅ Done                                                |
-| P0.03 | Add count assertion to `BenchmarkFilteredScan`                                     | 5min  | P0.02       | ✅ Already had err check                               |
-| P0.04 | Add count assertion to `BenchmarkPointLookup`                                      | 5min  | P0.02       | ✅ Already had err check                               |
-| P0.05 | Add count assertion to `BenchmarkMixedWorkload_ReadsDuringWrites`                  | 8min  | P0.02       | ✅ Done                                                |
-| P0.06 | Add count assertions to all 6 `layout_bench_test.go` benchmarks                    | 12min | P0.02       | ✅ Already had assertions                              |
-| P0.07 | Add count assertions to all 4 `pebbleengine/scan_bench_test.go` benchmarks         | 8min  | P0.02       | ✅ Done                                                |
-| P0.08 | Add count assertions to both `EndToEnd` benchmarks in `planner_bench_test.go`      | 8min  | P0.02       | ✅ Done                                                |
-| P0.09 | Add count assertions to all 4 `calibration_bench_test.go` benchmarks               | 8min  | P0.02       | ✅ Done                                                |
-| P0.10 | Add count assertions to all 4 `json_tax_bench_test.go` benchmarks                  | 8min  | P0.02       | ✅ Done + fixed JSON tag bug                           |
-| P0.11 | Add count assertions to both `large_payload` benchmarks                            | 5min  | P0.02       | ✅ Done                                                |
-| P0.12 | Add result-value check to `BenchmarkExecuteTyped_SQLite_Reify`                     | 5min  | P0.02       | ✅ Already had err check                               |
-| P0.13 | Add read-back verification to `BenchmarkAdapter_Handle`                            | 8min  | P0.02       | ✅ Already had err check                               |
-| P0.14 | Add count assertions to pebbleengine `raw_reader_bench_test.go`                    | 8min  | P0.02       | ✅ Already had err/found checks                        |
-| P0.15 | Add count assertions to pebbleengine `calibration_bench_test.go`                   | 5min  | P0.02       | ✅ Done                                                |
-| P0.16 | Create `duckdbengine/bench_test.go` with Map + Counter benchmarks (CGo tag)        | 12min | —           | ✅ Done                                                |
-| P0.17 | Create `pgengine/bench_test.go` with Map + Counter benchmarks (testcontainer skip) | 12min | —           | ✅ Done                                                |
-| P0.18 | Run all metaengine core benchmarks with assertions                                 | 5min  | P0.03–P0.14 | ✅ Done                                                |
-| P0.19 | Run pebbleengine benchmarks with assertions                                        | 5min  | P0.14–P0.15 | ✅ Done                                                |
-| P0.20 | Run duckdbengine benchmarks with assertions (CGO_ENABLED=1)                        | 8min  | P0.16       | ✅ Done                                                |
-| P0.21 | Run pgengine benchmarks with assertions (requires Docker)                          | 12min | P0.17       | ✅ Done                                                |
-| P0.22 | Compare results against documented cost constants                                  | 8min  | P0.18–P0.21 | ✅ Done                                                |
+| #     | Task                                                                               | Est.  | Deps        | Status                                                |
+| ----- | ---------------------------------------------------------------------------------- | ----- | ----------- | ----------------------------------------------------- |
+| P0.01 | List all 43 benchmark functions across metaengine + engine modules                 | 3min  | —           | ✅ Done (44 found)                                    |
+| P0.02 | Identify the 22 zero-assertion benchmarks (results discarded with `_`)             | 5min  | P0.01       | ✅ Done                                               |
+| P0.03 | Add count assertion to `BenchmarkFilteredScan`                                     | 5min  | P0.02       | ✅ Already had err check                              |
+| P0.04 | Add count assertion to `BenchmarkPointLookup`                                      | 5min  | P0.02       | ✅ Already had err check                              |
+| P0.05 | Add count assertion to `BenchmarkMixedWorkload_ReadsDuringWrites`                  | 8min  | P0.02       | ✅ Done                                               |
+| P0.06 | Add count assertions to all 6 `layout_bench_test.go` benchmarks                    | 12min | P0.02       | ✅ Already had assertions                             |
+| P0.07 | Add count assertions to all 4 `pebbleengine/scan_bench_test.go` benchmarks         | 8min  | P0.02       | ✅ Done                                               |
+| P0.08 | Add count assertions to both `EndToEnd` benchmarks in `planner_bench_test.go`      | 8min  | P0.02       | ✅ Done                                               |
+| P0.09 | Add count assertions to all 4 `calibration_bench_test.go` benchmarks               | 8min  | P0.02       | ✅ Done                                               |
+| P0.10 | Add count assertions to all 4 `json_tax_bench_test.go` benchmarks                  | 8min  | P0.02       | ✅ Done + fixed JSON tag bug                          |
+| P0.11 | Add count assertions to both `large_payload` benchmarks                            | 5min  | P0.02       | ✅ Done                                               |
+| P0.12 | Add result-value check to `BenchmarkExecuteTyped_SQLite_Reify`                     | 5min  | P0.02       | ✅ Already had err check                              |
+| P0.13 | Add read-back verification to `BenchmarkAdapter_Handle`                            | 8min  | P0.02       | ✅ Already had err check                              |
+| P0.14 | Add count assertions to pebbleengine `raw_reader_bench_test.go`                    | 8min  | P0.02       | ✅ Already had err/found checks                       |
+| P0.15 | Add count assertions to pebbleengine `calibration_bench_test.go`                   | 5min  | P0.02       | ✅ Done                                               |
+| P0.16 | Create `duckdbengine/bench_test.go` with Map + Counter benchmarks (CGo tag)        | 12min | —           | ✅ Done                                               |
+| P0.17 | Create `pgengine/bench_test.go` with Map + Counter benchmarks (testcontainer skip) | 12min | —           | ✅ Done                                               |
+| P0.18 | Run all metaengine core benchmarks with assertions                                 | 5min  | P0.03–P0.14 | ✅ Done                                               |
+| P0.19 | Run pebbleengine benchmarks with assertions                                        | 5min  | P0.14–P0.15 | ✅ Done                                               |
+| P0.20 | Run duckdbengine benchmarks with assertions (CGO_ENABLED=1)                        | 8min  | P0.16       | ✅ Done                                               |
+| P0.21 | Run pgengine benchmarks with assertions (requires Docker)                          | 12min | P0.17       | ✅ Done                                               |
+| P0.22 | Compare results against documented cost constants                                  | 8min  | P0.18–P0.21 | ✅ Done                                               |
 | P0.23 | Document findings: pin constants with evidence or flag for recalibration           | 5min  | P0.22       | ⚠️ Done but DuckDB values questionable — see Open Risk |
 
 ### Phase P1: SSE Consolidation — ADR done, refactor NOT started
@@ -235,7 +235,7 @@ Sorted by importance × impact ÷ effort, with risk as tiebreaker.
 | P2c.05 | Run `go test ./...` in go-retry                             | 5min | P2c.04 | ✅ Done (15 tests pass)            |
 | P2c.06 | Tag go-retry v1.0.0 (annotated tag)                         | 3min | P2c.05 | ⏳ Not done (using v0.0.0 replace) |
 | P2c.07 | Replace go-cqrs-lite/retry/*.go with re-export aliases      | 8min | P2c.06 | ✅ Done (used v0.0.0 replace)      |
-| P2c.08 | Update retry/go.mod to require go-retry v1.0.0              | 3min | P2c.07 | ⚠️ Uses v0.0.0 + local replace     |
+| P2c.08 | Update retry/go.mod to require go-retry v1.0.0              | 3min | P2c.07 | ⚠️ Uses v0.0.0 + local replace      |
 | P2c.09 | Run middleware tests (verifies consumer)                    | 5min | P2c.08 | ✅ Done                            |
 | P2c.10 | Run retry module tests                                      | 3min | P2c.08 | ✅ Done                            |
 
@@ -322,8 +322,8 @@ graph TD
 
 ### Parallel Tracks — Execution Results
 
-| Track                             | Status     | Completed                          | Remaining                              | Notes                                       |
-| --------------------------------- | ---------- | ---------------------------------- | -------------------------------------- | ------------------------------------------- |
+| Track                             | Status    | Completed                          | Remaining                              | Notes                                       |
+| --------------------------------- | --------- | ---------------------------------- | -------------------------------------- | ------------------------------------------- |
 | **Track A: SSE + Docs**           | ⚠️ Partial | ADR-0097 ✅, SKILL.md matrices ✅  | SSE refactor (14 tasks)                | ADR written, refactor deferred              |
 | **Track B: Ghost Bus + Metadata** | ⚠️ Partial | PostgresBus ✅, Metadata ✅        | event.Bus ❌ CANCELLED, command.Bus ⏳ | event.Bus has 14 consumers — NOT ghost code |
 | **Track C: Extractions**          | ⚠️ Partial | retry core ✅, idempotency core ✅ | commit/tag/push, sub-module extraction | Working locally with replace directives     |
@@ -336,23 +336,23 @@ graph TD
 
 The benchmark audit revealed a worse situation than ADR-0090 documented:
 
-| Finding                                     | Detail                                                                                         | Resolution                                                                                       |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Finding                                     | Detail                                                                                         | Resolution                                                                                      |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | **DuckDB engine: 0 benchmarks**             | `DuckDBNsPerRead=3000`, `DuckDBNsOp=15000` are hand-picked numbers with zero empirical backing | ✅ Benchmarks created. ⚠️ Constants updated but may be wrong scope (point lookup vs analytical). |
 | **Postgres engine: 0 benchmarks**           | `pgengine NsPerRead=5000`, `NsPerOp=12000` are hand-picked numbers with zero empirical backing | ✅ Benchmarks created. ⚠️ Docker network overhead inflates measurements.                         |
-| **22 of 44 benchmarks discard results**     | `_, _ = store.Apply(...)`, `_, _ = ExecuteTyped(...)` — could be measuring no-ops              | ✅ All fixed with error checks + result assertions. Found real bug (missing JSON tags).          |
-| **Only 3 benchmarks have count assertions** | All in pebbleengine layout planner — bypass event/Apply layer entirely                         | ✅ Now all benchmarks have assertions.                                                           |
-| **Event type casing is currently correct**  | No ADR-0090 casing mismatch found — but most benchmarks bypass Apply entirely                  | ✅ Confirmed correct.                                                                            |
+| **22 of 44 benchmarks discard results**     | `_, _ = store.Apply(...)`, `_, _ = ExecuteTyped(...)` — could be measuring no-ops              | ✅ All fixed with error checks + result assertions. Found real bug (missing JSON tags).         |
+| **Only 3 benchmarks have count assertions** | All in pebbleengine layout planner — bypass event/Apply layer entirely                         | ✅ Now all benchmarks have assertions.                                                          |
+| **Event type casing is currently correct**  | No ADR-0090 casing mismatch found — but most benchmarks bypass Apply entirely                  | ✅ Confirmed correct.                                                                           |
 
 ### Measured Cost Constants (2026-08-03, AMD RYZEN AI MAX+ 395)
 
-| Engine   | Constant   | Old Value | Measured Value             | New Value        | Confidence                                |
-| -------- | ---------- | --------- | -------------------------- | ---------------- | ----------------------------------------- |
-| Memory   | NsPerOp    | 500       | ~210 (Set), ~35 (Get)      | 500 (unchanged)  | ✅ High                                   |
-| SQLite   | NsPerOp    | 7000      | ~6,388 (Set), ~4,786 (Get) | 7000 (unchanged) | ✅ High                                   |
-| Pebble   | NsPerOp    | 1200      | ~2,526 (Set)               | **2000**         | ✅ High                                   |
-| Pebble   | NsPerRead  | 708       | ~1,328 (Get)               | **1300**         | ✅ High                                   |
-| Pebble   | NsPerWrite | 1785      | ~2,526 (Set)               | **2500**         | ✅ High                                   |
+| Engine   | Constant   | Old Value | Measured Value             | New Value        | Confidence                               |
+| -------- | ---------- | --------- | -------------------------- | ---------------- | ---------------------------------------- |
+| Memory   | NsPerOp    | 500       | ~210 (Set), ~35 (Get)      | 500 (unchanged)  | ✅ High                                  |
+| SQLite   | NsPerOp    | 7000      | ~6,388 (Set), ~4,786 (Get) | 7000 (unchanged) | ✅ High                                  |
+| Pebble   | NsPerOp    | 1200      | ~2,526 (Set)               | **2000**         | ✅ High                                  |
+| Pebble   | NsPerRead  | 708       | ~1,328 (Get)               | **1300**         | ✅ High                                  |
+| Pebble   | NsPerWrite | 1785      | ~2,526 (Set)               | **2500**         | ✅ High                                  |
 | DuckDB   | NsPerOp    | 15000     | ~4,813,722 (Set)           | **4,800,000**    | ⚠️ **LOW** — point lookup, not analytical |
 | DuckDB   | NsPerRead  | 3000      | ~546,181 (Get)             | **546,000**      | ⚠️ **LOW** — point lookup, not analytical |
 | Postgres | NsPerOp    | 12000     | ~33,303 (Set)              | **33000**        | ⚠️ **MEDIUM** — Docker network overhead   |

@@ -32,11 +32,11 @@ enough to import it?"_
 
 ### What is unreleased (work done, zero consumer value today)
 
-| Module                      | State                                              | Tests            | Ready to tag?                     |
-| --------------------------- | -------------------------------------------------- | ---------------- | --------------------------------- |
-| `benchkit/v4`               | Functionally complete (full evidence plan shipped) | 88               | ✅ likely stable                  |
-| `cmd/cqrs-bench`            | CLI complete (run/compare/sweep/repeat)            | 12               | ✅ likely stable                  |
-| `example/readme-quickstart` | Compile-verified README example                    | —                | ✅ safe (example)                 |
+| Module                      | State                                              | Tests            | Ready to tag?                    |
+| --------------------------- | -------------------------------------------------- | ---------------- | -------------------------------- |
+| `benchkit/v4`               | Functionally complete (full evidence plan shipped) | 88               | ✅ likely stable                 |
+| `cmd/cqrs-bench`            | CLI complete (run/compare/sweep/repeat)            | 12               | ✅ likely stable                 |
+| `example/readme-quickstart` | Compile-verified README example                    | —                | ✅ safe (example)                |
 | `metaengine/v4`             | 🧪 experimental, MemoryEngine only                 | 174 specs, 87.7% | ⚠️ NOT ready — API still evolving |
 
 ### What is open (TODO_LIST.md, verified 2026-07-24)

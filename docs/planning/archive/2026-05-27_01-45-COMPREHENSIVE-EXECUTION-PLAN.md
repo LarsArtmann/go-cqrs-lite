@@ -1,8 +1,8 @@
 # Comprehensive Execution Plan: All Remaining TODOs
 
-**Date:** 2026-05-27 01:45  
-**Source:** TODO_LIST.md + Session 108 status report gaps  
-**Total tasks:** 142 (all ≤ 12 minutes)  
+**Date:** 2026-05-27 01:45\
+**Source:** TODO_LIST.md + Session 108 status report gaps\
+**Total tasks:** 142 (all ≤ 12 minutes)\
 **Philosophy:** Pareto-sorted. Do 1% → 51% first, then 4% → 64%, then 20% → 80%.
 
 ---
@@ -22,28 +22,28 @@
 
 These 18 tasks deliver 51% of total consumer value. Each is small (≤ 12 min) and high-impact.
 
-| #   | Task                                                          | Module      | Est. | Impact      | Why                                                                |
-| --- | ------------------------------------------------------------- | ----------- | ---- | ----------- | ------------------------------------------------------------------ |
-| 1   | Add `SagaStore()` accessor to `SQLBackend`                    | storage     | 5m   | 🔴 Critical | Completes the unified backend — one constructor for all SQL stores |
-| 2   | Test `Runner.hydrate` error path (unregistered saga type)     | saga        | 8m   | 🔴 Critical | Production restart scenario; 77.8% → 100% coverage                 |
-| 3   | Test `NewSQLSagaStoreWithDialect` (0% coverage)               | storage     | 5m   | 🔴 Critical | Public API surface untested                                        |
-| 4   | Test `NewSQLBackendWithDialect` (0% coverage)                 | storage     | 5m   | 🔴 Critical | Public API surface untested                                        |
-| 5   | Test `scanStates` time parse error paths                      | storage     | 10m  | 🔴 Critical | Defensive code undertested (76.2%)                                 |
-| 6   | Test `newSQLBackendWithDialect` middle error paths            | storage     | 10m  | 🔴 Critical | Error paths at 80%, should be 100%                                 |
-| 7   | Push release tags to remote (8 tags local only)               | CI/git      | 10m  | 🔴 Critical | #1 blocker for external `go get` adoption                          |
-| 8   | Remove replace directives from go.mod files                   | all         | 12m  | 🔴 Critical | Blocks external consumers; chicken-and-egg with tags               |
-| 9   | Add `GOWORK=off` CI matrix job                                | CI          | 10m  | 🔴 Critical | Version drift goes undetected; per-module isolation broken         |
-| 10  | Fix `query.Handler` returns `any` → generic `TypedHandler[T]` | core/query  | 12m  | 🔴 Critical | Breaking change; most-requested type safety improvement            |
-| 11  | Add minimum coverage gate (80%) to CI                         | CI          | 8m   | 🔴 Critical | Prevents coverage regression                                       |
-| 12  | Fix `core→memory` circular dependency                         | core        | 12m  | 🔴 Critical | Blocks publishing `core` independently                             |
-| 13  | Add PostgreSQL integration tests (testcontainers)             | storage     | 12m  | 🔴 Critical | Only SQLite tested; PG is the primary target                       |
-| 14  | Add full outbox cycle integration test                        | storage     | 12m  | 🔴 Critical | Append → PollPending → Publish → Ack never tested end-to-end       |
-| 15  | Add `EventRetry` middleware tests (currently 0% coverage)     | middleware  | 10m  | 🔴 Critical | Public middleware with zero tests                                  |
-| 16  | Fix `FuzzParse` case-sensitivity roundtrip mismatch           | core/pkg/id | 10m  | 🔴 Critical | ULID parsing correctness issue                                     |
-| 17  | Add context cancellation to `SQLOutbox`                       | storage     | 10m  | 🔴 Critical | Currently ignores `ctx.Err()`                                      |
-| 18  | Bump `testhelpers` to v1.2.0 (published v1.1.0 incompatible)  | testhelpers | 8m   | 🔴 Critical | Published version broken for consumers                             |
+| #  | Task                                                          | Module      | Est. | Impact      | Why                                                                |
+| -- | ------------------------------------------------------------- | ----------- | ---- | ----------- | ------------------------------------------------------------------ |
+| 1  | Add `SagaStore()` accessor to `SQLBackend`                    | storage     | 5m   | 🔴 Critical | Completes the unified backend — one constructor for all SQL stores |
+| 2  | Test `Runner.hydrate` error path (unregistered saga type)     | saga        | 8m   | 🔴 Critical | Production restart scenario; 77.8% → 100% coverage                 |
+| 3  | Test `NewSQLSagaStoreWithDialect` (0% coverage)               | storage     | 5m   | 🔴 Critical | Public API surface untested                                        |
+| 4  | Test `NewSQLBackendWithDialect` (0% coverage)                 | storage     | 5m   | 🔴 Critical | Public API surface untested                                        |
+| 5  | Test `scanStates` time parse error paths                      | storage     | 10m  | 🔴 Critical | Defensive code undertested (76.2%)                                 |
+| 6  | Test `newSQLBackendWithDialect` middle error paths            | storage     | 10m  | 🔴 Critical | Error paths at 80%, should be 100%                                 |
+| 7  | Push release tags to remote (8 tags local only)               | CI/git      | 10m  | 🔴 Critical | #1 blocker for external `go get` adoption                          |
+| 8  | Remove replace directives from go.mod files                   | all         | 12m  | 🔴 Critical | Blocks external consumers; chicken-and-egg with tags               |
+| 9  | Add `GOWORK=off` CI matrix job                                | CI          | 10m  | 🔴 Critical | Version drift goes undetected; per-module isolation broken         |
+| 10 | Fix `query.Handler` returns `any` → generic `TypedHandler[T]` | core/query  | 12m  | 🔴 Critical | Breaking change; most-requested type safety improvement            |
+| 11 | Add minimum coverage gate (80%) to CI                         | CI          | 8m   | 🔴 Critical | Prevents coverage regression                                       |
+| 12 | Fix `core→memory` circular dependency                         | core        | 12m  | 🔴 Critical | Blocks publishing `core` independently                             |
+| 13 | Add PostgreSQL integration tests (testcontainers)             | storage     | 12m  | 🔴 Critical | Only SQLite tested; PG is the primary target                       |
+| 14 | Add full outbox cycle integration test                        | storage     | 12m  | 🔴 Critical | Append → PollPending → Publish → Ack never tested end-to-end       |
+| 15 | Add `EventRetry` middleware tests (currently 0% coverage)     | middleware  | 10m  | 🔴 Critical | Public middleware with zero tests                                  |
+| 16 | Fix `FuzzParse` case-sensitivity roundtrip mismatch           | core/pkg/id | 10m  | 🔴 Critical | ULID parsing correctness issue                                     |
+| 17 | Add context cancellation to `SQLOutbox`                       | storage     | 10m  | 🔴 Critical | Currently ignores `ctx.Err()`                                      |
+| 18 | Bump `testhelpers` to v1.2.0 (published v1.1.0 incompatible)  | testhelpers | 8m   | 🔴 Critical | Published version broken for consumers                             |
 
-**Tier 1 cumulative time:** ~2.5 hours  
+**Tier 1 cumulative time:** ~2.5 hours\
 **Tier 1 consumer value:** Unblocks external adoption, closes all coverage gaps in new code, fixes correctness issues.
 
 ---
@@ -52,42 +52,42 @@ These 18 tasks deliver 51% of total consumer value. Each is small (≤ 12 min) a
 
 These 32 tasks add the next 13% of value. Quality gates, CI hardening, examples, and integration.
 
-| #   | Task                                                                           | Module       | Est. | Impact  | Why                                              |
-| --- | ------------------------------------------------------------------------------ | ------------ | ---- | ------- | ------------------------------------------------ |
-| 19  | Add saga example to `example/saga/`                                            | example      | 20m  | 🟡 High | Zero runnable reference code for consumers       |
-| 20  | Split `saga/saga_test.go` (1132 lines) into per-concern files                  | saga         | 15m  | 🟡 High | Pre-commit hook warning; file size limit         |
-| 21  | Add `SagaStore` to `NewTursoBackend` / `NewTursoSagaStore`                     | storage      | 8m   | 🟡 High | Turso parity with other stores                   |
-| 22  | Storage coverage recovery: error path tests to reach 90%+                      | storage      | 12m  | 🟡 High | Current 88.9%, target 90%+                       |
-| 23  | Add `slog.Warn` for corrupt IDs in Pebble deserialization                      | storage      | 8m   | 🟡 High | Silent corruption detection                      |
-| 24  | Fix `storage/dialect.go` using `any` — violates "no any" rule                  | storage      | 12m  | 🟡 High | Project rule violation; 3 methods affected       |
-| 25  | Optimize `PebbleEventStore.LoadToTimestamp` — avoid full scan                  | storage      | 12m  | 🟡 High | Performance cliff at scale                       |
-| 26  | Fix `filterEvents` O(n) scan in `projection/runner.go`                         | projection   | 12m  | 🟡 High | Performance cliff at scale                       |
-| 27  | Extend lint to all 9 production modules                                        | CI           | 12m  | 🟡 High | Only core/ linted currently                      |
-| 28  | Add `-race` to CI / test commands                                              | CI           | 5m   | 🟡 High | Race conditions go undetected                    |
-| 29  | Add coverage tracking to CI workflow                                           | CI           | 8m   | 🟡 High | Visibility into per-PR coverage delta            |
-| 30  | Normalize go.mod version references across workspace                           | all          | 10m  | 🟡 High | v0.0.0 vs v1.1.0 vs pseudo-versions inconsistent |
-| 31  | Standardize integration/go.mod + catalog/go.mod + example/user/go.mod versions | all          | 10m  | 🟡 High | Version drift across modules                     |
-| 32  | Add `go.work sync` CI check                                                    | CI           | 8m   | 🟡 High | Catches replace directive rot                    |
-| 33  | Add `WithLogger` to all middleware constructors for consistency                | middleware   | 10m  | 🟡 High | Some middleware lacks logger option              |
-| 34  | Extract deduplication: 3 retry + 3 tracing functions with identical structure  | middleware   | 12m  | 🟡 High | ~150 lines of duplication                        |
-| 35  | Remove `cockroachdb/errors` from go-localsync — migrate to stdlib              | all          | 10m  | 🟡 High | Banned dependency removal                        |
-| 36  | Add `Publish-side event middleware` — events through middleware on Publish     | core/event   | 12m  | 🟡 High | Currently only subscribe path has middleware     |
-| 37  | Implement `Store.ReadBackwards` — interface + MemoryStore + SQLEventStore      | core/event   | 12m  | 🟡 High | Time-travel query capability                     |
-| 38  | Add `PublishedAt` to `OutboxEntry`                                             | core/event   | 10m  | 🟡 High | No way to measure outbox lag                     |
-| 39  | Add `ProcessedAt` to `CheckpointStore`                                         | core/event   | 10m  | 🟡 High | Store (EventID, time.Time) not just EventID      |
-| 40  | Make `time.Now()` injectable across all modules                                | core         | 12m  | 🟡 High | Causes non-deterministic tests                   |
-| 41  | Increase decider coverage to 95%+ (loadFromSnapshot at 18.2%)                  | core/decider | 12m  | 🟡 High | Major coverage gap in recommended pattern        |
-| 42  | Add `EventRetry` middleware tests                                              | middleware   | 10m  | 🟡 High | Already listed in #15, but broader scope         |
-| 43  | Add `SQLSnapshotStore` + `SQLCheckpointStore` sqlmock tests                    | storage      | 12m  | 🟡 High | Persistent stores with mock coverage             |
-| 44  | Add Turso integration test (save→load→delete)                                  | storage      | 10m  | 🟡 High | Turso-specific paths untested                    |
-| 45  | Add `OutboxSchema` to `storage.Schema()` — currently only events DDL           | storage      | 5m   | 🟡 High | Incomplete schema helper                         |
-| 46  | Add storage metadata roundtrip test (save→load→verify all fields)              | storage      | 10m  | 🟡 High | Data integrity verification                      |
-| 47  | Add `ServerReceivedAt` and `ServerStoredAt` server-side timestamps             | core/event   | 10m  | 🟡 High | Offline-first metadata gap                       |
-| 48  | Add `event.Event.Clone()` method for defensive copy safety                     | core/event   | 8m   | 🟡 High | Defensive copying currently manual               |
-| 49  | Add `event.Context` propagation — thread ctx through NewEvent                  | core/event   | 10m  | 🟡 High | Context loss in event creation                   |
-| 50  | Increase projection coverage to 95%+ (replay at 73.3%)                         | projection   | 12m  | 🟡 High | Major coverage gap                               |
+| #  | Task                                                                           | Module       | Est. | Impact  | Why                                              |
+| -- | ------------------------------------------------------------------------------ | ------------ | ---- | ------- | ------------------------------------------------ |
+| 19 | Add saga example to `example/saga/`                                            | example      | 20m  | 🟡 High | Zero runnable reference code for consumers       |
+| 20 | Split `saga/saga_test.go` (1132 lines) into per-concern files                  | saga         | 15m  | 🟡 High | Pre-commit hook warning; file size limit         |
+| 21 | Add `SagaStore` to `NewTursoBackend` / `NewTursoSagaStore`                     | storage      | 8m   | 🟡 High | Turso parity with other stores                   |
+| 22 | Storage coverage recovery: error path tests to reach 90%+                      | storage      | 12m  | 🟡 High | Current 88.9%, target 90%+                       |
+| 23 | Add `slog.Warn` for corrupt IDs in Pebble deserialization                      | storage      | 8m   | 🟡 High | Silent corruption detection                      |
+| 24 | Fix `storage/dialect.go` using `any` — violates "no any" rule                  | storage      | 12m  | 🟡 High | Project rule violation; 3 methods affected       |
+| 25 | Optimize `PebbleEventStore.LoadToTimestamp` — avoid full scan                  | storage      | 12m  | 🟡 High | Performance cliff at scale                       |
+| 26 | Fix `filterEvents` O(n) scan in `projection/runner.go`                         | projection   | 12m  | 🟡 High | Performance cliff at scale                       |
+| 27 | Extend lint to all 9 production modules                                        | CI           | 12m  | 🟡 High | Only core/ linted currently                      |
+| 28 | Add `-race` to CI / test commands                                              | CI           | 5m   | 🟡 High | Race conditions go undetected                    |
+| 29 | Add coverage tracking to CI workflow                                           | CI           | 8m   | 🟡 High | Visibility into per-PR coverage delta            |
+| 30 | Normalize go.mod version references across workspace                           | all          | 10m  | 🟡 High | v0.0.0 vs v1.1.0 vs pseudo-versions inconsistent |
+| 31 | Standardize integration/go.mod + catalog/go.mod + example/user/go.mod versions | all          | 10m  | 🟡 High | Version drift across modules                     |
+| 32 | Add `go.work sync` CI check                                                    | CI           | 8m   | 🟡 High | Catches replace directive rot                    |
+| 33 | Add `WithLogger` to all middleware constructors for consistency                | middleware   | 10m  | 🟡 High | Some middleware lacks logger option              |
+| 34 | Extract deduplication: 3 retry + 3 tracing functions with identical structure  | middleware   | 12m  | 🟡 High | ~150 lines of duplication                        |
+| 35 | Remove `cockroachdb/errors` from go-localsync — migrate to stdlib              | all          | 10m  | 🟡 High | Banned dependency removal                        |
+| 36 | Add `Publish-side event middleware` — events through middleware on Publish     | core/event   | 12m  | 🟡 High | Currently only subscribe path has middleware     |
+| 37 | Implement `Store.ReadBackwards` — interface + MemoryStore + SQLEventStore      | core/event   | 12m  | 🟡 High | Time-travel query capability                     |
+| 38 | Add `PublishedAt` to `OutboxEntry`                                             | core/event   | 10m  | 🟡 High | No way to measure outbox lag                     |
+| 39 | Add `ProcessedAt` to `CheckpointStore`                                         | core/event   | 10m  | 🟡 High | Store (EventID, time.Time) not just EventID      |
+| 40 | Make `time.Now()` injectable across all modules                                | core         | 12m  | 🟡 High | Causes non-deterministic tests                   |
+| 41 | Increase decider coverage to 95%+ (loadFromSnapshot at 18.2%)                  | core/decider | 12m  | 🟡 High | Major coverage gap in recommended pattern        |
+| 42 | Add `EventRetry` middleware tests                                              | middleware   | 10m  | 🟡 High | Already listed in #15, but broader scope         |
+| 43 | Add `SQLSnapshotStore` + `SQLCheckpointStore` sqlmock tests                    | storage      | 12m  | 🟡 High | Persistent stores with mock coverage             |
+| 44 | Add Turso integration test (save→load→delete)                                  | storage      | 10m  | 🟡 High | Turso-specific paths untested                    |
+| 45 | Add `OutboxSchema` to `storage.Schema()` — currently only events DDL           | storage      | 5m   | 🟡 High | Incomplete schema helper                         |
+| 46 | Add storage metadata roundtrip test (save→load→verify all fields)              | storage      | 10m  | 🟡 High | Data integrity verification                      |
+| 47 | Add `ServerReceivedAt` and `ServerStoredAt` server-side timestamps             | core/event   | 10m  | 🟡 High | Offline-first metadata gap                       |
+| 48 | Add `event.Event.Clone()` method for defensive copy safety                     | core/event   | 8m   | 🟡 High | Defensive copying currently manual               |
+| 49 | Add `event.Context` propagation — thread ctx through NewEvent                  | core/event   | 10m  | 🟡 High | Context loss in event creation                   |
+| 50 | Increase projection coverage to 95%+ (replay at 73.3%)                         | projection   | 12m  | 🟡 High | Major coverage gap                               |
 
-**Tier 2 cumulative time:** ~5.5 hours  
+**Tier 2 cumulative time:** ~5.5 hours\
 **Tier 2 + Tier 1:** ~8 hours for 64% of total value
 
 ---
@@ -96,58 +96,58 @@ These 32 tasks add the next 13% of value. Quality gates, CI hardening, examples,
 
 These 48 tasks deliver the next 16% of value. Docs, refactoring, test splitting, small features.
 
-| #   | Task                                                                    | Module       | Est. | Impact    | Why                                                    |
-| --- | ----------------------------------------------------------------------- | ------------ | ---- | --------- | ------------------------------------------------------ |
-| 51  | Fix `catalog/asyncapi/exporter.go` missing CommandMessage case          | catalog      | 10m  | 🟢 Medium | Reported in SESSION_58                                 |
-| 52  | Fix `catalog/registry.go` Build() shared backing array corruption       | catalog      | 12m  | 🟢 Medium | Memory safety bug                                      |
-| 53  | Move `example/todo` to own repository                                   | example      | 12m  | 🟢 Medium | External dep fragility                                 |
-| 54  | Consider renaming `sync` package — shadows stdlib                       | sync         | 10m  | 🟢 Medium | Confusing import                                       |
-| 55  | Document time-travel API in README/AGENTS.md                            | docs         | 8m   | 🟢 Medium | LoadToVersion/LoadToTimestamp/PositionalLoader         |
-| 56  | Document "state is disposable" as canonical pattern                     | docs         | 8m   | 🟢 Medium | Core decider principle                                 |
-| 57  | Document determinism rule — no time.Now() inside projections            | docs         | 8m   | 🟢 Medium | Common pitfall                                         |
-| 58  | Document versioned event names convention (v1.EventName)                | docs         | 8m   | 🟢 Medium | Schema versioning convention                           |
-| 59  | Document soft deletes over hard deletes                                 | docs         | 8m   | 🟢 Medium | Event sourcing best practice                           |
-| 60  | Document offline-first metadata conventions                             | docs         | 8m   | 🟢 Medium | CorrelationID, CausationID usage                       |
-| 61  | Add `ContextEnricher` wiring to repositories                            | core         | 10m  | 🟢 Medium | Metadata extraction from context                       |
-| 62  | Convert `DispatchTyped` to method on `*query.Dispatcher`                | core/query   | 10m  | 🟢 Medium | API discoverability                                    |
-| 63  | Add `query/pagination.go` helpers                                       | core/query   | 8m   | 🟢 Medium | Missing pagination utilities                           |
-| 64  | Add `catalog.Exporter` interface + `WalkMessages` helper                | catalog      | 10m  | 🟢 Medium | Extensibility                                          |
-| 65  | Delete `catalog/internal/cattest/` package (454 lines, 0% coverage)     | catalog      | 8m   | 🟢 Medium | Dead code                                              |
-| 66  | Wire `example/user/aggregate.go` to catalog-aware event constructors    | example      | 10m  | 🟢 Medium | Example quality                                        |
-| 67  | Add enum + default struct tag support to Schema/Property                | catalog      | 12m  | 🟢 Medium | Schema generation gap                                  |
-| 68  | Make AsyncAPI servers configurable instead of hardcoded kafka:9092      | catalog      | 8m   | 🟢 Medium | Configurability                                        |
-| 69  | Simplify `cattest/catalog.go` to use zero-cost API                      | catalog      | 10m  | 🟢 Medium | Deprecated type usage                                  |
-| 70  | Remove deprecated `CatalogBuilder` from `catalog/adapters`              | catalog      | 8m   | 🟢 Medium | Dead code                                              |
-| 71  | Add `NewVectorClockFromMap` test — negative counter rejection           | sync         | 8m   | 🟢 Medium | Missing test case                                      |
-| 72  | Build catch-up projection runner (checkpoint → replay → live)           | projection   | 12m  | 🟢 Medium | Feature gap                                            |
-| 73  | Make transactional projection contract explicit in Projection interface | projection   | 10m  | 🟢 Medium | API clarity                                            |
-| 74  | Add dead letter queue to projection runner                              | projection   | 12m  | 🟢 Medium | Reliability feature                                    |
-| 75  | Add retry and dead-letter for InMemoryRunner projections                | projection   | 12m  | 🟢 Medium | Reliability feature                                    |
-| 76  | Add background polling for InMemoryRunner                               | projection   | 12m  | 🟢 Medium | Currently push-only                                    |
-| 77  | Implement `projection.Runner.Close()` — currently no-op                 | projection   | 8m   | 🟢 Medium | Resource leak                                          |
-| 78  | Add `LifecycleMixin` to `memory/checkpoint` + `memory/outbox`           | memory       | 10m  | 🟢 Medium | Consistency                                            |
-| 79  | Consolidate `MemoryBus` handler storage — single map with sentinel      | memory       | 10m  | 🟢 Medium | Simplification                                         |
-| 80  | Add concurrent access tests for MemoryBus, MemoryStore, MemoryOutbox    | memory       | 12m  | 🟢 Medium | Thread safety                                          |
-| 81  | Extract storage table name constants — replace 30+ inline strings       | storage      | 12m  | 🟢 Medium | Type safety                                            |
-| 82  | Move schema DDL onto Dialect interface fully                            | storage      | 10m  | 🟢 Medium | Architecture consistency                               |
-| 83  | Rename `CQRSAdapter` → `PebbleEventStore`                               | storage      | 8m   | 🟢 Medium | Naming honesty                                         |
-| 84  | Add `SQLEventStoreOption` usage or remove dead type                     | storage      | 5m   | 🟢 Medium | Dead code or missing feature                           |
-| 85  | Add command metadata (CorrelationID, CausationID, UserID, etc.)         | core/command | 10m  | 🟢 Medium | Offline-first support                                  |
-| 86  | Extract shared `opError` helper — duplicated in aggregate + decider     | core         | 8m   | 🟢 Medium | Deduplication                                          |
-| 87  | Wire Codec into snapshot serialization                                  | core/event   | 10m  | 🟢 Medium | ApplySnapshot receives raw []byte                      |
-| 88  | Add `Filter`, `Predicate` types to `core/event/`                        | core/event   | 10m  | 🟢 Medium | Query building blocks                                  |
-| 89  | Add `ContextQuerier`, `ContextAppender`, `QueryResult` interfaces       | core/event   | 10m  | 🟢 Medium | Hybrid architecture                                    |
-| 90  | Extract error classification to standalone package                      | core         | 12m  | 🟢 Medium | 5 modules import event just for RegisterClassification |
-| 91  | Standardize storage error wrapping patterns                             | storage      | 10m  | 🟢 Medium | Inconsistent error messages                            |
-| 92  | Replace `init()` error registration with explicit setup                 | all          | 12m  | 🟢 Medium | Hidden global side effects                             |
-| 93  | Split `testhelpers/fakes.go` (342 lines → per-fake files)               | testhelpers  | 10m  | 🟢 Medium | File size limit                                        |
-| 94  | Extract fake test doubles from `repository_test.go` to `testhelpers/`   | testhelpers  | 10m  | 🟢 Medium | Reusability                                            |
-| 95  | Consolidate testhelpers fake boilerplate via `fakeBase` struct          | testhelpers  | 10m  | 🟢 Medium | ~80 lines saved                                        |
-| 96  | Split large test files: `decider_test.go`, `runner_test.go`             | all          | 12m  | 🟢 Medium | File size limit                                        |
-| 97  | Add BDD tests for Version, SchemaVersion, OutboxStatus types            | all          | 10m  | 🟢 Medium | Coverage gaps                                          |
-| 98  | Add fuzz tests for event creation, ID parsing, schema reflection        | all          | 12m  | 🟢 Medium | Robustness                                             |
+| #  | Task                                                                    | Module       | Est. | Impact    | Why                                                    |
+| -- | ----------------------------------------------------------------------- | ------------ | ---- | --------- | ------------------------------------------------------ |
+| 51 | Fix `catalog/asyncapi/exporter.go` missing CommandMessage case          | catalog      | 10m  | 🟢 Medium | Reported in SESSION_58                                 |
+| 52 | Fix `catalog/registry.go` Build() shared backing array corruption       | catalog      | 12m  | 🟢 Medium | Memory safety bug                                      |
+| 53 | Move `example/todo` to own repository                                   | example      | 12m  | 🟢 Medium | External dep fragility                                 |
+| 54 | Consider renaming `sync` package — shadows stdlib                       | sync         | 10m  | 🟢 Medium | Confusing import                                       |
+| 55 | Document time-travel API in README/AGENTS.md                            | docs         | 8m   | 🟢 Medium | LoadToVersion/LoadToTimestamp/PositionalLoader         |
+| 56 | Document "state is disposable" as canonical pattern                     | docs         | 8m   | 🟢 Medium | Core decider principle                                 |
+| 57 | Document determinism rule — no time.Now() inside projections            | docs         | 8m   | 🟢 Medium | Common pitfall                                         |
+| 58 | Document versioned event names convention (v1.EventName)                | docs         | 8m   | 🟢 Medium | Schema versioning convention                           |
+| 59 | Document soft deletes over hard deletes                                 | docs         | 8m   | 🟢 Medium | Event sourcing best practice                           |
+| 60 | Document offline-first metadata conventions                             | docs         | 8m   | 🟢 Medium | CorrelationID, CausationID usage                       |
+| 61 | Add `ContextEnricher` wiring to repositories                            | core         | 10m  | 🟢 Medium | Metadata extraction from context                       |
+| 62 | Convert `DispatchTyped` to method on `*query.Dispatcher`                | core/query   | 10m  | 🟢 Medium | API discoverability                                    |
+| 63 | Add `query/pagination.go` helpers                                       | core/query   | 8m   | 🟢 Medium | Missing pagination utilities                           |
+| 64 | Add `catalog.Exporter` interface + `WalkMessages` helper                | catalog      | 10m  | 🟢 Medium | Extensibility                                          |
+| 65 | Delete `catalog/internal/cattest/` package (454 lines, 0% coverage)     | catalog      | 8m   | 🟢 Medium | Dead code                                              |
+| 66 | Wire `example/user/aggregate.go` to catalog-aware event constructors    | example      | 10m  | 🟢 Medium | Example quality                                        |
+| 67 | Add enum + default struct tag support to Schema/Property                | catalog      | 12m  | 🟢 Medium | Schema generation gap                                  |
+| 68 | Make AsyncAPI servers configurable instead of hardcoded kafka:9092      | catalog      | 8m   | 🟢 Medium | Configurability                                        |
+| 69 | Simplify `cattest/catalog.go` to use zero-cost API                      | catalog      | 10m  | 🟢 Medium | Deprecated type usage                                  |
+| 70 | Remove deprecated `CatalogBuilder` from `catalog/adapters`              | catalog      | 8m   | 🟢 Medium | Dead code                                              |
+| 71 | Add `NewVectorClockFromMap` test — negative counter rejection           | sync         | 8m   | 🟢 Medium | Missing test case                                      |
+| 72 | Build catch-up projection runner (checkpoint → replay → live)           | projection   | 12m  | 🟢 Medium | Feature gap                                            |
+| 73 | Make transactional projection contract explicit in Projection interface | projection   | 10m  | 🟢 Medium | API clarity                                            |
+| 74 | Add dead letter queue to projection runner                              | projection   | 12m  | 🟢 Medium | Reliability feature                                    |
+| 75 | Add retry and dead-letter for InMemoryRunner projections                | projection   | 12m  | 🟢 Medium | Reliability feature                                    |
+| 76 | Add background polling for InMemoryRunner                               | projection   | 12m  | 🟢 Medium | Currently push-only                                    |
+| 77 | Implement `projection.Runner.Close()` — currently no-op                 | projection   | 8m   | 🟢 Medium | Resource leak                                          |
+| 78 | Add `LifecycleMixin` to `memory/checkpoint` + `memory/outbox`           | memory       | 10m  | 🟢 Medium | Consistency                                            |
+| 79 | Consolidate `MemoryBus` handler storage — single map with sentinel      | memory       | 10m  | 🟢 Medium | Simplification                                         |
+| 80 | Add concurrent access tests for MemoryBus, MemoryStore, MemoryOutbox    | memory       | 12m  | 🟢 Medium | Thread safety                                          |
+| 81 | Extract storage table name constants — replace 30+ inline strings       | storage      | 12m  | 🟢 Medium | Type safety                                            |
+| 82 | Move schema DDL onto Dialect interface fully                            | storage      | 10m  | 🟢 Medium | Architecture consistency                               |
+| 83 | Rename `CQRSAdapter` → `PebbleEventStore`                               | storage      | 8m   | 🟢 Medium | Naming honesty                                         |
+| 84 | Add `SQLEventStoreOption` usage or remove dead type                     | storage      | 5m   | 🟢 Medium | Dead code or missing feature                           |
+| 85 | Add command metadata (CorrelationID, CausationID, UserID, etc.)         | core/command | 10m  | 🟢 Medium | Offline-first support                                  |
+| 86 | Extract shared `opError` helper — duplicated in aggregate + decider     | core         | 8m   | 🟢 Medium | Deduplication                                          |
+| 87 | Wire Codec into snapshot serialization                                  | core/event   | 10m  | 🟢 Medium | ApplySnapshot receives raw []byte                      |
+| 88 | Add `Filter`, `Predicate` types to `core/event/`                        | core/event   | 10m  | 🟢 Medium | Query building blocks                                  |
+| 89 | Add `ContextQuerier`, `ContextAppender`, `QueryResult` interfaces       | core/event   | 10m  | 🟢 Medium | Hybrid architecture                                    |
+| 90 | Extract error classification to standalone package                      | core         | 12m  | 🟢 Medium | 5 modules import event just for RegisterClassification |
+| 91 | Standardize storage error wrapping patterns                             | storage      | 10m  | 🟢 Medium | Inconsistent error messages                            |
+| 92 | Replace `init()` error registration with explicit setup                 | all          | 12m  | 🟢 Medium | Hidden global side effects                             |
+| 93 | Split `testhelpers/fakes.go` (342 lines → per-fake files)               | testhelpers  | 10m  | 🟢 Medium | File size limit                                        |
+| 94 | Extract fake test doubles from `repository_test.go` to `testhelpers/`   | testhelpers  | 10m  | 🟢 Medium | Reusability                                            |
+| 95 | Consolidate testhelpers fake boilerplate via `fakeBase` struct          | testhelpers  | 10m  | 🟢 Medium | ~80 lines saved                                        |
+| 96 | Split large test files: `decider_test.go`, `runner_test.go`             | all          | 12m  | 🟢 Medium | File size limit                                        |
+| 97 | Add BDD tests for Version, SchemaVersion, OutboxStatus types            | all          | 10m  | 🟢 Medium | Coverage gaps                                          |
+| 98 | Add fuzz tests for event creation, ID parsing, schema reflection        | all          | 12m  | 🟢 Medium | Robustness                                             |
 
-**Tier 3 cumulative time:** ~8 hours  
+**Tier 3 cumulative time:** ~8 hours\
 **Tier 1+2+3:** ~16 hours for 80% of total value
 
 ---
@@ -203,7 +203,7 @@ These 44 tasks deliver the remaining 20% of value. Long-term features, research,
 | 141 | Write CHANGELOG.md — 61+ sessions of changes                                 | docs        | 12m  | ⚪ Low | Release hygiene                    |
 | 142 | Prune `docs/status/` — 100+ archived reports                                 | docs        | 10m  | ⚪ Low | Repository hygiene                 |
 
-**Tier 4 cumulative time:** ~7.5 hours  
+**Tier 4 cumulative time:** ~7.5 hours\
 **Total plan time:** ~23.5 hours for 142 tasks
 
 ---

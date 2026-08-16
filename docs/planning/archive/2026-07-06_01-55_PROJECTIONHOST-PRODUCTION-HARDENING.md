@@ -81,12 +81,12 @@ The `dedup/` module was just extracted (commit `7ca5a2d8`) from inline ring impl
 
 ### M1: Fix live checkpoint error swallow (4 tasks)
 
-| #   | Task                                                                 | Est   |
-| --- | -------------------------------------------------------------------- | ----- |
-| F1  | Read `processLive` checkpoint error path (`worker.go:427`)           | 2min  |
-| F2  | Change Warn+nil to return `saveErr` in `processLive`                 | 5min  |
-| F3  | Write test: checkpoint save failure in live mode causes error return | 10min |
-| F4  | Run projectionhost tests with `-race -count=1`                       | 5min  |
+| #  | Task                                                                 | Est   |
+| -- | -------------------------------------------------------------------- | ----- |
+| F1 | Read `processLive` checkpoint error path (`worker.go:427`)           | 2min  |
+| F2 | Change Warn+nil to return `saveErr` in `processLive`                 | 5min  |
+| F3 | Write test: checkpoint save failure in live mode causes error return | 10min |
+| F4 | Run projectionhost tests with `-race -count=1`                       | 5min  |
 
 ### M2: Replace unbounded seenIDs with dedup.Ring (6 tasks)
 

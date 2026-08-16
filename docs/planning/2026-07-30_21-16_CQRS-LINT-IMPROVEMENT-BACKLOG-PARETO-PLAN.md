@@ -250,7 +250,7 @@ See Level 1 and Level 2 tables below.
 
 | #     | Task                                                                     | Items | Pareto    | Impact                           | Effort | Dependencies |
 | ----- | ------------------------------------------------------------------------ | ----- | --------- | -------------------------------- | ------ | ------------ |
-| L1.51 | Implement stack preset boundary awareness (skip rules when stack/* used) | 106   | **[P80]** | Medium (reduces false positives) | 90 min | L1.5         | ❌ Won't Fix (point fixes sufficient) |
+| L1.51 | Implement stack preset boundary awareness (skip rules when stack/* used) | 106   | **[P80]** | Medium (reduces false positives) | 90 min | L1.5         |
 
 ---
 

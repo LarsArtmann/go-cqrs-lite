@@ -323,15 +323,15 @@ Then each `Add*` method becomes a one-liner delegation.
 
 ## Summary
 
-| #   | Opportunity                     | Lines Saved | Effort | Risk   | Priority                     |
-| --- | ------------------------------- | ----------- | ------ | ------ | ---------------------------- |
-| 1   | SQL Dialect abstraction         | **~250**    | 4h     | MEDIUM | HIGH — biggest win           |
-| 2   | Merge aggregate/decider persist | **~60**     | 2h     | LOW    | HIGH — architectural clarity |
-| 3   | Unify CatalogMeta               | **~30**     | 30min  | LOW    | LOW — easy win               |
-| 4   | Delete cattest package          | **~220**    | 1h     | LOW    | MEDIUM — dead weight         |
-| 5   | Consolidate fake boilerplate    | **~80**     | 1h     | LOW    | LOW — nice cleanup           |
-| 6   | Generic catalog adapters        | **~50**     | 1h     | LOW    | LOW — nice cleanup           |
-|     | **Total**                       | **~730**    | ~10h   |        |                              |
+| # | Opportunity                     | Lines Saved | Effort | Risk   | Priority                     |
+| - | ------------------------------- | ----------- | ------ | ------ | ---------------------------- |
+| 1 | SQL Dialect abstraction         | **~250**    | 4h     | MEDIUM | HIGH — biggest win           |
+| 2 | Merge aggregate/decider persist | **~60**     | 2h     | LOW    | HIGH — architectural clarity |
+| 3 | Unify CatalogMeta               | **~30**     | 30min  | LOW    | LOW — easy win               |
+| 4 | Delete cattest package          | **~220**    | 1h     | LOW    | MEDIUM — dead weight         |
+| 5 | Consolidate fake boilerplate    | **~80**     | 1h     | LOW    | LOW — nice cleanup           |
+| 6 | Generic catalog adapters        | **~50**     | 1h     | LOW    | LOW — nice cleanup           |
+|   | **Total**                       | **~730**    | ~10h   |        |                              |
 
 ### Recommended Execution Order
 

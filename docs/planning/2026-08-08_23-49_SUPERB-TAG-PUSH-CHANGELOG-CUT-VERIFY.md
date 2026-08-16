@@ -36,16 +36,16 @@
 
 ## Task Breakdown (Phase 1: 100-30min tasks)
 
-| #   | Task                                        | Impact   | Effort | Customer Value                |
-| --- | ------------------------------------------- | -------- | ------ | ----------------------------- |
-| T1  | Push all 998 tags to origin                 | CRITICAL | 5min   | Consumers can resolve modules |
-| T2  | Run `nix run .#verify-fast`                 | CRITICAL | 10min  | Confirm build/lint/test GREEN |
-| T3  | Cut CHANGELOG [Unreleased] → [v4.7.0]       | HIGH     | 15min  | Navigable changelog           |
-| T4  | Fix incorrect false-positive annotations    | MEDIUM   | 10min  | Accurate historical docs      |
-| T5  | Create missing tags (query, dgraph, flight) | HIGH     | 10min  | Consumers get latest symbols  |
-| T6  | Push new tags                               | HIGH     | 2min   | Same as T1                    |
-| T7  | Consolidate FEATURES.md metaengine table    | MEDIUM   | 30min  | Readable feature inventory    |
-| T8  | Commit + push all changes                   | HIGH     | 5min   | Provenance                    |
+| #  | Task                                        | Impact   | Effort | Customer Value                |
+| -- | ------------------------------------------- | -------- | ------ | ----------------------------- |
+| T1 | Push all 998 tags to origin                 | CRITICAL | 5min   | Consumers can resolve modules |
+| T2 | Run `nix run .#verify-fast`                 | CRITICAL | 10min  | Confirm build/lint/test GREEN |
+| T3 | Cut CHANGELOG [Unreleased] → [v4.7.0]       | HIGH     | 15min  | Navigable changelog           |
+| T4 | Fix incorrect false-positive annotations    | MEDIUM   | 10min  | Accurate historical docs      |
+| T5 | Create missing tags (query, dgraph, flight) | HIGH     | 10min  | Consumers get latest symbols  |
+| T6 | Push new tags                               | HIGH     | 2min   | Same as T1                    |
+| T7 | Consolidate FEATURES.md metaengine table    | MEDIUM   | 30min  | Readable feature inventory    |
+| T8 | Commit + push all changes                   | HIGH     | 5min   | Provenance                    |
 
 ## Task Breakdown (Phase 2: max 12min tasks)
 

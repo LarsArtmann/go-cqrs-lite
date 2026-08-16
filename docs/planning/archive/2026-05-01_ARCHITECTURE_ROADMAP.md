@@ -48,10 +48,10 @@ The brainstorm identified 9 error families. Not all belong in the library. The l
 | Rejection      | ✅ Yes                   | Domain validation errors — universal                         |
 | Conflict       | ✅ Yes                   | Version mismatch — `event.ErrVersionConflict` already exists |
 | Transient      | ✅ Yes                   | Retryable infrastructure errors — middleware needs this      |
-| Staleness      | ⚠️ Partial               | Library can detect it (version comparison), not resolve it   |
+| Staleness      | ⚠️ Partial                | Library can detect it (version comparison), not resolve it   |
 | Corruption     | ✅ Yes                   | Poison event detection — codec/store produce these           |
 | Divergence     | ❌ No                    | Only relevant for distributed sync (go-localfirst)           |
-| Pipeline       | ⚠️ Partial               | Library can produce projection errors, not manage DLQ        |
+| Pipeline       | ⚠️ Partial                | Library can produce projection errors, not manage DLQ        |
 | Transport      | ❌ No                    | Application-level SSE/WS concern                             |
 | Infrastructure | ✅ Yes                   | `ErrStoreClosed`, `ErrBusClosed` already exist               |
 

@@ -98,33 +98,33 @@ graph TD
 
 ## Fine-Grained Task Breakdown (max 12min each)
 
-| #   | Task                                                         | Module      | Est   | Depends |
-| --- | ------------------------------------------------------------ | ----------- | ----- | ------- |
-| 1   | Add `storage` to flake.nix `testModules`                     | flake.nix   | 3min  | -       |
-| 2   | Run `go get github.com/DATA-DOG/go-sqlmock` in storage/      | storage     | 3min  | -       |
-| 3   | Write `TestSQLEventStore_Save_Success`                       | storage     | 10min | 1,2     |
-| 4   | Write `TestSQLEventStore_Save_ConcurrencyConflict`           | storage     | 8min  | 1,2     |
-| 5   | Write `TestSQLEventStore_Save_EmptyEvents`                   | storage     | 3min  | 1,2     |
-| 6   | Write `TestSQLEventStore_AppendBatch_Success`                | storage     | 8min  | 1,2     |
-| 7   | Write `TestSQLEventStore_AppendBatch_EmptyEvents`            | storage     | 3min  | 1,2     |
-| 8   | Write `TestSQLEventStore_Load_Success`                       | storage     | 8min  | 1,2     |
-| 9   | Write `TestSQLEventStore_Load_NotFound`                      | storage     | 5min  | 1,2     |
-| 10  | Write `TestSQLEventStore_LoadFromVersion`                    | storage     | 8min  | 1,2     |
-| 11  | Write `TestSQLEventStore_Delete`                             | storage     | 5min  | 1,2     |
-| 12  | Write `TestSQLEventStore_Close`                              | storage     | 3min  | 1,2     |
-| 13  | Write `TestMarshalMetadata_Nil` + `TestMarshalMetadata_Full` | storage     | 8min  | -       |
-| 14  | Write `TestScanEvents_MetadataRoundtrip`                     | storage     | 10min | 1,2     |
-| 15  | Fix JSON v1→v2 in marshalMetadata + scanEvents               | storage     | 8min  | -       |
-| 16  | Run `go test ./storage/... -count=1` and verify              | -           | 2min  | 3-15    |
-| 17  | Add runner.Handle + subscribesTo tests to runner_test.go     | core/event  | 10min | -       |
-| 18  | Add id.Ptr + id.FromPtr tests                                | core/pkg/id | 8min  | -       |
-| 19  | Add memory.CheckpointStore tests                             | memory      | 10min | -       |
-| 20  | Fix FakeStore key separator `/` → `:`                        | testhelpers | 5min  | -       |
-| 21  | Verify memory + testhelpers tests pass after separator fix   | -           | 5min  | 20      |
-| 22  | Add `example/user` build step to flake.nix                   | flake.nix   | 5min  | -       |
-| 23  | Update FEATURES.md storage section                           | docs        | 5min  | 16      |
-| 24  | Update AGENTS.md with current state                          | docs        | 5min  | -       |
-| 25  | Run full test suite + lint + race + verify all clean         | -           | 3min  | 16-24   |
+| #  | Task                                                         | Module      | Est   | Depends |
+| -- | ------------------------------------------------------------ | ----------- | ----- | ------- |
+| 1  | Add `storage` to flake.nix `testModules`                     | flake.nix   | 3min  | -       |
+| 2  | Run `go get github.com/DATA-DOG/go-sqlmock` in storage/      | storage     | 3min  | -       |
+| 3  | Write `TestSQLEventStore_Save_Success`                       | storage     | 10min | 1,2     |
+| 4  | Write `TestSQLEventStore_Save_ConcurrencyConflict`           | storage     | 8min  | 1,2     |
+| 5  | Write `TestSQLEventStore_Save_EmptyEvents`                   | storage     | 3min  | 1,2     |
+| 6  | Write `TestSQLEventStore_AppendBatch_Success`                | storage     | 8min  | 1,2     |
+| 7  | Write `TestSQLEventStore_AppendBatch_EmptyEvents`            | storage     | 3min  | 1,2     |
+| 8  | Write `TestSQLEventStore_Load_Success`                       | storage     | 8min  | 1,2     |
+| 9  | Write `TestSQLEventStore_Load_NotFound`                      | storage     | 5min  | 1,2     |
+| 10 | Write `TestSQLEventStore_LoadFromVersion`                    | storage     | 8min  | 1,2     |
+| 11 | Write `TestSQLEventStore_Delete`                             | storage     | 5min  | 1,2     |
+| 12 | Write `TestSQLEventStore_Close`                              | storage     | 3min  | 1,2     |
+| 13 | Write `TestMarshalMetadata_Nil` + `TestMarshalMetadata_Full` | storage     | 8min  | -       |
+| 14 | Write `TestScanEvents_MetadataRoundtrip`                     | storage     | 10min | 1,2     |
+| 15 | Fix JSON v1→v2 in marshalMetadata + scanEvents               | storage     | 8min  | -       |
+| 16 | Run `go test ./storage/... -count=1` and verify              | -           | 2min  | 3-15    |
+| 17 | Add runner.Handle + subscribesTo tests to runner_test.go     | core/event  | 10min | -       |
+| 18 | Add id.Ptr + id.FromPtr tests                                | core/pkg/id | 8min  | -       |
+| 19 | Add memory.CheckpointStore tests                             | memory      | 10min | -       |
+| 20 | Fix FakeStore key separator `/` → `:`                        | testhelpers | 5min  | -       |
+| 21 | Verify memory + testhelpers tests pass after separator fix   | -           | 5min  | 20      |
+| 22 | Add `example/user` build step to flake.nix                   | flake.nix   | 5min  | -       |
+| 23 | Update FEATURES.md storage section                           | docs        | 5min  | 16      |
+| 24 | Update AGENTS.md with current state                          | docs        | 5min  | -       |
+| 25 | Run full test suite + lint + race + verify all clean         | -           | 3min  | 16-24   |
 
 ---
 

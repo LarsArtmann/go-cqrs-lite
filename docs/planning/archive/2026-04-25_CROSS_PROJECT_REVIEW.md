@@ -196,16 +196,16 @@ sync/                        # github.com/larsartmann/go-cqrs-lite/sync
 **Dependency graph update:**
 
 ```
-                              core (ulid + errors)
-                             / | \  \  \  \  \  \  \
-                            /  |  \  \  \  \  \  \  \
-                       memory  catalog  middleware  xtypes  testutil  sync
-                                  |                                    |
-                          ┌───┬───┴───┬────────┐                    (zero deps)
-                          │   │       │        │
-                      storage  watermill  projection  snapshot
-                          │              │        │
-                          └──────────────┴────────┘
+        core (ulid + errors)
+       / | \  \  \  \  \  \  \
+      /  |  \  \  \  \  \  \  \
+ memory  catalog  middleware  xtypes  testutil  sync
+            |                                    |
+    ┌───┬───┴───┬────────┐                    (zero deps)
+    │   │       │        │
+storage  watermill  projection  snapshot
+    │              │        │
+    └──────────────┴────────┘
 ```
 
 `sync/` has zero dependencies — it doesn't even depend on `core/`. It's purely stdlib.

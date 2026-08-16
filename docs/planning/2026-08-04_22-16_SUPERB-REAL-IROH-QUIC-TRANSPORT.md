@@ -35,27 +35,27 @@ This gives us real networking, real measurements, real NAT traversal — while k
 
 ### Layer 1: The 1% that delivers 51%
 
-| #   | Task                                          | Why                                                                                |
-| --- | --------------------------------------------- | ---------------------------------------------------------------------------------- |
-| P1  | **Validate iroh-go compiles on this machine** | If this fails, the entire plan pivots to Rust sidecar. Everything depends on this. |
+| #  | Task                                          | Why                                                                                |
+| -- | --------------------------------------------- | ---------------------------------------------------------------------------------- |
+| P1 | **Validate iroh-go compiles on this machine** | If this fails, the entire plan pivots to Rust sidecar. Everything depends on this. |
 
 ### Layer 2: The 4% that delivers 64%
 
-| #   | Task                                                  | Why                                          |
-| --- | ----------------------------------------------------- | -------------------------------------------- |
-| P2  | **QuicTransport: implement Transport over iroh-go**   | Replaces fake Network with real QUIC streams |
-| P3  | **Replace fake Network with QuicTransport in engine** | All measurements become real network I/O     |
-| P4  | **Run convergence tests over real QUIC**              | Prove CRDT convergence works on real network |
+| #  | Task                                                  | Why                                          |
+| -- | ----------------------------------------------------- | -------------------------------------------- |
+| P2 | **QuicTransport: implement Transport over iroh-go**   | Replaces fake Network with real QUIC streams |
+| P3 | **Replace fake Network with QuicTransport in engine** | All measurements become real network I/O     |
+| P4 | **Run convergence tests over real QUIC**              | Prove CRDT convergence works on real network |
 
 ### Layer 3: The 20% that delivers 80%
 
-| #   | Task                                           | Why                                                       |
-| --- | ---------------------------------------------- | --------------------------------------------------------- |
-| P5  | **Multi-process demo (separate OS processes)** | Proves it's real: separate processes, real IPC            |
-| P6  | **Delete fake Network + time.Sleep**           | Stop the lies                                             |
-| P7  | **Real latency from conn.Rtt()**               | Replace fake LatencyCollector with QUIC's own measurement |
-| P8  | **CLI with ticket-based bootstrap**            | Node A creates ticket → node B joins via ticket           |
-| P9  | **tc netem for real network shaping**          | Kernel-level delay/loss (not Go sleep)                    |
+| #  | Task                                           | Why                                                       |
+| -- | ---------------------------------------------- | --------------------------------------------------------- |
+| P5 | **Multi-process demo (separate OS processes)** | Proves it's real: separate processes, real IPC            |
+| P6 | **Delete fake Network + time.Sleep**           | Stop the lies                                             |
+| P7 | **Real latency from conn.Rtt()**               | Replace fake LatencyCollector with QUIC's own measurement |
+| P8 | **CLI with ticket-based bootstrap**            | Node A creates ticket → node B joins via ticket           |
+| P9 | **tc netem for real network shaping**          | Kernel-level delay/loss (not Go sleep)                    |
 
 ### Layer 4: The other 20% to reach 100%
 

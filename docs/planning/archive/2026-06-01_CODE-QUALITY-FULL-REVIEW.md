@@ -19,43 +19,43 @@
 
 ### 🔴 1% → 51% Impact (Fix These First)
 
-| #   | Issue                                                                          | Module                   | Impact                             | Effort |
-| --- | ------------------------------------------------------------------------------ | ------------------------ | ---------------------------------- | ------ |
-| 1   | **Middleware 3x duplication** (~500 lines)                                     | middleware               | Eliminate 500 lines of copy-paste  | 2h     |
-| 2   | **Three `ErrHandlerNotFound` / `ErrDispatcherClosed` sentinels**               | dispatcher/command/query | Cross-module `errors.Is` is broken | 30min  |
-| 3   | **`VersionedStore` exposes embedded `event.Store`** — callers bypass upcasting | schema                   | Data corruption risk               | 15min  |
-| 4   | **`catalog/schema/reflect.go:ToAny` silently swallows errors**                 | catalog                  | Silent data loss                   | 15min  |
-| 5   | **`watermill/protocol.go:messageToEvent` is 81 lines**                         | watermill                | Maintenance burden                 | 30min  |
-| 6   | **Circuit breaker double-wraps errors**                                        | middleware               | Polluted error chains              | 15min  |
+| # | Issue                                                                          | Module                   | Impact                             | Effort |
+| - | ------------------------------------------------------------------------------ | ------------------------ | ---------------------------------- | ------ |
+| 1 | **Middleware 3x duplication** (~500 lines)                                     | middleware               | Eliminate 500 lines of copy-paste  | 2h     |
+| 2 | **Three `ErrHandlerNotFound` / `ErrDispatcherClosed` sentinels**               | dispatcher/command/query | Cross-module `errors.Is` is broken | 30min  |
+| 3 | **`VersionedStore` exposes embedded `event.Store`** — callers bypass upcasting | schema                   | Data corruption risk               | 15min  |
+| 4 | **`catalog/schema/reflect.go:ToAny` silently swallows errors**                 | catalog                  | Silent data loss                   | 15min  |
+| 5 | **`watermill/protocol.go:messageToEvent` is 81 lines**                         | watermill                | Maintenance burden                 | 30min  |
+| 6 | **Circuit breaker double-wraps errors**                                        | middleware               | Polluted error chains              | 15min  |
 
 ### 🟠 4% → 64% Impact
 
-| #   | Issue                                                            | Module         | Impact                      | Effort |
-| --- | ---------------------------------------------------------------- | -------------- | --------------------------- | ------ |
-| 7   | **`command.Metadata` duplicates `event.Metadata`** (split brain) | command        | Maintenance drift           | 1h     |
-| 8   | **`command.aggregate_ref.go` re-exports `event` types**          | command        | Module boundary violation   | 30min  |
-| 9   | **Storage backend error duplication** (pebble vs sql errors)     | storage/pebble | Inconsistent error checking | 1h     |
-| 10  | **`decider/load.go:opError` produces unclassified errors**       | decider        | Breaks error taxonomy       | 30min  |
-| 11  | **`catalog/d2` `sanitizeID(GetID(...))` repeated 6×**            | catalog        | DRY violation               | 15min  |
-| 12  | **Three `SchemaToAny` wrappers** across catalog packages         | catalog        | Split brain                 | 15min  |
-| 13  | **`event/batch.go` duplicates marshal logic from `New`**         | event          | DRY violation               | 30min  |
+| #  | Issue                                                            | Module         | Impact                      | Effort |
+| -- | ---------------------------------------------------------------- | -------------- | --------------------------- | ------ |
+| 7  | **`command.Metadata` duplicates `event.Metadata`** (split brain) | command        | Maintenance drift           | 1h     |
+| 8  | **`command.aggregate_ref.go` re-exports `event` types**          | command        | Module boundary violation   | 30min  |
+| 9  | **Storage backend error duplication** (pebble vs sql errors)     | storage/pebble | Inconsistent error checking | 1h     |
+| 10 | **`decider/load.go:opError` produces unclassified errors**       | decider        | Breaks error taxonomy       | 30min  |
+| 11 | **`catalog/d2` `sanitizeID(GetID(...))` repeated 6×**            | catalog        | DRY violation               | 15min  |
+| 12 | **Three `SchemaToAny` wrappers** across catalog packages         | catalog        | Split brain                 | 15min  |
+| 13 | **`event/batch.go` duplicates marshal logic from `New`**         | event          | DRY violation               | 30min  |
 
 ### 🟡 20% → 80% Impact
 
-| #   | Issue                                                                                 | Module        | Impact                  | Effort |
-| --- | ------------------------------------------------------------------------------------- | ------------- | ----------------------- | ------ |
-| 14  | **`command.Type` and `query.Type` bare strings** — no `Parse()`                       | command/query | Type safety             | 1h     |
-| 15  | **`signing/HasSignature` swallows corruption errors**                                 | signing       | Silent failures         | 30min  |
-| 16  | **`middleware/ErrCircuitBreakerOpen` bypasses error taxonomy**                        | middleware    | Inconsistent errors     | 15min  |
-| 17  | **`watermill/protocol` silently drops malformed IDs**                                 | watermill     | Data loss               | 30min  |
-| 18  | **`pebble/config.go:Backend` type is unused at runtime**                              | pebble        | Dead API surface        | 15min  |
-| 19  | **`catalog/GetID` returns Name as fallback** (dishonest)                              | catalog       | Surprising behavior     | 15min  |
-| 20  | **`event/reactive.go:FilterEventTypes` duplicates `newTypeSet`**                      | event         | DRY violation           | 10min  |
-| 21  | **`event/Version.Sub` can produce negative versions**                                 | event         | Silent corruption       | 15min  |
-| 22  | **`query/TypedHandler[T]` takes `Query` not `T`** — less safe than command equivalent | query         | Type safety gap         | 1h     |
-| 23  | **`storage/sql_aggregate_reader` hardcodes `?` placeholders** (SQLite only)           | storage       | PostgreSQL incompatible | 1h     |
-| 24  | **`projection/runner.go:replay` is 64 lines**                                         | projection    | Complexity              | 30min  |
-| 25  | **`catalog/NewTestCreateOrderFlow` in production code**                               | catalog       | Test code in prod       | 10min  |
+| #  | Issue                                                                                 | Module        | Impact                  | Effort |
+| -- | ------------------------------------------------------------------------------------- | ------------- | ----------------------- | ------ |
+| 14 | **`command.Type` and `query.Type` bare strings** — no `Parse()`                       | command/query | Type safety             | 1h     |
+| 15 | **`signing/HasSignature` swallows corruption errors**                                 | signing       | Silent failures         | 30min  |
+| 16 | **`middleware/ErrCircuitBreakerOpen` bypasses error taxonomy**                        | middleware    | Inconsistent errors     | 15min  |
+| 17 | **`watermill/protocol` silently drops malformed IDs**                                 | watermill     | Data loss               | 30min  |
+| 18 | **`pebble/config.go:Backend` type is unused at runtime**                              | pebble        | Dead API surface        | 15min  |
+| 19 | **`catalog/GetID` returns Name as fallback** (dishonest)                              | catalog       | Surprising behavior     | 15min  |
+| 20 | **`event/reactive.go:FilterEventTypes` duplicates `newTypeSet`**                      | event         | DRY violation           | 10min  |
+| 21 | **`event/Version.Sub` can produce negative versions**                                 | event         | Silent corruption       | 15min  |
+| 22 | **`query/TypedHandler[T]` takes `Query` not `T`** — less safe than command equivalent | query         | Type safety gap         | 1h     |
+| 23 | **`storage/sql_aggregate_reader` hardcodes `?` placeholders** (SQLite only)           | storage       | PostgreSQL incompatible | 1h     |
+| 24 | **`projection/runner.go:replay` is 64 lines**                                         | projection    | Complexity              | 30min  |
+| 25 | **`catalog/NewTestCreateOrderFlow` in production code**                               | catalog       | Test code in prod       | 10min  |
 
 ---
 

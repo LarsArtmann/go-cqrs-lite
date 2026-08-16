@@ -55,21 +55,21 @@ Documentation, formatting, verify gate, api-stability regen, git commit.
 
 Sorted by importance/impact/effort/customer-value. P0 = data corruption, P1 = restart safety, P2 = completeness, P3 = polish.
 
-| #   | Task                                                          | Impact   | Effort | Tier | Customer Value                      |
-| --- | ------------------------------------------------------------- | -------- | ------ | ---- | ----------------------------------- |
-| 1   | Implement `StreamAppendExpected` (AtomicAppender) on DuckDB   | CRITICAL | 30min  | P0   | No silent data loss on DuckDB       |
-| 2   | Implement `StreamAppendExpected` (AtomicAppender) on Postgres | CRITICAL | 30min  | P0   | No silent data loss on PG           |
-| 3   | Wire SnapshotBackend into `system/constructor.go`             | CRITICAL | 45min  | P0   | Snapshots actually work             |
-| 4   | Fix Pebble stream+journal seq restart safety (lazy seed)      | HIGH     | 45min  | P1   | Restart doesn't corrupt data        |
-| 5   | Fix MultiBus test to verify actual fan-out delivery           | HIGH     | 30min  | P1   | Tests stop lying                    |
-| 6   | Replace `bytesIndex` with `bytes.Index` in Pebble             | LOW      | 10min  | P1   | Remove 30 lines dead code           |
-| 7   | Write concurrent-write race test (AtomicAppender)             | HIGH     | 45min  | P1   | Proves optimistic concurrency works |
-| 8   | Wire `StreamTemporalReader` into `adapter_event.go`           | MEDIUM   | 45min  | P2   | Efficient LoadFromVersion           |
-| 9   | Add StreamLogBackend to `adttest.RunMatrix`                   | MEDIUM   | 60min  | P2   | Cross-engine parity enforced        |
-| 10  | Consolidate encode/decode helpers across engine modules       | LOW      | 30min  | P2   | DRY, less duplication               |
-| 11  | Write StreamLogBackend tests for Pebble engine                | MEDIUM   | 45min  | P2   | Pebble streams verified             |
-| 12  | Write StreamLogBackend tests for DuckDB engine                | MEDIUM   | 45min  | P2   | DuckDB streams verified             |
-| 13  | Run doc-check, format, verify gate, api-stability, commit     | MEDIUM   | 60min  | P3   | CI green, docs accurate             |
+| #  | Task                                                          | Impact   | Effort | Tier | Customer Value                      |
+| -- | ------------------------------------------------------------- | -------- | ------ | ---- | ----------------------------------- |
+| 1  | Implement `StreamAppendExpected` (AtomicAppender) on DuckDB   | CRITICAL | 30min  | P0   | No silent data loss on DuckDB       |
+| 2  | Implement `StreamAppendExpected` (AtomicAppender) on Postgres | CRITICAL | 30min  | P0   | No silent data loss on PG           |
+| 3  | Wire SnapshotBackend into `system/constructor.go`             | CRITICAL | 45min  | P0   | Snapshots actually work             |
+| 4  | Fix Pebble stream+journal seq restart safety (lazy seed)      | HIGH     | 45min  | P1   | Restart doesn't corrupt data        |
+| 5  | Fix MultiBus test to verify actual fan-out delivery           | HIGH     | 30min  | P1   | Tests stop lying                    |
+| 6  | Replace `bytesIndex` with `bytes.Index` in Pebble             | LOW      | 10min  | P1   | Remove 30 lines dead code           |
+| 7  | Write concurrent-write race test (AtomicAppender)             | HIGH     | 45min  | P1   | Proves optimistic concurrency works |
+| 8  | Wire `StreamTemporalReader` into `adapter_event.go`           | MEDIUM   | 45min  | P2   | Efficient LoadFromVersion           |
+| 9  | Add StreamLogBackend to `adttest.RunMatrix`                   | MEDIUM   | 60min  | P2   | Cross-engine parity enforced        |
+| 10 | Consolidate encode/decode helpers across engine modules       | LOW      | 30min  | P2   | DRY, less duplication               |
+| 11 | Write StreamLogBackend tests for Pebble engine                | MEDIUM   | 45min  | P2   | Pebble streams verified             |
+| 12 | Write StreamLogBackend tests for DuckDB engine                | MEDIUM   | 45min  | P2   | DuckDB streams verified             |
+| 13 | Run doc-check, format, verify gate, api-stability, commit     | MEDIUM   | 60min  | P3   | CI green, docs accurate             |
 
 **Total: 13 tasks. Estimated: ~8.5 hours.**
 

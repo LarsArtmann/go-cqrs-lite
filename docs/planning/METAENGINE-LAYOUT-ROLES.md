@@ -14,12 +14,12 @@ Related: [ADR-0124](../adr/0124-operator-driven-layout-planning.md) ·
 
 An engine's **role** decides two independent things:
 
-| Role | Read routing | Sync strategy | Hosts |
-| --- | --- | --- | --- |
-| `Active` | eligible | fold pipeline (synchronous) | collections routed to it |
-| `DualUse` | eligible | fold pipeline (synchronous) | collections routed to it |
-| `Migration` | **not** eligible | async replication | **all** collections (mirror) |
-| `Backup` | **not** eligible | async replication | **all** collections (mirror) |
+| Role        | Read routing     | Sync strategy               | Hosts                        |
+| ----------- | ---------------- | --------------------------- | ---------------------------- |
+| `Active`    | eligible         | fold pipeline (synchronous) | collections routed to it     |
+| `DualUse`   | eligible         | fold pipeline (synchronous) | collections routed to it     |
+| `Migration` | **not** eligible | async replication           | **all** collections (mirror) |
+| `Backup`    | **not** eligible | async replication           | **all** collections (mirror) |
 
 Invariants:
 
@@ -31,14 +31,14 @@ Invariants:
   can therefore serve any query after cutover.
 - **I3 — Failure isolation.** A shadow engine's failure (slow, erroring,
   unreachable, buffer overflow) never blocks or fails the primary write path.
-  The shadow is marked *stale*, replication for it halts loudly, and the
+  The shadow is marked _stale_, replication for it halts loudly, and the
   operator resolves it (see §4.4).
 - **I4 — No cross-engine atomicity.** Within one engine, one event's fold batch
   commits atomically (`RunInTx`). Across engines there is no 2PC — the design
   accepts per-engine atomicity (strong per engine, not across engines).
 
 `Active` vs `DualUse` share identical mechanics. `DualUse` exists as operator
-*intent metadata*: "a second engine is deliberately serving a different query
+_intent metadata_: "a second engine is deliberately serving a different query
 shape in parallel." It exists so tooling (Doctor, audit trail) can distinguish
 "two engines on purpose" from "accidental dual write paths."
 
@@ -67,7 +67,7 @@ Already the shipped behavior, made explicit and role-gated:
    ADR-0124; covered by `batch_atomicity*_test.go`).
 3. Shadow engines: the event is enqueued to each shadow's replicator (§3).
 
-Strong consistency claim: *per engine*. All Active/DualUse projections on one
+Strong consistency claim: _per engine_. All Active/DualUse projections on one
 engine move atomically with the event. Projections on a second engine may
 briefly lag the first (no 2PC). This is the documented contract.
 
@@ -112,7 +112,7 @@ stale/halt semantics, promote-drain).
 
 A stale shadow is repaired by: `RemoveEngine(name)` → fix/replace the engine →
 `AddEngine(..., WithRole(...))` → `Backfill(ctx, WithBackfillForce())` (the
-mirror is known-stale; force is safe *for the mirror* because
+mirror is known-stale; force is safe _for the mirror_ because
 `RemoveEngine`+re-add implies an empty replacement engine).
 
 `Backfill` replays into shadow engines synchronously through the same
@@ -181,10 +181,10 @@ drain-then-unroute sequencing concern is solved by atomicity, not sequencing:
    - the queries it DID serve receive their history on their new engines via
      the standard replay path. On failure the affected queries are poisoned
      (loud reads) instead of serving silently-wrong results.
-   The replicator's applier starts only after the mirror catch-up so history
-   lands before buffered live events (chronological mirror state); more than
-   `replicationBufferJobs` live events during catch-up mark the engine stale
-   (loud; recover via remove + re-add + backfill).
+     The replicator's applier starts only after the mirror catch-up so history
+     lands before buffered live events (chronological mirror state); more than
+     `replicationBufferJobs` live events during catch-up mark the engine stale
+     (loud; recover via remove + re-add + backfill).
 4. Do NOT call `Backfill` after `DemoteEngine`: it replays full history into
    every shadow engine, re-applying collections the demoted engine already
    holds.
@@ -209,7 +209,7 @@ JSON Lines (one JSON object per `\n`-terminated line), versioned by `"v"`:
 - Unknown `op` values are skipped by the player (forward compatibility).
 - Payloads are **not** serialized (arbitrary Go values are not JSON-round-trip
   safe). Replay synthesizes payloads via a caller-supplied factory; the trace
-  carries the *shape and mix* of the workload, which is what calibration needs.
+  carries the _shape and mix_ of the workload, which is what calibration needs.
 
 Components (metaengine package):
 
@@ -255,7 +255,7 @@ serialized **all** fold execution store-wide. Replaced by **per-query** locks:
   busy_timeout); other engines serialize writes in their backends.
 - The replication applier shares fold instances with the primary path, so
   per-query locks are also what make replication race-free.
-- Lock ordering: query locks are always acquired *inside* the store read lock
+- Lock ordering: query locks are always acquired _inside_ the store read lock
   (dispatch) or outside it (replicator snapshot-then-apply); the store write
   lock never wraps a query lock. No deadlock cycle exists.
 

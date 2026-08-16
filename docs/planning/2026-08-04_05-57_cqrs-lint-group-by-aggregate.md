@@ -89,14 +89,14 @@ Enrichment + output grouping flag + output formatter. The consumer sees:
 
 ## Comprehensive Plan (30-100min tasks)
 
-| #   | Task                                                                                                                                                       | Impact                          | Effort | Priority |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ------ | -------- |
-| 1   | **Create aggregate inference engine** (`aggregate.go`): `aggregateFromEventType`, `aggregateFromStateType`, `buildFileAggregateMap`, `enrichWithAggregate` | CRITICAL — the core 51%         | 60min  | P0       |
-| 2   | **Wire enrichment** into `filterFindings` (one line after `enrichWithDocURLs`)                                                                             | HIGH — activates Layer 1        | 10min  | P0       |
-| 3   | **Add `--group-by` flag** + output grouping functions (`groupFindingsByAggregate`, `printFindingsByAggregate`, wire into `outputFindings`)                 | HIGH — the user-visible feature | 45min  | P1       |
-| 4   | **Write tests** for inference, enrichment, and grouping                                                                                                    | HIGH — correctness guarantee    | 40min  | P1       |
-| 5   | **Update docs** (AGENTS.md cqrs-lint description, help text)                                                                                               | MEDIUM — discoverability        | 15min  | P2       |
-| 6   | **Build + verify** — compile, run tests, check no regressions                                                                                              | CRITICAL — quality gate         | 15min  | P0       |
+| # | Task                                                                                                                                                       | Impact                          | Effort | Priority |
+| - | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ------ | -------- |
+| 1 | **Create aggregate inference engine** (`aggregate.go`): `aggregateFromEventType`, `aggregateFromStateType`, `buildFileAggregateMap`, `enrichWithAggregate` | CRITICAL — the core 51%         | 60min  | P0       |
+| 2 | **Wire enrichment** into `filterFindings` (one line after `enrichWithDocURLs`)                                                                             | HIGH — activates Layer 1        | 10min  | P0       |
+| 3 | **Add `--group-by` flag** + output grouping functions (`groupFindingsByAggregate`, `printFindingsByAggregate`, wire into `outputFindings`)                 | HIGH — the user-visible feature | 45min  | P1       |
+| 4 | **Write tests** for inference, enrichment, and grouping                                                                                                    | HIGH — correctness guarantee    | 40min  | P1       |
+| 5 | **Update docs** (AGENTS.md cqrs-lint description, help text)                                                                                               | MEDIUM — discoverability        | 15min  | P2       |
+| 6 | **Build + verify** — compile, run tests, check no regressions                                                                                              | CRITICAL — quality gate         | 15min  | P0       |
 
 ## Detailed Breakdown (max 12min tasks)
 

@@ -24,46 +24,46 @@ Clean EventCatalog generation (no split-brain types), proper comments, README in
 
 ## What the Example MUST Demonstrate
 
-| #   | Capability                                              | Currently Shows?           |
-| --- | ------------------------------------------------------- | -------------------------- |
-| 1   | Command creation + dispatch                             | ❌                         |
-| 2   | Command handler → aggregate → repo.Save                 | ❌ (manual event creation) |
-| 3   | Aggregate with proper Apply/RecordEvent                 | ⚠️ partial                 |
-| 4   | Event Bus subscription                                  | ❌                         |
-| 5   | Projection building a read model                        | ❌                         |
-| 6   | Query dispatch + typed result                           | ❌                         |
-| 7   | Middleware chain (logging, recovery, validation, retry) | ❌                         |
-| 8   | Error classification (Classify, IsRetryable)            | ❌                         |
-| 9   | Branded IDs (all types)                                 | ⚠️ only AggregateID        |
-| 10  | EventCatalog generation                                 | ✅ but split-brain         |
-| 11  | Event metadata (correlation ID, source, etc.)           | ❌                         |
-| 12  | Aggregate load-modify-save cycle                        | ✅                         |
-| 13  | Proper error handling (no log.Fatalf in helpers)        | ❌                         |
+| #  | Capability                                              | Currently Shows?           |
+| -- | ------------------------------------------------------- | -------------------------- |
+| 1  | Command creation + dispatch                             | ❌                         |
+| 2  | Command handler → aggregate → repo.Save                 | ❌ (manual event creation) |
+| 3  | Aggregate with proper Apply/RecordEvent                 | ⚠️ partial                  |
+| 4  | Event Bus subscription                                  | ❌                         |
+| 5  | Projection building a read model                        | ❌                         |
+| 6  | Query dispatch + typed result                           | ❌                         |
+| 7  | Middleware chain (logging, recovery, validation, retry) | ❌                         |
+| 8  | Error classification (Classify, IsRetryable)            | ❌                         |
+| 9  | Branded IDs (all types)                                 | ⚠️ only AggregateID         |
+| 10 | EventCatalog generation                                 | ✅ but split-brain         |
+| 11 | Event metadata (correlation ID, source, etc.)           | ❌                         |
+| 12 | Aggregate load-modify-save cycle                        | ✅                         |
+| 13 | Proper error handling (no log.Fatalf in helpers)        | ❌                         |
 
 ---
 
 ## Comprehensive Plan (Medium Granularity)
 
-| #   | Task                                                                                       | Impact | Effort | Priority |
-| --- | ------------------------------------------------------------------------------------------ | ------ | ------ | -------- |
-| 1   | Define typed command structs (CreateUser, ChangeUserName) implementing `command.Command`   | HIGH   | 15min  | P0       |
-| 2   | Define typed query structs (GetUser, ListUsers) implementing `query.Query`                 | HIGH   | 15min  | P0       |
-| 3   | Rewrite User aggregate with proper Create/ChangeName methods that record events internally | HIGH   | 20min  | P0       |
-| 4   | Create shared event payload types (eliminate split-brain with catalog.go)                  | HIGH   | 15min  | P0       |
-| 5   | Wire command dispatcher with handlers that use repo.Save/Load                              | HIGH   | 20min  | P0       |
-| 6   | Add event bus subscription — print events as they're published                             | MED    | 10min  | P0       |
-| 7   | Create UserReadModel projection that builds a queryable map                                | HIGH   | 20min  | P0       |
-| 8   | Wire query dispatcher reading from the read model                                          | HIGH   | 15min  | P0       |
-| 9   | Add middleware chain: Recovery → Logging → Validation → Retry                              | HIGH   | 20min  | P1       |
-| 10  | Implement simple Logger adapter using slog for middleware                                  | MED    | 10min  | P1       |
-| 11  | Implement simple MetricsRecorder for middleware                                            | MED    | 10min  | P1       |
-| 12  | Add command validation (email required, name non-empty)                                    | MED    | 10min  | P1       |
-| 13  | Demonstrate error classification with a transient error scenario                           | MED    | 15min  | P1       |
-| 14  | Rewrite catalog.go to use shared payload types (no duplication)                            | MED    | 15min  | P1       |
-| 15  | Add event metadata: correlation ID, source, user ID                                        | LOW    | 10min  | P2       |
-| 16  | Add README.md in example/user/ explaining the example                                      | MED    | 15min  | P2       |
-| 17  | Run the full example end-to-end and verify output                                          | MED    | 10min  | P2       |
-| 18  | Clean up: no log.Fatalf in helpers, proper error returns everywhere                        | LOW    | 10min  | P2       |
+| #  | Task                                                                                       | Impact | Effort | Priority |
+| -- | ------------------------------------------------------------------------------------------ | ------ | ------ | -------- |
+| 1  | Define typed command structs (CreateUser, ChangeUserName) implementing `command.Command`   | HIGH   | 15min  | P0       |
+| 2  | Define typed query structs (GetUser, ListUsers) implementing `query.Query`                 | HIGH   | 15min  | P0       |
+| 3  | Rewrite User aggregate with proper Create/ChangeName methods that record events internally | HIGH   | 20min  | P0       |
+| 4  | Create shared event payload types (eliminate split-brain with catalog.go)                  | HIGH   | 15min  | P0       |
+| 5  | Wire command dispatcher with handlers that use repo.Save/Load                              | HIGH   | 20min  | P0       |
+| 6  | Add event bus subscription — print events as they're published                             | MED    | 10min  | P0       |
+| 7  | Create UserReadModel projection that builds a queryable map                                | HIGH   | 20min  | P0       |
+| 8  | Wire query dispatcher reading from the read model                                          | HIGH   | 15min  | P0       |
+| 9  | Add middleware chain: Recovery → Logging → Validation → Retry                              | HIGH   | 20min  | P1       |
+| 10 | Implement simple Logger adapter using slog for middleware                                  | MED    | 10min  | P1       |
+| 11 | Implement simple MetricsRecorder for middleware                                            | MED    | 10min  | P1       |
+| 12 | Add command validation (email required, name non-empty)                                    | MED    | 10min  | P1       |
+| 13 | Demonstrate error classification with a transient error scenario                           | MED    | 15min  | P1       |
+| 14 | Rewrite catalog.go to use shared payload types (no duplication)                            | MED    | 15min  | P1       |
+| 15 | Add event metadata: correlation ID, source, user ID                                        | LOW    | 10min  | P2       |
+| 16 | Add README.md in example/user/ explaining the example                                      | MED    | 15min  | P2       |
+| 17 | Run the full example end-to-end and verify output                                          | MED    | 10min  | P2       |
+| 18 | Clean up: no log.Fatalf in helpers, proper error returns everywhere                        | LOW    | 10min  | P2       |
 
 ---
 

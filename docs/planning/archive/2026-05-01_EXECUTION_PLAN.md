@@ -63,31 +63,31 @@ Fix this to log and support the `WithRetry` option that already exists but is un
 
 Each task is designed to be completable in **≤12 minutes**.
 
-| #   | Task                                                                                                 | Impact | Effort | Module      | Type        |
-| --- | ---------------------------------------------------------------------------------------------------- | ------ | ------ | ----------- | ----------- |
-| 1   | Create `Error` struct + `Family` enum in `core/event/errors.go`                                      | HIGH   | LOW    | core        | Feature     |
-| 2   | Add `Classify(err) Family` function mapping sentinels to families                                    | HIGH   | LOW    | core        | Feature     |
-| 3   | Add constructor helpers: `Reject()`, `Conflict()`, `Transient()`, `Corruption()`, `Infrastructure()` | HIGH   | LOW    | core        | Feature     |
-| 4   | Add `IsRetryable(err) bool` helper                                                                   | HIGH   | LOW    | core        | Feature     |
-| 5   | Add `WithCause(err) *Error` fluent setter                                                            | MED    | LOW    | core        | Feature     |
-| 6   | Write tests for error taxonomy (100% coverage)                                                       | HIGH   | MED    | core        | Test        |
-| 7   | Fix silent error discard in `projection/runner.go` dispatchToProjections                             | HIGH   | LOW    | projection  | Bug         |
-| 8   | Wire `WithRetry` option in projection runner (already defined, unused)                               | MED    | MED    | projection  | Feature     |
-| 9   | Add `ClientID` branded type in `core/pkg/id/client_id.go`                                            | MED    | LOW    | core        | Feature     |
-| 10  | Add `event.WithClientID(id.ClientID) Option` convenience wrapper                                     | MED    | LOW    | core        | Feature     |
-| 11  | Document offline-first metadata convention (`docs/OFFLINE_FIRST_METADATA.md`)                        | MED    | LOW    | docs        | Docs        |
-| 12  | Update `middleware/retry.go` to use `IsRetryable()` as default `IsRetryable` func                    | MED    | LOW    | middleware  | Enhancement |
-| 13  | Add `IdempotencyKey() string` to `command.Command` interface                                         | HIGH   | MED    | core        | Breaking    |
-| 14  | Implement `IdempotencyKey()` on `command.Core` (returns `""`)                                        | HIGH   | LOW    | core        | Feature     |
-| 15  | Update all test code implementing `command.Command` to add `IdempotencyKey()`                        | MED    | MED    | tests       | Migration   |
-| 16  | Update `example/user/` to add `IdempotencyKey()` to command types                                    | MED    | LOW    | example     | Migration   |
-| 17  | Update `integration/` tests for new `IdempotencyKey()` method                                        | MED    | MED    | integration | Migration   |
-| 18  | Update `testhelpers/` command helpers for `IdempotencyKey()`                                         | MED    | LOW    | testhelpers | Migration   |
-| 19  | Update `middleware/` validation/recovery/retry tests for `IdempotencyKey()`                          | MED    | MED    | middleware  | Migration   |
-| 20  | Update `projection/` tests for `IdempotencyKey()` (if they use commands)                             | LOW    | LOW    | projection  | Migration   |
-| 21  | Run full test suite + lint check                                                                     | HIGH   | LOW    | all         | Verify      |
-| 22  | Update AGENTS.md with new types, interfaces, and patterns                                            | MED    | LOW    | docs        | Docs        |
-| 23  | Update ARCHITECTURE_ROADMAP.md with what was actually done                                           | LOW    | LOW    | docs        | Docs        |
+| #  | Task                                                                                                 | Impact | Effort | Module      | Type        |
+| -- | ---------------------------------------------------------------------------------------------------- | ------ | ------ | ----------- | ----------- |
+| 1  | Create `Error` struct + `Family` enum in `core/event/errors.go`                                      | HIGH   | LOW    | core        | Feature     |
+| 2  | Add `Classify(err) Family` function mapping sentinels to families                                    | HIGH   | LOW    | core        | Feature     |
+| 3  | Add constructor helpers: `Reject()`, `Conflict()`, `Transient()`, `Corruption()`, `Infrastructure()` | HIGH   | LOW    | core        | Feature     |
+| 4  | Add `IsRetryable(err) bool` helper                                                                   | HIGH   | LOW    | core        | Feature     |
+| 5  | Add `WithCause(err) *Error` fluent setter                                                            | MED    | LOW    | core        | Feature     |
+| 6  | Write tests for error taxonomy (100% coverage)                                                       | HIGH   | MED    | core        | Test        |
+| 7  | Fix silent error discard in `projection/runner.go` dispatchToProjections                             | HIGH   | LOW    | projection  | Bug         |
+| 8  | Wire `WithRetry` option in projection runner (already defined, unused)                               | MED    | MED    | projection  | Feature     |
+| 9  | Add `ClientID` branded type in `core/pkg/id/client_id.go`                                            | MED    | LOW    | core        | Feature     |
+| 10 | Add `event.WithClientID(id.ClientID) Option` convenience wrapper                                     | MED    | LOW    | core        | Feature     |
+| 11 | Document offline-first metadata convention (`docs/OFFLINE_FIRST_METADATA.md`)                        | MED    | LOW    | docs        | Docs        |
+| 12 | Update `middleware/retry.go` to use `IsRetryable()` as default `IsRetryable` func                    | MED    | LOW    | middleware  | Enhancement |
+| 13 | Add `IdempotencyKey() string` to `command.Command` interface                                         | HIGH   | MED    | core        | Breaking    |
+| 14 | Implement `IdempotencyKey()` on `command.Core` (returns `""`)                                        | HIGH   | LOW    | core        | Feature     |
+| 15 | Update all test code implementing `command.Command` to add `IdempotencyKey()`                        | MED    | MED    | tests       | Migration   |
+| 16 | Update `example/user/` to add `IdempotencyKey()` to command types                                    | MED    | LOW    | example     | Migration   |
+| 17 | Update `integration/` tests for new `IdempotencyKey()` method                                        | MED    | MED    | integration | Migration   |
+| 18 | Update `testhelpers/` command helpers for `IdempotencyKey()`                                         | MED    | LOW    | testhelpers | Migration   |
+| 19 | Update `middleware/` validation/recovery/retry tests for `IdempotencyKey()`                          | MED    | MED    | middleware  | Migration   |
+| 20 | Update `projection/` tests for `IdempotencyKey()` (if they use commands)                             | LOW    | LOW    | projection  | Migration   |
+| 21 | Run full test suite + lint check                                                                     | HIGH   | LOW    | all         | Verify      |
+| 22 | Update AGENTS.md with new types, interfaces, and patterns                                            | MED    | LOW    | docs        | Docs        |
+| 23 | Update ARCHITECTURE_ROADMAP.md with what was actually done                                           | LOW    | LOW    | docs        | Docs        |
 
 ---
 

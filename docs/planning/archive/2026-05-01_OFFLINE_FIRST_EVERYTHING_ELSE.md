@@ -508,8 +508,8 @@ go-cqrs-lite is a Go library. For client-side use:
 | **Backend services**       | Native     | ✅ Already works              |
 | **CLI tools**              | Native     | ✅ Already works              |
 | **Desktop apps**           | Native     | ✅ Wails, Fyne, etc.          |
-| **Mobile (iOS/Android)**   | Gomobile   | ⚠️ Possible but cumbersome    |
-| **Web browser**            | WASM       | ⚠️ Limited storage APIs       |
+| **Mobile (iOS/Android)**   | Gomobile   | ⚠️ Possible but cumbersome     |
+| **Web browser**            | WASM       | ⚠️ Limited storage APIs        |
 | **React Native / Flutter** | Not Go     | ❌ Need a TypeScript/Dart SDK |
 
 **Implication:** If the target includes web or mobile-native clients, go-cqrs-lite can't run directly. Options:
@@ -607,7 +607,7 @@ go-cqrs-lite is explicitly "library, not framework." It provides building blocks
 | Event/command types              | ✅ Yes                   | Core domain types, already here                       |
 | ClientID, timezone metadata      | ✅ Yes                   | Metadata on core types                                |
 | IdempotencyKey on Command        | ✅ Yes                   | Command interface change                              |
-| Wire format for sync             | ⚠️ Maybe                 | Could be a separate module                            |
+| Wire format for sync             | ⚠️ Maybe                  | Could be a separate module                            |
 | Sync protocol (push/pull/rebase) | ❌ No                    | Consumer's responsibility; too opinionated            |
 | Client-side event store          | ❌ No                    | Platform-specific (SQLite, IndexedDB, etc.)           |
 | Network monitor                  | ❌ No                    | Platform-specific                                     |
@@ -693,4 +693,4 @@ Everything else (sync protocol, client store, network monitor) is the consumer's
 
 ---
 
-_Companion to `docs/planning/2026-05-01_OFFLINE_FIRST_TIMING_ANALYSIS.md`. That document covers *when*; this covers *everything else*._
+_Companion to `docs/planning/2026-05-01_OFFLINE_FIRST_TIMING_ANALYSIS.md`. That document covers _when_; this covers _everything else_._

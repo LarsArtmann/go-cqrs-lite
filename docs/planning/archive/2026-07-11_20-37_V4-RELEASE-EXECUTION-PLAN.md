@@ -120,7 +120,7 @@
 | Storage split breaks consumers                    | ✅ Eliminated   | Type aliases provide full backward compat                  |
 | Shutdown ordering pointer mismatch                | ✅ Tested       | Integration tests prove pointer identity works             |
 | Storage/ split attempted alongside path migration | ✅ Not an issue | Done after migration, separate concern                     |
-| v3 tag backfill points to wrong commit            | ⚠️ Minor        | v3.7.0 and v3.7.1 point to same commit (docs-only release) |
+| v3 tag backfill points to wrong commit            | ⚠️ Minor         | v3.7.0 and v3.7.1 point to same commit (docs-only release) |
 
 ---
 

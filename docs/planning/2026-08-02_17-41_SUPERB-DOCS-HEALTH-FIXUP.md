@@ -79,20 +79,20 @@
 
 ### L1.1 → Fix FEATURES.md factual error
 
-| #   | Sub-task                                                               | Time |
-| --- | ---------------------------------------------------------------------- | ---- |
-| S1  | Remove `stack/contracttest` row from Module Maturity Matrix            | 3min |
-| S2  | Remove `stack/sqlopt` row from Module Maturity Matrix                  | 3min |
-| S3  | Verify no other references to these as separate modules in FEATURES.md | 3min |
+| #  | Sub-task                                                               | Time |
+| -- | ---------------------------------------------------------------------- | ---- |
+| S1 | Remove `stack/contracttest` row from Module Maturity Matrix            | 3min |
+| S2 | Remove `stack/sqlopt` row from Module Maturity Matrix                  | 3min |
+| S3 | Verify no other references to these as separate modules in FEATURES.md | 3min |
 
 ### L1.2 → Run quality gate
 
-| #   | Sub-task                                                                              | Time  |
-| --- | ------------------------------------------------------------------------------------- | ----- |
-| S4  | Run `nix fmt` on edited markdown files                                                | 5min  |
-| S5  | Run `cmd/doc-check` on FEATURES.md, ROADMAP.md, TODO_LIST.md, CHANGELOG.md, AGENTS.md | 5min  |
-| S6  | Run `nix run .#verify` (or verify-fast if time-constrained)                           | 10min |
-| S7  | Fix any issues found by doc-check or verify                                           | 10min |
+| #  | Sub-task                                                                              | Time  |
+| -- | ------------------------------------------------------------------------------------- | ----- |
+| S4 | Run `nix fmt` on edited markdown files                                                | 5min  |
+| S5 | Run `cmd/doc-check` on FEATURES.md, ROADMAP.md, TODO_LIST.md, CHANGELOG.md, AGENTS.md | 5min  |
+| S6 | Run `nix run .#verify` (or verify-fast if time-constrained)                           | 10min |
+| S7 | Fix any issues found by doc-check or verify                                           | 10min |
 
 ### L1.3 → Deduplicate CHANGELOG
 

@@ -196,11 +196,11 @@ found:
 | G2: Deployer decides where data lives      | ❌ Not met       | No operator config; engine list is consumer code                                      |
 | G3: Recommendations                        | ✅ Met           | ExplainPlan/Doctor + degradation/scale/write-amp diagnostics                          |
 | G4: Run with SQLite + Memory               | ✅ Met           | taskmanager runs on Memory + SQLite                                                   |
-| G5: Multiple SQLite DBs                    | ⚠️ Partial       | Stack supports multi-DB; metaengine re-opens its own DB                               |
-| G6: Commands+Events+Queries → projections  | ⚠️ Partial       | Optimizer is superb; declaration is engine-level not domain-level                     |
+| G5: Multiple SQLite DBs                    | ⚠️ Partial        | Stack supports multi-DB; metaengine re-opens its own DB                               |
+| G6: Commands+Events+Queries → projections  | ⚠️ Partial        | Optimizer is superb; declaration is engine-level not domain-level                     |
 | G7: Add/remove backends for both layers    | ❌ Not met       | No registry; compile-time imports only                                                |
 | G8: App code is deployment-agnostic        | ❌ Not met       | App code touches DSNs, codecs, engine lists                                           |
-| G9: Introspection API for admin UI         | ⚠️ Partial       | Rich methods exist (ExplainPlan, Doctor, Collections) but ad-hoc, no unified topology |
+| G9: Introspection API for admin UI         | ⚠️ Partial        | Rich methods exist (ExplainPlan, Doctor, Collections) but ad-hoc, no unified topology |
 | G10: Scream store                          | ❌ Not met       | No Diff/Pin/Fingerprint; all diagnostics advisory; SwapEngine does zero validation    |
 
 ---
@@ -903,8 +903,8 @@ as a bolt-on filter (`LoadToTimestamp`), not a first-class storage dimension.
    | **BigTable** | ✅                      | Versioned cells (cell timestamps = event time)         |
    | **Postgres** | ✅                      | `temporal_range` (PG 17+) or `AS OF` system versioning |
    | **DuckDB**   | ✅                      | Time-travel (`SELECT ... FOR SYSTEM_TIME AS OF`)       |
-   | **SQLite**   | ⚠️                      | Via version column + index (O(log N) scan)             |
-   | **Pebble**   | ⚠️                      | Via versioned keys (O(log N) seek)                     |
+   | **SQLite**   | ⚠️                       | Via version column + index (O(log N) scan)             |
+   | **Pebble**   | ⚠️                       | Via versioned keys (O(log N) seek)                     |
    | **Memory**   | ✅                      | Version chains + binary search (already implemented!)  |
 
 **The StreamLogBackend must include time as a first-class operation:**

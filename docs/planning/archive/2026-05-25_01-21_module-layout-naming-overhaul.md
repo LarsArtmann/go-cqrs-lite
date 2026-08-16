@@ -11,19 +11,19 @@
 
 ### The 1% that delivers 51% of the result
 
-| #   | Action                                                                         | Impact                                                      | Effort |
-| --- | ------------------------------------------------------------------------------ | ----------------------------------------------------------- | ------ |
-| 1   | Fix `NewCheckpointStore()` → `NewMemoryCheckpointStore()` naming inconsistency | Consumers see consistent API. Only 1 function, instant fix. | 5min   |
+| # | Action                                                                         | Impact                                                      | Effort |
+| - | ------------------------------------------------------------------------------ | ----------------------------------------------------------- | ------ |
+| 1 | Fix `NewCheckpointStore()` → `NewMemoryCheckpointStore()` naming inconsistency | Consumers see consistent API. Only 1 function, instant fix. | 5min   |
 
 ### The 4% that delivers 64% of the result
 
-| #   | Action                                                                                       | Impact                                                                         | Effort |
-| --- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------ |
-| 1   | Fix `NewCheckpointStore()` → `NewMemoryCheckpointStore()`                                    | Naming consistency                                                             | 5min   |
-| 2   | Expose `NewSQLEventStoreWithDialect(db, dialect)` so consumers can add MySQL/custom backends | Unlocks ANY SQL backend without modifying the library. Massive consumer value. | 15min  |
-| 3   | Align Go versions (1.26.2 → 1.26.3 across all go.mod files)                                  | Eliminates version mismatch confusion                                          | 10min  |
-| 4   | Rename `event.Core` → `event.ImmutableEvent` (and command/query equivalents)                 | Biggest lying name in the library. 3 packages affected.                        | 45min  |
-| 5   | Delete empty `example/todo/handler/` directory                                               | Dead directory                                                                 | 1min   |
+| # | Action                                                                                       | Impact                                                                         | Effort |
+| - | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------ |
+| 1 | Fix `NewCheckpointStore()` → `NewMemoryCheckpointStore()`                                    | Naming consistency                                                             | 5min   |
+| 2 | Expose `NewSQLEventStoreWithDialect(db, dialect)` so consumers can add MySQL/custom backends | Unlocks ANY SQL backend without modifying the library. Massive consumer value. | 15min  |
+| 3 | Align Go versions (1.26.2 → 1.26.3 across all go.mod files)                                  | Eliminates version mismatch confusion                                          | 10min  |
+| 4 | Rename `event.Core` → `event.ImmutableEvent` (and command/query equivalents)                 | Biggest lying name in the library. 3 packages affected.                        | 45min  |
+| 5 | Delete empty `example/todo/handler/` directory                                               | Dead directory                                                                 | 1min   |
 
 ### The 20% that delivers 80% of the result
 
@@ -39,15 +39,15 @@
 
 ### Remaining 80% (deferred — higher risk, lower immediate ROI)
 
-| #   | Action                                                                                 | Why Deferred                                                                  |
-| --- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| D1  | Split `core/` into 6 independent go.mod files                                          | High effort, high risk. Needs full consumer migration. Separate major effort. |
-| D2  | Split `storage/` into `sql/`, `pebble/`, `turso/` sub-packages                         | Breaking restructure. Requires all consumers to update imports.               |
-| D3  | Delete `core/aggregate/` (deprecated)                                                  | Still used by integration tests. Needs migration first.                       |
-| D4  | Restructure `example/user/` flat package                                               | Example code, not library surface. Low priority.                              |
-| D5  | Restructure `testhelpers/` into sub-packages                                           | Breaking change for test-only consumers. Low urgency.                         |
-| D6  | Rename `Handler` func type in event/bus.go                                             | Pervasive — every handler in the system references it.                        |
-| D7  | Add `NewWithDialect` constructors for all storage types (Outbox, Snapshot, Checkpoint) | Extends #2 to full surface. Can do incrementally.                             |
+| #  | Action                                                                                 | Why Deferred                                                                  |
+| -- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| D1 | Split `core/` into 6 independent go.mod files                                          | High effort, high risk. Needs full consumer migration. Separate major effort. |
+| D2 | Split `storage/` into `sql/`, `pebble/`, `turso/` sub-packages                         | Breaking restructure. Requires all consumers to update imports.               |
+| D3 | Delete `core/aggregate/` (deprecated)                                                  | Still used by integration tests. Needs migration first.                       |
+| D4 | Restructure `example/user/` flat package                                               | Example code, not library surface. Low priority.                              |
+| D5 | Restructure `testhelpers/` into sub-packages                                           | Breaking change for test-only consumers. Low urgency.                         |
+| D6 | Rename `Handler` func type in event/bus.go                                             | Pervasive — every handler in the system references it.                        |
+| D7 | Add `NewWithDialect` constructors for all storage types (Outbox, Snapshot, Checkpoint) | Extends #2 to full surface. Can do incrementally.                             |
 
 ---
 
@@ -55,60 +55,60 @@
 
 ### Phase 1: Quick Wins (1% + 4%)
 
-| #   | Task                                                                    | Effort | Impact    | Status |
-| --- | ----------------------------------------------------------------------- | ------ | --------- | ------ |
-| 1   | Rename `NewCheckpointStore()` → `NewMemoryCheckpointStore()` in memory/ | 5min   | High      | ⬜     |
-| 2   | Expose `NewSQLEventStoreWithDialect(db, dialect)` public constructor    | 15min  | Very High | ⬜     |
-| 3   | Align Go versions to 1.26.3 in all go.mod files                         | 10min  | Medium    | ⬜     |
-| 4   | Delete empty `example/todo/handler/` directory                          | 1min   | Low       | ⬜     |
-| 5   | Update go.work if needed after go.mod changes                           | 5min   | Medium    | ⬜     |
+| # | Task                                                                    | Effort | Impact    | Status |
+| - | ----------------------------------------------------------------------- | ------ | --------- | ------ |
+| 1 | Rename `NewCheckpointStore()` → `NewMemoryCheckpointStore()` in memory/ | 5min   | High      | ⬜     |
+| 2 | Expose `NewSQLEventStoreWithDialect(db, dialect)` public constructor    | 15min  | Very High | ⬜     |
+| 3 | Align Go versions to 1.26.3 in all go.mod files                         | 10min  | Medium    | ⬜     |
+| 4 | Delete empty `example/todo/handler/` directory                          | 1min   | Low       | ⬜     |
+| 5 | Update go.work if needed after go.mod changes                           | 5min   | Medium    | ⬜     |
 
 ### Phase 2: Naming — The Big Renames
 
-| #   | Task                                                     | Effort | Impact    | Status |
-| --- | -------------------------------------------------------- | ------ | --------- | ------ |
-| 6   | Rename `event.Core` → `event.ImmutableEvent`             | 30min  | Very High | ⬜     |
-| 7   | Rename `command.Core` → `command.BasicCommand`           | 20min  | High      | ⬜     |
-| 8   | Rename `query.Core` → `query.BasicQuery`                 | 20min  | High      | ⬜     |
-| 9   | Update all internal references to renamed types          | 15min  | High      | ⬜     |
-| 10  | Rename `CatalogEntry` → `HandlerMeta` in pkg/dispatcher/ | 15min  | Medium    | ⬜     |
-| 11  | Update all references to `CatalogEntry`                  | 10min  | Medium    | ⬜     |
+| #  | Task                                                     | Effort | Impact    | Status |
+| -- | -------------------------------------------------------- | ------ | --------- | ------ |
+| 6  | Rename `event.Core` → `event.ImmutableEvent`             | 30min  | Very High | ⬜     |
+| 7  | Rename `command.Core` → `command.BasicCommand`           | 20min  | High      | ⬜     |
+| 8  | Rename `query.Core` → `query.BasicQuery`                 | 20min  | High      | ⬜     |
+| 9  | Update all internal references to renamed types          | 15min  | High      | ⬜     |
+| 10 | Rename `CatalogEntry` → `HandlerMeta` in pkg/dispatcher/ | 15min  | Medium    | ⬜     |
+| 11 | Update all references to `CatalogEntry`                  | 10min  | Medium    | ⬜     |
 
 ### Phase 3: Structural — Move Runtime Out of Contracts
 
-| #   | Task                                                 | Effort | Impact | Status |
-| --- | ---------------------------------------------------- | ------ | ------ | ------ |
-| 12  | Move `InMemoryRunner` from `event/` to `projection/` | 25min  | High   | ⬜     |
-| 13  | Update all references to `event.InMemoryRunner`      | 15min  | High   | ⬜     |
-| 14  | Move `OutboxPublisher` from `event/` to `memory/`    | 25min  | High   | ⬜     |
-| 15  | Update all references to `event.OutboxPublisher`     | 15min  | High   | ⬜     |
+| #  | Task                                                 | Effort | Impact | Status |
+| -- | ---------------------------------------------------- | ------ | ------ | ------ |
+| 12 | Move `InMemoryRunner` from `event/` to `projection/` | 25min  | High   | ⬜     |
+| 13 | Update all references to `event.InMemoryRunner`      | 15min  | High   | ⬜     |
+| 14 | Move `OutboxPublisher` from `event/` to `memory/`    | 25min  | High   | ⬜     |
+| 15 | Update all references to `event.OutboxPublisher`     | 15min  | High   | ⬜     |
 
 ### Phase 4: Decouple Command/Query from Event
 
-| #   | Task                                                                               | Effort | Impact | Status |
-| --- | ---------------------------------------------------------------------------------- | ------ | ------ | ------ |
-| 16  | Change `command/errors.go` to import `go-error-family` directly instead of `event` | 10min  | High   | ⬜     |
-| 17  | Change `query/errors.go` to import `go-error-family` directly instead of `event`   | 10min  | High   | ⬜     |
-| 18  | Run `go mod tidy` on command/ and query/ to verify clean deps                      | 5min   | Medium | ⬜     |
+| #  | Task                                                                               | Effort | Impact | Status |
+| -- | ---------------------------------------------------------------------------------- | ------ | ------ | ------ |
+| 16 | Change `command/errors.go` to import `go-error-family` directly instead of `event` | 10min  | High   | ⬜     |
+| 17 | Change `query/errors.go` to import `go-error-family` directly instead of `event`   | 10min  | High   | ⬜     |
+| 18 | Run `go mod tidy` on command/ and query/ to verify clean deps                      | 5min   | Medium | ⬜     |
 
 ### Phase 5: Code Quality
 
-| #   | Task                                                      | Effort | Impact | Status |
-| --- | --------------------------------------------------------- | ------ | ------ | ------ |
-| 19  | Fix `event.go` exceeding 250-line limit (extract helpers) | 15min  | Medium | ⬜     |
-| 20  | Normalize testhelpers constructors                        | 15min  | Medium | ⬜     |
-| 21  | Update D2 diagram to reflect actual changes made          | 15min  | Medium | ⬜     |
+| #  | Task                                                      | Effort | Impact | Status |
+| -- | --------------------------------------------------------- | ------ | ------ | ------ |
+| 19 | Fix `event.go` exceeding 250-line limit (extract helpers) | 15min  | Medium | ⬜     |
+| 20 | Normalize testhelpers constructors                        | 15min  | Medium | ⬜     |
+| 21 | Update D2 diagram to reflect actual changes made          | 15min  | Medium | ⬜     |
 
 ### Phase 6: Verification & Documentation
 
-| #   | Task                                      | Effort | Impact | Status |
-| --- | ----------------------------------------- | ------ | ------ | ------ |
-| 22  | Run full test suite across all modules    | 10min  | High   | ⬜     |
-| 23  | Run lint (`nix run .#lint`)               | 10min  | High   | ⬜     |
-| 24  | Run build (`nix run .#build`)             | 5min   | High   | ⬜     |
-| 25  | Update AGENTS.md with changes made        | 15min  | Medium | ⬜     |
-| 26  | Update docs/planning/ with deferred items | 10min  | Low    | ⬜     |
-| 27  | Final git commit with detailed message    | 10min  | Medium | ⬜     |
+| #  | Task                                      | Effort | Impact | Status |
+| -- | ----------------------------------------- | ------ | ------ | ------ |
+| 22 | Run full test suite across all modules    | 10min  | High   | ⬜     |
+| 23 | Run lint (`nix run .#lint`)               | 10min  | High   | ⬜     |
+| 24 | Run build (`nix run .#build`)             | 5min   | High   | ⬜     |
+| 25 | Update AGENTS.md with changes made        | 15min  | Medium | ⬜     |
+| 26 | Update docs/planning/ with deferred items | 10min  | Low    | ⬜     |
+| 27 | Final git commit with detailed message    | 10min  | Medium | ⬜     |
 
 ---
 

@@ -12,18 +12,18 @@
 
 All 3 feedback files in `docs/feedback/new/` were processed and moved to `docs/feedback/reviewed/`. The following fixes were implemented, tested (17 packages green with `-race`), and committed:
 
-| #   | Fix                                                                                                         | Source Feedback             | Impact                                   |
-| --- | ----------------------------------------------------------------------------------------------------------- | --------------------------- | ---------------------------------------- |
-| 1   | B022 suggestion text corrected (`decider.`→`event.CommandCausalityEnricher`) + canonical enricher exemption | bank-sync + browser-history | Stops misleading users                   |
-| 2   | Suppression parser accepts `// cqrs-lint:` (Go-idiomatic space)                                             | browser-history             | Every consumer benefits                  |
-| 3   | P012/P013 only flag direct `sql.Open("sqlite",...)`, not constructor wrappers                               | bank-sync                   | Eliminates 4 FPs per project             |
-| 4   | Config-level rule disabling (`"rules": {"disable": [...]}`)                                                 | bank-sync                   | Project-wide suppression                 |
-| 5   | `--exclude-rules` CLI flag                                                                                  | bank-sync                   | CI-friendly exclusion                    |
-| 6   | S006 removed `"total"` from weak financial keywords                                                         | browser-history             | Eliminates `TotalVisits` FPs             |
-| 7   | C036 detects shared-backend via constructor scan                                                            | browser-history             | Eliminates 2 FPs per multi-store project |
-| 8   | Unknown rule ID detection in suppression comments                                                           | bank-sync                   | Catches typos like `PO12`                |
-| 9   | `--help` suppression syntax docs                                                                            | bank-sync                   | Discoverability                          |
-| 10  | `cqrs-lint init --preset` (local-cli, library, server, full-stack)                                          | bank-sync                   | Config churn eliminated                  |
+| #  | Fix                                                                                                         | Source Feedback             | Impact                                   |
+| -- | ----------------------------------------------------------------------------------------------------------- | --------------------------- | ---------------------------------------- |
+| 1  | B022 suggestion text corrected (`decider.`→`event.CommandCausalityEnricher`) + canonical enricher exemption | bank-sync + browser-history | Stops misleading users                   |
+| 2  | Suppression parser accepts `// cqrs-lint:` (Go-idiomatic space)                                             | browser-history             | Every consumer benefits                  |
+| 3  | P012/P013 only flag direct `sql.Open("sqlite",...)`, not constructor wrappers                               | bank-sync                   | Eliminates 4 FPs per project             |
+| 4  | Config-level rule disabling (`"rules": {"disable": [...]}`)                                                 | bank-sync                   | Project-wide suppression                 |
+| 5  | `--exclude-rules` CLI flag                                                                                  | bank-sync                   | CI-friendly exclusion                    |
+| 6  | S006 removed `"total"` from weak financial keywords                                                         | browser-history             | Eliminates `TotalVisits` FPs             |
+| 7  | C036 detects shared-backend via constructor scan                                                            | browser-history             | Eliminates 2 FPs per multi-store project |
+| 8  | Unknown rule ID detection in suppression comments                                                           | bank-sync                   | Catches typos like `PO12`                |
+| 9  | `--help` suppression syntax docs                                                                            | bank-sync                   | Discoverability                          |
+| 10 | `cqrs-lint init --preset` (local-cli, library, server, full-stack)                                          | bank-sync                   | Config churn eliminated                  |
 
 ### Current State
 

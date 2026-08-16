@@ -15,14 +15,14 @@
 
 ## Verified ground truth (as of this analysis)
 
-| Claim | Status | Evidence |
-| --- | --- | --- |
-| No `madvise`/THP usage anywhere in this repo | Verified | `rg "madvise|MADV_|hugepage"` → no matches |
-| Go 1.26.5 runtime defines but never applies `MADV_HUGEPAGE` | Verified | `runtime/defs_linux_*.go` constants only; no call sites. Heap stays 4KB-backed. See golang/go#8832 (open) |
-| Pebble v1.1.5 makes no madvise calls | Verified | `rg MADV` over module cache source → no hits |
-| bbolt v1.5.0 madvises its mmap with `MADV_RANDOM` only | Verified | `bolt_unix.go:63` (`unix.Madvise(b, syscall.MADV_RANDOM)`) |
-| bbolt's mapping pointer is unexported | Verified | Our `storage/bbolt` wrapper cannot reach it directly |
-| `golang.org/x/sys` already available (indirect) in `storage/bbolt` | Verified | `storage/bbolt/go.mod` |
+| Claim                                                              | Status   | Evidence                                                                                                  |
+| ------------------------------------------------------------------ | -------- | --------------------------------------------------------------------------------------------------------- |
+| No `madvise`/THP usage anywhere in this repo                       | Verified | `rg "madvise                                                                                              |
+| Go 1.26.5 runtime defines but never applies `MADV_HUGEPAGE`        | Verified | `runtime/defs_linux_*.go` constants only; no call sites. Heap stays 4KB-backed. See golang/go#8832 (open) |
+| Pebble v1.1.5 makes no madvise calls                               | Verified | `rg MADV` over module cache source → no hits                                                              |
+| bbolt v1.5.0 madvises its mmap with `MADV_RANDOM` only             | Verified | `bolt_unix.go:63` (`unix.Madvise(b, syscall.MADV_RANDOM)`)                                                |
+| bbolt's mapping pointer is unexported                              | Verified | Our `storage/bbolt` wrapper cannot reach it directly                                                      |
+| `golang.org/x/sys` already available (indirect) in `storage/bbolt` | Verified | `storage/bbolt/go.mod`                                                                                    |
 
 ## Why it would help (mechanism)
 
@@ -46,12 +46,12 @@ Candidate in-repo workloads with that access shape:
 
 ## Where/how it could plausibly pay off
 
-| Target | How | Honest odds |
-| --- | --- | --- |
-| Go heap (in-memory projections, graph drivers, Pebble memtables) | System mode `always` on a **dedicated bench/soak box** — the only lever that touches the heap | The one good case: large, stable, long-lived heaps during catch-up/replay. Watch RSS + p99, not just ops/s |
-| bbolt large-DB scans (`ReadStreamFrom` over the journal mmap) | We know the DB path → parse `/proc/self/maps`, find that file's VMA, `unix.Madvise(range, unix.MADV_HUGEPAGE)`. Composes fine with bbolt's own `MADV_RANDOM` (readahead vs page granularity are independent advice) | Most credible in-repo win, but it's **file-backed THP**: needs kernel 6.x ext4/XFS large-folio support, or tmpfs (which is what `t.TempDir()` on `/tmp` gives you — soak tests would benefit) |
-| SQLite engine reads | We own pragmas in `metaengine/sqliteengine`: `PRAGMA mmap_size` + system `always` mode | Indirect; same file-backed caveat |
-| DuckDB (CGo buffer manager) | Ops-level only | Not ours to touch |
+| Target                                                           | How                                                                                                                                                                                                                 | Honest odds                                                                                                                                                                                   |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Go heap (in-memory projections, graph drivers, Pebble memtables) | System mode `always` on a **dedicated bench/soak box** — the only lever that touches the heap                                                                                                                       | The one good case: large, stable, long-lived heaps during catch-up/replay. Watch RSS + p99, not just ops/s                                                                                    |
+| bbolt large-DB scans (`ReadStreamFrom` over the journal mmap)    | We know the DB path → parse `/proc/self/maps`, find that file's VMA, `unix.Madvise(range, unix.MADV_HUGEPAGE)`. Composes fine with bbolt's own `MADV_RANDOM` (readahead vs page granularity are independent advice) | Most credible in-repo win, but it's **file-backed THP**: needs kernel 6.x ext4/XFS large-folio support, or tmpfs (which is what `t.TempDir()` on `/tmp` gives you — soak tests would benefit) |
+| SQLite engine reads                                              | We own pragmas in `metaengine/sqliteengine`: `PRAGMA mmap_size` + system `always` mode                                                                                                                              | Indirect; same file-backed caveat                                                                                                                                                             |
+| DuckDB (CGo buffer manager)                                      | Ops-level only                                                                                                                                                                                                      | Not ours to touch                                                                                                                                                                             |
 
 Precondition for any experiment: `/sys/kernel/mm/transparent_hugepage/enabled` must include `madvise` — on `madvise`-less systems the flag silently does nothing.
 
@@ -79,12 +79,12 @@ Standalone A/B harness (kept out of the repo at `~/thpbench/`): builds the workl
 
 1.5M records × 1KB payloads (~1.6GB stable heap, GC settled before measurement). `on` collapsed 1000MB of 1604MB eligible (62%; `AnonHugePages=1000` verified, off-arm verified 0).
 
-| Pattern | off (median) | on (median) | delta |
-| --- | --- | --- | --- |
-| random chase (1.5M shuffled touches) | 29.52 ms | 25.95 ms | **−12.1%** |
-| sequential sweep | 11.12 ms | 9.86 ms | **−11.3%** |
+| Pattern                              | off (median) | on (median) | delta      |
+| ------------------------------------ | ------------ | ----------- | ---------- |
+| random chase (1.5M shuffled touches) | 29.52 ms     | 25.95 ms    | **−12.1%** |
+| sequential sweep                     | 11.12 ms     | 9.86 ms     | **−11.3%** |
 
-All 5 `off` rounds slower than all 5 `on` rounds in both patterns (nonparametric p ≈ 0.008). Sequential benefits too — cheaper page walks, not just TLB coverage. Effect is if anything *diluted* by the 38% of the heap that would not collapse.
+All 5 `off` rounds slower than all 5 `on` rounds in both patterns (nonparametric p ≈ 0.008). Sequential benefits too — cheaper page walks, not just TLB coverage. Effect is if anything _diluted_ by the 38% of the heap that would not collapse.
 
 ### Arm 2: bbolt DB mmap on btrfs — **untestable: THP unavailable for file VMAs**
 

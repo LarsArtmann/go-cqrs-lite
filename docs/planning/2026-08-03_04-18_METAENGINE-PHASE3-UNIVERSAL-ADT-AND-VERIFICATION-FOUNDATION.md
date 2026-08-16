@@ -365,14 +365,14 @@ Before claiming any tier is complete:
 
 ## Risk Assessment
 
-| #   | Risk                                                                                       | Likelihood | Impact | Mitigation                                                                                                       |
-| --- | ------------------------------------------------------------------------------------------ | ---------- | ------ | ---------------------------------------------------------------------------------------------------------------- |
-| R1  | Universal ADT changes break existing consumer queries that expect `errADTNotSupported`     | Low        | Medium | The error was a dead-end, not a feature. Consumers catching it get routing instead — strictly better.            |
-| R2  | `DegradedADTs` field adds confusion to EngineProfile (too many fields)                     | Medium     | Low    | Document clearly: Supports = "can I do this?", DegradedADTs = "am I good at this?"                               |
-| R3  | check-coverage fails after adding to verify (coverage drift)                               | Medium     | Low    | Run check-coverage standalone first; if it fails, fix drift before adding to verify.                             |
-| R4  | WithReplication override semantics cause routing surprises                                 | Low        | Medium | Override-wins with WARN diagnostic. Consumer knows their deployment better than the engine.                      |
-| R5  | Watcher typed-channel change breaks existing watcher consumers                             | Low        | High   | Add typed path as NEW method, keep `chan any` path for backward compat.                                          |
-| R6  | Phase 3 scope creep — implementing actual fallback backends instead of just declaring cost | Medium     | High   | Design doc Q2 answer is explicit: option (b) first (declare cost, runtime assertion). Option (a) is future work. |
+| #  | Risk                                                                                       | Likelihood | Impact | Mitigation                                                                                                       |
+| -- | ------------------------------------------------------------------------------------------ | ---------- | ------ | ---------------------------------------------------------------------------------------------------------------- |
+| R1 | Universal ADT changes break existing consumer queries that expect `errADTNotSupported`     | Low        | Medium | The error was a dead-end, not a feature. Consumers catching it get routing instead — strictly better.            |
+| R2 | `DegradedADTs` field adds confusion to EngineProfile (too many fields)                     | Medium     | Low    | Document clearly: Supports = "can I do this?", DegradedADTs = "am I good at this?"                               |
+| R3 | check-coverage fails after adding to verify (coverage drift)                               | Medium     | Low    | Run check-coverage standalone first; if it fails, fix drift before adding to verify.                             |
+| R4 | WithReplication override semantics cause routing surprises                                 | Low        | Medium | Override-wins with WARN diagnostic. Consumer knows their deployment better than the engine.                      |
+| R5 | Watcher typed-channel change breaks existing watcher consumers                             | Low        | High   | Add typed path as NEW method, keep `chan any` path for backward compat.                                          |
+| R6 | Phase 3 scope creep — implementing actual fallback backends instead of just declaring cost | Medium     | High   | Design doc Q2 answer is explicit: option (b) first (declare cost, runtime assertion). Option (a) is future work. |
 
 ---
 

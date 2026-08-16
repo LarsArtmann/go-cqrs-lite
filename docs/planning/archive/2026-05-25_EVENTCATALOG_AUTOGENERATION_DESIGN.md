@@ -16,38 +16,38 @@ EventCatalog is an MDX-based documentation system for event-driven architectures
 
 ### 2.1 Resource Types
 
-| #   | Resource          | Directory                                  | Required Frontmatter                      | Status     |
-| --- | ----------------- | ------------------------------------------ | ----------------------------------------- | ---------- |
-| 1   | **Domains**       | `domains/{name}/index.mdx`                 | `id`, `name`, `version`                   | ✅ Partial |
-| 2   | **Services**      | `services/{name}/index.mdx`                | `id`, `name`, `version`                   | ✅ Partial |
-| 3   | **Events**        | `services/{svc}/events/{name}/index.mdx`   | `id`, `name`, `version`                   | ✅ Partial |
-| 4   | **Commands**      | `services/{svc}/commands/{name}/index.mdx` | `id`, `name`, `version`                   | ✅ Partial |
-| 5   | **Queries**       | `services/{svc}/queries/{name}/index.mdx`  | `id`, `name`, `version`                   | ✅ Partial |
-| 6   | **Channels**      | `channels/{name}/index.mdx`                | `id`, `name`, `version`                   | ❌ Missing |
-| 7   | **Flows**         | `flows/{name}/index.mdx`                   | `id`, `name`, `version`, `steps`          | ❌ Missing |
-| 8   | **Data Stores**   | `data/{name}/index.mdx`                    | `id`, `name`, `version`, `container_type` | ❌ Missing |
-| 9   | **Data Products** | `data-products/{name}/index.mdx`           | `id`, `name`, `version`                   | ❌ Missing |
-| 10  | **Agents**        | `agents/{name}/index.mdx`                  | `id`, `name`, `version`                   | ❌ Missing |
-| 11  | **Diagrams**      | `diagrams/{name}/index.mdx`                | `id`, `name`, `version`                   | ❌ Missing |
-| 12  | **Teams**         | `teams/{name}.mdx`                         | `id`, `name`                              | ❌ Missing |
-| 13  | **Users**         | `users/{name}.mdx`                         | `id`, `name`                              | ❌ Missing |
-| 14  | **Changelogs**    | `{resource}/{name}/changelog.mdx`          | `createdAt`                               | ❌ Missing |
+| #  | Resource          | Directory                                  | Required Frontmatter                      | Status     |
+| -- | ----------------- | ------------------------------------------ | ----------------------------------------- | ---------- |
+| 1  | **Domains**       | `domains/{name}/index.mdx`                 | `id`, `name`, `version`                   | ✅ Partial |
+| 2  | **Services**      | `services/{name}/index.mdx`                | `id`, `name`, `version`                   | ✅ Partial |
+| 3  | **Events**        | `services/{svc}/events/{name}/index.mdx`   | `id`, `name`, `version`                   | ✅ Partial |
+| 4  | **Commands**      | `services/{svc}/commands/{name}/index.mdx` | `id`, `name`, `version`                   | ✅ Partial |
+| 5  | **Queries**       | `services/{svc}/queries/{name}/index.mdx`  | `id`, `name`, `version`                   | ✅ Partial |
+| 6  | **Channels**      | `channels/{name}/index.mdx`                | `id`, `name`, `version`                   | ❌ Missing |
+| 7  | **Flows**         | `flows/{name}/index.mdx`                   | `id`, `name`, `version`, `steps`          | ❌ Missing |
+| 8  | **Data Stores**   | `data/{name}/index.mdx`                    | `id`, `name`, `version`, `container_type` | ❌ Missing |
+| 9  | **Data Products** | `data-products/{name}/index.mdx`           | `id`, `name`, `version`                   | ❌ Missing |
+| 10 | **Agents**        | `agents/{name}/index.mdx`                  | `id`, `name`, `version`                   | ❌ Missing |
+| 11 | **Diagrams**      | `diagrams/{name}/index.mdx`                | `id`, `name`, `version`                   | ❌ Missing |
+| 12 | **Teams**         | `teams/{name}.mdx`                         | `id`, `name`                              | ❌ Missing |
+| 13 | **Users**         | `users/{name}.mdx`                         | `id`, `name`                              | ❌ Missing |
+| 14 | **Changelogs**    | `{resource}/{name}/changelog.mdx`          | `createdAt`                               | ❌ Missing |
 
 ### 2.2 Configuration Files
 
-| #   | File                     | Purpose               | Status   |
-| --- | ------------------------ | --------------------- | -------- |
-| 1   | `eventcatalog.config.js` | Catalog configuration | ✅ Basic |
-| 2   | `package.json`           | NPM dependencies      | ✅ Done  |
-| 3   | `llms.txt`               | LLM-readable summary  | ✅ Done  |
+| # | File                     | Purpose               | Status   |
+| - | ------------------------ | --------------------- | -------- |
+| 1 | `eventcatalog.config.js` | Catalog configuration | ✅ Basic |
+| 2 | `package.json`           | NPM dependencies      | ✅ Done  |
+| 3 | `llms.txt`               | LLM-readable summary  | ✅ Done  |
 
 ### 2.3 Schema Files
 
-| #   | Format      | How Attached                             | Status     |
-| --- | ----------- | ---------------------------------------- | ---------- |
-| 1   | JSON Schema | `schemaPath: schemas/schema.json` + file | ✅ Done    |
-| 2   | Avro        | `schemaPath: schema.avsc` + file         | ❌ Missing |
-| 3   | Protobuf    | `schemaPath: schema.proto` + file        | ❌ Missing |
+| # | Format      | How Attached                             | Status     |
+| - | ----------- | ---------------------------------------- | ---------- |
+| 1 | JSON Schema | `schemaPath: schemas/schema.json` + file | ✅ Done    |
+| 2 | Avro        | `schemaPath: schema.avsc` + file         | ❌ Missing |
+| 3 | Protobuf    | `schemaPath: schema.proto` + file        | ❌ Missing |
 
 ### 2.4 Cross-Cutting Features (per resource)
 

@@ -272,10 +272,10 @@ Record consolidation (P4) is **NOT** on the critical path. It runs in parallel.
 
 ### Spikes (validate before committing)
 
-| #   | Task                      | Impact           | Effort | Deps | Description                                                                                                                                                                                                                                                                 |
-| --- | ------------------------- | ---------------- | ------ | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| S1  | Spike: fold inference API | Gates everything | 4h     | —    | Write a throwaway test: `system.View[TaskView, TaskID]("tasks").From(TaskCreated{}, TaskUpdated{}, TaskDeleted{})` → build QueryDecl internally via AutoCRUDByConvention → Plan → Apply event → read back projected data. Validate the API ergonomics and the fold quality. |
-| S2  | Spike: batch atomicity    | Gates P5         | 4h     | —    | Prototype `BatchTxn` interface on memory engine: queue MapSet + CounterIncrement ops from a single ApplyRecord call, execute atomically, test rollback on simulated failure. Validate the interface design.                                                                 |
+| #  | Task                      | Impact           | Effort | Deps | Description                                                                                                                                                                                                                                                                 |
+| -- | ------------------------- | ---------------- | ------ | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1 | Spike: fold inference API | Gates everything | 4h     | —    | Write a throwaway test: `system.View[TaskView, TaskID]("tasks").From(TaskCreated{}, TaskUpdated{}, TaskDeleted{})` → build QueryDecl internally via AutoCRUDByConvention → Plan → Apply event → read back projected data. Validate the API ergonomics and the fold quality. |
+| S2 | Spike: batch atomicity    | Gates P5         | 4h     | —    | Prototype `BatchTxn` interface on memory engine: queue MapSet + CounterIncrement ops from a single ApplyRecord call, execute atomically, test rollback on simulated failure. Validate the interface design.                                                                 |
 
 ### Phase 1: Foundation quick wins (no dependencies, parallel-safe)
 

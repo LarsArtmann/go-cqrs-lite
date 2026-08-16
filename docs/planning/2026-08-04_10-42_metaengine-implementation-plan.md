@@ -64,16 +64,16 @@ The three foundational concepts:
 
 | #                                                               | What |
 | --------------------------------------------------------------- | ---- |
-| Driver registry (storage engines — the `database/sql` model)    |
-| Bus driver registry (multi-bus, D9)                             |
-| Cache tier (CachedEventStore / otter W-TinyLFU)                 |
-| SnapshotBackend interface (D12)                                 |
-| koanf config loader (YAML + env merge)                          |
-| Introspection API (Topology type, Snapshot/Health/Plan/Explain) |
-| Scream store (PlanDiff + fingerprint + manifest + safety rules) |
-| Connection pool lifecycle (samber/do named services)            |
-| ADRs for D1-D12                                                 |
-| Migrate example/taskmanager                                     |
+| Driver registry (storage engines — the `database/sql` model)    |      |
+| Bus driver registry (multi-bus, D9)                             |      |
+| Cache tier (CachedEventStore / otter W-TinyLFU)                 |      |
+| SnapshotBackend interface (D12)                                 |      |
+| koanf config loader (YAML + env merge)                          |      |
+| Introspection API (Topology type, Snapshot/Health/Plan/Explain) |      |
+| Scream store (PlanDiff + fingerprint + manifest + safety rules) |      |
+| Connection pool lifecycle (samber/do named services)            |      |
+| ADRs for D1-D12                                                 |      |
+| Migrate example/taskmanager                                     |      |
 
 ---
 

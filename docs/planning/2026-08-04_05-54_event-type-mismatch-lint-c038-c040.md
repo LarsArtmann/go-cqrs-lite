@@ -150,15 +150,15 @@ graph TD
 
 ## Task Breakdown — Level 1 (30-100min tasks)
 
-| #   | Task                                 | Impact | Effort         | Customer Value                                            | Priority |
-| --- | ------------------------------------ | ------ | -------------- | --------------------------------------------------------- | -------- |
-| T1  | Enhance C038 with normalization      | HIGH   | LOW (20min)    | Catches all case-format mismatches, not just distance ≤ 2 | **P0**   |
-| T2  | Implement C040 detector              | HIGH   | MEDIUM (30min) | New capability: dead fold case detection                  | **P0**   |
-| T3  | Wire C040 into linter infrastructure | MEDIUM | LOW (10min)    | Makes C040 discoverable and active                        | **P1**   |
-| T4  | C038 normalization tests             | MEDIUM | LOW (15min)    | Regression protection for normalization                   | **P1**   |
-| T5  | C040 test suite                      | HIGH   | MEDIUM (25min) | Validates detection + false-positive suppression          | **P1**   |
-| T6  | Build + test verification            | HIGH   | LOW (15min)    | Ensures no regressions                                    | **P0**   |
-| T7  | Planning doc + commit                | LOW    | LOW (10min)    | Documentation + version control                           | **P2**   |
+| #  | Task                                 | Impact | Effort         | Customer Value                                            | Priority |
+| -- | ------------------------------------ | ------ | -------------- | --------------------------------------------------------- | -------- |
+| T1 | Enhance C038 with normalization      | HIGH   | LOW (20min)    | Catches all case-format mismatches, not just distance ≤ 2 | **P0**   |
+| T2 | Implement C040 detector              | HIGH   | MEDIUM (30min) | New capability: dead fold case detection                  | **P0**   |
+| T3 | Wire C040 into linter infrastructure | MEDIUM | LOW (10min)    | Makes C040 discoverable and active                        | **P1**   |
+| T4 | C038 normalization tests             | MEDIUM | LOW (15min)    | Regression protection for normalization                   | **P1**   |
+| T5 | C040 test suite                      | HIGH   | MEDIUM (25min) | Validates detection + false-positive suppression          | **P1**   |
+| T6 | Build + test verification            | HIGH   | LOW (15min)    | Ensures no regressions                                    | **P0**   |
+| T7 | Planning doc + commit                | LOW    | LOW (10min)    | Documentation + version control                           | **P2**   |
 
 ---
 

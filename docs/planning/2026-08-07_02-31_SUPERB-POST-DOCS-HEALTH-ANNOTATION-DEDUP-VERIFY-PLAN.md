@@ -69,21 +69,21 @@ Annotate remaining reports (08-05 batch + lower-priority 08-06), polish (nix fmt
 
 > Sorted by impact x customer-value / effort. "PF" = phase.
 
-| ID  | Task                                                                                                                                          | PF  | Impact | Cust.Val | Effort | Dep      | Est   |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------- | --- | ------ | -------- | ------ | -------- | ----- |
-| V1  | **Run `nix run .#verify`** (or `verify-fast`). Catalog ALL failures.                                                                          | V   | 5      | 5        | 2      | —        | 30min |
-| V2  | **Fix verify failures** in session-touched files only (AGENTS, TODO, ROADMAP, FEATURES, CHANGELOG).                                           | V   | 5      | 5        | 3      | V1       | 45min |
-| D1  | **Dedup Ghost bus / Metadata aliases** — keep in TODO_LIST, replace ROADMAP detail with cross-ref.                                            | D   | 4      | 3        | 1      | —        | 15min |
-| D2  | **Consolidate FEATURES.md metaengine section** — remove ~20 implementation-detail rows, merge related capability rows.                        | D   | 4      | 4        | 3      | —        | 45min |
-| D3  | **Audit ROADMAP long-term items** — mark shipped items (WithColumnarLayout, etc.).                                                            | D   | 3      | 3        | 2      | —        | 30min |
-| A1  | **Annotate `23-38_metaengine-v2-follow-up-execution-complete.md`** — 50 next-step items, most now in TODO_LIST or done.                       | A   | 5      | 4        | 5      | —        | 60min |
-| A2  | **Annotate `23-53_metaengine-v2-hardening-and-completion-plan.md`** — 40+ task IDs (V1a, T1a, etc.).                                          | A   | 4      | 4        | 4      | —        | 60min |
-| A3  | **Annotate batch: 5 key reports** (23-05 all-phases, 22-59 lint-sweep, 19-04 full-todo, 18-59 adr-overhaul, 14-43 bbolt-eval).                | A   | 4      | 3        | 4      | —        | 60min |
-| A4  | **Annotate batch: 5 more reports** (14-06 sqlite-cgo, 12-54 session1-followup, 09-38 superb-session1, 13-06 readme-audit, 01-02 docs-health). | A   | 3      | 3        | 4      | —        | 60min |
-| A5  | **Annotate 2026-08-06 planning docs** — mark phases DONE in execution plans.                                                                  | A   | 3      | 2        | 2      | —        | 30min |
-| P1  | **Run `nix fmt`** on touched files.                                                                                                           | P   | 2      | 2        | 1      | V2       | 10min |
-| P2  | **Final cross-file consistency sweep** — stale counts, split-brains, link check.                                                              | P   | 4      | 3        | 2      | D2       | 30min |
-| P3  | **Re-run verify gate** — confirm all fixes GREEN.                                                                                             | P   | 5      | 4        | 1      | V2,D1,D2 | 15min |
+| ID | Task                                                                                                                                          | PF | Impact | Cust.Val | Effort | Dep      | Est   |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------- | -- | ------ | -------- | ------ | -------- | ----- |
+| V1 | **Run `nix run .#verify`** (or `verify-fast`). Catalog ALL failures.                                                                          | V  | 5      | 5        | 2      | —        | 30min |
+| V2 | **Fix verify failures** in session-touched files only (AGENTS, TODO, ROADMAP, FEATURES, CHANGELOG).                                           | V  | 5      | 5        | 3      | V1       | 45min |
+| D1 | **Dedup Ghost bus / Metadata aliases** — keep in TODO_LIST, replace ROADMAP detail with cross-ref.                                            | D  | 4      | 3        | 1      | —        | 15min |
+| D2 | **Consolidate FEATURES.md metaengine section** — remove ~20 implementation-detail rows, merge related capability rows.                        | D  | 4      | 4        | 3      | —        | 45min |
+| D3 | **Audit ROADMAP long-term items** — mark shipped items (WithColumnarLayout, etc.).                                                            | D  | 3      | 3        | 2      | —        | 30min |
+| A1 | **Annotate `23-38_metaengine-v2-follow-up-execution-complete.md`** — 50 next-step items, most now in TODO_LIST or done.                       | A  | 5      | 4        | 5      | —        | 60min |
+| A2 | **Annotate `23-53_metaengine-v2-hardening-and-completion-plan.md`** — 40+ task IDs (V1a, T1a, etc.).                                          | A  | 4      | 4        | 4      | —        | 60min |
+| A3 | **Annotate batch: 5 key reports** (23-05 all-phases, 22-59 lint-sweep, 19-04 full-todo, 18-59 adr-overhaul, 14-43 bbolt-eval).                | A  | 4      | 3        | 4      | —        | 60min |
+| A4 | **Annotate batch: 5 more reports** (14-06 sqlite-cgo, 12-54 session1-followup, 09-38 superb-session1, 13-06 readme-audit, 01-02 docs-health). | A  | 3      | 3        | 4      | —        | 60min |
+| A5 | **Annotate 2026-08-06 planning docs** — mark phases DONE in execution plans.                                                                  | A  | 3      | 2        | 2      | —        | 30min |
+| P1 | **Run `nix fmt`** on touched files.                                                                                                           | P  | 2      | 2        | 1      | V2       | 10min |
+| P2 | **Final cross-file consistency sweep** — stale counts, split-brains, link check.                                                              | P  | 4      | 3        | 2      | D2       | 30min |
+| P3 | **Re-run verify gate** — confirm all fixes GREEN.                                                                                             | P  | 5      | 4        | 1      | V2,D1,D2 | 15min |
 
 **Estimated total:** ~8.5 hours (V: 1.25h, D: 1.5h, A: 4.5h, P: 0.9h)
 **Critical path (V → D2 → P3):** ~1.5 hours

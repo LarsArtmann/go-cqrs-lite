@@ -42,14 +42,14 @@ Closes the stated cross-repo goal: zero harmful duplication, single source of tr
 
 ## Plan-altering findings (verified, not assumed)
 
-| #   | Finding                                                                                                                     | Impact on plan                                                |
-| --- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| 1   | BuildFlow fails because `flake.nix` (flake-parts) exposes **no `packages.default`**; `.buildflow.yml` has no skip key.      | T1 is a small, well-understood fix.                           |
-| 2   | "Tag v3.3.0" is a **tag set**, not one tag (`idempotency` requires `event`+`command` at v3.3.0 + transitive).               | T2 enumerates the full set.                                   |
-| 3   | Dispatch-tier **DLQ already exists** (`middleware/deadletter.go` + `deadletter_sql.go` + tests). Gap analysis A4 was stale. | Only the _projection-tier_ DLQ hook remains → folded into T6. |
-| 4   | **Idempotency module already shipped** this session. A3 closed.                                                             | T3 is pure delegation; T7 adds backends.                      |
-| 5   | Real module count = **49**. FEATURES.md header stale at 45; omits DLQ feature.                                              | T5 reconciliation owed.                                       |
-| 6   | cqrs-htmx's `sse_event.go` is **better** than upstream (branded types, zero-alloc).                                         | T4 promotes downstream → upstream.                            |
+| # | Finding                                                                                                                     | Impact on plan                                                |
+| - | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 1 | BuildFlow fails because `flake.nix` (flake-parts) exposes **no `packages.default`**; `.buildflow.yml` has no skip key.      | T1 is a small, well-understood fix.                           |
+| 2 | "Tag v3.3.0" is a **tag set**, not one tag (`idempotency` requires `event`+`command` at v3.3.0 + transitive).               | T2 enumerates the full set.                                   |
+| 3 | Dispatch-tier **DLQ already exists** (`middleware/deadletter.go` + `deadletter_sql.go` + tests). Gap analysis A4 was stale. | Only the _projection-tier_ DLQ hook remains → folded into T6. |
+| 4 | **Idempotency module already shipped** this session. A3 closed.                                                             | T3 is pure delegation; T7 adds backends.                      |
+| 5 | Real module count = **49**. FEATURES.md header stale at 45; omits DLQ feature.                                              | T5 reconciliation owed.                                       |
+| 6 | cqrs-htmx's `sse_event.go` is **better** than upstream (branded types, zero-alloc).                                         | T4 promotes downstream → upstream.                            |
 
 ---
 
@@ -78,13 +78,13 @@ Closes the stated cross-repo goal: zero harmful duplication, single source of tr
 
 ### M1 · Fix BuildFlow nix-build pre-commit 🔴
 
-| ID  | Task                                                                                                | Min | Dep |
-| --- | --------------------------------------------------------------------------------------------------- | --- | --- |
-| F1  | Read `flake.nix` fully + `.buildflow.yml`; understand flake-parts `perSystem` packaging shape       | 8   | —   |
-| F2  | Decide approach: add `packages.default` vs buildflow skip key; check buildflow docs for skip option | 10  | F1  |
-| F3  | Implement fix (add `packages.default` meta/pkg OR buildflow skip config)                            | 12  | F2  |
-| F4  | Test: trivial change, `git commit` (NO `--no-verify`), confirm hook passes                          | 8   | F3  |
-| F5  | Commit + push BuildFlow fix                                                                         | 5   | F4  |
+| ID | Task                                                                                                | Min | Dep |
+| -- | --------------------------------------------------------------------------------------------------- | --- | --- |
+| F1 | Read `flake.nix` fully + `.buildflow.yml`; understand flake-parts `perSystem` packaging shape       | 8   | —   |
+| F2 | Decide approach: add `packages.default` vs buildflow skip key; check buildflow docs for skip option | 10  | F1  |
+| F3 | Implement fix (add `packages.default` meta/pkg OR buildflow skip config)                            | 12  | F2  |
+| F4 | Test: trivial change, `git commit` (NO `--no-verify`), confirm hook passes                          | 8   | F3  |
+| F5 | Commit + push BuildFlow fix                                                                         | 5   | F4  |
 
 ### M2 · Tag go-cqrs-lite v3.3.0 (full tag set)
 

@@ -28,13 +28,13 @@
 
 _Why first: API surface IS the product. Inconsistency erodes consumer trust immediately._
 
-| #   | Task                                                                                    | Module | Impact | Effort | Customer Value                                                                                |
-| --- | --------------------------------------------------------------------------------------- | ------ | ------ | ------ | --------------------------------------------------------------------------------------------- |
-| A1  | Add `SchemaVersion.Add(n int) SchemaVersion`                                            | event  | HIGH   | 4min   | `Version` has `Add(n)` but `SchemaVersion` only has `Increment()` — API gap                   |
-| A2  | Replace `SchemaVersion.Cmp` manual comparison → `cmp.Compare`                           | event  | HIGH   | 3min   | `Version.Cmp` uses `cmp.Compare`, `SchemaVersion.Cmp` has manual if/else — split brain        |
-| A3  | Add `Version.MarshalJSON` / `Version.UnmarshalJSON`                                     | event  | HIGH   | 10min  | Explicit JSON control: `{"version":1}` not `1`, prevents accidental float parse               |
-| A4  | Add `SchemaVersion.MarshalJSON` / `SchemaVersion.UnmarshalJSON`                         | event  | MED    | 6min   | Same as A3, for schema version — consistency with Version                                     |
-| A5  | Remove `omitempty` from `pebble.Metadata` struct tag (gopls: no effect on struct types) | pebble | LOW    | 3min   | Code cleanliness — `omitempty` is misleading on struct type, currently suppressed with nolint |
+| #  | Task                                                                                    | Module | Impact | Effort | Customer Value                                                                                |
+| -- | --------------------------------------------------------------------------------------- | ------ | ------ | ------ | --------------------------------------------------------------------------------------------- |
+| A1 | Add `SchemaVersion.Add(n int) SchemaVersion`                                            | event  | HIGH   | 4min   | `Version` has `Add(n)` but `SchemaVersion` only has `Increment()` — API gap                   |
+| A2 | Replace `SchemaVersion.Cmp` manual comparison → `cmp.Compare`                           | event  | HIGH   | 3min   | `Version.Cmp` uses `cmp.Compare`, `SchemaVersion.Cmp` has manual if/else — split brain        |
+| A3 | Add `Version.MarshalJSON` / `Version.UnmarshalJSON`                                     | event  | HIGH   | 10min  | Explicit JSON control: `{"version":1}` not `1`, prevents accidental float parse               |
+| A4 | Add `SchemaVersion.MarshalJSON` / `SchemaVersion.UnmarshalJSON`                         | event  | MED    | 6min   | Same as A3, for schema version — consistency with Version                                     |
+| A5 | Remove `omitempty` from `pebble.Metadata` struct tag (gopls: no effect on struct types) | pebble | LOW    | 3min   | Code cleanliness — `omitempty` is misleading on struct type, currently suppressed with nolint |
 
 ---
 
@@ -44,21 +44,21 @@ _Why second: Untested code is untrusted code. Consumers check coverage before im
 
 ### B1–B5: storage/sql coverage (37.4% → target 70%+)
 
-| #   | Task                                                                           | Target Function(s)                  | Impact | Effort |
-| --- | ------------------------------------------------------------------------------ | ----------------------------------- | ------ | ------ |
-| B1  | Add sqlmock tests: `SharedInsertEvents`                                        | `sql/helpers.go:49`                 | HIGH   | 12min  |
-| B2  | Add sqlmock tests: `SharedCheckVersion`                                        | `sql/helpers.go:91`                 | HIGH   | 12min  |
-| B3  | Add sqlmock tests: `SharedCheckpointLoad` + `SharedCheckpointSave`             | `sql/helpers.go:117,156`            | HIGH   | 12min  |
-| B4  | Add sqlmock tests: `ScanSlice` + `ReconstructEvent` + `UnmarshalEventMetadata` | `sql/reconstruction.go`             | HIGH   | 12min  |
-| B5  | Add sqlmock tests: `CommitTx` + `MarshalMetadata` + `DeleteByAggregate`        | `sql/reconstruction.go, helpers.go` | MED    | 12min  |
+| #  | Task                                                                           | Target Function(s)                  | Impact | Effort |
+| -- | ------------------------------------------------------------------------------ | ----------------------------------- | ------ | ------ |
+| B1 | Add sqlmock tests: `SharedInsertEvents`                                        | `sql/helpers.go:49`                 | HIGH   | 12min  |
+| B2 | Add sqlmock tests: `SharedCheckVersion`                                        | `sql/helpers.go:91`                 | HIGH   | 12min  |
+| B3 | Add sqlmock tests: `SharedCheckpointLoad` + `SharedCheckpointSave`             | `sql/helpers.go:117,156`            | HIGH   | 12min  |
+| B4 | Add sqlmock tests: `ScanSlice` + `ReconstructEvent` + `UnmarshalEventMetadata` | `sql/reconstruction.go`             | HIGH   | 12min  |
+| B5 | Add sqlmock tests: `CommitTx` + `MarshalMetadata` + `DeleteByAggregate`        | `sql/reconstruction.go, helpers.go` | MED    | 12min  |
 
 ### B6–B8: otel coverage (73.0% → target 85%+)
 
-| #   | Task                                                                  | Target Function(s)    | Impact | Effort |
-| --- | --------------------------------------------------------------------- | --------------------- | ------ | ------ |
-| B6  | Add tests: `NewMeter` (0% → covered)                                  | `otel/meter.go:15`    | MED    | 10min  |
-| B7  | Add tests: `WithAttributes`, `WithSpanKind`, `AttrString/Int/Int64`   | `otel/types.go:32-56` | LOW    | 12min  |
-| B8  | Add tests: `MetricWithAttributes/Description/Unit`, `SpanFromContext` | `otel/types.go:60-64` | LOW    | 12min  |
+| #  | Task                                                                  | Target Function(s)    | Impact | Effort |
+| -- | --------------------------------------------------------------------- | --------------------- | ------ | ------ |
+| B6 | Add tests: `NewMeter` (0% → covered)                                  | `otel/meter.go:15`    | MED    | 10min  |
+| B7 | Add tests: `WithAttributes`, `WithSpanKind`, `AttrString/Int/Int64`   | `otel/types.go:32-56` | LOW    | 12min  |
+| B8 | Add tests: `MetricWithAttributes/Description/Unit`, `SpanFromContext` | `otel/types.go:60-64` | LOW    | 12min  |
 
 ### B9–B11: turso coverage (28.6% → target 50%+)
 
@@ -80,23 +80,23 @@ _Why second: Untested code is untrusted code. Consumers check coverage before im
 
 ## Tier C: Code Quality Polish (MED impact, LOW effort)
 
-| #   | Task                                                                                                                                | Module         | Impact | Effort | Customer Value                                                    |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------ | ------ | ----------------------------------------------------------------- |
-| C1  | Add `SchemaVersion.Add` + `Cmp` tests                                                                                               | event          | MED    | 8min   | New methods need test coverage                                    |
-| C2  | Add `Version.MarshalJSON` / `UnmarshalJSON` tests                                                                                   | event          | MED    | 8min   | JSON serialization round-trip verification                        |
-| C3  | Add `SchemaVersion.MarshalJSON` / `UnmarshalJSON` tests                                                                             | event          | MED    | 6min   | Same as C2 for schema version                                     |
-| C4  | Audit `otel/types.go` — 9 re-export functions at 0% coverage, consider if they're needed or just passthrough wrappers               | otel           | LOW    | 5min   | Dead passthrough wrappers inflate the module without adding value |
-| C5  | Verify `event.TypeOf[T]()` design — catalog has 80% of machinery, but naming convention is unresolved (struct name vs dot-notation) | event, catalog | MED    | 5min   | Design decision blocks implementation                             |
+| #  | Task                                                                                                                                | Module         | Impact | Effort | Customer Value                                                    |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------ | ------ | ----------------------------------------------------------------- |
+| C1 | Add `SchemaVersion.Add` + `Cmp` tests                                                                                               | event          | MED    | 8min   | New methods need test coverage                                    |
+| C2 | Add `Version.MarshalJSON` / `UnmarshalJSON` tests                                                                                   | event          | MED    | 8min   | JSON serialization round-trip verification                        |
+| C3 | Add `SchemaVersion.MarshalJSON` / `UnmarshalJSON` tests                                                                             | event          | MED    | 6min   | Same as C2 for schema version                                     |
+| C4 | Audit `otel/types.go` — 9 re-export functions at 0% coverage, consider if they're needed or just passthrough wrappers               | otel           | LOW    | 5min   | Dead passthrough wrappers inflate the module without adding value |
+| C5 | Verify `event.TypeOf[T]()` design — catalog has 80% of machinery, but naming convention is unresolved (struct name vs dot-notation) | event, catalog | MED    | 5min   | Design decision blocks implementation                             |
 
 ---
 
 ## Tier D: CI & DevEx (MED impact, MED effort)
 
-| #   | Task                                                                               | Module | Impact | Effort | Customer Value                                                   |
-| --- | ---------------------------------------------------------------------------------- | ------ | ------ | ------ | ---------------------------------------------------------------- |
-| D1  | Add Docker build CI step: linux/amd64 + linux/arm64                                | CI     | MED    | 12min  | Multi-arch Docker builds are broken without CI verification      |
-| D2  | Add `nolint` justification audit — all `//nolint` comments should have `// reason` | all    | LOW    | 12min  | Blind suppressions hide real bugs                                |
-| D3  | Add per-module `go vet` CI step (separate from lint)                               | CI     | LOW    | 12min  | Defense in depth — `go vet` catches issues golangci-lint doesn't |
+| #  | Task                                                                               | Module | Impact | Effort | Customer Value                                                   |
+| -- | ---------------------------------------------------------------------------------- | ------ | ------ | ------ | ---------------------------------------------------------------- |
+| D1 | Add Docker build CI step: linux/amd64 + linux/arm64                                | CI     | MED    | 12min  | Multi-arch Docker builds are broken without CI verification      |
+| D2 | Add `nolint` justification audit — all `//nolint` comments should have `// reason` | all    | LOW    | 12min  | Blind suppressions hide real bugs                                |
+| D3 | Add per-module `go vet` CI step (separate from lint)                               | CI     | LOW    | 12min  | Defense in depth — `go vet` catches issues golangci-lint doesn't |
 
 ---
 
@@ -104,22 +104,22 @@ _Why second: Untested code is untrusted code. Consumers check coverage before im
 
 _Why: pkg.go.dev is the primary consumer touchpoint. Examples drive adoption._
 
-| #   | Task                                                                            | Module     | Impact | Effort | Customer Value                                             |
-| --- | ------------------------------------------------------------------------------- | ---------- | ------ | ------ | ---------------------------------------------------------- |
-| E1  | Add godoc examples: `decider` — Execute, Load, Repository patterns              | decider    | MED    | 10min  | Most complex module, no runnable examples on pkg.go.dev    |
-| E2  | Add godoc examples: `projection` — Runner, Builder, On[T](<>)                   | projection | MED    | 10min  | Complex replay+live API, hardest to learn without examples |
-| E3  | Add godoc examples: `signing` — HMAC + Ed25519 setup, middleware                | signing    | MED    | 8min   | Security-critical, easy to misconfigure without examples   |
-| E4  | Add godoc examples: `schema` — Upcaster, VersionedStore usage                   | schema     | MED    | 8min   | Schema evolution is a hard topic, examples reduce friction |
-| E5  | Add godoc examples: `listing` — List, StatusMiddleware, InMemoryAggregateReader | listing    | LOW    | 8min   | Newest module, no usage examples yet                       |
+| #  | Task                                                                            | Module     | Impact | Effort | Customer Value                                             |
+| -- | ------------------------------------------------------------------------------- | ---------- | ------ | ------ | ---------------------------------------------------------- |
+| E1 | Add godoc examples: `decider` — Execute, Load, Repository patterns              | decider    | MED    | 10min  | Most complex module, no runnable examples on pkg.go.dev    |
+| E2 | Add godoc examples: `projection` — Runner, Builder, On[T]()                     | projection | MED    | 10min  | Complex replay+live API, hardest to learn without examples |
+| E3 | Add godoc examples: `signing` — HMAC + Ed25519 setup, middleware                | signing    | MED    | 8min   | Security-critical, easy to misconfigure without examples   |
+| E4 | Add godoc examples: `schema` — Upcaster, VersionedStore usage                   | schema     | MED    | 8min   | Schema evolution is a hard topic, examples reduce friction |
+| E5 | Add godoc examples: `listing` — List, StatusMiddleware, InMemoryAggregateReader | listing    | LOW    | 8min   | Newest module, no usage examples yet                       |
 
 ---
 
 ## Tier F: Experiments (LOW impact, speculative)
 
-| #   | Task                                          | Module | Impact | Effort | Customer Value                                            |
-| --- | --------------------------------------------- | ------ | ------ | ------ | --------------------------------------------------------- |
-| F1  | `jsonv2` codec experiment behind build tag    | codec  | LOW    | 12min  | Potential performance win, behind experimental tag        |
-| F2  | Arena allocation experiment in event creation | event  | LOW    | 12min  | Go 1.26+ feature, potential alloc reduction for hot paths |
+| #  | Task                                          | Module | Impact | Effort | Customer Value                                            |
+| -- | --------------------------------------------- | ------ | ------ | ------ | --------------------------------------------------------- |
+| F1 | `jsonv2` codec experiment behind build tag    | codec  | LOW    | 12min  | Potential performance win, behind experimental tag        |
+| F2 | Arena allocation experiment in event creation | event  | LOW    | 12min  | Go 1.26+ feature, potential alloc reduction for hot paths |
 
 ---
 
@@ -127,13 +127,13 @@ _Why: pkg.go.dev is the primary consumer touchpoint. Examples drive adoption._
 
 _These are high impact but require major version bump and migration guide._
 
-| #   | Task                                                   | Effort | Note                         |
-| --- | ------------------------------------------------------ | ------ | ---------------------------- |
-| X1  | Add global `TransactionID` branded type                | 60min  | ADR needed first             |
-| X2  | Remove `io.Closer` from core interfaces                | 4hr    | ADR-0010 exists              |
-| X3  | Split `event.Store` into Writer/Reader/Deleter         | 3hr    | Breaking change              |
-| X4  | Make event Core truly immutable                        | 2hr    | Breaking change              |
-| X5  | Move HTTP code out of middleware → `transport/` module | 2hr    | SSE/healthcheck/metrics_http |
+| #  | Task                                                   | Effort | Note                         |
+| -- | ------------------------------------------------------ | ------ | ---------------------------- |
+| X1 | Add global `TransactionID` branded type                | 60min  | ADR needed first             |
+| X2 | Remove `io.Closer` from core interfaces                | 4hr    | ADR-0010 exists              |
+| X3 | Split `event.Store` into Writer/Reader/Deleter         | 3hr    | Breaking change              |
+| X4 | Make event Core truly immutable                        | 2hr    | Breaking change              |
+| X5 | Move HTTP code out of middleware → `transport/` module | 2hr    | SSE/healthcheck/metrics_http |
 
 ---
 

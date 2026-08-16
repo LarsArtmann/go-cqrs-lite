@@ -1,8 +1,8 @@
 # CBOR Codec Implementation — Full Execution Plan
 
-**Date:** 2026-06-11  
-**Status:** Ready to execute  
-**Branch:** master  
+**Date:** 2026-06-11\
+**Status:** Ready to execute\
+**Branch:** master\
 **Total estimated time:** ~2.5h
 
 ---
@@ -90,28 +90,28 @@ graph TD
 
 ## Task Breakdown (20 tasks, 7-100min each)
 
-| #   | Task                                     | Impact         | Effort | Files Changed                              | Deps   | Sub-tasks |
-| --- | ---------------------------------------- | -------------- | ------ | ------------------------------------------ | ------ | --------- |
-| 1   | Add `fxamacker/cbor` dep to codec/go.mod | 🔴 Blocker     | 5min   | `codec/go.mod`, `codec/go.sum`             | None   | 1a, 1b    |
-| 2   | Add `EncodingCBOR` constant              | 🔴 Blocker     | 5min   | `codec/codec.go`                           | #1     | 2a        |
-| 3   | Implement CBORCodec in codec/cbor.go     | 🔴 Core        | 15min  | `codec/cbor.go` (new)                      | #1, #2 | 3a–3e     |
-| 4   | Unit tests for CBORCodec                 | 🔴 Quality     | 15min  | `codec/codec_test.go`                      | #3     | 4a–4e     |
-| 5   | Fuzz test for CBOR round-trip            | 🔴 Safety      | 10min  | `codec/codec_fuzz_test.go`                 | #3     | 5a–5c     |
-| 6   | Benchmarks: CBOR vs JSON                 | 🟡 Validation  | 10min  | `codec/benchmark_test.go`                  | #3     | 6a–6d     |
-| 7   | Golden test + fixture                    | 🟡 Regression  | 10min  | `codec/golden_test.go`, `testdata/golden/` | #3     | 7a–7d     |
-| 8   | Verify event/ works with CBOR            | 🔴 Integration | 15min  | None (run tests)                           | #3     | 8a–8c     |
-| 9   | Add CBOR test in event/codec_test        | 🟡 Coverage    | 10min  | `event/codec_test.go`                      | #3     | 9a–9c     |
-| 10  | Verify Pebble store with CBOR            | 🔴 Integration | 10min  | None (run tests)                           | #3     | 10a–10b   |
-| 11  | Verify SQL store with CBOR               | 🔴 Integration | 10min  | None (run tests)                           | #3     | 11a–11b   |
-| 12  | Verify signing with deterministic CBOR   | 🔴 Critical    | 15min  | None (run tests + write test)              | #3     | 12a–12d   |
-| 13  | Verify encryption wrapper with CBOR      | 🟡 Integration | 10min  | None (run tests)                           | #3     | 13a–13b   |
-| 14  | Update codec/doc.go                      | 🟢 DX          | 5min   | `codec/doc.go`                             | #3     | 14a–14b   |
-| 15  | CBOR clone benchmarks in event/          | 🟡 Perf        | 10min  | `event/benchmark_clone_test.go`            | #3     | 15a–15c   |
-| 16  | CBOR integration benchmarks              | 🟡 Perf        | 15min  | `integration/realistic_bench_test.go`      | #3     | 16a–16d   |
-| 17  | Full test suite                          | 🔴 Gate        | 10min  | None                                       | #4–#13 | 17a–17b   |
-| 18  | Lint pass                                | 🟡 Quality     | 5min   | None                                       | #17    | 18a       |
-| 19  | Update codec/README.md                   | 🟢 DX          | 5min   | `codec/README.md`                          | #3     | 19a–19b   |
-| 20  | Update AGENTS.md                         | 🟢 Memory      | 5min   | `AGENTS.md`                                | #17    | 20a–20b   |
+| #  | Task                                     | Impact         | Effort | Files Changed                              | Deps   | Sub-tasks |
+| -- | ---------------------------------------- | -------------- | ------ | ------------------------------------------ | ------ | --------- |
+| 1  | Add `fxamacker/cbor` dep to codec/go.mod | 🔴 Blocker     | 5min   | `codec/go.mod`, `codec/go.sum`             | None   | 1a, 1b    |
+| 2  | Add `EncodingCBOR` constant              | 🔴 Blocker     | 5min   | `codec/codec.go`                           | #1     | 2a        |
+| 3  | Implement CBORCodec in codec/cbor.go     | 🔴 Core        | 15min  | `codec/cbor.go` (new)                      | #1, #2 | 3a–3e     |
+| 4  | Unit tests for CBORCodec                 | 🔴 Quality     | 15min  | `codec/codec_test.go`                      | #3     | 4a–4e     |
+| 5  | Fuzz test for CBOR round-trip            | 🔴 Safety      | 10min  | `codec/codec_fuzz_test.go`                 | #3     | 5a–5c     |
+| 6  | Benchmarks: CBOR vs JSON                 | 🟡 Validation  | 10min  | `codec/benchmark_test.go`                  | #3     | 6a–6d     |
+| 7  | Golden test + fixture                    | 🟡 Regression  | 10min  | `codec/golden_test.go`, `testdata/golden/` | #3     | 7a–7d     |
+| 8  | Verify event/ works with CBOR            | 🔴 Integration | 15min  | None (run tests)                           | #3     | 8a–8c     |
+| 9  | Add CBOR test in event/codec_test        | 🟡 Coverage    | 10min  | `event/codec_test.go`                      | #3     | 9a–9c     |
+| 10 | Verify Pebble store with CBOR            | 🔴 Integration | 10min  | None (run tests)                           | #3     | 10a–10b   |
+| 11 | Verify SQL store with CBOR               | 🔴 Integration | 10min  | None (run tests)                           | #3     | 11a–11b   |
+| 12 | Verify signing with deterministic CBOR   | 🔴 Critical    | 15min  | None (run tests + write test)              | #3     | 12a–12d   |
+| 13 | Verify encryption wrapper with CBOR      | 🟡 Integration | 10min  | None (run tests)                           | #3     | 13a–13b   |
+| 14 | Update codec/doc.go                      | 🟢 DX          | 5min   | `codec/doc.go`                             | #3     | 14a–14b   |
+| 15 | CBOR clone benchmarks in event/          | 🟡 Perf        | 10min  | `event/benchmark_clone_test.go`            | #3     | 15a–15c   |
+| 16 | CBOR integration benchmarks              | 🟡 Perf        | 15min  | `integration/realistic_bench_test.go`      | #3     | 16a–16d   |
+| 17 | Full test suite                          | 🔴 Gate        | 10min  | None                                       | #4–#13 | 17a–17b   |
+| 18 | Lint pass                                | 🟡 Quality     | 5min   | None                                       | #17    | 18a       |
+| 19 | Update codec/README.md                   | 🟢 DX          | 5min   | `codec/README.md`                          | #3     | 19a–19b   |
+| 20 | Update AGENTS.md                         | 🟢 Memory      | 5min   | `AGENTS.md`                                | #17    | 20a–20b   |
 
 ---
 

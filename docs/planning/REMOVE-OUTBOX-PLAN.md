@@ -227,54 +227,54 @@ nix run .#lint
 
 ### DELETE (entire files)
 
-| #   | File                                            | Lines |
-| --- | ----------------------------------------------- | ----- |
-| 1   | `core/event/outbox.go`                          | ~50   |
-| 2   | `core/event/outbox_publisher.go`                | ~210  |
-| 3   | `core/event/outbox_publisher_helpers_test.go`   | ~?    |
-| 4   | `core/event/outbox_publisher_publish_test.go`   | ~?    |
-| 5   | `core/event/outbox_publisher_lifecycle_test.go` | ~?    |
-| 6   | `storage/outbox.go`                             | ~180  |
-| 7   | `storage/outbox_test.go`                        | ~460  |
-| 8   | `storage/outbox_poller.go`                      | ~160  |
-| 9   | `storage/outbox_poller_test.go`                 | ~?    |
-| 10  | `storage/outbox_helpers.go`                     | ~130  |
-| 11  | `storage/transactional_store.go`                | ~75   |
-| 12  | `storage/transactional_store_test.go`           | ~230  |
-| 13  | `memory/outbox.go`                              | ~110  |
-| 14  | `memory/outbox_test.go`                         | ~?    |
-| 15  | `testhelpers/fake_outbox.go`                    | ~85   |
-| 16  | `testhelpers/fake_outbox_test.go`               | ~?    |
-| 17  | `docs/adr/0005-outbox-pattern.md`               | ~53   |
+| #  | File                                            | Lines |
+| -- | ----------------------------------------------- | ----- |
+| 1  | `core/event/outbox.go`                          | ~50   |
+| 2  | `core/event/outbox_publisher.go`                | ~210  |
+| 3  | `core/event/outbox_publisher_helpers_test.go`   | ~?    |
+| 4  | `core/event/outbox_publisher_publish_test.go`   | ~?    |
+| 5  | `core/event/outbox_publisher_lifecycle_test.go` | ~?    |
+| 6  | `storage/outbox.go`                             | ~180  |
+| 7  | `storage/outbox_test.go`                        | ~460  |
+| 8  | `storage/outbox_poller.go`                      | ~160  |
+| 9  | `storage/outbox_poller_test.go`                 | ~?    |
+| 10 | `storage/outbox_helpers.go`                     | ~130  |
+| 11 | `storage/transactional_store.go`                | ~75   |
+| 12 | `storage/transactional_store_test.go`           | ~230  |
+| 13 | `memory/outbox.go`                              | ~110  |
+| 14 | `memory/outbox_test.go`                         | ~?    |
+| 15 | `testhelpers/fake_outbox.go`                    | ~85   |
+| 16 | `testhelpers/fake_outbox_test.go`               | ~?    |
+| 17 | `docs/adr/0005-outbox-pattern.md`               | ~53   |
 
 ### EDIT (surgical changes)
 
-| #   | File                                         | Change                                         |
-| --- | -------------------------------------------- | ---------------------------------------------- |
-| 1   | `core/event/errors.go`                       | Remove 3 error sentinels                       |
-| 2   | `core/event/store.go`                        | Remove `TransactionalSink` interface           |
-| 3   | `core/decider/decider.go`                    | Remove `outbox` field, simplify `Execute()`    |
-| 4   | `core/decider/options.go`                    | Remove `WithOutbox()`                          |
-| 5   | `core/decider/decider_coverage_test.go`      | Remove `fakeTransactionalStore`, 1 test        |
-| 6   | `core/decider/decider_execute_test.go`       | Remove 2 tests with `WithOutbox`               |
-| 7   | `storage/sql_backend.go`                     | Remove outbox/tx fields and methods            |
-| 8   | `storage/sql_backend_test.go`                | Remove outbox-related tests                    |
-| 9   | `storage/sql/reconstruction.go`              | Remove `SaveWithOutboxTx()`                    |
-| 10  | `storage/sql/dialect.go`                     | Remove `OutboxSchema()` from interface + impls |
-| 11  | `storage/sql/errors.go`                      | Remove `OutboxStatus` type + consts            |
-| 12  | `storage/sql/tables.go`                      | Remove `TableOutbox`                           |
-| 13  | `storage/sql/helpers.go`                     | Remove `SharedAckBatch()`, `OutboxInsertSQL()` |
-| 14  | `storage/sqlite_helpers.go`                  | Remove `OutboxSchema()` from init DDL          |
-| 15  | `storage/doc.go`                             | Remove outbox type/const aliases               |
-| 16  | `storage/testhelpers.go`                     | Remove `ExpectOutboxInsert*`                   |
-| 17  | `storage/event_store_loadall_test.go`        | Remove outbox DDL assertion                    |
-| 18  | `storage/store_testsuite_test.go`            | Remove `testOutbox_Roundtrip()`                |
-| 19  | `storage/sqlite_integration_helpers_test.go` | Remove 3 outbox tests                          |
-| 20  | `storage/options_test.go`                    | Remove `TestOutboxStatus_String`               |
-| 21  | `turso/connector.go`                         | Remove `NewTursoTransactionalStore()`          |
-| 22  | `AGENTS.md`                                  | Remove outbox references, add checkpoint note  |
-| 23  | `docs/STORAGE_GUIDE.md`                      | Remove outbox section                          |
-| 24  | `docs/outbox-explained.html`                 | Add deprecation banner                         |
+| #  | File                                         | Change                                         |
+| -- | -------------------------------------------- | ---------------------------------------------- |
+| 1  | `core/event/errors.go`                       | Remove 3 error sentinels                       |
+| 2  | `core/event/store.go`                        | Remove `TransactionalSink` interface           |
+| 3  | `core/decider/decider.go`                    | Remove `outbox` field, simplify `Execute()`    |
+| 4  | `core/decider/options.go`                    | Remove `WithOutbox()`                          |
+| 5  | `core/decider/decider_coverage_test.go`      | Remove `fakeTransactionalStore`, 1 test        |
+| 6  | `core/decider/decider_execute_test.go`       | Remove 2 tests with `WithOutbox`               |
+| 7  | `storage/sql_backend.go`                     | Remove outbox/tx fields and methods            |
+| 8  | `storage/sql_backend_test.go`                | Remove outbox-related tests                    |
+| 9  | `storage/sql/reconstruction.go`              | Remove `SaveWithOutboxTx()`                    |
+| 10 | `storage/sql/dialect.go`                     | Remove `OutboxSchema()` from interface + impls |
+| 11 | `storage/sql/errors.go`                      | Remove `OutboxStatus` type + consts            |
+| 12 | `storage/sql/tables.go`                      | Remove `TableOutbox`                           |
+| 13 | `storage/sql/helpers.go`                     | Remove `SharedAckBatch()`, `OutboxInsertSQL()` |
+| 14 | `storage/sqlite_helpers.go`                  | Remove `OutboxSchema()` from init DDL          |
+| 15 | `storage/doc.go`                             | Remove outbox type/const aliases               |
+| 16 | `storage/testhelpers.go`                     | Remove `ExpectOutboxInsert*`                   |
+| 17 | `storage/event_store_loadall_test.go`        | Remove outbox DDL assertion                    |
+| 18 | `storage/store_testsuite_test.go`            | Remove `testOutbox_Roundtrip()`                |
+| 19 | `storage/sqlite_integration_helpers_test.go` | Remove 3 outbox tests                          |
+| 20 | `storage/options_test.go`                    | Remove `TestOutboxStatus_String`               |
+| 21 | `turso/connector.go`                         | Remove `NewTursoTransactionalStore()`          |
+| 22 | `AGENTS.md`                                  | Remove outbox references, add checkpoint note  |
+| 23 | `docs/STORAGE_GUIDE.md`                      | Remove outbox section                          |
+| 24 | `docs/outbox-explained.html`                 | Add deprecation banner                         |
 
 ---
 

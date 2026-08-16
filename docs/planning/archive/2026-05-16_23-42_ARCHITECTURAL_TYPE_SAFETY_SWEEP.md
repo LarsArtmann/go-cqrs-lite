@@ -16,12 +16,12 @@ Deep architectural audit identified **6 critical type-safety gaps**, **8 should-
 
 ### The 1% → 51% of Value
 
-| #   | Task                                               | Impact                                                | Effort | Why 51%                                              |
-| --- | -------------------------------------------------- | ----------------------------------------------------- | ------ | ---------------------------------------------------- |
-| P1  | `NewEvent` accepts `event.Version` not `int`       | Fixes root cause of bare-int leakage across 10+ files | 30min  | Type safety propagates through entire event pipeline |
-| P2  | `SchemaVersion` strong type (not bare `int`)       | Makes schema version distinct from event version      | 20min  | Eliminates class of bugs mixing version types        |
-| P3  | `OutboxStatus` enum (not magic `'pending'` string) | Eliminates 7 magic strings in storage                 | 15min  | DDD value object, prevents typos                     |
-| P4  | Middleware error classification (4 sentinels)      | Error taxonomy completeness                           | 15min  | `IsRetryable` works correctly for middleware errors  |
+| #  | Task                                               | Impact                                                | Effort | Why 51%                                              |
+| -- | -------------------------------------------------- | ----------------------------------------------------- | ------ | ---------------------------------------------------- |
+| P1 | `NewEvent` accepts `event.Version` not `int`       | Fixes root cause of bare-int leakage across 10+ files | 30min  | Type safety propagates through entire event pipeline |
+| P2 | `SchemaVersion` strong type (not bare `int`)       | Makes schema version distinct from event version      | 20min  | Eliminates class of bugs mixing version types        |
+| P3 | `OutboxStatus` enum (not magic `'pending'` string) | Eliminates 7 magic strings in storage                 | 15min  | DDD value object, prevents typos                     |
+| P4 | Middleware error classification (4 sentinels)      | Error taxonomy completeness                           | 15min  | `IsRetryable` works correctly for middleware errors  |
 
 ### The 4% → 64% of Value
 

@@ -1,9 +1,9 @@
 # Comprehensive Execution Plan — go-cqrs-lite Project Groups Improvement
 
-**Date:** 2026-05-18 15:10  
-**Scope:** Multi-module monorepo hygiene, type safety, deduplication, documentation  
-**Total Tasks:** 86  
-**Max Task Duration:** 12 minutes  
+**Date:** 2026-05-18 15:10\
+**Scope:** Multi-module monorepo hygiene, type safety, deduplication, documentation\
+**Total Tasks:** 86\
+**Max Task Duration:** 12 minutes\
 **Sorting:** Pareto impact (1%→51% first, then 4%→64%, then 20%→80%)
 
 ---

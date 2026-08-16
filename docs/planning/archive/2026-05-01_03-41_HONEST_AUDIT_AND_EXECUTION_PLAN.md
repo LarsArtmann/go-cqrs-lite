@@ -1,7 +1,7 @@
 # Session 18 — Honest Audit & Execution Plan
 
-**Date:** 2026-05-01 03:41  
-**Branch:** master  
+**Date:** 2026-05-01 03:41\
+**Branch:** master\
 **Working tree:** Clean
 
 ---
@@ -127,7 +127,7 @@ Sorted by consumer trust impact (highest first):
 | M-25 | Update `AGENTS.md` coverage table with current numbers                 | LOW      | 5min   | M-17–M-19  |
 | M-26 | Run full test suite + lint + race                                      | HIGH     | 5min   | all        |
 
-**Total micro-tasks: 26**  
+**Total micro-tasks: 26**\
 **Estimated total: ~4 hours**
 
 ---

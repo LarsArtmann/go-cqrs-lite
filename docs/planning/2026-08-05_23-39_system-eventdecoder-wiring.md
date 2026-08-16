@@ -45,38 +45,38 @@ Above + **update the nsfw-classifier plan** to recommend `system/` as the compos
 
 ## Task Breakdown — Phase 1: 30-min tasks
 
-| #   | Task                                                                                               | Impact   | Effort | Priority |
-| --- | -------------------------------------------------------------------------------------------------- | -------- | ------ | -------- |
-| 1   | Add `ProjectionTypeDecoder` + `ProjectionEventDecoder` fields to `DomainConfig`                    | Critical | 10min  | P0       |
-| 2   | Wire both in `constructor.go` (priority: TypeDecoder > EventDecoder > PayloadDecoder)              | Critical | 15min  | P0       |
-| 3   | Write test: Map ADT query through system/ with TypeDecoder — verify stream ID reaches fold handler | High     | 20min  | P0       |
-| 4   | Update nsfw-classifier plan: add Appendix B showing system/ approach                               | High     | 20min  | P1       |
-| 5   | Build + test + race verification                                                                   | Medium   | 10min  | P1       |
-| 6   | Commit + push                                                                                      | Low      | 5min   | P2       |
+| # | Task                                                                                               | Impact   | Effort | Priority |
+| - | -------------------------------------------------------------------------------------------------- | -------- | ------ | -------- |
+| 1 | Add `ProjectionTypeDecoder` + `ProjectionEventDecoder` fields to `DomainConfig`                    | Critical | 10min  | P0       |
+| 2 | Wire both in `constructor.go` (priority: TypeDecoder > EventDecoder > PayloadDecoder)              | Critical | 15min  | P0       |
+| 3 | Write test: Map ADT query through system/ with TypeDecoder — verify stream ID reaches fold handler | High     | 20min  | P0       |
+| 4 | Update nsfw-classifier plan: add Appendix B showing system/ approach                               | High     | 20min  | P1       |
+| 5 | Build + test + race verification                                                                   | Medium   | 10min  | P1       |
+| 6 | Commit + push                                                                                      | Low      | 5min   | P2       |
 
 ---
 
 ## Task Breakdown — Phase 2: 12-min tasks
 
-| #   | Task                                                                                                              | Est  |
-| --- | ----------------------------------------------------------------------------------------------------------------- | ---- |
-| 1a  | Add `ProjectionTypeDecoder *projectionadapter.TypeDecoder` field to `DomainConfig` struct                         | 5min |
-| 1b  | Add `ProjectionEventDecoder projectionadapter.EventDecoder` field to `DomainConfig` struct                        | 3min |
-| 1c  | Update `DomainConfig` godoc to explain decoder priority                                                           | 4min |
-| 2a  | Add import for `projectionadapter` in constructor.go (verify already imported)                                    | 2min |
-| 2b  | Write the TypeDecoder branch: `if domain.ProjectionTypeDecoder != nil { NewWithDecoder(...) }`                    | 5min |
-| 2c  | Write the EventDecoder branch: `else if domain.ProjectionEventDecoder != nil { New(..., WithEventDecoder(...)) }` | 5min |
-| 3a  | Write test type declarations (event payload, query input, result type)                                            | 5min |
-| 3b  | Write test: build DomainConfig with TypeDecoder, call system.New, apply event, query result                       | 8min |
-| 3c  | Write test: assert stream ID is non-empty in fold handler output                                                  | 4min |
-| 3d  | Write test: verify fallback to PayloadDecoder still works (backward compat)                                       | 5min |
-| 4a  | Draft Appendix B content for nsfw-classifier plan                                                                 | 8min |
-| 4b  | Write Appendix B into the plan doc                                                                                | 5min |
-| 5a  | `go build -tags goexperiment.jsonv2 ./system/...`                                                                 | 2min |
-| 5b  | `go test -tags goexperiment.jsonv2 -race -count=1 ./system/...`                                                   | 5min |
-| 5c  | `go test -tags goexperiment.jsonv2 -race -count=1 ./metaengine/... ./metaengine/projectionadapter/...`            | 3min |
-| 6a  | `git add` + commit with detailed message                                                                          | 5min |
-| 6b  | `git push`                                                                                                        | 2min |
+| #  | Task                                                                                                              | Est  |
+| -- | ----------------------------------------------------------------------------------------------------------------- | ---- |
+| 1a | Add `ProjectionTypeDecoder *projectionadapter.TypeDecoder` field to `DomainConfig` struct                         | 5min |
+| 1b | Add `ProjectionEventDecoder projectionadapter.EventDecoder` field to `DomainConfig` struct                        | 3min |
+| 1c | Update `DomainConfig` godoc to explain decoder priority                                                           | 4min |
+| 2a | Add import for `projectionadapter` in constructor.go (verify already imported)                                    | 2min |
+| 2b | Write the TypeDecoder branch: `if domain.ProjectionTypeDecoder != nil { NewWithDecoder(...) }`                    | 5min |
+| 2c | Write the EventDecoder branch: `else if domain.ProjectionEventDecoder != nil { New(..., WithEventDecoder(...)) }` | 5min |
+| 3a | Write test type declarations (event payload, query input, result type)                                            | 5min |
+| 3b | Write test: build DomainConfig with TypeDecoder, call system.New, apply event, query result                       | 8min |
+| 3c | Write test: assert stream ID is non-empty in fold handler output                                                  | 4min |
+| 3d | Write test: verify fallback to PayloadDecoder still works (backward compat)                                       | 5min |
+| 4a | Draft Appendix B content for nsfw-classifier plan                                                                 | 8min |
+| 4b | Write Appendix B into the plan doc                                                                                | 5min |
+| 5a | `go build -tags goexperiment.jsonv2 ./system/...`                                                                 | 2min |
+| 5b | `go test -tags goexperiment.jsonv2 -race -count=1 ./system/...`                                                   | 5min |
+| 5c | `go test -tags goexperiment.jsonv2 -race -count=1 ./metaengine/... ./metaengine/projectionadapter/...`            | 3min |
+| 6a | `git add` + commit with detailed message                                                                          | 5min |
+| 6b | `git push`                                                                                                        | 2min |
 
 ---
 

@@ -403,17 +403,17 @@ Forcing all five through one `UserView` struct and one projection means:
 ### Instead: One Event Stream, Five Independent Projections
 
 ```
-                    EVENT LOG (source of truth)
-                         │
-         ┌───────────────┼───────────────┬──────────────┬──────────────┐
-         ▼               ▼               ▼              ▼              ▼
-    FindUser        CheckEmail      ListByStatus    CountBy         FriendsOf
-    projection      projection      projection      projection      projection
-         │               │               │              │              │
-    Pebble hash     Bloom filter    SQLite table    SQLite rollup   Neo4j graph
-    (by UserID)     (email set)     + idx_status    (status→count)  (adjacency)
-         │               │               │              │              │
-    O(1) lookup      O(k) test       O(logN) scan    O(1) read       O(degree^d)
+                EVENT LOG (source of truth)
+                     │
+     ┌───────────────┼───────────────┬──────────────┬──────────────┐
+     ▼               ▼               ▼              ▼              ▼
+FindUser        CheckEmail      ListByStatus    CountBy         FriendsOf
+projection      projection      projection      projection      projection
+     │               │               │              │              │
+Pebble hash     Bloom filter    SQLite table    SQLite rollup   Neo4j graph
+(by UserID)     (email set)     + idx_status    (status→count)  (adjacency)
+     │               │               │              │              │
+O(1) lookup      O(k) test       O(logN) scan    O(1) read       O(degree^d)
 ```
 
 When `UserCreated` arrives, ALL FIVE projections update independently — each in its own

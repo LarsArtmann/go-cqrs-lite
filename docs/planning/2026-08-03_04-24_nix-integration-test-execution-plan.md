@@ -37,49 +37,49 @@
 
 These are non-negotiable. Without them, all other work is at risk.
 
-| #   | Task                        | Why                                           | Effort | Status                                                       |
-| --- | --------------------------- | --------------------------------------------- | ------ | ------------------------------------------------------------ |
-| 1   | Run `nix run .#verify-fast` | Confirm no regressions from flake.nix changes | 5min   | **NOT DONE**                                                 |
-| 2   | Push commits to remote      | Uncommitted/unpushed work = lost work         | 1min   | **DONE** (infra on `origin/master`; 1 trailing doc unpushed) |
+| # | Task                        | Why                                           | Effort | Status                                                       |
+| - | --------------------------- | --------------------------------------------- | ------ | ------------------------------------------------------------ |
+| 1 | Run `nix run .#verify-fast` | Confirm no regressions from flake.nix changes | 5min   | **NOT DONE**                                                 |
+| 2 | Push commits to remote      | Uncommitted/unpushed work = lost work         | 1min   | **DONE** (infra on `origin/master`; 1 trailing doc unpushed) |
 
 ### The 4% That Delivers 64%
 
 These unblock the full integration test story and verify the infrastructure actually works end-to-end.
 
-| #   | Task                                           | Why                                                  | Effort | Status                                                                                                                                                                                                 |
-| --- | ---------------------------------------------- | ---------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 3   | End-to-end test `scripts/vm-pg.sh`             | The script was written but never run — may have bugs | 15min  | **NOT DONE**                                                                                                                                                                                           |
-| 4   | End-to-end test `scripts/vm-mysql.sh`          | Same — never run                                     | 15min  | **NOT DONE**                                                                                                                                                                                           |
-| 5   | Fix pre-existing `stack/postgres` go.sum drift | Blocks PG integration tests for that module          | 10min  | **CHANGED** — `flightrecorder/v4` is now in `go.mod`, but a new error blocks the build: `undefined: storage.SQLiteSetSynchronous` at `stack/sqlopt/durability.go:40` (stale published `stack/v4` pin). |
+| # | Task                                           | Why                                                  | Effort | Status                                                                                                                                                                                                 |
+| - | ---------------------------------------------- | ---------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 3 | End-to-end test `scripts/vm-pg.sh`             | The script was written but never run — may have bugs | 15min  | **NOT DONE**                                                                                                                                                                                           |
+| 4 | End-to-end test `scripts/vm-mysql.sh`          | Same — never run                                     | 15min  | **NOT DONE**                                                                                                                                                                                           |
+| 5 | Fix pre-existing `stack/postgres` go.sum drift | Blocks PG integration tests for that module          | 10min  | **CHANGED** — `flightrecorder/v4` is now in `go.mod`, but a new error blocks the build: `undefined: storage.SQLiteSetSynchronous` at `stack/sqlopt/durability.go:40` (stale published `stack/v4` pin). |
 
 ### The 20% That Delivers 80%
 
 Quality hardening, documentation, and CI improvements that make the infrastructure production-grade.
 
-| #   | Task                                          | Why                                                                | Effort | Status                                                              |
-| --- | --------------------------------------------- | ------------------------------------------------------------------ | ------ | ------------------------------------------------------------------- |
-| 6   | Write ADR-0095: Nix-based integration testing | Document rationale, tradeoffs, MariaDB limitation                  | 15min  | **DONE** ([ADR-0095](../adr/0095-nix-based-integration-testing.md)) |
-| 7   | Add KVM detection to VM scripts               | Warn gracefully if `/dev/kvm` missing (10-50x slowdown without it) | 10min  | **NOT DONE** (no `/dev/kvm` check in scripts)                       |
-| 8   | Add ephemeral PG as a fast CI path            | No VM, no Docker — fastest integration test path                   | 10min  | **NOT DONE** (CI has only `nixos-vm-tests`)                         |
-| 9   | Matrix-parallelize `nixos-vm-tests` CI job    | PG + MySQL in parallel instead of sequential                       | 10min  | **NOT DONE** (`ci.yml:600-604` runs them sequentially)              |
-| 10  | Investigate `systemd-nspawn` container type   | Could make MySQL VM test 10x faster (131s → ~15s)                  | 20min  | **NOT DONE** (no `containerType` in nix files)                      |
+| #  | Task                                          | Why                                                                | Effort | Status                                                              |
+| -- | --------------------------------------------- | ------------------------------------------------------------------ | ------ | ------------------------------------------------------------------- |
+| 6  | Write ADR-0095: Nix-based integration testing | Document rationale, tradeoffs, MariaDB limitation                  | 15min  | **DONE** ([ADR-0095](../adr/0095-nix-based-integration-testing.md)) |
+| 7  | Add KVM detection to VM scripts               | Warn gracefully if `/dev/kvm` missing (10-50x slowdown without it) | 10min  | **NOT DONE** (no `/dev/kvm` check in scripts)                       |
+| 8  | Add ephemeral PG as a fast CI path            | No VM, no Docker — fastest integration test path                   | 10min  | **NOT DONE** (CI has only `nixos-vm-tests`)                         |
+| 9  | Matrix-parallelize `nixos-vm-tests` CI job    | PG + MySQL in parallel instead of sequential                       | 10min  | **NOT DONE** (`ci.yml:600-604` runs them sequentially)              |
+| 10 | Investigate `systemd-nspawn` container type   | Could make MySQL VM test 10x faster (131s → ~15s)                  | 20min  | **NOT DONE** (no `containerType` in nix files)                      |
 
 ### The Other 20% (Future / Nice-to-Have)
 
 All **NOT STARTED**.
 
-| #   | Task                                               | Why                                             | Effort | Status      |
-| --- | -------------------------------------------------- | ----------------------------------------------- | ------ | ----------- |
-| 11  | macOS verification of ephemeral PG                 | Claim cross-platform but never tested on Darwin | 15min  | NOT STARTED |
-| 12  | DuckDB CGo VM test                                 | Test DuckDB in a hermetic VM                    | 20min  | NOT STARTED |
-| 13  | SQLite WAL concurrency VM test                     | Test concurrent access patterns                 | 15min  | NOT STARTED |
-| 14  | Turso sync VM test                                 | Test against real libSQL server                 | 20min  | NOT STARTED |
-| 15  | Run Go test binaries inside VM                     | Deeper coverage without Docker                  | 30min  | NOT STARTED |
-| 16  | Cache ephemeral PG data dir                        | Faster startup on repeated runs                 | 10min  | NOT STARTED |
-| 17  | Add `--keep-alive` flag to VM scripts              | Interactive debugging                           | 10min  | NOT STARTED |
-| 18  | VM serial console log capture                      | Debug test failures in CI                       | 10min  | NOT STARTED |
-| 19  | Connection retry logic with backoff                | Robustness for VM scripts                       | 10min  | NOT STARTED |
-| 20  | Performance profiling: ephemeral vs testcontainers | Document the win                                | 15min  | NOT STARTED |
+| #  | Task                                               | Why                                             | Effort | Status      |
+| -- | -------------------------------------------------- | ----------------------------------------------- | ------ | ----------- |
+| 11 | macOS verification of ephemeral PG                 | Claim cross-platform but never tested on Darwin | 15min  | NOT STARTED |
+| 12 | DuckDB CGo VM test                                 | Test DuckDB in a hermetic VM                    | 20min  | NOT STARTED |
+| 13 | SQLite WAL concurrency VM test                     | Test concurrent access patterns                 | 15min  | NOT STARTED |
+| 14 | Turso sync VM test                                 | Test against real libSQL server                 | 20min  | NOT STARTED |
+| 15 | Run Go test binaries inside VM                     | Deeper coverage without Docker                  | 30min  | NOT STARTED |
+| 16 | Cache ephemeral PG data dir                        | Faster startup on repeated runs                 | 10min  | NOT STARTED |
+| 17 | Add `--keep-alive` flag to VM scripts              | Interactive debugging                           | 10min  | NOT STARTED |
+| 18 | VM serial console log capture                      | Debug test failures in CI                       | 10min  | NOT STARTED |
+| 19 | Connection retry logic with backoff                | Robustness for VM scripts                       | 10min  | NOT STARTED |
+| 20 | Performance profiling: ephemeral vs testcontainers | Document the win                                | 15min  | NOT STARTED |
 
 ---
 
@@ -213,7 +213,7 @@ Sorted by priority, then impact, then effort, then customer-value.
 
 | ID    | Micro-Task                                            | Time |
 | ----- | ----------------------------------------------------- | ---- |
-| M10.1 | Add `[ -e /dev/kvm ]                                  |      | echo "WARNING: KVM not available..."`to`vm-pg.sh`and`vm-mysql.sh` | 5min |
+| M10.1 | Add `[ -e /dev/kvm ]                                  |      |
 | M10.2 | Test the detection by temporarily renaming `/dev/kvm` | 5min |
 
 ### M11: Add ephemeral PG to CI (10min)

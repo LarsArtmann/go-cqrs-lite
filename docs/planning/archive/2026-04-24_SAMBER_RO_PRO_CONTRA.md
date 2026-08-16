@@ -86,7 +86,7 @@ No references to `samber/ro` or any reactive/stream programming library exist in
 | Option                 | Event Replay  | Projections | Distribution      | Maturity | Complexity |
 | ---------------------- | ------------- | ----------- | ----------------- | -------- | ---------- |
 | Status quo (in-memory) | Manual        | Manual      | ❌                | ✅       | Low        |
-| samber/ro              | ReplaySubject | Operators   | Via Redis plugin  | ⚠️ v0.3  | Medium     |
+| samber/ro              | ReplaySubject | Operators   | Via Redis plugin  | ⚠️ v0.3   | Medium     |
 | Go channels            | Manual        | Manual      | ❌                | ✅       | Medium     |
 | Watermill              | Manual        | Manual      | ✅ Kafka/NATS/etc | ✅       | High       |
 

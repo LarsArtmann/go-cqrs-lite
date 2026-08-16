@@ -49,18 +49,18 @@ We have 65 rules but have NEVER run them against real consumer projects and veri
 
 **What:** Rules that catch real patterns observed across MULTIPLE consumer projects.
 
-| #   | Rule  | Pattern                                             | Projects affected                |
-| --- | ----- | --------------------------------------------------- | -------------------------------- |
-| 6   | C006+ | Version arithmetic `ver+1` in event creation        | Kernovia, Standup-Killer         |
-| 7   | A014+ | event.NewEvent (deprecated) detection completeness  | Most projects                    |
-| 8   | B023  | Missing command middleware (no recovery/logging)    | timesheets, go-localsync, storbi |
-| 9   | B024  | Missing event bus recovery middleware               | Multiple projects                |
-| 10  | C022  | `_ = ctx` in handler (context ignored)              | crush-daily                      |
-| 11  | C021  | Mutex held during DecodePayloadAuto                 | crush-daily                      |
-| 12  | D012  | Missing event.WithSchemaVersion                     | Most projects                    |
-| 13  | A027  | Repeated event.WithCodec (should be centralized)    | crush-daily                      |
-| 14  | V001  | v3/v4 module mixing in same project                 | go-plugin-mvp, go-appkit         |
-| 15  | A024  | Decorative event sourcing (imports but never wires) | storbi                           |
+| #  | Rule  | Pattern                                             | Projects affected                |
+| -- | ----- | --------------------------------------------------- | -------------------------------- |
+| 6  | C006+ | Version arithmetic `ver+1` in event creation        | Kernovia, Standup-Killer         |
+| 7  | A014+ | event.NewEvent (deprecated) detection completeness  | Most projects                    |
+| 8  | B023  | Missing command middleware (no recovery/logging)    | timesheets, go-localsync, storbi |
+| 9  | B024  | Missing event bus recovery middleware               | Multiple projects                |
+| 10 | C022  | `_ = ctx` in handler (context ignored)              | crush-daily                      |
+| 11 | C021  | Mutex held during DecodePayloadAuto                 | crush-daily                      |
+| 12 | D012  | Missing event.WithSchemaVersion                     | Most projects                    |
+| 13 | A027  | Repeated event.WithCodec (should be centralized)    | crush-daily                      |
+| 14 | V001  | v3/v4 module mixing in same project                 | go-plugin-mvp, go-appkit         |
+| 15 | A024  | Decorative event sourcing (imports but never wires) | storbi                           |
 
 ### The remaining 20% → 100%: All Other Rules + DX
 

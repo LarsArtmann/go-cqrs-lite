@@ -193,28 +193,28 @@ wrong meeting times, expired sessions, shifted deadlines.
 
 Sorted by Impact/Effort ratio (descending). Dependencies noted in `Depends On` column.
 
-| #   | Task                                                                                                                                                   | Tier | Impact   | Effort | I/E  | Depends On |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | -------- | ------ | ---- | ---------- |
-| 1   | **Configure CBOR codec** `Time=TimeUnixDynamic` in `cbor.go` + `cbor_compact.go`                                                                       | 1    | CRITICAL | 30min  | 10.0 | —          |
-| 2   | **Fix pebble deserialization** `.UTC()` in `serialization.go`                                                                                          | 1    | HIGH     | 30min  | 8.0  | —          |
-| 3   | **Write `docs/TIMEZONE_HANDLING.md`** — Instant vs Wall-clock, UTC convention, API boundary rules, CBOR encoding explanation, consumer migration guide | 2    | HIGH     | 90min  | 4.0  | 1          |
-| 4   | **Fix Standup-Killer** Schedule fields (HHMM+Timezone) — verify they encode correctly or convert to explicit types                                     | 3    | CRITICAL | 45min  | 5.0  | 1          |
-| 5   | **Fix KeyCountdown** deadline fields + remove CBOR→JSON workaround in `LiteToDomainEvent`                                                              | 3    | CRITICAL | 60min  | 5.0  | 1          |
-| 6   | **Fix website-holger-hahn** StartDate/EndDate — convert to string or ensure `.UTC()`                                                                   | 3    | HIGH     | 30min  | 5.3  | 1          |
-| 7   | **Fix reports** timesheet times — StartedAt/EndedAt need `.UTC()` or string                                                                            | 3    | HIGH     | 45min  | 4.4  | 1          |
-| 8   | **Fix ChastityAPI + DiscordSync + StopTube** deadline fields                                                                                           | 3    | HIGH     | 45min  | 4.4  | 1          |
-| 9   | **Fix SwettySwipperWeb** EXIF.DateTaken — hardest case, ambiguous offsets                                                                              | 3    | HIGH     | 60min  | 4.0  | 1          |
-| 10  | **Update ADR-0019** — fix stale `time.Time` → `int64` mismatch                                                                                         | 2    | MEDIUM   | 30min  | 4.0  | —          |
-| 11  | **Fix instant fields** in crush-daily, SEC, Zlota44 — add `.UTC()` before encoding                                                                     | 4    | MEDIUM   | 45min  | 3.5  | 1          |
-| 12  | **Fix instant fields** in github-local-sync, Kernovia, SwettySwipperWeb — add `.UTC()`                                                                 | 4    | MEDIUM   | 45min  | 3.5  | 1          |
-| 13  | **Run full test suite** across all 22 consumers after codec change                                                                                     | ALL  | CRITICAL | 60min  | 5.0  | 1          |
-| 14  | **Add `WallTime` type** to go-cqrs-lite — `hour`, `minute`, `location string` with CBOR marshaler                                                      | 4    | MEDIUM   | 60min  | 2.7  | 3          |
-| 15  | **Add `Instant` type** — wraps `time.Time`, enforces UTC at construction                                                                               | 4    | MEDIUM   | 45min  | 2.7  | 3          |
-| 16  | **Create lint analyzer** — flag `time.Time` fields in event payload structs                                                                            | 4    | HIGH     | 90min  | 2.2  | 3          |
-| 17  | **Add codec README + event doc.go** notes about time handling convention                                                                               | 2    | LOW      | 30min  | 2.0  | 3          |
-| 18  | **Run `go vet` + `golangci-lint`** across all 22 consumers                                                                                             | 4    | MEDIUM   | 45min  | 2.3  | 13         |
-| 19  | **Write consumer migration guide** — step-by-step: audit payloads, add `.UTC()`, convert wall-clocks                                                   | 2    | MEDIUM   | 30min  | 3.0  | 3          |
-| 20  | **Integration test** — cross-codec time round-trip (CBOR encode → JSON decode → verify)                                                                | 4    | MEDIUM   | 45min  | 2.3  | 1          |
+| #  | Task                                                                                                                                                   | Tier | Impact   | Effort | I/E  | Depends On |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | -------- | ------ | ---- | ---------- |
+| 1  | **Configure CBOR codec** `Time=TimeUnixDynamic` in `cbor.go` + `cbor_compact.go`                                                                       | 1    | CRITICAL | 30min  | 10.0 | —          |
+| 2  | **Fix pebble deserialization** `.UTC()` in `serialization.go`                                                                                          | 1    | HIGH     | 30min  | 8.0  | —          |
+| 3  | **Write `docs/TIMEZONE_HANDLING.md`** — Instant vs Wall-clock, UTC convention, API boundary rules, CBOR encoding explanation, consumer migration guide | 2    | HIGH     | 90min  | 4.0  | 1          |
+| 4  | **Fix Standup-Killer** Schedule fields (HHMM+Timezone) — verify they encode correctly or convert to explicit types                                     | 3    | CRITICAL | 45min  | 5.0  | 1          |
+| 5  | **Fix KeyCountdown** deadline fields + remove CBOR→JSON workaround in `LiteToDomainEvent`                                                              | 3    | CRITICAL | 60min  | 5.0  | 1          |
+| 6  | **Fix website-holger-hahn** StartDate/EndDate — convert to string or ensure `.UTC()`                                                                   | 3    | HIGH     | 30min  | 5.3  | 1          |
+| 7  | **Fix reports** timesheet times — StartedAt/EndedAt need `.UTC()` or string                                                                            | 3    | HIGH     | 45min  | 4.4  | 1          |
+| 8  | **Fix ChastityAPI + DiscordSync + StopTube** deadline fields                                                                                           | 3    | HIGH     | 45min  | 4.4  | 1          |
+| 9  | **Fix SwettySwipperWeb** EXIF.DateTaken — hardest case, ambiguous offsets                                                                              | 3    | HIGH     | 60min  | 4.0  | 1          |
+| 10 | **Update ADR-0019** — fix stale `time.Time` → `int64` mismatch                                                                                         | 2    | MEDIUM   | 30min  | 4.0  | —          |
+| 11 | **Fix instant fields** in crush-daily, SEC, Zlota44 — add `.UTC()` before encoding                                                                     | 4    | MEDIUM   | 45min  | 3.5  | 1          |
+| 12 | **Fix instant fields** in github-local-sync, Kernovia, SwettySwipperWeb — add `.UTC()`                                                                 | 4    | MEDIUM   | 45min  | 3.5  | 1          |
+| 13 | **Run full test suite** across all 22 consumers after codec change                                                                                     | ALL  | CRITICAL | 60min  | 5.0  | 1          |
+| 14 | **Add `WallTime` type** to go-cqrs-lite — `hour`, `minute`, `location string` with CBOR marshaler                                                      | 4    | MEDIUM   | 60min  | 2.7  | 3          |
+| 15 | **Add `Instant` type** — wraps `time.Time`, enforces UTC at construction                                                                               | 4    | MEDIUM   | 45min  | 2.7  | 3          |
+| 16 | **Create lint analyzer** — flag `time.Time` fields in event payload structs                                                                            | 4    | HIGH     | 90min  | 2.2  | 3          |
+| 17 | **Add codec README + event doc.go** notes about time handling convention                                                                               | 2    | LOW      | 30min  | 2.0  | 3          |
+| 18 | **Run `go vet` + `golangci-lint`** across all 22 consumers                                                                                             | 4    | MEDIUM   | 45min  | 2.3  | 13         |
+| 19 | **Write consumer migration guide** — step-by-step: audit payloads, add `.UTC()`, convert wall-clocks                                                   | 2    | MEDIUM   | 30min  | 3.0  | 3          |
+| 20 | **Integration test** — cross-codec time round-trip (CBOR encode → JSON decode → verify)                                                                | 4    | MEDIUM   | 45min  | 2.3  | 1          |
 
 **Total estimated effort:** ~990min (~16.5 hours)
 

@@ -126,44 +126,44 @@ This makes impossible states unrepresentable: you cannot accidentally try to per
 
 ## 5. Comprehensive Task List
 
-| #   | Phase          | Task                                                                                    | Est. | Impact      | Effort | Why                                          |
-| --- | -------------- | --------------------------------------------------------------------------------------- | ---- | ----------- | ------ | -------------------------------------------- |
-| 1   | **Foundation** | Create `saga.State` type in new `state.go`                                              | 5m   | 🔴 Critical | Low    | Without this, no persistence possible        |
-| 2   | **Foundation** | Redefine `saga.Instance` to embed `State` + `Steps` + `Err`                             | 5m   | 🔴 Critical | Low    | Runtime view separate from persistable state |
-| 3   | **Foundation** | Update `saga.Store` interface to use `*State`                                           | 3m   | 🔴 Critical | Low    | Interface is the contract                    |
-| 4   | **Foundation** | Update `MemoryStore` for new interface + add defensive copies                           | 8m   | 🔴 Critical | Med    | Tests and in-memory impl must work           |
-| 5   | **Foundation** | Update `Runner` to hydrate `State` → `Instance` and dehydrate `Instance` → `State`      | 10m  | 🔴 Critical | Med    | Core orchestration logic                     |
-| 6   | **Foundation** | Update all saga tests for new types (`errorStore`, field access, assertions)            | 10m  | 🔴 Critical | Med    | Must not break test suite                    |
-| 7   | **Foundation** | Remove unused `StatusStepCompleted` constant                                            | 2m   | 🟡 Medium   | Low    | Dead code removal                            |
-| 8   | **Foundation** | Run `go test ./saga/...` and fix any issues                                             | 5m   | 🔴 Critical | Low    | Verify foundation                            |
-| 9   | **SQL Store**  | Add `SagaSchema()` to `Dialect` interface                                               | 3m   | 🔴 Critical | Low    | Required for SQL store                       |
-| 10  | **SQL Store**  | Implement `PostgresDialect.SagaSchema()`                                                | 5m   | 🔴 Critical | Low    | PostgreSQL DDL                               |
-| 11  | **SQL Store**  | Implement `SQLiteDialect.SagaSchema()`                                                  | 5m   | 🔴 Critical | Low    | SQLite DDL                                   |
-| 12  | **SQL Store**  | Create `storage/saga_store.go` with `SQLSagaStore` type + `sqlBase` embed               | 5m   | 🔴 Critical | Low    | Follow existing pattern                      |
-| 13  | **SQL Store**  | Implement `SQLSagaStore.Save()` with UPSERT                                             | 8m   | 🔴 Critical | Med    | Core persistence logic                       |
-| 14  | **SQL Store**  | Implement `SQLSagaStore.Load()`                                                         | 8m   | 🔴 Critical | Med    | Core load logic                              |
-| 15  | **SQL Store**  | Implement `SQLSagaStore.LoadAllRunning()`                                               | 8m   | 🔴 Critical | Med    | Core query logic                             |
-| 16  | **SQL Store**  | Add constructors: `NewSQLSagaStore`, `NewSQLiteSagaStore`, `NewSQLSagaStoreWithDialect` | 5m   | 🔴 Critical | Low    | Consumer API                                 |
-| 17  | **SQL Store**  | Add schema helpers: `SagaSchema()`, `SQLiteSagaSchema()`                                | 3m   | 🔴 Critical | Low    | Consistent with other stores                 |
-| 18  | **SQL Store**  | Add `saga` dependency + replace directive to `storage/go.mod`                           | 3m   | 🔴 Critical | Low    | Module wiring                                |
-| 19  | **SQL Store**  | Write `go-sqlmock` unit tests for `SQLSagaStore`                                        | 12m  | 🔴 Critical | Med    | Quality gate                                 |
-| 20  | **SQL Store**  | Write SQLite integration tests for `SQLSagaStore`                                       | 12m  | 🔴 Critical | Med    | Quality gate                                 |
-| 21  | **SQL Store**  | Run `go test ./storage/...` and fix issues                                              | 5m   | 🔴 Critical | Low    | Verify SQL store                             |
-| 22  | **UX**         | Design `SQLBackend` type wrapping store + outbox                                        | 8m   | 🟡 Medium   | Med    | Unified constructor                          |
-| 23  | **UX**         | Implement `NewSQLBackend()` + `TransactionalStore()` / `Outbox()` accessors             | 10m  | 🟡 Medium   | Med    | Consumer-friendly API                        |
-| 24  | **UX**         | Write tests for `SQLBackend`                                                            | 8m   | 🟡 Medium   | Med    | Quality gate                                 |
-| 25  | **Docs**       | Fix `docs/getting-started.md` stale `core/aggregate` → `core/decider`                   | 5m   | 🟡 Medium   | Low    | #1 doc trap for consumers                    |
-| 26  | **Docs**       | Update `AGENTS.md` saga section with persistent store info                              | 5m   | 🟢 Low      | Low    | Memory maintenance                           |
-| 27  | **Docs**       | Update `FEATURES.md` saga status from 🧪 to ✅/⚠️                                       | 3m   | 🟢 Low      | Low    | Honest inventory                             |
-| 28  | **Docs**       | Update `TODO_LIST.md` — mark completed items                                            | 3m   | 🟢 Low      | Low    | Close the loop                               |
-| 29  | **Verify**     | Run full test suite `go test ./saga/... ./storage/...`                                  | 5m   | 🔴 Critical | Low    | Cross-module verification                    |
-| 30  | **Verify**     | Run lint / vet (`nix run .#lint` or `go vet`)                                           | 5m   | 🔴 Critical | Low    | Static analysis                              |
-| 31  | **Verify**     | Check coverage for new files (target: >80%)                                             | 3m   | 🟡 Medium   | Low    | Coverage gate                                |
-| 32  | **Verify**     | Git status, commit each phase, final push                                               | 5m   | 🔴 Critical | Low    | Delivery                                     |
+| #  | Phase          | Task                                                                                    | Est. | Impact      | Effort | Why                                          |
+| -- | -------------- | --------------------------------------------------------------------------------------- | ---- | ----------- | ------ | -------------------------------------------- |
+| 1  | **Foundation** | Create `saga.State` type in new `state.go`                                              | 5m   | 🔴 Critical | Low    | Without this, no persistence possible        |
+| 2  | **Foundation** | Redefine `saga.Instance` to embed `State` + `Steps` + `Err`                             | 5m   | 🔴 Critical | Low    | Runtime view separate from persistable state |
+| 3  | **Foundation** | Update `saga.Store` interface to use `*State`                                           | 3m   | 🔴 Critical | Low    | Interface is the contract                    |
+| 4  | **Foundation** | Update `MemoryStore` for new interface + add defensive copies                           | 8m   | 🔴 Critical | Med    | Tests and in-memory impl must work           |
+| 5  | **Foundation** | Update `Runner` to hydrate `State` → `Instance` and dehydrate `Instance` → `State`      | 10m  | 🔴 Critical | Med    | Core orchestration logic                     |
+| 6  | **Foundation** | Update all saga tests for new types (`errorStore`, field access, assertions)            | 10m  | 🔴 Critical | Med    | Must not break test suite                    |
+| 7  | **Foundation** | Remove unused `StatusStepCompleted` constant                                            | 2m   | 🟡 Medium   | Low    | Dead code removal                            |
+| 8  | **Foundation** | Run `go test ./saga/...` and fix any issues                                             | 5m   | 🔴 Critical | Low    | Verify foundation                            |
+| 9  | **SQL Store**  | Add `SagaSchema()` to `Dialect` interface                                               | 3m   | 🔴 Critical | Low    | Required for SQL store                       |
+| 10 | **SQL Store**  | Implement `PostgresDialect.SagaSchema()`                                                | 5m   | 🔴 Critical | Low    | PostgreSQL DDL                               |
+| 11 | **SQL Store**  | Implement `SQLiteDialect.SagaSchema()`                                                  | 5m   | 🔴 Critical | Low    | SQLite DDL                                   |
+| 12 | **SQL Store**  | Create `storage/saga_store.go` with `SQLSagaStore` type + `sqlBase` embed               | 5m   | 🔴 Critical | Low    | Follow existing pattern                      |
+| 13 | **SQL Store**  | Implement `SQLSagaStore.Save()` with UPSERT                                             | 8m   | 🔴 Critical | Med    | Core persistence logic                       |
+| 14 | **SQL Store**  | Implement `SQLSagaStore.Load()`                                                         | 8m   | 🔴 Critical | Med    | Core load logic                              |
+| 15 | **SQL Store**  | Implement `SQLSagaStore.LoadAllRunning()`                                               | 8m   | 🔴 Critical | Med    | Core query logic                             |
+| 16 | **SQL Store**  | Add constructors: `NewSQLSagaStore`, `NewSQLiteSagaStore`, `NewSQLSagaStoreWithDialect` | 5m   | 🔴 Critical | Low    | Consumer API                                 |
+| 17 | **SQL Store**  | Add schema helpers: `SagaSchema()`, `SQLiteSagaSchema()`                                | 3m   | 🔴 Critical | Low    | Consistent with other stores                 |
+| 18 | **SQL Store**  | Add `saga` dependency + replace directive to `storage/go.mod`                           | 3m   | 🔴 Critical | Low    | Module wiring                                |
+| 19 | **SQL Store**  | Write `go-sqlmock` unit tests for `SQLSagaStore`                                        | 12m  | 🔴 Critical | Med    | Quality gate                                 |
+| 20 | **SQL Store**  | Write SQLite integration tests for `SQLSagaStore`                                       | 12m  | 🔴 Critical | Med    | Quality gate                                 |
+| 21 | **SQL Store**  | Run `go test ./storage/...` and fix issues                                              | 5m   | 🔴 Critical | Low    | Verify SQL store                             |
+| 22 | **UX**         | Design `SQLBackend` type wrapping store + outbox                                        | 8m   | 🟡 Medium   | Med    | Unified constructor                          |
+| 23 | **UX**         | Implement `NewSQLBackend()` + `TransactionalStore()` / `Outbox()` accessors             | 10m  | 🟡 Medium   | Med    | Consumer-friendly API                        |
+| 24 | **UX**         | Write tests for `SQLBackend`                                                            | 8m   | 🟡 Medium   | Med    | Quality gate                                 |
+| 25 | **Docs**       | Fix `docs/getting-started.md` stale `core/aggregate` → `core/decider`                   | 5m   | 🟡 Medium   | Low    | #1 doc trap for consumers                    |
+| 26 | **Docs**       | Update `AGENTS.md` saga section with persistent store info                              | 5m   | 🟢 Low      | Low    | Memory maintenance                           |
+| 27 | **Docs**       | Update `FEATURES.md` saga status from 🧪 to ✅/⚠️                                        | 3m   | 🟢 Low      | Low    | Honest inventory                             |
+| 28 | **Docs**       | Update `TODO_LIST.md` — mark completed items                                            | 3m   | 🟢 Low      | Low    | Close the loop                               |
+| 29 | **Verify**     | Run full test suite `go test ./saga/... ./storage/...`                                  | 5m   | 🔴 Critical | Low    | Cross-module verification                    |
+| 30 | **Verify**     | Run lint / vet (`nix run .#lint` or `go vet`)                                           | 5m   | 🔴 Critical | Low    | Static analysis                              |
+| 31 | **Verify**     | Check coverage for new files (target: >80%)                                             | 3m   | 🟡 Medium   | Low    | Coverage gate                                |
+| 32 | **Verify**     | Git status, commit each phase, final push                                               | 5m   | 🔴 Critical | Low    | Delivery                                     |
 
-**Total estimated time:** ~3.5 hours  
-**Task count:** 32  
-**Max task size:** 12 minutes  
+**Total estimated time:** ~3.5 hours\
+**Task count:** 32\
+**Max task size:** 12 minutes\
 **Breaking changes:** Yes (pre-v1.0, acceptable)
 
 ---

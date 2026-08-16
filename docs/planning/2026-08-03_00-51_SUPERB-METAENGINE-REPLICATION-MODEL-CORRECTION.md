@@ -370,4 +370,4 @@ graph TD
 | Phase 3: Universal ADT     | ✅ DONE                 | ADR-0094, commit `8b41f658`                |
 | T13: CalibrateRTT          | ✅ DONE                 | commit `c45b39c8`                          |
 | Phase 4: Iroh evaluation   | ✅ DONE                 | ADR-0096                                   |
-| Iroh prototype wrapper     | Open — see TODO_LIST.md |
+| Iroh prototype wrapper     | Open — see TODO_LIST.md |                                            |

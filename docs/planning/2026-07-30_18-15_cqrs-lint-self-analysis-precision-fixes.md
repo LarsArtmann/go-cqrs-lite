@@ -48,16 +48,16 @@ This hits **every consumer** with `Panel`, `Database`, `Japan`, `Panda`, `Abacus
 
 ## 2. Comprehensive Plan (30–100 min tasks)
 
-| #   | Epic                          | Scope                                                                                  | Impact                      | Effort  | Est | Risk     |
-| --- | ----------------------------- | -------------------------------------------------------------------------------------- | --------------------------- | ------- | --- | -------- |
-| E1  | **S006 precision fix**        | Remove `pan`/`aba`, add `primaryaccountnumber`, regression tests                       | CRITICAL (all consumers)    | Small   | 45m | None     |
-| E2  | **C030 precision fix**        | 4 detection improvements + regression tests + 1 nolint                                 | HIGH (all consumers)        | Medium  | 60m | Low      |
-| E3  | **Example code quality**      | Fix C028 (×4), C010 (×2), B027 (×4), D007 (×1) in examples + benchkit                  | MEDIUM (consumer education) | Small   | 45m | None     |
-| E4  | **Stale suppression cleanup** | Remove 12 dead `//cqrs-lint:ignore(...)` across 6 modules                              | LOW (dead code)             | Trivial | 30m | None     |
-| E5  | **Verify gate**               | Run `nix run .#verify-fast`, `cmd/doc-check`, investigate flaky tests                  | HIGH (process safety)       | Medium  | 60m | None     |
-| E6  | **Library self-lint mode**    | Auto-detect module path, suppress A001/A008/A020/A021/A023/E005/E007 for library files | MEDIUM (developer value)    | Medium  | 60m | Moderate |
-| E7  | **S006 polish**               | max() builtin, edge-case tests (db/gorm/sql tags, ctx.Packages path)                   | LOW (internal quality)      | Small   | 30m | None     |
-| E8  | **Docs & status report**      | Write session status report, update IMPROVEMENT_IDEAS.md                               | LOW (record keeping)        | Small   | 30m | None     |
+| #  | Epic                          | Scope                                                                                  | Impact                      | Effort  | Est | Risk     |
+| -- | ----------------------------- | -------------------------------------------------------------------------------------- | --------------------------- | ------- | --- | -------- |
+| E1 | **S006 precision fix**        | Remove `pan`/`aba`, add `primaryaccountnumber`, regression tests                       | CRITICAL (all consumers)    | Small   | 45m | None     |
+| E2 | **C030 precision fix**        | 4 detection improvements + regression tests + 1 nolint                                 | HIGH (all consumers)        | Medium  | 60m | Low      |
+| E3 | **Example code quality**      | Fix C028 (×4), C010 (×2), B027 (×4), D007 (×1) in examples + benchkit                  | MEDIUM (consumer education) | Small   | 45m | None     |
+| E4 | **Stale suppression cleanup** | Remove 12 dead `//cqrs-lint:ignore(...)` across 6 modules                              | LOW (dead code)             | Trivial | 30m | None     |
+| E5 | **Verify gate**               | Run `nix run .#verify-fast`, `cmd/doc-check`, investigate flaky tests                  | HIGH (process safety)       | Medium  | 60m | None     |
+| E6 | **Library self-lint mode**    | Auto-detect module path, suppress A001/A008/A020/A021/A023/E005/E007 for library files | MEDIUM (developer value)    | Medium  | 60m | Moderate |
+| E7 | **S006 polish**               | max() builtin, edge-case tests (db/gorm/sql tags, ctx.Packages path)                   | LOW (internal quality)      | Small   | 30m | None     |
+| E8 | **Docs & status report**      | Write session status report, update IMPROVEMENT_IDEAS.md                               | LOW (record keeping)        | Small   | 30m | None     |
 
 **Total estimated effort: ~5.5 hours**
 
