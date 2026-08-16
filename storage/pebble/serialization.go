@@ -100,7 +100,8 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 		return nil, err
 	}
 
-	evt, err := event.ReconstructEventWithMetadata(
+	// s.Payload is a fresh decode with no other owner — adopt it (no clone).
+	evt, err := event.ReconstructEventWithAdoptedPayload(
 		s.ID, event.Type(s.Type), id.StreamType(s.StreamType), s.StreamID,
 		s.Version, s.SchemaVersion,
 		s.Payload, s.Metadata,

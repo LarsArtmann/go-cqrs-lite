@@ -32,7 +32,11 @@ func TestKnobs_DefaultsByteIdentical(t *testing.T) {
 	}
 
 	if built.WALBytesPerSync != want.WALBytesPerSync {
-		t.Errorf("WALBytesPerSync = %d, want default %d", built.WALBytesPerSync, want.WALBytesPerSync)
+		t.Errorf(
+			"WALBytesPerSync = %d, want default %d",
+			built.WALBytesPerSync,
+			want.WALBytesPerSync,
+		)
 	}
 
 	if built.Cache != want.Cache {
@@ -70,7 +74,11 @@ func TestKnobs_ApplyOnlyTheirField(t *testing.T) {
 
 	for i := range built.Levels {
 		if built.Levels[i].Compression != pebble.NoCompression {
-			t.Errorf("Levels[%d].Compression = %v, want NoCompression", i, built.Levels[i].Compression)
+			t.Errorf(
+				"Levels[%d].Compression = %v, want NoCompression",
+				i,
+				built.Levels[i].Compression,
+			)
 		}
 	}
 

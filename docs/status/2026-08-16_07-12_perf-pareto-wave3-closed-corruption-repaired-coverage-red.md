@@ -8,6 +8,7 @@
 ## a) FULLY DONE
 
 ### Resume wave (owed from prior session's handoff)
+
 1. **api-stability golden regenerated** — 3× (see §d for why): final state 4107 exports, clean diff = exactly this session's 10 new exports (`storage/bbolt`: `OpenWithOptions`/`NewBackendWith`/`WithBatchCommit`/`BackendOption`; `metaengine/pgengine`: `Option`/`WithCopyAppend`; `stack/pebble`: 4 knob options).
 2. **Lint gate closed (F14)** — first run surfaced 9 findings in 5 modules; ALL fixed:
    - Mine: `flushPendingCheckpoint` contextcheck → now takes `ctx` (`context.WithoutCancel(ctx)` in `run()` defer; `Host.Stop()` passes `context.Background()`); nonamedreturns in `checkpoint_cadence_test.go`; `mp`→`provider` varnamelen in `commandlifecycle/recorder.go`.
@@ -17,6 +18,7 @@
 5. **F31 docs** — readmodels.md §2.3 checkpoint-tuning note (corrected once: interval is evaluated at event arrival, not a background ticker); modules.md projectionhost row; CHANGELOG entry with at-least-once semantics.
 
 ### Wave 3 — TOP IO WINS (all three independently shippable features, complete)
+
 6. **F32-F34 bbolt opt-in group commit** — `storeBase.writeTx` dispatch (Batch vs Update), mirrored `writeTx` on `KVAdapter` + `bboltBatch`; new `OpenWithOptions`/`NewBackendWith` constructors + `WithBatchCommit()` BackendOption; propagated to all six stores. Verified bbolt's retry semantics from vendored source first: failed fn re-runs solo, survivors re-run idempotently on rolled-back state. 3 tests race-GREEN: 8 concurrent writers → byte-identical journal (400 events, distinct-ID check); version-conflict writer ejected + re-run solo surfaces Conflict while batch-mate lands; default backend flag stays false.
 7. **F35-F36 pgengine COPY + batching** — `stream_copy.go`: `WithCopyAppend(minValues)` option; `copyAppend` via `db.Conn(ctx).Raw()` → pgx native `CopyFrom` (no second pool; `errCopyUnavailable` fallback for non-pgx drivers); `streamInsertBatch` chunked multi-VALUES (10k rows/stmt, 30k params < 65535 cap) now the DEFAULT for `StreamAppend` AND `StreamAppendExpected`; `New(dsn, opts...)` variadic. 3 tests GREEN on real Postgres (testcontainer): COPY≡INSERT value/version equivalence, RunInTx falls back to INSERT (COPY can't join the tx), threshold respected. **Bench (real PG): COPY 1.41× @10k rows (39.3→27.9ms), 1.49× @100k (368→248ms).**
 8. **F37-F38 pebble operator knobs** — `stack/pebble`: `WithMemTableSize`/`WithBlockCacheSize`/`WithWALBytesPerSync`/`WithPebbleCompression`; block-cache ref released after Open + replaced-cache Unref (no leak); `WithPebbleOptions` nil-guard. Tests: defaults **byte-identical** to `cqrspebble.DefaultOptions()` (pinned), each knob touches only its field, cache lifecycle. Full stack/pebble suite GREEN (12.4s).
@@ -24,6 +26,7 @@
 10. **F40 harvest** — TODO_LIST perf section: 7 items checked DONE with one-line proof notes; CHANGELOG "Wave-3 IO wins" section with measured numbers; modules.md rows (bbolt, pgengine, storage row already had packet guard); recipes.md §2.0 pebble deploy-time tuning block; doc-check **875 refs GREEN**.
 
 ### Wave 4 verification work (done by others, verified + harvested by me)
+
 11. F56 (singleflight `WithoutCancel`), F57 (turso `redactDSN`), F58 (`sqliteengine.OwnDB` + `close_ownership_test.go`) — all confirmed SHIPPED at HEAD; TODO_LIST defect-sweep section updated to reflect reality.
 
 ---
@@ -67,6 +70,7 @@
 ## f) NEXT 50 (prioritized)
 
 **Close the open gates (do first):**
+
 1. Investigate + close coverage drift: backfill event/query tests for asrecord paths OR `bash scripts/check-coverage.sh --update` re-baseline (+ AGENTS.md line) — decide honestly which.
 2. `nix run .#verify` (full, incl. race) once — verify-fast covered tests+lint; full adds race + doc-assertions.
 3. `nix run .#check-duplication` — new `writeTx` triplication (storeBase/KVAdapter/bboltBatch) may trip the clone gate; if so, consolidate or baseline.

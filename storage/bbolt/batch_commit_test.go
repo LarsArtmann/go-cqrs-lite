@@ -61,7 +61,13 @@ func TestBatchCommit_ConcurrentWritersIdenticalJournal(t *testing.T) {
 				evts := make([]event.Event, eventsPerBatch)
 				for i := range eventsPerBatch {
 					version := event.Version(b*eventsPerBatch + i + 1)
-					evt, err := event.NewEvent("user.created", ref.ID, "User", version, []byte(`{}`))
+					evt, err := event.NewEvent(
+						"user.created",
+						ref.ID,
+						"User",
+						version,
+						[]byte(`{}`),
+					)
 					if err != nil {
 						errs <- err
 						return
@@ -91,7 +97,11 @@ func TestBatchCommit_ConcurrentWritersIdenticalJournal(t *testing.T) {
 	}
 
 	if got, want := len(all), writers*batchesPerWriter*eventsPerBatch; got != want {
-		t.Fatalf("journal holds %d events, want %d (group commit lost/duplicated writes)", got, want)
+		t.Fatalf(
+			"journal holds %d events, want %d (group commit lost/duplicated writes)",
+			got,
+			want,
+		)
 	}
 
 	seen := make(map[string]int)
@@ -99,7 +109,11 @@ func TestBatchCommit_ConcurrentWritersIdenticalJournal(t *testing.T) {
 		seen[evt.ID().String()]++
 	}
 	if len(seen) != writers*batchesPerWriter*eventsPerBatch {
-		t.Fatalf("journal holds %d distinct event IDs, want %d", len(seen), writers*batchesPerWriter*eventsPerBatch)
+		t.Fatalf(
+			"journal holds %d distinct event IDs, want %d",
+			len(seen),
+			writers*batchesPerWriter*eventsPerBatch,
+		)
 	}
 }
 

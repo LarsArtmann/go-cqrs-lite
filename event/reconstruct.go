@@ -95,12 +95,24 @@ func ReconstructEventWithAdoptedPayload(
 	encoding codec.Encoding,
 	errCodePrefix string,
 ) (Event, error) {
-	if err := validateEventParams(eventType, aggID, aggType, Version(version), payload); err != nil {
+	if err := validateEventParams(
+		eventType,
+		aggID,
+		aggType,
+		Version(version),
+		payload,
+	); err != nil {
 		return nil, errorfamily.WrapCorruption(err, errCodePrefix+".reconstruct_event",
 			"reconstruct event "+string(eventType))
 	}
 
-	opts := reconstructOpts(eventID, occurredAt, schemaVersion, encoding, []Option{WithMetadata(metadata)})
+	opts := reconstructOpts(
+		eventID,
+		occurredAt,
+		schemaVersion,
+		encoding,
+		[]Option{WithMetadata(metadata)},
+	)
 
 	return buildEvent(eventType, aggID, aggType, Version(version), payload, opts), nil
 }

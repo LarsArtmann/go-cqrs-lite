@@ -9,7 +9,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
-func mustNewCopyEngine(t *testing.T, minValues int) (metaengine.Engine, metaengine.StreamLogBackend) {
+func mustNewCopyEngine(
+	t *testing.T,
+	minValues int,
+) (metaengine.Engine, metaengine.StreamLogBackend) {
 	t.Helper()
 
 	eng, err := pgengine.New(pgDSN(t), pgengine.WithCopyAppend(minValues))

@@ -8,7 +8,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-func adoptTestInputs(t *testing.T) (id.EventID, Type, id.StreamType, id.StreamID, []byte, Metadata, time.Time) {
+func adoptTestInputs(
+	t *testing.T,
+) (id.EventID, Type, id.StreamType, id.StreamID, []byte, Metadata, time.Time) {
 	t.Helper()
 
 	return id.NewEventID(), "UserCreated", "User", id.NewStreamID(),

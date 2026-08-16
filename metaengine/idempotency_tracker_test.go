@@ -121,8 +121,12 @@ func TestIdempotencyTracker_ConcurrentExactlyOnce(t *testing.T) {
 
 	for i := range ids {
 		if got := duplicates[i].Load(); got != workers*rounds-1 {
-			t.Fatalf("evt-%d reported duplicate %d times, want exactly %d (first call records, rest dedup)",
-				i, got, workers*rounds-1)
+			t.Fatalf(
+				"evt-%d reported duplicate %d times, want exactly %d (first call records, rest dedup)",
+				i,
+				got,
+				workers*rounds-1,
+			)
 		}
 	}
 }

@@ -754,6 +754,7 @@ event/func ParseVersion
 event/func PayloadReadOnly
 event/func ProcessingModeFrom
 event/func ReconstructEventFromFields
+event/func ReconstructEventWithAdoptedPayload
 event/func ReconstructEventWithMetadata
 event/func RejectingHandlerMiddleware
 event/func RejectingPublishMiddleware
