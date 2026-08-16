@@ -95,6 +95,48 @@ func VectorPrefix(col string) []byte {
 	return []byte("vec" + Sep + col + Sep)
 }
 
+// VectorMetaKey returns the metadata key for a (collection, id) pair in the
+// VectorBackend. Values are the JSON-encoded Embedding.Metadata map; absent
+// metadata is simply not stored. Kept in a separate key family from
+// VectorKey so the on-disk vector format is unchanged for engines predating
+// metadata-filtered k-NN.
+func VectorMetaKey(col, id string) []byte {
+	return []byte("vecm" + Sep + col + Sep + id)
+}
+
+// VectorMetaPrefix returns the scan prefix for the vector metadata of a
+// collection.
+func VectorMetaPrefix(col string) []byte {
+	return []byte("vecm" + Sep + col + Sep)
+}
+
+// GraphEdgeFwdKey returns the forward adjacency key for a directed edge in
+// the graphBackend: "edge\x00<col>\x00<from>\x00<to>". A prefix scan over
+// "edge\x00<col>\x00<from>\x00" yields the node's outgoing neighbors.
+func GraphEdgeFwdKey(col, from, to string) []byte {
+	return []byte("edge" + Sep + col + Sep + from + Sep + to)
+}
+
+// GraphEdgeFwdPrefix returns the scan prefix for all outgoing edges of a
+// node.
+func GraphEdgeFwdPrefix(col, from string) []byte {
+	return []byte("edge" + Sep + col + Sep + from + Sep)
+}
+
+// GraphEdgeRevKey returns the reverse adjacency key for a directed edge:
+// "edger\x00<col>\x00<to>\x00<from>". Maintained as a second index so
+// undirected traversal is a prefix scan instead of a full collection scan.
+// GraphRemoveEdge deletes both key families.
+func GraphEdgeRevKey(col, to, from string) []byte {
+	return []byte("edger" + Sep + col + Sep + to + Sep + from)
+}
+
+// GraphEdgeRevPrefix returns the scan prefix for all incoming edges of a
+// node (reverse adjacency).
+func GraphEdgeRevPrefix(col, to string) []byte {
+	return []byte("edger" + Sep + col + Sep + to + Sep)
+}
+
 // EncodeJSON marshals v to JSON, falling back to fmt.Sprintf("%v", v) on error.
 // This is the canonical value-encoding for the LSM engines.
 func EncodeJSON(v any) []byte {

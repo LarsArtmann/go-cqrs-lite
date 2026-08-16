@@ -1,0 +1,125 @@
+package docserver
+
+import (
+	"strconv"
+
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/layout"
+)
+
+// IndexPage renders the documentation landing page: catalog stats, links to
+// every generated artifact, and one card per service.
+templ IndexPage(data indexPageData) {
+	@layout.Base(docsPageProps(data.CatalogTitle+" — API Documentation", data.Description, data.DocsPath)) {
+		@docsNav(data.Brand, data.DocsPath, data.DocsPath)
+		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+			@display.PageHeader(display.PageHeaderProps{
+				Title:    data.CatalogTitle,
+				Subtitle: data.Description,
+				Action:   display.Badge(display.BadgeProps{Text: "v" + data.Version, Type: display.BadgeInfo, Pill: true}),
+			})
+			@statGrid(data)
+			@sectionHeading("Documentation")
+			@display.Grid(display.GridProps{Cols: display.GridCols2, Gap: display.GridGapLG}) {
+				@specCard(
+					"OpenAPI reference",
+					"Interactive REST API documentation (Scalar)",
+					data.DocsPath+"/openapi", data.DocsPath+"/openapi.json", data.DocsPath+"/openapi.yaml",
+				)
+				@specCard(
+					"AsyncAPI reference",
+					"Interactive event documentation (AsyncAPI React)",
+					data.DocsPath+"/asyncapi", data.DocsPath+"/asyncapi.json", data.DocsPath+"/asyncapi.yaml",
+				)
+				@specCard(
+					"Architecture diagram",
+					"D2 diagram source generated from the catalog",
+					data.DocsPath+"/d2", data.DocsPath+"/d2.txt", "",
+				)
+				@specCard(
+					"Catalog JSON",
+					"The raw catalog snapshot this documentation is built from",
+					data.DocsPath+"/catalog.json", "", "",
+				)
+			}
+			@if len(data.Services) > 0 {
+				@sectionHeading("Services")
+				@display.Grid(display.GridProps{Cols: display.GridCols3, Gap: display.GridGapLG}) {
+					@for _, svc := range data.Services {
+						@serviceSummaryCard(svc)
+					}
+				}
+			}
+		</div>
+	}
+}
+
+// statGrid renders the deduplicated catalog counters.
+templ statGrid(data indexPageData) {
+	@display.Grid(display.GridProps{Cols: display.GridCols4}) {
+		@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Stats.Services), Label: "Services"})
+		@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Stats.Commands), Label: "Commands"})
+		@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Stats.Events), Label: "Events"})
+		@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Stats.Queries), Label: "Queries"})
+	}
+}
+
+// specCard is one documentation artifact card: a primary link plus optional
+// raw JSON/YAML links.
+templ specCard(title, subtitle, pageHref, jsonHref, yamlHref string) {
+	@display.Card(display.CardProps{Title: title, Subtitle: subtitle}) {
+		<a
+			href={ templ.SafeURL(pageHref) }
+			class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+		>Open { title }</a>
+		@if jsonHref != "" || yamlHref != "" {
+			<p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+				Raw spec:
+				@if jsonHref != "" {
+					<a
+						href={ templ.SafeURL(jsonHref) }
+						class="font-medium text-blue-600 hover:underline dark:text-blue-400"
+					>JSON</a>
+				}
+				@if jsonHref != "" && yamlHref != "" {
+					·
+				}
+				@if yamlHref != "" {
+					<a
+						href={ templ.SafeURL(yamlHref) }
+						class="font-medium text-blue-600 hover:underline dark:text-blue-400"
+					>YAML</a>
+				}
+			</p>
+		}
+	}
+}
+
+// serviceSummaryCard shows one service with its message counts.
+templ serviceSummaryCard(svc serviceCard) {
+	@display.Card(display.CardProps{Title: svc.Name, Subtitle: svc.ID + " · v" + svc.Version}) {
+		@if svc.Summary != "" {
+			<p class="text-sm text-gray-600 dark:text-gray-400">{ svc.Summary }</p>
+		}
+		<div class="mt-3 flex flex-wrap gap-2">
+			@if svc.Commands > 0 {
+				@display.Badge(display.BadgeProps{
+					Text: strconv.Itoa(svc.Commands) + " commands",
+					Type: display.BadgePrimary,
+				})
+			}
+			@if svc.Events > 0 {
+				@display.Badge(display.BadgeProps{
+					Text: strconv.Itoa(svc.Events) + " events",
+					Type: display.BadgeSuccess,
+				})
+			}
+			@if svc.Queries > 0 {
+				@display.Badge(display.BadgeProps{
+					Text: strconv.Itoa(svc.Queries) + " queries",
+					Type: display.BadgeInfo,
+				})
+			}
+		</div>
+	}
+}

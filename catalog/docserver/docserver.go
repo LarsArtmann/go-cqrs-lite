@@ -1,8 +1,10 @@
 // Package docserver provides framework-agnostic HTTP handlers for serving
 // auto-generated API documentation from a catalog.Catalog.
 //
-// It serves both raw specification documents (OpenAPI JSON/YAML, AsyncAPI JSON/YAML)
-// and rendered HTML pages (Scalar for OpenAPI, AsyncAPI React for AsyncAPI).
+// It serves both raw specification documents (OpenAPI JSON/YAML, AsyncAPI JSON/YAML,
+// D2 diagram text, catalog JSON) and rendered HTML pages: a documentation index,
+// Scalar for OpenAPI, AsyncAPI React for AsyncAPI, and a D2 source view. HTML is
+// rendered with templ-components; its stylesheet ships as an embedded static asset.
 //
 // # Full Docs Server
 //
@@ -121,6 +123,24 @@ func (ds *DocsServer) AsyncAPIUI() http.HandlerFunc {
 	return ds.serveAsyncAPIHTML
 }
 
+// Index returns the documentation landing page handler. It links to every
+// generated artifact (specs, diagram, catalog JSON) and summarizes the
+// services in the catalog.
+func (ds *DocsServer) Index() http.HandlerFunc {
+	return ds.serveIndex
+}
+
+// D2View returns the HTML page that shows the generated D2 diagram source
+// with copy and download affordances.
+func (ds *DocsServer) D2View() http.HandlerFunc {
+	return ds.serveD2View
+}
+
+// D2Diagram returns the raw D2 diagram (text/plain) handler.
+func (ds *DocsServer) D2Diagram() http.HandlerFunc {
+	return ds.serveD2Text
+}
+
 // CatalogJSON returns the raw catalog JSON handler.
 func (ds *DocsServer) CatalogJSON() http.HandlerFunc {
 	return ds.serveCatalogJSON
@@ -151,6 +171,8 @@ func (ds *DocsServer) StaticFS() http.FileSystem {
 func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	prefix := ds.config.DocsPath
 
+	mux.HandleFunc("GET "+prefix, ds.serveIndex)
+	mux.HandleFunc("GET "+prefix+"/", ds.serveIndex)
 	mux.HandleFunc("GET "+prefix+"/openapi", ds.serveOpenAPIHTML)
 	mux.HandleFunc("GET "+prefix+"/openapi.json", ds.serveOpenAPIJSON)
 	mux.HandleFunc("GET "+prefix+"/openapi.yaml", ds.serveOpenAPIYAML)
@@ -158,6 +180,8 @@ func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET "+prefix+"/asyncapi.json", ds.serveAsyncAPIJSON)
 	mux.HandleFunc("GET "+prefix+"/asyncapi.yaml", ds.serveAsyncAPIYAML)
 	mux.HandleFunc("GET "+prefix+"/catalog.json", ds.serveCatalogJSON)
+	mux.HandleFunc("GET "+prefix+"/d2", ds.serveD2View)
+	mux.HandleFunc("GET "+prefix+"/d2.txt", ds.serveD2Text)
 
 	// Serve embedded static assets (Scalar JS, AsyncAPI React JS/CSS)
 	mux.Handle(
@@ -181,8 +205,11 @@ func (ds *DocsServer) serveOpenAPIYAML(w http.ResponseWriter, _ *http.Request) {
 	ds.serveYAML(w, b, "failed to convert to YAML")
 }
 
-func (ds *DocsServer) serveOpenAPIHTML(w http.ResponseWriter, _ *http.Request) {
-	ds.serveHTML(w, ds.config.DocsPath+"/openapi.json", scalarHTML)
+func (ds *DocsServer) serveOpenAPIHTML(w http.ResponseWriter, r *http.Request) {
+	ds.renderComponent(
+		w, r,
+		ScalarPage(ds.config.ServiceName, ds.config.DocsPath, ds.config.DocsPath+"/openapi.json"),
+	)
 }
 
 func (ds *DocsServer) serveAsyncAPIJSON(w http.ResponseWriter, _ *http.Request) {
@@ -202,8 +229,16 @@ func (ds *DocsServer) serveAsyncAPIYAML(w http.ResponseWriter, _ *http.Request) 
 	_, _ = w.Write(b)
 }
 
-func (ds *DocsServer) serveAsyncAPIHTML(w http.ResponseWriter, _ *http.Request) {
-	ds.serveHTML(w, ds.config.DocsPath+"/asyncapi.json", asyncAPIHTML)
+func (ds *DocsServer) serveAsyncAPIHTML(w http.ResponseWriter, r *http.Request) {
+	ds.renderComponent(
+		w, r,
+		AsyncAPIPage(ds.config.ServiceName, ds.config.DocsPath, ds.config.DocsPath+"/asyncapi.json"),
+	)
+}
+
+func (ds *DocsServer) serveIndex(w http.ResponseWriter, r *http.Request) {
+	data := newIndexPageData(ds.config, ds.provider())
+	ds.renderComponent(w, r, IndexPage(data))
 }
 
 func (ds *DocsServer) serveCatalogJSON(w http.ResponseWriter, _ *http.Request) {
@@ -230,12 +265,4 @@ func (ds *DocsServer) serveYAML(w http.ResponseWriter, jsonBytes []byte, errMsg 
 	w.Header().Set("Content-Type", yamlContentType)
 
 	_, _ = w.Write(yamlStr)
-}
-
-type htmlRenderer func(specURL, serviceName string) string
-
-func (ds *DocsServer) serveHTML(w http.ResponseWriter, specURL string, render htmlRenderer) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	_, _ = w.Write([]byte(render(specURL, ds.config.ServiceName)))
 }

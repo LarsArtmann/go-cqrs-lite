@@ -182,23 +182,55 @@ func (s *Store) capabilityDoctorSection() string {
 	}
 
 	for _, eng := range engines {
-		name := eng.Profile().Name
-		res := CapabilityAudit(name, eng, nil)
+		profile := eng.Profile()
+		res := CapabilityAudit(profile.Name, eng, nil)
 
 		if len(res.Violations) == 0 {
-			fmt.Fprintf(&b, "  %s: declarations consistent\n", name)
+			fmt.Fprintf(&b, "  %s: declarations consistent\n", profile.Name)
+		} else {
+			fmt.Fprintf(&b, "  %s: %d conformance violation(s)\n", profile.Name, len(res.Violations))
 
-			continue
+			for _, v := range res.Violations {
+				fmt.Fprintf(&b, "    %s\n", v)
+			}
 		}
 
-		fmt.Fprintf(&b, "  %s: %d conformance violation(s)\n", name, len(res.Violations))
-
-		for _, v := range res.Violations {
-			fmt.Fprintf(&b, "    %s\n", v)
+		// Honest-degradation note: replicated engines forward graph dispatch
+		// as local passthrough (irohengine has no graph WriteOp wire kind), so
+		// a replicated engine with graph support does NOT converge edges
+		// across peers even though its declarations are consistent.
+		if profile.IsReplicated() {
+			if _, graphDeclared := profile.Supports[ADTGraph]; graphDeclared {
+				fmt.Fprintf(&b,
+					"    note: %s is replicated but graph writes are local-only "+
+						"(no graph WriteOp on the replication wire) — edges do NOT converge across peers\n",
+					profile.Name)
+			}
 		}
 	}
 
 	return b.String()
+}
+
+// explainCapabilityWarnings renders the plan-time capability banner for
+// ExplainPlan: one WARN line per engine whose Profile() declarations violate
+// the conformance rules. Empty string when every engine is consistent, so
+// healthy plans stay clean.
+func explainCapabilityWarnings(engines []Engine) string {
+	var lines []string
+
+	for _, eng := range engines {
+		res := CapabilityAudit(eng.Profile().Name, eng, nil)
+		for _, v := range res.Violations {
+			lines = append(lines, fmt.Sprintf("  WARN capability drift: %s\n", v))
+		}
+	}
+
+	if len(lines) == 0 {
+		return ""
+	}
+
+	return "\n--- Capability Warnings ---\n" + strings.Join(lines, "")
 }
 
 // degradedSubsetViolations enforces rule 3 plus the degraded-ADTs note.

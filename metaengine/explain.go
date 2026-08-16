@@ -151,6 +151,8 @@ func (s *Store) ExplainPlan() string {
 		b.WriteString("\n")
 	}
 
+	b.WriteString(explainCapabilityWarnings(s.engines))
+
 	b.WriteString("\n--- Queries ---\n")
 
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {

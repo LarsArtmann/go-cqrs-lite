@@ -35,6 +35,13 @@ const (
 type Delta map[string]int64
 
 // Edge is a graph edge returned by On folds with Edge return type.
+//
+// From/To are deliberately untyped: a single collection can mix node types
+// at runtime (follows: User→User alongside assigned: Task→User), which Go
+// generics cannot express (no existential types, and engine interface
+// methods cannot be generic over per-value node types). Domain type safety
+// lives one layer up in the typed fold handler; Edge is the storage
+// boundary, same contract as MapSet's (key, value any) and MultiEntry.
 type Edge struct {
 	From any
 	To   any

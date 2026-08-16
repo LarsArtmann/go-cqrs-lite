@@ -558,6 +558,8 @@ func (s *Store) applyFold(ctx context.Context, q queryMeta, fold Fold, payload a
 		return s.applyFoldCount(ctx, q, f, payload)
 	case *edgeFold:
 		return s.applyFoldEdge(ctx, q, f, payload)
+	case *edgeRemoveFold:
+		return s.applyFoldEdgeRemove(ctx, q, f, payload)
 	case *setFold:
 		return s.applyFoldSet(ctx, q, f, payload)
 	case *skipFold:
@@ -710,6 +712,33 @@ func (s *Store) applyFoldEdge(
 
 	// Degraded fallback: store edge via MultimapBackend (O(N) traversal).
 	return graphAddEdgeFallback(ctx, q.QueryEngine(), col, edge)
+}
+
+// applyFoldEdgeRemove dispatches tombstone-driven edge removal (ADR-0114
+// style): the EdgeRemoval fold retracts a previously added edge. There is no
+// degraded fallback — MultimapBackend has no targeted delete — so engines
+// without GraphRemoveEdge fail explicitly instead of silently keeping the
+// stale edge.
+func (s *Store) applyFoldEdgeRemove(
+	ctx context.Context,
+	q queryMeta,
+	fold *edgeRemoveFold,
+	payload any,
+) error {
+	col := q.QueryName()
+	removal := fold.invoke(payload)
+	eng := q.QueryEngine()
+
+	rm, ok := eng.(graphEdgeRemover)
+	if !ok {
+		return unsupportedEngine(errEdgeRemoval, eng.Profile().Name)
+	}
+
+	if err := rm.GraphRemoveEdge(ctx, col, Edge{From: removal.From, To: removal.To}); err != nil {
+		return fmt.Errorf("graph remove edge %s: %w", col, err)
+	}
+
+	return nil
 }
 
 func (s *Store) applyFoldSet(

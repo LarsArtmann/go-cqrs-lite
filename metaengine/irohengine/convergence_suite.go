@@ -115,7 +115,10 @@ func RunConvergenceSuite(t *testing.T, factory ClusterFactory) {
 
 const (
 	pollInterval = 50 * time.Millisecond
-	pollTimeout  = 15 * time.Second
+	// pollTimeout bounds each convergence assertion. 30s (was 15s) after a
+	// 15s near-miss under -race load on 2026-08-16: passing runs still exit
+	// as soon as replicas agree, so only genuinely slow convergence pays.
+	pollTimeout = 30 * time.Second
 )
 
 func mustNoErr(t *testing.T, err error) {

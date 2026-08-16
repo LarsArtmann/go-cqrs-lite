@@ -102,6 +102,21 @@ jobs:
 
     timeout-minutes: 15
 
+  shfmt-drift:
+    name: Shell Format Drift (shfmt)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
+
+      # The pre-commit hook only formats staged .sh files, so drift can creep
+      # in from unstaged edits and other tools (root cause of the 4x map-key
+      # mangling). This checks the whole scripts/ tree every push.
+      - name: shfmt diff check on scripts/
+        run: nix shell nixpkgs#shfmt --command shfmt -d scripts/
+
   cgo:
     name: CGo Build (DuckDB + Iroh QUIC)
     runs-on: ubuntu-latest
@@ -135,6 +150,29 @@ jobs:
             CGO_ENABLED=1 go build -tags "goexperiment.jsonv2" ./metaengine/irohengine/quic/...
             CGO_ENABLED=1 go vet -tags "goexperiment.jsonv2" ./metaengine/irohengine/quic/...
             cd metaengine/irohengine/quic && GOWORK=off CGO_ENABLED=1 go test -tags "goexperiment.jsonv2" ./... -count=1
+          '
+
+  quic-flake-watch:
+    name: QUIC Convergence Flake Watch (-race x3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
+
+      - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+
+      # The Log order-tolerance fix landed 2026-08-15; running the convergence
+      # suite three times under -race on every push surfaces recurrence early
+      # instead of as one-off #verify flakes.
+      - name: Convergence suite x3 under race
+        run: |
+          nix develop -c bash -c '
+            set -e
+            cd metaengine/irohengine/quic && GOWORK=off CGO_ENABLED=1 \
+              go test -tags "goexperiment.jsonv2" -race -count=3 \
+              -run TestQuicConvergenceSuite ./... -timeout=10m
           '
 
   verify-fast-gate:

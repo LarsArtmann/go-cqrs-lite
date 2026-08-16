@@ -18,6 +18,7 @@ const (
 	FoldRemove      FoldKind = "remove"
 	FoldCount       FoldKind = "count"
 	FoldEdge        FoldKind = "edge"
+	FoldEdgeRemove  FoldKind = "edge_remove"
 	FoldSet         FoldKind = "set"
 	FoldSkip        FoldKind = "skip"
 	FoldMultiInsert FoldKind = "multi_insert"
@@ -138,6 +139,34 @@ func (f *edgeFold) fold()             {}
 func (f *edgeFold) EventType() string { return f.eventType }
 func (f *edgeFold) EventSample() any  { return f.sample }
 func (f *edgeFold) Kind() FoldKind    { return FoldEdge }
+
+// SetCurrentRecord implements RecordAwareFold.
+func (f *edgeFold) SetCurrentRecord(r record.Record) {
+	if f.recordSetter != nil {
+		f.recordSetter(r)
+	}
+}
+
+// edgeRemoveFold: func(E) EdgeRemoval → GraphRemoveEdge (ADR-0114 style
+// tombstone: the event retracts a previously added edge).
+type edgeRemoveFold struct {
+	eventType    string
+	sample       any
+	invoke       func(event any) EdgeRemoval
+	recordSetter func(record.Record) // set by OnRecord; nil for plain On
+}
+
+func (f *edgeRemoveFold) fold()             {}
+func (f *edgeRemoveFold) EventType() string { return f.eventType }
+func (f *edgeRemoveFold) EventSample() any  { return f.sample }
+func (f *edgeRemoveFold) Kind() FoldKind    { return FoldEdgeRemove }
+
+// SetCurrentRecord implements RecordAwareFold.
+func (f *edgeRemoveFold) SetCurrentRecord(r record.Record) {
+	if f.recordSetter != nil {
+		f.recordSetter(r)
+	}
+}
 
 // setFold: func(E) K → SetAdd.
 type setFold struct {
@@ -401,6 +430,13 @@ func classifySingleReturn[E any](
 
 	case reflect.TypeFor[Edge]():
 		return &edgeFold{eventType: eventType, sample: sample, invoke: reflectCall1[Edge](hv)}
+
+	case reflect.TypeFor[EdgeRemoval]():
+		return &edgeRemoveFold{
+			eventType: eventType,
+			sample:    sample,
+			invoke:    reflectCall1[EdgeRemoval](hv),
+		}
 
 	case reflect.TypeFor[Skip]():
 		return &skipFold{eventType: eventType, sample: sample}

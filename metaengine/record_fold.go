@@ -147,6 +147,14 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			f.recordSetter = func(r record.Record) { recHolder.rec = r }
 			return f
 
+		case reflect.TypeFor[EdgeRemoval]():
+			invoke := func(event any) EdgeRemoval {
+				return callWithRecord(event)[0].Interface().(EdgeRemoval)
+			}
+			f := &edgeRemoveFold{eventType: eventType, sample: sample, invoke: invoke}
+			f.recordSetter = func(r record.Record) { recHolder.rec = r }
+			return f
+
 		case reflect.TypeFor[Embedding]():
 			invoke := func(event any) Embedding {
 				return callWithRecord(event)[0].Interface().(Embedding)

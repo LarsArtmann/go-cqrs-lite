@@ -53,3 +53,22 @@ func D2Handler(cat *catalog.Catalog, opts ...D2Option) http.HandlerFunc {
 		_, _ = w.Write([]byte(text))
 	}
 }
+
+// exportD2 renders the D2 diagram source for the current catalog snapshot.
+func (ds *DocsServer) exportD2() string {
+	cat := ds.provider()
+
+	return d2.NewExporter(string(cat.Title), string(cat.Version)).Export(cat)
+}
+
+func (ds *DocsServer) serveD2View(w http.ResponseWriter, r *http.Request) {
+	ds.renderComponent(w, r, D2Page(ds.config.ServiceName, ds.config.DocsPath, ds.exportD2()))
+}
+
+func (ds *DocsServer) serveD2Text(w http.ResponseWriter, _ *http.Request) {
+	text := ds.exportD2()
+
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(text))
+}

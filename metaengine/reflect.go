@@ -9,9 +9,10 @@ import (
 // as constants so the literal strings are not repeated (goconst) and the set of
 // "meta" fields has a single source of truth.
 const (
-	limitField = "Limit"
-	afterField = "After"
-	depthField = "Depth"
+	limitField     = "Limit"
+	afterField     = "After"
+	depthField     = "Depth"
+	undirectedFlag = "Undirected"
 )
 
 func structValue(input any) (reflect.Value, bool) {
@@ -192,6 +193,28 @@ func extractDepthFromInput(input any) int {
 	return extractIntFieldByName(input, "Depth", 1)
 }
 
+// extractBoolFieldByName reads a bool field by name from the input struct,
+// returning defaultVal when the struct, field, or type is invalid.
+func extractBoolFieldByName(input any, fieldName string, defaultVal bool) bool {
+	v, ok := structValue(input)
+	if !ok {
+		return defaultVal
+	}
+
+	f := v.FieldByName(fieldName)
+	if !f.IsValid() || f.Kind() != reflect.Bool {
+		return defaultVal
+	}
+
+	return f.Bool()
+}
+
+// extractUndirectedFromInput finds a bool field named "Undirected" in the
+// input struct (ReadTraversal queries): true walks edges in both directions.
+func extractUndirectedFromInput(input any) bool {
+	return extractBoolFieldByName(input, undirectedFlag, false)
+}
+
 // detectPagination checks if the input struct has pagination fields.
 func detectPagination(input any) bool {
 	t := derefType(input)
@@ -253,9 +276,10 @@ func extractCursorFromInput(input any) *Cursor {
 // nonMetaFields returns input fields that are NOT pagination metadata.
 func nonMetaFields(input any) []reflectField {
 	metaNames := map[string]bool{
-		limitField: true,
-		afterField: true,
-		depthField: true,
+		limitField:     true,
+		afterField:     true,
+		depthField:     true,
+		undirectedFlag: true,
 	}
 
 	var result []reflectField

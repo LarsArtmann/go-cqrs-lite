@@ -341,11 +341,20 @@ and is **never** duplicated here.
       WriteOp kind, so edges do NOT converge across peers (documented on the
       methods). Replicate edges or keep the honest local-only note in Doctor.
       _(Effort: M)_
-- [ ] **irohengine optional-capability forwarding audit** — `Replicated` was
-      caught dropping graph dispatch (fixed 2026-08-16); audit the remaining
-      optional capabilities (Close, Transactional, StreamLogBackend, probers)
-      for the same interface-embedding promotion gap.
-      _(Effort: S)_
+- [x] **irohengine optional-capability forwarding audit** — DONE 2026-08-16.
+      Full policy documented in `engine_passthrough.go` (forwarding policy
+      table) and pinned by `engine_capability_forwarding_test.go`:
+      Closer forwarded (transport + local both close); MapUpdater/Scan/
+      Vector/Search/Spatial/graph forwarded as local passthrough (writes among
+      them do NOT replicate — no WriteOp kinds); Transactional,
+      StreamLogBackend/SeqSeekableStreamLog/AtomicAppender, and
+      Prober/TransactMeasurer DELIBERATELY not forwarded — forwarding would
+      either silently diverge state (tx/stream writes bypass publish; the
+      system adapters' LogBackend fallback is the converging route) or
+      calibrate NetworkRTT to ~0 overriding the honest replication-derived
+      latency tracker. Additional dropped-by-design surface noted for future
+      triage: temporal reads (MapGetAsOf, StreamReadAsOfVersion, StreamVersion),
+      VectorSearchFiltered, SnapshotBackend.
 - [ ] **Surface capability drift beyond tests** — Doctor: note iroh graph
       non-replication in the Capability section; EXPLAIN: plan-time warning
       banner from `AuditCapability`; plus a metaengine meta-test pinning

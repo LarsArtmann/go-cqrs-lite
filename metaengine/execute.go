@@ -164,6 +164,11 @@ func (s *Store) executeQueryInner(
 		}
 
 		depth := extractDepthFromInput(input)
+
+		if extractUndirectedFromInput(input) {
+			return s.executeGraphNeighborsUndirected(ctx, q, node, depth)
+		}
+
 		if gb, ok := q.QueryEngine().(graphBackend); ok {
 			neighbors, err := gb.GraphNeighbors(ctx, q.QueryName(), node, depth)
 			if err != nil {
@@ -351,6 +356,29 @@ func (s *Store) executeVectorSearchFiltered(
 	}
 
 	return results, nil
+}
+
+// executeGraphNeighborsUndirected serves Undirected:true traversal queries.
+// Engines with the GraphNeighborsUndirected capability expand the frontier
+// along outgoing AND incoming edges; engines without it fail explicitly
+// (silently degrading to directed traversal would return wrong nodes).
+func (s *Store) executeGraphNeighborsUndirected(
+	ctx context.Context,
+	q queryMeta,
+	node any,
+	depth int,
+) (any, error) {
+	ub, ok := q.QueryEngine().(undirectedGraphBackend)
+	if !ok {
+		return nil, unsupportedEngine(errUndirectedGraph, q.QueryEngine().Profile().Name)
+	}
+
+	neighbors, err := ub.GraphNeighborsUndirected(ctx, q.QueryName(), node, depth)
+	if err != nil {
+		return nil, fmt.Errorf("graph neighbors undirected %s: %w", q.QueryName(), err)
+	}
+
+	return neighbors, nil
 }
 
 func (s *Store) executeFullTextSearch(ctx context.Context, q queryMeta, input any) (any, error) {

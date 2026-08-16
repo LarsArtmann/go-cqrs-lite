@@ -1,0 +1,60 @@
+package docserver
+
+import (
+	"github.com/larsartmann/templ-components/layout"
+	"github.com/larsartmann/templ-components/navigation"
+)
+
+// docsPageProps returns Base page props shared by all docserver pages: the
+// embedded stylesheet and favicon, both anchored at docsPrefix, and no
+// auto-injected htmx (docserver pages are static; interactivity comes from
+// the embedded SPAs and self-contained component scripts).
+func docsPageProps(title, description, docsPrefix string) layout.PageProps {
+	props := layout.DefaultPageProps()
+	props.Title = title
+	props.Description = description
+	props.CSSPath = docsPrefix + "/static/docs-ui.css"
+	props.Favicon = docsPrefix + "/static/favicon.svg"
+	props.HTMXVersion = ""
+	props.HTMXSrc = ""
+	props.HTMXResponseTargets = false
+
+	return props
+}
+
+// docsNav renders the shared top navigation for documentation pages.
+templ docsNav(brand, docsPrefix, currentPath string) {
+	@navigation.SimpleNav(navigation.SimpleNavProps{
+		BrandText: brand,
+		BrandHref: docsPrefix,
+		Links: []navigation.NavLinkProps{
+			{Href: docsPrefix, Text: "Overview"},
+			{Href: docsPrefix + "/openapi", Text: "OpenAPI"},
+			{Href: docsPrefix + "/asyncapi", Text: "AsyncAPI"},
+			{Href: docsPrefix + "/d2", Text: "Architecture"},
+		},
+		RightItems:  layout.ThemeToggle("Toggle theme", ""),
+		CurrentPath: currentPath,
+		Sticky:      true,
+	})
+}
+
+// spaHeader is the slim top bar for full-height SPA pages (Scalar, AsyncAPI
+// React). It provides a way back to the index without fighting the SPA's own
+// chrome.
+templ spaHeader(brand, docsPrefix, pageTitle string) {
+	<header class="border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+		<div class="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+			<a
+				href={ templ.SafeURL(docsPrefix) }
+				class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+			>Back to documentation</a>
+			<span class="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{ brand } · { pageTitle }</span>
+		</div>
+	</header>
+}
+
+// sectionHeading renders an h2 with consistent spacing for index sections.
+templ sectionHeading(text string) {
+	<h2 class="mt-12 mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">{ text }</h2>
+}
