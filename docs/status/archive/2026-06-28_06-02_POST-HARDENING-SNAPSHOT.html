@@ -20,11 +20,11 @@
         --warning: #f4d35e;
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -263,7 +263,11 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 7%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 7%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
@@ -477,9 +481,10 @@
           <h1>The library is hardened. Here's exactly where it stands.</h1>
           <p class="hero-subtitle">
             Point-in-time audit of go-cqrs-lite — a CQRS/Event Sourcing SDK of
-            <strong>45 Go modules</strong>, 931 Go files, ~122k LOC. This report follows a full
-            hardening sweep: 54 doc.go files reviewed, an 11-module isolation break found and fixed,
-            CI gates added, and the Drainer interface shipped. Everything below is grounded in live
+            <strong>45 Go modules</strong>, 931 Go files, ~122k LOC. This report
+            follows a full hardening sweep: 54 doc.go files reviewed, an
+            11-module isolation break found and fixed, CI gates added, and the
+            Drainer interface shipped. Everything below is grounded in live
             build/vet/gate output, not estimates.
           </p>
           <div class="hero-meta">
@@ -494,7 +499,8 @@
         <section id="snapshot">
           <h2><span class="num">00</span>Snapshot</h2>
           <p class="muted">
-            Headline metrics, verified live from the working tree on 2026-06-28 06:02 CEST.
+            Headline metrics, verified live from the working tree on 2026-06-28
+            06:02 CEST.
           </p>
           <div class="stat-grid">
             <div class="stat-card g">
@@ -539,28 +545,35 @@
             </div>
           </div>
           <div class="callout c-sol">
-            <strong>Headline:</strong> since the last status report (01:10), the library went from
-            <strong>11/44 modules broken in isolation</strong> to <strong>0/45 passing</strong>. Two
-            CI gates now prevent recurrence. The Drainer interface shipped, giving GracefulClose
-            real drain→close semantics. The biggest remaining risks are now
-            <em>blocked upstream</em> (genproto), <em>stdlib-blocked</em> (jsonv2/arena), or
+            <strong>Headline:</strong> since the last status report (01:10), the
+            library went from
+            <strong>11/44 modules broken in isolation</strong> to
+            <strong>0/45 passing</strong>. Two CI gates now prevent recurrence.
+            The Drainer interface shipped, giving GracefulClose real drain→close
+            semantics. The biggest remaining risks are now
+            <em>blocked upstream</em> (genproto),
+            <em>stdlib-blocked</em> (jsonv2/arena), or
             <em>need consumer signal</em> (NATS/Redis).
           </div>
         </section>
 
         <section id="done">
           <h2><span class="num">a</span>Fully Done</h2>
-          <p>Shipped, tested, production-grade — no known issues. Verified live.</p>
+          <p>
+            Shipped, tested, production-grade — no known issues. Verified live.
+          </p>
 
           <div class="strengths">
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>All 45 modules build in true isolation (GOWORK=off)</strong
+                <strong
+                  >All 45 modules build in true isolation (GOWORK=off)</strong
                 ><span
-                  >Was 11/44 broken. Root cause: projection/v3 missing require directives in 11
-                  consumer modules (the module TODO_LIST falsely claimed was "deleted"). Fixed in
-                  f9cc123c. The signing module's missing eventtest dep (179f5ee3) was the same class
+                  >Was 11/44 broken. Root cause: projection/v3 missing require
+                  directives in 11 consumer modules (the module TODO_LIST
+                  falsely claimed was "deleted"). Fixed in f9cc123c. The signing
+                  module's missing eventtest dep (179f5ee3) was the same class
                   of bug.</span
                 >
               </div>
@@ -570,9 +583,10 @@
               <div class="text">
                 <strong>Two CI gates prevent recurrence (c45b47c8)</strong
                 ><span
-                  >check-module-isolation.sh runs GOWORK=off build for all 45 modules (dynamic
-                  discovery — the old hardcoded matrix missed 10+). check-doc-stubs.sh greps for
-                  placeholder "Package X provides ..." comments. Both wired into CI + flake.nix
+                  >check-module-isolation.sh runs GOWORK=off build for all 45
+                  modules (dynamic discovery — the old hardcoded matrix missed
+                  10+). check-doc-stubs.sh greps for placeholder "Package X
+                  provides ..." comments. Both wired into CI + flake.nix
                   apps.</span
                 >
               </div>
@@ -582,10 +596,10 @@
               <div class="text">
                 <strong>Drainer interface shipped (bbb790fc)</strong
                 ><span
-                  >Bundle.GracefulClose now runs two phases: drain (Drainer interface, opt-in via
-                  WithDrainer) then close. Real shutdown semantics without a DI container.
-                  Abort-before-close on drain error. 3 tests covering order, abort, and
-                  completion.</span
+                  >Bundle.GracefulClose now runs two phases: drain (Drainer
+                  interface, opt-in via WithDrainer) then close. Real shutdown
+                  semantics without a DI container. Abort-before-close on drain
+                  error. 3 tests covering order, abort, and completion.</span
                 >
               </div>
             </div>
@@ -594,9 +608,10 @@
               <div class="text">
                 <strong>All 54 doc.go files reviewed &amp; fixed</strong
                 ><span
-                  >4 accuracy bugs corrected (decider, storage/pebble, transport/grpc, storage/sql).
-                  15 placeholder stubs filled with real code-grounded descriptions. Doc-stub CI gate
-                  prevents recurrence.</span
+                  >4 accuracy bugs corrected (decider, storage/pebble,
+                  transport/grpc, storage/sql). 15 placeholder stubs filled with
+                  real code-grounded descriptions. Doc-stub CI gate prevents
+                  recurrence.</span
                 >
               </div>
             </div>
@@ -605,9 +620,10 @@
               <div class="text">
                 <strong>All 11 v3 breaking changes landed</strong
                 ><span
-                  >Event immutability, Decider.Fold→Apply, event.Event concrete type, metadata split
-                  (ADR-0031), Tombstone model, projection re-home, readmodel→kv (ADR-0032). v3.0.0 +
-                  v3.1.0 tagged.</span
+                  >Event immutability, Decider.Fold→Apply, event.Event concrete
+                  type, metadata split (ADR-0031), Tombstone model, projection
+                  re-home, readmodel→kv (ADR-0032). v3.0.0 + v3.1.0
+                  tagged.</span
                 >
               </div>
             </div>
@@ -616,9 +632,10 @@
               <div class="text">
                 <strong>Three projection tiers complete</strong
                 ><span
-                  >Materialize (KV), RelationalProjection (multi-table SQL, ADR-0033),
-                  GraphProjection (nodes+edges, ADR-0033). All have integration tests covering
-                  atomic writes, rollback, idempotent replay.</span
+                  >Materialize (KV), RelationalProjection (multi-table SQL,
+                  ADR-0033), GraphProjection (nodes+edges, ADR-0033). All have
+                  integration tests covering atomic writes, rollback, idempotent
+                  replay.</span
                 >
               </div>
             </div>
@@ -627,29 +644,33 @@
               <div class="text">
                 <strong>Security: signing + encryption + multisig</strong
                 ><span
-                  >HMAC-SHA256, Ed25519, multi-party signing; XChaCha20-Poly1305 + AES-256-GCM, HKDF
-                  key derivation.</span
+                  >HMAC-SHA256, Ed25519, multi-party signing; XChaCha20-Poly1305
+                  + AES-256-GCM, HKDF key derivation.</span
                 >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Bundle composition + 4 stack presets + watermill EventBus</strong
+                <strong
+                  >Bundle composition + 4 stack presets + watermill
+                  EventBus</strong
                 ><span
-                  >memory, sqlite, pebble, postgres. CatchUpSubscriber replay→live handoff. SSE +
-                  gRPC transports.</span
+                  >memory, sqlite, pebble, postgres. CatchUpSubscriber
+                  replay→live handoff. SSE + gRPC transports.</span
                 >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>0 lint findings, clean workspace build, 0 doc stubs</strong
+                <strong
+                  >0 lint findings, clean workspace build, 0 doc stubs</strong
                 ><span
-                  >Auto-documentation catalog (AsyncAPI, OpenAPI, D2, EventCatalog). OTel +
-                  Prometheus observability. 38 ADRs. Coverage: kv 74.8%, codec 80.0%, graph 86.9%
-                  (improved this session).</span
+                  >Auto-documentation catalog (AsyncAPI, OpenAPI, D2,
+                  EventCatalog). OTel + Prometheus observability. 38 ADRs.
+                  Coverage: kv 74.8%, codec 80.0%, graph 86.9% (improved this
+                  session).</span
                 >
               </div>
             </div>
@@ -663,48 +684,57 @@
           <div class="card card-warning">
             <h4>transport/grpc — builds clean but NOT in go.work</h4>
             <p class="muted">
-              The gRPC transport (ADR-0025) builds under GOWORK=off but cannot join go.work due to
-              the genproto conflict (cockroachdb/errors vs grpc's split genproto). 44 of 45 modules
-              wired into go.work; this is the lone holdout.
+              The gRPC transport (ADR-0025) builds under GOWORK=off but cannot
+              join go.work due to the genproto conflict (cockroachdb/errors vs
+              grpc's split genproto). 44 of 45 modules wired into go.work; this
+              is the lone holdout.
             </p>
           </div>
           <div class="card card-warning">
             <h4>stack/postgres — 0% local coverage (misleading)</h4>
             <p class="muted">
-              Tests skip without POSTGRES_TEST_DSN. Documented in AGENTS.md but the number still
-              misleads local contributors. Needs CI with a live Postgres instance or a more visible
-              skip label.
+              Tests skip without POSTGRES_TEST_DSN. Documented in AGENTS.md but
+              the number still misleads local contributors. Needs CI with a live
+              Postgres instance or a more visible skip label.
             </p>
           </div>
           <div class="card card-warning">
             <h4>Coverage below 85% on mid-tier modules</h4>
             <p class="muted">
-              kv 74.8% (improved from 70.2%), codec 80.0% (improved from 76.0%), snapshot 81.1%,
-              query 83.9%. Core modules are 84–98%. The newer modules improved this session but
-              aren't at core-tier levels yet.
+              kv 74.8% (improved from 70.2%), codec 80.0% (improved from 76.0%),
+              snapshot 81.1%, query 83.9%. Core modules are 84–98%. The newer
+              modules improved this session but aren't at core-tier levels yet.
             </p>
           </div>
           <div class="card card-warning">
-            <h4>Relational &amp; Graph projection tiers — shipped, no external consumer</h4>
+            <h4>
+              Relational &amp; Graph projection tiers — shipped, no external
+              consumer
+            </h4>
             <p class="muted">
-              Both have comprehensive integration tests (atomic writes, rollback, reply chains), but
-              the repo is a library — API stability is unproven until an external project exercises
-              them. This is the EXPECTED state per AGENTS.md principle 1.
+              Both have comprehensive integration tests (atomic writes,
+              rollback, reply chains), but the repo is a library — API stability
+              is unproven until an external project exercises them. This is the
+              EXPECTED state per AGENTS.md principle 1.
             </p>
           </div>
           <div class="card card-warning">
-            <h4>jsonv2 + arena experiments — behind build tags, stdlib-blocked</h4>
+            <h4>
+              jsonv2 + arena experiments — behind build tags, stdlib-blocked
+            </h4>
             <p class="muted">
-              codec/jsonv2_experiment.go and event/arena_experiment.go exist behind goexperiment.*
-              tags (ADR-0026). Pending Go stdlib stabilisation — not on any default build path.
+              codec/jsonv2_experiment.go and event/arena_experiment.go exist
+              behind goexperiment.* tags (ADR-0026). Pending Go stdlib
+              stabilisation — not on any default build path.
             </p>
           </div>
           <div class="card card-warning">
             <h4>TODO_LIST / ROADMAP dates partially stale</h4>
             <p class="muted">
-              TODO_LIST date updated to 2026-06-28 and projection lie corrected this session.
-              ROADMAP.md still says "Last updated: 2026-06-22". Not all recent items
-              (relational/graph tiers, Drainer) reflected in tracking docs.
+              TODO_LIST date updated to 2026-06-28 and projection lie corrected
+              this session. ROADMAP.md still says "Last updated: 2026-06-22".
+              Not all recent items (relational/graph tiers, Drainer) reflected
+              in tracking docs.
             </p>
           </div>
         </section>
@@ -715,7 +745,9 @@
           <div class="grid-2">
             <div class="card">
               <h4>transport/nats</h4>
-              <p class="muted">JetStream pub/sub. ADR-0025 accepted. Waits on consumer signal.</p>
+              <p class="muted">
+                JetStream pub/sub. ADR-0025 accepted. Waits on consumer signal.
+              </p>
             </div>
             <div class="card">
               <h4>transport/redis</h4>
@@ -724,32 +756,41 @@
             <div class="card">
               <h4>Hot-State cache (decider)</h4>
               <p class="muted">
-                Optional RepositoryOption keyed by (aggID, version). Profile-first.
+                Optional RepositoryOption keyed by (aggID, version).
+                Profile-first.
               </p>
             </div>
             <div class="card">
               <h4>Read-pressure snapshot strategy</h4>
-              <p class="muted">Snapshot on load frequency, not just write count.</p>
+              <p class="muted">
+                Snapshot on load frequency, not just write count.
+              </p>
             </div>
             <div class="card">
               <h4>Secondary indexes / ranged scans</h4>
               <p class="muted">
-                Today Scan filters in memory; large read-model sets need indexed reads.
+                Today Scan filters in memory; large read-model sets need indexed
+                reads.
               </p>
             </div>
             <div class="card">
               <h4>Surface Pebble Checkpoint from presets</h4>
-              <p class="muted">Backend.Checkpoint exists but isn't surfaced through presets.</p>
+              <p class="muted">
+                Backend.Checkpoint exists but isn't surfaced through presets.
+              </p>
             </div>
             <div class="card">
               <h4>Doc-examples-compile CI check</h4>
               <p class="muted">
-                Extract code blocks from doc.go, verify they compile. Needs bespoke tooling.
+                Extract code blocks from doc.go, verify they compile. Needs
+                bespoke tooling.
               </p>
             </div>
             <div class="card">
               <h4>CQRS-lite dashboard (web UI)</h4>
-              <p class="muted">Inspect aggregates/events/projections. Raw idea, no design.</p>
+              <p class="muted">
+                Inspect aggregates/events/projections. Raw idea, no design.
+              </p>
             </div>
           </div>
           <div class="card">
@@ -758,9 +799,13 @@
               <li>Event stream compaction / log truncation</li>
               <li>Multi-tenant event store (schema-per-tenant)</li>
               <li>Event archival to S3 / GCS / Azure Blob</li>
-              <li>Distributed projection runner (multi-node, leader election)</li>
+              <li>
+                Distributed projection runner (multi-node, leader election)
+              </li>
               <li>Automatic migration generator for schema evolution</li>
-              <li>Performance regression dashboard (historical benchmark tracking)</li>
+              <li>
+                Performance regression dashboard (historical benchmark tracking)
+              </li>
             </ul>
           </div>
         </section>
@@ -768,8 +813,8 @@
         <section id="broken">
           <h2><span class="num">d</span>Totally Fucked Up</h2>
           <p>
-            Things that are wrong <em>right now</em>. Most are blocked upstream — only 1 is
-            actionable.
+            Things that are wrong <em>right now</em>. Most are blocked upstream
+            — only 1 is actionable.
           </p>
 
           <div class="issue issue-critical">
@@ -777,9 +822,10 @@
             <h3>Stray untracked binary: cmd/doc-check/doc-check</h3>
             <div class="where">cmd/doc-check/doc-check · not in .gitignore</div>
             <p>
-              A compiled binary sits untracked in the repo. <code>git check-ignore</code> confirms
-              it is NOT gitignored. This is a <code>go build</code> artifact that will accidentally
-              get committed or cause confusion. Trivial fix: add
+              A compiled binary sits untracked in the repo.
+              <code>git check-ignore</code> confirms it is NOT gitignored. This
+              is a <code>go build</code> artifact that will accidentally get
+              committed or cause confusion. Trivial fix: add
               <code>/cmd/doc-check/doc-check</code> to .gitignore or delete it.
             </p>
           </div>
@@ -787,11 +833,14 @@
           <div class="issue issue-critical">
             <span class="severity severity-critical">Blocked upstream</span>
             <h3>transport/grpc cannot join go.work (genproto conflict)</h3>
-            <div class="where">cockroachdb/errors#79 · grpc v1.81.1 split genproto</div>
+            <div class="where">
+              cockroachdb/errors#79 · grpc v1.81.1 split genproto
+            </div>
             <p>
-              44 of 45 modules wired into go.work. transport/grpc builds only under GOWORK=off
-              because cockroachdb/errors pulls the monolithic genproto, conflicting with grpc's
-              split genproto. Blocked until cockroachdb/errors drops it. Documented in TODO_LIST.
+              44 of 45 modules wired into go.work. transport/grpc builds only
+              under GOWORK=off because cockroachdb/errors pulls the monolithic
+              genproto, conflicting with grpc's split genproto. Blocked until
+              cockroachdb/errors drops it. Documented in TODO_LIST.
             </p>
           </div>
 
@@ -800,23 +849,27 @@
             <h3>ROADMAP.md "Last updated" still says 2026-06-22</h3>
             <div class="where">ROADMAP.md:6</div>
             <p>
-              TODO_LIST was fixed this session (date → 2026-06-28, projection lie corrected).
-              ROADMAP still references the old date and doesn't mention relational/graph tiers or
-              the Drainer interface. Needs the same freshness treatment.
+              TODO_LIST was fixed this session (date → 2026-06-28, projection
+              lie corrected). ROADMAP still references the old date and doesn't
+              mention relational/graph tiers or the Drainer interface. Needs the
+              same freshness treatment.
             </p>
           </div>
 
           <div class="issue issue-important">
-            <span class="severity severity-important">Pre-existing · not mine</span>
+            <span class="severity severity-important"
+              >Pre-existing · not mine</span
+            >
             <h3>Uncommitted in-flight work by another author</h3>
             <div class="where">
-              id/aggregate_id.go, storage/sqlite_helpers.go, docs/STORAGE_GUIDE.md,
-              id/aggregate_id_test.go
+              id/aggregate_id.go, storage/sqlite_helpers.go,
+              docs/STORAGE_GUIDE.md, id/aggregate_id_test.go
             </div>
             <p>
-              4 files have uncommitted modifications + 1 untracked test file that I did NOT author
-              (AggregateID strict parsing work). Per safety rules I left them untouched. They need
-              to be committed or stashed by their author.
+              4 files have uncommitted modifications + 1 untracked test file
+              that I did NOT author (AggregateID strict parsing work). Per
+              safety rules I left them untouched. They need to be committed or
+              stashed by their author.
             </p>
           </div>
         </section>
@@ -826,33 +879,35 @@
           <div class="card card-solution">
             <h4>Wire real Postgres into CI for stack/postgres tests</h4>
             <p class="muted">
-              The 0% local coverage number will keep misleading until CI runs with
-              POSTGRES_TEST_DSN. A service container in ci.yml fixes it permanently.
+              The 0% local coverage number will keep misleading until CI runs
+              with POSTGRES_TEST_DSN. A service container in ci.yml fixes it
+              permanently.
             </p>
           </div>
           <div class="card card-solution">
             <h4>Build a doc-examples-compile check</h4>
             <p class="muted">
-              The doc.go review found 4 examples that wouldn't compile. A CI check that extracts
-              code blocks from doc comments and verifies them would harden every code block
-              permanently. Needs bespoke tooling (Go's testable examples only cover
-              example_test.go).
+              The doc.go review found 4 examples that wouldn't compile. A CI
+              check that extracts code blocks from doc comments and verifies
+              them would harden every code block permanently. Needs bespoke
+              tooling (Go's testable examples only cover example_test.go).
             </p>
           </div>
           <div class="card">
             <h4>Refresh FEATURES.md and ROADMAP.md with the session's work</h4>
             <p class="muted">
-              Both have stale sections. Drainer interface, projection tier status, CI gates, and
-              coverage improvements aren't reflected. A release-tied doc refresh would fix this
-              systematically.
+              Both have stale sections. Drainer interface, projection tier
+              status, CI gates, and coverage improvements aren't reflected. A
+              release-tied doc refresh would fix this systematically.
             </p>
           </div>
           <div class="card">
             <h4>Consolidate the 372 archived status reports</h4>
             <p class="muted">
-              110 pre-v3 reports were archived to docs/status/archive/ this session. But archive/
-              itself has 372 files (some pre-date the archive logic). Consider periodic pruning or a
-              yearly archive subdirectory.
+              110 pre-v3 reports were archived to docs/status/archive/ this
+              session. But archive/ itself has 372 files (some pre-date the
+              archive logic). Consider periodic pruning or a yearly archive
+              subdirectory.
             </p>
           </div>
         </section>
@@ -860,8 +915,8 @@
         <section id="next25">
           <h2><span class="num">f</span>Top 25 Things to Get Done Next</h2>
           <p class="muted">
-            Sorted by impact × urgency. The 11-module isolation break and its root causes are
-            resolved; this list is forward-looking.
+            Sorted by impact × urgency. The 11-module isolation break and its
+            root causes are resolved; this list is forward-looking.
           </p>
           <table>
             <thead>
@@ -874,43 +929,52 @@
             <tbody>
               <tr>
                 <td class="rank">1</td>
-                <td><strong>Add stray binary to .gitignore</strong> (cmd/doc-check/doc-check)</td>
+                <td>
+                  <strong>Add stray binary to .gitignore</strong>
+                  (cmd/doc-check/doc-check)
+                </td>
                 <td><span class="badge b-crit">Critical</span></td>
               </tr>
               <tr>
                 <td class="rank">2</td>
                 <td>
-                  <strong>Commit or stash the uncommitted in-flight AggregateID work</strong> (4
-                  files + 1 test)
+                  <strong
+                    >Commit or stash the uncommitted in-flight AggregateID
+                    work</strong
+                  >
+                  (4 files + 1 test)
                 </td>
                 <td><span class="badge b-crit">Critical</span></td>
               </tr>
               <tr>
                 <td class="rank">3</td>
-                <td><strong>Refresh ROADMAP.md</strong> (date + relational/graph/Drainer items)</td>
+                <td>
+                  <strong>Refresh ROADMAP.md</strong> (date +
+                  relational/graph/Drainer items)
+                </td>
                 <td><span class="badge b-high">High</span></td>
               </tr>
               <tr>
                 <td class="rank">4</td>
                 <td>
-                  <strong>Refresh FEATURES.md</strong> with Drainer, projection tiers, CI gates,
-                  updated coverage
+                  <strong>Refresh FEATURES.md</strong> with Drainer, projection
+                  tiers, CI gates, updated coverage
                 </td>
                 <td><span class="badge b-high">High</span></td>
               </tr>
               <tr>
                 <td class="rank">5</td>
                 <td>
-                  <strong>Wire Postgres service container into CI</strong> for stack/postgres real
-                  coverage
+                  <strong>Wire Postgres service container into CI</strong> for
+                  stack/postgres real coverage
                 </td>
                 <td><span class="badge b-high">High</span></td>
               </tr>
               <tr>
                 <td class="rank">6</td>
                 <td>
-                  <strong>Build doc-examples-compile CI check</strong> (extract + verify doc.go code
-                  blocks)
+                  <strong>Build doc-examples-compile CI check</strong> (extract
+                  + verify doc.go code blocks)
                 </td>
                 <td><span class="badge b-high">High</span></td>
               </tr>
@@ -925,74 +989,96 @@
               <tr>
                 <td class="rank">8</td>
                 <td>
-                  <strong>Raise codec/ coverage to 85%+</strong> (currently 80.0% — raw.go, cbor
-                  modes)
+                  <strong>Raise codec/ coverage to 85%+</strong> (currently
+                  80.0% — raw.go, cbor modes)
                 </td>
                 <td><span class="badge b-med">Medium</span></td>
               </tr>
               <tr>
                 <td class="rank">9</td>
                 <td>
-                  <strong>Raise snapshot/ coverage</strong> (81.1% — strategies, store interfaces)
+                  <strong>Raise snapshot/ coverage</strong> (81.1% — strategies,
+                  store interfaces)
                 </td>
                 <td><span class="badge b-med">Medium</span></td>
               </tr>
               <tr>
                 <td class="rank">10</td>
-                <td><strong>Raise query/ coverage</strong> (83.9% — pagination, journal)</td>
+                <td>
+                  <strong>Raise query/ coverage</strong> (83.9% — pagination,
+                  journal)
+                </td>
                 <td><span class="badge b-med">Medium</span></td>
               </tr>
               <tr>
                 <td class="rank">11</td>
-                <td><strong>Surface Pebble Checkpoint (backup) from stack presets</strong></td>
+                <td>
+                  <strong
+                    >Surface Pebble Checkpoint (backup) from stack
+                    presets</strong
+                  >
+                </td>
                 <td><span class="badge b-med">Medium</span></td>
               </tr>
               <tr>
                 <td class="rank">12</td>
                 <td>
-                  <strong>Wire Drainer into existing subscribers/routers</strong> (watermill router,
-                  CatchUpSubscriber)
+                  <strong
+                    >Wire Drainer into existing subscribers/routers</strong
+                  >
+                  (watermill router, CatchUpSubscriber)
                 </td>
                 <td><span class="badge b-med">Medium</span></td>
               </tr>
               <tr>
                 <td class="rank">13</td>
-                <td><strong>Secondary indexes / ranged scans for read models</strong></td>
+                <td>
+                  <strong
+                    >Secondary indexes / ranged scans for read models</strong
+                  >
+                </td>
                 <td><span class="badge b-med">Medium</span></td>
               </tr>
               <tr>
                 <td class="rank">14</td>
                 <td>
-                  <strong>Resolve/workaround transport/grpc go.work genproto conflict</strong>
+                  <strong
+                    >Resolve/workaround transport/grpc go.work genproto
+                    conflict</strong
+                  >
                 </td>
                 <td><span class="badge b-med">Medium</span></td>
               </tr>
               <tr>
                 <td class="rank">15</td>
                 <td>
-                  <strong>Add ginkgo coverage reporting to CI</strong> (event/decider/schema show
-                  blank locally — Ginkgo needs -coverpkg)
+                  <strong>Add ginkgo coverage reporting to CI</strong>
+                  (event/decider/schema show blank locally — Ginkgo needs
+                  -coverpkg)
                 </td>
                 <td><span class="badge b-med">Medium</span></td>
               </tr>
               <tr>
                 <td class="rank">16</td>
                 <td>
-                  <strong>transport/nats adapter (JetStream)</strong> — waits on consumer signal
+                  <strong>transport/nats adapter (JetStream)</strong> — waits on
+                  consumer signal
                 </td>
                 <td><span class="badge b-low">Low</span></td>
               </tr>
               <tr>
                 <td class="rank">17</td>
                 <td>
-                  <strong>transport/redis adapter (Streams)</strong> — waits on consumer signal
+                  <strong>transport/redis adapter (Streams)</strong> — waits on
+                  consumer signal
                 </td>
                 <td><span class="badge b-low">Low</span></td>
               </tr>
               <tr>
                 <td class="rank">18</td>
                 <td>
-                  <strong>Hot-State cache design spike</strong> (profile first — 100+ cmds/sec)
+                  <strong>Hot-State cache design spike</strong> (profile first —
+                  100+ cmds/sec)
                 </td>
                 <td><span class="badge b-low">Low</span></td>
               </tr>
@@ -1003,12 +1089,17 @@
               </tr>
               <tr>
                 <td class="rank">20</td>
-                <td><strong>CQRS-lite dashboard (web UI)</strong> — raw idea</td>
+                <td>
+                  <strong>CQRS-lite dashboard (web UI)</strong> — raw idea
+                </td>
                 <td><span class="badge b-low">Low</span></td>
               </tr>
               <tr>
                 <td class="rank">21</td>
-                <td><strong>Event stream compaction / log truncation</strong> design</td>
+                <td>
+                  <strong>Event stream compaction / log truncation</strong>
+                  design
+                </td>
                 <td><span class="badge b-low">Low</span></td>
               </tr>
               <tr>
@@ -1018,18 +1109,24 @@
               </tr>
               <tr>
                 <td class="rank">23</td>
-                <td><strong>Distributed projection runner</strong> (multi-node)</td>
+                <td>
+                  <strong>Distributed projection runner</strong> (multi-node)
+                </td>
                 <td><span class="badge b-low">Low</span></td>
               </tr>
               <tr>
                 <td class="rank">24</td>
-                <td><strong>Automatic migration generator</strong> for schema evolution</td>
+                <td>
+                  <strong>Automatic migration generator</strong> for schema
+                  evolution
+                </td>
                 <td><span class="badge b-low">Low</span></td>
               </tr>
               <tr>
                 <td class="rank">25</td>
                 <td>
-                  <strong>Performance regression dashboard</strong> (historical benchmark tracking)
+                  <strong>Performance regression dashboard</strong> (historical
+                  benchmark tracking)
                 </td>
                 <td><span class="badge b-low">Low</span></td>
               </tr>
@@ -1038,56 +1135,66 @@
         </section>
 
         <section id="question">
-          <h2><span class="num">g</span>The One Question I Cannot Answer Myself</h2>
+          <h2>
+            <span class="num">g</span>The One Question I Cannot Answer Myself
+          </h2>
           <div class="callout c-prob">
-            <strong>Top question (blocking CI trust on the postgres path):</strong>
+            <strong
+              >Top question (blocking CI trust on the postgres path):</strong
+            >
             <p style="margin-top: 0.5rem">
               <em
-                >Should stack/postgres tests get a real Postgres service container in CI (option A:
-                accurate coverage but heavier CI), or should the module's coverage number be
-                explicitly suppressed/labelled as "skipped without DSN" in all reporting (option B:
-                honest but still 0%)?</em
+                >Should stack/postgres tests get a real Postgres service
+                container in CI (option A: accurate coverage but heavier CI), or
+                should the module's coverage number be explicitly
+                suppressed/labelled as "skipped without DSN" in all reporting
+                (option B: honest but still 0%)?</em
               >
             </p>
           </div>
           <p>This is a real tradeoff with no obviously correct answer:</p>
           <ul>
             <li>
-              <strong>Option A (Postgres in CI):</strong> gives accurate coverage numbers and
-              catches Postgres-specific bugs, but adds CI runtime and infrastructure complexity.
-              Every PR pays the cost.
+              <strong>Option A (Postgres in CI):</strong> gives accurate
+              coverage numbers and catches Postgres-specific bugs, but adds CI
+              runtime and infrastructure complexity. Every PR pays the cost.
             </li>
             <li>
-              <strong>Option B (suppress/label):</strong> keeps CI fast, but stack/postgres shows 0%
-              in every coverage report forever. Contributors misread it as "untested" even though it
-              has tests that simply skip locally.
+              <strong>Option B (suppress/label):</strong> keeps CI fast, but
+              stack/postgres shows 0% in every coverage report forever.
+              Contributors misread it as "untested" even though it has tests
+              that simply skip locally.
             </li>
           </ul>
           <p>
             I cannot self-resolve this because it's a
-            <strong>project-level resource decision</strong> (CI budget, maintainer preference for
-            "fast CI vs thorough CI"), not a technical one. The code supports both paths — the
-            question is which philosophy this project wants to encode. Your call.
+            <strong>project-level resource decision</strong> (CI budget,
+            maintainer preference for "fast CI vs thorough CI"), not a technical
+            one. The code supports both paths — the question is which philosophy
+            this project wants to encode. Your call.
           </p>
           <div class="callout c-warn">
-            <strong>Why now:</strong> the isolation and doc-stub gates are in place, coverage on
-            kv/codec/graph improved, and the Drainer shipped. The remaining coverage gaps are either
-            stdlib-blocked (jsonv2) or need this CI decision (postgres). This is the next bottleneck
-            for reaching "85%+ everywhere" honestly.
+            <strong>Why now:</strong> the isolation and doc-stub gates are in
+            place, coverage on kv/codec/graph improved, and the Drainer shipped.
+            The remaining coverage gaps are either stdlib-blocked (jsonv2) or
+            need this CI decision (postgres). This is the next bottleneck for
+            reaching "85%+ everywhere" honestly.
           </div>
         </section>
 
         <footer class="footer">
-          Generated 2026-06-28 06:02 CEST &middot; Post-hardening snapshot &middot; Grounded in live
-          build/vet/gate output, git history, and per-module coverage &middot; 7 commits, 143 files
-          changed this session
+          Generated 2026-06-28 06:02 CEST &middot; Post-hardening snapshot
+          &middot; Grounded in live build/vet/gate output, git history, and
+          per-module coverage &middot; 7 commits, 143 files changed this session
         </footer>
       </main>
     </div>
 
     <script>
       (function () {
-        var links = Array.prototype.slice.call(document.querySelectorAll("[data-nav] a"));
+        var links = Array.prototype.slice.call(
+          document.querySelectorAll("[data-nav] a"),
+        );
         var map = {};
         links.forEach(function (a) {
           var id = a.getAttribute("href").slice(1);

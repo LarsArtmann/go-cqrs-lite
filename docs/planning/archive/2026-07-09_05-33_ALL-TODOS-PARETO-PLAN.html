@@ -213,8 +213,8 @@
     <div class="wrap">
       <h1>Pareto Plan — All TODOs</h1>
       <p class="sub">
-        go-cqrs-lite monorepo &middot; 2026-07-09 &middot; Sorted by impact / effort /
-        customer-value &middot; Tasks ≤12 min each
+        go-cqrs-lite monorepo &middot; 2026-07-09 &middot; Sorted by impact /
+        effort / customer-value &middot; Tasks ≤12 min each
       </p>
 
       <div class="stats">
@@ -245,10 +245,12 @@
       </div>
 
       <div class="note">
-        <b>Reality correction vs. prior session summary:</b> The #1 Pareto item (error-taxonomy
-        extraction) is <b>ALREADY DONE</b> — <code>event/errors.go</code> contains only aliases +
-        sentinels, 170+ files already call <code>errorfamily.</code> directly. Removed from plan.
-        The real build blocker is isolated to <code>schema/validator.go:105,107</code> (json/v2
+        <b>Reality correction vs. prior session summary:</b> The #1 Pareto item
+        (error-taxonomy extraction) is <b>ALREADY DONE</b> —
+        <code>event/errors.go</code> contains only aliases + sentinels, 170+
+        files already call <code>errorfamily.</code> directly. Removed from
+        plan. The real build blocker is isolated to
+        <code>schema/validator.go:105,107</code> (json/v2
         <code>Unmarshal</code> signature mismatch), not a repo-wide failure —
         <code>event/</code> builds clean with experimental tags.
       </div>
@@ -268,8 +270,9 @@
           <tr>
             <td class="id">T01</td>
             <td>
-              Fix schema/validator.go — add <code>decodeJSON</code> wrapper for json/v2
-              <code>Unmarshal</code> signature (blocks schema/catalog/integration)
+              Fix schema/validator.go — add <code>decodeJSON</code> wrapper for
+              json/v2 <code>Unmarshal</code> signature (blocks
+              schema/catalog/integration)
             </td>
             <td><span class="tag p0">Critical</span></td>
             <td class="eff">8m</td>
@@ -278,8 +281,8 @@
           <tr>
             <td class="id">T02</td>
             <td>
-              Fix flake.nix build app — add <code>${tagFlags}</code> to <code>go build</code> (line
-              191)
+              Fix flake.nix build app — add <code>${tagFlags}</code> to
+              <code>go build</code> (line 191)
             </td>
             <td><span class="tag p3">Med</span></td>
             <td class="eff">4m</td>
@@ -294,21 +297,27 @@
           </tr>
           <tr>
             <td class="id">T04</td>
-            <td>Define Outbox interface + SQL outbox table/migration for decider</td>
+            <td>
+              Define Outbox interface + SQL outbox table/migration for decider
+            </td>
             <td><span class="tag p0">High</span></td>
             <td class="eff">12m</td>
             <td><span class="tag p2">P2 Outbox</span></td>
           </tr>
           <tr>
             <td class="id">T05</td>
-            <td>Implement EventOutbox in decider package (buffer + flush pattern)</td>
+            <td>
+              Implement EventOutbox in decider package (buffer + flush pattern)
+            </td>
             <td><span class="tag p0">High</span></td>
             <td class="eff">12m</td>
             <td><span class="tag p2">P2 Outbox</span></td>
           </tr>
           <tr>
             <td class="id">T06</td>
-            <td>Wire optional outbox into Repository.Execute (atomic Save+Publish)</td>
+            <td>
+              Wire optional outbox into Repository.Execute (atomic Save+Publish)
+            </td>
             <td><span class="tag p0">High</span></td>
             <td class="eff">12m</td>
             <td><span class="tag p2">P2 Outbox</span></td>
@@ -371,7 +380,9 @@
           </tr>
           <tr>
             <td class="id">T15</td>
-            <td>Update AGENTS.md layer references + add ADR-0046 (four-tier)</td>
+            <td>
+              Update AGENTS.md layer references + add ADR-0046 (four-tier)
+            </td>
             <td><span class="tag p3">Med</span></td>
             <td class="eff">12m</td>
             <td><span class="tag p5">P5 Docs</span></td>
@@ -385,7 +396,9 @@
           </tr>
           <tr>
             <td class="id">T17</td>
-            <td>[v4*] Move AggregateType/AggregateRef/ParseAggregateType → shared/</td>
+            <td>
+              [v4*] Move AggregateType/AggregateRef/ParseAggregateType → shared/
+            </td>
             <td><span class="tag p0">High</span></td>
             <td class="eff">10m</td>
             <td><span class="tag p6">P6 shared/</span></td>
@@ -484,7 +497,9 @@
           </tr>
           <tr>
             <td class="id">T31</td>
-            <td>[v4*] Write storage/ split proposal (4 packages, file inventory)</td>
+            <td>
+              [v4*] Write storage/ split proposal (4 packages, file inventory)
+            </td>
             <td><span class="tag p3">Med</span></td>
             <td class="eff">12m</td>
             <td><span class="tag p8">P8 storage</span></td>
@@ -493,10 +508,11 @@
       </table>
 
       <div class="gate">
-        <strong>⚠ Approval gate (v4*):</strong> Tasks T16–T31 are <b>breaking API changes</b> to a
-        library. Per project policy ("deleting/changing external-facing API is breaking the
-        product"), these need explicit sign-off before execution. T01–T15 are safe/additive and can
-        execute immediately.
+        <strong>⚠ Approval gate (v4*):</strong> Tasks T16–T31 are
+        <b>breaking API changes</b> to a library. Per project policy
+        ("deleting/changing external-facing API is breaking the product"), these
+        need explicit sign-off before execution. T01–T15 are safe/additive and
+        can execute immediately.
       </div>
 
       <h2>Pareto Breakdown</h2>
@@ -546,7 +562,12 @@
           preserveAspectRatio="xMinYMin meet"
           viewBox="0 0 1698 1952"
         >
-          <svg class="d2-88106919 d2-svg" width="1698" height="1952" viewBox="-89 -89 1698 1952">
+          <svg
+            class="d2-88106919 d2-svg"
+            width="1698"
+            height="1952"
+            viewBox="-89 -89 1698 1952"
+          >
             <rect
               x="-89.000000"
               y="-89.000000"
@@ -1323,17 +1344,36 @@
               width="1698"
               height="1952"
             >
-              <rect x="-89" y="-89" width="1698" height="1952" fill="white"></rect>
-              <rect x="681.000000" y="306.000000" width="159" height="21" fill="black"></rect>
-              <rect x="654.000000" y="1489.000000" width="212" height="21" fill="black"></rect>
+              <rect
+                x="-89"
+                y="-89"
+                width="1698"
+                height="1952"
+                fill="white"
+              ></rect>
+              <rect
+                x="681.000000"
+                y="306.000000"
+                width="159"
+                height="21"
+                fill="black"
+              ></rect>
+              <rect
+                x="654.000000"
+                y="1489.000000"
+                width="212"
+                height="21"
+                fill="black"
+              ></rect>
             </mask>
           </svg>
         </svg>
       </div>
 
       <div class="foot">
-        Generated 2026-07-09 05:33 · Pareto Planning skill · 31 tasks, all ≤12 min · Data verified
-        against actual repo state (not session-summary assumptions).
+        Generated 2026-07-09 05:33 · Pareto Planning skill · 31 tasks, all ≤12
+        min · Data verified against actual repo state (not session-summary
+        assumptions).
       </div>
     </div>
   </body>

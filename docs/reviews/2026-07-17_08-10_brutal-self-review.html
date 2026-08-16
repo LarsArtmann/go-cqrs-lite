@@ -28,12 +28,14 @@
         --warning: var(--color-yellow);
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+          monospace;
       }
       * {
         box-sizing: border-box;
@@ -266,8 +268,8 @@
       <div class="hero-badge">Brutal Self-Review &middot; 2026-07-17</div>
       <h1>cqrs-lint v0.2.1 — Post-Review Hardening</h1>
       <p class="hero-subtitle">
-        Honest assessment of what was forgotten, what was stupid, and what was fixed in this
-        session.
+        Honest assessment of what was forgotten, what was stupid, and what was
+        fixed in this session.
       </p>
     </div>
 
@@ -295,44 +297,50 @@
     <div class="card card-problem">
       <h3>Health score computed on filtered findings</h3>
       <p>
-        <code>main.go:275</code> passed <code>activeFindings</code> (post severity/confidence
-        filtering) to <code>ComputeHealthScoreWithCap</code>. This meant
-        <code>--min-severity error --health-score</code> would give a misleadingly high score
-        because warnings/info were excluded from the computation. The health score should be a
-        stable project-health metric independent of display filters.
+        <code>main.go:275</code> passed <code>activeFindings</code> (post
+        severity/confidence filtering) to
+        <code>ComputeHealthScoreWithCap</code>. This meant
+        <code>--min-severity error --health-score</code> would give a
+        misleadingly high score because warnings/info were excluded from the
+        computation. The health score should be a stable project-health metric
+        independent of display filters.
       </p>
       <p>
-        <strong>Root cause:</strong> The health score was wired into the wrong stage of the pipeline
-        — after display filtering instead of after suppression filtering.
+        <strong>Root cause:</strong> The health score was wired into the wrong
+        stage of the pipeline — after display filtering instead of after
+        suppression filtering.
       </p>
     </div>
 
     <div class="card card-problem">
       <h3>InfoCapped display used hardcoded constant</h3>
       <p>
-        <code>output.go:139</code> displayed <code>defaultInfoDeductionCap</code> (the constant 20)
-        instead of the actual configured cap. If a consumer set
-        <code>{"health": {"info-cap": 15}}</code>, the display still said "capped at -20". The
-        <code>HealthScore</code> struct didn't carry the cap it was computed with.
+        <code>output.go:139</code> displayed
+        <code>defaultInfoDeductionCap</code> (the constant 20) instead of the
+        actual configured cap. If a consumer set
+        <code>{"health": {"info-cap": 15}}</code>, the display still said
+        "capped at -20". The <code>HealthScore</code> struct didn't carry the
+        cap it was computed with.
       </p>
     </div>
 
     <div class="card card-problem">
       <h3>No integration test for suppression end-to-end</h3>
       <p>
-        The suppression leak bug survived 2 releases because no test verified the full path: detect
-        &rarr; suppress &rarr; filter &rarr; output. Unit tests tested the filter function in
-        isolation, but no test verified that a suppressed finding was actually excluded from the
-        final output and health score.
+        The suppression leak bug survived 2 releases because no test verified
+        the full path: detect &rarr; suppress &rarr; filter &rarr; output. Unit
+        tests tested the filter function in isolation, but no test verified that
+        a suppressed finding was actually excluded from the final output and
+        health score.
       </p>
     </div>
 
     <div class="card card-problem">
       <h3>scanner.Err() was silenced, not handled</h3>
       <p>
-        <code>_ = scanner.Err()</code> silenced the lint warning but didn't help users debug missing
-        suppressions. A scanner error means suppression comments might be missed, and the user had
-        no visibility into this.
+        <code>_ = scanner.Err()</code> silenced the lint warning but didn't help
+        users debug missing suppressions. A scanner error means suppression
+        comments might be missed, and the user had no visibility into this.
       </p>
     </div>
 
@@ -341,28 +349,31 @@
     <div class="card card-warning">
       <h3>Health score depending on display filters</h3>
       <p>
-        This is architecturally wrong. Health = project quality metric. It should not change based
-        on what you choose to <em>display</em>. The score should see ALL unsuppressed findings
-        regardless of severity/confidence thresholds.
+        This is architecturally wrong. Health = project quality metric. It
+        should not change based on what you choose to <em>display</em>. The
+        score should see ALL unsuppressed findings regardless of
+        severity/confidence thresholds.
       </p>
     </div>
 
     <div class="card card-warning">
       <h3>renderHealthScore reaching into a package constant</h3>
       <p>
-        The display function referenced <code>defaultInfoDeductionCap</code> directly instead of
-        receiving the data it needed. This is a violation of dependency injection — the function
-        should be self-contained given its input struct.
+        The display function referenced
+        <code>defaultInfoDeductionCap</code> directly instead of receiving the
+        data it needed. This is a violation of dependency injection — the
+        function should be self-contained given its input struct.
       </p>
     </div>
 
     <div class="card card-warning">
       <h3>filterSuppressed discarded suppressed findings</h3>
       <p>
-        It returned <code>(active, count)</code> — the suppressed findings were thrown away. This
-        meant there was no way to audit suppressions without re-scanning source files. The
-        <code>doctor</code> command had a separate <code>countSuppressions</code> function that
-        re-parsed ASTs, creating a potential split brain.
+        It returned <code>(active, count)</code> — the suppressed findings were
+        thrown away. This meant there was no way to audit suppressions without
+        re-scanning source files. The <code>doctor</code> command had a separate
+        <code>countSuppressions</code> function that re-parsed ASTs, creating a
+        potential split brain.
       </p>
     </div>
 
@@ -371,9 +382,10 @@
     <div class="card card-solution">
       <h3>Done this session</h3>
       <p>
-        All four bugs above are fixed. The integration test that would have caught the suppression
-        leak now exists. The scanner error is logged. The health score is stable across display
-        filters. The InfoCapped display shows the correct cap.
+        All four bugs above are fixed. The integration test that would have
+        caught the suppression leak now exists. The scanner error is logged. The
+        health score is stable across display filters. The InfoCapped display
+        shows the correct cap.
       </p>
     </div>
 
@@ -382,10 +394,13 @@
       <p>
         &bull; Make <code>--fp-suspects</code> threshold configurable
         (<code>--max-confidence</code>)<br />
-        &bull; Property-based tests with <code>rapid</code> for filter functions<br />
-        &bull; <code>--baseline</code> flag for comparing against a known-good finding set<br />
+        &bull; Property-based tests with <code>rapid</code> for filter
+        functions<br />
+        &bull; <code>--baseline</code> flag for comparing against a known-good
+        finding set<br />
         &bull; Diff-aware mode: only report findings on changed lines<br />
-        &bull; <code>cqrs-lint explain RULE</code> command for detailed rule docs
+        &bull; <code>cqrs-lint explain RULE</code> command for detailed rule
+        docs
       </p>
     </div>
 
@@ -472,10 +487,12 @@
 
     <div class="callout callout-solution">
       <strong>All gates green:</strong>
-      <br />&bull; <code>go build</code> &mdash; OK <br />&bull; <code>go vet</code> &mdash; OK
-      <br />&bull; <code>go test ./...</code> &mdash; 11/11 packages OK <br />&bull;
-      <code>go test -race</code> &mdash; OK <br />&bull; <code>gofmt -l</code> &mdash; clean
-      <br />&bull; BuildFlow pre-commit &mdash; passed (only pre-existing nix-checker warnings)
+      <br />&bull; <code>go build</code> &mdash; OK <br />&bull;
+      <code>go vet</code> &mdash; OK <br />&bull;
+      <code>go test ./...</code> &mdash; 11/11 packages OK <br />&bull;
+      <code>go test -race</code> &mdash; OK <br />&bull;
+      <code>gofmt -l</code> &mdash; clean <br />&bull; BuildFlow pre-commit
+      &mdash; passed (only pre-existing nix-checker warnings)
     </div>
 
     <h2><span class="num">06</span>Type Model Improvements</h2>
@@ -483,30 +500,34 @@
     <div class="card card-solution">
       <h3>HealthScore now carries the cap it was computed with</h3>
       <p>
-        Added <code>InfoCapApplied int</code> to the <code>HealthScore</code> struct. This makes the
-        struct self-describing — the display function no longer needs to reach into a package
-        constant. This is the "make impossible states unrepresentable" principle applied to display
-        data: the struct carries everything needed to render it correctly.
+        Added <code>InfoCapApplied int</code> to the
+        <code>HealthScore</code> struct. This makes the struct self-describing —
+        the display function no longer needs to reach into a package constant.
+        This is the "make impossible states unrepresentable" principle applied
+        to display data: the struct carries everything needed to render it
+        correctly.
       </p>
     </div>
 
     <div class="card card-solution">
       <h3>filterSuppressed returns both active and suppressed slices</h3>
       <p>
-        Changed from <code>([]Finding, int)</code> to <code>(active, suppressed []Finding)</code>.
-        The suppressed findings are retained rather than discarded, enabling the
-        <code>--show-suppressed</code> feature without a second pass. This eliminates the split
-        brain between <code>filterSuppressed</code> and <code>countSuppressions</code> in
-        <code>doctor.go</code>.
+        Changed from <code>([]Finding, int)</code> to
+        <code>(active, suppressed []Finding)</code>. The suppressed findings are
+        retained rather than discarded, enabling the
+        <code>--show-suppressed</code> feature without a second pass. This
+        eliminates the split brain between <code>filterSuppressed</code> and
+        <code>countSuppressions</code> in <code>doctor.go</code>.
       </p>
     </div>
 
     <div class="card card-solution">
       <h3>Extracted shouldExitWithError as a testable function</h3>
       <p>
-        The exit-code decision was inline in <code>run()</code>, making it untestable without
-        loading Go packages. Now it's a standalone function that both <code>run()</code> and tests
-        can call. This follows the principle of separating decision logic from I/O logic.
+        The exit-code decision was inline in <code>run()</code>, making it
+        untestable without loading Go packages. Now it's a standalone function
+        that both <code>run()</code> and tests can call. This follows the
+        principle of separating decision logic from I/O logic.
       </p>
     </div>
 
@@ -515,24 +536,26 @@
     <div class="card card-warning">
       <h3>No, but the prior session's "all green" was hiding real issues</h3>
       <p>
-        The prior session claimed all verification gates were green. They were — but the gates only
-        test what's tested. The health score bug, the InfoCapped display bug, and the missing
-        integration test were all invisible to the test suite. "All tests pass" is not the same as
-        "the code is correct." The tests were green because they didn't test the invariants that
-        were broken.
+        The prior session claimed all verification gates were green. They were —
+        but the gates only test what's tested. The health score bug, the
+        InfoCapped display bug, and the missing integration test were all
+        invisible to the test suite. "All tests pass" is not the same as "the
+        code is correct." The tests were green because they didn't test the
+        invariants that were broken.
       </p>
     </div>
 
     <div class="callout callout-warning">
-      <strong>Lesson:</strong> A test suite that passes on broken code is not a green test suite —
-      it's a blind one. The suppression bug survived 2 releases because the tests tested the filter
-      function in isolation but never verified the end-to-end path. Integration tests are not
-      optional for trust-critical features.
+      <strong>Lesson:</strong> A test suite that passes on broken code is not a
+      green test suite — it's a blind one. The suppression bug survived 2
+      releases because the tests tested the filter function in isolation but
+      never verified the end-to-end path. Integration tests are not optional for
+      trust-critical features.
     </div>
 
     <div class="footer">
-      Generated 2026-07-17 &middot; cqrs-lint v0.2.1 &middot; 4 bugs fixed, 2 features added, 8
-      tests added
+      Generated 2026-07-17 &middot; cqrs-lint v0.2.1 &middot; 4 bugs fixed, 2
+      features added, 8 tests added
     </div>
   </body>
 </html>

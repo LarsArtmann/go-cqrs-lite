@@ -31,14 +31,14 @@
         --radius: 0px;
         --radius-sm: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -463,8 +463,9 @@
           <div class="hero-badge">Pareto 80/20 Plan</div>
           <h1>Superb OpenTelemetry DX</h1>
           <p class="hero-subtitle">
-            A comprehensive execution plan to make go-cqrs-lite's OTel experience feel like Temporal
-            or Watermill — one-call instrumentation, correct span trees, zero-config defaults, and a
+            A comprehensive execution plan to make go-cqrs-lite's OTel
+            experience feel like Temporal or Watermill — one-call
+            instrumentation, correct span trees, zero-config defaults, and a
             dogfooded example.
           </p>
         </div>
@@ -491,61 +492,78 @@
 
         <p>
           Today, enabling OTel on all three message kinds requires
-          <strong>7 boilerplate calls</strong> across tracer, meter, recorder, and three middleware
-          types. The canonical Go pattern (otelhttp/otelgrpc/otelsql) is
-          <strong>functional options + one integration call</strong>. This plan closes that gap and
-          instruments the three layers (transport/http, transport/grpc, watermill) that currently
-          emit <strong>zero spans</strong> at the exact points where distributed tracing matters
-          most.
+          <strong>7 boilerplate calls</strong> across tracer, meter, recorder,
+          and three middleware types. The canonical Go pattern
+          (otelhttp/otelgrpc/otelsql) is
+          <strong>functional options + one integration call</strong>. This plan
+          closes that gap and instruments the three layers (transport/http,
+          transport/grpc, watermill) that currently emit
+          <strong>zero spans</strong> at the exact points where distributed
+          tracing matters most.
         </p>
 
-        <h2 id="critique"><span class="num">01</span>Self-Critique — What I Missed</h2>
+        <h2 id="critique">
+          <span class="num">01</span>Self-Critique — What I Missed
+        </h2>
 
         <div class="card card-problem">
           <h4>I missed the biggest gaps entirely</h4>
           <p>
-            In my initial analysis I claimed storage and decider were instrumented (true) but never
-            checked <strong>transport/http</strong>, <strong>transport/grpc</strong>, and
-            <strong>watermill</strong>. Verified: all three emit <strong>zero spans</strong>. These
-            are the integration points where distributed tracing is most valuable — the broker
-            boundaries where context must propagate across processes. This is a bigger gap than the
-            missing bundle function.
+            In my initial analysis I claimed storage and decider were
+            instrumented (true) but never checked
+            <strong>transport/http</strong>, <strong>transport/grpc</strong>,
+            and <strong>watermill</strong>. Verified: all three emit
+            <strong>zero spans</strong>. These are the integration points where
+            distributed tracing is most valuable — the broker boundaries where
+            context must propagate across processes. This is a bigger gap than
+            the missing bundle function.
           </p>
         </div>
 
         <div class="card card-problem">
           <h4>I didn't cite the canonical pattern</h4>
           <p>
-            I proposed a bundle function from intuition. I should have grounded it in the
-            <strong>otel-contrib canonical pattern</strong>: every official instrumentation
-            (otelhttp, otelgrpc, otelsql) uses functional options (<code>opts ...Option</code>),
-            exposes
+            I proposed a bundle function from intuition. I should have grounded
+            it in the
+            <strong>otel-contrib canonical pattern</strong>: every official
+            instrumentation (otelhttp, otelgrpc, otelsql) uses functional
+            options (<code>opts ...Option</code>), exposes
             <code>WithTracerProvider</code
-            >/<code>WithMeterProvider</code>/<code>WithPropagators</code>, and defines a
-            <code>ScopeName</code> constant + <code>Version()</code> function. Our
-            <code>otel/</code> module follows none of this convention yet.
+            >/<code>WithMeterProvider</code>/<code>WithPropagators</code>, and
+            defines a <code>ScopeName</code> constant +
+            <code>Version()</code> function. Our <code>otel/</code> module
+            follows none of this convention yet.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>I dismissed existing code I should have reused</h4>
           <p>
-            <code>prometheus.Setup()</code> is our <strong>own existing template</strong> for the
-            <code>otel.Setup()</code> helper — same shape, same option pattern. The existing
-            <code>CommandTracing</code>/<code>EventTracing</code>/<code>QueryTracing</code> are the
-            correct building blocks for the bundle; it's pure assembly, no new instrumentation
-            logic. I should build on these, not invent parallel APIs.
+            <code>prometheus.Setup()</code> is our
+            <strong>own existing template</strong> for the
+            <code>otel.Setup()</code> helper — same shape, same option pattern.
+            The existing
+            <code>CommandTracing</code>/<code>EventTracing</code>/<code
+              >QueryTracing</code
+            >
+            are the correct building blocks for the bundle; it's pure assembly,
+            no new instrumentation logic. I should build on these, not invent
+            parallel APIs.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>Type model smells I overlooked</h4>
           <p>
-            <code>MetricsRecorder.Observe(ctx, name, duration, labels ...string)</code> is
-            <strong>stringly-typed</strong> — alternating key-value string pairs, no compile-time
-            safety. The three parallel metrics APIs (<code>MetricsRecorder</code>,
-            <code>OTelMetrics</code>, <code>OTelMetricsWithCounter</code>) with no clear primary is
-            a split-brain. These need consolidating with typed attributes.
+            <code
+              >MetricsRecorder.Observe(ctx, name, duration, labels
+              ...string)</code
+            >
+            is <strong>stringly-typed</strong> — alternating key-value string
+            pairs, no compile-time safety. The three parallel metrics APIs
+            (<code>MetricsRecorder</code>, <code>OTelMetrics</code>,
+            <code>OTelMetricsWithCounter</code>) with no clear primary is a
+            split-brain. These need consolidating with typed attributes.
           </p>
         </div>
 
@@ -553,8 +571,9 @@
 
         <h3>Canonical Go OTel pattern (verified)</h3>
         <p>
-          Every official <code>go.opentelemetry.io/contrib</code> instrumentation follows the same
-          shape:
+          Every official
+          <code>go.opentelemetry.io/contrib</code> instrumentation follows the
+          same shape:
         </p>
         <pre><code>// Functional options + integration at the library's native extension point
 func NewHandler(handler http.Handler, operation string, opts ...Option) http.Handler
@@ -565,8 +584,9 @@ func Version() string</code></pre>
         <p>
           <strong>Shared elements across otelhttp/otelgrpc/otelsql:</strong>
           <code>WithTracerProvider</code>, <code>WithMeterProvider</code>,
-          <code>WithPropagators</code>, <code>ScopeName</code>, <code>Version()</code>. Our
-          <code>otel/</code> has <code>Name</code> but no <code>Version()</code> and no option-type
+          <code>WithPropagators</code>, <code>ScopeName</code>,
+          <code>Version()</code>. Our <code>otel/</code> has
+          <code>Name</code> but no <code>Version()</code> and no option-type
           provider injection.
         </p>
 
@@ -616,17 +636,21 @@ func Version() string</code></pre>
         <h3>Dogfooding gap (verified)</h3>
         <p>
           <code>example/user/main.go:92</code> wires
-          <code>middleware.CommandMetrics(&amp;printMetricsRecorder{})</code> — a hand-rolled struct
-          that does <code>fmt.Printf</code>.
-          <strong>Zero of 5 examples use any OTel middleware.</strong> The OTel path isn't good
-          enough for our own demos.
+          <code>middleware.CommandMetrics(&amp;printMetricsRecorder{})</code> —
+          a hand-rolled struct that does <code>fmt.Printf</code>.
+          <strong>Zero of 5 examples use any OTel middleware.</strong> The OTel
+          path isn't good enough for our own demos.
         </p>
 
-        <h2 id="tier1"><span class="num">03</span>Tier 1 — Bundle &amp; Setup (1% → 51%)</h2>
-        <span class="tier-badge tier-1">P0 · Highest Impact · ~90 min total</span>
+        <h2 id="tier1">
+          <span class="num">03</span>Tier 1 — Bundle &amp; Setup (1% → 51%)
+        </h2>
+        <span class="tier-badge tier-1"
+          >P0 · Highest Impact · ~90 min total</span
+        >
         <p>
-          The killer feature. Without this, OTel UX is bad no matter what else ships. Turns 7
-          boilerplate calls into 1.
+          The killer feature. Without this, OTel UX is bad no matter what else
+          ships. Turns 7 boilerplate calls into 1.
         </p>
 
         <table>
@@ -643,8 +667,9 @@ func Version() string</code></pre>
             <tr>
               <td>1.1</td>
               <td>
-                Add <code>otel.Setup()</code> provider helper — functional options, stdout default,
-                returns shutdown. Mirror <code>prometheus.Setup()</code>.
+                Add <code>otel.Setup()</code> provider helper — functional
+                options, stdout default, returns shutdown. Mirror
+                <code>prometheus.Setup()</code>.
               </td>
               <td><code>otel/setup.go</code></td>
               <td><span class="badge badge-sm badge-p2">12m</span></td>
@@ -653,8 +678,9 @@ func Version() string</code></pre>
             <tr>
               <td>1.2</td>
               <td>
-                Add <code>otel.Version()</code> + <code>ScopeName</code> constant — align with
-                otel-contrib convention.
+                Add <code>otel.Version()</code> +
+                <code>ScopeName</code> constant — align with otel-contrib
+                convention.
               </td>
               <td><code>otel/instrumentation.go</code></td>
               <td><span class="badge badge-sm badge-p2">5m</span></td>
@@ -664,8 +690,8 @@ func Version() string</code></pre>
               <td>1.3</td>
               <td>
                 Add <code>middleware.OTel()</code> bundle — returns struct with
-                <code>.Command()/.Event()/.Query()/.Publish()</code> returning middleware slices.
-                Pure assembly of existing functions.
+                <code>.Command()/.Event()/.Query()/.Publish()</code> returning
+                middleware slices. Pure assembly of existing functions.
               </td>
               <td><code>middleware/otel_bundle.go</code></td>
               <td><span class="badge badge-sm badge-p2">12m</span></td>
@@ -674,8 +700,8 @@ func Version() string</code></pre>
             <tr>
               <td>1.4</td>
               <td>
-                Unit test for <code>middleware.OTel()</code> bundle — verify all middleware wired,
-                correct types, no panic.
+                Unit test for <code>middleware.OTel()</code> bundle — verify all
+                middleware wired, correct types, no panic.
               </td>
               <td><code>middleware/otel_bundle_test.go</code></td>
               <td><span class="badge badge-sm badge-p2">10m</span></td>
@@ -684,8 +710,8 @@ func Version() string</code></pre>
             <tr>
               <td>1.5</td>
               <td>
-                Unit test for <code>otel.Setup()</code> — verify global providers set, shutdown
-                flushes.
+                Unit test for <code>otel.Setup()</code> — verify global
+                providers set, shutdown flushes.
               </td>
               <td><code>otel/setup_test.go</code></td>
               <td><span class="badge badge-sm badge-p2">10m</span></td>
@@ -695,7 +721,8 @@ func Version() string</code></pre>
               <td>1.6</td>
               <td>
                 <strong>Dogfood:</strong> convert <code>example/user</code> from
-                <code>printMetricsRecorder</code> to OTel bundle. THE spec-validation step.
+                <code>printMetricsRecorder</code> to OTel bundle. THE
+                spec-validation step.
               </td>
               <td><code>example/user/main.go</code></td>
               <td><span class="badge badge-sm badge-p2">12m</span></td>
@@ -703,7 +730,10 @@ func Version() string</code></pre>
             </tr>
             <tr>
               <td>1.7</td>
-              <td>Smoke test for example/user verifying spans emitted via in-memory exporter.</td>
+              <td>
+                Smoke test for example/user verifying spans emitted via
+                in-memory exporter.
+              </td>
               <td><code>example/user/smoke_test.go</code></td>
               <td><span class="badge badge-sm badge-p2">10m</span></td>
               <td><span class="badge badge-sm badge-p1">High</span></td>
@@ -712,12 +742,13 @@ func Version() string</code></pre>
         </table>
 
         <h2 id="tier2">
-          <span class="num">04</span>Tier 2 — Integration Spans &amp; API Consolidation (4% → 64%)
+          <span class="num">04</span>Tier 2 — Integration Spans &amp; API
+          Consolidation (4% → 64%)
         </h2>
         <span class="tier-badge tier-2">P1 · High Impact · ~120 min total</span>
         <p>
-          Instrument the three broker/integration boundaries that currently emit zero spans, and
-          collapse the split-brain metrics API.
+          Instrument the three broker/integration boundaries that currently emit
+          zero spans, and collapse the split-brain metrics API.
         </p>
 
         <table>
@@ -734,8 +765,9 @@ func Version() string</code></pre>
             <tr>
               <td>2.1</td>
               <td>
-                Instrument <code>transport/http</code> — producer/consumer spans for SSE event
-                delivery via existing <code>cqrsotel.StartSpan</code>.
+                Instrument <code>transport/http</code> — producer/consumer spans
+                for SSE event delivery via existing
+                <code>cqrsotel.StartSpan</code>.
               </td>
               <td><code>transport/http/sse.go</code></td>
               <td><span class="badge badge-sm badge-p1">12m</span></td>
@@ -743,7 +775,10 @@ func Version() string</code></pre>
             </tr>
             <tr>
               <td>2.2</td>
-              <td>Test for transport/http OTel spans — verify span kind + attributes.</td>
+              <td>
+                Test for transport/http OTel spans — verify span kind +
+                attributes.
+              </td>
               <td><code>transport/http/*_test.go</code></td>
               <td><span class="badge badge-sm badge-p2">10m</span></td>
               <td><span class="badge badge-sm badge-p1">High</span></td>
@@ -751,8 +786,8 @@ func Version() string</code></pre>
             <tr>
               <td>2.3</td>
               <td>
-                Instrument <code>transport/grpc</code> — server spans for Command/Query service
-                handlers.
+                Instrument <code>transport/grpc</code> — server spans for
+                Command/Query service handlers.
               </td>
               <td><code>transport/grpc/*.go</code></td>
               <td><span class="badge badge-sm badge-p1">12m</span></td>
@@ -768,8 +803,8 @@ func Version() string</code></pre>
             <tr>
               <td>2.5</td>
               <td>
-                Instrument <code>watermill</code> bridges — context propagation + spans across
-                publish/subscribe boundary.
+                Instrument <code>watermill</code> bridges — context propagation
+                + spans across publish/subscribe boundary.
               </td>
               <td><code>watermill/*.go</code></td>
               <td><span class="badge badge-sm badge-p1">12m</span></td>
@@ -785,9 +820,10 @@ func Version() string</code></pre>
             <tr>
               <td>2.7</td>
               <td>
-                Collapse metrics API — mark <code>OTelMetricsWithCounter</code> as primary in docs,
-                deprecate the other two variants via doc comments (keep for back-compat; library
-                stability rule).
+                Collapse metrics API — mark
+                <code>OTelMetricsWithCounter</code> as primary in docs,
+                deprecate the other two variants via doc comments (keep for
+                back-compat; library stability rule).
               </td>
               <td><code>middleware/metrics_otel.go</code></td>
               <td><span class="badge badge-sm badge-p2">8m</span></td>
@@ -796,8 +832,8 @@ func Version() string</code></pre>
             <tr>
               <td>2.8</td>
               <td>
-                Span tree validation test — integration test running command→event→projection,
-                asserting parent-child nesting.
+                Span tree validation test — integration test running
+                command→event→projection, asserting parent-child nesting.
               </td>
               <td><code>integration/otel_spantree_test.go</code></td>
               <td><span class="badge badge-sm badge-p1">12m</span></td>
@@ -806,11 +842,16 @@ func Version() string</code></pre>
           </tbody>
         </table>
 
-        <h2 id="tier3"><span class="num">05</span>Tier 3 — Type Model, Docs, Polish (20% → 80%)</h2>
-        <span class="tier-badge tier-3">P2 · Medium Impact · ~70 min total</span>
+        <h2 id="tier3">
+          <span class="num">05</span>Tier 3 — Type Model, Docs, Polish (20% →
+          80%)
+        </h2>
+        <span class="tier-badge tier-3"
+          >P2 · Medium Impact · ~70 min total</span
+        >
         <p>
-          Fix the stringly-typed metrics interface, cache the per-call tracer, make retries visible
-          as child spans, and document the span tree shape.
+          Fix the stringly-typed metrics interface, cache the per-call tracer,
+          make retries visible as child spans, and document the span tree shape.
         </p>
 
         <table>
@@ -828,8 +869,9 @@ func Version() string</code></pre>
               <td>3.1</td>
               <td>
                 Add typed <code>TypedMetricsRecorder</code> using
-                <code>attribute.KeyValue</code> instead of <code>labels ...string</code>. Keep old
-                interface for back-compat.
+                <code>attribute.KeyValue</code> instead of
+                <code>labels ...string</code>. Keep old interface for
+                back-compat.
               </td>
               <td><code>middleware/metrics.go</code></td>
               <td><span class="badge badge-sm badge-p1">12m</span></td>
@@ -849,8 +891,8 @@ func Version() string</code></pre>
             <tr>
               <td>3.3</td>
               <td>
-                Retry-as-child-spans — retry middleware should create a child span per attempt, not
-                one span for all retries.
+                Retry-as-child-spans — retry middleware should create a child
+                span per attempt, not one span for all retries.
               </td>
               <td><code>middleware/retry.go</code></td>
               <td><span class="badge badge-sm badge-p1">12m</span></td>
@@ -859,8 +901,8 @@ func Version() string</code></pre>
             <tr>
               <td>3.4</td>
               <td>
-                Span tree diagram + README rewrite — document expected span hierarchy; add "OTel in
-                5 lines" quickstart.
+                Span tree diagram + README rewrite — document expected span
+                hierarchy; add "OTel in 5 lines" quickstart.
               </td>
               <td><code>otel/README.md</code></td>
               <td><span class="badge badge-sm badge-p2">10m</span></td>
@@ -869,8 +911,8 @@ func Version() string</code></pre>
             <tr>
               <td>3.5</td>
               <td>
-                Audit semantic attribute coverage — ensure all instrumented spans carry the full
-                attribute set.
+                Audit semantic attribute coverage — ensure all instrumented
+                spans carry the full attribute set.
               </td>
               <td><code>middleware/tracing.go</code></td>
               <td><span class="badge badge-sm badge-p2">8m</span></td>
@@ -896,7 +938,8 @@ func Version() string</code></pre>
             <tr>
               <td>4.1</td>
               <td>
-                <code>otel.Setup()</code> variants — <code>WithOTLPExporter</code>,
+                <code>otel.Setup()</code> variants —
+                <code>WithOTLPExporter</code>,
                 <code>WithStdoutExporter</code> functional options.
               </td>
               <td><code>otel/setup.go</code></td>
@@ -906,8 +949,8 @@ func Version() string</code></pre>
             <tr>
               <td>4.2</td>
               <td>
-                Golden trace tree — integration test exporting full command→event→projection span
-                tree as golden JSON.
+                Golden trace tree — integration test exporting full
+                command→event→projection span tree as golden JSON.
               </td>
               <td><code>integration/</code></td>
               <td><span class="badge badge-sm badge-p1">12m</span></td>
@@ -1617,9 +1660,27 @@ func Version() string</code></pre>
                 width="1677"
                 height="1596"
               >
-                <rect x="-101" y="-141" width="1677" height="1596" fill="white"></rect>
-                <rect x="729.000000" y="528.000000" width="105" height="37" fill="black"></rect>
-                <rect x="734.000000" y="831.000000" width="94" height="21" fill="black"></rect>
+                <rect
+                  x="-101"
+                  y="-141"
+                  width="1677"
+                  height="1596"
+                  fill="white"
+                ></rect>
+                <rect
+                  x="729.000000"
+                  y="528.000000"
+                  width="105"
+                  height="37"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="734.000000"
+                  y="831.000000"
+                  width="94"
+                  height="21"
+                  fill="black"
+                ></rect>
               </mask>
             </svg>
           </svg>
@@ -1631,8 +1692,9 @@ func Version() string</code></pre>
           <div class="migration-content">
             <h4>Ship the bundle (Tier 1) first</h4>
             <p>
-              This is the 1% that delivers 51%. Every other tier depends on the bundle being correct
-              — it's the integration point consumers touch. Commit after each task.
+              This is the 1% that delivers 51%. Every other tier depends on the
+              bundle being correct — it's the integration point consumers touch.
+              Commit after each task.
             </p>
           </div>
         </div>
@@ -1641,9 +1703,10 @@ func Version() string</code></pre>
           <div class="migration-content">
             <h4>Instrument integration boundaries (Tier 2)</h4>
             <p>
-              Once the bundle exists, the broker boundaries (transport/grpc, watermill) become the
-              visible gaps in the span tree. The span-tree validation test (2.8) is the gate that
-              proves the tree is correct end-to-end.
+              Once the bundle exists, the broker boundaries (transport/grpc,
+              watermill) become the visible gaps in the span tree. The span-tree
+              validation test (2.8) is the gate that proves the tree is correct
+              end-to-end.
             </p>
           </div>
         </div>
@@ -1652,16 +1715,17 @@ func Version() string</code></pre>
           <div class="migration-content">
             <h4>Polish the type model (Tier 3)</h4>
             <p>
-              Kill stringly-typed labels, cache the tracer, make retries visible. These are
-              quality-of-life improvements that compound but don't block.
+              Kill stringly-typed labels, cache the tracer, make retries
+              visible. These are quality-of-life improvements that compound but
+              don't block.
             </p>
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-28 · All gaps verified against source: transport/http, transport/grpc,
-          watermill emit zero StartSpan calls. Example dogfooding gap verified at
-          example/user/main.go:92.
+          Generated 2026-06-28 · All gaps verified against source:
+          transport/http, transport/grpc, watermill emit zero StartSpan calls.
+          Example dogfooding gap verified at example/user/main.go:92.
         </footer>
       </main>
     </div>

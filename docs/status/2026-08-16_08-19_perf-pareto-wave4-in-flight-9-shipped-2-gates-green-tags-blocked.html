@@ -825,7 +825,7 @@
       }
     </style>
   </head>
-  
+
   <body>
     <div class="top-bar">
       <span>PERF PARETO — WAVE 4 EXECUTION</span>
@@ -856,9 +856,15 @@
             <div class="tri"></div>
           </div>
           <div class="hero-badge">Status Report</div>
-          <h1>Wave 4 In Flight — 9 Items Shipped, Gates Green, Tagging Still User-Blocked</h1>
+          <h1>
+            Wave 4 In Flight — 9 Items Shipped, Gates Green, Tagging Still
+            User-Blocked
+          </h1>
           <p class="hero-subtitle">
-            Executing the perf-Pareto plan's final wave: both red gates closed (coverage re-baselined upward, duplication clean), SQLite durability bug fixed, payload adopt-variant measured, idempotency leak bounded, pin-drift guard landed, DuckDB standalone repaired.
+            Executing the perf-Pareto plan's final wave: both red gates closed
+            (coverage re-baselined upward, duplication clean), SQLite durability
+            bug fixed, payload adopt-variant measured, idempotency leak bounded,
+            pin-drift guard landed, DuckDB standalone repaired.
           </p>
         </div>
 
@@ -884,7 +890,9 @@
           </div>
           <div class="stat-card stat-good">
             <div class="stat-value">2/2</div>
-            <div class="stat-label">Red gates closed (coverage, duplication)</div>
+            <div class="stat-label">
+              Red gates closed (coverage, duplication)
+            </div>
           </div>
           <div class="stat-card stat-warn">
             <div class="stat-value">6</div>
@@ -892,13 +900,20 @@
           </div>
           <div class="stat-card stat-bad">
             <div class="stat-value">5</div>
-            <div class="stat-label">Untagged feature modules (user-blocked)</div>
+            <div class="stat-label">
+              Untagged feature modules (user-blocked)
+            </div>
           </div>
         </div>
         <div class="card card-solution">
           <h4>Session verdict so far</h4>
           <p>
-            The 07:12 report's three open questions resolved autonomously where safe: coverage drift was a <strong>sign-inverted reading</strong> (coverage went UP), so the honest fix was an upward re-baseline, not test backfill. Tagging and cross-session cherry-picks stay untouched — the plan marks them BLOCKED:user and the module proxy is unforgiving.
+            The 07:12 report's three open questions resolved autonomously where
+            safe: coverage drift was a
+            <strong>sign-inverted reading</strong> (coverage went UP), so the
+            honest fix was an upward re-baseline, not test backfill. Tagging and
+            cross-session cherry-picks stay untouched — the plan marks them
+            BLOCKED:user and the module proxy is unforgiving.
           </p>
         </div>
 
@@ -907,24 +922,43 @@
         <div class="issue issue-nice">
           <span class="severity severity-nice">F12 + gate</span>
           <h3>Coverage gate closed — drift was UPWARD, not downward</h3>
-          <div class="where">scripts/check-coverage.sh · event 87.3→90.0 · query 84.5→89.9</div>
+          <div class="where">
+            scripts/check-coverage.sh · event 87.3→90.0 · query 84.5→89.9
+          </div>
           <p>
-            Direct measurement showed event at 90.0% and query at 89.9% — the prior report's "−2.7%/−5.4% loss" inverted the sign (DOC minus ACTUAL). Cause: T9 defect-fix regression tests (06e046c2f) raised both modules above the documented baseline; the asrecord-dedup theory was wrong — no tests were lost (per-function profiles confirm only trivial shells remain uncovered). EXPECTED map re-baselined with a dated comment; gate exits 0.
+            Direct measurement showed event at 90.0% and query at 89.9% — the
+            prior report's "−2.7%/−5.4% loss" inverted the sign (DOC minus
+            ACTUAL). Cause: T9 defect-fix regression tests (06e046c2f) raised
+            both modules above the documented baseline; the asrecord-dedup
+            theory was wrong — no tests were lost (per-function profiles confirm
+            only trivial shells remain uncovered). EXPECTED map re-baselined
+            with a dated comment; gate exits 0.
           </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">gate</span>
           <h3>Duplication gate green — writeTx trip not flagged</h3>
-          <div class="where">nix run .#check-duplication → 0 new clones (baseline 99 groups)</div>
+          <div class="where">
+            nix run .#check-duplication → 0 new clones (baseline 99 groups)
+          </div>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">F50</span>
           <h3>SQLite durability tier now applies without WAL</h3>
-          <div class="where">stack/sqlopt/durability.go · stack/sqlite/preset.go · stack/turso/backend.go</div>
+          <div class="where">
+            stack/sqlopt/durability.go · stack/sqlite/preset.go ·
+            stack/turso/backend.go
+          </div>
           <p>
-            ApplySQLiteDurability previously early-returned for Normal ("already set by SQLiteEnableWAL") and both call sites nested the tier under <code>if cfg.WAL</code> — so Relaxed consumers without WAL silently kept SQLite's FULL default. Now every non-empty tier is applied explicitly and the call sites are de-nested. Tests: WithoutWAL table (relaxed_is_off_not_full), preset-level RelaxedWithoutWAL, NormalKeepsNormal. stack + sqlite + turso modules green.
+            ApplySQLiteDurability previously early-returned for Normal ("already
+            set by SQLiteEnableWAL") and both call sites nested the tier under
+            <code>if cfg.WAL</code> — so Relaxed consumers without WAL silently
+            kept SQLite's FULL default. Now every non-empty tier is applied
+            explicitly and the call sites are de-nested. Tests: WithoutWAL table
+            (relaxed_is_off_not_full), preset-level RelaxedWithoutWAL,
+            NormalKeepsNormal. stack + sqlite + turso modules green.
           </p>
         </div>
 
@@ -933,52 +967,102 @@
           <h3>encodeEvent ignored-error contract documented + safe fallback</h3>
           <div class="where">system/adapter_event_serial.go:30</div>
           <p>
-            MarshalMetadataJSON returns nil on failure, so the fallback now explicitly nils the metadata field (decodes to zero metadata instead of partial JSON) with a comment explaining why the error cannot propagate (AdapterCore.Encode is <code>func(T) string</code>, ADR-0126). Repo-wide grep for sibling patterns: remaining sites are marshal-impossible structs/maps or example demos — left alone.
+            MarshalMetadataJSON returns nil on failure, so the fallback now
+            explicitly nils the metadata field (decodes to zero metadata instead
+            of partial JSON) with a comment explaining why the error cannot
+            propagate (AdapterCore.Encode is <code>func(T) string</code>,
+            ADR-0126). Repo-wide grep for sibling patterns: remaining sites are
+            marshal-impossible structs/maps or example demos — left alone.
           </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">F52</span>
-          <h3>ScanSlice pre-size — investigated, premise doesn't hold, no churn</h3>
+          <h3>
+            ScanSlice pre-size — investigated, premise doesn't hold, no churn
+          </h3>
           <div class="where">storage/sql/reconstruction.go:48</div>
           <p>
-            database/sql has no RowCount() API; ScanSlice is already pre-sized to 64; maps.Clone pre-sizes to len; MergeCustomMaps already uses len(base)+len(other). No production callers know their row count. Changing the exported generic signature for a phantom win would be Verschlimmbesserung — recorded as verified no-op.
+            database/sql has no RowCount() API; ScanSlice is already pre-sized
+            to 64; maps.Clone pre-sizes to len; MergeCustomMaps already uses
+            len(base)+len(other). No production callers know their row count.
+            Changing the exported generic signature for a phantom win would be
+            Verschlimmbesserung — recorded as verified no-op.
           </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">F41</span>
           <h3>bbolt deserialize benchmark — extrapolated claim now measured</h3>
-          <div class="where">storage/bbolt/serialization_bench_test.go · docs/BENCHMARKS.md</div>
+          <div class="where">
+            storage/bbolt/serialization_bench_test.go · docs/BENCHMARKS.md
+          </div>
           <p>
-            BenchmarkEventDeserialize mirroring pebble's: 2815 ns/op, 1210 B/op, 20 allocs (pre-adopt). Ledger row replaced the "bench owed to TODO_LIST" placeholder.
+            BenchmarkEventDeserialize mirroring pebble's: 2815 ns/op, 1210 B/op,
+            20 allocs (pre-adopt). Ledger row replaced the "bench owed to
+            TODO_LIST" placeholder.
           </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">F44-F45</span>
           <h3>idempotencyTracker bounded — sync.Map leak closed</h3>
-          <div class="where">metaengine/store_collaborators.go · planner.go · idempotency_tracker_test.go</div>
+          <div class="where">
+            metaengine/store_collaborators.go · planner.go ·
+            idempotency_tracker_test.go
+          </div>
           <p>
-            Replaced the unbounded sync.Map with a mutex-guarded dedup.Ring (Tier-0 dep, already present). Default window 131072 IDs (~10 MB worst case) via DefaultIdempotencyCapacity; <code>WithIdempotencyCapacity(n)</code> with n≤0 restoring legacy unbounded. Dedup stays best-effort within the at-least-once contract. Tests: bounded eviction, 1M-ID memory bound (Len stays at capacity), legacy unbounded, concurrent exactly-once (8 workers × 10 rounds — race green). New exports regenerated into the api-stability golden (4110).
+            Replaced the unbounded sync.Map with a mutex-guarded dedup.Ring
+            (Tier-0 dep, already present). Default window 131072 IDs (~10 MB
+            worst case) via DefaultIdempotencyCapacity;
+            <code>WithIdempotencyCapacity(n)</code> with n≤0 restoring legacy
+            unbounded. Dedup stays best-effort within the at-least-once
+            contract. Tests: bounded eviction, 1M-ID memory bound (Len stays at
+            capacity), legacy unbounded, concurrent exactly-once (8 workers × 10
+            rounds — race green). New exports regenerated into the api-stability
+            golden (4110).
           </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">F42-F43</span>
-          <h3>Payload adopt-variant shipped — one clone fewer per event read</h3>
-          <div class="where">event/reconstruct.go · storage/pebble/serialization.go · storage/bbolt/serialization.go</div>
+          <h3>
+            Payload adopt-variant shipped — one clone fewer per event read
+          </h3>
+          <div class="where">
+            event/reconstruct.go · storage/pebble/serialization.go ·
+            storage/bbolt/serialization.go
+          </div>
           <p>
-            New <code>ReconstructEventWithAdoptedPayload</code>: same shape as WithMetadata but routes through buildEvent (the trusted no-clone constructor), with an explicit ownership-transfer contract; Payload() still returns a defensive clone. Options assembly deduplicated into reconstructOpts. Wired into pebble + bbolt deserialize. Measured: bbolt 2815→2521 ns/op (−10%), pebble 3316→2872 ns/op (−13%), −32 B/op both. Tests: field-for-field equivalence, buffer-alias proof (internal payload aliases input; Payload() does not), concurrent reads race-green. Golden at 4111 exports.
+            New <code>ReconstructEventWithAdoptedPayload</code>: same shape as
+            WithMetadata but routes through buildEvent (the trusted no-clone
+            constructor), with an explicit ownership-transfer contract;
+            Payload() still returns a defensive clone. Options assembly
+            deduplicated into reconstructOpts. Wired into pebble + bbolt
+            deserialize. Measured: bbolt 2815→2521 ns/op (−10%), pebble
+            3316→2872 ns/op (−13%), −32 B/op both. Tests: field-for-field
+            equivalence, buffer-alias proof (internal payload aliases input;
+            Payload() does not), concurrent reads race-green. Golden at 4111
+            exports.
           </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">F53</span>
-          <h3>Pin-drift meta-test landed — hard-fail on broken pins, warn on stale</h3>
+          <h3>
+            Pin-drift meta-test landed — hard-fail on broken pins, warn on stale
+          </h3>
           <div class="where">cmd/api-stability/pin_drift_test.go</div>
           <p>
-            TestSiblingModulePinsResolve parses every module's require/replace graph: unreplaced pins that reference nonexistent tags or pseudo-versions fail hard (the 169b5d42 and stranded-commit classes); staleness warns (enforceStaleness=false until the user decides the pin-sweep policy — ROADMAP Open Questions). Handles nested-module tag pollution (event/v4/eventtest/* must not count as event's latest) and skips hermetic nix builds without .git. Current state: 0 broken, 16 stale (all eventtest-line, all replace-governed).
+            TestSiblingModulePinsResolve parses every module's require/replace
+            graph: unreplaced pins that reference nonexistent tags or
+            pseudo-versions fail hard (the 169b5d42 and stranded-commit
+            classes); staleness warns (enforceStaleness=false until the user
+            decides the pin-sweep policy — ROADMAP Open Questions). Handles
+            nested-module tag pollution (event/v4/eventtest/* must not count as
+            event's latest) and skips hermetic nix builds without .git. Current
+            state: 0 broken, 16 stale (all eventtest-line, all
+            replace-governed).
           </p>
         </div>
 
@@ -987,7 +1071,13 @@
           <h3>DuckDB standalone build repaired — root cause found</h3>
           <div class="where">system/integration/go.mod</div>
           <p>
-            The published duckdbengine v4.0.1 predates register.go's <code>metaengine.RegisterDriver</code> self-registration, so GOWORK=off resolved a tag that never registers "duckdb" (workspace mode always used HEAD, masking it). Fixed with <code>go mod edit -replace</code> + tidy (bumped id v4.4.0, go-sse v0.5.0, x/exp). Standalone test and full package green under GOWORK=off.
+            The published duckdbengine v4.0.1 predates register.go's
+            <code>metaengine.RegisterDriver</code> self-registration, so
+            GOWORK=off resolved a tag that never registers "duckdb" (workspace
+            mode always used HEAD, masking it). Fixed with
+            <code>go mod edit -replace</code> + tidy (bumped id v4.4.0, go-sse
+            v0.5.0, x/exp). Standalone test and full package green under
+            GOWORK=off.
           </p>
         </div>
 
@@ -996,19 +1086,32 @@
         <div class="card card-warning">
           <h4>Wave 4 remainder queued behind this report</h4>
           <p>
-            F55 (DecorateJournal for VersionedSeekableJournal), F59 (seq-carrying journal reads design), F60 (capability conformance skeleton), F46 (go-codec envelope sniff — external sibling repo), F47-F49 (benchstat baselines + measure-then-pad) — all researched by the plan, none started this session yet.
+            F55 (DecorateJournal for VersionedSeekableJournal), F59
+            (seq-carrying journal reads design), F60 (capability conformance
+            skeleton), F46 (go-codec envelope sniff — external sibling repo),
+            F47-F49 (benchstat baselines + measure-then-pad) — all researched by
+            the plan, none started this session yet.
           </p>
         </div>
         <div class="card card-warning">
           <h4>Full verify gate not yet re-run at this checkpoint</h4>
           <p>
-            Per-module tests + golangci-lint (0 issues) green for every touched module (metaengine, event, storage/pebble, storage/bbolt, stack*, system, cmd/api-stability, system/integration) plus both closed gates — but the end-to-end <code>nix run .#verify</code> run is owed once the Wave-4 queue drains.
+            Per-module tests + golangci-lint (0 issues) green for every touched
+            module (metaengine, event, storage/pebble, storage/bbolt, stack*,
+            system, cmd/api-stability, system/integration) plus both closed
+            gates — but the end-to-end <code>nix run .#verify</code> run is owed
+            once the Wave-4 queue drains.
           </p>
         </div>
         <div class="card card-warning">
           <h4>Five untagged feature modules — consumer-invisible wins</h4>
           <p>
-            storage/bbolt (WithBatchCommit + constructors), metaengine/pgengine (COPY + batching), stack/pebble (knobs), metaengine (WithIdempotencyCapacity), event (ReconstructEventWithAdoptedPayload) all have committed-and-green features with no tags. Blocking on the user's standing tag/push authorization (plan F24-F27).
+            storage/bbolt (WithBatchCommit + constructors), metaengine/pgengine
+            (COPY + batching), stack/pebble (knobs), metaengine
+            (WithIdempotencyCapacity), event
+            (ReconstructEventWithAdoptedPayload) all have committed-and-green
+            features with no tags. Blocking on the user's standing tag/push
+            authorization (plan F24-F27).
           </p>
         </div>
 
@@ -1016,21 +1119,34 @@
         <div class="card">
           <h4>Wave 4 tail + standing sections</h4>
           <p>
-            F46-F49, F55, F59, F60 (see above). Standing TODO_LIST sections untouched this session: cqrs-lint rules (4), WithActor hardening (3), Metaengine Phase 6b/7 (22), v5 unification, docs honesty. Other session's lane (unclaimed): GitHub Releases ×20, replace-drop sweep, CI GOWORK=off leg, #verify-standalone decision.
+            F46-F49, F55, F59, F60 (see above). Standing TODO_LIST sections
+            untouched this session: cqrs-lint rules (4), WithActor hardening
+            (3), Metaengine Phase 6b/7 (22), v5 unification, docs honesty. Other
+            session's lane (unclaimed): GitHub Releases ×20, replace-drop sweep,
+            CI GOWORK=off leg, #verify-standalone decision.
           </p>
         </div>
 
-        <h2 id="fucked"><span class="num">04</span>Totally Fucked Up (and fixed)</h2>
+        <h2 id="fucked">
+          <span class="num">04</span>Totally Fucked Up (and fixed)
+        </h2>
 
         <div class="issue issue-critical">
           <span class="severity severity-critical">fixed</span>
           <h3>Three of my own test bugs in one new test file</h3>
           <div class="where">metaengine/idempotency_tracker_test.go</div>
           <p>
-            (1) Shared <code>duplicates[i]++</code> counters across 8 goroutines — genuine data race caught by -race; fixed with per-worker locals + atomic add. (2) atomic.Int32 vs untyped-int comparison broke the build. (3) Test-ordering bug: probing eviction (re-recording evt-00) evicted evt-08 before its in-window assertion — reordered so non-mutating assertions run first. All green, race included.
+            (1) Shared <code>duplicates[i]++</code> counters across 8 goroutines
+            — genuine data race caught by -race; fixed with per-worker locals +
+            atomic add. (2) atomic.Int32 vs untyped-int comparison broke the
+            build. (3) Test-ordering bug: probing eviction (re-recording evt-00)
+            evicted evt-08 before its in-window assertion — reordered so
+            non-mutating assertions run first. All green, race included.
           </p>
           <div class="callout callout-solution">
-            <strong>Fix</strong> Tests now assert the non-mutating window checks before the mutating eviction probe; counters are race-free by construction.
+            <strong>Fix</strong> Tests now assert the non-mutating window checks
+            before the mutating eviction probe; counters are race-free by
+            construction.
           </div>
         </div>
 
@@ -1039,10 +1155,15 @@
           <h3>Prior session's coverage-drift diagnosis was sign-inverted</h3>
           <div class="where">docs/status/2026-08-16_07-12_*.md §b.1</div>
           <p>
-            The 07:12 report claimed event "87.3% (−2.7%)" implying lost coverage and proposed test backfill (30-60m). The numbers were DOC values with positive drift — coverage IMPROVED. The proposed remediation would have papered over stale docs with redundant tests.
+            The 07:12 report claimed event "87.3% (−2.7%)" implying lost
+            coverage and proposed test backfill (30-60m). The numbers were DOC
+            values with positive drift — coverage IMPROVED. The proposed
+            remediation would have papered over stale docs with redundant tests.
           </p>
           <div class="callout callout-solution">
-            <strong>Fix</strong> Re-baselined upward with a dated comment naming the real cause; per-function profiles double-checked for genuinely uncovered paths (only rejecting-middleware shells).
+            <strong>Fix</strong> Re-baselined upward with a dated comment naming
+            the real cause; per-function profiles double-checked for genuinely
+            uncovered paths (only rejecting-middleware shells).
           </div>
         </div>
 
@@ -1051,7 +1172,10 @@
           <h3>golangci-lint needs GOTOOLCHAIN=auto prefix</h3>
           <div class="where">local tooling</div>
           <p>
-            Bare <code>golangci-lint run</code> dies with "go.work requires go ≥ 1.26.6 (running 1.26.5; GOTOOLCHAIN=local)". Must prefix GOTOOLCHAIN=auto GOTMPDIR=... GOEXPERIMENT=jsonv2 like every other go command. Cost one wasted diagnostic cycle this session.
+            Bare <code>golangci-lint run</code> dies with "go.work requires go ≥
+            1.26.6 (running 1.26.5; GOTOOLCHAIN=local)". Must prefix
+            GOTOOLCHAIN=auto GOTMPDIR=... GOEXPERIMENT=jsonv2 like every other
+            go command. Cost one wasted diagnostic cycle this session.
           </p>
         </div>
 
@@ -1060,29 +1184,47 @@
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Flip pin-drift enforcement after the sweep decision</strong>
-              <span>TestSiblingModulePinsResolve carries enforceStaleness=false with the ROADMAP pointer — one-line flip once the user decides the ~50-pin sweep policy.</span>
+              <strong
+                >Flip pin-drift enforcement after the sweep decision</strong
+              >
+              <span
+                >TestSiblingModulePinsResolve carries enforceStaleness=false
+                with the ROADMAP pointer — one-line flip once the user decides
+                the ~50-pin sweep policy.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Tag duckdbengine v4.0.2 to carry register.go</strong>
-              <span>The new system/integration replace becomes droppable the moment the self-registration ships in a tag — feed it to the release session's replace-drop sweep.</span>
+              <span
+                >The new system/integration replace becomes droppable the moment
+                the self-registration ships in a tag — feed it to the release
+                session's replace-drop sweep.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>api-stability should fail loudly on parse-skip</strong>
-              <span>Carried from the 07:12 report §e.2 — still open, still the cheapest corruption tripwire (a shrinking golden looks identical to a removed module).</span>
+              <span
+                >Carried from the 07:12 report §e.2 — still open, still the
+                cheapest corruption tripwire (a shrinking golden looks identical
+                to a removed module).</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Document GOTOOLCHAIN=auto for all local gates</strong>
-              <span>Every go/golangci invocation this session needed the same four-variable prefix; it belongs in AGENTS.md next to the existing GOWORK gotcha.</span>
+              <span
+                >Every go/golangci invocation this session needed the same
+                four-variable prefix; it belongs in AGENTS.md next to the
+                existing GOWORK gotcha.</span
+              >
             </div>
           </div>
         </div>
@@ -1090,34 +1232,231 @@
         <h2 id="next"><span class="num">06</span>Top 25 Next</h2>
         <table>
           <thead>
-            <tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th><th>Category</th></tr>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Category</th>
+            </tr>
           </thead>
           <tbody>
-            <tr><td>1</td><td>F55 DecorateJournal for VersionedSeekableJournal (ADR-0126 completion)</td><td><span class="badge badge-critical">High</span></td><td>M</td><td>Feature</td></tr>
-            <tr><td>2</td><td>F59 seq-carrying journal reads design (StreamLogEntry{Seq,Value})</td><td><span class="badge badge-critical">High</span></td><td>M</td><td>Design</td></tr>
-            <tr><td>3</td><td>F60 engine capability conformance test skeleton</td><td><span class="badge badge-critical">High</span></td><td>M</td><td>Quality</td></tr>
-            <tr><td>4</td><td>F46 go-codec UnwrapDecode first-byte sniff (sibling repo)</td><td><span class="badge badge-warning">Medium</span></td><td>M</td><td>Perf</td></tr>
-            <tr><td>5</td><td>F47 benchstat baselines for the 5 ledger paths</td><td><span class="badge badge-warning">Medium</span></td><td>S</td><td>Infra</td></tr>
-            <tr><td>6</td><td>F48/F49 measure-then-pad worker counters, multiSeqCounter, SSEReplay.seq</td><td><span class="badge badge-warning">Low-Med</span></td><td>S</td><td>Perf</td></tr>
-            <tr><td>7</td><td>Full end-to-end nix run .#verify once Wave-4 queue drains</td><td><span class="badge badge-critical">High</span></td><td>M</td><td>Quality</td></tr>
-            <tr><td>8</td><td>[BLOCKED:user] Tag 5 feature modules (bbolt/pgengine/stack-pebble/metaengine/event)</td><td><span class="badge badge-critical">Critical</span></td><td>M</td><td>Release</td></tr>
-            <tr><td>9</td><td>[BLOCKED:user] Cherry-pick stranded 092b5e8a8 + 4907b6afc (release-critical pins)</td><td><span class="badge badge-critical">Critical</span></td><td>S</td><td>Release</td></tr>
-            <tr><td>10</td><td>Replace-drop sweep (system ×6, cqrs-bench ×7, integration +1 new) after tags</td><td><span class="badge badge-warning">Medium</span></td><td>M</td><td>Cleanup</td></tr>
-            <tr><td>11</td><td>Tag duckdbengine v4.0.2 (register.go) → drop the new integration replace</td><td><span class="badge badge-warning">Medium</span></td><td>S</td><td>Release</td></tr>
-            <tr><td>12</td><td>Pin-sweep policy decision → flip enforceStaleness in pin-drift test</td><td><span class="badge badge-warning">Medium</span></td><td>M</td><td>Quality</td></tr>
-            <tr><td>13</td><td>api-stability: fail loudly on parse-skip (corruption tripwire)</td><td><span class="badge badge-warning">Medium</span></td><td>S</td><td>Infra</td></tr>
-            <tr><td>14</td><td>BuildFlow pre-commit: gofmt -l on staged .go files</td><td><span class="badge badge-warning">Medium</span></td><td>S</td><td>Infra</td></tr>
-            <tr><td>15</td><td>AGENTS.md: golangci-lint fmt as THE local formatter + GOTOOLCHAIN=auto note</td><td><span class="badge badge-warning">Medium</span></td><td>S</td><td>Documentation</td></tr>
-            <tr><td>16</td><td>GitHub Releases ×20 tags (gh auth check first)</td><td><span class="badge badge-warning">Medium</span></td><td>M</td><td>Release</td></tr>
-            <tr><td>17</td><td>CI leg for GOWORK=off standalone builds of leaf modules</td><td><span class="badge badge-warning">Medium</span></td><td>S</td><td>Infra</td></tr>
-            <tr><td>18</td><td>#verify-standalone nix app decision (or explicit CI ownership)</td><td><span class="badge badge-warning">Medium</span></td><td>M</td><td>Infra</td></tr>
-            <tr><td>19</td><td>Check how long CI Benchmarks job has been red (gh run list)</td><td><span class="badge badge-warning">Medium</span></td><td>S</td><td>Infra</td></tr>
-            <tr><td>20</td><td>Cleanup /tmp/cqrs-tagwt worktree registration</td><td><span class="badge badge-info">Low</span></td><td>S</td><td>Cleanup</td></tr>
-            <tr><td>21</td><td>stack/* sweep tags; system v4.5.0 (12 unreleased commits)</td><td><span class="badge badge-warning">Medium</span></td><td>M</td><td>Release</td></tr>
-            <tr><td>22</td><td>benchkit phases: bbolt group-commit scaling + COPY crossover table</td><td><span class="badge badge-info">Low</span></td><td>M</td><td>Infra</td></tr>
-            <tr><td>23</td><td>BENCHMARKS.md CI check that every ledger-named benchmark exists</td><td><span class="badge badge-info">Low</span></td><td>S</td><td>Infra</td></tr>
-            <tr><td>24</td><td>kv.Cache shared *T defect (defect sweep)</td><td><span class="badge badge-warning">Medium</span></td><td>M</td><td>Bug</td></tr>
-            <tr><td>25</td><td>v5 cut planning (transport/* final tags, deprecated-shell deletions)</td><td><span class="badge badge-info">Low</span></td><td>L</td><td>Release</td></tr>
+            <tr>
+              <td>1</td>
+              <td>
+                F55 DecorateJournal for VersionedSeekableJournal (ADR-0126
+                completion)
+              </td>
+              <td><span class="badge badge-critical">High</span></td>
+              <td>M</td>
+              <td>Feature</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>
+                F59 seq-carrying journal reads design
+                (StreamLogEntry{Seq,Value})
+              </td>
+              <td><span class="badge badge-critical">High</span></td>
+              <td>M</td>
+              <td>Design</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>F60 engine capability conformance test skeleton</td>
+              <td><span class="badge badge-critical">High</span></td>
+              <td>M</td>
+              <td>Quality</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>F46 go-codec UnwrapDecode first-byte sniff (sibling repo)</td>
+              <td><span class="badge badge-warning">Medium</span></td>
+              <td>M</td>
+              <td>Perf</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>F47 benchstat baselines for the 5 ledger paths</td>
+              <td><span class="badge badge-warning">Medium</span></td>
+              <td>S</td>
+              <td>Infra</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>
+                F48/F49 measure-then-pad worker counters, multiSeqCounter,
+                SSEReplay.seq
+              </td>
+              <td><span class="badge badge-warning">Low-Med</span></td>
+              <td>S</td>
+              <td>Perf</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>Full end-to-end nix run .#verify once Wave-4 queue drains</td>
+              <td><span class="badge badge-critical">High</span></td>
+              <td>M</td>
+              <td>Quality</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>
+                [BLOCKED:user] Tag 5 feature modules
+                (bbolt/pgengine/stack-pebble/metaengine/event)
+              </td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>M</td>
+              <td>Release</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>
+                [BLOCKED:user] Cherry-pick stranded 092b5e8a8 + 4907b6afc
+                (release-critical pins)
+              </td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>S</td>
+              <td>Release</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>
+                Replace-drop sweep (system ×6, cqrs-bench ×7, integration +1
+                new) after tags
+              </td>
+              <td><span class="badge badge-warning">Medium</span></td>
+              <td>M</td>
+              <td>Cleanup</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>
+                Tag duckdbengine v4.0.2 (register.go) → drop the new integration
+                replace
+              </td>
+              <td><span class="badge badge-warning">Medium</span></td>
+              <td>S</td>
+              <td>Release</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td>
+                Pin-sweep policy decision → flip enforceStaleness in pin-drift
+                test
+              </td>
+              <td><span class="badge badge-warning">Medium</span></td>
+              <td>M</td>
+              <td>Quality</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td>
+                api-stability: fail loudly on parse-skip (corruption tripwire)
+              </td>
+              <td><span class="badge badge-warning">Medium</span></td>
+              <td>S</td>
+              <td>Infra</td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td>BuildFlow pre-commit: gofmt -l on staged .go files</td>
+              <td><span class="badge badge-warning">Medium</span></td>
+              <td>S</td>
+              <td>Infra</td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td>
+                AGENTS.md: golangci-lint fmt as THE local formatter +
+                GOTOOLCHAIN=auto note
+              </td>
+              <td><span class="badge badge-warning">Medium</span></td>
+              <td>S</td>
+              <td>Documentation</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td>GitHub Releases ×20 tags (gh auth check first)</td>
+              <td><span class="badge badge-warning">Medium</span></td>
+              <td>M</td>
+              <td>Release</td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td>CI leg for GOWORK=off standalone builds of leaf modules</td>
+              <td><span class="badge badge-warning">Medium</span></td>
+              <td>S</td>
+              <td>Infra</td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td>
+                #verify-standalone nix app decision (or explicit CI ownership)
+              </td>
+              <td><span class="badge badge-warning">Medium</span></td>
+              <td>M</td>
+              <td>Infra</td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td>
+                Check how long CI Benchmarks job has been red (gh run list)
+              </td>
+              <td><span class="badge badge-warning">Medium</span></td>
+              <td>S</td>
+              <td>Infra</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td>Cleanup /tmp/cqrs-tagwt worktree registration</td>
+              <td><span class="badge badge-info">Low</span></td>
+              <td>S</td>
+              <td>Cleanup</td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td>stack/* sweep tags; system v4.5.0 (12 unreleased commits)</td>
+              <td><span class="badge badge-warning">Medium</span></td>
+              <td>M</td>
+              <td>Release</td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td>
+                benchkit phases: bbolt group-commit scaling + COPY crossover
+                table
+              </td>
+              <td><span class="badge badge-info">Low</span></td>
+              <td>M</td>
+              <td>Infra</td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td>
+                BENCHMARKS.md CI check that every ledger-named benchmark exists
+              </td>
+              <td><span class="badge badge-info">Low</span></td>
+              <td>S</td>
+              <td>Infra</td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td>kv.Cache shared *T defect (defect sweep)</td>
+              <td><span class="badge badge-warning">Medium</span></td>
+              <td>M</td>
+              <td>Bug</td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td>
+                v5 cut planning (transport/* final tags, deprecated-shell
+                deletions)
+              </td>
+              <td><span class="badge badge-info">Low</span></td>
+              <td>L</td>
+              <td>Release</td>
+            </tr>
           </tbody>
         </table>
 
@@ -1125,10 +1464,23 @@
         <div class="card card-problem">
           <h4>One release decision unblocks five shipped features</h4>
           <p>
-            Five modules now carry green, benchmarked, untagged features (bbolt WithBatchCommit, pgengine COPY, pebble knobs, metaengine WithIdempotencyCapacity, event AdoptedPayload). The other session's stranded commits (092b5e8a8 pin repairs + hardened tag script, 4907b6afc bench tidy) touch different files than any of my five tags would. <strong>May one session tag all five modules AND land the stranded commits, or do you want a dedicated release session (and should it also decide the pin-sweep policy so the new drift guard can flip to fail-on-stale)?</strong> I did not act: tagging pushes to the module proxy (hard to undo — the 20-tag chain already needed 2 retracts) and the plan explicitly marks it BLOCKED:user.
+            Five modules now carry green, benchmarked, untagged features (bbolt
+            WithBatchCommit, pgengine COPY, pebble knobs, metaengine
+            WithIdempotencyCapacity, event AdoptedPayload). The other session's
+            stranded commits (092b5e8a8 pin repairs + hardened tag script,
+            4907b6afc bench tidy) touch different files than any of my five tags
+            would.
+            <strong
+              >May one session tag all five modules AND land the stranded
+              commits, or do you want a dedicated release session (and should it
+              also decide the pin-sweep policy so the new drift guard can flip
+              to fail-on-stale)?</strong
+            >
+            I did not act: tagging pushes to the module proxy (hard to undo —
+            the 20-tag chain already needed 2 retracts) and the plan explicitly
+            marks it BLOCKED:user.
           </p>
         </div>
-
       </main>
     </div>
   </body>

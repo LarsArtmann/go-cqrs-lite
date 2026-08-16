@@ -32,41 +32,41 @@ What WAS completed (research only, no writes):
 
 ### The Code Truth (verified by reading source)
 
-| Symbol | Status | Evidence |
-| --- | --- | --- |
-| `listing.TombstonePolicy` | EXISTS | `listing/types.go:42` |
-| `TombstoneExclude/Include/Only` | EXISTS | `listing/types.go:46-50` |
-| `ListOptions.Tombstone` field | EXISTS | `listing/types.go:92` |
-| `applyTombstonePolicy` | EXISTS | `listing/in_memory.go:174` |
-| `ListBuilder.IncludeDeleted()/OnlyDeleted()` | EXISTS (new vocab, working) | `listing/builder.go:61,68` |
-| `stack.TombstonePolicy` | EXISTS | `stack/materialize.go:17` |
-| `IncludeTombstoned/ExcludeTombstoned/OnlyTombstoned` | EXISTS | `stack/materialize.go:21-25` |
-| `FilterTombstoned` | EXISTS | `stack/materialize.go:257` |
-| `Materialize.OnTombstone` (metadata-triggered!) | EXISTS | `stack/materialize.go:77,145-182` |
-| `event.TombstoneStatus/Active/Tombstoned/DetectTombstone/IsTombstoned` | EXISTS (Deprecated, NOT removed) | `event/tombstone.go` |
-| `listing.WithDeleteTypes` | **DOES NOT EXIST** | zero `.go` matches |
-| `listing.DeletePolicy` / `DeleteExclude/Include/Only` | **DOES NOT EXIST** | zero `.go` matches |
-| `listing.StatusActive` / `StatusDeleted` | **DOES NOT EXIST** | zero `.go` matches |
-| `stack.DeletePolicy` / `IncludeDeleted/ExcludeDeleted/OnlyDeleted` constants | **DOES NOT EXIST** | zero `.go` matches |
-| `stack.FilterDeleted` | **DOES NOT EXIST** | zero `.go` matches |
-| `stack.Materialize.DeleteTypes` / `RebirthTypes` fields | **DOES NOT EXIST** | zero `.go` matches |
-| `storage.WithDeleteTypes` | **DOES NOT EXIST** | zero `.go` matches |
+| Symbol                                                                       | Status                           | Evidence                          |
+| ---------------------------------------------------------------------------- | -------------------------------- | --------------------------------- |
+| `listing.TombstonePolicy`                                                    | EXISTS                           | `listing/types.go:42`             |
+| `TombstoneExclude/Include/Only`                                              | EXISTS                           | `listing/types.go:46-50`          |
+| `ListOptions.Tombstone` field                                                | EXISTS                           | `listing/types.go:92`             |
+| `applyTombstonePolicy`                                                       | EXISTS                           | `listing/in_memory.go:174`        |
+| `ListBuilder.IncludeDeleted()/OnlyDeleted()`                                 | EXISTS (new vocab, working)      | `listing/builder.go:61,68`        |
+| `stack.TombstonePolicy`                                                      | EXISTS                           | `stack/materialize.go:17`         |
+| `IncludeTombstoned/ExcludeTombstoned/OnlyTombstoned`                         | EXISTS                           | `stack/materialize.go:21-25`      |
+| `FilterTombstoned`                                                           | EXISTS                           | `stack/materialize.go:257`        |
+| `Materialize.OnTombstone` (metadata-triggered!)                              | EXISTS                           | `stack/materialize.go:77,145-182` |
+| `event.TombstoneStatus/Active/Tombstoned/DetectTombstone/IsTombstoned`       | EXISTS (Deprecated, NOT removed) | `event/tombstone.go`              |
+| `listing.WithDeleteTypes`                                                    | **DOES NOT EXIST**               | zero `.go` matches                |
+| `listing.DeletePolicy` / `DeleteExclude/Include/Only`                        | **DOES NOT EXIST**               | zero `.go` matches                |
+| `listing.StatusActive` / `StatusDeleted`                                     | **DOES NOT EXIST**               | zero `.go` matches                |
+| `stack.DeletePolicy` / `IncludeDeleted/ExcludeDeleted/OnlyDeleted` constants | **DOES NOT EXIST**               | zero `.go` matches                |
+| `stack.FilterDeleted`                                                        | **DOES NOT EXIST**               | zero `.go` matches                |
+| `stack.Materialize.DeleteTypes` / `RebirthTypes` fields                      | **DOES NOT EXIST**               | zero `.go` matches                |
+| `storage.WithDeleteTypes`                                                    | **DOES NOT EXIST**               | zero `.go` matches                |
 
 ### The Fiction Map (docs claiming the rename landed)
 
-| File | Lines | The Lie |
-| --- | --- | --- |
-| `CHANGELOG.md` | 1597-1621 | Entire "TombstonePolicy → DeletePolicy rename" section documents constants/fields/functions that do not exist |
-| `CHANGELOG.md` | 1554-1557 | Bugfix entry referencing `opts.DeletePolicy` / `listing.DeleteExclude` — never existed |
-| `CHANGELOG.md` | 1904-1911 | `listing.Status` enum + `listing.WithDeleteTypes` option — never existed |
-| `CHANGELOG.md` | 2022-2048 | Claims `stack/materialize.go` was "reworked, `md.Tombstone` switch replaced with `DeleteTypes/RebirthTypes`" — the `md.Tombstone` switch is still there (`materialize.go:145-182`) |
-| `docs/migration/tombstone-to-domain-events.md` | whole file | Says old API "has been **removed**" (it wasn't); §3+§4 code samples + API-mapping table reference `DeleteTypes`, `WithDeleteTypes`, `DeletePolicy`, `stack.ExcludeDeleted` — none compile |
-| `FEATURES.md` | 95 | Claims `listing.WithDeleteTypes` + `stack.Materialize.DeleteTypes` as shipped features |
-| `FEATURES.md` | 305 vs 1089 | 305 says tombstone API deprecated→migration guide; 1089 correctly says `TombstonePolicy` — internally contradictory |
-| `AGENTS.md` | 84 | Module map lists `DeletePolicy, WithDeleteTypes` |
-| `AGENTS.md` | 147 | Contract #11 claims `StatusActive`/`StatusDeleted` detected via `WithDeleteTypes` |
-| `docs/DOMAIN_LANGUAGE.md` | 69 | `listing.StatusDeleted` via `listing.WithDeleteTypes` — fiction |
-| `docs/DOMAIN_LANGUAGE.md` | 406 | Glossary still says soft-delete "via metadata" — contradicts ADR-0114's core decision itself |
+| File                                           | Lines       | The Lie                                                                                                                                                                                   |
+| ---------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CHANGELOG.md`                                 | 1597-1621   | Entire "TombstonePolicy → DeletePolicy rename" section documents constants/fields/functions that do not exist                                                                             |
+| `CHANGELOG.md`                                 | 1554-1557   | Bugfix entry referencing `opts.DeletePolicy` / `listing.DeleteExclude` — never existed                                                                                                    |
+| `CHANGELOG.md`                                 | 1904-1911   | `listing.Status` enum + `listing.WithDeleteTypes` option — never existed                                                                                                                  |
+| `CHANGELOG.md`                                 | 2022-2048   | Claims `stack/materialize.go` was "reworked, `md.Tombstone` switch replaced with `DeleteTypes/RebirthTypes`" — the `md.Tombstone` switch is still there (`materialize.go:145-182`)        |
+| `docs/migration/tombstone-to-domain-events.md` | whole file  | Says old API "has been **removed**" (it wasn't); §3+§4 code samples + API-mapping table reference `DeleteTypes`, `WithDeleteTypes`, `DeletePolicy`, `stack.ExcludeDeleted` — none compile |
+| `FEATURES.md`                                  | 95          | Claims `listing.WithDeleteTypes` + `stack.Materialize.DeleteTypes` as shipped features                                                                                                    |
+| `FEATURES.md`                                  | 305 vs 1089 | 305 says tombstone API deprecated→migration guide; 1089 correctly says `TombstonePolicy` — internally contradictory                                                                       |
+| `AGENTS.md`                                    | 84          | Module map lists `DeletePolicy, WithDeleteTypes`                                                                                                                                          |
+| `AGENTS.md`                                    | 147         | Contract #11 claims `StatusActive`/`StatusDeleted` detected via `WithDeleteTypes`                                                                                                         |
+| `docs/DOMAIN_LANGUAGE.md`                      | 69          | `listing.StatusDeleted` via `listing.WithDeleteTypes` — fiction                                                                                                                           |
+| `docs/DOMAIN_LANGUAGE.md`                      | 406         | Glossary still says soft-delete "via metadata" — contradicts ADR-0114's core decision itself                                                                                              |
 
 ### Extra discoveries (this session's own reads)
 
@@ -92,7 +92,7 @@ What WAS completed (research only, no writes):
 
 - DONE: full code-vs-docs contradiction map (above), including two contradictions prior
   reports missed (in_memory.go DetectTombstone call; materialize.go still metadata-triggered).
-- DONE: decision drafted — *rewrite docs backward to the `TombstonePolicy` truth* rather than
+- DONE: decision drafted — _rewrite docs backward to the `TombstonePolicy` truth_ rather than
   landing a BREAKING rename, because this session was scoped as a docs-honesty task. NOT FINAL:
   landing the rename is arguably better (CHANGELOG already promised it; examples teach it) —
   see Questions.
@@ -110,15 +110,15 @@ What WAS completed (research only, no writes):
 
 Tasks 2-8 from the batch, exactly as pasted, all 0%:
 
-| # | Task | Effort |
-| --- | --- | --- |
-| 2 | README feature table honesty (stop selling "tombstone soft-delete" as headline; lead with what consumers import) — target `README.md:122,162` identified only | S |
-| 3 | Skill reference recipes: catch-up drain pattern (projectionhost TOCTOU), `WithoutViewAutoMigrate`, Increment non-clamping (FAQ), MariaDB dialect + numeric-safe sort (recipes.md §2.x) | S |
-| 4 | storage/view validated-WHERE rollout review (query.go/store.go, landed 2026-08-15) → skill-reference API-doc pass | S |
-| 5 | docs/DOMAIN_LANGUAGE.md: define "dialect", "capability probe", "degraded ADT" | XS |
-| 6 | pebbleengine/bboltengine README symmetry (graph=unsupported note; bbolt audit vs new vector rows) | XS |
-| 7 | integration/README.md lists 5 of ~15 suites — enumerate or point at flake apps | XS |
-| 8 | Revive or retire docs/sessions/SESSION_MILESTONES.md (stale since 2026-08-11) + module-count drift (82 vs 86 vs 88) in every doc that hardcodes it | S |
+| # | Task                                                                                                                                                                                   | Effort |
+| - | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 2 | README feature table honesty (stop selling "tombstone soft-delete" as headline; lead with what consumers import) — target `README.md:122,162` identified only                          | S      |
+| 3 | Skill reference recipes: catch-up drain pattern (projectionhost TOCTOU), `WithoutViewAutoMigrate`, Increment non-clamping (FAQ), MariaDB dialect + numeric-safe sort (recipes.md §2.x) | S      |
+| 4 | storage/view validated-WHERE rollout review (query.go/store.go, landed 2026-08-15) → skill-reference API-doc pass                                                                      | S      |
+| 5 | docs/DOMAIN_LANGUAGE.md: define "dialect", "capability probe", "degraded ADT"                                                                                                          | XS     |
+| 6 | pebbleengine/bboltengine README symmetry (graph=unsupported note; bbolt audit vs new vector rows)                                                                                      | XS     |
+| 7 | integration/README.md lists 5 of ~15 suites — enumerate or point at flake apps                                                                                                         | XS     |
+| 8 | Revive or retire docs/sessions/SESSION_MILESTONES.md (stale since 2026-08-11) + module-count drift (82 vs 86 vs 88) in every doc that hardcodes it                                     | S      |
 
 ---
 
@@ -260,4 +260,4 @@ Tasks 2-8 from the batch, exactly as pasted, all 0%:
 
 ---
 
-*Report written from session evidence only. No code or docs were modified this session. Pre-existing uncommitted changes in the worktree were observed and deliberately untouched.*
+_Report written from session evidence only. No code or docs were modified this session. Pre-existing uncommitted changes in the worktree were observed and deliberately untouched._

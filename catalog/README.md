@@ -10,15 +10,15 @@ go get github.com/larsartmann/go-cqrs-lite/catalog/v4
 
 ## Packages
 
-| Package                | Purpose                                                          |
-| ---------------------- | ---------------------------------------------------------------- |
-| `catalog`              | Registry, schema reflection, builder, typed IDs                  |
-| `catalog/asyncapi`     | AsyncAPI 3.0 YAML/JSON exporter                                  |
-| `catalog/eventcatalog` | EventCatalog MDX file generator                                  |
-| `catalog/openapi`      | OpenAPI 3.0 YAML/JSON exporter                                   |
-| `catalog/d2`           | D2 diagram text exporter                                         |
+| Package                | Purpose                                                                   |
+| ---------------------- | ------------------------------------------------------------------------- |
+| `catalog`              | Registry, schema reflection, builder, typed IDs                           |
+| `catalog/asyncapi`     | AsyncAPI 3.0 YAML/JSON exporter                                           |
+| `catalog/eventcatalog` | EventCatalog MDX file generator                                           |
+| `catalog/openapi`      | OpenAPI 3.0 YAML/JSON exporter                                            |
+| `catalog/d2`           | D2 diagram text exporter                                                  |
 | `catalog/docserver`    | HTTP handlers for serving docs (index page, OpenAPI/AsyncAPI UI, D2 view) |
-| `catalog/simple`       | Single-service builder facade (streamlined API)                  |
+| `catalog/simple`       | Single-service builder facade (streamlined API)                           |
 
 ## Quick Start
 
@@ -331,20 +331,20 @@ from each service page.
 
 The exporter supports all EventCatalog resource types:
 
-| Resource      | Exported To                    | Notes                                                                                                       |
-| ------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| Messages      | `commands/<id>/index.mdx`, `events/<id>/index.mdx`, `queries/<id>/index.mdx` | Top-level dirs, deduplicated across services                                 |
-| Services      | `services/<id>/index.mdx`      | With messages, specs, data stores, external flag, base config (sidebar, styles, editUrl, draft, visualiser) |
-| Domains       | `domains/<id>/index.mdx`       | With ubiquitous language, sub-domains, data products, base config                                           |
-| Entities      | `entities/<id>/index.mdx`      | DDD entities: aggregateRoot, identifier, properties with references/relationTypes                           |
-| Data Products | `data-products/<id>/index.mdx` | Data mesh products with inputs/outputs, output contracts, hidden flag                                       |
-| Agents        | `agents/<id>/index.mdx`        | AI agents with sends/receives, model, tools, data stores                                                    |
-| Channels      | `channels/<id>/index.mdx`      | With protocols, parameters, routes, delivery guarantees                                                     |
-| Data Stores   | `containers/<id>/index.mdx`    | Databases/caches with authoritative, accessMode, classification (EventCatalog 4.x collects them from `containers/`) |
-| Flows         | `flows/<id>/index.mdx`         | All step types: service, message, agent, dataStore, dataProduct, subFlow                                    |
-| Teams         | `teams/<id>.mdx`               | With external source sync, hidden, readOnly                                                                 |
-| Users         | `users/<id>.mdx`               | With external source sync, hidden, readOnly                                                                 |
-| Custom Docs   | `docs/<slug>/index.mdx`        | Global documentation pages (ADRs, architecture docs)                                                        |
+| Resource      | Exported To                                                                  | Notes                                                                                                               |
+| ------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Messages      | `commands/<id>/index.mdx`, `events/<id>/index.mdx`, `queries/<id>/index.mdx` | Top-level dirs, deduplicated across services                                                                        |
+| Services      | `services/<id>/index.mdx`                                                    | With messages, specs, data stores, external flag, base config (sidebar, styles, editUrl, draft, visualiser)         |
+| Domains       | `domains/<id>/index.mdx`                                                     | With ubiquitous language, sub-domains, data products, base config                                                   |
+| Entities      | `entities/<id>/index.mdx`                                                    | DDD entities: aggregateRoot, identifier, properties with references/relationTypes                                   |
+| Data Products | `data-products/<id>/index.mdx`                                               | Data mesh products with inputs/outputs, output contracts, hidden flag                                               |
+| Agents        | `agents/<id>/index.mdx`                                                      | AI agents with sends/receives, model, tools, data stores                                                            |
+| Channels      | `channels/<id>/index.mdx`                                                    | With protocols, parameters, routes, delivery guarantees                                                             |
+| Data Stores   | `containers/<id>/index.mdx`                                                  | Databases/caches with authoritative, accessMode, classification (EventCatalog 4.x collects them from `containers/`) |
+| Flows         | `flows/<id>/index.mdx`                                                       | All step types: service, message, agent, dataStore, dataProduct, subFlow                                            |
+| Teams         | `teams/<id>.mdx`                                                             | With external source sync, hidden, readOnly                                                                         |
+| Users         | `users/<id>.mdx`                                                             | With external source sync, hidden, readOnly                                                                         |
+| Custom Docs   | `docs/<slug>/index.mdx`                                                      | Global documentation pages (ADRs, architecture docs)                                                                |
 
 #### DDD Ubiquitous Language
 
@@ -516,17 +516,17 @@ mux.HandleFunc("/health", docserver.HealthCheckHandler(cat))
 
 ### Routes
 
-| Route                  | Content                                             |
-| ---------------------- | --------------------------------------------------- |
-| `GET {docs}`           | Index page: stats, artifact links, service cards     |
-| `GET {docs}/openapi`   | OpenAPI reference rendered with Scalar               |
-| `GET {docs}/asyncapi`  | AsyncAPI reference rendered with AsyncAPI React      |
-| `GET {docs}/d2`        | D2 diagram source view with copy/download            |
-| `GET {docs}/openapi.{json,yaml}` | Raw OpenAPI spec                          |
-| `GET {docs}/asyncapi.{json,yaml}` | Raw AsyncAPI spec                        |
-| `GET {docs}/d2.txt`    | Raw D2 diagram text                                  |
-| `GET {docs}/catalog.json` | Raw catalog snapshot                              |
-| `GET {docs}/static/*`  | Embedded assets (docs-ui.css, favicon, vendored SPAs) |
+| Route                             | Content                                               |
+| --------------------------------- | ----------------------------------------------------- |
+| `GET {docs}`                      | Index page: stats, artifact links, service cards      |
+| `GET {docs}/openapi`              | OpenAPI reference rendered with Scalar                |
+| `GET {docs}/asyncapi`             | AsyncAPI reference rendered with AsyncAPI React       |
+| `GET {docs}/d2`                   | D2 diagram source view with copy/download             |
+| `GET {docs}/openapi.{json,yaml}`  | Raw OpenAPI spec                                      |
+| `GET {docs}/asyncapi.{json,yaml}` | Raw AsyncAPI spec                                     |
+| `GET {docs}/d2.txt`               | Raw D2 diagram text                                   |
+| `GET {docs}/catalog.json`         | Raw catalog snapshot                                  |
+| `GET {docs}/static/*`             | Embedded assets (docs-ui.css, favicon, vendored SPAs) |
 
 `{docs}` defaults to `/docs` (override with `Config.DocsPath`). `/docs/` redirects to
 `/docs`; unknown `/docs/*` paths return 404 rather than falling back to the index.
@@ -558,11 +558,11 @@ Access the underlying `catalog.Builder` via `b.InnerBuilder()` for multi-service
 
 ## Dependencies
 
-| Dependency                  | Purpose                          |
-| --------------------------- | -------------------------------- |
-| `go-faster/yaml`            | YAML marshaling                  |
-| `templ-components`          | docserver HTML UI components     |
-| `a-h/templ`                 | HTML templating (code-generated) |
+| Dependency         | Purpose                          |
+| ------------------ | -------------------------------- |
+| `go-faster/yaml`   | YAML marshaling                  |
+| `templ-components` | docserver HTML UI components     |
+| `a-h/templ`        | HTML templating (code-generated) |
 
 ## Related Modules
 

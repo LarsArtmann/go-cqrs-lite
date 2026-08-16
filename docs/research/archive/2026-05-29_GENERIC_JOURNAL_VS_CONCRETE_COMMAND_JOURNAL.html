@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Research: Generic Journal&lt;T, ID&gt; vs Concrete CommandJournal</title>
+    <title>
+      Research: Generic Journal&lt;T, ID&gt; vs Concrete CommandJournal
+    </title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -441,10 +443,14 @@
   <body>
     <div class="page">
       <div class="hero">
-        <h1>Journal, Outbox &amp; Persisted<br /><em>Command</em> — Design Research</h1>
+        <h1>
+          Journal, Outbox &amp; Persisted<br /><em>Command</em> — Design
+          Research
+        </h1>
         <p class="subtitle">
-          Generic vs concrete CommandJournal, the relationship between Journal and Outbox, and why
-          PersistedCommand exists without a PersistedEvent counterpart.
+          Generic vs concrete CommandJournal, the relationship between Journal
+          and Outbox, and why PersistedCommand exists without a PersistedEvent
+          counterpart.
         </p>
         <div class="meta">
           <span>2026-05-29</span>
@@ -464,7 +470,9 @@
           <li><a href="#comparison">Side-by-Side Comparison</a></li>
           <li><a href="#decision">Decision</a></li>
           <li><a href="#journal-vs-outbox">Journal vs Outbox</a></li>
-          <li><a href="#persisted-command">PersistedCommand vs ImmutableEvent</a></li>
+          <li>
+            <a href="#persisted-command">PersistedCommand vs ImmutableEvent</a>
+          </li>
           <li><a href="#next-steps">Next Steps</a></li>
         </ol>
       </nav>
@@ -473,8 +481,8 @@
         <span class="section-label">01</span>
         <h2>Context</h2>
         <p>
-          The <code>core/event</code> package defines two journal interfaces for cross-aggregate
-          event replay:
+          The <code>core/event</code> package defines two journal interfaces for
+          cross-aggregate event replay:
         </p>
         <pre><code><span class="kw">type</span> <span class="tp">Journal</span> <span class="kw">interface</span> {
     <span class="fn">ReadAll</span>(ctx <span class="tp">context.Context</span>) ([]<span class="tp">Event</span>, <span class="tp">error</span>)
@@ -485,9 +493,10 @@
     <span class="fn">ReadFrom</span>(ctx <span class="tp">context.Context</span>, afterEventID <span class="tp">id.EventID</span>, limit <span class="tp">int</span>) ([]<span class="tp">Event</span>, <span class="tp">error</span>)
 }</code></pre>
         <p>
-          Meanwhile, the <code>core/command</code> package already has the Sink/Source/Store split —
-          mirroring the event side — but lacks the Journal equivalent. The question arose: should we
-          introduce a generic <code>Journal[T, ID]</code> to serve both, or keep them as separate
+          Meanwhile, the <code>core/command</code> package already has the
+          Sink/Source/Store split — mirroring the event side — but lacks the
+          Journal equivalent. The question arose: should we introduce a generic
+          <code>Journal[T, ID]</code> to serve both, or keep them as separate
           concrete interfaces?
         </p>
       </section>
@@ -495,7 +504,9 @@
       <section class="section" id="current-state">
         <span class="section-label">02</span>
         <h2>Current State</h2>
-        <p>Both event and command packages follow the same ISP split pattern:</p>
+        <p>
+          Both event and command packages follow the same ISP split pattern:
+        </p>
         <table>
           <thead>
             <tr>
@@ -533,8 +544,9 @@
           </tbody>
         </table>
         <p>
-          The gap is real: there is no way to answer "what commands were dispatched across the
-          system?" — which is essential for audit trails, compliance, and replay debugging.
+          The gap is real: there is no way to answer "what commands were
+          dispatched across the system?" — which is essential for audit trails,
+          compliance, and replay debugging.
         </p>
       </section>
 
@@ -542,22 +554,31 @@
         <span class="section-label">03</span>
         <h2>The Gap: Missing CommandJournal</h2>
         <p>
-          A <code>CommandJournal</code> would serve several use cases that currently have no home:
+          A <code>CommandJournal</code> would serve several use cases that
+          currently have no home:
         </p>
         <ul>
           <li>
-            <strong>Audit trail</strong> — "Show me every command that touched aggregate X across
-            all types"
+            <strong>Audit trail</strong> — "Show me every command that touched
+            aggregate X across all types"
           </li>
-          <li><strong>Compliance</strong> — "Who issued what commands and when?"</li>
-          <li><strong>Replay debugging</strong> — "Replay commands to reproduce a bug state"</li>
-          <li><strong>Analytics</strong> — "Which command types are most frequent? Which fail?"</li>
+          <li>
+            <strong>Compliance</strong> — "Who issued what commands and when?"
+          </li>
+          <li>
+            <strong>Replay debugging</strong> — "Replay commands to reproduce a
+            bug state"
+          </li>
+          <li>
+            <strong>Analytics</strong> — "Which command types are most frequent?
+            Which fail?"
+          </li>
         </ul>
         <div class="callout callout-green">
           <div class="callout-title">Agreed</div>
           <p>
-            CommandJournal is a legitimate concept. The question is only about <em>how</em> to model
-            it — shared generic or independent concrete.
+            CommandJournal is a legitimate concept. The question is only about
+            <em>how</em> to model it — shared generic or independent concrete.
           </p>
         </div>
       </section>
@@ -566,8 +587,9 @@
         <span class="section-label">04</span>
         <h2>Option A — Generic Journal[T, ID]</h2>
         <p>
-          Extract a generic base into a shared location (e.g. <code>core/pkg/journal</code>) and
-          have both event and command journals inherit from it:
+          Extract a generic base into a shared location (e.g.
+          <code>core/pkg/journal</code>) and have both event and command
+          journals inherit from it:
         </p>
         <pre><code><span class="cm">// core/pkg/journal/journal.go</span>
 <span class="kw">package</span> journal
@@ -588,47 +610,54 @@
         <h3>Pros</h3>
         <ul>
           <li>DRY — one interface definition for the shared shape</li>
-          <li>Enforces structural consistency between event and command journals</li>
           <li>
-            Opens the door for generic utilities (e.g. replay logic that works on any journal)
+            Enforces structural consistency between event and command journals
+          </li>
+          <li>
+            Opens the door for generic utilities (e.g. replay logic that works
+            on any journal)
           </li>
         </ul>
 
         <h3>Cons</h3>
         <ul>
           <li>
-            <strong>The return types diverge</strong> — events return <code>[]Event</code> (value),
-            commands return <code>[]*PersistedCommand</code> (pointer with serialized payload).
+            <strong>The return types diverge</strong> — events return
+            <code>[]Event</code> (value), commands return
+            <code>[]*PersistedCommand</code> (pointer with serialized payload).
             Consumers handle them completely differently.
           </li>
           <li>
-            <strong>Only two implementations</strong> — if we had 5+ journal types, a generic pays
-            off. With 2, it's abstraction overhead for symmetry.
+            <strong>Only two implementations</strong> — if we had 5+ journal
+            types, a generic pays off. With 2, it's abstraction overhead for
+            symmetry.
           </li>
           <li>
-            <strong>No good home</strong> — putting <code>Journal[T, ID]</code> in
-            <code>core/pkg/journal/</code> creates a micro-dependency that exists purely for DRY.
-            Neither event nor command package should depend on the other's abstraction.
+            <strong>No good home</strong> — putting
+            <code>Journal[T, ID]</code> in
+            <code>core/pkg/journal/</code> creates a micro-dependency that
+            exists purely for DRY. Neither event nor command package should
+            depend on the other's abstraction.
           </li>
           <li>
             <strong>They will diverge</strong> — Command journals may need
-            <code>ReadByStatus()</code>, <code>ReadByUser()</code>. Event journals may need
-            <code>ReadByAggregateType()</code>. A shared generic constrains both to the lowest
-            common denominator.
+            <code>ReadByStatus()</code>, <code>ReadByUser()</code>. Event
+            journals may need <code>ReadByAggregateType()</code>. A shared
+            generic constrains both to the lowest common denominator.
           </li>
           <li>
             <strong>Type parameters add noise</strong> —
-            <code>SeekableJournal[*PersistedCommand, id.CommandID]</code> is harder to read than
-            <code>SeekableCommandJournal</code>.
+            <code>SeekableJournal[*PersistedCommand, id.CommandID]</code> is
+            harder to read than <code>SeekableCommandJournal</code>.
           </li>
         </ul>
 
         <div class="callout callout-amber">
           <div class="callout-title">Risk</div>
           <p>
-            The generic base becomes a <em>least common denominator</em> that neither side is happy
-            with. Each domain grows domain-specific methods, and the shared base becomes an empty
-            ceremony.
+            The generic base becomes a <em>least common denominator</em> that
+            neither side is happy with. Each domain grows domain-specific
+            methods, and the shared base becomes an empty ceremony.
           </p>
         </div>
       </section>
@@ -657,30 +686,36 @@
 
         <h3>Pros</h3>
         <ul>
-          <li><strong>Zero coupling</strong> — command and event packages evolve independently</li>
           <li>
-            <strong>Free to diverge</strong> — add <code>ReadByStatus()</code> to CommandJournal
-            without breaking Event Journal's contract
+            <strong>Zero coupling</strong> — command and event packages evolve
+            independently
           </li>
           <li>
-            <strong>Clear naming</strong> — <code>SeekableCommandJournal</code> is self-documenting;
+            <strong>Free to diverge</strong> — add
+            <code>ReadByStatus()</code> to CommandJournal without breaking Event
+            Journal's contract
+          </li>
+          <li>
+            <strong>Clear naming</strong> —
+            <code>SeekableCommandJournal</code> is self-documenting;
             <code>SeekableJournal[*PersistedCommand, id.CommandID]</code> is not
           </li>
           <li>
-            <strong>Follows existing pattern</strong> — mirrors <code>CommandSink</code>/<code
-              >CommandSource</code
-            >
+            <strong>Follows existing pattern</strong> — mirrors
+            <code>CommandSink</code>/<code>CommandSource</code>
             which are already concrete
           </li>
           <li>
-            <strong>10 lines of duplication</strong> — cheaper than the generic abstraction layer
+            <strong>10 lines of duplication</strong> — cheaper than the generic
+            abstraction layer
           </li>
         </ul>
 
         <h3>Cons</h3>
         <ul>
           <li>
-            Structural duplication — both journals have <code>ReadAll</code> + <code>ReadFrom</code>
+            Structural duplication — both journals have <code>ReadAll</code> +
+            <code>ReadFrom</code>
           </li>
           <li>No shared utility code (but no actual need for it yet)</li>
         </ul>
@@ -688,8 +723,9 @@
         <div class="callout callout-green">
           <div class="callout-title">Strength</div>
           <p>
-            The ISP split pattern is already proven in this codebase. CommandSink/CommandSource are
-            concrete mirrors of EventSink/EventSource. CommandJournal should follow the same proven
+            The ISP split pattern is already proven in this codebase.
+            CommandSink/CommandSource are concrete mirrors of
+            EventSink/EventSource. CommandJournal should follow the same proven
             pattern.
           </p>
         </div>
@@ -710,16 +746,22 @@
             <tr>
               <td>Coupling</td>
               <td>Shared dependency on <code>core/pkg/journal</code></td>
-              <td style="color: var(--green); font-weight: 500">Zero — fully independent</td>
+              <td style="color: var(--green); font-weight: 500">
+                Zero — fully independent
+              </td>
             </tr>
             <tr>
               <td>Evolvability</td>
               <td>LCD constraint — both must fit the generic</td>
-              <td style="color: var(--green); font-weight: 500">Free divergence per domain</td>
+              <td style="color: var(--green); font-weight: 500">
+                Free divergence per domain
+              </td>
             </tr>
             <tr>
               <td>Readability</td>
-              <td><code>SeekableJournal[*PersistedCommand, id.CommandID]</code></td>
+              <td>
+                <code>SeekableJournal[*PersistedCommand, id.CommandID]</code>
+              </td>
               <td style="color: var(--green); font-weight: 500">
                 <code>SeekableCommandJournal</code>
               </td>
@@ -745,12 +787,16 @@
             </tr>
             <tr>
               <td>Future-proof for 3rd journal type</td>
-              <td style="color: var(--blue); font-weight: 500">Easier to add</td>
+              <td style="color: var(--blue); font-weight: 500">
+                Easier to add
+              </td>
               <td>Copy 10 lines</td>
             </tr>
             <tr>
               <td>Generic utility reuse</td>
-              <td style="color: var(--blue); font-weight: 500">Possible (e.g. replay helpers)</td>
+              <td style="color: var(--blue); font-weight: 500">
+                Possible (e.g. replay helpers)
+              </td>
               <td>Per-domain helpers</td>
             </tr>
           </tbody>
@@ -764,18 +810,19 @@
         <div class="callout callout-green">
           <div class="callout-title">Verdict — Concrete CommandJournal</div>
           <p>
-            The duplication is ~10 lines of interface definitions — far cheaper than the abstraction
-            cost of a generic base. The two domains (events and commands) will diverge in their
-            query needs, and a shared generic would become an LCD straightjacket. The existing
-            Sink/Source precedent already proves the concrete-mirror pattern works well in this
-            codebase.
+            The duplication is ~10 lines of interface definitions — far cheaper
+            than the abstraction cost of a generic base. The two domains (events
+            and commands) will diverge in their query needs, and a shared
+            generic would become an LCD straightjacket. The existing Sink/Source
+            precedent already proves the concrete-mirror pattern works well in
+            this codebase.
           </p>
         </div>
 
         <p>
-          The generic approach would only pay off if we had 5+ distinct journal types with identical
-          semantics. With 2 (events and commands), the cost of the abstraction exceeds the cost of
-          the duplication.
+          The generic approach would only pay off if we had 5+ distinct journal
+          types with identical semantics. With 2 (events and commands), the cost
+          of the abstraction exceeds the cost of the duplication.
         </p>
 
         <h3>Key reasons</h3>
@@ -785,18 +832,21 @@
             <code>[]*PersistedCommand</code> are fundamentally different shapes
           </li>
           <li>
-            <strong>Query needs will diverge</strong> — commands need status/user filtering; events
-            need aggregate-type filtering
+            <strong>Query needs will diverge</strong> — commands need
+            status/user filtering; events need aggregate-type filtering
           </li>
           <li>
-            <strong>No good home for the generic</strong> — a <code>core/pkg/journal</code> package
-            exists purely for DRY
+            <strong>No good home for the generic</strong> — a
+            <code>core/pkg/journal</code> package exists purely for DRY
           </li>
           <li>
-            <strong>Proven pattern</strong> — CommandSink/CommandSource already mirror
-            EventSink/EventSource concretely
+            <strong>Proven pattern</strong> — CommandSink/CommandSource already
+            mirror EventSink/EventSource concretely
           </li>
-          <li><strong>YAGNI</strong> — exactly 2 implementations; generic overhead is premature</li>
+          <li>
+            <strong>YAGNI</strong> — exactly 2 implementations; generic overhead
+            is premature
+          </li>
         </ol>
       </section>
 
@@ -805,7 +855,8 @@
         <h2>Next Steps</h2>
         <ol>
           <li>
-            Add <code>CommandJournal</code> and <code>SeekableCommandJournal</code> interfaces to
+            Add <code>CommandJournal</code> and
+            <code>SeekableCommandJournal</code> interfaces to
             <code>core/command/store.go</code>
           </li>
           <li>
@@ -813,7 +864,8 @@
             <code>SQLCommandStore</code>)
           </li>
           <li>
-            Add <code>CommandJournal</code> / <code>SeekableCommandJournal</code> to the in-memory
+            Add <code>CommandJournal</code> /
+            <code>SeekableCommandJournal</code> to the in-memory
             <code>memory</code> package
           </li>
           <li>Write integration tests for cross-aggregate command replay</li>
@@ -826,8 +878,9 @@
         <h2>Journal vs Outbox</h2>
 
         <p>
-          Both Journal and Outbox deal with event streams, but they solve fundamentally different
-          problems. They are complementary, not competing.
+          Both Journal and Outbox deal with event streams, but they solve
+          fundamentally different problems. They are complementary, not
+          competing.
         </p>
 
         <table>
@@ -862,7 +915,10 @@
             <tr>
               <td><strong>Interface</strong></td>
               <td><code>ReadAll</code> / <code>ReadFrom</code></td>
-              <td><code>Append</code> / <code>PollPending</code> / <code>Ack</code></td>
+              <td>
+                <code>Append</code> / <code>PollPending</code> /
+                <code>Ack</code>
+              </td>
             </tr>
             <tr>
               <td><strong>Ordering</strong></td>
@@ -873,9 +929,9 @@
         </table>
 
         <p>
-          The Outbox solves the <strong>dual-write problem</strong>: atomically persist events +
-          stage them for <code>Bus.Publish</code> in the same transaction. Once published and ACKed,
-          entries are deleted.
+          The Outbox solves the <strong>dual-write problem</strong>: atomically
+          persist events + stage them for <code>Bus.Publish</code> in the same
+          transaction. Once published and ACKed, entries are deleted.
         </p>
 
         <pre><code><span class="cm">// Outbox lifecycle (core/event/outbox.go):</span>
@@ -892,17 +948,19 @@
 }</code></pre>
 
         <p>
-          A Journal is the opposite: it <strong>keeps everything forever</strong> for replay. You
-          never ACK or delete from a Journal.
+          A Journal is the opposite: it
+          <strong>keeps everything forever</strong> for replay. You never ACK or
+          delete from a Journal.
         </p>
 
         <h3>Does CommandJournal need an Outbox?</h3>
         <p>
-          <strong>Yes — if commands are published.</strong> Commands can and should be published,
-          just like events. A <code>CommandBus</code> (or <code>CommandPublisher</code>) is the
-          natural mirror of <code>event.Bus</code>. When a command is both persisted
-          <em>and</em> published, the same dual-write problem applies: you need atomic persistence +
-          staging, which is exactly the Outbox pattern.
+          <strong>Yes — if commands are published.</strong> Commands can and
+          should be published, just like events. A <code>CommandBus</code> (or
+          <code>CommandPublisher</code>) is the natural mirror of
+          <code>event.Bus</code>. When a command is both persisted
+          <em>and</em> published, the same dual-write problem applies: you need
+          atomic persistence + staging, which is exactly the Outbox pattern.
         </p>
 
         <table>
@@ -938,10 +996,12 @@
         </table>
 
         <p>
-          Currently, commands only have a <code>Dispatcher</code> (dispatch to handler in-process).
-          There is no <code>CommandBus</code> / <code>CommandPublisher</code> yet. But the design
-          should account for it — commands flowing between services (microservice orchestration,
-          saga coordination) need the same reliable publishing guarantees as events.
+          Currently, commands only have a <code>Dispatcher</code> (dispatch to
+          handler in-process). There is no <code>CommandBus</code> /
+          <code>CommandPublisher</code> yet. But the design should account for
+          it — commands flowing between services (microservice orchestration,
+          saga coordination) need the same reliable publishing guarantees as
+          events.
         </p>
 
         <div class="callout callout-amber">
@@ -950,18 +1010,20 @@
             The command side is missing three event-side concepts:
             <strong>CommandBus</strong> (publish/subscribe),
             <strong>CommandOutbox</strong> (reliable publishing), and
-            <strong>CommandJournal</strong> (audit trail). The event side has all three:
-            <code>event.Bus</code>, <code>event.Outbox</code>, <code>event.Journal</code>. This is
-            an architectural gap worth addressing.
+            <strong>CommandJournal</strong> (audit trail). The event side has
+            all three: <code>event.Bus</code>, <code>event.Outbox</code>,
+            <code>event.Journal</code>. This is an architectural gap worth
+            addressing.
           </p>
         </div>
 
         <div class="callout callout-blue">
           <div class="callout-title">Insight</div>
           <p>
-            Journal is a <em>source of truth</em> (permanent, read-heavy). Outbox is a
-            <em>reliability mechanism</em> (ephemeral, write-then-delete). They coexist naturally:
-            events/commands are persisted to the Journal <em>and</em> staged in the Outbox
+            Journal is a <em>source of truth</em> (permanent, read-heavy).
+            Outbox is a <em>reliability mechanism</em> (ephemeral,
+            write-then-delete). They coexist naturally: events/commands are
+            persisted to the Journal <em>and</em> staged in the Outbox
             atomically. The Outbox empties; the Journal grows.
           </p>
         </div>
@@ -972,18 +1034,20 @@
         <h2>PersistedCommand vs ImmutableEvent</h2>
 
         <p>
-          A natural question when encountering <code>PersistedCommand</code>: why does the command
-          side have a separate "persisted" type, while events have <code>ImmutableEvent</code> and
-          no <code>PersistedEvent</code>?
+          A natural question when encountering <code>PersistedCommand</code>:
+          why does the command side have a separate "persisted" type, while
+          events have <code>ImmutableEvent</code> and no
+          <code>PersistedEvent</code>?
         </p>
 
         <div class="callout callout-green">
           <div class="callout-title">Answer</div>
           <p>
-            Both sides actually have the same shape: an in-memory type that <em>can</em> be
-            persisted but doesn't have to be. The naming difference is misleading —
-            <code>ImmutableEvent</code> is just as "live" as <code>BasicCommand</code> until you
-            call <code>Save()</code>.
+            Both sides actually have the same shape: an in-memory type that
+            <em>can</em> be persisted but doesn't have to be. The naming
+            difference is misleading — <code>ImmutableEvent</code> is just as
+            "live" as <code>BasicCommand</code> until you call
+            <code>Save()</code>.
           </p>
         </div>
 
@@ -1002,8 +1066,9 @@ cmd := command.New("create.user", aggregateID, command.WithCorrelationID(corrID)
 persisted, _ := command.NewPersistedCommand(cmd.Type(), ref, payload)</code></pre>
 
         <p>
-          The real difference isn't "born persisted" vs "two lifecycles" — both types live in memory
-          until explicitly persisted. The actual distinction is:
+          The real difference isn't "born persisted" vs "two lifecycles" — both
+          types live in memory until explicitly persisted. The actual
+          distinction is:
         </p>
 
         <table>
@@ -1017,24 +1082,35 @@ persisted, _ := command.NewPersistedCommand(cmd.Type(), ref, payload)</code></pr
           <tbody>
             <tr>
               <td>In-memory form</td>
-              <td><code>ImmutableEvent</code> (always has ID, timestamp, serialized payload)</td>
-              <td><code>BasicCommand</code> (no ID, no timestamp, typed payload)</td>
+              <td>
+                <code>ImmutableEvent</code> (always has ID, timestamp,
+                serialized payload)
+              </td>
+              <td>
+                <code>BasicCommand</code> (no ID, no timestamp, typed payload)
+              </td>
             </tr>
             <tr>
               <td>Persisted form</td>
               <td>
-                Same struct — <code>ImmutableEvent</code> goes straight to <code>Sink.Save()</code>
+                Same struct — <code>ImmutableEvent</code> goes straight to
+                <code>Sink.Save()</code>
               </td>
               <td>
-                Separate struct — <code>NewPersistedCommand()</code> wraps with ID, timestamp,
+                Separate struct — <code>NewPersistedCommand()</code> wraps with
+                ID, timestamp,
                 <code>[]byte</code>
               </td>
             </tr>
             <tr>
               <td>Serialization</td>
-              <td>At creation time (<code>NewEvent</code> marshals payload → bytes)</td>
               <td>
-                At persistence time (<code>NewPersistedCommand</code> takes <code>[]byte</code>)
+                At creation time (<code>NewEvent</code> marshals payload →
+                bytes)
+              </td>
+              <td>
+                At persistence time (<code>NewPersistedCommand</code> takes
+                <code>[]byte</code>)
               </td>
             </tr>
             <tr>
@@ -1048,12 +1124,14 @@ persisted, _ := command.NewPersistedCommand(cmd.Type(), ref, payload)</code></pr
         <div class="callout callout-amber">
           <div class="callout-title">Honest Assessment</div>
           <p>
-            The event side <em>could</em> have a <code>PersistedEvent</code> too — a separate struct
-            that adds storage-specific fields. It doesn't because <code>ImmutableEvent</code> was
-            designed to be storage-ready from the start (ID, timestamp, bytes payload). The command
-            side didn't get that treatment: <code>BasicCommand</code> is lightweight (no ID, no
-            timestamp, typed payload), so <code>PersistedCommand</code> bridges the gap. Both
-            approaches work, but the asymmetry is a design choice, not a law of nature.
+            The event side <em>could</em> have a <code>PersistedEvent</code> too
+            — a separate struct that adds storage-specific fields. It doesn't
+            because <code>ImmutableEvent</code> was designed to be storage-ready
+            from the start (ID, timestamp, bytes payload). The command side
+            didn't get that treatment: <code>BasicCommand</code> is lightweight
+            (no ID, no timestamp, typed payload), so
+            <code>PersistedCommand</code> bridges the gap. Both approaches work,
+            but the asymmetry is a design choice, not a law of nature.
           </p>
         </div>
 
@@ -1097,10 +1175,11 @@ persisted, _ := command.NewPersistedCommand(cmd.Type(), ref, payload)</code></pr
         </table>
 
         <p>
-          Commands have <strong>two distinct lifecycles</strong>: they're dispatched in-memory
-          (live) and optionally persisted to storage (audit). The split exists because not every
-          dispatched command needs persistence — allocating an ID and timestamp for every
-          fire-and-forget dispatch would be wasteful.
+          Commands have <strong>two distinct lifecycles</strong>: they're
+          dispatched in-memory (live) and optionally persisted to storage
+          (audit). The split exists because not every dispatched command needs
+          persistence — allocating an ID and timestamp for every fire-and-forget
+          dispatch would be wasteful.
         </p>
 
         <h3>Revised comparison</h3>
@@ -1121,8 +1200,12 @@ persisted, _ := command.NewPersistedCommand(cmd.Type(), ref, payload)</code></pr
             </tr>
             <tr>
               <td>In-memory form</td>
-              <td><code>ImmutableEvent</code> (heavy: ID + timestamp + bytes)</td>
-              <td><code>BasicCommand</code> (light: type + aggregateID only)</td>
+              <td>
+                <code>ImmutableEvent</code> (heavy: ID + timestamp + bytes)
+              </td>
+              <td>
+                <code>BasicCommand</code> (light: type + aggregateID only)
+              </td>
             </tr>
             <tr>
               <td>Storage-ready?</td>
@@ -1155,14 +1238,16 @@ persisted, _ := command.NewPersistedCommand(cmd.Type(), ref, payload)</code></pr
         <div class="callout callout-blue">
           <div class="callout-title">Open Questions</div>
           <p>
-            <strong>1.</strong> Could the command side follow the event pattern — make
-            <code>BasicCommand</code> carry an ID and timestamp from creation, eliminating
-            <code>PersistedCommand</code>? This would unify the shapes but allocate IDs for
-            fire-and-forget dispatches. <strong>2.</strong> Should the event side introduce a
+            <strong>1.</strong> Could the command side follow the event pattern
+            — make <code>BasicCommand</code> carry an ID and timestamp from
+            creation, eliminating <code>PersistedCommand</code>? This would
+            unify the shapes but allocate IDs for fire-and-forget dispatches.
+            <strong>2.</strong> Should the event side introduce a
             <code>PersistedEvent</code> too, for full symmetry? Probably not —
-            <code>ImmutableEvent</code> already works as both forms. <strong>3.</strong> When
-            <code>CommandBus</code> is added, should <code>PersistedCommand</code> become the
-            publishable type (like <code>ImmutableEvent</code> is for <code>Bus.Publish</code>), or
+            <code>ImmutableEvent</code> already works as both forms.
+            <strong>3.</strong> When <code>CommandBus</code> is added, should
+            <code>PersistedCommand</code> become the publishable type (like
+            <code>ImmutableEvent</code> is for <code>Bus.Publish</code>), or
             should publishing use <code>BasicCommand</code>?
           </p>
         </div>

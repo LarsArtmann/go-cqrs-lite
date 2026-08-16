@@ -89,7 +89,9 @@
       .page {
         display: grid;
         grid-template-columns: var(--sidebar-width) 1fr;
-        max-width: calc(var(--sidebar-width) + var(--max-width) + var(--gutter) * 2);
+        max-width: calc(
+          var(--sidebar-width) + var(--max-width) + var(--gutter) * 2
+        );
         margin: 0 auto;
         min-height: 100vh;
       }
@@ -686,10 +688,12 @@
         <section class="hero">
           <h1>Event Redaction, Reviewed</h1>
           <p class="lead">
-            A privacy-filtering pattern — stripping sensitive payload fields before broadcasting
-            events to viewers based on role — evaluated against the design principles of
-            <code>go-cqrs-lite</code>. The <em>pattern</em> is legitimate; the reference
-            <em>implementation</em> leaks concerns in the wrong places.
+            A privacy-filtering pattern — stripping sensitive payload fields
+            before broadcasting events to viewers based on role — evaluated
+            against the design principles of
+            <code>go-cqrs-lite</code>. The <em>pattern</em> is legitimate; the
+            reference <em>implementation</em> leaks concerns in the wrong
+            places.
           </p>
 
           <div class="verdict" id="summary">
@@ -697,11 +701,13 @@
             <div class="verdict-text">
               <h4>Steal the principle. Reject the implementation.</h4>
               <p>
-                Role-based filtering at a read egress is architecturally consonant with the
-                library's existing boundary transformers (<code>signing/</code>,
-                <code>encryption/</code>, tombstone soft-delete). But hardcoding sensitivity into
-                the domain enum and mutating payload shape at one transport breaks the type system
-                and centralizes policy in the worst possible place.
+                Role-based filtering at a read egress is architecturally
+                consonant with the library's existing boundary transformers
+                (<code>signing/</code>,
+                <code>encryption/</code>, tombstone soft-delete). But hardcoding
+                sensitivity into the domain enum and mutating payload shape at
+                one transport breaks the type system and centralizes policy in
+                the worst possible place.
               </p>
             </div>
           </div>
@@ -710,47 +716,55 @@
         <section id="what-works">
           <h2><span class="section-num">01</span>What the Design Gets Right</h2>
           <p>
-            The core intuitions are sound. These two decisions alone place the design above naive
-            approaches that redact at write time or treat privacy as an afterthought.
+            The core intuitions are sound. These two decisions alone place the
+            design above naive approaches that redact at write time or treat
+            privacy as an afterthought.
           </p>
 
           <div class="principles">
             <div class="principle">
               <h4>Source of truth stays intact</h4>
               <p>
-                Redaction is a <em>view</em> concern, applied at egress. The stored event is never
-                mutated. This is the correct boundary — the same principle the library already
-                applies to <code>signing</code> (sign-then-store, verify-on-read) and
+                Redaction is a <em>view</em> concern, applied at egress. The
+                stored event is never mutated. This is the correct boundary —
+                the same principle the library already applies to
+                <code>signing</code> (sign-then-store, verify-on-read) and
                 <code>encryption</code> (encrypt-then-store, decrypt-on-read).
               </p>
             </div>
             <div class="principle">
               <h4>Two granularities of redaction</h4>
               <p>
-                Distinguishing a full payload wipe (<code>redacted()</code>) from targeted
-                field-level stripping (<code>redact_window_title()</code>) is the right instinct.
-                Not every sensitive event needs wholesale erasure; some only need specific fields
-                masked.
+                Distinguishing a full payload wipe (<code>redacted()</code>)
+                from targeted field-level stripping
+                (<code>redact_window_title()</code>) is the right instinct. Not
+                every sensitive event needs wholesale erasure; some only need
+                specific fields masked.
               </p>
             </div>
           </div>
 
           <div class="callout">
             <p>
-              <strong>Why this matters:</strong> redaction-at-egress composes naturally with the
-              library's existing read-side middleware stack. A consumer could layer decrypt → verify
-              → redact → trace on every read path, and the stored event would remain canonical and
+              <strong>Why this matters:</strong> redaction-at-egress composes
+              naturally with the library's existing read-side middleware stack.
+              A consumer could layer decrypt → verify → redact → trace on every
+              read path, and the stored event would remain canonical and
               auditable.
             </p>
           </div>
         </section>
 
         <section id="problems">
-          <h2><span class="section-num">02</span>Six Problems With the Implementation</h2>
+          <h2>
+            <span class="section-num">02</span>Six Problems With the
+            Implementation
+          </h2>
           <p>
-            Each problem below is a place where a policy concern was glued to a layer that should
-            not own it. Left unaddressed, they compound: the next transport added re-derives the
-            rules, the type contract erodes, and the admin cliff becomes a liability.
+            Each problem below is a place where a policy concern was glued to a
+            layer that should not own it. Left unaddressed, they compound: the
+            next transport added re-derives the rules, the type contract erodes,
+            and the admin cliff becomes a liability.
           </p>
 
           <div class="problem">
@@ -759,15 +773,16 @@
               <h4>Sensitivity baked into the domain enum</h4>
               <p>
                 <code>is_sensitive()</code> hardcoding 15 event types inside
-                <code>EventType</code> leaks a <strong>policy</strong> concern into the
-                <strong>domain</strong> layer. "Is this sensitive?" is a deployment- or
-                tenant-specific decision, not an intrinsic property of an event type. What counts as
-                sensitive in a healthcare context differs from a logistics system — the enum cannot
-                encode that.
+                <code>EventType</code> leaks a <strong>policy</strong> concern
+                into the <strong>domain</strong> layer. "Is this sensitive?" is
+                a deployment- or tenant-specific decision, not an intrinsic
+                property of an event type. What counts as sensitive in a
+                healthcare context differs from a logistics system — the enum
+                cannot encode that.
               </p>
               <p>
-                In go-cqrs-lite terms, this belongs in configurable middleware or a projection
-                filter, not in the event type definition.
+                In go-cqrs-lite terms, this belongs in configurable middleware
+                or a projection filter, not in the event type definition.
               </p>
             </div>
           </div>
@@ -777,18 +792,20 @@
             <div class="problem-body">
               <h4>Redaction mutates the payload shape</h4>
               <p>
-                <code>redacted()</code> replaces the payload with <code>{"redacted":true}</code>.
-                This breaks the typed contract: any consumer unmarshaling into
-                <code>UserCreated</code> now gets a silent structural mismatch. The type system can
-                no longer guarantee that a <code>UserCreated</code> event actually contains the
-                fields the type promises.
+                <code>redacted()</code> replaces the payload with
+                <code>{"redacted":true}</code>. This breaks the typed contract:
+                any consumer unmarshaling into <code>UserCreated</code> now gets
+                a silent structural mismatch. The type system can no longer
+                guarantee that a <code>UserCreated</code> event actually
+                contains the fields the type promises.
               </p>
               <p>
-                This is precisely the "make impossible states unrepresentable" violation the library
-                fights against. A redaction layer should produce a
+                This is precisely the "make impossible states unrepresentable"
+                violation the library fights against. A redaction layer should
+                produce a
                 <strong>properly-typed view</strong>
-                (zeroed or redacted-marker fields) or a distinct redacted envelope type — never a
-                shape-shifting payload.
+                (zeroed or redacted-marker fields) or a distinct redacted
+                envelope type — never a shape-shifting payload.
               </p>
             </div>
           </div>
@@ -798,14 +815,15 @@
             <div class="problem-body">
               <h4>Redaction gated at a single transport</h4>
               <p>
-                Applying the filter only at the WebSocket broadcast boundary leaves the journal,
-                replay, projections, and any direct read API unprotected. Privacy filtering applied
-                at <em>one</em> egress point is a leak waiting to happen — the next transport added
+                Applying the filter only at the WebSocket broadcast boundary
+                leaves the journal, replay, projections, and any direct read API
+                unprotected. Privacy filtering applied at <em>one</em> egress
+                point is a leak waiting to happen — the next transport added
                 (SSE, gRPC, HTTP) re-derives the policy and gets it wrong.
               </p>
               <p>
-                It must be a policy applied to <strong>all read egress</strong>, consistently, not
-                patched into each handler as it appears.
+                It must be a policy applied to <strong>all read egress</strong>,
+                consistently, not patched into each handler as it appears.
               </p>
             </div>
           </div>
@@ -815,11 +833,13 @@
             <div class="problem-body">
               <h4>Branching logic in the transport layer</h4>
               <p>
-                The <code>if / else if</code> chain in <code>ws.rs</code> couples role resolution,
-                permission flags, and event classification directly to the WebSocket handler. It is
-                fragile — note that <code>WindowFocused</code> is checked <em>before</em>
-                <code>is_sensitive()</code>, making the ordering load-bearing in a non-obvious way.
-                And it is untestable in isolation: you cannot exercise the redaction policy without
+                The <code>if / else if</code> chain in
+                <code>ws.rs</code> couples role resolution, permission flags,
+                and event classification directly to the WebSocket handler. It
+                is fragile — note that <code>WindowFocused</code> is checked
+                <em>before</em> <code>is_sensitive()</code>, making the ordering
+                load-bearing in a non-obvious way. And it is untestable in
+                isolation: you cannot exercise the redaction policy without
                 standing up a transport.
               </p>
               <p>
@@ -834,14 +854,16 @@
             <div class="problem-body">
               <h4>Full-wipe default discards analytic value</h4>
               <p>
-                Defaulting regular users to whole-payload erasure on sensitive events throws away
-                information that could have been retained with field-level masking. A keystroke
-                event redacted to <code>{"key_count": 42, "keys": "[redacted]"}</code> preserves
+                Defaulting regular users to whole-payload erasure on sensitive
+                events throws away information that could have been retained
+                with field-level masking. A keystroke event redacted to
+                <code>{"key_count": 42, "keys": "[redacted]"}</code> preserves
                 analytics; <code>{"redacted": true}</code> preserves nothing.
               </p>
               <p>
-                Field-level redaction is almost always preferable to whole-payload erasure. The
-                default should bias toward retaining structure.
+                Field-level redaction is almost always preferable to
+                whole-payload erasure. The default should bias toward retaining
+                structure.
               </p>
             </div>
           </div>
@@ -851,10 +873,12 @@
             <div class="problem-body">
               <h4>Admin bypass is a binary trap</h4>
               <p>
-                "Admins see everything" means one compromised admin credential equals a full
-                surveillance feed. Real systems want attribute-based, field-level access — an
-                auditor may see <em>that</em> a clipboard event occurred without seeing
-                <em>what</em> was copied. A binary admin/not-admin cliff offers no middle ground.
+                "Admins see everything" means one compromised admin credential
+                equals a full surveillance feed. Real systems want
+                attribute-based, field-level access — an auditor may see
+                <em>that</em> a clipboard event occurred without seeing
+                <em>what</em> was copied. A binary admin/not-admin cliff offers
+                no middle ground.
               </p>
             </div>
           </div>
@@ -863,23 +887,26 @@
         <section id="anti-vs-idiomatic">
           <h2><span class="section-num">03</span>Anti-Pattern vs. Idiomatic</h2>
           <p>
-            Each design decision has a wrong home and a right home. The move is always the same:
-            push policy out of the domain and into a composable, configurable layer.
+            Each design decision has a wrong home and a right home. The move is
+            always the same: push policy out of the domain and into a
+            composable, configurable layer.
           </p>
 
           <div class="compare">
             <div class="compare-cell bad">
               <h4>As Designed</h4>
               <p>
-                <code>EventType::is_sensitive()</code> hardcodes 15 types inside the domain enum.
-                Policy cannot change without a code change and a redeploy.
+                <code>EventType::is_sensitive()</code> hardcodes 15 types inside
+                the domain enum. Policy cannot change without a code change and
+                a redeploy.
               </p>
             </div>
             <div class="compare-cell good">
               <h4>Idiomatic</h4>
               <p>
-                A <code>RedactionPolicy</code> maps event type → field rules, configured per
-                deployment or tenant. The domain knows nothing about sensitivity.
+                A <code>RedactionPolicy</code> maps event type → field rules,
+                configured per deployment or tenant. The domain knows nothing
+                about sensitivity.
               </p>
             </div>
           </div>
@@ -888,16 +915,18 @@
             <div class="compare-cell bad">
               <h4>As Designed</h4>
               <p>
-                <code>redacted()</code> swaps the payload for <code>{"redacted":true}</code>,
-                breaking the typed unmarshal contract for every consumer.
+                <code>redacted()</code> swaps the payload for
+                <code>{"redacted":true}</code>, breaking the typed unmarshal
+                contract for every consumer.
               </p>
             </div>
             <div class="compare-cell good">
               <h4>Idiomatic</h4>
               <p>
-                Redaction produces a <strong>typed view</strong> — same struct shape, fields zeroed
-                or replaced with sentinel values. Or a distinct <code>RedactedEvent</code> envelope
-                type that the type system can distinguish from a live event.
+                Redaction produces a <strong>typed view</strong> — same struct
+                shape, fields zeroed or replaced with sentinel values. Or a
+                distinct <code>RedactedEvent</code> envelope type that the type
+                system can distinguish from a live event.
               </p>
             </div>
           </div>
@@ -906,15 +935,17 @@
             <div class="compare-cell bad">
               <h4>As Designed</h4>
               <p>
-                Redaction lives inside <code>ws.rs</code>. The journal, replay, projections, and any
-                future transport are unprotected and must re-derive the rules.
+                Redaction lives inside <code>ws.rs</code>. The journal, replay,
+                projections, and any future transport are unprotected and must
+                re-derive the rules.
               </p>
             </div>
             <div class="compare-cell good">
               <h4>Idiomatic</h4>
               <p>
-                Redaction is a read-side middleware applied on <strong>every egress path</strong> —
-                a sibling to <code>middleware.EventTracing</code> and
+                Redaction is a read-side middleware applied on
+                <strong>every egress path</strong> — a sibling to
+                <code>middleware.EventTracing</code> and
                 <code>encryption.DecryptMiddleware</code>.
               </p>
             </div>
@@ -924,32 +955,39 @@
             <div class="compare-cell bad">
               <h4>As Designed</h4>
               <p>
-                Admins bypass all redaction. One compromised credential exposes the entire stream.
+                Admins bypass all redaction. One compromised credential exposes
+                the entire stream.
               </p>
             </div>
             <div class="compare-cell good">
               <h4>Idiomatic</h4>
               <p>
-                Attribute-based access: roles map to <em>which fields</em> they may see, not a
-                binary see-all flag. An auditor sees metadata; a security officer sees payloads.
+                Attribute-based access: roles map to <em>which fields</em> they
+                may see, not a binary see-all flag. An auditor sees metadata; a
+                security officer sees payloads.
               </p>
             </div>
           </div>
         </section>
 
         <section id="target">
-          <h2><span class="section-num">04</span>The Target Shape in go-cqrs-lite</h2>
+          <h2>
+            <span class="section-num">04</span>The Target Shape in go-cqrs-lite
+          </h2>
           <p>
-            If this capability were added to the library, the idiomatic shape would fit cleanly into
-            the existing module graph — a sibling to the other boundary transformers, layered 4–5.
+            If this capability were added to the library, the idiomatic shape
+            would fit cleanly into the existing module graph — a sibling to the
+            other boundary transformers, layered 4–5.
           </p>
 
           <div class="callout idea">
             <p>
-              <strong>Proposed module:</strong> <code>redaction/</code> — a read-side middleware
-              that takes a <code>RedactionPolicy</code> and a viewer context, producing typed
-              redacted views. Composes with <code>signing/</code> and <code>encryption/</code>:
-              encrypt-then-sign the <em>original</em>, redact <em>per-viewer</em> on the way out.
+              <strong>Proposed module:</strong> <code>redaction/</code> — a
+              read-side middleware that takes a <code>RedactionPolicy</code> and
+              a viewer context, producing typed redacted views. Composes with
+              <code>signing/</code> and <code>encryption/</code>:
+              encrypt-then-sign the <em>original</em>, redact
+              <em>per-viewer</em> on the way out.
             </p>
           </div>
 
@@ -971,12 +1009,11 @@ bus.Use(
 
           <h3>How viewer identity reaches the policy</h3>
           <p>
-            The library already has a precedent: correlation IDs and processing mode (<code
-              >ModeLive</code
-            >
-            / <code>ModeReplay</code>) travel as <code>context.Context</code> values. Viewer
-            identity should follow the same pattern — a context-scoped viewer, never resolved inside
-            a transport handler.
+            The library already has a precedent: correlation IDs and processing
+            mode (<code>ModeLive</code> / <code>ModeReplay</code>) travel as
+            <code>context.Context</code> values. Viewer identity should follow
+            the same pattern — a context-scoped viewer, never resolved inside a
+            transport handler.
           </p>
 
           <pre><code><span class="hl-comment">// Attach viewer to context, same pattern as ProcessingMode</span>
@@ -989,10 +1026,11 @@ viewer := redaction.<span class="hl-func">ViewerFrom</span>(ctx)</code></pre>
         <section id="interface">
           <h2><span class="section-num">05</span>Proposed Interface Sketch</h2>
           <p>
-            A first-draft shape for the <code>redaction/</code> package, consistent with the
-            library's interface-first, composition-over-inheritance conventions. The key contract: a
-            <code>View</code> is a distinct type from a live <code>Event</code>, so the type system
-            can tell them apart.
+            A first-draft shape for the <code>redaction/</code> package,
+            consistent with the library's interface-first,
+            composition-over-inheritance conventions. The key contract: a
+            <code>View</code> is a distinct type from a live <code>Event</code>,
+            so the type system can tell them apart.
           </p>
 
           <pre><code><span class="hl-comment">// Package redaction provides viewer-aware payload filtering</span>
@@ -1025,37 +1063,45 @@ viewer := redaction.<span class="hl-func">ViewerFrom</span>(ctx)</code></pre>
 
           <div class="callout warn">
             <p>
-              <strong>Design note:</strong> whether <code>View</code> should wrap the original event
-              or be a fully standalone type is worth a dedicated decision. The constraint is that a
-              redacted view must never be passable where a canonical event is expected — the type
+              <strong>Design note:</strong> whether <code>View</code> should
+              wrap the original event or be a fully standalone type is worth a
+              dedicated decision. The constraint is that a redacted view must
+              never be passable where a canonical event is expected — the type
               system must enforce the distinction.
             </p>
           </div>
         </section>
 
         <section id="flag">
-          <h2><span class="section-num">06</span>An Ethical Flag Worth Naming</h2>
+          <h2>
+            <span class="section-num">06</span>An Ethical Flag Worth Naming
+          </h2>
           <p>
-            The event taxonomy in the reference — keystrokes, screenshots, audio capture, clipboard,
-            SMS, sudo/SSH authentication — is unambiguous employee and user surveillance territory.
-            That context explains <em>why</em> the design defaults to aggressive full-wipe redaction
-            and a hard admin cliff: the product is built around monitoring people.
+            The event taxonomy in the reference — keystrokes, screenshots, audio
+            capture, clipboard, SMS, sudo/SSH authentication — is unambiguous
+            employee and user surveillance territory. That context explains
+            <em>why</em> the design defaults to aggressive full-wipe redaction
+            and a hard admin cliff: the product is built around monitoring
+            people.
           </p>
 
           <div class="callout danger">
             <p>
-              <strong>The pattern is general and legitimate</strong> — GDPR / PII filtering,
-              role-based read views, field-level masking are all standard, defensible privacy
-              techniques. Transfer the <em>pattern</em> to the library freely.
-              <strong>The sensitive-type catalog is not.</strong> It is domain-specific to a
-              surveillance product and does not belong in a general-purpose CQRS library.
+              <strong>The pattern is general and legitimate</strong> — GDPR /
+              PII filtering, role-based read views, field-level masking are all
+              standard, defensible privacy techniques. Transfer the
+              <em>pattern</em> to the library freely.
+              <strong>The sensitive-type catalog is not.</strong> It is
+              domain-specific to a surveillance product and does not belong in a
+              general-purpose CQRS library.
             </p>
           </div>
 
           <p>
-            The library's contribution should be the <em>mechanism</em> — a composable, configurable
-            redaction layer that any consumer can populate with their own rules. The library should
-            ship with no opinion about what counts as sensitive.
+            The library's contribution should be the <em>mechanism</em> — a
+            composable, configurable redaction layer that any consumer can
+            populate with their own rules. The library should ship with no
+            opinion about what counts as sensitive.
           </p>
         </section>
 
@@ -1084,7 +1130,9 @@ viewer := redaction.<span class="hl-func">ViewerFrom</span>(ctx)</code></pre>
                 <tr>
                   <td>Sensitivity classification</td>
                   <td>Hardcoded in domain enum</td>
-                  <td><span class="tag tag-bad">Reject</span> — external policy</td>
+                  <td>
+                    <span class="tag tag-bad">Reject</span> — external policy
+                  </td>
                 </tr>
                 <tr>
                   <td>Payload shape</td>
@@ -1094,7 +1142,9 @@ viewer := redaction.<span class="hl-func">ViewerFrom</span>(ctx)</code></pre>
                 <tr>
                   <td>Egress coverage</td>
                   <td>WebSocket only</td>
-                  <td><span class="tag tag-bad">Reject</span> — all read paths</td>
+                  <td>
+                    <span class="tag tag-bad">Reject</span> — all read paths
+                  </td>
                 </tr>
                 <tr>
                   <td>Policy location</td>
@@ -1104,12 +1154,16 @@ viewer := redaction.<span class="hl-func">ViewerFrom</span>(ctx)</code></pre>
                 <tr>
                   <td>Access model</td>
                   <td>Binary admin bypass</td>
-                  <td><span class="tag tag-bad">Reject</span> — attribute-based</td>
+                  <td>
+                    <span class="tag tag-bad">Reject</span> — attribute-based
+                  </td>
                 </tr>
                 <tr>
                   <td>Sensitive-type catalog</td>
                   <td>Surveillance-specific</td>
-                  <td><span class="tag tag-bad">Reject</span> — consumer-defined</td>
+                  <td>
+                    <span class="tag tag-bad">Reject</span> — consumer-defined
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -1117,18 +1171,21 @@ viewer := redaction.<span class="hl-func">ViewerFrom</span>(ctx)</code></pre>
 
           <div class="callout">
             <p>
-              <strong>Bottom line:</strong> the redaction <em>pattern</em> belongs in a CQRS library
-              — every event-sourced system with multiple viewers eventually needs it. But it belongs
-              as a composable, policy-driven, type-preserving middleware that applies uniformly
-              across all read egress, not as hardcoded domain knowledge with shape-mutating output
-              patched into a single transport.
+              <strong>Bottom line:</strong> the redaction
+              <em>pattern</em> belongs in a CQRS library — every event-sourced
+              system with multiple viewers eventually needs it. But it belongs
+              as a composable, policy-driven, type-preserving middleware that
+              applies uniformly across all read egress, not as hardcoded domain
+              knowledge with shape-mutating output patched into a single
+              transport.
             </p>
           </div>
         </section>
 
         <div class="footer">
           Design review · go-cqrs-lite · 2026-06-14<br />
-          Pattern evaluation only — no code changes proposed for the core modules.
+          Pattern evaluation only — no code changes proposed for the core
+          modules.
         </div>
       </main>
     </div>

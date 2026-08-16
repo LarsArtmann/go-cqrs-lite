@@ -66,6 +66,7 @@ All 8 Docs Honesty items done and gated green. Two gates caught REAL problems th
 ## f) NEXT — up to 50, prioritized (deduped against TODO_LIST)
 
 **P0 — this week (TODO_LIST-worthy):**
+
 1. Repair or replace `/mnt/buildcache` (OWNER; disk 99% full + I/O errors — possibly dying).
 2. Re-run full workspace `nix run .#lint` once concurrent agent's id/event/command/catalog work is committed; fix or route findings.
 3. Run full `nix run .#verify` (not fast) on a quiet machine after buildcache repair — last full GREEN is unproven for current HEAD.
@@ -115,4 +116,4 @@ All 8 Docs Honesty items done and gated green. Two gates caught REAL problems th
 
 **Gates at close (19:01):** doc-check 1078 refs GREEN · verify-docs 5/5 GREEN · build/vet/test-short/race-short GREEN · lint GREEN (my 3 modules 0-issues; workspace run pending concurrent agent) · arch/depguard/duplication/coverage/api-stability GREEN · fiction sweep clean. Full `#verify` and workspace lint re-run outstanding (see b.1/b.2).
 
-*Waiting for instructions.*
+_Waiting for instructions._

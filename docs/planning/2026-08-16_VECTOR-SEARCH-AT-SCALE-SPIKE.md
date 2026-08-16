@@ -12,10 +12,10 @@ Filtered k-NN (`VectorSearchFiltered`, shipped same day) is also linear — it f
 
 ## 2. Measured baseline (2026-08-16, 32-core host, Go 1.26.5, D=128, k=10, cosine, random uniform vectors)
 
-| Collection size | MemoryVectorIndex (in-RAM ceiling) | Pebble (LSM, JSON payloads) |
-| --------------- | ---------------------------------- | --------------------------- |
-| 1K              | 90.8 µs/query                      | 15.9 ms/query               |
-| 10K             | 910.6 µs/query                     | 172.2 ms/query              |
+| Collection size | MemoryVectorIndex (in-RAM ceiling) | Pebble (LSM, JSON payloads)                                                                           |
+| --------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| 1K              | 90.8 µs/query                      | 15.9 ms/query                                                                                         |
+| 10K             | 910.6 µs/query                     | 172.2 ms/query                                                                                        |
 | 100K            | 9.57 ms/query                      | ~1.7 s/query (extrapolated; insert-path fsync makes a 100K setup pass impractical in a bench harness) |
 
 Per-vector cost: **~90 ns** (memory) vs **~17 µs** (pebble) — a ~190x constant-factor gap.
@@ -81,12 +81,12 @@ The metaengine north star: "developer declares, operator deploys." The planner a
 
 ## 5. Recommended phasing
 
-| Phase | Action | Trigger |
-| ----- | ------ | ------- |
-| 0 | Binary float32 encoding for vector payloads (all brute-force engines) | Now — it is cheap and unconditionally good |
-| 1 | int8 scalar quantization + exact re-rank | Post-Phase-0 p99 still above budget at real N |
-| 2 | Optional ANN capability (HNSW or IVF) with filter-aware fallback | Sustained collections > ~500K or latency-critical vector queries |
-| - | Size-triggered advisory | Cheap to add anytime: a `VectorCount` optional capability lets `Doctor`/`EXPLAIN` say "collection X has N vectors on a degraded engine" with a WARN |
+| Phase | Action                                                                | Trigger                                                                                                                                             |
+| ----- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | Binary float32 encoding for vector payloads (all brute-force engines) | Now — it is cheap and unconditionally good                                                                                                          |
+| 1     | int8 scalar quantization + exact re-rank                              | Post-Phase-0 p99 still above budget at real N                                                                                                       |
+| 2     | Optional ANN capability (HNSW or IVF) with filter-aware fallback      | Sustained collections > ~500K or latency-critical vector queries                                                                                    |
+| -     | Size-triggered advisory                                               | Cheap to add anytime: a `VectorCount` optional capability lets `Doctor`/`EXPLAIN` say "collection X has N vectors on a degraded engine" with a WARN |
 
 ## 6. Non-goals / explicitly deferred
 

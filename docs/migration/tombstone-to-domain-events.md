@@ -142,14 +142,14 @@ page, err := reader.ListWithStatus(ctx, listing.ListOptions{
 
 ## API Mapping (old → what to do instead)
 
-| Old (Deprecated, still functional in v4)         | Migration path                                                        |
-| ------------------------------------------------ | --------------------------------------------------------------------- |
-| `event.MarkTombstone(evt)`                       | Emit `"entity.deleted"` event directly                                |
-| `event.MarkRebirth(evt)`                         | Emit `"entity.restored"` event directly                               |
-| `event.DetectTombstone(events)`                  | Check last event type: `events[len-1].Type() == "entity.deleted"`     |
-| `event.TombstoneStatus` + `IsTombstoned()`       | Your own logic over event types (or `listing.StatusMiddleware`)       |
-| `listing.StatusMiddleware(deletes, rebirths)`    | Keep — it IS the type-driven bridge today                             |
-| `kv.TombstoneQuerier` / `QueryByTombstone`       | Unchanged — server-side SQL filtering                                 |
+| Old (Deprecated, still functional in v4)      | Migration path                                                    |
+| --------------------------------------------- | ----------------------------------------------------------------- |
+| `event.MarkTombstone(evt)`                    | Emit `"entity.deleted"` event directly                            |
+| `event.MarkRebirth(evt)`                      | Emit `"entity.restored"` event directly                           |
+| `event.DetectTombstone(events)`               | Check last event type: `events[len-1].Type() == "entity.deleted"` |
+| `event.TombstoneStatus` + `IsTombstoned()`    | Your own logic over event types (or `listing.StatusMiddleware`)   |
+| `listing.StatusMiddleware(deletes, rebirths)` | Keep — it IS the type-driven bridge today                         |
+| `kv.TombstoneQuerier` / `QueryByTombstone`    | Unchanged — server-side SQL filtering                             |
 
 **There is no `DeletePolicy` rename.** The `listing.TombstonePolicy`
 (`TombstoneExclude`/`TombstoneInclude`/`TombstoneOnly`) and

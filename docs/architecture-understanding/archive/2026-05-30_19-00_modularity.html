@@ -2,11 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Architecture Review — go-cqrs-lite — Modularity &amp; Composability</title>
+    <title>
+      Architecture Review — go-cqrs-lite — Modularity &amp; Composability
+    </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module">
       import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-      mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "neutral",
+        securityLevel: "loose",
+      });
     </script>
     <style>
       .seam {
@@ -32,22 +38,40 @@
       </header>
 
       <section class="space-y-6">
-        <h2 class="text-2xl font-serif font-semibold text-slate-700">Executive Summary</h2>
+        <h2 class="text-2xl font-serif font-semibold text-slate-700">
+          Executive Summary
+        </h2>
         <div class="grid grid-cols-3 gap-4">
-          <div class="rounded-lg bg-emerald-50 border border-emerald-200 p-4 text-center">
+          <div
+            class="rounded-lg bg-emerald-50 border border-emerald-200 p-4 text-center"
+          >
             <p class="text-3xl font-bold text-emerald-700">3</p>
-            <p class="text-xs text-emerald-600 uppercase tracking-wider">Gold-standard modules</p>
+            <p class="text-xs text-emerald-600 uppercase tracking-wider">
+              Gold-standard modules
+            </p>
             <p class="text-xs text-emerald-500 mt-1">catalog, query, codec</p>
           </div>
-          <div class="rounded-lg bg-amber-50 border border-amber-200 p-4 text-center">
+          <div
+            class="rounded-lg bg-amber-50 border border-amber-200 p-4 text-center"
+          >
             <p class="text-3xl font-bold text-amber-700">3</p>
-            <p class="text-xs text-amber-600 uppercase tracking-wider">Module-level cycles</p>
-            <p class="text-xs text-amber-500 mt-1">event↔command, event↔memory, event↔schema</p>
+            <p class="text-xs text-amber-600 uppercase tracking-wider">
+              Module-level cycles
+            </p>
+            <p class="text-xs text-amber-500 mt-1">
+              event↔command, event↔memory, event↔schema
+            </p>
           </div>
-          <div class="rounded-lg bg-red-50 border border-red-200 p-4 text-center">
+          <div
+            class="rounded-lg bg-red-50 border border-red-200 p-4 text-center"
+          >
             <p class="text-3xl font-bold text-red-700">2</p>
-            <p class="text-xs text-red-600 uppercase tracking-wider">Layer violations</p>
-            <p class="text-xs text-red-500 mt-1">decider→memory (L3→L4), storage→listing (L5→L5)</p>
+            <p class="text-xs text-red-600 uppercase tracking-wider">
+              Layer violations
+            </p>
+            <p class="text-xs text-red-500 mt-1">
+              decider→memory (L3→L4), storage→listing (L5→L5)
+            </p>
           </div>
         </div>
       </section>
@@ -140,11 +164,16 @@
       </section>
 
       <section class="space-y-6">
-        <h2 class="text-2xl font-serif font-semibold text-slate-700">Detailed Findings</h2>
+        <h2 class="text-2xl font-serif font-semibold text-slate-700">
+          Detailed Findings
+        </h2>
 
-        <article class="rounded-xl border border-red-200 bg-red-50 p-5 space-y-3">
+        <article
+          class="rounded-xl border border-red-200 bg-red-50 p-5 space-y-3"
+        >
           <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded text-xs font-medium bg-red-200 text-red-800"
+            <span
+              class="px-2 py-0.5 rounded text-xs font-medium bg-red-200 text-red-800"
               >HIGH</span
             >
             <h3 class="font-semibold text-red-900">
@@ -154,9 +183,9 @@
           <p class="text-sm text-red-800">
             event ↔ command, event ↔ memory, event ↔ schema. All caused by
             <code class="bg-red-100 px-1 rounded">_test.go</code> and
-            <code class="bg-red-100 px-1 rounded">eventtest/</code> imports. No package-level
-            cycles, but <code>go get .../event</code> transitively pulls 5 extra modules into
-            <code>go.sum</code>.
+            <code class="bg-red-100 px-1 rounded">eventtest/</code> imports. No
+            package-level cycles, but <code>go get .../event</code> transitively
+            pulls 5 extra modules into <code>go.sum</code>.
           </p>
           <table class="w-full text-sm border-collapse">
             <thead>
@@ -186,53 +215,75 @@
           </table>
         </article>
 
-        <article class="rounded-xl border border-amber-200 bg-amber-50 p-5 space-y-3">
+        <article
+          class="rounded-xl border border-amber-200 bg-amber-50 p-5 space-y-3"
+        >
           <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded text-xs font-medium bg-amber-200 text-amber-800"
+            <span
+              class="px-2 py-0.5 rounded text-xs font-medium bg-amber-200 text-amber-800"
               >MEDIUM</span
             >
-            <h3 class="font-semibold text-amber-900">decider/ → memory/ Layer Violation</h3>
+            <h3 class="font-semibold text-amber-900">
+              decider/ → memory/ Layer Violation
+            </h3>
           </div>
           <p class="text-sm text-amber-800">
-            Layer 3 imports Layer 4. Consumer wanting only the aggregate pattern pulls in-memory
-            implementations transitively. Decider should accept interfaces, not concrete memory
-            types.
+            Layer 3 imports Layer 4. Consumer wanting only the aggregate pattern
+            pulls in-memory implementations transitively. Decider should accept
+            interfaces, not concrete memory types.
           </p>
         </article>
 
-        <article class="rounded-xl border border-amber-200 bg-amber-50 p-5 space-y-3">
+        <article
+          class="rounded-xl border border-amber-200 bg-amber-50 p-5 space-y-3"
+        >
           <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded text-xs font-medium bg-amber-200 text-amber-800"
+            <span
+              class="px-2 py-0.5 rounded text-xs font-medium bg-amber-200 text-amber-800"
               >MEDIUM</span
             >
-            <h3 class="font-semibold text-amber-900">storage/ → listing/ Horizontal Coupling</h3>
+            <h3 class="font-semibold text-amber-900">
+              storage/ → listing/ Horizontal Coupling
+            </h3>
           </div>
           <p class="text-sm text-amber-800">
-            Storage implements listing's AggregateReader interface. Consumer wanting only SQL event
-            store gets listing + memory transitively. Consider registration pattern or shared
-            contract module.
+            Storage implements listing's AggregateReader interface. Consumer
+            wanting only SQL event store gets listing + memory transitively.
+            Consider registration pattern or shared contract module.
           </p>
         </article>
 
-        <article class="rounded-xl border border-emerald-200 bg-emerald-50 p-5 space-y-3">
+        <article
+          class="rounded-xl border border-emerald-200 bg-emerald-50 p-5 space-y-3"
+        >
           <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded text-xs font-medium bg-emerald-200 text-emerald-800"
+            <span
+              class="px-2 py-0.5 rounded text-xs font-medium bg-emerald-200 text-emerald-800"
               >POSITIVE</span
             >
-            <h3 class="font-semibold text-emerald-900">3 Gold-Standard Modules</h3>
+            <h3 class="font-semibold text-emerald-900">
+              3 Gold-Standard Modules
+            </h3>
           </div>
           <ul class="text-sm text-emerald-800 list-disc list-inside space-y-1">
-            <li><strong>catalog/</strong> — zero internal deps. 1-module import.</li>
+            <li>
+              <strong>catalog/</strong> — zero internal deps. 1-module import.
+            </li>
             <li><strong>query/</strong> — only dispatcher. 2-module import.</li>
             <li><strong>codec/</strong> — pure leaf, zero deps.</li>
             <li><strong>pebble/</strong> — minimal footprint (4 modules).</li>
-            <li><strong>otel/</strong> — zero internal deps, opt-in instrumentation.</li>
+            <li>
+              <strong>otel/</strong> — zero internal deps, opt-in
+              instrumentation.
+            </li>
           </ul>
         </article>
       </section>
 
       <section class="space-y-4">
-        <h2 class="text-2xl font-serif font-semibold text-slate-700">Composability Matrix</h2>
+        <h2 class="text-2xl font-serif font-semibold text-slate-700">
+          Composability Matrix
+        </h2>
         <div class="overflow-x-auto">
           <table class="w-full text-sm border-collapse">
             <thead>
@@ -250,12 +301,16 @@
               </tr>
               <tr class="border-b border-slate-100">
                 <td class="p-2">In-memory store</td>
-                <td class="p-2 font-mono text-xs">+ memory, dispatcher, snapshot</td>
+                <td class="p-2 font-mono text-xs">
+                  + memory, dispatcher, snapshot
+                </td>
                 <td class="p-2">⚠️ snapshot forced</td>
               </tr>
               <tr class="border-b border-slate-100">
                 <td class="p-2">SQL store</td>
-                <td class="p-2 font-mono text-xs">+ storage, listing, otel, snapshot</td>
+                <td class="p-2 font-mono text-xs">
+                  + storage, listing, otel, snapshot
+                </td>
                 <td class="p-2">⚠️ listing forced</td>
               </tr>
               <tr class="border-b border-slate-100">
@@ -287,7 +342,9 @@
               </tr>
               <tr>
                 <td class="p-2">Projections</td>
-                <td class="p-2 font-mono text-xs">projection, event, id, codec, memory, otel</td>
+                <td class="p-2 font-mono text-xs">
+                  projection, event, id, codec, memory, otel
+                </td>
                 <td class="p-2">⚠️ memory forced</td>
               </tr>
             </tbody>
@@ -296,19 +353,25 @@
       </section>
 
       <section class="space-y-4">
-        <h2 class="text-2xl font-serif font-semibold text-slate-700">Recommendations</h2>
+        <h2 class="text-2xl font-serif font-semibold text-slate-700">
+          Recommendations
+        </h2>
         <div class="space-y-3">
-          <div class="rounded-lg bg-white border border-slate-200 p-4 flex gap-4">
+          <div
+            class="rounded-lg bg-white border border-slate-200 p-4 flex gap-4"
+          >
             <span class="text-2xl font-bold text-slate-300">1</span>
             <div>
               <p class="font-semibold">Break event/ test cycles</p>
               <p class="text-sm text-slate-600">
-                Move cross-module test assertions to integration/. Use interface-based test doubles
-                in event/eventtest/.
+                Move cross-module test assertions to integration/. Use
+                interface-based test doubles in event/eventtest/.
               </p>
             </div>
           </div>
-          <div class="rounded-lg bg-white border border-slate-200 p-4 flex gap-4">
+          <div
+            class="rounded-lg bg-white border border-slate-200 p-4 flex gap-4"
+          >
             <span class="text-2xl font-bold text-slate-300">2</span>
             <div>
               <p class="font-semibold">Remove decider/ → memory/ dependency</p>
@@ -317,12 +380,15 @@
               </p>
             </div>
           </div>
-          <div class="rounded-lg bg-white border border-slate-200 p-4 flex gap-4">
+          <div
+            class="rounded-lg bg-white border border-slate-200 p-4 flex gap-4"
+          >
             <span class="text-2xl font-bold text-slate-300">3</span>
             <div>
               <p class="font-semibold">Decouple storage/ from listing/</p>
               <p class="text-sm text-slate-600">
-                Move AggregateReader interface to shared contract or use registration pattern.
+                Move AggregateReader interface to shared contract or use
+                registration pattern.
               </p>
             </div>
           </div>

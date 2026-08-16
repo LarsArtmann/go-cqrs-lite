@@ -35,11 +35,17 @@
         --radius: 12px;
         --radius-sm: 8px;
         --radius-xs: 6px;
-        --mono: "JetBrains Mono", "Fira Code", "SF Mono", "Cascadia Code", "Consolas", monospace;
+        --mono:
+          "JetBrains Mono", "Fira Code", "SF Mono", "Cascadia Code", "Consolas",
+          monospace;
         --sans:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Helvetica, Arial, sans-serif;
-        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
-        --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.5), 0 8px 16px -8px rgba(0, 0, 0, 0.4);
+          -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Helvetica,
+          Arial, sans-serif;
+        --shadow:
+          0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+        --shadow-lg:
+          0 10px 30px -5px rgba(0, 0, 0, 0.5),
+          0 8px 16px -8px rgba(0, 0, 0, 0.4);
       }
 
       * {
@@ -56,8 +62,16 @@
         font-family: var(--sans);
         background: var(--bg);
         background-image:
-          radial-gradient(ellipse 800px 400px at 20% 0%, rgba(56, 189, 248, 0.06), transparent),
-          radial-gradient(ellipse 600px 300px at 80% 10%, rgba(167, 139, 250, 0.04), transparent);
+          radial-gradient(
+            ellipse 800px 400px at 20% 0%,
+            rgba(56, 189, 248, 0.06),
+            transparent
+          ),
+          radial-gradient(
+            ellipse 600px 300px at 80% 10%,
+            rgba(167, 139, 250, 0.04),
+            transparent
+          );
         color: var(--text);
         line-height: 1.65;
         font-size: 15px;
@@ -619,7 +633,11 @@
         margin: 1.5rem 0;
       }
       .dashboard-card {
-        background: linear-gradient(145deg, var(--surface) 0%, var(--bg-elevated) 100%);
+        background: linear-gradient(
+          145deg,
+          var(--surface) 0%,
+          var(--bg-elevated) 100%
+        );
         border: 1px solid var(--border);
         border-radius: var(--radius);
         padding: 1.25rem;
@@ -748,12 +766,15 @@
     <!-- ════════════════════════ HERO ════════════════════════ -->
     <div class="hero">
       <div class="container">
-        <span class="badge">Performance Analysis · v2.3.0 · Updated 2026-06-16</span>
+        <span class="badge"
+          >Performance Analysis · v2.3.0 · Updated 2026-06-16</span
+        >
         <h1>go-cqrs-lite Performance Report</h1>
         <p class="subtitle">
-          A comprehensive, benchmarked review of CPU, memory, disk I/O, network, and concurrency
-          characteristics across all 33 modules of the CQRS/Event Sourcing library, including the
-          command bus, event causality, audit trail, and catalog split.
+          A comprehensive, benchmarked review of CPU, memory, disk I/O, network,
+          and concurrency characteristics across all 33 modules of the
+          CQRS/Event Sourcing library, including the command bus, event
+          causality, audit trail, and catalog split.
         </p>
         <div class="meta-grid">
           <div class="meta-card">
@@ -803,7 +824,9 @@
     <section id="overview">
       <div class="container">
         <div class="section-header">
-          <div class="section-icon" style="background: var(--accent-glow)">📊</div>
+          <div class="section-icon" style="background: var(--accent-glow)">
+            📊
+          </div>
           <div>
             <h2>Executive Summary</h2>
             <div class="desc">Scorecard across all resource dimensions</div>
@@ -811,11 +834,15 @@
         </div>
 
         <p>
-          go-cqrs-lite is a library, not a runtime service — so "performance" means:
-          <strong>how cheaply can a consumer create, route, persist, and replay events?</strong>
-          Every nanosecond and allocation compounds because consumers call these paths in tight
-          loops under their own load. The analysis below covers every module with production
-          benchmarks.
+          go-cqrs-lite is a library, not a runtime service — so "performance"
+          means:
+          <strong
+            >how cheaply can a consumer create, route, persist, and replay
+            events?</strong
+          >
+          Every nanosecond and allocation compounds because consumers call these
+          paths in tight loops under their own load. The analysis below covers
+          every module with production benchmarks.
         </p>
 
         <div class="dashboard-grid">
@@ -823,18 +850,22 @@
             <h3>🖥️ CPU</h3>
             <div class="score-line">
               <span class="verdict v-good">Good</span
-              ><span class="c-muted" style="font-size: 0.8rem">Core dispatch ≤55 ns/op</span>
+              ><span class="c-muted" style="font-size: 0.8rem"
+                >Core dispatch ≤55 ns/op</span
+              >
             </div>
             <p>
-              Ultra-fast dispatch and fold paths. Crypto (Ed25519 verify at 30µs) and projection
-              fan-out are the CPU-intensive paths.
+              Ultra-fast dispatch and fold paths. Crypto (Ed25519 verify at
+              30µs) and projection fan-out are the CPU-intensive paths.
             </p>
           </div>
           <div class="dashboard-card ram">
             <h3>💾 RAM</h3>
             <div class="score-line">
               <span class="verdict v-fair">Fair</span
-              ><span class="c-muted" style="font-size: 0.8rem">304 B per event</span>
+              ><span class="c-muted" style="font-size: 0.8rem"
+                >304 B per event</span
+              >
             </div>
             <p>
               Defensive cloning is pervasive and correct, but expensive. Zero
@@ -845,44 +876,54 @@
             <h3>💿 Disk</h3>
             <div class="score-line">
               <span class="verdict v-good">Good</span
-              ><span class="c-muted" style="font-size: 0.8rem">SQL: multi-VALUES batch</span>
+              ><span class="c-muted" style="font-size: 0.8rem"
+                >SQL: multi-VALUES batch</span
+              >
             </div>
             <p>
-              Pebble single-serialization fixed. SQL multi-VALUES INSERT with 999-param chunking.
-              Full CQRS stack on one Pebble DB (events + snapshots + checkpoints).
+              Pebble single-serialization fixed. SQL multi-VALUES INSERT with
+              999-param chunking. Full CQRS stack on one Pebble DB (events +
+              snapshots + checkpoints).
             </p>
           </div>
           <div class="dashboard-card net">
             <h3>🌐 Network</h3>
             <div class="score-line">
               <span class="verdict v-good">Good</span
-              ><span class="c-muted" style="font-size: 0.8rem">Transport-agnostic</span>
+              ><span class="c-muted" style="font-size: 0.8rem"
+                >Transport-agnostic</span
+              >
             </div>
             <p>
-              Library adds no network overhead. Watermill adapter at 619 ns/op. Turso sync is
-              well-designed but pool-starved.
+              Library adds no network overhead. Watermill adapter at 619 ns/op.
+              Turso sync is well-designed but pool-starved.
             </p>
           </div>
           <div class="dashboard-card gpu">
             <h3>🎮 GPU</h3>
             <div class="score-line">
               <span class="verdict v-na">N/A</span
-              ><span class="c-muted" style="font-size: 0.8rem">Not applicable</span>
+              ><span class="c-muted" style="font-size: 0.8rem"
+                >Not applicable</span
+              >
             </div>
             <p>
-              Pure CPU library. No GPU-offloadable workloads. See analysis for why and what could
-              theoretically benefit.
+              Pure CPU library. No GPU-offloadable workloads. See analysis for
+              why and what could theoretically benefit.
             </p>
           </div>
           <div class="dashboard-card other">
             <h3>⚙️ Concurrency</h3>
             <div class="score-line">
               <span class="verdict v-excellent">Excellent</span
-              ><span class="c-muted" style="font-size: 0.8rem">7.1M cmd/sec concurrent</span>
+              ><span class="c-muted" style="font-size: 0.8rem"
+                >7.1M cmd/sec concurrent</span
+              >
             </div>
             <p>
-              Sharded-lock design in Pebble. CircuitBreaker now uses atomic fast path (9.3 ns/op).
-              MemoryCommandBus mirrors MemoryBus with pre-computed middleware chain.
+              Sharded-lock design in Pebble. CircuitBreaker now uses atomic fast
+              path (9.3 ns/op). MemoryCommandBus mirrors MemoryBus with
+              pre-computed middleware chain.
             </p>
           </div>
         </div>
@@ -890,28 +931,33 @@
         <div class="callout success">
           <div class="callout-title">What's excellent</div>
           <p>
-            Command/query dispatch at <strong>50–53 ns/op</strong>, zero-allocation
-            <code>Fold</code> at <strong>268 ns/op</strong>, pre-wrapped middleware at registration
-            time, zero-copy <code>PayloadReadOnly()</code> fast path, CBOR codec modes cached at
-            package init, CircuitBreaker atomic fast path at <strong>9.3 ns/op</strong> with zero
-            allocations, MemoryBus publish at <strong>45.6 ns/op</strong> (1 alloc), and the
-            pure-function decider fold loop has <strong>zero allocations</strong>.
+            Command/query dispatch at <strong>50–53 ns/op</strong>,
+            zero-allocation <code>Fold</code> at <strong>268 ns/op</strong>,
+            pre-wrapped middleware at registration time, zero-copy
+            <code>PayloadReadOnly()</code> fast path, CBOR codec modes cached at
+            package init, CircuitBreaker atomic fast path at
+            <strong>9.3 ns/op</strong> with zero allocations, MemoryBus publish
+            at <strong>45.6 ns/op</strong> (1 alloc), and the pure-function
+            decider fold loop has <strong>zero allocations</strong>.
           </p>
         </div>
         <div class="callout warn">
           <div class="callout-title">Previously identified — now resolved</div>
           <p>
-            All 14 critical/high findings from the 2026-06-14 report have been resolved: pebble
-            double serialization (T1), lazy metadata map (T2), SQL multi-VALUES batch (T14),
-            CircuitBreaker atomic (T11), MemoryBus pre-compute (T12), SSE goroutine leak (T7),
-            MemoryStore double-copy (T6), and projection event type caching (T15). See the
-            <a href="#results" class="ref">Optimization Results</a> section for details.
+            All 14 critical/high findings from the 2026-06-14 report have been
+            resolved: pebble double serialization (T1), lazy metadata map (T2),
+            SQL multi-VALUES batch (T14), CircuitBreaker atomic (T11), MemoryBus
+            pre-compute (T12), SSE goroutine leak (T7), MemoryStore double-copy
+            (T6), and projection event type caching (T15). See the
+            <a href="#results" class="ref">Optimization Results</a> section for
+            details.
           </p>
         </div>
         <div class="callout warn">
           <div class="callout-title">Remaining items to watch</div>
           <p>
-            SQLite/Turso still parses timestamps via 6-layout loop (no INTEGER nanos). SQL
+            SQLite/Turso still parses timestamps via 6-layout loop (no INTEGER
+            nanos). SQL
             <code>Load</code> materializes entire streams with no LIMIT. Turso
             <code>MaxOpenConns(1)</code> creates pool starvation under sync.
           </p>
@@ -923,82 +969,117 @@
     <section id="cpu">
       <div class="container">
         <div class="section-header">
-          <div class="section-icon" style="background: rgba(96, 165, 250, 0.12)">🖥️</div>
+          <div
+            class="section-icon"
+            style="background: rgba(96, 165, 250, 0.12)"
+          >
+            🖥️
+          </div>
           <div>
             <h2>CPU Performance</h2>
-            <div class="desc">Hot paths, algorithmic complexity, and cryptographic cost</div>
+            <div class="desc">
+              Hot paths, algorithmic complexity, and cryptographic cost
+            </div>
           </div>
         </div>
 
         <h3>Dispatch & Core Paths — Excellent</h3>
         <p>
-          The command/query dispatch pipeline is the fastest path in the library. Middleware is
-          pre-wrapped at registration time (<code>dispatcher.go:88</code>), so the hot dispatch path
-          has <strong>zero closure allocation</strong> — the fully-wrapped handler is retrieved from
-          a map in a single lookup.
+          The command/query dispatch pipeline is the fastest path in the
+          library. Middleware is pre-wrapped at registration time
+          (<code>dispatcher.go:88</code>), so the hot dispatch path has
+          <strong>zero closure allocation</strong> — the fully-wrapped handler
+          is retrieved from a map in a single lookup.
         </p>
 
         <div class="bar-chart">
           <div class="bar-row">
             <div class="bar-label">Query Dispatch</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 0.5%; background: var(--green)"></div>
+              <div
+                class="bar-fill"
+                style="width: 0.5%; background: var(--green)"
+              ></div>
             </div>
             <div class="bar-value">53.7 ns</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">Command Dispatch</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 0.5%; background: var(--green)"></div>
+              <div
+                class="bar-fill"
+                style="width: 0.5%; background: var(--green)"
+              ></div>
             </div>
             <div class="bar-value">52.7 ns</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">Error Classify</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 0.1%; background: var(--green)"></div>
+              <div
+                class="bar-fill"
+                style="width: 0.1%; background: var(--green)"
+              ></div>
             </div>
             <div class="bar-value">7.0 ns</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">IsRetryable</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 0.1%; background: var(--green)"></div>
+              <div
+                class="bar-fill"
+                style="width: 0.1%; background: var(--green)"
+              ></div>
             </div>
             <div class="bar-value">7.1 ns</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">Decider Fold (100)</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 2.5%; background: var(--green)"></div>
+              <div
+                class="bar-fill"
+                style="width: 2.5%; background: var(--green)"
+              ></div>
             </div>
             <div class="bar-value">255 ns</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">NewEvent</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 1.8%; background: var(--blue)"></div>
+              <div
+                class="bar-fill"
+                style="width: 1.8%; background: var(--blue)"
+              ></div>
             </div>
             <div class="bar-value">182 ns</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">DecodePayload</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 4%; background: var(--blue)"></div>
+              <div
+                class="bar-fill"
+                style="width: 4%; background: var(--blue)"
+              ></div>
             </div>
             <div class="bar-value">398 ns</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">MemoryBus Publish</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 0.7%; background: var(--blue)"></div>
+              <div
+                class="bar-fill"
+                style="width: 0.7%; background: var(--blue)"
+              ></div>
             </div>
             <div class="bar-value">67.7 ns</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">Decider Execute</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 2.3%; background: var(--yellow)"></div>
+              <div
+                class="bar-fill"
+                style="width: 2.3%; background: var(--yellow)"
+              ></div>
             </div>
             <div class="bar-value">2281 ns</div>
           </div>
@@ -1036,18 +1117,24 @@
               <tr>
                 <td>Pebble <code>checkVersion</code></td>
                 <td class="c-green">O(log n)</td>
-                <td><code>iter.Last()</code> seeks directly to latest version</td>
+                <td>
+                  <code>iter.Last()</code> seeks directly to latest version
+                </td>
               </tr>
               <tr>
                 <td>SQL <code>checkVersion</code></td>
                 <td class="c-yellow">O(log n)</td>
-                <td><code>SELECT MAX(version)</code> — index seek but via SQL parser</td>
+                <td>
+                  <code>SELECT MAX(version)</code> — index seek but via SQL
+                  parser
+                </td>
               </tr>
               <tr>
                 <td>Pebble <code>ReadFrom</code></td>
                 <td class="c-red">O(cursor_pos)</td>
                 <td>
-                  <strong>Linear skip</strong> from journal start — quadratic over repeated pages
+                  <strong>Linear skip</strong> from journal start — quadratic
+                  over repeated pages
                 </td>
               </tr>
               <tr>
@@ -1071,64 +1158,89 @@
 
         <h3>Cryptographic CPU Cost</h3>
         <p>
-          The signing and encryption modules are the most CPU-intensive paths. These are benchmarked
-          on a <strong>AMD Ryzen AI MAX+ 395</strong> with SHA-NI and AES-NI hardware acceleration:
+          The signing and encryption modules are the most CPU-intensive paths.
+          These are benchmarked on a <strong>AMD Ryzen AI MAX+ 395</strong> with
+          SHA-NI and AES-NI hardware acceleration:
         </p>
 
         <div class="bar-chart">
           <div class="bar-row">
             <div class="bar-label">HMAC-SHA256 Sign</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 2.2%; background: var(--blue)"></div>
+              <div
+                class="bar-fill"
+                style="width: 2.2%; background: var(--blue)"
+              ></div>
             </div>
             <div class="bar-value">684 ns</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">HMAC-SHA256 Verify</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 2.3%; background: var(--blue)"></div>
+              <div
+                class="bar-fill"
+                style="width: 2.3%; background: var(--blue)"
+              ></div>
             </div>
             <div class="bar-value">692 ns</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">AES-256-GCM Encrypt</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 1.4%; background: var(--green)"></div>
+              <div
+                class="bar-fill"
+                style="width: 1.4%; background: var(--green)"
+              ></div>
             </div>
             <div class="bar-value">493 ns</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">AES-256-GCM Decrypt</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 0.8%; background: var(--green)"></div>
+              <div
+                class="bar-fill"
+                style="width: 0.8%; background: var(--green)"
+              ></div>
             </div>
             <div class="bar-value">280 ns</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">XChaCha20 Encrypt</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 2.3%; background: var(--blue)"></div>
+              <div
+                class="bar-fill"
+                style="width: 2.3%; background: var(--blue)"
+              ></div>
             </div>
             <div class="bar-value">798 ns</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">XChaCha20 Decrypt</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 2.1%; background: var(--blue)"></div>
+              <div
+                class="bar-fill"
+                style="width: 2.1%; background: var(--blue)"
+              ></div>
             </div>
             <div class="bar-value">622 ns</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">Ed25519 Sign</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 41%; background: var(--orange)"></div>
+              <div
+                class="bar-fill"
+                style="width: 41%; background: var(--orange)"
+              ></div>
             </div>
             <div class="bar-value">14.2 µs</div>
           </div>
           <div class="bar-row">
             <div class="bar-label">Ed25519 Verify</div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: 100%; background: var(--red)"></div>
+              <div
+                class="bar-fill"
+                style="width: 100%; background: var(--red)"
+              ></div>
             </div>
             <div class="bar-value">34.4 µs</div>
           </div>
@@ -1137,15 +1249,19 @@
         <div class="card-grid">
           <div class="card">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>HMAC-SHA256
+              <span class="dot" style="background: var(--green)"></span
+              >HMAC-SHA256
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Hardware-accelerated (SHA-NI). Canonical buffer is compact: 4-byte big-endian length
-              prefixes, 8 fields + optional 32-byte payload digest. Only the
-              <strong>digest</strong> is signed, not the raw payload — good design.
+              Hardware-accelerated (SHA-NI). Canonical buffer is compact: 4-byte
+              big-endian length prefixes, 8 fields + optional 32-byte payload
+              digest. Only the
+              <strong>digest</strong> is signed, not the raw payload — good
+              design.
             </p>
             <p style="font-size: 0.82rem; margin-top: 0.5rem">
-              <strong>Throughput ceiling:</strong> ~1.5M events/sec for signing alone.
+              <strong>Throughput ceiling:</strong> ~1.5M events/sec for signing
+              alone.
             </p>
           </div>
           <div class="card">
@@ -1153,9 +1269,11 @@
               <span class="dot" style="background: var(--orange)"></span>Ed25519
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Pure-Go <code>crypto/ed25519</code>. Verify is <strong>45× slower</strong> than HMAC.
-              For high-volume verification (projection replay), this is the CPU bottleneck. Consider
-              batch verification (<code>ed25519.VerifyBatch</code>) for multi-sig scenarios.
+              Pure-Go <code>crypto/ed25519</code>. Verify is
+              <strong>45× slower</strong> than HMAC. For high-volume
+              verification (projection replay), this is the CPU bottleneck.
+              Consider batch verification (<code>ed25519.VerifyBatch</code>) for
+              multi-sig scenarios.
             </p>
             <p style="font-size: 0.82rem; margin-top: 0.5rem">
               <strong>Throughput ceiling:</strong> ~33K verifies/sec.
@@ -1163,11 +1281,13 @@
           </div>
           <div class="card">
             <div class="card-title">
-              <span class="dot" style="background: var(--blue)"></span>AEAD Encryption
+              <span class="dot" style="background: var(--blue)"></span>AEAD
+              Encryption
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              AES-256-GCM uses AES-NI hardware acceleration. XChaCha20-Poly1305 is constant-time (no
-              hardware dependency) — preferred for cross-platform consistency. Both issue
+              AES-256-GCM uses AES-NI hardware acceleration. XChaCha20-Poly1305
+              is constant-time (no hardware dependency) — preferred for
+              cross-platform consistency. Both issue
               <code>crypto/rand.Reader</code> per encrypt =
               <strong>1 kernel syscall per event</strong>.
             </p>
@@ -1176,11 +1296,13 @@
 
         <h3>Reflection Cost (Catalog)</h3>
         <p>
-          The <code>catalog/</code> module performs heavy reflection (7+ struct-tag lookups per
-          field, recursive type walks) — but only at <strong>build time</strong>. The
-          <code>schemaCache sync.Map</code> (<code>schema/reflect.go:58</code>) caches
-          <code>reflect.Type → *Schema</code>, making subsequent calls O(1). The built
-          <code>Catalog</code> is immutable and lock-free at runtime.
+          The <code>catalog/</code> module performs heavy reflection (7+
+          struct-tag lookups per field, recursive type walks) — but only at
+          <strong>build time</strong>. The
+          <code>schemaCache sync.Map</code> (<code>schema/reflect.go:58</code>)
+          caches <code>reflect.Type → *Schema</code>, making subsequent calls
+          O(1). The built <code>Catalog</code> is immutable and lock-free at
+          runtime.
         </p>
         <div class="table-wrap">
           <table>
@@ -1229,13 +1351,15 @@
         <div class="callout">
           <div class="callout-title">CPU Summary</div>
           <p>
-            The library's CPU profile is dominated by <strong>serialization</strong> (JSON/CBOR
-            marshal), <strong>cryptography</strong> (HMAC/AES/Ed25519), and
-            <strong>map operations</strong> (metadata clone, dispatch lookup). Core dispatch and
-            fold paths are essentially optimal. The pebble double-serialization has been fixed (T1),
-            and SQL multi-VALUES INSERT now batches events (T14). The remaining CPU waste is the
-            <strong>SQL per-row timestamp string parsing</strong> on SQLite/Turso (6-layout loop per
-            row).
+            The library's CPU profile is dominated by
+            <strong>serialization</strong> (JSON/CBOR marshal),
+            <strong>cryptography</strong> (HMAC/AES/Ed25519), and
+            <strong>map operations</strong> (metadata clone, dispatch lookup).
+            Core dispatch and fold paths are essentially optimal. The pebble
+            double-serialization has been fixed (T1), and SQL multi-VALUES
+            INSERT now batches events (T14). The remaining CPU waste is the
+            <strong>SQL per-row timestamp string parsing</strong> on
+            SQLite/Turso (6-layout loop per row).
           </p>
         </div>
       </div>
@@ -1245,10 +1369,17 @@
     <section id="ram">
       <div class="container">
         <div class="section-header">
-          <div class="section-icon" style="background: rgba(167, 139, 250, 0.12)">💾</div>
+          <div
+            class="section-icon"
+            style="background: rgba(167, 139, 250, 0.12)"
+          >
+            💾
+          </div>
           <div>
             <h2>Memory / RAM</h2>
-            <div class="desc">Allocation patterns, defensive cloning, and GC pressure</div>
+            <div class="desc">
+              Allocation patterns, defensive cloning, and GC pressure
+            </div>
           </div>
         </div>
 
@@ -1392,7 +1523,8 @@
 
         <h3>Defensive Cloning — The Design Philosophy</h3>
         <p>
-          Every public accessor on <code>ImmutableEvent</code> returns a <strong>clone</strong>:
+          Every public accessor on <code>ImmutableEvent</code> returns a
+          <strong>clone</strong>:
         </p>
         <pre><code><div class="code-file">event/event.go:129-137</div>func (e *ImmutableEvent) Payload() []byte {
     return slices.Clone(e.payload)   // allocates a NEW []byte every call
@@ -1401,27 +1533,31 @@ func (e *ImmutableEvent) Metadata() Metadata {
     return e.metadata.Clone()        // allocates a new map every call
 }</code></pre>
         <p>
-          This is correct for immutability safety — a consumer cannot mutate internal state through
-          a returned reference. But it means tight read loops that call <code>Payload()</code> or
-          <code>Metadata()</code> allocate on every iteration. The library provides a deliberate
-          escape hatch:
+          This is correct for immutability safety — a consumer cannot mutate
+          internal state through a returned reference. But it means tight read
+          loops that call <code>Payload()</code> or
+          <code>Metadata()</code> allocate on every iteration. The library
+          provides a deliberate escape hatch:
         </p>
         <pre><code><div class="code-file">event/codec.go:63-65</div>func PayloadReadOnly(evt Event) []byte {
     return payloadForDecode(evt)    // type-asserts to *ImmutableEvent, returns raw slice
 }</code></pre>
         <p>
-          This zero-copy path is used internally by signing (SHA-256 hashing), pebble
-          (<code>json.Marshal</code>), storage/sql (<code>ExecContext</code>), and middleware/sse.
-          It is the single most important allocation optimization in the codebase.
+          This zero-copy path is used internally by signing (SHA-256 hashing),
+          pebble (<code>json.Marshal</code>), storage/sql
+          (<code>ExecContext</code>), and middleware/sse. It is the single most
+          important allocation optimization in the codebase.
         </p>
 
         <div class="callout success">
           <div class="callout-title">Lazy Metadata Map — Resolved (T2)</div>
           <p>
-            <code>NewMetadata()</code> (<code>metadata.go:23</code>) now returns a zero-value
-            <code>Metadata{}</code> struct — the <code>Custom</code> map is
-            <strong>lazily allocated</strong> only when <code>EnsureCustom()</code> is called.
-            Benchmark: <code>NewMetadata</code> at <strong>1.04 ns/op, 0 B, 0 allocs</strong>.
+            <code>NewMetadata()</code> (<code>metadata.go:23</code>) now returns
+            a zero-value <code>Metadata{}</code> struct — the
+            <code>Custom</code> map is <strong>lazily allocated</strong> only
+            when <code>EnsureCustom()</code> is called. Benchmark:
+            <code>NewMetadata</code> at
+            <strong>1.04 ns/op, 0 B, 0 allocs</strong>.
             <code>Metadata.Clone()</code> with no custom map is
             <strong>11.4 ns/op, 0 B, 0 allocs</strong>.
           </p>
@@ -1429,8 +1565,9 @@ func (e *ImmutableEvent) Metadata() Metadata {
 
         <h3>Full Pipeline Allocation Budget</h3>
         <p>
-          For a fully-loaded write path (command → decider → event creation → signing → encryption →
-          bus publish), the per-event allocation budget is approximately:
+          For a fully-loaded write path (command → decider → event creation →
+          signing → encryption → bus publish), the per-event allocation budget
+          is approximately:
         </p>
         <div class="table-wrap">
           <table>
@@ -1483,21 +1620,24 @@ func (e *ImmutableEvent) Metadata() Metadata {
           </table>
         </div>
         <p>
-          At 10K events/sec sustained, this is ~<strong>45 MB/sec</strong> of short-lived garbage.
-          Go's concurrent GC handles this, but at 100K events/sec, GC pauses become measurable
-          without GOGC tuning.
+          At 10K events/sec sustained, this is ~<strong>45 MB/sec</strong> of
+          short-lived garbage. Go's concurrent GC handles this, but at 100K
+          events/sec, GC pauses become measurable without GOGC tuning.
         </p>
 
         <h3>Why sync.Pool Was Rejected</h3>
         <div class="callout">
-          <div class="callout-title">Design Decision — Documented & Intentional</div>
+          <div class="callout-title">
+            Design Decision — Documented & Intentional
+          </div>
           <p>
-            <code>sync.Pool</code> requires a <code>Reset()</code> method that mutates the object.
-            <code>ImmutableEvent</code> is immutable by contract — a pooled event with stale
-            metadata from a previous use would be a <strong>data leak vulnerability</strong> (one
-            event's metadata appearing in another). The team explicitly rejected pooling as
-            documented in multiple status reports. The 304B/2-allocs cost at 182ns is the "honest
-            cost of immutability."
+            <code>sync.Pool</code> requires a <code>Reset()</code> method that
+            mutates the object. <code>ImmutableEvent</code> is immutable by
+            contract — a pooled event with stale metadata from a previous use
+            would be a <strong>data leak vulnerability</strong> (one event's
+            metadata appearing in another). The team explicitly rejected pooling
+            as documented in multiple status reports. The 304B/2-allocs cost at
+            182ns is the "honest cost of immutability."
           </p>
         </div>
       </div>
@@ -1507,19 +1647,32 @@ func (e *ImmutableEvent) Metadata() Metadata {
     <section id="disk">
       <div class="container">
         <div class="section-header">
-          <div class="section-icon" style="background: rgba(251, 191, 36, 0.12)">💿</div>
+          <div
+            class="section-icon"
+            style="background: rgba(251, 191, 36, 0.12)"
+          >
+            💿
+          </div>
           <div>
             <h2>Disk / I/O Performance</h2>
-            <div class="desc">Storage backends: SQL (PostgreSQL/SQLite), Pebble, Turso</div>
+            <div class="desc">
+              Storage backends: SQL (PostgreSQL/SQLite), Pebble, Turso
+            </div>
           </div>
         </div>
 
         <div class="tabs">
           <div class="tab-headers">
-            <button class="tab-header active" onclick="switchTab(event, 'disk-sql')">
+            <button
+              class="tab-header active"
+              onclick="switchTab(event, 'disk-sql')"
+            >
               SQL (PG / SQLite)
             </button>
-            <button class="tab-header" onclick="switchTab(event, 'disk-pebble')">
+            <button
+              class="tab-header"
+              onclick="switchTab(event, 'disk-pebble')"
+            >
               Pebble (Embedded KV)
             </button>
             <button class="tab-header" onclick="switchTab(event, 'disk-turso')">
@@ -1588,68 +1741,80 @@ func (e *ImmutableEvent) Metadata() Metadata {
               </table>
             </div>
             <p class="c-muted" style="font-size: 0.78rem">
-              PostgreSQL numbers use sqlmock — they reflect mock overhead, not real network I/O.
+              PostgreSQL numbers use sqlmock — they reflect mock overhead, not
+              real network I/O.
             </p>
 
             <h4>Issues Identified</h4>
             <div class="card-grid">
               <div class="card">
                 <div class="card-title">
-                  <span class="dot" style="background: var(--green)"></span>Multi-VALUES INSERT —
-                  Resolved (T14)
+                  <span class="dot" style="background: var(--green)"></span
+                  >Multi-VALUES INSERT — Resolved (T14)
                 </div>
                 <p style="font-size: 0.84rem; color: var(--muted)">
-                  <code>SharedBatchInsertEvents</code> (<code>sql/helpers.go:92</code>) now uses a
-                  single multi-VALUES <code>INSERT</code> with automatic SQLite 999-parameter
-                  chunking (99 events/batch). N events = 1 statement (or <code>ceil(N/99)</code> for
-                  SQLite).
+                  <code>SharedBatchInsertEvents</code>
+                  (<code>sql/helpers.go:92</code>) now uses a single
+                  multi-VALUES <code>INSERT</code> with automatic SQLite
+                  999-parameter chunking (99 events/batch). N events = 1
+                  statement (or <code>ceil(N/99)</code> for SQLite).
                 </p>
               </div>
               <div class="card">
                 <div class="card-title">
-                  <span class="dot" style="background: var(--green)"></span>SQL template cached —
-                  Resolved (T5)
+                  <span class="dot" style="background: var(--green)"></span>SQL
+                  template cached — Resolved (T5)
                 </div>
                 <p style="font-size: 0.84rem; color: var(--muted)">
-                  INSERT SQL is now built once at construction per dialect. Eliminates
-                  <code>fmt.Sprintf</code> per Save call. <code>database/sql</code> caches the
-                  prepared statement internally.
+                  INSERT SQL is now built once at construction per dialect.
+                  Eliminates
+                  <code>fmt.Sprintf</code> per Save call.
+                  <code>database/sql</code> caches the prepared statement
+                  internally.
                 </p>
               </div>
               <div class="card">
                 <div class="card-title">
-                  <span class="dot" style="background: var(--orange)"></span>6-layout timestamp
-                  parse
+                  <span class="dot" style="background: var(--orange)"></span
+                  >6-layout timestamp parse
                 </div>
                 <p style="font-size: 0.84rem; color: var(--muted)">
-                  SQLite/Turso parses timestamps by trying 6 format layouts in a loop
-                  (<code>sql/sqlite.go:10</code>). For a 10K-event Load, this is up to 60K parse
-                  attempts. Pebble stores nanos as int64 — far more efficient.
+                  SQLite/Turso parses timestamps by trying 6 format layouts in a
+                  loop (<code>sql/sqlite.go:10</code>). For a 10K-event Load,
+                  this is up to 60K parse attempts. Pebble stores nanos as int64
+                  — far more efficient.
                 </p>
               </div>
               <div class="card">
                 <div class="card-title">
-                  <span class="dot" style="background: var(--red)"></span>MaxOpenConns(1) for SQLite
+                  <span class="dot" style="background: var(--red)"></span
+                  >MaxOpenConns(1) for SQLite
                 </div>
                 <p style="font-size: 0.84rem; color: var(--muted)">
                   <code>ConfigureSQLitePool</code> forces a single connection
-                  (<code>sqlite_helpers.go:57</code>). All reads and writes serialize. WAL is
-                  opt-in. The pool config is advisory — users who forget to call it get unsafe
-                  concurrency.
+                  (<code>sqlite_helpers.go:57</code>). All reads and writes
+                  serialize. WAL is opt-in. The pool config is advisory — users
+                  who forget to call it get unsafe concurrency.
                 </p>
               </div>
             </div>
 
             <div class="callout success">
-              <div class="callout-title">Good design: Streaming + Keyset Pagination</div>
+              <div class="callout-title">
+                Good design: Streaming + Keyset Pagination
+              </div>
               <p>
                 The SQL module has the only true streaming interface:
-                <code>LoadStream</code> (<code>stream.go:15</code>) wraps <code>*sql.Rows</code> and
-                scans one row at a time. The aggregate listing reader uses proper keyset pagination
-                (<code>aggregate_id > ?</code> with <code>LIMIT N+1</code> has-more trick). Indexes
-                are well-designed: the
-                <code>UNIQUE(aggregate_type, aggregate_id, version)</code> constraint doubles as a
-                covering index and optimistic-concurrency guard.
+                <code>LoadStream</code> (<code>stream.go:15</code>) wraps
+                <code>*sql.Rows</code> and scans one row at a time. The
+                aggregate listing reader uses proper keyset pagination (<code
+                  >aggregate_id > ?</code
+                >
+                with <code>LIMIT N+1</code> has-more trick). Indexes are
+                well-designed: the
+                <code>UNIQUE(aggregate_type, aggregate_id, version)</code>
+                constraint doubles as a covering index and
+                optimistic-concurrency guard.
               </p>
             </div>
           </div>
@@ -1712,68 +1877,85 @@ func (e *ImmutableEvent) Metadata() Metadata {
             <ul style="margin-left: 1.5rem; margin-bottom: 1rem">
               <li>
                 <strong>Atomic batch writes</strong> — every Save goes through
-                <code>db.NewBatch()</code> + <code>batch.Commit()</code>. Correct LSM-level
-                atomicity.
+                <code>db.NewBatch()</code> + <code>batch.Commit()</code>.
+                Correct LSM-level atomicity.
               </li>
               <li>
-                <strong>O(log n) version check</strong> — <code>iter.Last()</code> seeks directly to
-                the latest version key. Zero-padding (<code>%010d</code>) ensures correct
+                <strong>O(log n) version check</strong> —
+                <code>iter.Last()</code> seeks directly to the latest version
+                key. Zero-padding (<code>%010d</code>) ensures correct
                 lexicographic ordering.
               </li>
               <li>
-                <strong>256-shard mutex pool</strong> — FNV-hash over type+ID distributes
-                per-aggregate locks. Collision probability is low.
+                <strong>256-shard mutex pool</strong> — FNV-hash over type+ID
+                distributes per-aggregate locks. Collision probability is low.
               </li>
               <li>
-                <strong>Early termination</strong> — <code>LoadToTimestamp</code> breaks as soon as
-                the predicate fires (10× faster than full scan).
+                <strong>Early termination</strong> —
+                <code>LoadToTimestamp</code> breaks as soon as the predicate
+                fires (10× faster than full scan).
               </li>
             </ul>
 
             <h4>Full CQRS Stack on One DB</h4>
             <p>
-              Pebble now backs the <strong>entire CQRS stack</strong> via disjoint key prefixes:
+              Pebble now backs the <strong>entire CQRS stack</strong> via
+              disjoint key prefixes:
             </p>
             <ul style="margin-left: 1.5rem; margin-bottom: 1rem">
               <li><code>cqrs_event:</code> — EventStore</li>
-              <li><code>cqrs_snapshot:</code> — SnapshotStore (one snapshot per aggregate)</li>
-              <li><code>cqrs_checkpoint:</code> — CheckpointStore (projection positions)</li>
+              <li>
+                <code>cqrs_snapshot:</code> — SnapshotStore (one snapshot per
+                aggregate)
+              </li>
+              <li>
+                <code>cqrs_checkpoint:</code> — CheckpointStore (projection
+                positions)
+              </li>
             </ul>
             <p>
-              All three share a single <code>*pebble.DB</code> with no contention. SnapshotStore and
-              CheckpointStore are CBOR-encoded, support optional async writes, and include OTel
-              tracing spans.
+              All three share a single <code>*pebble.DB</code> with no
+              contention. SnapshotStore and CheckpointStore are CBOR-encoded,
+              support optional async writes, and include OTel tracing spans.
             </p>
 
             <div class="callout success">
-              <div class="callout-title">Double Serialization — Resolved (T1)</div>
+              <div class="callout-title">
+                Double Serialization — Resolved (T1)
+              </div>
               <p>
-                <code>serializeAndAddToBatchWithJournal</code> now serializes every event
-                <strong>once</strong> and reuses the same <code>data</code> slice for both the
-                aggregate key and the journal key. This halves CBOR encode CPU and disk bytes. The
-                benchmark shows single-event Save at 13.2 µs and 10-event batch at 23.4 µs.
+                <code>serializeAndAddToBatchWithJournal</code> now serializes
+                every event <strong>once</strong> and reuses the same
+                <code>data</code> slice for both the aggregate key and the
+                journal key. This halves CBOR encode CPU and disk bytes. The
+                benchmark shows single-event Save at 13.2 µs and 10-event batch
+                at 23.4 µs.
               </p>
             </div>
 
             <div class="callout warn">
               <div class="callout-title">Quadratic ReadFrom</div>
               <p>
-                <code>ReadFrom(afterEventID)</code> (<code>journal.go:79</code>) iterates from
-                <code>iter.First()</code> and <strong>linearly skips</strong> every event until the
-                cursor is found — deserializing and discarding each. For projection catch-up over
-                millions of events, total work is O(cursor_pos × pages). The SQL backend avoids this
-                with a self-join; pebble could use an event-ID → journal-key reverse index.
+                <code>ReadFrom(afterEventID)</code> (<code>journal.go:79</code>)
+                iterates from <code>iter.First()</code> and
+                <strong>linearly skips</strong> every event until the cursor is
+                found — deserializing and discarding each. For projection
+                catch-up over millions of events, total work is O(cursor_pos ×
+                pages). The SQL backend avoids this with a self-join; pebble
+                could use an event-ID → journal-key reverse index.
               </p>
             </div>
 
             <div class="callout warn">
               <div class="callout-title">Metadata JSON Round-Trip on Read</div>
               <p>
-                Deserialization (<code>serialization.go:95</code>) CBOR-decodes metadata into
-                <code>event.Metadata</code>, then <strong>re-encodes it to JSON</strong> via
+                Deserialization (<code>serialization.go:95</code>) CBOR-decodes
+                metadata into
+                <code>event.Metadata</code>, then
+                <strong>re-encodes it to JSON</strong> via
                 <code>MarshalMetadataJSON</code>, then passes the JSON to
-                <code>ReconstructEventFromFields</code> which parses it again. This JSON round-trip
-                is wasted work on every read.
+                <code>ReconstructEventFromFields</code> which parses it again.
+                This JSON round-trip is wasted work on every read.
               </p>
             </div>
           </div>
@@ -1808,40 +1990,48 @@ func (e *ImmutableEvent) Metadata() Metadata {
               </table>
             </div>
             <p>
-              Turso inherits all SQLite storage behavior (1 INSERT/event, 6-layout timestamp parse,
-              MaxOpenConns(1)). Its distinguishing features are:
+              Turso inherits all SQLite storage behavior (1 INSERT/event,
+              6-layout timestamp parse, MaxOpenConns(1)). Its distinguishing
+              features are:
             </p>
 
             <div class="card-grid">
               <div class="card">
                 <div class="card-title">
-                  <span class="dot" style="background: var(--green)"></span>Index Advisor
+                  <span class="dot" style="background: var(--green)"></span
+                  >Index Advisor
                 </div>
                 <p style="font-size: 0.84rem; color: var(--muted)">
-                  Runs <code>EXPLAIN QUERY PLAN</code> and classifies plans as full-scan vs
-                  index-seek vs covering-index. Recommends 5 production-tuned CQRS covering indexes
-                  including <code>idx_events_cursor (occurred_at, id)</code> for cursor pagination.
+                  Runs <code>EXPLAIN QUERY PLAN</code> and classifies plans as
+                  full-scan vs index-seek vs covering-index. Recommends 5
+                  production-tuned CQRS covering indexes including
+                  <code>idx_events_cursor (occurred_at, id)</code> for cursor
+                  pagination.
                 </p>
               </div>
               <div class="card">
                 <div class="card-title">
-                  <span class="dot" style="background: var(--green)"></span>PRAGMA Optimization
+                  <span class="dot" style="background: var(--green)"></span
+                  >PRAGMA Optimization
                 </div>
                 <p style="font-size: 0.84rem; color: var(--muted)">
-                  <code>DefaultOptimizations</code> sets <code>synchronous=NORMAL</code> (fsync only
-                  at checkpoint), 64 MB page cache, <code>temp_store=MEMORY</code>,
-                  <code>page_size=4096</code>. This is the single most actionable tuning lever in
-                  the codebase.
+                  <code>DefaultOptimizations</code> sets
+                  <code>synchronous=NORMAL</code> (fsync only at checkpoint), 64
+                  MB page cache, <code>temp_store=MEMORY</code>,
+                  <code>page_size=4096</code>. This is the single most
+                  actionable tuning lever in the codebase.
                 </p>
               </div>
               <div class="card">
                 <div class="card-title">
-                  <span class="dot" style="background: var(--blue)"></span>Remote Sync
+                  <span class="dot" style="background: var(--blue)"></span
+                  >Remote Sync
                 </div>
                 <p style="font-size: 0.84rem; color: var(--muted)">
-                  <code>Push</code>/<code>Pull</code>/<code>Checkpoint</code> ship WAL frames
-                  to/from a remote Turso server. Rejects <code>:memory:</code> databases when a
-                  remote URL is set. Stats reporting includes WAL size + bytes transferred.
+                  <code>Push</code>/<code>Pull</code>/<code>Checkpoint</code>
+                  ship WAL frames to/from a remote Turso server. Rejects
+                  <code>:memory:</code> databases when a remote URL is set.
+                  Stats reporting includes WAL size + bytes transferred.
                 </p>
               </div>
             </div>
@@ -1849,10 +2039,11 @@ func (e *ImmutableEvent) Metadata() Metadata {
             <div class="callout warn">
               <div class="callout-title">Load is 24× slower than SQLite</div>
               <p>
-                Turso Load at <strong>1.08 ms</strong> vs SQLite Load at <strong>45 µs</strong>. The
-                LibSQL embedded sync layer adds overhead even for local reads. The pool is forced to
-                1 connection, so background sync traffic competes with reads/writes on the same
-                connection.
+                Turso Load at <strong>1.08 ms</strong> vs SQLite Load at
+                <strong>45 µs</strong>. The LibSQL embedded sync layer adds
+                overhead even for local reads. The pool is forced to 1
+                connection, so background sync traffic competes with
+                reads/writes on the same connection.
               </p>
             </div>
           </div>
@@ -1930,19 +2121,27 @@ func (e *ImmutableEvent) Metadata() Metadata {
     <section id="network">
       <div class="container">
         <div class="section-header">
-          <div class="section-icon" style="background: rgba(74, 222, 128, 0.12)">🌐</div>
+          <div
+            class="section-icon"
+            style="background: rgba(74, 222, 128, 0.12)"
+          >
+            🌐
+          </div>
           <div>
             <h2>Network Performance</h2>
-            <div class="desc">Transport adapters, serialization overhead, and remote sync</div>
+            <div class="desc">
+              Transport adapters, serialization overhead, and remote sync
+            </div>
           </div>
         </div>
 
         <p>
-          go-cqrs-lite is <strong>transport-agnostic by design</strong> — it does not include an
-          HTTP server, gRPC service, or message broker. All network characteristics are inherited
-          from the consumer's chosen transport. The library provides adapters for
-          <strong>Watermill</strong> (message broker) and <strong>Turso</strong> (remote database
-          sync).
+          go-cqrs-lite is <strong>transport-agnostic by design</strong> — it
+          does not include an HTTP server, gRPC service, or message broker. All
+          network characteristics are inherited from the consumer's chosen
+          transport. The library provides adapters for
+          <strong>Watermill</strong> (message broker) and
+          <strong>Turso</strong> (remote database sync).
         </p>
 
         <h3>Watermill Protocol Adapter</h3>
@@ -1986,47 +2185,50 @@ func (e *ImmutableEvent) Metadata() Metadata {
         </div>
         <p>
           The adapter converts between CQRS events and Watermill messages.
-          <code>BuildMetadata</code> is zero-allocation — excellent. The serialization path
-          (<code>EventToMessage</code>) pays the JSON marshal + base64 + metadata map costs inherent
-          to the event model. Actual network latency depends on the Watermill publisher
-          implementation (NATS, Kafka, etc.) — not measured here.
+          <code>BuildMetadata</code> is zero-allocation — excellent. The
+          serialization path (<code>EventToMessage</code>) pays the JSON marshal
+          + base64 + metadata map costs inherent to the event model. Actual
+          network latency depends on the Watermill publisher implementation
+          (NATS, Kafka, etc.) — not measured here.
         </p>
 
         <h3>Turso Remote Sync</h3>
         <p>
           The Turso connector provides <code>Push</code>, <code>Pull</code>, and
-          <code>Checkpoint</code> operations for syncing local LibSQL state with a remote server:
+          <code>Checkpoint</code> operations for syncing local LibSQL state with
+          a remote server:
         </p>
         <ul style="margin-left: 1.5rem; margin-bottom: 1rem">
           <li>
-            <strong>Push</strong> — ships local WAL frames to the remote server. Bounded by network
-            bandwidth and WAL size.
+            <strong>Push</strong> — ships local WAL frames to the remote server.
+            Bounded by network bandwidth and WAL size.
           </li>
           <li>
-            <strong>Pull</strong> — fetches remote changes. Returns whether anything changed for
-            conditional sync.
+            <strong>Pull</strong> — fetches remote changes. Returns whether
+            anything changed for conditional sync.
           </li>
           <li>
-            <strong>Checkpoint</strong> — flushes the WAL into the main DB file (analogous to
-            <code>PRAGMA wal_checkpoint</code>).
+            <strong>Checkpoint</strong> — flushes the WAL into the main DB file
+            (analogous to <code>PRAGMA wal_checkpoint</code>).
           </li>
         </ul>
         <div class="callout warn">
           <div class="callout-title">Pool Starvation Under Sync</div>
           <p>
-            <code>ConfigureTursoPool</code> forces <code>MaxOpenConns(1)</code>. Background sync
-            traffic (Push/Pull) competes with foreground reads/writes on the
-            <strong>same single connection</strong>. Under high write throughput with frequent sync,
-            this creates head-of-line blocking.
+            <code>ConfigureTursoPool</code> forces <code>MaxOpenConns(1)</code>.
+            Background sync traffic (Push/Pull) competes with foreground
+            reads/writes on the <strong>same single connection</strong>. Under
+            high write throughput with frequent sync, this creates head-of-line
+            blocking.
           </p>
         </div>
 
         <h3>SSE (Server-Sent Events) Middleware</h3>
         <p>
-          The SSE broker (<code>middleware/sse.go</code>) provides real-time event push to HTTP
-          clients. Each connected client gets a buffered channel (<code
-            >make(chan event.Event, 100)</code
-          >) and a dedicated goroutine.
+          The SSE broker (<code>middleware/sse.go</code>) provides real-time
+          event push to HTTP clients. Each connected client gets a buffered
+          channel (<code>make(chan event.Event, 100)</code>) and a dedicated
+          goroutine.
         </p>
         <div class="table-wrap">
           <table>
@@ -2061,7 +2263,10 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <tr>
                 <td>Format</td>
                 <td>3× <code>fmt.Fprintf</code> per event/client</td>
-                <td>Allocates format buffer — could use pooled <code>bytes.Buffer</code></td>
+                <td>
+                  Allocates format buffer — could use pooled
+                  <code>bytes.Buffer</code>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -2073,7 +2278,12 @@ func (e *ImmutableEvent) Metadata() Metadata {
     <section id="gpu">
       <div class="container">
         <div class="section-header">
-          <div class="section-icon" style="background: rgba(244, 114, 182, 0.12)">🎮</div>
+          <div
+            class="section-icon"
+            style="background: rgba(244, 114, 182, 0.12)"
+          >
+            🎮
+          </div>
           <div>
             <h2>GPU</h2>
             <div class="desc">Applicability and theoretical opportunities</div>
@@ -2083,12 +2293,13 @@ func (e *ImmutableEvent) Metadata() Metadata {
         <div class="callout">
           <div class="callout-title">Verdict: Not Applicable</div>
           <p>
-            go-cqrs-lite is a pure-CPU Go library with no GPU-offloadable workloads. The operations
-            it performs — map lookups, JSON/CBOR serialization, HMAC/AES cryptography, SQL queries —
-            are all either <strong>latency-bound</strong> (not throughput-bound) or
-            <strong>hardware-accelerated on CPU</strong> (SHA-NI, AES-NI). GPU offloading would add
-            PCIe transfer overhead that exceeds the compute savings for every operation in this
-            library.
+            go-cqrs-lite is a pure-CPU Go library with no GPU-offloadable
+            workloads. The operations it performs — map lookups, JSON/CBOR
+            serialization, HMAC/AES cryptography, SQL queries — are all either
+            <strong>latency-bound</strong> (not throughput-bound) or
+            <strong>hardware-accelerated on CPU</strong> (SHA-NI, AES-NI). GPU
+            offloading would add PCIe transfer overhead that exceeds the compute
+            savings for every operation in this library.
           </p>
         </div>
 
@@ -2097,36 +2308,42 @@ func (e *ImmutableEvent) Metadata() Metadata {
           <div class="card">
             <div class="card-title">🔬 Cryptography</div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              HMAC-SHA256 and AES-256-GCM are <strong>already hardware-accelerated</strong> on CPU
-              (SHA-NI: ~3 cycles/byte, AES-NI: ~1 cycle/byte). GPU crypto would require a PCIe
-              round-trip (~5–10 µs) that exceeds the CPU cost (669 ns for HMAC, 777 ns for AES).
-              Only Ed25519 verify (30µs) is slow enough to theoretically benefit, but batch
-              verification is a better CPU-side fix.
+              HMAC-SHA256 and AES-256-GCM are
+              <strong>already hardware-accelerated</strong> on CPU (SHA-NI: ~3
+              cycles/byte, AES-NI: ~1 cycle/byte). GPU crypto would require a
+              PCIe round-trip (~5–10 µs) that exceeds the CPU cost (669 ns for
+              HMAC, 777 ns for AES). Only Ed25519 verify (30µs) is slow enough
+              to theoretically benefit, but batch verification is a better
+              CPU-side fix.
             </p>
           </div>
           <div class="card">
             <div class="card-title">📦 Serialization</div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              JSON/CBOR marshaling is <strong>branch-heavy</strong> (type switches, field iteration,
-              escape analysis). GPUs excel at SIMD-parallel work on regular data layouts;
-              serialization is inherently sequential per-event and latency-bound. The Go
-              <code>encoding/json</code> encoder is not GPU-portable without a CGO bridge.
+              JSON/CBOR marshaling is <strong>branch-heavy</strong> (type
+              switches, field iteration, escape analysis). GPUs excel at
+              SIMD-parallel work on regular data layouts; serialization is
+              inherently sequential per-event and latency-bound. The Go
+              <code>encoding/json</code> encoder is not GPU-portable without a
+              CGO bridge.
             </p>
           </div>
           <div class="card">
             <div class="card-title">🗂️ Map Operations</div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Dispatch and metadata operations are <strong>O(1) hash-map lookups</strong> at 7–55
-              ns. The CPU L1/L2 cache hit rate is effectively 100% for these small, hot maps. GPU
-              memory latency (400+ cycles for global memory) is orders of magnitude worse.
+              Dispatch and metadata operations are
+              <strong>O(1) hash-map lookups</strong> at 7–55 ns. The CPU L1/L2
+              cache hit rate is effectively 100% for these small, hot maps. GPU
+              memory latency (400+ cycles for global memory) is orders of
+              magnitude worse.
             </p>
           </div>
           <div class="card">
             <div class="card-title">💾 Database I/O</div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              SQL queries and Pebble scans are <strong>I/O-bound</strong>, not compute-bound. The
-              bottleneck is disk seek time (µs–ms range), not CPU computation. A GPU cannot make a
-              disk seek faster.
+              SQL queries and Pebble scans are <strong>I/O-bound</strong>, not
+              compute-bound. The bottleneck is disk seek time (µs–ms range), not
+              CPU computation. A GPU cannot make a disk seek faster.
             </p>
           </div>
         </div>
@@ -2161,7 +2378,9 @@ func (e *ImmutableEvent) Metadata() Metadata {
                 <td>Projection replay (1M+ events)</td>
                 <td>~4 sec (benchmark)</td>
                 <td>Decode payloads in parallel</td>
-                <td class="c-yellow">Plausible for decode only, but handler logic is sequential</td>
+                <td class="c-yellow">
+                  Plausible for decode only, but handler logic is sequential
+                </td>
               </tr>
               <tr>
                 <td>Event signing (HMAC)</td>
@@ -2173,8 +2392,9 @@ func (e *ImmutableEvent) Metadata() Metadata {
           </table>
         </div>
         <p style="font-size: 0.84rem; color: var(--muted)">
-          For any of these to be worth a CGO/PCIe bridge, the library would need to process millions
-          of events per second in a single process — well beyond typical CQRS workloads.
+          For any of these to be worth a CGO/PCIe bridge, the library would need
+          to process millions of events per second in a single process — well
+          beyond typical CQRS workloads.
         </p>
       </div>
     </section>
@@ -2183,10 +2403,17 @@ func (e *ImmutableEvent) Metadata() Metadata {
     <section id="concurrency">
       <div class="container">
         <div class="section-header">
-          <div class="section-icon" style="background: rgba(251, 146, 60, 0.12)">⚙️</div>
+          <div
+            class="section-icon"
+            style="background: rgba(251, 146, 60, 0.12)"
+          >
+            ⚙️
+          </div>
           <div>
             <h2>Concurrency & Locking</h2>
-            <div class="desc">Mutex design, contention points, goroutine lifecycle</div>
+            <div class="desc">
+              Mutex design, contention points, goroutine lifecycle
+            </div>
           </div>
         </div>
 
@@ -2205,7 +2432,9 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <tr>
                 <td>Dispatcher</td>
                 <td><code>sync.RWMutex</code></td>
-                <td class="c-green">Low — RLock on dispatch, Lock on register</td>
+                <td class="c-green">
+                  Low — RLock on dispatch, Lock on register
+                </td>
                 <td><code>dispatcher.go:94</code></td>
               </tr>
               <tr>
@@ -2217,7 +2446,9 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <tr>
                 <td>MemoryBus</td>
                 <td><code>sync.RWMutex</code></td>
-                <td class="c-yellow">Medium — RLock held during handler execution</td>
+                <td class="c-yellow">
+                  Medium — RLock held during handler execution
+                </td>
                 <td><code>bus.go:18</code></td>
               </tr>
               <tr>
@@ -2229,7 +2460,9 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <tr>
                 <td>CircuitBreaker</td>
                 <td><code>atomic.Int32</code> + <code>sync.Mutex</code></td>
-                <td class="c-green">Low — atomic fast path in closed state (9.3 ns/op)</td>
+                <td class="c-green">
+                  Low — atomic fast path in closed state (9.3 ns/op)
+                </td>
                 <td><code>circuit_breaker.go:68</code></td>
               </tr>
               <tr>
@@ -2241,7 +2474,9 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <tr>
                 <td>SSEBroker</td>
                 <td><code>sync.RWMutex</code></td>
-                <td class="c-yellow">Medium — RLock during fan-out iteration</td>
+                <td class="c-yellow">
+                  Medium — RLock during fan-out iteration
+                </td>
                 <td><code>sse.go:21</code></td>
               </tr>
               <tr>
@@ -2279,36 +2514,49 @@ func (e *ImmutableEvent) Metadata() Metadata {
         </div>
 
         <div class="callout success">
-          <div class="callout-title">CircuitBreaker: Atomic Fast Path — Resolved (T11)</div>
+          <div class="callout-title">
+            CircuitBreaker: Atomic Fast Path — Resolved (T11)
+          </div>
           <p>
-            The circuit breaker hot path now uses <code>atomic.Int32</code> for state, failures, and
-            successes. The <code>allow()</code> check in the closed (happy) state is a
-            <strong>lock-free atomic load</strong> — zero mutex contention. Benchmark:
+            The circuit breaker hot path now uses <code>atomic.Int32</code> for
+            state, failures, and successes. The <code>allow()</code> check in
+            the closed (happy) state is a
+            <strong>lock-free atomic load</strong> — zero mutex contention.
+            Benchmark:
             <strong>9.3 ns/op, 0 B, 0 allocs</strong> single-threaded,
             <strong>19.7 ns/op</strong> under <code>b.RunParallel</code>. The
             <code>sync.Mutex</code>
-            is only acquired for state transitions (open→half-open, failure counting).
+            is only acquired for state transitions (open→half-open, failure
+            counting).
           </p>
         </div>
 
         <div class="callout warn">
-          <div class="callout-title">MemoryBus: RLock Held During Handler Execution</div>
+          <div class="callout-title">
+            MemoryBus: RLock Held During Handler Execution
+          </div>
           <p>
-            <code>MemoryBus.Publish</code> (<code>bus.go:92</code>) holds an RLock for the
-            <strong>entire duration of handler execution</strong>. Concurrent publishes share the
-            RLock (fine), but any <code>Subscribe</code>/<code>Use</code>/<code>UsePublish</code>
-            call is blocked until ALL in-flight handlers complete. The middleware chain is
-            <strong>pre-computed</strong> on <code>Use()</code>/<code>UsePublish()</code> (T12) —
-            zero per-publish closure allocation.
+            <code>MemoryBus.Publish</code> (<code>bus.go:92</code>) holds an
+            RLock for the <strong>entire duration of handler execution</strong>.
+            Concurrent publishes share the RLock (fine), but any
+            <code>Subscribe</code>/<code>Use</code>/<code>UsePublish</code>
+            call is blocked until ALL in-flight handlers complete. The
+            middleware chain is
+            <strong>pre-computed</strong> on <code>Use()</code>/<code
+              >UsePublish()</code
+            >
+            (T12) — zero per-publish closure allocation.
           </p>
         </div>
 
         <div class="callout success">
           <div class="callout-title">SSE Broker: Goroutine Leak Fixed (T7)</div>
           <p>
-            The vestigial goroutine has been removed. The 3× <code>fmt.Fprintf</code> calls per
-            event per client have been consolidated into a single write. The broker now uses
-            <code>PayloadReadOnly()</code> for zero-copy payload access during SSE formatting.
+            The vestigial goroutine has been removed. The 3×
+            <code>fmt.Fprintf</code> calls per event per client have been
+            consolidated into a single write. The broker now uses
+            <code>PayloadReadOnly()</code> for zero-copy payload access during
+            SSE formatting.
           </p>
         </div>
 
@@ -2316,18 +2564,22 @@ func (e *ImmutableEvent) Metadata() Metadata {
         <p>
           The projection runner supports optional bounded parallelism via
           <code>errgroup.WithContext</code> with
-          <code>g.SetLimit(parallelism)</code> (<code>runner_live.go:64</code>). Parallelism is
-          <strong>per-event across projections</strong>, not across events — events are still
-          processed sequentially. Replay is fully sequential.
+          <code>g.SetLimit(parallelism)</code> (<code>runner_live.go:64</code>).
+          Parallelism is <strong>per-event across projections</strong>, not
+          across events — events are still processed sequentially. Replay is
+          fully sequential.
         </p>
         <div class="callout success">
-          <div class="callout-title">Projection Allocations — Resolved (T3/T4/T15)</div>
+          <div class="callout-title">
+            Projection Allocations — Resolved (T3/T4/T15)
+          </div>
           <p>
             <code>HandlerRegistry.Lookup</code> now returns pre-built slices for
             <code>Builder</code>-created projections (T3). The Runner caches
-            <code>p.EventTypes()</code> once at <code>Register()</code> time (T15), eliminating
-            per-event <code>slices.Clone</code> for <strong>ALL</strong> projection types. The
-            100K-event × 100-projection benchmark dropped from 101M to
+            <code>p.EventTypes()</code> once at <code>Register()</code> time
+            (T15), eliminating per-event <code>slices.Clone</code> for
+            <strong>ALL</strong> projection types. The 100K-event ×
+            100-projection benchmark dropped from 101M to
             <strong>90.4M allocations</strong> (−10.5M) and from 6.0 GB to
             <strong>5.4 GB</strong> (−583 MB).
           </p>
@@ -2339,7 +2591,12 @@ func (e *ImmutableEvent) Metadata() Metadata {
     <section id="gc">
       <div class="container">
         <div class="section-header">
-          <div class="section-icon" style="background: rgba(129, 140, 248, 0.12)">♻️</div>
+          <div
+            class="section-icon"
+            style="background: rgba(129, 140, 248, 0.12)"
+          >
+            ♻️
+          </div>
           <div>
             <h2>GC Pressure Analysis</h2>
             <div class="desc">Allocation hotspots and garbage generation</div>
@@ -2414,78 +2671,85 @@ func (e *ImmutableEvent) Metadata() Metadata {
         <div class="card-grid">
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>Pebble single serialization
-              (T1)
+              <span class="dot" style="background: var(--green)"></span>Pebble
+              single serialization (T1)
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Serialize once, <code>batch.Set</code> for both keys. Halves CBOR encode CPU + disk
-              bytes.
+              Serialize once, <code>batch.Set</code> for both keys. Halves CBOR
+              encode CPU + disk bytes.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>Lazy metadata map (T2)
+              <span class="dot" style="background: var(--green)"></span>Lazy
+              metadata map (T2)
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              <code>NewMetadata()</code> returns zero-value. Map allocated only when
-              <code>EnsureCustom</code> is called. 1.04 ns/op, 0 B, 0 allocs.
+              <code>NewMetadata()</code> returns zero-value. Map allocated only
+              when <code>EnsureCustom</code> is called. 1.04 ns/op, 0 B, 0
+              allocs.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>Projection
-              handler/event-type cache (T3/T15)
+              <span class="dot" style="background: var(--green)"></span
+              >Projection handler/event-type cache (T3/T15)
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Runner caches <code>EventTypes()</code> at <code>Register()</code> time. Builder uses
-              pre-built lookup slices. −10.5M allocs in 100K projection benchmark.
+              Runner caches <code>EventTypes()</code> at
+              <code>Register()</code> time. Builder uses pre-built lookup
+              slices. −10.5M allocs in 100K projection benchmark.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>SQL template cached (T5)
+              <span class="dot" style="background: var(--green)"></span>SQL
+              template cached (T5)
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              INSERT/SELECT SQL built once at construction per dialect. Eliminates
+              INSERT/SELECT SQL built once at construction per dialect.
+              Eliminates
               <code>fmt.Sprintf</code> per Save.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>ScanSlice capacity hint
-              (T10)
+              <span class="dot" style="background: var(--green)"></span
+              >ScanSlice capacity hint (T10)
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Pre-allocate <code>make([]T, 0, 64)</code> instead of nil + append. Reduces log₂(N)
-              slice growth copies during large Loads.
+              Pre-allocate <code>make([]T, 0, 64)</code> instead of nil +
+              append. Reduces log₂(N) slice growth copies during large Loads.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>MemoryStore single-copy (T6)
+              <span class="dot" style="background: var(--green)"></span
+              >MemoryStore single-copy (T6)
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Removed redundant <code>slices.Clone</code> wrapper on already-fresh slice. Load now
-              844 ns/op, 1,792 B, 1 alloc.
+              Removed redundant <code>slices.Clone</code> wrapper on
+              already-fresh slice. Load now 844 ns/op, 1,792 B, 1 alloc.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>MemoryBus pre-compute (T12)
+              <span class="dot" style="background: var(--green)"></span
+              >MemoryBus pre-compute (T12)
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Chains rebuilt on <code>Use()</code>/<code>UsePublish()</code> only. Publish now 45.6
-              ns/op, 16 B, 1 alloc.
+              Chains rebuilt on <code>Use()</code>/<code>UsePublish()</code>
+              only. Publish now 45.6 ns/op, 16 B, 1 alloc.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>SQL multi-VALUES INSERT
-              (T14)
+              <span class="dot" style="background: var(--green)"></span>SQL
+              multi-VALUES INSERT (T14)
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Single multi-VALUES statement. SQLite 999-param limit handled via automatic chunking
-              (99 events/batch).
+              Single multi-VALUES statement. SQLite 999-param limit handled via
+              automatic chunking (99 events/batch).
             </p>
           </div>
         </div>
@@ -2496,22 +2760,41 @@ func (e *ImmutableEvent) Metadata() Metadata {
     <section id="benchmarks">
       <div class="container">
         <div class="section-header">
-          <div class="section-icon" style="background: rgba(34, 211, 238, 0.12)">📈</div>
+          <div
+            class="section-icon"
+            style="background: rgba(34, 211, 238, 0.12)"
+          >
+            📈
+          </div>
           <div>
             <h2>Complete Benchmark Suite</h2>
             <div class="desc">
-              All measured benchmarks across 33 modules · AMD Ryzen AI MAX+ 395 · 96 GB · 32 threads
+              All measured benchmarks across 33 modules · AMD Ryzen AI MAX+ 395
+              · 96 GB · 32 threads
             </div>
           </div>
         </div>
 
         <div class="tabs">
           <div class="tab-headers">
-            <button class="tab-header active" onclick="switchTab(event, 'bm-core')">Core</button>
-            <button class="tab-header" onclick="switchTab(event, 'bm-crypto')">Crypto</button>
-            <button class="tab-header" onclick="switchTab(event, 'bm-storage')">Storage</button>
-            <button class="tab-header" onclick="switchTab(event, 'bm-scale')">Scale</button>
-            <button class="tab-header" onclick="switchTab(event, 'bm-infra')">Infra</button>
+            <button
+              class="tab-header active"
+              onclick="switchTab(event, 'bm-core')"
+            >
+              Core
+            </button>
+            <button class="tab-header" onclick="switchTab(event, 'bm-crypto')">
+              Crypto
+            </button>
+            <button class="tab-header" onclick="switchTab(event, 'bm-storage')">
+              Storage
+            </button>
+            <button class="tab-header" onclick="switchTab(event, 'bm-scale')">
+              Scale
+            </button>
+            <button class="tab-header" onclick="switchTab(event, 'bm-infra')">
+              Infra
+            </button>
           </div>
 
           <div class="tab-panel active" id="bm-core">
@@ -3159,7 +3442,12 @@ func (e *ImmutableEvent) Metadata() Metadata {
     <section id="findings">
       <div class="container">
         <div class="section-header">
-          <div class="section-icon" style="background: rgba(248, 113, 113, 0.12)">🎯</div>
+          <div
+            class="section-icon"
+            style="background: rgba(248, 113, 113, 0.12)"
+          >
+            🎯
+          </div>
           <div>
             <h2>Priority Findings & Recommendations</h2>
             <div class="desc">Ranked by impact × feasibility</div>
@@ -3167,41 +3455,56 @@ func (e *ImmutableEvent) Metadata() Metadata {
         </div>
 
         <div class="callout success" style="margin-bottom: 2rem">
-          <div class="callout-title">All 14 Critical/High/Medium Findings — Resolved</div>
+          <div class="callout-title">
+            All 14 Critical/High/Medium Findings — Resolved
+          </div>
           <p>
             Every finding from the 2026-06-14 report has been addressed. See the
-            <a href="#results" class="ref">Optimization Results</a> section for the full T1–T15
-            breakdown. The two remaining items below are architectural, not bugs.
+            <a href="#results" class="ref">Optimization Results</a> section for
+            the full T1–T15 breakdown. The two remaining items below are
+            architectural, not bugs.
           </p>
         </div>
 
         <h3>Remaining — Architectural Constraints</h3>
         <ul class="priority-list">
           <li class="priority-item">
-            <div class="priority-num" style="background: var(--yellow-bg); color: var(--yellow)">
+            <div
+              class="priority-num"
+              style="background: var(--yellow-bg); color: var(--yellow)"
+            >
               1
             </div>
             <div class="priority-body">
-              <div class="title">SQLite/Turso 6-layout timestamp parse loop</div>
+              <div class="title">
+                SQLite/Turso 6-layout timestamp parse loop
+              </div>
               <div class="detail">
-                Every row read tries 6 time formats in a loop (<code>sql/sqlite.go:10</code>).
-                Storing timestamps as INTEGER Unix nanos (like Pebble) eliminates the parse
-                entirely. Requires a schema migration — deferred until a breaking v3.
+                Every row read tries 6 time formats in a loop
+                (<code>sql/sqlite.go:10</code>). Storing timestamps as INTEGER
+                Unix nanos (like Pebble) eliminates the parse entirely. Requires
+                a schema migration — deferred until a breaking v3.
               </div>
               <div class="ref-link">storage/sql/sqlite.go:10</div>
             </div>
             <span class="verdict v-fair">6× parse/row</span>
           </li>
           <li class="priority-item">
-            <div class="priority-num" style="background: var(--yellow-bg); color: var(--yellow)">
+            <div
+              class="priority-num"
+              style="background: var(--yellow-bg); color: var(--yellow)"
+            >
               2
             </div>
             <div class="priority-body">
               <div class="title">Unbounded Load memory (no LIMIT)</div>
               <div class="detail">
-                <code>Load</code>/<code>LoadFromVersion</code>/<code>LoadToVersion</code>
-                materialize the entire stream with no row cap. Only <code>ReadFrom</code> supports
-                <code>limit</code>. Large aggregates risk OOM under concurrent loads.
+                <code>Load</code>/<code>LoadFromVersion</code>/<code
+                  >LoadToVersion</code
+                >
+                materialize the entire stream with no row cap. Only
+                <code>ReadFrom</code> supports <code>limit</code>. Large
+                aggregates risk OOM under concurrent loads.
               </div>
               <div class="ref-link">storage/event_store_load.go</div>
             </div>
@@ -3212,15 +3515,21 @@ func (e *ImmutableEvent) Metadata() Metadata {
         <h3>Medium — Worth Addressing</h3>
         <ul class="priority-list">
           <li class="priority-item" style="opacity: 0.5">
-            <div class="priority-num" style="background: var(--green-bg); color: var(--green)">
+            <div
+              class="priority-num"
+              style="background: var(--green-bg); color: var(--green)"
+            >
               ✅
             </div>
             <div class="priority-body">
-              <div class="title">All medium items resolved (T7, T9, T10, T11, T12, T14)</div>
+              <div class="title">
+                All medium items resolved (T7, T9, T10, T11, T12, T14)
+              </div>
               <div class="detail">
-                SSE goroutine leak (T7), MemoryBus pre-compute (T12), CircuitBreaker atomic (T11),
-                SQL multi-VALUES (T14), ScanSlice hint (T10), MemoryStore double-copy (T6) — all
-                resolved. See Optimization Results for details.
+                SSE goroutine leak (T7), MemoryBus pre-compute (T12),
+                CircuitBreaker atomic (T11), SQL multi-VALUES (T14), ScanSlice
+                hint (T10), MemoryStore double-copy (T6) — all resolved. See
+                Optimization Results for details.
               </div>
             </div>
             <span class="verdict v-excellent">Resolved</span>
@@ -3231,103 +3540,124 @@ func (e *ImmutableEvent) Metadata() Metadata {
         <div class="card-grid">
           <div class="card">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>CircuitBreaker atomic fast
-              path
+              <span class="dot" style="background: var(--green)"></span
+              >CircuitBreaker atomic fast path
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              <code>atomic.Int32</code> for state/failures/successes. Happy path is lock-free at
-              <strong>9.3 ns/op, 0 B, 0 allocs</strong>. Mutex only for state transitions.
+              <code>atomic.Int32</code> for state/failures/successes. Happy path
+              is lock-free at <strong>9.3 ns/op, 0 B, 0 allocs</strong>. Mutex
+              only for state transitions.
             </p>
           </div>
           <div class="card">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>MemoryBus pre-computed chain
+              <span class="dot" style="background: var(--green)"></span
+              >MemoryBus pre-computed chain
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Middleware chain rebuilt on <code>Use()</code>/<code>UsePublish()</code> only. Publish
-              at <strong>45.6 ns/op, 1 alloc</strong>. Same pattern applied to MemoryCommandBus.
+              Middleware chain rebuilt on <code>Use()</code>/<code
+                >UsePublish()</code
+              >
+              only. Publish at <strong>45.6 ns/op, 1 alloc</strong>. Same
+              pattern applied to MemoryCommandBus.
             </p>
           </div>
           <div class="card">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>SQL multi-VALUES INSERT
+              <span class="dot" style="background: var(--green)"></span>SQL
+              multi-VALUES INSERT
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Single multi-VALUES statement with SQLite 999-param auto-chunking (99 events/batch).
-              Template cached per dialect at construction.
+              Single multi-VALUES statement with SQLite 999-param auto-chunking
+              (99 events/batch). Template cached per dialect at construction.
             </p>
           </div>
           <div class="card">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>Pebble single serialization
+              <span class="dot" style="background: var(--green)"></span>Pebble
+              single serialization
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Events serialized once and reused for both aggregate + journal keys. Full CQRS stack
-              (events + snapshots + checkpoints) on one DB via disjoint key prefixes.
+              Events serialized once and reused for both aggregate + journal
+              keys. Full CQRS stack (events + snapshots + checkpoints) on one DB
+              via disjoint key prefixes.
             </p>
           </div>
           <div class="card">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>Pre-wrapped middleware
+              <span class="dot" style="background: var(--green)"></span
+              >Pre-wrapped middleware
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              The dispatcher wraps middleware at registration time (<code>dispatcher.go:88</code>),
-              storing the fully-wrapped handler. Hot dispatch has zero closure allocation.
+              The dispatcher wraps middleware at registration time
+              (<code>dispatcher.go:88</code>), storing the fully-wrapped
+              handler. Hot dispatch has zero closure allocation.
             </p>
           </div>
           <div class="card">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>Zero-copy PayloadReadOnly
+              <span class="dot" style="background: var(--green)"></span
+              >Zero-copy PayloadReadOnly
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              The type-assertion fast path (<code>codec.go:63</code>) bypasses defensive cloning for
-              internal read-only paths. Used by signing, pebble, storage, and SSE.
+              The type-assertion fast path (<code>codec.go:63</code>) bypasses
+              defensive cloning for internal read-only paths. Used by signing,
+              pebble, storage, and SSE.
             </p>
           </div>
           <div class="card">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>Sharded Pebble locks
+              <span class="dot" style="background: var(--green)"></span>Sharded
+              Pebble locks
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              256-shard FNV-hash mutex pool (<code>store.go:15</code>) distributes per-aggregate
-              contention without unbounded <code>sync.Map</code> growth.
+              256-shard FNV-hash mutex pool (<code>store.go:15</code>)
+              distributes per-aggregate contention without unbounded
+              <code>sync.Map</code> growth.
             </p>
           </div>
           <div class="card">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>CBOR codec init caching
+              <span class="dot" style="background: var(--green)"></span>CBOR
+              codec init caching
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              CBOR <code>EncMode</code>/<code>DecMode</code> are created once at package init
-              (<code>cbor.go:19</code>) — not per-call. Codec dispatch is zero-overhead.
+              CBOR <code>EncMode</code>/<code>DecMode</code> are created once at
+              package init (<code>cbor.go:19</code>) — not per-call. Codec
+              dispatch is zero-overhead.
             </p>
           </div>
           <div class="card">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>Snapshot acceleration
+              <span class="dot" style="background: var(--green)"></span>Snapshot
+              acceleration
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
               The decider loads a snapshot then only fetches events since
-              <code>snap.Version</code> (<code>load.go:176</code>). Dramatically reduces fold
-              iterations for long-lived aggregates.
+              <code>snap.Version</code> (<code>load.go:176</code>). Dramatically
+              reduces fold iterations for long-lived aggregates.
             </p>
           </div>
           <div class="card">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>Keyset pagination
+              <span class="dot" style="background: var(--green)"></span>Keyset
+              pagination
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              The SQL aggregate reader uses <code>aggregate_id > ?</code> + <code>LIMIT N+1</code> —
-              proper keyset pagination that avoids OFFSET degradation.
+              The SQL aggregate reader uses <code>aggregate_id > ?</code> +
+              <code>LIMIT N+1</code> — proper keyset pagination that avoids
+              OFFSET degradation.
             </p>
           </div>
           <div class="card">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>Optimistic concurrency
+              <span class="dot" style="background: var(--green)"></span
+              >Optimistic concurrency
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
               No <code>SELECT ... FOR UPDATE</code>. Version checking via
-              <code>UNIQUE(agg_type, agg_id, version)</code> constraint — correct and scalable.
+              <code>UNIQUE(agg_type, agg_id, version)</code> constraint —
+              correct and scalable.
             </p>
           </div>
         </div>
@@ -3335,12 +3665,14 @@ func (e *ImmutableEvent) Metadata() Metadata {
         <div class="callout success">
           <div class="callout-title">Final Assessment</div>
           <p>
-            go-cqrs-lite is a <strong>well-engineered library</strong> with excellent core-path
-            performance (dispatch at 26 ns, fold at 0 allocs, CircuitBreaker at 9.3 ns with 0
-            allocs). All 14 performance findings from the 2026-06-14 analysis have been resolved in
-            the optimization sprint (T1–T15). The two remaining items (SQLite timestamp parse loop,
-            unbounded Load memory) are architectural constraints deferred to a future breaking
-            release. The design philosophy of immutability-first, zero-copy internal reads, and
+            go-cqrs-lite is a <strong>well-engineered library</strong> with
+            excellent core-path performance (dispatch at 26 ns, fold at 0
+            allocs, CircuitBreaker at 9.3 ns with 0 allocs). All 14 performance
+            findings from the 2026-06-14 analysis have been resolved in the
+            optimization sprint (T1–T15). The two remaining items (SQLite
+            timestamp parse loop, unbounded Load memory) are architectural
+            constraints deferred to a future breaking release. The design
+            philosophy of immutability-first, zero-copy internal reads, and
             defensive cloning on public accessors is sound and well-executed.
           </p>
         </div>
@@ -3351,12 +3683,17 @@ func (e *ImmutableEvent) Metadata() Metadata {
     <section id="results">
       <div class="container">
         <div class="section-header">
-          <div class="section-icon" style="background: rgba(74, 222, 128, 0.12)">🚀</div>
+          <div
+            class="section-icon"
+            style="background: rgba(74, 222, 128, 0.12)"
+          >
+            🚀
+          </div>
           <div>
             <h2>Post-Optimization Results</h2>
             <div class="desc">
-              14 Pareto-ranked optimizations applied · all findings resolved · verified with tests +
-              race detector + lint
+              14 Pareto-ranked optimizations applied · all findings resolved ·
+              verified with tests + race detector + lint
             </div>
           </div>
         </div>
@@ -3364,15 +3701,17 @@ func (e *ImmutableEvent) Metadata() Metadata {
         <div class="callout success" style="margin-bottom: 2rem">
           <div class="callout-title">Headline Results (5-run averages)</div>
           <p>
-            <strong>MemoryBus Publish:</strong> 34% faster, 67% fewer allocs (48→16 B, 3→1
-            allocs).<br />
+            <strong>MemoryBus Publish:</strong> 34% faster, 67% fewer allocs
+            (48→16 B, 3→1 allocs).<br />
             <strong>MemoryStore Load:</strong> 58% faster, 50% less memory.<br />
-            <strong>Projection 100K events:</strong> 10.5M fewer allocations (-10.4%), 583 MB less
-            memory (-9.7%).<br />
-            <strong>Pebble LoadToTimestamp:</strong> 21–23% faster, 26% less memory.<br />
+            <strong>Projection 100K events:</strong> 10.5M fewer allocations
+            (-10.4%), 583 MB less memory (-9.7%).<br />
+            <strong>Pebble LoadToTimestamp:</strong> 21–23% faster, 26% less
+            memory.<br />
             <em style="color: var(--muted)"
-              >Note: Single-iteration ns/op benchmarks have ±15% variance. Allocation and byte
-              deltas are deterministic and are the reliable signal.</em
+              >Note: Single-iteration ns/op benchmarks have ±15% variance.
+              Allocation and byte deltas are deterministic and are the reliable
+              signal.</em
             >
           </p>
         </div>
@@ -3380,11 +3719,15 @@ func (e *ImmutableEvent) Metadata() Metadata {
         <h3>Before / After Benchmark Comparison</h3>
         <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem">
           Baseline captured at v2.3.0 pre-optimization
-          (<code>benchmarks/benchmark-baseline.txt</code>). Post-optimization run with
-          <code>-count=1 -benchmem</code> on the same hardware. Single-iteration benchmarks have
-          ±10–15% variance; focus on allocation and byte deltas which are deterministic.
+          (<code>benchmarks/benchmark-baseline.txt</code>). Post-optimization
+          run with
+          <code>-count=1 -benchmem</code> on the same hardware. Single-iteration
+          benchmarks have ±10–15% variance; focus on allocation and byte deltas
+          which are deterministic.
         </p>
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem">
+        <table
+          style="width: 100%; border-collapse: collapse; font-size: 0.82rem"
+        >
           <thead>
             <tr style="border-bottom: 2px solid var(--border)">
               <th style="text-align: left; padding: 0.5rem">Benchmark</th>
@@ -3399,50 +3742,119 @@ func (e *ImmutableEvent) Metadata() Metadata {
           </thead>
           <tbody>
             <tr style="border-bottom: 1px solid var(--border)">
-              <td style="padding: 0.4rem 0.5rem"><strong>MemoryBus_Publish</strong></td>
+              <td style="padding: 0.4rem 0.5rem">
+                <strong>MemoryBus_Publish</strong>
+              </td>
               <td style="padding: 0.4rem 0.5rem">T12</td>
               <td class="num" style="padding: 0.4rem 0.5rem">67.7</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 44.7
               </td>
               <td class="num" style="padding: 0.4rem 0.5rem">48</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 16
               </td>
               <td class="num" style="padding: 0.4rem 0.5rem">3</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 1
               </td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border)">
-              <td style="padding: 0.4rem 0.5rem"><strong>MemoryBus_Publish_10Subs</strong></td>
+              <td style="padding: 0.4rem 0.5rem">
+                <strong>MemoryBus_Publish_10Subs</strong>
+              </td>
               <td style="padding: 0.4rem 0.5rem">T12</td>
               <td class="num" style="padding: 0.4rem 0.5rem">72.1</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 52.6
               </td>
               <td class="num" style="padding: 0.4rem 0.5rem">48</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 16
               </td>
               <td class="num" style="padding: 0.4rem 0.5rem">3</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 1
               </td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border)">
-              <td style="padding: 0.4rem 0.5rem"><strong>MemoryStore_Load</strong></td>
+              <td style="padding: 0.4rem 0.5rem">
+                <strong>MemoryStore_Load</strong>
+              </td>
               <td style="padding: 0.4rem 0.5rem">T6</td>
               <td class="num" style="padding: 0.4rem 0.5rem">609.7</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 254.6
               </td>
               <td class="num" style="padding: 0.4rem 0.5rem">3584</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 1792
               </td>
               <td class="num" style="padding: 0.4rem 0.5rem">2</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 1
               </td>
             </tr>
@@ -3452,15 +3864,36 @@ func (e *ImmutableEvent) Metadata() Metadata {
               </td>
               <td style="padding: 0.4rem 0.5rem">T3/T4+Fix</td>
               <td class="num" style="padding: 0.4rem 0.5rem">4,283,248</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 3,773,354
               </td>
               <td class="num" style="padding: 0.4rem 0.5rem">6,005,158</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 5,421,580
               </td>
               <td class="num" style="padding: 0.4rem 0.5rem">100,912,507</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 90,410,135
               </td>
             </tr>
@@ -3470,15 +3903,36 @@ func (e *ImmutableEvent) Metadata() Metadata {
               </td>
               <td style="padding: 0.4rem 0.5rem">T1,T13</td>
               <td class="num" style="padding: 0.4rem 0.5rem">5,147,023</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 4,043,293
               </td>
               <td class="num" style="padding: 0.4rem 0.5rem">2,206,541</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 1,626,240
               </td>
               <td class="num" style="padding: 0.4rem 0.5rem">38,036</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 29,032
               </td>
             </tr>
@@ -3488,15 +3942,36 @@ func (e *ImmutableEvent) Metadata() Metadata {
               </td>
               <td style="padding: 0.4rem 0.5rem">T1,T13</td>
               <td class="num" style="padding: 0.4rem 0.5rem">533,857</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 410,937
               </td>
               <td class="num" style="padding: 0.4rem 0.5rem">226,245</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 167,047
               </td>
               <td class="num" style="padding: 0.4rem 0.5rem">3,894</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 2,976
               </td>
             </tr>
@@ -3508,7 +3983,14 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <td class="num" style="padding: 0.4rem 0.5rem">3,983</td>
               <td class="num" style="padding: 0.4rem 0.5rem">4,370</td>
               <td class="num" style="padding: 0.4rem 0.5rem">91</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 88
               </td>
             </tr>
@@ -3520,7 +4002,14 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <td class="num" style="padding: 0.4rem 0.5rem">12,785</td>
               <td class="num" style="padding: 0.4rem 0.5rem">13,180</td>
               <td class="num" style="padding: 0.4rem 0.5rem">174</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 171
               </td>
             </tr>
@@ -3530,11 +4019,25 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <td class="num" style="padding: 0.4rem 0.5rem">7,853,926</td>
               <td class="num" style="padding: 0.4rem 0.5rem">8,095,366</td>
               <td class="num" style="padding: 0.4rem 0.5rem">8,761,527</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 5,698,253
               </td>
               <td class="num" style="padding: 0.4rem 0.5rem">31,027</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 28,027
               </td>
             </tr>
@@ -3544,7 +4047,14 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <td class="num" style="padding: 0.4rem 0.5rem">269.8</td>
               <td class="num" style="padding: 0.4rem 0.5rem">273.0</td>
               <td class="num" style="padding: 0.4rem 0.5rem">927</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+              <td
+                class="num"
+                style="
+                  padding: 0.4rem 0.5rem;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+              >
                 844
               </td>
               <td class="num" style="padding: 0.4rem 0.5rem">0</td>
@@ -3554,108 +4064,119 @@ func (e *ImmutableEvent) Metadata() Metadata {
         </table>
 
         <h3 style="margin-top: 2.5rem">All 14 Optimizations — Status</h3>
-        <div class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(340px, 1fr))">
+        <div
+          class="card-grid"
+          style="grid-template-columns: repeat(auto-fill, minmax(340px, 1fr))"
+        >
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>T1: Pebble double
-              serialization
+              <span class="dot" style="background: var(--green)"></span>T1:
+              Pebble double serialization
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              Serialize once per event, <code>batch.Set</code> for both keys. Halves CPU + disk
-              bytes.
+              Serialize once per event, <code>batch.Set</code> for both keys.
+              Halves CPU + disk bytes.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>T2: Event lazy metadata map
+              <span class="dot" style="background: var(--green)"></span>T2:
+              Event lazy metadata map
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              <code>NewMetadata()</code> returns zero-value struct. Map allocated only when
-              <code>EnsureCustom</code> is called.
+              <code>NewMetadata()</code> returns zero-value struct. Map
+              allocated only when <code>EnsureCustom</code> is called.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--yellow)">
             <div class="card-title">
-              <span class="dot" style="background: var(--yellow)"></span>T3: Projection Lookup
-              zero-alloc (Builder path only)
+              <span class="dot" style="background: var(--yellow)"></span>T3:
+              Projection Lookup zero-alloc (Builder path only)
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              <code>lookupSlices()</code> returns pre-built handler slices. Only benefits
-              projections created via <code>projection.Builder</code>. Most users use
-              <code>event.NewProjection()</code> which was unaffected until the Runner caching fix
-              (T15).
+              <code>lookupSlices()</code> returns pre-built handler slices. Only
+              benefits projections created via <code>projection.Builder</code>.
+              Most users use <code>event.NewProjection()</code> which was
+              unaffected until the Runner caching fix (T15).
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--red)">
             <div class="card-title">
-              <span class="dot" style="background: var(--red)"></span>T4: Projection EventTypes fast
-              path (originally dead code)
+              <span class="dot" style="background: var(--red)"></span>T4:
+              Projection EventTypes fast path (originally dead code)
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              Type assertion checked <code>*builtProjection</code> but benchmarks use
-              <code>event.NewProjection()</code> (<code>*projectionFunc</code>). Fast path never
-              triggered. <strong>Fixed by T15</strong> — Runner now caches types at registration for
-              ALL projection types.
+              Type assertion checked <code>*builtProjection</code> but
+              benchmarks use
+              <code>event.NewProjection()</code> (<code>*projectionFunc</code>).
+              Fast path never triggered. <strong>Fixed by T15</strong> — Runner
+              now caches types at registration for ALL projection types.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>T5: SQL template cached per
-              dialect
+              <span class="dot" style="background: var(--green)"></span>T5: SQL
+              template cached per dialect
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              INSERT SQL built once at construction. Eliminates <code>fmt.Sprintf</code> per call.
+              INSERT SQL built once at construction. Eliminates
+              <code>fmt.Sprintf</code> per call.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>T6: MemoryStore Load
-              double-copy
+              <span class="dot" style="background: var(--green)"></span>T6:
+              MemoryStore Load double-copy
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              Removed redundant <code>slices.Clone</code> wrapper on already-fresh slice from
-              <code>getEvents()</code>.
+              Removed redundant <code>slices.Clone</code> wrapper on
+              already-fresh slice from <code>getEvents()</code>.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>T7: SSE goroutine leak
-              removed
+              <span class="dot" style="background: var(--green)"></span>T7: SSE
+              goroutine leak removed
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              Removed pointless goroutine. Consolidated 3× <code>fmt.Fprintf</code> into single
-              write.
+              Removed pointless goroutine. Consolidated 3×
+              <code>fmt.Fprintf</code> into single write.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>T8: Merge EnsureCustom
-              hoisted
+              <span class="dot" style="background: var(--green)"></span>T8:
+              Merge EnsureCustom hoisted
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              <code>EnsureCustom</code> called once before loop instead of per-iteration nil-check.
+              <code>EnsureCustom</code> called once before loop instead of
+              per-iteration nil-check.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>T9: FilterByTimestamp
-              pre-sized
+              <span class="dot" style="background: var(--green)"></span>T9:
+              FilterByTimestamp pre-sized
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              <code>make([]Event, 0, len(events))</code> eliminates nil-slice append growth.
+              <code>make([]Event, 0, len(events))</code> eliminates nil-slice
+              append growth.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>T10: ScanSlice capacity hint
+              <span class="dot" style="background: var(--green)"></span>T10:
+              ScanSlice capacity hint
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              Initial capacity of 64 reduces log₂(N) growth copies during large Loads.
+              Initial capacity of 64 reduces log₂(N) growth copies during large
+              Loads.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>T11: CircuitBreaker atomic
+              <span class="dot" style="background: var(--green)"></span>T11:
+              CircuitBreaker atomic
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
               <code>atomic.Int32</code> replaces mutex in happy path. Lock-free
@@ -3664,43 +4185,46 @@ func (e *ImmutableEvent) Metadata() Metadata {
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>T12: MemoryBus middleware
-              pre-compute
+              <span class="dot" style="background: var(--green)"></span>T12:
+              MemoryBus middleware pre-compute
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              Chains rebuilt on <code>Use()</code>/<code>UsePublish()</code> only. Zero per-publish
-              closure allocation.
+              Chains rebuilt on <code>Use()</code>/<code>UsePublish()</code>
+              only. Zero per-publish closure allocation.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>T13: Pebble ReadFrom
-              key-based skip
+              <span class="dot" style="background: var(--green)"></span>T13:
+              Pebble ReadFrom key-based skip
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              Parse event ID from journal key via <code>journalKeyEventID()</code> instead of
-              CBOR-deserializing.
+              Parse event ID from journal key via
+              <code>journalKeyEventID()</code> instead of CBOR-deserializing.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>T14: SQL multi-VALUES INSERT
+              <span class="dot" style="background: var(--green)"></span>T14: SQL
+              multi-VALUES INSERT
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              Single multi-VALUES statement. SQLite 999-param limit handled via automatic chunking
-              (99 events/batch).
+              Single multi-VALUES statement. SQLite 999-param limit handled via
+              automatic chunking (99 events/batch).
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>T15: Runner event type
-              caching (the real fix)
+              <span class="dot" style="background: var(--green)"></span>T15:
+              Runner event type caching (the real fix)
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              Runner caches <code>p.EventTypes()</code> once at <code>Register()</code> time.
-              Eliminates 10M per-event clone allocations in the 100K projection benchmark. This is
-              the fix that makes T3/T4 effective for ALL projection types, not just
-              <code>Builder</code>-created ones. Also pre-allocates the candidates slice.
+              Runner caches <code>p.EventTypes()</code> once at
+              <code>Register()</code> time. Eliminates 10M per-event clone
+              allocations in the 100K projection benchmark. This is the fix that
+              makes T3/T4 effective for ALL projection types, not just
+              <code>Builder</code>-created ones. Also pre-allocates the
+              candidates slice.
             </p>
           </div>
         </div>
@@ -3713,24 +4237,32 @@ func (e *ImmutableEvent) Metadata() Metadata {
             background: rgba(250, 204, 21, 0.06);
           "
         >
-          <div class="callout-title" style="color: var(--yellow)">⚠ Honest Assessment</div>
+          <div class="callout-title" style="color: var(--yellow)">
+            ⚠ Honest Assessment
+          </div>
           <p>
-            <strong>What worked:</strong> MemoryBus pre-computation (T12), MemoryStore double-copy
-            elimination (T6), Pebble double serialization (T1), SSE goroutine leak fix (T7), lazy
-            metadata map (T2), SQL template caching (T5). These delivered measurable, deterministic
-            allocation reductions.<br /><br />
-            <strong>What was originally broken:</strong> T3 and T4 were dead code for the most
-            common projection path (<code>event.NewProjection</code>). The
-            <code>*builtProjection</code> type assertion in <code>subscribesTo()</code> never
-            matched <code>*projectionFunc</code>. The real fix (T15) caches event types in the
-            Runner at registration time, eliminating 10.5M clone allocations (100K events × 100
-            projections) in the scale benchmark.<br /><br />
-            <strong>What's now measured:</strong> Pebble single-event Save (13.2 µs) and AppendBatch
-            (23.4 µs) benchmarks confirm T1. CircuitBreaker HappyPath (9.3 ns/op, 0 B, 0 allocs) and
-            Concurrent (19.7 ns/op) benchmarks confirm T11. CBOR serialize/deserialize benchmarks
-            added for Pebble envelope. Full benchmark baseline:
+            <strong>What worked:</strong> MemoryBus pre-computation (T12),
+            MemoryStore double-copy elimination (T6), Pebble double
+            serialization (T1), SSE goroutine leak fix (T7), lazy metadata map
+            (T2), SQL template caching (T5). These delivered measurable,
+            deterministic allocation reductions.<br /><br />
+            <strong>What was originally broken:</strong> T3 and T4 were dead
+            code for the most common projection path
+            (<code>event.NewProjection</code>). The
+            <code>*builtProjection</code> type assertion in
+            <code>subscribesTo()</code> never matched
+            <code>*projectionFunc</code>. The real fix (T15) caches event types
+            in the Runner at registration time, eliminating 10.5M clone
+            allocations (100K events × 100 projections) in the scale
+            benchmark.<br /><br />
+            <strong>What's now measured:</strong> Pebble single-event Save (13.2
+            µs) and AppendBatch (23.4 µs) benchmarks confirm T1. CircuitBreaker
+            HappyPath (9.3 ns/op, 0 B, 0 allocs) and Concurrent (19.7 ns/op)
+            benchmarks confirm T11. CBOR serialize/deserialize benchmarks added
+            for Pebble envelope. Full benchmark baseline:
             <code>benchmarks/2026-06-16_update.txt</code>.<br /><br />
-            All 40+ test packages pass, zero lint issues, race detector clean on all modules.
+            All 40+ test packages pass, zero lint issues, race detector clean on
+            all modules.
           </p>
         </div>
       </div>
@@ -3741,9 +4273,11 @@ func (e *ImmutableEvent) Metadata() Metadata {
       <div class="container">
         <p>Updated 2026-06-16 · go-cqrs-lite v2.3.0 · 33 modules · Go 1.26.3</p>
         <p style="margin-top: 0.3rem">
-          All benchmarks run on AMD Ryzen AI MAX+ 395 (32 threads, 96 GB RAM) with
-          <code>-count=1 -benchmem</code>. Baseline: <code>benchmarks/benchmark-baseline.txt</code>.
-          Latest: <code>benchmarks/2026-06-16_update.txt</code>.
+          All benchmarks run on AMD Ryzen AI MAX+ 395 (32 threads, 96 GB RAM)
+          with
+          <code>-count=1 -benchmem</code>. Baseline:
+          <code>benchmarks/benchmark-baseline.txt</code>. Latest:
+          <code>benchmarks/2026-06-16_update.txt</code>.
         </p>
       </div>
     </footer>
@@ -3752,8 +4286,12 @@ func (e *ImmutableEvent) Metadata() Metadata {
       // ── Tab switching ───────────────────────────────────────
       function switchTab(e, panelId) {
         const tabs = e.target.closest(".tabs");
-        tabs.querySelectorAll(".tab-header").forEach((h) => h.classList.remove("active"));
-        tabs.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+        tabs
+          .querySelectorAll(".tab-header")
+          .forEach((h) => h.classList.remove("active"));
+        tabs
+          .querySelectorAll(".tab-panel")
+          .forEach((p) => p.classList.remove("active"));
         e.target.classList.add("active");
         document.getElementById(panelId).classList.add("active");
       }
@@ -3767,7 +4305,10 @@ func (e *ImmutableEvent) Metadata() Metadata {
             if (entry.isIntersecting) {
               const id = entry.target.id;
               navLinks.forEach((link) => {
-                link.classList.toggle("active", link.getAttribute("href") === "#" + id);
+                link.classList.toggle(
+                  "active",
+                  link.getAttribute("href") === "#" + id,
+                );
               });
             }
           });

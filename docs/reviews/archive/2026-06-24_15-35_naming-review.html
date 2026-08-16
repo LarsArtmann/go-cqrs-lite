@@ -27,8 +27,10 @@
         --problem: var(--color-red);
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
-        --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-        --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-heading:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-body:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
         --font-mono: "SF Mono", Menlo, Consolas, monospace;
       }
       * {
@@ -362,9 +364,10 @@
           <div class="hero-badge">Naming Review &middot; 2026-06-24</div>
           <h1>Identifier Quality Audit</h1>
           <p class="hero-subtitle">
-            Scanned all non-test, non-example Go for naming smells. Result: the codebase is
-            exceptionally well-named — zero Manager/Handler-as-trashcan/Helper/Util/Impl types,
-            consistent verb vocabulary, and honest method names. Only three cosmetic nits.
+            Scanned all non-test, non-example Go for naming smells. Result: the
+            codebase is exceptionally well-named — zero
+            Manager/Handler-as-trashcan/Helper/Util/Impl types, consistent verb
+            vocabulary, and honest method names. Only three cosmetic nits.
           </p>
         </div>
 
@@ -388,13 +391,17 @@
           </div>
         </div>
         <p>
-          Automated detection (ripgrep for <code>Data|Info|Record|Item|Object|Thing</code> types,
+          Automated detection (ripgrep for
+          <code>Data|Info|Record|Item|Object|Thing</code> types,
           <code>Manager|Handler|Processor|Helper|Util</code> classes,
-          <code>Impl|Concrete|Default|Abstract|Base</code> suffixes) returned almost nothing
-          actionable. "Handler" appears only where it is the correct CQRS domain term.
+          <code>Impl|Concrete|Default|Abstract|Base</code> suffixes) returned
+          almost nothing actionable. "Handler" appears only where it is the
+          correct CQRS domain term.
         </p>
 
-        <h2 id="glossary"><span class="num">01</span>Naming Glossary — no split-brains found</h2>
+        <h2 id="glossary">
+          <span class="num">01</span>Naming Glossary — no split-brains found
+        </h2>
         <table>
           <thead>
             <tr>
@@ -431,21 +438,28 @@
             </tr>
             <tr>
               <td>Read interfaces</td>
-              <td><code>Source</code>/<code>Journal</code>/<code>SeekableJournal</code></td>
+              <td>
+                <code>Source</code>/<code>Journal</code>/<code
+                  >SeekableJournal</code
+                >
+              </td>
               <td><span class="badge badge-fixed">ISP-honest</span></td>
             </tr>
           </tbody>
         </table>
 
-        <h2 id="findings"><span class="num">02</span>Findings (3 cosmetic nits)</h2>
+        <h2 id="findings">
+          <span class="num">02</span>Findings (3 cosmetic nits)
+        </h2>
         <div class="issue issue-nice">
           <span class="severity severity-nice">Clarity</span>
           <h3><code>DocumentInfo</code> carries a vague suffix</h3>
           <div class="where">catalog/types.go:67</div>
           <p>
-            "Info" adds no meaning. <code>Document</code> (or <code>CatalogDocument</code> if
-            disambiguation is needed) is sharper. No rename performed — external API; recommend at
-            next minor.
+            "Info" adds no meaning. <code>Document</code> (or
+            <code>CatalogDocument</code> if disambiguation is needed) is
+            sharper. No rename performed — external API; recommend at next
+            minor.
           </p>
         </div>
         <div class="issue issue-nice">
@@ -453,8 +467,8 @@
           <h3><code>ViewItem[V,K]</code> uses the generic "Item"</h3>
           <div class="where">kv/view_store.go:102</div>
           <p>
-            An envelope holding a key+value is better named <code>ViewEntry[V,K]</code>. Low impact;
-            external type.
+            An envelope holding a key+value is better named
+            <code>ViewEntry[V,K]</code>. Low impact; external type.
           </p>
         </div>
         <div class="issue issue-nice">
@@ -462,9 +476,10 @@
           <h3><code>storeBase</code> uses the discouraged "Base" name</h3>
           <div class="where">storage/pebble/base.go:14 (unexported)</div>
           <p>
-            "Base" encodes an embedding/inheritance hierarchy. It is unexported and used purely for
-            composition, so the smell is contained — but <code>pebbleShared</code> or
-            <code>commonStore</code> would read better. Optional.
+            "Base" encodes an embedding/inheritance hierarchy. It is unexported
+            and used purely for composition, so the smell is contained — but
+            <code>pebbleShared</code> or <code>commonStore</code> would read
+            better. Optional.
           </p>
         </div>
 
@@ -475,8 +490,8 @@
             <div class="text">
               <strong>Zero trash-can types</strong
               ><span
-                >No Manager/Processor/Helper/Util/Utility — responsibilities are named for what they
-                do.</span
+                >No Manager/Processor/Helper/Util/Utility — responsibilities are
+                named for what they do.</span
               >
             </div>
           </div>
@@ -485,8 +500,9 @@
             <div class="text">
               <strong>No Impl/Concrete/Default leakage</strong
               ><span
-                >Implementations are named for their mechanism (<code>MemoryStore</code>,
-                <code>SQLEventStore</code>), not "<code>StoreImpl</code>".</span
+                >Implementations are named for their mechanism
+                (<code>MemoryStore</code>, <code>SQLEventStore</code>), not
+                "<code>StoreImpl</code>".</span
               >
             </div>
           </div>
@@ -495,10 +511,9 @@
             <div class="text">
               <strong>Command-query separation in verbs</strong
               ><span
-                ><code>Load</code>/<code>Save</code> (commands) vs <code>HasNext</code>/<code
-                  >IsZero</code
-                >
-                (queries) — methods read as yes/no or actions correctly.</span
+                ><code>Load</code>/<code>Save</code> (commands) vs
+                <code>HasNext</code>/<code>IsZero</code> (queries) — methods
+                read as yes/no or actions correctly.</span
               >
             </div>
           </div>
@@ -507,8 +522,9 @@
             <div class="text">
               <strong>Branded IDs prevent synonym drift</strong
               ><span
-                >One name per concept (<code>AggregateID</code>, <code>EventID</code>) — no
-                User/Customer/AccountHolder split-brain.</span
+                >One name per concept (<code>AggregateID</code>,
+                <code>EventID</code>) — no User/Customer/AccountHolder
+                split-brain.</span
               >
             </div>
           </div>
@@ -517,15 +533,17 @@
             <div class="text">
               <strong>Consistent constructor vocabulary</strong
               ><span
-                ><code>New*</code> for construct, <code>With*</code> for options,
-                <code>Register*</code> for wiring — uniform across all 43 modules.</span
+                ><code>New*</code> for construct, <code>With*</code> for
+                options, <code>Register*</code> for wiring — uniform across all
+                43 modules.</span
               >
             </div>
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-24 &middot; Detection via ripgrep over non-test, non-example
+          Generated 2026-06-24 &middot; Detection via ripgrep over non-test,
+          non-example
           <code>*.go</code> for the standard naming-smell patterns.
         </footer>
       </main>

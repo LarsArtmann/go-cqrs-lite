@@ -58,14 +58,14 @@
         --radius-sm: 0px;
 
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
 
       * {
@@ -273,15 +273,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
 
       .issue {
@@ -293,15 +305,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue h3 {
         margin-bottom: 0.3rem;
@@ -739,9 +763,10 @@
           <div class="hero-badge">Gap Analysis &middot; Exploration Mode</div>
           <h1>What's missing to be a superb Event-Sourcing Framework/OS?</h1>
           <p class="hero-subtitle">
-            Not a list of forgotten features. A deliberate framing of two very different buckets of
-            gaps &mdash; one on-mission for a <em>library</em>, one that requires becoming a
-            different <em>product</em> entirely. Verified against the v3.1.0 source.
+            Not a list of forgotten features. A deliberate framing of two very
+            different buckets of gaps &mdash; one on-mission for a
+            <em>library</em>, one that requires becoming a different
+            <em>product</em> entirely. Verified against the v3.1.0 source.
           </p>
         </div>
 
@@ -750,25 +775,28 @@
         <p>
           The single most important fact about this question:
           <strong
-            >this project is explicitly, repeatedly, deliberately a <em>library/SDK</em>, not a
-            framework</strong
+            >this project is explicitly, repeatedly, deliberately a
+            <em>library/SDK</em>, not a framework</strong
           >
-          (AGENTS.md principle&nbsp;#1, the repo's own warning table, the litmus test &ldquo;Would
-          ANY Go app potentially use this?&rdquo;). Almost everything perceived as
-          &ldquo;missing&rdquo; is not an oversight &mdash; it is the <em>consequence</em> of that
-          choice. Frameworks and operating systems own a <strong>runtime</strong> and a
-          <strong>control plane</strong>; libraries provide <strong>importable primitives</strong>.
+          (AGENTS.md principle&nbsp;#1, the repo's own warning table, the litmus
+          test &ldquo;Would ANY Go app potentially use this?&rdquo;). Almost
+          everything perceived as &ldquo;missing&rdquo; is not an oversight
+          &mdash; it is the <em>consequence</em> of that choice. Frameworks and
+          operating systems own a <strong>runtime</strong> and a
+          <strong>control plane</strong>; libraries provide
+          <strong>importable primitives</strong>.
         </p>
 
         <div class="card card-warning">
           <h4>Two buckets, two destinies</h4>
           <p>
-            Split the gaps cleanly. <strong>Bucket&nbsp;A</strong> = composable building blocks a
-            complete library could still ship (embed-in-process, no opinionated server). These are
-            on-mission and high-leverage. <strong>Bucket&nbsp;B</strong> = a runtime process + a
-            control plane &mdash; the things that make something an &ldquo;OS.&rdquo; Shipping these
-            means crossing the line the project refuses to cross, which is exactly why they're
-            absent.
+            Split the gaps cleanly. <strong>Bucket&nbsp;A</strong> = composable
+            building blocks a complete library could still ship
+            (embed-in-process, no opinionated server). These are on-mission and
+            high-leverage. <strong>Bucket&nbsp;B</strong> = a runtime process +
+            a control plane &mdash; the things that make something an
+            &ldquo;OS.&rdquo; Shipping these means crossing the line the project
+            refuses to cross, which is exactly why they're absent.
           </p>
         </div>
 
@@ -792,11 +820,14 @@
         </div>
 
         <!-- ============ EVIDENCE ============ -->
-        <h2 id="evidence"><span class="num">01</span>Evidence &mdash; verified absences</h2>
+        <h2 id="evidence">
+          <span class="num">01</span>Evidence &mdash; verified absences
+        </h2>
         <p>
-          These are not assumptions. Each was checked against the v3.1.0 source (grep across
-          <code>*.go</code>) and cross-referenced with the project's own roadmap, design docs, and
-          the &ldquo;toward-perfect&rdquo; brainstorm.
+          These are not assumptions. Each was checked against the v3.1.0 source
+          (grep across
+          <code>*.go</code>) and cross-referenced with the project's own
+          roadmap, design docs, and the &ldquo;toward-perfect&rdquo; brainstorm.
         </p>
 
         <table>
@@ -857,19 +888,24 @@
         <div class="card card-solution">
           <h4>Caveat: some of this is <em>by design</em>, not forgotten</h4>
           <p>
-            The distributed-projection-runner design doc closes with &ldquo;single-machine is
-            sufficient for now.&rdquo; The outbox-explained.html argues the crash-recovery relay
-            <em>replaces</em> the outbox without a secondary table. So before &ldquo;building&rdquo;
-            any of these, the first job is deciding whether each is a real consumer need or a
-            philosophical line worth holding.
+            The distributed-projection-runner design doc closes with
+            &ldquo;single-machine is sufficient for now.&rdquo; The
+            outbox-explained.html argues the crash-recovery relay
+            <em>replaces</em> the outbox without a secondary table. So before
+            &ldquo;building&rdquo; any of these, the first job is deciding
+            whether each is a real consumer need or a philosophical line worth
+            holding.
           </p>
         </div>
 
         <!-- ============ STRENGTHS ============ -->
-        <h2 id="strengths"><span class="num">&diams;</span>What's already genuinely superb</h2>
+        <h2 id="strengths">
+          <span class="num">&diams;</span>What's already genuinely superb
+        </h2>
         <p>
-          A credible answer must first acknowledge what's done well, because much of the
-          &ldquo;framework&rdquo; surface is <em>already here</em> and best-in-class for Go.
+          A credible answer must first acknowledge what's done well, because
+          much of the &ldquo;framework&rdquo; surface is
+          <em>already here</em> and best-in-class for Go.
         </p>
         <div class="strengths">
           <div class="strength">
@@ -877,9 +913,10 @@
             <div class="text">
               <strong>Primitive surface is best-in-class</strong>
               <span
-                >Immutable events (concrete alias, zero-copy reads), branded IDs, ISP-split
-                store/bus interfaces, SeekableJournal, BackwardsSource, tombstone soft-delete,
-                causality/correlation, time-travel loads, streaming sources.</span
+                >Immutable events (concrete alias, zero-copy reads), branded
+                IDs, ISP-split store/bus interfaces, SeekableJournal,
+                BackwardsSource, tombstone soft-delete, causality/correlation,
+                time-travel loads, streaming sources.</span
               >
             </div>
           </div>
@@ -888,9 +925,10 @@
             <div class="text">
               <strong>Real multi-backend storage</strong>
               <span
-                >Postgres / SQLite / Turso / Pebble + KV + SQLViewStore + RelationalProjection + a
-                new graph/ tier. Not just an interface &mdash; working implementations with
-                optimistic concurrency.</span
+                >Postgres / SQLite / Turso / Pebble + KV + SQLViewStore +
+                RelationalProjection + a new graph/ tier. Not just an interface
+                &mdash; working implementations with optimistic
+                concurrency.</span
               >
             </div>
           </div>
@@ -899,8 +937,9 @@
             <div class="text">
               <strong>Auto-documentation is rare and excellent</strong>
               <span
-                >catalog &rarr; AsyncAPI / OpenAPI / D2 / EventCatalog / docs-server from the same
-                registry. Most ES libraries have nothing like this.</span
+                >catalog &rarr; AsyncAPI / OpenAPI / D2 / EventCatalog /
+                docs-server from the same registry. Most ES libraries have
+                nothing like this.</span
               >
             </div>
           </div>
@@ -909,8 +948,9 @@
             <div class="text">
               <strong>Security primitives baked in</strong>
               <span
-                >Signing (HMAC/Ed25519/multisig), encryption (XChaCha20/AES-GCM/HKDF), schema
-                upcasting + validator, error taxonomy, defensive clones everywhere.</span
+                >Signing (HMAC/Ed25519/multisig), encryption
+                (XChaCha20/AES-GCM/HKDF), schema upcasting + validator, error
+                taxonomy, defensive clones everywhere.</span
               >
             </div>
           </div>
@@ -919,52 +959,60 @@
             <div class="text">
               <strong>Observability + transport + tooling</strong>
               <span
-                >OTel re-exports, Prometheus bridge, Watermill adapter, SSE (Last-Event-ID
-                reconnect), gRPC, cqrs-gen / api-stability / doc-check tooling.</span
+                >OTel re-exports, Prometheus bridge, Watermill adapter, SSE
+                (Last-Event-ID reconnect), gRPC, cqrs-gen / api-stability /
+                doc-check tooling.</span
               >
             </div>
           </div>
         </div>
         <div class="callout callout-solution">
           <strong>Verdict so far.</strong>
-          As a library of ES primitives, this is arguably the most thoughtfully architected in the
-          Go ecosystem. The hard parts are solved. What's missing is not more primitives &mdash;
-          it's the tier above them.
+          As a library of ES primitives, this is arguably the most thoughtfully
+          architected in the Go ecosystem. The hard parts are solved. What's
+          missing is not more primitives &mdash; it's the tier above them.
         </div>
 
         <!-- ============ BUCKET A ============ -->
         <h2 id="bucket-a">
-          <span class="num">02</span>Bucket A &mdash; Library-tier gaps (on-mission)
+          <span class="num">02</span>Bucket A &mdash; Library-tier gaps
+          (on-mission)
         </h2>
         <p>
-          These could ship as composable modules and the project would <em>still</em> be a library.
-          Each removes a chunk of hand-rolled glue a consumer currently writes themselves. Ordered
-          by leverage.
+          These could ship as composable modules and the project would
+          <em>still</em> be a library. Each removes a chunk of hand-rolled glue
+          a consumer currently writes themselves. Ordered by leverage.
         </p>
 
         <div class="issue issue-critical">
           <span class="severity severity-critical">Highest leverage</span>
           <h3>
-            A1. Managed Projection Host (<code>runtime/</code> or revive <code>projection/</code>)
+            A1. Managed Projection Host (<code>runtime/</code> or revive
+            <code>projection/</code>)
           </h3>
           <div class="where">
-            ADR-0030 deleted the projection module; <code>watermill/catchup_subscriber.go</code> +
+            ADR-0030 deleted the projection module;
+            <code>watermill/catchup_subscriber.go</code> +
             <code>stack/materialize.go</code> are the raw pieces
           </div>
           <p>
             Today every consumer hand-assembles
-            <em>CatchUpSubscriber + Projection + checkpoint + lifecycle</em>. There is no
-            batteries-included host that does: per-projection goroutines, crash
-            <strong>auto-restart with exponential backoff</strong>, health/liveness exposure,
-            ordered vs parallel routing policy, and <strong>graceful drain on shutdown</strong>.
-            This is the single component that turns a library into an ES runtime &mdash; Marten's
-            &ldquo;async daemon&rdquo; and Axon's tracking-event-processor are exactly this. It is
-            still embeddable in your own process, so it stays a library.
+            <em>CatchUpSubscriber + Projection + checkpoint + lifecycle</em>.
+            There is no batteries-included host that does: per-projection
+            goroutines, crash
+            <strong>auto-restart with exponential backoff</strong>,
+            health/liveness exposure, ordered vs parallel routing policy, and
+            <strong>graceful drain on shutdown</strong>. This is the single
+            component that turns a library into an ES runtime &mdash; Marten's
+            &ldquo;async daemon&rdquo; and Axon's tracking-event-processor are
+            exactly this. It is still embeddable in your own process, so it
+            stays a library.
           </p>
           <div class="callout callout-solution">
             <strong>Why it's the #1 gap.</strong>
-            It is the last &ldquo;loop&rdquo; every consumer rewrites, and it's where production
-            failure modes (restart storms, lost checkpoints, ordering bugs) live.
+            It is the last &ldquo;loop&rdquo; every consumer rewrites, and it's
+            where production failure modes (restart storms, lost checkpoints,
+            ordering bugs) live.
           </div>
         </div>
 
@@ -972,32 +1020,37 @@
           <span class="severity severity-important">Strong</span>
           <h3>A2. Transactional Outbox (<code>outbox/</code>)</h3>
           <div class="where">
-            0 <code>outbox</code> references in *.go; <code>docs/outbox-explained.html</code> argues
-            the relay replaces it
+            0 <code>outbox</code> references in *.go;
+            <code>docs/outbox-explained.html</code> argues the relay replaces it
           </div>
           <p>
-            The <strong>dual-write problem is real</strong>: <code>Repository.Execute</code> saves
-            to the store and publishes to the bus as two separate operations. A crash between them
-            means an event is persisted but never published until a relay notices it. The
-            CatchUpSubscriber is a <em>subscriber-side</em> relay; an outbox is the
-            <em>publisher-side</em> atomic guarantee (write the outbox row in the same TX as the
-            aggregate, a relay drains it). The project chose relay-over-outbox to avoid a secondary
-            table &mdash; a defensible call, but it is the textbook &ldquo;reliability&rdquo; gap a
-            superb framework closes.
+            The <strong>dual-write problem is real</strong>:
+            <code>Repository.Execute</code> saves to the store and publishes to
+            the bus as two separate operations. A crash between them means an
+            event is persisted but never published until a relay notices it. The
+            CatchUpSubscriber is a <em>subscriber-side</em> relay; an outbox is
+            the <em>publisher-side</em> atomic guarantee (write the outbox row
+            in the same TX as the aggregate, a relay drains it). The project
+            chose relay-over-outbox to avoid a secondary table &mdash; a
+            defensible call, but it is the textbook &ldquo;reliability&rdquo;
+            gap a superb framework closes.
           </p>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Strong</span>
-          <h3>A3. Command Idempotency (<code>idempotency/</code> or a middleware)</h3>
+          <h3>
+            A3. Command Idempotency (<code>idempotency/</code> or a middleware)
+          </h3>
           <div class="where">
-            grep <code>idempoten|dedup</code>: dedup exists at the event tier (CatchUp, SSE) and
-            projection sinks; nothing on the command path
+            grep <code>idempoten|dedup</code>: dedup exists at the event tier
+            (CatchUp, SSE) and projection sinks; nothing on the command path
           </div>
           <p>
-            Delivery is at-least-once. With no command-id / idempotency-key dedup, a retried command
-            produces duplicate events and duplicate side effects. A small idempotency-key store + a
-            command middleware (check-seen, store-result-on-success) is a classic framework
+            Delivery is at-least-once. With no command-id / idempotency-key
+            dedup, a retried command produces duplicate events and duplicate
+            side effects. A small idempotency-key store + a command middleware
+            (check-seen, store-result-on-success) is a classic framework
             primitive that's small to build and large in value.
           </p>
         </div>
@@ -1005,11 +1058,14 @@
         <div class="issue issue-important">
           <span class="severity severity-important">Strong</span>
           <h3>A4. Dead-Letter / Poison-Message sink</h3>
-          <div class="where">0 <code>DeadLetter|DLQ|poison</code> matches in *.go</div>
+          <div class="where">
+            0 <code>DeadLetter|DLQ|poison</code> matches in *.go
+          </div>
           <p>
-            A projection that repeatedly fails on one event will either block the stream or skip it
-            forever. A DLQ wrapper (capture failing event + error to a store, advance checkpoint,
-            expose for replay) is essential operability. Pair it with the Projection Host (A1).
+            A projection that repeatedly fails on one event will either block
+            the stream or skip it forever. A DLQ wrapper (capture failing event
+            + error to a store, advance checkpoint, expose for replay) is
+            essential operability. Pair it with the Projection Host (A1).
           </p>
         </div>
 
@@ -1017,94 +1073,113 @@
           <span class="severity severity-nice">Nice multiplier</span>
           <h3>A5. Scenario-testing DSL (<code>testing/</code>)</h3>
           <div class="where">
-            &ldquo;toward-perfect&rdquo; flagged AggregateTester/ProjectionTester/BusTester as thin;
+            &ldquo;toward-perfect&rdquo; flagged
+            AggregateTester/ProjectionTester/BusTester as thin;
             <code>eventtest</code> exists but no fluent harness
           </div>
           <p>
             A first-class
-            <code>decider.Given(evts...).When(cmd).Then(expected, state)</code> harness and a
-            projection-replay assertion kit. The decider has property tests, but no consumer gets a
-            one-liner BDD scenario harness. This is the &ldquo;DX multiplier&rdquo; that makes
-            adoption stick.
+            <code>decider.Given(evts...).When(cmd).Then(expected, state)</code>
+            harness and a projection-replay assertion kit. The decider has
+            property tests, but no consumer gets a one-liner BDD scenario
+            harness. This is the &ldquo;DX multiplier&rdquo; that makes adoption
+            stick.
           </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Nice multiplier</span>
-          <h3>A6. Scheduled commands / durable deadlines (<code>scheduling/</code>)</h3>
+          <h3>
+            A6. Scheduled commands / durable deadlines
+            (<code>scheduling/</code>)
+          </h3>
           <div class="where">
-            no scheduler; common ES need (&ldquo;cancel order after 30 min unpaid&rdquo;)
+            no scheduler; common ES need (&ldquo;cancel order after 30 min
+            unpaid&rdquo;)
           </div>
           <p>
-            A durable timer store (events written at a future time, a dispatcher polls them) is a
-            primitive, not a runtime. It unlocks time-based business logic that today every consumer
-            bolts on with cron + an external queue.
+            A durable timer store (events written at a future time, a dispatcher
+            polls them) is a primitive, not a runtime. It unlocks time-based
+            business logic that today every consumer bolts on with cron + an
+            external queue.
           </p>
         </div>
 
         <!-- ============ BUCKET B ============ -->
         <h2 id="bucket-b">
-          <span class="num">03</span>Bucket B &mdash; Runtime/OS gaps (a different product)
+          <span class="num">03</span>Bucket B &mdash; Runtime/OS gaps (a
+          different product)
         </h2>
         <p>
-          These exist only as a <strong>running process with a control plane</strong>. Shipping them
-          violates principle&nbsp;#1. The honest move is a <em>sibling</em> product (as EventStoreDB
-          relates to a client SDK), not bolting a server onto this repo.
+          These exist only as a
+          <strong>running process with a control plane</strong>. Shipping them
+          violates principle&nbsp;#1. The honest move is a
+          <em>sibling</em> product (as EventStoreDB relates to a client SDK),
+          not bolting a server onto this repo.
         </p>
 
         <div class="grid-2">
           <div class="card card-problem">
             <h4>B1. Control-plane CLI (<code>cqrsctl</code>)</h4>
             <p>
-              Rebuild a projection, list aggregates, inspect checkpoints, replay/reset, view lag.
-              <code>cqrs-gen</code> is codegen only &mdash; there is no operational CLI.
+              Rebuild a projection, list aggregates, inspect checkpoints,
+              replay/reset, view lag.
+              <code>cqrs-gen</code> is codegen only &mdash; there is no
+              operational CLI.
             </p>
           </div>
           <div class="card card-problem">
             <h4>B2. Admin / ops dashboard</h4>
             <p>
-              Only a <em>docs</em> server exists (<code>catalog/docserver</code>). No live ops UI:
-              event browser, aggregate inspector, projection-lag graphs, replay trigger. A design
-              doc exists; no code.
+              Only a <em>docs</em> server exists
+              (<code>catalog/docserver</code>). No live ops UI: event browser,
+              aggregate inspector, projection-lag graphs, replay trigger. A
+              design doc exists; no code.
             </p>
           </div>
           <div class="card card-problem">
             <h4>B3. Replication / clustering / consumer groups</h4>
             <p>
-              Single-node only. <code>DistributedRunner</code> gives leader-election active/passive
-              failover &mdash; not partitioned reads, competing consumers, or a sharded event store.
-              This is the &ldquo;OS&rdquo; scale tier.
+              Single-node only. <code>DistributedRunner</code> gives
+              leader-election active/passive failover &mdash; not partitioned
+              reads, competing consumers, or a sharded event store. This is the
+              &ldquo;OS&rdquo; scale tier.
             </p>
           </div>
           <div class="card card-problem">
             <h4>B4. Log compaction / archival lifecycle</h4>
             <p>
-              Streams grow forever. Compaction, truncation, and S3/GCS archival are raw ideas with
-              design docs and no code. An OS manages its own log lifecycle.
+              Streams grow forever. Compaction, truncation, and S3/GCS archival
+              are raw ideas with design docs and no code. An OS manages its own
+              log lifecycle.
             </p>
           </div>
         </div>
         <div class="card card-problem" style="margin-top: 0.25rem">
           <h4>B5. Cross-service schema-registry <em>service</em></h4>
           <p>
-            <code>schema.Validator</code> enforces at publish + load time in-process. A superb
-            <em>OS</em> runs a contract registry with BACKWARD/FORWARD/FULL compatibility checks and
-            version negotiation across services (Confluent-style). That is a server, not a library.
+            <code>schema.Validator</code> enforces at publish + load time
+            in-process. A superb <em>OS</em> runs a contract registry with
+            BACKWARD/FORWARD/FULL compatibility checks and version negotiation
+            across services (Confluent-style). That is a server, not a library.
           </p>
         </div>
 
         <div class="callout callout-warning">
           <strong>The line you must not blur.</strong>
-          Mixing B-tier features into this repo is how a clean library becomes a half-framework
-          nobody trusts. Keep the library pure; build the runtime as a separate, optional product
-          that <em>consumes</em> these primitives.
+          Mixing B-tier features into this repo is how a clean library becomes a
+          half-framework nobody trusts. Keep the library pure; build the runtime
+          as a separate, optional product that <em>consumes</em> these
+          primitives.
         </div>
 
         <!-- ============ MATRIX ============ -->
-        <h2 id="matrix"><span class="num">04</span>Capability matrix vs mature ES frameworks</h2>
+        <h2 id="matrix">
+          <span class="num">04</span>Capability matrix vs mature ES frameworks
+        </h2>
         <p>
-          How the current SDK compares to EventStoreDB, Axon, and Marten on the dimensions that
-          define a &ldquo;framework/OS.&rdquo;
+          How the current SDK compares to EventStoreDB, Axon, and Marten on the
+          dimensions that define a &ldquo;framework/OS.&rdquo;
         </p>
         <table>
           <thead>
@@ -1211,11 +1286,12 @@
 
         <!-- ============ PLAN ============ -->
         <h2 id="plan">
-          <span class="num">05</span>Pareto roadmap (20% effort &rarr; 80% of &ldquo;superb&rdquo;)
+          <span class="num">05</span>Pareto roadmap (20% effort &rarr; 80% of
+          &ldquo;superb&rdquo;)
         </h2>
         <p>
-          Ordered for compounding impact. The first three deliver most of the perceived
-          &ldquo;framework&rdquo; feel while staying a library.
+          Ordered for compounding impact. The first three deliver most of the
+          perceived &ldquo;framework&rdquo; feel while staying a library.
         </p>
 
         <div class="migration-step bucket-a">
@@ -1223,9 +1299,12 @@
           <div class="migration-content">
             <h4>Ship the Projection Host (A1)</h4>
             <p>
-              Wrap CatchUpSubscriber + Materialize + checkpoint into a managed host: restart,
-              backoff, health, graceful drain, DLQ hook.
-              <strong>This alone closes the biggest gap and is still embeddable.</strong>
+              Wrap CatchUpSubscriber + Materialize + checkpoint into a managed
+              host: restart, backoff, health, graceful drain, DLQ hook.
+              <strong
+                >This alone closes the biggest gap and is still
+                embeddable.</strong
+              >
             </p>
             <p class="tag-row">
               impact: huge &middot; effort: medium &middot; stays a library: yes
@@ -1237,11 +1316,12 @@
           <div class="migration-content">
             <h4>Add the DLQ + Idempotency pair (A3 + A4)</h4>
             <p>
-              Small primitives, disproportionate reliability win. Both are middleware/sinks that
-              compose into the host from step&nbsp;1.
+              Small primitives, disproportionate reliability win. Both are
+              middleware/sinks that compose into the host from step&nbsp;1.
             </p>
             <p class="tag-row">
-              impact: high &middot; effort: low&ndash;medium &middot; stays a library: yes
+              impact: high &middot; effort: low&ndash;medium &middot; stays a
+              library: yes
             </p>
           </div>
         </div>
@@ -1250,12 +1330,13 @@
           <div class="migration-content">
             <h4>Optional Outbox sink (A2)</h4>
             <p>
-              Offer it as an opt-in EventSink for the shared-DB case; keep the relay as the default.
-              Let consumers pick atomicity vs. no-secondary-table.
+              Offer it as an opt-in EventSink for the shared-DB case; keep the
+              relay as the default. Let consumers pick atomicity vs.
+              no-secondary-table.
             </p>
             <p class="tag-row">
-              impact: high (for those who need it) &middot; effort: medium &middot; stays a library:
-              yes
+              impact: high (for those who need it) &middot; effort: medium
+              &middot; stays a library: yes
             </p>
           </div>
         </div>
@@ -1263,24 +1344,33 @@
           <div class="migration-num">4</div>
           <div class="migration-content">
             <h4>Scenario-testing DSL (A5)</h4>
-            <p>Fluent Given/When/Then for deciders, projections, buses. The adoption multiplier.</p>
+            <p>
+              Fluent Given/When/Then for deciders, projections, buses. The
+              adoption multiplier.
+            </p>
             <p class="tag-row">
-              impact: medium&ndash;high (DX) &middot; effort: low &middot; stays a library: yes
+              impact: medium&ndash;high (DX) &middot; effort: low &middot; stays
+              a library: yes
             </p>
           </div>
         </div>
         <div class="migration-step bucket-b">
           <div class="migration-num">5</div>
           <div class="migration-content">
-            <h4>Draw the product line, then maybe build a sibling runtime (B1&ndash;B2)</h4>
+            <h4>
+              Draw the product line, then maybe build a sibling runtime
+              (B1&ndash;B2)
+            </h4>
             <p>
-              Do <em>not</em> add a server/dashboard to this repo. If &ldquo;OS&rdquo; is the goal,
-              start a separate <code>go-cqrs-runtime</code> (or similar) that embeds this library
-              and adds cqrsctl + dashboard + replication. Keeps the library trustworthy and the
-              runtime optional.
+              Do <em>not</em> add a server/dashboard to this repo. If
+              &ldquo;OS&rdquo; is the goal, start a separate
+              <code>go-cqrs-runtime</code> (or similar) that embeds this library
+              and adds cqrsctl + dashboard + replication. Keeps the library
+              trustworthy and the runtime optional.
             </p>
             <p class="tag-row">
-              impact: transforms the product &middot; effort: large &middot; stays a library:
+              impact: transforms the product &middot; effort: large &middot;
+              stays a library:
               <strong>no &mdash; new product</strong>
             </p>
           </div>
@@ -1293,20 +1383,23 @@
           <p>
             The missing piece is not &ldquo;more ES primitives.&rdquo; It is the
             <strong>managed projection host</strong> plus the
-            <strong>reliability trio</strong> (DLQ, idempotency, optional outbox). Build those four
-            and consumers can assemble a complete, production-grade ES system using
-            <em>only</em> library modules, with zero hand-rolled infra loops. That is the legitimate
-            ceiling for a project that insists on being a library.
+            <strong>reliability trio</strong> (DLQ, idempotency, optional
+            outbox). Build those four and consumers can assemble a complete,
+            production-grade ES system using <em>only</em> library modules, with
+            zero hand-rolled infra loops. That is the legitimate ceiling for a
+            project that insists on being a library.
           </p>
         </div>
         <div class="card card-warning">
           <h4>&ldquo;OS&rdquo; is a different company.</h4>
           <p>
-            The control plane, dashboard, replication, and log-lifecycle services are what make
-            EventStoreDB a <em>product</em>. They cannot be a module here without breaking the
-            library's core promise. Pursue them only as a deliberate, separate bet &mdash; and only
-            if a concrete consumer need outgrows single-machine. Until then, &ldquo;single-machine
-            is sufficient&rdquo; is the correct, honest position the project already holds.
+            The control plane, dashboard, replication, and log-lifecycle
+            services are what make EventStoreDB a <em>product</em>. They cannot
+            be a module here without breaking the library's core promise. Pursue
+            them only as a deliberate, separate bet &mdash; and only if a
+            concrete consumer need outgrows single-machine. Until then,
+            &ldquo;single-machine is sufficient&rdquo; is the correct, honest
+            position the project already holds.
           </p>
         </div>
 
@@ -1319,8 +1412,9 @@
         </div>
 
         <footer class="footer">
-          Generated 2026-06-28 &middot; Gap analysis verified against v3.1.0 source (grep across
-          *.go) + ROADMAP.md + docs/design + &ldquo;toward-perfect&rdquo; brainstorm.
+          Generated 2026-06-28 &middot; Gap analysis verified against v3.1.0
+          source (grep across *.go) + ROADMAP.md + docs/design +
+          &ldquo;toward-perfect&rdquo; brainstorm.
         </footer>
       </main>
     </div>

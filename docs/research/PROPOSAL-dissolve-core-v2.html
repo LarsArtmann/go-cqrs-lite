@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
-      Proposal: Dissolve core/ — go-cqrs-lite Module Restructuring — ✅ COMPLETED (Session 154,
-      2026-05-29)
+      Proposal: Dissolve core/ — go-cqrs-lite Module Restructuring — ✅
+      COMPLETED (Session 154, 2026-05-29)
     </title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -529,9 +529,10 @@
     <header class="hero page">
       <h1>Dissolve <em>core/</em></h1>
       <p class="subtitle">
-        Flatten the <code>core/</code> module group into peer-level modules. Keep store interfaces
-        in their domain packages — not in a generic <code>store/</code>. Extract
-        <code>schema/</code> and <code>snapshot/</code> as first-class concerns.
+        Flatten the <code>core/</code> module group into peer-level modules.
+        Keep store interfaces in their domain packages — not in a generic
+        <code>store/</code>. Extract <code>schema/</code> and
+        <code>snapshot/</code> as first-class concerns.
       </p>
       <div class="meta">
         <span>go-cqrs-lite</span>
@@ -564,31 +565,33 @@
       <h2>The Problem</h2>
 
       <p>
-        <code>core/event/</code> contains 28 files, ~2,500 lines, and 8 distinct concerns — from the
-        <code>Event</code> type itself to snapshot strategies, outbox publishers, and projection
-        checkpoints. It's the only package in the repo that violates the "one concept, one package"
-        rule.
+        <code>core/event/</code> contains 28 files, ~2,500 lines, and 8 distinct
+        concerns — from the <code>Event</code> type itself to snapshot
+        strategies, outbox publishers, and projection checkpoints. It's the only
+        package in the repo that violates the "one concept, one package" rule.
       </p>
 
       <p>
-        The <code>core/</code> prefix is the only nested module group in a repo of 17+ flat
-        top-level modules. It forces <code>command/</code> and <code>query/</code> — which share
-        zero dependencies — to share a <code>go.mod</code> with 15+ dependencies they don't need.
+        The <code>core/</code> prefix is the only nested module group in a repo
+        of 17+ flat top-level modules. It forces <code>command/</code> and
+        <code>query/</code> — which share zero dependencies — to share a
+        <code>go.mod</code> with 15+ dependencies they don't need.
       </p>
 
       <p>
-        <strong>"core" is meaningless.</strong> Every module thinks it's core. It's the
-        <code>util</code> of package naming.
+        <strong>"core" is meaningless.</strong> Every module thinks it's core.
+        It's the <code>util</code> of package naming.
       </p>
 
       <div class="callout accent">
         <p>
           <strong>What was wrong with v1 of this proposal:</strong> It created a
-          <code>store/</code> module for Sink/Source interfaces. But this is a CQRS library — store
-          interfaces are domain-specific. <code>EventSink</code> belongs in <code>event/</code>.
-          <code>SnapshotStore</code> belongs in <code>snapshot/</code>. A generic
-          <code>store/</code> module would be the same anti-pattern as <code>core/</code> — a drawer
-          for things not properly named.
+          <code>store/</code> module for Sink/Source interfaces. But this is a
+          CQRS library — store interfaces are domain-specific.
+          <code>EventSink</code> belongs in <code>event/</code>.
+          <code>SnapshotStore</code> belongs in <code>snapshot/</code>. A
+          generic <code>store/</code> module would be the same anti-pattern as
+          <code>core/</code> — a drawer for things not properly named.
         </p>
       </div>
     </section>
@@ -602,46 +605,53 @@
         <li>
           <span class="num">01</span>
           <span class="text"
-            ><strong>Honest names.</strong> Every module named after what it <em>is</em>, not where
-            it sits in a hierarchy.</span
+            ><strong>Honest names.</strong> Every module named after what it
+            <em>is</em>, not where it sits in a hierarchy.</span
           >
         </li>
         <li>
           <span class="num">02</span>
           <span class="text"
-            ><strong>Sink/Source is a domain pattern, not a shared module.</strong> Every domain
-            owns its own read/write split: <code>EventSink</code>/<code>EventSource</code> in
-            <code>event/</code>, <code>SnapshotSink</code>/<code>SnapshotSource</code> in
-            <code>snapshot/</code>, <code>CommandSink</code>/<code>CommandSource</code> in
-            <code>command/</code>. No generic <code>store/</code>.</span
+            ><strong
+              >Sink/Source is a domain pattern, not a shared module.</strong
+            >
+            Every domain owns its own read/write split:
+            <code>EventSink</code>/<code>EventSource</code> in
+            <code>event/</code>, <code>SnapshotSink</code>/<code
+              >SnapshotSource</code
+            >
+            in <code>snapshot/</code>, <code>CommandSink</code>/<code
+              >CommandSource</code
+            >
+            in <code>command/</code>. No generic <code>store/</code>.</span
           >
         </li>
         <li>
           <span class="num">03</span>
           <span class="text"
-            ><strong>Peer-level modules.</strong> The repo already uses flat top-level modules.
-            <code>core/</code> is the outlier.</span
+            ><strong>Peer-level modules.</strong> The repo already uses flat
+            top-level modules. <code>core/</code> is the outlier.</span
           >
         </li>
         <li>
           <span class="num">04</span>
           <span class="text"
-            ><strong>Minimal <code>go.mod</code>.</strong> A module's dependencies should be only
-            what it needs.</span
+            ><strong>Minimal <code>go.mod</code>.</strong> A module's
+            dependencies should be only what it needs.</span
           >
         </li>
         <li>
           <span class="num">05</span>
           <span class="text"
-            ><strong>Interface–implementation separation.</strong> Core modules define interfaces.
-            Implementations live in their own modules.</span
+            ><strong>Interface–implementation separation.</strong> Core modules
+            define interfaces. Implementations live in their own modules.</span
           >
         </li>
         <li>
           <span class="num">06</span>
           <span class="text"
-            ><strong><code>git mv</code> preserves history.</strong> Move files once. No
-            copy-then-delete dance.</span
+            ><strong><code>git mv</code> preserves history.</strong> Move files
+            once. No copy-then-delete dance.</span
           >
         </li>
       </ol>
@@ -656,26 +666,31 @@
         <div class="diagram">
           <span class="label">Before</span>
           <span class="dir">core/</span><br />
-          &nbsp;&nbsp;<span class="pkg">event/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
-            class="comment"
+          &nbsp;&nbsp;<span class="pkg">event/</span>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
             >← 28 files, 2500 lines, 8 concerns</span
           ><br />
-          &nbsp;&nbsp;<span class="pkg">command/</span> &nbsp;&nbsp;<span class="comment"
+          &nbsp;&nbsp;<span class="pkg">command/</span> &nbsp;&nbsp;<span
+            class="comment"
             >← shares go.mod with event</span
           ><br />
-          &nbsp;&nbsp;<span class="pkg">query/</span> &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
+          &nbsp;&nbsp;<span class="pkg">query/</span>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
             >← zero deps on event/command</span
           ><br />
-          &nbsp;&nbsp;<span class="pkg">decider/</span> &nbsp;&nbsp;&nbsp;<span class="comment"
+          &nbsp;&nbsp;<span class="pkg">decider/</span> &nbsp;&nbsp;&nbsp;<span
+            class="comment"
             >← depends on event</span
           ><br />
           &nbsp;&nbsp;<span class="dir">pkg/</span><br />
           &nbsp;&nbsp;&nbsp;&nbsp;<span class="pkg">id/</span>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← nested under pkg/</span
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
+            >← nested under pkg/</span
           ><br />
           &nbsp;&nbsp;&nbsp;&nbsp;<span class="pkg">dispatcher/</span>
           <span class="comment">← nested under pkg/</span><br />
-          <span class="dir">memory/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
+          <span class="dir">memory/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            class="comment"
             >← grab-bag of 5 impls</span
           ><br />
           <span class="dir">storage/</span><br />
@@ -685,39 +700,47 @@
 
         <div class="diagram">
           <span class="label">After</span>
-          <span class="new">event/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
+          <span class="new">event/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            class="comment"
             >← types + Sink/Source + Journal + tombstones</span
           ><br />
-          <span class="new">bus/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
-            class="comment"
+          <span class="new">bus/</span>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
             >← Publisher/Subscriber/Middleware</span
           ><br />
-          <span class="new">schema/</span> &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
+          <span class="new">schema/</span> &nbsp;&nbsp;&nbsp;&nbsp;<span
+            class="comment"
             >← Upcaster + SchemaVersion + VersionedSource</span
           ><br />
           <span class="new">snapshot/</span> &nbsp;&nbsp;<span class="comment"
             >← SnapshotStore + Strategy</span
           ><br />
-          <span class="move">command/</span> &nbsp;&nbsp;&nbsp;<span class="comment"
-            >← own go.mod</span
-          ><br />
-          <span class="move">query/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
-            >← own go.mod</span
-          ><br />
-          <span class="move">decider/</span> &nbsp;&nbsp;&nbsp;<span class="comment"
-            >← own go.mod</span
-          ><br />
-          <span class="move">id/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+          <span class="move">command/</span> &nbsp;&nbsp;&nbsp;<span
             class="comment"
+            >← own go.mod</span
+          ><br />
+          <span class="move">query/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            class="comment"
+            >← own go.mod</span
+          ><br />
+          <span class="move">decider/</span> &nbsp;&nbsp;&nbsp;<span
+            class="comment"
+            >← own go.mod</span
+          ><br />
+          <span class="move">id/</span>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
             >← promoted</span
           ><br />
-          <span class="move">dispatcher/</span> &nbsp;<span class="comment">← promoted</span><br />
-          <span class="remove">core/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
-            class="comment"
+          <span class="move">dispatcher/</span> &nbsp;<span class="comment"
+            >← promoted</span
+          ><br />
+          <span class="remove">core/</span>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
             >← deleted</span
           ><br />
           <br />
-          <span class="dir">memory/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
+          <span class="dir">memory/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            class="comment"
             >← question: split or keep?</span
           ><br />
           <span class="dir">storage/</span><br />
@@ -734,30 +757,36 @@
 
       <div class="module-grid">
         <div class="module-card">
-          <h4>event/ <span class="correction">home of EventSink/EventSource</span></h4>
+          <h4>
+            event/ <span class="correction">home of EventSink/EventSource</span>
+          </h4>
           <div class="lines">~1,100 lines · own go.mod</div>
           <p>
-            Event types, construction, metadata, tombstones, errors — and the event store
-            interfaces. In a CQRS library, the event store IS the event module.
+            Event types, construction, metadata, tombstones, errors — and the
+            event store interfaces. In a CQRS library, the event store IS the
+            event module.
           </p>
           <div class="exports">
-            Event · ImmutableEvent · New · EventSink · EventSource · Store · Journal ·
-            SeekableJournal · BackwardsSource · TransactionalSink · StreamLoader · TombstoneStatus ·
-            Version
+            Event · ImmutableEvent · New · EventSink · EventSource · Store ·
+            Journal · SeekableJournal · BackwardsSource · TransactionalSink ·
+            StreamLoader · TombstoneStatus · Version
           </div>
         </div>
 
         <div class="module-card">
-          <h4>command/ <span class="correction">home of CommandSink/CommandSource</span></h4>
+          <h4>
+            command/
+            <span class="correction">home of CommandSink/CommandSource</span>
+          </h4>
           <div class="lines">~300 lines · own go.mod</div>
           <p>
-            Command types, dispatcher, handler, typed dispatch, metadata — and command persistence
-            interfaces. Commands deserve their own Sink/Source for auditing, replay, and saga
-            integration.
+            Command types, dispatcher, handler, typed dispatch, metadata — and
+            command persistence interfaces. Commands deserve their own
+            Sink/Source for auditing, replay, and saga integration.
           </p>
           <div class="exports">
-            Command · Dispatcher · Handler · DispatchTyped · Middleware · CommandSink ·
-            CommandSource
+            Command · Dispatcher · Handler · DispatchTyped · Middleware ·
+            CommandSink · CommandSource
           </div>
         </div>
 
@@ -765,11 +794,12 @@
           <h4>bus/</h4>
           <div class="lines">~60 lines · own go.mod</div>
           <p>
-            Publish/subscribe interfaces and middleware chains. The pub/sub role is distinct from
-            storage.
+            Publish/subscribe interfaces and middleware chains. The pub/sub role
+            is distinct from storage.
           </p>
           <div class="exports">
-            Publisher · Subscriber · Bus · Handler · Middleware · PublishMiddleware
+            Publisher · Subscriber · Bus · Handler · Middleware ·
+            PublishMiddleware
           </div>
         </div>
 
@@ -777,8 +807,8 @@
           <h4>schema/</h4>
           <div class="lines">~180 lines · own go.mod</div>
           <p>
-            Schema evolution — upcasting, versioned reads, schema version type. Named for the
-            concern, not the mechanism.
+            Schema evolution — upcasting, versioned reads, schema version type.
+            Named for the concern, not the mechanism.
           </p>
           <div class="exports">
             Upcaster · NewUpcaster · Registry · VersionedSource · SchemaVersion
@@ -789,12 +819,12 @@
           <h4>snapshot/</h4>
           <div class="lines">~120 lines · own go.mod</div>
           <p>
-            Aggregate state snapshots — storage interface, strategy, helpers. Snapshots are a
-            cross-cutting concern distinct from events.
+            Aggregate state snapshots — storage interface, strategy, helpers.
+            Snapshots are a cross-cutting concern distinct from events.
           </p>
           <div class="exports">
-            Snapshot · SnapshotSink · SnapshotSource · SnapshotStore · SnapshotStrategy ·
-            EveryNEvents · ShouldSnapshot
+            Snapshot · SnapshotSink · SnapshotSource · SnapshotStore ·
+            SnapshotStrategy · EveryNEvents · ShouldSnapshot
           </div>
         </div>
 
@@ -802,15 +832,17 @@
           <h4>command/</h4>
           <div class="lines">~260 lines · own go.mod</div>
           <p>Command types, dispatcher, handler, typed dispatch, metadata.</p>
-          <div class="exports">Command · Dispatcher · Handler · DispatchTyped · Middleware</div>
+          <div class="exports">
+            Command · Dispatcher · Handler · DispatchTyped · Middleware
+          </div>
         </div>
 
         <div class="module-card">
           <h4>query/</h4>
           <div class="lines">~310 lines · own go.mod</div>
           <p>
-            Query types, dispatcher, pagination, typed dispatch. Queries are read-only — no
-            Sink/Source needed.
+            Query types, dispatcher, pagination, typed dispatch. Queries are
+            read-only — no Sink/Source needed.
           </p>
           <div class="exports">
             Query · Dispatcher · Pagination · PaginatedResult · DispatchTyped
@@ -821,13 +853,17 @@
           <h4>decider/</h4>
           <div class="lines">~530 lines · own go.mod</div>
           <p>Pure-function aggregate pattern — decide, fold, execute, load.</p>
-          <div class="exports">Decider[S] · Repository · Execute · Load · Option</div>
+          <div class="exports">
+            Decider[S] · Repository · Execute · Load · Option
+          </div>
         </div>
 
         <div class="module-card">
           <h4>id/</h4>
           <div class="lines">~230 lines · own go.mod</div>
-          <p>Branded identity types. Promoted from <code>core/pkg/id/</code>.</p>
+          <p>
+            Branded identity types. Promoted from <code>core/pkg/id/</code>.
+          </p>
           <div class="exports">
             Of[T] · New · AggregateID · EventID · CorrelationID · CausationID
           </div>
@@ -837,7 +873,8 @@
           <h4>dispatcher/</h4>
           <div class="lines">~270 lines · own go.mod</div>
           <p>
-            Generic Dispatcher[H, M] with lifecycle, catalog, middleware. Promoted from
+            Generic Dispatcher[H, M] with lifecycle, catalog, middleware.
+            Promoted from
             <code>core/pkg/dispatcher/</code>.
           </p>
           <div class="exports">Dispatcher[H, M] · LifecycleMixin · Catalog</div>
@@ -863,10 +900,13 @@
         <tbody>
           <tr>
             <td>
-              <code>store.go</code>, <code>stream.go</code>, <code>aggregate_ref.go</code>,
-              <code>slice.go</code>, <code>batch.go</code>
+              <code>store.go</code>, <code>stream.go</code>,
+              <code>aggregate_ref.go</code>, <code>slice.go</code>,
+              <code>batch.go</code>
             </td>
-            <td><code>event/</code> (stay — they ARE event store interfaces)</td>
+            <td>
+              <code>event/</code> (stay — they ARE event store interfaces)
+            </td>
             <td><span class="tag tag--same">stay</span></td>
           </tr>
           <tr>
@@ -904,7 +944,10 @@
             <td><span class="tag tag--new">new module</span></td>
           </tr>
           <tr>
-            <td><code>projection.go</code>, <code>checkpoint.go</code>, <code>replay.go</code></td>
+            <td>
+              <code>projection.go</code>, <code>checkpoint.go</code>,
+              <code>replay.go</code>
+            </td>
             <td><code>projection/</code> <em>(existing)</em></td>
             <td><span class="tag tag--move">git mv</span></td>
           </tr>
@@ -972,17 +1015,19 @@
       <h2>schema/</h2>
 
       <p>
-        Upcasting is currently buried in <code>core/event/</code> — but it's neither an event
-        concern nor a store concern. It's <strong>schema evolution</strong>. Naming the module
-        <code>upcaster/</code> would describe the mechanism. <code>schema/</code> describes the
-        <em>domain</em>.
+        Upcasting is currently buried in <code>core/event/</code> — but it's
+        neither an event concern nor a store concern. It's
+        <strong>schema evolution</strong>. Naming the module
+        <code>upcaster/</code> would describe the mechanism.
+        <code>schema/</code> describes the <em>domain</em>.
       </p>
 
       <div class="callout">
         <p>
-          <strong>Future growth.</strong> A <code>schema/</code> module naturally accommodates
-          compatibility checks, version registration, auto-documentation hooks (via
-          <code>catalog/</code>), and migration policies — none of which fit under "upcaster."
+          <strong>Future growth.</strong> A <code>schema/</code> module
+          naturally accommodates compatibility checks, version registration,
+          auto-documentation hooks (via <code>catalog/</code>), and migration
+          policies — none of which fit under "upcaster."
         </p>
       </div>
 
@@ -1007,7 +1052,9 @@
           </tr>
           <tr>
             <td><code>versioned_source.go</code></td>
-            <td><code>VersionedSource</code>, <code>NewVersionedSource</code></td>
+            <td>
+              <code>VersionedSource</code>, <code>NewVersionedSource</code>
+            </td>
             <td>from <code>event/versioned_store.go</code></td>
           </tr>
           <tr>
@@ -1017,7 +1064,10 @@
           </tr>
           <tr>
             <td><code>errors.go</code></td>
-            <td><code>ErrMissingUpcaster</code>, <code>ErrIncompatibleSchema</code></td>
+            <td>
+              <code>ErrMissingUpcaster</code>,
+              <code>ErrIncompatibleSchema</code>
+            </td>
             <td><span class="tag tag--new">new</span></td>
           </tr>
         </tbody>
@@ -1030,16 +1080,18 @@
       <h2>snapshot/</h2>
 
       <p>
-        Snapshots are currently 3 files (~115 lines) in <code>core/event/</code>. They're a distinct
-        concern — aggregate state caching, not event storage. A snapshot store has different
-        read/write patterns (save whole state, load latest), different implementations (in-memory,
-        SQL, Redis), and different consumers (decider, projection) than the event store.
+        Snapshots are currently 3 files (~115 lines) in
+        <code>core/event/</code>. They're a distinct concern — aggregate state
+        caching, not event storage. A snapshot store has different read/write
+        patterns (save whole state, load latest), different implementations
+        (in-memory, SQL, Redis), and different consumers (decider, projection)
+        than the event store.
       </p>
 
       <p>
-        Giving snapshots their own module follows the same principle: store interfaces live in their
-        domain. <code>SnapshotStore</code> belongs in <code>snapshot/</code>, not lumped into
-        <code>event/</code>.
+        Giving snapshots their own module follows the same principle: store
+        interfaces live in their domain. <code>SnapshotStore</code> belongs in
+        <code>snapshot/</code>, not lumped into <code>event/</code>.
       </p>
 
       <table>
@@ -1054,7 +1106,8 @@
           <tr>
             <td><code>snapshot.go</code></td>
             <td>
-              <code>Snapshot</code>, <code>SnapshotSink</code>, <code>SnapshotSource</code>,
+              <code>Snapshot</code>, <code>SnapshotSink</code>,
+              <code>SnapshotSource</code>,
               <code>SnapshotStore</code>
             </td>
             <td>from <code>event/snapshot.go</code></td>
@@ -1099,7 +1152,8 @@
             <td><code>store.go</code> + <code>store_load.go</code></td>
             <td><code>MemoryStore</code></td>
             <td>
-              <code>event/</code> (Store, Journal, SeekableJournal, BackwardsSource, StreamLoader)
+              <code>event/</code> (Store, Journal, SeekableJournal,
+              BackwardsSource, StreamLoader)
             </td>
           </tr>
           <tr>
@@ -1126,9 +1180,10 @@
       </table>
 
       <p>
-        After the split, <code>memory/</code> would need to depend on <code>event/</code>,
-        <code>bus/</code>, <code>snapshot/</code>, <code>outbox/</code> — importing from 4+ modules
-        to provide test doubles.
+        After the split, <code>memory/</code> would need to depend on
+        <code>event/</code>, <code>bus/</code>, <code>snapshot/</code>,
+        <code>outbox/</code> — importing from 4+ modules to provide test
+        doubles.
       </p>
 
       <h3>Options</h3>
@@ -1147,14 +1202,20 @@
               <strong>A. Keep <code>memory/</code> as-is</strong>
             </td>
             <td>One module, many deps</td>
-            <td>Simple to find. But pulls 4+ modules for consumers who only need MemoryStore.</td>
+            <td>
+              Simple to find. But pulls 4+ modules for consumers who only need
+              MemoryStore.
+            </td>
           </tr>
           <tr>
             <td><strong>B. Split into domain sub-packages</strong></td>
             <td>
-              <code>event/memory/</code>, <code>bus/memory/</code>, <code>snapshot/memory/</code>
+              <code>event/memory/</code>, <code>bus/memory/</code>,
+              <code>snapshot/memory/</code>
             </td>
-            <td>Consumers import only what they need. But 5 more sub-modules.</td>
+            <td>
+              Consumers import only what they need. But 5 more sub-modules.
+            </td>
           </tr>
           <tr>
             <td>
@@ -1168,10 +1229,11 @@
 
       <div class="callout">
         <p>
-          <strong>Recommendation:</strong> Option B. Each module owns its own test implementations.
-          It follows the same principle as the rest of this proposal: things live in their domain. A
-          consumer who only needs <code>MemoryStore</code> imports <code>event/memory/</code> — not
-          a grab-bag.
+          <strong>Recommendation:</strong> Option B. Each module owns its own
+          test implementations. It follows the same principle as the rest of
+          this proposal: things live in their domain. A consumer who only needs
+          <code>MemoryStore</code> imports <code>event/memory/</code> — not a
+          grab-bag.
         </p>
       </div>
     </section>
@@ -1187,7 +1249,12 @@
         viewBox="0 0 800 680"
         xmlns="http://www.w3.org/2000/svg"
         class="dep-svg"
-        style="display: block; margin: 32px auto 0; width: 100%; max-width: 800px"
+        style="
+          display: block;
+          margin: 32px auto 0;
+          width: 100%;
+          max-width: 800px;
+        "
       >
         <style>
           .layer-bg {
@@ -1232,7 +1299,14 @@
           }
         </style>
         <defs>
-          <marker id="arrowhead" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+          <marker
+            id="arrowhead"
+            markerWidth="7"
+            markerHeight="5"
+            refX="7"
+            refY="2.5"
+            orient="auto"
+          >
             <polygon points="0 0, 7 2.5, 0 5" fill="#d4d4d4" />
           </marker>
           <marker
@@ -1258,7 +1332,9 @@
           stroke="#e5e5e5"
           stroke-dasharray="3,3"
         />
-        <text class="layer-label" x="76" y="36">Layer 0 — Leaves (no internal deps)</text>
+        <text class="layer-label" x="76" y="36">
+          Layer 0 — Leaves (no internal deps)
+        </text>
 
         <!-- id/ -->
         <rect
@@ -1307,7 +1383,9 @@
           stroke="#e5e5e5"
           stroke-dasharray="3,3"
         />
-        <text class="layer-label" x="76" y="130">Layer 1 — CQRS Primitives (peers)</text>
+        <text class="layer-label" x="76" y="130">
+          Layer 1 — CQRS Primitives (peers)
+        </text>
 
         <!-- event/ -->
         <rect
@@ -1320,7 +1398,9 @@
           stroke="#0a0a0a"
         />
         <text class="node-text" x="130" y="161" fill="#fafafa">event/</text>
-        <text class="note-text" x="80" y="192">EventSink · EventSource · Journal</text>
+        <text class="note-text" x="80" y="192">
+          EventSink · EventSource · Journal
+        </text>
         <!-- event → id -->
         <line class="arrow-line" x1="120" y1="145" x2="140" y2="80" />
         <!-- event → codec -->
@@ -1337,7 +1417,9 @@
           stroke="#0a0a0a"
         />
         <text class="node-text" x="360" y="161" fill="#fafafa">command/</text>
-        <text class="note-text" x="300" y="192">CommandSink · CommandSource</text>
+        <text class="note-text" x="300" y="192">
+          CommandSink · CommandSource
+        </text>
         <!-- command → id -->
         <line class="arrow-line" x1="330" y1="145" x2="155" y2="80" />
         <!-- command → dispatcher -->
@@ -1369,7 +1451,9 @@
           stroke="#e5e5e5"
           stroke-dasharray="3,3"
         />
-        <text class="layer-label" x="76" y="238">Layer 2 — Domain Infrastructure</text>
+        <text class="layer-label" x="76" y="238">
+          Layer 2 — Domain Infrastructure
+        </text>
 
         <!-- bus/ -->
         <rect
@@ -1403,7 +1487,9 @@
           stroke="#1d4ed8"
         />
         <text class="node-text" x="355" y="266" fill="#1d4ed8">snapshot/</text>
-        <text class="note-text" x="300" y="296">SnapshotSink/SnapshotSource</text>
+        <text class="note-text" x="300" y="296">
+          SnapshotSink/SnapshotSource
+        </text>
         <!-- snapshot → event -->
         <line
           class="arrow-line"
@@ -1446,7 +1532,9 @@
           stroke="#e5e5e5"
           stroke-dasharray="3,3"
         />
-        <text class="layer-label" x="76" y="370">Layer 3 — Aggregate pattern</text>
+        <text class="layer-label" x="76" y="370">
+          Layer 3 — Aggregate pattern
+        </text>
 
         <!-- decider/ -->
         <rect
@@ -1478,7 +1566,9 @@
           stroke="#e5e5e5"
           stroke-dasharray="3,3"
         />
-        <text class="layer-label" x="76" y="470">Layer 4 — Implementations</text>
+        <text class="layer-label" x="76" y="470">
+          Layer 4 — Implementations
+        </text>
 
         <!-- memory/ -->
         <rect
@@ -1524,7 +1614,9 @@
           fill="#fafafa"
           stroke="#a3a3a3"
         />
-        <text class="node-text" x="585" y="502" fill="#525252">projection/</text>
+        <text class="node-text" x="585" y="502" fill="#525252">
+          projection/
+        </text>
         <!-- projection → event -->
         <line class="arrow-line" x1="555" y1="488" x2="170" y2="179" />
         <!-- projection → bus -->
@@ -1546,7 +1638,13 @@
 
         <!-- legend -->
         <rect x="100" y="588" width="12" height="12" fill="#0a0a0a" rx="2" />
-        <text class="note-text" x="118" y="598" fill="#737373" style="font-style: normal">
+        <text
+          class="note-text"
+          x="118"
+          y="598"
+          fill="#737373"
+          style="font-style: normal"
+        >
           CQRS primitive (peer)
         </text>
         <rect
@@ -1559,7 +1657,13 @@
           stroke-width="1.2"
           rx="2"
         />
-        <text class="note-text" x="298" y="598" fill="#737373" style="font-style: normal">
+        <text
+          class="note-text"
+          x="298"
+          y="598"
+          fill="#737373"
+          style="font-style: normal"
+        >
           Domain infrastructure
         </text>
         <rect
@@ -1572,7 +1676,13 @@
           stroke-width="1.2"
           rx="2"
         />
-        <text class="note-text" x="478" y="598" fill="#737373" style="font-style: normal">
+        <text
+          class="note-text"
+          x="478"
+          y="598"
+          fill="#737373"
+          style="font-style: normal"
+        >
           Implementation
         </text>
         <line
@@ -1584,7 +1694,13 @@
           stroke-width="1.5"
           marker-end="url(#arrowhead-dark)"
         />
-        <text class="note-text" x="656" y="598" fill="#737373" style="font-style: normal">
+        <text
+          class="note-text"
+          x="656"
+          y="598"
+          fill="#737373"
+          style="font-style: normal"
+        >
           depends on
         </text>
       </svg>
@@ -1592,9 +1708,10 @@
       <div class="callout">
         <p>
           <strong>event/, command/, query/ are peers at Layer 1.</strong>
-          That's what the C and Q in CQRS stand for — none is more foundational than the other.
-          Layer 2 modules (bus, snapshot, schema) build on top of event. Each CQRS primitive owns
-          its own Sink/Source pattern. No generic <code>store/</code> module.
+          That's what the C and Q in CQRS stand for — none is more foundational
+          than the other. Layer 2 modules (bus, snapshot, schema) build on top
+          of event. Each CQRS primitive owns its own Sink/Source pattern. No
+          generic <code>store/</code> module.
         </p>
       </div>
     </section>
@@ -1605,8 +1722,8 @@
       <h2>Migration Plan</h2>
 
       <p>
-        Each phase is a single commit. <code>git mv</code> preserves history. Tests pass after every
-        phase.
+        Each phase is a single commit. <code>git mv</code> preserves history.
+        Tests pass after every phase.
       </p>
 
       <ol class="steps">
@@ -1615,58 +1732,70 @@
           <div class="desc">
             Create <code>event/</code>, <code>bus/</code>, <code>schema/</code>,
             <code>snapshot/</code>, <code>command/</code>, <code>query/</code>,
-            <code>decider/</code>, <code>id/</code>, <code>dispatcher/</code>, <code>outbox/</code>.
-            Add minimal <code>go.mod</code> to each. Update <code>go.work</code>.
-          </div>
-        </li>
-        <li>
-          <div class="title">git mv core/event/ → event/ (event stays as package)</div>
-          <div class="desc">
-            Move the entire <code>core/event/</code> directory to <code>event/</code>. Fix all
-            import paths. Run tests. This is the biggest single move.
+            <code>decider/</code>, <code>id/</code>, <code>dispatcher/</code>,
+            <code>outbox/</code>. Add minimal <code>go.mod</code> to each.
+            Update <code>go.work</code>.
           </div>
         </li>
         <li>
           <div class="title">
-            git mv event/{bus,snapshot,upcaster,checkpoint,projection,outbox} files → new modules
+            git mv core/event/ → event/ (event stays as package)
           </div>
           <div class="desc">
-            Extract <code>bus.go</code> → <code>bus/</code>, <code>snapshot*.go</code> →
-            <code>snapshot/</code>, <code>upcaster*.go</code> + <code>versioned_store.go</code> →
-            <code>schema/</code>, <code>outbox*.go</code> + <code>publish_helper.go</code> →
-            <code>outbox/</code>, <code>projection.go</code> + <code>checkpoint.go</code> +
-            <code>replay.go</code> → <code>projection/</code>. Fix imports. Run tests.
+            Move the entire <code>core/event/</code> directory to
+            <code>event/</code>. Fix all import paths. Run tests. This is the
+            biggest single move.
           </div>
         </li>
         <li>
-          <div class="title">git mv core/{command,query,decider} → top-level</div>
+          <div class="title">
+            git mv event/{bus,snapshot,upcaster,checkpoint,projection,outbox}
+            files → new modules
+          </div>
           <div class="desc">
-            Move <code>core/command/</code> → <code>command/</code>, <code>core/query/</code> →
-            <code>query/</code>, <code>core/decider/</code> → <code>decider/</code>. Fix imports.
-            Run tests.
+            Extract <code>bus.go</code> → <code>bus/</code>,
+            <code>snapshot*.go</code> → <code>snapshot/</code>,
+            <code>upcaster*.go</code> + <code>versioned_store.go</code> →
+            <code>schema/</code>, <code>outbox*.go</code> +
+            <code>publish_helper.go</code> → <code>outbox/</code>,
+            <code>projection.go</code> + <code>checkpoint.go</code> +
+            <code>replay.go</code> → <code>projection/</code>. Fix imports. Run
+            tests.
+          </div>
+        </li>
+        <li>
+          <div class="title">
+            git mv core/{command,query,decider} → top-level
+          </div>
+          <div class="desc">
+            Move <code>core/command/</code> → <code>command/</code>,
+            <code>core/query/</code> → <code>query/</code>,
+            <code>core/decider/</code> → <code>decider/</code>. Fix imports. Run
+            tests.
           </div>
         </li>
         <li>
           <div class="title">git mv core/pkg/{id,dispatcher} → top-level</div>
           <div class="desc">
-            Move <code>core/pkg/id/</code> → <code>id/</code>, <code>core/pkg/dispatcher/</code> →
-            <code>dispatcher/</code>. Fix imports. Run tests.
+            Move <code>core/pkg/id/</code> → <code>id/</code>,
+            <code>core/pkg/dispatcher/</code> → <code>dispatcher/</code>. Fix
+            imports. Run tests.
           </div>
         </li>
         <li>
           <div class="title">Split memory/ into domain sub-packages</div>
           <div class="desc">
-            <code>memory/store.go</code> → <code>event/memory/</code>, <code>memory/bus.go</code> →
-            <code>bus/memory/</code>, <code>memory/snapshot.go</code> →
-            <code>snapshot/memory/</code>, etc. Keep <code>memory/</code> as optional facade or
-            remove.
+            <code>memory/store.go</code> → <code>event/memory/</code>,
+            <code>memory/bus.go</code> → <code>bus/memory/</code>,
+            <code>memory/snapshot.go</code> → <code>snapshot/memory/</code>,
+            etc. Keep <code>memory/</code> as optional facade or remove.
           </div>
         </li>
         <li>
           <div class="title">Delete core/</div>
           <div class="desc">
-            Remove the <code>core/</code> directory. Remove from <code>go.work</code>. Full test
-            suite green. Done.
+            Remove the <code>core/</code> directory. Remove from
+            <code>go.work</code>. Full test suite green. Done.
           </div>
         </li>
       </ol>
@@ -1689,21 +1818,25 @@
           <tr>
             <td>1</td>
             <td>
-              Should <code>bus/</code> (58 lines) stand alone or merge into <code>event/</code>?
+              Should <code>bus/</code> (58 lines) stand alone or merge into
+              <code>event/</code>?
             </td>
             <td>Separate (clean role) · Merged (fewer modules)</td>
           </tr>
           <tr>
             <td>2</td>
             <td>
-              Should <code>event.Version</code> stay in <code>event/</code> or move to
-              <code>schema/</code>?
+              Should <code>event.Version</code> stay in <code>event/</code> or
+              move to <code>schema/</code>?
             </td>
             <td>Stay (stream position) · Move (versioning)</td>
           </tr>
           <tr>
             <td>3</td>
-            <td>Should <code>outbox/</code> be its own module or live in <code>storage/</code>?</td>
+            <td>
+              Should <code>outbox/</code> be its own module or live in
+              <code>storage/</code>?
+            </td>
             <td>Own module · In storage (co-located with SQLOutbox)</td>
           </tr>
           <tr>
@@ -1714,32 +1847,39 @@
           <tr>
             <td>5</td>
             <td>
-              Should projection interfaces (<code>Projection</code>, <code>Checkpoint</code>) move
-              to <code>projection/</code> or stay in <code>event/</code>?
+              Should projection interfaces (<code>Projection</code>,
+              <code>Checkpoint</code>) move to <code>projection/</code> or stay
+              in <code>event/</code>?
             </td>
             <td>Move (define where used) · Stay (event-oriented)</td>
           </tr>
           <tr>
             <td>6</td>
             <td>
-              Should <code>WithSchemaVersion</code> event option stay in <code>event/</code> or move
-              to <code>schema/</code>?
+              Should <code>WithSchemaVersion</code> event option stay in
+              <code>event/</code> or move to <code>schema/</code>?
             </td>
             <td>Stay (event construction) · Move (schema concern)</td>
           </tr>
           <tr>
             <td>7</td>
             <td>
-              What shape should <code>CommandSink</code>/<code>CommandSource</code> take? Logging
-              only? Full command store with replay?
+              What shape should <code>CommandSink</code>/<code
+                >CommandSource</code
+              >
+              take? Logging only? Full command store with replay?
             </td>
-            <td>Log-only (auditing) · Full store (replay + saga) · Defer to later</td>
+            <td>
+              Log-only (auditing) · Full store (replay + saga) · Defer to later
+            </td>
           </tr>
         </tbody>
       </table>
     </section>
 
     <!-- ════════ FOOTER ════════ -->
-    <footer class="footer">go-cqrs-lite · module restructuring proposal v2 · 2026-05-29</footer>
+    <footer class="footer">
+      go-cqrs-lite · module restructuring proposal v2 · 2026-05-29
+    </footer>
   </body>
 </html>

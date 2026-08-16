@@ -27,8 +27,10 @@
         --problem: var(--color-red);
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
-        --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-        --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-heading:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-body:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
         --font-mono: "SF Mono", Menlo, Consolas, monospace;
       }
       * {
@@ -398,9 +400,10 @@
           <div class="hero-badge">Data Model Review &middot; 2026-06-24</div>
           <h1>Type-Safety from First Principles</h1>
           <p class="hero-subtitle">
-            The domain model is the strongest part of this library: phantom-typed Version, distinct
-            SchemaVersion, fully-encapsulated ImmutableEvent, and a typed 5-family error taxonomy.
-            Three minor refinements would push it from excellent to impeccable.
+            The domain model is the strongest part of this library:
+            phantom-typed Version, distinct SchemaVersion, fully-encapsulated
+            ImmutableEvent, and a typed 5-family error taxonomy. Three minor
+            refinements would push it from excellent to impeccable.
           </p>
         </div>
 
@@ -432,9 +435,10 @@
           </div>
         </div>
         <p>
-          Verdict: <strong>production-grade type discipline</strong>. The model already implements
-          the hardest patterns correctly — branded types, phantom generics, encapsulated mutation,
-          typed enums. The findings below are polish, not rework.
+          Verdict: <strong>production-grade type discipline</strong>. The model
+          already implements the hardest patterns correctly — branded types,
+          phantom generics, encapsulated mutation, typed enums. The findings
+          below are polish, not rework.
         </p>
 
         <h2 id="catalog"><span class="num">01</span>Problem Catalog</h2>
@@ -450,48 +454,67 @@
           <tbody>
             <tr>
               <td>1</td>
-              <td>ID backing inconsistency (AggregateID = string, others = ULID)</td>
+              <td>
+                ID backing inconsistency (AggregateID = string, others = ULID)
+              </td>
               <td><span class="badge badge-high">High</span></td>
               <td>1 type, every API</td>
             </tr>
             <tr>
               <td>2</td>
-              <td>Pointer-as-optionality (<code>*TombstoneMark</code>, <code>*Causation</code>)</td>
+              <td>
+                Pointer-as-optionality (<code>*TombstoneMark</code>,
+                <code>*Causation</code>)
+              </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>2 fields</td>
             </tr>
             <tr>
               <td>3</td>
-              <td><code>Snapshot.State</code> is untyped <code>[]byte</code></td>
+              <td>
+                <code>Snapshot.State</code> is untyped <code>[]byte</code>
+              </td>
               <td><span class="badge badge-low">Low</span></td>
               <td>1 type (typed alt exists)</td>
             </tr>
           </tbody>
         </table>
 
-        <h2 id="aggregate-id"><span class="num">02</span>AggregateID backing inconsistency</h2>
+        <h2 id="aggregate-id">
+          <span class="num">02</span>AggregateID backing inconsistency
+        </h2>
         <div class="issue issue-important">
-          <span class="severity severity-important">Primitive obsession / inconsistency</span>
+          <span class="severity severity-important"
+            >Primitive obsession / inconsistency</span
+          >
           <h3>AggregateID is string-backed; every other ID is ULID-backed</h3>
-          <div class="where">id/aggregate_id.go:27 vs id/event_id.go:8 (and 6 others)</div>
+          <div class="where">
+            id/aggregate_id.go:27 vs id/event_id.go:8 (and 6 others)
+          </div>
           <pre><code><span class="tok-keyword">type</span> AggregateID = cbid.ID[AggregateMarker, <span class="tok-type">string</span>]   <span class="tok-comment">// string-backed</span>
 <span class="tok-keyword">type</span> EventID      = id.Of[EventMarker]                 <span class="tok-comment">// ULID-backed ([]byte, sortable)</span></code></pre>
           <p>
-            Seven of the eight branded IDs wrap a <code>ulid.ULID</code> (sortable, time-ordered,
-            validated). <code>AggregateID</code> alone wraps a raw <code>string</code>, so it can
-            hold any string with no format guarantee — the one place the "branded ID prevents
-            garbage" promise breaks. This also means aggregate IDs are not uniformly time-sortable,
-            which can surprise store implementations that optimise for ULID ordering.
+            Seven of the eight branded IDs wrap a
+            <code>ulid.ULID</code> (sortable, time-ordered, validated).
+            <code>AggregateID</code> alone wraps a raw <code>string</code>, so
+            it can hold any string with no format guarantee — the one place the
+            "branded ID prevents garbage" promise breaks. This also means
+            aggregate IDs are not uniformly time-sortable, which can surprise
+            store implementations that optimise for ULID ordering.
           </p>
           <div class="callout callout-solution">
-            <strong>Options</strong> (a) Make <code>AggregateID = Of[AggregateMarker]</code> for
-            ULID consistency (breaking — changes the public value type); (b) document the split as
-            intentional (user-supplied natural keys) and add a constructor that validates
-            length/charset. Recommended: (b) now, (a) at the next major if consumers agree.
+            <strong>Options</strong> (a) Make
+            <code>AggregateID = Of[AggregateMarker]</code> for ULID consistency
+            (breaking — changes the public value type); (b) document the split
+            as intentional (user-supplied natural keys) and add a constructor
+            that validates length/charset. Recommended: (b) now, (a) at the next
+            major if consumers agree.
           </div>
         </div>
 
-        <h2 id="optionality"><span class="num">03</span>Pointer-as-optionality</h2>
+        <h2 id="optionality">
+          <span class="num">03</span>Pointer-as-optionality
+        </h2>
         <div class="issue issue-nice">
           <span class="severity severity-nice">Design polish</span>
           <h3>Nil pointers encode "absent" for Tombstone &amp; Causation</h3>
@@ -499,16 +522,20 @@
           <pre><code>Tombstone <span class="tok-type">*</span>TombstoneMark  <span class="tok-comment">// nil == "no tombstone"</span>
 Causation  <span class="tok-type">*</span>Causation      <span class="tok-comment">// nil == "no causation"</span></code></pre>
           <p>
-            Nil-means-absent is idiomatic Go, but it pushes a "present/absent" distinction to
-            runtime (nil-checks) instead of the type system. The fields are well-named and the
-            surrounding code handles nil correctly, so this is a nit — but a sealed-interface option
-            type (<code>type Presence interface { presence() }</code> with
-            <code>None</code>/<code>Some</code>) would make absence unrepresentable-by-accident. Low
-            priority given the clean current handling.
+            Nil-means-absent is idiomatic Go, but it pushes a "present/absent"
+            distinction to runtime (nil-checks) instead of the type system. The
+            fields are well-named and the surrounding code handles nil
+            correctly, so this is a nit — but a sealed-interface option type
+            (<code>type Presence interface { presence() }</code> with
+            <code>None</code>/<code>Some</code>) would make absence
+            unrepresentable-by-accident. Low priority given the clean current
+            handling.
           </p>
         </div>
 
-        <h2 id="snapshot"><span class="num">04</span>Snapshot leaks serialization detail</h2>
+        <h2 id="snapshot">
+          <span class="num">04</span>Snapshot leaks serialization detail
+        </h2>
         <div class="issue issue-nice">
           <span class="severity severity-nice">Leaky abstraction</span>
           <h3>Snapshot.State is []byte in the domain type</h3>
@@ -518,23 +545,32 @@ Causation  <span class="tok-type">*</span>Causation      <span class="tok-commen
     State <span class="tok-type">[]byte</span>      <span class="tok-comment">// already-serialised bytes</span>
 }</code></pre>
           <p>
-            The base <code>Snapshot</code> carries pre-serialised bytes, leaking the codec into the
-            domain type. The library already ships the correct alternative —
-            <code>TypedSnapshot[State any]</code> (<code>snapshot/typed.go:24</code>) with a generic
-            <code>State</code>. Recommendation: present <code>TypedSnapshot</code> as the primary
-            type in docs and treat <code>Snapshot</code> as the storage-layer envelope.
+            The base <code>Snapshot</code> carries pre-serialised bytes, leaking
+            the codec into the domain type. The library already ships the
+            correct alternative —
+            <code>TypedSnapshot[State any]</code>
+            (<code>snapshot/typed.go:24</code>) with a generic
+            <code>State</code>. Recommendation: present
+            <code>TypedSnapshot</code> as the primary type in docs and treat
+            <code>Snapshot</code> as the storage-layer envelope.
           </p>
         </div>
 
-        <h2 id="vision"><span class="num">05</span>The Vision (what perfection looks like)</h2>
+        <h2 id="vision">
+          <span class="num">05</span>The Vision (what perfection looks like)
+        </h2>
         <div class="card card-solution">
           <h4>Impossible states stay unrepresentable</h4>
           <p>
-            Every identifier is a branded type that cannot be confused with another. Every count is
-            a phantom <code>Version</code>/<code>SchemaVersion</code> that cannot be added to a
-            plain <code>int</code>. Every error carries a typed <code>Family</code> the compiler can
-            switch on exhaustively. Every mutable surface is hidden behind a clone-returning
-            accessor. The three refinements above close the last gaps.
+            Every identifier is a branded type that cannot be confused with
+            another. Every count is a phantom <code>Version</code>/<code
+              >SchemaVersion</code
+            >
+            that cannot be added to a plain <code>int</code>. Every error
+            carries a typed <code>Family</code> the compiler can switch on
+            exhaustively. Every mutable surface is hidden behind a
+            clone-returning accessor. The three refinements above close the last
+            gaps.
           </p>
         </div>
 
@@ -543,9 +579,12 @@ Causation  <span class="tok-type">*</span>Causation      <span class="tok-commen
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Phantom <code>Version</code> with full arithmetic + JSON</strong
+              <strong
+                >Phantom <code>Version</code> with full arithmetic +
+                JSON</strong
               ><span
-                >Compile-time separation from <code>int</code>; <code>Decrement</code> returns
+                >Compile-time separation from <code>int</code>;
+                <code>Decrement</code> returns
                 <code>ErrVersionUnderflow</code> rather than underflowing.</span
               >
             </div>
@@ -554,10 +593,11 @@ Causation  <span class="tok-type">*</span>Causation      <span class="tok-commen
             <div class="check">+</div>
             <div class="text">
               <strong
-                ><code>SchemaVersion</code> is a distinct type from <code>Version</code></strong
+                ><code>SchemaVersion</code> is a distinct type from
+                <code>Version</code></strong
               ><span
-                >Two semantically-different counts can't be mixed — a common bug class
-                eliminated.</span
+                >Two semantically-different counts can't be mixed — a common bug
+                class eliminated.</span
               >
             </div>
           </div>
@@ -566,8 +606,11 @@ Causation  <span class="tok-type">*</span>Causation      <span class="tok-commen
             <div class="text">
               <strong><code>ImmutableEvent</code> is fully encapsulated</strong
               ><span
-                >All fields unexported; <code>Payload()</code>/<code>Metadata()</code> return
-                defensive clones. Mutating shared internals is impossible.</span
+                >All fields unexported; <code>Payload()</code>/<code
+                  >Metadata()</code
+                >
+                return defensive clones. Mutating shared internals is
+                impossible.</span
               >
             </div>
           </div>
@@ -576,9 +619,10 @@ Causation  <span class="tok-type">*</span>Causation      <span class="tok-commen
             <div class="text">
               <strong>Typed 5-family error taxonomy</strong
               ><span
-                ><code>Family</code> is an <code>int</code> enum switchable exhaustively;
-                <code>Error</code> is a struct with code/family/context; 16 typed sentinels. Real
-                errors-as-values, not string matching.</span
+                ><code>Family</code> is an <code>int</code> enum switchable
+                exhaustively; <code>Error</code> is a struct with
+                code/family/context; 16 typed sentinels. Real errors-as-values,
+                not string matching.</span
               >
             </div>
           </div>
@@ -587,9 +631,10 @@ Causation  <span class="tok-type">*</span>Causation      <span class="tok-commen
             <div class="text">
               <strong>Per-module Metadata types (ADR-0031)</strong
               ><span
-                ><code>event</code>/<code>command</code>/<code>query</code> each own a
-                <code>Metadata</code> embedding shared <code>Tracing</code> — a change to event's
-                shape can't silently reshape commands.</span
+                ><code>event</code>/<code>command</code>/<code>query</code> each
+                own a <code>Metadata</code> embedding shared
+                <code>Tracing</code> — a change to event's shape can't silently
+                reshape commands.</span
               >
             </div>
           </div>
@@ -597,9 +642,14 @@ Causation  <span class="tok-type">*</span>Causation      <span class="tok-commen
             <div class="check">+</div>
             <div class="text">
               <strong
-                ><code>TombstoneStatus</code> is <code>int</code>+<code>iota</code> with
-                <code>IsKnown()</code></strong
-              ><span>The tri-state (Active/Tombstoned/Undetermined) is explicit, not a bool.</span>
+                ><code>TombstoneStatus</code> is <code>int</code>+<code
+                  >iota</code
+                >
+                with <code>IsKnown()</code></strong
+              ><span
+                >The tri-state (Active/Tombstoned/Undetermined) is explicit, not
+                a bool.</span
+              >
             </div>
           </div>
         </div>
@@ -618,7 +668,8 @@ Causation  <span class="tok-type">*</span>Causation      <span class="tok-commen
             <tr>
               <td>1</td>
               <td>
-                Document AggregateID's string backing as intentional + add a validating constructor
+                Document AggregateID's string backing as intentional + add a
+                validating constructor
               </td>
               <td>S</td>
               <td><span class="badge badge-high">High</span></td>
@@ -626,7 +677,8 @@ Causation  <span class="tok-type">*</span>Causation      <span class="tok-commen
             <tr>
               <td>2</td>
               <td>
-                Promote <code>TypedSnapshot[State]</code> as the documented primary snapshot type
+                Promote <code>TypedSnapshot[State]</code> as the documented
+                primary snapshot type
               </td>
               <td>S</td>
               <td><span class="badge badge-medium">Medium</span></td>
@@ -634,7 +686,8 @@ Causation  <span class="tok-type">*</span>Causation      <span class="tok-commen
             <tr>
               <td>3</td>
               <td>
-                (Optional, v4) Unify AggregateID onto ULID, or introduce a sealed Presence type
+                (Optional, v4) Unify AggregateID onto ULID, or introduce a
+                sealed Presence type
               </td>
               <td>L</td>
               <td><span class="badge badge-low">Low</span></td>
@@ -643,9 +696,10 @@ Causation  <span class="tok-type">*</span>Causation      <span class="tok-commen
         </table>
 
         <footer class="footer">
-          Generated 2026-06-24 &middot; All type signatures verified against source
-          (<code>event/</code>, <code>id/</code>, <code>snapshot/</code>, <code>command/</code>,
-          <code>query/</code>, <code>go-error-family@v0.5.1</code>).
+          Generated 2026-06-24 &middot; All type signatures verified against
+          source (<code>event/</code>, <code>id/</code>, <code>snapshot/</code>,
+          <code>command/</code>, <code>query/</code>,
+          <code>go-error-family@v0.5.1</code>).
         </footer>
       </main>
     </div>

@@ -414,10 +414,12 @@
   <body>
     <article>
       <header>
-        <h1><span class="accent">encryption/</span> — Design Review &amp; Roadmap</h1>
+        <h1>
+          <span class="accent">encryption/</span> — Design Review &amp; Roadmap
+        </h1>
         <p class="subtitle">
-          Self-review findings, architecture improvements, and a prioritized execution plan for the
-          new encryption module
+          Self-review findings, architecture improvements, and a prioritized
+          execution plan for the new encryption module
         </p>
         <div class="meta">
           <span>2026-06-10</span>
@@ -432,7 +434,9 @@
           <li><a href="#what-we-built">What We Built</a></li>
           <li><a href="#brutal-self-review">Brutal Self-Review</a></li>
           <li><a href="#duplication-analysis">Duplication Analysis</a></li>
-          <li><a href="#architecture-improvements">Architecture Improvements</a></li>
+          <li>
+            <a href="#architecture-improvements">Architecture Improvements</a>
+          </li>
           <li><a href="#execution-plan">Execution Plan (Top 25)</a></li>
           <li><a href="#open-question">Open Question</a></li>
         </ol>
@@ -441,15 +445,16 @@
       <section id="what-we-built">
         <h2>1. What We Built</h2>
         <p class="lede">
-          A new <code>encryption/</code> module providing AES-256-GCM event payload encryption as a
-          sibling to <code>signing/</code>. Whole-payload encryption with middleware for automatic
+          A new <code>encryption/</code> module providing AES-256-GCM event
+          payload encryption as a sibling to <code>signing/</code>.
+          Whole-payload encryption with middleware for automatic
           encrypt-on-publish / decrypt-on-handle.
         </p>
 
         <div class="verdict good">
-          <strong>27 tests pass.</strong> 14 BDD specs (Ginkgo) + 11 unit tests + 2 runnable
-          examples. Round-trip benchmarks: ~1.1µs for 1KB payload encrypt+decrypt. Stdlib-only
-          crypto. Zero new external dependencies.
+          <strong>27 tests pass.</strong> 14 BDD specs (Ginkgo) + 11 unit tests
+          + 2 runnable examples. Round-trip benchmarks: ~1.1µs for 1KB payload
+          encrypt+decrypt. Stdlib-only crypto. Zero new external dependencies.
         </div>
 
         <h3>Module Structure</h3>
@@ -469,7 +474,9 @@
             </tr>
             <tr>
               <td><code>aesgcm.go</code></td>
-              <td>AES-256-GCM implementation (32-byte key, random 12-byte nonce)</td>
+              <td>
+                AES-256-GCM implementation (32-byte key, random 12-byte nonce)
+              </td>
               <td><span class="badge done">done</span></td>
             </tr>
             <tr>
@@ -484,7 +491,9 @@
             </tr>
             <tr>
               <td><code>middleware.go</code></td>
-              <td>EncryptMiddleware (publish), DecryptMiddleware (subscribe)</td>
+              <td>
+                EncryptMiddleware (publish), DecryptMiddleware (subscribe)
+              </td>
               <td><span class="badge done">done</span></td>
             </tr>
             <tr>
@@ -514,7 +523,8 @@ bus.Use(encryption.DecryptMiddleware(enc))          // auto-decrypt on handle</c
       <section id="brutal-self-review">
         <h2>2. Brutal Self-Review</h2>
         <p class="lede">
-          Every module should survive its own honest critique. Here's what the self-review found.
+          Every module should survive its own honest critique. Here's what the
+          self-review found.
         </p>
 
         <h3>What We Found &amp; Fixed</h3>
@@ -529,24 +539,27 @@ bus.Use(encryption.DecryptMiddleware(enc))          // auto-decrypt on handle</c
           <tbody>
             <tr>
               <td>
-                Redundant <code>slices.Clone(plaintext)</code> in <code>aesgcm.go</code> —
-                <code>aead.Open(nil,...)</code> already allocates fresh
+                Redundant <code>slices.Clone(plaintext)</code> in
+                <code>aesgcm.go</code> — <code>aead.Open(nil,...)</code> already
+                allocates fresh
               </td>
               <td>Perf</td>
               <td><span class="badge done">fixed</span></td>
             </tr>
             <tr>
               <td>
-                Vestigial <code>"event.encrypted": ""</code> on decrypted events —
-                <code>WithCustom(key, "")</code> sets empty string, doesn't delete
+                Vestigial <code>"event.encrypted": ""</code> on decrypted events
+                — <code>WithCustom(key, "")</code> sets empty string, doesn't
+                delete
               </td>
               <td>Smell</td>
               <td><span class="badge done">fixed</span></td>
             </tr>
             <tr>
               <td>
-                <code>Ciphertext.Equal()</code> was byte-by-byte loop, not constant-time —
-                inconsistent with <code>Signature.Equal</code> which uses <code>hmac.Equal</code>
+                <code>Ciphertext.Equal()</code> was byte-by-byte loop, not
+                constant-time — inconsistent with
+                <code>Signature.Equal</code> which uses <code>hmac.Equal</code>
               </td>
               <td>Security</td>
               <td><span class="badge done">fixed</span></td>
@@ -576,8 +589,8 @@ bus.Use(encryption.DecryptMiddleware(enc))          // auto-decrypt on handle</c
           <tbody>
             <tr>
               <td>
-                ~80% code duplication with <code>signing/</code> (CloneEvent, AttachBlob,
-                ExtractBlob, rejecting middleware, type methods)
+                ~80% code duplication with <code>signing/</code> (CloneEvent,
+                AttachBlob, ExtractBlob, rejecting middleware, type methods)
               </td>
               <td>High</td>
               <td><span class="badge partial">partial</span></td>
@@ -593,7 +606,9 @@ bus.Use(encryption.DecryptMiddleware(enc))          // auto-decrypt on handle</c
               <td><span class="badge notstarted">not started</span></td>
             </tr>
             <tr>
-              <td>No integration test with signing (sign + encrypt round-trip)</td>
+              <td>
+                No integration test with signing (sign + encrypt round-trip)
+              </td>
               <td>Confidence</td>
               <td><span class="badge notstarted">not started</span></td>
             </tr>
@@ -614,8 +629,9 @@ bus.Use(encryption.DecryptMiddleware(enc))          // auto-decrypt on handle</c
       <section id="duplication-analysis">
         <h2>3. Duplication Analysis</h2>
         <p class="lede">
-          The biggest architectural issue: <code>encryption/</code> and <code>signing/</code> share
-          ~80% structural code with separate implementations.
+          The biggest architectural issue: <code>encryption/</code> and
+          <code>signing/</code> share ~80% structural code with separate
+          implementations.
         </p>
 
         <h3>Overlap Heat Map</h3>
@@ -665,8 +681,9 @@ bus.Use(encryption.DecryptMiddleware(enc))          // auto-decrypt on handle</c
         </div>
         <p>
           <strong>4 exact duplicates</strong> (function bodies identical),
-          <strong>4 near-duplicates</strong> (differ only in type/error strings),
-          <strong>4 exact duplicate methods</strong> on <code>[]byte</code> types.
+          <strong>4 near-duplicates</strong> (differ only in type/error
+          strings), <strong>4 exact duplicate methods</strong> on
+          <code>[]byte</code> types.
         </p>
       </section>
 
@@ -675,9 +692,10 @@ bus.Use(encryption.DecryptMiddleware(enc))          // auto-decrypt on handle</c
 
         <h3>4.1 Shared Metadata Helpers in <code>event/</code></h3>
         <p>
-          Both signing and encryption need to attach/extract opaque byte blobs in event metadata.
-          This is a generic operation that should live in <code>event/</code> as
-          <strong>unexported</strong> helpers (both modules already depend on event):
+          Both signing and encryption need to attach/extract opaque byte blobs
+          in event metadata. This is a generic operation that should live in
+          <code>event/</code> as <strong>unexported</strong> helpers (both
+          modules already depend on event):
         </p>
         <pre><code>// event/metadata_blob.go (internal)
 
@@ -687,23 +705,28 @@ func hasBlob(evt Event, key MetadataKey) bool</code></pre>
 
         <h3>4.2 Type Model: Opaque <code>[]byte</code> Values</h3>
         <p>
-          Both <code>Signature</code> and <code>Ciphertext</code> are <code>[]byte</code> with
-          identical methods: <code>IsZero</code>, <code>Bytes</code>, <code>String</code>,
-          <code>MarshalJSON</code>, <code>UnmarshalJSON</code>. This pattern could be extracted to a
-          shared internal type, but the Go type system makes this tricky — you can't embed a base
-          type and get different methods on the embedding type.
+          Both <code>Signature</code> and <code>Ciphertext</code> are
+          <code>[]byte</code> with identical methods: <code>IsZero</code>,
+          <code>Bytes</code>, <code>String</code>, <code>MarshalJSON</code>,
+          <code>UnmarshalJSON</code>. This pattern could be extracted to a
+          shared internal type, but the Go type system makes this tricky — you
+          can't embed a base type and get different methods on the embedding
+          type.
           <strong
-            >Recommendation: keep them separate but share the implementation via a helper
-            function.</strong
+            >Recommendation: keep them separate but share the implementation via
+            a helper function.</strong
           >
         </p>
 
-        <h3>4.3 <code>Ciphertext.Nonce()</code> / <code>Data()</code> — AES-GCM Specific</h3>
+        <h3>
+          4.3 <code>Ciphertext.Nonce()</code> / <code>Data()</code> — AES-GCM
+          Specific
+        </h3>
         <p>
-          These accessors assume 12-byte nonce prefix, which is AES-GCM specific. XChaCha20-Poly1305
-          uses 24-byte nonces.
-          <strong>Consider moving these to an AES-GCM-specific helper</strong> rather than the
-          generic Ciphertext type.
+          These accessors assume 12-byte nonce prefix, which is AES-GCM
+          specific. XChaCha20-Poly1305 uses 24-byte nonces.
+          <strong>Consider moving these to an AES-GCM-specific helper</strong>
+          rather than the generic Ciphertext type.
         </p>
 
         <h3>4.4 Established Libraries</h3>
@@ -719,7 +742,9 @@ func hasBlob(evt Event, key MetadataKey) bool</code></pre>
             <tr>
               <td><code>golang.org/x/crypto/chacha20poly1305</code></td>
               <td>XChaCha20-Poly1305 (24-byte nonce)</td>
-              <td>Add as alternative implementation — quasi-stdlib, zero risk</td>
+              <td>
+                Add as alternative implementation — quasi-stdlib, zero risk
+              </td>
             </tr>
             <tr>
               <td><code>filippo.io/age</code></td>
@@ -744,10 +769,11 @@ func hasBlob(evt Event, key MetadataKey) bool</code></pre>
 
         <h3>4.5 Field-Level Encryption Design</h3>
         <div class="verdict info">
-          <strong>Approach A (recommended):</strong> JSON path encryption as a sub-package. Uses
-          <code>Encrypter</code>/<code>Decrypter</code> interfaces from parent. Preserves
-          non-sensitive fields for projection, indexing, catalog. Already have
-          <code>tidwall/gjson</code> dependency in workspace.
+          <strong>Approach A (recommended):</strong> JSON path encryption as a
+          sub-package. Uses <code>Encrypter</code>/<code>Decrypter</code>
+          interfaces from parent. Preserves non-sensitive fields for projection,
+          indexing, catalog. Already have <code>tidwall/gjson</code> dependency
+          in workspace.
         </div>
         <pre><code>enc, _ := encryption.NewAES256GCM(key)
 fieldEnc := fieldlevel.New(enc, fieldlevel.Paths("$.ssn", "$.email"))
@@ -761,8 +787,8 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
       <section id="execution-plan">
         <h2>5. Execution Plan (Top 25)</h2>
         <p class="lede">
-          Sorted by <strong>impact × ease</strong> (Pareto principle). Tier 1 = quick wins to do
-          now. Tier 3 = future feature work.
+          Sorted by <strong>impact × ease</strong> (Pareto principle). Tier 1 =
+          quick wins to do now. Tier 3 = future feature work.
         </p>
 
         <h3>Tier 1: Quick Wins</h3>
@@ -780,9 +806,8 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
         <div class="tier">
           <span class="num">2</span>
           <div class="task">
-            Fix vestigial <code>"event.encrypted": ""</code> on decrypted events<small
-              >Delete key from map instead of empty string</small
-            >
+            Fix vestigial <code>"event.encrypted": ""</code> on decrypted
+            events<small>Delete key from map instead of empty string</small>
           </div>
           <span class="impact high">high</span>
           <span class="effort sm">5m</span>
@@ -819,7 +844,8 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
         <div class="tier">
           <span class="num">6</span>
           <div class="task">
-            Add <code>encryption/README.md</code><small>Docs — every module has one</small>
+            Add <code>encryption/README.md</code
+            ><small>Docs — every module has one</small>
           </div>
           <span class="impact med">med</span>
           <span class="effort sm">10m</span>
@@ -827,7 +853,9 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
         <div class="tier">
           <span class="num">7</span>
           <div class="task">
-            Add fuzz test for Decrypt<small>Robustness — standard practice for crypto code</small>
+            Add fuzz test for Decrypt<small
+              >Robustness — standard practice for crypto code</small
+            >
           </div>
           <span class="impact med">med</span>
           <span class="effort sm">10m</span>
@@ -838,7 +866,8 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
         <div class="tier">
           <span class="num">8</span>
           <div class="task">
-            Extract <code>CloneEvent</code> to <code>event/</code> as shared helper<small
+            Extract <code>CloneEvent</code> to <code>event/</code> as shared
+            helper<small
               >Deduplication — signing + encryption both need it</small
             >
           </div>
@@ -848,7 +877,8 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
         <div class="tier">
           <span class="num">9</span>
           <div class="task">
-            Extract <code>attachBlob</code> / <code>extractBlob</code> to <code>event/</code
+            Extract <code>attachBlob</code> / <code>extractBlob</code> to
+            <code>event/</code
             ><small>Deduplication — identical base64+metadata pattern</small>
           </div>
           <span class="impact high">high</span>
@@ -858,7 +888,10 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
           <span class="num">10</span>
           <div class="task">
             Extract rejecting middleware helpers to <code>event/</code
-            ><small>Deduplication — exact duplication across signing/encryption</small>
+            ><small
+              >Deduplication — exact duplication across
+              signing/encryption</small
+            >
           </div>
           <span class="impact med">med</span>
           <span class="effort sm">20m</span>
@@ -876,9 +909,8 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
         <div class="tier">
           <span class="num">12</span>
           <div class="task">
-            Move <code>Nonce()</code>/<code>Data()</code> off Ciphertext type<small
-              >Architecture — these are AES-GCM specific</small
-            >
+            Move <code>Nonce()</code>/<code>Data()</code> off Ciphertext
+            type<small>Architecture — these are AES-GCM specific</small>
           </div>
           <span class="impact low">low</span>
           <span class="effort sm">20m</span>
@@ -900,7 +932,8 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
           <span class="num">14</span>
           <div class="task">
             Add field-level encryption sub-package<small
-              >High-value: selective encryption preserving event structure</small
+              >High-value: selective encryption preserving event
+              structure</small
             >
           </div>
           <span class="impact high">high</span>
@@ -909,7 +942,9 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
         <div class="tier">
           <span class="num">15</span>
           <div class="task">
-            Key envelope encryption helper<small>KMS integration: encrypt DEK with KEK</small>
+            Key envelope encryption helper<small
+              >KMS integration: encrypt DEK with KEK</small
+            >
           </div>
           <span class="impact med">med</span>
           <span class="effort md">2h</span>
@@ -950,7 +985,9 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
         <div class="tier">
           <span class="num">19</span>
           <div class="task">
-            Add <code>testdata/golden/</code> fixtures<small>Regression — standard practice</small>
+            Add <code>testdata/golden/</code> fixtures<small
+              >Regression — standard practice</small
+            >
           </div>
           <span class="impact low">low</span>
           <span class="effort sm">15m</span>
@@ -968,7 +1005,9 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
         <div class="tier">
           <span class="num">21</span>
           <div class="task">
-            Verify nix build/lint passes for new module<small>CI — must work in pipeline</small>
+            Verify nix build/lint passes for new module<small
+              >CI — must work in pipeline</small
+            >
           </div>
           <span class="impact low">low</span>
           <span class="effort sm">10m</span>
@@ -977,7 +1016,8 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
           <span class="num">22</span>
           <div class="task">
             Split test files by concern<small
-              >Coverage — separate event_test.go, middleware_test.go, etc.</small
+              >Coverage — separate event_test.go, middleware_test.go,
+              etc.</small
             >
           </div>
           <span class="impact low">low</span>
@@ -1018,21 +1058,28 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
       <section id="open-question">
         <h2>6. Open Question</h2>
         <div class="question">
-          <h3>Should shared helpers live in event/ as public API or unexported internals?</h3>
+          <h3>
+            Should shared helpers live in event/ as public API or unexported
+            internals?
+          </h3>
           <p>
-            <strong>Public <code>event.CloneEvent(evt, key, value)</code>:</strong> Generic event
-            manipulation primitive. Future modules might need it. Consumers might want custom
-            metadata blobs.
+            <strong
+              >Public <code>event.CloneEvent(evt, key, value)</code>:</strong
+            >
+            Generic event manipulation primitive. Future modules might need it.
+            Consumers might want custom metadata blobs.
           </p>
           <p>
-            <strong>Unexported in <code>event/</code>:</strong> Both signing and encryption already
-            depend on event. No public API surface addition. Consumers use signing/encryption
-            middleware, not raw helpers. Safer for a library.
+            <strong>Unexported in <code>event/</code>:</strong> Both signing and
+            encryption already depend on event. No public API surface addition.
+            Consumers use signing/encryption middleware, not raw helpers. Safer
+            for a library.
           </p>
           <p>
-            <strong>My recommendation:</strong> Unexported in <code>event/</code>. This preserves
-            the "library, not framework" principle while eliminating duplication. Public API surface
-            is a one-way door — once exported, we can't remove it.
+            <strong>My recommendation:</strong> Unexported in
+            <code>event/</code>. This preserves the "library, not framework"
+            principle while eliminating duplication. Public API surface is a
+            one-way door — once exported, we can't remove it.
           </p>
         </div>
       </section>
@@ -1042,7 +1089,10 @@ bus.Use(fieldlevel.DecryptMiddleware(fieldEnc))
         <pre><code>BenchmarkAES256GCM_Encrypt-32      1658616    693.4 ns/op    2320 B/op    3 allocs/op
 BenchmarkAES256GCM_Decrypt-32      2017398    504.3 ns/op    2048 B/op    2 allocs/op
 BenchmarkAES256GCM_RoundTrip-32    1000000   1106 ns/op      4368 B/op    5 allocs/op</code></pre>
-        <p>~1.1µs for encrypt+decrypt of a 1KB payload. Hardware-accelerated via AES-NI.</p>
+        <p>
+          ~1.1µs for encrypt+decrypt of a 1KB payload. Hardware-accelerated via
+          AES-NI.
+        </p>
       </section>
 
       <section>
@@ -1056,7 +1106,10 @@ Layer 5: middleware/, storage/, projection/     (infrastructure)</code></pre>
       </section>
 
       <footer>
-        <p>go-cqrs-lite encryption module — self-review &amp; roadmap — 2026-06-10</p>
+        <p>
+          go-cqrs-lite encryption module — self-review &amp; roadmap —
+          2026-06-10
+        </p>
       </footer>
     </article>
   </body>

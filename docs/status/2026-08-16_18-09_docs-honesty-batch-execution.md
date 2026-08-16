@@ -53,7 +53,7 @@ Edits landed (all verified against code first):
 6. `FEATURES.md` — Metadata row (Tombstone field exists, Deprecated), Domain-event deletion
    row (✅→🧪, honest), TombstonePolicy constants (real names), design-choice row.
 7. Skill refs: `modules.md` listing row, `core.md` (fixed wrong `event.New(ref, ...)` sample
-   + `listing.StatusActive/StatusDeleted` fiction), `advanced.md` (same wrong signature).
+   - `listing.StatusActive/StatusDeleted` fiction), `advanced.md` (same wrong signature).
 8. ANNOTATE mode per docs-health: correction banners on the three archive reports that
    claimed the rename landed (2026-08-10_19-26, 2026-08-11_08-44, 2026-08-11_04-04).
 9. `TODO_LIST.md` — added "CHANGELOG honesty gate" (symbols must exist in api-stability
@@ -220,6 +220,6 @@ bound, `RawWhere`/`RawArgs` escape hatch, keyset pagination sample, and the
 
 ---
 
-*Report written from session evidence. All session edits are committed (auto-commit daemon,
+_Report written from session evidence. All session edits are committed (auto-commit daemon,
 worktree clean at 18:09). Pre-existing uncommitted files from session start were swept into
-daemon commits before this session's work began — none were authored or reverted by me.*
+daemon commits before this session's work began — none were authored or reverted by me._

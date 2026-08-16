@@ -5,7 +5,12 @@
   preserveAspectRatio="xMinYMin meet"
   viewBox="0 0 7855 2058"
 >
-  <svg class="d2-845041179 d2-svg" width="7855" height="2058" viewBox="-101 -596 7855 2058">
+  <svg
+    class="d2-845041179 d2-svg"
+    width="7855"
+    height="2058"
+    viewBox="-101 -596 7855 2058"
+  >
     <rect
       x="-101.000000"
       y="-596.000000"
@@ -899,7 +904,8 @@
         class="text-italic"
         style="text-anchor: middle; font-size: 13px"
       >
-        Every module is a sharp tool. No coupling without reason. No import without purpose.
+        Every module is a sharp tool. No coupling without reason. No import
+        without purpose.
       </text>
     </g>
     <g class="bGF5ZXIw">
@@ -1001,7 +1007,9 @@
         style="text-anchor: middle; font-size: 28px"
       >
         <tspan x="6693.000000" dy="0.000000">Layer 3 — CQRS Patterns</tspan>
-        <tspan x="6693.000000" dy="32.000000">compose events + commands into aggregates</tspan>
+        <tspan x="6693.000000" dy="32.000000">
+          compose events + commands into aggregates
+        </tspan>
       </text>
     </g>
     <g class="bGF5ZXI0">
@@ -1025,7 +1033,9 @@
         style="text-anchor: middle; font-size: 28px"
       >
         <tspan x="283.500000" dy="0.000000">Layer 4 — Implementations</tspan>
-        <tspan x="283.500000" dy="32.000000">import ONLY the backend you need</tspan>
+        <tspan x="283.500000" dy="32.000000">
+          import ONLY the backend you need
+        </tspan>
       </text>
     </g>
     <g class="bGF5ZXI1">
@@ -1049,7 +1059,9 @@
         style="text-anchor: middle; font-size: 28px"
       >
         <tspan x="7308.000000" dy="0.000000">Layer 5 — Cross-Cutting</tspan>
-        <tspan x="7308.000000" dy="32.000000">optional observability + projection lifecycle</tspan>
+        <tspan x="7308.000000" dy="32.000000">
+          optional observability + projection lifecycle
+        </tspan>
       </text>
     </g>
     <g class="c3RhbmRhbG9uZQ==">
@@ -1129,26 +1141,32 @@
         class="text"
         style="text-anchor: middle; font-size: 11px"
       >
-        <tspan x="3826.500000" dy="0.000000">What Changed vs Previous Perfect World</tspan>
+        <tspan x="3826.500000" dy="0.000000">
+          What Changed vs Previous Perfect World
+        </tspan>
         <tspan x="3826.500000" dy="11.120000"></tspan>
         <tspan x="3826.500000" dy="11.120000">
           1. command/ and query/ NO LONGER depend on event/
         </tspan>
         <tspan x="3826.500000" dy="11.120000">
-          The old coupling was 5+3 lines of error constructors. Now they use errs/.
+          The old coupling was 5+3 lines of error constructors. Now they use
+          errs/.
         </tspan>
         <tspan x="3826.500000" dy="11.120000"></tspan>
         <tspan x="3826.500000" dy="11.120000">
           2. Error taxonomy extracted to errs/ leaf module
         </tspan>
         <tspan x="3826.500000" dy="11.120000">
-          NewRejection has nothing to do with events — it is go-error-family re-exported.
+          NewRejection has nothing to do with events — it is go-error-family
+          re-exported.
         </tspan>
         <tspan x="3826.500000" dy="11.120000"></tspan>
         <tspan x="3826.500000" dy="11.120000">
           3. InMemoryRunner moved from event/ to projection/
         </tspan>
-        <tspan x="3826.500000" dy="11.120000">A runner is runtime behavior, not a contract.</tspan>
+        <tspan x="3826.500000" dy="11.120000">
+          A runner is runtime behavior, not a contract.
+        </tspan>
         <tspan x="3826.500000" dy="11.120000"></tspan>
         <tspan x="3826.500000" dy="11.120000">
           4. OutboxPublisher moved from event/ to memory/
@@ -1164,12 +1182,17 @@
           event/, id/, errs/, dispatcher/, command/, query/
         </tspan>
         <tspan x="3826.500000" dy="11.120000"></tspan>
-        <tspan x="3826.500000" dy="11.120000">6. storage/ split by backend</tspan>
         <tspan x="3826.500000" dy="11.120000">
-          storage/sql/ and storage/pebble/ — do not pay for Pebble when you want SQLite.
+          6. storage/ split by backend
+        </tspan>
+        <tspan x="3826.500000" dy="11.120000">
+          storage/sql/ and storage/pebble/ — do not pay for Pebble when you want
+          SQLite.
         </tspan>
         <tspan x="3826.500000" dy="11.120000"></tspan>
-        <tspan x="3826.500000" dy="11.120000">7. testhelpers/ junk drawer deleted</tspan>
+        <tspan x="3826.500000" dy="11.120000">
+          7. testhelpers/ junk drawer deleted
+        </tspan>
         <tspan x="3826.500000" dy="11.120000">
           Fakes moved to memory/. Handler stubs deleted. Assertions use stdlib.
         </tspan>
@@ -1569,14 +1592,26 @@
       >
         <tspan x="7119.500000" dy="0.000000">middleware/</tspan>
         <tspan x="7119.500000" dy="11.230769"></tspan>
-        <tspan x="7119.500000" dy="11.230769">{Command,Event,Query}Logging</tspan>
+        <tspan x="7119.500000" dy="11.230769">
+          {Command,Event,Query}Logging
+        </tspan>
         <tspan x="7119.500000" dy="11.230769">{Command,Event,Query}Retry</tspan>
-        <tspan x="7119.500000" dy="11.230769">{Command,Event,Query}Recovery</tspan>
-        <tspan x="7119.500000" dy="11.230769">{Command,Event,Query}Tracing</tspan>
-        <tspan x="7119.500000" dy="11.230769">{Command,Event,Query}Validation</tspan>
-        <tspan x="7119.500000" dy="11.230769">{Command,Event,Query}Metrics</tspan>
+        <tspan x="7119.500000" dy="11.230769">
+          {Command,Event,Query}Recovery
+        </tspan>
+        <tspan x="7119.500000" dy="11.230769">
+          {Command,Event,Query}Tracing
+        </tspan>
+        <tspan x="7119.500000" dy="11.230769">
+          {Command,Event,Query}Validation
+        </tspan>
+        <tspan x="7119.500000" dy="11.230769">
+          {Command,Event,Query}Metrics
+        </tspan>
         <tspan x="7119.500000" dy="11.230769"></tspan>
-        <tspan x="7119.500000" dy="11.230769">(41% structural triplication</tspan>
+        <tspan x="7119.500000" dy="11.230769">
+          (41% structural triplication
+        </tspan>
         <tspan x="7119.500000" dy="11.230769">unavoidable in Go —</tspan>
         <tspan x="7119.500000" dy="11.230769">shared logic extracted</tspan>
         <tspan x="7119.500000" dy="11.230769">into private helpers)</tspan>
@@ -1662,7 +1697,9 @@
         style="text-anchor: middle; font-size: 11px"
       >
         <tspan x="928.000000" dy="0.000000">aggregate/</tspan>
-        <tspan x="928.000000" dy="12.500000">deleted — decider/ replaces it</tspan>
+        <tspan x="928.000000" dy="12.500000">
+          deleted — decider/ replaces it
+        </tspan>
       </text>
     </g>
     <g class="cmVtb3ZlZC5jb3JlX21vbm9saXRo">
@@ -1675,8 +1712,12 @@
         style="text-anchor: middle; font-size: 11px"
       >
         <tspan x="1129.500000" dy="0.000000">core/ single go.mod</tspan>
-        <tspan x="1129.500000" dy="11.750000">split into 6 independent modules:</tspan>
-        <tspan x="1129.500000" dy="11.750000">event/, id/, errs/, dispatcher/,</tspan>
+        <tspan x="1129.500000" dy="11.750000">
+          split into 6 independent modules:
+        </tspan>
+        <tspan x="1129.500000" dy="11.750000">
+          event/, id/, errs/, dispatcher/,
+        </tspan>
         <tspan x="1129.500000" dy="11.750000">command/, query/</tspan>
       </text>
     </g>
@@ -1691,7 +1732,9 @@
       >
         <tspan x="1333.000000" dy="0.000000">storage/ flat package</tspan>
         <tspan x="1333.000000" dy="12.000000">split by backend:</tspan>
-        <tspan x="1333.000000" dy="12.000000">storage/sql/, storage/pebble/</tspan>
+        <tspan x="1333.000000" dy="12.000000">
+          storage/sql/, storage/pebble/
+        </tspan>
       </text>
     </g>
     <g class="cmVtb3ZlZC50ZXN0aGVscGVyc19qdW5r">
@@ -1718,10 +1761,15 @@
           y="-143.000000"
           width="516"
           height="15"
-          ><div xmlns="http://www.w3.org/1999/xhtml" class="md color-N1" style="font-size: 10px">
+          ><div
+            xmlns="http://www.w3.org/1999/xhtml"
+            class="md color-N1"
+            style="font-size: 10px"
+          >
             <p>
-              <strong>&quot;I just want command dispatch&quot;</strong> → <code>command</code> +
-              <code>memory</code> (3 modules total: command, errs, id, dispatcher, memory, event)
+              <strong>&quot;I just want command dispatch&quot;</strong> →
+              <code>command</code> + <code>memory</code> (3 modules total:
+              command, errs, id, dispatcher, memory, event)
             </p>
           </div></foreignObject
         >
@@ -1736,11 +1784,15 @@
           y="-143.000000"
           width="476"
           height="15"
-          ><div xmlns="http://www.w3.org/1999/xhtml" class="md color-N1" style="font-size: 10px">
+          ><div
+            xmlns="http://www.w3.org/1999/xhtml"
+            class="md color-N1"
+            style="font-size: 10px"
+          >
             <p>
-              <strong>&quot;I want event sourcing with PostgreSQL&quot;</strong> →
-              <code>decider</code> + <code>storage/sql</code> (never touch pebble, never touch
-              turso)
+              <strong>&quot;I want event sourcing with PostgreSQL&quot;</strong>
+              → <code>decider</code> + <code>storage/sql</code> (never touch
+              pebble, never touch turso)
             </p>
           </div></foreignObject
         >
@@ -1755,11 +1807,15 @@
           y="-143.000000"
           width="458"
           height="15"
-          ><div xmlns="http://www.w3.org/1999/xhtml" class="md color-N1" style="font-size: 10px">
+          ><div
+            xmlns="http://www.w3.org/1999/xhtml"
+            class="md color-N1"
+            style="font-size: 10px"
+          >
             <p>
               <strong>&quot;I want projections with replay&quot;</strong> →
-              <code>projection</code> + <code>storage/sql</code> (no command, no query, no
-              middleware)
+              <code>projection</code> + <code>storage/sql</code> (no command, no
+              query, no middleware)
             </p>
           </div></foreignObject
         >
@@ -1774,7 +1830,11 @@
           y="-143.000000"
           width="296"
           height="15"
-          ><div xmlns="http://www.w3.org/1999/xhtml" class="md color-N1" style="font-size: 10px">
+          ><div
+            xmlns="http://www.w3.org/1999/xhtml"
+            class="md color-N1"
+            style="font-size: 10px"
+          >
             <p>
               <strong>&quot;I want API docs from my types&quot;</strong> →
               <code>catalog</code> (that's it. nothing else.)
@@ -1792,12 +1852,17 @@
           y="-143.000000"
           width="623"
           height="15"
-          ><div xmlns="http://www.w3.org/1999/xhtml" class="md color-N1" style="font-size: 10px">
+          ><div
+            xmlns="http://www.w3.org/1999/xhtml"
+            class="md color-N1"
+            style="font-size: 10px"
+          >
             <p>
-              <strong>&quot;I want the full CQRS stack&quot;</strong> → <code>command</code> +
-              <code>query</code> + <code>decider</code> + <code>memory</code> +
-              <code>projection</code> → optionally: <code>middleware</code>,
-              <code>storage/sql</code>, <code>catalog</code>
+              <strong>&quot;I want the full CQRS stack&quot;</strong> →
+              <code>command</code> + <code>query</code> + <code>decider</code> +
+              <code>memory</code> + <code>projection</code> → optionally:
+              <code>middleware</code>, <code>storage/sql</code>,
+              <code>catalog</code>
             </p>
           </div></foreignObject
         >
@@ -1812,10 +1877,15 @@
           y="-143.000000"
           width="438"
           height="15"
-          ><div xmlns="http://www.w3.org/1999/xhtml" class="md color-N1" style="font-size: 10px">
+          ><div
+            xmlns="http://www.w3.org/1999/xhtml"
+            class="md color-N1"
+            style="font-size: 10px"
+          >
             <p>
               <strong>&quot;I want embedded KV storage only&quot;</strong> →
-              <code>storage/pebble</code> (23 transitive deps, isolated from SQL's deps)
+              <code>storage/pebble</code> (23 transitive deps, isolated from
+              SQL's deps)
             </p>
           </div></foreignObject
         >
@@ -2604,21 +2674,106 @@
         AggregateID
       </text>
     </g>
-    <mask id="d2-845041179" maskUnits="userSpaceOnUse" x="-101" y="-596" width="7855" height="2058">
+    <mask
+      id="d2-845041179"
+      maskUnits="userSpaceOnUse"
+      x="-101"
+      y="-596"
+      width="7855"
+      height="2058"
+    >
       <rect x="-101" y="-596" width="7855" height="2058" fill="white"></rect>
-      <rect x="6727.000000" y="791.000000" width="90" height="37" fill="black"></rect>
-      <rect x="6785.000000" y="793.000000" width="107" height="21" fill="black"></rect>
-      <rect x="7016.000000" y="782.000000" width="88" height="21" fill="black"></rect>
-      <rect x="7136.000000" y="785.000000" width="113" height="21" fill="black"></rect>
-      <rect x="7070.000000" y="809.000000" width="107" height="21" fill="black"></rect>
-      <rect x="7359.000000" y="764.000000" width="113" height="21" fill="black"></rect>
-      <rect x="6582.000000" y="160.000000" width="124" height="53" fill="black"></rect>
-      <rect x="6743.000000" y="495.000000" width="88" height="21" fill="black"></rect>
-      <rect x="29.000000" y="166.000000" width="132" height="53" fill="black"></rect>
-      <rect x="192.000000" y="171.000000" width="160" height="53" fill="black"></rect>
-      <rect x="417.000000" y="173.000000" width="89" height="37" fill="black"></rect>
-      <rect x="6938.000000" y="108.000000" width="113" height="69" fill="black"></rect>
-      <rect x="7550.000000" y="512.000000" width="88" height="21" fill="black"></rect>
+      <rect
+        x="6727.000000"
+        y="791.000000"
+        width="90"
+        height="37"
+        fill="black"
+      ></rect>
+      <rect
+        x="6785.000000"
+        y="793.000000"
+        width="107"
+        height="21"
+        fill="black"
+      ></rect>
+      <rect
+        x="7016.000000"
+        y="782.000000"
+        width="88"
+        height="21"
+        fill="black"
+      ></rect>
+      <rect
+        x="7136.000000"
+        y="785.000000"
+        width="113"
+        height="21"
+        fill="black"
+      ></rect>
+      <rect
+        x="7070.000000"
+        y="809.000000"
+        width="107"
+        height="21"
+        fill="black"
+      ></rect>
+      <rect
+        x="7359.000000"
+        y="764.000000"
+        width="113"
+        height="21"
+        fill="black"
+      ></rect>
+      <rect
+        x="6582.000000"
+        y="160.000000"
+        width="124"
+        height="53"
+        fill="black"
+      ></rect>
+      <rect
+        x="6743.000000"
+        y="495.000000"
+        width="88"
+        height="21"
+        fill="black"
+      ></rect>
+      <rect
+        x="29.000000"
+        y="166.000000"
+        width="132"
+        height="53"
+        fill="black"
+      ></rect>
+      <rect
+        x="192.000000"
+        y="171.000000"
+        width="160"
+        height="53"
+        fill="black"
+      ></rect>
+      <rect
+        x="417.000000"
+        y="173.000000"
+        width="89"
+        height="37"
+        fill="black"
+      ></rect>
+      <rect
+        x="6938.000000"
+        y="108.000000"
+        width="113"
+        height="69"
+        fill="black"
+      ></rect>
+      <rect
+        x="7550.000000"
+        y="512.000000"
+        width="88"
+        height="21"
+        fill="black"
+      ></rect>
     </mask>
   </svg>
 </svg>

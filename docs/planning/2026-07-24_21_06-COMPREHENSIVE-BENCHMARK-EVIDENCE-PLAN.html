@@ -296,25 +296,29 @@
   </head>
   <body>
     <div class="top">
-      <span>Execution Plan</span><span>2026-07-24 21:06</span><span>go-cqrs-lite / benchkit</span>
+      <span>Execution Plan</span><span>2026-07-24 21:06</span
+      ><span>go-cqrs-lite / benchkit</span>
     </div>
     <div class="layout">
       <aside class="sidebar">
         <strong>Contents</strong><a href="#summary">Executive summary</a
         ><a href="#truth">Current truth</a><a href="#pareto">Pareto breakdown</a
-        ><a href="#contracts">Evidence contracts</a><a href="#medium">30–100 minute plan</a
+        ><a href="#contracts">Evidence contracts</a
+        ><a href="#medium">30–100 minute plan</a
         ><a href="#fine">≤12 minute tasks</a><a href="#graph">Execution graph</a
-        ><a href="#matrix">Benchmark matrix</a><a href="#gates">Verification gates</a
-        ><a href="#risks">Risks</a><a href="#done">Definition of done</a>
+        ><a href="#matrix">Benchmark matrix</a
+        ><a href="#gates">Verification gates</a><a href="#risks">Risks</a
+        ><a href="#done">Definition of done</a>
       </aside>
       <main>
         <header class="hero">
           <span class="badge">Comprehensive benchmark evidence plan</span>
           <h1>Measure the system we actually sell</h1>
           <p class="subtitle">
-            Transform benchkit from a useful storage exercise into a trustworthy evidence system
-            that separates raw primitives from the complete command-to-projection journey, proves
-            CPU scaling, reports statistically defensible results, and prevents regressions without
+            Transform benchkit from a useful storage exercise into a trustworthy
+            evidence system that separates raw primitives from the complete
+            command-to-projection journey, proves CPU scaling, reports
+            statistically defensible results, and prevents regressions without
             producing false alarms.
           </p>
         </header>
@@ -342,19 +346,21 @@
           <div class="card problem">
             <h3>The current number is answering the wrong question</h3>
             <p>
-              The reported <code>events/sec</code> times event generation, encoding, and
-              <code>EventSink.Save</code> for one phase. The default <code>dev</code> suite uses one
-              worker and only 500 events. It does not measure raw sink capacity, command dispatch,
-              decider execution, publishing, live projection completion, or end-user query latency
-              as one journey.
+              The reported <code>events/sec</code> times event generation,
+              encoding, and <code>EventSink.Save</code> for one phase. The
+              default <code>dev</code> suite uses one worker and only 500
+              events. It does not measure raw sink capacity, command dispatch,
+              decider execution, publishing, live projection completion, or
+              end-user query latency as one journey.
             </p>
           </div>
           <div class="card solution">
             <h3>Target outcome</h3>
             <p>
-              Every headline result will name its boundary, workload, concurrency, CPU limit, codec,
-              payload distribution, durability mode, sample count, and uncertainty. A consumer can
-              distinguish raw mechanism cost, storage cost, complete CQRS cost, saturation,
+              Every headline result will name its boundary, workload,
+              concurrency, CPU limit, codec, payload distribution, durability
+              mode, sample count, and uncertainty. A consumer can distinguish
+              raw mechanism cost, storage cost, complete CQRS cost, saturation,
               recovery, and failure behavior.
             </p>
           </div>
@@ -368,24 +374,38 @@
               <ul>
                 <li>Memory, SQLite, Pebble, optional Postgres factories</li>
                 <li>
-                  Write, stream-load, journal, KV read-model, projection, disk, CPU, heap, recovery
-                  phases
+                  Write, stream-load, journal, KV read-model, projection, disk,
+                  CPU, heap, recovery phases
                 </li>
                 <li>JSON/CBOR and mixed payload sizes</li>
                 <li>Named profiles, repeats, text/JSON/Markdown output</li>
-                <li><code>testing.B</code> integration and module microbenchmarks</li>
+                <li>
+                  <code>testing.B</code> integration and module microbenchmarks
+                </li>
               </ul>
             </div>
             <div class="card warning">
               <h3>What is misleading</h3>
               <ul>
-                <li><code>events/sec</code> is write-phase throughput, not suite throughput</li>
                 <li>
-                  Event creation occurs outside the recorded Save latency but inside throughput time
+                  <code>events/sec</code> is write-phase throughput, not suite
+                  throughput
                 </li>
-                <li><code>Memory-32</code> describes GOMAXPROCS, not worker count</li>
-                <li><code>-benchtime=3x</code> does not enlarge the benchkit workload</li>
-                <li>Uniform mixed payloads are not a realistic long-tail distribution</li>
+                <li>
+                  Event creation occurs outside the recorded Save latency but
+                  inside throughput time
+                </li>
+                <li>
+                  <code>Memory-32</code> describes GOMAXPROCS, not worker count
+                </li>
+                <li>
+                  <code>-benchtime=3x</code> does not enlarge the benchkit
+                  workload
+                </li>
+                <li>
+                  Uniform mixed payloads are not a realistic long-tail
+                  distribution
+                </li>
               </ul>
             </div>
             <div class="card problem">
@@ -395,14 +415,18 @@
                 <li>Complete command → decider → store → publisher path</li>
                 <li>Live publish → projection → query journey</li>
                 <li>Same-stream contention and failure/retry paths</li>
-                <li>CPU/concurrency saturation curves and statistical regression policy</li>
+                <li>
+                  CPU/concurrency saturation curves and statistical regression
+                  policy
+                </li>
               </ul>
             </div>
           </div>
           <p class="note">
-            Scope is deliberately benchmark evidence, harness correctness, reproducibility, reports,
-            CI, and documentation. It does not redesign storage implementations unless benchmark
-            evidence identifies a separate optimization task.
+            Scope is deliberately benchmark evidence, harness correctness,
+            reproducibility, reports, CI, and documentation. It does not
+            redesign storage implementations unless benchmark evidence
+            identifies a separate optimization task.
           </p>
         </section>
 
@@ -423,46 +447,53 @@
                   <td><span class="badge critical">1% → 51%</span></td>
                   <td>Correct interpretation</td>
                   <td>
-                    Define named boundaries; split generated write from prebuilt raw Save and
-                    complete command path; expose workers/GOMAXPROCS; run realistic duration and
-                    samples.
+                    Define named boundaries; split generated write from prebuilt
+                    raw Save and complete command path; expose
+                    workers/GOMAXPROCS; run realistic duration and samples.
                   </td>
                   <td>
-                    Stops publishing numbers that answer an unspecified question. One honest
-                    contract is more valuable than dozens of extra profiles.
+                    Stops publishing numbers that answer an unspecified
+                    question. One honest contract is more valuable than dozens
+                    of extra profiles.
                   </td>
                 </tr>
                 <tr>
                   <td><span class="badge high">4% → 64%</span></td>
                   <td>Trustworthy comparative evidence</td>
                   <td>
-                    Add CPU/concurrency/batch/stream-length matrices; fix repeat isolation and
-                    median selection; stable schema; benchmark metadata; benchstat-compatible
-                    artifacts.
+                    Add CPU/concurrency/batch/stream-length matrices; fix repeat
+                    isolation and median selection; stable schema; benchmark
+                    metadata; benchstat-compatible artifacts.
                   </td>
-                  <td>Reveals scaling ceilings and makes results reproducible and comparable.</td>
+                  <td>
+                    Reveals scaling ceilings and makes results reproducible and
+                    comparable.
+                  </td>
                 </tr>
                 <tr>
                   <td><span class="badge medium">20% → 80%</span></td>
                   <td>Representative product coverage</td>
                   <td>
-                    Add command, publish, projection, query, snapshot/cache, conflict, recovery, and
-                    long-tail payload journeys across core backends.
+                    Add command, publish, projection, query, snapshot/cache,
+                    conflict, recovery, and long-tail payload journeys across
+                    core backends.
                   </td>
                   <td>
-                    Measures the library consumers compose rather than only the storage facade.
+                    Measures the library consumers compose rather than only the
+                    storage facade.
                   </td>
                 </tr>
                 <tr>
                   <td><span class="badge done">Remaining 80% → 100%</span></td>
                   <td>Operational completeness</td>
                   <td>
-                    Profiles, soak tests, optional Postgres, security/schema paths, CI thresholds,
-                    docs, benchmark index, API stability, release process.
+                    Profiles, soak tests, optional Postgres, security/schema
+                    paths, CI thresholds, docs, benchmark index, API stability,
+                    release process.
                   </td>
                   <td>
-                    Turns a strong harness into a maintainable performance program without bloating
-                    the critical path.
+                    Turns a strong harness into a maintainable performance
+                    program without bloating the critical path.
                   </td>
                 </tr>
               </tbody>
@@ -487,7 +518,10 @@
                   <td>Event creation</td>
                   <td>Typed payload → immutable encoded event</td>
                   <td>ns/event, B/event, allocs/event</td>
-                  <td>Isolate IDs, clock, metadata, codec, and defensive-copy cost.</td>
+                  <td>
+                    Isolate IDs, clock, metadata, codec, and defensive-copy
+                    cost.
+                  </td>
                 </tr>
                 <tr>
                   <td>Raw sink</td>
@@ -499,13 +533,22 @@
                   <td>Generated sink</td>
                   <td>Generate batch → Save return</td>
                   <td>events/s, phase CPU, allocations</td>
-                  <td>Retain today’s practical ingest measurement under an honest name.</td>
+                  <td>
+                    Retain today’s practical ingest measurement under an honest
+                    name.
+                  </td>
                 </tr>
                 <tr>
                   <td>Command write</td>
-                  <td>Dispatch command → persisted event(s) and publisher acknowledgement</td>
+                  <td>
+                    Dispatch command → persisted event(s) and publisher
+                    acknowledgement
+                  </td>
                   <td>commands/s, event count, p50/p99/p99.9</td>
-                  <td>Measure dispatcher, middleware, decider, load/fold/save/publish.</td>
+                  <td>
+                    Measure dispatcher, middleware, decider,
+                    load/fold/save/publish.
+                  </td>
                 </tr>
                 <tr>
                   <td>Live read model</td>
@@ -527,7 +570,9 @@
                 </tr>
                 <tr>
                   <td>Recovery</td>
-                  <td>Close/reopen → streams available and projections caught up</td>
+                  <td>
+                    Close/reopen → streams available and projections caught up
+                  </td>
                   <td>time-to-ready, recovered events, errors</td>
                   <td>Operational restart evidence.</td>
                 </tr>
@@ -547,32 +592,44 @@
                   <td>Snapshot</td>
                   <td>Snapshot save → load → decider state reconstruct</td>
                   <td>ns/save, ns/load, bytes/snapshot, fold delta</td>
-                  <td>Measure snapshot serialization and state-rebuild cost vs full replay.</td>
+                  <td>
+                    Measure snapshot serialization and state-rebuild cost vs
+                    full replay.
+                  </td>
                 </tr>
                 <tr>
                   <td>Cache</td>
                   <td>TypedStore/Cache Get → hit vs miss</td>
                   <td>ns/hit, ns/miss, hit rate, evictions</td>
-                  <td>Isolate LRU cache overhead from backend I/O on hot-stream reads.</td>
+                  <td>
+                    Isolate LRU cache overhead from backend I/O on hot-stream
+                    reads.
+                  </td>
                 </tr>
                 <tr>
                   <td>Signing</td>
                   <td>Event sign + verify roundtrip</td>
                   <td>ns/sign, ns/verify, bytes overhead</td>
-                  <td>Measure HMAC-SHA256 and Ed25519 overhead on the write/read path.</td>
+                  <td>
+                    Measure HMAC-SHA256 and Ed25519 overhead on the write/read
+                    path.
+                  </td>
                 </tr>
                 <tr>
                   <td>Schema upcast</td>
                   <td>VersionedStore load with upcaster chain</td>
                   <td>ns/upcast, events/upcasted, versions</td>
-                  <td>Measure schema migration cost during replay and live load.</td>
+                  <td>
+                    Measure schema migration cost during replay and live load.
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
           <div class="card warning">
-            <strong>Rule:</strong> no unlabeled “events/sec.” Reports use names such as
-            <code>raw_sink_events_per_second</code>, <code>generated_sink_events_per_second</code>,
+            <strong>Rule:</strong> no unlabeled “events/sec.” Reports use names
+            such as <code>raw_sink_events_per_second</code>,
+            <code>generated_sink_events_per_second</code>,
             <code>command_roundtrip_per_second</code>, and
             <code>projection_replay_events_per_second</code>.
           </div>
@@ -603,19 +660,23 @@
                   <td>10</td>
                   <td>3</td>
                   <td>10</td>
-                  <td>Every metric has an unambiguous timed boundary and unit.</td>
+                  <td>
+                    Every metric has an unambiguous timed boundary and unit.
+                  </td>
                 </tr>
                 <tr>
                   <td>M02</td>
                   <td>1%</td>
-                  <td>Refactor result model into phase-specific measurements</td>
+                  <td>
+                    Refactor result model into phase-specific measurements
+                  </td>
                   <td>90</td>
                   <td>10</td>
                   <td>7</td>
                   <td>10</td>
                   <td>
-                    Raw, generated, command, projection, query, and recovery metrics cannot be
-                    confused.
+                    Raw, generated, command, projection, query, and recovery
+                    metrics cannot be confused.
                   </td>
                 </tr>
                 <tr>
@@ -626,7 +687,9 @@
                   <td>10</td>
                   <td>6</td>
                   <td>10</td>
-                  <td>Raw memory/storage capacity is independently reported.</td>
+                  <td>
+                    Raw memory/storage capacity is independently reported.
+                  </td>
                 </tr>
                 <tr>
                   <td>M04</td>
@@ -636,7 +699,10 @@
                   <td>10</td>
                   <td>8</td>
                   <td>10</td>
-                  <td>Dispatch→middleware→decider→save→publish has dedicated metrics.</td>
+                  <td>
+                    Dispatch→middleware→decider→save→publish has dedicated
+                    metrics.
+                  </td>
                 </tr>
                 <tr>
                   <td>M05</td>
@@ -646,7 +712,10 @@
                   <td>9</td>
                   <td>3</td>
                   <td>9</td>
-                  <td>Reports include GOMAXPROCS, CPUs, workers, Go/OS/arch and commit.</td>
+                  <td>
+                    Reports include GOMAXPROCS, CPUs, workers, Go/OS/arch and
+                    commit.
+                  </td>
                 </tr>
                 <tr>
                   <td>M06</td>
@@ -657,7 +726,8 @@
                   <td>5</td>
                   <td>9</td>
                   <td>
-                    Median result matches sorted throughput and each persistent sample starts clean.
+                    Median result matches sorted throughput and each persistent
+                    sample starts clean.
                   </td>
                 </tr>
                 <tr>
@@ -668,17 +738,25 @@
                   <td>9</td>
                   <td>4</td>
                   <td>9</td>
-                  <td>Schema version, golden JSON and documented migration policy exist.</td>
+                  <td>
+                    Schema version, golden JSON and documented migration policy
+                    exist.
+                  </td>
                 </tr>
                 <tr>
                   <td>M08</td>
                   <td>4%</td>
-                  <td>Add duration/minimum-work controls and warmup protocol</td>
+                  <td>
+                    Add duration/minimum-work controls and warmup protocol
+                  </td>
                   <td>75</td>
                   <td>9</td>
                   <td>6</td>
                   <td>9</td>
-                  <td>Measured phases last long enough; warmup is isolated and reported.</td>
+                  <td>
+                    Measured phases last long enough; warmup is isolated and
+                    reported.
+                  </td>
                 </tr>
                 <tr>
                   <td>M09</td>
@@ -689,7 +767,8 @@
                   <td>7</td>
                   <td>9</td>
                   <td>
-                    Median, dispersion, sample count and machine-comparable output are generated.
+                    Median, dispersion, sample count and machine-comparable
+                    output are generated.
                   </td>
                 </tr>
                 <tr>
@@ -700,7 +779,10 @@
                   <td>10</td>
                   <td>8</td>
                   <td>10</td>
-                  <td>1/2/4/8/16/32 workers × selected GOMAXPROCS produces efficiency curves.</td>
+                  <td>
+                    1/2/4/8/16/32 workers × selected GOMAXPROCS produces
+                    efficiency curves.
+                  </td>
                 </tr>
                 <tr>
                   <td>M11</td>
@@ -710,7 +792,10 @@
                   <td>9</td>
                   <td>6</td>
                   <td>9</td>
-                  <td>Batch 1/10/100/1000 and stream 1/10/100/1K/10K are reproducible.</td>
+                  <td>
+                    Batch 1/10/100/1000 and stream 1/10/100/1K/10K are
+                    reproducible.
+                  </td>
                 </tr>
                 <tr>
                   <td>M12</td>
@@ -720,7 +805,10 @@
                   <td>8</td>
                   <td>4</td>
                   <td>8</td>
-                  <td>Named long-tail distributions are deterministic and validated.</td>
+                  <td>
+                    Named long-tail distributions are deterministic and
+                    validated.
+                  </td>
                 </tr>
                 <tr>
                   <td>M13</td>
@@ -730,7 +818,9 @@
                   <td>9</td>
                   <td>8</td>
                   <td>10</td>
-                  <td>Command acceptance to read-model visibility is measured.</td>
+                  <td>
+                    Command acceptance to read-model visibility is measured.
+                  </td>
                 </tr>
                 <tr>
                   <td>M14</td>
@@ -740,7 +830,10 @@
                   <td>8</td>
                   <td>5</td>
                   <td>8</td>
-                  <td>Typed dispatch and representative read-model query are measured.</td>
+                  <td>
+                    Typed dispatch and representative read-model query are
+                    measured.
+                  </td>
                 </tr>
                 <tr>
                   <td>M15</td>
@@ -750,17 +843,25 @@
                   <td>8</td>
                   <td>8</td>
                   <td>8</td>
-                  <td>Cold replay, snapshot load, cache hit and delta fold are separated.</td>
+                  <td>
+                    Cold replay, snapshot load, cache hit and delta fold are
+                    separated.
+                  </td>
                 </tr>
                 <tr>
                   <td>M16</td>
                   <td>20%</td>
-                  <td>Add conflict, retry, idempotency and cancellation scenarios</td>
+                  <td>
+                    Add conflict, retry, idempotency and cancellation scenarios
+                  </td>
                   <td>90</td>
                   <td>8</td>
                   <td>7</td>
                   <td>9</td>
-                  <td>Failure-path rates and latency are explicit, with correctness assertions.</td>
+                  <td>
+                    Failure-path rates and latency are explicit, with
+                    correctness assertions.
+                  </td>
                 </tr>
                 <tr>
                   <td>M17</td>
@@ -770,7 +871,9 @@
                   <td>8</td>
                   <td>4</td>
                   <td>8</td>
-                  <td>No phase silently turns backend errors into zero metrics.</td>
+                  <td>
+                    No phase silently turns backend errors into zero metrics.
+                  </td>
                 </tr>
                 <tr>
                   <td>M18</td>
@@ -780,7 +883,10 @@
                   <td>9</td>
                   <td>8</td>
                   <td>9</td>
-                  <td>Memory, SQLite and Pebble run identical contracts; Postgres is optional.</td>
+                  <td>
+                    Memory, SQLite and Pebble run identical contracts; Postgres
+                    is optional.
+                  </td>
                 </tr>
                 <tr>
                   <td>M19</td>
@@ -790,7 +896,10 @@
                   <td>6</td>
                   <td>8</td>
                   <td>7</td>
-                  <td>Signing/encryption, upcasting and group/rollup costs are characterized.</td>
+                  <td>
+                    Signing/encryption, upcasting and group/rollup costs are
+                    characterized.
+                  </td>
                 </tr>
                 <tr>
                   <td>M20</td>
@@ -800,7 +909,10 @@
                   <td>7</td>
                   <td>7</td>
                   <td>8</td>
-                  <td>CPU/heap/mutex/block/trace artifacts and sustained windows are available.</td>
+                  <td>
+                    CPU/heap/mutex/block/trace artifacts and sustained windows
+                    are available.
+                  </td>
                 </tr>
                 <tr>
                   <td>M21</td>
@@ -811,7 +923,8 @@
                   <td>7</td>
                   <td>9</td>
                   <td>
-                    Quick, compare, scaling, journey, recovery and soak suites are named commands.
+                    Quick, compare, scaling, journey, recovery and soak suites
+                    are named commands.
                   </td>
                 </tr>
                 <tr>
@@ -822,7 +935,10 @@
                   <td>8</td>
                   <td>8</td>
                   <td>9</td>
-                  <td>Stable metrics gate regressions; noisy metrics warn with rationale.</td>
+                  <td>
+                    Stable metrics gate regressions; noisy metrics warn with
+                    rationale.
+                  </td>
                 </tr>
                 <tr>
                   <td>M23</td>
@@ -832,18 +948,25 @@
                   <td>7</td>
                   <td>5</td>
                   <td>9</td>
-                  <td>Consumers can reproduce and correctly interpret every supported suite.</td>
+                  <td>
+                    Consumers can reproduce and correctly interpret every
+                    supported suite.
+                  </td>
                 </tr>
                 <tr>
                   <td>M24</td>
                   <td>100%</td>
-                  <td>Run full verification, capture baselines, stabilize and release</td>
+                  <td>
+                    Run full verification, capture baselines, stabilize and
+                    release
+                  </td>
                   <td>100</td>
                   <td>9</td>
                   <td>8</td>
                   <td>9</td>
                   <td>
-                    Build/test/race/lint/docs/API pass and evidence is reviewed before tagging.
+                    Build/test/race/lint/docs/API pass and evidence is reviewed
+                    before tagging.
                   </td>
                 </tr>
               </tbody>
@@ -854,8 +977,8 @@
         <section id="fine">
           <h2><span>05</span>Fine-grained execution tasks, each ≤12 minutes</h2>
           <p class="note">
-            Ordered by dependency and impact. Each row is independently checkable. Four fine tasks
-            roll up into each medium task.
+            Ordered by dependency and impact. Each row is independently
+            checkable. Four fine tasks roll up into each medium task.
           </p>
           <div class="table-wrap">
             <table>
@@ -872,14 +995,18 @@
                   <td>F001</td>
                   <td>M01</td>
                   <td>10</td>
-                  <td>Inventory current timers and metric names with file references.</td>
+                  <td>
+                    Inventory current timers and metric names with file
+                    references.
+                  </td>
                 </tr>
                 <tr>
                   <td>F002</td>
                   <td>M01</td>
                   <td>10</td>
                   <td>
-                    Define raw, generated, command, projection, query and recovery boundaries.
+                    Define raw, generated, command, projection, query and
+                    recovery boundaries.
                   </td>
                 </tr>
                 <tr>
@@ -898,7 +1025,9 @@
                   <td>F005</td>
                   <td>M02</td>
                   <td>12</td>
-                  <td>Draft phase result types with no generic “throughput” field.</td>
+                  <td>
+                    Draft phase result types with no generic “throughput” field.
+                  </td>
                 </tr>
                 <tr>
                   <td>F006</td>
@@ -916,19 +1045,27 @@
                   <td>F008</td>
                   <td>M02</td>
                   <td>12</td>
-                  <td>Add backward-compatible JSON migration test or explicit version break.</td>
+                  <td>
+                    Add backward-compatible JSON migration test or explicit
+                    version break.
+                  </td>
                 </tr>
                 <tr>
                   <td>F009</td>
                   <td>M03</td>
                   <td>10</td>
-                  <td>Prebuild deterministic immutable event batches before timing.</td>
+                  <td>
+                    Prebuild deterministic immutable event batches before
+                    timing.
+                  </td>
                 </tr>
                 <tr>
                   <td>F010</td>
                   <td>M03</td>
                   <td>12</td>
-                  <td>Implement raw sink worker loop with version correctness.</td>
+                  <td>
+                    Implement raw sink worker loop with version correctness.
+                  </td>
                 </tr>
                 <tr>
                   <td>F011</td>
@@ -946,37 +1083,53 @@
                   <td>F013</td>
                   <td>M04</td>
                   <td>12</td>
-                  <td>Create representative typed command/state/event fixture.</td>
+                  <td>
+                    Create representative typed command/state/event fixture.
+                  </td>
                 </tr>
                 <tr>
                   <td>F014</td>
                   <td>M04</td>
                   <td>12</td>
-                  <td>Wire dispatcher, middleware, typed repository, store and publisher.</td>
+                  <td>
+                    Wire dispatcher, middleware, typed repository, store and
+                    publisher.
+                  </td>
                 </tr>
                 <tr>
                   <td>F015</td>
                   <td>M04</td>
                   <td>12</td>
-                  <td>Time command acceptance through publisher acknowledgement.</td>
+                  <td>
+                    Time command acceptance through publisher acknowledgement.
+                  </td>
                 </tr>
                 <tr>
                   <td>F016</td>
                   <td>M04</td>
                   <td>12</td>
-                  <td>Assert commands, persisted events, versions and publications match.</td>
+                  <td>
+                    Assert commands, persisted events, versions and publications
+                    match.
+                  </td>
                 </tr>
                 <tr>
                   <td>F017</td>
                   <td>M05</td>
                   <td>8</td>
-                  <td>Capture NumCPU, GOMAXPROCS, worker count, OS and architecture.</td>
+                  <td>
+                    Capture NumCPU, GOMAXPROCS, worker count, OS and
+                    architecture.
+                  </td>
                 </tr>
                 <tr>
                   <td>F018</td>
                   <td>M05</td>
                   <td>8</td>
-                  <td>Capture Go version, module version and VCS revision/dirty state.</td>
+                  <td>
+                    Capture Go version, module version and VCS revision/dirty
+                    state.
+                  </td>
                 </tr>
                 <tr>
                   <td>F019</td>
@@ -1000,19 +1153,25 @@
                   <td>F022</td>
                   <td>M06</td>
                   <td>10</td>
-                  <td>Sort result/sample pairs atomically and select true median.</td>
+                  <td>
+                    Sort result/sample pairs atomically and select true median.
+                  </td>
                 </tr>
                 <tr>
                   <td>F023</td>
                   <td>M06</td>
                   <td>12</td>
-                  <td>Add fresh persistent resource factory contract per sample.</td>
+                  <td>
+                    Add fresh persistent resource factory contract per sample.
+                  </td>
                 </tr>
                 <tr>
                   <td>F024</td>
                   <td>M06</td>
                   <td>12</td>
-                  <td>Verify SQLite/Pebble repeats do not reuse accumulated data.</td>
+                  <td>
+                    Verify SQLite/Pebble repeats do not reuse accumulated data.
+                  </td>
                 </tr>
                 <tr>
                   <td>F025</td>
@@ -1024,13 +1183,18 @@
                   <td>F026</td>
                   <td>M07</td>
                   <td>10</td>
-                  <td>Create canonical result and comparison golden fixtures.</td>
+                  <td>
+                    Create canonical result and comparison golden fixtures.
+                  </td>
                 </tr>
                 <tr>
                   <td>F027</td>
                   <td>M07</td>
                   <td>10</td>
-                  <td>Add decoder compatibility and unknown-version rejection tests.</td>
+                  <td>
+                    Add decoder compatibility and unknown-version rejection
+                    tests.
+                  </td>
                 </tr>
                 <tr>
                   <td>F028</td>
@@ -1042,13 +1206,18 @@
                   <td>F029</td>
                   <td>M08</td>
                   <td>10</td>
-                  <td>Define operation-count versus minimum-duration semantics.</td>
+                  <td>
+                    Define operation-count versus minimum-duration semantics.
+                  </td>
                 </tr>
                 <tr>
                   <td>F030</td>
                   <td>M08</td>
                   <td>12</td>
-                  <td>Implement per-phase minimum duration without partial correctness.</td>
+                  <td>
+                    Implement per-phase minimum duration without partial
+                    correctness.
+                  </td>
                 </tr>
                 <tr>
                   <td>F031</td>
@@ -1060,19 +1229,27 @@
                   <td>F032</td>
                   <td>M08</td>
                   <td>10</td>
-                  <td>Report warmup operations, duration and measured operations.</td>
+                  <td>
+                    Report warmup operations, duration and measured operations.
+                  </td>
                 </tr>
                 <tr>
                   <td>F033</td>
                   <td>M09</td>
                   <td>10</td>
-                  <td>Define sample summary fields: median, min, max, MAD/CV and count.</td>
+                  <td>
+                    Define sample summary fields: median, min, max, MAD/CV and
+                    count.
+                  </td>
                 </tr>
                 <tr>
                   <td>F034</td>
                   <td>M09</td>
                   <td>12</td>
-                  <td>Aggregate phase-specific samples without averaging percentiles.</td>
+                  <td>
+                    Aggregate phase-specific samples without averaging
+                    percentiles.
+                  </td>
                 </tr>
                 <tr>
                   <td>F035</td>
@@ -1090,7 +1267,9 @@
                   <td>F037</td>
                   <td>M10</td>
                   <td>10</td>
-                  <td>Define GOMAXPROCS and worker axes plus legal combinations.</td>
+                  <td>
+                    Define GOMAXPROCS and worker axes plus legal combinations.
+                  </td>
                 </tr>
                 <tr>
                   <td>F038</td>
@@ -1102,7 +1281,9 @@
                   <td>F039</td>
                   <td>M10</td>
                   <td>12</td>
-                  <td>Calculate speedup, parallel efficiency and saturation point.</td>
+                  <td>
+                    Calculate speedup, parallel efficiency and saturation point.
+                  </td>
                 </tr>
                 <tr>
                   <td>F040</td>
@@ -1150,7 +1331,9 @@
                   <td>F047</td>
                   <td>M12</td>
                   <td>10</td>
-                  <td>Verify observed distribution and encoded-size tolerances.</td>
+                  <td>
+                    Verify observed distribution and encoded-size tolerances.
+                  </td>
                 </tr>
                 <tr>
                   <td>F048</td>
@@ -1180,7 +1363,9 @@
                   <td>F052</td>
                   <td>M13</td>
                   <td>12</td>
-                  <td>Test ordered completion, timeout and duplicate delivery.</td>
+                  <td>
+                    Test ordered completion, timeout and duplicate delivery.
+                  </td>
                 </tr>
                 <tr>
                   <td>F053</td>
@@ -1204,13 +1389,17 @@
                   <td>F056</td>
                   <td>M14</td>
                   <td>8</td>
-                  <td>Assert typed result correctness outside timed section.</td>
+                  <td>
+                    Assert typed result correctness outside timed section.
+                  </td>
                 </tr>
                 <tr>
                   <td>F057</td>
                   <td>M15</td>
                   <td>12</td>
-                  <td>Define cold replay, snapshot, cache-hit and delta scenarios.</td>
+                  <td>
+                    Define cold replay, snapshot, cache-hit and delta scenarios.
+                  </td>
                 </tr>
                 <tr>
                   <td>F058</td>
@@ -1222,7 +1411,9 @@
                   <td>F059</td>
                   <td>M15</td>
                   <td>12</td>
-                  <td>Measure load/fold latency and allocations independently.</td>
+                  <td>
+                    Measure load/fold latency and allocations independently.
+                  </td>
                 </tr>
                 <tr>
                   <td>F060</td>
@@ -1270,19 +1461,26 @@
                   <td>F067</td>
                   <td>M17</td>
                   <td>10</td>
-                  <td>Differentiate memory recovery absence from persistent corruption.</td>
+                  <td>
+                    Differentiate memory recovery absence from persistent
+                    corruption.
+                  </td>
                 </tr>
                 <tr>
                   <td>F068</td>
                   <td>M17</td>
                   <td>10</td>
-                  <td>Propagate disk walk errors and test inaccessible paths.</td>
+                  <td>
+                    Propagate disk walk errors and test inaccessible paths.
+                  </td>
                 </tr>
                 <tr>
                   <td>F069</td>
                   <td>M18</td>
                   <td>12</td>
-                  <td>Define backend capability manifest and required phases.</td>
+                  <td>
+                    Define backend capability manifest and required phases.
+                  </td>
                 </tr>
                 <tr>
                   <td>F070</td>
@@ -1324,19 +1522,25 @@
                   <td>F076</td>
                   <td>M19</td>
                   <td>10</td>
-                  <td>Assert semantic equality across protected/evolved variants.</td>
+                  <td>
+                    Assert semantic equality across protected/evolved variants.
+                  </td>
                 </tr>
                 <tr>
                   <td>F077</td>
                   <td>M20</td>
                   <td>10</td>
-                  <td>Add profile artifact directory and collision-safe naming.</td>
+                  <td>
+                    Add profile artifact directory and collision-safe naming.
+                  </td>
                 </tr>
                 <tr>
                   <td>F078</td>
                   <td>M20</td>
                   <td>10</td>
-                  <td>Wire CPU, heap, mutex, block and execution trace switches.</td>
+                  <td>
+                    Wire CPU, heap, mutex, block and execution trace switches.
+                  </td>
                 </tr>
                 <tr>
                   <td>F079</td>
@@ -1354,7 +1558,10 @@
                   <td>F081</td>
                   <td>M21</td>
                   <td>10</td>
-                  <td>Define quick/compare/scaling/journey/recovery/soak suite manifests.</td>
+                  <td>
+                    Define quick/compare/scaling/journey/recovery/soak suite
+                    manifests.
+                  </td>
                 </tr>
                 <tr>
                   <td>F082</td>
@@ -1372,19 +1579,27 @@
                   <td>F084</td>
                   <td>M21</td>
                   <td>10</td>
-                  <td>Test canonical backend/profile labels and invalid combinations.</td>
+                  <td>
+                    Test canonical backend/profile labels and invalid
+                    combinations.
+                  </td>
                 </tr>
                 <tr>
                   <td>F085</td>
                   <td>M22</td>
                   <td>10</td>
-                  <td>Classify stable gate metrics versus noisy advisory metrics.</td>
+                  <td>
+                    Classify stable gate metrics versus noisy advisory metrics.
+                  </td>
                 </tr>
                 <tr>
                   <td>F086</td>
                   <td>M22</td>
                   <td>12</td>
-                  <td>Implement baseline diff with explicit thresholds and direction.</td>
+                  <td>
+                    Implement baseline diff with explicit thresholds and
+                    direction.
+                  </td>
                 </tr>
                 <tr>
                   <td>F087</td>
@@ -1396,31 +1611,43 @@
                   <td>F088</td>
                   <td>M22</td>
                   <td>10</td>
-                  <td>Test missing baseline, schema mismatch and regression exits.</td>
+                  <td>
+                    Test missing baseline, schema mismatch and regression exits.
+                  </td>
                 </tr>
                 <tr>
                   <td>F089</td>
                   <td>M23</td>
                   <td>10</td>
-                  <td>Create benchmark index mapping files to evidence boundaries.</td>
+                  <td>
+                    Create benchmark index mapping files to evidence boundaries.
+                  </td>
                 </tr>
                 <tr>
                   <td>F090</td>
                   <td>M23</td>
                   <td>10</td>
-                  <td>Document suite choice, reproduction and result interpretation.</td>
+                  <td>
+                    Document suite choice, reproduction and result
+                    interpretation.
+                  </td>
                 </tr>
                 <tr>
                   <td>F091</td>
                   <td>M23</td>
                   <td>10</td>
-                  <td>Document variance, platform caveats and invalid comparisons.</td>
+                  <td>
+                    Document variance, platform caveats and invalid comparisons.
+                  </td>
                 </tr>
                 <tr>
                   <td>F092</td>
                   <td>M23</td>
                   <td>10</td>
-                  <td>Update README, skill references, feature inventory and changelog.</td>
+                  <td>
+                    Update README, skill references, feature inventory and
+                    changelog.
+                  </td>
                 </tr>
                 <tr>
                   <td>F093</td>
@@ -1438,13 +1665,18 @@
                   <td>F095</td>
                   <td>M24</td>
                   <td>12</td>
-                  <td>Capture representative quick/scaling/journey baseline artifacts.</td>
+                  <td>
+                    Capture representative quick/scaling/journey baseline
+                    artifacts.
+                  </td>
                 </tr>
                 <tr>
                   <td>F096</td>
                   <td>M24</td>
                   <td>12</td>
-                  <td>Review API stability and tag only after all evidence passes.</td>
+                  <td>
+                    Review API stability and tag only after all evidence passes.
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -1461,12 +1693,23 @@
               aria-label="Benchmark plan execution graph"
             >
               <defs>
-                <marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                <marker
+                  id="a"
+                  markerWidth="8"
+                  markerHeight="8"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                >
                   <path d="M0,0 L8,4 L0,8 z" fill="#333" />
                 </marker>
               </defs>
               <rect width="1600" height="520" fill="#fff" />
-              <g font-family="system-ui,sans-serif" font-size="15" text-anchor="middle">
+              <g
+                font-family="system-ui,sans-serif"
+                font-size="15"
+                text-anchor="middle"
+              >
                 <g fill="#f4d35e" stroke="#111">
                   <rect x="30" y="210" width="180" height="60" />
                   <text x="120" y="237">Audit semantics</text>
@@ -1533,7 +1776,12 @@
                   <text x="1512" y="257">stabilize</text>
                 </g>
               </g>
-              <g stroke="#333" stroke-width="2" fill="none" marker-end="url(#a)">
+              <g
+                stroke="#333"
+                stroke-width="2"
+                fill="none"
+                marker-end="url(#a)"
+              >
                 <path d="M210 240H255" />
                 <path d="M445 240C470 240 470 100 500 100" />
                 <path d="M445 240H500" />
@@ -1552,8 +1800,9 @@
             </svg>
           </div>
           <p class="note">
-            The inline graph above is a hand-authored summary view. The D2 source and rendered SVG
-            beside this report provide the full topology with all dependency edges for regeneration.
+            The inline graph above is a hand-authored summary view. The D2
+            source and rendered SVG beside this report provide the full topology
+            with all dependency edges for regeneration.
           </p>
         </section>
 
@@ -1636,10 +1885,11 @@
           <div class="card warning">
             <h3>Combinatorial control</h3>
             <p>
-              Do not run the Cartesian product routinely. Named suites select orthogonal
-              experiments: scaling fixes payload/batch; payload scaling fixes workers; backend
-              comparison fixes workload; journeys use representative defaults. Full factorial
-              experiments are explicit research runs only.
+              Do not run the Cartesian product routinely. Named suites select
+              orthogonal experiments: scaling fixes payload/batch; payload
+              scaling fixes workers; backend comparison fixes workload; journeys
+              use representative defaults. Full factorial experiments are
+              explicit research runs only.
             </p>
           </div>
         </section>
@@ -1658,20 +1908,27 @@
               <tbody>
                 <tr>
                   <td>Targeted behavior</td>
-                  <td>Per-module benchkit, CLI and stack/bench tests after each change</td>
+                  <td>
+                    Per-module benchkit, CLI and stack/bench tests after each
+                    change
+                  </td>
                   <td>All pass with deterministic fixtures.</td>
                 </tr>
                 <tr>
                   <td>Race safety</td>
                   <td>
-                    <code>go test -race ./benchkit/... ./cmd/cqrs-bench/... ./stack/bench/...</code>
+                    <code
+                      >go test -race ./benchkit/... ./cmd/cqrs-bench/...
+                      ./stack/bench/...</code
+                    >
                   </td>
                   <td>No races across worker and projection paths.</td>
                 </tr>
                 <tr>
                   <td>Format/build/lint</td>
                   <td>
-                    <code>nix fmt</code>, <code>nix run .#build</code>, <code>nix run .#lint</code>
+                    <code>nix fmt</code>, <code>nix run .#build</code>,
+                    <code>nix run .#lint</code>
                   </td>
                   <td>Zero changed-file diagnostics; build succeeds.</td>
                 </tr>
@@ -1688,12 +1945,18 @@
                 <tr>
                   <td>Repeatability</td>
                   <td>Ten isolated samples in randomized backend order</td>
-                  <td>Dispersion reported; unexplained bimodality blocks baselining.</td>
+                  <td>
+                    Dispersion reported; unexplained bimodality blocks
+                    baselining.
+                  </td>
                 </tr>
                 <tr>
                   <td>Scaling sanity</td>
                   <td>Worker/GOMAXPROCS curves</td>
-                  <td>Speedup and saturation are plausible; no hidden one-worker claim.</td>
+                  <td>
+                    Speedup and saturation are plausible; no hidden one-worker
+                    claim.
+                  </td>
                 </tr>
                 <tr>
                   <td>Schema stability</td>
@@ -1703,7 +1966,10 @@
                 <tr>
                   <td>Regression policy</td>
                   <td>Baseline diff on stable metrics</td>
-                  <td>Material regression fails; noisy tails are advisory with context.</td>
+                  <td>
+                    Material regression fails; noisy tails are advisory with
+                    context.
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -1716,45 +1982,49 @@
             <div class="card problem">
               <h3>Benchmarking the harness</h3>
               <p>
-                Event generation, collectors, clocks and channels can dominate memory results. Keep
-                creation, raw sink and complete journey boundaries separate and profile the harness.
+                Event generation, collectors, clocks and channels can dominate
+                memory results. Keep creation, raw sink and complete journey
+                boundaries separate and profile the harness.
               </p>
             </div>
             <div class="card warning">
               <h3>False CI regressions</h3>
               <p>
-                Shared runners and tiny workloads are noisy. Gate only sustained stable metrics with
-                repeated samples; publish tails and memory-backend variance as advisory until proven
-                stable.
+                Shared runners and tiny workloads are noisy. Gate only sustained
+                stable metrics with repeated samples; publish tails and
+                memory-backend variance as advisory until proven stable.
               </p>
             </div>
             <div class="card warning">
               <h3>Backend unfairness</h3>
               <p>
-                Durability, WAL, sync writes, pools and compaction settings must be explicit. Never
-                compare in-memory SQLite, persistent SQLite and synced Pebble under one label.
+                Durability, WAL, sync writes, pools and compaction settings must
+                be explicit. Never compare in-memory SQLite, persistent SQLite
+                and synced Pebble under one label.
               </p>
             </div>
             <div class="card problem">
               <h3>Incorrect fast results</h3>
               <p>
-                Every journey verifies counts, versions and state after timing. An error, dropped
-                event or unfinished projection invalidates the sample instead of yielding an
-                impressive zero.
+                Every journey verifies counts, versions and state after timing.
+                An error, dropped event or unfinished projection invalidates the
+                sample instead of yielding an impressive zero.
               </p>
             </div>
             <div class="card warning">
               <h3>API sprawl</h3>
               <p>
-                Prefer composable phase interfaces and suite manifests. Do not add one Config
-                boolean per new scenario; benchmark extensions need cohesive typed configuration.
+                Prefer composable phase interfaces and suite manifests. Do not
+                add one Config boolean per new scenario; benchmark extensions
+                need cohesive typed configuration.
               </p>
             </div>
             <div class="card solution">
               <h3>Library-first value</h3>
               <p>
-                Factories and capability contracts remain backend-neutral. Consumers can benchmark
-                their own bundle without importing every backend driver.
+                Factories and capability contracts remain backend-neutral.
+                Consumers can benchmark their own bundle without importing every
+                backend driver.
               </p>
             </div>
           </div>
@@ -1764,56 +2034,66 @@
           <h2><span>10</span>Definition of done</h2>
           <ul>
             <li>
-              Headline metrics identify exact boundaries and never conflate generation, storage,
-              full command processing or projection completion.
+              Headline metrics identify exact boundaries and never conflate
+              generation, storage, full command processing or projection
+              completion.
             </li>
             <li>
-              Raw memory sink capacity and one-worker/full-CPU scaling can be measured
-              independently.
+              Raw memory sink capacity and one-worker/full-CPU scaling can be
+              measured independently.
             </li>
             <li>
-              The complete command-to-read-model journey is benchmarked with correctness assertions.
+              The complete command-to-read-model journey is benchmarked with
+              correctness assertions.
             </li>
             <li>
-              CPU, workers, durability, codec, payload distribution, stream length, batch size and
-              machine metadata are recorded.
+              CPU, workers, durability, codec, payload distribution, stream
+              length, batch size and machine metadata are recorded.
             </li>
             <li>
-              Every repeated persistent run receives a fresh store and selects the true median
-              sample.
-            </li>
-            <li>Results have a stable versioned schema and reproducible suite manifest.</li>
-            <li>
-              Core backends pass identical benchmark contracts; unsupported capabilities are
-              explicit.
+              Every repeated persistent run receives a fresh store and selects
+              the true median sample.
             </li>
             <li>
-              Regression checks use sustained samples and documented thresholds rather than single
-              tiny runs.
+              Results have a stable versioned schema and reproducible suite
+              manifest.
             </li>
             <li>
-              CPU/heap/mutex/block/trace and soak modes can diagnose regressions after detection.
+              Core backends pass identical benchmark contracts; unsupported
+              capabilities are explicit.
             </li>
             <li>
-              README, benchmark index, AI skill, changelog, API stability and release documentation
-              agree.
+              Regression checks use sustained samples and documented thresholds
+              rather than single tiny runs.
             </li>
-            <li><code>nix run .#verify</code> passes before any benchmark API is tagged stable.</li>
+            <li>
+              CPU/heap/mutex/block/trace and soak modes can diagnose regressions
+              after detection.
+            </li>
+            <li>
+              README, benchmark index, AI skill, changelog, API stability and
+              release documentation agree.
+            </li>
+            <li>
+              <code>nix run .#verify</code> passes before any benchmark API is
+              tagged stable.
+            </li>
           </ul>
           <div class="card solution">
             <h3>Release decision</h3>
             <p>
-              Do not tag <code>benchkit/v0.1.0</code> merely because the current API works. Tag
-              after M01–M18, schema compatibility, representative baselines, and verification are
-              complete. M19–M23 may continue additively after that if their extension points are
-              already stable.
+              Do not tag <code>benchkit/v0.1.0</code> merely because the current
+              API works. Tag after M01–M18, schema compatibility, representative
+              baselines, and verification are complete. M19–M23 may continue
+              additively after that if their extension points are already
+              stable.
             </p>
           </div>
         </section>
         <footer class="footer">
-          Generated 2026-07-24 · Source reviewed: benchkit, cqrs-bench, stack/bench, current docs,
-          TODO and benchmark reports · Plan only; implementation follows as a separate execution
-          phase.
+          Generated 2026-07-24 · Source reviewed: benchkit, cqrs-bench,
+          stack/bench, current docs, TODO and benchmark reports · Plan only;
+          implementation follows as a separate execution phase.
         </footer>
       </main>
     </div>

@@ -49,14 +49,14 @@
         --radius: 0px;
         --radius-sm: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -217,15 +217,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue {
         background: var(--surface-raised);
@@ -236,15 +248,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue h3 {
         margin-bottom: 0.3rem;
@@ -660,9 +684,10 @@
           <div class="hero-badge">Upstream API Gaps Resolution</div>
           <h1>CQRS-HTMX Integration Blockers: CLOSED</h1>
           <p class="hero-subtitle">
-            Both upstream API gaps documented in the cqrs-htmx feedback have been resolved:
-            projection replay/live split + exported ID marker types. All tests pass, lint is clean,
-            API surface updated, docs refreshed.
+            Both upstream API gaps documented in the cqrs-htmx feedback have
+            been resolved: projection replay/live split + exported ID marker
+            types. All tests pass, lint is clean, API surface updated, docs
+            refreshed.
           </p>
         </div>
 
@@ -725,9 +750,10 @@
             <div class="text">
               <strong>Projection Runner Split</strong>
               <span
-                >Added RunReplay(ctx) for synchronous historical event replay + RunLive(ctx) for
-                background live event tailing. Run() remains as convenience wrapper. Eliminates the
-                time.Sleep(50ms) race hack in cqrs-htmx.</span
+                >Added RunReplay(ctx) for synchronous historical event replay +
+                RunLive(ctx) for background live event tailing. Run() remains as
+                convenience wrapper. Eliminates the time.Sleep(50ms) race hack
+                in cqrs-htmx.</span
               >
             </div>
           </div>
@@ -736,9 +762,9 @@
             <div class="text">
               <strong>3-State Lifecycle Machine</strong>
               <span
-                >idle &#8594; ready (RunReplay) &#8594; live (RunLive) &#8594; idle. Makes invalid
-                transitions impossible via CompareAndSwap guards. No context.Context stored in
-                struct (lint clean).</span
+                >idle &#8594; ready (RunReplay) &#8594; live (RunLive) &#8594;
+                idle. Makes invalid transitions impossible via CompareAndSwap
+                guards. No context.Context stored in struct (lint clean).</span
               >
             </div>
           </div>
@@ -747,8 +773,9 @@
             <div class="text">
               <strong>ErrReplayRequired Sentinel</strong>
               <span
-                >New error returned when RunLive is called before RunReplay, preventing
-                read-your-writes violations where consumers miss historical events.</span
+                >New error returned when RunLive is called before RunReplay,
+                preventing read-your-writes violations where consumers miss
+                historical events.</span
               >
             </div>
           </div>
@@ -757,9 +784,9 @@
             <div class="text">
               <strong>Exported ID Marker Types</strong>
               <span
-                >UserMarker, CorrelationMarker, RequestMarker now exported (matching existing
-                AggregateMarker). Enables downstream BrandNamer integration and type-parameterized
-                tooling.</span
+                >UserMarker, CorrelationMarker, RequestMarker now exported
+                (matching existing AggregateMarker). Enables downstream
+                BrandNamer integration and type-parameterized tooling.</span
               >
             </div>
           </div>
@@ -768,9 +795,10 @@
             <div class="text">
               <strong>Comprehensive Test Coverage</strong>
               <span
-                >6 new tests: read-your-writes end-to-end, double-RunReplay guard, double-RunLive
-                guard, RunLive-before-RunReplay rejection, Close-after-RunReplay-no-hang, concurrent
-                RunLive corruption test (16 goroutines, 1 winner, 15 losers, Close verifies no
+                >6 new tests: read-your-writes end-to-end, double-RunReplay
+                guard, double-RunLive guard, RunLive-before-RunReplay rejection,
+                Close-after-RunReplay-no-hang, concurrent RunLive corruption
+                test (16 goroutines, 1 winner, 15 losers, Close verifies no
                 clobber).</span
               >
             </div>
@@ -780,8 +808,9 @@
             <div class="text">
               <strong>Downstream Marker Usability Test</strong>
               <span
-                >External package test (id_test) verifies id.New[id.UserMarker]() compiles and
-                works, faithfully simulating the BrandNamer use case from cqrs-htmx.</span
+                >External package test (id_test) verifies
+                id.New[id.UserMarker]() compiles and works, faithfully
+                simulating the BrandNamer use case from cqrs-htmx.</span
               >
             </div>
           </div>
@@ -790,8 +819,9 @@
             <div class="text">
               <strong>API Stability Golden Updated</strong>
               <span
-                >docs/api_surface.txt regenerated with 6 new exports: 3 id marker structs +
-                RunReplay + RunLive + ErrReplayRequired. All 1324 exports verified.</span
+                >docs/api_surface.txt regenerated with 6 new exports: 3 id
+                marker structs + RunReplay + RunLive + ErrReplayRequired. All
+                1324 exports verified.</span
               >
             </div>
           </div>
@@ -800,8 +830,9 @@
             <div class="text">
               <strong>Documentation Updated</strong>
               <span
-                >CHANGELOG.md (Unreleased section), FEATURES.md (runner split + exported markers),
-                AGENTS.md (marker naming), projection/README.md (read-your-writes example),
+                >CHANGELOG.md (Unreleased section), FEATURES.md (runner split +
+                exported markers), AGENTS.md (marker naming),
+                projection/README.md (read-your-writes example),
                 projection/doc.go (package docs).</span
               >
             </div>
@@ -811,8 +842,9 @@
             <div class="text">
               <strong>Zero Lint Issues</strong>
               <span
-                >All 24 linted modules pass with 0 issues. No containedctx, noinlineerr,
-                contextcheck, or revive warnings in changed files.</span
+                >All 24 linted modules pass with 0 issues. No containedctx,
+                noinlineerr, contextcheck, or revive warnings in changed
+                files.</span
               >
             </div>
           </div>
@@ -821,8 +853,8 @@
             <div class="text">
               <strong>All 30+ Packages Green</strong>
               <span
-                >Full workspace test suite passes including race detector across projection, id,
-                integration, and all other modules.</span
+                >Full workspace test suite passes including race detector across
+                projection, id, integration, and all other modules.</span
               >
             </div>
           </div>
@@ -832,15 +864,17 @@
         <div class="card card-warning">
           <h4>Close() Reusability After Multiple Run Cycles</h4>
           <p>
-            <code>closeOnce</code> prevents a second Close() from cancelling a new run cycle.
-            Pre-existing limitation, more noticeable with split API since consumers may do RunReplay
-            &#8594; Close &#8594; RunReplay. Currently works: Close resets ready&#8594;idle and
-            first Close cancels. Second Close is silently ignored. Should document or replace with
-            idempotent cancel.
+            <code>closeOnce</code> prevents a second Close() from cancelling a
+            new run cycle. Pre-existing limitation, more noticeable with split
+            API since consumers may do RunReplay &#8594; Close &#8594;
+            RunReplay. Currently works: Close resets ready&#8594;idle and first
+            Close cancels. Second Close is silently ignored. Should document or
+            replace with idempotent cancel.
           </p>
           <div class="callout callout-warning">
-            <strong>Impact:</strong> Low. Most consumers start once and run forever. The test
-            demonstrates reuse works (Close after RunReplay, then RunReplay again).
+            <strong>Impact:</strong> Low. Most consumers start once and run
+            forever. The test demonstrates reuse works (Close after RunReplay,
+            then RunReplay again).
           </div>
         </div>
 
@@ -867,7 +901,9 @@
             <tr>
               <td>3</td>
               <td>SKILL.md update for new projection split API</td>
-              <td>Consumer-facing guide, can be done when cqrs-htmx integrates</td>
+              <td>
+                Consumer-facing guide, can be done when cqrs-htmx integrates
+              </td>
             </tr>
             <tr>
               <td>4</td>
@@ -886,9 +922,10 @@
         <div class="card card-solution">
           <h4>Nothing. Everything is green.</h4>
           <p>
-            Build passes. All 30+ packages test green with race detector. Lint is 0 issues. API
-            stability golden is verified. No files were corrupted. The test fix was the only
-            iteration needed, and it was caught before anything reached production.
+            Build passes. All 30+ packages test green with race detector. Lint
+            is 0 issues. API stability golden is verified. No files were
+            corrupted. The test fix was the only iteration needed, and it was
+            caught before anything reached production.
           </p>
         </div>
 
@@ -899,17 +936,19 @@
           <h3>closeOnce prevents second Close() from cancelling new cycles</h3>
           <div class="where">projection/runner.go:cancel field + closeOnce</div>
           <p>
-            If a consumer calls RunReplay &#8594; RunLive &#8594; Close &#8594; RunReplay &#8594;
-            RunLive again, the second Close() silently does nothing because closeOnce already fired.
-            The context is still cancelled (first Close did that), so the second RunLive will
-            immediately exit when the old context cancellation propagates. The consumer would need a
-            fresh Runner instance.
+            If a consumer calls RunReplay &#8594; RunLive &#8594; Close &#8594;
+            RunReplay &#8594; RunLive again, the second Close() silently does
+            nothing because closeOnce already fired. The context is still
+            cancelled (first Close did that), so the second RunLive will
+            immediately exit when the old context cancellation propagates. The
+            consumer would need a fresh Runner instance.
           </p>
           <div class="callout callout-solution">
-            <strong>Fix:</strong> Replace sync.Once with an atomic flag that resets on state
-            transition to idle, or swap CancelFunc storage for a fresh cancellable context per run
-            cycle. Not urgent because the test demonstrates reuse via Close() resetting
-            ready&#8594;idle works for the replay-only path.
+            <strong>Fix:</strong> Replace sync.Once with an atomic flag that
+            resets on state transition to idle, or swap CancelFunc storage for a
+            fresh cancellable context per run cycle. Not urgent because the test
+            demonstrates reuse via Close() resetting ready&#8594;idle works for
+            the replay-only path.
           </div>
         </div>
 
@@ -918,10 +957,12 @@
           <h3>First implementation stored context.Context in struct</h3>
           <div class="where">projection/runner.go (first draft, reverted)</div>
           <p>
-            My first RunLive design stored runCtx on the Runner struct to pass from RunReplay to
-            RunLive. This triggered containedctx (storing context in struct is an anti-pattern) and
-            contextcheck (passing non-derived context) linter failures. I redesigned: RunLive now
-            owns its own WithCancel(ctx), and stores only the CancelFunc. Lesson learned.
+            My first RunLive design stored runCtx on the Runner struct to pass
+            from RunReplay to RunLive. This triggered containedctx (storing
+            context in struct is an anti-pattern) and contextcheck (passing
+            non-derived context) linter failures. I redesigned: RunLive now owns
+            its own WithCancel(ctx), and stores only the CancelFunc. Lesson
+            learned.
           </p>
         </div>
 
@@ -930,10 +971,11 @@
           <h3>Assigned done/cancel BEFORE the CAS in first RunLive draft</h3>
           <div class="where">projection/runner.go (first draft, reverted)</div>
           <p>
-            My first RunLive assigned r.done and r.cancel before the state.CompareAndSwap. A losing
-            concurrent caller would clobber the winner's shutdown fields, causing Close() to read a
-            stale (already closed or nil) done channel and hang. Moved assignment AFTER winning the
-            CAS. Caught by concurrent corruption test.
+            My first RunLive assigned r.done and r.cancel before the
+            state.CompareAndSwap. A losing concurrent caller would clobber the
+            winner's shutdown fields, causing Close() to read a stale (already
+            closed or nil) done channel and hang. Moved assignment AFTER winning
+            the CAS. Caught by concurrent corruption test.
           </p>
         </div>
 
@@ -942,10 +984,12 @@
           <h3>Concurrent test initially hung on wg.Wait()</h3>
           <div class="where">projection/runner_split_test.go</div>
           <p>
-            The first concurrent test design waited for all goroutines (including the winner
-            blocking on subscribeLive) before asserting. Fixed by cancelling context after CAS storm
-            settles, asserting losers first, then draining winner. Test now passes in ~10ms instead
-            of hanging forever. Design lesson: always remember subscribeLive blocks on ctx.Done().
+            The first concurrent test design waited for all goroutines
+            (including the winner blocking on subscribeLive) before asserting.
+            Fixed by cancelling context after CAS storm settles, asserting
+            losers first, then draining winner. Test now passes in ~10ms instead
+            of hanging forever. Design lesson: always remember subscribeLive
+            blocks on ctx.Done().
           </p>
         </div>
 
@@ -954,16 +998,19 @@
           <h3>API-stability -update ran from wrong CWD</h3>
           <div class="where">cmd/api-stability/main.go:37</div>
           <p>
-            The tool computes projectRoot as filepath.Join(".", "..", "..") relative to its own
-            directory. Running from repo root wrote a stray empty file. Caught by checking git diff
-            --stat. Always verify relative path computation before running tools.
+            The tool computes projectRoot as filepath.Join(".", "..", "..")
+            relative to its own directory. Running from repo root wrote a stray
+            empty file. Caught by checking git diff --stat. Always verify
+            relative path computation before running tools.
           </p>
         </div>
 
-        <h2 id="next"><span class="num">06</span>Top 25 Things to Get Done Next</h2>
+        <h2 id="next">
+          <span class="num">06</span>Top 25 Things to Get Done Next
+        </h2>
         <p>
-          Sorted by impact (Pareto). High impact = enables major consumer features or eliminates
-          known pain. Low effort = under 30 minutes.
+          Sorted by impact (Pareto). High impact = enables major consumer
+          features or eliminates known pain. Low effort = under 30 minutes.
         </p>
         <table>
           <thead>
@@ -978,7 +1025,9 @@
           <tbody>
             <tr>
               <td>1</td>
-              <td>Add projection example with RunReplay+RunLive in example/todo/</td>
+              <td>
+                Add projection example with RunReplay+RunLive in example/todo/
+              </td>
               <td>High</td>
               <td>Medium</td>
               <td>Consumer guidance</td>
@@ -1020,7 +1069,9 @@
             </tr>
             <tr>
               <td>7</td>
-              <td>Export CausationMarker, ClientMarker, CommandMarker, EventMarker</td>
+              <td>
+                Export CausationMarker, ClientMarker, CommandMarker, EventMarker
+              </td>
               <td>Low</td>
               <td>Low</td>
               <td>Consistency</td>
@@ -1048,7 +1099,9 @@
             </tr>
             <tr>
               <td>11</td>
-              <td>Investigate samber/ro Observable wrapping for Runner events</td>
+              <td>
+                Investigate samber/ro Observable wrapping for Runner events
+              </td>
               <td>Low</td>
               <td>High</td>
               <td>Exploration</td>
@@ -1076,21 +1129,28 @@
             </tr>
             <tr>
               <td>15</td>
-              <td>Add Runner.Pause() / Runner.Resume() for operational control</td>
+              <td>
+                Add Runner.Pause() / Runner.Resume() for operational control
+              </td>
               <td>Medium</td>
               <td>High</td>
               <td>Operational</td>
             </tr>
             <tr>
               <td>16</td>
-              <td>Investigate samber/do v2 for internal wiring (NOT consumer-facing)</td>
+              <td>
+                Investigate samber/do v2 for internal wiring (NOT
+                consumer-facing)
+              </td>
               <td>Low</td>
               <td>High</td>
               <td>Exploration</td>
             </tr>
             <tr>
               <td>17</td>
-              <td>Add context deadline/timeout propagation test for RunReplay</td>
+              <td>
+                Add context deadline/timeout propagation test for RunReplay
+              </td>
               <td>Medium</td>
               <td>Low</td>
               <td>Test coverage</td>
@@ -1154,37 +1214,47 @@
           </tbody>
         </table>
 
-        <h2 id="question"><span class="num">07</span>Top #1 Question I Cannot Figure Out Myself</h2>
+        <h2 id="question">
+          <span class="num">07</span>Top #1 Question I Cannot Figure Out Myself
+        </h2>
         <div class="issue issue-critical">
           <span class="severity severity-critical">Blocking Question</span>
           <h3>
-            Should we export ALL remaining unexported marker types (CausationMarker, ClientMarker,
-            CommandMarker, EventMarker) for consistency?
+            Should we export ALL remaining unexported marker types
+            (CausationMarker, ClientMarker, CommandMarker, EventMarker) for
+            consistency?
           </h3>
           <div class="where">
-            id/causation_id.go, id/client_id.go, id/command_id.go, id/event_id.go
+            id/causation_id.go, id/client_id.go, id/command_id.go,
+            id/event_id.go
           </div>
           <p>
-            The feedback document only requested UserMarker, CorrelationMarker, and RequestMarker
-            because those three are the ones cqrs-htmx needs. But for API consistency, all 8
-            built-in ID types should have exported markers. Currently 4 are exported
-            (AggregateMarker, UserMarker, CorrelationMarker, RequestMarker) and 4 remain unexported
-            (causationMarker, clientMarker, commandMarker, eventMarker).
+            The feedback document only requested UserMarker, CorrelationMarker,
+            and RequestMarker because those three are the ones cqrs-htmx needs.
+            But for API consistency, all 8 built-in ID types should have
+            exported markers. Currently 4 are exported (AggregateMarker,
+            UserMarker, CorrelationMarker, RequestMarker) and 4 remain
+            unexported (causationMarker, clientMarker, commandMarker,
+            eventMarker).
           </p>
           <div class="callout callout-solution">
-            <strong>Arguments FOR:</strong> Consistency. All markers should be usable by downstream
-            tooling. No behavior change. Low effort. Prevents future feedback tickets.
+            <strong>Arguments FOR:</strong> Consistency. All markers should be
+            usable by downstream tooling. No behavior change. Low effort.
+            Prevents future feedback tickets.
           </div>
           <div class="callout callout-warning">
-            <strong>Arguments AGAINST:</strong> YAGNI — only export what downstream requests. The
-            other 4 markers have no known consumer need. Exporting increases API surface
-            permanently. The feedback was specific to 3 markers.
+            <strong>Arguments AGAINST:</strong> YAGNI — only export what
+            downstream requests. The other 4 markers have no known consumer
+            need. Exporting increases API surface permanently. The feedback was
+            specific to 3 markers.
           </div>
           <p>
-            <strong>My recommendation:</strong> Export all remaining markers in a single follow-up
-            commit for consistency. The cost is negligible (4 mechanical renames, ~20 lines total)
-            and the consistency argument wins. A library should not have a "some exported, some not"
-            split-brain for identical concepts. But I want confirmation before doing this.
+            <strong>My recommendation:</strong> Export all remaining markers in
+            a single follow-up commit for consistency. The cost is negligible (4
+            mechanical renames, ~20 lines total) and the consistency argument
+            wins. A library should not have a "some exported, some not"
+            split-brain for identical concepts. But I want confirmation before
+            doing this.
           </p>
         </div>
 
@@ -1226,23 +1296,32 @@
 
         <div class="dep-tree">
           <span class="root">Changes</span> &#9500;&#9472;
-          <span class="ok">projection/runner.go</span> (RunReplay, RunLive, 3-state machine)
-          &#9500;&#9472; <span class="ok">projection/runner_live.go</span> (state check instead of
-          running) &#9500;&#9472; <span class="ok">projection/errors.go</span> (ErrReplayRequired)
-          &#9500;&#9472; <span class="ok">projection/health.go</span> (IsRunning uses state)
-          &#9500;&#9472; <span class="ok">projection/runner_split_test.go</span> (6 new tests)
-          &#9500;&#9472; <span class="ok">id/user_id.go</span> (UserMarker exported) &#9500;&#9472;
-          <span class="ok">id/correlation_id.go</span> (CorrelationMarker exported) &#9500;&#9472;
-          <span class="ok">id/request_id.go</span> (RequestMarker exported) &#9500;&#9472;
-          <span class="ok">id/marker_export_test.go</span> (downstream usability test)
-          &#9500;&#9472; <span class="ok">docs/api_surface.txt</span> (+6 exports, 1324 total)
-          &#9500;&#9472; <span class="ok">CHANGELOG.md</span> (Unreleased section) &#9500;&#9472;
-          <span class="ok">FEATURES.md</span> (runner split + exported markers) &#9492;&#9472;
+          <span class="ok">projection/runner.go</span> (RunReplay, RunLive,
+          3-state machine) &#9500;&#9472;
+          <span class="ok">projection/runner_live.go</span> (state check instead
+          of running) &#9500;&#9472;
+          <span class="ok">projection/errors.go</span> (ErrReplayRequired)
+          &#9500;&#9472; <span class="ok">projection/health.go</span> (IsRunning
+          uses state) &#9500;&#9472;
+          <span class="ok">projection/runner_split_test.go</span> (6 new tests)
+          &#9500;&#9472; <span class="ok">id/user_id.go</span> (UserMarker
+          exported) &#9500;&#9472;
+          <span class="ok">id/correlation_id.go</span> (CorrelationMarker
+          exported) &#9500;&#9472;
+          <span class="ok">id/request_id.go</span> (RequestMarker exported)
+          &#9500;&#9472;
+          <span class="ok">id/marker_export_test.go</span> (downstream usability
+          test) &#9500;&#9472; <span class="ok">docs/api_surface.txt</span> (+6
+          exports, 1324 total) &#9500;&#9472;
+          <span class="ok">CHANGELOG.md</span> (Unreleased section)
+          &#9500;&#9472; <span class="ok">FEATURES.md</span> (runner split +
+          exported markers) &#9492;&#9472;
           <span class="ok">AGENTS.md</span> (marker naming in Key Patterns)
         </div>
 
         <footer class="footer">
-          Generated 2026-06-19 00:01 &middot; All claims verified against source code and test suite
+          Generated 2026-06-19 00:01 &middot; All claims verified against source
+          code and test suite
         </footer>
       </main>
     </div>

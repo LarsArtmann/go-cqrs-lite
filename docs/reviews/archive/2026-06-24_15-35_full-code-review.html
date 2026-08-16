@@ -27,8 +27,10 @@
         --problem: var(--color-red);
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
-        --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-        --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-heading:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-body:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
         --font-mono: "SF Mono", Menlo, Consolas, monospace;
       }
       * {
@@ -365,10 +367,11 @@
           <div class="hero-badge">Full Code Review &middot; 2026-06-24</div>
           <h1>Senior-Architect Audit</h1>
           <p class="hero-subtitle">
-            Point-in-time audit of the 43-module CQRS/ES library across type safety, architecture,
-            correctness, and maintainability. Honest verdict: a well-crafted codebase with
-            disciplined patterns and a small, well-understood set of issues — most already fixed
-            during this pass.
+            Point-in-time audit of the 43-module CQRS/ES library across type
+            safety, architecture, correctness, and maintainability. Honest
+            verdict: a well-crafted codebase with disciplined patterns and a
+            small, well-understood set of issues — most already fixed during
+            this pass.
           </p>
         </div>
 
@@ -400,17 +403,19 @@
           </div>
         </div>
         <p>
-          No critical defects, no split-brain type definitions, no panics in production paths. The
-          library delivers on its promises: immutability, type safety, and composability. Remaining
-          work is hygiene + two minor correctness gaps.
+          No critical defects, no split-brain type definitions, no panics in
+          production paths. The library delivers on its promises: immutability,
+          type safety, and composability. Remaining work is hygiene + two minor
+          correctness gaps.
         </p>
 
         <h2 id="method"><span class="num">01</span>Method &amp; Scope</h2>
         <p>
-          Read the highest-leverage paths in depth (event creation/immutability, decider repository,
-          materialize projection, SQL stores, middleware, multidb presets) and ran automated sweeps
-          across all 892 files (build, vet, lint, duplication, file-size, naming-smell,
-          import-graph). Cross-referenced every concrete doc/code claim. Each finding cites
+          Read the highest-leverage paths in depth (event creation/immutability,
+          decider repository, materialize projection, SQL stores, middleware,
+          multidb presets) and ran automated sweeps across all 892 files (build,
+          vet, lint, duplication, file-size, naming-smell, import-graph).
+          Cross-referenced every concrete doc/code claim. Each finding cites
           <code>file:line</code> evidence.
         </p>
 
@@ -422,15 +427,17 @@
           <div class="where">stack/materialize.go:126-147</div>
           <p>
             The tombstone switch handles <code>TombstoneTombstoned</code> and
-            <code>TombstoneActive</code> (rebirth) but omits <code>TombstoneUndetermined</code>,
-            which falls through to a silent <code>return nil</code>. An undetermined-status event is
-            therefore not projected. This may be intentional ("can't decide → no-op") but the gap
-            should be explicit, not implicit.
+            <code>TombstoneActive</code> (rebirth) but omits
+            <code>TombstoneUndetermined</code>, which falls through to a silent
+            <code>return nil</code>. An undetermined-status event is therefore
+            not projected. This may be intentional ("can't decide → no-op") but
+            the gap should be explicit, not implicit.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong> Add
-            <code>case event.TombstoneUndetermined: return nil</code> (documented) or log a warning.
-            Makes the exhaustive switch compile-clean and the intent visible.
+            <code>case event.TombstoneUndetermined: return nil</code>
+            (documented) or log a warning. Makes the exhaustive switch
+            compile-clean and the intent visible.
           </div>
         </div>
 
@@ -439,10 +446,11 @@
           <h3>reflect.Kind switch missing many cases</h3>
           <div class="where">storage/view_store_auto.go:159</div>
           <p>
-            The auto view-store column-type mapper switches on <code>reflect.Kind</code> without
-            cases for Int8/16, Uint8/16, Array, Struct, Map, etc. An unsupported kind hits the
-            default silently rather than erroring. Better to fail loudly on an unsupported type than
-            to produce a wrong column.
+            The auto view-store column-type mapper switches on
+            <code>reflect.Kind</code> without cases for Int8/16, Uint8/16,
+            Array, Struct, Map, etc. An unsupported kind hits the default
+            silently rather than erroring. Better to fail loudly on an
+            unsupported type than to produce a wrong column.
           </p>
         </div>
 
@@ -451,8 +459,9 @@
           <h3>context.Context stored in a struct</h3>
           <div class="where">watermill/event_bus.go:40</div>
           <p>
-            The EventBus struct holds a <code>context.Context</code>. Contexts should flow through
-            method parameters to preserve cancellation semantics. Refactor to accept ctx per-call.
+            The EventBus struct holds a <code>context.Context</code>. Contexts
+            should flow through method parameters to preserve cancellation
+            semantics. Refactor to accept ctx per-call.
           </p>
         </div>
 
@@ -461,9 +470,10 @@
           <h3>Internal use of deprecated query.Handler</h3>
           <div class="where">middleware/generic.go:85</div>
           <p>
-            The library's own code references its deprecated <code>query.Handler</code>. Migrate the
-            call site to <code>TypedHandler[Q,R]</code> so the codebase doesn't depend on its own
-            deprecated surface.
+            The library's own code references its deprecated
+            <code>query.Handler</code>. Migrate the call site to
+            <code>TypedHandler[Q,R]</code> so the codebase doesn't depend on its
+            own deprecated surface.
           </p>
         </div>
 
@@ -471,14 +481,16 @@
           <span class="severity severity-important">Architecture</span>
           <h3>Test-dependency leak &amp; grpc workspace conflict</h3>
           <div class="where">
-            event/command/decider/watermill → storage/memory; transport/grpc genproto
+            event/command/decider/watermill → storage/memory; transport/grpc
+            genproto
           </div>
           <p>
-            Two structural items (detailed in the architecture-review and go-modularize reports):
-            core modules carry <code>storage/memory</code> as a direct production require
-            (test-only), and <code>transport/grpc</code> can't join <code>go.work</code> due to a
-            genproto ambiguous-import. Neither affects runtime correctness; both affect build
-            hygiene.
+            Two structural items (detailed in the architecture-review and
+            go-modularize reports): core modules carry
+            <code>storage/memory</code> as a direct production require
+            (test-only), and <code>transport/grpc</code> can't join
+            <code>go.work</code> due to a genproto ambiguous-import. Neither
+            affects runtime correctness; both affect build hygiene.
           </p>
         </div>
 
@@ -486,17 +498,20 @@
           <span class="severity severity-nice">Config / hygiene</span>
           <h3>Over-aggressive linter set &amp; stale config</h3>
           <div class="where">
-            .golangci.yml (makezero/noinlineerr/exhaustruct); 3 dead build tags (removed); file-size
-            gate flags generated .pb.go
+            .golangci.yml (makezero/noinlineerr/exhaustruct); 3 dead build tags
+            (removed); file-size gate flags generated .pb.go
           </div>
           <p>
-            ~135 of 200 lint findings are stylistic noise. Tuning the config (disable noinlineerr,
-            scope makezero/exhaustruct out of tests) clears them and surfaces real issues. Full
-            breakdown in the code-quality-scan report.
+            ~135 of 200 lint findings are stylistic noise. Tuning the config
+            (disable noinlineerr, scope makezero/exhaustruct out of tests)
+            clears them and surfaces real issues. Full breakdown in the
+            code-quality-scan report.
           </p>
         </div>
 
-        <h2 id="fixed"><span class="num">03</span>Fixed On The Spot (this session)</h2>
+        <h2 id="fixed">
+          <span class="num">03</span>Fixed On The Spot (this session)
+        </h2>
         <table>
           <thead>
             <tr>
@@ -528,7 +543,10 @@
             </tr>
             <tr>
               <td>5</td>
-              <td><code>go mod tidy</code> — removed 4 unused deps + fixed directness</td>
+              <td>
+                <code>go mod tidy</code> — removed 4 unused deps + fixed
+                directness
+              </td>
               <td>storage/turso/go.mod</td>
             </tr>
             <tr>
@@ -538,7 +556,9 @@
             </tr>
             <tr>
               <td>7</td>
-              <td>Added missing features (grpc, doc-check, multidb) to inventory</td>
+              <td>
+                Added missing features (grpc, doc-check, multidb) to inventory
+              </td>
               <td>FEATURES.md</td>
             </tr>
           </tbody>
@@ -546,17 +566,18 @@
 
         <h2 id="split"><span class="num">04</span>Split Brains — none found</h2>
         <p>
-          Checked for duplicate type definitions, same-concept-different-name, and parallel
-          implementations. Findings:
+          Checked for duplicate type definitions, same-concept-different-name,
+          and parallel implementations. Findings:
         </p>
         <div class="card card-solution">
           <h4>No split brains</h4>
           <p>
-            <code>Metadata</code> is intentionally per-module (event/command/query) by design
-            (ADR-0031), not a split brain. The one cross-module clone (<code>multidb.go</code> in
-            sqlite/postgres presets) is intentional parallel preset structure — extracting it would
-            add a <code>stack→storage</code> dependency that doesn't exist (cost &gt; benefit).
-            Accepted with rationale.
+            <code>Metadata</code> is intentionally per-module
+            (event/command/query) by design (ADR-0031), not a split brain. The
+            one cross-module clone (<code>multidb.go</code> in sqlite/postgres
+            presets) is intentional parallel preset structure — extracting it
+            would add a <code>stack→storage</code> dependency that doesn't exist
+            (cost &gt; benefit). Accepted with rationale.
           </p>
         </div>
 
@@ -567,8 +588,9 @@
             <div class="text">
               <strong>Immutability is real, not aspirational</strong
               ><span
-                ><code>ImmutableEvent</code> has all-unexported fields; every accessor returns a
-                clone. The immutability contract is enforced structurally.</span
+                ><code>ImmutableEvent</code> has all-unexported fields; every
+                accessor returns a clone. The immutability contract is enforced
+                structurally.</span
               >
             </div>
           </div>
@@ -577,9 +599,10 @@
             <div class="text">
               <strong>Type safety eliminates whole bug classes</strong
               ><span
-                >Phantom <code>Version</code>/<code>SchemaVersion</code>, 8 branded IDs, typed
-                <code>Family</code> enum — you cannot mix a version with an int or one ID with
-                another at compile time.</span
+                >Phantom <code>Version</code>/<code>SchemaVersion</code>, 8
+                branded IDs, typed <code>Family</code> enum — you cannot mix a
+                version with an int or one ID with another at compile
+                time.</span
               >
             </div>
           </div>
@@ -588,8 +611,9 @@
             <div class="text">
               <strong>Errors-as-values, exhaustively classified</strong
               ><span
-                >5-family taxonomy with typed sentinels; no <code>panic</code> in production paths;
-                <code>%w</code> wrapping throughout.</span
+                >5-family taxonomy with typed sentinels; no
+                <code>panic</code> in production paths; <code>%w</code> wrapping
+                throughout.</span
               >
             </div>
           </div>
@@ -598,8 +622,8 @@
             <div class="text">
               <strong>Defensive copies at every public boundary</strong
               ><span
-                >Payload, Metadata, EventTypes, signatures all clone on read — internal mutation
-                can't leak to callers.</span
+                >Payload, Metadata, EventTypes, signatures all clone on read —
+                internal mutation can't leak to callers.</span
               >
             </div>
           </div>
@@ -614,12 +638,17 @@
             <div class="check">+</div>
             <div class="text">
               <strong>Every file ≤ 350 lines (except generated protobuf)</strong
-              ><span>The size discipline holds universally for hand-written code.</span>
+              ><span
+                >The size discipline holds universally for hand-written
+                code.</span
+              >
             </div>
           </div>
         </div>
 
-        <h2 id="related"><span class="num">06</span>Companion Reports (this session)</h2>
+        <h2 id="related">
+          <span class="num">06</span>Companion Reports (this session)
+        </h2>
         <table>
           <thead>
             <tr>
@@ -630,7 +659,11 @@
           <tbody>
             <tr>
               <td>Code Quality Scan</td>
-              <td><code>docs/reviews/2026-06-24_15-35_code-quality-scan.html</code></td>
+              <td>
+                <code
+                  >docs/reviews/2026-06-24_15-35_code-quality-scan.html</code
+                >
+              </td>
             </tr>
             <tr>
               <td>Architecture Review (+ diagrams)</td>
@@ -642,15 +675,25 @@
             </tr>
             <tr>
               <td>Data Model Review</td>
-              <td><code>docs/brainstorming/2026-06-24_data-model-review.html</code></td>
+              <td>
+                <code
+                  >docs/brainstorming/2026-06-24_data-model-review.html</code
+                >
+              </td>
             </tr>
             <tr>
               <td>Naming Review</td>
-              <td><code>docs/reviews/2026-06-24_15-35_naming-review.html</code></td>
+              <td>
+                <code>docs/reviews/2026-06-24_15-35_naming-review.html</code>
+              </td>
             </tr>
             <tr>
               <td>Modularization Assessment</td>
-              <td><code>docs/modularization/2026-06-24_modularization-assessment.html</code></td>
+              <td>
+                <code
+                  >docs/modularization/2026-06-24_modularization-assessment.html</code
+                >
+              </td>
             </tr>
             <tr>
               <td>Architecture Diagrams</td>
@@ -664,9 +707,9 @@
         </table>
 
         <footer class="footer">
-          Generated 2026-06-24 &middot; Point-in-time audit. Findings grounded in source via
-          build/vet/lint/art-dupl + targeted deep reads of correctness-critical paths. No code was
-          vershlimmbessert.
+          Generated 2026-06-24 &middot; Point-in-time audit. Findings grounded
+          in source via build/vet/lint/art-dupl + targeted deep reads of
+          correctness-critical paths. No code was vershlimmbessert.
         </footer>
       </main>
     </div>

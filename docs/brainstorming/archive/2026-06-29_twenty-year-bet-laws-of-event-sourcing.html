@@ -65,14 +65,14 @@
 
         /* --- Type stacks (system only — zero external fonts) --- */
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
 
       * {
@@ -490,12 +490,20 @@
       .callout-teal,
       .callout-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 10%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
       }
       .callout-amber,
       .callout-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 18%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
       }
 
       /* --- Strengths --- */
@@ -902,9 +910,10 @@
           <div class="eyebrow">Brainstorming &middot; 2026-06-29</div>
           <h1>The 20-Year Bet</h1>
           <p class="subtitle">
-            One question: what is something hard worth doing in this repo that will still be paying
-            dividends in 2046? This is the reasoning &mdash; the candidates considered and rejected,
-            the answer, and what it looks like in real Go against this codebase's actual API.
+            One question: what is something hard worth doing in this repo that
+            will still be paying dividends in 2046? This is the reasoning
+            &mdash; the candidates considered and rejected, the answer, and what
+            it looks like in real Go against this codebase's actual API.
           </p>
           <div class="meta">
             <span class="tag amber">Scope: architectural</span>
@@ -916,31 +925,37 @@
         <section id="verdict">
           <h2><span class="num">00</span>The verdict, up front</h2>
           <p>
-            <strong>Machine-check the algebraic laws of event sourcing.</strong> A dedicated
-            <code>laws/</code> module that imports the entire stack and proves the cross-cutting
-            invariants that are true today, true in 2046, and true regardless of language or backend
-            &mdash; the math that event sourcing <em>is</em>.
+            <strong>Machine-check the algebraic laws of event sourcing.</strong>
+            A dedicated <code>laws/</code> module that imports the entire stack
+            and proves the cross-cutting invariants that are true today, true in
+            2046, and true regardless of language or backend &mdash; the math
+            that event sourcing <em>is</em>.
           </p>
           <p>
-            Everything else in this repo &mdash; every transport adapter, every storage backend,
-            every stack preset &mdash; will be rewritten three to five times over two decades.
-            Backends come and go. Projections get rebuilt. That is healthy, expected churn. What
-            does not change is the structure: a fold over an ordered log of immutable facts. That
-            structure has laws, and those laws are where the business-killing bugs hide.
+            Everything else in this repo &mdash; every transport adapter, every
+            storage backend, every stack preset &mdash; will be rewritten three
+            to five times over two decades. Backends come and go. Projections
+            get rebuilt. That is healthy, expected churn. What does not change
+            is the structure: a fold over an ordered log of immutable facts.
+            That structure has laws, and those laws are where the
+            business-killing bugs hide.
           </p>
           <div class="pullquote">
-            The artifact itself is timeless. You only ever add laws, never remove them.
+            The artifact itself is timeless. You only ever add laws, never
+            remove them.
           </div>
         </section>
 
         <section id="candidates">
           <h2><span class="num">01</span>Candidates considered and rejected</h2>
           <p>
-            The repo's own Pareto plan ranked the <strong>Managed Projection Host</strong> as the #1
-            framework gap. On investigation, it is already built, committed, and green
-            (<code>projectionhost/</code>, ~1060 lines, committed at <code>b5af0904</code>). What
-            remains is tactical: a durable DLQ backend, an end-to-end example, OTel wiring. All
-            useful. All replaceable in five years.
+            The repo's own Pareto plan ranked the
+            <strong>Managed Projection Host</strong> as the #1 framework gap. On
+            investigation, it is already built, committed, and green
+            (<code>projectionhost/</code>, ~1060 lines, committed at
+            <code>b5af0904</code>). What remains is tactical: a durable DLQ
+            backend, an end-to-end example, OTel wiring. All useful. All
+            replaceable in five years.
           </p>
           <p>Every other candidate falls into the same category:</p>
 
@@ -957,13 +972,17 @@
                 <td>Durable DLQ backend (SQL/Redis)</td>
                 <td class="no">Tactical</td>
                 <td>
-                  Storage backends rotate every 5&ndash;10 years. The law it serves is permanent.
+                  Storage backends rotate every 5&ndash;10 years. The law it
+                  serves is permanent.
                 </td>
               </tr>
               <tr>
                 <td>End-to-end projection host example</td>
                 <td class="no">Tactical</td>
-                <td>A demonstration, not a foundation. Rewritten when the host changes.</td>
+                <td>
+                  A demonstration, not a foundation. Rewritten when the host
+                  changes.
+                </td>
               </tr>
               <tr>
                 <td>OTel instrumentation of the worker loop</td>
@@ -974,52 +993,63 @@
                 <td>Scenario-testing DSL (adoption aid)</td>
                 <td class="no">Lower leverage</td>
                 <td>
-                  Polish, not an unlock. An adoption <em>aid</em>, not an adoption <em>unlock</em>.
+                  Polish, not an unlock. An adoption <em>aid</em>, not an
+                  adoption <em>unlock</em>.
                 </td>
               </tr>
               <tr>
                 <td>Versioning story made complete</td>
                 <td class="no">Coverage gap</td>
-                <td>Upcasters are a known pattern. What's missing is coverage, not the model.</td>
+                <td>
+                  Upcasters are a known pattern. What's missing is coverage, not
+                  the model.
+                </td>
               </tr>
             </tbody>
           </table>
 
           <div class="callout callout-amber">
             <strong>The test.</strong>
-            Ask of each candidate: &ldquo;Will this artifact survive a complete rewrite of every
-            storage backend and transport in the repo?&rdquo; Only the law suite passes.
+            Ask of each candidate: &ldquo;Will this artifact survive a complete
+            rewrite of every storage backend and transport in the repo?&rdquo;
+            Only the law suite passes.
           </div>
         </section>
 
         <section id="answer">
-          <h2><span class="num">02</span>The answer: machine-check the algebra</h2>
+          <h2>
+            <span class="num">02</span>The answer: machine-check the algebra
+          </h2>
           <p>
-            Event sourcing is, at its core, a fold over an ordered log of immutable facts. That
-            structure has <strong>laws</strong> &mdash; algebraic identities that are true today,
-            true in 2046, true regardless of language or backend. A dedicated <code>laws/</code>
-            module asserts these laws against the real code, with property-based testing, so that
-            every future refactor of the store, snapshot, decider, or codec is automatically
-            validated against them.
+            Event sourcing is, at its core, a fold over an ordered log of
+            immutable facts. That structure has <strong>laws</strong> &mdash;
+            algebraic identities that are true today, true in 2046, true
+            regardless of language or backend. A dedicated <code>laws/</code>
+            module asserts these laws against the real code, with property-based
+            testing, so that every future refactor of the store, snapshot,
+            decider, or codec is automatically validated against them.
           </p>
           <p>
-            The key insight: this is <strong>additive and permanent</strong>. You only ever add
-            laws, never remove them. Once <code>SnapshotDeltaEqualsReplay</code> is a green test, it
-            guards that invariant for the life of the project. The compound interest over twenty
-            years is enormous &mdash; it converts &ldquo;trust me, I didn't break it&rdquo; into
-            &ldquo;the test runner proved it.&rdquo;
+            The key insight: this is <strong>additive and permanent</strong>.
+            You only ever add laws, never remove them. Once
+            <code>SnapshotDeltaEqualsReplay</code> is a green test, it guards
+            that invariant for the life of the project. The compound interest
+            over twenty years is enormous &mdash; it converts &ldquo;trust me, I
+            didn't break it&rdquo; into &ldquo;the test runner proved it.&rdquo;
           </p>
 
           <div class="card card-solution">
             <h3>Why a separate module</h3>
             <p>
-              The existing property tests live <em>inside</em> modules. But the real laws span
-              modules: snapshot correctness requires <code>snapshot</code> + <code>event</code> +
-              <code>decider</code> + <code>storage</code> together. The roundtrip law requires
-              <code>event</code> + <code>storage</code>. This is precisely why it is missing &mdash;
-              it does not fit the per-module test structure, so it fell through the cracks. A
-              <code>laws/</code> module is the one place that imports the whole stack to prove
-              composition.
+              The existing property tests live <em>inside</em> modules. But the
+              real laws span modules: snapshot correctness requires
+              <code>snapshot</code> + <code>event</code> +
+              <code>decider</code> + <code>storage</code> together. The
+              roundtrip law requires <code>event</code> + <code>storage</code>.
+              This is precisely why it is missing &mdash; it does not fit the
+              per-module test structure, so it fell through the cracks. A
+              <code>laws/</code> module is the one place that imports the whole
+              stack to prove composition.
             </p>
           </div>
         </section>
@@ -1027,55 +1057,64 @@
         <section id="why-hard">
           <h2><span class="num">03</span>Why it is genuinely hard</h2>
           <p>
-            Not hard in typing. Hard in <em>identifying the complete and minimal set of laws</em>
-            &mdash; which requires deciding what is mathematically true versus what is merely this
-            implementation's choice. Miss a law and you have left a hole. Add a law that is not
-            actually universal and you have frozen an implementation detail into a constraint.
+            Not hard in typing. Hard in
+            <em>identifying the complete and minimal set of laws</em>
+            &mdash; which requires deciding what is mathematically true versus
+            what is merely this implementation's choice. Miss a law and you have
+            left a hole. Add a law that is not actually universal and you have
+            frozen an implementation detail into a constraint.
           </p>
           <p>
-            That distinction is the 20-year design work, and the difficulty breaks into five real
-            problems:
+            That distinction is the 20-year design work, and the difficulty
+            breaks into five real problems:
           </p>
 
           <div class="grid-2">
             <div class="card card-warning">
               <h4>1. Which laws are universal?</h4>
               <p>
-                Is &ldquo;fold is a monoid&rdquo; a law of the library, or an implementation choice?
-                Getting this wrong in either direction is costly.
+                Is &ldquo;fold is a monoid&rdquo; a law of the library, or an
+                implementation choice? Getting this wrong in either direction is
+                costly.
               </p>
             </div>
             <div class="card card-warning">
               <h4>2. Cross-module composition</h4>
               <p>
-                The killer laws do not live in one module. Snapshot+delta==replay spans four
-                modules. No per-module test can catch it.
+                The killer laws do not live in one module.
+                Snapshot+delta==replay spans four modules. No per-module test
+                can catch it.
               </p>
             </div>
             <div class="card card-warning">
               <h4>3. Codec roundtrips</h4>
               <p>
-                A snapshot is only correct if <code>encode(decode(s)) == s</code>. The law must
-                exercise the real codec, not an in-memory shortcut.
+                A snapshot is only correct if
+                <code>encode(decode(s)) == s</code>. The law must exercise the
+                real codec, not an in-memory shortcut.
               </p>
             </div>
             <div class="card card-warning">
               <h4>4. Concurrency invariants</h4>
               <p>
-                Optimistic concurrency (&ldquo;save at v succeeds only if at v&rdquo;) is a
-                correctness law, not a performance feature. It must be proven, not assumed.
+                Optimistic concurrency (&ldquo;save at v succeeds only if at
+                v&rdquo;) is a correctness law, not a performance feature. It
+                must be proven, not assumed.
               </p>
             </div>
           </div>
         </section>
 
         <section id="current-state">
-          <h2><span class="num">04</span>Current state: behavior tests, not laws</h2>
+          <h2>
+            <span class="num">04</span>Current state: behavior tests, not laws
+          </h2>
           <p>
             The repo already has property tests across 10+ modules using
-            <code>pgregory.net/rapid</code>. On reading the two algebraic hearts &mdash;
-            <code>decider/property_test.go</code> and <code>event/property_test.go</code> &mdash;
-            they verify good but <strong>local</strong> properties:
+            <code>pgregory.net/rapid</code>. On reading the two algebraic hearts
+            &mdash; <code>decider/property_test.go</code> and
+            <code>event/property_test.go</code> &mdash; they verify good but
+            <strong>local</strong> properties:
           </p>
 
           <div class="strengths">
@@ -1083,40 +1122,52 @@
               <div class="check">+</div>
               <div class="text">
                 <strong>Deterministic apply</strong>
-                <span>Folding the same event sequence twice yields the same state. Solid.</span>
+                <span
+                  >Folding the same event sequence twice yields the same state.
+                  Solid.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Event immutability &amp; isolation</strong>
-                <span>Clone independence, payload/metadata mutation isolation. Thorough.</span>
+                <span
+                  >Clone independence, payload/metadata mutation isolation.
+                  Thorough.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Version monotonicity</strong>
-                <span>NewEvents produces strictly increasing versions. Good.</span>
+                <span
+                  >NewEvents produces strictly increasing versions. Good.</span
+                >
               </div>
             </div>
           </div>
 
           <div class="issue issue-critical">
-            <span class="severity severity-critical">The gap &middot; High impact</span>
+            <span class="severity severity-critical"
+              >The gap &middot; High impact</span
+            >
             <h3>The laws that matter most are not checked anywhere</h3>
             <div class="where">
-              decider/property_test.go uses a local foldAll helper, not the real Repository.Execute
-              path
+              decider/property_test.go uses a local foldAll helper, not the real
+              Repository.Execute path
             </div>
             <p>
-              The decider tests use a <strong>local <code>foldAll</code> helper</strong>, not the
-              real <code>decider.Execute</code> path. The law that matters most &mdash; &ldquo;a
-              snapshot-accelerated load produces the same state as a full replay&rdquo; &mdash; is
-              <strong>not checked anywhere</strong>. That is the single bug class that destroys
-              trust in an event-sourcing system, and it is exactly the kind of subtle invariant that
-              survives every refactor by being machine-checked, not by someone remembering to test
-              it.
+              The decider tests use a
+              <strong>local <code>foldAll</code> helper</strong>, not the real
+              <code>decider.Execute</code> path. The law that matters most
+              &mdash; &ldquo;a snapshot-accelerated load produces the same state
+              as a full replay&rdquo; &mdash; is
+              <strong>not checked anywhere</strong>. That is the single bug
+              class that destroys trust in an event-sourcing system, and it is
+              exactly the kind of subtle invariant that survives every refactor
+              by being machine-checked, not by someone remembering to test it.
             </p>
           </div>
         </section>
@@ -1124,9 +1175,10 @@
         <section id="laws">
           <h2><span class="num">05</span>The law inventory</h2>
           <p>
-            This is the design work &mdash; the complete and minimal set of laws, each with its
-            precise statement, the module boundary it spans, and whether it is checked today.
-            Drafted below; this is the artifact that, if wrong, makes everything built on it wrong.
+            This is the design work &mdash; the complete and minimal set of
+            laws, each with its precise statement, the module boundary it spans,
+            and whether it is checked today. Drafted below; this is the artifact
+            that, if wrong, makes everything built on it wrong.
           </p>
 
           <div class="table-wrap">
@@ -1148,7 +1200,11 @@
                 </tr>
                 <tr>
                   <td><code>Fold associativity</code></td>
-                  <td><code>fold(fold(s&#8320;, A), B) == fold(s&#8320;, A+B)</code></td>
+                  <td>
+                    <code
+                      >fold(fold(s&#8320;, A), B) == fold(s&#8320;, A+B)</code
+                    >
+                  </td>
                   <td>decider</td>
                   <td class="no">No</td>
                 </tr>
@@ -1160,7 +1216,9 @@
                 </tr>
                 <tr>
                   <td><code>Store roundtrip</code></td>
-                  <td><code>Save(e); Load() == e</code> (order, content, version)</td>
+                  <td>
+                    <code>Save(e); Load() == e</code> (order, content, version)
+                  </td>
                   <td>event + storage</td>
                   <td class="no">No</td>
                 </tr>
@@ -1178,7 +1236,10 @@
                 </tr>
                 <tr>
                   <td><code>Decider invariant</code></td>
-                  <td><code>fold(Decide(cmd, s))</code> preserves invariants Decide guarded on</td>
+                  <td>
+                    <code>fold(Decide(cmd, s))</code> preserves invariants
+                    Decide guarded on
+                  </td>
                   <td>decider</td>
                   <td class="no">No</td>
                 </tr>
@@ -1188,19 +1249,21 @@
 
           <div class="callout callout-amber">
             <strong>Zero of seven.</strong>
-            Every law that spans more than one module is unchecked. This is not a failure of
-            diligence &mdash; it is the structural consequence of per-module testing. The laws live
-            in the <em>gaps between modules</em>.
+            Every law that spans more than one module is unchecked. This is not
+            a failure of diligence &mdash; it is the structural consequence of
+            per-module testing. The laws live in the
+            <em>gaps between modules</em>.
           </div>
         </section>
 
         <section id="killer-law">
           <h2><span class="num">06</span>The killer law, as real Go</h2>
           <p>
-            This compiles against the repo's actual API &mdash; <code>snapshot.Snapshot</code> with
-            <code>State []byte</code>, <code>decider.Decider[State]{Initial, Apply}</code>, the real
-            type signatures. It is the law that is not checked anywhere today, and the one that
-            catches the bug class that destroys trust silently.
+            This compiles against the repo's actual API &mdash;
+            <code>snapshot.Snapshot</code> with <code>State []byte</code>,
+            <code>decider.Decider[State]{Initial, Apply}</code>, the real type
+            signatures. It is the law that is not checked anywhere today, and
+            the one that catches the bug class that destroys trust silently.
           </p>
 
           <pre><code><span class="tok-comment">// laws/snapshot_laws_test.go</span>
@@ -1282,29 +1345,36 @@
 
           <h3>The bug this catches &mdash; concretely</h3>
           <p>
-            Picture a refactor in 2031. Someone &ldquo;optimizes&rdquo; the snapshot path to skip
-            folding the event <em>at</em> the snapshot version (off-by-one: folding
-            <code>[k..N)</code> instead of <code>(k..N]</code>). Every per-module test passes:
+            Picture a refactor in 2031. Someone &ldquo;optimizes&rdquo; the
+            snapshot path to skip folding the event <em>at</em> the snapshot
+            version (off-by-one: folding <code>[k..N)</code> instead of
+            <code>(k..N]</code>). Every per-module test passes:
           </p>
 
           <div class="grid-3">
             <div class="card">
-              <code>snapshot/</code> tests pass &mdash; Save/Load roundtrip fine.
+              <code>snapshot/</code> tests pass &mdash; Save/Load roundtrip
+              fine.
             </div>
-            <div class="card"><code>decider/</code> tests pass &mdash; Apply is deterministic.</div>
             <div class="card">
-              <code>event/</code> tests pass &mdash; Load returns the right events.
+              <code>decider/</code> tests pass &mdash; Apply is deterministic.
+            </div>
+            <div class="card">
+              <code>event/</code> tests pass &mdash; Load returns the right
+              events.
             </div>
           </div>
 
           <p>
-            But projections rebuilt from snapshots now drift by exactly one event's effect.
-            Silently. For months. Until a user reports &ldquo;the total is off by one increment on
-            accounts created before the migration.&rdquo;
+            But projections rebuilt from snapshots now drift by exactly one
+            event's effect. Silently. For months. Until a user reports
+            &ldquo;the total is off by one increment on accounts created before
+            the migration.&rdquo;
           </p>
           <div class="callout callout-teal">
             <strong>This law makes that bug a red test in 30 seconds.</strong>
-            Nothing else in the repo does, because nothing else exercises the composition.
+            Nothing else in the repo does, because nothing else exercises the
+            composition.
           </div>
         </section>
 
@@ -1323,26 +1393,28 @@
                 <tr>
                   <td>Where does it live?</td>
                   <td>
-                    A new <code>laws/</code> module &mdash; the only module that imports the full
-                    stack to prove composition.
+                    A new <code>laws/</code> module &mdash; the only module that
+                    imports the full stack to prove composition.
                   </td>
                 </tr>
                 <tr>
                   <td>How big?</td>
-                  <td>~5&ndash;8 laws. Each is ~40 lines. Total under 400 lines.</td>
+                  <td>
+                    ~5&ndash;8 laws. Each is ~40 lines. Total under 400 lines.
+                  </td>
                 </tr>
                 <tr>
                   <td>How is it run?</td>
                   <td>
-                    <code>go test ./laws/... -count=1</code> &mdash; joins the existing suite, runs
-                    in CI.
+                    <code>go test ./laws/... -count=1</code> &mdash; joins the
+                    existing suite, runs in CI.
                   </td>
                 </tr>
                 <tr>
                   <td>When does it pay off?</td>
                   <td>
-                    Every refactor of store / snapshot / decider / codec for the life of the
-                    project.
+                    Every refactor of store / snapshot / decider / codec for the
+                    life of the project.
                   </td>
                 </tr>
                 <tr>
@@ -1358,24 +1430,30 @@
           </div>
 
           <div class="dep-tree">
-            <span class="root">laws/</span> &mdash; imports the whole stack to prove composition
-            &#9492;&#9472; <span class="ok">event/v3</span> (Store, Event, Version, SeekableJournal)
-            &#9492;&#9472; <span class="ok">decider/v3</span> (Decider[State], Repository[State])
-            &#9492;&#9472; <span class="ok">snapshot/v3</span> (Snapshot{State []byte},
-            SnapshotStore) &#9492;&#9472; <span class="ok">storage/memory/v3</span> (real in-memory
-            store, not a fake) &#9492;&#9472; <span class="ok">codec</span> (JSON, CBOR roundtrip
-            law) &#9472; <span class="ok">id/v3</span> (branded ID generation)
+            <span class="root">laws/</span> &mdash; imports the whole stack to
+            prove composition &#9492;&#9472;
+            <span class="ok">event/v3</span> (Store, Event, Version,
+            SeekableJournal) &#9492;&#9472;
+            <span class="ok">decider/v3</span> (Decider[State],
+            Repository[State]) &#9492;&#9472;
+            <span class="ok">snapshot/v3</span> (Snapshot{State []byte},
+            SnapshotStore) &#9492;&#9472;
+            <span class="ok">storage/memory/v3</span> (real in-memory store, not
+            a fake) &#9492;&#9472; <span class="ok">codec</span> (JSON, CBOR
+            roundtrip law) &#9472; <span class="ok">id/v3</span> (branded ID
+            generation)
           </div>
         </section>
 
         <section id="next-step">
           <h2><span class="num">08</span>The concrete next step</h2>
           <p>
-            Not code. The <strong>law inventory design doc</strong>: list every law, its precise
-            mathematical statement, the module boundary it spans, and whether it is checked today.
-            If the <em>set</em> of laws is wrong, every test built on it is theatrical. Writing the
-            Go is mechanical once the laws are pinned down; identifying the complete and minimal set
-            is the irreducible design work.
+            Not code. The <strong>law inventory design doc</strong>: list every
+            law, its precise mathematical statement, the module boundary it
+            spans, and whether it is checked today. If the <em>set</em> of laws
+            is wrong, every test built on it is theatrical. Writing the Go is
+            mechanical once the laws are pinned down; identifying the complete
+            and minimal set is the irreducible design work.
           </p>
 
           <div class="migration-step">
@@ -1383,9 +1461,10 @@
             <div class="migration-content">
               <h4>Draft the law inventory</h4>
               <p>
-                The seven laws above are a first draft. Each needs a formal statement, the exact
-                modules it spans, and a yes/no on whether it is checked today. Challenge every
-                entry: is this universal, or is it this implementation's choice?
+                The seven laws above are a first draft. Each needs a formal
+                statement, the exact modules it spans, and a yes/no on whether
+                it is checked today. Challenge every entry: is this universal,
+                or is it this implementation's choice?
               </p>
             </div>
           </div>
@@ -1394,8 +1473,9 @@
             <div class="migration-content">
               <h4>Create the laws/ module skeleton</h4>
               <p>
-                <code>go.mod</code> importing the full stack, wired into <code>go.work</code>,
-                <code>doc.go</code> explaining its singular purpose. No test logic yet.
+                <code>go.mod</code> importing the full stack, wired into
+                <code>go.work</code>, <code>doc.go</code> explaining its
+                singular purpose. No test logic yet.
               </p>
             </div>
           </div>
@@ -1404,9 +1484,10 @@
             <div class="migration-content">
               <h4>Implement the killer law first</h4>
               <p>
-                <code>TestSnapshotDeltaEqualsReplay</code>. If it passes, the current implementation
-                is sound. If it fails, we have found a latent bug &mdash; and proven the value of
-                the suite before writing the second law.
+                <code>TestSnapshotDeltaEqualsReplay</code>. If it passes, the
+                current implementation is sound. If it fails, we have found a
+                latent bug &mdash; and proven the value of the suite before
+                writing the second law.
               </p>
             </div>
           </div>
@@ -1415,27 +1496,30 @@
             <div class="migration-content">
               <h4>Add laws incrementally, forever</h4>
               <p>
-                Fold identity, fold associativity, store roundtrip, monotonic append, codec
-                roundtrip, decider invariant. Each is ~40 lines. Each guards an invariant for the
-                life of the project.
+                Fold identity, fold associativity, store roundtrip, monotonic
+                append, codec roundtrip, decider invariant. Each is ~40 lines.
+                Each guards an invariant for the life of the project.
               </p>
             </div>
           </div>
 
           <div class="callout callout-teal">
             <strong>The bottom line.</strong>
-            Every other artifact in this repo will be rewritten. The laws will not. They are the
-            constitution &mdash; the one thing worth getting exactly right, because everything else
-            is built on the assumption that they hold.
+            Every other artifact in this repo will be rewritten. The laws will
+            not. They are the constitution &mdash; the one thing worth getting
+            exactly right, because everything else is built on the assumption
+            that they hold.
           </div>
         </section>
 
         <footer class="footer">
           <p>
-            Generated 2026-06-29 &middot; go-cqrs-lite (master, post-v3.3.0) &middot; All API
-            signatures verified against source (<code>snapshot/store.go</code>,
-            <code>decider/decider.go</code>, <code>projectionhost/</code>) &middot; Property-test
-            state verified against <code>decider/property_test.go</code>,
+            Generated 2026-06-29 &middot; go-cqrs-lite (master, post-v3.3.0)
+            &middot; All API signatures verified against source
+            (<code>snapshot/store.go</code>,
+            <code>decider/decider.go</code>, <code>projectionhost/</code>)
+            &middot; Property-test state verified against
+            <code>decider/property_test.go</code>,
             <code>event/property_test.go</code>
           </p>
         </footer>

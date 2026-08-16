@@ -29,7 +29,7 @@
    - `metaengine/bench/...disk_storage_test.go` gci (import grouping).
    - `metaengine/sqliteengine/stream_log_bench_test.go` perfsprint ×2 (`fmt.Errorf` → `errors.New`).
    - `storage/sql/validate_fuzz_test.go` staticcheck QF1001 ×2 (De Morgan; untracked file from the concurrent session).
-   All modules individually vet+lint green afterwards.
+     All modules individually vet+lint green afterwards.
 10. **art-dupl baseline regenerated** 99 → 111 groups — the 9 new clone groups are the committed cross-engine stream-log family (documented intentional similarity / structural shift, per AGENTS contract #14). `nix run .#check-duplication` green standalone (0 new clones).
 
 **Final authoritative scope gate (my module):** cqrs-lint build ✅ + vet ✅ + tests 17/17 ✅ + golangci-lint 0 issues ✅.

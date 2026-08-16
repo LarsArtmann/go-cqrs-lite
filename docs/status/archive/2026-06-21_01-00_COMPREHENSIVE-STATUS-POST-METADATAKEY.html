@@ -38,14 +38,14 @@
 
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
 
       * {
@@ -259,15 +259,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
 
       .issue {
@@ -636,9 +648,11 @@
           <div class="hero-badge">FULL COMPREHENSIVE STATUS</div>
           <h1>go-cqrs-lite — Post-MetadataKey, Post-v3-Breaking-Changes</h1>
           <p class="hero-subtitle">
-            38 modules, 414 production files, 416 test files. All 10 v3 breaking changes shipped.
-            Uncommitted work: <code>MetadataKey</code> localization + <code>Merge</code> methods
-            across event/command/query. Two test failures found (one known, one self-inflicted).
+            38 modules, 414 production files, 416 test files. All 10 v3 breaking
+            changes shipped. Uncommitted work:
+            <code>MetadataKey</code> localization + <code>Merge</code> methods
+            across event/command/query. Two test failures found (one known, one
+            self-inflicted).
           </p>
         </div>
 
@@ -672,19 +686,22 @@
         </div>
 
         <p>
-          The library is at a clean inflection point. Every half-applied ADR from the brutal
-          self-review (2026-06-20) has been fully applied: <code>readmodel/</code> deleted
-          (ADR-0032), <code>projection/</code> deleted (ADR-0030), metadata aliases killed
-          (ADR-0031), <code>io.Closer</code> removed (ADR-0010), <code>event.Event</code> made
-          concrete, <code>Decider.Fold</code> renamed to <code>Apply</code>. The v3 major release is
-          feature-complete.
+          The library is at a clean inflection point. Every half-applied ADR
+          from the brutal self-review (2026-06-20) has been fully applied:
+          <code>readmodel/</code> deleted (ADR-0032),
+          <code>projection/</code> deleted (ADR-0030), metadata aliases killed
+          (ADR-0031), <code>io.Closer</code> removed (ADR-0010),
+          <code>event.Event</code> made concrete,
+          <code>Decider.Fold</code> renamed to <code>Apply</code>. The v3 major
+          release is feature-complete.
         </p>
         <p>
           The current uncommitted work (<code>MetadataKey</code> localization +
-          <code>Merge</code> methods) finishes the metadata-split job: consumers of
-          <code>command/</code> and <code>query/</code> no longer need to import
-          <code>event/</code> for a domain-neutral string type. The work also fixed a pre-existing
-          map-aliasing bug in <code>event.Metadata.Merge</code>.
+          <code>Merge</code> methods) finishes the metadata-split job: consumers
+          of <code>command/</code> and <code>query/</code> no longer need to
+          import <code>event/</code> for a domain-neutral string type. The work
+          also fixed a pre-existing map-aliasing bug in
+          <code>event.Metadata.Merge</code>.
         </p>
 
         <!-- ════════ A: FULLY DONE ════════ -->
@@ -715,14 +732,17 @@
             </tr>
             <tr>
               <td>3</td>
-              <td>Delete <code>readmodel/</code> (merged into <code>kv/</code>)</td>
+              <td>
+                Delete <code>readmodel/</code> (merged into <code>kv/</code>)
+              </td>
               <td>0032</td>
               <td><span class="badge badge-fixed">Done</span></td>
             </tr>
             <tr>
               <td>4</td>
               <td>
-                Delete <code>projection/</code> (replaced by stack.Materialize + CatchUpSubscriber)
+                Delete <code>projection/</code> (replaced by stack.Materialize +
+                CatchUpSubscriber)
               </td>
               <td>0030</td>
               <td><span class="badge badge-fixed">Done</span></td>
@@ -730,7 +750,8 @@
             <tr>
               <td>5</td>
               <td>
-                <code>query.Handler</code>: <code>any</code> → generic <code>TypedHandler</code>
+                <code>query.Handler</code>: <code>any</code> → generic
+                <code>TypedHandler</code>
               </td>
               <td>0008</td>
               <td><span class="badge badge-fixed">Done</span></td>
@@ -749,7 +770,9 @@
             </tr>
             <tr>
               <td>8</td>
-              <td>Break <code>command/query.Metadata = event.Metadata</code> alias</td>
+              <td>
+                Break <code>command/query.Metadata = event.Metadata</code> alias
+              </td>
               <td>0031</td>
               <td><span class="badge badge-fixed">Done</span></td>
             </tr>
@@ -761,7 +784,11 @@
             </tr>
             <tr>
               <td>10</td>
-              <td>Make <code>event.Event</code> concrete (<code>= *ImmutableEvent</code>)</td>
+              <td>
+                Make <code>event.Event</code> concrete (<code
+                  >= *ImmutableEvent</code
+                >)
+              </td>
               <td>—</td>
               <td><span class="badge badge-fixed">Done</span></td>
             </tr>
@@ -775,8 +802,8 @@
             <div class="text">
               <strong>Event Sourcing core</strong>
               <span
-                >Branded IDs, tombstone soft-delete, time-travel queries, stream loading, error
-                taxonomy (5-family), 19 functional options.</span
+                >Branded IDs, tombstone soft-delete, time-travel queries, stream
+                loading, error taxonomy (5-family), 19 functional options.</span
               >
             </div>
           </div>
@@ -785,8 +812,9 @@
             <div class="text">
               <strong>CQRS dispatch</strong>
               <span
-                >Command/Query dispatchers with middleware chains, TypedHandler generics, persisted
-                command/query audit logs, SeekableJournal replay.</span
+                >Command/Query dispatchers with middleware chains, TypedHandler
+                generics, persisted command/query audit logs, SeekableJournal
+                replay.</span
               >
             </div>
           </div>
@@ -795,9 +823,9 @@
             <div class="text">
               <strong>Storage backends</strong>
               <span
-                >SQL (Postgres/SQLite/Turso), Pebble (single-DB facade), Memory. All with
-                event/snapshot/checkpoint/command/query stores. SQL backend facade + multi-DB SQLite
-                preset.</span
+                >SQL (Postgres/SQLite/Turso), Pebble (single-DB facade), Memory.
+                All with event/snapshot/checkpoint/command/query stores. SQL
+                backend facade + multi-DB SQLite preset.</span
               >
             </div>
           </div>
@@ -806,8 +834,9 @@
             <div class="text">
               <strong>Security</strong>
               <span
-                >Event signing (HMAC-SHA256, Ed25519, multisig), encryption (XChaCha20-Poly1305,
-                AES-256-GCM), HKDF key derivation for multi-tenant.</span
+                >Event signing (HMAC-SHA256, Ed25519, multisig), encryption
+                (XChaCha20-Poly1305, AES-256-GCM), HKDF key derivation for
+                multi-tenant.</span
               >
             </div>
           </div>
@@ -816,8 +845,9 @@
             <div class="text">
               <strong>Observability</strong>
               <span
-                >OTel tracing + metrics (opt-in), Prometheus exporter, CBOR compact codec (~35%
-                smaller), schema evolution (upcaster + validator).</span
+                >OTel tracing + metrics (opt-in), Prometheus exporter, CBOR
+                compact codec (~35% smaller), schema evolution (upcaster +
+                validator).</span
               >
             </div>
           </div>
@@ -826,8 +856,9 @@
             <div class="text">
               <strong>Composition layer</strong>
               <span
-                >Bundle with ISP-honest fields + 4 presets (memory, sqlite, pebble, postgres).
-                Deployer-first: consumer picks storage, stack wires the rest.</span
+                >Bundle with ISP-honest fields + 4 presets (memory, sqlite,
+                pebble, postgres). Deployer-first: consumer picks storage, stack
+                wires the rest.</span
               >
             </div>
           </div>
@@ -836,8 +867,9 @@
             <div class="text">
               <strong>Watermill integration</strong>
               <span
-                >EventBus (GoChannel default, Kafka/NATS backends), CatchUpSubscriber
-                (replay+live+checkpoint), EventPublisher (cqrs→Watermill).</span
+                >EventBus (GoChannel default, Kafka/NATS backends),
+                CatchUpSubscriber (replay+live+checkpoint), EventPublisher
+                (cqrs→Watermill).</span
               >
             </div>
           </div>
@@ -846,8 +878,8 @@
             <div class="text">
               <strong>Tooling</strong>
               <span
-                >cqrs-gen (typed handler generation), api-stability checker, 7/7 core modules
-                WASM-compile.</span
+                >cqrs-gen (typed handler generation), api-stability checker, 7/7
+                core modules WASM-compile.</span
               >
             </div>
           </div>
@@ -857,19 +889,23 @@
         <div class="card card-solution">
           <h4>MetadataKey localization + Merge methods</h4>
           <p>
-            <code>command.Metadata.Custom</code> and <code>query.Metadata.Custom</code> were typed
-            <code>map[event.MetadataKey]string</code> — forcing consumers to import
+            <code>command.Metadata.Custom</code> and
+            <code>query.Metadata.Custom</code> were typed
+            <code>map[event.MetadataKey]string</code> — forcing consumers to
+            import
             <code>event/</code>
             for a domain-neutral string type. Each module now defines its own
             <code>type MetadataKey string</code>. Both modules also gained a
-            <code>Merge</code> method (matching <code>event.Metadata.Merge</code>). All 18 dependent
-            test packages green.
+            <code>Merge</code> method (matching
+            <code>event.Metadata.Merge</code>). All 18 dependent test packages
+            green.
           </p>
           <p>
-            <strong>Bug fixed in passing:</strong> <code>event.Metadata.Merge</code> had a
-            map-aliasing bug — <code>result := m</code> copies the map header, so
-            <code>maps.Copy(result.Custom, other.Custom)</code> mutated the caller's map. Now
-            allocates a fresh map. Regression test added.
+            <strong>Bug fixed in passing:</strong>
+            <code>event.Metadata.Merge</code> had a map-aliasing bug —
+            <code>result := m</code> copies the map header, so
+            <code>maps.Copy(result.Custom, other.Custom)</code> mutated the
+            caller's map. Now allocates a fresh map. Regression test added.
           </p>
         </div>
 
@@ -881,46 +917,54 @@
           <h3>event opts shallow-copy on Clone</h3>
           <div class="where">event/event.go · the only remaining v3 item</div>
           <p>
-            <code>event.Event</code> is now a concrete type alias (<code>= *ImmutableEvent</code>),
-            but <code>Clone()</code> still shallow-copies the internal
+            <code>event.Event</code> is now a concrete type alias (<code
+              >= *ImmutableEvent</code
+            >), but <code>Clone()</code> still shallow-copies the internal
             <code>*eventOptions</code> pointer. Every event carries
             <code>opts *eventOptions</code> for its lifetime. This is tracked in
-            <code>TODO_LIST.md</code> as the single remaining <code>[v3]</code> item. Low customer
-            impact (opts are internal), but it's the last loose end on the "make Event truly
-            immutable" promise.
+            <code>TODO_LIST.md</code> as the single remaining
+            <code>[v3]</code> item. Low customer impact (opts are internal), but
+            it's the last loose end on the "make Event truly immutable" promise.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Deep-copy <code>*eventOptions</code> in <code>Clone()</code>, or drop
-            <code>opts</code> from the event after construction (it's only needed during
-            <code>NewEvent</code>).
+            Deep-copy <code>*eventOptions</code> in <code>Clone()</code>, or
+            drop <code>opts</code> from the event after construction (it's only
+            needed during <code>NewEvent</code>).
           </div>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Partial</span>
           <h3>API stability golden file — out of sync (self-inflicted)</h3>
-          <div class="where">cmd/api-stability/main_test.go:26 · docs/api_surface.txt</div>
+          <div class="where">
+            cmd/api-stability/main_test.go:26 · docs/api_surface.txt
+          </div>
           <p>
-            The <code>MetadataKey</code> + <code>Merge</code> work added 4 new exports
-            (<code>command.Merge</code>, <code>command.MetadataKey</code>, <code>query.Merge</code>,
-            <code>query.MetadataKey</code>). The API surface golden file expects 1593 exports;
-            actual is now 1597. <strong>This is expected and correct</strong> — the golden file just
-            needs regeneration via <code>go test -update</code>. Not a regression; a bookkeeping
-            step.
+            The <code>MetadataKey</code> + <code>Merge</code> work added 4 new
+            exports (<code>command.Merge</code>,
+            <code>command.MetadataKey</code>, <code>query.Merge</code>,
+            <code>query.MetadataKey</code>). The API surface golden file expects
+            1593 exports; actual is now 1597.
+            <strong>This is expected and correct</strong> — the golden file just
+            needs regeneration via <code>go test -update</code>. Not a
+            regression; a bookkeeping step.
           </p>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Partial</span>
           <h3>Deployer-first completion plan — Phase 0–5 done, 6–7 pending</h3>
-          <div class="where">docs/planning/2026-06-20_17-03_DEPLOYER-FIRST-COMPLETION-PLAN.md</div>
+          <div class="where">
+            docs/planning/2026-06-20_17-03_DEPLOYER-FIRST-COMPLETION-PLAN.md
+          </div>
           <p>
-            The 27-task deployer-first plan: Phases 0–5 (critical bugs, readmodel kill, dedup,
-            island wiring, deployer example, projection dissolution) are complete. Phase 6 (kill
-            metadata aliases — T22–T24) is now complete via the alias-break commit + this session's
-            <code>MetadataKey</code> work. Phase 7 (docs cleanup) is partially done. The plan is
-            ~90% executed.
+            The 27-task deployer-first plan: Phases 0–5 (critical bugs,
+            readmodel kill, dedup, island wiring, deployer example, projection
+            dissolution) are complete. Phase 6 (kill metadata aliases — T22–T24)
+            is now complete via the alias-break commit + this session's
+            <code>MetadataKey</code> work. Phase 7 (docs cleanup) is partially
+            done. The plan is ~90% executed.
           </p>
         </div>
 
@@ -932,31 +976,34 @@
             <h4>Transport adapters</h4>
             <p>
               ADR-0025 accepted but zero code: <code>transport/grpc/</code>,
-              <code>transport/nats/</code>, <code>transport/redis/</code>. SSE was moved to
-              <code>transport/http/</code>; the others await a real consumer. The brutal self-review
-              explicitly said: <em>do NOT start these without a consumer asking.</em>
+              <code>transport/nats/</code>, <code>transport/redis/</code>. SSE
+              was moved to <code>transport/http/</code>; the others await a real
+              consumer. The brutal self-review explicitly said:
+              <em>do NOT start these without a consumer asking.</em>
             </p>
           </div>
           <div class="card card-warning">
             <h4>Go experiment stabilization</h4>
             <p>
               <code>codec/jsonv2_experiment.go</code> and
-              <code>event/arena_experiment.go</code> exist behind build tags. Both blocked on Go
-              stdlib stabilizing the JSON v2 and arena APIs. No deadline.
+              <code>event/arena_experiment.go</code> exist behind build tags.
+              Both blocked on Go stdlib stabilizing the JSON v2 and arena APIs.
+              No deadline.
             </p>
           </div>
           <div class="card card-warning">
             <h4>Read-model secondary indexes</h4>
             <p>
-              Today <code>kv.TypedStore</code> scans filter in memory. Ranged scans / secondary
-              indexes for large read-model sets are a ROADMAP item. No design yet.
+              Today <code>kv.TypedStore</code> scans filter in memory. Ranged
+              scans / secondary indexes for large read-model sets are a ROADMAP
+              item. No design yet.
             </p>
           </div>
           <div class="card card-warning">
             <h4>Stack preset operability</h4>
             <p>
-              Pebble Checkpoint (backup) and graceful shutdown are not yet surfaced from stack
-              presets. Low effort, medium value.
+              Pebble Checkpoint (backup) and graceful shutdown are not yet
+              surfaced from stack presets. Low effort, medium value.
             </p>
           </div>
         </div>
@@ -968,43 +1015,52 @@
           <span class="severity severity-critical">Failing Test</span>
           <h3>CBOR canonical encoding is not a fixed point (NaN map keys)</h3>
           <div class="where">
-            codec/codec_fuzz_test.go:336 · FuzzCBORCodec_CanonicalFidelity · seed 5f72aef8648194a5
+            codec/codec_fuzz_test.go:336 · FuzzCBORCodec_CanonicalFidelity ·
+            seed 5f72aef8648194a5
           </div>
           <p>
-            The fuzz test <code>FuzzCBORCodec_CanonicalFidelity</code> fails on a stored seed that
-            contains a CBOR map with a NaN half-float key (<code>\xf9\x7f</code>). Canonical
-            re-encoding reorders two NaN keys differently, so
+            The fuzz test <code>FuzzCBORCodec_CanonicalFidelity</code> fails on
+            a stored seed that contains a CBOR map with a NaN half-float key
+            (<code>\xf9\x7f</code>). Canonical re-encoding reorders two NaN keys
+            differently, so
             <code>encode(decode(x)) != encode(decode(encode(decode(x))))</code>.
-            <strong>This is a known issue</strong> — flagged as priority #7 in the brutal
-            self-review (2026-06-20). It passes in isolation (<code
+            <strong>This is a known issue</strong> — flagged as priority #7 in
+            the brutal self-review (2026-06-20). It passes in isolation (<code
               >cd codec && go test -run FuzzCBOR</code
-            >) but fails in the full workspace run, suggesting a shared-state / initialization-order
-            component.
+            >) but fails in the full workspace run, suggesting a shared-state /
+            initialization-order component.
           </p>
           <div class="callout callout-warning">
             <strong>Impact</strong>
-            Canonical CBOR is used by signing (hash stability) and pebble storage. In practice, no
-            consumer puts NaN floats in map keys, but the canonical-form contract is violated. The
-            fuzz seed is committed to <code>codec/testdata/fuzz/</code>, so this will fail CI until
+            Canonical CBOR is used by signing (hash stability) and pebble
+            storage. In practice, no consumer puts NaN floats in map keys, but
+            the canonical-form contract is violated. The fuzz seed is committed
+            to <code>codec/testdata/fuzz/</code>, so this will fail CI until
             fixed.
           </div>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            The canonical encoder must produce a deterministic order even for keys that compare
-            equal (NaN). Either reject NaN keys at encode time, or use byte-level tiebreaking after
-            canonical sort.
+            The canonical encoder must produce a deterministic order even for
+            keys that compare equal (NaN). Either reject NaN keys at encode
+            time, or use byte-level tiebreaking after canonical sort.
           </div>
         </div>
 
         <div class="issue issue-critical">
           <span class="severity severity-critical">Self-Inflicted</span>
           <h3>API surface golden file stale (regenerate needed)</h3>
-          <div class="where">cmd/api-stability/main_test.go:26 · docs/api_surface.txt</div>
+          <div class="where">
+            cmd/api-stability/main_test.go:26 · docs/api_surface.txt
+          </div>
           <p>
-            My <code>MetadataKey</code> + <code>Merge</code> additions added 4 exports. The golden
-            file was not regenerated. <code>TestAPISurfaceCheck</code> fails: 1593 expected, 1597
-            actual. Trivial fix — run with <code>-update</code> flag.
-            <strong>Not a real problem, just bookkeeping I must do before committing.</strong>
+            My <code>MetadataKey</code> + <code>Merge</code> additions added 4
+            exports. The golden file was not regenerated.
+            <code>TestAPISurfaceCheck</code> fails: 1593 expected, 1597 actual.
+            Trivial fix — run with <code>-update</code> flag.
+            <strong
+              >Not a real problem, just bookkeeping I must do before
+              committing.</strong
+            >
           </p>
         </div>
 
@@ -1015,57 +1071,65 @@
           <div class="card card-problem">
             <h4>TransactionID ghost type</h4>
             <p>
-              <code>id/transaction_id.go</code> exists but is unwired — no field on
-              <code>event.Metadata</code>, no Option, no propagation. A type that does nothing is
-              worse than no type. Either wire it or delete it. (TODO_LIST marks it open.)
+              <code>id/transaction_id.go</code> exists but is unwired — no field
+              on <code>event.Metadata</code>, no Option, no propagation. A type
+              that does nothing is worse than no type. Either wire it or delete
+              it. (TODO_LIST marks it open.)
             </p>
           </div>
           <div class="card card-problem">
             <h4>Version.Add underflow</h4>
             <p>
-              <code>event.Version.Add(n int)</code> can underflow if <code>n</code> is negative.
-              Domain invariant: versions are never negative. Should be <code>Add(n uint64)</code> or
-              guarded. No property test exists for Add/Sub invariants.
+              <code>event.Version.Add(n int)</code> can underflow if
+              <code>n</code> is negative. Domain invariant: versions are never
+              negative. Should be <code>Add(n uint64)</code> or guarded. No
+              property test exists for Add/Sub invariants.
             </p>
           </div>
           <div class="card card-warning">
             <h4>PgxListener race</h4>
             <p>
-              <code>storage.PostgresBus</code> PgxListener <code>l.conn</code> is not guarded
-              against concurrent <code>Close()</code> + <code>receiveLoop</code>. Known race; needs
-              <code>sync.Mutex</code> or <code>atomic.Pointer</code> + a <code>-race</code> test
-              against real Postgres.
+              <code>storage.PostgresBus</code> PgxListener
+              <code>l.conn</code> is not guarded against concurrent
+              <code>Close()</code> + <code>receiveLoop</code>. Known race; needs
+              <code>sync.Mutex</code> or <code>atomic.Pointer</code> + a
+              <code>-race</code> test against real Postgres.
             </p>
           </div>
           <div class="card card-warning">
             <h4>storage/ coverage 79.3%</h4>
             <p>
-              Lowest coverage among core modules. The SQL store happy paths are tested; error
-              branches (duplicate-key, tx failures, scan corruption) are lighter. Brings down the
-              aggregate.
+              Lowest coverage among core modules. The SQL store happy paths are
+              tested; error branches (duplicate-key, tx failures, scan
+              corruption) are lighter. Brings down the aggregate.
             </p>
           </div>
           <div class="card card-warning">
             <h4>CBOR fuzz flakiness</h4>
             <p>
-              The canonical-fuzz failure is order-dependent (passes isolated, fails in full suite).
-              The encoder mode initialization may not be goroutine-safe, or a prior test mutates
-              shared state. Worth investigating independent of the NaN fix.
+              The canonical-fuzz failure is order-dependent (passes isolated,
+              fails in full suite). The encoder mode initialization may not be
+              goroutine-safe, or a prior test mutates shared state. Worth
+              investigating independent of the NaN fix.
             </p>
           </div>
           <div class="card card-warning">
             <h4>Rapid underuse</h4>
             <p>
-              <code>pgregory.net/rapid</code> is a dependency but barely used. Perfect for Version
-              arithmetic, Metadata round-trips, ULID ordering, CBOR canonical encoding. Should be
-              the default for pure-function properties.
+              <code>pgregory.net/rapid</code> is a dependency but barely used.
+              Perfect for Version arithmetic, Metadata round-trips, ULID
+              ordering, CBOR canonical encoding. Should be the default for
+              pure-function properties.
             </p>
           </div>
         </div>
 
         <!-- ════════ F: TOP 25 ════════ -->
         <h2 id="top25"><span class="num">F</span>Top 25 — What to do next</h2>
-        <p>Sorted by impact-to-effort ratio. The first 5 are the unfuck-the-build set.</p>
+        <p>
+          Sorted by impact-to-effort ratio. The first 5 are the unfuck-the-build
+          set.
+        </p>
 
         <table>
           <thead>
@@ -1080,7 +1144,9 @@
           <tbody>
             <tr>
               <td>1</td>
-              <td>Regenerate <code>docs/api_surface.txt</code> (golden file)</td>
+              <td>
+                Regenerate <code>docs/api_surface.txt</code> (golden file)
+              </td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>2 min</td>
               <td>Unblocks CI; my exports need recording</td>
@@ -1094,14 +1160,20 @@
             </tr>
             <tr>
               <td>3</td>
-              <td>Fix CBOR canonical NaN fixed-point (reject NaN keys or byte-tiebreak)</td>
+              <td>
+                Fix CBOR canonical NaN fixed-point (reject NaN keys or
+                byte-tiebreak)
+              </td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>30 min</td>
               <td>Failing fuzz seed in CI; canonical contract violated</td>
             </tr>
             <tr>
               <td>4</td>
-              <td>Investigate CBOR fuzz order-dependence (passes isolated, fails in suite)</td>
+              <td>
+                Investigate CBOR fuzz order-dependence (passes isolated, fails
+                in suite)
+              </td>
               <td><span class="badge badge-high">High</span></td>
               <td>45 min</td>
               <td>Hidden shared state or init race</td>
@@ -1115,35 +1187,48 @@
             </tr>
             <tr>
               <td>6</td>
-              <td>Fix <code>Version.Add</code> underflow + add rapid property test</td>
+              <td>
+                Fix <code>Version.Add</code> underflow + add rapid property test
+              </td>
               <td><span class="badge badge-high">High</span></td>
               <td>20 min</td>
               <td>Domain invariant: no negative versions</td>
             </tr>
             <tr>
               <td>7</td>
-              <td>Deep-copy <code>*eventOptions</code> on Clone (last v3 item)</td>
+              <td>
+                Deep-copy <code>*eventOptions</code> on Clone (last v3 item)
+              </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>30 min</td>
               <td>Closes the "truly immutable" promise</td>
             </tr>
             <tr>
               <td>8</td>
-              <td>Guard PgxListener <code>l.conn</code> + add <code>-race</code> test</td>
+              <td>
+                Guard PgxListener <code>l.conn</code> + add
+                <code>-race</code> test
+              </td>
               <td><span class="badge badge-high">High</span></td>
               <td>45 min</td>
               <td>Known concurrent-Close race</td>
             </tr>
             <tr>
               <td>9</td>
-              <td>Raise storage/ coverage (error branches: dup-key, tx fail, scan corruption)</td>
+              <td>
+                Raise storage/ coverage (error branches: dup-key, tx fail, scan
+                corruption)
+              </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>90 min</td>
               <td>79.3% is the low outlier</td>
             </tr>
             <tr>
               <td>10</td>
-              <td>Add rapid property tests for Metadata round-trips (all 3 modules)</td>
+              <td>
+                Add rapid property tests for Metadata round-trips (all 3
+                modules)
+              </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>40 min</td>
               <td>The Merge bug I found proves this is needed</td>
@@ -1164,14 +1249,19 @@
             </tr>
             <tr>
               <td>13</td>
-              <td>Update ADR-0031 status → Implemented (alias now fully killed)</td>
+              <td>
+                Update ADR-0031 status → Implemented (alias now fully killed)
+              </td>
               <td><span class="badge badge-low">Low</span></td>
               <td>5 min</td>
               <td>Decision log accuracy</td>
             </tr>
             <tr>
               <td>14</td>
-              <td>Update FEATURES.md with <code>MetadataKey</code> + <code>Merge</code></td>
+              <td>
+                Update FEATURES.md with <code>MetadataKey</code> +
+                <code>Merge</code>
+              </td>
               <td><span class="badge badge-low">Low</span></td>
               <td>10 min</td>
               <td>Consumer-facing accuracy</td>
@@ -1185,21 +1275,28 @@
             </tr>
             <tr>
               <td>16</td>
-              <td>Extend BDD suites to stack/ (catch-up/replay ordering flows)</td>
+              <td>
+                Extend BDD suites to stack/ (catch-up/replay ordering flows)
+              </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>120 min</td>
               <td>Subtle ordering bugs live here</td>
             </tr>
             <tr>
               <td>17</td>
-              <td>Document the deployer-first example as the canonical onboarding</td>
+              <td>
+                Document the deployer-first example as the canonical onboarding
+              </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>40 min</td>
               <td>README still shows older patterns</td>
             </tr>
             <tr>
               <td>18</td>
-              <td>Add <code>cqrs-gen</code> support for <code>stack.Materialize</code> emission</td>
+              <td>
+                Add <code>cqrs-gen</code> support for
+                <code>stack.Materialize</code> emission
+              </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>60 min</td>
               <td>Codegen still emits old <code>projection.On</code></td>
@@ -1207,7 +1304,8 @@
             <tr>
               <td>19</td>
               <td>
-                Audit <code>event.Metadata.Custom</code> for remaining stringly-typed concepts
+                Audit <code>event.Metadata.Custom</code> for remaining
+                stringly-typed concepts
               </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>45 min</td>
@@ -1236,21 +1334,29 @@
             </tr>
             <tr>
               <td>23</td>
-              <td>Add a "consumer trust" smoke test: import every module, construct each preset</td>
+              <td>
+                Add a "consumer trust" smoke test: import every module,
+                construct each preset
+              </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>60 min</td>
               <td>Library quality gate</td>
             </tr>
             <tr>
               <td>24</td>
-              <td>Profile the hot path (NewEvent → Save → Load) under <code>-race</code></td>
+              <td>
+                Profile the hot path (NewEvent → Save → Load) under
+                <code>-race</code>
+              </td>
               <td><span class="badge badge-low">Low</span></td>
               <td>45 min</td>
               <td>No baseline since the concrete-type change</td>
             </tr>
             <tr>
               <td>25</td>
-              <td>Do NOT start transport/grpc, nats, redis — wait for a consumer</td>
+              <td>
+                Do NOT start transport/grpc, nats, redis — wait for a consumer
+              </td>
               <td><span class="badge badge-low">Low</span></td>
               <td>0 min</td>
               <td>Prevents scope creep (brutal review #8)</td>
@@ -1259,35 +1365,43 @@
         </table>
 
         <!-- ════════ G: TOP QUESTION ════════ -->
-        <h2 id="question"><span class="num">G</span>Top Question I Cannot Answer</h2>
+        <h2 id="question">
+          <span class="num">G</span>Top Question I Cannot Answer
+        </h2>
         <div class="card card-problem">
-          <h4>Is it time to cut the v3.0.0 release, or hold for real consumers?</h4>
+          <h4>
+            Is it time to cut the v3.0.0 release, or hold for real consumers?
+          </h4>
           <p>
-            All 10 v3 breaking changes are shipped and tested. The only remaining
-            <code>[v3]</code> item is the <code>eventOptions</code> deep-copy — a minor internal
-            cleanup with zero consumer API impact. The library is, by every objective measure,
-            feature-complete for v3.
+            All 10 v3 breaking changes are shipped and tested. The only
+            remaining
+            <code>[v3]</code> item is the <code>eventOptions</code> deep-copy —
+            a minor internal cleanup with zero consumer API impact. The library
+            is, by every objective measure, feature-complete for v3.
           </p>
           <p>
-            <strong>What I cannot figure out:</strong> whether to (a) tag v3.0.0 now and let real
-            consumers surface the rough edges, or (b) hold and do another polish pass (tasks #3–#10
-            above) first. The brutal self-review's position was "STOP, do not start Tier 3/4, wait
-            for a consumer" — but that was about <em>new features</em>, not about
-            <em>shipping the release</em>. There is zero internal consumer signal (this is a
-            library; examples are demos, not deployments).
+            <strong>What I cannot figure out:</strong> whether to (a) tag v3.0.0
+            now and let real consumers surface the rough edges, or (b) hold and
+            do another polish pass (tasks #3–#10 above) first. The brutal
+            self-review's position was "STOP, do not start Tier 3/4, wait for a
+            consumer" — but that was about <em>new features</em>, not about
+            <em>shipping the release</em>. There is zero internal consumer
+            signal (this is a library; examples are demos, not deployments).
           </p>
           <p>
-            Cutting v3 commits the breaking changes publicly — once tagged, the aliases are gone
-            forever and any silent consumer breaks. Holding costs nothing except momentum. I lean
-            toward shipping (the breakage is well-documented in <code>V3_MIGRATION.md</code>, and
-            the half-applied ADR limbo was worse than a clean break), but this is a one-way door
-            that only you can open.
+            Cutting v3 commits the breaking changes publicly — once tagged, the
+            aliases are gone forever and any silent consumer breaks. Holding
+            costs nothing except momentum. I lean toward shipping (the breakage
+            is well-documented in <code>V3_MIGRATION.md</code>, and the
+            half-applied ADR limbo was worse than a clean break), but this is a
+            one-way door that only you can open.
           </p>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-21 &middot; Verified against working tree (6 uncommitted files,
-          post-metadata-key work) &middot; All coverage figures from
+          Generated 2026-06-21 &middot; Verified against working tree (6
+          uncommitted files, post-metadata-key work) &middot; All coverage
+          figures from
           <code>go test -cover</code> per-module
         </footer>
       </main>
@@ -1315,7 +1429,9 @@
                 links.forEach(function (link) {
                   link.classList.remove("active");
                 });
-                var active = nav.querySelector('a[href="#' + entry.target.id + '"]');
+                var active = nav.querySelector(
+                  'a[href="#' + entry.target.id + '"]',
+                );
                 if (active) active.classList.add("active");
               }
             });

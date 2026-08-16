@@ -61,8 +61,16 @@
         position: fixed;
         inset: 0;
         background:
-          radial-gradient(ellipse 80% 60% at 20% 10%, rgba(6, 214, 160, 0.04), transparent),
-          radial-gradient(ellipse 60% 50% at 80% 80%, rgba(59, 130, 246, 0.04), transparent);
+          radial-gradient(
+            ellipse 80% 60% at 20% 10%,
+            rgba(6, 214, 160, 0.04),
+            transparent
+          ),
+          radial-gradient(
+            ellipse 60% 50% at 80% 80%,
+            rgba(59, 130, 246, 0.04),
+            transparent
+          );
         pointer-events: none;
         z-index: 0;
       }
@@ -736,7 +744,12 @@
         left: 0;
         right: 0;
         height: 3px;
-        background: linear-gradient(90deg, var(--accent), var(--blue), var(--amber));
+        background: linear-gradient(
+          90deg,
+          var(--accent),
+          var(--blue),
+          var(--amber)
+        );
       }
       .diagram-box pre {
         font-family: var(--mono);
@@ -872,23 +885,29 @@
       <section class="hero">
         <h1>Database Architecture<br />Taxonomy</h1>
         <p class="meta">
-          Date: <span>2026-05-29</span> &middot; Scope: All known database architectures from
-          interface and storage perspectives
+          Date: <span>2026-05-29</span> &middot; Scope: All known database
+          architectures from interface and storage perspectives
         </p>
         <p class="subtitle">
-          Two axes of classification. A single interface model can be backed by many storage
-          engines. A single storage engine can power many interface models.
+          Two axes of classification. A single interface model can be backed by
+          many storage engines. A single storage engine can power many interface
+          models.
         </p>
       </section>
 
       <div class="toc-note">
         <div class="axis">
           <h4>Axis 1: Interface Model</h4>
-          <p>What operations the database exposes to consumers — the API shape.</p>
+          <p>
+            What operations the database exposes to consumers — the API shape.
+          </p>
         </div>
         <div class="axis">
           <h4>Axis 2: Storage Engine</h4>
-          <p>How data is physically laid out on disk or in memory — the data structure.</p>
+          <p>
+            How data is physically laid out on disk or in memory — the data
+            structure.
+          </p>
         </div>
       </div>
 
@@ -911,7 +930,8 @@
               <pre>
 Get(key) → value
 Put(key, value)
-Delete(key)</pre>
+Delete(key)</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -923,7 +943,9 @@ Delete(key)</pre>
                 </tr>
                 <tr>
                   <td>Query model</td>
-                  <td>Exact key match only. No range, no filtering, no joins</td>
+                  <td>
+                    Exact key match only. No range, no filtering, no joins
+                  </td>
                 </tr>
                 <tr>
                   <td>Ordering</td>
@@ -944,16 +966,16 @@ Delete(key)</pre>
               </table>
               <ul class="variants">
                 <li>
-                  <strong>Hash KV</strong> — O(1) point lookup, no range scan (Redis hash,
-                  Memcached)
+                  <strong>Hash KV</strong> — O(1) point lookup, no range scan
+                  (Redis hash, Memcached)
                 </li>
                 <li>
-                  <strong>Ordered KV</strong> — O(log n) lookup, range scan via iterator (Pebble,
-                  LevelDB, BadgerDB)
+                  <strong>Ordered KV</strong> — O(log n) lookup, range scan via
+                  iterator (Pebble, LevelDB, BadgerDB)
                 </li>
                 <li>
-                  <strong>Distributed KV</strong> — Consensus-based, replicated (etcd, TiKV,
-                  FoundationDB)
+                  <strong>Distributed KV</strong> — Consensus-based, replicated
+                  (etcd, TiKV, FoundationDB)
                 </li>
               </ul>
             </div>
@@ -972,7 +994,8 @@ Insert(collection, document)
 Find(collection, query) → []Document
 Update(collection, query, changes)
 Delete(collection, query)
-Aggregate(collection, pipeline) → []Document</pre>
+Aggregate(collection, pipeline) → []Document</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -984,11 +1007,16 @@ Aggregate(collection, pipeline) → []Document</pre>
                 </tr>
                 <tr>
                   <td>Query model</td>
-                  <td>Field matching, nested path queries, range, regex, geospatial</td>
+                  <td>
+                    Field matching, nested path queries, range, regex,
+                    geospatial
+                  </td>
                 </tr>
                 <tr>
                   <td>Schema</td>
-                  <td>Optional / flexible — documents can vary within a collection</td>
+                  <td>
+                    Optional / flexible — documents can vary within a collection
+                  </td>
                 </tr>
                 <tr>
                   <td>Transactions</td>
@@ -1000,9 +1028,9 @@ Aggregate(collection, pipeline) → []Document</pre>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> A document is a self-contained unit (JSON/BSON).
-                Queries address fields within documents. Indexes are on fields, not the whole
-                document.
+                <strong>Key property:</strong> A document is a self-contained
+                unit (JSON/BSON). Queries address fields within documents.
+                Indexes are on fields, not the whole document.
               </div>
             </div>
           </div>
@@ -1021,7 +1049,8 @@ SELECT columns FROM table WHERE condition
 INSERT INTO table (columns) VALUES (...)
 UPDATE table SET ... WHERE ...
 DELETE FROM table WHERE ...
-BEGIN / COMMIT / ROLLBACK</pre>
+BEGIN / COMMIT / ROLLBACK</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1029,7 +1058,10 @@ BEGIN / COMMIT / ROLLBACK</pre>
                 </tr>
                 <tr>
                   <td>Operations</td>
-                  <td>Full relational algebra: select, project, join, aggregate, sort</td>
+                  <td>
+                    Full relational algebra: select, project, join, aggregate,
+                    sort
+                  </td>
                 </tr>
                 <tr>
                   <td>Query model</td>
@@ -1037,7 +1069,10 @@ BEGIN / COMMIT / ROLLBACK</pre>
                 </tr>
                 <tr>
                   <td>Schema</td>
-                  <td>Strict — typed columns, constraints, foreign keys, normalization</td>
+                  <td>
+                    Strict — typed columns, constraints, foreign keys,
+                    normalization
+                  </td>
                 </tr>
                 <tr>
                   <td>Transactions</td>
@@ -1045,13 +1080,15 @@ BEGIN / COMMIT / ROLLBACK</pre>
                 </tr>
                 <tr>
                   <td>Notable</td>
-                  <td>PostgreSQL, MySQL, SQLite, Oracle, SQL Server, CockroachDB</td>
+                  <td>
+                    PostgreSQL, MySQL, SQLite, Oracle, SQL Server, CockroachDB
+                  </td>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Data is normalized across tables. Joins reconstruct
-                relationships. The optimizer is the magic — consumers say WHAT they want, not HOW to
-                get it.
+                <strong>Key property:</strong> Data is normalized across tables.
+                Joins reconstruct relationships. The optimizer is the magic —
+                consumers say WHAT they want, not HOW to get it.
               </div>
             </div>
           </div>
@@ -1069,7 +1106,8 @@ CreateNode(label, properties) → Node
 CreateEdge(type, source, target, properties) → Edge
 Traverse(start, pattern) → []Path
 Query(cypher) → Result
-ShortestPath(a, b) → Path</pre>
+ShortestPath(a, b) → Path</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1077,15 +1115,23 @@ ShortestPath(a, b) → Path</pre>
                 </tr>
                 <tr>
                   <td>Operations</td>
-                  <td>Node/edge CRUD + traversal + pattern matching + path algorithms</td>
+                  <td>
+                    Node/edge CRUD + traversal + pattern matching + path
+                    algorithms
+                  </td>
                 </tr>
                 <tr>
                   <td>Query model</td>
-                  <td>Graph traversal (Cypher, Gremlin, GQL). Pattern matching on topology</td>
+                  <td>
+                    Graph traversal (Cypher, Gremlin, GQL). Pattern matching on
+                    topology
+                  </td>
                 </tr>
                 <tr>
                   <td>Schema</td>
-                  <td>Optional — labels/types with optional property constraints</td>
+                  <td>
+                    Optional — labels/types with optional property constraints
+                  </td>
                 </tr>
                 <tr>
                   <td>Notable</td>
@@ -1093,8 +1139,9 @@ ShortestPath(a, b) → Path</pre>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Relationships are first-class citizens. Multi-hop
-                traversal is O(k) where k = path length, not O(n²) like SQL joins.
+                <strong>Key property:</strong> Relationships are first-class
+                citizens. Multi-hop traversal is O(k) where k = path length, not
+                O(n²) like SQL joins.
               </div>
             </div>
           </div>
@@ -1111,7 +1158,8 @@ ShortestPath(a, b) → Path</pre>
 Write(metric, tags, value, timestamp)
 Query(metric, tags, timeRange) → []Point
 Aggregate(metric, tags, window, fn) → []Bucket
-Downsample(metric, targetResolution)</pre>
+Downsample(metric, targetResolution)</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1119,11 +1167,17 @@ Downsample(metric, targetResolution)</pre>
                 </tr>
                 <tr>
                   <td>Operations</td>
-                  <td>Write (high-throughput ingest), Query (time range + aggregation)</td>
+                  <td>
+                    Write (high-throughput ingest), Query (time range +
+                    aggregation)
+                  </td>
                 </tr>
                 <tr>
                   <td>Query model</td>
-                  <td>Time-bounded, tag-filtered, with windowed aggregation functions</td>
+                  <td>
+                    Time-bounded, tag-filtered, with windowed aggregation
+                    functions
+                  </td>
                 </tr>
                 <tr>
                   <td>Schema</td>
@@ -1131,13 +1185,16 @@ Downsample(metric, targetResolution)</pre>
                 </tr>
                 <tr>
                   <td>Notable</td>
-                  <td>InfluxDB, Prometheus, TimescaleDB, TDengine, QuestDB, ClickHouse</td>
+                  <td>
+                    InfluxDB, Prometheus, TimescaleDB, TDengine, QuestDB,
+                    ClickHouse
+                  </td>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Optimized for append-heavy time-ordered data. Reads
-                are almost always range scans over time windows. Compression exploits temporal
-                locality.
+                <strong>Key property:</strong> Optimized for append-heavy
+                time-ordered data. Reads are almost always range scans over time
+                windows. Compression exploits temporal locality.
               </div>
             </div>
           </div>
@@ -1154,7 +1211,8 @@ Downsample(metric, targetResolution)</pre>
 Index(document, fields)
 Search(query, filters) → []Hit (ranked)
 Suggest(prefix) → []Suggestion
-Aggregate(query, facets) → FacetResults</pre>
+Aggregate(query, facets) → FacetResults</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1162,11 +1220,15 @@ Aggregate(query, facets) → FacetResults</pre>
                 </tr>
                 <tr>
                   <td>Operations</td>
-                  <td>Index, Search (with relevance scoring), Facet, Autocomplete</td>
+                  <td>
+                    Index, Search (with relevance scoring), Facet, Autocomplete
+                  </td>
                 </tr>
                 <tr>
                   <td>Query model</td>
-                  <td>Full-text query DSL (boolean, phrase, fuzzy, proximity)</td>
+                  <td>
+                    Full-text query DSL (boolean, phrase, fuzzy, proximity)
+                  </td>
                 </tr>
                 <tr>
                   <td>Schema</td>
@@ -1174,13 +1236,16 @@ Aggregate(query, facets) → FacetResults</pre>
                 </tr>
                 <tr>
                   <td>Notable</td>
-                  <td>Elasticsearch, Solr, OpenSearch, Meilisearch, Typesense</td>
+                  <td>
+                    Elasticsearch, Solr, OpenSearch, Meilisearch, Typesense
+                  </td>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Inverted index maps terms → documents. Relevance
-                scoring is the differentiator. Not a primary store — usually sits alongside a
-                source-of-truth database.
+                <strong>Key property:</strong> Inverted index maps terms →
+                documents. Relevance scoring is the differentiator. Not a
+                primary store — usually sits alongside a source-of-truth
+                database.
               </div>
             </div>
           </div>
@@ -1196,7 +1261,8 @@ Aggregate(query, facets) → FacetResults</pre>
               <pre>
 Put(rowKey, columnFamily, column, value)
 Get(rowKey, columnFamily, column) → value
-Scan(rowKeyRange, columnFamily, columns) → []Row</pre>
+Scan(rowKeyRange, columnFamily, columns) → []Row</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1212,7 +1278,10 @@ Scan(rowKeyRange, columnFamily, columns) → []Row</pre>
                 </tr>
                 <tr>
                   <td>Schema</td>
-                  <td>Column families defined at creation; columns within a family are flexible</td>
+                  <td>
+                    Column families defined at creation; columns within a family
+                    are flexible
+                  </td>
                 </tr>
                 <tr>
                   <td>Notable</td>
@@ -1221,8 +1290,9 @@ Scan(rowKeyRange, columnFamily, columns) → []Row</pre>
               </table>
               <div class="key-prop">
                 <strong>Key property:</strong> A two-level map:
-                <code>RowKey → (ColumnFamily → (Column → Value))</code>. Each row can have different
-                columns. Optimized for write-heavy, wide-row access patterns.
+                <code>RowKey → (ColumnFamily → (Column → Value))</code>. Each
+                row can have different columns. Optimized for write-heavy,
+                wide-row access patterns.
               </div>
             </div>
           </div>
@@ -1239,7 +1309,8 @@ Scan(rowKeyRange, columnFamily, columns) → []Row</pre>
 PUT(bucket, key, data, metadata)
 GET(bucket, key) → data + metadata
 DELETE(bucket, key)
-LIST(bucket, prefix) → []ObjectInfo</pre>
+LIST(bucket, prefix) → []ObjectInfo</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1247,7 +1318,9 @@ LIST(bucket, prefix) → []ObjectInfo</pre>
                 </tr>
                 <tr>
                   <td>Operations</td>
-                  <td>PUT, GET, DELETE, LIST, COPY. Versioning. Lifecycle rules</td>
+                  <td>
+                    PUT, GET, DELETE, LIST, COPY. Versioning. Lifecycle rules
+                  </td>
                 </tr>
                 <tr>
                   <td>Query model</td>
@@ -1263,9 +1336,10 @@ LIST(bucket, prefix) → []ObjectInfo</pre>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Infinite scale, eventual consistency, very high
-                latency (100ms+). Not a database — a content-addressable file system. Used as a
-                storage tier in many architectures.
+                <strong>Key property:</strong> Infinite scale, eventual
+                consistency, very high latency (100ms+). Not a database — a
+                content-addressable file system. Used as a storage tier in many
+                architectures.
               </div>
             </div>
           </div>
@@ -1281,7 +1355,8 @@ LIST(bucket, prefix) → []ObjectInfo</pre>
               <pre>
 Assert(subject, predicate, object)
 Retract(subject, predicate, object)
-Query(sparql) → Result</pre>
+Query(sparql) → Result</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1289,11 +1364,16 @@ Query(sparql) → Result</pre>
                 </tr>
                 <tr>
                   <td>Operations</td>
-                  <td>Assert/Retract triples, SPARQL queries, ontology reasoning</td>
+                  <td>
+                    Assert/Retract triples, SPARQL queries, ontology reasoning
+                  </td>
                 </tr>
                 <tr>
                   <td>Query model</td>
-                  <td>Graph pattern matching via SPARQL. Logical inference over ontologies</td>
+                  <td>
+                    Graph pattern matching via SPARQL. Logical inference over
+                    ontologies
+                  </td>
                 </tr>
                 <tr>
                   <td>Schema</td>
@@ -1301,13 +1381,15 @@ Query(sparql) → Result</pre>
                 </tr>
                 <tr>
                   <td>Notable</td>
-                  <td>Virtuoso, Stardog, AllegroGraph, Jena, Neptune (RDF mode)</td>
+                  <td>
+                    Virtuoso, Stardog, AllegroGraph, Jena, Neptune (RDF mode)
+                  </td>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Every fact is a (subject, predicate, object) triple.
-                Reasoning engine can derive new facts from rules. Used in knowledge graphs and
-                semantic web.
+                <strong>Key property:</strong> Every fact is a (subject,
+                predicate, object) triple. Reasoning engine can derive new facts
+                from rules. Used in knowledge graphs and semantic web.
               </div>
             </div>
           </div>
@@ -1323,7 +1405,8 @@ Query(sparql) → Result</pre>
               <pre>
 Assert(fact)
 Rule(head ← body)
-Query(goal) → Result</pre>
+Query(goal) → Result</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1347,9 +1430,10 @@ Query(goal) → Result</pre>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Queries are logical deductions. Rules can be
-                recursive. Datomic's "database as a value" — every query runs against an immutable
-                snapshot. Natural fit for event sourcing.
+                <strong>Key property:</strong> Queries are logical deductions.
+                Rules can be recursive. Datomic's "database as a value" — every
+                query runs against an immutable snapshot. Natural fit for event
+                sourcing.
               </div>
             </div>
           </div>
@@ -1367,7 +1451,8 @@ Publish(topic, message)
 Subscribe(topic, handler)
 Process(stream → stream)
 Window(stream, duration) → []Batch
-Join(streamA, streamB) → streamC</pre>
+Join(streamA, streamB) → streamC</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1375,11 +1460,16 @@ Join(streamA, streamB) → streamC</pre>
                 </tr>
                 <tr>
                   <td>Operations</td>
-                  <td>Publish, Subscribe, Transform, Window, Join, Aggregate</td>
+                  <td>
+                    Publish, Subscribe, Transform, Window, Join, Aggregate
+                  </td>
                 </tr>
                 <tr>
                   <td>Query model</td>
-                  <td>Continuous queries over unbounded streams. Event-time processing</td>
+                  <td>
+                    Continuous queries over unbounded streams. Event-time
+                    processing
+                  </td>
                 </tr>
                 <tr>
                   <td>Schema</td>
@@ -1391,8 +1481,9 @@ Join(streamA, streamB) → streamC</pre>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Data flows continuously. No "load then query" —
-                queries are always running. Kafka is both the database (log) and the transport.
+                <strong>Key property:</strong> Data flows continuously. No "load
+                then query" — queries are always running. Kafka is both the
+                database (log) and the transport.
               </div>
             </div>
           </div>
@@ -1408,7 +1499,8 @@ Join(streamA, streamB) → streamC</pre>
               <pre>
 Insert(id, vector, metadata)
 Search(queryVector, k) → []Neighbor
-Query(filter) → []Vector</pre>
+Query(filter) → []Vector</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1432,9 +1524,10 @@ Query(filter) → []Vector</pre>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Queries find "things like this" rather than "things
-                matching this exact key." Similarity replaces equality. The interface is
-                fundamentally different from every other model.
+                <strong>Key property:</strong> Queries find "things like this"
+                rather than "things matching this exact key." Similarity
+                replaces equality. The interface is fundamentally different from
+                every other model.
               </div>
             </div>
           </div>
@@ -1452,7 +1545,8 @@ SQL("SELECT ...")              // Relational
 Cypher("MATCH ...")            // Graph
 KV.Get(key)                    // Key-Value
 Search(query)                  // Full-text
-Vector.Search(embedding, k)    // Similarity</pre>
+Vector.Search(embedding, k)    // Similarity</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1468,12 +1562,16 @@ Vector.Search(embedding, k)    // Similarity</pre>
                 </tr>
                 <tr>
                   <td>Notable</td>
-                  <td>ArangoDB, SurrealDB, Fauna, Oracle, PostgreSQL (with extensions)</td>
+                  <td>
+                    ArangoDB, SurrealDB, Fauna, Oracle, PostgreSQL (with
+                    extensions)
+                  </td>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> One database, multiple access patterns. Reduces
-                operational complexity but may not excel at any single model.
+                <strong>Key property:</strong> One database, multiple access
+                patterns. Reduces operational complexity but may not excel at
+                any single model.
               </div>
             </div>
           </div>
@@ -1491,7 +1589,8 @@ INSERT INTO locations (name, geo)
   VALUES ('Berlin', ST_Point(13.4, 52.5))
 
 SELECT * FROM locations
-  WHERE ST_DWithin(geo, ST_Point(13.4,52.5), 5000)</pre>
+  WHERE ST_DWithin(geo, ST_Point(13.4,52.5), 5000)</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1500,12 +1599,16 @@ SELECT * FROM locations
                 <tr>
                   <td>Operations</td>
                   <td>
-                    Spatial queries: nearest-neighbor, within-radius, within-polygon, intersection
+                    Spatial queries: nearest-neighbor, within-radius,
+                    within-polygon, intersection
                   </td>
                 </tr>
                 <tr>
                   <td>Query model</td>
-                  <td>SQL extensions (PostGIS) or native spatial APIs with R-Tree indexing</td>
+                  <td>
+                    SQL extensions (PostGIS) or native spatial APIs with R-Tree
+                    indexing
+                  </td>
                 </tr>
                 <tr>
                   <td>Index</td>
@@ -1513,13 +1616,16 @@ SELECT * FROM locations
                 </tr>
                 <tr>
                   <td>Notable</td>
-                  <td>PostGIS (#29), SpatiaLite (#141), GeoMesa (#204), Apache Sedona (#221)</td>
+                  <td>
+                    PostGIS (#29), SpatiaLite (#141), GeoMesa (#204), Apache
+                    Sedona (#221)
+                  </td>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Optimized for 2D/3D geometric queries. Usually a
-                layer on top of relational or columnar, not a standalone engine. PostGIS is just a
-                PostgreSQL extension.
+                <strong>Key property:</strong> Optimized for 2D/3D geometric
+                queries. Usually a layer on top of relational or columnar, not a
+                standalone engine. PostGIS is just a PostgreSQL extension.
               </div>
             </div>
           </div>
@@ -1535,7 +1641,8 @@ SELECT * FROM locations
               <pre>
 db.Store(&amp;User{Name: "Alice", Address: &amp;Address{City: "Berlin"}})
 user := db.Load&lt;User&gt;(oid)
-user.Address.City  // navigated transparently</pre>
+user.Address.City  // navigated transparently</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1543,28 +1650,38 @@ user.Address.City  // navigated transparently</pre>
                 </tr>
                 <tr>
                   <td>Operations</td>
-                  <td>CRUD on object graphs with transparent navigation and lazy loading</td>
+                  <td>
+                    CRUD on object graphs with transparent navigation and lazy
+                    loading
+                  </td>
                 </tr>
                 <tr>
                   <td>Query model</td>
-                  <td>OQL, native language queries, or method-based APIs. No impedance mismatch</td>
+                  <td>
+                    OQL, native language queries, or method-based APIs. No
+                    impedance mismatch
+                  </td>
                 </tr>
                 <tr>
                   <td>Schema</td>
-                  <td>Object types mirror application classes. Inheritance, polymorphism native</td>
+                  <td>
+                    Object types mirror application classes. Inheritance,
+                    polymorphism native
+                  </td>
                 </tr>
                 <tr>
                   <td>Notable</td>
                   <td>
-                    ObjectBox (#171, Go-friendly), Db4o (#173), Objectivity/DB (#226), InterSystems
-                    IRIS (#118)
+                    ObjectBox (#171, Go-friendly), Db4o (#173), Objectivity/DB
+                    (#226), InterSystems IRIS (#118)
                   </td>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Eliminates object-relational impedance mismatch.
-                Popular in embedded/mobile (ObjectBox). Lost the ORM war in enterprise but survives
-                in niche domains (CAD, telecommunications, scientific).
+                <strong>Key property:</strong> Eliminates object-relational
+                impedance mismatch. Popular in embedded/mobile (ObjectBox). Lost
+                the ORM war in enterprise but survives in niche domains (CAD,
+                telecommunications, scientific).
               </div>
             </div>
           </div>
@@ -1581,7 +1698,8 @@ user.Address.City  // navigated transparently</pre>
 session.getNode("/content/articles/2024/intro")
   .setProperty("title", "Hello World")
   .addMixin("mix:versionable")
-session.save()</pre>
+session.save()</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1589,11 +1707,16 @@ session.save()</pre>
                 </tr>
                 <tr>
                   <td>Operations</td>
-                  <td>Tree-structured content nodes with properties, versioning, access control</td>
+                  <td>
+                    Tree-structured content nodes with properties, versioning,
+                    access control
+                  </td>
                 </tr>
                 <tr>
                   <td>Query model</td>
-                  <td>XPath, SQL-2 (JCR standard). Full-text search built-in</td>
+                  <td>
+                    XPath, SQL-2 (JCR standard). Full-text search built-in
+                  </td>
                 </tr>
                 <tr>
                   <td>Schema</td>
@@ -1601,13 +1724,17 @@ session.save()</pre>
                 </tr>
                 <tr>
                   <td>Notable</td>
-                  <td>Apache Jackrabbit (#72, JCR reference impl), ModeShape (#279)</td>
+                  <td>
+                    Apache Jackrabbit (#72, JCR reference impl), ModeShape
+                    (#279)
+                  </td>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Tree-structured document management with built-in
-                versioning, locking, and access control. The JCR (Java Content Repository) standard
-                defines the interface. Niche — mostly CMS/ECM systems.
+                <strong>Key property:</strong> Tree-structured document
+                management with built-in versioning, locking, and access
+                control. The JCR (Java Content Repository) standard defines the
+                interface. Niche — mostly CMS/ECM systems.
               </div>
             </div>
           </div>
@@ -1624,7 +1751,8 @@ session.save()</pre>
 // XQuery across XML documents
 for $book in doc("catalog.xml")/books/book
 where $book/price &lt; 30
-return $book/title</pre>
+return $book/title</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1632,11 +1760,15 @@ return $book/title</pre>
                 </tr>
                 <tr>
                   <td>Operations</td>
-                  <td>XQuery, XPath. XML as the native data model, not bolted on</td>
+                  <td>
+                    XQuery, XPath. XML as the native data model, not bolted on
+                  </td>
                 </tr>
                 <tr>
                   <td>Query model</td>
-                  <td>XQuery 3.1 (Turing-complete functional language), XPath 3.1</td>
+                  <td>
+                    XQuery 3.1 (Turing-complete functional language), XPath 3.1
+                  </td>
                 </tr>
                 <tr>
                   <td>Schema</td>
@@ -1648,9 +1780,10 @@ return $book/title</pre>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Stores and queries XML natively without relational
-                mapping. Declining category — XML lost to JSON for APIs but survives in publishing,
-                government, and legacy enterprise systems.
+                <strong>Key property:</strong> Stores and queries XML natively
+                without relational mapping. Declining category — XML lost to
+                JSON for APIs but survives in publishing, government, and legacy
+                enterprise systems.
               </div>
             </div>
           </div>
@@ -1670,7 +1803,8 @@ OPEN "CUSTOMERS" TO custs THEN
   name = cust&lt;1&gt;      ; * attribute 1
   phones = cust&lt;2&gt;     ; * multi-valued
   phone1 = cust&lt;2,1&gt;   ; * first value
-END</pre>
+END</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1679,33 +1813,38 @@ END</pre>
                 <tr>
                   <td>Operations</td>
                   <td>
-                    Record-level access via IDs or hierarchical navigation (IMS). Multi-valued
-                    fields (Pick/MultiValue)
+                    Record-level access via IDs or hierarchical navigation
+                    (IMS). Multi-valued fields (Pick/MultiValue)
                   </td>
                 </tr>
                 <tr>
                   <td>Query model</td>
                   <td>
-                    Procedural navigation (IMS DL/I) or English-like query (Pick/UniQuery). No SQL
+                    Procedural navigation (IMS DL/I) or English-like query
+                    (Pick/UniQuery). No SQL
                   </td>
                 </tr>
                 <tr>
                   <td>Schema</td>
-                  <td>Hierarchical (IMS) or dynamic multi-valued dictionaries (Pick/MultiValue)</td>
+                  <td>
+                    Hierarchical (IMS) or dynamic multi-valued dictionaries
+                    (Pick/MultiValue)
+                  </td>
                 </tr>
                 <tr>
                   <td>Notable</td>
                   <td>
-                    IMS (#148, 1966, still runs mainframes), Adabas (#97), UniData/UniVerse (#116),
-                    IDMS (#205)
+                    IMS (#148, 1966, still runs mainframes), Adabas (#97),
+                    UniData/UniVerse (#116), IDMS (#205)
                   </td>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Pre-relational models. IMS (1966) is the oldest DBMS
-                still in production — handles 50B+ transactions/day at major banks. Multivalue/Pick
-                systems run payroll and ERP for thousands of enterprises. Technically obsolete,
-                practically irreplaceable.
+                <strong>Key property:</strong> Pre-relational models. IMS (1966)
+                is the oldest DBMS still in production — handles 50B+
+                transactions/day at major banks. Multivalue/Pick systems run
+                payroll and ERP for thousands of enterprises. Technically
+                obsolete, practically irreplaceable.
               </div>
             </div>
           </div>
@@ -1732,7 +1871,8 @@ END</pre>
            [Internal Node: Keys + Child Pointers]
           /              |                \
   [Leaf: K,V,K,V]  [Leaf: K,V,K,V]  [Leaf: K,V,K,V]
-       ↔ linked list for range scans ↔</pre>
+       ↔ linked list for range scans ↔</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1741,8 +1881,8 @@ END</pre>
                 <tr>
                   <td>Structure</td>
                   <td>
-                    Balanced tree. Internal nodes: keys only. Leaves: key+value, linked for
-                    sequential scan
+                    Balanced tree. Internal nodes: keys only. Leaves: key+value,
+                    linked for sequential scan
                   </td>
                 </tr>
                 <tr>
@@ -1763,13 +1903,16 @@ END</pre>
                 </tr>
                 <tr>
                   <td>Used by</td>
-                  <td>PostgreSQL (default), MySQL InnoDB, SQLite, LMDB, bbolt</td>
+                  <td>
+                    PostgreSQL (default), MySQL InnoDB, SQLite, LMDB, bbolt
+                  </td>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>B-Tree vs B+Tree:</strong> B-Tree stores values in internal nodes. B+Tree
-                stores values only in leaves (denser internal nodes = shallower tree + leaf links
-                for range scan). Most production databases use B+Tree.
+                <strong>B-Tree vs B+Tree:</strong> B-Tree stores values in
+                internal nodes. B+Tree stores values only in leaves (denser
+                internal nodes = shallower tree + leaf links for range scan).
+                Most production databases use B+Tree.
               </div>
             </div>
           </div>
@@ -1787,7 +1930,8 @@ Writes → [MemTable (sorted, in-memory)]
               ↓ flush when full
          [SSTable L0] → [SSTable L1] → [SSTable L2] → ...
               ↑ background compaction merges levels ↑
-[WAL] → sequential log for crash recovery</pre>
+[WAL] → sequential log for crash recovery</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1796,8 +1940,8 @@ Writes → [MemTable (sorted, in-memory)]
                 <tr>
                   <td>Structure</td>
                   <td>
-                    In-memory sorted table (memtable) + immutable sorted files on disk (SSTables) in
-                    levels
+                    In-memory sorted table (memtable) + immutable sorted files
+                    on disk (SSTables) in levels
                   </td>
                 </tr>
                 <tr>
@@ -1806,19 +1950,28 @@ Writes → [MemTable (sorted, in-memory)]
                 </tr>
                 <tr>
                   <td>Write</td>
-                  <td>O(1) amortized — sequential append to WAL + memtable insert</td>
+                  <td>
+                    O(1) amortized — sequential append to WAL + memtable insert
+                  </td>
                 </tr>
                 <tr>
                   <td>Write amp</td>
-                  <td>High — data rewritten during compaction (10-30× for leveled)</td>
+                  <td>
+                    High — data rewritten during compaction (10-30× for leveled)
+                  </td>
                 </tr>
                 <tr>
                   <td>Best for</td>
-                  <td>Write-heavy workloads. Time-series. Event logs. Large datasets</td>
+                  <td>
+                    Write-heavy workloads. Time-series. Event logs. Large
+                    datasets
+                  </td>
                 </tr>
                 <tr>
                   <td>Used by</td>
-                  <td>RocksDB, LevelDB, Pebble, Cassandra, ScyllaDB, InfluxDB</td>
+                  <td>
+                    RocksDB, LevelDB, Pebble, Cassandra, ScyllaDB, InfluxDB
+                  </td>
                 </tr>
               </table>
               <table style="margin-top: 1rem">
@@ -1872,7 +2025,8 @@ Writes → [MemTable (sorted, in-memory)]
               <pre>
 hash("user:123") → bucket 7 → [offset → disk position]
                                       ↓
-                              [Log file: key, value, ...]</pre>
+                              [Log file: key, value, ...]</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1880,7 +2034,10 @@ hash("user:123") → bucket 7 → [offset → disk position]
                 </tr>
                 <tr>
                   <td>Structure</td>
-                  <td>In-memory hash map: key → disk offset. Data in append-only log</td>
+                  <td>
+                    In-memory hash map: key → disk offset. Data in append-only
+                    log
+                  </td>
                 </tr>
                 <tr>
                   <td>Read</td>
@@ -1918,7 +2075,8 @@ hash("user:123") → bucket 7 → [offset → disk position]
 Row-oriented:  [id=1,name="Alice",age=30] [id=2,name="Bob",age=25]
 Columnar:      id: [1, 2, 3, ...]
                name: ["Alice", "Bob", ...]
-               age: [30, 25, ...]</pre>
+               age: [30, 25, ...]</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1927,28 +2085,40 @@ Columnar:      id: [1, 2, 3, ...]
                 <tr>
                   <td>Structure</td>
                   <td>
-                    Each column stored separately. Per-column compression (RLE, dictionary, delta)
+                    Each column stored separately. Per-column compression (RLE,
+                    dictionary, delta)
                   </td>
                 </tr>
                 <tr>
                   <td>Read</td>
-                  <td>Only needed columns loaded. Vectorized processing (SIMD)</td>
+                  <td>
+                    Only needed columns loaded. Vectorized processing (SIMD)
+                  </td>
                 </tr>
                 <tr>
                   <td>Write</td>
-                  <td>Slow — must update multiple column files. Batch writes mitigate</td>
+                  <td>
+                    Slow — must update multiple column files. Batch writes
+                    mitigate
+                  </td>
                 </tr>
                 <tr>
                   <td>Space amp</td>
-                  <td>Very low — per-column compression is extremely effective</td>
+                  <td>
+                    Very low — per-column compression is extremely effective
+                  </td>
                 </tr>
                 <tr>
                   <td>Best for</td>
-                  <td>OLAP. Analytics. Aggregation over many rows, few columns</td>
+                  <td>
+                    OLAP. Analytics. Aggregation over many rows, few columns
+                  </td>
                 </tr>
                 <tr>
                   <td>Used by</td>
-                  <td>ClickHouse, DuckDB, Vertica, Parquet, Redshift, Snowflake</td>
+                  <td>
+                    ClickHouse, DuckDB, Vertica, Parquet, Redshift, Snowflake
+                  </td>
                 </tr>
               </table>
             </div>
@@ -1964,7 +2134,8 @@ Columnar:      id: [1, 2, 3, ...]
             <div class="card-body">
               <pre>
 [Event 1] → [Event 2] → [Event 3] → ... → [Event N]
-  ↑ immutable, never modified, only appended ↑</pre>
+  ↑ immutable, never modified, only appended ↑</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1972,11 +2143,16 @@ Columnar:      id: [1, 2, 3, ...]
                 </tr>
                 <tr>
                   <td>Structure</td>
-                  <td>Sequential, immutable records. Each record has a position/offset</td>
+                  <td>
+                    Sequential, immutable records. Each record has a
+                    position/offset
+                  </td>
                 </tr>
                 <tr>
                   <td>Read</td>
-                  <td>O(n) scan, O(log n) with index. Replay from any position</td>
+                  <td>
+                    O(n) scan, O(log n) with index. Replay from any position
+                  </td>
                 </tr>
                 <tr>
                   <td>Write</td>
@@ -1988,16 +2164,22 @@ Columnar:      id: [1, 2, 3, ...]
                 </tr>
                 <tr>
                   <td>Best for</td>
-                  <td>Event sourcing. Audit logs. CDC. Message queues. Kafka</td>
+                  <td>
+                    Event sourcing. Audit logs. CDC. Message queues. Kafka
+                  </td>
                 </tr>
                 <tr>
                   <td>Used by</td>
-                  <td>Kafka, EventStoreDB, <strong>go-cqrs-lite</strong> events table, Datomic</td>
+                  <td>
+                    Kafka, EventStoreDB, <strong>go-cqrs-lite</strong> events
+                    table, Datomic
+                  </td>
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>This is our model.</strong> go-cqrs-lite's event store is an append-only log
-                per aggregate, with version as the sequence number.
+                <strong>This is our model.</strong> go-cqrs-lite's event store
+                is an append-only log per aggregate, with version as the
+                sequence number.
               </div>
             </div>
           </div>
@@ -2013,7 +2195,8 @@ Columnar:      id: [1, 2, 3, ...]
               <pre>
 Process Virtual Memory:
 [0x0000 ... Database File ... 0xFFFF]
-     ↑ OS handles page faults ←→ Disk automatically ↑</pre>
+     ↑ OS handles page faults ←→ Disk automatically ↑</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -2021,7 +2204,9 @@ Process Virtual Memory:
                 </tr>
                 <tr>
                   <td>Structure</td>
-                  <td>Entire database file mapped into virtual address space</td>
+                  <td>
+                    Entire database file mapped into virtual address space
+                  </td>
                 </tr>
                 <tr>
                   <td>Read</td>
@@ -2033,7 +2218,9 @@ Process Virtual Memory:
                 </tr>
                 <tr>
                   <td>Currency</td>
-                  <td>Multiple processes can map the same file. Lock-free reads</td>
+                  <td>
+                    Multiple processes can map the same file. Lock-free reads
+                  </td>
                 </tr>
                 <tr>
                   <td>Used by</td>
@@ -2041,8 +2228,9 @@ Process Virtual Memory:
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> No buffer pool to manage — the OS IS the buffer pool.
-                Reads are just memory dereferences. Writes are copy-on-write for crash safety.
+                <strong>Key property:</strong> No buffer pool to manage — the OS
+                IS the buffer pool. Reads are just memory dereferences. Writes
+                are copy-on-write for crash safety.
               </div>
             </div>
           </div>
@@ -2058,7 +2246,8 @@ Process Virtual Memory:
               <pre>
 [Root with buffer] → [Internal with buffer] → [Leaf]
        ↓ flush              ↓ flush
-  Messages buffered in internal nodes, flushed in batches</pre>
+  Messages buffered in internal nodes, flushed in batches</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -2074,7 +2263,9 @@ Process Virtual Memory:
                 </tr>
                 <tr>
                   <td>Write</td>
-                  <td>O(log_B N / B) — amortized, messages batched in buffers</td>
+                  <td>
+                    O(log_B N / B) — amortized, messages batched in buffers
+                  </td>
                 </tr>
                 <tr>
                   <td>Write amp</td>
@@ -2086,8 +2277,9 @@ Process Virtual Memory:
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key property:</strong> Combines LSM's write throughput with B-Tree's read
-                performance. Writes accumulate in node buffers and flush in batches.
+                <strong>Key property:</strong> Combines LSM's write throughput
+                with B-Tree's read performance. Writes accumulate in node
+                buffers and flush in batches.
               </div>
             </div>
           </div>
@@ -2103,7 +2295,8 @@ Process Virtual Memory:
               <pre>
 Node4:  [≤4 children, compact]   → Node16: [≤16 children]
                                       → Node48: [≤48 children]
-                                         → Node256: [256 children]</pre>
+                                         → Node256: [256 children]</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -2111,11 +2304,16 @@ Node4:  [≤4 children, compact]   → Node16: [≤16 children]
                 </tr>
                 <tr>
                   <td>Structure</td>
-                  <td>Trie that adapts node size to occupancy (4 → 16 → 48 → 256 children)</td>
+                  <td>
+                    Trie that adapts node size to occupancy (4 → 16 → 48 → 256
+                    children)
+                  </td>
                 </tr>
                 <tr>
                   <td>Read</td>
-                  <td>O(k) where k = key length. Cache-friendly, SIMD-optimizable</td>
+                  <td>
+                    O(k) where k = key length. Cache-friendly, SIMD-optimizable
+                  </td>
                 </tr>
                 <tr>
                   <td>Write</td>
@@ -2128,13 +2326,16 @@ Node4:  [≤4 children, compact]   → Node16: [≤16 children]
                 <tr>
                   <td>Go impl</td>
                   <td>
-                    <strong>github.com/plar/go-adaptive-radix-tree</strong> — production-ready,
-                    ~500★
+                    <strong>github.com/plar/go-adaptive-radix-tree</strong> —
+                    production-ready, ~500★
                   </td>
                 </tr>
                 <tr>
                   <td>Used by</td>
-                  <td>HyperLevelDB (index), Hyrise (in-memory DB), go-adaptive-radix-tree (Go)</td>
+                  <td>
+                    HyperLevelDB (index), Hyrise (in-memory DB),
+                    go-adaptive-radix-tree (Go)
+                  </td>
                 </tr>
               </table>
             </div>
@@ -2150,7 +2351,8 @@ Node4:  [≤4 children, compact]   → Node16: [≤16 children]
             <div class="card-body">
               <pre>
 Page A → [delta 3] → [delta 2] → [delta 1] → [base page]
-              ↑ CAS chain — updates without latches ↑</pre>
+              ↑ CAS chain — updates without latches ↑</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -2190,7 +2392,8 @@ Page A → [delta 3] → [delta 2] → [delta 1] → [base page]
             <div class="card-body">
               <pre>
 [Cache] → flush → [TSM File: time-sorted, compressed per field]
-                       ↓ compaction → [Larger TSM File]</pre>
+                       ↓ compaction → [Larger TSM File]</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -2202,7 +2405,9 @@ Page A → [delta 3] → [delta 2] → [delta 1] → [base page]
                 </tr>
                 <tr>
                   <td>Read</td>
-                  <td>Time-range scan. Delta-of-delta + Gorilla float compression</td>
+                  <td>
+                    Time-range scan. Delta-of-delta + Gorilla float compression
+                  </td>
                 </tr>
                 <tr>
                   <td>Compression</td>
@@ -2228,7 +2433,8 @@ Page A → [delta 3] → [delta 2] → [delta 1] → [base page]
 HNSW:                       IVF:
   Layer 2: [sparse]           [Centroid 1] → [vectors near 1]
   Layer 1: [medium]           [Centroid 2] → [vectors near 2]
-  Layer 0: [dense]            [Centroid N] → [vectors near N]</pre>
+  Layer 0: [dense]            [Centroid N] → [vectors near N]</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -2264,7 +2470,8 @@ HNSW:                       IVF:
             <div class="card-body">
               <pre>
 Write: Modify leaf → copy path to root → atomically swap root pointer
-Old root still valid → readers see consistent snapshot</pre>
+Old root still valid → readers see consistent snapshot</pre
+              >
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -2272,7 +2479,9 @@ Old root still valid → readers see consistent snapshot</pre>
                 </tr>
                 <tr>
                   <td>Structure</td>
-                  <td>B-Tree where every write creates new node copies up to root</td>
+                  <td>
+                    B-Tree where every write creates new node copies up to root
+                  </td>
                 </tr>
                 <tr>
                   <td>Read</td>
@@ -2303,7 +2512,14 @@ Old root still valid → readers see consistent snapshot</pre>
           <h2>Cross-Reference Matrix</h2>
         </div>
 
-        <h3 style="font-size: 1rem; color: var(--fg-dim); margin-bottom: 1.5rem; font-weight: 400">
+        <h3
+          style="
+            font-size: 1rem;
+            color: var(--fg-dim);
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+          "
+        >
           Interface × Storage Engine combinations in the wild
         </h3>
 
@@ -2537,7 +2753,9 @@ Old root still valid → readers see consistent snapshot</pre>
         </div>
 
         <div class="diagram-box">
-          <div class="diagram-label">Trade-off Map — Write vs Read Performance</div>
+          <div class="diagram-label">
+            Trade-off Map — Write vs Read Performance
+          </div>
           <style>
             .quadrant {
               display: grid;
@@ -2615,7 +2833,8 @@ Old root still valid → readers see consistent snapshot</pre>
               </div>
               <div class="item">
                 <span class="dot" style="background: var(--accent)"></span>
-                <strong>CoW B+Tree (mmap)</strong> — snapshot reads, single writer
+                <strong>CoW B+Tree (mmap)</strong> — snapshot reads, single
+                writer
               </div>
               <div class="item">
                 <span class="dot" style="background: var(--accent)"></span>
@@ -2625,12 +2844,18 @@ Old root still valid → readers see consistent snapshot</pre>
             <div class="q" style="grid-column: 1; grid-row: 2">
               <h4 style="color: var(--fg-muted)">Low Write · Low Read</h4>
               <div class="item" style="color: var(--fg-muted)">
-                <span class="dot" style="background: var(--fg-muted); opacity: 0.4"></span> (sparse
-                — most engines optimize one axis)
+                <span
+                  class="dot"
+                  style="background: var(--fg-muted); opacity: 0.4"
+                ></span>
+                (sparse — most engines optimize one axis)
               </div>
               <div class="item" style="color: var(--fg-muted)">
-                <span class="dot" style="background: var(--fg-muted); opacity: 0.4"></span> Naive
-                hash + unordered file stores
+                <span
+                  class="dot"
+                  style="background: var(--fg-muted); opacity: 0.4"
+                ></span>
+                Naive hash + unordered file stores
               </div>
             </div>
             <div class="q" style="grid-column: 2; grid-row: 2">
@@ -2644,8 +2869,8 @@ Old root still valid → readers see consistent snapshot</pre>
                 <strong>Columnar</strong> — fast aggregates, slow point writes
               </div>
               <div class="item">
-                <span class="dot" style="background: var(--blue)"></span> <strong>ART</strong> —
-                O(k) in-memory, no persistence
+                <span class="dot" style="background: var(--blue)"></span>
+                <strong>ART</strong> — O(k) in-memory, no persistence
               </div>
             </div>
           </div>
@@ -2688,14 +2913,22 @@ Old root still valid → readers see consistent snapshot</pre>
         </div>
 
         <h3
-          style="font-size: 0.95rem; color: var(--fg-dim); margin-bottom: 1.5rem; font-weight: 400"
+          style="
+            font-size: 0.95rem;
+            color: var(--fg-dim);
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+          "
         >
           What we use today
         </h3>
         <div class="relevance-grid">
           <div class="rel-item">
             <h4>SQLEventStore</h4>
-            <p>Ordered KV (keyed by aggregate+version) → B+Tree via PostgreSQL / SQLite / Turso</p>
+            <p>
+              Ordered KV (keyed by aggregate+version) → B+Tree via PostgreSQL /
+              SQLite / Turso
+            </p>
           </div>
           <div class="rel-item">
             <h4>PebbleEventStore</h4>
@@ -2715,14 +2948,22 @@ Old root still valid → readers see consistent snapshot</pre>
           </div>
         </div>
 
-        <h3 style="font-size: 0.95rem; color: var(--fg-dim); margin-bottom: 1rem; font-weight: 400">
+        <h3
+          style="
+            font-size: 0.95rem;
+            color: var(--fg-dim);
+            margin-bottom: 1rem;
+            font-weight: 400;
+          "
+        >
           Our actual access pattern (despite using SQL as backend)
         </h3>
         <div class="relevance-grid">
           <div class="rel-item">
             <h4>1. Event Store</h4>
             <p>
-              Ordered KV with prefix scan (load all events for aggregate) + append (save events)
+              Ordered KV with prefix scan (load all events for aggregate) +
+              append (save events)
             </p>
           </div>
           <div class="rel-item">
@@ -2739,7 +2980,14 @@ Old root still valid → readers see consistent snapshot</pre>
           </div>
         </div>
 
-        <h3 style="font-size: 0.95rem; color: var(--fg-dim); margin: 2rem 0 1rem; font-weight: 400">
+        <h3
+          style="
+            font-size: 0.95rem;
+            color: var(--fg-dim);
+            margin: 2rem 0 1rem;
+            font-weight: 400;
+          "
+        >
           Engines that fit our patterns
         </h3>
         <div class="cards">
@@ -2751,8 +2999,9 @@ Old root still valid → readers see consistent snapshot</pre>
             </div>
             <div class="card-body">
               <div class="key-prop" style="border-left-color: var(--accent)">
-                Append-heavy (events are append-only), prefix scan for aggregate loading. Trade-off:
-                read amplification for large histories — mitigated by snapshots.
+                Append-heavy (events are append-only), prefix scan for aggregate
+                loading. Trade-off: read amplification for large histories —
+                mitigated by snapshots.
               </div>
             </div>
           </div>
@@ -2764,8 +3013,9 @@ Old root still valid → readers see consistent snapshot</pre>
             </div>
             <div class="card-body">
               <div class="key-prop" style="border-left-color: var(--accent)">
-                Point lookup for snapshots/checkpoints, range scan for events. Trade-off: write
-                amplification on high-ingest — acceptable for most workloads.
+                Point lookup for snapshots/checkpoints, range scan for events.
+                Trade-off: write amplification on high-ingest — acceptable for
+                most workloads.
               </div>
             </div>
           </div>
@@ -2777,8 +3027,9 @@ Old root still valid → readers see consistent snapshot</pre>
             </div>
             <div class="card-body">
               <div class="key-prop" style="border-left-color: var(--accent)">
-                Natural fit for event sourcing — events ARE append-only. Trade-off: no per-aggregate
-                random access without secondary index.
+                Natural fit for event sourcing — events ARE append-only.
+                Trade-off: no per-aggregate random access without secondary
+                index.
               </div>
             </div>
           </div>
@@ -2790,8 +3041,9 @@ Old root still valid → readers see consistent snapshot</pre>
             </div>
             <div class="card-body">
               <div class="key-prop" style="border-left-color: var(--accent)">
-                Snapshot reads for free (time-travel), lock-free readers. Trade-off: single writer
-                bottleneck — acceptable for embedded use.
+                Snapshot reads for free (time-travel), lock-free readers.
+                Trade-off: single writer bottleneck — acceptable for embedded
+                use.
               </div>
             </div>
           </div>
@@ -2813,42 +3065,61 @@ Old root still valid → readers see consistent snapshot</pre>
                 <tr>
                   <td>Event Store</td>
                   <td>
-                    <strong>Stream</strong> — subject <code>events.{type}.{id}</code>, append-only,
-                    ordered, replay, exactly-once dedup
+                    <strong>Stream</strong> — subject
+                    <code>events.{type}.{id}</code>, append-only, ordered,
+                    replay, exactly-once dedup
                   </td>
                 </tr>
                 <tr>
                   <td>Snapshot Store</td>
                   <td>
-                    <strong>KeyValue</strong> bucket — Get/Put/Delete/Watch with revision-based CAS
+                    <strong>KeyValue</strong> bucket — Get/Put/Delete/Watch with
+                    revision-based CAS
                   </td>
                 </tr>
                 <tr>
                   <td>Checkpoint Store</td>
-                  <td><strong>KeyValue</strong> bucket — same Get/Put by projection name</td>
+                  <td>
+                    <strong>KeyValue</strong> bucket — same Get/Put by
+                    projection name
+                  </td>
                 </tr>
                 <tr>
                   <td>Outbox</td>
                   <td>
-                    <strong>WorkQueue Stream</strong> — exactly-once consumption, auto-delete after
-                    ack
+                    <strong>WorkQueue Stream</strong> — exactly-once
+                    consumption, auto-delete after ack
                   </td>
                 </tr>
                 <tr>
                   <td>Bus (pub/sub)</td>
-                  <td><strong>NATS Core</strong> — already in <code>watermill/</code> module</td>
+                  <td>
+                    <strong>NATS Core</strong> — already in
+                    <code>watermill/</code> module
+                  </td>
                 </tr>
               </table>
-              <div class="key-prop" style="border-left-color: var(--blue); margin-top: 1rem">
-                <strong>Performance:</strong> 39-52K msg/sec (32-38× faster than Kafka). 6MB RAM
-                cold start (vs 327MB for Kafka). Single binary <code>nats-server -js</code>.
-                Built-in RAFT replication. Go-native client.
+              <div
+                class="key-prop"
+                style="border-left-color: var(--blue); margin-top: 1rem"
+              >
+                <strong>Performance:</strong> 39-52K msg/sec (32-38× faster than
+                Kafka). 6MB RAM cold start (vs 327MB for Kafka). Single binary
+                <code>nats-server -js</code>. Built-in RAFT replication.
+                Go-native client.
               </div>
             </div>
           </div>
         </div>
 
-        <h3 style="font-size: 0.95rem; color: var(--fg-dim); margin: 2rem 0 1rem; font-weight: 400">
+        <h3
+          style="
+            font-size: 0.95rem;
+            color: var(--fg-dim);
+            margin: 2rem 0 1rem;
+            font-weight: 400;
+          "
+        >
           Engines that do NOT fit
         </h3>
         <div class="cards">
@@ -2860,7 +3131,8 @@ Old root still valid → readers see consistent snapshot</pre>
             </div>
             <div class="card-body">
               <div class="key-prop" style="border-left-color: var(--rose)">
-                We need row-level access (load one aggregate), not column aggregates.
+                We need row-level access (load one aggregate), not column
+                aggregates.
               </div>
             </div>
           </div>
@@ -2896,7 +3168,8 @@ Old root still valid → readers see consistent snapshot</pre>
             </div>
             <div class="card-body">
               <div class="key-prop" style="border-left-color: var(--rose)">
-                In-memory only (ART) or research prototype (BW-Tree). No Go implementations.
+                In-memory only (ART) or research prototype (BW-Tree). No Go
+                implementations.
               </div>
             </div>
           </div>
@@ -2911,62 +3184,78 @@ Old root still valid → readers see consistent snapshot</pre>
         </div>
 
         <div class="adv-card">
-          <h3>FoundationDB <span class="tag badge-arch">Layer Architecture</span></h3>
+          <h3>
+            FoundationDB <span class="tag badge-arch">Layer Architecture</span>
+          </h3>
           <p class="desc">
-            <strong>Storage:</strong> Ordered KV (serialized MVCC) + distributed consensus
-            (Raft-like).<br /><strong>Interface:</strong> Raw KV is the only interface. SQL,
-            Document, Graph — all built as <em>layers</em> on top.
+            <strong>Storage:</strong> Ordered KV (serialized MVCC) + distributed
+            consensus (Raft-like).<br /><strong>Interface:</strong> Raw KV is
+            the only interface. SQL, Document, Graph — all built as
+            <em>layers</em> on top.
           </p>
           <div class="lesson">
-            <strong>Lesson:</strong> A single well-designed KV interface can power any higher-level
-            model. This is the "data store aware but independent" principle taken to its extreme.
+            <strong>Lesson:</strong> A single well-designed KV interface can
+            power any higher-level model. This is the "data store aware but
+            independent" principle taken to its extreme.
           </div>
         </div>
 
         <div class="adv-card">
-          <h3>Datomic <span class="tag badge-arch">Database as a Value</span></h3>
+          <h3>
+            Datomic <span class="tag badge-arch">Database as a Value</span>
+          </h3>
           <p class="desc">
-            <strong>Storage:</strong> Append-only transaction log (DynamoDB) + 5 sorted indexes (S3)
-            + cache (EFS).<br /><strong>Interface:</strong> Datalog queries against immutable
-            database values (snapshots).
+            <strong>Storage:</strong> Append-only transaction log (DynamoDB) + 5
+            sorted indexes (S3) + cache (EFS).<br /><strong>Interface:</strong>
+            Datalog queries against immutable database values (snapshots).
           </p>
           <div class="lesson">
-            <strong>Lesson:</strong> Every query sees a consistent point-in-time snapshot.
-            "Time-travel" is free because history is never overwritten. This is the gold standard
-            for event sourcing.
+            <strong>Lesson:</strong> Every query sees a consistent point-in-time
+            snapshot. "Time-travel" is free because history is never
+            overwritten. This is the gold standard for event sourcing.
           </div>
         </div>
 
         <div class="adv-card">
-          <h3>TigerBeetle <span class="tag badge-arch">Deterministic Single-Thread</span></h3>
+          <h3>
+            TigerBeetle
+            <span class="tag badge-arch">Deterministic Single-Thread</span>
+          </h3>
           <p class="desc">
-            <strong>Storage:</strong> LSM forest with direct I/O, no OS page cache.<br /><strong
-              >Interface:</strong
-            >
+            <strong>Storage:</strong> LSM forest with direct I/O, no OS page
+            cache.<br /><strong>Interface:</strong>
             Two-phase accounting transfers (debit + credit in one operation).
           </p>
           <div class="lesson">
-            <strong>Lesson:</strong> Single-threaded deterministic execution eliminates entire
-            classes of concurrency bugs. For financial data, this is worth the throughput trade-off.
+            <strong>Lesson:</strong> Single-threaded deterministic execution
+            eliminates entire classes of concurrency bugs. For financial data,
+            this is worth the throughput trade-off.
           </div>
         </div>
 
         <div class="adv-card">
-          <h3>SurrealDB <span class="tag badge-arch">Multi-Model Pluggable</span></h3>
+          <h3>
+            SurrealDB <span class="tag badge-arch">Multi-Model Pluggable</span>
+          </h3>
           <p class="desc">
-            <strong>Storage:</strong> Pluggable — RocksDB (embedded), TiKV (distributed), IndexedDB
-            (browser).<br /><strong>Interface:</strong> SurrealQL covers document, graph,
-            relational, vector in one query language.
+            <strong>Storage:</strong> Pluggable — RocksDB (embedded), TiKV
+            (distributed), IndexedDB (browser).<br /><strong>Interface:</strong>
+            SurrealQL covers document, graph, relational, vector in one query
+            language.
           </p>
           <div class="lesson">
-            <strong>Lesson:</strong> The "backend is pluggable" pattern is viable. Same query
-            language, different storage. Aligns with our <code>kv.Store</code> abstraction approach.
+            <strong>Lesson:</strong> The "backend is pluggable" pattern is
+            viable. Same query language, different storage. Aligns with our
+            <code>kv.Store</code> abstraction approach.
           </div>
         </div>
 
         <div
           class="adv-card"
-          style="border-color: var(--blue); box-shadow: 0 0 40px rgba(59, 130, 246, 0.15)"
+          style="
+            border-color: var(--blue);
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.15);
+          "
         >
           <h3>
             NATS JetStream
@@ -2981,11 +3270,12 @@ Old root still valid → readers see consistent snapshot</pre>
             >
           </h3>
           <p class="desc">
-            <strong>Storage:</strong> File (disk, RAFT-replicated) or Memory. Subject-partitioned
-            append-only streams with configurable retention.<br /><strong>Interface:</strong> Three
-            built-in data models on one server — <strong>Streams</strong> (append-only log),
-            <strong>KeyValue</strong> (KV with history + CAS), <strong>ObjectStore</strong> (binary
-            blobs).
+            <strong>Storage:</strong> File (disk, RAFT-replicated) or Memory.
+            Subject-partitioned append-only streams with configurable
+            retention.<br /><strong>Interface:</strong> Three built-in data
+            models on one server — <strong>Streams</strong> (append-only log),
+            <strong>KeyValue</strong> (KV with history + CAS),
+            <strong>ObjectStore</strong> (binary blobs).
           </p>
 
           <div
@@ -3007,38 +3297,45 @@ Old root still valid → readers see consistent snapshot</pre>
             ><br />
             js, _ := jetstream.New(nc)<br /><br />
             <span style="color: var(--fg-muted)"
-              >// Event Store → Stream (append-only, per-aggregate via subjects)</span
+              >// Event Store → Stream (append-only, per-aggregate via
+              subjects)</span
             ><br />
             stream, _ := js.CreateStream(ctx, jetstream.StreamConfig{<br />
             &nbsp;&nbsp;Name: &quot;events&quot;, Subjects:
             []string{&quot;events.{type}.{id}&quot;},<br />
             &nbsp;&nbsp;Retention: jetstream.LimitsPolicy,<br />
             })<br />
-            ack, _ := js.Publish(ctx, &quot;events.User.01H4...&quot;, payload)<br /><br />
-            <span style="color: var(--fg-muted)">// Snapshot + Checkpoint → KeyValue bucket</span
+            ack, _ := js.Publish(ctx, &quot;events.User.01H4...&quot;,
+            payload)<br /><br />
+            <span style="color: var(--fg-muted)"
+              >// Snapshot + Checkpoint → KeyValue bucket</span
             ><br />
             kv, _ := js.CreateKeyValue(ctx, jetstream.KeyValueConfig{Bucket:
             &quot;snapshots&quot;})<br />
             rev, _ := kv.Put(ctx, &quot;User:01H4...&quot;, snapshotBytes)<br />
             entry, _ := kv.Get(ctx, &quot;User:01H4...&quot;)<br /><br />
             <span style="color: var(--fg-muted)"
-              >// Outbox → WorkQueue Stream (exactly-once, auto-delete after ack)</span
+              >// Outbox → WorkQueue Stream (exactly-once, auto-delete after
+              ack)</span
             ><br />
             outbox, _ := js.CreateStream(ctx, jetstream.StreamConfig{<br />
-            &nbsp;&nbsp;Name: &quot;outbox&quot;, Retention: jetstream.WorkQueuePolicy,<br />
+            &nbsp;&nbsp;Name: &quot;outbox&quot;, Retention:
+            jetstream.WorkQueuePolicy,<br />
             })<br />
-            consumer, _ := outbox.CreateOrUpdateConsumer(ctx, jetstream.ConsumerConfig{<br />
+            consumer, _ := outbox.CreateOrUpdateConsumer(ctx,
+            jetstream.ConsumerConfig{<br />
             &nbsp;&nbsp;AckPolicy: jetstream.AckExplicit,<br />
             })
           </div>
 
           <div class="lesson" style="border-left-color: var(--blue)">
-            <strong>Why it matters for go-cqrs-lite:</strong> A single NATS server replaces
-            PostgreSQL/SQLite (for SQL storage) + message broker (for outbox/bus). The KeyValue API
-            is remarkably close to our proposed <code>kv.Store</code> interface —
-            Get/Put/Delete/Watch with revision-based CAS and history. For edge deployments and
-            single-binary scenarios, JetStream + Pebble covers the full spectrum from embedded to
-            distributed.
+            <strong>Why it matters for go-cqrs-lite:</strong> A single NATS
+            server replaces PostgreSQL/SQLite (for SQL storage) + message broker
+            (for outbox/bus). The KeyValue API is remarkably close to our
+            proposed <code>kv.Store</code> interface — Get/Put/Delete/Watch with
+            revision-based CAS and history. For edge deployments and
+            single-binary scenarios, JetStream + Pebble covers the full spectrum
+            from embedded to distributed.
           </div>
 
           <table style="margin-top: 1rem">
@@ -3075,7 +3372,9 @@ Old root still valid → readers see consistent snapshot</pre>
             <tr>
               <td>Ecosystem / connectors</td>
               <td>Smaller</td>
-              <td style="color: var(--accent)">Massive (Kafka Connect, etc.)</td>
+              <td style="color: var(--accent)">
+                Massive (Kafka Connect, etc.)
+              </td>
             </tr>
             <tr>
               <td>Large message throughput</td>
@@ -3090,7 +3389,14 @@ Old root still valid → readers see consistent snapshot</pre>
           </table>
         </div>
 
-        <h3 style="font-size: 1rem; color: var(--fg-dim); margin: 2.5rem 0 1rem; font-weight: 400">
+        <h3
+          style="
+            font-size: 1rem;
+            color: var(--fg-dim);
+            margin: 2.5rem 0 1rem;
+            font-weight: 400;
+          "
+        >
           Columnar OLAP — The Projection Powerhouses
         </h3>
         <p
@@ -3102,14 +3408,19 @@ Old root still valid → readers see consistent snapshot</pre>
             line-height: 1.7;
           "
         >
-          Both are columnar OLAP engines. Both are wrong for the <em>event store</em> (row-level
-          access). Both are <strong>phenomenal</strong> for the <em>read side</em> of CQRS —
-          materialized views, projection stores, real-time analytics on event streams.
+          Both are columnar OLAP engines. Both are wrong for the
+          <em>event store</em> (row-level access). Both are
+          <strong>phenomenal</strong> for the <em>read side</em> of CQRS —
+          materialized views, projection stores, real-time analytics on event
+          streams.
         </p>
 
         <div
           class="adv-card"
-          style="border-color: var(--amber); box-shadow: 0 0 40px rgba(245, 158, 11, 0.1)"
+          style="
+            border-color: var(--amber);
+            box-shadow: 0 0 40px rgba(245, 158, 11, 0.1);
+          "
         >
           <h3>
             DuckDB
@@ -3124,10 +3435,12 @@ Old root still valid → readers see consistent snapshot</pre>
             >
           </h3>
           <p class="desc">
-            <strong>Storage:</strong> Columnar, vectorized execution (2,048-row batches),
-            mmap-based, in-process (no server).<br /><strong>Interface:</strong> Full SQL,
-            <code>database/sql</code> compatible Go driver. Reads Parquet, CSV, JSON, Arrow natively
-            — no import needed.
+            <strong>Storage:</strong> Columnar, vectorized execution (2,048-row
+            batches), mmap-based, in-process (no server).<br /><strong
+              >Interface:</strong
+            >
+            Full SQL, <code>database/sql</code> compatible Go driver. Reads
+            Parquet, CSV, JSON, Arrow natively — no import needed.
           </p>
 
           <div
@@ -3145,20 +3458,25 @@ Old root still valid → readers see consistent snapshot</pre>
             "
           >
             <span style="color: var(--fg-muted)"
-              >// Go: github.com/duckdb/duckdb-go/v2 — full database/sql compat</span
+              >// Go: github.com/duckdb/duckdb-go/v2 — full database/sql
+              compat</span
             ><br />
             db, _ := sql.Open("duckdb", "projections.ddb")<br /><br />
             <span style="color: var(--fg-muted)"
               >// Query Parquet event files directly — no import</span
             ><br />
             rows, _ := db.Query(`SELECT aggregate_id, count() as events,<br />
-            &nbsp;&nbsp;max(timestamp) as last_event FROM read_parquet('events/*.parquet')<br />
+            &nbsp;&nbsp;max(timestamp) as last_event FROM
+            read_parquet('events/*.parquet')<br />
             &nbsp;&nbsp;GROUP BY aggregate_id`)<br /><br />
-            <span style="color: var(--fg-muted)">// Build projection table from event stream</span
+            <span style="color: var(--fg-muted)"
+              >// Build projection table from event stream</span
             ><br />
             db.Exec(`CREATE TABLE user_read_model AS<br />
-            &nbsp;&nbsp;SELECT aggregate_id, json_extract(payload, '$.name') as name,<br />
-            &nbsp;&nbsp;&nbsp;&nbsp;json_extract(payload, '$.email') as email,<br />
+            &nbsp;&nbsp;SELECT aggregate_id, json_extract(payload, '$.name') as
+            name,<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;json_extract(payload, '$.email') as
+            email,<br />
             &nbsp;&nbsp;&nbsp;&nbsp;max(version) as current_version<br />
             &nbsp;&nbsp;FROM read_parquet('events/*.parquet')<br />
             &nbsp;&nbsp;WHERE event_type = 'UserCreated'<br />
@@ -3188,7 +3506,9 @@ Old root still valid → readers see consistent snapshot</pre>
             </tr>
             <tr>
               <td>Extensions</td>
-              <td>httpfs, spatial, full_text_search, postgres (federation), excel</td>
+              <td>
+                httpfs, spatial, full_text_search, postgres (federation), excel
+              </td>
             </tr>
             <tr>
               <td>Concurrency</td>
@@ -3200,19 +3520,27 @@ Old root still valid → readers see consistent snapshot</pre>
             </tr>
           </table>
 
-          <div class="lesson" style="border-left-color: var(--amber); margin-top: 1rem">
-            <strong>Why it matters for go-cqrs-lite:</strong> DuckDB is the ideal
-            <em>projection store for edge/embedded</em>. Imagine a <code>duckdb/</code> module that
-            implements <code>listing.AggregateReader</code> + <code>projection.Handler</code> backed
-            by DuckDB — embedded analytics on event data without PostgreSQL. Could also query
-            Parquet event exports directly. Fills the gap between Pebble (raw KV) and full
-            PostgreSQL.
+          <div
+            class="lesson"
+            style="border-left-color: var(--amber); margin-top: 1rem"
+          >
+            <strong>Why it matters for go-cqrs-lite:</strong> DuckDB is the
+            ideal <em>projection store for edge/embedded</em>. Imagine a
+            <code>duckdb/</code> module that implements
+            <code>listing.AggregateReader</code> +
+            <code>projection.Handler</code> backed by DuckDB — embedded
+            analytics on event data without PostgreSQL. Could also query Parquet
+            event exports directly. Fills the gap between Pebble (raw KV) and
+            full PostgreSQL.
           </div>
         </div>
 
         <div
           class="adv-card"
-          style="border-color: var(--amber); box-shadow: 0 0 40px rgba(245, 158, 11, 0.1)"
+          style="
+            border-color: var(--amber);
+            box-shadow: 0 0 40px rgba(245, 158, 11, 0.1);
+          "
         >
           <h3>
             ClickHouse
@@ -3227,11 +3555,13 @@ Old root still valid → readers see consistent snapshot</pre>
             >
           </h3>
           <p class="desc">
-            <strong>Storage:</strong> Columnar, MergeTree engine family (ReplacingMergeTree,
-            CollapsingMergeTree, AggregatingMergeTree, SummingMergeTree). RAFT-based replication.<br /><strong
+            <strong>Storage:</strong> Columnar, MergeTree engine family
+            (ReplacingMergeTree, CollapsingMergeTree, AggregatingMergeTree,
+            SummingMergeTree). RAFT-based replication.<br /><strong
               >Interface:</strong
             >
-            Full SQL with materialized views. Go client: native API (<code>clickhouse.Open</code>) +
+            Full SQL with materialized views. Go client: native API
+            (<code>clickhouse.Open</code>) +
             <code>database/sql</code> (<code>clickhouse.OpenDB</code>).
           </p>
 
@@ -3249,7 +3579,8 @@ Old root still valid → readers see consistent snapshot</pre>
               overflow-x: auto;
             "
           >
-            <span style="color: var(--fg-muted)">// Go: github.com/ClickHouse/clickhouse-go/v2</span
+            <span style="color: var(--fg-muted)"
+              >// Go: github.com/ClickHouse/clickhouse-go/v2</span
             ><br />
             conn, _ := clickhouse.Open(&clickhouse.Options{<br />
             &nbsp;&nbsp;Addr: []string{"clickhouse:9000"},<br />
@@ -3258,7 +3589,8 @@ Old root still valid → readers see consistent snapshot</pre>
               >// Event table — append-only, partitioned by month</span
             ><br />
             conn.Exec(ctx, `CREATE TABLE events (<br />
-            &nbsp;&nbsp;event_id UUID, aggregate_id String, event_type String,<br />
+            &nbsp;&nbsp;event_id UUID, aggregate_id String, event_type
+            String,<br />
             &nbsp;&nbsp;version UInt32, payload String, timestamp DateTime64<br />
             ) ENGINE = MergeTree()<br />
             &nbsp;&nbsp;PARTITION BY toYYYYMM(timestamp)<br />
@@ -3271,10 +3603,12 @@ Old root still valid → readers see consistent snapshot</pre>
             &nbsp;&nbsp;SELECT aggregate_id, event_type, count() as cnt,<br />
             &nbsp;&nbsp;&nbsp;&nbsp;max(timestamp) as last_seen<br />
             &nbsp;&nbsp;FROM events GROUP BY aggregate_id, event_type`)<br /><br />
-            <span style="color: var(--fg-muted)">// Bulk insert — millions of events/sec</span
+            <span style="color: var(--fg-muted)"
+              >// Bulk insert — millions of events/sec</span
             ><br />
             batch, _ := conn.PrepareBatch(ctx, "INSERT INTO events")<br />
-            batch.Append(uuid.New(), "User:01H4", "UserCreated", 1, payload, time.Now())<br />
+            batch.Append(uuid.New(), "User:01H4", "UserCreated", 1, payload,
+            time.Now())<br />
             batch.Send()
           </div>
 
@@ -3285,23 +3619,36 @@ Old root still valid → readers see consistent snapshot</pre>
             </tr>
             <tr>
               <td>Execution</td>
-              <td>Vectorized — 1,024-4,098 rows/batch, SIMD (AVX2, AVX-512, NEON)</td>
+              <td>
+                Vectorized — 1,024-4,098 rows/batch, SIMD (AVX2, AVX-512, NEON)
+              </td>
             </tr>
             <tr>
               <td>Deployment</td>
-              <td>Server cluster. Sharding + replication via ClickHouse Keeper (RAFT)</td>
+              <td>
+                Server cluster. Sharding + replication via ClickHouse Keeper
+                (RAFT)
+              </td>
             </tr>
             <tr>
               <td>Go client</td>
-              <td>Native API + <code>database/sql</code>. Batch inserts, columnar encoding</td>
+              <td>
+                Native API + <code>database/sql</code>. Batch inserts, columnar
+                encoding
+              </td>
             </tr>
             <tr>
               <td>MergeTree family</td>
-              <td>Base, Replicated, Replacing, Collapsing, Aggregating, Summing</td>
+              <td>
+                Base, Replicated, Replacing, Collapsing, Aggregating, Summing
+              </td>
             </tr>
             <tr>
               <td>Materialized views</td>
-              <td>Incremental (on insert) + Refreshable (scheduled). Server-side projections</td>
+              <td>
+                Incremental (on insert) + Refreshable (scheduled). Server-side
+                projections
+              </td>
             </tr>
             <tr>
               <td>Compression</td>
@@ -3317,15 +3664,19 @@ Old root still valid → readers see consistent snapshot</pre>
             </tr>
           </table>
 
-          <div class="lesson" style="border-left-color: var(--amber); margin-top: 1rem">
+          <div
+            class="lesson"
+            style="border-left-color: var(--amber); margin-top: 1rem"
+          >
             <strong>Why it matters for go-cqrs-lite:</strong> ClickHouse is the
-            <em>production-scale projection backend</em>. Its materialized views auto-populate read
-            models on every event insert — the projection runs inside the database, not in
-            application code. The MergeTree engine family handles deduplication
-            (ReplacingMergeTree), state cancellation (CollapsingMergeTree), and pre-aggregation
-            (AggregatingMergeTree). For enterprises running go-cqrs-lite at scale, a
-            <code>clickhouse/</code> projection module would complement the PostgreSQL event store
-            with real-time analytics.
+            <em>production-scale projection backend</em>. Its materialized views
+            auto-populate read models on every event insert — the projection
+            runs inside the database, not in application code. The MergeTree
+            engine family handles deduplication (ReplacingMergeTree), state
+            cancellation (CollapsingMergeTree), and pre-aggregation
+            (AggregatingMergeTree). For enterprises running go-cqrs-lite at
+            scale, a <code>clickhouse/</code> projection module would complement
+            the PostgreSQL event store with real-time analytics.
           </div>
 
           <table style="margin-top: 1rem">
@@ -3356,7 +3707,9 @@ Old root still valid → readers see consistent snapshot</pre>
             <tr>
               <td>Projection store?</td>
               <td style="color: var(--accent)">Excellent</td>
-              <td style="color: var(--accent)">Excellent (materialized views)</td>
+              <td style="color: var(--accent)">
+                Excellent (materialized views)
+              </td>
               <td>Good</td>
             </tr>
             <tr>
@@ -3386,8 +3739,16 @@ Old root still valid → readers see consistent snapshot</pre>
           </table>
         </div>
 
-        <h3 style="font-size: 1rem; color: var(--fg-dim); margin: 2.5rem 0 1rem; font-weight: 400">
-          Event Sourcing, Bitemporal &amp; Versioned — Directly Related to go-cqrs-lite
+        <h3
+          style="
+            font-size: 1rem;
+            color: var(--fg-dim);
+            margin: 2.5rem 0 1rem;
+            font-weight: 400;
+          "
+        >
+          Event Sourcing, Bitemporal &amp; Versioned — Directly Related to
+          go-cqrs-lite
         </h3>
         <p
           style="
@@ -3398,55 +3759,79 @@ Old root still valid → readers see consistent snapshot</pre>
             line-height: 1.7;
           "
         >
-          These databases share architectural DNA with go-cqrs-lite: immutable logs, time-travel
-          queries, bitemporal tracking, or event-first design. Direct competitors or inspirations.
+          These databases share architectural DNA with go-cqrs-lite: immutable
+          logs, time-travel queries, bitemporal tracking, or event-first design.
+          Direct competitors or inspirations.
         </p>
 
         <div
           class="adv-card"
-          style="border-color: var(--violet); box-shadow: 0 0 40px rgba(139, 92, 246, 0.1)"
+          style="
+            border-color: var(--violet);
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.1);
+          "
         >
           <h3>
-            XTDB <span class="tag badge-arch">Bitemporal Datalog — Event Sourcing Competitor</span>
+            XTDB
+            <span class="tag badge-arch"
+              >Bitemporal Datalog — Event Sourcing Competitor</span
+            >
           </h3>
           <p class="desc">
-            <strong>Storage:</strong> Append-only transaction log + Lucene indexes + object store
-            (S3/GCS). Documents are never updated — new versions are appended.<br /><strong
-              >Interface:</strong
-            >
-            Datalog (Clojure), SQL:2023 (Java/XNode), XTQL. First-class bitemporal: valid-time +
-            transaction-time on every document.
+            <strong>Storage:</strong> Append-only transaction log + Lucene
+            indexes + object store (S3/GCS). Documents are never updated — new
+            versions are appended.<br /><strong>Interface:</strong>
+            Datalog (Clojure), SQL:2023 (Java/XNode), XTQL. First-class
+            bitemporal: valid-time + transaction-time on every document.
           </p>
           <div class="lesson">
-            <strong>Why it matters:</strong> XTDB (formerly Crux) is the closest direct competitor
-            to go-cqrs-lite in the event sourcing space. It's bitemporal (tracks both "when did this
-            happen" and "when did we record it"), supports time-travel queries natively, and treats
-            documents as immutable event streams. The Clojure ecosystem means it targets different
-            users, but the architectural overlap is significant. #289 in DB-Engines ranking.
+            <strong>Why it matters:</strong> XTDB (formerly Crux) is the closest
+            direct competitor to go-cqrs-lite in the event sourcing space. It's
+            bitemporal (tracks both "when did this happen" and "when did we
+            record it"), supports time-travel queries natively, and treats
+            documents as immutable event streams. The Clojure ecosystem means it
+            targets different users, but the architectural overlap is
+            significant. #289 in DB-Engines ranking.
           </div>
         </div>
 
         <div
           class="adv-card"
-          style="border-color: var(--violet); box-shadow: 0 0 40px rgba(139, 92, 246, 0.1)"
+          style="
+            border-color: var(--violet);
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.1);
+          "
         >
-          <h3>Dolt <span class="tag badge-arch">Git-for-Data — Versioned SQL</span></h3>
+          <h3>
+            Dolt
+            <span class="tag badge-arch">Git-for-Data — Versioned SQL</span>
+          </h3>
           <p class="desc">
-            <strong>Storage:</strong> Prolly Trees (probabilistic B+Tree) — content-addressed,
-            enabling structural sharing between versions like Git.<br /><strong>Interface:</strong>
-            Full MySQL-compatible SQL. Git semantics: <code>dolt commit</code>,
-            <code>dolt diff</code>, <code>dolt merge</code>, <code>dolt revert</code> on relational
+            <strong>Storage:</strong> Prolly Trees (probabilistic B+Tree) —
+            content-addressed, enabling structural sharing between versions like
+            Git.<br /><strong>Interface:</strong> Full MySQL-compatible SQL. Git
+            semantics: <code>dolt commit</code>, <code>dolt diff</code>,
+            <code>dolt merge</code>, <code>dolt revert</code> on relational
             data.
           </p>
           <div class="lesson">
-            <strong>Why it matters:</strong> Dolt applies Git's branching/merging model to
-            relational data. Every table state is versioned, diffable, and mergeable. For event
-            sourcing, this is fascinating — the event log IS the Git history. Prolly Trees achieve
-            O(log n) reads with content-addressed deduplication. #190 in DB-Engines ranking.
+            <strong>Why it matters:</strong> Dolt applies Git's
+            branching/merging model to relational data. Every table state is
+            versioned, diffable, and mergeable. For event sourcing, this is
+            fascinating — the event log IS the Git history. Prolly Trees achieve
+            O(log n) reads with content-addressed deduplication. #190 in
+            DB-Engines ranking.
           </div>
         </div>
 
-        <h3 style="font-size: 1rem; color: var(--fg-dim); margin: 2.5rem 0 1rem; font-weight: 400">
+        <h3
+          style="
+            font-size: 1rem;
+            color: var(--fg-dim);
+            margin: 2.5rem 0 1rem;
+            font-weight: 400;
+          "
+        >
           Distributed SQL &amp; Wide-Column — Scale-Out Architectures
         </h3>
         <p
@@ -3458,59 +3843,74 @@ Old root still valid → readers see consistent snapshot</pre>
             line-height: 1.7;
           "
         >
-          For deployments where a single PostgreSQL instance isn't enough. These databases
-          distribute data across nodes while maintaining SQL or wide-column interfaces.
+          For deployments where a single PostgreSQL instance isn't enough. These
+          databases distribute data across nodes while maintaining SQL or
+          wide-column interfaces.
         </p>
 
         <div class="adv-card">
-          <h3>TiDB <span class="tag badge-arch">Distributed HTAP — MySQL-Compatible</span></h3>
-          <p class="desc">
-            <strong>Storage:</strong> RAFT-replicated MVCC storage (TiKV, based on RocksDB) for OLTP
-            + columnar (TiFlash) for OLAP. Separate engines, one SQL surface.<br /><strong
-              >Interface:</strong
+          <h3>
+            TiDB
+            <span class="tag badge-arch"
+              >Distributed HTAP — MySQL-Compatible</span
             >
-            MySQL-compatible SQL. Transparent sharding. Go client via MySQL protocol.
+          </h3>
+          <p class="desc">
+            <strong>Storage:</strong> RAFT-replicated MVCC storage (TiKV, based
+            on RocksDB) for OLTP + columnar (TiFlash) for OLAP. Separate
+            engines, one SQL surface.<br /><strong>Interface:</strong>
+            MySQL-compatible SQL. Transparent sharding. Go client via MySQL
+            protocol.
           </p>
           <div class="lesson">
             <strong>Why it matters:</strong> TiDB proves the "HTAP" (hybrid
-            transactional/analytical) model works at scale. For go-cqrs-lite, TiDB could use the
-            MySQL dialect variant of our storage module. The TiKV layer (RocksDB-based) aligns with
-            our Pebble adapter strategy. #84 in DB-Engines ranking.
-          </div>
-        </div>
-
-        <div class="adv-card">
-          <h3>ScyllaDB <span class="tag badge-arch">C++ Cassandra — 10× Latency</span></h3>
-          <p class="desc">
-            <strong>Storage:</strong> LSM-Tree (C++ rewrite of Cassandra's Java storage).
-            Shard-per-core architecture. No JVM, no GC pauses.<br /><strong>Interface:</strong>
-            Cassandra-compatible CQL. Same data model, 10× lower latency, same operational
-            knowledge.
-          </p>
-          <div class="lesson">
-            <strong>Why it matters:</strong> ScyllaDB demonstrates that the storage engine language
-            matters. C++ with shard-per-core threading eliminates GC pauses and cross-core
-            coordination. For event sourcing at scale, ScyllaDB's append-optimized LSM with tunable
-            consistency is a viable event store backend. #69 in DB-Engines ranking.
+            transactional/analytical) model works at scale. For go-cqrs-lite,
+            TiDB could use the MySQL dialect variant of our storage module. The
+            TiKV layer (RocksDB-based) aligns with our Pebble adapter strategy.
+            #84 in DB-Engines ranking.
           </div>
         </div>
 
         <div class="adv-card">
           <h3>
-            CockroachDB / YugabyteDB <span class="tag badge-arch">Distributed PostgreSQL</span>
+            ScyllaDB
+            <span class="tag badge-arch">C++ Cassandra — 10× Latency</span>
           </h3>
           <p class="desc">
-            <strong>Storage:</strong> Pebble (CockroachDB) or RocksDB (YugabyteDB) under the hood.
-            RAFT-based replication. MVCC with hybrid logical clocks.<br /><strong
+            <strong>Storage:</strong> LSM-Tree (C++ rewrite of Cassandra's Java
+            storage). Shard-per-core architecture. No JVM, no GC pauses.<br /><strong
               >Interface:</strong
             >
-            PostgreSQL-compatible SQL (YugabyteDB) or PostgreSQL-wire-protocol SQL (CockroachDB).
+            Cassandra-compatible CQL. Same data model, 10× lower latency, same
+            operational knowledge.
           </p>
           <div class="lesson">
-            <strong>Why it matters:</strong> Both are drop-in PostgreSQL replacements for
-            distributed deployments. CockroachDB uses Pebble — the same engine our
-            <code>pebble/</code> module wraps. Our PostgreSQL dialect should work with minimal
-            modification. CockroachDB #73, YugabyteDB #122.
+            <strong>Why it matters:</strong> ScyllaDB demonstrates that the
+            storage engine language matters. C++ with shard-per-core threading
+            eliminates GC pauses and cross-core coordination. For event sourcing
+            at scale, ScyllaDB's append-optimized LSM with tunable consistency
+            is a viable event store backend. #69 in DB-Engines ranking.
+          </div>
+        </div>
+
+        <div class="adv-card">
+          <h3>
+            CockroachDB / YugabyteDB
+            <span class="tag badge-arch">Distributed PostgreSQL</span>
+          </h3>
+          <p class="desc">
+            <strong>Storage:</strong> Pebble (CockroachDB) or RocksDB
+            (YugabyteDB) under the hood. RAFT-based replication. MVCC with
+            hybrid logical clocks.<br /><strong>Interface:</strong>
+            PostgreSQL-compatible SQL (YugabyteDB) or PostgreSQL-wire-protocol
+            SQL (CockroachDB).
+          </p>
+          <div class="lesson">
+            <strong>Why it matters:</strong> Both are drop-in PostgreSQL
+            replacements for distributed deployments. CockroachDB uses Pebble —
+            the same engine our <code>pebble/</code> module wraps. Our
+            PostgreSQL dialect should work with minimal modification.
+            CockroachDB #73, YugabyteDB #122.
           </div>
         </div>
       </section>
@@ -3531,9 +3931,12 @@ Old root still valid → readers see consistent snapshot</pre>
             line-height: 1.7;
           "
         >
-          Top 30 databases by popularity score (May 2026). Databases used by go-cqrs-lite are
-          highlighted. Data from
-          <a href="https://db-engines.com/en/ranking" style="color: var(--accent)">db-engines.com</a
+          Top 30 databases by popularity score (May 2026). Databases used by
+          go-cqrs-lite are highlighted. Data from
+          <a
+            href="https://db-engines.com/en/ranking"
+            style="color: var(--accent)"
+            >db-engines.com</a
           >.
         </p>
 
@@ -3575,7 +3978,9 @@ Old root still valid → readers see consistent snapshot</pre>
                 <td class="db-name">PostgreSQL</td>
                 <td class="db-model">Relational, Multi-model</td>
                 <td class="db-score">682.68</td>
-                <td class="db-usage">Event Store, Outbox, Snapshots, Checkpoints</td>
+                <td class="db-usage">
+                  Event Store, Outbox, Snapshots, Checkpoints
+                </td>
               </tr>
               <tr>
                 <td class="rank-num">5</td>
@@ -3631,7 +4036,9 @@ Old root still valid → readers see consistent snapshot</pre>
                 <td class="db-name">SQLite</td>
                 <td class="db-model">Relational</td>
                 <td class="db-score">95.88</td>
-                <td class="db-usage">Event Store, Outbox, Snapshots, Checkpoints</td>
+                <td class="db-usage">
+                  Event Store, Outbox, Snapshots, Checkpoints
+                </td>
               </tr>
               <tr>
                 <td class="rank-num">13</td>
@@ -3729,7 +4136,9 @@ Old root still valid → readers see consistent snapshot</pre>
                 <td class="db-name">ClickHouse</td>
                 <td class="db-model">Relational, Multi-model</td>
                 <td class="db-score">23.49</td>
-                <td class="db-usage">Potential enterprise-scale projection backend</td>
+                <td class="db-usage">
+                  Potential enterprise-scale projection backend
+                </td>
               </tr>
               <tr>
                 <td class="rank-num">27</td>
@@ -3764,7 +4173,12 @@ Old root still valid → readers see consistent snapshot</pre>
         </div>
 
         <h3
-          style="font-size: 0.95rem; color: var(--fg-dim); margin: 2.5rem 0 1rem; font-weight: 400"
+          style="
+            font-size: 0.95rem;
+            color: var(--fg-dim);
+            margin: 2.5rem 0 1rem;
+            font-weight: 400;
+          "
         >
           Notable databases further down the ranking (31–434)
         </h3>
@@ -3784,7 +4198,9 @@ Old root still valid → readers see consistent snapshot</pre>
         <div class="relevance-grid">
           <div class="rel-item">
             <h4 style="color: var(--amber)">#42 DuckDB — 9.59</h4>
-            <p>Embedded OLAP. Ideal edge projection backend for go-cqrs-lite.</p>
+            <p>
+              Embedded OLAP. Ideal edge projection backend for go-cqrs-lite.
+            </p>
           </div>
           <div class="rel-item">
             <h4 style="color: var(--amber)">#47 Vertica — 8.45</h4>
@@ -3819,7 +4235,10 @@ Old root still valid → readers see consistent snapshot</pre>
         <div class="relevance-grid">
           <div class="rel-item">
             <h4 style="color: var(--blue)">#73 CockroachDB — 3.70</h4>
-            <p>Uses Pebble (our engine). PG-compatible. Drop-in distributed replacement.</p>
+            <p>
+              Uses Pebble (our engine). PG-compatible. Drop-in distributed
+              replacement.
+            </p>
           </div>
           <div class="rel-item">
             <h4 style="color: var(--blue)">#84 TiDB — 3.37</h4>
@@ -3827,7 +4246,9 @@ Old root still valid → readers see consistent snapshot</pre>
           </div>
           <div class="rel-item">
             <h4 style="color: var(--blue)">#95 Google Cloud Spanner — 2.80</h4>
-            <p>Globally distributed relational. TrueTime external consistency.</p>
+            <p>
+              Globally distributed relational. TrueTime external consistency.
+            </p>
           </div>
           <div class="rel-item">
             <h4 style="color: var(--blue)">#110 OceanBase — 2.33</h4>
@@ -3839,7 +4260,10 @@ Old root still valid → readers see consistent snapshot</pre>
           </div>
           <div class="rel-item">
             <h4>#115 Citus — 2.22</h4>
-            <p>PostgreSQL sharding extension. Horizontal scale without leaving PG.</p>
+            <p>
+              PostgreSQL sharding extension. Horizontal scale without leaving
+              PG.
+            </p>
           </div>
         </div>
 
@@ -3861,7 +4285,9 @@ Old root still valid → readers see consistent snapshot</pre>
             <p>The KV engine. Pebble (what we use) is RocksDB-compatible.</p>
           </div>
           <div class="rel-item">
-            <h4 style="color: var(--accent)">#104 Google Cloud Bigtable — 2.53</h4>
+            <h4 style="color: var(--accent)">
+              #104 Google Cloud Bigtable — 2.53
+            </h4>
             <p>Wide-column, ordered KV. RocksDB-compatible SSTable format.</p>
           </div>
           <div class="rel-item">
@@ -3870,7 +4296,9 @@ Old root still valid → readers see consistent snapshot</pre>
           </div>
           <div class="rel-item">
             <h4 style="color: var(--accent)">#129 LevelDB — 1.87</h4>
-            <p>LSM KV. The ancestor of RocksDB and Pebble. Still widely used.</p>
+            <p>
+              LSM KV. The ancestor of RocksDB and Pebble. Still widely used.
+            </p>
           </div>
           <div class="rel-item">
             <h4 style="color: var(--accent)">#231 bbolt (BoltDB) — 0.55</h4>
@@ -3878,15 +4306,23 @@ Old root still valid → readers see consistent snapshot</pre>
           </div>
           <div class="rel-item">
             <h4 style="color: var(--accent)">#334 Badger — 0.08</h4>
-            <p>LSM KV (Go-native). Potential future backend via kv.Store adapter.</p>
+            <p>
+              LSM KV (Go-native). Potential future backend via kv.Store adapter.
+            </p>
           </div>
           <div class="rel-item">
             <h4>#109 Valkey — 2.34</h4>
-            <p>Redis fork (community-driven after Redis license change). In-memory KV.</p>
+            <p>
+              Redis fork (community-driven after Redis license change).
+              In-memory KV.
+            </p>
           </div>
           <div class="rel-item">
             <h4>#229 Dragonfly — 0.57</h4>
-            <p>Redis-compatible, multi-threaded. 25× faster than Redis for some workloads.</p>
+            <p>
+              Redis-compatible, multi-threaded. 25× faster than Redis for some
+              workloads.
+            </p>
           </div>
           <div class="rel-item">
             <h4>#291 Immudb — 0.22</h4>
@@ -3913,15 +4349,23 @@ Old root still valid → readers see consistent snapshot</pre>
           </div>
           <div class="rel-item">
             <h4>#75 QuestDB — 3.59</h4>
-            <p>Time-series, SQL. Append-optimized, SIMD-accelerated. Good fit for event storage.</p>
+            <p>
+              Time-series, SQL. Append-optimized, SIMD-accelerated. Good fit for
+              event storage.
+            </p>
           </div>
           <div class="rel-item">
             <h4>#134 VictoriaMetrics — 1.75</h4>
-            <p>Time-series. Popular Prometheus replacement. Uses MergeTree-like storage.</p>
+            <p>
+              Time-series. Popular Prometheus replacement. Uses MergeTree-like
+              storage.
+            </p>
           </div>
           <div class="rel-item">
             <h4>#98 TDengine — 2.74</h4>
-            <p>Time-series, clustered. 10× faster than InfluxDB for IoT metrics.</p>
+            <p>
+              Time-series, clustered. 10× faster than InfluxDB for IoT metrics.
+            </p>
           </div>
         </div>
 
@@ -3940,19 +4384,31 @@ Old root still valid → readers see consistent snapshot</pre>
         <div class="relevance-grid">
           <div class="rel-item">
             <h4 style="color: var(--blue)">#143 Datomic — 1.56</h4>
-            <p>Datalog + event sourcing. Architecture inspiration (database as a value).</p>
+            <p>
+              Datalog + event sourcing. Architecture inspiration (database as a
+              value).
+            </p>
           </div>
           <div class="rel-item">
             <h4 style="color: var(--blue)">#154 SurrealDB — 1.46</h4>
-            <p>Multi-model pluggable. Architecture inspiration (pluggable storage backends).</p>
+            <p>
+              Multi-model pluggable. Architecture inspiration (pluggable storage
+              backends).
+            </p>
           </div>
           <div class="rel-item">
             <h4 style="color: var(--blue)">#191 FoundationDB — 0.92</h4>
-            <p>Ordered KV + layers. Architecture inspiration for our kv.Store design.</p>
+            <p>
+              Ordered KV + layers. Architecture inspiration for our kv.Store
+              design.
+            </p>
           </div>
           <div class="rel-item">
             <h4 style="color: var(--blue)">#289 XTDB — 0.22</h4>
-            <p>Bitemporal Datalog (formerly Crux). Direct event sourcing competitor.</p>
+            <p>
+              Bitemporal Datalog (formerly Crux). Direct event sourcing
+              competitor.
+            </p>
           </div>
           <div class="rel-item">
             <h4 style="color: var(--blue)">#300 NEventStore — 0.19</h4>
@@ -3979,15 +4435,24 @@ Old root still valid → readers see consistent snapshot</pre>
         <div class="relevance-grid">
           <div class="rel-item">
             <h4>#41 Apache Flink — 9.71</h4>
-            <p>Stream processing. Exactly-once semantics. Event processing pipeline.</p>
+            <p>
+              Stream processing. Exactly-once semantics. Event processing
+              pipeline.
+            </p>
           </div>
           <div class="rel-item">
             <h4>#209 RisingWave — 0.73</h4>
-            <p>Streaming SQL with materialized views. Real-time projections from event streams.</p>
+            <p>
+              Streaming SQL with materialized views. Real-time projections from
+              event streams.
+            </p>
           </div>
           <div class="rel-item">
             <h4>#52 Trino — 7.04</h4>
-            <p>Distributed SQL query engine. Federation across event stores and projections.</p>
+            <p>
+              Distributed SQL query engine. Federation across event stores and
+              projections.
+            </p>
           </div>
         </div>
 
@@ -4006,11 +4471,17 @@ Old root still valid → readers see consistent snapshot</pre>
         <div class="relevance-grid">
           <div class="rel-item">
             <h4>#97 Adabas — 2.77</h4>
-            <p>Multivalue DBMS (1970). Still runs core banking at major European banks.</p>
+            <p>
+              Multivalue DBMS (1970). Still runs core banking at major European
+              banks.
+            </p>
           </div>
           <div class="rel-item">
             <h4>#148 IMS — 1.53</h4>
-            <p>Navigational DBMS (1966). Oldest DBMS still in production. 50B+ txns/day.</p>
+            <p>
+              Navigational DBMS (1966). Oldest DBMS still in production. 50B+
+              txns/day.
+            </p>
           </div>
           <div class="rel-item">
             <h4>#156 BaseX — 1.44</h4>
@@ -4022,15 +4493,23 @@ Old root still valid → readers see consistent snapshot</pre>
           </div>
           <div class="rel-item">
             <h4>#171 ObjectBox — 1.18</h4>
-            <p>Object-oriented DBMS. Go-friendly. Embedded/mobile. Edge computing.</p>
+            <p>
+              Object-oriented DBMS. Go-friendly. Embedded/mobile. Edge
+              computing.
+            </p>
           </div>
           <div class="rel-item">
             <h4>#46 Prometheus — 9.06</h4>
-            <p>Time-series. Monitoring/observability for go-cqrs-lite deployments.</p>
+            <p>
+              Time-series. Monitoring/observability for go-cqrs-lite
+              deployments.
+            </p>
           </div>
           <div class="rel-item">
             <h4>#63 TimescaleDB — 5.62</h4>
-            <p>Time-series on PostgreSQL. Same PG instance for events + metrics.</p>
+            <p>
+              Time-series on PostgreSQL. Same PG instance for events + metrics.
+            </p>
           </div>
           <div class="rel-item">
             <h4>#149 PlanetScale — 1.48</h4>
@@ -4056,27 +4535,32 @@ Old root still valid → readers see consistent snapshot</pre>
               #48 Pinecone, #56 Milvus, #65 Qdrant, #70 Weaviate, #92 Chroma
             </h4>
             <p>
-              Vector DBs. Not relevant for event sourcing — included because they dominate the
-              DB-Engines "trending" lists.
+              Vector DBs. Not relevant for event sourcing — included because
+              they dominate the DB-Engines "trending" lists.
             </p>
           </div>
         </div>
 
-        <div class="key-prop" style="border-left-color: var(--accent); margin-top: 2rem">
-          <strong>Takeaway:</strong> go-cqrs-lite's storage stack (PostgreSQL #4, SQLite #12,
-          Pebble/RocksDB-family, Turso) sits on the most popular and battle-tested databases in the
-          world. DuckDB (#42) and ClickHouse (#26) are the natural choices for projection/read-model
-          backends. CockroachDB (#73) uses Pebble directly. The event sourcing niche has two library
-          competitors (EventStoreDB at #300/NEventStore at #300) and two architectural inspirations
-          (Datomic #143, XTDB #289). The market gap is real — no Go-native event sourcing library
-          exists at scale.
+        <div
+          class="key-prop"
+          style="border-left-color: var(--accent); margin-top: 2rem"
+        >
+          <strong>Takeaway:</strong> go-cqrs-lite's storage stack (PostgreSQL
+          #4, SQLite #12, Pebble/RocksDB-family, Turso) sits on the most popular
+          and battle-tested databases in the world. DuckDB (#42) and ClickHouse
+          (#26) are the natural choices for projection/read-model backends.
+          CockroachDB (#73) uses Pebble directly. The event sourcing niche has
+          two library competitors (EventStoreDB at #300/NEventStore at #300) and
+          two architectural inspirations (Datomic #143, XTDB #289). The market
+          gap is real — no Go-native event sourcing library exists at scale.
         </div>
       </section>
 
       <footer>
         <p>
-          Sources: DB-Engines ranking (May 2026), database official documentation, architecture
-          blogs, research papers (HNSW, ART, BW-Tree, Fractal Trees), system design resources.
+          Sources: DB-Engines ranking (May 2026), database official
+          documentation, architecture blogs, research papers (HNSW, ART,
+          BW-Tree, Fractal Trees), system design resources.
         </p>
       </footer>
     </div>

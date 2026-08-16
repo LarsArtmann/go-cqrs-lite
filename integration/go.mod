@@ -12,7 +12,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/graph/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.1.0
@@ -36,6 +35,8 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.45.0
 	go.opentelemetry.io/otel/trace v1.45.0
 )
+
+require github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
 
 require (
 	github.com/DataDog/zstd v1.5.7 // indirect

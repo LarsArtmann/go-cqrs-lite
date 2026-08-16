@@ -90,7 +90,9 @@
       .page {
         display: grid;
         grid-template-columns: var(--sidebar-width) 1fr;
-        max-width: calc(var(--sidebar-width) + var(--max-width) + var(--gutter) * 2);
+        max-width: calc(
+          var(--sidebar-width) + var(--max-width) + var(--gutter) * 2
+        );
         margin: 0 auto;
         min-height: 100vh;
       }
@@ -909,24 +911,29 @@
       <main class="main">
         <h1>Serialization Blueprint</h1>
         <p class="subtitle">
-          Three architectures for zero-overhead event serialization in go-cqrs-lite &mdash;
-          FlatBuffers, CBOR, and custom binary &mdash; analyzed against a library that consumers
-          extend with their own types.
+          Three architectures for zero-overhead event serialization in
+          go-cqrs-lite &mdash; FlatBuffers, CBOR, and custom binary &mdash;
+          analyzed against a library that consumers extend with their own types.
         </p>
 
         <div class="status-banner">
           <div class="status-banner-icon">&#x2705;</div>
           <div class="status-banner-text">
-            <div class="status-banner-title">Phase 1 Complete &mdash; CBORCodec shipped</div>
+            <div class="status-banner-title">
+              Phase 1 Complete &mdash; CBORCodec shipped
+            </div>
             <p>
-              <code>CBORCodec</code> is implemented in <code>codec/cbor.go</code> using
-              <code>fxamacker/cbor/v2</code> with Canonical encoding (RFC 7049: sorted map keys,
-              shortest floats) and a configured DecMode with <code>DupMapKeyEnforcedAPF</code>. 17%
-              faster encode, 38% faster decode than JSON. Deterministic encoding verified.
+              <code>CBORCodec</code> is implemented in
+              <code>codec/cbor.go</code> using
+              <code>fxamacker/cbor/v2</code> with Canonical encoding (RFC 7049:
+              sorted map keys, shortest floats) and a configured DecMode with
+              <code>DupMapKeyEnforcedAPF</code>. 17% faster encode, 38% faster
+              decode than JSON. Deterministic encoding verified.
             </p>
             <p>
-              <strong>Tests:</strong> 15 unit tests, 4 fuzz tests, 4 benchmarks, 1 golden test, 1
-              example function, 1 end-to-end event integration test.
+              <strong>Tests:</strong> 15 unit tests, 4 fuzz tests, 4 benchmarks,
+              1 golden test, 1 example function, 1 end-to-end event integration
+              test.
             </p>
             <p class="commit">
               Committed: <code>a576dadc</code> &middot; ADR-0015 &middot;
@@ -940,9 +947,10 @@
           <h2>The Problem</h2>
 
           <p>
-            Every event payload today traverses <strong>three serialization passes</strong>
-            for a single round-trip through the Pebble store. The SQL store avoids the worst of it,
-            but still pays reflection tax on every
+            Every event payload today traverses
+            <strong>three serialization passes</strong>
+            for a single round-trip through the Pebble store. The SQL store
+            avoids the worst of it, but still pays reflection tax on every
             <code>json.Marshal</code> / <code>json.Unmarshal</code>.
           </p>
 
@@ -964,9 +972,10 @@
             <div class="callout-title">Base64 Tax</div>
             <p>
               Go's <code>encoding/json</code> automatically base64-encodes
-              <code>[]byte</code> fields. A 256-byte payload becomes 344 bytes on wire &mdash; a
-              <strong>33% size inflation</strong> with zero informational gain. This affects
-              <em>every</em> event stored via the Pebble backend.
+              <code>[]byte</code> fields. A 256-byte payload becomes 344 bytes
+              on wire &mdash; a <strong>33% size inflation</strong> with zero
+              informational gain. This affects <em>every</em> event stored via
+              the Pebble backend.
             </p>
           </div>
 
@@ -997,8 +1006,8 @@
           <h2>Current State</h2>
 
           <p>
-            The <code>codec/</code> module is a leaf &mdash; zero external dependencies, clean
-            interface:
+            The <code>codec/</code> module is a leaf &mdash; zero external
+            dependencies, clean interface:
           </p>
 
           <pre><code>type Codec interface {
@@ -1008,13 +1017,16 @@
 }</code></pre>
 
           <p>
-            Three implementations exist: <code>JSONCodec</code> (wraps <code>encoding/json</code>),
-            <code>CBORCodec</code> (wraps <code>fxamacker/cbor/v2</code> with canonical encoding),
-            and <code>RawCodec</code> (passthrough for <code>[]byte</code>). The payload lifecycle
-            already has zero-copy internal reads via <code>PayloadReadOnly()</code> and
-            <code>payloadForDecode()</code> &mdash; but the Pebble <em>wire format</em> remains pure
-            JSON (Phase 2 will address this). The payload <em>codec</em> is now consumer-selectable
-            via <code>event.WithCodec(codec.CBORCodec{})</code>.
+            Three implementations exist: <code>JSONCodec</code> (wraps
+            <code>encoding/json</code>), <code>CBORCodec</code> (wraps
+            <code>fxamacker/cbor/v2</code> with canonical encoding), and
+            <code>RawCodec</code> (passthrough for <code>[]byte</code>). The
+            payload lifecycle already has zero-copy internal reads via
+            <code>PayloadReadOnly()</code> and
+            <code>payloadForDecode()</code> &mdash; but the Pebble
+            <em>wire format</em> remains pure JSON (Phase 2 will address this).
+            The payload <em>codec</em> is now consumer-selectable via
+            <code>event.WithCodec(codec.CBORCodec{})</code>.
           </p>
 
           <h3>Where serialization happens today</h3>
@@ -1030,12 +1042,17 @@
             <tbody>
               <tr>
                 <td><code>event.New()</code></td>
-                <td><code>codec.Encode(struct)</code> &rarr; JSON or CBOR bytes</td>
+                <td>
+                  <code>codec.Encode(struct)</code> &rarr; JSON or CBOR bytes
+                </td>
                 <td>reflection, alloc</td>
               </tr>
               <tr>
                 <td><code>event.New() + CBORCodec</code></td>
-                <td><code>cborEncMode.Marshal(v)</code> &rarr; CBOR bytes (canonical)</td>
+                <td>
+                  <code>cborEncMode.Marshal(v)</code> &rarr; CBOR bytes
+                  (canonical)
+                </td>
                 <td>reflection, ~17% faster than JSON</td>
               </tr>
               <tr>
@@ -1055,7 +1072,9 @@
               </tr>
               <tr>
                 <td><code>event.DecodePayload[T]()</code></td>
-                <td><code>payloadForDecode()</code> + <code>codec.Decode()</code></td>
+                <td>
+                  <code>payloadForDecode()</code> + <code>codec.Decode()</code>
+                </td>
                 <td>zero-copy read + reflection decode</td>
               </tr>
             </tbody>
@@ -1065,14 +1084,17 @@
 
           <p>
             Pebble imports <code>codec/v2</code> but only for reading the
-            <code>Encoding</code> field on deserialization. The envelope serialization bypasses the
-            codec entirely &mdash; it builds its own <code>serializableEvent</code> struct and calls
-            <code>json.Marshal</code> directly. Why? Because <code>codec.Codec</code> is a
-            struct&harr;bytes abstraction for <strong>payloads</strong>. It doesn't know what an
-            event envelope is. There's no <code>EncodeEvent(Event)</code> method. This gap is
+            <code>Encoding</code> field on deserialization. The envelope
+            serialization bypasses the codec entirely &mdash; it builds its own
+            <code>serializableEvent</code> struct and calls
+            <code>json.Marshal</code> directly. Why? Because
+            <code>codec.Codec</code> is a struct&harr;bytes abstraction for
+            <strong>payloads</strong>. It doesn't know what an event envelope
+            is. There's no <code>EncodeEvent(Event)</code> method. This gap is
             exactly what any of the three candidate architectures would fill.
-            <strong>Phase 2</strong> (not yet started) would address this by switching Pebble's
-            envelope serialization from <code>json.Marshal</code> to <code>CBORCodec</code>.
+            <strong>Phase 2</strong> (not yet started) would address this by
+            switching Pebble's envelope serialization from
+            <code>json.Marshal</code> to <code>CBORCodec</code>.
           </p>
         </section>
 
@@ -1083,10 +1105,11 @@
           <h2>Three Candidates</h2>
 
           <p>
-            After researching the landscape &mdash; CBOR, FlatBuffers, msgpack, protobuf, Chronicle
-            Wire, ConnectRPC, Buf &mdash; three architectures remain viable. msgpack was eliminated:
-            it lacks deterministic encoding (signing hazard), has no RFC standard, and CBOR
-            dominates it on every axis that matters.
+            After researching the landscape &mdash; CBOR, FlatBuffers, msgpack,
+            protobuf, Chronicle Wire, ConnectRPC, Buf &mdash; three
+            architectures remain viable. msgpack was eliminated: it lacks
+            deterministic encoding (signing hazard), has no RFC standard, and
+            CBOR dominates it on every axis that matters.
           </p>
 
           <div class="compare-strip">
@@ -1096,8 +1119,8 @@
               <p>~10x faster decode</p>
               <p>0&ndash;1 allocs total</p>
               <p>
-                <strong>Trade-off:</strong> code generation required, <code>.fbs</code> schema per
-                event type
+                <strong>Trade-off:</strong> code generation required,
+                <code>.fbs</code> schema per event type
               </p>
             </div>
             <div class="compare-cell">
@@ -1105,22 +1128,29 @@
               <p>IETF standard (RFC 8949)</p>
               <p>Native byte strings, no base64</p>
               <p>Deterministic encoding (signing-safe)</p>
-              <p><strong>Trade-off:</strong> still uses reflection for envelope, no zero-copy</p>
+              <p>
+                <strong>Trade-off:</strong> still uses reflection for envelope,
+                no zero-copy
+              </p>
             </div>
             <div class="compare-cell">
-              <div class="compare-cell-title custom">C: Custom Binary + CBOR</div>
+              <div class="compare-cell-title custom">
+                C: Custom Binary + CBOR
+              </div>
               <p>Zero-copy envelope parse</p>
               <p>CBOR for payload (standards-based)</p>
               <p>No base64, no reflection on envelope</p>
-              <p><strong>Trade-off:</strong> custom format needs spec and tooling</p>
+              <p>
+                <strong>Trade-off:</strong> custom format needs spec and tooling
+              </p>
             </div>
           </div>
 
           <h3>How they relate to each other</h3>
 
           <p>
-            The three options are not variants of the same thing. They operate at different
-            abstraction levels and can be composed:
+            The three options are not variants of the same thing. They operate
+            at different abstraction levels and can be composed:
           </p>
 
           <table>
@@ -1162,17 +1192,19 @@
           <h2>Option A: FlatBuffers</h2>
 
           <p>
-            Google's <strong>FlatBuffers</strong> is a zero-copy serialization library. You define a
-            schema per type, generate Go code, and access fields directly from the byte buffer
-            without parsing or allocating. Used in Android, games, and latency-critical systems.
+            Google's <strong>FlatBuffers</strong> is a zero-copy serialization
+            library. You define a schema per type, generate Go code, and access
+            fields directly from the byte buffer without parsing or allocating.
+            Used in Android, games, and latency-critical systems.
           </p>
 
           <h3>How it would work</h3>
 
           <p>
-            Define a FlatBuffers schema for the event envelope and one schema per event payload
-            type. Generate Go code via
-            <code>flatc --go</code>. Events are created and read directly from flat buffer bytes.
+            Define a FlatBuffers schema for the event envelope and one schema
+            per event payload type. Generate Go code via
+            <code>flatc --go</code>. Events are created and read directly from
+            flat buffer bytes.
           </p>
 
           <pre><code>// Example schema: event_envelope.fbs
@@ -1199,66 +1231,75 @@ root_type EventEnvelope;</code></pre>
           <h3>Strengths</h3>
           <ul>
             <li>
-              <strong>True zero-copy decode</strong> &mdash; no deserialization. Access fields at
-              byte offsets.
+              <strong>True zero-copy decode</strong> &mdash; no deserialization.
+              Access fields at byte offsets.
             </li>
             <li>
-              <strong>Zero allocs</strong> on read &mdash; the buffer is the object. No intermediate
-              structs.
-            </li>
-            <li><strong>~10x faster decode</strong> than JSON for typical event shapes.</li>
-            <li>
-              <strong>Schema evolution</strong> built in &mdash; add fields without breaking old
-              readers.
+              <strong>Zero allocs</strong> on read &mdash; the buffer is the
+              object. No intermediate structs.
             </li>
             <li>
-              <strong>Cross-language</strong> &mdash; generated code in Go, Rust, Java, C++, Python.
+              <strong>~10x faster decode</strong> than JSON for typical event
+              shapes.
+            </li>
+            <li>
+              <strong>Schema evolution</strong> built in &mdash; add fields
+              without breaking old readers.
+            </li>
+            <li>
+              <strong>Cross-language</strong> &mdash; generated code in Go,
+              Rust, Java, C++, Python.
             </li>
           </ul>
 
           <h3>Weaknesses</h3>
           <ul>
             <li>
-              <strong>Code generation required</strong> &mdash; consumers must run
-              <code>flatc --go</code> for every event type. This is a significant adoption friction
-              for a library.
+              <strong>Code generation required</strong> &mdash; consumers must
+              run <code>flatc --go</code> for every event type. This is a
+              significant adoption friction for a library.
             </li>
             <li>
-              <strong>Schema per event type</strong> &mdash; go-cqrs-lite consumers define plain Go
-              structs today. FlatBuffers would require <code>.fbs</code> files for each one.
-              Violates the "no opinionated transport" principle.
+              <strong>Schema per event type</strong> &mdash; go-cqrs-lite
+              consumers define plain Go structs today. FlatBuffers would require
+              <code>.fbs</code> files for each one. Violates the "no opinionated
+              transport" principle.
             </li>
             <li>
-              <strong>Opaque on disk</strong> &mdash; stored events are binary blobs. No
-              <code>SELECT</code> inspection, no debug without tooling.
+              <strong>Opaque on disk</strong> &mdash; stored events are binary
+              blobs. No <code>SELECT</code> inspection, no debug without
+              tooling.
             </li>
             <li>
-              <strong>Builder pattern overhead</strong> &mdash; creating events is verbose.
-              FlatBuffer builders require offset management that's more complex than
-              <code>event.New()</code>.
+              <strong>Builder pattern overhead</strong> &mdash; creating events
+              is verbose. FlatBuffer builders require offset management that's
+              more complex than <code>event.New()</code>.
             </li>
             <li>
-              <strong>Not self-describing</strong> &mdash; a FlatBuffer blob without its schema is
-              uninterpretable. Schema lock-in is permanent.
+              <strong>Not self-describing</strong> &mdash; a FlatBuffer blob
+              without its schema is uninterpretable. Schema lock-in is
+              permanent.
             </li>
           </ul>
 
           <div class="callout info">
-            <div class="callout-title">The library vs. application distinction</div>
+            <div class="callout-title">
+              The library vs. application distinction
+            </div>
             <p>
-              FlatBuffers is excellent for applications that own their event types and control their
-              build pipeline. go-cqrs-lite is a
-              <strong>library</strong> that consumers extend with their own types. Requiring
-              consumers to define <code>.fbs</code> schemas and run code generation would
-              fundamentally change the adoption model.
+              FlatBuffers is excellent for applications that own their event
+              types and control their build pipeline. go-cqrs-lite is a
+              <strong>library</strong> that consumers extend with their own
+              types. Requiring consumers to define <code>.fbs</code> schemas and
+              run code generation would fundamentally change the adoption model.
             </p>
           </div>
 
           <h3>Verdict</h3>
           <p>
-            Viable as a future <strong>opt-in mode</strong> for consumers who need extreme
-            throughput and are willing to adopt FlatBuffers schemas. Not suitable as the default or
-            only option.
+            Viable as a future <strong>opt-in mode</strong> for consumers who
+            need extreme throughput and are willing to adopt FlatBuffers
+            schemas. Not suitable as the default or only option.
           </p>
         </section>
 
@@ -1269,9 +1310,10 @@ root_type EventEnvelope;</code></pre>
           <h2>Option B: All-in CBOR</h2>
 
           <p>
-            <strong>CBOR</strong> (RFC 8949, IETF Internet Standard) is a binary data format that
-            replaces JSON. It has native byte string support, deterministic encoding, and a
-            production-grade Go library (<code>fxamacker/cbor</code>) with an API identical to
+            <strong>CBOR</strong> (RFC 8949, IETF Internet Standard) is a binary
+            data format that replaces JSON. It has native byte string support,
+            deterministic encoding, and a production-grade Go library
+            (<code>fxamacker/cbor</code>) with an API identical to
             <code>encoding/json</code>.
           </p>
 
@@ -1293,18 +1335,28 @@ root_type EventEnvelope;</code></pre>
               </tr>
               <tr>
                 <td>Binary data</td>
-                <td>Major type 2 (byte strings) &mdash; explicit binary/text separation</td>
+                <td>
+                  Major type 2 (byte strings) &mdash; explicit binary/text
+                  separation
+                </td>
                 <td>Ambiguous "raw" type</td>
               </tr>
               <tr>
                 <td>Deterministic encoding</td>
-                <td>Yes (RFC 8949 &sect;4.2) &mdash; same struct = same bytes</td>
+                <td>
+                  Yes (RFC 8949 &sect;4.2) &mdash; same struct = same bytes
+                </td>
                 <td>No &mdash; map ordering undefined</td>
               </tr>
               <tr>
                 <td>Signing-safe</td>
-                <td>Yes &mdash; deterministic encoding means HMAC/Ed25519 is stable</td>
-                <td>No &mdash; non-deterministic map ordering can break signatures</td>
+                <td>
+                  Yes &mdash; deterministic encoding means HMAC/Ed25519 is
+                  stable
+                </td>
+                <td>
+                  No &mdash; non-deterministic map ordering can break signatures
+                </td>
               </tr>
               <tr>
                 <td>Self-describing</td>
@@ -1314,7 +1366,8 @@ root_type EventEnvelope;</code></pre>
               <tr>
                 <td>Go library</td>
                 <td>
-                  <code>fxamacker/cbor</code> &mdash; no <code>unsafe</code>, 100x faster rejection
+                  <code>fxamacker/cbor</code> &mdash; no <code>unsafe</code>,
+                  100x faster rejection
                 </td>
                 <td><code>vmihailenco/msgpack/v5</code></td>
               </tr>
@@ -1324,10 +1377,11 @@ root_type EventEnvelope;</code></pre>
           <h3>How it would work</h3>
 
           <p>
-            Replace <code>JSONCodec</code> with <code>CBORCodec</code> for both envelope and
-            payload. The envelope struct gets CBOR struct tags. The payload uses the same
-            <code>Codec</code> interface &mdash; consumers just pass
-            <code>CBORCodec{}</code> instead of <code>JSONCodec{}</code>.
+            Replace <code>JSONCodec</code> with <code>CBORCodec</code> for both
+            envelope and payload. The envelope struct gets CBOR struct tags. The
+            payload uses the same <code>Codec</code> interface &mdash; consumers
+            just pass <code>CBORCodec{}</code> instead of
+            <code>JSONCodec{}</code>.
           </p>
 
           <pre><code>// CBORCodec implements Codec using fxamacker/cbor.
@@ -1355,78 +1409,84 @@ func (CBORCodec) Encode(v any) ([]byte, error) { return cborEncMode.Marshal(v) }
 func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal(data, v) }</code></pre>
 
           <p>
-            For Pebble, the <code>serializableEvent</code> struct gets CBOR tags instead of JSON
-            tags. The payload field is a byte string (major type 2) &mdash; no base64. On disk, the
-            event is a CBOR map that any CBOR decoder can inspect.
+            For Pebble, the <code>serializableEvent</code> struct gets CBOR tags
+            instead of JSON tags. The payload field is a byte string (major type
+            2) &mdash; no base64. On disk, the event is a CBOR map that any CBOR
+            decoder can inspect.
           </p>
 
           <h3>Strengths</h3>
           <ul>
             <li>
               <strong>Minimal change</strong> &mdash; drop-in replacement for
-              <code>JSONCodec</code>. Same <code>Codec</code> interface, same struct tags pattern,
-              same consumer API.
+              <code>JSONCodec</code>. Same <code>Codec</code> interface, same
+              struct tags pattern, same consumer API.
             </li>
             <li>
-              <strong>Base64 eliminated</strong> &mdash; CBOR byte strings store raw binary. No
-              encoding tax.
+              <strong>Base64 eliminated</strong> &mdash; CBOR byte strings store
+              raw binary. No encoding tax.
             </li>
             <li>
-              <strong>IETF standard</strong> &mdash; not a proprietary format. Tooling exists across
-              languages.
+              <strong>IETF standard</strong> &mdash; not a proprietary format.
+              Tooling exists across languages.
             </li>
             <li>
-              <strong>Deterministic encoding</strong> &mdash; signing works correctly. Same struct
-              always produces same bytes.
+              <strong>Deterministic encoding</strong> &mdash; signing works
+              correctly. Same struct always produces same bytes.
             </li>
             <li>
-              <strong>Self-describing</strong> &mdash; stored events can be inspected with any CBOR
-              decoder. <code>cbor.diagnose()</code> converts to human-readable text.
+              <strong>Self-describing</strong> &mdash; stored events can be
+              inspected with any CBOR decoder.
+              <code>cbor.diagnose()</code> converts to human-readable text.
             </li>
             <li>
-              <strong>One dependency</strong> &mdash; <code>fxamacker/cbor</code>. Zero transitive
-              deps.
+              <strong>One dependency</strong> &mdash;
+              <code>fxamacker/cbor</code>. Zero transitive deps.
             </li>
             <li>
-              <strong>No code generation</strong> &mdash; consumers keep using plain Go structs with
-              struct tags.
+              <strong>No code generation</strong> &mdash; consumers keep using
+              plain Go structs with struct tags.
             </li>
           </ul>
 
           <h3>Weaknesses</h3>
           <ul>
             <li>
-              <strong>Reflection-based</strong> &mdash; <code>cbor.Marshal</code>/<code
-                >Unmarshal</code
-              >
-              still use reflection. Not zero-copy. Slower than hand-rolled binary.
+              <strong>Reflection-based</strong> &mdash;
+              <code>cbor.Marshal</code>/<code>Unmarshal</code>
+              still use reflection. Not zero-copy. Slower than hand-rolled
+              binary.
             </li>
             <li>
-              <strong>No zero-copy envelope parse</strong> &mdash; must decode the entire CBOR
-              structure to access fields. Can't read just the event type without parsing the whole
-              map.
+              <strong>No zero-copy envelope parse</strong> &mdash; must decode
+              the entire CBOR structure to access fields. Can't read just the
+              event type without parsing the whole map.
             </li>
             <li>
-              <strong>~2-3x improvement</strong> &mdash; meaningful but not transformative. The
-              ceiling is limited by reflection overhead.
+              <strong>~2-3x improvement</strong> &mdash; meaningful but not
+              transformative. The ceiling is limited by reflection overhead.
             </li>
             <li>
-              <strong>Not human-readable on disk</strong> &mdash; CBOR is binary. Better than
-              base64-in-JSON, but you still need a decoder to inspect stored events. JSON you can
-              read with <code>cat</code>.
+              <strong>Not human-readable on disk</strong> &mdash; CBOR is
+              binary. Better than base64-in-JSON, but you still need a decoder
+              to inspect stored events. JSON you can read with <code>cat</code>.
             </li>
           </ul>
 
           <div class="callout success">
-            <div class="callout-title">The pragmatic choice &mdash; now implemented</div>
+            <div class="callout-title">
+              The pragmatic choice &mdash; now implemented
+            </div>
             <p>
-              All-in CBOR was the <strong>highest ROI option</strong>. Minimal code change, one
-              well-maintained dependency, eliminates base64, adds deterministic encoding for
-              signing, and gives ~2-3x performance improvement. It didn't achieve the theoretical
-              maximum &mdash; but it got 80% of the benefit for 20% of the effort.
-              <strong>Phase 1 shipped at <code>a576dadc</code>.</strong> Actual benchmarks: 17%
-              faster encode (2 vs 6 allocs), 38% faster decode (9 vs 12 allocs). CBOR output is
-              smaller than JSON for the same data.
+              All-in CBOR was the <strong>highest ROI option</strong>. Minimal
+              code change, one well-maintained dependency, eliminates base64,
+              adds deterministic encoding for signing, and gives ~2-3x
+              performance improvement. It didn't achieve the theoretical maximum
+              &mdash; but it got 80% of the benefit for 20% of the effort.
+              <strong>Phase 1 shipped at <code>a576dadc</code>.</strong> Actual
+              benchmarks: 17% faster encode (2 vs 6 allocs), 38% faster decode
+              (9 vs 12 allocs). CBOR output is smaller than JSON for the same
+              data.
             </p>
           </div>
         </section>
@@ -1438,14 +1498,17 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
           <h2>Option C: Custom Binary + CBOR</h2>
 
           <p>
-            A <strong>domain-aware binary envelope</strong> for the fixed event metadata, paired
-            with <strong>CBOR</strong> for the variable payload. The envelope is a hand-rolled
-            fixed-offset binary header &mdash; zero-copy, zero-reflection. The payload is
-            CBOR-encoded &mdash; standards-compliant, deterministic, signing-safe.
+            A <strong>domain-aware binary envelope</strong> for the fixed event
+            metadata, paired with <strong>CBOR</strong> for the variable
+            payload. The envelope is a hand-rolled fixed-offset binary header
+            &mdash; zero-copy, zero-reflection. The payload is CBOR-encoded
+            &mdash; standards-compliant, deterministic, signing-safe.
           </p>
 
           <div class="wire-diagram">
-            <div class="wire-header">Event Wire Layout (Custom Binary Envelope)</div>
+            <div class="wire-header">
+              Event Wire Layout (Custom Binary Envelope)
+            </div>
             <pre>
 <span class="comment"> ┌──────────────────────────────────────────────────────┐</span>
 <span class="comment"> │</span>  <span class="field-name">Header</span>  <span class="size-info">(32 bytes, fixed)</span>                           <span class="comment">│</span>
@@ -1482,51 +1545,60 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
           <h3>Strengths</h3>
           <ul>
             <li>
-              <strong>Zero-copy envelope parse</strong> &mdash; read event type, version, timestamp
-              at fixed offsets. No parsing. ~5-10 ns.
+              <strong>Zero-copy envelope parse</strong> &mdash; read event type,
+              version, timestamp at fixed offsets. No parsing. ~5-10 ns.
             </li>
             <li>
-              <strong>Zero reflection on envelope</strong> &mdash; hand-rolled encode/decode for 10
-              fixed fields. No struct tags, no reflection.
+              <strong>Zero reflection on envelope</strong> &mdash; hand-rolled
+              encode/decode for 10 fixed fields. No struct tags, no reflection.
             </li>
             <li>
-              <strong>CBOR payload</strong> &mdash; standards-based, deterministic, signing-safe.
-              Consumers keep using plain Go structs.
+              <strong>CBOR payload</strong> &mdash; standards-based,
+              deterministic, signing-safe. Consumers keep using plain Go
+              structs.
             </li>
-            <li><strong>No base64</strong> &mdash; payload bytes go raw into the wire layout.</li>
             <li>
-              <strong>ULIDs as raw 16 bytes</strong> &mdash; saves 10 bytes per ID (26-char string
-              &rarr; 16 raw bytes).
+              <strong>No base64</strong> &mdash; payload bytes go raw into the
+              wire layout.
+            </li>
+            <li>
+              <strong>ULIDs as raw 16 bytes</strong> &mdash; saves 10 bytes per
+              ID (26-char string &rarr; 16 raw bytes).
             </li>
             <li>
               <strong>Envelope codec is dependency-free</strong> &mdash; pure
-              <code>encoding/binary</code> + <code>unsafe</code>. Only the payload codec
-              (<code>fxamacker/cbor</code>) adds a dependency.
+              <code>encoding/binary</code> + <code>unsafe</code>. Only the
+              payload codec (<code>fxamacker/cbor</code>) adds a dependency.
             </li>
           </ul>
 
           <h3>Weaknesses</h3>
           <ul>
             <li>
-              <strong>Custom format</strong> &mdash; the envelope is not self-describing. Needs its
-              own spec, versioning, and diagnostic tooling.
+              <strong>Custom format</strong> &mdash; the envelope is not
+              self-describing. Needs its own spec, versioning, and diagnostic
+              tooling.
             </li>
             <li>
-              <strong>Implementation complexity</strong> &mdash; hand-rolling an encoder/decoder
-              with <code>unsafe</code> is more work than <code>cbor.Marshal</code>.
+              <strong>Implementation complexity</strong> &mdash; hand-rolling an
+              encoder/decoder with <code>unsafe</code> is more work than
+              <code>cbor.Marshal</code>.
             </li>
             <li>
-              <strong>Two formats to understand</strong> &mdash; the envelope is custom binary, the
-              payload is CBOR. Debugging requires understanding both.
+              <strong>Two formats to understand</strong> &mdash; the envelope is
+              custom binary, the payload is CBOR. Debugging requires
+              understanding both.
             </li>
             <li>
-              <strong>Marginal gain over all-CBOR</strong> &mdash; the envelope decode is ~3-5x
-              faster than CBOR, but the payload decode (CBOR) is the same. Total round-trip
-              improvement may be ~30-50% over all-CBOR, not 3x.
+              <strong>Marginal gain over all-CBOR</strong> &mdash; the envelope
+              decode is ~3-5x faster than CBOR, but the payload decode (CBOR) is
+              the same. Total round-trip improvement may be ~30-50% over
+              all-CBOR, not 3x.
             </li>
             <li>
-              <strong>Only matters for Pebble</strong> &mdash; SQL stores already use columns. The
-              custom envelope only benefits embedded KV stores.
+              <strong>Only matters for Pebble</strong> &mdash; SQL stores
+              already use columns. The custom envelope only benefits embedded KV
+              stores.
             </li>
           </ul>
 
@@ -1534,9 +1606,11 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
             <div class="callout-title">The engineering trade-off</div>
             <p>
               Custom binary + CBOR is the <strong>theoretically optimal</strong>
-              solution. But the gain over all-in CBOR is marginal for most use cases. The zero-copy
-              envelope parse saves ~30-50 ns per event on replay. Over 100K events, that's ~3-5 ms.
-              Worth it for latency-critical replay paths, but not a game-changer for most consumers.
+              solution. But the gain over all-in CBOR is marginal for most use
+              cases. The zero-copy envelope parse saves ~30-50 ns per event on
+              replay. Over 100K events, that's ~3-5 ms. Worth it for
+              latency-critical replay paths, but not a game-changer for most
+              consumers.
             </p>
           </div>
         </section>
@@ -1549,11 +1623,12 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
 
           <p>
             Estimates based on <code>encoding/json</code> benchmarks,
-            <code>fxamacker/cbor</code> throughput, FlatBuffers zero-copy characteristics, and
-            hand-rolled binary encoding with <code>unsafe</code>.
+            <code>fxamacker/cbor</code> throughput, FlatBuffers zero-copy
+            characteristics, and hand-rolled binary encoding with
+            <code>unsafe</code>.
             <strong>CBOR numbers are measured</strong> (from
-            <code>BenchmarkCodecComparison</code> in CI). JSON, custom binary, and FlatBuffers
-            numbers remain projected.
+            <code>BenchmarkCodecComparison</code> in CI). JSON, custom binary,
+            and FlatBuffers numbers remain projected.
           </p>
 
           <h3>Wire size (typical UserCreated event, ~100 byte payload)</h3>
@@ -1561,72 +1636,102 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
           <div class="bar-chart">
             <div class="bar-row">
               <div class="bar-label">JSON envelope (today)</div>
-              <div class="bar-track"><div class="bar-fill json" style="width: 100%"></div></div>
+              <div class="bar-track">
+                <div class="bar-fill json" style="width: 100%"></div>
+              </div>
               <div class="bar-value">~400 B</div>
             </div>
             <div class="bar-row">
               <div class="bar-label">All-in CBOR</div>
-              <div class="bar-track"><div class="bar-fill cbor" style="width: 50%"></div></div>
+              <div class="bar-track">
+                <div class="bar-fill cbor" style="width: 50%"></div>
+              </div>
               <div class="bar-value">~200 B</div>
             </div>
             <div class="bar-row">
               <div class="bar-label">Custom binary + CBOR</div>
-              <div class="bar-track"><div class="bar-fill custom" style="width: 40%"></div></div>
+              <div class="bar-track">
+                <div class="bar-fill custom" style="width: 40%"></div>
+              </div>
               <div class="bar-value">~160 B</div>
             </div>
             <div class="bar-row">
               <div class="bar-label">FlatBuffers</div>
-              <div class="bar-track"><div class="bar-fill flatbuf" style="width: 35%"></div></div>
+              <div class="bar-track">
+                <div class="bar-fill flatbuf" style="width: 35%"></div>
+              </div>
               <div class="bar-value">~140 B</div>
             </div>
           </div>
 
-          <h3>Encode throughput <span class="verdict-tag done">CBOR measured</span></h3>
+          <h3>
+            Encode throughput
+            <span class="verdict-tag done">CBOR measured</span>
+          </h3>
 
           <div class="bar-chart">
             <div class="bar-row">
               <div class="bar-label">JSONCodec (today)</div>
-              <div class="bar-track"><div class="bar-fill json" style="width: 100%"></div></div>
+              <div class="bar-track">
+                <div class="bar-fill json" style="width: 100%"></div>
+              </div>
               <div class="bar-value">~250 ns/op, 6 allocs</div>
             </div>
             <div class="bar-row">
               <div class="bar-label">CBORCodec (measured)</div>
-              <div class="bar-track"><div class="bar-fill cbor" style="width: 83%"></div></div>
+              <div class="bar-track">
+                <div class="bar-fill cbor" style="width: 83%"></div>
+              </div>
               <div class="bar-value">207 ns/op, 2 allocs</div>
             </div>
             <div class="bar-row">
               <div class="bar-label">Custom binary + CBOR</div>
-              <div class="bar-track"><div class="bar-fill custom" style="width: 30%"></div></div>
+              <div class="bar-track">
+                <div class="bar-fill custom" style="width: 30%"></div>
+              </div>
               <div class="bar-value">~45 ns/op</div>
             </div>
             <div class="bar-row">
               <div class="bar-label">FlatBuffers</div>
-              <div class="bar-track"><div class="bar-fill flatbuf" style="width: 12%"></div></div>
+              <div class="bar-track">
+                <div class="bar-fill flatbuf" style="width: 12%"></div>
+              </div>
               <div class="bar-value">~18 ns/op</div>
             </div>
           </div>
 
-          <h3>Decode throughput <span class="verdict-tag done">CBOR measured</span></h3>
+          <h3>
+            Decode throughput
+            <span class="verdict-tag done">CBOR measured</span>
+          </h3>
 
           <div class="bar-chart">
             <div class="bar-row">
               <div class="bar-label">JSONCodec (today)</div>
-              <div class="bar-track"><div class="bar-fill json" style="width: 100%"></div></div>
+              <div class="bar-track">
+                <div class="bar-fill json" style="width: 100%"></div>
+              </div>
               <div class="bar-value">~580 ns/op, 12 allocs</div>
             </div>
             <div class="bar-row">
               <div class="bar-label">CBORCodec (measured)</div>
-              <div class="bar-track"><div class="bar-fill cbor" style="width: 62%"></div></div>
+              <div class="bar-track">
+                <div class="bar-fill cbor" style="width: 62%"></div>
+              </div>
               <div class="bar-value">358 ns/op, 9 allocs</div>
             </div>
             <div class="bar-row">
               <div class="bar-label">Custom binary + CBOR</div>
-              <div class="bar-track"><div class="bar-fill custom" style="width: 22%"></div></div>
+              <div class="bar-track">
+                <div class="bar-fill custom" style="width: 22%"></div>
+              </div>
               <div class="bar-value">~45 ns/op</div>
             </div>
             <div class="bar-row">
               <div class="bar-label">FlatBuffers</div>
-              <div class="bar-track"><div class="bar-fill flatbuf" style="width: 5%"></div></div>
+              <div class="bar-track">
+                <div class="bar-fill flatbuf" style="width: 5%"></div>
+              </div>
               <div class="bar-value">~10 ns/op</div>
             </div>
           </div>
@@ -1721,36 +1826,41 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
           <p>
             Today <code>pebble/serialization.go</code> uses
             <code>json.Marshal(serializableEvent{})</code>. With CBOR, replace
-            <code>json</code> with <code>cbor</code> &mdash; same struct, same tags, no base64. With
-            custom binary, replace the entire function with <code>BinaryCodec.Encode(evt)</code>.
-            FlatBuffers would replace it with flat buffer construction.
-            <strong>Status:</strong> Phase 2 done. Pebble uses CBOR canonical encoding with JSON
-            backward compat.
+            <code>json</code> with <code>cbor</code> &mdash; same struct, same
+            tags, no base64. With custom binary, replace the entire function
+            with <code>BinaryCodec.Encode(evt)</code>. FlatBuffers would replace
+            it with flat buffer construction. <strong>Status:</strong> Phase 2
+            done. Pebble uses CBOR canonical encoding with JSON backward compat.
           </p>
 
           <h3>SQL store</h3>
           <p>
-            Already stores payload as raw <code>[]byte</code> in a BLOB column. The codec only
-            changes how the <em>payload</em> is encoded before insertion &mdash; CBOR instead of
-            JSON. No column layout changes.
+            Already stores payload as raw <code>[]byte</code> in a BLOB column.
+            The codec only changes how the <em>payload</em> is encoded before
+            insertion &mdash; CBOR instead of JSON. No column layout changes.
           </p>
 
           <h3>Event creation</h3>
           <p>
-            <code>event.New()</code> already accepts a <code>codec.Codec</code> parameter via
-            <code>event.WithCodec()</code>. Pass <code>CBORCodec{}</code> and events are created
-            with CBOR encoding. The <code>encoding</code> field on
-            <code>ImmutableEvent</code> records <code>"cbor"</code>.
-            <code>DecodePayload</code> validation works unchanged. <strong>Status:</strong> Done.
-            Tested via <code>TestDecodePayload_CBORCodec</code> in <code>event/codec_test.go</code>.
+            <code>event.New()</code> already accepts a
+            <code>codec.Codec</code> parameter via
+            <code>event.WithCodec()</code>. Pass <code>CBORCodec{}</code> and
+            events are created with CBOR encoding. The
+            <code>encoding</code> field on <code>ImmutableEvent</code> records
+            <code>"cbor"</code>. <code>DecodePayload</code> validation works
+            unchanged. <strong>Status:</strong> Done. Tested via
+            <code>TestDecodePayload_CBORCodec</code> in
+            <code>event/codec_test.go</code>.
           </p>
 
           <h3>Signing</h3>
           <p>
-            CBOR's deterministic encoding is a <strong>direct win for signing</strong>. Today, JSON
-            map ordering is undefined &mdash; the same struct can produce different bytes on
-            different runs, potentially breaking HMAC/Ed25519 verification. CBOR deterministic mode
-            guarantees same struct = same bytes. <strong>Status:</strong> Verified via
+            CBOR's deterministic encoding is a
+            <strong>direct win for signing</strong>. Today, JSON map ordering is
+            undefined &mdash; the same struct can produce different bytes on
+            different runs, potentially breaking HMAC/Ed25519 verification. CBOR
+            deterministic mode guarantees same struct = same bytes.
+            <strong>Status:</strong> Verified via
             <code>TestCBORCodec_SigningDeterminism</code>
             (triple-encode produces identical bytes).
           </p>
@@ -1758,8 +1868,9 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
           <h3>Catalog / AsyncAPI / OpenAPI exporters</h3>
           <p>
             Catalog reads event metadata, not wire format. The
-            <code>Encoding</code> field records the codec used. Exporters describe the logical
-            schema (JSON Schema), not the physical encoding. No changes needed.
+            <code>Encoding</code> field records the codec used. Exporters
+            describe the logical schema (JSON Schema), not the physical
+            encoding. No changes needed.
           </p>
         </section>
 
@@ -1769,32 +1880,49 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
         <section id="file-structure">
           <h2>File Structure</h2>
 
-          <p>Everything lives inside the existing <code>codec/</code> module.</p>
+          <p>
+            Everything lives inside the existing <code>codec/</code> module.
+          </p>
 
           <div class="file-tree">
             <span class="existing">codec/</span>
             <span class="existing"> codec.go</span>
             <span class="comment"
-              >// existing: Codec interface, Encoding type, EncodingCBOR constant</span
+              >// existing: Codec interface, Encoding type, EncodingCBOR
+              constant</span
             >
             <span class="existing"> json.go</span>
             <span class="comment">// existing: JSONCodec</span>
-            <span class="existing"> raw.go</span> <span class="comment">// existing: RawCodec</span>
-            <span class="existing"> errors.go</span> <span class="comment">// existing</span>
+            <span class="existing"> raw.go</span>
+            <span class="comment">// existing: RawCodec</span>
+            <span class="existing"> errors.go</span>
+            <span class="comment">// existing</span>
             <span class="existing"> doc.go</span>
             <span class="comment">// existing: lists all 3 codecs</span>
-            <span class="existing" style="color: var(--success); font-weight: 600"> cbor.go</span>
+            <span
+              class="existing"
+              style="color: var(--success); font-weight: 600"
+            >
+              cbor.go</span
+            >
             <span class="comment"
-              >// CBORCodec: canonical encoding, DupMapKeyEnforcedAPF — DONE</span
+              >// CBORCodec: canonical encoding, DupMapKeyEnforcedAPF —
+              DONE</span
             >
             <span class="new"> binary.go</span>
-            <span class="comment">// BinaryCodec: envelope encode/decode (Option C)</span>
+            <span class="comment"
+              >// BinaryCodec: envelope encode/decode (Option C)</span
+            >
             <span class="new"> binary_header.go</span>
-            <span class="comment">// header constants, flag bitfield, offsets</span>
+            <span class="comment"
+              >// header constants, flag bitfield, offsets</span
+            >
             <span class="new"> binary_decode.go</span>
             <span class="comment">// zero-copy decoder with unsafe</span>
             <span class="new"> composed.go</span>
-            <span class="comment">// ComposedCodec: binary envelope + CBOR payload</span>
+            <span class="comment"
+              >// ComposedCodec: binary envelope + CBOR payload</span
+            >
             <span class="existing"> codec_test.go</span>
             <span class="comment">// existing + 15 CBOR tests — DONE</span>
             <span class="existing"> codec_fuzz_test.go</span>
@@ -1803,10 +1931,13 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
             <span class="comment">// existing + ExampleCBORCodec — DONE</span>
             <span class="new"> cbor_test.go</span>
             <span class="comment"
-              >// CBORCodec round-trip/bench (consolidated into codec_test.go)</span
+              >// CBORCodec round-trip/bench (consolidated into
+              codec_test.go)</span
             >
             <span class="new"> binary_test.go</span>
-            <span class="comment">// envelope encode/decode/bench (Option C)</span>
+            <span class="comment"
+              >// envelope encode/decode/bench (Option C)</span
+            >
             <span class="new"> composed_test.go</span>
             <span class="comment">// composed round-trip/bench (Option C)</span>
             <span class="existing"> benchmark_test.go</span>
@@ -1816,7 +1947,10 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
             <span class="existing"> testdata/golden/</span>
             <span class="existing"> json_encode.json</span>
             <span class="existing"> raw_passthrough.bin</span>
-            <span class="existing" style="color: var(--success); font-weight: 600">
+            <span
+              class="existing"
+              style="color: var(--success); font-weight: 600"
+            >
               cbor_encode.bin</span
             >
             <span class="comment">// CBOR golden fixture — DONE</span>
@@ -1827,8 +1961,9 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
           <div class="callout info">
             <div class="callout-title">Dependency budget</div>
             <p>
-              <code>CBORCodec</code>: one new dependency (<code>github.com/fxamacker/cbor</code>).
-              Zero transitive deps. Must pass dependency budget review.<br />
+              <code>CBORCodec</code>: one new dependency
+              (<code>github.com/fxamacker/cbor</code>). Zero transitive deps.
+              Must pass dependency budget review.<br />
               <code>BinaryCodec</code> (Option C): zero new dependencies. Pure
               <code>encoding/binary</code> + <code>unsafe</code>.
             </p>
@@ -1848,25 +1983,30 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
             </div>
             <div>
               <div class="phase-label">
-                Phase 1 &middot; Foundation <span class="verdict-tag done">DONE</span>
+                Phase 1 &middot; Foundation
+                <span class="verdict-tag done">DONE</span>
               </div>
               <div class="phase-title">CBORCodec</div>
               <div class="phase-desc">
-                <code>CBORCodec</code> implemented in <code>codec/cbor.go</code>. Wraps
-                <code>fxamacker/cbor/v2</code> behind the existing <code>Codec</code> interface.
-                Canonical encoding (RFC 7049: sorted map keys, shortest floats) with configured
-                DecMode (<code>DupMapKeyEnforcedAPF</code>). Deterministic encoding verified via
-                <code>TestCBORCodec_SigningDeterminism</code> (triple-encode produces identical
-                bytes).
+                <code>CBORCodec</code> implemented in
+                <code>codec/cbor.go</code>. Wraps
+                <code>fxamacker/cbor/v2</code> behind the existing
+                <code>Codec</code> interface. Canonical encoding (RFC 7049:
+                sorted map keys, shortest floats) with configured DecMode
+                (<code>DupMapKeyEnforcedAPF</code>). Deterministic encoding
+                verified via
+                <code>TestCBORCodec_SigningDeterminism</code> (triple-encode
+                produces identical bytes).
               </div>
               <div class="phase-detail">
-                <strong>Shipped</strong> at <code>a576dadc</code> &middot; 15 unit tests, 4 fuzz
-                tests, 4 benchmarks, 1 golden test, 1 example, ADR-0015,
+                <strong>Shipped</strong> at <code>a576dadc</code> &middot; 15
+                unit tests, 4 fuzz tests, 4 benchmarks, 1 golden test, 1
+                example, ADR-0015,
                 <code>example/cbor-codec/</code>
               </div>
               <div class="phase-detail">
-                Actual results: 17% faster encode (2 vs 6 allocs), 38% faster decode (9 vs 12
-                allocs), smaller output than JSON
+                Actual results: 17% faster encode (2 vs 6 allocs), 38% faster
+                decode (9 vs 12 allocs), smaller output than JSON
               </div>
             </div>
           </div>
@@ -1878,18 +2018,20 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
             </div>
             <div>
               <div class="phase-label">
-                Phase 2 &middot; Integration <span class="verdict-tag done">DONE</span>
+                Phase 2 &middot; Integration
+                <span class="verdict-tag done">DONE</span>
               </div>
               <div class="phase-title">Pebble CBOR Envelope Migration</div>
               <div class="phase-desc">
                 Switched <code>pebble/serialization.go</code> from
-                <code>json.Marshal(serializableEvent{})</code> to CBOR canonical encoding. Format
-                sniff (<code>isCBOR()</code>) reads both CBOR (current) and JSON (legacy) envelopes
-                for backward compatibility. Base64 tax eliminated.
+                <code>json.Marshal(serializableEvent{})</code> to CBOR canonical
+                encoding. Format sniff (<code>isCBOR()</code>) reads both CBOR
+                (current) and JSON (legacy) envelopes for backward
+                compatibility. Base64 tax eliminated.
               </div>
               <div class="phase-detail">
-                <strong>Shipped</strong> &middot; 12 new tests, 2 fuzz tests, 3 benchmarks &middot;
-                All existing tests pass
+                <strong>Shipped</strong> &middot; 12 new tests, 2 fuzz tests, 3
+                benchmarks &middot; All existing tests pass
               </div>
             </div>
           </div>
@@ -1903,13 +2045,16 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
               <div class="phase-label">Phase 3 &middot; Optional</div>
               <div class="phase-title">Binary Envelope Codec (Option C)</div>
               <div class="phase-desc">
-                If CBOR performance is insufficient for replay-heavy workloads, implement
-                <code>BinaryCodec</code> for the envelope. Zero-copy decode via <code>unsafe</code>.
+                If CBOR performance is insufficient for replay-heavy workloads,
+                implement
+                <code>BinaryCodec</code> for the envelope. Zero-copy decode via
+                <code>unsafe</code>.
                 <code>ComposedCodec</code>
                 wires binary envelope + CBOR payload. No new dependencies.
               </div>
               <div class="phase-detail">
-                ~1 day &middot; Zero new deps &middot; Only if CBOR ceiling is too low
+                ~1 day &middot; Zero new deps &middot; Only if CBOR ceiling is
+                too low
               </div>
             </div>
           </div>
@@ -1923,9 +2068,9 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
               <div class="phase-title">FlatBuffers Codec (Option A)</div>
               <div class="phase-desc">
                 If consumers need true zero-copy for extreme throughput, add
-                <code>FlatCodec</code> as an opt-in codec. Requires consumers to define
-                <code>.fbs</code> schemas and run code generation. Available as an importable codec,
-                not a default.
+                <code>FlatCodec</code> as an opt-in codec. Requires consumers to
+                define <code>.fbs</code> schemas and run code generation.
+                Available as an importable codec, not a default.
               </div>
               <div class="phase-detail">
                 ~1 day &middot; Code generation &middot; Opt-in for power users
@@ -1942,48 +2087,54 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
 
           <h3>Msgpack</h3>
           <p>
-            Lacks deterministic encoding &mdash; map ordering is undefined, which means HMAC/Ed25519
-            signatures can break across runs. No RFC standard. Ambiguous "raw" type conflates binary
-            and text. CBOR dominates msgpack on every axis that matters for event sourcing.
+            Lacks deterministic encoding &mdash; map ordering is undefined,
+            which means HMAC/Ed25519 signatures can break across runs. No RFC
+            standard. Ambiguous "raw" type conflates binary and text. CBOR
+            dominates msgpack on every axis that matters for event sourcing.
             Eliminated.
           </p>
 
           <h3>Protobuf / Buf</h3>
           <p>
-            Requires <code>.proto</code> schemas per event type, code generation, and the
-            <code>google.golang.org/protobuf</code> dependency (~2MB). go-cqrs-lite is a library
-            consumers extend with their own types &mdash; requiring protobuf schemas would
-            fundamentally change the adoption model. Buf's schema governance (breaking-change
-            detection, BSR) is excellent for organizations but wrong for a library. The governance
-            happens in the consumer's repo, not ours.
+            Requires <code>.proto</code> schemas per event type, code
+            generation, and the
+            <code>google.golang.org/protobuf</code> dependency (~2MB).
+            go-cqrs-lite is a library consumers extend with their own types
+            &mdash; requiring protobuf schemas would fundamentally change the
+            adoption model. Buf's schema governance (breaking-change detection,
+            BSR) is excellent for organizations but wrong for a library. The
+            governance happens in the consumer's repo, not ours.
           </p>
 
           <h3>ConnectRPC</h3>
           <p>
-            An RPC framework, not a serialization format. Its streaming envelope (<code
-              >[1 byte flags][4 bytes length][payload]</code
-            >) validates our design principle &mdash; thin binary frame around opaque bytes &mdash;
-            but ConnectRPC wraps RPC messages, not domain events. The envelope has 3 fields. Our
-            events need 10+. Built for service-to-service HTTP communication, not in-process event
+            An RPC framework, not a serialization format. Its streaming envelope
+            (<code>[1 byte flags][4 bytes length][payload]</code>) validates our
+            design principle &mdash; thin binary frame around opaque bytes
+            &mdash; but ConnectRPC wraps RPC messages, not domain events. The
+            envelope has 3 fields. Our events need 10+. Built for
+            service-to-service HTTP communication, not in-process event
             serialization.
           </p>
 
           <h3>Gob encoding</h3>
           <p>
-            Go-specific, not cross-language. Type registration complexity. No random field access.
-            No deterministic encoding.
+            Go-specific, not cross-language. Type registration complexity. No
+            random field access. No deterministic encoding.
           </p>
 
           <h3>Compression (zstd/snappy)</h3>
           <p>
-            Orthogonal concern. Compression is a transport-layer optimization, not a codec concern.
-            Can be layered on top via middleware at any point. Not part of this proposal.
+            Orthogonal concern. Compression is a transport-layer optimization,
+            not a codec concern. Can be layered on top via middleware at any
+            point. Not part of this proposal.
           </p>
 
           <h3>"Just optimize JSONCodec"</h3>
           <p>
-            Can't fix base64 tax. Can't fix reflection overhead. Can't achieve deterministic
-            encoding. Can't do zero-copy decode. The ceiling is too low.
+            Can't fix base64 tax. Can't fix reflection overhead. Can't achieve
+            deterministic encoding. Can't do zero-copy decode. The ceiling is
+            too low.
           </p>
 
           <table>
@@ -1999,24 +2150,24 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
                 <td><strong>Msgpack</strong></td>
                 <td><span class="badge rejected">Eliminated</span></td>
                 <td>
-                  No deterministic encoding (signing hazard), no RFC, ambiguous binary type. CBOR
-                  dominates on every axis.
+                  No deterministic encoding (signing hazard), no RFC, ambiguous
+                  binary type. CBOR dominates on every axis.
                 </td>
               </tr>
               <tr>
                 <td><strong>Protobuf / Buf</strong></td>
                 <td><span class="badge rejected">Wrong level</span></td>
                 <td>
-                  Schema per event type + code generation = wrong for a library. Buf's governance is
-                  for organizations, not libraries.
+                  Schema per event type + code generation = wrong for a library.
+                  Buf's governance is for organizations, not libraries.
                 </td>
               </tr>
               <tr>
                 <td><strong>ConnectRPC</strong></td>
                 <td><span class="badge rejected">Wrong abstraction</span></td>
                 <td>
-                  RPC framework, not serialization. Envelope has 3 fields. Events need 10+. Built
-                  for HTTP, not in-process.
+                  RPC framework, not serialization. Envelope has 3 fields.
+                  Events need 10+. Built for HTTP, not in-process.
                 </td>
               </tr>
               <tr>
@@ -2027,12 +2178,16 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
               <tr>
                 <td><strong>Compression</strong></td>
                 <td><span class="badge rejected">Orthogonal</span></td>
-                <td>Transport concern, not codec. Layer on top via middleware.</td>
+                <td>
+                  Transport concern, not codec. Layer on top via middleware.
+                </td>
               </tr>
               <tr>
                 <td><strong>Optimize JSON</strong></td>
                 <td><span class="badge rejected">Insufficient</span></td>
-                <td>Can't fix base64, reflection, or determinism. Ceiling too low.</td>
+                <td>
+                  Can't fix base64, reflection, or determinism. Ceiling too low.
+                </td>
               </tr>
             </tbody>
           </table>
@@ -2045,8 +2200,8 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
           <h2>What's Done</h2>
 
           <p>
-            Phase 1 (<strong>CBORCodec</strong>) is fully implemented and shipped. Here's exactly
-            what landed in the codebase.
+            Phase 1 (<strong>CBORCodec</strong>) is fully implemented and
+            shipped. Here's exactly what landed in the codebase.
           </p>
 
           <h3>Implementation</h3>
@@ -2062,9 +2217,10 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
               <tr>
                 <td><code>codec/cbor.go</code></td>
                 <td>
-                  <code>CBORCodec</code> struct with canonical EncMode (RFC 7049) and configured
-                  DecMode (<code>DupMapKeyEnforcedAPF</code>). IIFE error handling for package-level
-                  vars. Compile-time interface check.
+                  <code>CBORCodec</code> struct with canonical EncMode (RFC
+                  7049) and configured DecMode
+                  (<code>DupMapKeyEnforcedAPF</code>). IIFE error handling for
+                  package-level vars. Compile-time interface check.
                 </td>
               </tr>
               <tr>
@@ -2078,16 +2234,22 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
               <tr>
                 <td><code>codec/go.mod</code></td>
                 <td>
-                  Added <code>fxamacker/cbor/v2 v2.9.2</code> + <code>x448/float16 v0.8.4</code>.
+                  Added <code>fxamacker/cbor/v2 v2.9.2</code> +
+                  <code>x448/float16 v0.8.4</code>.
                 </td>
               </tr>
               <tr>
                 <td><code>example/cbor-codec/</code></td>
-                <td>Minimal runnable example showing CBOR event creation + decode.</td>
+                <td>
+                  Minimal runnable example showing CBOR event creation + decode.
+                </td>
               </tr>
               <tr>
                 <td><code>docs/adr/0015-cbor-codec.md</code></td>
-                <td>Full ADR documenting CBOR vs msgpack/protobuf/FlatBuffers decision.</td>
+                <td>
+                  Full ADR documenting CBOR vs msgpack/protobuf/FlatBuffers
+                  decision.
+                </td>
               </tr>
             </tbody>
           </table>
@@ -2117,7 +2279,9 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
             </div>
             <div class="metric-card">
               <div class="metric-value success">1</div>
-              <div class="metric-label">End-to-end (event.New + DecodePayload)</div>
+              <div class="metric-label">
+                End-to-end (event.New + DecodePayload)
+              </div>
             </div>
           </div>
 
@@ -2175,9 +2339,10 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
           <h3>What's next (Phases 2&ndash;4 remain proposal)</h3>
 
           <p>
-            Phases 2, 3, and 4 in the <a href="#phases">Build Phases</a> section above remain
-            proposals. Phase 2 (Pebble + SQL migration to use CBORCodec for envelope serialization)
-            is the natural next step. Phase 3 (custom binary envelope) is only warranted if CBOR
+            Phases 2, 3, and 4 in the <a href="#phases">Build Phases</a> section
+            above remain proposals. Phase 2 (Pebble + SQL migration to use
+            CBORCodec for envelope serialization) is the natural next step.
+            Phase 3 (custom binary envelope) is only warranted if CBOR
             performance proves insufficient for replay-heavy workloads.
           </p>
         </section>
@@ -2189,244 +2354,298 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
           <h2>Appendix: Industry Patterns</h2>
 
           <p>
-            Six systems that have solved event storage at scale. Each made different serialization
-            choices. Here's what we can learn.
+            Six systems that have solved event storage at scale. Each made
+            different serialization choices. Here's what we can learn.
           </p>
 
-          <h3>1. EventStoreDB &mdash; Custom binary, opaque to the outside world</h3>
+          <h3>
+            1. EventStoreDB &mdash; Custom binary, opaque to the outside world
+          </h3>
 
           <p>
-            EventStoreDB stores events in append-only chunk files (256 MiB each). The physical
-            format is a <strong>custom binary record layout</strong>
-            with a fixed header per record: event type, stream ID, sequence number, timestamp,
-            metadata, and payload as raw bytes. The payload is opaque &mdash; EventStoreDB never
-            inspects it. Metadata (correlation IDs, custom headers) is stored as a separate field,
-            not inside the payload.
+            EventStoreDB stores events in append-only chunk files (256 MiB
+            each). The physical format is a
+            <strong>custom binary record layout</strong>
+            with a fixed header per record: event type, stream ID, sequence
+            number, timestamp, metadata, and payload as raw bytes. The payload
+            is opaque &mdash; EventStoreDB never inspects it. Metadata
+            (correlation IDs, custom headers) is stored as a separate field, not
+            inside the payload.
           </p>
 
           <p>
-            Indexes are maintained in PTables (persistent sorted tables) with bloom filters for
-            stream existence. Scavenging (compaction) rewrites chunks to remove tombstoned events.
+            Indexes are maintained in PTables (persistent sorted tables) with
+            bloom filters for stream existence. Scavenging (compaction) rewrites
+            chunks to remove tombstoned events.
           </p>
 
           <h4>What we learn</h4>
           <ul>
             <li>
-              <strong>Envelope and payload are separate</strong> &mdash; the store never parses the
-              payload. This is our Layer 1/Layer 2 split.
+              <strong>Envelope and payload are separate</strong> &mdash; the
+              store never parses the payload. This is our Layer 1/Layer 2 split.
             </li>
             <li>
-              <strong>Fixed-header binary records</strong> &mdash; validates the custom binary
-              approach for Option C.
+              <strong>Fixed-header binary records</strong> &mdash; validates the
+              custom binary approach for Option C.
             </li>
             <li>
-              <strong>Append-only is king</strong> &mdash; no in-place updates, no delete. Events
-              are immutable. go-cqrs-lite already follows this (tombstone over delete).
+              <strong>Append-only is king</strong> &mdash; no in-place updates,
+              no delete. Events are immutable. go-cqrs-lite already follows this
+              (tombstone over delete).
             </li>
             <li>
-              <strong>Index is separate from data</strong> &mdash; EventStoreDB doesn't parse
-              records to find events. It uses offset-based indexes. Our Pebble keys already serve
-              this role.
-            </li>
-          </ul>
-
-          <h3>2. Apache Kafka &mdash; Zero-copy, batch-level compression, varint encoding</h3>
-
-          <p>
-            Kafka's record batch format is a masterclass in systems engineering. Records are grouped
-            into batches with a shared header: base offset, CRC-32C checksum, compression type,
-            producer ID, and timestamp deltas. Individual records use
-            <strong>varint encoding</strong> for lengths and deltas, keeping overhead minimal.
-            Headers are key-value byte pairs (similar to our metadata KV pairs).
-          </p>
-
-          <p>
-            The throughput secret isn't the format &mdash; it's
-            <strong>zero-copy transfer</strong> via Linux <code>sendfile()</code>. Data flows
-            directly from disk page cache to network socket without entering userspace. 4.1x
-            throughput, 3.9x less CPU.
-          </p>
-
-          <h4>What we learn</h4>
-          <ul>
-            <li>
-              <strong>Batch-level compression</strong> &mdash; compress at the batch boundary, not
-              per-record. Single-event compression has &lt;5% savings. Batched compression gets
-              65-70%. go-cqrs-lite should compress batches, not individual events.
-            </li>
-            <li>
-              <strong>Varint encoding for small values</strong> &mdash; Kafka uses varints for
-              lengths and deltas. Our version field (often 1-10) wastes 3 bytes as uint32. Varints
-              would be 1 byte.
-            </li>
-            <li>
-              <strong>Timestamp deltas, not absolute</strong> &mdash; Kafka stores base timestamp
-              per batch, then deltas per record. For events within an aggregate, timestamps are
-              close together. Delta encoding saves bytes.
-            </li>
-            <li>
-              <strong>Zero-copy is a transport concern</strong> &mdash; it's about
-              <code>sendfile()</code>, not serialization format. We can't apply this to in-process
-              reads, but it's relevant for any network transport layer consumers build.
+              <strong>Index is separate from data</strong> &mdash; EventStoreDB
+              doesn't parse records to find events. It uses offset-based
+              indexes. Our Pebble keys already serve this role.
             </li>
           </ul>
 
           <h3>
-            3. Axon Framework &mdash; Serializer-per-concern, upcasting as first-class citizen
+            2. Apache Kafka &mdash; Zero-copy, batch-level compression, varint
+            encoding
           </h3>
 
           <p>
-            Axon uses <strong>different serializers for different concerns</strong>: one for events
-            (long-term storage), one for commands/queries (distributed messages), one for internal
-            state (tokens, sagas, snapshots). The event serializer defaults to XStream (XML) or
-            Jackson (JSON). Axon 5 uses SQL columns for event metadata and BLOB for payload.
+            Kafka's record batch format is a masterclass in systems engineering.
+            Records are grouped into batches with a shared header: base offset,
+            CRC-32C checksum, compression type, producer ID, and timestamp
+            deltas. Individual records use
+            <strong>varint encoding</strong> for lengths and deltas, keeping
+            overhead minimal. Headers are key-value byte pairs (similar to our
+            metadata KV pairs).
           </p>
 
           <p>
-            Axon's most notable contribution: <strong>structured upcasting</strong>. Events have a
-            <code>version</code> field (called "revision"). Upcasters transform old event structures
-            to new ones during replay. One-to-one, one-to-many, and context-aware upcasting are all
-            supported.
+            The throughput secret isn't the format &mdash; it's
+            <strong>zero-copy transfer</strong> via Linux
+            <code>sendfile()</code>. Data flows directly from disk page cache to
+            network socket without entering userspace. 4.1x throughput, 3.9x
+            less CPU.
           </p>
 
           <h4>What we learn</h4>
           <ul>
             <li>
-              <strong>Serializer-per-concern is the right pattern</strong> &mdash; events need
-              long-term stability. Commands need speed. Snapshots need compactness. go-cqrs-lite's
-              <code>codec.Codec</code> already allows this (consumers pass different codecs). We
-              should document this pattern.
+              <strong>Batch-level compression</strong> &mdash; compress at the
+              batch boundary, not per-record. Single-event compression has
+              &lt;5% savings. Batched compression gets 65-70%. go-cqrs-lite
+              should compress batches, not individual events.
             </li>
             <li>
-              <strong>Upcasting is orthogonal to serialization</strong> &mdash; our
-              <code>schema/</code> module already handles this. The codec doesn't need to know about
-              schema evolution.
+              <strong>Varint encoding for small values</strong> &mdash; Kafka
+              uses varints for lengths and deltas. Our version field (often
+              1-10) wastes 3 bytes as uint32. Varints would be 1 byte.
             </li>
             <li>
-              <strong>Metadata as first-class SQL columns</strong> &mdash; Axon 5 indexes aggregate
-              type, sequence number, timestamp as columns. This is what our SQL store already does.
-              Validates the design.
+              <strong>Timestamp deltas, not absolute</strong> &mdash; Kafka
+              stores base timestamp per batch, then deltas per record. For
+              events within an aggregate, timestamps are close together. Delta
+              encoding saves bytes.
             </li>
             <li>
-              <strong>XML is still alive in 2026</strong> &mdash; Axon defaults to XStream. If the
-              Java ecosystem can ship XML-based event sourcing at scale, CBOR is not a risky choice.
+              <strong>Zero-copy is a transport concern</strong> &mdash; it's
+              about <code>sendfile()</code>, not serialization format. We can't
+              apply this to in-process reads, but it's relevant for any network
+              transport layer consumers build.
             </li>
           </ul>
 
-          <h3>4. Lagom &mdash; JSON with compression threshold, Akka underneath</h3>
+          <h3>
+            3. Axon Framework &mdash; Serializer-per-concern, upcasting as
+            first-class citizen
+          </h3>
 
           <p>
-            Lagom wraps Akka Persistence with higher-level abstractions. Events are stored as
-            <strong>JSON via Jackson</strong> in Cassandra BLOB columns. Events larger than 32 KB
-            are automatically compressed. The Cassandra schema separates <code>event</code> (BLOB),
-            <code>ser_id</code> (serializer identifier), <code>ser_manifest</code>, and
-            <code>tags</code> into distinct columns.
+            Axon uses
+            <strong>different serializers for different concerns</strong>: one
+            for events (long-term storage), one for commands/queries
+            (distributed messages), one for internal state (tokens, sagas,
+            snapshots). The event serializer defaults to XStream (XML) or
+            Jackson (JSON). Axon 5 uses SQL columns for event metadata and BLOB
+            for payload.
+          </p>
+
+          <p>
+            Axon's most notable contribution:
+            <strong>structured upcasting</strong>. Events have a
+            <code>version</code> field (called "revision"). Upcasters transform
+            old event structures to new ones during replay. One-to-one,
+            one-to-many, and context-aware upcasting are all supported.
           </p>
 
           <h4>What we learn</h4>
           <ul>
             <li>
-              <strong>Compression threshold</strong> &mdash; compress events above a configurable
-              size, leave small events uncompressed. This avoids the CPU cost of compression on tiny
-              payloads. Our codec could add a <code>CompressedCodec</code> wrapper that delegates
+              <strong>Serializer-per-concern is the right pattern</strong>
+              &mdash; events need long-term stability. Commands need speed.
+              Snapshots need compactness. go-cqrs-lite's
+              <code>codec.Codec</code> already allows this (consumers pass
+              different codecs). We should document this pattern.
+            </li>
+            <li>
+              <strong>Upcasting is orthogonal to serialization</strong> &mdash;
+              our <code>schema/</code> module already handles this. The codec
+              doesn't need to know about schema evolution.
+            </li>
+            <li>
+              <strong>Metadata as first-class SQL columns</strong> &mdash; Axon
+              5 indexes aggregate type, sequence number, timestamp as columns.
+              This is what our SQL store already does. Validates the design.
+            </li>
+            <li>
+              <strong>XML is still alive in 2026</strong> &mdash; Axon defaults
+              to XStream. If the Java ecosystem can ship XML-based event
+              sourcing at scale, CBOR is not a risky choice.
+            </li>
+          </ul>
+
+          <h3>
+            4. Lagom &mdash; JSON with compression threshold, Akka underneath
+          </h3>
+
+          <p>
+            Lagom wraps Akka Persistence with higher-level abstractions. Events
+            are stored as
+            <strong>JSON via Jackson</strong> in Cassandra BLOB columns. Events
+            larger than 32 KB are automatically compressed. The Cassandra schema
+            separates <code>event</code> (BLOB), <code>ser_id</code> (serializer
+            identifier), <code>ser_manifest</code>, and <code>tags</code> into
+            distinct columns.
+          </p>
+
+          <h4>What we learn</h4>
+          <ul>
+            <li>
+              <strong>Compression threshold</strong> &mdash; compress events
+              above a configurable size, leave small events uncompressed. This
+              avoids the CPU cost of compression on tiny payloads. Our codec
+              could add a <code>CompressedCodec</code> wrapper that delegates
               compression to a threshold.
             </li>
             <li>
-              <strong>Serializer identifier in the record</strong> &mdash; Lagom stores
-              <code>ser_id</code> and <code>ser_manifest</code> alongside each event. This allows
-              multiple serializers to coexist in the same journal. Our <code>Encoding</code> field
-              already does this, but only stores the format name. A numeric serializer ID would be
+              <strong>Serializer identifier in the record</strong> &mdash; Lagom
+              stores <code>ser_id</code> and <code>ser_manifest</code> alongside
+              each event. This allows multiple serializers to coexist in the
+              same journal. Our <code>Encoding</code> field already does this,
+              but only stores the format name. A numeric serializer ID would be
               more compact.
             </li>
             <li>
-              <strong>JSON at scale works</strong> &mdash; Lagom powers production systems with JSON
-              serialization. The argument that JSON is "too slow" for event sourcing is overstated.
-              CBOR is already a significant improvement over JSON; we don't need custom binary to be
-              production-viable.
+              <strong>JSON at scale works</strong> &mdash; Lagom powers
+              production systems with JSON serialization. The argument that JSON
+              is "too slow" for event sourcing is overstated. CBOR is already a
+              significant improvement over JSON; we don't need custom binary to
+              be production-viable.
             </li>
           </ul>
 
-          <h3>5. Akka Persistence &mdash; Pluggable serialization, Jackson CBOR support</h3>
+          <h3>
+            5. Akka Persistence &mdash; Pluggable serialization, Jackson CBOR
+            support
+          </h3>
 
           <p>
-            Akka Persistence provides a <strong>pluggable serialization infrastructure</strong> with
-            binding-based resolution: you register which serializer handles which type. Out of the
-            box: Jackson JSON, <strong>Jackson CBOR</strong>, and Protobuf. Event adapters separate
+            Akka Persistence provides a
+            <strong>pluggable serialization infrastructure</strong> with
+            binding-based resolution: you register which serializer handles
+            which type. Out of the box: Jackson JSON,
+            <strong>Jackson CBOR</strong>, and Protobuf. Event adapters separate
             domain model from storage model. Schema evolution via
             <code>SerializerWithStringManifest</code> and upcasting.
           </p>
 
           <p>
-            Notably, <strong>Akka recommends CBOR as a first-class option</strong> via
-            <code>CborSerializable</code>. Same Jackson API, binary wire format, native byte
-            support. This is essentially our Option B.
+            Notably,
+            <strong>Akka recommends CBOR as a first-class option</strong> via
+            <code>CborSerializable</code>. Same Jackson API, binary wire format,
+            native byte support. This is essentially our Option B.
           </p>
 
           <h4>What we learn</h4>
           <ul>
             <li>
-              <strong>CBOR is production-proven in the Akka ecosystem</strong> &mdash; not
-              experimental. Major deployments use Akka CBOR serialization for event-sourced systems.
+              <strong>CBOR is production-proven in the Akka ecosystem</strong>
+              &mdash; not experimental. Major deployments use Akka CBOR
+              serialization for event-sourced systems.
             </li>
             <li>
-              <strong>Event adapters separate domain from storage</strong> &mdash; write adapters
-              convert domain events to storage format, read adapters convert back. This is what our
-              <code>Codec</code> interface already does, but the explicit separation of write/read
-              adapters is a cleaner pattern to consider.
+              <strong>Event adapters separate domain from storage</strong>
+              &mdash; write adapters convert domain events to storage format,
+              read adapters convert back. This is what our
+              <code>Codec</code> interface already does, but the explicit
+              separation of write/read adapters is a cleaner pattern to
+              consider.
             </li>
             <li>
-              <strong>String manifests for schema evolution</strong> &mdash; instead of class names
-              (fragile, refactoring-hostile), Akka uses string manifests to identify event types.
-              Our <code>event.Type</code> is already a string, not a Go type name. Good.
+              <strong>String manifests for schema evolution</strong> &mdash;
+              instead of class names (fragile, refactoring-hostile), Akka uses
+              string manifests to identify event types. Our
+              <code>event.Type</code> is already a string, not a Go type name.
+              Good.
             </li>
             <li>
-              <strong>Multiple serialization bindings coexist</strong> &mdash; the journal can
-              contain events serialized with different serializers. Our <code>Encoding</code> field
-              per event already supports this.
+              <strong>Multiple serialization bindings coexist</strong> &mdash;
+              the journal can contain events serialized with different
+              serializers. Our <code>Encoding</code> field per event already
+              supports this.
             </li>
           </ul>
 
-          <h3>6. Datomic &mdash; Datom as the universal primitive, Fressian encoding</h3>
+          <h3>
+            6. Datomic &mdash; Datom as the universal primitive, Fressian
+            encoding
+          </h3>
 
           <p>
-            Datomic takes a fundamentally different approach. Facts are stored as
-            <strong>datoms</strong> &mdash; 5-tuples of (Entity, Attribute, Value, Transaction,
-            Operation). The storage format uses <strong>Fressian</strong>, a compact binary encoding
-            optimized for Clojure data structures. Attribute IDs are compressed to 32-bit ints.
-            Transaction ID and operation boolean are fused into a single <code>tOp</code> field.
+            Datomic takes a fundamentally different approach. Facts are stored
+            as
+            <strong>datoms</strong> &mdash; 5-tuples of (Entity, Attribute,
+            Value, Transaction, Operation). The storage format uses
+            <strong>Fressian</strong>, a compact binary encoding optimized for
+            Clojure data structures. Attribute IDs are compressed to 32-bit
+            ints. Transaction ID and operation boolean are fused into a single
+            <code>tOp</code> field.
           </p>
 
           <p>
-            Four covering indexes (EAVT, AVET, AEVT, VAET) are maintained as immutable segments in
-            S3. Time travel is free &mdash; every database value is a point-in-time snapshot. No
-            separate audit system needed.
+            Four covering indexes (EAVT, AVET, AEVT, VAET) are maintained as
+            immutable segments in S3. Time travel is free &mdash; every database
+            value is a point-in-time snapshot. No separate audit system needed.
           </p>
 
           <h4>What we learn</h4>
           <ul>
             <li>
-              <strong>Bit fusion for small fields</strong> &mdash; Datomic packs transaction ID +
-              operation into a single <code>long</code> (shift + LSB). Our flags bitfield does the
-              same for has_metadata, has_schema_version, encoding. This pattern is universal in
+              <strong>Bit fusion for small fields</strong> &mdash; Datomic packs
+              transaction ID + operation into a single <code>long</code> (shift
+              + LSB). Our flags bitfield does the same for has_metadata,
+              has_schema_version, encoding. This pattern is universal in
               efficient binary formats.
             </li>
             <li>
-              <strong>Index structure is separate from data</strong> &mdash; Datomic's indexes are
-              materialized views of the datom log, stored as immutable segments. The log is
-              append-only. Indexes are rebuilt periodically. This validates our approach: the event
-              store is the log, projections are the indexes.
+              <strong>Index structure is separate from data</strong> &mdash;
+              Datomic's indexes are materialized views of the datom log, stored
+              as immutable segments. The log is append-only. Indexes are rebuilt
+              periodically. This validates our approach: the event store is the
+              log, projections are the indexes.
             </li>
             <li>
-              <strong>Fressian is a precedent for custom binary in the JVM</strong> &mdash; even the
-              Java/Clojure ecosystem, with its culture of standard formats, builds custom binary
-              encodings when performance matters. We're not crazy for considering it.
+              <strong
+                >Fressian is a precedent for custom binary in the JVM</strong
+              >
+              &mdash; even the Java/Clojure ecosystem, with its culture of
+              standard formats, builds custom binary encodings when performance
+              matters. We're not crazy for considering it.
             </li>
             <li>
-              <strong>Universal primitive vs. domain-specific format</strong> &mdash; Datomic stores
-              everything as datoms. go-cqrs-lite stores everything as events. Datomic's universalism
-              gives it flexibility (any query pattern via index selection). Our specificity gives us
-              performance (fixed envelope, domain-aware layout). The trade-off is clear:
-              universality costs parsing, specificity costs flexibility.
+              <strong>Universal primitive vs. domain-specific format</strong>
+              &mdash; Datomic stores everything as datoms. go-cqrs-lite stores
+              everything as events. Datomic's universalism gives it flexibility
+              (any query pattern via index selection). Our specificity gives us
+              performance (fixed envelope, domain-aware layout). The trade-off
+              is clear: universality costs parsing, specificity costs
+              flexibility.
             </li>
           </ul>
 
@@ -2435,83 +2654,103 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
             <p>The industry converges on a consistent set of patterns:</p>
             <ul>
               <li>
-                <strong>Envelope and payload are separate</strong> (EventStoreDB, Axon, Lagom,
-                Kafka)
+                <strong>Envelope and payload are separate</strong>
+                (EventStoreDB, Axon, Lagom, Kafka)
               </li>
               <li>
-                <strong>The store never parses the payload</strong> (EventStoreDB, Kafka, Axon)
+                <strong>The store never parses the payload</strong>
+                (EventStoreDB, Kafka, Axon)
               </li>
               <li>
-                <strong>Metadata is a separate concern from payload</strong> (EventStoreDB, Axon,
-                Lagom, Kafka headers)
+                <strong>Metadata is a separate concern from payload</strong>
+                (EventStoreDB, Axon, Lagom, Kafka headers)
               </li>
               <li>
-                <strong>Serializer identifier travels with the record</strong> (Lagom
-                <code>ser_id</code>, Akka manifest, our <code>Encoding</code>)
+                <strong>Serializer identifier travels with the record</strong>
+                (Lagom <code>ser_id</code>, Akka manifest, our
+                <code>Encoding</code>)
               </li>
               <li>
-                <strong>CBOR is production-proven</strong> (Akka recommends it as first-class)
+                <strong>CBOR is production-proven</strong> (Akka recommends it
+                as first-class)
               </li>
               <li>
-                <strong>Compression is a batch-level concern</strong> (Kafka, Lagom threshold)
+                <strong>Compression is a batch-level concern</strong> (Kafka,
+                Lagom threshold)
               </li>
               <li>
-                <strong>Custom binary formats exist when performance matters</strong> (EventStoreDB,
-                Datomic/Fressian, Chronicle Wire)
+                <strong
+                  >Custom binary formats exist when performance matters</strong
+                >
+                (EventStoreDB, Datomic/Fressian, Chronicle Wire)
               </li>
-              <li><strong>Materialized views in SQLite for instant reads</strong> (LiveStore)</li>
+              <li>
+                <strong>Materialized views in SQLite for instant reads</strong>
+                (LiveStore)
+              </li>
             </ul>
             <p>
-              None of these systems use msgpack. Several use CBOR. Most use JSON for the payload and
-              custom binary or structured columns for the envelope. LiveStore demonstrates that
-              SQLite-based materialization can eliminate the need for fast envelope parsing entirely
-              &mdash; the read path is SQL, not event replay. Our Option B (all-in CBOR) follows the
-              Akka pattern. Our Option C (custom binary + CBOR) follows the EventStoreDB pattern.
-              Both are well-precedented in production.
+              None of these systems use msgpack. Several use CBOR. Most use JSON
+              for the payload and custom binary or structured columns for the
+              envelope. LiveStore demonstrates that SQLite-based materialization
+              can eliminate the need for fast envelope parsing entirely &mdash;
+              the read path is SQL, not event replay. Our Option B (all-in CBOR)
+              follows the Akka pattern. Our Option C (custom binary + CBOR)
+              follows the EventStoreDB pattern. Both are well-precedented in
+              production.
             </p>
           </div>
 
-          <h3>7. LiveStore &mdash; Reactive SQLite, git-inspired sync, materialization-first</h3>
+          <h3>
+            7. LiveStore &mdash; Reactive SQLite, git-inspired sync,
+            materialization-first
+          </h3>
 
           <p>
-            <a href="https://livestore.dev/">LiveStore</a> is a TypeScript state management
-            framework built on event sourcing, reactive SQLite, and git-inspired sync. It replaces
-            Redux/MobX with an embedded SQLite database that is automatically kept in sync via
-            materializers. Events are the source of truth; SQLite tables are derived views.
+            <a href="https://livestore.dev/">LiveStore</a> is a TypeScript state
+            management framework built on event sourcing, reactive SQLite, and
+            git-inspired sync. It replaces Redux/MobX with an embedded SQLite
+            database that is automatically kept in sync via materializers.
+            Events are the source of truth; SQLite tables are derived views.
           </p>
 
           <h4>Architecture</h4>
           <ul>
             <li>
-              <strong>Three nodes per client</strong> &mdash; Client Session (in-memory pending
-              events), Client Leader (durable eventlog + materialized SQLite), Sync Backend
-              (authoritative append-only log).
+              <strong>Three nodes per client</strong> &mdash; Client Session
+              (in-memory pending events), Client Leader (durable eventlog +
+              materialized SQLite), Sync Backend (authoritative append-only
+              log).
             </li>
             <li>
               <strong>Event format</strong>:
-              <code>{ name, args, seqNum, parentSeqNum, clientId, sessionId }</code>. Args are
-              schema-validated via Effect Schema. Events are versioned
-              (<code>v1.TodoCreated</code>).
+              <code
+                >{ name, args, seqNum, parentSeqNum, clientId, sessionId }</code
+              >. Args are schema-validated via Effect Schema. Events are
+              versioned (<code>v1.TodoCreated</code>).
             </li>
             <li>
               <strong>Sequence numbers are composite</strong>:
-              <code>{ global, client, rebaseGeneration }</code>. Global is assigned by sync backend.
-              Client tracks local events. Rebase generation increments on conflict resolution.
-              Events render as strings: <code>e5</code>, <code>e5.1</code>, <code>e5r1</code>.
+              <code>{ global, client, rebaseGeneration }</code>. Global is
+              assigned by sync backend. Client tracks local events. Rebase
+              generation increments on conflict resolution. Events render as
+              strings: <code>e5</code>, <code>e5.1</code>, <code>e5r1</code>.
             </li>
             <li>
-              <strong>Materializers</strong> map events to SQLite operations. Each event handler
-              returns SQL insert/update/delete. The materialized SQLite database is the query layer
-              &mdash; no event replay on read.
+              <strong>Materializers</strong> map events to SQLite operations.
+              Each event handler returns SQL insert/update/delete. The
+              materialized SQLite database is the query layer &mdash; no event
+              replay on read.
             </li>
             <li>
-              <strong>Git-inspired sync</strong>: pull before push, rebase local events on top of
-              upstream changes, push confirmed events. Conflict resolution is last-write-wins by
-              default, customizable.
+              <strong>Git-inspired sync</strong>: pull before push, rebase local
+              events on top of upstream changes, push confirmed events. Conflict
+              resolution is last-write-wins by default, customizable.
             </li>
             <li>
-              <strong>Encoded events</strong> use JSON for args (Date &rarr; ISO string, binary
-              &rarr; base64). Stored in SQLite as structured columns.
+              <strong>Encoded events</strong> use JSON for args (Date &rarr; ISO
+              string, binary &rarr; base64). Stored in SQLite as structured
+              columns.
             </li>
           </ul>
 
@@ -2519,69 +2758,91 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
 
           <ul>
             <li>
-              <strong>Materialization eliminates the need for fast envelope parsing</strong> &mdash;
-              LiveStore's read path is SQL on materialized tables, not event replay. The eventlog is
-              the write-only source of truth. This means envelope decode speed (our Option C's main
-              advantage over Option B) matters less when reads go through materialized projections.
-              Our <code>projection/</code> module already follows this pattern.
+              <strong
+                >Materialization eliminates the need for fast envelope
+                parsing</strong
+              >
+              &mdash; LiveStore's read path is SQL on materialized tables, not
+              event replay. The eventlog is the write-only source of truth. This
+              means envelope decode speed (our Option C's main advantage over
+              Option B) matters less when reads go through materialized
+              projections. Our <code>projection/</code> module already follows
+              this pattern.
             </li>
             <li>
-              <strong>SQLite as the read model is a validated architecture</strong> &mdash;
-              LiveStore achieves 120 FPS with reactive SQLite queries. Our
-              <code>turso/</code> module (embedded LibSQL) is the same idea. The event store writes;
-              the SQL read model reads. The codec only matters on the write/replay path.
+              <strong
+                >SQLite as the read model is a validated architecture</strong
+              >
+              &mdash; LiveStore achieves 120 FPS with reactive SQLite queries.
+              Our <code>turso/</code> module (embedded LibSQL) is the same idea.
+              The event store writes; the SQL read model reads. The codec only
+              matters on the write/replay path.
             </li>
             <li>
               <strong>Versioned event names as schema evolution</strong> &mdash;
-              <code>v1.TodoCreated</code>, <code>v2.TodoCreated</code>. New versions are new event
-              types. Old versions never deleted. This is simpler than upcasting and avoids the
-              migration complexity. Our <code>schema/</code> module handles upcasting, but versioned
-              names are a lighter alternative for many consumers.
+              <code>v1.TodoCreated</code>, <code>v2.TodoCreated</code>. New
+              versions are new event types. Old versions never deleted. This is
+              simpler than upcasting and avoids the migration complexity. Our
+              <code>schema/</code> module handles upcasting, but versioned names
+              are a lighter alternative for many consumers.
             </li>
             <li>
-              <strong>Unknown event handling is configurable</strong> &mdash; older clients
-              receiving newer events can warn, ignore, fail, or callback. This is a production-grade
-              concern we don't address yet. When the codec changes, old events must still be
-              readable.
+              <strong>Unknown event handling is configurable</strong> &mdash;
+              older clients receiving newer events can warn, ignore, fail, or
+              callback. This is a production-grade concern we don't address yet.
+              When the codec changes, old events must still be readable.
             </li>
             <li>
-              <strong>Parent sequence numbers for causal ordering</strong> &mdash; every event
-              points to its parent, enabling DAG-based conflict detection and deterministic rebase.
-              Our events have version numbers (per-aggregate sequence) but no cross-aggregate causal
-              links. For multi-aggregate workflows, this is worth considering.
+              <strong>Parent sequence numbers for causal ordering</strong>
+              &mdash; every event points to its parent, enabling DAG-based
+              conflict detection and deterministic rebase. Our events have
+              version numbers (per-aggregate sequence) but no cross-aggregate
+              causal links. For multi-aggregate workflows, this is worth
+              considering.
             </li>
             <li>
-              <strong>Rebasing, not rejecting</strong> &mdash; when two clients commit concurrently,
-              LiveStore rebases the loser's events on top of the winner's, rather than rejecting.
-              This is a fundamentally different conflict model than "last write wins" or "reject and
-              retry." go-cqrs-lite currently has no rebasing story for distributed scenarios.
+              <strong>Rebasing, not rejecting</strong> &mdash; when two clients
+              commit concurrently, LiveStore rebases the loser's events on top
+              of the winner's, rather than rejecting. This is a fundamentally
+              different conflict model than "last write wins" or "reject and
+              retry." go-cqrs-lite currently has no rebasing story for
+              distributed scenarios.
             </li>
           </ul>
 
           <div class="callout info">
-            <div class="callout-title">LiveStore's implications for our codec choice</div>
+            <div class="callout-title">
+              LiveStore's implications for our codec choice
+            </div>
             <p>
               LiveStore proves that
               <strong
-                >JSON encoding is fast enough when reads are served from materialized SQLite</strong
-              >. The eventlog is written once, replayed rarely (only on leader restart), and never
-              queried directly for UI reads. This means:
+                >JSON encoding is fast enough when reads are served from
+                materialized SQLite</strong
+              >. The eventlog is written once, replayed rarely (only on leader
+              restart), and never queried directly for UI reads. This means:
             </p>
             <ul>
               <li>
-                <strong>Option B (all-in CBOR) is more than sufficient</strong> if most reads go
-                through projections. The codec only matters for event append and occasional replay.
+                <strong>Option B (all-in CBOR) is more than sufficient</strong>
+                if most reads go through projections. The codec only matters for
+                event append and occasional replay.
               </li>
               <li>
                 <strong
-                  >Option C (custom binary) is only worth it for heavy replay workloads</strong
+                  >Option C (custom binary) is only worth it for heavy replay
+                  workloads</strong
                 >
-                &mdash; initial load, full rebuild, or batch processing over millions of events.
+                &mdash; initial load, full rebuild, or batch processing over
+                millions of events.
               </li>
               <li>
-                <strong>The real investment should be in materialization quality</strong>, not
-                envelope decode speed. A fast projection pipeline with SQLite/LibSQL gives more
-                user-facing performance than a custom binary envelope.
+                <strong
+                  >The real investment should be in materialization
+                  quality</strong
+                >, not envelope decode speed. A fast projection pipeline with
+                SQLite/LibSQL gives more user-facing performance than a custom
+                binary envelope.
               </li>
             </ul>
           </div>
@@ -2597,47 +2858,58 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
 
           <p>
             Go's <code>encoding/json</code> automatically base64-encodes any
-            <code>[]byte</code> field during <code>json.Marshal</code>. There is no opt-out. This is
-            mandated by
-            <a href="https://www.rfc-editor.org/rfc/rfc8259#section-8.1">RFC 8259 &sect;8.1</a>:
-            JSON text is Unicode. Binary data must be encoded.
+            <code>[]byte</code> field during <code>json.Marshal</code>. There is
+            no opt-out. This is mandated by
+            <a href="https://www.rfc-editor.org/rfc/rfc8259#section-8.1"
+              >RFC 8259 &sect;8.1</a
+            >: JSON text is Unicode. Binary data must be encoded.
           </p>
 
           <p>
-            In <code>pebble/serialization.go</code>, the <code>serializableEvent</code> struct has a
-            <code>Payload []byte</code> field. When <code>json.Marshal</code> encounters it, every
-            byte of the payload becomes ~1.33 bytes of base64 on disk. A 1 KB event payload inflates
+            In <code>pebble/serialization.go</code>, the
+            <code>serializableEvent</code> struct has a
+            <code>Payload []byte</code> field. When
+            <code>json.Marshal</code> encounters it, every byte of the payload
+            becomes ~1.33 bytes of base64 on disk. A 1 KB event payload inflates
             to ~1.37 KB before the JSON envelope overhead is even counted.
           </p>
 
           <div class="callout warn">
             <div class="callout-title">The math</div>
             <p>
-              Base64 encodes 3 bytes into 4 characters. Overhead = 4/3 &minus; 1 =
-              <strong>33.3%</strong>. This is a constant, not a worst case. Every
-              <code>[]byte</code> field pays it.
+              Base64 encodes 3 bytes into 4 characters. Overhead = 4/3 &minus; 1
+              =
+              <strong>33.3%</strong>. This is a constant, not a worst case.
+              Every <code>[]byte</code> field pays it.
             </p>
           </div>
 
           <h3>Could we use a better binary-to-text encoding?</h3>
 
           <p>
-            In theory, yes. In practice, none solve the real problem. The problem isn't base64
-            &mdash; it's
+            In theory, yes. In practice, none solve the real problem. The
+            problem isn't base64 &mdash; it's
             <strong>putting binary data inside a text format</strong>.
           </p>
 
           <div class="hex-grid">
             <div class="hex-card">
               <div class="hex-card-title" style="color: var(--accent)">Hex</div>
-              <div class="hex-card-overhead" style="color: var(--accent)">+100%</div>
-              <div class="hex-card-desc">
-                2 chars per byte. Worse than base64. Stdlib via <code>encoding/hex</code>.
+              <div class="hex-card-overhead" style="color: var(--accent)">
+                +100%
               </div>
-              <div class="verdict-tag rejected">Rejected &mdash; even worse</div>
+              <div class="hex-card-desc">
+                2 chars per byte. Worse than base64. Stdlib via
+                <code>encoding/hex</code>.
+              </div>
+              <div class="verdict-tag rejected">
+                Rejected &mdash; even worse
+              </div>
             </div>
             <div class="hex-card">
-              <div class="hex-card-title" style="color: var(--text)">Base64</div>
+              <div class="hex-card-title" style="color: var(--text)">
+                Base64
+              </div>
               <div class="hex-card-overhead">+33%</div>
               <div class="hex-card-desc">
                 4 chars per 3 bytes. Current default. Zero-config but unfixable.
@@ -2645,27 +2917,40 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
               <div class="verdict-tag current">Current (not a choice)</div>
             </div>
             <div class="hex-card">
-              <div class="hex-card-title" style="color: var(--warn)">Base85 / ASCII85</div>
-              <div class="hex-card-overhead" style="color: var(--warn)">+25%</div>
+              <div class="hex-card-title" style="color: var(--warn)">
+                Base85 / ASCII85
+              </div>
+              <div class="hex-card-overhead" style="color: var(--warn)">
+                +25%
+              </div>
               <div class="hex-card-desc">
-                5 chars per 4 bytes. Available in <code>x/crypto</code>. Non-standard, no JSON
-                interop.
+                5 chars per 4 bytes. Available in <code>x/crypto</code>.
+                Non-standard, no JSON interop.
               </div>
               <div class="verdict-tag rejected">Rejected</div>
             </div>
             <div class="hex-card">
-              <div class="hex-card-title" style="color: var(--info)">Base91</div>
-              <div class="hex-card-overhead" style="color: var(--info)">+14%</div>
+              <div class="hex-card-title" style="color: var(--info)">
+                Base91
+              </div>
+              <div class="hex-card-overhead" style="color: var(--info)">
+                +14%
+              </div>
               <div class="hex-card-desc">
                 91 of 95 printable ASCII chars. No stdlib, no ecosystem, no RFC.
               </div>
               <div class="verdict-tag niche">Niche &mdash; not standard</div>
             </div>
             <div class="hex-card">
-              <div class="hex-card-title" style="color: var(--info)">Base122</div>
-              <div class="hex-card-overhead" style="color: var(--info)">+7%</div>
+              <div class="hex-card-title" style="color: var(--info)">
+                Base122
+              </div>
+              <div class="hex-card-overhead" style="color: var(--info)">
+                +7%
+              </div>
               <div class="hex-card-desc">
-                Uses non-ASCII bytes (&gt;127). Not valid JSON. Breaks every JSON parser.
+                Uses non-ASCII bytes (&gt;127). Not valid JSON. Breaks every
+                JSON parser.
               </div>
               <div class="verdict-tag rejected">Breaks JSON spec</div>
             </div>
@@ -2690,7 +2975,9 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
                   <strong>All-in CBOR</strong>
                   <span class="verdict-tag done">Phase 1 done</span>
                 </td>
-                <td style="color: var(--success)">Fully (native byte strings)</td>
+                <td style="color: var(--success)">
+                  Fully (native byte strings)
+                </td>
                 <td style="color: var(--warn)">No (still uses reflection)</td>
                 <td>~5 hours (codec done, envelope migration pending)</td>
               </tr>
@@ -2713,7 +3000,9 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
                   <span class="badge candidate">opt-in extreme perf</span>
                 </td>
                 <td style="color: var(--success)">Fully</td>
-                <td style="color: var(--success)">Fully (code gen, no reflection)</td>
+                <td style="color: var(--success)">
+                  Fully (code gen, no reflection)
+                </td>
                 <td>~2 days + consumer effort</td>
               </tr>
             </tbody>
@@ -2723,9 +3012,10 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
             <div class="callout-title">Bottom line</div>
             <p>
               Every binary-to-text encoding is a band-aid. The answer is
-              <strong>don't put binary data inside a text format</strong>. CBOR's byte strings
-              (major type 2) store raw binary with zero overhead. The signing bonus (deterministic
-              encoding) makes CBOR the clear first step.
+              <strong>don't put binary data inside a text format</strong>.
+              CBOR's byte strings (major type 2) store raw binary with zero
+              overhead. The signing bonus (deterministic encoding) makes CBOR
+              the clear first step.
               <strong>CBORCodec is now live.</strong> Consumers can opt in via
               <code>event.WithCodec(codec.CBORCodec{})</code>.
             </p>

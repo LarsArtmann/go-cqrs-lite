@@ -34,11 +34,11 @@ below reflects only this session's work and what was directly observed.
      measures local RTT (~0) and live calibration would override the honest
      replication-derived NetworkRTT.
    - Pinned by new `engine_capability_forwarding_test.go` (Closer present;
-   tx/streamlog/seqseek/atomic/prober/measurer absent — each with a policy
-   pointer). Method-set diff (memory vs wrapper) documented as
-   dropped-by-design: temporal reads (MapGetAsOf, StreamReadAsOfVersion,
-   StreamVersion), VectorSearchFiltered, SnapshotBackend — flagged for
-   future triage rather than silently ignored.
+     tx/streamlog/seqseek/atomic/prober/measurer absent — each with a policy
+     pointer). Method-set diff (memory vs wrapper) documented as
+     dropped-by-design: temporal reads (MapGetAsOf, StreamReadAsOfVersion,
+     StreamVersion), VectorSearchFiltered, SnapshotBackend — flagged for
+     future triage rather than silently ignored.
 3. **Surface capability drift beyond tests** — three deliverables:
    - Doctor `--- Capability ---` section now prints an honest-degradation
      note for replicated graph engines: "graph writes are local-only … edges
@@ -197,6 +197,7 @@ CHANGELOG section added; TODO_LIST items marked done with detail.
 ## f) NEXT — up to 50 things (ordered by leverage)
 
 **Gates & hygiene**
+
 1. Run full `nix run .#verify` once the concurrent graph/vector session lands.
 2. Triage the 11 art-dupl groups (undirected-graph session's); accept-comment
    or baseline regen after their owner confirms.
@@ -220,15 +221,15 @@ CHANGELOG section added; TODO_LIST items marked done with detail.
 
 **iroh follow-ups**
 16. Temporal reads through Replicated (MapGetAsOf/StreamReadAsOfVersion) —
-    forward or document per the new policy table.
+forward or document per the new policy table.
 17. VectorSearchFiltered through Replicated — same decision needed.
 18. Graph WriteOp wire kind + CRDT edge-set if a consumer demands convergence.
 19. iroh conformance test parity with loopback/quic matrices (currently
-    separate `TestLoopbackADTMatrix`/`TestQuicADTMatrix`).
+separate `TestLoopbackADTMatrix`/`TestQuicADTMatrix`).
 
 **Capability surfacing follow-ups**
 20. EXPLAIN banner: include the replicated-graph non-convergence note too
-    (currently Doctor-only).
+(currently Doctor-only).
 21. Doctor: surface dropped-by-design iroh capabilities as informational lines.
 22. Add CapabilityGaps entries where engines legitimately diverge (self-doc).
 
@@ -245,14 +246,14 @@ CHANGELOG section added; TODO_LIST items marked done with detail.
 
 **Docs & meta**
 39. Update `.agents/skills/go-cqrs-lite/references/*` for duckdb native graph
-    (module docs still say degraded).
+(module docs still say degraded).
 40. metaengine README 9-engine matrix → include graph complexity column.
 41. Update TODO_LIST "Badger engine vector + graph parity audit" with the new
-    duckdb precedent as reference implementation.
+duckdb precedent as reference implementation.
 42. Consider CI job that runs the 9-engine conformance loop nightly (the
-    thing this session ran manually).
+thing this session ran manually).
 43. CHANGELOG: separate my section from the concurrent session's entries at
-    release-cut time.
+release-cut time.
 
 ---
 

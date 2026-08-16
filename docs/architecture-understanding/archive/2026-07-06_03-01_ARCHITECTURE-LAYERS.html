@@ -18,24 +18,44 @@
         --color-red: #ff6b6b;
         --color-red-dim: color-mix(in srgb, var(--color-red) 15%, transparent);
         --color-blue: #6eb5ff;
-        --color-blue-dim: color-mix(in srgb, var(--color-blue) 12%, transparent);
+        --color-blue-dim: color-mix(
+          in srgb,
+          var(--color-blue) 12%,
+          transparent
+        );
         --color-yellow: #f4d35e;
-        --color-yellow-dim: color-mix(in srgb, var(--color-yellow) 12%, transparent);
+        --color-yellow-dim: color-mix(
+          in srgb,
+          var(--color-yellow) 12%,
+          transparent
+        );
         --color-amber: #ffb347;
-        --color-amber-dim: color-mix(in srgb, var(--color-amber) 12%, transparent);
+        --color-amber-dim: color-mix(
+          in srgb,
+          var(--color-amber) 12%,
+          transparent
+        );
         --color-green: #6ee7a7;
-        --color-green-dim: color-mix(in srgb, var(--color-green) 12%, transparent);
+        --color-green-dim: color-mix(
+          in srgb,
+          var(--color-green) 12%,
+          transparent
+        );
         --color-purple: #c4a7e7;
-        --color-purple-dim: color-mix(in srgb, var(--color-purple) 12%, transparent);
+        --color-purple-dim: color-mix(
+          in srgb,
+          var(--color-purple) 12%,
+          transparent
+        );
         --color-hairline: rgba(244, 244, 240, 0.1);
         --color-hairline-strong: rgba(244, 244, 240, 0.22);
 
         --font-sans:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
 
       * {
@@ -401,19 +421,31 @@
         color: rgba(244, 244, 240, 0.7);
       }
       .god-concern.domain {
-        background: color-mix(in srgb, var(--color-blue) 8%, var(--color-graphite-2));
+        background: color-mix(
+          in srgb,
+          var(--color-blue) 8%,
+          var(--color-graphite-2)
+        );
       }
       .god-concern.domain h4 {
         color: var(--color-blue);
       }
       .god-concern.errors {
-        background: color-mix(in srgb, var(--color-red) 8%, var(--color-graphite-2));
+        background: color-mix(
+          in srgb,
+          var(--color-red) 8%,
+          var(--color-graphite-2)
+        );
       }
       .god-concern.errors h4 {
         color: var(--color-red);
       }
       .god-concern.infra {
-        background: color-mix(in srgb, var(--color-amber) 8%, var(--color-graphite-2));
+        background: color-mix(
+          in srgb,
+          var(--color-amber) 8%,
+          var(--color-graphite-2)
+        );
       }
       .god-concern.infra h4 {
         color: var(--color-amber);
@@ -646,28 +678,44 @@
       }
 
       .tier-domain {
-        background: color-mix(in srgb, var(--color-green) 6%, var(--color-graphite-2));
+        background: color-mix(
+          in srgb,
+          var(--color-green) 6%,
+          var(--color-graphite-2)
+        );
         border-left: 4px solid var(--color-green);
       }
       .tier-domain .tier-label {
         color: var(--color-green);
       }
       .tier-infra {
-        background: color-mix(in srgb, var(--color-blue) 6%, var(--color-graphite-2));
+        background: color-mix(
+          in srgb,
+          var(--color-blue) 6%,
+          var(--color-graphite-2)
+        );
         border-left: 4px solid var(--color-blue);
       }
       .tier-infra .tier-label {
         color: var(--color-blue);
       }
       .tier-ops {
-        background: color-mix(in srgb, var(--color-amber) 6%, var(--color-graphite-2));
+        background: color-mix(
+          in srgb,
+          var(--color-amber) 6%,
+          var(--color-graphite-2)
+        );
         border-left: 4px solid var(--color-amber);
       }
       .tier-ops .tier-label {
         color: var(--color-amber);
       }
       .tier-comp {
-        background: color-mix(in srgb, var(--color-purple) 6%, var(--color-graphite-2));
+        background: color-mix(
+          in srgb,
+          var(--color-purple) 6%,
+          var(--color-graphite-2)
+        );
         border-left: 4px solid var(--color-purple);
       }
       .tier-comp .tier-label {
@@ -903,25 +951,32 @@
             <div class="hero-badge">Analysis — No Execution Without Review</div>
             <h1>Architecture Layers Reconsidered</h1>
             <p class="hero-subtitle">
-              A first-principles audit of <code>go-cqrs-lite</code>'s module dependency
-              architecture. The trigger: <strong>"Why is <code>kv/</code> Layer 0?"</strong> — the
-              question that exposed a broken layering system built on a god module conflating three
-              distinct architectural concerns.
+              A first-principles audit of <code>go-cqrs-lite</code>'s module
+              dependency architecture. The trigger:
+              <strong>"Why is <code>kv/</code> Layer 0?"</strong> — the question
+              that exposed a broken layering system built on a god module
+              conflating three distinct architectural concerns.
             </p>
           </div>
 
           <div class="stats">
             <div class="stat">
               <div class="num" style="color: var(--color-red)">129</div>
-              <div class="label">files use <code>event.*</code> error re-exports</div>
+              <div class="label">
+                files use <code>event.*</code> error re-exports
+              </div>
             </div>
             <div class="stat">
               <div class="num" style="color: var(--color-red)">30+</div>
-              <div class="label">modules artificially coupled to <code>event/</code></div>
+              <div class="label">
+                modules artificially coupled to <code>event/</code>
+              </div>
             </div>
             <div class="stat">
               <div class="num" style="color: var(--color-green)">8</div>
-              <div class="label">modules already import go-error-family directly</div>
+              <div class="label">
+                modules already import go-error-family directly
+              </div>
             </div>
             <div class="stat">
               <div class="num" style="color: var(--color-yellow)">~50</div>
@@ -931,25 +986,30 @@
 
           <div class="card card-insight">
             <p>
-              <strong>Root cause:</strong> <code>event/errors.go</code> is a 1:1 re-export of
-              <code>go-error-family</code>. Every module that needs error classification pulls in
-              the entire event domain model + store/bus contracts as baggage. The layer numbering is
-              broken because it conflates <strong>domain model</strong>,
-              <strong>error taxonomy</strong>, and <strong>infrastructure contracts</strong> into a
-              single linear stack.
+              <strong>Root cause:</strong> <code>event/errors.go</code> is a 1:1
+              re-export of <code>go-error-family</code>. Every module that needs
+              error classification pulls in the entire event domain model +
+              store/bus contracts as baggage. The layer numbering is broken
+              because it conflates <strong>domain model</strong>,
+              <strong>error taxonomy</strong>, and
+              <strong>infrastructure contracts</strong> into a single linear
+              stack.
             </p>
           </div>
         </section>
 
         <!-- ─────────── THE GOD MODULE ─────────── -->
         <section id="god-module">
-          <h2><span class="num">01</span> The Core Problem: One Package, Three Concerns</h2>
+          <h2>
+            <span class="num">01</span> The Core Problem: One Package, Three
+            Concerns
+          </h2>
 
           <p>
             <code>event/</code> is not a module — it's
-            <strong>three modules in a trench coat</strong>. It contains domain types, error
-            classification, and infrastructure contracts. Every consumer gets all three whether it
-            needs them or not.
+            <strong>three modules in a trench coat</strong>. It contains domain
+            types, error classification, and infrastructure contracts. Every
+            consumer gets all three whether it needs them or not.
           </p>
 
           <div class="god-module">
@@ -976,7 +1036,13 @@
                 <li>Transient</li>
                 <li>Conflict</li>
               </ul>
-              <p style="margin-top: 0.4rem; font-size: 0.72rem; color: rgba(244, 244, 240, 0.35)">
+              <p
+                style="
+                  margin-top: 0.4rem;
+                  font-size: 0.72rem;
+                  color: rgba(244, 244, 240, 0.35);
+                "
+              >
                 ↑ 1:1 re-export of go-error-family
               </p>
             </div>
@@ -996,10 +1062,13 @@
 
           <div class="card card-problem">
             <p>
-              <strong>The coupling tax:</strong> A module like <code>idempotency/</code> that only
-              needs error classification would pull in the entire event store/bus interface surface.
-              <span class="badge badge-green">FIXED</span> <code>idempotency/</code> now imports
-              <code>go-error-family</code> directly — no <code>event/</code> dependency.
+              <strong>The coupling tax:</strong> A module like
+              <code>idempotency/</code> that only needs error classification
+              would pull in the entire event store/bus interface surface.
+              <span class="badge badge-green">FIXED</span>
+              <code>idempotency/</code> now imports
+              <code>go-error-family</code> directly — no
+              <code>event/</code> dependency.
             </p>
           </div>
         </section>
@@ -1009,8 +1078,8 @@
           <h2><span class="num">02</span> Who Needs What</h2>
 
           <p>
-            Only <code>storage/</code> needs all three concerns. Most modules need one or two. But
-            the package boundary forces all-or-nothing.
+            Only <code>storage/</code> needs all three concerns. Most modules
+            need one or two. But the package boundary forces all-or-nothing.
           </p>
 
           <div class="matrix">
@@ -1025,7 +1094,9 @@
             <div class="matrix-cell cell-yes">✅ Yes (Store)</div>
 
             <div class="matrix-cell"><code>command/</code></div>
-            <div class="matrix-cell cell-partial">🔶 Partial (AggregateRef)</div>
+            <div class="matrix-cell cell-partial">
+              🔶 Partial (AggregateRef)
+            </div>
             <div class="matrix-cell cell-yes">✅ Yes</div>
             <div class="matrix-cell dim">❌ No</div>
 
@@ -1036,11 +1107,15 @@
 
             <div class="matrix-cell"><code>idempotency/</code></div>
             <div class="matrix-cell dim">❌ No</div>
-            <div class="matrix-cell dim">❌ No <span class="badge badge-green">fixed</span></div>
+            <div class="matrix-cell dim">
+              ❌ No <span class="badge badge-green">fixed</span>
+            </div>
             <div class="matrix-cell dim">❌ No</div>
 
             <div class="matrix-cell"><code>middleware/</code></div>
-            <div class="matrix-cell cell-partial">🔶 Partial (EventTracing)</div>
+            <div class="matrix-cell cell-partial">
+              🔶 Partial (EventTracing)
+            </div>
             <div class="matrix-cell cell-yes">✅ Yes</div>
             <div class="matrix-cell dim">❌ No</div>
 
@@ -1064,11 +1139,13 @@
 
           <div class="card card-insight">
             <p>
-              <strong>Key insight:</strong> <code>kv/</code> already bypasses the re-export and
-              imports <code>go-error-family</code> directly. So do <code>id/</code>,
-              <code>codec/</code>, <code>encryption/</code>, <code>dispatcher/</code>, and
-              <code>catalog/</code>. <strong>8 modules prove the pattern works.</strong> The
-              remaining 30+ are stuck on the re-export purely by historical inertia.
+              <strong>Key insight:</strong> <code>kv/</code> already bypasses
+              the re-export and imports <code>go-error-family</code> directly.
+              So do <code>id/</code>, <code>codec/</code>,
+              <code>encryption/</code>, <code>dispatcher/</code>, and
+              <code>catalog/</code>.
+              <strong>8 modules prove the pattern works.</strong> The remaining
+              30+ are stuck on the re-export purely by historical inertia.
             </p>
           </div>
         </section>
@@ -1079,34 +1156,43 @@
 
           <p>
             <code>event/errors.go</code> is a <strong>1:1 re-export</strong> of
-            <code>go-error-family</code> — identical function signatures, zero added logic. This
-            creates an artificial bottleneck:
+            <code>go-error-family</code> — identical function signatures, zero
+            added logic. This creates an artificial bottleneck:
           </p>
 
           <div class="code-block">
-            <span class="cmt">// event/errors.go // what go-error-family provides</span><br />
-            <span class="kw">func</span> <span class="red">NewConflict</span>(code, msg
+            <span class="cmt"
+              >// event/errors.go // what go-error-family provides</span
+            ><br />
+            <span class="kw">func</span>
+            <span class="red">NewConflict</span>(code, msg
             <span class="kw">string</span>) *Error {
-            <span class="kw">return</span> errorfamily.<span class="green">NewConflict</span>(code,
-            msg) }<br />
-            <span class="kw">func</span> <span class="red">NewRejection</span>(code, msg
+            <span class="kw">return</span> errorfamily.<span class="green"
+              >NewConflict</span
+            >(code, msg) }<br />
+            <span class="kw">func</span>
+            <span class="red">NewRejection</span>(code, msg
             <span class="kw">string</span>) *Error {
-            <span class="kw">return</span> errorfamily.<span class="green">NewRejection</span>(code,
-            msg) }<br />
+            <span class="kw">return</span> errorfamily.<span class="green"
+              >NewRejection</span
+            >(code, msg) }<br />
             <span class="kw">func</span> <span class="red">Wrapf</span>(err
             <span class="kw">error</span>, f Family, ...) *Error {
-            <span class="kw">return</span> errorfamily.<span class="green">Wrapf</span>(err, f, ...)
-            }<br />
+            <span class="kw">return</span> errorfamily.<span class="green"
+              >Wrapf</span
+            >(err, f, ...) }<br />
             <span class="kw">func</span> <span class="red">Classify</span>(err
-            <span class="kw">error</span>) Family { <span class="kw">return</span> errorfamily.<span
-              class="green"
+            <span class="kw">error</span>) Family {
+            <span class="kw">return</span> errorfamily.<span class="green"
               >Classify</span
             >(err) }
           </div>
 
           <div class="flow-container">
             <div class="flow-box before">
-              <div class="flow-title before">⚠ BEFORE — Bottleneck through event/</div>
+              <div class="flow-title before">
+                ⚠ BEFORE — Bottleneck through event/
+              </div>
               <div class="flow-row">
                 <div class="flow-modules">
                   <span class="chip chip-muted">command/</span>
@@ -1123,10 +1209,14 @@
                 <span class="flow-arrow">→</span>
                 <div class="flow-hub ext">go-error-<br />family</div>
               </div>
-              <div class="flow-caption">30+ modules → 1 bottleneck → 1 external dep</div>
+              <div class="flow-caption">
+                30+ modules → 1 bottleneck → 1 external dep
+              </div>
             </div>
             <div class="flow-box after">
-              <div class="flow-title after">✓ AFTER — Direct imports, no bottleneck</div>
+              <div class="flow-title after">
+                ✓ AFTER — Direct imports, no bottleneck
+              </div>
               <div class="flow-row">
                 <div class="flow-modules">
                   <span class="chip chip-green">command/</span>
@@ -1157,10 +1247,13 @@
             </thead>
             <tbody>
               <tr>
-                <td>Import <code>event/</code> ONLY for error classification</td>
+                <td>
+                  Import <code>event/</code> ONLY for error classification
+                </td>
                 <td style="font-family: var(--font-mono); font-size: 0.78rem">
-                  command, query, decider, middleware, signing, schema, snapshot, listing, deriver,
-                  scenario, projectionhost, graph, watermill, transport/*, storage/*, stack/*
+                  command, query, decider, middleware, signing, schema,
+                  snapshot, listing, deriver, scenario, projectionhost, graph,
+                  watermill, transport/*, storage/*, stack/*
                 </td>
                 <td><span class="badge badge-red">~30</span></td>
               </tr>
@@ -1174,7 +1267,8 @@
               <tr>
                 <td>Mixed (both patterns in same module)</td>
                 <td style="font-family: var(--font-mono); font-size: 0.78rem">
-                  storage (1 direct / 25 via event/), query (1 direct / 5 via event/)
+                  storage (1 direct / 25 via event/), query (1 direct / 5 via
+                  event/)
                 </td>
                 <td><span class="badge badge-yellow">2</span></td>
               </tr>
@@ -1184,66 +1278,85 @@
 
         <!-- ─────────── CMD/QUERY COUPLING ─────────── -->
         <section id="coupling">
-          <h2><span class="num">04</span> The Command/Query Coupling Problem</h2>
+          <h2>
+            <span class="num">04</span> The Command/Query Coupling Problem
+          </h2>
 
           <p>
-            <code>command/</code> lists <code>event/</code> as a direct dependency. Some of that is
-            legitimate (shared domain types), but most is artificial (error classification):
+            <code>command/</code> lists <code>event/</code> as a direct
+            dependency. Some of that is legitimate (shared domain types), but
+            most is artificial (error classification):
           </p>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
             <div>
               <h4 style="color: var(--color-green)">✅ Legitimate coupling</h4>
               <div class="code-block">
-                <span class="cmt">// Domain types — shared vocabulary</span><br />
+                <span class="cmt">// Domain types — shared vocabulary</span
+                ><br />
                 command/aggregate_ref.go:<br />
                 &nbsp;&nbsp;<span class="kw">type</span> AggregateRef =
                 <span class="green">event.AggregateRef</span><br />
-                &nbsp;&nbsp;<span class="green">event.NewAggregateRef</span>(...)<br />
-                &nbsp;&nbsp;<span class="green">event.ParseAggregateType</span>(...)
+                &nbsp;&nbsp;<span class="green">event.NewAggregateRef</span
+                >(...)<br />
+                &nbsp;&nbsp;<span class="green">event.ParseAggregateType</span
+                >(...)
               </div>
               <p style="font-size: 0.82rem; color: rgba(244, 244, 240, 0.5)">
-                <code>AggregateRef</code> is the shared domain type for targeting aggregates. This
-                coupling is correct — commands target aggregates.
+                <code>AggregateRef</code> is the shared domain type for
+                targeting aggregates. This coupling is correct — commands target
+                aggregates.
               </p>
             </div>
             <div>
               <h4 style="color: var(--color-red)">❌ Artificial coupling</h4>
               <div class="code-block">
-                <span class="cmt">// Error classification — re-export trap</span><br />
+                <span class="cmt">// Error classification — re-export trap</span
+                ><br />
                 command/errors.go:<br />
-                &nbsp;&nbsp;<span class="red">event.NewRejection</span>(...)<br />
-                &nbsp;&nbsp;<span class="red">event.NewConflict</span>(...)<br />
-                &nbsp;&nbsp;<span class="red">event.NewInfrastructure</span>(...)<br />
+                &nbsp;&nbsp;<span class="red">event.NewRejection</span
+                >(...)<br />
+                &nbsp;&nbsp;<span class="red">event.NewConflict</span
+                >(...)<br />
+                &nbsp;&nbsp;<span class="red">event.NewInfrastructure</span
+                >(...)<br />
                 command/dispatcher.go:<br />
-                &nbsp;&nbsp;<span class="red">event.WrapRejection</span>(...)<br />
+                &nbsp;&nbsp;<span class="red">event.WrapRejection</span
+                >(...)<br />
                 &nbsp;&nbsp;<span class="red">event.Classify</span>(...)
               </div>
               <p style="font-size: 0.82rem; color: rgba(244, 244, 240, 0.5)">
-                15+ error calls route through the re-export. <code>command/</code> pulls in the
-                entire store/bus interface surface to get <code>event.NewRejection</code>.
+                15+ error calls route through the re-export.
+                <code>command/</code> pulls in the entire store/bus interface
+                surface to get <code>event.NewRejection</code>.
               </p>
             </div>
           </div>
 
           <div class="card card-solution">
             <p>
-              <strong>The most interesting case: <code>query/</code>.</strong> If the error taxonomy
-              is extracted, <code>query/</code> has
+              <strong>The most interesting case: <code>query/</code>.</strong>
+              If the error taxonomy is extracted, <code>query/</code> has
               <strong>zero dependency on <code>event/</code></strong
-              >. This means commands and queries don't need events — proving the CQRS separation. A
-              consumer could use query dispatch without pulling in any event sourcing machinery.
-              <code>query/store.go</code> already bypasses to <code>go-error-family</code> directly
-              — the rest should follow.
+              >. This means commands and queries don't need events — proving the
+              CQRS separation. A consumer could use query dispatch without
+              pulling in any event sourcing machinery.
+              <code>query/store.go</code> already bypasses to
+              <code>go-error-family</code> directly — the rest should follow.
             </p>
           </div>
         </section>
 
         <!-- ─────────── LAYER VIOLATIONS ─────────── -->
         <section id="violations">
-          <h2><span class="num">05</span> Layer Violations: Documented vs Actual</h2>
+          <h2>
+            <span class="num">05</span> Layer Violations: Documented vs Actual
+          </h2>
 
-          <p>The documented 7-layer system is misleading. Here's what's actually true:</p>
+          <p>
+            The documented 7-layer system is misleading. Here's what's actually
+            true:
+          </p>
 
           <table class="tbl">
             <thead>
@@ -1260,7 +1373,10 @@
                 <td><code>kv/</code></td>
                 <td>Layer 0</td>
                 <td>Layer 1</td>
-                <td>Depends on <code>codec/</code> + <code>otter</code> for TypedStore/Cache</td>
+                <td>
+                  Depends on <code>codec/</code> + <code>otter</code> for
+                  TypedStore/Cache
+                </td>
                 <td><span class="badge badge-red">Wrong</span></td>
               </tr>
               <tr>
@@ -1278,7 +1394,8 @@
                 <td>Layer 1</td>
                 <td>Layer 2</td>
                 <td>
-                  Depends on <code>event/</code> (Layer 2) + <code>storage/memory/</code> (Layer 4)
+                  Depends on <code>event/</code> (Layer 2) +
+                  <code>storage/memory/</code> (Layer 4)
                 </td>
                 <td><span class="badge badge-red">Wrong</span></td>
               </tr>
@@ -1287,7 +1404,8 @@
                 <td>Layer 1</td>
                 <td>Layer 2</td>
                 <td>
-                  Same as command/ — depends on <code>event/</code> + <code>storage/memory/</code>
+                  Same as command/ — depends on <code>event/</code> +
+                  <code>storage/memory/</code>
                 </td>
                 <td><span class="badge badge-red">Wrong</span></td>
               </tr>
@@ -1306,7 +1424,8 @@
                 <td>Layer 3</td>
                 <td>Layer 4</td>
                 <td>
-                  Depends on <code>event/</code>, <code>snapshot/</code>, <code>otel/</code>,
+                  Depends on <code>event/</code>, <code>snapshot/</code>,
+                  <code>otel/</code>,
                   <code>storage/memory/</code>
                 </td>
                 <td><span class="badge badge-yellow">Off by 1</span></td>
@@ -1337,7 +1456,8 @@
             </div>
             <div class="layer-row violation">
               <div class="layer-label">
-                <span class="num">1</span><span class="desc">Message types</span>
+                <span class="num">1</span
+                ><span class="desc">Message types</span>
               </div>
               <div class="layer-modules">
                 <span class="chip chip-red">event/ ⚠ GOD MODULE</span>
@@ -1348,7 +1468,8 @@
             </div>
             <div class="layer-row">
               <div class="layer-label">
-                <span class="num">2</span><span class="desc">Domain layering</span>
+                <span class="num">2</span
+                ><span class="desc">Domain layering</span>
               </div>
               <div class="layer-modules">
                 <span class="chip">schema/</span>
@@ -1359,7 +1480,8 @@
             </div>
             <div class="layer-row violation">
               <div class="layer-label">
-                <span class="num">3</span><span class="desc">Aggregate logic</span>
+                <span class="num">3</span
+                ><span class="desc">Aggregate logic</span>
               </div>
               <div class="layer-modules">
                 <span class="chip chip-red">decider/ ⚠ actual: L4</span>
@@ -1397,7 +1519,8 @@
             </div>
             <div class="layer-row">
               <div class="layer-label">
-                <span class="num">6</span><span class="desc">Stack presets</span>
+                <span class="num">6</span
+                ><span class="desc">Stack presets</span>
               </div>
               <div class="layer-modules">
                 <span class="chip">stack/</span>
@@ -1423,18 +1546,23 @@
 
         <!-- ─────────── TARGET ARCHITECTURE ─────────── -->
         <section id="target">
-          <h2><span class="num">06</span> Target: Four Tiers (Not Seven Layers)</h2>
+          <h2>
+            <span class="num">06</span> Target: Four Tiers (Not Seven Layers)
+          </h2>
 
           <p>
-            Replace the misleading 7-layer system with <strong>four tiers</strong> that represent
-            real architectural boundaries. Within each tier, modules depend on each other freely.
+            Replace the misleading 7-layer system with
+            <strong>four tiers</strong> that represent real architectural
+            boundaries. Within each tier, modules depend on each other freely.
             Cross-tier dependencies flow upward only.
           </p>
 
           <div class="tier-stack">
             <div class="tier tier-comp">
               <div class="tier-label">Composition Tier</div>
-              <div class="tier-desc">Wire everything together for the consumer</div>
+              <div class="tier-desc">
+                Wire everything together for the consumer
+              </div>
               <div class="tier-modules">
                 <span class="chip chip-purple">stack/</span>
                 <span class="chip chip-purple">stack/sqlite/</span>
@@ -1448,10 +1576,14 @@
             </div>
             <div class="tier tier-ops">
               <div class="tier-label">Operations Tier</div>
-              <div class="tier-desc">Cross-cutting concerns applied across the system</div>
+              <div class="tier-desc">
+                Cross-cutting concerns applied across the system
+              </div>
               <div class="tier-modules">
                 <span class="chip chip-amber">middleware/</span>
-                <span class="chip chip-amber">idempotency/ (separate module)</span>
+                <span class="chip chip-amber"
+                  >idempotency/ (separate module)</span
+                >
                 <span class="chip chip-amber">otel/</span>
                 <span class="chip chip-amber">prometheus/</span>
                 <span class="chip chip-amber">signing/</span>
@@ -1463,7 +1595,9 @@
             </div>
             <div class="tier tier-infra">
               <div class="tier-label">Infrastructure Tier</div>
-              <div class="tier-desc">Implement the contracts for specific backends</div>
+              <div class="tier-desc">
+                Implement the contracts for specific backends
+              </div>
               <div class="tier-modules">
                 <span class="chip chip-blue">storage/</span>
                 <span class="chip chip-blue">storage/pebble/</span>
@@ -1476,7 +1610,9 @@
             </div>
             <div class="tier tier-domain">
               <div class="tier-label">Domain Tier</div>
-              <div class="tier-desc">Pure domain model + contracts. No backend knowledge.</div>
+              <div class="tier-desc">
+                Pure domain model + contracts. No backend knowledge.
+              </div>
               <div class="tier-modules">
                 <span class="chip chip-green">id/</span>
                 <span class="chip chip-green">codec/</span>
@@ -1499,56 +1635,87 @@
           <h2><span class="num">07</span> Domain Tier: Internal Structure</h2>
 
           <p>
-            The Domain Tier itself has internal layering — three sub-levels with clear dependency
-            direction:
+            The Domain Tier itself has internal layering — three sub-levels with
+            clear dependency direction:
           </p>
 
           <div class="domain-detail">
             <div class="domain-sub">
-              <div class="domain-sub-label">Primitives — zero internal deps</div>
+              <div class="domain-sub-label">
+                Primitives — zero internal deps
+              </div>
               <div class="domain-sub-modules">
-                <span class="chip chip-green">id/ — branded IDs (ULID, markers)</span>
-                <span class="chip chip-green">codec/ — encoding contract (JSON, CBOR)</span>
-                <span class="chip chip-green">kv/ (raw) — Store, Reader, Writer, Batch</span>
+                <span class="chip chip-green"
+                  >id/ — branded IDs (ULID, markers)</span
+                >
+                <span class="chip chip-green"
+                  >codec/ — encoding contract (JSON, CBOR)</span
+                >
+                <span class="chip chip-green"
+                  >kv/ (raw) — Store, Reader, Writer, Batch</span
+                >
               </div>
             </div>
             <div class="domain-sub">
-              <div class="domain-sub-label">Message Types — depend on primitives</div>
+              <div class="domain-sub-label">
+                Message Types — depend on primitives
+              </div>
               <div class="domain-sub-modules">
                 <span class="chip chip-green"
                   >event/ — ImmutableEvent, Metadata, Store/Bus interfaces</span
                 >
-                <span class="chip chip-green">command/ — Command, AggregateRef</span>
-                <span class="chip chip-green">query/ — Query, Type (NO event/ dep!)</span>
+                <span class="chip chip-green"
+                  >command/ — Command, AggregateRef</span
+                >
+                <span class="chip chip-green"
+                  >query/ — Query, Type (NO event/ dep!)</span
+                >
               </div>
             </div>
             <div class="domain-sub">
-              <div class="domain-sub-label">Domain Logic — depend on message types</div>
+              <div class="domain-sub-label">
+                Domain Logic — depend on message types
+              </div>
               <div class="domain-sub-modules">
-                <span class="chip chip-green">decider/ — Decider[State], Repository[State]</span>
-                <span class="chip chip-green">deriver/ — event→command derivation</span>
-                <span class="chip chip-green">projection/ — Projection interface</span>
-                <span class="chip chip-green">schema/ — upcasting, versioning</span>
-                <span class="chip chip-green">dispatcher/ — generic dispatch</span>
+                <span class="chip chip-green"
+                  >decider/ — Decider[State], Repository[State]</span
+                >
+                <span class="chip chip-green"
+                  >deriver/ — event→command derivation</span
+                >
+                <span class="chip chip-green"
+                  >projection/ — Projection interface</span
+                >
+                <span class="chip chip-green"
+                  >schema/ — upcasting, versioning</span
+                >
+                <span class="chip chip-green"
+                  >dispatcher/ — generic dispatch</span
+                >
               </div>
             </div>
           </div>
 
           <div class="card card-solution">
             <p>
-              <strong>The <code>kv/</code> split:</strong> Currently <code>kv/</code> contains both
-              raw byte-level types (<code>Store</code>, <code>Reader</code>, <code>Writer</code>)
-              AND typed wrappers (<code>TypedStore[T,K]</code>, <code>Cache[T,K]</code>). The raw
-              types are true Layer 0 — zero internal deps. The typed wrappers need
-              <code>codec/</code> and <code>otter</code>. Split: <code>kv/</code> (raw) stays Layer
-              0, <code>kv/typed/</code> moves up.
+              <strong>The <code>kv/</code> split:</strong> Currently
+              <code>kv/</code> contains both raw byte-level types
+              (<code>Store</code>, <code>Reader</code>, <code>Writer</code>) AND
+              typed wrappers (<code>TypedStore[T,K]</code>,
+              <code>Cache[T,K]</code>). The raw types are true Layer 0 — zero
+              internal deps. The typed wrappers need <code>codec/</code> and
+              <code>otter</code>. Split: <code>kv/</code> (raw) stays Layer 0,
+              <code>kv/typed/</code> moves up.
             </p>
           </div>
         </section>
 
         <!-- ─────────── MIGRATION PATH ─────────── -->
         <section id="migration">
-          <h2><span class="num">08</span> Migration Path (Prioritized by Impact / Effort)</h2>
+          <h2>
+            <span class="num">08</span> Migration Path (Prioritized by Impact /
+            Effort)
+          </h2>
 
           <div class="phases">
             <div class="phase">
@@ -1557,9 +1724,10 @@
                 <h4>Extract Error Taxonomy</h4>
                 <p>
                   Replace all <code>event.*</code> error calls with
-                  <code>errorfamily.*</code> direct imports. Delete <code>event/errors.go</code>.
-                  Run <code>go mod tidy</code> in each module to drop indirect deps. Zero API change
-                  visible to consumers — same functions, different import path.
+                  <code>errorfamily.*</code> direct imports. Delete
+                  <code>event/errors.go</code>. Run <code>go mod tidy</code> in
+                  each module to drop indirect deps. Zero API change visible to
+                  consumers — same functions, different import path.
                 </p>
               </div>
               <div class="phase-meta">
@@ -1574,9 +1742,11 @@
                 <h4>Fix <code>kv/</code> Layering</h4>
                 <p>
                   Move <code>typed_store.go</code>, <code>cache.go</code>,
-                  <code>view_store.go</code> to <code>kv/typed/</code>. <code>kv/</code> keeps only
-                  raw byte-level types. <code>kv/</code> go.mod drops <code>codec/</code> and
-                  <code>otter</code>. <code>kv/</code> becomes a true Layer 0 leaf module.
+                  <code>view_store.go</code> to <code>kv/typed/</code>.
+                  <code>kv/</code> keeps only raw byte-level types.
+                  <code>kv/</code> go.mod drops <code>codec/</code> and
+                  <code>otter</code>. <code>kv/</code> becomes a true Layer 0
+                  leaf module.
                 </p>
               </div>
               <div class="phase-meta">
@@ -1589,14 +1759,17 @@
               <div class="phase-num">3</div>
               <div class="phase-body">
                 <h4>
-                  Merge <code>idempotency/</code> middleware into <code>middleware/</code>
+                  Merge <code>idempotency/</code> middleware into
+                  <code>middleware/</code>
                   <span class="badge badge-green">✅ DONE</span>
                 </h4>
                 <p>
-                  Generic <code>NewIdempotency[M]</code> factory added to <code>middleware/</code>,
-                  following the <code>NewValidation[M]</code> /
-                  <code>NewTracing[M]</code> precedent. Store stays in <code>idempotency/</code> as
-                  a separate lightweight module (kv/ + go-error-family only). See the
+                  Generic <code>NewIdempotency[M]</code> factory added to
+                  <code>middleware/</code>, following the
+                  <code>NewValidation[M]</code> /
+                  <code>NewTracing[M]</code> precedent. Store stays in
+                  <code>idempotency/</code> as a separate lightweight module
+                  (kv/ + go-error-family only). See the
                   <a
                     href="../planning/2026-07-06_IDEMPOTENCY_MERGE_PLAN.md"
                     style="color: var(--color-amber)"
@@ -1615,10 +1788,11 @@
               <div class="phase-body">
                 <h4>Clean Up <code>event/</code> Test Deps</h4>
                 <p>
-                  Move test-only deps (<code>schema/</code>, <code>snapshot/</code>,
-                  <code>storage/memory/</code>) out of the production <code>require</code> block. Go
-                  can't separate test-only deps natively — may need a separate test module or move
-                  affected tests to <code>integration/</code>.
+                  Move test-only deps (<code>schema/</code>,
+                  <code>snapshot/</code>, <code>storage/memory/</code>) out of
+                  the production <code>require</code> block. Go can't separate
+                  test-only deps natively — may need a separate test module or
+                  move affected tests to <code>integration/</code>.
                 </p>
               </div>
               <div class="phase-meta">
@@ -1631,10 +1805,10 @@
               <div class="phase-body">
                 <h4>Document the Tier Model</h4>
                 <p>
-                  Update <code>AGENTS.md</code> Module Graph to use the four-tier model. Update
-                  <code>flake.nix</code> testModules. Update
-                  <code>cmd/api-stability/main.go</code> to scan all packages including
-                  currently-missing ones.
+                  Update <code>AGENTS.md</code> Module Graph to use the
+                  four-tier model. Update <code>flake.nix</code> testModules.
+                  Update <code>cmd/api-stability/main.go</code> to scan all
+                  packages including currently-missing ones.
                 </p>
               </div>
               <div class="phase-meta">
@@ -1649,50 +1823,56 @@
         <section id="keep">
           <h2><span class="num">09</span> What NOT to Change</h2>
 
-          <p>Not everything is broken. These decisions are correct and should stay:</p>
+          <p>
+            Not everything is broken. These decisions are correct and should
+            stay:
+          </p>
 
           <div class="keep-list">
             <div class="keep-item">
               <h4>event/ contains Store/Bus interfaces</h4>
               <p>
-                Interfaces are domain contracts, not implementations. Every event consumer needs
-                both types and interfaces. The problem was never "Store is in event/" — it was
-                "error taxonomy is in event/".
+                Interfaces are domain contracts, not implementations. Every
+                event consumer needs both types and interfaces. The problem was
+                never "Store is in event/" — it was "error taxonomy is in
+                event/".
               </p>
             </div>
             <div class="keep-item">
               <h4>command/ → event/ for AggregateRef</h4>
               <p>
-                Legitimate domain coupling. Commands target aggregates. <code>AggregateRef</code> is
-                the shared vocabulary.
+                Legitimate domain coupling. Commands target aggregates.
+                <code>AggregateRef</code> is the shared vocabulary.
               </p>
             </div>
             <div class="keep-item">
               <h4>decider/ → event/ + snapshot/</h4>
               <p>
-                Core ES pattern — the decider loads events from a store and snapshots state. This
-                coupling is the architecture.
+                Core ES pattern — the decider loads events from a store and
+                snapshots state. This coupling is the architecture.
               </p>
             </div>
             <div class="keep-item">
               <h4>dedup/ as separate leaf module</h4>
               <p>
-                True Layer 0 (zero deps). Different concern from idempotency (ring buffer vs TTL
-                store). Correctly separate.
+                True Layer 0 (zero deps). Different concern from idempotency
+                (ring buffer vs TTL store). Correctly separate.
               </p>
             </div>
             <div class="keep-item">
               <h4>Multi-module workspace (go.work)</h4>
               <p>
-                Each module having its own <code>go.mod</code> is deliberate — consumer import
-                isolation. The workspace ties them together for development.
+                Each module having its own <code>go.mod</code> is deliberate —
+                consumer import isolation. The workspace ties them together for
+                development.
               </p>
             </div>
             <div class="keep-item">
               <h4>Import go-error-family directly</h4>
               <p>
-                Not a wrapper module. <code>go-error-family</code> IS the taxonomy — it already has
-                the right API. 8 modules prove it. A CQRS wrapper adds indirection without value.
+                Not a wrapper module. <code>go-error-family</code> IS the
+                taxonomy — it already has the right API. 8 modules prove it. A
+                CQRS wrapper adds indirection without value.
               </p>
             </div>
           </div>
@@ -1706,23 +1886,39 @@
             <div class="verdict-col verdict-for">
               <h4>✓ Argument FOR</h4>
               <ul>
-                <li>30+ modules have artificial coupling to <code>event/</code></li>
-                <li>Error taxonomy trap makes every new module carry event baggage</li>
+                <li>
+                  30+ modules have artificial coupling to <code>event/</code>
+                </li>
+                <li>
+                  Error taxonomy trap makes every new module carry event baggage
+                </li>
                 <li><code>kv/</code> Layer 0 claim is false and misleading</li>
-                <li>Phase 1 is ~50 file mechanical change for 80% of the benefit</li>
-                <li><code>query/</code> could become truly independent of <code>event/</code></li>
+                <li>
+                  Phase 1 is ~50 file mechanical change for 80% of the benefit
+                </li>
+                <li>
+                  <code>query/</code> could become truly independent of
+                  <code>event/</code>
+                </li>
                 <li>Sets up clean v4 boundaries</li>
               </ul>
             </div>
             <div class="verdict-col verdict-against">
               <h4>✗ Argument AGAINST</h4>
               <ul>
-                <li>It works today. The coupling doesn't cause runtime bugs.</li>
-                <li>Consumers don't see the coupling — they import what they need.</li>
-                <li>Just fix the AGENTS.md text, don't restructure.</li>
-                <li>50 files is a lot of churn for "just change the import path."</li>
                 <li>
-                  <code>query/</code> already works — who cares if it imports <code>event/</code>?
+                  It works today. The coupling doesn't cause runtime bugs.
+                </li>
+                <li>
+                  Consumers don't see the coupling — they import what they need.
+                </li>
+                <li>Just fix the AGENTS.md text, don't restructure.</li>
+                <li>
+                  50 files is a lot of churn for "just change the import path."
+                </li>
+                <li>
+                  <code>query/</code> already works — who cares if it imports
+                  <code>event/</code>?
                 </li>
                 <li>v4 is not planned.</li>
               </ul>
@@ -1733,10 +1929,11 @@
             <p>
               <strong>Recommendation:</strong>
               <strong>Phase 1 (extract error taxonomy) is worth doing.</strong>
-              The coupling is real, the fix is mechanical, and it unblocks independent use of
-              query/command without event baggage.
-              <strong>Phase 2 (kv/ split)</strong> is worth doing because the false Layer 0 claim
-              will mislead contributors. Everything else can wait for v4.
+              The coupling is real, the fix is mechanical, and it unblocks
+              independent use of query/command without event baggage.
+              <strong>Phase 2 (kv/ split)</strong> is worth doing because the
+              false Layer 0 claim will mislead contributors. Everything else can
+              wait for v4.
             </p>
           </div>
         </section>

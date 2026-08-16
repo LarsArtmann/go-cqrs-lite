@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>go-cqrs-lite Performance Audit &amp; SIMD Opportunity Analysis</title>
+    <title>
+      go-cqrs-lite Performance Audit &amp; SIMD Opportunity Analysis
+    </title>
     <style>
       :root {
         --bg: #0d1117;
@@ -23,7 +25,9 @@
         padding: 0;
       }
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+          sans-serif;
         background: var(--bg);
         color: var(--text);
         line-height: 1.6;
@@ -189,7 +193,11 @@
         border-left-color: var(--yellow);
       }
       .verdict {
-        background: linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(88, 166, 255, 0.02));
+        background: linear-gradient(
+          135deg,
+          rgba(88, 166, 255, 0.1),
+          rgba(88, 166, 255, 0.02)
+        );
         border: 1px solid var(--accent);
         border-radius: 12px;
         padding: 1.25rem 1.5rem;
@@ -221,7 +229,10 @@
   <body>
     <h1>
       go-cqrs-lite Performance Audit &amp; SIMD Opportunity Analysis
-      <small>2026-06-02 — Full benchmark suite, hardware crypto analysis, SIMD roadmap</small>
+      <small
+        >2026-06-02 — Full benchmark suite, hardware crypto analysis, SIMD
+        roadmap</small
+      >
     </h1>
 
     <h2>Environment</h2>
@@ -267,11 +278,12 @@
 
     <div class="finding good">
       <strong>YES — SHA-NI is active at runtime.</strong><br />
-      Go 1.26's <code>crypto/sha256</code> dispatches to <code>blockSHANI()</code> on this CPU — a
-      hand-written assembly path using <code>SHA256RNDS2</code>, <code>SHA256MSG1</code>,
-      <code>SHA256MSG2</code> x86 instructions. This is the fastest SHA-256 path available in Go.
-      HMAC-SHA256 calls <code>sha256.Hash</code> twice (inner + outer pad), both benefiting from
-      SHA-NI.
+      Go 1.26's <code>crypto/sha256</code> dispatches to
+      <code>blockSHANI()</code> on this CPU — a hand-written assembly path using
+      <code>SHA256RNDS2</code>, <code>SHA256MSG1</code>,
+      <code>SHA256MSG2</code> x86 instructions. This is the fastest SHA-256 path
+      available in Go. HMAC-SHA256 calls <code>sha256.Hash</code> twice (inner +
+      outer pad), both benefiting from SHA-NI.
     </div>
 
     <h3>How the dispatch works</h3>
@@ -299,8 +311,8 @@ func block(dig *Digest, p []byte) {
         <td>HMAC Sign</td>
         <td class="num right">662</td>
         <td>
-          2× SHA-256 via <code>SHA256RNDS2</code> hardware instructions + HMAC key XOR + canonical
-          payload pre-sized buffer (6 allocs, down from 10)
+          2× SHA-256 via <code>SHA256RNDS2</code> hardware instructions + HMAC
+          key XOR + canonical payload pre-sized buffer (6 allocs, down from 10)
         </td>
       </tr>
       <tr>
@@ -312,43 +324,58 @@ func block(dig *Digest, p []byte) {
         <td>Ed25519 Sign</td>
         <td class="num right">13,506</td>
         <td>
-          Pure Go + <code>crypto/ed25519</code> (uses SHA-512, no SHA-NI benefit — SHA-512 has no
-          Intel extension)
+          Pure Go + <code>crypto/ed25519</code> (uses SHA-512, no SHA-NI benefit
+          — SHA-512 has no Intel extension)
         </td>
       </tr>
       <tr>
         <td>Ed25519 Verify</td>
         <td class="num right">30,665</td>
-        <td>SHA-512 + point multiplication — no hardware acceleration exists for this</td>
+        <td>
+          SHA-512 + point multiplication — no hardware acceleration exists for
+          this
+        </td>
       </tr>
     </table>
 
     <div class="verdict">
-      <strong>Verdict:</strong> HMAC-SHA256 is already hardware-accelerated. After Session 142
-      optimization, canonicalPayload now uses a pre-sized <code>[]byte</code> buffer (6 allocs, down
-      from 10). HMAC Sign improved from 818ns to 662ns (~19% faster). Ed25519 is 20× slower because
-      SHA-512 lacks hardware support and the elliptic curve math is inherently more expensive. No
-      software optimization can fix this — it's a CPU limitation.
+      <strong>Verdict:</strong> HMAC-SHA256 is already hardware-accelerated.
+      After Session 142 optimization, canonicalPayload now uses a pre-sized
+      <code>[]byte</code> buffer (6 allocs, down from 10). HMAC Sign improved
+      from 818ns to 662ns (~19% faster). Ed25519 is 20× slower because SHA-512
+      lacks hardware support and the elliptic curve math is inherently more
+      expensive. No software optimization can fix this — it's a CPU limitation.
     </div>
 
     <h2>Go 1.26 SIMD — <code>simd/archsimd</code> (Experimental)</h2>
 
     <h3>What's available</h3>
     <p>
-      Go 1.26 introduces <code>simd/archsimd</code> via <code>GOEXPERIMENT=simd</code>. It provides:
+      Go 1.26 introduces <code>simd/archsimd</code> via
+      <code>GOEXPERIMENT=simd</code>. It provides:
     </p>
     <ul>
-      <li>128-bit vectors: <code>Int8x16</code>, <code>Float64x2</code>, etc.</li>
-      <li>256-bit vectors: <code>Float32x8</code>, <code>Int64x4</code>, etc.</li>
-      <li>512-bit vectors: <code>Float32x16</code>, <code>Int64x8</code>, etc. (AVX-512)</li>
       <li>
-        Operations: Load, Store, Add, Sub, Mul, And, Or, Xor, Equal, Greater, Permute, Masked, Merge
+        128-bit vectors: <code>Int8x16</code>, <code>Float64x2</code>, etc.
       </li>
-      <li>Runtime CPU feature checks via <code>archsimd.X86.HasAVX2()</code>, etc.</li>
+      <li>
+        256-bit vectors: <code>Float32x8</code>, <code>Int64x4</code>, etc.
+      </li>
+      <li>
+        512-bit vectors: <code>Float32x16</code>, <code>Int64x8</code>, etc.
+        (AVX-512)
+      </li>
+      <li>
+        Operations: Load, Store, Add, Sub, Mul, And, Or, Xor, Equal, Greater,
+        Permute, Masked, Merge
+      </li>
+      <li>
+        Runtime CPU feature checks via <code>archsimd.X86.HasAVX2()</code>, etc.
+      </li>
     </ul>
     <p>
-      <strong>Restrictions:</strong> amd64 only, not portable, not in public APIs, experimental (no
-      Go 1 compatibility promise).
+      <strong>Restrictions:</strong> amd64 only, not portable, not in public
+      APIs, experimental (no Go 1 compatibility promise).
     </p>
 
     <h3>Why we're NOT using it yet — and whether we should</h3>
@@ -364,8 +391,8 @@ func block(dig *Digest, p []byte) {
         <td><code>signing/</code> HMAC</td>
         <td class="num right">818</td>
         <td>
-          Already on <code>SHA256RNDS2</code>. Go's <code>crypto/*</code> uses hand-tuned assembly.
-          SIMD can't beat it.
+          Already on <code>SHA256RNDS2</code>. Go's <code>crypto/*</code> uses
+          hand-tuned assembly. SIMD can't beat it.
         </td>
         <td><span class="tag tag-green">No Action</span></td>
       </tr>
@@ -373,7 +400,8 @@ func block(dig *Digest, p []byte) {
         <td><code>signing/</code> Ed25519</td>
         <td class="num right">30,665</td>
         <td>
-          SHA-512 has no Intel SHA extension. Field arithmetic could use AVX-512 but
+          SHA-512 has no Intel SHA extension. Field arithmetic could use AVX-512
+          but
           <code>crypto/ed25519</code> is stdlib — we can't change it.
         </td>
         <td><span class="tag tag-green">No Action</span></td>
@@ -382,8 +410,9 @@ func block(dig *Digest, p []byte) {
         <td><code>event.NewEvent</code> payload copy</td>
         <td class="num right">201</td>
         <td>
-          Most payloads &lt;128 bytes. <code>make + copy</code> is already near-optimal for small
-          slices. SIMD overhead (load/store setup) would exceed the gain.
+          Most payloads &lt;128 bytes. <code>make + copy</code> is already
+          near-optimal for small slices. SIMD overhead (load/store setup) would
+          exceed the gain.
         </td>
         <td><span class="tag tag-green">No Action</span></td>
       </tr>
@@ -391,9 +420,10 @@ func block(dig *Digest, p []byte) {
         <td><code>signing/canonicalPayload</code></td>
         <td class="num right">219 (6 allocs)</td>
         <td>
-          <strong>FIXED Session 142.</strong> Pre-sized <code>[]byte</code> buffer + stack-allocated
-          <code>[4]byte</code> for length prefix. Reduced from 326ns/10 allocs to 219ns/6 allocs.
-          Further reduction would need pooled buffers.
+          <strong>FIXED Session 142.</strong> Pre-sized
+          <code>[]byte</code> buffer + stack-allocated <code>[4]byte</code> for
+          length prefix. Reduced from 326ns/10 allocs to 219ns/6 allocs. Further
+          reduction would need pooled buffers.
         </td>
         <td><span class="tag tag-green">Fixed</span></td>
       </tr>
@@ -401,9 +431,10 @@ func block(dig *Digest, p []byte) {
         <td><code>pebble/LoadToTimestamp</code></td>
         <td class="num right">5,393,149</td>
         <td>
-          <strong>Highest SIMD ROI.</strong> Linear scan comparing <code>time.Time</code> values
-          across thousands of events. <code>Int64x8</code> compares 8 timestamps per cycle. Could
-          cut scan time 4-6×.
+          <strong>Highest SIMD ROI.</strong> Linear scan comparing
+          <code>time.Time</code> values across thousands of events.
+          <code>Int64x8</code> compares 8 timestamps per cycle. Could cut scan
+          time 4-6×.
         </td>
         <td><span class="tag tag-red">High Value</span></td>
       </tr>
@@ -411,8 +442,8 @@ func block(dig *Digest, p []byte) {
         <td><code>listing/</code> tombstone detection</td>
         <td class="num right">373,167</td>
         <td>
-          Bottleneck is map lookups + slice building, not linear scanning. SIMD doesn't help with
-          hash maps.
+          Bottleneck is map lookups + slice building, not linear scanning. SIMD
+          doesn't help with hash maps.
         </td>
         <td><span class="tag tag-yellow">Low Value</span></td>
       </tr>
@@ -420,9 +451,9 @@ func block(dig *Digest, p []byte) {
         <td><code>storage/SQLite</code> ReadAll</td>
         <td class="num right">403,640</td>
         <td>
-          Bottleneck is SQLite engine (<code>modernc.org/sqlite</code>, pure Go — no CGo) + SQL
-          parsing overhead. Transpiled C-to-Go is slower than native C but avoids CGo bridge cost
-          entirely.
+          Bottleneck is SQLite engine (<code>modernc.org/sqlite</code>, pure Go
+          — no CGo) + SQL parsing overhead. Transpiled C-to-Go is slower than
+          native C but avoids CGo bridge cost entirely.
         </td>
         <td><span class="tag tag-green">No Action</span></td>
       </tr>
@@ -570,7 +601,9 @@ func block(dig *Digest, p []byte) {
         <td class="num right">219</td>
         <td class="num right">352</td>
         <td class="num right">6</td>
-        <td>Pre-sized buffer — optimized Session 142 (was 326ns/632B/10 allocs)</td>
+        <td>
+          Pre-sized buffer — optimized Session 142 (was 326ns/632B/10 allocs)
+        </td>
       </tr>
       <tr>
         <td>HMAC Sign</td>
@@ -1020,57 +1053,66 @@ func block(dig *Digest, p []byte) {
     <h3>1. Zero <code>sync.Pool</code> usage anywhere</h3>
     <div class="finding good">
       <strong>RESOLVED — REJECTED.</strong> <code>sync.Pool</code> requires
-      <code>Reset()</code> which mutates an "Immutable" object. For an event sourcing system where
-      immutability is a core design contract, the 384 B / 3 allocs at 201ns is the honest cost of
-      immutability. Pooling would violate the design contract.
+      <code>Reset()</code> which mutates an "Immutable" object. For an event
+      sourcing system where immutability is a core design contract, the 384 B /
+      3 allocs at 201ns is the honest cost of immutability. Pooling would
+      violate the design contract.
     </div>
 
     <h3>2. Defensive payload copy on every event</h3>
     <div class="finding warn">
       <code>event_construct.go:53-55</code> —
-      <code>make([]byte, len(payload)); copy(safePayload, payload)</code> runs on every
-      <code>NewEvent</code>, even when the caller is the sole owner (e.g., payload just marshaled
-      from a struct). For event-loaded-from-DB paths, the defensive copy is pure overhead. An
-      <code>unsafe</code> fast path or <code>WithNoCopy()</code> option for trusted callers would
+      <code>make([]byte, len(payload)); copy(safePayload, payload)</code> runs
+      on every <code>NewEvent</code>, even when the caller is the sole owner
+      (e.g., payload just marshaled from a struct). For event-loaded-from-DB
+      paths, the defensive copy is pure overhead. An <code>unsafe</code> fast
+      path or <code>WithNoCopy()</code> option for trusted callers would
       eliminate this.
     </div>
 
     <h3>3. <code>probeCodec</code> allocates a throwaway struct per event</h3>
     <div class="finding good">
-      <strong>FIXED Session 142.</strong> Renamed to <code>findCodecOption</code>, added early
-      return for empty opts (common path). When opts exist, it still probes an
-      <code>ImmutableEvent</code> because <code>Option</code> is a func that can't be inspected
-      without calling it.
+      <strong>FIXED Session 142.</strong> Renamed to
+      <code>findCodecOption</code>, added early return for empty opts (common
+      path). When opts exist, it still probes an
+      <code>ImmutableEvent</code> because <code>Option</code> is a func that
+      can't be inspected without calling it.
     </div>
 
     <h3>4. Storage benchmarks test a mock, not a real database</h3>
     <div class="finding warn">
-      <code>storage/benchmark_test.go</code> uses <code>sqlmock</code> — the 119µs "load" is mock
-      overhead, not PostgreSQL. The Save benchmark was <strong>fixed Session 142</strong> (was
-      missing Begin/CheckVersion/Commit mocks). The SQLite benchmarks in
-      <code>sqlite_bench_test.go</code> are real and valid. The PostgreSQL mock benchmarks should be
-      replaced with real PG (testcontainers) for honest numbers.
+      <code>storage/benchmark_test.go</code> uses <code>sqlmock</code> — the
+      119µs "load" is mock overhead, not PostgreSQL. The Save benchmark was
+      <strong>fixed Session 142</strong> (was missing Begin/CheckVersion/Commit
+      mocks). The SQLite benchmarks in <code>sqlite_bench_test.go</code> are
+      real and valid. The PostgreSQL mock benchmarks should be replaced with
+      real PG (testcontainers) for honest numbers.
     </div>
 
     <h3>5. Inconsistent benchmark style</h3>
     <div class="finding good">
-      <strong>FIXED Session 142.</strong> All <code>signing/</code> benchmarks migrated to
-      <code>b.Loop()</code>. All 51 benchmark functions across 19 files now call
-      <code>b.ReportAllocs()</code>.
+      <strong>FIXED Session 142.</strong> All <code>signing/</code> benchmarks
+      migrated to <code>b.Loop()</code>. All 51 benchmark functions across 19
+      files now call <code>b.ReportAllocs()</code>.
     </div>
 
     <h3>6. No statistical rigor</h3>
     <div class="finding good">
-      <strong>FIXED Session 142.</strong> Added <code>scripts/benchstat-compare.sh</code> that runs
-      <code>-count=N</code> benchmarks and compares with baseline using <code>benchstat</code>.
-      Added <code>nix run .#bench</code> for one-command benchmark execution.
+      <strong>FIXED Session 142.</strong> Added
+      <code>scripts/benchstat-compare.sh</code> that runs
+      <code>-count=N</code> benchmarks and compares with baseline using
+      <code>benchstat</code>. Added <code>nix run .#bench</code> for one-command
+      benchmark execution.
     </div>
 
-    <h3>7. <code>canonicalPayload</code> — 10 allocations for string building</h3>
+    <h3>
+      7. <code>canonicalPayload</code> — 10 allocations for string building
+    </h3>
     <div class="finding good">
-      <strong>FIXED Session 142.</strong> Rewritten to use pre-sized <code>[]byte</code> buffer with
-      stack-allocated <code>[4]byte</code> for length prefix. Reduced from 326ns/10 allocs to
-      219ns/6 allocs (~33% faster, 40% fewer allocs).
+      <strong>FIXED Session 142.</strong> Rewritten to use pre-sized
+      <code>[]byte</code> buffer with stack-allocated <code>[4]byte</code> for
+      length prefix. Reduced from 326ns/10 allocs to 219ns/6 allocs (~33%
+      faster, 40% fewer allocs).
     </div>
 
     <h2>Prioritized Improvement Plan</h2>
@@ -1083,19 +1125,27 @@ func block(dig *Digest, p []byte) {
       </tr>
       <tr>
         <td>1</td>
-        <td>Add <code>sync.Pool</code> for <code>ImmutableEvent</code> in <code>event/</code></td>
+        <td>
+          Add <code>sync.Pool</code> for <code>ImmutableEvent</code> in
+          <code>event/</code>
+        </td>
         <td><span class="tag tag-red">REJECTED</span></td>
         <td>Requires Reset() which violates immutability contract</td>
       </tr>
       <tr>
         <td>2</td>
-        <td>Eliminate <code>probeCodec</code> allocation in <code>event.New</code></td>
+        <td>
+          Eliminate <code>probeCodec</code> allocation in <code>event.New</code>
+        </td>
         <td><span class="tag tag-green">DONE</span></td>
         <td>Early return for empty opts, renamed to findCodecOption</td>
       </tr>
       <tr>
         <td>3</td>
-        <td>Fix <code>canonicalPayload</code> — use pre-sized <code>[]byte</code> buffer</td>
+        <td>
+          Fix <code>canonicalPayload</code> — use pre-sized
+          <code>[]byte</code> buffer
+        </td>
         <td><span class="tag tag-green">DONE</span></td>
         <td>326ns/10 allocs → 219ns/6 allocs</td>
       </tr>
@@ -1109,13 +1159,16 @@ func block(dig *Digest, p []byte) {
         <td>5</td>
         <td>Drop sqlmock benchmarks, keep only real SQLite benchmarks</td>
         <td><span class="tag tag-green">FIXED</span></td>
-        <td>Save benchmark fixed (was missing Begin/CheckVersion/Commit mocks)</td>
+        <td>
+          Save benchmark fixed (was missing Begin/CheckVersion/Commit mocks)
+        </td>
       </tr>
       <tr>
         <td>6</td>
         <td>
-          Add benchmarks for <code>command/</code>, <code>query/</code>, <code>schema/</code>,
-          <code>snapshot/</code>, <code>memory/</code>, <code>dispatcher/</code>
+          Add benchmarks for <code>command/</code>, <code>query/</code>,
+          <code>schema/</code>, <code>snapshot/</code>, <code>memory/</code>,
+          <code>dispatcher/</code>
         </td>
         <td><span class="tag tag-green">DONE</span></td>
         <td>27 new benchmark functions across 6 modules</td>
@@ -1128,13 +1181,19 @@ func block(dig *Digest, p []byte) {
       </tr>
       <tr>
         <td>8</td>
-        <td>SIMD-optimize <code>pebble/LoadToTimestamp</code> timestamp scan</td>
+        <td>
+          SIMD-optimize <code>pebble/LoadToTimestamp</code> timestamp scan
+        </td>
         <td><span class="tag tag-yellow">LOW PRIORITY</span></td>
-        <td>Experimental — only viable SIMD target, minimal real-world impact</td>
+        <td>
+          Experimental — only viable SIMD target, minimal real-world impact
+        </td>
       </tr>
       <tr>
         <td>9</td>
-        <td>Migrate <code>signing/</code> benchmarks to <code>b.Loop()</code></td>
+        <td>
+          Migrate <code>signing/</code> benchmarks to <code>b.Loop()</code>
+        </td>
         <td><span class="tag tag-green">DONE</span></td>
         <td>All 5 benchmarks migrated</td>
       </tr>
@@ -1150,52 +1209,58 @@ func block(dig *Digest, p []byte) {
 
     <h3>How can benchmarks show 0 B/op?</h3>
     <p>
-      Go's escape analyzer proves values never escape the stack frame. When all data is consumed
-      locally — field reads, pure function returns, value-type computations — the compiler allocates
-      on the stack. Zero heap pressure, zero GC cost. Examples:
+      Go's escape analyzer proves values never escape the stack frame. When all
+      data is consumed locally — field reads, pure function returns, value-type
+      computations — the compiler allocates on the stack. Zero heap pressure,
+      zero GC cost. Examples:
     </p>
     <ul>
       <li>
-        <code>Classify</code> / <code>IsRetryable</code> (9 ns, 0 allocs) — reads a field from an
-        interface, no allocation possible
+        <code>Classify</code> / <code>IsRetryable</code> (9 ns, 0 allocs) —
+        reads a field from an interface, no allocation possible
       </li>
       <li>
-        <code>Fold</code> (281 ns, 0 allocs) — pure function, state is a value type returned on
-        stack
+        <code>Fold</code> (281 ns, 0 allocs) — pure function, state is a value
+        type returned on stack
       </li>
       <li>
-        <code>CommandRecovery</code> / <code>Validation</code> / <code>Retry</code> (5-6 ns, 0
-        allocs) — closure captures nothing, no escape
+        <code>CommandRecovery</code> / <code>Validation</code> /
+        <code>Retry</code> (5-6 ns, 0 allocs) — closure captures nothing, no
+        escape
       </li>
     </ul>
     <p>
-      This is <em>correct</em> behavior, not a benchmark bug. It means the compiler is doing its job
-      for these paths.
+      This is <em>correct</em> behavior, not a benchmark bug. It means the
+      compiler is doing its job for these paths.
     </p>
 
     <h3>Is HMAC hardware-accelerated?</h3>
     <p>
-      <strong>Yes.</strong> This CPU has <code>sha_ni</code> support. Go 1.26 dispatches
-      <code>crypto/sha256</code> to the <code>blockSHANI</code> assembly path, which uses
-      <code>SHA256RNDS2</code> / <code>SHA256MSG1</code> / <code>SHA256MSG2</code> x86 instructions.
-      HMAC-SHA256 calls SHA-256 twice (inner + outer pad), both accelerated. The 818 ns result is
-      near-optimal for the algorithm given the HMAC key setup overhead.
+      <strong>Yes.</strong> This CPU has <code>sha_ni</code> support. Go 1.26
+      dispatches <code>crypto/sha256</code> to the
+      <code>blockSHANI</code> assembly path, which uses
+      <code>SHA256RNDS2</code> / <code>SHA256MSG1</code> /
+      <code>SHA256MSG2</code> x86 instructions. HMAC-SHA256 calls SHA-256 twice
+      (inner + outer pad), both accelerated. The 818 ns result is near-optimal
+      for the algorithm given the HMAC key setup overhead.
     </p>
 
     <h3>Why not SIMD everywhere?</h3>
     <p>
-      Because most hot paths are <em>allocation-bound</em>, not <em>CPU-bound</em>. SIMD accelerates
-      arithmetic; it doesn't reduce garbage. The highest-leverage improvements are all about
-      reducing allocations (<code>sync.Pool</code>, <code>strings.Builder</code>, eliminating
-      defensive copies). The one path where SIMD would genuinely help —
-      <code>pebble/LoadToTimestamp</code> doing a linear timestamp scan — accounts for a tiny
-      fraction of real-world usage.
+      Because most hot paths are <em>allocation-bound</em>, not
+      <em>CPU-bound</em>. SIMD accelerates arithmetic; it doesn't reduce
+      garbage. The highest-leverage improvements are all about reducing
+      allocations (<code>sync.Pool</code>, <code>strings.Builder</code>,
+      eliminating defensive copies). The one path where SIMD would genuinely
+      help — <code>pebble/LoadToTimestamp</code> doing a linear timestamp scan —
+      accounts for a tiny fraction of real-world usage.
     </p>
 
     <hr />
     <p style="color: var(--muted); font-size: 0.85rem; margin-top: 2rem">
-      Raw data: <code>benchmarks/2026-06-02_20-18-40_raw.txt</code> &bull; Human-readable:
-      <code>benchmarks/2026-06-02_20-18-40.md</code> &bull; Historical baseline:
+      Raw data: <code>benchmarks/2026-06-02_20-18-40_raw.txt</code> &bull;
+      Human-readable: <code>benchmarks/2026-06-02_20-18-40.md</code> &bull;
+      Historical baseline:
       <code>benchmark-baseline.txt</code>
     </p>
   </body>

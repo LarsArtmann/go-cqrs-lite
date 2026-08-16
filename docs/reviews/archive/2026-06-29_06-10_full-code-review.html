@@ -34,14 +34,14 @@
         --radius-sm: 0px;
 
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
 
       * {
@@ -247,15 +247,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
 
       .issue {
@@ -267,15 +279,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue h3 {
         margin-bottom: 0.3rem;
@@ -573,9 +597,9 @@
           <div class="hero-badge">SDK Quality Audit</div>
           <h1>Full Code Review — go-cqrs-lite v3.4.0</h1>
           <p class="hero-subtitle">
-            A point-in-time audit of the 54-module CQRS/ES library. Every non-test source file
-            reviewed against the architect checklist: type safety, concurrency, error handling, edge
-            cases, and API honesty.
+            A point-in-time audit of the 54-module CQRS/ES library. Every
+            non-test source file reviewed against the architect checklist: type
+            safety, concurrency, error handling, edge cases, and API honesty.
           </p>
         </div>
 
@@ -599,11 +623,13 @@
           </div>
         </div>
         <p>
-          The codebase is in genuinely strong shape. Build, vet, and all 43 test modules pass clean.
-          The issues found were concentrated in two areas: (1) a silent data-loss bug in the
-          scheduler, and (2) a broken contract between the CatchUpSubscriber's replay metadata and
-          consumer-side context reconstruction. Both are fixed and tested. The remaining fixes were
-          lint hygiene, doc/comment honesty, and removing a dead-code branch.
+          The codebase is in genuinely strong shape. Build, vet, and all 43 test
+          modules pass clean. The issues found were concentrated in two areas:
+          (1) a silent data-loss bug in the scheduler, and (2) a broken contract
+          between the CatchUpSubscriber's replay metadata and consumer-side
+          context reconstruction. Both are fixed and tested. The remaining fixes
+          were lint hygiene, doc/comment honesty, and removing a dead-code
+          branch.
         </p>
 
         <h2 id="findings"><span class="num">01</span>Findings</h2>
@@ -613,119 +639,151 @@
           <h3>Scheduler silently drops failed timers forever</h3>
           <div class="where">scheduling/scheduler.go:119-123</div>
           <p>
-            <code>MarkFired</code> was called unconditionally after a failed dispatch, deleting the
-            timer from the store. This contradicted the documented contract ("If it returns an
-            error, the timer is re-scheduled for retry") and the <code>DispatchFunc</code> doc
-            comment. Consumers relying on this contract would lose timers — e.g. a "cancel order
-            after 30 min" timer that fails once would <em>never</em> fire again.
+            <code>MarkFired</code> was called unconditionally after a failed
+            dispatch, deleting the timer from the store. This contradicted the
+            documented contract ("If it returns an error, the timer is
+            re-scheduled for retry") and the <code>DispatchFunc</code> doc
+            comment. Consumers relying on this contract would lose timers — e.g.
+            a "cancel order after 30 min" timer that fails once would
+            <em>never</em> fire again.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Only call <code>MarkFired</code> on successful dispatch. On failure, log the error and
-            <code>continue</code> — the timer stays in the store and will be retried on the next
-            poll tick. Added <code>TestScheduler_FailedTimerSurvivesForRetry</code> that verifies
+            Only call <code>MarkFired</code> on successful dispatch. On failure,
+            log the error and <code>continue</code> — the timer stays in the
+            store and will be retried on the next poll tick. Added
+            <code>TestScheduler_FailedTimerSurvivesForRetry</code> that verifies
             the timer is re-attempted across polls.
           </div>
         </div>
 
         <div class="issue issue-critical">
-          <span class="severity severity-critical">Critical — Broken Contract</span>
+          <span class="severity severity-critical"
+            >Critical — Broken Contract</span
+          >
           <h3>Replay processing mode never reached consumer handlers</h3>
           <div class="where">watermill/catchup_subscriber.go:198-228</div>
           <p>
-            The <code>replayCtx</code> with <code>ModeReplay</code> was created but never used. The
-            processing mode was set only in message metadata, but
-            <code>event.ProcessingModeFrom(ctx)</code> reads from the <em>context value</em>, not
-            metadata. So handlers branching on <code>event.IsReplay(ctx)</code> would always see
-            <code>false</code> during replay — defeating the entire purpose of the replay/live
-            distinction. A dead-code comment <code>_ = replayCtx</code> papered over the lie.
+            The <code>replayCtx</code> with <code>ModeReplay</code> was created
+            but never used. The processing mode was set only in message
+            metadata, but <code>event.ProcessingModeFrom(ctx)</code> reads from
+            the <em>context value</em>, not metadata. So handlers branching on
+            <code>event.IsReplay(ctx)</code> would always see
+            <code>false</code> during replay — defeating the entire purpose of
+            the replay/live distinction. A dead-code comment
+            <code>_ = replayCtx</code> papered over the lie.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Removed the dead <code>replayCtx</code>. Added <code>ProcessingModeMiddleware()</code> —
-            the consumer-side counterpart that reconstructs the context value from message metadata,
-            mirroring the existing <code>TraceContextMiddleware()</code> pattern. Documented the
-            contract in AGENTS.md. Added 3 tests covering replay propagation, live-default behavior,
-            and context-preservation.
+            Removed the dead <code>replayCtx</code>. Added
+            <code>ProcessingModeMiddleware()</code> — the consumer-side
+            counterpart that reconstructs the context value from message
+            metadata, mirroring the existing
+            <code>TraceContextMiddleware()</code> pattern. Documented the
+            contract in AGENTS.md. Added 3 tests covering replay propagation,
+            live-default behavior, and context-preservation.
           </div>
         </div>
 
         <div class="issue issue-important">
-          <span class="severity severity-important">Important — Doc Honesty</span>
-          <h3>ProjectionHost.Start doc claimed it blocks; it returns immediately</h3>
+          <span class="severity severity-important"
+            >Important — Doc Honesty</span
+          >
+          <h3>
+            ProjectionHost.Start doc claimed it blocks; it returns immediately
+          </h3>
           <div class="where">projectionhost/host.go:95-97</div>
           <p>
-            The doc said "blocks until Stop is called or the context is cancelled" but
-            <code>Start</code> launches goroutines and returns immediately. Worse, workers exit when
-            caught up (no live tailing), but nothing documented this. A consumer reading the doc
-            would build a <code>for</code> loop around <code>Start</code> expecting blocking
+            The doc said "blocks until Stop is called or the context is
+            cancelled" but
+            <code>Start</code> launches goroutines and returns immediately.
+            Worse, workers exit when caught up (no live tailing), but nothing
+            documented this. A consumer reading the doc would build a
+            <code>for</code> loop around <code>Start</code> expecting blocking
             semantics, or assume continuous tailing without pairing with
             <code>CatchUpSubscriber</code>.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Rewrote the <code>Host</code> type doc and <code>Start</code> doc to accurately
-            describe: (a) returns immediately, (b) workers are batch-drainers that exit when caught
-            up, (c) for live tailing pair with <code>watermill.CatchUpSubscriber</code>.
+            Rewrote the <code>Host</code> type doc and <code>Start</code> doc to
+            accurately describe: (a) returns immediately, (b) workers are
+            batch-drainers that exit when caught up, (c) for live tailing pair
+            with <code>watermill.CatchUpSubscriber</code>.
           </div>
         </div>
 
         <div class="issue issue-important">
-          <span class="severity severity-important">Important — API Quality</span>
+          <span class="severity severity-important"
+            >Important — API Quality</span
+          >
           <h3>Dynamic errors broke errors.Is classification</h3>
           <div class="where">middleware/otel_bundle.go:103</div>
           <p>
-            <code>errors.New(...)</code> inline created a fresh error on every call, so consumers
-            could never match it with <code>errors.Is(err, ErrMeterRequired)</code>. This violates
-            the project's "errors as values" principle (sentinel errors + <code>%w</code>).
+            <code>errors.New(...)</code> inline created a fresh error on every
+            call, so consumers could never match it with
+            <code>errors.Is(err, ErrMeterRequired)</code>. This violates the
+            project's "errors as values" principle (sentinel errors +
+            <code>%w</code>).
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Extracted <code>ErrMeterRequired</code> as a package-level sentinel in
-            <code>errors.go</code>, alongside the existing <code>ErrValidationFailed</code>,
-            <code>ErrRetryExhausted</code>, etc. Consumers can now branch reliably.
+            Extracted <code>ErrMeterRequired</code> as a package-level sentinel
+            in <code>errors.go</code>, alongside the existing
+            <code>ErrValidationFailed</code>, <code>ErrRetryExhausted</code>,
+            etc. Consumers can now branch reliably.
           </div>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Lint Hygiene</span>
-          <h3>Misplaced doc comment, global variable, dead branch, magic number</h3>
+          <h3>
+            Misplaced doc comment, global variable, dead branch, magic number
+          </h3>
           <div class="where">
-            decider/otel.go, middleware/metrics_otel.go, transport/http/sse*.go, decider/decider.go,
-            stack/accessors.go
+            decider/otel.go, middleware/metrics_otel.go, transport/http/sse*.go,
+            decider/decider.go, stack/accessors.go
           </div>
           <p>
-            Six lint-flagged issues across non-test code: (1) a misplaced godoc describing
-            <code>NewOTelMetricsRecorder</code> but attached to <code>Histogram()</code>; (2) two
-            mutable globals (<code>tracerOnce</code>, <code>cachedTracer</code>) replaced with
+            Six lint-flagged issues across non-test code: (1) a misplaced godoc
+            describing
+            <code>NewOTelMetricsRecorder</code> but attached to
+            <code>Histogram()</code>; (2) two mutable globals
+            (<code>tracerOnce</code>, <code>cachedTracer</code>) replaced with
             idiomatic <code>sync.OnceValue</code>; (3) an ineffassign in
             <code>SSEBroker.handleEvent</code>; (4) a magic <code>10</code> for
-            <code>strconv</code> base; (5) a dead-code branch (<code>if len(newEvents) &gt; 0</code>
-            after an early-return on 0); (6) four unnecessary explicit type arguments that
-            <code>go vet</code> flagged; (7) a stale unused <code>puddle/v2</code> dependency in
-            <code>stack/go.mod</code>.
+            <code>strconv</code> base; (5) a dead-code branch (<code
+              >if len(newEvents) &gt; 0</code
+            >
+            after an early-return on 0); (6) four unnecessary explicit type
+            arguments that
+            <code>go vet</code> flagged; (7) a stale unused
+            <code>puddle/v2</code> dependency in <code>stack/go.mod</code>.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            All six resolved. <code>go vet</code> and the full lint suite now report zero non-test
-            issues. The test-file lint warnings (forcetypeassert, nonamedreturns) are pre-existing
-            and out of scope.
+            All six resolved. <code>go vet</code> and the full lint suite now
+            report zero non-test issues. The test-file lint warnings
+            (forcetypeassert, nonamedreturns) are pre-existing and out of scope.
           </div>
         </div>
 
         <h2 id="strengths">Strengths</h2>
         <p>
-          These patterns are worth preserving. They represent the high bar this review measured
-          against — the codebase met or exceeded it in nearly every area.
+          These patterns are worth preserving. They represent the high bar this
+          review measured against — the codebase met or exceeded it in nearly
+          every area.
         </p>
         <div class="strengths">
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Phantom-typed IDs prevent cross-assignment at compile time</strong>
+              <strong
+                >Phantom-typed IDs prevent cross-assignment at compile
+                time</strong
+              >
               <span
-                ><code>id.Of[T]</code> makes UserID ≠ OrderID a type error, not a runtime bug.
-                ULID-backed, zero-cost.</span
+                ><code>id.Of[T]</code> makes UserID ≠ OrderID a type error, not
+                a runtime bug. ULID-backed, zero-cost.</span
               >
             </div>
           </div>
@@ -734,8 +792,8 @@
             <div class="text">
               <strong>TombstoneStatus is a typed enum, not a bool</strong>
               <span
-                >Three states (Active/Tombstoned/Undetermined) make "unknown" representable —
-                impossible to confuse with "not deleted".</span
+                >Three states (Active/Tombstoned/Undetermined) make "unknown"
+                representable — impossible to confuse with "not deleted".</span
               >
             </div>
           </div>
@@ -745,8 +803,9 @@
               <strong>Version arithmetic is underflow-safe</strong>
               <span
                 ><code>Decrement()</code> and <code>Sub()</code> return
-                <code>ErrVersionUnderflow</code> instead of wrapping; <code>Add()</code> takes
-                <code>uint</code> so underflow is impossible at the type level.</span
+                <code>ErrVersionUnderflow</code> instead of wrapping;
+                <code>Add()</code> takes <code>uint</code> so underflow is
+                impossible at the type level.</span
               >
             </div>
           </div>
@@ -756,8 +815,9 @@
               <strong>Concurrency is disciplined everywhere</strong>
               <span
                 >CAS-based close (<code>PostgresBus</code>), RWMutex on fanout
-                (<code>SSEBroker</code>), non-blocking sends with drop semantics, jittered backoff
-                in workers and scheduler, proper <code>ctx.Done()</code> checks in every loop.</span
+                (<code>SSEBroker</code>), non-blocking sends with drop
+                semantics, jittered backoff in workers and scheduler, proper
+                <code>ctx.Done()</code> checks in every loop.</span
               >
             </div>
           </div>
@@ -766,9 +826,10 @@
             <div class="text">
               <strong>Singleflight load coalescing</strong>
               <span
-                ><code>decider.Repository</code> coalesces concurrent <code>Load</code> calls for
-                the same aggregate into one store query — transparent, no API change, events are
-                immutable so sharing is safe.</span
+                ><code>decider.Repository</code> coalesces concurrent
+                <code>Load</code> calls for the same aggregate into one store
+                query — transparent, no API change, events are immutable so
+                sharing is safe.</span
               >
             </div>
           </div>
@@ -777,9 +838,10 @@
             <div class="text">
               <strong>Defensive cloning on all public accessors</strong>
               <span
-                ><code>Payload()</code>, <code>Metadata()</code>, <code>EventTypes()</code> all
-                return clones. Zero-copy internal paths (<code>PayloadReadOnly</code>) bypass this
-                only where safe.</span
+                ><code>Payload()</code>, <code>Metadata()</code>,
+                <code>EventTypes()</code> all return clones. Zero-copy internal
+                paths (<code>PayloadReadOnly</code>) bypass this only where
+                safe.</span
               >
             </div>
           </div>
@@ -788,8 +850,9 @@
             <div class="text">
               <strong>ISP-clean store interfaces</strong>
               <span
-                ><code>Store</code> = <code>EventSink</code> + <code>EventSource</code>; consumers
-                accept the smallest interface. <code>Event</code> is a concrete alias, not an
+                ><code>Store</code> = <code>EventSink</code> +
+                <code>EventSource</code>; consumers accept the smallest
+                interface. <code>Event</code> is a concrete alias, not an
                 interface — no type assertions on hot paths.</span
               >
             </div>
@@ -799,9 +862,9 @@
             <div class="text">
               <strong>5-family error taxonomy with wrapping</strong>
               <span
-                >Rejection / Conflict / Transient / Infrastructure / Corruption. All classified
-                errors use <code>go-error-family</code> so <code>errors.Is</code> works
-                transitively.</span
+                >Rejection / Conflict / Transient / Infrastructure / Corruption.
+                All classified errors use <code>go-error-family</code> so
+                <code>errors.Is</code> works transitively.</span
               >
             </div>
           </div>
@@ -831,14 +894,19 @@
                 <td>2</td>
                 <td><span class="badge badge-critical">Critical</span></td>
                 <td>watermill/catchup_subscriber.go</td>
-                <td>Replay mode never reached consumer handlers (dead replayCtx)</td>
+                <td>
+                  Replay mode never reached consumer handlers (dead replayCtx)
+                </td>
                 <td><span class="badge badge-fixed">Fixed</span></td>
               </tr>
               <tr>
                 <td>3</td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>projectionhost/host.go</td>
-                <td>Start() doc claimed blocking; returns immediately + no live tail</td>
+                <td>
+                  Start() doc claimed blocking; returns immediately + no live
+                  tail
+                </td>
                 <td><span class="badge badge-fixed">Fixed</span></td>
               </tr>
               <tr>
@@ -852,7 +920,10 @@
                 <td>5</td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>middleware/metrics_otel.go</td>
-                <td>Misplaced godoc on Histogram() described NewOTelMetricsRecorder</td>
+                <td>
+                  Misplaced godoc on Histogram() described
+                  NewOTelMetricsRecorder
+                </td>
                 <td><span class="badge badge-fixed">Fixed</span></td>
               </tr>
               <tr>
@@ -921,17 +992,18 @@
           </div>
         </div>
         <p>
-          All changes verified against the full test suite (<code>go test ./... -count=1</code>) and
-          the project lint suite (<code>nix run .#lint</code>). New tests added:
-          <code>TestScheduler_FailedTimerSurvivesForRetry</code>,
+          All changes verified against the full test suite (<code
+            >go test ./... -count=1</code
+          >) and the project lint suite (<code>nix run .#lint</code>). New tests
+          added: <code>TestScheduler_FailedTimerSurvivesForRetry</code>,
           <code>TestProcessingModeMiddleware_ReplayFlagPropagates</code>,
           <code>TestProcessingModeMiddleware_LiveIsDefault</code>,
           <code>TestProcessingModeMiddleware_PreservesExistingContext</code>.
         </p>
 
         <footer class="footer">
-          Generated 2026-06-29 &middot; All claims verified against source code &middot; 998 files
-          scanned across 54 modules
+          Generated 2026-06-29 &middot; All claims verified against source code
+          &middot; 998 files scanned across 54 modules
         </footer>
       </main>
     </div>

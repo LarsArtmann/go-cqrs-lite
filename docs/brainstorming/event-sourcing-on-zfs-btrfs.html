@@ -26,7 +26,9 @@
       }
 
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+          sans-serif;
         background: var(--bg);
         color: var(--text);
         line-height: 1.7;
@@ -215,7 +217,8 @@
   <body>
     <h1>Event Sourcing on ZFS / btrfs</h1>
     <p>
-      Design brainstorm — how much of CQRS can the filesystem <em>be</em>, not just <em>hold</em>?
+      Design brainstorm — how much of CQRS can the filesystem <em>be</em>, not
+      just <em>hold</em>?
     </p>
 
     <!-- ================================================================ -->
@@ -223,9 +226,11 @@
 
     <p>
       ZFS and btrfs
-      <strong>already implement most event-sourcing primitives at the storage layer</strong>. The
-      question isn't "how to store events on ZFS" — it's "how much of CQRS can the filesystem
-      <em>BE</em>?"
+      <strong
+        >already implement most event-sourcing primitives at the storage
+        layer</strong
+      >. The question isn't "how to store events on ZFS" — it's "how much of
+      CQRS can the filesystem <em>BE</em>?"
     </p>
 
     <table>
@@ -250,11 +255,15 @@
         </tr>
         <tr>
           <td>Time-travel queries</td>
-          <td><code>zfs send -i @snap1 @snap2</code> / mount snapshot read-only</td>
+          <td>
+            <code>zfs send -i @snap1 @snap2</code> / mount snapshot read-only
+          </td>
         </tr>
         <tr>
           <td>Event replication</td>
-          <td><code>zfs send -R</code> / <code>btrfs send</code> (incremental)</td>
+          <td>
+            <code>zfs send -R</code> / <code>btrfs send</code> (incremental)
+          </td>
         </tr>
         <tr>
           <td>Data integrity</td>
@@ -314,7 +323,8 @@ tank/                              # zpool
 │
 └── archive/                       # Compacted / tiered events
     └── pre-2024/                  # Cold storage via zfs send → tape
-</pre>
+</pre
+    >
 
     <!-- ================================================================ -->
     <h2>The Five Novel Angles</h2>
@@ -335,9 +345,10 @@ cat /mnt/projection-past/a/alice@   # State as of v42</code></pre>
 
     <div class="callout good">
       <strong>Why this matters</strong>
-      Traditional event sourcing replays events to rebuild projections. ZFS snapshots give you O(1)
-      access to any historical projection state — no replay. You get 1 000 time-travel queries for
-      the cost of 1 projection run.
+      Traditional event sourcing replays events to rebuild projections. ZFS
+      snapshots give you O(1) access to any historical projection state — no
+      replay. You get 1 000 time-travel queries for the cost of 1 projection
+      run.
     </div>
 
     <!-- 2 -->
@@ -354,9 +365,10 @@ zfs send -R tank/store@v42 | ssh backup-server zfs receive tank/store</code></pr
 
     <div class="callout good">
       <strong>Why this matters</strong>
-      No Kafka, no Debezium, no custom CDC pipeline. The filesystem <em>is</em> your replication
-      engine. Incremental sends are exactly <code>zfs send -i @old @new</code> — the diff between
-      two snapshots. This <em>is</em> event streaming at the block level.
+      No Kafka, no Debezium, no custom CDC pipeline. The filesystem
+      <em>is</em> your replication engine. Incremental sends are exactly
+      <code>zfs send -i @old @new</code> — the diff between two snapshots. This
+      <em>is</em> event streaming at the block level.
     </div>
 
     <!-- 3 -->
@@ -372,9 +384,9 @@ zfs destroy tank/store-test   # Instant cleanup</code></pre>
 
     <div class="callout good">
       <strong>Why this matters</strong>
-      Want to test a new projection handler against historical data? Clone the store, replay,
-      validate — then destroy. Zero risk, near-zero cost. This is <code>git branch</code> semantics
-      for your entire event store.
+      Want to test a new projection handler against historical data? Clone the
+      store, replay, validate — then destroy. Zero risk, near-zero cost. This is
+      <code>git branch</code> semantics for your entire event store.
     </div>
 
     <!-- 4 -->
@@ -409,8 +421,9 @@ mv alice@.tmp alice@
 
     <div class="callout good">
       <strong>Why this matters</strong>
-      btrfs reflink gives you per-file COW snapshots. You can do per-key projection history without
-      snapshotting the entire dataset. ZFS can't do this (snapshots are dataset-level).
+      btrfs reflink gives you per-file COW snapshots. You can do per-key
+      projection history without snapshotting the entire dataset. ZFS can't do
+      this (snapshots are dataset-level).
     </div>
 
     <!-- ================================================================ -->
@@ -443,7 +456,8 @@ mv alice@.tmp alice@
 │  │  │  (WAL)   │ │ (obj set) │ │ (read cache)   │  │   │
 │  │  └──────────┘ └───────────┘ └────────────────┘  │   │
 │  └──────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────┘</pre>
+└─────────────────────────────────────────────────────────┘</pre
+    >
 
     <!-- ================================================================ -->
     <h2>What You Get For Free</h2>
@@ -515,37 +529,44 @@ mv alice@.tmp alice@
 
     <h3>1. Global Event Ordering Across Aggregates</h3>
     <p>
-      ZFS TXGs batch writes every ~5 seconds. Events within one TXG have no guaranteed order. You
-      need either:
+      ZFS TXGs batch writes every ~5 seconds. Events within one TXG have no
+      guaranteed order. You need either:
     </p>
     <ul>
       <li>
-        A <strong>global log</strong> (<code>store/log/</code>) with monotonic sequence numbers in
-        the application layer
+        A <strong>global log</strong> (<code>store/log/</code>) with monotonic
+        sequence numbers in the application layer
       </li>
       <li>
-        Or accept <strong>per-aggregate ordering only</strong> (most CQRS systems are fine with
-        this)
+        Or accept <strong>per-aggregate ordering only</strong> (most CQRS
+        systems are fine with this)
       </li>
-      <li>Hybrid: global log for ordering, per-aggregate files for fast load</li>
+      <li>
+        Hybrid: global log for ordering, per-aggregate files for fast load
+      </li>
     </ul>
 
     <h3>2. Concurrent Writers</h3>
     <p>ZFS has no record-level locking. For a single aggregate file:</p>
     <ul>
       <li>
-        <strong>Single-writer lock</strong> in application layer (<code>flock</code> or distributed
-        lock)
+        <strong>Single-writer lock</strong> in application layer (<code
+          >flock</code
+        >
+        or distributed lock)
       </li>
       <li>Or use the global log + single consumer per aggregate partition</li>
     </ul>
 
     <h3>3. Projection Fan-Out / Notification</h3>
-    <p>Filesystems don't have <code>SELECT … FOR UPDATE</code> or pub/sub. Options:</p>
+    <p>
+      Filesystems don't have <code>SELECT … FOR UPDATE</code> or pub/sub.
+      Options:
+    </p>
     <ul>
       <li>
-        <code>inotify</code> / <code>FSEvents</code> on the log directory — kernel notifies on new
-        segments
+        <code>inotify</code> / <code>FSEvents</code> on the log directory —
+        kernel notifies on new segments
       </li>
       <li>Poll the <code>.cursor</code> file (simple, low-tech, works)</li>
       <li>TXG sync callback (ZFS-specific, requires kernel module)</li>
@@ -553,16 +574,18 @@ mv alice@.tmp alice@
 
     <h3>4. Querying Projections</h3>
     <p>
-      The filesystem <em>is</em> the index. Lookups are <code>O(depth)</code> directory traversal.
+      The filesystem <em>is</em> the index. Lookups are
+      <code>O(depth)</code> directory traversal.
     </p>
     <ul>
       <li>
-        <strong>Works well:</strong> Key-value lookups (<code>cat path/to/key</code>), prefix scans
-        (<code>ls path/to/prefix*</code>)
+        <strong>Works well:</strong> Key-value lookups (<code
+          >cat path/to/key</code
+        >), prefix scans (<code>ls path/to/prefix*</code>)
       </li>
       <li>
-        <strong>Doesn't work well:</strong> Range queries over values, full-text search,
-        aggregations — compute at projection time, store result
+        <strong>Doesn't work well:</strong> Range queries over values, full-text
+        search, aggregations — compute at projection time, store result
       </li>
     </ul>
 
@@ -570,13 +593,13 @@ mv alice@.tmp alice@
     <p>ZFS handles millions of files well, but practical limits exist:</p>
     <ul>
       <li>
-        Directory listing gets slow at &gt;100 K entries → use <strong>sharding</strong>:
-        <code>a/al/</code> prefix tree
+        Directory listing gets slow at &gt;100 K entries → use
+        <strong>sharding</strong>: <code>a/al/</code> prefix tree
       </li>
       <li>DMU object numbers are 64-bit — no theoretical limit</li>
       <li>
-        Consider <strong>segmented files</strong> (one file per <em>N</em> events) instead of one
-        file per aggregate
+        Consider <strong>segmented files</strong> (one file per
+        <em>N</em> events) instead of one file per aggregate
       </li>
     </ul>
 
@@ -585,31 +608,38 @@ mv alice@.tmp alice@
 
     <ol>
       <li>
-        <strong>Audit-critical systems</strong> — Every state change is a ZFS snapshot. Regulatory
-        compliance is <code>zfs list -t snapshot -o name,creation</code>. You literally cannot
+        <strong>Audit-critical systems</strong> — Every state change is a ZFS
+        snapshot. Regulatory compliance is
+        <code>zfs list -t snapshot -o name,creation</code>. You literally cannot
         delete history.
       </li>
       <li>
-        <strong>Edge / embedded systems</strong> — No Kafka, no Postgres. Just the filesystem. btrfs
-        on a Raspberry Pi running your event-sourced IoT gateway.
+        <strong>Edge / embedded systems</strong> — No Kafka, no Postgres. Just
+        the filesystem. btrfs on a Raspberry Pi running your event-sourced IoT
+        gateway.
       </li>
       <li>
         <strong>Disaster recovery</strong> —
-        <code>zfs send -R tank/store@latest | ssh dr-site zfs receive tank/store</code>. Entire
-        event store + projections replicated incrementally. Sub-second RPO.
+        <code
+          >zfs send -R tank/store@latest | ssh dr-site zfs receive
+          tank/store</code
+        >. Entire event store + projections replicated incrementally. Sub-second
+        RPO.
       </li>
       <li>
         <strong>Multi-tenant isolation</strong> — One dataset per tenant.
-        <code>tank/tenant-a/store</code>, <code>tank/tenant-b/store</code>. Per-tenant snapshots,
-        quotas (<code>quota=10G</code>), compression, encryption keys.
+        <code>tank/tenant-a/store</code>, <code>tank/tenant-b/store</code>.
+        Per-tenant snapshots, quotas (<code>quota=10G</code>), compression,
+        encryption keys.
       </li>
       <li>
-        <strong>Event replay debugging</strong> — Clone the store at the failing point. Replay with
-        logging. Destroy. Zero risk to production.
+        <strong>Event replay debugging</strong> — Clone the store at the failing
+        point. Replay with logging. Destroy. Zero risk to production.
       </li>
       <li>
-        <strong>Data locality compliance</strong> — <code>encryption=aes-256-gcm</code> per dataset,
-        different keys per region. Snapshot + send for compliance exports.
+        <strong>Data locality compliance</strong> —
+        <code>encryption=aes-256-gcm</code> per dataset, different keys per
+        region. Snapshot + send for compliance exports.
       </li>
     </ol>
 
@@ -692,8 +722,8 @@ mv alice@.tmp alice@
     <h2>The Pipe Dream: ZFS Channel Programs as Projection Handlers</h2>
 
     <p>
-      ZFS Channel Programs (ZCP) let you run Lua scripts <strong>inside ZFS</strong> as atomic
-      transactions. Theoretically:
+      ZFS Channel Programs (ZCP) let you run Lua scripts
+      <strong>inside ZFS</strong> as atomic transactions. Theoretically:
     </p>
 
     <pre><code>-- This runs INSIDE ZFS, as a single transaction
@@ -714,8 +744,8 @@ end
 zfs.set_property("tank/projections/user-by-email", "user:offset", current_offset)</code></pre>
 
     <p>
-      Kernel-level projection processing — no userspace round-trip. Pure speculation, but
-      technically possible.
+      Kernel-level projection processing — no userspace round-trip. Pure
+      speculation, but technically possible.
     </p>
 
     <!-- ================================================================ -->
@@ -725,8 +755,13 @@ zfs.set_property("tank/projections/user-by-email", "user:offset", current_offset
       <div>
         <h4 style="color: var(--green)">✓&ensp;Yes, if …</h4>
         <ul>
-          <li>Maximum infrastructure simplicity (filesystem = database + message bus + backup)</li>
-          <li>Audit / compliance is critical (snapshots = immutable audit trail)</li>
+          <li>
+            Maximum infrastructure simplicity (filesystem = database + message
+            bus + backup)
+          </li>
+          <li>
+            Audit / compliance is critical (snapshots = immutable audit trail)
+          </li>
           <li>Edge / embedded deployment (no external services)</li>
           <li>Multi-tenant isolation with per-tenant encryption</li>
         </ul>
@@ -744,9 +779,10 @@ zfs.set_property("tank/projections/user-by-email", "user:offset", current_offset
 
     <div class="callout">
       <strong>The most interesting angle</strong>
-      This isn't about replacing databases. It's about recognizing that modern CoW filesystems
-      already solve 80 % of event sourcing infrastructure. The remaining 20 % (ordering,
-      notification, complex queries) is what you'd actually build.
+      This isn't about replacing databases. It's about recognizing that modern
+      CoW filesystems already solve 80 % of event sourcing infrastructure. The
+      remaining 20 % (ordering, notification, complex queries) is what you'd
+      actually build.
     </div>
   </body>
 </html>

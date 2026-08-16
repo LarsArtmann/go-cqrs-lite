@@ -130,7 +130,8 @@ Layer 3: decider/ (→event, snapshot)
 Layer 4: memory/, signing/, encryption/, otel/
 Layer 5: middleware/, storage/, projection/, listing/, watermill/, pebble/, turso/
 Layer 6: integration/, catalog/, examples/, cmd/
-</pre>
+</pre
+    >
 
     <h3>Scorecard</h3>
     <table>
@@ -142,44 +143,57 @@ Layer 6: integration/, catalog/, examples/, cmd/
       <tr>
         <td>Cohesion</td>
         <td><span class="score score-high">9/10</span></td>
-        <td>Each module has a single, clear purpose. "Do one thing well" is strongly enforced.</td>
+        <td>
+          Each module has a single, clear purpose. "Do one thing well" is
+          strongly enforced.
+        </td>
       </tr>
       <tr>
         <td>Coupling</td>
         <td><span class="score score-high">8/10</span></td>
-        <td>Layer graph is a clean DAG. 1 issue: command/ re-exports event types (Metadata).</td>
+        <td>
+          Layer graph is a clean DAG. 1 issue: command/ re-exports event types
+          (Metadata).
+        </td>
       </tr>
       <tr>
         <td>Composability</td>
         <td><span class="score score-high">9/10</span></td>
         <td>
-          Interface-first design, ISP split (Sink/Source), consumers import only what they need.
+          Interface-first design, ISP split (Sink/Source), consumers import only
+          what they need.
         </td>
       </tr>
       <tr>
         <td>Service Orientation</td>
         <td><span class="score score-high">9/10</span></td>
-        <td>Library, not framework. Thin interfaces as contracts. No opinionated transport.</td>
+        <td>
+          Library, not framework. Thin interfaces as contracts. No opinionated
+          transport.
+        </td>
       </tr>
       <tr>
         <td>Testability</td>
         <td><span class="score score-high">9/10</span></td>
-        <td>FakeStore, FakeBus, FakeSnapshotStore, StoreTestSuite — excellent test infra.</td>
+        <td>
+          FakeStore, FakeBus, FakeSnapshotStore, StoreTestSuite — excellent test
+          infra.
+        </td>
       </tr>
       <tr>
         <td>Dependency Hygiene</td>
         <td><span class="score score-mid">7/10</span></td>
         <td>
-          Minimal external deps, but otel/ abstraction adds complexity. codec → cbor dep is
-          justified.
+          Minimal external deps, but otel/ abstraction adds complexity. codec →
+          cbor dep is justified.
         </td>
       </tr>
       <tr>
         <td>Scalability</td>
         <td><span class="score score-high">8/10</span></td>
         <td>
-          Streaming (EventStream), cursor-based pagination, async writes in Pebble. Bus is
-          single-goroutine publish.
+          Streaming (EventStream), cursor-based pagination, async writes in
+          Pebble. Bus is single-goroutine publish.
         </td>
       </tr>
     </table>
@@ -189,26 +203,27 @@ Layer 6: integration/, catalog/, examples/, cmd/
     <div class="card">
       <h3 class="good">ISP Split (Sink/Source)</h3>
       <p>
-        <code>Store = EventSink + EventSource</code> is the single best architectural decision in
-        this codebase. Consumers who only read events never see write methods. This is textbook
-        Interface Segregation.
+        <code>Store = EventSink + EventSource</code> is the single best
+        architectural decision in this codebase. Consumers who only read events
+        never see write methods. This is textbook Interface Segregation.
       </p>
     </div>
 
     <div class="card">
       <h3 class="good">Layer 0 Zero-Dep Modules</h3>
       <p>
-        <code>id/</code>, <code>dispatcher/</code>, <code>codec/</code> have no internal
-        dependencies. They are perfectly composable atoms. This is the Unix philosophy applied to Go
-        modules.
+        <code>id/</code>, <code>dispatcher/</code>, <code>codec/</code> have no
+        internal dependencies. They are perfectly composable atoms. This is the
+        Unix philosophy applied to Go modules.
       </p>
     </div>
 
     <div class="card">
       <h3 class="good">OTel Abstraction Layer</h3>
       <p>
-        <code>otel/</code> re-exports OTel types so consumers of event/storage/projection don't need
-        direct OTel imports. This is the right pattern — mechanism, not policy.
+        <code>otel/</code> re-exports OTel types so consumers of
+        event/storage/projection don't need direct OTel imports. This is the
+        right pattern — mechanism, not policy.
       </p>
     </div>
 
@@ -223,66 +238,83 @@ Layer 6: integration/, catalog/, examples/, cmd/
     <h2>3. Issues and Recommendations</h2>
 
     <div class="card">
-      <h3><span class="rec rec-strong">Strong</span> command/ Re-exports event.Metadata</h3>
+      <h3>
+        <span class="rec rec-strong">Strong</span> command/ Re-exports
+        event.Metadata
+      </h3>
       <p>
-        <strong>Problem:</strong> <code>command.Metadata = event.Metadata</code> creates a
-        cross-module type alias. Consumers importing command/ get event.Metadata transitively. This
-        is a module boundary violation.
+        <strong>Problem:</strong>
+        <code>command.Metadata = event.Metadata</code> creates a cross-module
+        type alias. Consumers importing command/ get event.Metadata
+        transitively. This is a module boundary violation.
       </p>
       <p>
-        <strong>Solution:</strong> Either (a) accept the coupling (it's the same domain concept), or
-        (b) move Metadata to a shared <code>types/</code> module. Option (a) is acceptable given
-        these are both Layer 1 modules.
+        <strong>Solution:</strong> Either (a) accept the coupling (it's the same
+        domain concept), or (b) move Metadata to a shared
+        <code>types/</code> module. Option (a) is acceptable given these are
+        both Layer 1 modules.
       </p>
       <p>
-        <strong>Impact:</strong> Low — doesn't cause bugs, but violates the "do one thing well"
-        principle slightly.
+        <strong>Impact:</strong> Low — doesn't cause bugs, but violates the "do
+        one thing well" principle slightly.
       </p>
     </div>
 
     <div class="card">
       <h3>
-        <span class="rec rec-explore">Explore</span> Reactive Streams Not Wired Into Dispatchers
+        <span class="rec rec-explore">Explore</span> Reactive Streams Not Wired
+        Into Dispatchers
       </h3>
       <p>
-        <strong>Problem:</strong> <code>EventBus = ro.Subject[Event]</code> exists but the classic
-        <code>event.Bus</code> interface doesn't bridge to it. Consumers must choose imperative Bus
-        <em>or</em> reactive EventBus — no unified API.
+        <strong>Problem:</strong>
+        <code>EventBus = ro.Subject[Event]</code> exists but the classic
+        <code>event.Bus</code> interface doesn't bridge to it. Consumers must
+        choose imperative Bus <em>or</em> reactive EventBus — no unified API.
       </p>
       <p>
-        <strong>Solution:</strong> Consider a <code>BridgingBus</code> that implements
-        <code>event.Bus</code> and delegates publish to <code>ro.Subject[Event].Next()</code>. This
-        gives reactive semantics to the imperative API.
+        <strong>Solution:</strong> Consider a <code>BridgingBus</code> that
+        implements <code>event.Bus</code> and delegates publish to
+        <code>ro.Subject[Event].Next()</code>. This gives reactive semantics to
+        the imperative API.
       </p>
       <p>
-        <strong>Impact:</strong> Medium — limits reactive adoption without sacrificing existing API.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3><span class="rec rec-explore">Explore</span> 8 Clone Groups (dupl ≥80 tokens)</h3>
-      <p>
-        <strong>Problem:</strong> encryption/signing share identical base64 decode patterns.
-        storage/ has near-duplicate SQL load methods. encryption/ has identical AES-GCM/XChaCha20
-        structures.
-      </p>
-      <p>
-        <strong>Solution:</strong> Extract shared <code>internal/encoding</code> helper for base64
-        decode. Parameterize SQL load helpers with operator. The encryption structural duplication
-        is acceptable (algorithm differences justify it).
+        <strong>Impact:</strong> Medium — limits reactive adoption without
+        sacrificing existing API.
       </p>
     </div>
 
     <div class="card">
-      <h3><span class="rec rec-spec">Speculative</span> Catalog Module Complexity</h3>
+      <h3>
+        <span class="rec rec-explore">Explore</span> 8 Clone Groups (dupl ≥80
+        tokens)
+      </h3>
       <p>
-        <strong>Problem:</strong> <code>catalog/</code> has 6 sub-packages (asyncapi, openapi, d2,
-        eventcatalog, schema, docserver) plus internal packages. It's the largest module. The
-        <code>Builder</code> and <code>Registry</code> are separate but serve similar purposes.
+        <strong>Problem:</strong> encryption/signing share identical base64
+        decode patterns. storage/ has near-duplicate SQL load methods.
+        encryption/ has identical AES-GCM/XChaCha20 structures.
       </p>
       <p>
-        <strong>Solution:</strong> Consider splitting exporters into standalone modules if consumers
-        typically only need 1-2 formats. Keep catalog core as registry + types.
+        <strong>Solution:</strong> Extract shared
+        <code>internal/encoding</code> helper for base64 decode. Parameterize
+        SQL load helpers with operator. The encryption structural duplication is
+        acceptable (algorithm differences justify it).
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>
+        <span class="rec rec-spec">Speculative</span> Catalog Module Complexity
+      </h3>
+      <p>
+        <strong>Problem:</strong> <code>catalog/</code> has 6 sub-packages
+        (asyncapi, openapi, d2, eventcatalog, schema, docserver) plus internal
+        packages. It's the largest module. The <code>Builder</code> and
+        <code>Registry</code> are separate but serve similar purposes.
+      </p>
+      <p>
+        <strong>Solution:</strong> Consider splitting exporters into standalone
+        modules if consumers typically only need 1-2 formats. Keep catalog core
+        as registry + types.
       </p>
     </div>
 
@@ -449,8 +481,9 @@ Layer 6: integration/, catalog/, examples/, cmd/
 
     <blockquote>
       <p>
-        <strong>This is a library, not a framework.</strong> Consumers import what they need and
-        compose their own stack. This is the project's greatest architectural strength.
+        <strong>This is a library, not a framework.</strong> Consumers import
+        what they need and compose their own stack. This is the project's
+        greatest architectural strength.
       </p>
     </blockquote>
 
@@ -505,22 +538,33 @@ Layer 6: integration/, catalog/, examples/, cmd/
     <h2>6. Summary</h2>
 
     <p>
-      go-cqrs-lite is an <strong>architecturally excellent</strong> Go library. The module
-      boundaries are clean, the dependency graph is a proper DAG, ISP splits are textbook, and
-      composability is first-class. The main areas for improvement are:
+      go-cqrs-lite is an <strong>architecturally excellent</strong> Go library.
+      The module boundaries are clean, the dependency graph is a proper DAG, ISP
+      splits are textbook, and composability is first-class. The main areas for
+      improvement are:
     </p>
 
     <ol>
-      <li><strong>command/ type alias coupling</strong> — low priority, acceptable as-is</li>
       <li>
-        <strong>Reactive stream bridging</strong> — medium priority, would unify imperative and
-        reactive APIs
+        <strong>command/ type alias coupling</strong> — low priority, acceptable
+        as-is
       </li>
       <li>
-        <strong>Duplication cleanup</strong> — low priority, 8 clone groups in non-critical paths
+        <strong>Reactive stream bridging</strong> — medium priority, would unify
+        imperative and reactive APIs
       </li>
-      <li><strong>Catalog complexity</strong> — speculative, consider splitting exporters</li>
-      <li><strong>README completeness</strong> — missing encryption/turso module sections</li>
+      <li>
+        <strong>Duplication cleanup</strong> — low priority, 8 clone groups in
+        non-critical paths
+      </li>
+      <li>
+        <strong>Catalog complexity</strong> — speculative, consider splitting
+        exporters
+      </li>
+      <li>
+        <strong>README completeness</strong> — missing encryption/turso module
+        sections
+      </li>
     </ol>
   </body>
 </html>

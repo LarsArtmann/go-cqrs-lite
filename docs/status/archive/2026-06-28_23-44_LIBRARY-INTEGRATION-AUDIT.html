@@ -27,7 +27,9 @@
       body {
         background: var(--bg);
         color: var(--text);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+          sans-serif;
         line-height: 1.6;
         padding: 2rem;
         max-width: 1200px;
@@ -118,7 +120,8 @@
       }
       code,
       pre {
-        font-family: "SF Mono", "Fira Code", "JetBrains Mono", Consolas, monospace;
+        font-family:
+          "SF Mono", "Fira Code", "JetBrains Mono", Consolas, monospace;
         font-size: 0.875rem;
       }
       code {
@@ -218,19 +221,24 @@
     <div class="meta">
       <span>📅 2026-06-28 23:44</span>
       <span>📦 go-cqrs-lite (49 modules) · cqrs-htmx (6 modules)</span>
-      <span>🔍 Scope: cross-repo organisation, split-brains, misplaced code</span>
+      <span
+        >🔍 Scope: cross-repo organisation, split-brains, misplaced code</span
+      >
     </div>
 
     <h2>Executive Summary</h2>
     <div class="card">
       <p>
-        Investigated whether code is in the right place across <code>go-cqrs-lite</code> (the
-        CQRS/ES library) and <code>cqrs-htmx</code> (the HTMX integration layer). Found
-        <strong>one actionable split-brain</strong> (idempotency store trapped in the HTTP library)
-        and <strong>one documented duplication</strong> (SSE wire-format primitives). Promoted the
-        idempotency store to a new upstream <code>idempotency/</code> module. The companion
-        <code>CommandIdempotency</code> middleware is the next step to complete the gap-analysis
-        ask.
+        Investigated whether code is in the right place across
+        <code>go-cqrs-lite</code> (the CQRS/ES library) and
+        <code>cqrs-htmx</code> (the HTMX integration layer). Found
+        <strong>one actionable split-brain</strong> (idempotency store trapped
+        in the HTTP library) and
+        <strong>one documented duplication</strong> (SSE wire-format
+        primitives). Promoted the idempotency store to a new upstream
+        <code>idempotency/</code> module. The companion
+        <code>CommandIdempotency</code> middleware is the next step to complete
+        the gap-analysis ask.
       </p>
     </div>
 
@@ -255,7 +263,10 @@
       <tr>
         <td><code>go-cqrs-lite</code></td>
         <td>4 modified + <code>idempotency/</code> (new)</td>
-        <td><span class="badge badge-wip">WIP</span> Store done, middleware pending</td>
+        <td>
+          <span class="badge badge-wip">WIP</span> Store done, middleware
+          pending
+        </td>
       </tr>
       <tr>
         <td><code>cqrs-htmx</code></td>
@@ -270,66 +281,80 @@
       <ul style="margin-top: 0.5rem">
         <li>
           <strong>Created a split-brain, didn't resolve it.</strong> Added
-          <code>idempotency/</code> upstream but left a full duplicate copy in cqrs-htmx. The
-          AGENTS.md explicitly says "consolidate duplicate type definitions." I made duplication
-          <em>worse</em>.
+          <code>idempotency/</code> upstream but left a full duplicate copy in
+          cqrs-htmx. The AGENTS.md explicitly says "consolidate duplicate type
+          definitions." I made duplication <em>worse</em>.
         </li>
         <li>
-          <strong>Built half the feature.</strong> The gap analysis asked for "idempotency-key store
-          <strong>+ command middleware</strong>." I built the store only. The
-          <code>CommandIdempotency</code> middleware that wires it into the dispatch pipeline is
-          missing.
+          <strong>Built half the feature.</strong> The gap analysis asked for
+          "idempotency-key store <strong>+ command middleware</strong>." I built
+          the store only. The <code>CommandIdempotency</code> middleware that
+          wires it into the dispatch pipeline is missing.
         </li>
         <li>
-          <strong>Never committed anything.</strong> The user explicitly asked for commits after
-          each step.
+          <strong>Never committed anything.</strong> The user explicitly asked
+          for commits after each step.
         </li>
         <li>
-          <strong>Didn't use the project's build tooling.</strong> AGENTS.md says
-          <code>nix run .#test</code>. I used raw <code>go test</code>.
+          <strong>Didn't use the project's build tooling.</strong> AGENTS.md
+          says <code>nix run .#test</code>. I used raw <code>go test</code>.
         </li>
         <li>
-          <strong>Didn't read SKILL.md</strong> before acting — the README explicitly calls it "the
-          single source of truth for AI consumers."
+          <strong>Didn't read SKILL.md</strong> before acting — the README
+          explicitly calls it "the single source of truth for AI consumers."
         </li>
         <li>
-          <strong>Dismissed SSE duplication too quickly.</strong> There IS real duplication of
-          <code>SSEEvent</code>/<code>WriteSSEEvent</code>/<code>ParseSSEEventID</code> — I called
-          it "minor" without proper analysis.
+          <strong>Dismissed SSE duplication too quickly.</strong> There IS real
+          duplication of <code>SSEEvent</code>/<code>WriteSSEEvent</code>/<code
+            >ParseSSEEventID</code
+          >
+          — I called it "minor" without proper analysis.
         </li>
       </ul>
     </div>
 
     <h2>🔍 Complete Findings</h2>
 
-    <h3>F1. Idempotency Store — Misplaced <span class="badge badge-open">SPLIT-BRAIN</span></h3>
+    <h3>
+      F1. Idempotency Store — Misplaced
+      <span class="badge badge-open">SPLIT-BRAIN</span>
+    </h3>
     <div class="card">
       <p>
-        <strong>Problem:</strong> <code>cqrs-htmx/idempotency.go</code> implements a CQRS
-        reliability primitive (dedup for at-least-once delivery) that belongs in the core library.
-        go-cqrs-lite's own gap analysis (<code>framework-os-gaps.html</code>, item A3) identifies
-        this as the highest-value missing piece:
+        <strong>Problem:</strong>
+        <code>cqrs-htmx/idempotency.go</code> implements a CQRS reliability
+        primitive (dedup for at-least-once delivery) that belongs in the core
+        library. go-cqrs-lite's own gap analysis
+        (<code>framework-os-gaps.html</code>, item A3) identifies this as the
+        highest-value missing piece:
       </p>
       <pre><code>"A small idempotency-key store + a command middleware (check-seen,
 store-result-on-success) is a classic framework primitive that's small
 to build and large in value."</code></pre>
       <p>
-        <strong>Action taken:</strong> Created <code>go-cqrs-lite/idempotency/</code> module with
-        <code>Store</code> interface, <code>MemoryStore</code>, <code>ErrDuplicate</code>. Verified
-        in both workspace and CI-isolation modes.
+        <strong>Action taken:</strong> Created
+        <code>go-cqrs-lite/idempotency/</code> module with
+        <code>Store</code> interface, <code>MemoryStore</code>,
+        <code>ErrDuplicate</code>. Verified in both workspace and CI-isolation
+        modes.
       </p>
       <p>
-        <strong>Remaining:</strong> Add <code>CommandIdempotency</code> middleware. cqrs-htmx keeps
-        its local copy until upstream tags a release (CI constraint:
+        <strong>Remaining:</strong> Add
+        <code>CommandIdempotency</code> middleware. cqrs-htmx keeps its local
+        copy until upstream tags a release (CI constraint:
         <code>GOWORK=off</code> single-repo checkout).
       </p>
     </div>
 
     <h3>
-      F2. SSE Wire-Format Primitives — Duplicated <span class="badge badge-wip">DUPLICATION</span>
+      F2. SSE Wire-Format Primitives — Duplicated
+      <span class="badge badge-wip">DUPLICATION</span>
     </h3>
     <div class="card">
-      <p><strong>Problem:</strong> Both repos implement the same SSE protocol primitives:</p>
+      <p>
+        <strong>Problem:</strong> Both repos implement the same SSE protocol
+        primitives:
+      </p>
       <table>
         <tr>
           <th>Primitive</th>
@@ -358,40 +383,47 @@ to build and large in value."</code></pre>
         </tr>
       </table>
       <p>
-        <strong>Assessment:</strong> The cqrs-htmx versions are <em>better</em> (branded types,
-        zero-alloc). But <code>transport/http</code> is the canonical transport home. Same
+        <strong>Assessment:</strong> The cqrs-htmx versions are
+        <em>better</em> (branded types, zero-alloc). But
+        <code>transport/http</code> is the canonical transport home. Same
         release-dependency blocker as idempotency.
       </p>
       <p>
-        <strong>Recommendation:</strong> When go-cqrs-lite next tags, promote the cqrs-htmx
-        wire-format improvements upstream, then delegate. The HTMX-specific layers
-        (<code>Broadcaster</code>, <code>SSEStream</code>, ACK protocol) stay in cqrs-htmx.
+        <strong>Recommendation:</strong> When go-cqrs-lite next tags, promote
+        the cqrs-htmx wire-format improvements upstream, then delegate. The
+        HTMX-specific layers (<code>Broadcaster</code>, <code>SSEStream</code>,
+        ACK protocol) stay in cqrs-htmx.
       </p>
     </div>
 
-    <h3>F3. What's CORRECTLY Placed <span class="badge badge-done">VERIFIED</span></h3>
+    <h3>
+      F3. What's CORRECTLY Placed <span class="badge badge-done">VERIFIED</span>
+    </h3>
     <div class="ok-box">
       <ul style="margin-bottom: 0">
         <li>
-          <code>ack.go</code> — <code>CommandAck</code> data model is transport-agnostic, but the
-          hook factories (<code>BroadcastOnAck</code>) are HTTP-coupled
+          <code>ack.go</code> — <code>CommandAck</code> data model is
+          transport-agnostic, but the hook factories
+          (<code>BroadcastOnAck</code>) are HTTP-coupled
           (<code>*http.Request</code>). Correctly in cqrs-htmx.
         </li>
         <li>
-          <code>structured_error.go</code> — RFC 7807 shape is HTTP-specific. Correctly in
-          cqrs-htmx.
+          <code>structured_error.go</code> — RFC 7807 shape is HTTP-specific.
+          Correctly in cqrs-htmx.
         </li>
         <li>
-          <code>fanout.go</code> — Internal generic <code>fanOut[T]</code> utility used only by
-          SSE/WS broadcasters. Correctly in cqrs-htmx.
+          <code>fanout.go</code> — Internal generic
+          <code>fanOut[T]</code> utility used only by SSE/WS broadcasters.
+          Correctly in cqrs-htmx.
         </li>
         <li>
-          <code>csrf_*.go</code>, <code>ratelimit_*.go</code>, <code>security.go</code> — HTTP-only
-          concerns. Correctly in cqrs-htmx.
+          <code>csrf_*.go</code>, <code>ratelimit_*.go</code>,
+          <code>security.go</code> — HTTP-only concerns. Correctly in cqrs-htmx.
         </li>
         <li>
-          <code>usermgmt/</code> — Event-sourced domain (User, Tenant, Bot, Membership). Correctly a
-          separate module — it's an opinionated domain, not a library primitive.
+          <code>usermgmt/</code> — Event-sourced domain (User, Tenant, Bot,
+          Membership). Correctly a separate module — it's an opinionated domain,
+          not a library primitive.
         </li>
       </ul>
     </div>
@@ -408,7 +440,8 @@ to build and large in value."</code></pre>
       <tr>
         <td>S1</td>
         <td>
-          Commit <code>idempotency/</code> store module (store + tests + README + go.work + docs)
+          Commit <code>idempotency/</code> store module (store + tests + README
+          + go.work + docs)
         </td>
         <td class="impact-high">High</td>
         <td>Done</td>
@@ -416,7 +449,10 @@ to build and large in value."</code></pre>
       </tr>
       <tr>
         <td>S2</td>
-        <td>Add <code>CommandIdempotency</code> middleware to <code>idempotency/</code> module</td>
+        <td>
+          Add <code>CommandIdempotency</code> middleware to
+          <code>idempotency/</code> module
+        </td>
         <td class="impact-high">High</td>
         <td>~20 min</td>
         <td><span class="badge badge-open">NEXT</span></td>
@@ -431,7 +467,8 @@ to build and large in value."</code></pre>
       <tr>
         <td>S4</td>
         <td>
-          Verify with <code>nix run .#test</code> + <code>nix run .#lint</code> (real CI path)
+          Verify with <code>nix run .#test</code> +
+          <code>nix run .#lint</code> (real CI path)
         </td>
         <td class="impact-high">High</td>
         <td>~5 min</td>
@@ -455,12 +492,16 @@ to build and large in value."</code></pre>
       </tr>
       <tr>
         <td>D1</td>
-        <td>Delegate cqrs-htmx <code>idempotency.go</code> to upstream aliases</td>
+        <td>
+          Delegate cqrs-htmx <code>idempotency.go</code> to upstream aliases
+        </td>
         <td>go-cqrs-lite must tag idempotency/v3 release</td>
       </tr>
       <tr>
         <td>D2</td>
-        <td>Promote SSE wire-format primitives upstream + delegate cqrs-htmx</td>
+        <td>
+          Promote SSE wire-format primitives upstream + delegate cqrs-htmx
+        </td>
         <td>Same — needs tagged release</td>
       </tr>
     </table>
@@ -490,7 +531,8 @@ to build and large in value."</code></pre>
                     └─────────────────┘</code></pre>
 
     <p class="footer">
-      Generated 2026-06-28 23:44 · Library Integration Audit · go-cqrs-lite + cqrs-htmx
+      Generated 2026-06-28 23:44 · Library Integration Audit · go-cqrs-lite +
+      cqrs-htmx
     </p>
   </body>
 </html>

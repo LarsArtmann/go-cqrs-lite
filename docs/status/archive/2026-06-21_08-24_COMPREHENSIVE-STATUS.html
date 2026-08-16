@@ -51,14 +51,14 @@
 
         /* --- Type stacks --- */
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -361,15 +361,27 @@
       }
       .callout-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-sunken));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-sunken)
+        );
       }
       .callout-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 10%, var(--surface-sunken));
+        background: color-mix(
+          in srgb,
+          var(--warning) 10%,
+          var(--surface-sunken)
+        );
       }
       .callout-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 10%, var(--surface-sunken));
+        background: color-mix(
+          in srgb,
+          var(--problem) 10%,
+          var(--surface-sunken)
+        );
       }
       .callout strong {
         display: inline-block;
@@ -520,16 +532,21 @@
 
       <main class="main">
         <header class="hero">
-          <div class="hero-badge">Ground-Truth Verified · nix run .#build / .#test / .#lint</div>
+          <div class="hero-badge">
+            Ground-Truth Verified · nix run .#build / .#test / .#lint
+          </div>
           <h1>v3-ready, all green, zero consumers</h1>
           <p class="hero-subtitle">
-            The library is technically healthy: build clean, 51/51 test packages pass, 0 production
-            panics, 0 TODOs. But the strategic picture is unchanged from the 07:13 report — a
-            library with no external consumers, accumulating features and status docs at a pace that
+            The library is technically healthy: build clean, 51/51 test packages
+            pass, 0 production panics, 0 TODOs. But the strategic picture is
+            unchanged from the 07:13 report — a library with no external
+            consumers, accumulating features and status docs at a pace that
             dwarfs validation.
           </p>
           <div class="hero-meta">
-            <span class="tag amber">v3-ready · 11/11 breaking changes done</span>
+            <span class="tag amber"
+              >v3-ready · 11/11 breaking changes done</span
+            >
             <span class="tag">38 modules · 40,173 LOC</span>
             <span class="tag">1,605 exports · 33 ADRs</span>
             <span class="tag red">0 external consumers</span>
@@ -706,21 +723,25 @@
               <tr>
                 <td><code>stack/postgres</code></td>
                 <td>21.2%</td>
-                <td><span class="badge badge-critical">Skipped locally</span></td>
+                <td>
+                  <span class="badge badge-critical">Skipped locally</span>
+                </td>
               </tr>
             </tbody>
           </table>
           <p>
-            <strong>stack/postgres</strong> skips without <code>POSTGRES_TEST_DSN</code>. CI sets
-            it, local does not. The 21.2% reflects only the non-SQL paths exercised locally.
+            <strong>stack/postgres</strong> skips without
+            <code>POSTGRES_TEST_DSN</code>. CI sets it, local does not. The
+            21.2% reflects only the non-SQL paths exercised locally.
           </p>
         </section>
 
         <section id="done">
           <h2><span class="num">01</span>a) Fully Done</h2>
           <p>
-            Verified by <code>nix run .#build</code> (exit 0), <code>nix run .#test</code> (51/51
-            ok), <code>go vet</code> (clean), and shell scripts.
+            Verified by <code>nix run .#build</code> (exit 0),
+            <code>nix run .#test</code> (51/51 ok), <code>go vet</code> (clean),
+            and shell scripts.
           </p>
 
           <div class="card card-solution">
@@ -729,8 +750,9 @@
             <p>
               Build exits 0 with experimental tags (<code
                 >goexperiment.arenas goexperiment.jsonv2</code
-              >). All 51 test packages pass including all 4 examples (todo, user, encryption,
-              deployer-first). Zero race failures on previously-modified modules.
+              >). All 51 test packages pass including all 4 examples (todo,
+              user, encryption, deployer-first). Zero race failures on
+              previously-modified modules.
             </p>
           </div>
 
@@ -738,9 +760,10 @@
             <h3>All 11 v3 breaking changes complete</h3>
             <div class="where">ROADMAP.md · TODO_LIST.md</div>
             <p>
-              Ghost bus code removed (923 LOC), memory → storage/memory, Version → uint64, Metadata
-              alias broken (ADR-0031), io.Closer off interfaces, readmodel → kv (ADR-0032),
-              projection dissolved (ADR-0030), SSE → transport/http, TypedHandler shipped, Fold →
+              Ghost bus code removed (923 LOC), memory → storage/memory, Version
+              → uint64, Metadata alias broken (ADR-0031), io.Closer off
+              interfaces, readmodel → kv (ADR-0032), projection dissolved
+              (ADR-0030), SSE → transport/http, TypedHandler shipped, Fold →
               Apply, Event concrete type. Ready to tag v3.0.0.
             </p>
           </div>
@@ -749,10 +772,12 @@
             <h3>Zero-panic production migration complete</h3>
             <div class="where">26 panics → error returns · 5 phases</div>
             <p>
-              Every production <code>panic()</code> converted to typed error returns. Only 6
-              <code>panic()</code> calls remain in the entire tree — all acceptable: 4 CBOR
-              EncMode/DecMode init failures (impossible with hardcoded valid options), 1 in
-              <code>eventtest/handlers.go</code> (test helper), 1 in a doc comment.
+              Every production <code>panic()</code> converted to typed error
+              returns. Only 6 <code>panic()</code> calls remain in the entire
+              tree — all acceptable: 4 CBOR EncMode/DecMode init failures
+              (impossible with hardcoded valid options), 1 in
+              <code>eventtest/handlers.go</code> (test helper), 1 in a doc
+              comment.
             </p>
           </div>
 
@@ -760,7 +785,8 @@
             <h3>Zero TODO/FIXME markers in production</h3>
             <div class="where">grep across 415 production .go files</div>
             <p>
-              Clean slate — no half-finished production code paths. TODOs exist only in
+              Clean slate — no half-finished production code paths. TODOs exist
+              only in
               <code>TODO_LIST.md</code> where they belong.
             </p>
           </div>
@@ -769,9 +795,11 @@
             <h3>File-size gate compliant (350 lines)</h3>
             <div class="where">find + wc -l across production</div>
             <p>
-              Only one file exceeds 350 lines: <code>catalog/internal/cattest/builders.go</code> at
-              402 lines — an <strong>internal test helper</strong>, exempt from the production gate.
-              Largest production file: <code>watermill/event_bus.go</code> at 343 lines, just under.
+              Only one file exceeds 350 lines:
+              <code>catalog/internal/cattest/builders.go</code> at 402 lines —
+              an <strong>internal test helper</strong>, exempt from the
+              production gate. Largest production file:
+              <code>watermill/event_bus.go</code> at 343 lines, just under.
             </p>
           </div>
 
@@ -779,44 +807,55 @@
             <h3>Recent feature additions (last 14 days)</h3>
             <ul>
               <li>
-                <strong>Pebble backup accessors</strong> — <code>Checkpoint(dir)</code>,
-                <code>Metrics()</code>, <code>Flush()</code>, <code>NewSnapshot()</code> on
+                <strong>Pebble backup accessors</strong> —
+                <code>Checkpoint(dir)</code>, <code>Metrics()</code>,
+                <code>Flush()</code>, <code>NewSnapshot()</code> on
                 <code>pebble.Bundle</code>
               </li>
               <li>
-                <strong>Bundle.GracefulClose</strong> — context-bounded shutdown, lets in-flight
-                handlers drain
+                <strong>Bundle.GracefulClose</strong> — context-bounded
+                shutdown, lets in-flight handlers drain
               </li>
               <li>
                 <strong>SSE Last-Event-ID reconnection</strong> —
-                <code>WithReconnectJournal(journal, limit)</code>, dedup strategy shared with
+                <code>WithReconnectJournal(journal, limit)</code>, dedup
+                strategy shared with
                 <code>CatchUpSubscriber</code>
               </li>
               <li>
-                <strong>Streaming event reads</strong> — <code>StreamingSource</code>/<code
-                  >StreamingJournal</code
-                >
+                <strong>Streaming event reads</strong> —
+                <code>StreamingSource</code>/<code>StreamingJournal</code>
                 on SQL, Pebble, Memory
               </li>
-              <li><strong>DistributedRunner</strong> — LeaderElection-gated projection runner</li>
-              <li><strong>cqrs-gen event handler generation</strong> — <code>-type=event</code></li>
               <li>
-                <strong>Postgres LISTEN/NOTIFY bus</strong> — <code>PostgresBus</code> +
-                <code>PgxListener</code> with auto-reconnect
+                <strong>DistributedRunner</strong> — LeaderElection-gated
+                projection runner
               </li>
               <li>
-                <strong>Real-Postgres integration tests</strong> — 3 tests covering LISTEN/NOTIFY
-                round-trip
+                <strong>cqrs-gen event handler generation</strong> —
+                <code>-type=event</code>
+              </li>
+              <li>
+                <strong>Postgres LISTEN/NOTIFY bus</strong> —
+                <code>PostgresBus</code> + <code>PgxListener</code> with
+                auto-reconnect
+              </li>
+              <li>
+                <strong>Real-Postgres integration tests</strong> — 3 tests
+                covering LISTEN/NOTIFY round-trip
               </li>
             </ul>
           </div>
 
           <div class="card card-solution">
             <h3>Examples all pass</h3>
-            <div class="where">example/{todo,user,encryption,deployer-first}</div>
+            <div class="where">
+              example/{todo,user,encryption,deployer-first}
+            </div>
             <p>
-              Four example modules, all green. <code>example/deployer-first</code> demonstrates the
-              canonical CatchUpSubscriber + Materialize pipeline ordered-delivery pattern.
+              Four example modules, all green.
+              <code>example/deployer-first</code> demonstrates the canonical
+              CatchUpSubscriber + Materialize pipeline ordered-delivery pattern.
             </p>
           </div>
 
@@ -827,8 +866,8 @@
               <div class="text">
                 <strong>38 modules, every one compiles &amp; passes</strong>
                 <span
-                  >Layer 0–6 architecture, no broken modules, every go.mod has only the deps it
-                  needs.</span
+                  >Layer 0–6 architecture, no broken modules, every go.mod has
+                  only the deps it needs.</span
                 >
               </div>
             </div>
@@ -837,8 +876,8 @@
               <div class="text">
                 <strong>5-family error taxonomy enforced</strong>
                 <span
-                  >Rejection / Conflict / Transient / Infrastructure / Corruption. Every
-                  <code>fmt.Errorf</code> classified.</span
+                  >Rejection / Conflict / Transient / Infrastructure /
+                  Corruption. Every <code>fmt.Errorf</code> classified.</span
                 >
               </div>
             </div>
@@ -848,8 +887,9 @@
               <div class="text">
                 <strong>Hot-path discipline</strong>
                 <span
-                  >Zero-copy <code>PayloadReadOnly</code>, pre-computed middleware chains, cached
-                  SQL templates, singleflight load coalescing.</span
+                  >Zero-copy <code>PayloadReadOnly</code>, pre-computed
+                  middleware chains, cached SQL templates, singleflight load
+                  coalescing.</span
                 >
               </div>
             </div>
@@ -858,8 +898,8 @@
               <div class="text">
                 <strong>3 storage backends × full stack</strong>
                 <span
-                  >Pebble (single-DB), SQLite (multi-DB split), Postgres (pgx + LISTEN/NOTIFY). Each
-                  wires a complete Bundle preset.</span
+                  >Pebble (single-DB), SQLite (multi-DB split), Postgres (pgx +
+                  LISTEN/NOTIFY). Each wires a complete Bundle preset.</span
                 >
               </div>
             </div>
@@ -868,8 +908,9 @@
               <div class="text">
                 <strong>Security primitives shipped</strong>
                 <span
-                  >Event signing (HMAC, Ed25519, multisig) + payload encryption (XChaCha20-Poly1305,
-                  AES-256-GCM) + HKDF for multi-tenant.</span
+                  >Event signing (HMAC, Ed25519, multisig) + payload encryption
+                  (XChaCha20-Poly1305, AES-256-GCM) + HKDF for
+                  multi-tenant.</span
                 >
               </div>
             </div>
@@ -884,22 +925,39 @@
             <div class="where">FEATURES.md</div>
             <ul>
               <li>
-                <strong>Lists <code>projection</code> as Production module</strong> — directory
-                deleted in ADR-0030, replaced by
-                <code>bus.SubscribeAll + stack.Materialize + CatchUpSubscriber</code>
+                <strong
+                  >Lists <code>projection</code> as Production module</strong
+                >
+                — directory deleted in ADR-0030, replaced by
+                <code
+                  >bus.SubscribeAll + stack.Materialize +
+                  CatchUpSubscriber</code
+                >
               </li>
               <li>
-                <strong>Lists <code>memory</code> at import path <code>…/memory/v2</code></strong> —
-                moved to <code>storage/memory/v2</code> in ADR-0029
+                <strong
+                  >Lists <code>memory</code> at import path
+                  <code>…/memory/v2</code></strong
+                >
+                — moved to <code>storage/memory/v2</code> in ADR-0029
               </li>
               <li>
-                <strong>"Not Yet Implemented" table lists "Streaming event reads"</strong> —
-                CHANGELOG says DONE (<code>StreamingSource</code>/<code>StreamingJournal</code> on
-                all 3 backends)
+                <strong
+                  >"Not Yet Implemented" table lists "Streaming event
+                  reads"</strong
+                >
+                — CHANGELOG says DONE (<code>StreamingSource</code>/<code
+                  >StreamingJournal</code
+                >
+                on all 3 backends)
               </li>
               <li>
-                <strong>Module Maturity Matrix missing all 6 <code>stack/*</code> presets</strong>
-                (memory, sqlite, pebble, postgres, bench) + missing storage/memory path correction
+                <strong
+                  >Module Maturity Matrix missing all 6
+                  <code>stack/*</code> presets</strong
+                >
+                (memory, sqlite, pebble, postgres, bench) + missing
+                storage/memory path correction
               </li>
             </ul>
           </div>
@@ -908,8 +966,8 @@
             <h3>62 lint issues across 12 modules</h3>
             <div class="where">nix run .#lint</div>
             <p>
-              All style, not correctness. CI does not gate on these (per ADR: lint reports, doesn't
-              abort). Breakdown:
+              All style, not correctness. CI does not gate on these (per ADR:
+              lint reports, doesn't abort). Breakdown:
             </p>
             <table>
               <thead>
@@ -928,14 +986,17 @@
                 <tr>
                   <td>errcheck</td>
                   <td>9</td>
-                  <td>stack/sqlite (unchecked <code>bundle.Close()</code> in tests)</td>
+                  <td>
+                    stack/sqlite (unchecked <code>bundle.Close()</code> in
+                    tests)
+                  </td>
                 </tr>
                 <tr>
                   <td>varnamelen</td>
                   <td>8</td>
                   <td>
-                    stack/sqlite, watermill (<code>db</code>, <code>mu</code>, <code>gc</code>,
-                    <code>cp</code>)
+                    stack/sqlite, watermill (<code>db</code>, <code>mu</code>,
+                    <code>gc</code>, <code>cp</code>)
                   </td>
                 </tr>
                 <tr>
@@ -981,9 +1042,9 @@
               </tbody>
             </table>
             <p>
-              <strong>17 of 62 issues are in <code>stack/</code></strong> (sqlite preset is the
-              worst single file). The stack layer was built fast and never got the polish pass the
-              core modules got.
+              <strong>17 of 62 issues are in <code>stack/</code></strong>
+              (sqlite preset is the worst single file). The stack layer was
+              built fast and never got the polish pass the core modules got.
             </p>
           </div>
 
@@ -992,17 +1053,18 @@
             <div class="where">go test -cover ./stack/... ./storage/...</div>
             <ul>
               <li>
-                <code>stack</code> at <strong>45.9%</strong> — Bundle presets emphasise the shared
-                contract suite + happy paths, constructor error branches are thin
+                <code>stack</code> at <strong>45.9%</strong> — Bundle presets
+                emphasise the shared contract suite + happy paths, constructor
+                error branches are thin
               </li>
               <li>
-                <code>stack/postgres</code> at <strong>21.2%</strong> — most tests skip locally
-                without <code>POSTGRES_TEST_DSN</code>; CI runs them in the
-                <code>postgres-integration</code> job
+                <code>stack/postgres</code> at <strong>21.2%</strong> — most
+                tests skip locally without <code>POSTGRES_TEST_DSN</code>; CI
+                runs them in the <code>postgres-integration</code> job
               </li>
               <li>
-                <code>storage/sql</code> at <strong>61.0%</strong> — shared SQL infra, edge paths
-                uncovered
+                <code>storage/sql</code> at <strong>61.0%</strong> — shared SQL
+                infra, edge paths uncovered
               </li>
             </ul>
           </div>
@@ -1011,9 +1073,10 @@
             <h3>v3 not yet tagged</h3>
             <div class="where">git log · ROADMAP.md</div>
             <p>
-              All 11 breaking changes complete and additive (v2 types still exist for migration),
-              but <code>v3.0.0</code> tag does not exist. Library is in a "v2 with v3 teed up" state
-              — fine for development, blocks consumers from picking a major.
+              All 11 breaking changes complete and additive (v2 types still
+              exist for migration), but <code>v3.0.0</code> tag does not exist.
+              Library is in a "v2 with v3 teed up" state — fine for development,
+              blocks consumers from picking a major.
             </p>
           </div>
 
@@ -1021,9 +1084,10 @@
             <h3>Transport adapters only 1 of 4 shipped</h3>
             <div class="where">ADR-0025 · ROADMAP.md</div>
             <p>
-              <code>transport/http/</code> (SSE) is done. <code>transport/grpc/</code>,
-              <code>transport/nats/</code>, <code>transport/redis/</code> are accepted ADRs with
-              zero code. No consumer signal yet.
+              <code>transport/http/</code> (SSE) is done.
+              <code>transport/grpc/</code>, <code>transport/nats/</code>,
+              <code>transport/redis/</code> are accepted ADRs with zero code. No
+              consumer signal yet.
             </p>
           </div>
 
@@ -1032,8 +1096,9 @@
             <div class="where">ROADMAP.md "Read-Model Enhancements"</div>
             <p>
               <code>kv.Store.Scan(prefix)</code> does in-memory filtering.
-              <code>Materialize.List</code> (<code>stack/materialize.go:179</code>) does a full
-              table scan bypassing the cache. Works at small scale, breaks at 1M+ records.
+              <code>Materialize.List</code>
+              (<code>stack/materialize.go:179</code>) does a full table scan
+              bypassing the cache. Works at small scale, breaks at 1M+ records.
             </p>
           </div>
         </section>
@@ -1092,7 +1157,11 @@
               <tr>
                 <td>Distributed projection runner</td>
                 <td>ROADMAP.md</td>
-                <td><span class="badge badge-low">Single-machine is sufficient for now</span></td>
+                <td>
+                  <span class="badge badge-low"
+                    >Single-machine is sufficient for now</span
+                  >
+                </td>
               </tr>
               <tr>
                 <td>Event archival to S3/GCS/Azure</td>
@@ -1117,12 +1186,16 @@
               <tr>
                 <td>jsonv2 codec (real)</td>
                 <td>ADR-0026</td>
-                <td><span class="badge badge-low">Blocked on Go stdlib</span></td>
+                <td>
+                  <span class="badge badge-low">Blocked on Go stdlib</span>
+                </td>
               </tr>
               <tr>
                 <td>Arena allocation (real)</td>
                 <td>ADR-0026</td>
-                <td><span class="badge badge-low">Blocked on Go stdlib</span></td>
+                <td>
+                  <span class="badge badge-low">Blocked on Go stdlib</span>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -1133,17 +1206,25 @@
 
           <div class="card card-problem">
             <h3>5.5× doc-to-code ratio — process overhead dwarfs output</h3>
-            <div class="where">find docs -name "*.md" -o -name "*.html" | wc -l</div>
+            <div class="where">
+              find docs -name "*.md" -o -name "*.html" | wc -l
+            </div>
             <p>
-              <strong>221,186 lines of documentation for 40,173 lines of production Go.</strong> 635
-              doc files total. <strong>363 of them are status reports</strong> — most from weeks ago
-              and now useless history. Each status report averages 600 lines. We are generating
-              documentation about documentation about code at a rate that exceeds the code itself.
+              <strong
+                >221,186 lines of documentation for 40,173 lines of production
+                Go.</strong
+              >
+              635 doc files total.
+              <strong>363 of them are status reports</strong> — most from weeks
+              ago and now useless history. Each status report averages 600
+              lines. We are generating documentation about documentation about
+              code at a rate that exceeds the code itself.
             </p>
             <p>
-              This isn't a documentation problem — it's a feedback loop problem. The docs exist
-              because there's no consumer to validate against, so the team substitutes "wrote a
-              status report" for "shipped a feature a user tried."
+              This isn't a documentation problem — it's a feedback loop problem.
+              The docs exist because there's no consumer to validate against, so
+              the team substitutes "wrote a status report" for "shipped a
+              feature a user tried."
             </p>
           </div>
 
@@ -1153,16 +1234,18 @@
             <p>
               2,439 commits since 2026-03-15.
               <strong
-                >861 commits in the last 21 days (41/day). 664 in the last 14 days (47/day).</strong
+                >861 commits in the last 21 days (41/day). 664 in the last 14
+                days (47/day).</strong
               >
-              Not a single known external import. The entire value proposition — "Would a consumer
-              trust this enough to import it?" — is unanswered. Every architectural decision has
-              been made in a vacuum.
+              Not a single known external import. The entire value proposition —
+              "Would a consumer trust this enough to import it?" — is
+              unanswered. Every architectural decision has been made in a
+              vacuum.
             </p>
             <p>
-              The library may be excellent. It may also be fundamentally misshaped by assumptions no
-              one has tested. We don't know, and at 47 commits/day we're not creating the conditions
-              to find out.
+              The library may be excellent. It may also be fundamentally
+              misshaped by assumptions no one has tested. We don't know, and at
+              47 commits/day we're not creating the conditions to find out.
             </p>
           </div>
 
@@ -1170,12 +1253,14 @@
             <h3>Status report pollution</h3>
             <div class="where">docs/status/</div>
             <p>
-              <strong>9 status reports in the last 24 hours alone</strong> (this is the 10th). The
-              <code>docs/status/</code> directory is the single largest contributor to the doc
-              bloat. Reports from 2 weeks ago are dead history — they reference modules that no
-              longer exist (<code>projection/</code>, <code>readmodel/</code>) and breaking changes
-              that are done. The 07:13 report this morning was right: "The code doesn't need more
-              features. It needs a consumer." Then we wrote two more reports.
+              <strong>9 status reports in the last 24 hours alone</strong> (this
+              is the 10th). The <code>docs/status/</code> directory is the
+              single largest contributor to the doc bloat. Reports from 2 weeks
+              ago are dead history — they reference modules that no longer exist
+              (<code>projection/</code>, <code>readmodel/</code>) and breaking
+              changes that are done. The 07:13 report this morning was right:
+              "The code doesn't need more features. It needs a consumer." Then
+              we wrote two more reports.
             </p>
           </div>
         </section>
@@ -1184,19 +1269,25 @@
           <h2><span class="num">05</span>e) What We Should Improve</h2>
 
           <div class="callout callout-problem">
-            <strong>Stop generating status reports and start generating consumers.</strong>
-            The single highest-leverage improvement is to find one real project that imports this
-            library. Every other improvement is downstream of that.
+            <strong
+              >Stop generating status reports and start generating
+              consumers.</strong
+            >
+            The single highest-leverage improvement is to find one real project
+            that imports this library. Every other improvement is downstream of
+            that.
           </div>
 
           <div class="card">
             <h3>1. Find a consumer, or declare the project scope-closed</h3>
             <p>
-              Either (a) build a small real app that imports the library end-to-end, or (b)
-              explicitly declare the library feature-complete and stop adding capabilities. The
-              current trajectory — adding Hot-State cache TODOs, transport adapters, secondary
-              indexes — without consumers is making the API surface <em>harder</em> to adopt, not
-              easier. <strong>1,605 exports is a lot to evaluate.</strong>
+              Either (a) build a small real app that imports the library
+              end-to-end, or (b) explicitly declare the library feature-complete
+              and stop adding capabilities. The current trajectory — adding
+              Hot-State cache TODOs, transport adapters, secondary indexes —
+              without consumers is making the API surface <em>harder</em> to
+              adopt, not easier.
+              <strong>1,605 exports is a lot to evaluate.</strong>
             </p>
           </div>
 
@@ -1204,17 +1295,18 @@
             <h3>2. Archive old status reports</h3>
             <p>
               Move <code>docs/status/*.md</code> older than 7 days into
-              <code>docs/status/archive/</code>. Keep only the latest HTML dashboard + the latest
-              markdown. Reduces 363 files to ~10 active. The <code>archive/</code> directory already
-              exists — use it.
+              <code>docs/status/archive/</code>. Keep only the latest HTML
+              dashboard + the latest markdown. Reduces 363 files to ~10 active.
+              The <code>archive/</code> directory already exists — use it.
             </p>
           </div>
 
           <div class="card">
             <h3>3. Fix FEATURES.md in one pass</h3>
             <p>
-              Three known inaccuracies (projection deleted, memory moved, streaming reads done) plus
-              missing stack modules. One focused edit. Run the
+              Three known inaccuracies (projection deleted, memory moved,
+              streaming reads done) plus missing stack modules. One focused
+              edit. Run the
               <code>docs-freshness-check</code> skill.
             </p>
           </div>
@@ -1222,29 +1314,33 @@
           <div class="card">
             <h3>4. Polish the stack layer</h3>
             <p>
-              17 of 62 lint issues and the worst coverage live in <code>stack/</code>. The stack
-              presets are the <em>consumer-facing entry point</em> — they should be the most
-              polished, not the least. Fix <code>stack/sqlite/preset.go</code> (11 issues alone) and
-              add constructor-error tests.
+              17 of 62 lint issues and the worst coverage live in
+              <code>stack/</code>. The stack presets are the
+              <em>consumer-facing entry point</em> — they should be the most
+              polished, not the least. Fix
+              <code>stack/sqlite/preset.go</code> (11 issues alone) and add
+              constructor-error tests.
             </p>
           </div>
 
           <div class="card">
             <h3>5. Tag v3.0.0</h3>
             <p>
-              All breaking changes are additive. Tagging costs nothing and gives consumers a stable
-              major to pin against. Until v3 is tagged, the entire v2-with-v3-teed-up state is a tax
-              on every consumer evaluation.
+              All breaking changes are additive. Tagging costs nothing and gives
+              consumers a stable major to pin against. Until v3 is tagged, the
+              entire v2-with-v3-teed-up state is a tax on every consumer
+              evaluation.
             </p>
           </div>
 
           <div class="card">
             <h3>6. Add real consumer-facing examples beyond toy apps</h3>
             <p>
-              The 4 examples are demos, not reference applications. A consumer evaluating this
-              library has no model for: HTTP API with auth, production deployment, observability
-              stack, schema migration in production. The <code>example/user/</code> Dockerfile is
-              the closest, but it's still single-aggregate.
+              The 4 examples are demos, not reference applications. A consumer
+              evaluating this library has no model for: HTTP API with auth,
+              production deployment, observability stack, schema migration in
+              production. The <code>example/user/</code> Dockerfile is the
+              closest, but it's still single-aggregate.
             </p>
           </div>
 
@@ -1252,16 +1348,22 @@
             <h3>7. Reduce API surface where possible</h3>
             <p>
               1,605 exports is a lot. The
-              <code>docs/brainstorming/2026-06-21_07-21_API-SURFACE-REDUCTION-IDEAS.md</code>
-              brainstorm exists — act on the high-impact items. Specifically: collapse duplicate
-              convenience constructors, hide internal helpers behind <code>internal/</code>.
+              <code
+                >docs/brainstorming/2026-06-21_07-21_API-SURFACE-REDUCTION-IDEAS.md</code
+              >
+              brainstorm exists — act on the high-impact items. Specifically:
+              collapse duplicate convenience constructors, hide internal helpers
+              behind <code>internal/</code>.
             </p>
           </div>
         </section>
 
         <section id="next25">
           <h2><span class="num">06</span>f) Top 25 Things To Do Next</h2>
-          <p>Ranked by impact × leverage. Consumer-validation work comes before any new feature.</p>
+          <p>
+            Ranked by impact × leverage. Consumer-validation work comes before
+            any new feature.
+          </p>
           <table>
             <thead>
               <tr>
@@ -1276,8 +1378,11 @@
               <tr>
                 <td>1</td>
                 <td>
-                  <strong>Build one real app that imports the library end-to-end</strong> (HTTP API
-                  + Postgres + observability)
+                  <strong
+                    >Build one real app that imports the library
+                    end-to-end</strong
+                  >
+                  (HTTP API + Postgres + observability)
                 </td>
                 <td><span class="badge badge-critical">Critical</span></td>
                 <td>Large</td>
@@ -1302,7 +1407,9 @@
               </tr>
               <tr>
                 <td>4</td>
-                <td>Fix FEATURES.md (3 stale entries + missing stack modules)</td>
+                <td>
+                  Fix FEATURES.md (3 stale entries + missing stack modules)
+                </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>Small</td>
                 <td>Docs</td>
@@ -1310,7 +1417,8 @@
               <tr>
                 <td>5</td>
                 <td>
-                  Polish <code>stack/sqlite/preset.go</code> — 11 lint issues, worst single file
+                  Polish <code>stack/sqlite/preset.go</code> — 11 lint issues,
+                  worst single file
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>Small</td>
@@ -1319,8 +1427,8 @@
               <tr>
                 <td>6</td>
                 <td>
-                  Add constructor-error tests to <code>stack/</code> presets (coverage 45.9% →
-                  &gt;70%)
+                  Add constructor-error tests to <code>stack/</code> presets
+                  (coverage 45.9% → &gt;70%)
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>Medium</td>
@@ -1328,35 +1436,48 @@
               </tr>
               <tr>
                 <td>7</td>
-                <td>Publish README that answers "why this over other Go CQRS libs"</td>
+                <td>
+                  Publish README that answers "why this over other Go CQRS libs"
+                </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>Small</td>
                 <td>Adoption</td>
               </tr>
               <tr>
                 <td>8</td>
-                <td>Fix 62 lint issues (mostly mechanical: wrapcheck, errcheck, varnamelen)</td>
+                <td>
+                  Fix 62 lint issues (mostly mechanical: wrapcheck, errcheck,
+                  varnamelen)
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>Medium</td>
                 <td>Quality</td>
               </tr>
               <tr>
                 <td>9</td>
-                <td>Move remaining wrapcheck-violating error returns behind typed wrappers</td>
+                <td>
+                  Move remaining wrapcheck-violating error returns behind typed
+                  wrappers
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>Medium</td>
                 <td>Quality</td>
               </tr>
               <tr>
                 <td>10</td>
-                <td>Act on API-surface-reduction brainstorm (high-impact items first)</td>
+                <td>
+                  Act on API-surface-reduction brainstorm (high-impact items
+                  first)
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>Medium</td>
                 <td>Adoption</td>
               </tr>
               <tr>
                 <td>11</td>
-                <td>Write a "first 15 minutes" quickstart that runs without setup</td>
+                <td>
+                  Write a "first 15 minutes" quickstart that runs without setup
+                </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>Small</td>
                 <td>Adoption</td>
@@ -1364,8 +1485,8 @@
               <tr>
                 <td>12</td>
                 <td>
-                  Add <code>go test -race ./...</code> to CI on the full suite (currently only
-                  modified modules)
+                  Add <code>go test -race ./...</code> to CI on the full suite
+                  (currently only modified modules)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>Small</td>
@@ -1374,7 +1495,8 @@
               <tr>
                 <td>13</td>
                 <td>
-                  Document the deployer-first pattern in README (currently buried in
+                  Document the deployer-first pattern in README (currently
+                  buried in
                   <code>example/deployer-first/README.md</code>)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
@@ -1384,8 +1506,8 @@
               <tr>
                 <td>14</td>
                 <td>
-                  Decide: is <code>POSTGRES_TEST_DSN</code> a docs problem or a tooling problem?
-                  Document it prominently in CONTRIBUTING.
+                  Decide: is <code>POSTGRES_TEST_DSN</code> a docs problem or a
+                  tooling problem? Document it prominently in CONTRIBUTING.
                 </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>Trivial</td>
@@ -1394,8 +1516,8 @@
               <tr>
                 <td>15</td>
                 <td>
-                  Hot-State cache prototype (only if a real hot-aggregate workload emerges —
-                  TODO_LIST.md)
+                  Hot-State cache prototype (only if a real hot-aggregate
+                  workload emerges — TODO_LIST.md)
                 </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>Medium</td>
@@ -1403,7 +1525,10 @@
               </tr>
               <tr>
                 <td>16</td>
-                <td>Read-pressure snapshot strategy (only after #15 — TODO_LIST.md)</td>
+                <td>
+                  Read-pressure snapshot strategy (only after #15 —
+                  TODO_LIST.md)
+                </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>Medium</td>
                 <td>Feature</td>
@@ -1411,8 +1536,8 @@
               <tr>
                 <td>17</td>
                 <td>
-                  Secondary indexes / ranged scans on <code>kv.Store</code> (only if a workload
-                  needs them)
+                  Secondary indexes / ranged scans on
+                  <code>kv.Store</code> (only if a workload needs them)
                 </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>Large</td>
@@ -1420,21 +1545,27 @@
               </tr>
               <tr>
                 <td>18</td>
-                <td>gRPC transport adapter (ADR-0025) — only if a consumer asks</td>
+                <td>
+                  gRPC transport adapter (ADR-0025) — only if a consumer asks
+                </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>Large</td>
                 <td>Feature</td>
               </tr>
               <tr>
                 <td>19</td>
-                <td>NATS transport adapter (ADR-0025) — only if a consumer asks</td>
+                <td>
+                  NATS transport adapter (ADR-0025) — only if a consumer asks
+                </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>Large</td>
                 <td>Feature</td>
               </tr>
               <tr>
                 <td>20</td>
-                <td>Redis transport adapter (ADR-0025) — only if a consumer asks</td>
+                <td>
+                  Redis transport adapter (ADR-0025) — only if a consumer asks
+                </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>Large</td>
                 <td>Feature</td>
@@ -1442,7 +1573,8 @@
               <tr>
                 <td>21</td>
                 <td>
-                  Property-based integration testing with state machine verification (ROADMAP)
+                  Property-based integration testing with state machine
+                  verification (ROADMAP)
                 </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>Medium</td>
@@ -1451,8 +1583,8 @@
               <tr>
                 <td>22</td>
                 <td>
-                  Performance regression dashboard (ROADMAP) — only if perf claims become
-                  load-bearing
+                  Performance regression dashboard (ROADMAP) — only if perf
+                  claims become load-bearing
                 </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>Medium</td>
@@ -1460,14 +1592,20 @@
               </tr>
               <tr>
                 <td>23</td>
-                <td>Schema migration generator (ROADMAP) — only if upcaster adoption grows</td>
+                <td>
+                  Schema migration generator (ROADMAP) — only if upcaster
+                  adoption grows
+                </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>Medium</td>
                 <td>Feature</td>
               </tr>
               <tr>
                 <td>24</td>
-                <td>Documentation site (Docusaurus/MkDocs) — only after consumer signal</td>
+                <td>
+                  Documentation site (Docusaurus/MkDocs) — only after consumer
+                  signal
+                </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>Medium</td>
                 <td>Docs</td>
@@ -1475,8 +1613,9 @@
               <tr>
                 <td>25</td>
                 <td>
-                  Decide and document: is multi-master permanently out of scope? (Recent
-                  conversation confirmed yes — write it into an ADR so the question stops recurring)
+                  Decide and document: is multi-master permanently out of scope?
+                  (Recent conversation confirmed yes — write it into an ADR so
+                  the question stops recurring)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>Small</td>
@@ -1490,47 +1629,57 @@
           <h2><span class="num">07</span>g) Top #1 Question I Cannot Answer</h2>
           <div class="question-block">
             <h3>
-              Is there a real consumer waiting for this library, or is this a portfolio/research
-              project?
+              Is there a real consumer waiting for this library, or is this a
+              portfolio/research project?
             </h3>
-            <p style="color: var(--text); font-size: 1.05rem; margin-bottom: 1rem">
-              I cannot figure this out from the codebase, the commit history, or the docs. The
-              signals point in both directions:
+            <p
+              style="
+                color: var(--text);
+                font-size: 1.05rem;
+                margin-bottom: 1rem;
+              "
+            >
+              I cannot figure this out from the codebase, the commit history, or
+              the docs. The signals point in both directions:
             </p>
             <ul style="color: var(--text)">
               <li>
-                <strong>Signals "real product":</strong> Production-grade engineering (error
-                taxonomy, OTel integration, 3 storage backends, security primitives, migration
-                paths, ADR-driven design, 33 ADRs). This is not how you build a portfolio piece.
+                <strong>Signals "real product":</strong> Production-grade
+                engineering (error taxonomy, OTel integration, 3 storage
+                backends, security primitives, migration paths, ADR-driven
+                design, 33 ADRs). This is not how you build a portfolio piece.
               </li>
               <li>
-                <strong>Signals "no consumer":</strong> 47 commits/day for 14 days, 5.5× doc-to-code
-                ratio, 363 status reports, no known external import, no issues/PRs from outside, no
-                release tag, FEATURES.md is stale (a real product team would have caught the
+                <strong>Signals "no consumer":</strong> 47 commits/day for 14
+                days, 5.5× doc-to-code ratio, 363 status reports, no known
+                external import, no issues/PRs from outside, no release tag,
+                FEATURES.md is stale (a real product team would have caught the
                 <code>projection/</code> deletion).
               </li>
             </ul>
             <p style="color: var(--text)">
-              Every prioritization decision hinges on this. If a consumer is waiting, then the v3
-              tag and adoption work are urgent. If this is a research/portfolio project, then the
-              velocity is fine and we should stop writing status reports and start writing blog
-              posts.
+              Every prioritization decision hinges on this. If a consumer is
+              waiting, then the v3 tag and adoption work are urgent. If this is
+              a research/portfolio project, then the velocity is fine and we
+              should stop writing status reports and start writing blog posts.
               <strong
-                >I cannot tell which, and at 47 commits/day we're not creating the conditions to
-                find out.</strong
+                >I cannot tell which, and at 47 commits/day we're not creating
+                the conditions to find out.</strong
               >
             </p>
             <p style="color: var(--text); margin-top: 1rem">
-              The 07:13 report this morning asked the same question. We added a Hot-State cache TODO
-              entry instead of answering it. I am asking it again because nothing else on the Top 25
-              list makes sense without the answer.
+              The 07:13 report this morning asked the same question. We added a
+              Hot-State cache TODO entry instead of answering it. I am asking it
+              again because nothing else on the Top 25 list makes sense without
+              the answer.
             </p>
           </div>
         </section>
 
         <footer class="footer">
-          Generated 2026-06-21 08:24 CEST &middot; Verified against master @ 4a67ff62 · build clean
-          · 51/51 tests pass · 62 lint issues (style only)
+          Generated 2026-06-21 08:24 CEST &middot; Verified against master @
+          4a67ff62 · build clean · 51/51 tests pass · 62 lint issues (style
+          only)
         </footer>
       </main>
     </div>

@@ -30,14 +30,14 @@
         --warning: var(--color-yellow);
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -233,15 +233,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue {
         background: var(--surface-raised);
@@ -252,15 +264,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue h3 {
         margin-bottom: 0.3rem;
@@ -557,10 +581,14 @@
           <div class="hero-badge">Pareto Execution — Superseded</div>
           <h1>Pareto Plan Execution Status</h1>
           <p class="hero-subtitle">
-            <strong>Historical snapshot (2026-07-25).</strong> This plan was superseded by
-            <code>docs/planning/2026-07-26_20-10_SUPERB-PARETO-EXECUTION-PLAN.md</code> (48 tasks,
-            31 completed). All M01-M20 items shown below were either completed or rolled into the
-            2026-07-26 plan. The <code>nix run .#verify</code> gate is GREEN.
+            <strong>Historical snapshot (2026-07-25).</strong> This plan was
+            superseded by
+            <code
+              >docs/planning/2026-07-26_20-10_SUPERB-PARETO-EXECUTION-PLAN.md</code
+            >
+            (48 tasks, 31 completed). All M01-M20 items shown below were either
+            completed or rolled into the 2026-07-26 plan. The
+            <code>nix run .#verify</code> gate is GREEN.
           </p>
         </div>
 
@@ -600,9 +628,10 @@
         </div>
 
         <p>
-          Workspace builds cleanly (<code>go build ./...</code> passes). Key tests pass with
-          <code>-race</code>: metaengine (126 specs), idempotency/sqlstore (14 tests), decider
-          WaitForVersion (7 tests), projectionhost staleness (8 tests). Three tags pushed:
+          Workspace builds cleanly (<code>go build ./...</code> passes). Key
+          tests pass with <code>-race</code>: metaengine (126 specs),
+          idempotency/sqlstore (14 tests), decider WaitForVersion (7 tests),
+          projectionhost staleness (8 tests). Three tags pushed:
           <code>benchkit/v4.0.0</code>, <code>cmd/cqrs-bench/v0.1.0</code>,
           <code>example/readme-quickstart/v0.1.0</code>.
         </p>
@@ -613,40 +642,46 @@
         <div class="card card-solution">
           <h4>M01: Benchkit API Stability Audit</h4>
           <p>
-            Reviewed all benchkit + cmd/cqrs-bench exports. Zero TODO/FIXME in public API surface.
-            Added "Stable API Surface (v0.1.0)" section to ADR-0060 documenting the do-not-break
-            exports.
+            Reviewed all benchkit + cmd/cqrs-bench exports. Zero TODO/FIXME in
+            public API surface. Added "Stable API Surface (v0.1.0)" section to
+            ADR-0060 documenting the do-not-break exports.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>
-            M02: Tag benchkit/v4.0.0 + cmd/cqrs-bench/v0.1.0 + example/readme-quickstart/v0.1.0
+            M02: Tag benchkit/v4.0.0 + cmd/cqrs-bench/v0.1.0 +
+            example/readme-quickstart/v0.1.0
           </h4>
           <p>
-            All three tags created as annotated git tags and pushed to origin. Tag-release.sh failed
-            due to cqrs-lint external replace directives; tagged manually (verified all target
-            modules have zero replace directives).
+            All three tags created as annotated git tags and pushed to origin.
+            Tag-release.sh failed due to cqrs-lint external replace directives;
+            tagged manually (verified all target modules have zero replace
+            directives).
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>M03: Consistency Model Document</h4>
           <p>
-            <code>docs/CONSISTENCY_MODEL.md</code> written. Covers: single-process scope, write path
-            (strong consistency), read path (eventual consistency), projection lag, read-after-write
-            (WaitForVersion), bounded staleness (CheckStaleness), idempotency, explicit out-of-scope
-            areas. HONEST: explicitly states single-process only, no distributed consensus.
+            <code>docs/CONSISTENCY_MODEL.md</code> written. Covers:
+            single-process scope, write path (strong consistency), read path
+            (eventual consistency), projection lag, read-after-write
+            (WaitForVersion), bounded staleness (CheckStaleness), idempotency,
+            explicit out-of-scope areas. HONEST: explicitly states
+            single-process only, no distributed consensus.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>M04: SQL-backed idempotency.Store</h4>
           <p>
-            New module <code>idempotency/sqlstore/v4</code> following the kvstore pattern.
-            <code>INSERT ... ON CONFLICT DO UPDATE WHERE</code> for atomic CheckAndRecord. 14 tests
-            including 50-goroutine concurrent race test (exactly 1 winner verified). SQLite +
-            PostgreSQL DDL. README with API table and atomicity explanation.
+            New module <code>idempotency/sqlstore/v4</code> following the
+            kvstore pattern.
+            <code>INSERT ... ON CONFLICT DO UPDATE WHERE</code> for atomic
+            CheckAndRecord. 14 tests including 50-goroutine concurrent race test
+            (exactly 1 winner verified). SQLite + PostgreSQL DDL. README with
+            API table and atomicity explanation.
           </p>
         </div>
 
@@ -654,10 +689,12 @@
           <h4>M05: WaitForVersion Helper</h4>
           <p>
             <code
-              >decider.Repository.WaitForVersion(ctx, streamID, streamType, version, opts...)</code
-            >. Polls <code>LoadFromVersion</code> every 10ms, default 2s timeout. Returns events or
-            <code>ErrWaitTimeout</code>. 7 tests: immediate, delayed, timeout, context-cancel,
-            invalid version, events-from-target-version, caller-deadline-preserved.
+              >decider.Repository.WaitForVersion(ctx, streamID, streamType,
+              version, opts...)</code
+            >. Polls <code>LoadFromVersion</code> every 10ms, default 2s
+            timeout. Returns events or <code>ErrWaitTimeout</code>. 7 tests:
+            immediate, delayed, timeout, context-cancel, invalid version,
+            events-from-target-version, caller-deadline-preserved.
           </p>
         </div>
 
@@ -666,19 +703,20 @@
           <p>
             <code>projectionhost.Host.CheckStaleness(maxStaleness)</code> and
             <code>CheckProjectionStaleness(name, maxStaleness)</code>. Returns
-            <code>ErrProjectionStale</code> when lag exceeds threshold. 8 tests: disabled-by-zero,
-            disabled-by-negative, fresh, stale, no-events-processed, unknown-projection,
-            per-projection fresh/stale.
+            <code>ErrProjectionStale</code> when lag exceeds threshold. 8 tests:
+            disabled-by-zero, disabled-by-negative, fresh, stale,
+            no-events-processed, unknown-projection, per-projection fresh/stale.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>M07: Metaengine SQLite Engine Design ADR</h4>
           <p>
-            <code>docs/adr/0061-metaengine-sqlite-engine.md</code> written. Documents: direct
-            *sql.DB wrapper (not SQLViewStore), table-per-ADT schema, JSON key/value encoding,
-            backend coverage table with status (full/partial/basic), known limitation (ScanBackend
-            does not push filters to SQL).
+            <code>docs/adr/0061-metaengine-sqlite-engine.md</code> written.
+            Documents: direct *sql.DB wrapper (not SQLViewStore), table-per-ADT
+            schema, JSON key/value encoding, backend coverage table with status
+            (full/partial/basic), known limitation (ScanBackend does not push
+            filters to SQL).
           </p>
         </div>
 
@@ -688,12 +726,13 @@
         <div class="card card-warning">
           <h4>M08+M09: Metaengine SQLite Engine Implementation + Specs</h4>
           <p>
-            <code>metaengine/sqlite_engine.go</code> implements all 8 backend interfaces. 126 BDD
-            specs pass (125 existing + new SQLite specs covering
-            Map/Set/Counter/Log/Multimap/Graph/Scan). Cost-based engine selection test confirms
-            MemoryEngine wins over SQLite for O(1) lookups. <strong>BUT:</strong>
-            the engine was committed via auto-commit hook before all edges were verified — needs a
-            full
+            <code>metaengine/sqlite_engine.go</code> implements all 8 backend
+            interfaces. 126 BDD specs pass (125 existing + new SQLite specs
+            covering Map/Set/Counter/Log/Multimap/Graph/Scan). Cost-based engine
+            selection test confirms MemoryEngine wins over SQLite for O(1)
+            lookups. <strong>BUT:</strong>
+            the engine was committed via auto-commit hook before all edges were
+            verified — needs a full
             <code>nix run .#verify</code> pass.
           </p>
         </div>
@@ -702,22 +741,26 @@
           <h4>M10: Metaengine Projection Adapter</h4>
           <p>
             <code>metaengine/projection_adapter.go</code> implements
-            <code>projection.Projection</code>. Compiles and type-checks. <strong>BUT:</strong> no
-            dedicated integration test against projectionhost.Host lifecycle yet. Only the
-            compile-time assertion exists.
+            <code>projection.Projection</code>. Compiles and type-checks.
+            <strong>BUT:</strong> no dedicated integration test against
+            projectionhost.Host lifecycle yet. Only the compile-time assertion
+            exists.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>ADR-0061 Metaengine Design</h4>
           <p>
-            Written and committed, but references ADR-0062 (pushdown) and ADR-0063 (cost
-            calibration) that don't exist yet. Cross-references are forward-looking, not verified.
+            Written and committed, but references ADR-0062 (pushdown) and
+            ADR-0063 (cost calibration) that don't exist yet. Cross-references
+            are forward-looking, not verified.
           </p>
         </div>
 
         <!-- NOT STARTED -->
-        <h2 id="notstarted"><span class="num">03</span>Not Started (10 Tasks)</h2>
+        <h2 id="notstarted">
+          <span class="num">03</span>Not Started (10 Tasks)
+        </h2>
         <div class="table-wrap">
           <table>
             <thead>
@@ -731,7 +774,10 @@
             <tbody>
               <tr>
                 <td>M11</td>
-                <td>Metaengine cost model calibration (replace nsPerOp=100 with benchmarks)</td>
+                <td>
+                  Metaengine cost model calibration (replace nsPerOp=100 with
+                  benchmarks)
+                </td>
                 <td><span class="badge badge-medium">20%→80%</span></td>
                 <td><span class="badge badge-low">60m</span></td>
               </tr>
@@ -799,33 +845,41 @@
         <div class="issue issue-critical">
           <span class="severity severity-critical">VERSCHLIMMBESSER</span>
           <h3>Metaengine Dependency Boundary Violation</h3>
-          <div class="where">metaengine/go.mod, metaengine/projection_adapter.go</div>
+          <div class="where">
+            metaengine/go.mod, metaengine/projection_adapter.go
+          </div>
           <p>
-            The metaengine module was deliberately zero-dep (only ginkgo/gomega as test deps). The
-            Pareto plan explicitly called for
-            <strong>M13 (event/ dependency decision) BEFORE adding the dependency</strong>. I
-            skipped M13 and added <code>event/v4</code> and <code>projection/v4</code> as production
-            dependencies to implement the projection adapter (M10).
+            The metaengine module was deliberately zero-dep (only ginkgo/gomega
+            as test deps). The Pareto plan explicitly called for
+            <strong
+              >M13 (event/ dependency decision) BEFORE adding the
+              dependency</strong
+            >. I skipped M13 and added <code>event/v4</code> and
+            <code>projection/v4</code> as production dependencies to implement
+            the projection adapter (M10).
           </p>
           <p>
-            This caused <code>go mod tidy</code> to fail with unresolved dependency errors:
-            <code>id/v4.0.3: unknown revision</code>, <code>schema/v4.0.3: unknown revision</code>.
-            The workspace builds (<code>go.work</code> masks it), but
-            <code>GOWORK=off go test</code> would fail for any consumer trying to fetch metaengine
-            from the Go proxy.
+            This caused <code>go mod tidy</code> to fail with unresolved
+            dependency errors: <code>id/v4.0.3: unknown revision</code>,
+            <code>schema/v4.0.3: unknown revision</code>. The workspace builds
+            (<code>go.work</code> masks it), but
+            <code>GOWORK=off go test</code> would fail for any consumer trying
+            to fetch metaengine from the Go proxy.
           </p>
           <div class="callout callout-warning">
-            <strong>Root cause:</strong> I implemented M10 (projection adapter) before M13
-            (dependency decision), violating the explicit dependency order from the plan. The plan
-            said "M13 depends on nothing" and "M10 depends on M08" — but M10 introduced a dependency
-            that M13 was supposed to decide about first.
+            <strong>Root cause:</strong> I implemented M10 (projection adapter)
+            before M13 (dependency decision), violating the explicit dependency
+            order from the plan. The plan said "M13 depends on nothing" and "M10
+            depends on M08" — but M10 introduced a dependency that M13 was
+            supposed to decide about first.
           </div>
           <div class="callout callout-solution">
-            <strong>Fix:</strong> Either (a) write M13 as "accept the dependency" and tag the
-            missing intermediate versions, or (b) move the projection adapter to a separate
-            subpackage <code>metaengine/projectionadapter/</code> (like
-            <code>idempotency/sqlstore/</code>), keeping the core metaengine zero-dep. Option (b) is
-            cleaner.
+            <strong>Fix:</strong> Either (a) write M13 as "accept the
+            dependency" and tag the missing intermediate versions, or (b) move
+            the projection adapter to a separate subpackage
+            <code>metaengine/projectionadapter/</code> (like
+            <code>idempotency/sqlstore/</code>), keeping the core metaengine
+            zero-dep. Option (b) is cleaner.
           </div>
         </div>
 
@@ -838,8 +892,9 @@
             <div class="text">
               <strong>Tagging worked despite script failure</strong>
               <span
-                >When tag-release.sh failed on cqrs-lint's external replaces, I diagnosed the root
-                cause and tagged manually instead of giving up.</span
+                >When tag-release.sh failed on cqrs-lint's external replaces, I
+                diagnosed the root cause and tagged manually instead of giving
+                up.</span
               >
             </div>
           </div>
@@ -848,9 +903,10 @@
             <div class="text">
               <strong>Race tests are thorough</strong>
               <span
-                >50-goroutine concurrent CheckAndRecord test with exactly-1-winner assertion.
-                WaitForVersion tested with context cancellation. Staleness tested with real
-                projection lifecycle.</span
+                >50-goroutine concurrent CheckAndRecord test with
+                exactly-1-winner assertion. WaitForVersion tested with context
+                cancellation. Staleness tested with real projection
+                lifecycle.</span
               >
             </div>
           </div>
@@ -859,8 +915,8 @@
             <div class="text">
               <strong>Consistency doc is honest</strong>
               <span
-                >Explicitly says "single-process only, no distributed consensus." Doesn't
-                over-promise.</span
+                >Explicitly says "single-process only, no distributed
+                consensus." Doesn't over-promise.</span
               >
             </div>
           </div>
@@ -871,32 +927,39 @@
           <h3>No quality gate run</h3>
           <div class="where">nix run .#verify — NEVER RUN</div>
           <p>
-            The plan explicitly said "Run <code>nix run .#verify</code> before EVERY commit." I
-            never ran it. Individual module tests pass, but the full gate (build + vet + test + race
-            + lint + doc-check across 56 modules) has not been executed. Lint failures may exist.
+            The plan explicitly said "Run <code>nix run .#verify</code> before
+            EVERY commit." I never ran it. Individual module tests pass, but the
+            full gate (build + vet + test + race + lint + doc-check across 56
+            modules) has not been executed. Lint failures may exist.
           </p>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Process</span>
           <h3>Auto-commit hook masked incomplete work</h3>
-          <div class="where">commits ce4c4cc1, 51a2d3b8, 335efefe, 1fd70050, 02d98f40</div>
+          <div class="where">
+            commits ce4c4cc1, 51a2d3b8, 335efefe, 1fd70050, 02d98f40
+          </div>
           <p>
-            The auto-commit hook swept work-in-progress into commits before I verified completeness.
-            The metaengine SQLite engine was committed before its go.mod was properly resolved. This
-            made it harder to track what was "done" vs "in progress."
+            The auto-commit hook swept work-in-progress into commits before I
+            verified completeness. The metaengine SQLite engine was committed
+            before its go.mod was properly resolved. This made it harder to
+            track what was "done" vs "in progress."
           </p>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Missing</span>
           <h3>No doc updates for new features</h3>
-          <div class="where">AGENTS.md, SKILL.md, FEATURES.md, CHANGELOG.md</div>
+          <div class="where">
+            AGENTS.md, SKILL.md, FEATURES.md, CHANGELOG.md
+          </div>
           <p>
-            Five new features shipped (SQL idempotency, WaitForVersion, CheckStaleness, SQLite
-            engine, consistency doc) but none are documented in AGENTS.md module tree, SKILL.md
-            references, FEATURES.md feature table, or CHANGELOG [Unreleased] section. Consumers
-            won't know these exist.
+            Five new features shipped (SQL idempotency, WaitForVersion,
+            CheckStaleness, SQLite engine, consistency doc) but none are
+            documented in AGENTS.md module tree, SKILL.md references,
+            FEATURES.md feature table, or CHANGELOG [Unreleased] section.
+            Consumers won't know these exist.
           </p>
         </div>
 
@@ -905,14 +968,17 @@
           <h3>Metaengine projection adapter has no integration test</h3>
           <div class="where">metaengine/projection_adapter.go</div>
           <p>
-            Only a compile-time assertion exists. No test registers the adapter with
-            projectionhost.Host and verifies events flow through to the metaengine Store via the
-            projection lifecycle. The plan (M10 F52) explicitly required this integration test.
+            Only a compile-time assertion exists. No test registers the adapter
+            with projectionhost.Host and verifies events flow through to the
+            metaengine Store via the projection lifecycle. The plan (M10 F52)
+            explicitly required this integration test.
           </p>
         </div>
 
         <!-- Top 25 Next Tasks -->
-        <h2 id="next25"><span class="num">06</span>Top 25 Things to Get Done Next</h2>
+        <h2 id="next25">
+          <span class="num">06</span>Top 25 Things to Get Done Next
+        </h2>
         <div class="table-wrap">
           <table>
             <thead>
@@ -927,22 +993,27 @@
               <tr>
                 <td>1</td>
                 <td>
-                  <strong>Fix metaengine dependency boundary</strong> — move projection_adapter to
-                  subpackage OR accept dep + tag missing versions
+                  <strong>Fix metaengine dependency boundary</strong> — move
+                  projection_adapter to subpackage OR accept dep + tag missing
+                  versions
                 </td>
                 <td><span class="badge badge-critical">Critical</span></td>
                 <td><span class="badge badge-low">30m</span></td>
               </tr>
               <tr>
                 <td>2</td>
-                <td><strong>Run nix run .#verify</strong> — full quality gate, fix any fallout</td>
+                <td>
+                  <strong>Run nix run .#verify</strong> — full quality gate, fix
+                  any fallout
+                </td>
                 <td><span class="badge badge-critical">Critical</span></td>
                 <td><span class="badge badge-low">30m</span></td>
               </tr>
               <tr>
                 <td>3</td>
                 <td>
-                  Update AGENTS.md module tree for idempotency/sqlstore + metaengine SQLite engine
+                  Update AGENTS.md module tree for idempotency/sqlstore +
+                  metaengine SQLite engine
                 </td>
                 <td><span class="badge badge-critical">Critical</span></td>
                 <td><span class="badge badge-low">20m</span></td>
@@ -956,7 +1027,8 @@
               <tr>
                 <td>5</td>
                 <td>
-                  Update FEATURES.md with SQL idempotency, WaitForVersion, CheckStaleness rows
+                  Update FEATURES.md with SQL idempotency, WaitForVersion,
+                  CheckStaleness rows
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td><span class="badge badge-low">15m</span></td>
@@ -970,14 +1042,18 @@
               <tr>
                 <td>7</td>
                 <td>
-                  Write integration test for metaengine projection adapter with projectionhost
+                  Write integration test for metaengine projection adapter with
+                  projectionhost
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td><span class="badge badge-low">30m</span></td>
               </tr>
               <tr>
                 <td>8</td>
-                <td>Update SKILL.md references/modules.md + recipes.md for new features</td>
+                <td>
+                  Update SKILL.md references/modules.md + recipes.md for new
+                  features
+                </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td><span class="badge badge-low">20m</span></td>
               </tr>
@@ -995,14 +1071,18 @@
               </tr>
               <tr>
                 <td>11</td>
-                <td>Write M12: FilterOn/SortOn SQL pushdown ADR (docs/adr/0062-pushdown.md)</td>
+                <td>
+                  Write M12: FilterOn/SortOn SQL pushdown ADR
+                  (docs/adr/0062-pushdown.md)
+                </td>
                 <td><span class="badge badge-medium">Med</span></td>
                 <td><span class="badge badge-low">45m</span></td>
               </tr>
               <tr>
                 <td>12</td>
                 <td>
-                  Write M11: Metaengine cost calibration (benchmark Memory vs SQLite per-op cost)
+                  Write M11: Metaengine cost calibration (benchmark Memory vs
+                  SQLite per-op cost)
                 </td>
                 <td><span class="badge badge-medium">Med</span></td>
                 <td><span class="badge badge-low">60m</span></td>
@@ -1039,13 +1119,19 @@
               </tr>
               <tr>
                 <td>18</td>
-                <td>Update TODO_LIST.md — remove completed items, add remaining work</td>
+                <td>
+                  Update TODO_LIST.md — remove completed items, add remaining
+                  work
+                </td>
                 <td><span class="badge badge-medium">Med</span></td>
                 <td><span class="badge badge-low">15m</span></td>
               </tr>
               <tr>
                 <td>19</td>
-                <td>Verify benchkit/v4.0.0 tag is fetchable via <code>go list -m</code></td>
+                <td>
+                  Verify benchkit/v4.0.0 tag is fetchable via
+                  <code>go list -m</code>
+                </td>
                 <td><span class="badge badge-medium">Med</span></td>
                 <td><span class="badge badge-low">5m</span></td>
               </tr>
@@ -1063,19 +1149,27 @@
               </tr>
               <tr>
                 <td>22</td>
-                <td>Add SQL idempotency to SKILL.md recipes.md (multi-process dedup)</td>
+                <td>
+                  Add SQL idempotency to SKILL.md recipes.md (multi-process
+                  dedup)
+                </td>
                 <td><span class="badge badge-medium">Med</span></td>
                 <td><span class="badge badge-low">10m</span></td>
               </tr>
               <tr>
                 <td>23</td>
-                <td>Write M20: Move [Unreleased] to versioned CHANGELOG section</td>
+                <td>
+                  Write M20: Move [Unreleased] to versioned CHANGELOG section
+                </td>
                 <td><span class="badge badge-medium">Med</span></td>
                 <td><span class="badge badge-low">15m</span></td>
               </tr>
               <tr>
                 <td>24</td>
-                <td>Verify all new ADR cross-references resolve (0061→0062, 0061→0063)</td>
+                <td>
+                  Verify all new ADR cross-references resolve (0061→0062,
+                  0061→0063)
+                </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td><span class="badge badge-low">10m</span></td>
               </tr>
@@ -1093,36 +1187,42 @@
         <h2 id="question"><span class="num">07</span>My #1 Question</h2>
         <div class="issue issue-important">
           <span class="severity severity-important">Open Question</span>
-          <h3>Should the metaengine projection adapter live in the core module or a subpackage?</h3>
+          <h3>
+            Should the metaengine projection adapter live in the core module or
+            a subpackage?
+          </h3>
           <p>
-            The metaengine was deliberately zero-dep (only ginkgo/gomega test deps). Adding
-            <code>event/v4</code> + <code>projection/v4</code> as production deps breaks this
-            boundary. Two options:
+            The metaengine was deliberately zero-dep (only ginkgo/gomega test
+            deps). Adding
+            <code>event/v4</code> + <code>projection/v4</code> as production
+            deps breaks this boundary. Two options:
           </p>
           <p>
-            <strong>Option A: Accept the dependency.</strong> The metaengine is experimental (not
-            tagged). Adding event/projection deps is fine for an experimental module. Write M13 as
-            "accept," tag the missing intermediate versions (<code>id/v4.0.3</code>,
+            <strong>Option A: Accept the dependency.</strong> The metaengine is
+            experimental (not tagged). Adding event/projection deps is fine for
+            an experimental module. Write M13 as "accept," tag the missing
+            intermediate versions (<code>id/v4.0.3</code>,
             <code>schema/v4.0.3</code>), move on.
           </p>
           <p>
             <strong>Option B: Move to subpackage.</strong> Create
-            <code>metaengine/projectionadapter/</code> as a separate module (like
-            <code>idempotency/sqlstore/</code>). Core metaengine stays zero-dep. The adapter module
-            depends on event + projection. This is architecturally cleaner but adds another module
-            to the workspace.
+            <code>metaengine/projectionadapter/</code> as a separate module
+            (like <code>idempotency/sqlstore/</code>). Core metaengine stays
+            zero-dep. The adapter module depends on event + projection. This is
+            architecturally cleaner but adds another module to the workspace.
           </p>
           <p>
-            I cannot decide this myself because it depends on whether the metaengine will ALWAYS
-            need event integration (Option A) or if there are use cases for a pure metaengine
-            without events (Option B). The Pareto plan deferred this to M13 precisely because it's a
-            judgment call.
+            I cannot decide this myself because it depends on whether the
+            metaengine will ALWAYS need event integration (Option A) or if there
+            are use cases for a pure metaengine without events (Option B). The
+            Pareto plan deferred this to M13 precisely because it's a judgment
+            call.
           </p>
         </div>
 
         <footer class="footer">
-          Generated 2026-07-25 &middot; All claims verified against source code where noted &middot;
-          Tests run with -race -count=1
+          Generated 2026-07-25 &middot; All claims verified against source code
+          where noted &middot; Tests run with -race -count=1
         </footer>
       </main>
     </div>

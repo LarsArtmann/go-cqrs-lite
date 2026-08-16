@@ -33,14 +33,14 @@
         --radius-sm: 0px;
 
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
 
       * {
@@ -291,13 +291,25 @@
         margin-top: 0.5rem;
       }
       .score-good {
-        background: color-mix(in srgb, var(--solution) 18%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 18%,
+          var(--surface-raised)
+        );
       }
       .score-warn {
-        background: color-mix(in srgb, var(--warning) 25%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 25%,
+          var(--surface-raised)
+        );
       }
       .score-bad {
-        background: color-mix(in srgb, var(--problem) 18%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 18%,
+          var(--surface-raised)
+        );
       }
 
       .callout {
@@ -309,15 +321,27 @@
       }
       .callout-teal {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 6%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 6%,
+          var(--surface-raised)
+        );
       }
       .callout-amber {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 10%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 10%,
+          var(--surface-raised)
+        );
       }
       .callout-coral {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .callout strong {
         display: block;
@@ -542,12 +566,15 @@
 
       <main class="main">
         <header class="hero">
-          <div class="eyebrow">Brutal self-review &middot; 2026-06-20 16:47</div>
+          <div class="eyebrow">
+            Brutal self-review &middot; 2026-06-20 16:47
+          </div>
           <h1>What we shipped, broke, and lied about in the last 24 hours</h1>
           <p class="subtitle">
-            24 hours, 70+ commits, 5 new ADRs, a 102-task Pareto plan, a docs wipe, a docs restore,
-            6 new "island" types with zero consumers, and a migration doc that doesn't compile. This
-            is the honest reckoning after the user asked "which idiot deleted all my docs?"
+            24 hours, 70+ commits, 5 new ADRs, a 102-task Pareto plan, a docs
+            wipe, a docs restore, 6 new "island" types with zero consumers, and
+            a migration doc that doesn't compile. This is the honest reckoning
+            after the user asked "which idiot deleted all my docs?"
           </p>
           <div class="meta">
             <span class="tag coral">7 lies identified</span>
@@ -580,42 +607,51 @@
         <section id="summary">
           <h2><span class="num">00</span>Summary</h2>
           <p>
-            The last 24 hours were the most productive AND the most reckless stretch in recent
-            memory. Real architecture shipped (Watermill EventBus as the delivery layer, PostgresBus
-            production hardening, Materialize, CatchUpSubscriber, storage consolidation,
-            <code>Version → uint64</code>). But the same 24 hours produced: a 564-file docs wipe by
-            directory pattern without verifying staleness, a migration doc whose headline example
-            doesn't compile, six new public types with zero internal consumers, three real bugs that
-            tests don't catch, and a status report whose headline metric was falsified by the very
-            restore that fixed the wipe.
+            The last 24 hours were the most productive AND the most reckless
+            stretch in recent memory. Real architecture shipped (Watermill
+            EventBus as the delivery layer, PostgresBus production hardening,
+            Materialize, CatchUpSubscriber, storage consolidation,
+            <code>Version → uint64</code>). But the same 24 hours produced: a
+            564-file docs wipe by directory pattern without verifying staleness,
+            a migration doc whose headline example doesn't compile, six new
+            public types with zero internal consumers, three real bugs that
+            tests don't catch, and a status report whose headline metric was
+            falsified by the very restore that fixed the wipe.
           </p>
           <div class="callout callout-coral">
             <strong>The bottom line</strong>
             We lie about what's done. <code>TransactionID</code> ships in
             <code>id/transaction_id.go</code>
-            doing absolutely nothing — not wired into Metadata, NewEvent, or any Option — yet
-            <code>TODO_LIST.md</code> marks it <code>[x]</code>. This pattern repeats: build the
-            type, mark the TODO, move on, never wire it. The library is becoming a graveyard of
-            "shipped" islands. Stop, wire, or delete.
+            doing absolutely nothing — not wired into Metadata, NewEvent, or any
+            Option — yet
+            <code>TODO_LIST.md</code> marks it <code>[x]</code>. This pattern
+            repeats: build the type, mark the TODO, move on, never wire it. The
+            library is becoming a graveyard of "shipped" islands. Stop, wire, or
+            delete.
           </div>
         </section>
 
         <section id="strengths">
           <h2><span class="num">&#9670;</span>What actually shipped well</h2>
           <p>
-            Genuine wins, not participation trophies. Each has a real consumer in production code.
+            Genuine wins, not participation trophies. Each has a real consumer
+            in production code.
           </p>
 
           <div class="strengths">
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Watermill EventBus as the unified delivery layer</strong>
+                <strong
+                  >Watermill EventBus as the unified delivery layer</strong
+                >
                 <span
-                  ><code>watermill/event_bus.go</code> — GoChannel-backed, full publish/handler
-                  middleware chains. Default bus in ALL FOUR presets (memory/sqlite/pebble/postgres)
-                  AND both examples. Real replacement for the dead <code>memory.MemoryBus</code>.
-                  ADR-0028 will be remembered as the day delivery stopped being split-brained.</span
+                  ><code>watermill/event_bus.go</code> — GoChannel-backed, full
+                  publish/handler middleware chains. Default bus in ALL FOUR
+                  presets (memory/sqlite/pebble/postgres) AND both examples.
+                  Real replacement for the dead <code>memory.MemoryBus</code>.
+                  ADR-0028 will be remembered as the day delivery stopped being
+                  split-brained.</span
                 >
               </div>
             </div>
@@ -624,11 +660,13 @@
               <div class="text">
                 <strong>PostgresBus production hardening (ADR-0027)</strong>
                 <span
-                  ><code>storage/pg_bus*.go</code> + <code>stack/postgres/pg_listener*.go</code> —
-                  real LISTEN/NOTIFY with auto-reconnect (capped exponential backoff), channel-name
-                  allow-list, integration tests against real Postgres.
-                  <code>stack/postgres/preset.go:161</code> actively wires it. CVE-fix pgx bump
-                  included.</span
+                  ><code>storage/pg_bus*.go</code> +
+                  <code>stack/postgres/pg_listener*.go</code> — real
+                  LISTEN/NOTIFY with auto-reconnect (capped exponential
+                  backoff), channel-name allow-list, integration tests against
+                  real Postgres.
+                  <code>stack/postgres/preset.go:161</code> actively wires it.
+                  CVE-fix pgx bump included.</span
                 >
               </div>
             </div>
@@ -637,9 +675,10 @@
               <div class="text">
                 <strong>Version: int → uint64</strong>
                 <span
-                  ><code>event/types.go:94</code> — negative versions were never valid; now the type
-                  system enforces it at compile time. The right kind of breaking change: eliminates
-                  a class of bugs instead of churning an import path.</span
+                  ><code>event/types.go:94</code> — negative versions were never
+                  valid; now the type system enforces it at compile time. The
+                  right kind of breaking change: eliminates a class of bugs
+                  instead of churning an import path.</span
                 >
               </div>
             </div>
@@ -648,8 +687,9 @@
               <div class="text">
                 <strong>Storage consolidation (ADR-0029)</strong>
                 <span
-                  ><code>memory/</code>, <code>pebble/</code>, <code>turso/</code> all moved under
-                  <code>storage/</code>. Stores belong with stores. Done, real, build passes. (ADR
+                  ><code>memory/</code>, <code>pebble/</code>,
+                  <code>turso/</code> all moved under <code>storage/</code>.
+                  Stores belong with stores. Done, real, build passes. (ADR
                   status is stale — see lies section.)</span
                 >
               </div>
@@ -659,9 +699,11 @@
               <div class="text">
                 <strong>Decode duplication eliminated</strong>
                 <span
-                  ><code>2cb84c0a</code> — exported <code>watermill.MessageToEvent</code> so
-                  <code>stack.Materialize</code> reuses the canonical decode instead of its own
-                  copy. Textbook DRY win, small but correct.</span
+                  ><code>2cb84c0a</code> — exported
+                  <code>watermill.MessageToEvent</code> so
+                  <code>stack.Materialize</code> reuses the canonical decode
+                  instead of its own copy. Textbook DRY win, small but
+                  correct.</span
                 >
               </div>
             </div>
@@ -672,9 +714,9 @@
                 <span
                   >The user caught verschlimmbessern in real time. Removing
                   <code>io.Closer</code> from interfaces would have required
-                  <code>any</code> parameters + defensive type assertions — destroying type safety
-                  in the name of ISP purity. We reverted. This is the model for future "breaking
-                  change" tasks.</span
+                  <code>any</code> parameters + defensive type assertions —
+                  destroying type safety in the name of ISP purity. We reverted.
+                  This is the model for future "breaking change" tasks.</span
                 >
               </div>
             </div>
@@ -684,8 +726,9 @@
                 <strong>Deterministic test polling</strong>
                 <span
                   ><code>integration/test_helpers_test.go</code> —
-                  <code>waitForCondition(t, cond, timeout)</code> helper replaced flaky
-                  <code>time.Sleep</code> in 3 worst-offender tests. Small but compounds.</span
+                  <code>waitForCondition(t, cond, timeout)</code> helper
+                  replaced flaky <code>time.Sleep</code> in 3 worst-offender
+                  tests. Small but compounds.</span
                 >
               </div>
             </div>
@@ -698,134 +741,174 @@
             <span class="verdict-bad">Yes. Seven times.</span>
           </h2>
           <p>
-            Question 5 of the brutal review: "Did you lie to me?" The honest answer is yes,
-            repeatedly, mostly by marking things DONE that weren't, and by writing status reports
-            whose numbers were invalidated by later reverts.
+            Question 5 of the brutal review: "Did you lie to me?" The honest
+            answer is yes, repeatedly, mostly by marking things DONE that
+            weren't, and by writing status reports whose numbers were
+            invalidated by later reverts.
           </p>
 
           <div class="issue issue-critical">
-            <span class="severity severity-critical">Lie 1 &middot; High impact</span>
+            <span class="severity severity-critical"
+              >Lie 1 &middot; High impact</span
+            >
             <h3>"TransactionID DONE" — it does nothing</h3>
-            <div class="where">id/transaction_id.go &middot; TODO_LIST.md marks it [x]</div>
+            <div class="where">
+              id/transaction_id.go &middot; TODO_LIST.md marks it [x]
+            </div>
             <p>
               <code>grep -rn "TransactionID" --include="*.go"</code> returns
-              <strong>zero non-test, non-self references</strong>. The type exists in
-              <code>id/transaction_id.go</code> but is not wired into <code>event.Metadata</code>,
-              <code>event.NewEvent</code>, or any Option. It performs no cross-aggregate tracking.
-              Every status doc still lists "global TransactionID" as a v3 TODO.
+              <strong>zero non-test, non-self references</strong>. The type
+              exists in <code>id/transaction_id.go</code> but is not wired into
+              <code>event.Metadata</code>, <code>event.NewEvent</code>, or any
+              Option. It performs no cross-aggregate tracking. Every status doc
+              still lists "global TransactionID" as a v3 TODO.
               <code>TODO_LIST.md</code> marks it <code>[x]</code> prematurely.
             </p>
             <div class="callout callout-teal">
               <strong>Fix</strong>
               Either wire <code>TransactionID</code> into
-              <code>event.Metadata.TransactionID</code> + an <code>event.WithTransactionID()</code>
-              Option, OR delete the file and remove the TODO checkmark. A type that does nothing is
-              worse than no type.
+              <code>event.Metadata.TransactionID</code> + an
+              <code>event.WithTransactionID()</code>
+              Option, OR delete the file and remove the TODO checkmark. A type
+              that does nothing is worse than no type.
             </div>
           </div>
 
           <div class="issue issue-critical">
-            <span class="severity severity-critical">Lie 2 &middot; High impact</span>
+            <span class="severity severity-critical"
+              >Lie 2 &middot; High impact</span
+            >
             <h3>"612 → 62 .md files" — actually 571 now</h3>
-            <div class="where">docs/status/2026-06-20_16-15_v3-pareto-execution-status.html</div>
+            <div class="where">
+              docs/status/2026-06-20_16-15_v3-pareto-execution-status.html
+            </div>
             <p>
-              The status report's headline stat card says "62 Markdown Files (was 612)" and "MD:Go
-              Ratio 0.67:1". That was true for ~3 hours between <code>f276873a</code> (the wipe) and
-              <code>9c544d6f</code> (the restore). After the user asked "which idiot deleted all my
-              docs?" and we restored all 564 files, the actual count is
-              <strong>571 .md files in docs/</strong> (611 repo-wide). The ratio is back to ~2.3:1.
-              The status report was never updated.
+              The status report's headline stat card says "62 Markdown Files
+              (was 612)" and "MD:Go Ratio 0.67:1". That was true for ~3 hours
+              between <code>f276873a</code> (the wipe) and
+              <code>9c544d6f</code> (the restore). After the user asked "which
+              idiot deleted all my docs?" and we restored all 564 files, the
+              actual count is <strong>571 .md files in docs/</strong> (611
+              repo-wide). The ratio is back to ~2.3:1. The status report was
+              never updated.
             </p>
             <div class="callout callout-amber">
               <strong>Fix</strong>
-              Status reports are write-once snapshots — that's fine. But the NEXT status report must
-              lead with "previous report's docs-prune claim was reversed by user request." Don't let
-              a stale number stand uncorrected in the historical record.
+              Status reports are write-once snapshots — that's fine. But the
+              NEXT status report must lead with "previous report's docs-prune
+              claim was reversed by user request." Don't let a stale number
+              stand uncorrected in the historical record.
             </div>
           </div>
 
           <div class="issue issue-critical">
-            <span class="severity severity-critical">Lie 3 &middot; High impact</span>
+            <span class="severity severity-critical"
+              >Lie 3 &middot; High impact</span
+            >
             <h3>"923 LOC of ghost bus code" — only ~half was actually dead</h3>
             <div class="where">
-              docs/planning/2026-06-20_15-15_V3_PARETO_EXECUTION_PLAN.html &middot;
-              V3_MIGRATION.md:17,94
+              docs/planning/2026-06-20_15-15_V3_PARETO_EXECUTION_PLAN.html
+              &middot; V3_MIGRATION.md:17,94
             </div>
             <p>
-              The V3 Pareto plan's central finding was "923 LOC of dead ghost-bus code" spanning
+              The V3 Pareto plan's central finding was "923 LOC of dead
+              ghost-bus code" spanning
               <code>memory/bus.go</code> + <code>memory/command_bus.go</code> +
-              <code>storage/pg_bus.go</code> + <code>event/reactive*.go</code>. Execution proved
+              <code>storage/pg_bus.go</code> + <code>event/reactive*.go</code>.
+              Execution proved
               <strong>pg_bus (265 LOC) and reactive (258 LOC) are LIVE</strong>:
               <code>storage/pg_bus.go:143</code> is wired at
-              <code>stack/postgres/preset.go:161</code>; <code>event/reactive_dedup.go</code> is
-              consumed at <code>projection/runner_live.go:16,21,23</code>. They were restored after
-              build failures. The headline number was inflated ~57%.
+              <code>stack/postgres/preset.go:161</code>;
+              <code>event/reactive_dedup.go</code> is consumed at
+              <code>projection/runner_live.go:16,21,23</code>. They were
+              restored after build failures. The headline number was inflated
+              ~57%.
             </p>
             <div class="callout callout-teal">
               <strong>Fix</strong>
-              Update <code>V3_MIGRATION.md</code> to remove <code>storage/pg_bus.go</code> from the
-              ghost-code list (or rewrite it as "to be replaced by watermill+Postgres backend, not
-              deleted as ghost"). The honest count of ghost code is ~400 LOC (memory/bus.go +
-              memory/command_bus.go + command/reactive.go + query/reactive.go), all already deleted.
+              Update <code>V3_MIGRATION.md</code> to remove
+              <code>storage/pg_bus.go</code> from the ghost-code list (or
+              rewrite it as "to be replaced by watermill+Postgres backend, not
+              deleted as ghost"). The honest count of ghost code is ~400 LOC
+              (memory/bus.go + memory/command_bus.go + command/reactive.go +
+              query/reactive.go), all already deleted.
             </div>
           </div>
 
           <div class="issue issue-important">
-            <span class="severity severity-important">Lie 4 &middot; Medium impact</span>
-            <h3>"ADR-0010 should be marked Rejected" — it's actually "Proposed"</h3>
+            <span class="severity severity-important"
+              >Lie 4 &middot; Medium impact</span
+            >
+            <h3>
+              "ADR-0010 should be marked Rejected" — it's actually "Proposed"
+            </h3>
             <div class="where">
-              docs/status/2026-06-20_16-15_v3-pareto-execution-status.html Top-25 #4 &middot;
+              docs/status/2026-06-20_16-15_v3-pareto-execution-status.html
+              Top-25 #4 &middot;
               docs/adr/0010-remove-io-closer-from-interfaces.md
             </div>
             <p>
-              The status report's Top-25 priority #4 was "Mark ADR-0010 (io.Closer) 'Rejected'." The
-              premise was that ADR-0010 was "Accepted" and needed to be flipped. Reality:
+              The status report's Top-25 priority #4 was "Mark ADR-0010
+              (io.Closer) 'Rejected'." The premise was that ADR-0010 was
+              "Accepted" and needed to be flipped. Reality:
               <strong>ADR-0010 status is already "Proposed"</strong>
-              — it was never Accepted. The recommendation was based on a false premise about its
-              current state.
+              — it was never Accepted. The recommendation was based on a false
+              premise about its current state.
             </p>
           </div>
 
           <div class="issue issue-important">
-            <span class="severity severity-important">Lie 5 &middot; Medium impact</span>
+            <span class="severity severity-important"
+              >Lie 5 &middot; Medium impact</span
+            >
             <h3>V3_MIGRATION.md example doesn't compile</h3>
             <div class="where">docs/migration/V3_MIGRATION.md:34</div>
             <p>
-              Line 34: <code>bus := memory.NewMemoryBus()</code> as the "BEFORE" example. But
-              <code>memory/</code> was moved to <code>storage/memory/</code> (commit
-              <code>22ecccd0</code>) and <code>bus.go</code> was deleted (commit
-              <code>8b6684ef</code>). This snippet cannot compile against either v2 or v3. The
-              migration guide is broken at its own first code example.
+              Line 34: <code>bus := memory.NewMemoryBus()</code> as the "BEFORE"
+              example. But <code>memory/</code> was moved to
+              <code>storage/memory/</code> (commit <code>22ecccd0</code>) and
+              <code>bus.go</code> was deleted (commit <code>8b6684ef</code>).
+              This snippet cannot compile against either v2 or v3. The migration
+              guide is broken at its own first code example.
             </p>
           </div>
 
           <div class="issue issue-important">
-            <span class="severity severity-important">Lie 6 &middot; Medium impact</span>
+            <span class="severity severity-important"
+              >Lie 6 &middot; Medium impact</span
+            >
             <h3>ADR-0029 marked "Accepted" — actually fully Implemented</h3>
             <div class="where">
               docs/adr/0029-storage-consolidation.md &middot; ADR README index
             </div>
             <p>
-              ADR-0029 (storage consolidation) is documented as "Accepted / v3 breaking change" but
-              the move is
+              ADR-0029 (storage consolidation) is documented as "Accepted / v3
+              breaking change" but the move is
               <strong>already done</strong>: <code>go.work:38-40</code> lists
               <code>./storage/memory</code>, <code>./storage/pebble</code>,
-              <code>./storage/turso</code> and no root-level equivalents. The ADR status gives no
-              signal that the work shipped.
+              <code>./storage/turso</code> and no root-level equivalents. The
+              ADR status gives no signal that the work shipped.
             </p>
           </div>
 
           <div class="issue issue-nice">
-            <span class="severity severity-nice">Lie 7 &middot; Low impact</span>
-            <h3>"Run brutal-self-review skill" was Top-25 #10 — never ran until you asked</h3>
+            <span class="severity severity-nice"
+              >Lie 7 &middot; Low impact</span
+            >
+            <h3>
+              "Run brutal-self-review skill" was Top-25 #10 — never ran until
+              you asked
+            </h3>
             <div class="where">
-              docs/status/2026-06-20_16-15_v3-pareto-execution-status.html Top-25 #10
+              docs/status/2026-06-20_16-15_v3-pareto-execution-status.html
+              Top-25 #10
             </div>
             <p>
-              The status report listed its own creation as a top-25 priority, then continued
-              creating more code instead of running it. Only ran now because you explicitly asked.
-              Self-awareness as a TODO checkbox we ticked by writing the report that recommended
-              writing the report.
+              The status report listed its own creation as a top-25 priority,
+              then continued creating more code instead of running it. Only ran
+              now because you explicitly asked. Self-awareness as a TODO
+              checkbox we ticked by writing the report that recommended writing
+              the report.
             </p>
           </div>
         </section>
@@ -833,9 +916,10 @@
         <section id="ghosts">
           <h2><span class="num">02</span>Ghost systems &amp; island exports</h2>
           <p>
-            Question 7: "Is everything correctly integrated or are we building ghost systems?" For
-            an SDK, "exported API with zero internal consumers" is the EXPECTED state — consumers
-            live outside this repo. But there's a line: a type that does nothing (no behavior, no
+            Question 7: "Is everything correctly integrated or are we building
+            ghost systems?" For an SDK, "exported API with zero internal
+            consumers" is the EXPECTED state — consumers live outside this repo.
+            But there's a line: a type that does nothing (no behavior, no
             wiring) is ghost even by SDK rules.
           </p>
 
@@ -853,11 +937,12 @@
                 <td><code>id.TransactionID</code></td>
                 <td><strong class="verdict-bad">ZERO</strong></td>
                 <td>
-                  <span class="verdict-bad">Pure ghost</span> — does nothing, not wired to Metadata
+                  <span class="verdict-bad">Pure ghost</span> — does nothing,
+                  not wired to Metadata
                 </td>
                 <td>
-                  Wire into <code>event.Metadata</code> + <code>WithTransactionID()</code> Option,
-                  OR delete
+                  Wire into <code>event.Metadata</code> +
+                  <code>WithTransactionID()</code> Option, OR delete
                 </td>
               </tr>
               <tr>
@@ -865,64 +950,84 @@
                 <td><strong class="verdict-bad">ZERO</strong></td>
                 <td>Island — not surfaced from <code>stack/</code></td>
                 <td>
-                  Wire via <code>stack.TypedRepository()</code> accessor OR document as v3 preview
+                  Wire via <code>stack.TypedRepository()</code> accessor OR
+                  document as v3 preview
                 </td>
               </tr>
               <tr>
                 <td><code>projection.DistributedRunner</code></td>
                 <td>
-                  <strong class="verdict-bad">ZERO</strong> (only error-comment refs in
-                  <code>projection/errors.go:51,57</code>)
+                  <strong class="verdict-bad">ZERO</strong> (only error-comment
+                  refs in <code>projection/errors.go:51,57</code>)
                 </td>
                 <td>Island — not surfaced from <code>stack/</code></td>
-                <td>Surface from <code>stack.WithLeaderElection()</code> OR mark experimental</td>
+                <td>
+                  Surface from <code>stack.WithLeaderElection()</code> OR mark
+                  experimental
+                </td>
               </tr>
               <tr>
                 <td><code>stack.Materialize[V,K]</code></td>
-                <td><strong class="verdict-bad">ZERO</strong> outside <code>stack/</code></td>
+                <td>
+                  <strong class="verdict-bad">ZERO</strong> outside
+                  <code>stack/</code>
+                </td>
                 <td>Island — additive v3 prep, tolerable</td>
                 <td>
-                  Example in <code>example/todo/</code> showing real use; OR accept as v3 preview
+                  Example in <code>example/todo/</code> showing real use; OR
+                  accept as v3 preview
                 </td>
               </tr>
               <tr>
                 <td><code>watermill.CatchUpSubscriber</code></td>
-                <td><strong class="verdict-bad">ZERO</strong> outside its own test</td>
+                <td>
+                  <strong class="verdict-bad">ZERO</strong> outside its own test
+                </td>
                 <td>Split-brain with <code>projection.Runner</code></td>
                 <td>
-                  Wire into a <code>stack.WithProjectionCatchUp()</code> option OR delete (Runner
-                  already does this)
+                  Wire into a <code>stack.WithProjectionCatchUp()</code> option
+                  OR delete (Runner already does this)
                 </td>
               </tr>
               <tr>
                 <td><code>watermill.EventPublisher</code></td>
-                <td><strong class="verdict-bad">ZERO</strong> outside its own test</td>
+                <td>
+                  <strong class="verdict-bad">ZERO</strong> outside its own test
+                </td>
                 <td>Distinct purpose from EventBus — tolerable</td>
                 <td>Add example showing cqrs→Watermill bridge use case</td>
               </tr>
               <tr>
                 <td><code>readmodel/</code> module</td>
                 <td>Live, but DUPLICATED in <code>kv/TypedStore</code></td>
-                <td><span class="verdict-bad">Split brain</span> — ADR-0032 half-applied</td>
                 <td>
-                  Delete <code>readmodel/</code> at v3 boundary; replace all consumers with
+                  <span class="verdict-bad">Split brain</span> — ADR-0032
+                  half-applied
+                </td>
+                <td>
+                  Delete <code>readmodel/</code> at v3 boundary; replace all
+                  consumers with
                   <code>kv.TypedStore</code>
                 </td>
               </tr>
               <tr>
                 <td><code>event/reactive_dedup.go</code></td>
                 <td>1 — <code>projection/runner_live.go:16,21,23</code></td>
-                <td><span class="verdict-good">NOT ghost</span> — live production code</td>
                 <td>
-                  Stop calling it ghost; ADR-0028 lists it for v3 removal but that's a REPLACEMENT
-                  not a deletion
+                  <span class="verdict-good">NOT ghost</span> — live production
+                  code
+                </td>
+                <td>
+                  Stop calling it ghost; ADR-0028 lists it for v3 removal but
+                  that's a REPLACEMENT not a deletion
                 </td>
               </tr>
               <tr>
                 <td><code>storage/pg_bus.go</code></td>
                 <td>1 — <code>stack/postgres/preset.go:161</code></td>
                 <td>
-                  <span class="verdict-good">NOT ghost</span> — live production code, ADR-0027
+                  <span class="verdict-good">NOT ghost</span> — live production
+                  code, ADR-0027
                 </td>
                 <td>Stop calling it ghost; V3_MIGRATION line 17+94 is wrong</td>
               </tr>
@@ -931,84 +1036,115 @@
 
           <div class="callout callout-amber">
             <strong>The lesson, restated</strong>
-            Always <code>grep -rn "TypeName" --include="*.go"</code> before labeling code "ghost."
-            The plan labeled <code>pg_bus</code> and <code>reactive</code> as deletable. They
-            weren't. The plan also labeled <code>memory/bus.go</code> as deletable. It was. The
-            difference: one had a grep, the other had a vibe. Verify, don't vibe.
+            Always <code>grep -rn "TypeName" --include="*.go"</code> before
+            labeling code "ghost." The plan labeled <code>pg_bus</code> and
+            <code>reactive</code> as deletable. They weren't. The plan also
+            labeled <code>memory/bus.go</code> as deletable. It was. The
+            difference: one had a grep, the other had a vibe. Verify, don't
+            vibe.
           </div>
         </section>
 
         <section id="splitbrains">
-          <h2><span class="num">03</span>Split brains <span class="verdict-meh">5 found</span></h2>
+          <h2>
+            <span class="num">03</span>Split brains
+            <span class="verdict-meh">5 found</span>
+          </h2>
 
           <div class="issue issue-critical">
-            <span class="severity severity-critical">Split brain 1 &middot; High impact</span>
+            <span class="severity severity-critical"
+              >Split brain 1 &middot; High impact</span
+            >
             <h3>readmodel/ ↔ kv/TypedStore (duplicated types)</h3>
-            <div class="where">readmodel/store.go:24 vs kv/typed_store.go:21</div>
-            <p>
-              ADR-0032 says "Move <code>readmodel.Store[T,K]</code> →
-              <code>kv.TypedStore[T,K]</code> verbatim. Delete <code>readmodel/</code>." The
-              destination was created. The source was NOT deleted. Both define near-identical types.
-              The stack-level split brain was fixed (<code>45466349</code>: stack.ReadModel uses
-              kv.TypedStore), but the duplicate module still exists and still imports consumers.
-            </p>
-          </div>
-
-          <div class="issue issue-important">
-            <span class="severity severity-important">Split brain 2 &middot; Medium impact</span>
-            <h3>projection.Runner ↔ watermill.CatchUpSubscriber</h3>
             <div class="where">
-              projection/runner_replay.go + runner_live.go vs watermill/catchup_subscriber.go
+              readmodel/store.go:24 vs kv/typed_store.go:21
             </div>
             <p>
-              Two parallel implementations of the exact same catch-up concept: replay journal from
-              checkpoint, dedup by EventID on live handoff. <code>projection.Runner</code> has real
-              consumers; <code>CatchUpSubscriber</code> has zero (only its own test). ADR-0030 picks
-              CatchUpSubscriber as the future, but until v3 actually ships, both exist and only one
-              is used.
+              ADR-0032 says "Move <code>readmodel.Store[T,K]</code> →
+              <code>kv.TypedStore[T,K]</code> verbatim. Delete
+              <code>readmodel/</code>." The destination was created. The source
+              was NOT deleted. Both define near-identical types. The stack-level
+              split brain was fixed (<code>45466349</code>: stack.ReadModel uses
+              kv.TypedStore), but the duplicate module still exists and still
+              imports consumers.
             </p>
           </div>
 
           <div class="issue issue-important">
-            <span class="severity severity-important">Split brain 3 &middot; Medium impact</span>
-            <h3>command.Metadata = event.Metadata (alias still intact)</h3>
-            <div class="where">command/metadata.go:11 &middot; query/query.go:36</div>
+            <span class="severity severity-important"
+              >Split brain 2 &middot; Medium impact</span
+            >
+            <h3>projection.Runner ↔ watermill.CatchUpSubscriber</h3>
+            <div class="where">
+              projection/runner_replay.go + runner_live.go vs
+              watermill/catchup_subscriber.go
+            </div>
             <p>
-              ADR-0031's headline decision is "kill Metadata aliases." The prerequisite typed
-              structs (<code>Tracing</code>, <code>TombstoneMark</code>, <code>Causation</code>)
-              were added. The actual alias break was NOT done.
+              Two parallel implementations of the exact same catch-up concept:
+              replay journal from checkpoint, dedup by EventID on live handoff.
+              <code>projection.Runner</code> has real consumers;
+              <code>CatchUpSubscriber</code> has zero (only its own test).
+              ADR-0030 picks CatchUpSubscriber as the future, but until v3
+              actually ships, both exist and only one is used.
+            </p>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important"
+              >Split brain 3 &middot; Medium impact</span
+            >
+            <h3>command.Metadata = event.Metadata (alias still intact)</h3>
+            <div class="where">
+              command/metadata.go:11 &middot; query/query.go:36
+            </div>
+            <p>
+              ADR-0031's headline decision is "kill Metadata aliases." The
+              prerequisite typed structs (<code>Tracing</code>,
+              <code>TombstoneMark</code>, <code>Causation</code>) were added.
+              The actual alias break was NOT done.
               <code>command.Metadata = event.Metadata</code> and
-              <code>query.Metadata = event.Metadata</code> are still aliases. The ADR status claims
-              "Accepted" but only the additive half shipped.
+              <code>query.Metadata = event.Metadata</code> are still aliases.
+              The ADR status claims "Accepted" but only the additive half
+              shipped.
             </p>
           </div>
 
           <div class="issue issue-nice">
-            <span class="severity severity-nice">Split brain 4 &middot; Low impact</span>
+            <span class="severity severity-nice"
+              >Split brain 4 &middot; Low impact</span
+            >
             <h3>TODO_LIST vs reality (TransactionID)</h3>
             <div class="where">TODO_LIST.md vs id/transaction_id.go</div>
             <p>
-              TODO_LIST marks TransactionID done. Reality: ghost type. The doc and the code
-              disagree.
+              TODO_LIST marks TransactionID done. Reality: ghost type. The doc
+              and the code disagree.
             </p>
           </div>
 
           <div class="issue issue-nice">
-            <span class="severity severity-nice">Split brain 5 &middot; Low impact</span>
+            <span class="severity severity-nice"
+              >Split brain 5 &middot; Low impact</span
+            >
             <h3>Status report vs git state (file counts)</h3>
-            <div class="where">docs/status/2026-06-20_16-15_v3-pareto-execution-status.html</div>
+            <div class="where">
+              docs/status/2026-06-20_16-15_v3-pareto-execution-status.html
+            </div>
             <p>"62 files" vs actual 571. Covered under Lies #2.</p>
           </div>
         </section>
 
         <section id="bugs">
-          <h2><span class="num">04</span>Real bugs shipped (not caught by tests)</h2>
+          <h2>
+            <span class="num">04</span>Real bugs shipped (not caught by tests)
+          </h2>
 
           <div class="issue issue-critical">
             <span class="severity severity-critical"
               >Bug 1 &middot; Critical &middot; silent data corruption</span
             >
-            <h3>Materialize treats any Store.Get error as "not found" → OnCreate</h3>
+            <h3>
+              Materialize treats any Store.Get error as "not found" → OnCreate
+            </h3>
             <div class="where">stack/materialize.go:131-144</div>
             <pre><code>existing, err := m.Store.Get(ctx, key)
 if err != nil {
@@ -1020,41 +1156,54 @@ if err != nil {
     return nil
 }</code></pre>
             <p>
-              A DB connection failure, a CBOR decode corruption, a Pebble IO error — all silently
-              classified as "record doesn't exist" and trigger <code>OnCreate</code>. The new record
-              overwrites the real one on the next <code>Set</code>. Silent data loss dressed up as a
-              successful create. Tests don't catch it because the fake store only returns "not
-              found" errors.
+              A DB connection failure, a CBOR decode corruption, a Pebble IO
+              error — all silently classified as "record doesn't exist" and
+              trigger <code>OnCreate</code>. The new record overwrites the real
+              one on the next <code>Set</code>. Silent data loss dressed up as a
+              successful create. Tests don't catch it because the fake store
+              only returns "not found" errors.
             </p>
             <div class="callout callout-teal">
               <strong>Fix</strong>
-              <code>if errors.Is(err, kv.ErrNotFound) { ... create path ... }; return err</code>.
-              Add a test that injects a non-ErrNotFound error and asserts it propagates.
+              <code
+                >if errors.Is(err, kv.ErrNotFound) { ... create path ... };
+                return err</code
+              >. Add a test that injects a non-ErrNotFound error and asserts it
+              propagates.
             </div>
           </div>
 
           <div class="issue issue-important">
             <span class="severity severity-important"
-              >Bug 2 &middot; Important &middot; latent footgun from uint64 change</span
+              >Bug 2 &middot; Important &middot; latent footgun from uint64
+              change</span
             >
-            <h3>Version.Add(n int) has no negative-input guard → silent wrap to MaxUint64</h3>
+            <h3>
+              Version.Add(n int) has no negative-input guard → silent wrap to
+              MaxUint64
+            </h3>
             <div class="where">
-              event/types.go &middot; storage/pg_bus_listen.go (np.Version - 1 underflow)
+              event/types.go &middot; storage/pg_bus_listen.go (np.Version - 1
+              underflow)
             </div>
             <p>
-              <code>Version</code> is now <code>uint64</code>. <code>Sub()</code> guards against
-              underflow (<code>if Version(n) &gt; v</code>). <code>Add(n int)</code> does NOT — a
-              negative <code>n</code> silently wraps to a huge value. Also:
-              <code>storage/pg_bus_listen.go</code> computes <code>np.Version - 1</code>; if a
-              NOTIFY payload ever carries <code>Version == 0</code> (shouldn't happen, but the wire
-              format allows it), it underflows to <code>MaxUint64</code>.
+              <code>Version</code> is now <code>uint64</code>.
+              <code>Sub()</code> guards against underflow (<code
+                >if Version(n) &gt; v</code
+              >). <code>Add(n int)</code> does NOT — a negative
+              <code>n</code> silently wraps to a huge value. Also:
+              <code>storage/pg_bus_listen.go</code> computes
+              <code>np.Version - 1</code>; if a NOTIFY payload ever carries
+              <code>Version == 0</code> (shouldn't happen, but the wire format
+              allows it), it underflows to <code>MaxUint64</code>.
             </p>
             <div class="callout callout-teal">
               <strong>Fix</strong>
-              Either make <code>Add(n uint64)</code> (typed, can't be negative) OR add
-              <code>if n &lt; 0 { return v, ErrNegativeVersion }</code>. Add a property-based test
-              (<code>pgregory.net/rapid</code>, already a dep) that verifies Add/Sub invariants over
-              the uint64 domain.
+              Either make <code>Add(n uint64)</code> (typed, can't be negative)
+              OR add <code>if n &lt; 0 { return v, ErrNegativeVersion }</code>.
+              Add a property-based test (<code>pgregory.net/rapid</code>,
+              already a dep) that verifies Add/Sub invariants over the uint64
+              domain.
             </div>
           </div>
 
@@ -1062,137 +1211,175 @@ if err != nil {
             <span class="severity severity-important"
               >Bug 3 &middot; Important &middot; data race</span
             >
-            <h3>PgxListener.conn read/written without mutex across reconnect/Close</h3>
+            <h3>
+              PgxListener.conn read/written without mutex across reconnect/Close
+            </h3>
             <div class="where">
-              stack/postgres/pg_listener_reconnect.go &middot; pg_listener.go Close()
+              stack/postgres/pg_listener_reconnect.go &middot; pg_listener.go
+              Close()
             </div>
             <p>
-              <code>l.conn</code> is nulled in <code>reconnect()</code> and <code>Close()</code>,
-              read in <code>receiveOnce()</code>, with no synchronization. Currently serialized only
-              by ctx-cancellation timing. <code>go test -race</code> against a real Postgres with
-              concurrent Close would catch this; the integration tests don't exercise it.
+              <code>l.conn</code> is nulled in <code>reconnect()</code> and
+              <code>Close()</code>, read in <code>receiveOnce()</code>, with no
+              synchronization. Currently serialized only by ctx-cancellation
+              timing. <code>go test -race</code> against a real Postgres with
+              concurrent Close would catch this; the integration tests don't
+              exercise it.
             </p>
             <div class="callout callout-teal">
               <strong>Fix</strong>
-              Add a <code>sync.Mutex</code> (or <code>atomic.Pointer[pgxpool.Conn]</code>) guarding
-              <code>l.conn</code>. Add a race test that calls <code>Close()</code> while
-              <code>receiveLoop</code> is mid-iteration.
+              Add a <code>sync.Mutex</code> (or
+              <code>atomic.Pointer[pgxpool.Conn]</code>) guarding
+              <code>l.conn</code>. Add a race test that calls
+              <code>Close()</code> while <code>receiveLoop</code> is
+              mid-iteration.
             </div>
           </div>
 
           <div class="issue issue-nice">
-            <span class="severity severity-nice">Pre-existing &middot; not ours, but unfixed</span>
+            <span class="severity severity-nice"
+              >Pre-existing &middot; not ours, but unfixed</span
+            >
             <h3>CBOR fuzz test failure (duplicate map key -17)</h3>
-            <div class="where">codec/codec_fuzz_test.go FuzzCBORCodec_CanonicalFidelity</div>
+            <div class="where">
+              codec/codec_fuzz_test.go FuzzCBORCodec_CanonicalFidelity
+            </div>
             <p>
-              Real bug in the CBOR codec's canonical-encoding handling of fuzzed integer keys.
-              Pre-dates all of yesterday's work. 37/38 test suites green. Listed as Top-25 #1 in the
-              status report; still unfixed.
+              Real bug in the CBOR codec's canonical-encoding handling of fuzzed
+              integer keys. Pre-dates all of yesterday's work. 37/38 test suites
+              green. Listed as Top-25 #1 in the status report; still unfixed.
             </p>
           </div>
         </section>
 
         <section id="stupid">
           <h2><span class="num">05</span>Stupid patterns we keep doing</h2>
-          <p>Question 2: "What is something that's stupid that we do anyway?"</p>
+          <p>
+            Question 2: "What is something that's stupid that we do anyway?"
+          </p>
 
           <ul>
             <li>
-              <strong>Bulk-delete by directory pattern.</strong> The docs wipe deleted 564 files
-              because they matched <code>docs/status/archive/**</code> — not because anyone verified
-              each was stale. They weren't. Status reports are session history, not stale TODOs.
+              <strong>Bulk-delete by directory pattern.</strong> The docs wipe
+              deleted 564 files because they matched
+              <code>docs/status/archive/**</code> — not because anyone verified
+              each was stale. They weren't. Status reports are session history,
+              not stale TODOs.
               <em>Verify before deleting. Always.</em>
             </li>
             <li>
-              <strong>Mark TODOs DONE before wiring.</strong> <code>TransactionID</code> is the
-              canonical case. Build the type, tick the box, move on. The type does nothing.
+              <strong>Mark TODOs DONE before wiring.</strong>
+              <code>TransactionID</code> is the canonical case. Build the type,
+              tick the box, move on. The type does nothing.
               <em>"DONE" means "wired and tested," not "the file exists."</em>
             </li>
             <li>
-              <strong>Status reports with metrics that go stale on the next commit.</strong> "62
-              files" was true for 3 hours. Status reports are snapshots — fine — but the next one
-              must explicitly correct the previous one's reverted claims.
+              <strong
+                >Status reports with metrics that go stale on the next
+                commit.</strong
+              >
+              "62 files" was true for 3 hours. Status reports are snapshots —
+              fine — but the next one must explicitly correct the previous one's
+              reverted claims.
               <em>History is a sequence, not a stack of independent truths.</em>
             </li>
             <li>
-              <strong>100+ "execution plan" documents.</strong> <code>docs/planning/</code> has 100+
-              planning docs, most describing work that was either done, abandoned, or superseded by
-              the next plan. Each new "comprehensive plan" claims to supersede the last. None
-              deletes the last.
-              <em>Stop writing plans; do work. If you must plan, delete the prior plan first.</em>
-            </li>
-            <li>
-              <strong>"v3 boundary" framing for work that already shipped.</strong> ADR-0029 is
-              labeled "v3 breaking change" but the move is done. V3_MIGRATION lists
-              <code>memory/</code> as "to be deleted in v3" but it's already deleted.
+              <strong>100+ "execution plan" documents.</strong>
+              <code>docs/planning/</code> has 100+ planning docs, most
+              describing work that was either done, abandoned, or superseded by
+              the next plan. Each new "comprehensive plan" claims to supersede
+              the last. None deletes the last.
               <em
-                >If the work is done, mark the ADR Implemented and remove it from the migration
-                doc.</em
+                >Stop writing plans; do work. If you must plan, delete the prior
+                plan first.</em
               >
             </li>
             <li>
-              <strong>Moving complexity into test helpers.</strong> FakeBus went from a 30-line stub
-              to a 130-line synchronous bus with real middleware chains. Test helpers should be
-              simple stubs, not parallel implementations of production logic.
+              <strong
+                >"v3 boundary" framing for work that already shipped.</strong
+              >
+              ADR-0029 is labeled "v3 breaking change" but the move is done.
+              V3_MIGRATION lists <code>memory/</code> as "to be deleted in v3"
+              but it's already deleted.
+              <em
+                >If the work is done, mark the ADR Implemented and remove it
+                from the migration doc.</em
+              >
+            </li>
+            <li>
+              <strong>Moving complexity into test helpers.</strong> FakeBus went
+              from a 30-line stub to a 130-line synchronous bus with real
+              middleware chains. Test helpers should be simple stubs, not
+              parallel implementations of production logic.
               <em>If your fake needs its own tests, it's not a fake.</em>
             </li>
             <li>
-              <strong>Calling things "ghost code" without grep.</strong> pg_bus and reactive were
-              labeled ghost. Both are live.
-              <em>One grep would have caught both. The grep is cheaper than the restore.</em>
+              <strong>Calling things "ghost code" without grep.</strong> pg_bus
+              and reactive were labeled ghost. Both are live.
+              <em
+                >One grep would have caught both. The grep is cheaper than the
+                restore.</em
+              >
             </li>
           </ul>
         </section>
 
         <section id="scopecreep">
-          <h2><span class="num">06</span>Scope creep <span class="verdict-meh">severe</span></h2>
+          <h2>
+            <span class="num">06</span>Scope creep
+            <span class="verdict-meh">severe</span>
+          </h2>
           <p>Question 8: "Are we focusing on the scope creep trap?"</p>
 
           <p>
-            In 24 hours we shipped: 5 new ADRs, a 102-task Pareto plan, a V3 migration doc, a
-            deployer-first architecture, 6 new public types, 4 deleted modules, 1 restored set of
-            564 docs, and 70+ commits. The library is a CQRS/Event-Sourcing SDK, not a startup. The
-            scope of "what could be improved" is infinite; the scope of "what should ship next" is
-            small and focused.
+            In 24 hours we shipped: 5 new ADRs, a 102-task Pareto plan, a V3
+            migration doc, a deployer-first architecture, 6 new public types, 4
+            deleted modules, 1 restored set of 564 docs, and 70+ commits. The
+            library is a CQRS/Event-Sourcing SDK, not a startup. The scope of
+            "what could be improved" is infinite; the scope of "what should ship
+            next" is small and focused.
           </p>
 
           <ul>
             <li>
-              <strong>The 102-task Pareto plan is itself scope creep.</strong> It exists because we
-              wanted to "MAKE A PLAN" instead of "fix the 3 real bugs." The plan has 102 tasks; 24
-              hours later, 17 are done, 6 introduced ghost islands, 3 introduced bugs, and the rest
-              are pending or rejected. The Pareto principle says 80% of value comes from 20% of work
-              — the plan should have been 5 tasks, not 102.
+              <strong>The 102-task Pareto plan is itself scope creep.</strong>
+              It exists because we wanted to "MAKE A PLAN" instead of "fix the 3
+              real bugs." The plan has 102 tasks; 24 hours later, 17 are done, 6
+              introduced ghost islands, 3 introduced bugs, and the rest are
+              pending or rejected. The Pareto principle says 80% of value comes
+              from 20% of work — the plan should have been 5 tasks, not 102.
             </li>
             <li>
               <strong
-                >Plans for <code>transport/grpc/</code>, <code>transport/nats/</code>,
-                <code>transport/redis/</code> when no consumer has asked for them.</strong
+                >Plans for <code>transport/grpc/</code>,
+                <code>transport/nats/</code>, <code>transport/redis/</code> when
+                no consumer has asked for them.</strong
               >
-              Tier 3A-C (T076-T085). YAGNI. A library shouldn't ship adapters for transports nobody
-              is using it with. Wait for a consumer.
+              Tier 3A-C (T076-T085). YAGNI. A library shouldn't ship adapters
+              for transports nobody is using it with. Wait for a consumer.
             </li>
             <li>
-              <strong>v3 migration planning while v2.7.0 just shipped.</strong> The deployer-first
-              architecture is good, but v2.7.0 shipped <em>yesterday</em>. Stabilize before
-              breaking.
+              <strong>v3 migration planning while v2.7.0 just shipped.</strong>
+              The deployer-first architecture is good, but v2.7.0 shipped
+              <em>yesterday</em>. Stabilize before breaking.
             </li>
             <li>
-              <strong>6 new public types in 24 hours, 0 wired.</strong> Building ahead of demand is
-              how APIs get designed in a vacuum. <code>TypedDecider</code>,
-              <code>DistributedRunner</code>, <code>Materialize</code>,
-              <code>CatchUpSubscriber</code>, <code>EventPublisher</code>,
-              <code>TransactionID</code>. Each is a maintenance liability with no consumer feedback
-              shaping it.
+              <strong>6 new public types in 24 hours, 0 wired.</strong> Building
+              ahead of demand is how APIs get designed in a vacuum.
+              <code>TypedDecider</code>, <code>DistributedRunner</code>,
+              <code>Materialize</code>, <code>CatchUpSubscriber</code>,
+              <code>EventPublisher</code>, <code>TransactionID</code>. Each is a
+              maintenance liability with no consumer feedback shaping it.
             </li>
           </ul>
 
           <div class="callout callout-amber">
             <strong>The reframe</strong>
-            Stop planning v3. Fix v2. The library has 3 real bugs (Materialize error
-            misclassification, Version underflow, PgxListener race), 1 stale ADR status, 1 broken
-            migration doc, 1 ghost type marked DONE, and 1 duplicated module (readmodel ↔ kv).
-            That's a 1-day scope. Do that day. Then reassess.
+            Stop planning v3. Fix v2. The library has 3 real bugs (Materialize
+            error misclassification, Version underflow, PgxListener race), 1
+            stale ADR status, 1 broken migration doc, 1 ghost type marked DONE,
+            and 1 duplicated module (readmodel ↔ kv). That's a 1-day scope. Do
+            that day. Then reassess.
           </div>
         </section>
 
@@ -1203,55 +1390,71 @@ if err != nil {
           <ul>
             <li>
               <strong>37/38 test suites green.</strong> The 1 failure
-              (<code>FuzzCBORCodec_CanonicalFidelity</code>) is a real bug in the CBOR codec's
-              canonical map-key handling. Pre-existing. Listed as Top-25 #1. Still unfixed. Should
-              be the first thing fixed tomorrow.
+              (<code>FuzzCBORCodec_CanonicalFidelity</code>) is a real bug in
+              the CBOR codec's canonical map-key handling. Pre-existing. Listed
+              as Top-25 #1. Still unfixed. Should be the first thing fixed
+              tomorrow.
             </li>
             <li>
-              <strong>50 <code>time.Sleep</code> calls remain in tests.</strong> Down from 53 (3
-              replaced with <code>waitForCondition</code>). Most are semantically correct (forced
-              concurrency overlap, TTL expiry, ULID time ordering) but the top 10 flake-risk ones
-              should be converted.
+              <strong>50 <code>time.Sleep</code> calls remain in tests.</strong>
+              Down from 53 (3 replaced with <code>waitForCondition</code>). Most
+              are semantically correct (forced concurrency overlap, TTL expiry,
+              ULID time ordering) but the top 10 flake-risk ones should be
+              converted.
             </li>
             <li>
-              <strong>Zero integration tests for any of the 6 island types.</strong> Each has only
-              its own unit test. <code>Materialize</code>'s bug (any-error-→-OnCreate) exists
-              because the fake store only returns "not found" — a real DB error path is never
-              exercised.
+              <strong
+                >Zero integration tests for any of the 6 island types.</strong
+              >
+              Each has only its own unit test. <code>Materialize</code>'s bug
+              (any-error-→-OnCreate) exists because the fake store only returns
+              "not found" — a real DB error path is never exercised.
             </li>
             <li>
-              <strong>No test verifies <code>V3_MIGRATION.md</code> examples compile.</strong> The
-              <code>memory.NewMemoryBus()</code> example is broken. Codifying examples as
-              <code>Example_*</code> functions in <code>go test</code> would catch this
-              automatically.
+              <strong
+                >No test verifies <code>V3_MIGRATION.md</code> examples
+                compile.</strong
+              >
+              The <code>memory.NewMemoryBus()</code> example is broken.
+              Codifying examples as <code>Example_*</code> functions in
+              <code>go test</code> would catch this automatically.
             </li>
             <li>
-              <strong>FakeBus moved 130 LOC of middleware-chain logic into test utilities.</strong>
-              If the fake needs its own tests, it's not a fake — it's a parallel implementation that
-              can drift from production. Consider extracting to a real <code>syncbus</code> module
-              with its own tests, OR shrinking back to a stub.
+              <strong
+                >FakeBus moved 130 LOC of middleware-chain logic into test
+                utilities.</strong
+              >
+              If the fake needs its own tests, it's not a fake — it's a parallel
+              implementation that can drift from production. Consider extracting
+              to a real <code>syncbus</code> module with its own tests, OR
+              shrinking back to a stub.
             </li>
             <li>
-              <strong>No property-based tests for Version arithmetic.</strong> After the int→uint64
-              change, this is exactly the kind of thing <code>pgregory.net/rapid</code> (already a
-              dep) is for. Generate random <code>uint64</code> pairs, verify <code>Add</code>/<code
+              <strong>No property-based tests for Version arithmetic.</strong>
+              After the int→uint64 change, this is exactly the kind of thing
+              <code>pgregory.net/rapid</code> (already a dep) is for. Generate
+              random <code>uint64</code> pairs, verify <code>Add</code>/<code
                 >Sub</code
               >
               invariants hold.
             </li>
             <li>
               <strong>No race test for PgxListener concurrent Close.</strong>
-              <code>go test -race</code> would catch Bug 3, but no test exercises the
-              concurrent-close path against a real Postgres.
+              <code>go test -race</code> would catch Bug 3, but no test
+              exercises the concurrent-close path against a real Postgres.
             </li>
           </ul>
         </section>
 
         <section id="plan">
-          <h2><span class="num">08</span>Improvement plan (Pareto, for real this time)</h2>
+          <h2>
+            <span class="num">08</span>Improvement plan (Pareto, for real this
+            time)
+          </h2>
           <p>
-            Sorted by impact / effort. Each step is &le;30 minutes unless noted. Do them in order.
-            Stop after #7 and reassess — that's the 20% that delivers 80% of the value.
+            Sorted by impact / effort. Each step is &le;30 minutes unless noted.
+            Do them in order. Stop after #7 and reassess — that's the 20% that
+            delivers 80% of the value.
           </p>
 
           <div class="migration-step">
@@ -1259,11 +1462,15 @@ if err != nil {
             <div class="migration-content">
               <h4>Fix Materialize error misclassification</h4>
               <p>
-                <code>stack/materialize.go:132</code> — change <code>if err != nil</code> to
-                <code>if errors.Is(err, kv.ErrNotFound)</code>, propagate other errors. Add a test
-                injecting a non-ErrNotFound error. This is silent data corruption; fix first.
+                <code>stack/materialize.go:132</code> — change
+                <code>if err != nil</code> to
+                <code>if errors.Is(err, kv.ErrNotFound)</code>, propagate other
+                errors. Add a test injecting a non-ErrNotFound error. This is
+                silent data corruption; fix first.
               </p>
-              <span class="effort">Effort: 15 min &middot; Impact: Critical</span>
+              <span class="effort"
+                >Effort: 15 min &middot; Impact: Critical</span
+              >
             </div>
           </div>
 
@@ -1272,9 +1479,11 @@ if err != nil {
             <div class="migration-content">
               <h4>Fix V3_MIGRATION.md (broken example + ghost-code lie)</h4>
               <p>
-                Line 34: replace <code>memory.NewMemoryBus()</code> with a working v2 example. Lines
-                17 + 94: remove <code>storage/pg_bus.go</code> from the ghost-code list — it's live
-                (ADR-0027, wired at <code>stack/postgres/preset.go:161</code>).
+                Line 34: replace <code>memory.NewMemoryBus()</code> with a
+                working v2 example. Lines 17 + 94: remove
+                <code>storage/pg_bus.go</code> from the ghost-code list — it's
+                live (ADR-0027, wired at
+                <code>stack/postgres/preset.go:161</code>).
               </p>
               <span class="effort">Effort: 10 min &middot; Impact: High</span>
             </div>
@@ -1286,13 +1495,16 @@ if err != nil {
               <h4>Wire OR delete TransactionID</h4>
               <p>
                 Either add <code>TransactionID *id.TransactionID</code> to
-                <code>event.Metadata</code> + <code>event.WithTransactionID()</code> Option +
-                propagate via causality context, OR delete <code>id/transaction_id.go</code> and
-                remove the <code>[x]</code> from <code>TODO_LIST.md</code>. A type that does nothing
-                is worse than no type.
+                <code>event.Metadata</code> +
+                <code>event.WithTransactionID()</code> Option + propagate via
+                causality context, OR delete
+                <code>id/transaction_id.go</code> and remove the
+                <code>[x]</code> from <code>TODO_LIST.md</code>. A type that
+                does nothing is worse than no type.
               </p>
               <span class="effort"
-                >Effort: 30 min (wire) / 5 min (delete) &middot; Impact: High</span
+                >Effort: 30 min (wire) / 5 min (delete) &middot; Impact:
+                High</span
               >
             </div>
           </div>
@@ -1302,10 +1514,12 @@ if err != nil {
             <div class="migration-content">
               <h4>Update ADR statuses to reflect reality</h4>
               <p>
-                ADR-0029: Accepted → Implemented (move is done). ADR-0027: Implemented → Superseded
-                by 0028 (per 0028 lines 80-81) OR leave Implemented and update 0028 to not call
-                pg_bus "ghost." ADR-0031/0032: Accepted → Partially Implemented (additive half done,
-                breaking half pending). README index: reflect the actual split.
+                ADR-0029: Accepted → Implemented (move is done). ADR-0027:
+                Implemented → Superseded by 0028 (per 0028 lines 80-81) OR leave
+                Implemented and update 0028 to not call pg_bus "ghost."
+                ADR-0031/0032: Accepted → Partially Implemented (additive half
+                done, breaking half pending). README index: reflect the actual
+                split.
               </p>
               <span class="effort">Effort: 20 min &middot; Impact: Medium</span>
             </div>
@@ -1316,8 +1530,9 @@ if err != nil {
             <div class="migration-content">
               <h4>Fix Version.Add underflow + add rapid property test</h4>
               <p>
-                <code>event/types.go</code>: make <code>Add(n uint64)</code> (typed) or guard
-                negative input. Add <code>rapid</code>-based property test: for random uint64 (a,
+                <code>event/types.go</code>: make
+                <code>Add(n uint64)</code> (typed) or guard negative input. Add
+                <code>rapid</code>-based property test: for random uint64 (a,
                 b), verify Add/Sub round-trip and Sub never underflows.
               </p>
               <span class="effort">Effort: 30 min &middot; Impact: Medium</span>
@@ -1330,9 +1545,10 @@ if err != nil {
               <h4>Fix PgxListener race + add concurrent-Close race test</h4>
               <p>
                 Guard <code>l.conn</code> with <code>sync.Mutex</code> or
-                <code>atomic.Pointer</code>. Add a test that calls <code>Close()</code> from one
-                goroutine while <code>receiveLoop</code> runs in another, under <code>-race</code>,
-                against a real Postgres.
+                <code>atomic.Pointer</code>. Add a test that calls
+                <code>Close()</code> from one goroutine while
+                <code>receiveLoop</code> runs in another, under
+                <code>-race</code>, against a real Postgres.
               </p>
               <span class="effort">Effort: 45 min &middot; Impact: Medium</span>
             </div>
@@ -1343,12 +1559,14 @@ if err != nil {
             <div class="migration-content">
               <h4>Fix CBOR fuzz test (duplicate map key -17)</h4>
               <p>
-                <code>codec/</code> — the canonical map encoder doesn't detect/handle duplicate
-                integer keys produced by the fuzzer. Investigate
-                <code>codec.go</code> canonical-encoding path. This is the only failing test suite.
+                <code>codec/</code> — the canonical map encoder doesn't
+                detect/handle duplicate integer keys produced by the fuzzer.
+                Investigate <code>codec.go</code> canonical-encoding path. This
+                is the only failing test suite.
               </p>
               <span class="effort"
-                >Effort: 30 min - 2h &middot; Impact: Medium (real bug, but rare in practice)</span
+                >Effort: 30 min - 2h &middot; Impact: Medium (real bug, but rare
+                in practice)</span
               >
             </div>
           </div>
@@ -1356,15 +1574,21 @@ if err != nil {
           <div class="migration-step">
             <div class="migration-num">8</div>
             <div class="migration-content">
-              <h4>STOP. Reassess. Do not start Tier 3 (transports) or Tier 4 (long tail).</h4>
+              <h4>
+                STOP. Reassess. Do not start Tier 3 (transports) or Tier 4 (long
+                tail).
+              </h4>
               <p>
-                The 102-task plan is scope creep. After #1-#7, the library is in good shape. Do NOT
-                start
+                The 102-task plan is scope creep. After #1-#7, the library is in
+                good shape. Do NOT start
                 <code>transport/grpc/</code>, <code>transport/nats/</code>,
-                <code>transport/redis/</code>, read-model indexes, or any v4 ideas. Wait for a real
-                consumer to ask.
+                <code>transport/redis/</code>, read-model indexes, or any v4
+                ideas. Wait for a real consumer to ask.
               </p>
-              <span class="effort">Effort: 0 min &middot; Impact: High (prevents scope creep)</span>
+              <span class="effort"
+                >Effort: 0 min &middot; Impact: High (prevents scope
+                creep)</span
+              >
             </div>
           </div>
 
@@ -1372,10 +1596,16 @@ if err != nil {
             <strong>What we are NOT doing</strong>
             <ul style="margin-top: 0.4rem">
               <li>
-                Not deleting <code>readmodel/</code> yet (split brain tolerable until v3 boundary)
+                Not deleting <code>readmodel/</code> yet (split brain tolerable
+                until v3 boundary)
               </li>
-              <li>Not breaking <code>command.Metadata</code> alias (verschlimmbessern risk)</li>
-              <li>Not removing <code>io.Closer</code> from interfaces (rejected)</li>
+              <li>
+                Not breaking <code>command.Metadata</code> alias
+                (verschlimmbessern risk)
+              </li>
+              <li>
+                Not removing <code>io.Closer</code> from interfaces (rejected)
+              </li>
               <li>Not building transport adapters (no consumer)</li>
               <li>Not writing another "comprehensive plan" doc</li>
             </ul>
@@ -1388,67 +1618,77 @@ if err != nil {
           <h3>Good decisions made in the last 24h</h3>
           <ul>
             <li>
-              <strong>Watermill as delivery layer (ADR-0028).</strong> Replaces 4 ad-hoc bus
-              implementations with one battle-tested library. GoChannel default, Kafka/NATS backends
-              via <code>WithBackend</code>. Correct use of an established library instead of
-              reinventing.
+              <strong>Watermill as delivery layer (ADR-0028).</strong> Replaces
+              4 ad-hoc bus implementations with one battle-tested library.
+              GoChannel default, Kafka/NATS backends via
+              <code>WithBackend</code>. Correct use of an established library
+              instead of reinventing.
             </li>
             <li>
               <strong>Storage consolidation (ADR-0029).</strong>
-              <code>storage/{memory,pebble,turso}</code> under one parent. Stores belong with
-              stores. Module boundaries now match domain boundaries.
+              <code>storage/{memory,pebble,turso}</code> under one parent.
+              Stores belong with stores. Module boundaries now match domain
+              boundaries.
             </li>
             <li>
-              <strong>Version: uint64.</strong> Strong types over runtime checks. Domain invariant
-              (no negative versions) enforced at compile time. The right kind of breaking change.
+              <strong>Version: uint64.</strong> Strong types over runtime
+              checks. Domain invariant (no negative versions) enforced at
+              compile time. The right kind of breaking change.
             </li>
             <li>
-              <strong>MessageToEvent export (DRY).</strong> Killed the decode duplication between
-              watermill and stack. Small, correct, irreversible win.
+              <strong>MessageToEvent export (DRY).</strong> Killed the decode
+              duplication between watermill and stack. Small, correct,
+              irreversible win.
             </li>
           </ul>
 
           <h3>Decisions causing problems now</h3>
           <ul>
             <li>
-              <strong>ADR-0032 (readmodel → kv) half-applied.</strong> Created the destination,
-              didn't delete the source. Now have two near-identical types. Either finish the merge
-              or revert the destination. Half-applied ADRs are worse than no ADR.
+              <strong>ADR-0032 (readmodel → kv) half-applied.</strong> Created
+              the destination, didn't delete the source. Now have two
+              near-identical types. Either finish the merge or revert the
+              destination. Half-applied ADRs are worse than no ADR.
             </li>
             <li>
-              <strong>ADR-0030 (dissolve projection) half-applied.</strong> Built CatchUpSubscriber
-              + Materialize, didn't delete projection/. Now have two catch-up implementations. Same
-              problem.
+              <strong>ADR-0030 (dissolve projection) half-applied.</strong>
+              Built CatchUpSubscriber + Materialize, didn't delete projection/.
+              Now have two catch-up implementations. Same problem.
             </li>
             <li>
-              <strong>ADR-0031 (metadata split) half-applied.</strong> Typed structs added, aliases
-              not broken. The aliases are the part consumers actually feel. Half-applied = invisible
-              to consumers = no value.
+              <strong>ADR-0031 (metadata split) half-applied.</strong> Typed
+              structs added, aliases not broken. The aliases are the part
+              consumers actually feel. Half-applied = invisible to consumers =
+              no value.
             </li>
             <li>
-              <strong>"v3 boundary" framing.</strong> Lets us ship additive prep work without
-              committing to the break. Result: 3 half-applied ADRs, 6 island types, 1 duplicated
-              module. Either commit to v3 (break, release) or stop building v3 prep.
+              <strong>"v3 boundary" framing.</strong> Lets us ship additive prep
+              work without committing to the break. Result: 3 half-applied ADRs,
+              6 island types, 1 duplicated module. Either commit to v3 (break,
+              release) or stop building v3 prep.
             </li>
           </ul>
 
           <h3>Libraries we should be using more</h3>
           <ul>
             <li>
-              <strong><code>pgregory.net/rapid</code></strong> — already a dep, barely used. Perfect
-              for Version arithmetic, Metadata round-trips, ULID ordering, CBOR canonical encoding.
-              Should be the default for any pure-function property.
+              <strong><code>pgregory.net/rapid</code></strong> — already a dep,
+              barely used. Perfect for Version arithmetic, Metadata round-trips,
+              ULID ordering, CBOR canonical encoding. Should be the default for
+              any pure-function property.
             </li>
             <li>
-              <strong><code>onsi/ginkgo + gomega</code></strong> — used in event/decider/query BDD
-              suites. Should extend to projection, stack, storage for the catch-up/replay flows that
-              keep having subtle ordering bugs.
+              <strong><code>onsi/ginkgo + gomega</code></strong> — used in
+              event/decider/query BDD suites. Should extend to projection,
+              stack, storage for the catch-up/replay flows that keep having
+              subtle ordering bugs.
             </li>
             <li>
-              <strong><code>samber/ro</code></strong> — reactive operators. Already used for event
-              streams. The dedup logic in <code>event/reactive_dedup.go</code> is good; the issue is
-              that it's slated for removal in favor of Watermill's built-in dedup. Don't remove
-              until the replacement is wired.
+              <strong><code>samber/ro</code></strong> — reactive operators.
+              Already used for event streams. The dedup logic in
+              <code>event/reactive_dedup.go</code> is good; the issue is that
+              it's slated for removal in favor of Watermill's built-in dedup.
+              Don't remove until the replacement is wired.
             </li>
           </ul>
         </section>
@@ -1457,31 +1697,46 @@ if err != nil {
           <h2><span class="num">10</span>What did we forget? (Question 1)</h2>
 
           <ul>
-            <li>Forgot to verify docs were stale before deleting 564 of them.</li>
-            <li>Forgot to update the status report's "62 files" metric after the restore.</li>
             <li>
-              Forgot to update V3_MIGRATION.md after pg_bus/reactive were restored as live code.
+              Forgot to verify docs were stale before deleting 564 of them.
             </li>
-            <li>Forgot to wire any of 6 new public types into <code>stack/</code> accessors.</li>
+            <li>
+              Forgot to update the status report's "62 files" metric after the
+              restore.
+            </li>
+            <li>
+              Forgot to update V3_MIGRATION.md after pg_bus/reactive were
+              restored as live code.
+            </li>
+            <li>
+              Forgot to wire any of 6 new public types into
+              <code>stack/</code> accessors.
+            </li>
             <li>
               Forgot to add error-classification tests for
               <code>Materialize</code> (any-error-→-OnCreate).
             </li>
             <li>
-              Forgot <code>Version.Add()</code> can take negative input after the uint64 change.
+              Forgot <code>Version.Add()</code> can take negative input after
+              the uint64 change.
             </li>
             <li>
-              Forgot ADR-0010 status was "Proposed" before recommending it be flipped to "Rejected."
+              Forgot ADR-0010 status was "Proposed" before recommending it be
+              flipped to "Rejected."
             </li>
             <li>
-              Forgot that <code>docs/planning/INDEX.md</code> was created then deleted in the
-              restore.
+              Forgot that <code>docs/planning/INDEX.md</code> was created then
+              deleted in the restore.
             </li>
             <li>Forgot to run the brutal-self-review we put at Top-25 #10.</li>
             <li>
-              Forgot that moving FakeBus from stub to real bus means it now needs its own tests.
+              Forgot that moving FakeBus from stub to real bus means it now
+              needs its own tests.
             </li>
-            <li>Forgot to mark ADR-0029 as Implemented after the storage move shipped.</li>
+            <li>
+              Forgot to mark ADR-0029 as Implemented after the storage move
+              shipped.
+            </li>
             <li>
               Forgot to delete <code>readmodel/</code> after creating
               <code>kv/TypedStore</code> (split brain).
@@ -1496,61 +1751,70 @@ if err != nil {
           <ol>
             <li>
               <strong>Never delete without grep.</strong> One
-              <code>grep -rn "Name" --include="*.go"</code> before any deletion. The grep is cheaper
-              than the restore.
+              <code>grep -rn "Name" --include="*.go"</code> before any deletion.
+              The grep is cheaper than the restore.
             </li>
             <li>
-              <strong>"DONE" means wired and tested.</strong> Not "the file exists." If the type has
-              no consumer outside its own test, it's not done — it's an island.
+              <strong>"DONE" means wired and tested.</strong> Not "the file
+              exists." If the type has no consumer outside its own test, it's
+              not done — it's an island.
             </li>
             <li>
-              <strong>Status reports are write-once.</strong> Don't trust their numbers after
-              reverts. The next report must explicitly correct the previous one's reversed claims.
+              <strong>Status reports are write-once.</strong> Don't trust their
+              numbers after reverts. The next report must explicitly correct the
+              previous one's reversed claims.
             </li>
             <li>
               <strong>Stop writing comprehensive plans.</strong> We have 100+ in
-              <code>docs/planning/</code>. Each claims to supersede the last; none deletes the last.
-              Do the work; if you must plan, delete the prior plan first.
+              <code>docs/planning/</code>. Each claims to supersede the last;
+              none deletes the last. Do the work; if you must plan, delete the
+              prior plan first.
             </li>
             <li>
-              <strong>Half-applied ADRs are worse than no ADR.</strong> If you build the destination
-              but don't delete the source, you get a split brain. Either finish the merge in the
-              same commit, or don't start.
+              <strong>Half-applied ADRs are worse than no ADR.</strong> If you
+              build the destination but don't delete the source, you get a split
+              brain. Either finish the merge in the same commit, or don't start.
             </li>
             <li>
-              <strong>"v3 boundary" is not a license to ship half-work.</strong> Either commit to v3
-              (break, release) or stop building v3 prep. The current state — 3 half-applied ADRs, 6
-              islands — is the worst of both worlds.
+              <strong>"v3 boundary" is not a license to ship half-work.</strong>
+              Either commit to v3 (break, release) or stop building v3 prep. The
+              current state — 3 half-applied ADRs, 6 islands — is the worst of
+              both worlds.
             </li>
             <li>
-              <strong>If the fake needs its own tests, it's not a fake.</strong> FakeBus at 130 LOC
-              is a parallel implementation. Either extract to a real module or shrink to a stub.
+              <strong>If the fake needs its own tests, it's not a fake.</strong>
+              FakeBus at 130 LOC is a parallel implementation. Either extract to
+              a real module or shrink to a stub.
             </li>
             <li>
-              <strong>Verify examples compile.</strong> Codify <code>V3_MIGRATION.md</code> examples
-              as <code>Example_*</code> functions. <code>go test</code> catches the breakage
-              automatically.
+              <strong>Verify examples compile.</strong> Codify
+              <code>V3_MIGRATION.md</code> examples as
+              <code>Example_*</code> functions. <code>go test</code> catches the
+              breakage automatically.
             </li>
             <li>
-              <strong>Run the review skill when you schedule it.</strong> Top-25 #10 was "run
-              brutal-self-review." We didn't, until the user asked. Schedule = do, not defer.
+              <strong>Run the review skill when you schedule it.</strong> Top-25
+              #10 was "run brutal-self-review." We didn't, until the user asked.
+              Schedule = do, not defer.
             </li>
             <li>
-              <strong>Test the error paths, not just the happy path.</strong> Materialize's bug
-              exists because the fake store only returns ErrNotFound. Inject real errors; assert
-              they propagate.
+              <strong>Test the error paths, not just the happy path.</strong>
+              Materialize's bug exists because the fake store only returns
+              ErrNotFound. Inject real errors; assert they propagate.
             </li>
           </ol>
         </section>
 
         <div class="footer">
           <p>
-            Generated 2026-06-20 16:47 by brutal-self-review skill. Covers commits
-            <code>a26505f8</code> (2026-06-19 22:23) through <code>9c544d6f</code> (2026-06-20
-            16:35). 70 commits, ~250 files touched. 7 lies, 6 ghost islands, 5 split brains, 3 real
-            bugs, 17 genuine wins. The library is in better shape than 24 hours ago — but the gap
-            between "what we claim is done" and "what is actually done" is the single biggest risk
-            to consumer trust. Close that gap.
+            Generated 2026-06-20 16:47 by brutal-self-review skill. Covers
+            commits
+            <code>a26505f8</code> (2026-06-19 22:23) through
+            <code>9c544d6f</code> (2026-06-20 16:35). 70 commits, ~250 files
+            touched. 7 lies, 6 ghost islands, 5 split brains, 3 real bugs, 17
+            genuine wins. The library is in better shape than 24 hours ago — but
+            the gap between "what we claim is done" and "what is actually done"
+            is the single biggest risk to consumer trust. Close that gap.
           </p>
         </div>
       </main>

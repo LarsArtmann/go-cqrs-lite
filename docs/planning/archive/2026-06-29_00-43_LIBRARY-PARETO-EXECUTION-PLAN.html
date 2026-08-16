@@ -30,14 +30,14 @@
         --warning: var(--color-yellow);
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -199,15 +199,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .stat-grid,
       .scorecard {
@@ -474,9 +486,10 @@
           <div class="hero-badge">Pareto Planning · Exploration</div>
           <h1>Comprehensive Execution Plan</h1>
           <p class="hero-subtitle">
-            All open work across <strong>go-cqrs-lite</strong> (the CQRS/ES library) and
-            <strong>cqrs-htmx</strong> (the HTMX layer), sorted by impact / effort / customer-value,
-            broken into subtasks of ≤&nbsp;12&nbsp;min each.
+            All open work across <strong>go-cqrs-lite</strong> (the CQRS/ES
+            library) and <strong>cqrs-htmx</strong> (the HTMX layer), sorted by
+            impact / effort / customer-value, broken into subtasks of
+            ≤&nbsp;12&nbsp;min each.
           </p>
         </div>
 
@@ -484,15 +497,25 @@
           <h3>Contents</h3>
           <ul>
             <li><a href="#summary">Summary</a></li>
-            <li><a href="#findings">Key Findings (plan-altering discoveries)</a></li>
+            <li>
+              <a href="#findings">Key Findings (plan-altering discoveries)</a>
+            </li>
             <li><a href="#graph">Execution Graph (D2)</a></li>
             <li><a href="#pareto">Pareto Tier Breakdown</a></li>
-            <li><a href="#master">Master TODO Table (sorted by priority)</a></li>
+            <li>
+              <a href="#master">Master TODO Table (sorted by priority)</a>
+            </li>
             <li><a href="#tier1">Tier 1 — Unblock Everything</a></li>
             <li><a href="#tier2">Tier 2 — Finish the Cross-Repo Audit</a></li>
-            <li><a href="#tier3">Tier 3 — Managed Projection Host (#1 gap)</a></li>
+            <li>
+              <a href="#tier3">Tier 3 — Managed Projection Host (#1 gap)</a>
+            </li>
             <li><a href="#tier4">Tier 4 — Production Hardening + DX</a></li>
-            <li><a href="#tier5">Tier 5 — cqrs-htmx internal (out of audit scope)</a></li>
+            <li>
+              <a href="#tier5"
+                >Tier 5 — cqrs-htmx internal (out of audit scope)</a
+              >
+            </li>
           </ul>
         </nav>
 
@@ -518,73 +541,87 @@
         <div class="card card-problem">
           <h4>One hard blocker governs everything</h4>
           <p>
-            The BuildFlow pre-commit hook fails on every <code>git commit</code> because
-            <code>flake.nix</code> (flake-parts) exposes no <code>packages.default</code>. Until
-            fixed, every task needs <code>--no-verify</code>.
+            The BuildFlow pre-commit hook fails on every
+            <code>git commit</code> because <code>flake.nix</code> (flake-parts)
+            exposes no <code>packages.default</code>. Until fixed, every task
+            needs <code>--no-verify</code>.
             <strong>This is Tier 1, task #1.</strong>
           </p>
         </div>
         <div class="card card-solution">
           <h4>Two framework gaps are already closed</h4>
           <p>
-            The gap analysis (v3.1.0) flagged A3 (idempotency) and A4 (DLQ) as "missing." Both are
-            now <span class="badge badge-fixed">Done</span>: the <code>idempotency/</code> module
-            shipped this session, and <code>middleware/deadletter.go</code> +
+            The gap analysis (v3.1.0) flagged A3 (idempotency) and A4 (DLQ) as
+            "missing." Both are now <span class="badge badge-fixed">Done</span>:
+            the <code>idempotency/</code> module shipped this session, and
+            <code>middleware/deadletter.go</code> +
             <code>deadletter_sql.go</code> + tests already exist. Only the
-            <em>projection-tier</em> DLQ hook remains — folded into the Projection Host (A1).
+            <em>projection-tier</em> DLQ hook remains — folded into the
+            Projection Host (A1).
           </p>
         </div>
 
-        <h2 id="findings"><span class="num">01</span>Key Findings (plan-altering)</h2>
+        <h2 id="findings">
+          <span class="num">01</span>Key Findings (plan-altering)
+        </h2>
         <div class="card card-problem">
           <h4>BuildFlow blocker is a missing <code>packages.default</code></h4>
           <p>
-            <code>.buildflow.yml</code> has no explicit nix step — BuildFlow's default
-            <code>full</code> mode runs <code>nix build .</code>, which fails:
-            <em>"flake does not provide attribute packages.x86_64-linux.default"</em>. Fix = add a
-            <code>packages.default</code> (e.g. a cqrs-gen wrapper) via flake-parts
-            <code>perSystem</code>, or a buildflow skip key.
+            <code>.buildflow.yml</code> has no explicit nix step — BuildFlow's
+            default <code>full</code> mode runs <code>nix build .</code>, which
+            fails:
+            <em
+              >"flake does not provide attribute
+              packages.x86_64-linux.default"</em
+            >. Fix = add a <code>packages.default</code> (e.g. a cqrs-gen
+            wrapper) via flake-parts <code>perSystem</code>, or a buildflow skip
+            key.
           </p>
         </div>
         <div class="card card-warning">
           <h4>Tagging is non-trivial (multi-module)</h4>
           <p>
-            <code>idempotency/go.mod</code> requires <code>event/v3 v3.3.0</code> +
-            <code>command/v3 v3.3.0</code> (+ transitive: id, codec, schema…). v3.3.0 tags for those
-            don't exist yet. The "tag v3.3.0" step needs the <em>full</em> tag set, not one tag.
+            <code>idempotency/go.mod</code> requires
+            <code>event/v3 v3.3.0</code> + <code>command/v3 v3.3.0</code> (+
+            transitive: id, codec, schema…). v3.3.0 tags for those don't exist
+            yet. The "tag v3.3.0" step needs the <em>full</em> tag set, not one
+            tag.
           </p>
         </div>
         <div class="card card-problem">
           <h4>Doc drift: module count disagrees with itself</h4>
           <p>
-            Real count = <strong>49</strong> <code>go.mod</code> files. AGENTS.md says 49 (correct).
-            FEATURES.md header still says 45 (stale, pre-idempotency). FEATURES.md also omits the
-            dispatch-DLQ as a feature. A reconciliation pass is owed.
+            Real count = <strong>49</strong> <code>go.mod</code> files.
+            AGENTS.md says 49 (correct). FEATURES.md header still says 45
+            (stale, pre-idempotency). FEATURES.md also omits the dispatch-DLQ as
+            a feature. A reconciliation pass is owed.
           </p>
         </div>
         <div class="card card-solution">
           <h4>Reliability trio status</h4>
           <p>
             <span class="badge badge-fixed">DLQ (dispatch) = DONE</span>
-            <span class="badge badge-fixed">Idempotency = DONE (module + middleware)</span>
-            <span class="badge badge-critical">Outbox = NOT STARTED (A2)</span>. The trio is ⅔
-            complete; only the optional outbox sink remains.
+            <span class="badge badge-fixed"
+              >Idempotency = DONE (module + middleware)</span
+            >
+            <span class="badge badge-critical">Outbox = NOT STARTED (A2)</span>.
+            The trio is ⅔ complete; only the optional outbox sink remains.
           </p>
         </div>
         <div class="card card-warning">
           <h4>SSE has a better implementation trapped downstream</h4>
           <p>
-            <code>cqrs-htmx/sse_event.go</code> has branded <code>SSEEventID</code> + zero-alloc
-            <code>WriteSSEEvent</code> — better than
-            <code>go-cqrs-lite/transport/http/sse_event.go</code>. Promote upstream, then delegate.
-            Blocked on v3.3.0 tag.
+            <code>cqrs-htmx/sse_event.go</code> has branded
+            <code>SSEEventID</code> + zero-alloc <code>WriteSSEEvent</code> —
+            better than <code>go-cqrs-lite/transport/http/sse_event.go</code>.
+            Promote upstream, then delegate. Blocked on v3.3.0 tag.
           </p>
         </div>
 
         <h2 id="graph"><span class="num">02</span>Execution Graph</h2>
         <p>
-          Dependency flow across the five tiers. Arrows = unblocks. Tiers are Pareto-ordered: do 1 →
-          2 → 3 → 4 → 5.
+          Dependency flow across the five tiers. Arrows = unblocks. Tiers are
+          Pareto-ordered: do 1 → 2 → 3 → 4 → 5.
         </p>
         <div class="graph-wrap" id="graph-svg">
           <svg
@@ -738,8 +775,12 @@
                   class="text-bold"
                   style="text-anchor: middle; font-size: 28px"
                 >
-                  <tspan x="374.000000" dy="0.000000">TIER 1 — UNBLOCK EVERYTHING</tspan>
-                  <tspan x="374.000000" dy="32.000000">1% effort → 51% value</tspan>
+                  <tspan x="374.000000" dy="0.000000">
+                    TIER 1 — UNBLOCK EVERYTHING
+                  </tspan>
+                  <tspan x="374.000000" dy="32.000000">
+                    1% effort → 51% value
+                  </tspan>
                 </text>
               </g>
               <g class="VDI=">
@@ -759,8 +800,12 @@
                   class="text"
                   style="text-anchor: middle; font-size: 28px"
                 >
-                  <tspan x="519.000000" dy="0.000000">TIER 2 — FINISH THE AUDIT</tspan>
-                  <tspan x="519.000000" dy="32.000000">4% effort → 64% value</tspan>
+                  <tspan x="519.000000" dy="0.000000">
+                    TIER 2 — FINISH THE AUDIT
+                  </tspan>
+                  <tspan x="519.000000" dy="32.000000">
+                    4% effort → 64% value
+                  </tspan>
                 </text>
               </g>
               <g class="VDM=">
@@ -780,8 +825,12 @@
                   class="text"
                   style="text-anchor: middle; font-size: 28px"
                 >
-                  <tspan x="525.500000" dy="0.000000">TIER 3 — #1 FRAMEWORK GAP</tspan>
-                  <tspan x="525.500000" dy="32.000000">20% effort → 80% value</tspan>
+                  <tspan x="525.500000" dy="0.000000">
+                    TIER 3 — #1 FRAMEWORK GAP
+                  </tspan>
+                  <tspan x="525.500000" dy="32.000000">
+                    20% effort → 80% value
+                  </tspan>
                 </text>
               </g>
               <g class="VDQ=">
@@ -801,7 +850,9 @@
                   class="text"
                   style="text-anchor: middle; font-size: 28px"
                 >
-                  <tspan x="533.000000" dy="0.000000">TIER 4 — PRODUCTION HARDENING + DX</tspan>
+                  <tspan x="533.000000" dy="0.000000">
+                    TIER 4 — PRODUCTION HARDENING + DX
+                  </tspan>
                   <tspan x="533.000000" dy="32.000000">remaining</tspan>
                 </text>
               </g>
@@ -845,10 +896,18 @@
                   class="text-bold"
                   style="text-anchor: middle; font-size: 16px"
                 >
-                  <tspan x="525.000000" dy="0.000000">Reliability trio status:</tspan>
-                  <tspan x="525.000000" dy="17.250000">DLQ (dispatch) = DONE</tspan>
-                  <tspan x="525.000000" dy="17.250000">Idempotency = DONE (module)</tspan>
-                  <tspan x="525.000000" dy="17.250000">Outbox = NOT STARTED (A2)</tspan>
+                  <tspan x="525.000000" dy="0.000000">
+                    Reliability trio status:
+                  </tspan>
+                  <tspan x="525.000000" dy="17.250000">
+                    DLQ (dispatch) = DONE
+                  </tspan>
+                  <tspan x="525.000000" dy="17.250000">
+                    Idempotency = DONE (module)
+                  </tspan>
+                  <tspan x="525.000000" dy="17.250000">
+                    Outbox = NOT STARTED (A2)
+                  </tspan>
                 </text>
               </g>
               <g class="VDEuQnVpbGRGbG93 tier1">
@@ -871,8 +930,12 @@
                   class="text-bold"
                   style="text-anchor: middle; font-size: 16px"
                 >
-                  <tspan x="373.500000" dy="0.000000">T1 Fix BuildFlow nix-build</tspan>
-                  <tspan x="373.500000" dy="18.500000">(BLOCKS every commit)</tspan>
+                  <tspan x="373.500000" dy="0.000000">
+                    T1 Fix BuildFlow nix-build
+                  </tspan>
+                  <tspan x="373.500000" dy="18.500000">
+                    (BLOCKS every commit)
+                  </tspan>
                 </text>
               </g>
               <g class="VDEuVGFn tier1">
@@ -895,8 +958,12 @@
                   class="text-bold"
                   style="text-anchor: middle; font-size: 16px"
                 >
-                  <tspan x="374.000000" dy="0.000000">T2 Tag go-cqrs-lite v3.3.0</tspan>
-                  <tspan x="374.000000" dy="18.500000">(unblocks all downstream)</tspan>
+                  <tspan x="374.000000" dy="0.000000">
+                    T2 Tag go-cqrs-lite v3.3.0
+                  </tspan>
+                  <tspan x="374.000000" dy="18.500000">
+                    (unblocks all downstream)
+                  </tspan>
                 </text>
               </g>
               <g class="VDIuRGVsZWdhdGU= tier2">
@@ -919,8 +986,12 @@
                   class="text-bold"
                   style="text-anchor: middle; font-size: 16px"
                 >
-                  <tspan x="214.500000" dy="0.000000">T3 Delegate cqrs-htmx idempotency</tspan>
-                  <tspan x="214.500000" dy="18.500000">→ upstream aliases</tspan>
+                  <tspan x="214.500000" dy="0.000000">
+                    T3 Delegate cqrs-htmx idempotency
+                  </tspan>
+                  <tspan x="214.500000" dy="18.500000">
+                    → upstream aliases
+                  </tspan>
                 </text>
               </g>
               <g class="VDIuU1NF tier2">
@@ -943,8 +1014,12 @@
                   class="text-bold"
                   style="text-anchor: middle; font-size: 16px"
                 >
-                  <tspan x="534.000000" dy="0.000000">T4 Unify SSE primitives</tspan>
-                  <tspan x="534.000000" dy="18.500000">(promote branded types upstream)</tspan>
+                  <tspan x="534.000000" dy="0.000000">
+                    T4 Unify SSE primitives
+                  </tspan>
+                  <tspan x="534.000000" dy="18.500000">
+                    (promote branded types upstream)
+                  </tspan>
                 </text>
               </g>
               <g class="VDIuRG9jcw== tier2">
@@ -968,7 +1043,9 @@
                   style="text-anchor: middle; font-size: 16px"
                 >
                   <tspan x="838.500000" dy="0.000000">T5 Reconcile docs</tspan>
-                  <tspan x="838.500000" dy="18.500000">(FEATURES 45 → 49 + DLQ status)</tspan>
+                  <tspan x="838.500000" dy="18.500000">
+                    (FEATURES 45 → 49 + DLQ status)
+                  </tspan>
                 </text>
               </g>
               <g class="VDMuQTE= tier3">
@@ -991,9 +1068,15 @@
                   class="text-bold"
                   style="text-anchor: middle; font-size: 16px"
                 >
-                  <tspan x="525.500000" dy="0.000000">T6 Managed Projection Host (A1)</tspan>
-                  <tspan x="525.500000" dy="17.666667">+ projection-tier DLQ hook</tspan>
-                  <tspan x="525.500000" dy="17.666667">(the loop every consumer rewrites)</tspan>
+                  <tspan x="525.500000" dy="0.000000">
+                    T6 Managed Projection Host (A1)
+                  </tspan>
+                  <tspan x="525.500000" dy="17.666667">
+                    + projection-tier DLQ hook
+                  </tspan>
+                  <tspan x="525.500000" dy="17.666667">
+                    (the loop every consumer rewrites)
+                  </tspan>
                 </text>
               </g>
               <g class="VDQuQmFja2VuZHM= tier4">
@@ -1015,7 +1098,9 @@
                   class="text-bold"
                   style="text-anchor: middle; font-size: 16px"
                 >
-                  <tspan x="258.500000" dy="0.000000">T7 Redis/SQL Idempotency</tspan>
+                  <tspan x="258.500000" dy="0.000000">
+                    T7 Redis/SQL Idempotency
+                  </tspan>
                   <tspan x="258.500000" dy="18.500000">backends</tspan>
                 </text>
               </g>
@@ -1038,7 +1123,9 @@
                   class="text-bold"
                   style="text-anchor: middle; font-size: 16px"
                 >
-                  <tspan x="525.000000" dy="0.000000">T8 Transactional Outbox (A2)</tspan>
+                  <tspan x="525.000000" dy="0.000000">
+                    T8 Transactional Outbox (A2)
+                  </tspan>
                   <tspan x="525.000000" dy="18.500000">opt-in EventSink</tspan>
                 </text>
               </g>
@@ -1061,7 +1148,9 @@
                   class="text-bold"
                   style="text-anchor: middle; font-size: 16px"
                 >
-                  <tspan x="796.000000" dy="0.000000">T9 Scenario-testing DSL (A5)</tspan>
+                  <tspan x="796.000000" dy="0.000000">
+                    T9 Scenario-testing DSL (A5)
+                  </tspan>
                   <tspan x="796.000000" dy="18.500000">Given/When/Then</tspan>
                 </text>
               </g>
@@ -1084,7 +1173,9 @@
                   class="text-bold"
                   style="text-anchor: middle; font-size: 16px"
                 >
-                  <tspan x="796.500000" dy="0.000000">T10 Scheduled commands (A6)</tspan>
+                  <tspan x="796.500000" dy="0.000000">
+                    T10 Scheduled commands (A6)
+                  </tspan>
                   <tspan x="796.500000" dy="18.500000">durable deadlines</tspan>
                 </text>
               </g>
@@ -1108,8 +1199,12 @@
                   class="text-bold"
                   style="text-anchor: middle; font-size: 16px"
                 >
-                  <tspan x="922.500000" dy="0.000000">T11 Offline-first Phase 2</tspan>
-                  <tspan x="922.500000" dy="18.500000">(SharedWorker / SW + Background Sync)</tspan>
+                  <tspan x="922.500000" dy="0.000000">
+                    T11 Offline-first Phase 2
+                  </tspan>
+                  <tspan x="922.500000" dy="18.500000">
+                    (SharedWorker / SW + Background Sync)
+                  </tspan>
                 </text>
               </g>
               <g class="VDEuKEJ1aWxkRmxvdyAtJmd0OyBUYWcpWzBd">
@@ -1357,25 +1452,100 @@
                 width="1424"
                 height="2591"
               >
-                <rect x="-89" y="-89" width="1424" height="2591" fill="white"></rect>
-                <rect x="306.000000" y="293.000000" width="137" height="21" fill="black"></rect>
-                <rect x="260.000000" y="641.000000" width="111" height="21" fill="black"></rect>
-                <rect x="378.000000" y="641.000000" width="111" height="21" fill="black"></rect>
-                <rect x="300.000000" y="1104.000000" width="142" height="21" fill="black"></rect>
-                <rect x="477.000000" y="1093.000000" width="98" height="21" fill="black"></rect>
-                <rect x="627.000000" y="1104.000000" width="108" height="21" fill="black"></rect>
-                <rect x="451.000000" y="1556.000000" width="149" height="21" fill="black"></rect>
-                <rect x="181.000000" y="1471.000000" width="179" height="21" fill="black"></rect>
-                <rect x="706.000000" y="1471.000000" width="153" height="21" fill="black"></rect>
-                <rect x="700.000000" y="1898.000000" width="194" height="21" fill="black"></rect>
-                <rect x="479.000000" y="2047.000000" width="94" height="21" fill="black"></rect>
+                <rect
+                  x="-89"
+                  y="-89"
+                  width="1424"
+                  height="2591"
+                  fill="white"
+                ></rect>
+                <rect
+                  x="306.000000"
+                  y="293.000000"
+                  width="137"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="260.000000"
+                  y="641.000000"
+                  width="111"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="378.000000"
+                  y="641.000000"
+                  width="111"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="300.000000"
+                  y="1104.000000"
+                  width="142"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="477.000000"
+                  y="1093.000000"
+                  width="98"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="627.000000"
+                  y="1104.000000"
+                  width="108"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="451.000000"
+                  y="1556.000000"
+                  width="149"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="181.000000"
+                  y="1471.000000"
+                  width="179"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="706.000000"
+                  y="1471.000000"
+                  width="153"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="700.000000"
+                  y="1898.000000"
+                  width="194"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="479.000000"
+                  y="2047.000000"
+                  width="94"
+                  height="21"
+                  fill="black"
+                ></rect>
               </mask>
             </svg>
           </svg>
         </div>
 
         <h2 id="pareto"><span class="num">03</span>Pareto Tier Breakdown</h2>
-        <p>What delivers the most value for the least effort, in compounding order.</p>
+        <p>
+          What delivers the most value for the least effort, in compounding
+          order.
+        </p>
         <div class="table-wrap">
           <table>
             <thead>
@@ -1392,8 +1562,8 @@
                 <td><strong>1% → 51%</strong></td>
                 <td>Fix BuildFlow + Tag v3.3.0</td>
                 <td>
-                  Restores clean commits; publishes the new module so downstream can consume it.
-                  Nothing else ships cleanly without this.
+                  Restores clean commits; publishes the new module so downstream
+                  can consume it. Nothing else ships cleanly without this.
                 </td>
               </tr>
               <tr>
@@ -1401,8 +1571,9 @@
                 <td><strong>4% → 64%</strong></td>
                 <td>Delegate idempotency, unify SSE, reconcile docs</td>
                 <td>
-                  Closes the stated cross-repo goal: zero harmful duplication, single source of
-                  truth. Low effort, high DRY/maintenance payoff.
+                  Closes the stated cross-repo goal: zero harmful duplication,
+                  single source of truth. Low effort, high DRY/maintenance
+                  payoff.
                 </td>
               </tr>
               <tr>
@@ -1410,32 +1581,41 @@
                 <td><strong>20% → 80%</strong></td>
                 <td>Managed Projection Host (A1) + projection DLQ</td>
                 <td>
-                  "The last loop every consumer rewrites." Turns the library into a runtime. Highest
-                  leverage per the gap analysis.
+                  "The last loop every consumer rewrites." Turns the library
+                  into a runtime. Highest leverage per the gap analysis.
                 </td>
               </tr>
               <tr>
                 <td><span class="tier-badge tb4">T4</span> Hardening</td>
                 <td>remaining</td>
                 <td>
-                  Redis/SQL idempotency backends, Outbox (A2), Testing DSL (A5), Scheduler (A6)
+                  Redis/SQL idempotency backends, Outbox (A2), Testing DSL (A5),
+                  Scheduler (A6)
                 </td>
-                <td>Production readiness + adoption multipliers. Compose into the host from T3.</td>
+                <td>
+                  Production readiness + adoption multipliers. Compose into the
+                  host from T3.
+                </td>
               </tr>
               <tr>
                 <td><span class="tier-badge tb5">T5</span> cqrs-htmx</td>
                 <td>out of scope</td>
                 <td>Offline-first Phase 2 (SharedWorker)</td>
-                <td>cqrs-htmx-internal feature track; separate from the library audit.</td>
+                <td>
+                  cqrs-htmx-internal feature track; separate from the library
+                  audit.
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <h2 id="master"><span class="num">04</span>Master TODO Table (sorted by priority)</h2>
+        <h2 id="master">
+          <span class="num">04</span>Master TODO Table (sorted by priority)
+        </h2>
         <p>
-          Impact / Effort / Customer-Value each rated Low / Med / High. Sorted: blockers first, then
-          impact, then effort (asc).
+          Impact / Effort / Customer-Value each rated Low / Med / High. Sorted:
+          blockers first, then impact, then effort (asc).
         </p>
         <div class="table-wrap">
           <table>
@@ -1461,7 +1641,9 @@
                 <td><span class="tier-badge tb1">1</span></td>
                 <td><span class="badge badge-critical">High</span></td>
                 <td><span class="badge badge-low">Low</span></td>
-                <td><span class="badge badge-medium">Med</span> (dev velocity)</td>
+                <td>
+                  <span class="badge badge-medium">Med</span> (dev velocity)
+                </td>
                 <td>—</td>
                 <td>5</td>
               </tr>
@@ -1531,7 +1713,9 @@
                 <td><span class="tier-badge tb4">4</span></td>
                 <td><span class="badge badge-critical">High</span></td>
                 <td><span class="badge badge-critical">High</span></td>
-                <td><span class="badge badge-high">Med</span> (those who need it)</td>
+                <td>
+                  <span class="badge badge-high">Med</span> (those who need it)
+                </td>
                 <td>T6</td>
                 <td>12</td>
               </tr>
@@ -1575,7 +1759,8 @@
         </h2>
 
         <h3>
-          T1 · Fix BuildFlow nix-build pre-commit <span class="badge badge-critical">BLOCKER</span>
+          T1 · Fix BuildFlow nix-build pre-commit
+          <span class="badge badge-critical">BLOCKER</span>
         </h3>
         <div class="table-wrap">
           <table>
@@ -1591,8 +1776,9 @@
               <tr>
                 <td>T1.1</td>
                 <td>
-                  Read <code>flake.nix</code> fully + <code>.buildflow.yml</code>; understand
-                  flake-parts <code>perSystem</code> packaging shape
+                  Read <code>flake.nix</code> fully +
+                  <code>.buildflow.yml</code>; understand flake-parts
+                  <code>perSystem</code> packaging shape
                 </td>
                 <td>8</td>
                 <td>—</td>
@@ -1600,8 +1786,8 @@
               <tr>
                 <td>T1.2</td>
                 <td>
-                  Decide approach: add <code>packages.default</code> vs buildflow skip key; check
-                  buildflow docs for a skip option
+                  Decide approach: add <code>packages.default</code> vs
+                  buildflow skip key; check buildflow docs for a skip option
                 </td>
                 <td>10</td>
                 <td>T1.1</td>
@@ -1609,8 +1795,8 @@
               <tr>
                 <td>T1.3</td>
                 <td>
-                  Implement fix (add <code>packages.default</code> meta/pkg OR buildflow skip
-                  config)
+                  Implement fix (add <code>packages.default</code> meta/pkg OR
+                  buildflow skip config)
                 </td>
                 <td>12</td>
                 <td>T1.2</td>
@@ -1649,22 +1835,26 @@
               <tr>
                 <td>T2.1</td>
                 <td>
-                  Determine exact tag set: which modules does <code>idempotency</code> require at
-                  v3.3.0 (event, command + transitive id/codec/schema…)
+                  Determine exact tag set: which modules does
+                  <code>idempotency</code> require at v3.3.0 (event, command +
+                  transitive id/codec/schema…)
                 </td>
                 <td>10</td>
                 <td>—</td>
               </tr>
               <tr>
                 <td>T2.2</td>
-                <td>Verify full workspace build: <code>go build ./...</code></td>
+                <td>
+                  Verify full workspace build: <code>go build ./...</code>
+                </td>
                 <td>5</td>
                 <td>T2.1</td>
               </tr>
               <tr>
                 <td>T2.3</td>
                 <td>
-                  Verify each affected module builds in <code>GOWORK=off</code> CI-isolation mode
+                  Verify each affected module builds in
+                  <code>GOWORK=off</code> CI-isolation mode
                 </td>
                 <td>10</td>
                 <td>T2.2</td>
@@ -1672,7 +1862,8 @@
               <tr>
                 <td>T2.4</td>
                 <td>
-                  Run full test suite with <code>-race</code> in both workspace + isolation modes
+                  Run full test suite with <code>-race</code> in both workspace
+                  + isolation modes
                 </td>
                 <td>12</td>
                 <td>T2.3</td>
@@ -1680,7 +1871,8 @@
               <tr>
                 <td>T2.5</td>
                 <td>
-                  Create version tags: <code>event/v3.3.0</code>, <code>command/v3.3.0</code>,
+                  Create version tags: <code>event/v3.3.0</code>,
+                  <code>command/v3.3.0</code>,
                   <code>idempotency/v3.3.0</code> (+ transitive)
                 </td>
                 <td>8</td>
@@ -1695,7 +1887,8 @@
               <tr>
                 <td>T2.7</td>
                 <td>
-                  Verify tags resolve externally: <code>go list -m .../idempotency/v3@v3.3.0</code>
+                  Verify tags resolve externally:
+                  <code>go list -m .../idempotency/v3@v3.3.0</code>
                 </td>
                 <td>5</td>
                 <td>T2.6</td>
@@ -1742,8 +1935,8 @@
               <tr>
                 <td>T3.3</td>
                 <td>
-                  Rewrite <code>idempotency.go</code> as type aliases (Store, MemoryStore,
-                  ErrDuplicate, NewMemoryIdempotencyStore)
+                  Rewrite <code>idempotency.go</code> as type aliases (Store,
+                  MemoryStore, ErrDuplicate, NewMemoryIdempotencyStore)
                 </td>
                 <td>10</td>
                 <td>T3.2</td>
@@ -1751,8 +1944,10 @@
               <tr>
                 <td>T3.4</td>
                 <td>
-                  Fix <code>idempotency_test.go</code>: remove internal field access (lines 108-110,
-                  137-139 <code>store.mu</code>/<code>entries</code>) → public API assertions
+                  Fix <code>idempotency_test.go</code>: remove internal field
+                  access (lines 108-110, 137-139
+                  <code>store.mu</code>/<code>entries</code>) → public API
+                  assertions
                 </td>
                 <td>12</td>
                 <td>T3.3</td>
@@ -1795,7 +1990,8 @@
                 <td>T4.1</td>
                 <td>
                   Diff <code>cqrs-htmx/sse_event.go</code> vs
-                  <code>go-cqrs-lite/transport/http/sse_event.go</code> side-by-side
+                  <code>go-cqrs-lite/transport/http/sse_event.go</code>
+                  side-by-side
                 </td>
                 <td>8</td>
                 <td>T2</td>
@@ -1803,7 +1999,8 @@
               <tr>
                 <td>T4.2</td>
                 <td>
-                  Read upstream <code>sse_event.go</code> + <code>sse.go</code> consumers + tests
+                  Read upstream <code>sse_event.go</code> +
+                  <code>sse.go</code> consumers + tests
                 </td>
                 <td>10</td>
                 <td>T4.1</td>
@@ -1811,8 +2008,9 @@
               <tr>
                 <td>T4.3</td>
                 <td>
-                  Promote branded <code>SSEEventID</code> + zero-alloc <code>WriteSSEEvent</code> +
-                  <code>ParseSSEEventID</code> into upstream
+                  Promote branded <code>SSEEventID</code> + zero-alloc
+                  <code>WriteSSEEvent</code> + <code>ParseSSEEventID</code> into
+                  upstream
                   <code>transport/http/sse_event.go</code>
                 </td>
                 <td>12</td>
@@ -1820,28 +2018,36 @@
               </tr>
               <tr>
                 <td>T4.4</td>
-                <td>Update/add upstream tests for branded types + zero-alloc</td>
+                <td>
+                  Update/add upstream tests for branded types + zero-alloc
+                </td>
                 <td>12</td>
                 <td>T4.3</td>
               </tr>
               <tr>
                 <td>T4.5</td>
-                <td>Run go-cqrs-lite <code>transport/http</code> tests + full build</td>
+                <td>
+                  Run go-cqrs-lite <code>transport/http</code> tests + full
+                  build
+                </td>
                 <td>10</td>
                 <td>T4.4</td>
               </tr>
               <tr>
                 <td>T4.6</td>
                 <td>
-                  Tag <code>transport/http</code> at needed version (or confirm existing scheme
-                  covers it)
+                  Tag <code>transport/http</code> at needed version (or confirm
+                  existing scheme covers it)
                 </td>
                 <td>8</td>
                 <td>T4.5</td>
               </tr>
               <tr>
                 <td>T4.7</td>
-                <td>Delegate <code>cqrs-htmx/sse_event.go</code> to upstream (alias/rewrite)</td>
+                <td>
+                  Delegate <code>cqrs-htmx/sse_event.go</code> to upstream
+                  (alias/rewrite)
+                </td>
                 <td>10</td>
                 <td>T4.6</td>
               </tr>
@@ -1853,7 +2059,9 @@
               </tr>
               <tr>
                 <td>T4.9</td>
-                <td>Run both repos' SSE-related tests with <code>-race</code></td>
+                <td>
+                  Run both repos' SSE-related tests with <code>-race</code>
+                </td>
                 <td>10</td>
                 <td>T4.8</td>
               </tr>
@@ -1887,19 +2095,25 @@
               </tr>
               <tr>
                 <td>T5.2</td>
-                <td>Reconcile FEATURES.md (45) vs AGENTS.md (49) → correct count</td>
+                <td>
+                  Reconcile FEATURES.md (45) vs AGENTS.md (49) → correct count
+                </td>
                 <td>8</td>
                 <td>T5.1</td>
               </tr>
               <tr>
                 <td>T5.3</td>
-                <td>Update FEATURES.md header + add DLQ FULLY_FUNCTIONAL section</td>
+                <td>
+                  Update FEATURES.md header + add DLQ FULLY_FUNCTIONAL section
+                </td>
                 <td>10</td>
                 <td>T5.2</td>
               </tr>
               <tr>
                 <td>T5.4</td>
-                <td>Update ROADMAP.md: mark A3 (idempotency) + dispatch-DLQ done</td>
+                <td>
+                  Update ROADMAP.md: mark A3 (idempotency) + dispatch-DLQ done
+                </td>
                 <td>8</td>
                 <td>T5.3</td>
               </tr>
@@ -1920,12 +2134,14 @@
         <div class="card card-solution">
           <h4>T6 · A1 — "the last loop every consumer rewrites"</h4>
           <p>
-            Wrap <code>CatchUpSubscriber</code> + <code>stack.Materialize</code> + checkpoint +
-            lifecycle into a managed host: per-projection goroutines, crash auto-restart with
-            exponential backoff, health/liveness, ordered vs parallel routing, graceful drain, and a
-            <strong>projection-tier DLQ hook</strong> (poison event → capture, advance checkpoint,
-            expose for replay). The dispatch DLQ primitive already exists; this is its
-            projection-side counterpart.
+            Wrap <code>CatchUpSubscriber</code> +
+            <code>stack.Materialize</code> + checkpoint + lifecycle into a
+            managed host: per-projection goroutines, crash auto-restart with
+            exponential backoff, health/liveness, ordered vs parallel routing,
+            graceful drain, and a
+            <strong>projection-tier DLQ hook</strong> (poison event → capture,
+            advance checkpoint, expose for replay). The dispatch DLQ primitive
+            already exists; this is its projection-side counterpart.
           </p>
         </div>
         <div class="table-wrap">
@@ -1942,7 +2158,8 @@
               <tr>
                 <td>T6.1</td>
                 <td>
-                  Read existing pieces: <code>projection/</code>, <code>stack/materialize.go</code>,
+                  Read existing pieces: <code>projection/</code>,
+                  <code>stack/materialize.go</code>,
                   <code>watermill/catchup_subscriber.go</code>
                 </td>
                 <td>12</td>
@@ -1952,7 +2169,8 @@
                 <td>T6.2</td>
                 <td>
                   Read checkpoint interfaces:
-                  <code>event.Checkpoint</code>/<code>CheckpointStore</code>, DistributedRunner
+                  <code>event.Checkpoint</code>/<code>CheckpointStore</code>,
+                  DistributedRunner
                 </td>
                 <td>10</td>
                 <td>T6.1</td>
@@ -1960,7 +2178,8 @@
               <tr>
                 <td>T6.3</td>
                 <td>
-                  Read <code>middleware/deadletter.go</code> to design the projection-tier DLQ hook
+                  Read <code>middleware/deadletter.go</code> to design the
+                  projection-tier DLQ hook
                 </td>
                 <td>12</td>
                 <td>T6.1</td>
@@ -1968,8 +2187,9 @@
               <tr>
                 <td>T6.4</td>
                 <td>
-                  <strong>Design data model FIRST</strong>: HostConfig, ProjectionWorker, lifecycle
-                  states (make invalid states unrepresentable)
+                  <strong>Design data model FIRST</strong>: HostConfig,
+                  ProjectionWorker, lifecycle states (make invalid states
+                  unrepresentable)
                 </td>
                 <td>12</td>
                 <td>T6.1-3</td>
@@ -1977,23 +2197,26 @@
               <tr>
                 <td>T6.5</td>
                 <td>
-                  Design lifecycle: per-projection goroutines, crash auto-restart, exponential
-                  backoff, graceful drain
+                  Design lifecycle: per-projection goroutines, crash
+                  auto-restart, exponential backoff, graceful drain
                 </td>
                 <td>12</td>
                 <td>T6.4</td>
               </tr>
               <tr>
                 <td>T6.6</td>
-                <td>Design health/liveness + ordered vs parallel routing policy</td>
+                <td>
+                  Design health/liveness + ordered vs parallel routing policy
+                </td>
                 <td>10</td>
                 <td>T6.5</td>
               </tr>
               <tr>
                 <td>T6.7</td>
                 <td>
-                  Create module skeleton: <code>projectionhost/</code> (or revive
-                  <code>runtime/</code>) <code>go.mod</code> + <code>doc.go</code>
+                  Create module skeleton: <code>projectionhost/</code> (or
+                  revive <code>runtime/</code>) <code>go.mod</code> +
+                  <code>doc.go</code>
                 </td>
                 <td>8</td>
                 <td>T6.6</td>
@@ -2006,15 +2229,18 @@
               </tr>
               <tr>
                 <td>T6.9</td>
-                <td>Implement checkpoint management (load/save per projection, persistence)</td>
+                <td>
+                  Implement checkpoint management (load/save per projection,
+                  persistence)
+                </td>
                 <td>12</td>
                 <td>T6.8</td>
               </tr>
               <tr>
                 <td>T6.10</td>
                 <td>
-                  Implement subscription lifecycle (subscribe via CatchUpSubscriber, handle,
-                  ack/nack)
+                  Implement subscription lifecycle (subscribe via
+                  CatchUpSubscriber, handle, ack/nack)
                 </td>
                 <td>12</td>
                 <td>T6.9</td>
@@ -2028,15 +2254,18 @@
               <tr>
                 <td>T6.12</td>
                 <td>
-                  Implement projection-tier DLQ hook (capture poison event, advance checkpoint,
-                  expose for replay)
+                  Implement projection-tier DLQ hook (capture poison event,
+                  advance checkpoint, expose for replay)
                 </td>
                 <td>12</td>
                 <td>T6.10</td>
               </tr>
               <tr>
                 <td>T6.13</td>
-                <td>Implement graceful drain on shutdown (ctx cancel, drain in-flight, stop)</td>
+                <td>
+                  Implement graceful drain on shutdown (ctx cancel, drain
+                  in-flight, stop)
+                </td>
                 <td>12</td>
                 <td>T6.10</td>
               </tr>
@@ -2048,7 +2277,10 @@
               </tr>
               <tr>
                 <td>T6.15</td>
-                <td>Implement health/liveness reporting (running/stopped/error + lag)</td>
+                <td>
+                  Implement health/liveness reporting (running/stopped/error +
+                  lag)
+                </td>
                 <td>10</td>
                 <td>T6.13</td>
               </tr>
@@ -2078,7 +2310,9 @@
               </tr>
               <tr>
                 <td>T6.20</td>
-                <td>Tests: graceful drain completes in-flight, no event loss</td>
+                <td>
+                  Tests: graceful drain completes in-flight, no event loss
+                </td>
                 <td>12</td>
                 <td>T6.16</td>
               </tr>
@@ -2102,7 +2336,9 @@
               </tr>
               <tr>
                 <td>T6.24</td>
-                <td>Full workspace build + vet + test with <code>-race</code></td>
+                <td>
+                  Full workspace build + vet + test with <code>-race</code>
+                </td>
                 <td>10</td>
                 <td>T6.23</td>
               </tr>
@@ -2122,7 +2358,9 @@
           </table>
         </div>
 
-        <h2 id="tier4"><span class="num">08</span>Tier 4 — Production Hardening + DX</h2>
+        <h2 id="tier4">
+          <span class="num">08</span>Tier 4 — Production Hardening + DX
+        </h2>
 
         <h3>T7 · Redis/SQL IdempotencyStore backends</h3>
         <div class="table-wrap">
@@ -2139,8 +2377,8 @@
               <tr>
                 <td>T7.1</td>
                 <td>
-                  Design: confirm <code>Store</code> is backend-agnostic; design Redis atomic op
-                  (<code>SET NX EX</code> / Lua)
+                  Design: confirm <code>Store</code> is backend-agnostic; design
+                  Redis atomic op (<code>SET NX EX</code> / Lua)
                 </td>
                 <td>10</td>
                 <td>T2</td>
@@ -2148,32 +2386,45 @@
               <tr>
                 <td>T7.2</td>
                 <td>
-                  Design SQL schema + atomic query (<code>INSERT ... ON CONFLICT DO NOTHING</code>)
+                  Design SQL schema + atomic query (<code
+                    >INSERT ... ON CONFLICT DO NOTHING</code
+                  >)
                 </td>
                 <td>10</td>
                 <td>T7.1</td>
               </tr>
               <tr>
                 <td>T7.3</td>
-                <td>Implement <code>RedisStore</code> (atomic <code>CheckAndRecord</code>)</td>
+                <td>
+                  Implement <code>RedisStore</code> (atomic
+                  <code>CheckAndRecord</code>)
+                </td>
                 <td>12</td>
                 <td>T7.1</td>
               </tr>
               <tr>
                 <td>T7.4</td>
-                <td>Tests for RedisStore (miniredis/testcontainers, atomicity, TTL)</td>
+                <td>
+                  Tests for RedisStore (miniredis/testcontainers, atomicity,
+                  TTL)
+                </td>
                 <td>12</td>
                 <td>T7.3</td>
               </tr>
               <tr>
                 <td>T7.5</td>
-                <td>Implement <code>SQLStore</code> (Postgres + SQLite, atomic tx)</td>
+                <td>
+                  Implement <code>SQLStore</code> (Postgres + SQLite, atomic tx)
+                </td>
                 <td>12</td>
                 <td>T7.2</td>
               </tr>
               <tr>
                 <td>T7.6</td>
-                <td>Tests for SQLStore (testcontainers/in-memory SQLite, atomicity, TTL)</td>
+                <td>
+                  Tests for SQLStore (testcontainers/in-memory SQLite,
+                  atomicity, TTL)
+                </td>
                 <td>12</td>
                 <td>T7.5</td>
               </tr>
@@ -2208,29 +2459,36 @@
               <tr>
                 <td>T8.1</td>
                 <td>
-                  Read <code>docs/outbox-explained.html</code> + ADR-0016 for relay-vs-outbox
-                  tradeoff
+                  Read <code>docs/outbox-explained.html</code> + ADR-0016 for
+                  relay-vs-outbox tradeoff
                 </td>
                 <td>12</td>
                 <td>T6</td>
               </tr>
               <tr>
                 <td>T8.2</td>
-                <td>Design data model: OutboxMessage, OutboxSink/Source/Store, OutboxRelay</td>
+                <td>
+                  Design data model: OutboxMessage, OutboxSink/Source/Store,
+                  OutboxRelay
+                </td>
                 <td>12</td>
                 <td>T8.1</td>
               </tr>
               <tr>
                 <td>T8.3</td>
                 <td>
-                  Design transactional hook: write outbox row in same TX as aggregate (shared-DB)
+                  Design transactional hook: write outbox row in same TX as
+                  aggregate (shared-DB)
                 </td>
                 <td>12</td>
                 <td>T8.2</td>
               </tr>
               <tr>
                 <td>T8.4</td>
-                <td>Create module skeleton: <code>outbox/</code> go.mod + doc.go + go.work</td>
+                <td>
+                  Create module skeleton: <code>outbox/</code> go.mod + doc.go +
+                  go.work
+                </td>
                 <td>8</td>
                 <td>T8.3</td>
               </tr>
@@ -2248,13 +2506,18 @@
               </tr>
               <tr>
                 <td>T8.7</td>
-                <td>Implement OutboxRelay (poll: read unsent → publish → mark sent)</td>
+                <td>
+                  Implement OutboxRelay (poll: read unsent → publish → mark
+                  sent)
+                </td>
                 <td>12</td>
                 <td>T8.6</td>
               </tr>
               <tr>
                 <td>T8.8</td>
-                <td>Implement crash recovery + at-least-once + idempotent publish</td>
+                <td>
+                  Implement crash recovery + at-least-once + idempotent publish
+                </td>
                 <td>12</td>
                 <td>T8.7</td>
               </tr>
@@ -2302,7 +2565,10 @@
                 <td>T9.1</td>
                 <td>
                   Design fluent API:
-                  <code>decider.Given(evts...).When(cmd).Then(expected, state)</code>
+                  <code
+                    >decider.Given(evts...).When(cmd).Then(expected,
+                    state)</code
+                  >
                 </td>
                 <td>12</td>
                 <td>T6</td>
@@ -2315,19 +2581,26 @@
               </tr>
               <tr>
                 <td>T9.3</td>
-                <td>Create module skeleton: <code>testing/</code> go.mod + doc.go + go.work</td>
+                <td>
+                  Create module skeleton: <code>testing/</code> go.mod + doc.go
+                  + go.work
+                </td>
                 <td>8</td>
                 <td>T9.2</td>
               </tr>
               <tr>
                 <td>T9.4</td>
-                <td>Implement AggregateTester / DeciderTester (Given/When/Then)</td>
+                <td>
+                  Implement AggregateTester / DeciderTester (Given/When/Then)
+                </td>
                 <td>12</td>
                 <td>T9.3</td>
               </tr>
               <tr>
                 <td>T9.5</td>
-                <td>Implement ProjectionTester (replay events, assert state)</td>
+                <td>
+                  Implement ProjectionTester (replay events, assert state)
+                </td>
                 <td>12</td>
                 <td>T9.4</td>
               </tr>
@@ -2373,13 +2646,19 @@
             <tbody>
               <tr>
                 <td>T10.1</td>
-                <td>Design: timer store (events at future time) + dispatcher poll loop</td>
+                <td>
+                  Design: timer store (events at future time) + dispatcher poll
+                  loop
+                </td>
                 <td>12</td>
                 <td>—</td>
               </tr>
               <tr>
                 <td>T10.2</td>
-                <td>Create module skeleton: <code>scheduling/</code> go.mod + doc.go + go.work</td>
+                <td>
+                  Create module skeleton: <code>scheduling/</code> go.mod +
+                  doc.go + go.work
+                </td>
                 <td>8</td>
                 <td>T10.1</td>
               </tr>
@@ -2391,7 +2670,10 @@
               </tr>
               <tr>
                 <td>T10.4</td>
-                <td>Implement scheduler dispatcher (poll due timers → dispatch commands)</td>
+                <td>
+                  Implement scheduler dispatcher (poll due timers → dispatch
+                  commands)
+                </td>
                 <td>12</td>
                 <td>T10.3</td>
               </tr>
@@ -2422,10 +2704,14 @@
           <span class="tier-badge tb5">out of audit scope</span>
         </h2>
         <div class="card card-warning">
-          <h4>T11 · Offline-first Phase 2 (SharedWorker / Service Worker + Background Sync)</h4>
+          <h4>
+            T11 · Offline-first Phase 2 (SharedWorker / Service Worker +
+            Background Sync)
+          </h4>
           <p>
-            Separate feature track inside cqrs-htmx, not part of the library organisation audit. Q2
-            still open: <em>must writes survive closed tabs?</em> Listed for completeness.
+            Separate feature track inside cqrs-htmx, not part of the library
+            organisation audit. Q2 still open:
+            <em>must writes survive closed tabs?</em> Listed for completeness.
           </p>
         </div>
         <div class="table-wrap">
@@ -2442,7 +2728,8 @@
               <tr>
                 <td>T11.1</td>
                 <td>
-                  Resolve Q2: SharedWorker vs Service Worker + Background Sync — design decision
+                  Resolve Q2: SharedWorker vs Service Worker + Background Sync —
+                  design decision
                 </td>
                 <td>12</td>
                 <td>—</td>
@@ -2457,38 +2744,40 @@
           </table>
         </div>
         <div class="callout callout-warning">
-          <strong>Scope note</strong> T11 decomposes into a large feature effort (T11.3+) best
-          planned separately once the library audit (T1–T5) and the #1 framework gap (T6) are
-          closed.
+          <strong>Scope note</strong> T11 decomposes into a large feature effort
+          (T11.3+) best planned separately once the library audit (T1–T5) and
+          the #1 framework gap (T6) are closed.
         </div>
 
         <h2><span class="num">10</span>Recommended Execution Order</h2>
         <div class="card card-problem">
           <h4>Do T1 → T2 first, immediately</h4>
           <p>
-            ~50 min of work restores clean commits and publishes the module. This unlocks everything
-            else and is the highest leverage move by a wide margin.
+            ~50 min of work restores clean commits and publishes the module.
+            This unlocks everything else and is the highest leverage move by a
+            wide margin.
           </p>
         </div>
         <div class="card card-solution">
           <h4>Then T3 → T4 → T5 to finish the audit (~2.5 h)</h4>
           <p>
-            Closes the original cross-repo goal: zero harmful duplication, single source of truth,
-            honest docs.
+            Closes the original cross-repo goal: zero harmful duplication,
+            single source of truth, honest docs.
           </p>
         </div>
         <div class="card">
           <h4>Then T6 — the big one (~5 h, 26 subtasks)</h4>
           <p>
-            The Managed Projection Host is the single component that turns the library into an ES
-            runtime. Design the data model first (T6.4) per the data-models-first principle.
+            The Managed Projection Host is the single component that turns the
+            library into an ES runtime. Design the data model first (T6.4) per
+            the data-models-first principle.
           </p>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-29 &middot; Pareto planning skill &middot; Sources: gap analysis
-          (framework-os-gaps.html), TODO_LIST.md ×2, FEATURES.md, gap-analysis extraction, repo grep
-          (DLQ/SSE/BuildFlow)
+          Generated 2026-06-29 &middot; Pareto planning skill &middot; Sources:
+          gap analysis (framework-os-gaps.html), TODO_LIST.md ×2, FEATURES.md,
+          gap-analysis extraction, repo grep (DLQ/SSE/BuildFlow)
         </footer>
       </main>
     </div>

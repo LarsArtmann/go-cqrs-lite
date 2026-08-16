@@ -105,6 +105,7 @@ Session resuming `docs/planning/2026-08-16_13-40_SUPERB-DOCS-HEALTH-ANNOTATE-ARC
 ## f) Up to 50 things we should get done next (prioritized)
 
 **Finish Wave F (immediate):**
+
 1. Re-run the fixed `/tmp/annotate_1051.py` (10-51: 55 verdicts coded).
 2. Annotate 11-00 (§b 2, §c 4, §f 21 — most verdicts already derivable from this session's
    evidence: hook fixed, golden regen, full verify GREEN, AGENTS replace-hygiene gotcha added
@@ -121,7 +122,7 @@ Session resuming `docs/planning/2026-08-16_13-40_SUPERB-DOCS-HEALTH-ANNOTATE-ARC
 9. Run doc-check gate: `cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" .
    ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`.
 10. Cross-file consistency sweep (TODO_LIST ↔ FEATURES ↔ CHANGELOG ↔ annotations; no
-    completed item double-listed; marker-style union regex).
+completed item double-listed; marker-style union regex).
 11. Emit the INLINE health report (Accuracy + Fitness, visible math, per-doc table).
 12. Final commit + push (authorized by the 13-40 plan).
 
@@ -129,10 +130,10 @@ Session resuming `docs/planning/2026-08-16_13-40_SUPERB-DOCS-HEALTH-ANNOTATE-ARC
 13. pebble/bbolt standalone RED until event re-tag ships adopt API (TODO_LIST 🔥).
 14. `092b5e8a8`/`4907b6afc` still off master (retract directives not on master command/query).
 15. projectionhost checkpoint-options tag + master pin bumps (command/query→metadata v4.5.x,
-    stack/mysql→storage v4.7.x).
+stack/mysql→storage v4.7.x).
 16. `/tmp/cqrs-tagwt` worktree still registered — `git worktree remove` cleanup.
 17. `metaJSON, _ :=` silent-discard residues: `system/adapter_command_serial.go:26`,
-    `adapter_query_serial.go:24` (same ADR-0126 class as the fixed event one).
+`adapter_query_serial.go:24` (same ADR-0126 class as the fixed event one).
 18. ScanSlice cap-64 → RowCount() pre-size.
 19. relational/projection.go one-tx-per-event batching.
 20. kv.Cache shared `*T` → copy-on-write.
@@ -140,7 +141,7 @@ Session resuming `docs/planning/2026-08-16_13-40_SUPERB-DOCS-HEALTH-ANNOTATE-ARC
 22. Planner costs don't model COPY append path.
 23. bbolt deserializeEvent benchmark (last extrapolated claim standing).
 24. AGENTS.md MySQL-VM gotchas ×3 (port 33070 check, GOWORK=off-tag default path, shared-DB
-    isolation) — from 04-00 f.48–50.
+isolation) — from 04-00 f.48–50.
 25. AGENTS.md retraction-incident note + CONTRIBUTING retract-and-republish pattern.
 26. GitHub Releases for the 22-tag chain (needs gh auth).
 27. v5 endgame plan sits in `stash@{0}` (detached-HEAD WIP) — never landed on master.
@@ -151,7 +152,7 @@ Session resuming `docs/planning/2026-08-16_13-40_SUPERB-DOCS-HEALTH-ANNOTATE-ARC
 **Process (next docs session):**
 31. Promote the annotation helper into `scripts/` with tests (e.1).
 32. Normalize marker style going forward: `done at <hash>` for shippables, `done — <fact>` for
-    verifications, keep both in the sweep regex.
+verifications, keep both in the sweep regex.
 
 ## g) QUESTIONS (cannot resolve from the repo alone)
 

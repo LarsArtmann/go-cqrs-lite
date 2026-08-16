@@ -47,14 +47,14 @@
 
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
 
       * {
@@ -260,15 +260,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
 
       .issue {
@@ -280,15 +292,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue h3 {
         margin-bottom: 0.3rem;
@@ -624,9 +648,10 @@
           <div class="hero-badge">Session Status</div>
           <h1>Turso MVCC Research + Projectionhost Hardening + Docs Sweep</h1>
           <p class="hero-subtitle">
-            Three work streams collided in the working tree: a completed Turso/LibSQL docs rebrand
-            (committed), an in-flight projectionhost production hardening (9/13 tasks coded,
-            uncommitted), and a MaxOpenConns/MVCC research deep-dive with documentation (this
+            Three work streams collided in the working tree: a completed
+            Turso/LibSQL docs rebrand (committed), an in-flight projectionhost
+            production hardening (9/13 tasks coded, uncommitted), and a
+            MaxOpenConns/MVCC research deep-dive with documentation (this
             session).
           </p>
         </div>
@@ -669,12 +694,14 @@
         <div class="card card-solution">
           <h4>Session scope</h4>
           <p>
-            <strong>This session</strong> (the conversation you're reading) did two things: (1)
-            researched whether <code>MaxOpenConns=1</code> is still needed with the Turso MVCC
-            engine, and (2) documented the findings in <code>TODO_LIST.md</code> and
-            <code>storage/sqlite_helpers.go</code>. <strong>A concurrent session</strong> did the
-            Turso docs rebrand (committed) and started the projectionhost production hardening (9/13
-            tasks coded, uncommitted).
+            <strong>This session</strong> (the conversation you're reading) did
+            two things: (1) researched whether <code>MaxOpenConns=1</code> is
+            still needed with the Turso MVCC engine, and (2) documented the
+            findings in <code>TODO_LIST.md</code> and
+            <code>storage/sqlite_helpers.go</code>.
+            <strong>A concurrent session</strong> did the Turso docs rebrand
+            (committed) and started the projectionhost production hardening
+            (9/13 tasks coded, uncommitted).
           </p>
         </div>
 
@@ -686,18 +713,24 @@
           <h3>MaxOpenConns=1 research &mdash; definitive answer</h3>
           <div class="where">storage/sqlite_helpers.go, TODO_LIST.md</div>
           <p>
-            Researched Turso's concurrency model via official docs and blog posts.
-            <strong>Verdict: <code>MaxOpenConns=1</code> is still the correct default.</strong> The
-            Turso Database engine defaults to WAL mode, which &mdash; like SQLite WAL &mdash;
-            serializes writes through a single exclusive lock. MVCC mode exists but is experimental,
-            requires <code>BEGIN CONCURRENT</code> (not <code>BEGIN</code>), and needs
+            Researched Turso's concurrency model via official docs and blog
+            posts.
+            <strong
+              >Verdict: <code>MaxOpenConns=1</code> is still the correct
+              default.</strong
+            >
+            The Turso Database engine defaults to WAL mode, which &mdash; like
+            SQLite WAL &mdash; serializes writes through a single exclusive
+            lock. MVCC mode exists but is experimental, requires
+            <code>BEGIN CONCURRENT</code> (not <code>BEGIN</code>), and needs
             application-level conflict-retry logic. Not actionable today.
           </p>
           <div class="callout callout-solution">
             <strong>Delivered</strong>
-            Comprehensive comment on <code>ConfigureTursoPool</code> explaining WAL-mode rationale,
-            read-concurrency tradeoff, and MVCC path forward. TODO_LIST.md entry with
-            <code>[BLOCKED UPSTREAM]</code> tag and unblock criteria.
+            Comprehensive comment on <code>ConfigureTursoPool</code> explaining
+            WAL-mode rationale, read-concurrency tradeoff, and MVCC path
+            forward. TODO_LIST.md entry with <code>[BLOCKED UPSTREAM]</code> tag
+            and unblock criteria.
           </div>
         </div>
 
@@ -705,19 +738,22 @@
           <span class="severity severity-nice">Verified</span>
           <h3>Turso/LibSQL docs rebrand (committed prior)</h3>
           <div class="where">
-            commit 2f3b0875 — 28+ files across 11 Go sources, 17 markdown, 4 skill docs
+            commit 2f3b0875 — 28+ files across 11 Go sources, 17 markdown, 4
+            skill docs
           </div>
           <p>
-            All "LibSQL" prose branding swept to "Turso Database". URL examples changed from
-            <code>libsql://</code> to <code>https://</code>. Historical docs (archive, ADR,
-            research) intentionally left untouched. Bug fix: <code>STORAGE_GUIDE.md</code> was
-            passing a URL to <code>turso.Open()</code> which takes a <code>DbPath</code> (file
+            All "LibSQL" prose branding swept to "Turso Database". URL examples
+            changed from
+            <code>libsql://</code> to <code>https://</code>. Historical docs
+            (archive, ADR, research) intentionally left untouched. Bug fix:
+            <code>STORAGE_GUIDE.md</code> was passing a URL to
+            <code>turso.Open()</code> which takes a <code>DbPath</code> (file
             path).
           </p>
           <div class="callout callout-solution">
             <strong>Verified</strong>
-            Build clean, tests pass (<code>-race</code>), doc-check reports "All 790 references
-            valid across 34 package(s)".
+            Build clean, tests pass (<code>-race</code>), doc-check reports "All
+            790 references valid across 34 package(s)".
           </div>
         </div>
 
@@ -726,16 +762,21 @@
 
         <div class="issue issue-important">
           <span class="severity severity-important">In-Flight</span>
-          <h3>Projectionhost production hardening (9/13 tasks coded, 0 committed)</h3>
+          <h3>
+            Projectionhost production hardening (9/13 tasks coded, 0 committed)
+          </h3>
           <div class="where">
-            projectionhost/ — host.go, worker.go, options.go, metrics.go, metrics_test.go, go.mod,
-            go.sum
+            projectionhost/ — host.go, worker.go, options.go, metrics.go,
+            metrics_test.go, go.mod, go.sum
           </div>
           <p>
             A 13-task hardening plan was created and partially executed.
-            <strong>9 of 13 tasks are coded in the working tree but uncommitted.</strong> The code
-            builds and tests pass via <code>go.work</code> (2.0s, <code>-race</code>). But there are
-            significant gaps:
+            <strong
+              >9 of 13 tasks are coded in the working tree but
+              uncommitted.</strong
+            >
+            The code builds and tests pass via <code>go.work</code> (2.0s,
+            <code>-race</code>). But there are significant gaps:
           </p>
 
           <table>
@@ -818,8 +859,9 @@
           <div class="callout callout-warning">
             <strong>Tests missing for new features</strong>
             Zero test functions exist for: <code>OnFailed</code> callback,
-            <code>WithShutdownTimeout</code>, <code>Reset</code> method, <code>typeSet</code> O(1)
-            lookup, OTel tracing spans, or the M1 checkpoint-failure-return-error fix. The
+            <code>WithShutdownTimeout</code>, <code>Reset</code> method,
+            <code>typeSet</code> O(1) lookup, OTel tracing spans, or the M1
+            checkpoint-failure-return-error fix. The
             <code>WorkerFailed</code> metric has a mock implementation in
             <code>metrics_test.go</code> but no test that exercises the path.
           </div>
@@ -831,17 +873,19 @@
         <div class="card card-warning">
           <h4>M10: Startup jitter</h4>
           <p>
-            Random 0&ndash;100ms delay before each <code>go w.run()</code> to avoid thundering herd
-            on multi-projection startup. Not implemented. <code>worker.go</code> already has backoff
-            jitter (exponential + full jitter), but that's different from startup jitter.
+            Random 0&ndash;100ms delay before each <code>go w.run()</code> to
+            avoid thundering herd on multi-projection startup. Not implemented.
+            <code>worker.go</code> already has backoff jitter (exponential +
+            full jitter), but that's different from startup jitter.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>M11: Integration test for checkpoint failure</h4>
           <p>
-            No test proves that M1 (live checkpoint error now returns error instead of being
-            swallowed) causes a worker restart. This was the highest-value test in the plan.
+            No test proves that M1 (live checkpoint error now returns error
+            instead of being swallowed) causes a worker restart. This was the
+            highest-value test in the plan.
           </p>
         </div>
 
@@ -849,19 +893,21 @@
           <h4>M12: Documentation update</h4>
           <p>
             <code>doc.go</code> has zero mentions of any new feature
-            (<code>WithShutdownTimeout</code>, <code>WithOnFailed</code>, <code>Reset</code>,
-            <code>Resettable</code>, <code>WorkerFailed</code>, OTel tracing). AGENTS.md, SKILL.md,
-            and README are similarly untouched.
+            (<code>WithShutdownTimeout</code>, <code>WithOnFailed</code>,
+            <code>Reset</code>, <code>Resettable</code>,
+            <code>WorkerFailed</code>, OTel tracing). AGENTS.md, SKILL.md, and
+            README are similarly untouched.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>M13: Full verification</h4>
           <p>
-            <code>go test ./projectionhost/... -race</code> passes via go.work, but
-            <code>GOWORK=off go test</code> fails with a stale <code>go.sum</code> entry (missing
-            <code>scheduling/v3</code>). <code>nix run .#lint</code> and
-            <code>nix run .#build</code> have not been run on the full repo.
+            <code>go test ./projectionhost/... -race</code> passes via go.work,
+            but <code>GOWORK=off go test</code> fails with a stale
+            <code>go.sum</code> entry (missing <code>scheduling/v3</code>).
+            <code>nix run .#lint</code> and <code>nix run .#build</code> have
+            not been run on the full repo.
           </p>
         </div>
 
@@ -871,25 +917,29 @@
         <div class="issue issue-critical">
           <span class="severity severity-critical">Fucked Up</span>
           <h3>go.sum is broken for GOWORK=off builds</h3>
-          <div class="where">projectionhost/go.sum — missing scheduling/v3 entry</div>
+          <div class="where">
+            projectionhost/go.sum — missing scheduling/v3 entry
+          </div>
           <p>
-            <code>GOWORK=off go test ./projectionhost/...</code> fails: "missing go.sum entry for
-            module providing package
-            <code>github.com/larsartmann/go-cqrs-lite/scheduling/v3</code>". This is because
-            <code>storage/</code> imports <code>scheduling/</code> (via
-            <code>timer_store.go</code>), and the replace directive in
-            <code>projectionhost/go.mod</code> points to <code>../dedup</code> but the go.sum wasn't
-            regenerated with <code>go mod tidy</code>.
+            <code>GOWORK=off go test ./projectionhost/...</code> fails: "missing
+            go.sum entry for module providing package
+            <code>github.com/larsartmann/go-cqrs-lite/scheduling/v3</code>".
+            This is because <code>storage/</code> imports
+            <code>scheduling/</code> (via <code>timer_store.go</code>), and the
+            replace directive in <code>projectionhost/go.mod</code> points to
+            <code>../dedup</code> but the go.sum wasn't regenerated with
+            <code>go mod tidy</code>.
           </p>
           <p>
-            <strong>Impact:</strong> CI (which uses <code>GOWORK=off</code> per-module) will fail on
-            projectionhost. This is a <strong>release blocker</strong> if the projectionhost changes
-            are committed without fixing go.sum.
+            <strong>Impact:</strong> CI (which uses
+            <code>GOWORK=off</code> per-module) will fail on projectionhost.
+            This is a <strong>release blocker</strong> if the projectionhost
+            changes are committed without fixing go.sum.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Run <code>cd projectionhost && GOWORK=off go mod tidy</code> to regenerate go.sum with
-            all transitive replace-directive deps.
+            Run <code>cd projectionhost && GOWORK=off go mod tidy</code> to
+            regenerate go.sum with all transitive replace-directive deps.
           </div>
         </div>
 
@@ -897,21 +947,24 @@
           <span class="severity severity-critical">Fucked Up</span>
           <h3>Zero tests for 7 new projectionhost features</h3>
           <div class="where">
-            projectionhost/*_test.go — no coverage for M1, M3, M4, M5, M6, M8, M9
+            projectionhost/*_test.go — no coverage for M1, M3, M4, M5, M6, M8,
+            M9
           </div>
           <p>
-            The concurrent session coded 7 new features but wrote <strong>zero tests</strong> for
-            any of them. The only test change is adding <code>WorkerFailed</code> to the mock in
-            <code>metrics_test.go</code> — and even that has no test exercising the path. For a
-            library that bills itself as "the last loop every consumer rewrites," shipping untested
-            lifecycle code is dangerous.
+            The concurrent session coded 7 new features but wrote
+            <strong>zero tests</strong> for any of them. The only test change is
+            adding <code>WorkerFailed</code> to the mock in
+            <code>metrics_test.go</code> — and even that has no test exercising
+            the path. For a library that bills itself as "the last loop every
+            consumer rewrites," shipping untested lifecycle code is dangerous.
           </p>
           <div class="callout callout-warning">
             <strong>Risk</strong>
-            The M1 fix (checkpoint error now returns error) changes the live-processing contract. If
-            a worker doesn't actually restart on checkpoint failure, the fix is worse than the
-            original — it turns a logged warning into a silent worker death with no test to catch
-            the regression.
+            The M1 fix (checkpoint error now returns error) changes the
+            live-processing contract. If a worker doesn't actually restart on
+            checkpoint failure, the fix is worse than the original — it turns a
+            logged warning into a silent worker death with no test to catch the
+            regression.
           </div>
         </div>
 
@@ -922,11 +975,14 @@
           <div class="strength">
             <div class="check">!</div>
             <div class="text">
-              <strong>Test-first discipline for the projectionhost session</strong>
+              <strong
+                >Test-first discipline for the projectionhost session</strong
+              >
               <span
-                >7 features coded with zero tests. This is the biggest quality debt in the working
-                tree. Every M-task in the plan had test tasks (F3, F13, F18, F26, F30,
-                F37&ndash;F38, F43, F47) &mdash; none were executed.</span
+                >7 features coded with zero tests. This is the biggest quality
+                debt in the working tree. Every M-task in the plan had test
+                tasks (F3, F13, F18, F26, F30, F37&ndash;F38, F43, F47) &mdash;
+                none were executed.</span
               >
             </div>
           </div>
@@ -935,8 +991,9 @@
             <div class="text">
               <strong>go.sum hygiene after adding replace directives</strong>
               <span
-                >When adding <code>dedup/v3 => ../dedup</code> to projectionhost/go.mod, the session
-                didn't run <code>go mod tidy</code> with <code>GOWORK=off</code>. CI uses
+                >When adding <code>dedup/v3 => ../dedup</code> to
+                projectionhost/go.mod, the session didn't run
+                <code>go mod tidy</code> with <code>GOWORK=off</code>. CI uses
                 <code>GOWORK=off</code> per-module, so this would fail.</span
               >
             </div>
@@ -944,35 +1001,45 @@
           <div class="strength">
             <div class="check">!</div>
             <div class="text">
-              <strong>Commit granularity &mdash; too much uncommitted at once</strong>
+              <strong
+                >Commit granularity &mdash; too much uncommitted at once</strong
+              >
               <span
-                >9 features across 7 files, all uncommitted, intermingled with my MaxOpenConns
-                documentation changes. Should be split into logical commits (bug fixes vs features
-                vs docs) before committing.</span
+                >9 features across 7 files, all uncommitted, intermingled with
+                my MaxOpenConns documentation changes. Should be split into
+                logical commits (bug fixes vs features vs docs) before
+                committing.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">!</div>
             <div class="text">
-              <strong>doc.go is stale &mdash; package docs don't mention any new API</strong>
+              <strong
+                >doc.go is stale &mdash; package docs don't mention any new
+                API</strong
+              >
               <span
-                ><code>projectionhost/doc.go</code> is 27 lines. It describes the basic
-                Start/Stop/Register flow but has zero mentions of <code>WithShutdownTimeout</code>,
-                <code>WithOnFailed</code>, <code>Reset</code>, <code>Resettable</code>, or OTel
-                tracing. Consumers reading the package docs won't know these features exist.</span
+                ><code>projectionhost/doc.go</code> is 27 lines. It describes
+                the basic Start/Stop/Register flow but has zero mentions of
+                <code>WithShutdownTimeout</code>, <code>WithOnFailed</code>,
+                <code>Reset</code>, <code>Resettable</code>, or OTel tracing.
+                Consumers reading the package docs won't know these features
+                exist.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>MaxOpenConns research was thorough and well-documented</strong>
+              <strong
+                >MaxOpenConns research was thorough and well-documented</strong
+              >
               <span
-                >The research went deep (3 agentic_fetch calls, official docs + blog posts),
-                produced a definitive answer, and was documented in two places (code comment +
-                TODO_LIST) with unblock criteria. This is how research tasks should be
-                handled.</span
+                >The research went deep (3 agentic_fetch calls, official docs +
+                blog posts), produced a definitive answer, and was documented in
+                two places (code comment + TODO_LIST) with unblock criteria.
+                This is how research tasks should be handled.</span
               >
             </div>
           </div>
@@ -1005,8 +1072,8 @@
               <tr>
                 <td>2</td>
                 <td>
-                  <strong>Write M1 test</strong> &mdash; checkpoint save failure in live mode
-                  returns error &amp; triggers restart
+                  <strong>Write M1 test</strong> &mdash; checkpoint save failure
+                  in live mode returns error &amp; triggers restart
                 </td>
                 <td><span class="badge badge-critical">Critical</span></td>
                 <td>30min</td>
@@ -1015,8 +1082,8 @@
               <tr>
                 <td>3</td>
                 <td>
-                  <strong>Write M4 test</strong> &mdash; <code>WithShutdownTimeout</code> custom
-                  value is respected
+                  <strong>Write M4 test</strong> &mdash;
+                  <code>WithShutdownTimeout</code> custom value is respected
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>15min</td>
@@ -1025,8 +1092,8 @@
               <tr>
                 <td>4</td>
                 <td>
-                  <strong>Write M6 test</strong> &mdash; <code>OnFailed</code> fires on
-                  max-restarts-exhausted
+                  <strong>Write M6 test</strong> &mdash;
+                  <code>OnFailed</code> fires on max-restarts-exhausted
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>20min</td>
@@ -1035,8 +1102,9 @@
               <tr>
                 <td>5</td>
                 <td>
-                  <strong>Write M8 test</strong> &mdash; <code>Reset(name)</code> drops checkpoint
-                  &amp; projection state
+                  <strong>Write M8 test</strong> &mdash;
+                  <code>Reset(name)</code> drops checkpoint &amp; projection
+                  state
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>30min</td>
@@ -1045,7 +1113,8 @@
               <tr>
                 <td>6</td>
                 <td>
-                  <strong>Write M9 test</strong> &mdash; typeSet correctly filters events by type
+                  <strong>Write M9 test</strong> &mdash; typeSet correctly
+                  filters events by type
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>15min</td>
@@ -1054,8 +1123,8 @@
               <tr>
                 <td>7</td>
                 <td>
-                  <strong>Update projectionhost/doc.go</strong> &mdash; document all new options and
-                  types
+                  <strong>Update projectionhost/doc.go</strong> &mdash; document
+                  all new options and types
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>30min</td>
@@ -1064,8 +1133,8 @@
               <tr>
                 <td>8</td>
                 <td>
-                  <strong>Split and commit projectionhost work</strong> &mdash; separate bug fixes
-                  (M1, M2) from features (M3-M9)
+                  <strong>Split and commit projectionhost work</strong> &mdash;
+                  separate bug fixes (M1, M2) from features (M3-M9)
                 </td>
                 <td><span class="badge badge-critical">Critical</span></td>
                 <td>20min</td>
@@ -1074,8 +1143,8 @@
               <tr>
                 <td>9</td>
                 <td>
-                  <strong>Commit MaxOpenConns documentation</strong> &mdash; TODO_LIST.md +
-                  sqlite_helpers.go
+                  <strong>Commit MaxOpenConns documentation</strong> &mdash;
+                  TODO_LIST.md + sqlite_helpers.go
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>5min</td>
@@ -1084,7 +1153,8 @@
               <tr>
                 <td>10</td>
                 <td>
-                  <strong>M10: Startup jitter</strong> &mdash; 0&ndash;100ms random delay before
+                  <strong>M10: Startup jitter</strong> &mdash; 0&ndash;100ms
+                  random delay before
                   <code>go w.run()</code>
                 </td>
                 <td><span class="badge badge-low">Low</span></td>
@@ -1094,8 +1164,8 @@
               <tr>
                 <td>11</td>
                 <td>
-                  <strong>Run <code>nix run .#lint</code></strong> on full repo after projectionhost
-                  changes
+                  <strong>Run <code>nix run .#lint</code></strong> on full repo
+                  after projectionhost changes
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>10min</td>
@@ -1113,7 +1183,8 @@
               <tr>
                 <td>13</td>
                 <td>
-                  <strong>Update AGENTS.md projectionhost description</strong> with new features
+                  <strong>Update AGENTS.md projectionhost description</strong>
+                  with new features
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>10min</td>
@@ -1121,7 +1192,10 @@
               </tr>
               <tr>
                 <td>14</td>
-                <td><strong>Update SKILL.md modules.md</strong> with projectionhost new API</td>
+                <td>
+                  <strong>Update SKILL.md modules.md</strong> with
+                  projectionhost new API
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>5min</td>
                 <td>Docs</td>
@@ -1136,8 +1210,8 @@
               <tr>
                 <td>16</td>
                 <td>
-                  <strong>Update API surface golden file</strong> (<code>api-stability</code>) for
-                  new exports
+                  <strong>Update API surface golden file</strong>
+                  (<code>api-stability</code>) for new exports
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>10min</td>
@@ -1146,7 +1220,8 @@
               <tr>
                 <td>17</td>
                 <td>
-                  <strong>Add projectionhost README.md</strong> if it doesn't exist, or update it
+                  <strong>Add projectionhost README.md</strong> if it doesn't
+                  exist, or update it
                 </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>20min</td>
@@ -1155,8 +1230,8 @@
               <tr>
                 <td>18</td>
                 <td>
-                  <strong>Verify OTel spans</strong> &mdash; run with stdout exporter to confirm
-                  span names/attributes
+                  <strong>Verify OTel spans</strong> &mdash; run with stdout
+                  exporter to confirm span names/attributes
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>20min</td>
@@ -1165,8 +1240,8 @@
               <tr>
                 <td>19</td>
                 <td>
-                  <strong>Update FEATURES.md</strong> with projectionhost production-hardening
-                  features
+                  <strong>Update FEATURES.md</strong> with projectionhost
+                  production-hardening features
                 </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>15min</td>
@@ -1188,8 +1263,8 @@
               <tr>
                 <td>21</td>
                 <td>
-                  <strong>Stress test the dedup.Ring boundary</strong> &mdash; verify eviction
-                  doesn't cause replay→live duplicates
+                  <strong>Stress test the dedup.Ring boundary</strong> &mdash;
+                  verify eviction doesn't cause replay→live duplicates
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>30min</td>
@@ -1198,8 +1273,8 @@
               <tr>
                 <td>22</td>
                 <td>
-                  <strong>Run <code>nix run .#check-layers</code></strong> to verify dependency
-                  budgets with new OTel dep in projectionhost
+                  <strong>Run <code>nix run .#check-layers</code></strong> to
+                  verify dependency budgets with new OTel dep in projectionhost
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>5min</td>
@@ -1218,7 +1293,10 @@
               <tr>
                 <td>24</td>
                 <td>
-                  <strong>Review whether M1's error-return change breaks existing consumers</strong>
+                  <strong
+                    >Review whether M1's error-return change breaks existing
+                    consumers</strong
+                  >
                   who depend on checkpoint-failure being non-fatal
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
@@ -1228,8 +1306,9 @@
               <tr>
                 <td>25</td>
                 <td>
-                  <strong>Write an ADR</strong> for the projectionhost production-hardening
-                  decisions (dedup.Ring, WorkerDraining, OnFailed, Reset)
+                  <strong>Write an ADR</strong> for the projectionhost
+                  production-hardening decisions (dedup.Ring, WorkerDraining,
+                  OnFailed, Reset)
                 </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>30min</td>
@@ -1240,48 +1319,61 @@
         </div>
 
         <!-- #1 Question -->
-        <h2 id="question"><span class="num">07</span>#1 Question I Cannot Figure Out</h2>
+        <h2 id="question">
+          <span class="num">07</span>#1 Question I Cannot Figure Out
+        </h2>
 
         <div class="card card-problem">
-          <h4>Is the M1 checkpoint-failure behavior change safe for existing consumers?</h4>
+          <h4>
+            Is the M1 checkpoint-failure behavior change safe for existing
+            consumers?
+          </h4>
           <p>
-            The concurrent session changed <code>processLive</code> to return an error when
-            checkpoint <code>Save</code> fails (previously: <code>logger.Warn</code> + continue).
-            This is the correct fix for silent data loss &mdash; but it changes a runtime contract.
-            A consumer whose checkpoint store is flaky (e.g. a remote Postgres with intermittent
-            connectivity) will now see their projection worker <strong>die and restart</strong> on
-            every checkpoint failure, instead of logging and moving on.
+            The concurrent session changed <code>processLive</code> to return an
+            error when checkpoint <code>Save</code> fails (previously:
+            <code>logger.Warn</code> + continue). This is the correct fix for
+            silent data loss &mdash; but it changes a runtime contract. A
+            consumer whose checkpoint store is flaky (e.g. a remote Postgres
+            with intermittent connectivity) will now see their projection worker
+            <strong>die and restart</strong> on every checkpoint failure,
+            instead of logging and moving on.
           </p>
           <p>
-            <strong>I cannot determine</strong> whether this is a breaking change for existing
-            consumers without:
+            <strong>I cannot determine</strong> whether this is a breaking
+            change for existing consumers without:
           </p>
           <ul style="margin-left: 1.5rem; margin-bottom: 1rem">
             <li>
-              Knowing whether any consumer actually depends on the "swallow + continue" behavior
+              Knowing whether any consumer actually depends on the "swallow +
+              continue" behavior
             </li>
             <li>
-              Understanding whether the restart loop (M1 error &rarr; backoff &rarr; restart &rarr;
-              replay from last checkpoint &rarr; same failure) is better or worse than the old
-              behavior for flaky checkpoint stores
+              Understanding whether the restart loop (M1 error &rarr; backoff
+              &rarr; restart &rarr; replay from last checkpoint &rarr; same
+              failure) is better or worse than the old behavior for flaky
+              checkpoint stores
             </li>
             <li>
-              Whether there should be a <code>WithLenientCheckpoint</code> option to preserve the
-              old behavior for consumers who prefer availability over exactly-once checkpointing
+              Whether there should be a
+              <code>WithLenientCheckpoint</code> option to preserve the old
+              behavior for consumers who prefer availability over exactly-once
+              checkpointing
             </li>
           </ul>
           <div class="callout callout-warning">
             <strong>Why this matters</strong>
-            This is a library, not an app. Changing runtime contracts without an option flag or
-            migration path violates the "would a consumer trust this enough to import it?" quality
-            gate. The fix may be correct for most consumers but hostile to consumers with
-            eventually-consistent checkpoint stores.
+            This is a library, not an app. Changing runtime contracts without an
+            option flag or migration path violates the "would a consumer trust
+            this enough to import it?" quality gate. The fix may be correct for
+            most consumers but hostile to consumers with eventually-consistent
+            checkpoint stores.
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-07-06 02:07 &middot; Based on this session's work + working tree analysis
-          &middot; No external research beyond Turso MVCC docs
+          Generated 2026-07-06 02:07 &middot; Based on this session's work +
+          working tree analysis &middot; No external research beyond Turso MVCC
+          docs
         </footer>
       </main>
     </div>

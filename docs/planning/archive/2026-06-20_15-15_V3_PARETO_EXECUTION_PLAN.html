@@ -65,14 +65,14 @@
 
         /* --- Type stacks (system only — zero external fonts) --- */
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
 
       * {
@@ -280,15 +280,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
 
       /* --- Issue cards --- */
@@ -301,15 +313,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue h3 {
         margin-bottom: 0.3rem;
@@ -814,8 +838,8 @@
           <div class="hero-badge">PARETO PLAN &middot; 102 TASKS</div>
           <h1>go-cqrs-lite v3+ Execution Plan</h1>
           <p class="hero-subtitle">
-            Every open TODO, broken into &le;12-minute tasks, sorted by impact / effort / customer
-            value across 4 Pareto tiers.
+            Every open TODO, broken into &le;12-minute tasks, sorted by impact /
+            effort / customer value across 4 Pareto tiers.
           </p>
         </div>
 
@@ -850,39 +874,43 @@
         <div class="card card-problem">
           <h4>The Core Problem</h4>
           <p>
-            143,676 lines of Markdown for 42,070 lines of Go (3.4:1 ratio). 923 LOC of dead
-            ghost-bus code. 50 <code>time.Sleep</code> calls in tests. 76 planning docs — most
-            stale. The library works, but the noise drowns the signal for every consumer and
-            contributor.
+            143,676 lines of Markdown for 42,070 lines of Go (3.4:1 ratio). 923
+            LOC of dead ghost-bus code. 50 <code>time.Sleep</code> calls in
+            tests. 76 planning docs — most stale. The library works, but the
+            noise drowns the signal for every consumer and contributor.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>Pareto Strategy</h4>
           <p>
-            <strong>1% effort &rarr; 51% value:</strong> Delete docs, fix test flakiness, reconcile
-            status files. These are non-breaking, shipable on <code>master</code> today.<br />
-            <strong>4% effort &rarr; 64% value:</strong> v3 branch — delete ghost code, move
-            modules, tighten types.<br />
-            <strong>20% effort &rarr; 80% value:</strong> Transport adapters (gRPC/NATS/Redis),
-            read-model indexes.
+            <strong>1% effort &rarr; 51% value:</strong> Delete docs, fix test
+            flakiness, reconcile status files. These are non-breaking, shipable
+            on <code>master</code> today.<br />
+            <strong>4% effort &rarr; 64% value:</strong> v3 branch — delete
+            ghost code, move modules, tighten types.<br />
+            <strong>20% effort &rarr; 80% value:</strong> Transport adapters
+            (gRPC/NATS/Redis), read-model indexes.
           </p>
         </div>
 
-        <h2 id="findings"><span class="num">01</span>Findings &mdash; What's Broken or Missing</h2>
+        <h2 id="findings">
+          <span class="num">01</span>Findings &mdash; What's Broken or Missing
+        </h2>
 
         <div class="issue issue-critical">
           <span class="severity severity-critical">Critical</span>
           <h3>Documentation bloat: 3.4:1 Markdown-to-Go ratio</h3>
           <div class="where">612 .md files / 76 planning docs / 143K LOC</div>
           <p>
-            Stale planning docs from May/June confuse every new reader. Consumers cannot find the
-            signal. This is the #1 trust killer — worse than any code issue.
+            Stale planning docs from May/June confuse every new reader.
+            Consumers cannot find the signal. This is the #1 trust killer —
+            worse than any code issue.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Prune to &lt;1.5:1 ratio. Archive or delete 50+ stale docs. Create INDEX.md for active
-            plans.
+            Prune to &lt;1.5:1 ratio. Archive or delete 50+ stale docs. Create
+            INDEX.md for active plans.
           </div>
         </div>
 
@@ -890,45 +918,54 @@
           <span class="severity severity-critical">Critical</span>
           <h3>923 LOC of dead ghost-bus code</h3>
           <div class="where">
-            memory/bus.go (250), memory/command_bus.go (150), storage/pg_bus.go (265),
-            event/reactive*.go (258)
+            memory/bus.go (250), memory/command_bus.go (150), storage/pg_bus.go
+            (265), event/reactive*.go (258)
           </div>
           <p>
-            Deprecated in v2 but still present. Every consumer sees two bus implementations and must
-            figure out which to use. Watermill EventBus is the replacement and is already wired into
-            all 4 stack presets.
+            Deprecated in v2 but still present. Every consumer sees two bus
+            implementations and must figure out which to use. Watermill EventBus
+            is the replacement and is already wired into all 4 stack presets.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            v3: delete all ghost bus files + their tests. watermill.EventBus is the only bus.
+            v3: delete all ghost bus files + their tests. watermill.EventBus is
+            the only bus.
           </div>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Important</span>
           <h3>50 time.Sleep calls in tests (flaky test risk)</h3>
-          <div class="where">27 test files across memory/, integration/, example/, storage/</div>
+          <div class="where">
+            27 test files across memory/, integration/, example/, storage/
+          </div>
           <p>
-            Sleep-based synchronization is inherently flaky. Round 3 already hit this: migrating to
-            async GoChannel broke TestFullCommandLifecycle. Fixed with waitForStatus() — but 49 more
-            sleeps remain.
+            Sleep-based synchronization is inherently flaky. Round 3 already hit
+            this: migrating to async GoChannel broke TestFullCommandLifecycle.
+            Fixed with waitForStatus() — but 49 more sleeps remain.
           </p>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Important</span>
           <h3>event.Version is int, not uint64 (156 files)</h3>
-          <div class="where">event/event.go type definition + 155 consumers</div>
+          <div class="where">
+            event/event.go type definition + 155 consumers
+          </div>
           <p>
-            Negative versions were never valid. The int type allows impossible states. This is the
-            most invasive v3 change but the highest type-safety payoff.
+            Negative versions were never valid. The int type allows impossible
+            states. This is the most invasive v3 change but the highest
+            type-safety payoff.
           </p>
         </div>
 
-        <h2 id="tier1"><span class="num">02</span>Tier 1: Quick Wins (Master, Non-Breaking)</h2>
+        <h2 id="tier1">
+          <span class="num">02</span>Tier 1: Quick Wins (Master, Non-Breaking)
+        </h2>
         <p>
-          <strong>1% effort &rarr; 51% value.</strong> Ship on <code>master</code> today. No
-          breaking changes. All tasks &le;12 minutes. Sorted by impact within each sub-group.
+          <strong>1% effort &rarr; 51% value.</strong> Ship on
+          <code>master</code> today. No breaking changes. All tasks &le;12
+          minutes. Sorted by impact within each sub-group.
         </p>
 
         <h3>1A: Documentation Prune</h3>
@@ -945,7 +982,10 @@
           <tbody>
             <tr>
               <td>T001</td>
-              <td>Audit docs/planning/ (76 files) &mdash; categorize keep/archive/delete</td>
+              <td>
+                Audit docs/planning/ (76 files) &mdash; categorize
+                keep/archive/delete
+              </td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>10m</td>
               <td>&mdash;</td>
@@ -966,7 +1006,9 @@
             </tr>
             <tr>
               <td>T004</td>
-              <td>Audit docs/sessions/, docs/status/, docs/reviews/ for staleness</td>
+              <td>
+                Audit docs/sessions/, docs/status/, docs/reviews/ for staleness
+              </td>
               <td><span class="badge badge-high">High</span></td>
               <td>10m</td>
               <td>&mdash;</td>
@@ -1016,14 +1058,19 @@
           <tbody>
             <tr>
               <td>T009</td>
-              <td>Update TODO_LIST.md &mdash; mark TransactionID DONE, fix v3 list</td>
+              <td>
+                Update TODO_LIST.md &mdash; mark TransactionID DONE, fix v3 list
+              </td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>10m</td>
               <td>&mdash;</td>
             </tr>
             <tr>
               <td>T010</td>
-              <td>Update ROADMAP.md &mdash; last-updated + mark stale items done/cancelled</td>
+              <td>
+                Update ROADMAP.md &mdash; last-updated + mark stale items
+                done/cancelled
+              </td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>10m</td>
               <td>&mdash;</td>
@@ -1037,7 +1084,9 @@
             </tr>
             <tr>
               <td>T012</td>
-              <td>Reconcile AGENTS.md module list (38 modules) + layer graph</td>
+              <td>
+                Reconcile AGENTS.md module list (38 modules) + layer graph
+              </td>
               <td><span class="badge badge-high">High</span></td>
               <td>10m</td>
               <td>&mdash;</td>
@@ -1080,7 +1129,9 @@
           <tbody>
             <tr>
               <td>T016</td>
-              <td>Catalog all 50 time.Sleep calls with purpose (race/wait/retry)</td>
+              <td>
+                Catalog all 50 time.Sleep calls with purpose (race/wait/retry)
+              </td>
               <td><span class="badge badge-high">High</span></td>
               <td>10m</td>
               <td>&mdash;</td>
@@ -1159,16 +1210,20 @@
           </tbody>
         </table>
 
-        <h2 id="tier2"><span class="num">03</span>Tier 2: v3 Breaking Changes</h2>
+        <h2 id="tier2">
+          <span class="num">03</span>Tier 2: v3 Breaking Changes
+        </h2>
         <p>
-          <strong>4% effort &rarr; 64% value.</strong> Requires <code>v3</code> branch and major
-          version bump. All tasks &le;12 minutes. Ordered by dependency chain.
+          <strong>4% effort &rarr; 64% value.</strong> Requires
+          <code>v3</code> branch and major version bump. All tasks &le;12
+          minutes. Ordered by dependency chain.
         </p>
 
         <div class="callout callout-warning">
           <strong>Execution order matters</strong>
-          Ghost bus deletion must precede memory/ move. memory/ move must precede
-          Version&rarr;uint64 compilation fixes. Follow the dependency chain in the tables below.
+          Ghost bus deletion must precede memory/ move. memory/ move must
+          precede Version&rarr;uint64 compilation fixes. Follow the dependency
+          chain in the tables below.
         </div>
 
         <h3>2A: v3 Branch Foundation</h3>
@@ -1306,7 +1361,10 @@
             </tr>
             <tr>
               <td>T038</td>
-              <td>Move memory store files (store, snapshot, checkpoint, cmd, query)</td>
+              <td>
+                Move memory store files (store, snapshot, checkpoint, cmd,
+                query)
+              </td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>12m</td>
               <td>T037</td>
@@ -1405,14 +1463,19 @@
             </tr>
             <tr>
               <td>T050</td>
-              <td>Fix compilation in remaining modules (batch 1: pebble, turso, etc.)</td>
+              <td>
+                Fix compilation in remaining modules (batch 1: pebble, turso,
+                etc.)
+              </td>
               <td><span class="badge badge-high">High</span></td>
               <td>12m</td>
               <td>T043</td>
             </tr>
             <tr>
               <td>T051</td>
-              <td>Fix compilation in remaining modules (batch 2: catalog, etc.)</td>
+              <td>
+                Fix compilation in remaining modules (batch 2: catalog, etc.)
+              </td>
               <td><span class="badge badge-high">High</span></td>
               <td>12m</td>
               <td>T043</td>
@@ -1665,8 +1728,9 @@
 
         <h2 id="tier3"><span class="num">04</span>Tier 3: Additive Features</h2>
         <p>
-          <strong>20% effort &rarr; 80% value.</strong> New capabilities, no breaking changes. Ship
-          on <code>master</code> or <code>v3</code> independently. All tasks &le;12 minutes.
+          <strong>20% effort &rarr; 80% value.</strong> New capabilities, no
+          breaking changes. Ship on <code>master</code> or
+          <code>v3</code> independently. All tasks &le;12 minutes.
         </p>
 
         <h3>3A-C: Transport Adapters (ADR-0025)</h3>
@@ -1798,7 +1862,10 @@
         </table>
 
         <h2 id="tier4"><span class="num">05</span>Tier 4: Long Tail</h2>
-        <p>Blocked by external dependencies, deferred to v4, or raw ideas needing design first.</p>
+        <p>
+          Blocked by external dependencies, deferred to v4, or raw ideas needing
+          design first.
+        </p>
 
         <h3>4A: Blocked by Go Stdlib (monitor only)</h3>
         <table>
@@ -1821,7 +1888,9 @@
             </tr>
             <tr>
               <td>T091</td>
-              <td>Arena allocation &mdash; wait for Go arena API stabilization</td>
+              <td>
+                Arena allocation &mdash; wait for Go arena API stabilization
+              </td>
               <td><span class="badge badge-low">Low</span></td>
               <td>0m</td>
               <td>Go team</td>
@@ -2102,7 +2171,9 @@
                     class="text-bold"
                     style="text-anchor: middle; font-size: 16px"
                   >
-                    <tspan x="87.000000" dy="0.000000">Tier 1A: Doc Prune</tspan>
+                    <tspan x="87.000000" dy="0.000000">
+                      Tier 1A: Doc Prune
+                    </tspan>
                     <tspan x="87.000000" dy="17.666667">143K LOC → 30K</tspan>
                     <tspan x="87.000000" dy="17.666667">8 tasks</tspan>
                   </text>
@@ -2123,8 +2194,12 @@
                     class="text-bold"
                     style="text-anchor: middle; font-size: 16px"
                   >
-                    <tspan x="358.000000" dy="0.000000">Tier 1B: Reconcile</tspan>
-                    <tspan x="358.000000" dy="17.666667">TODO+ROADMAP+FEATURES</tspan>
+                    <tspan x="358.000000" dy="0.000000">
+                      Tier 1B: Reconcile
+                    </tspan>
+                    <tspan x="358.000000" dy="17.666667">
+                      TODO+ROADMAP+FEATURES
+                    </tspan>
                     <tspan x="358.000000" dy="17.666667">7 tasks</tspan>
                   </text>
                 </g>
@@ -2144,7 +2219,9 @@
                     class="text-bold"
                     style="text-anchor: middle; font-size: 16px"
                   >
-                    <tspan x="655.500000" dy="0.000000">Tier 1C: Test Determinism</tspan>
+                    <tspan x="655.500000" dy="0.000000">
+                      Tier 1C: Test Determinism
+                    </tspan>
                     <tspan x="655.500000" dy="17.666667">50 sleeps → 0</tspan>
                     <tspan x="655.500000" dy="17.666667">6 tasks</tspan>
                   </text>
@@ -2165,8 +2242,12 @@
                     class="text-bold"
                     style="text-anchor: middle; font-size: 16px"
                   >
-                    <tspan x="946.500000" dy="0.000000">Tier 1D: Operability</tspan>
-                    <tspan x="946.500000" dy="17.666667">Backup+Shutdown helpers</tspan>
+                    <tspan x="946.500000" dy="0.000000">
+                      Tier 1D: Operability
+                    </tspan>
+                    <tspan x="946.500000" dy="17.666667">
+                      Backup+Shutdown helpers
+                    </tspan>
                     <tspan x="946.500000" dy="17.666667">3 tasks</tspan>
                   </text>
                 </g>
@@ -2186,8 +2267,12 @@
                     class="text-bold"
                     style="text-anchor: middle; font-size: 16px"
                   >
-                    <tspan x="223.000000" dy="0.000000">Tier 2B: Delete Ghost Bus</tspan>
-                    <tspan x="223.000000" dy="17.666667">923 LOC dead code</tspan>
+                    <tspan x="223.000000" dy="0.000000">
+                      Tier 2B: Delete Ghost Bus
+                    </tspan>
+                    <tspan x="223.000000" dy="17.666667">
+                      923 LOC dead code
+                    </tspan>
                     <tspan x="223.000000" dy="17.666667">10 tasks</tspan>
                   </text>
                 </g>
@@ -2207,7 +2292,9 @@
                     class="text-bold"
                     style="text-anchor: middle; font-size: 16px"
                   >
-                    <tspan x="223.000000" dy="0.000000">Tier 2C: memory/ → storage/memory/</tspan>
+                    <tspan x="223.000000" dy="0.000000">
+                      Tier 2C: memory/ → storage/memory/
+                    </tspan>
                     <tspan x="223.000000" dy="17.666667">4 importers</tspan>
                     <tspan x="223.000000" dy="17.666667">6 tasks</tspan>
                   </text>
@@ -2228,7 +2315,9 @@
                     class="text-bold"
                     style="text-anchor: middle; font-size: 16px"
                   >
-                    <tspan x="223.000000" dy="0.000000">Tier 2D: Version → uint64</tspan>
+                    <tspan x="223.000000" dy="0.000000">
+                      Tier 2D: Version → uint64
+                    </tspan>
                     <tspan x="223.000000" dy="17.666667">156 files</tspan>
                     <tspan x="223.000000" dy="17.666667">11 tasks</tspan>
                   </text>
@@ -2249,8 +2338,12 @@
                     class="text-bold"
                     style="text-anchor: middle; font-size: 16px"
                   >
-                    <tspan x="222.500000" dy="0.000000">Tier 2E-G: Metadata+</tspan>
-                    <tspan x="222.500000" dy="17.666667">ioCloser+readmodel</tspan>
+                    <tspan x="222.500000" dy="0.000000">
+                      Tier 2E-G: Metadata+
+                    </tspan>
+                    <tspan x="222.500000" dy="17.666667">
+                      ioCloser+readmodel
+                    </tspan>
                     <tspan x="222.500000" dy="17.666667">16 tasks</tspan>
                   </text>
                 </g>
@@ -2270,7 +2363,9 @@
                     class="text-bold"
                     style="text-anchor: middle; font-size: 16px"
                   >
-                    <tspan x="223.000000" dy="0.000000">Tier 2H: HTTP → transport/</tspan>
+                    <tspan x="223.000000" dy="0.000000">
+                      Tier 2H: HTTP → transport/
+                    </tspan>
                     <tspan x="223.000000" dy="18.500000">5 tasks</tspan>
                   </text>
                 </g>
@@ -2290,7 +2385,9 @@
                     class="text-bold"
                     style="text-anchor: middle; font-size: 16px"
                   >
-                    <tspan x="223.000000" dy="0.000000">Tier 3A-C: Transports</tspan>
+                    <tspan x="223.000000" dy="0.000000">
+                      Tier 3A-C: Transports
+                    </tspan>
                     <tspan x="223.000000" dy="17.666667">gRPC+NATS+Redis</tspan>
                     <tspan x="223.000000" dy="17.666667">10 tasks</tspan>
                   </text>
@@ -2311,7 +2408,9 @@
                     class="text-bold"
                     style="text-anchor: middle; font-size: 16px"
                   >
-                    <tspan x="223.000000" dy="0.000000">Tier 3D: Read-Model Indexes</tspan>
+                    <tspan x="223.000000" dy="0.000000">
+                      Tier 3D: Read-Model Indexes
+                    </tspan>
                     <tspan x="223.000000" dy="18.500000">4 tasks</tspan>
                   </text>
                 </g>
@@ -2332,8 +2431,12 @@
                     style="text-anchor: middle; font-size: 16px"
                   >
                     <tspan x="499.500000" dy="0.000000">Tier 4A: Blocked</tspan>
-                    <tspan x="499.500000" dy="17.666667">jsonv2+Arena+SIMD</tspan>
-                    <tspan x="499.500000" dy="17.666667">3 tasks (0 effort)</tspan>
+                    <tspan x="499.500000" dy="17.666667">
+                      jsonv2+Arena+SIMD
+                    </tspan>
+                    <tspan x="499.500000" dy="17.666667">
+                      3 tasks (0 effort)
+                    </tspan>
                   </text>
                 </g>
                 <g class="VDRfdjQ=">
@@ -2352,11 +2455,15 @@
                     class="text-bold"
                     style="text-anchor: middle; font-size: 16px"
                   >
-                    <tspan x="360.500000" dy="0.000000">Tier 4B-C: v4 + Raw Ideas</tspan>
+                    <tspan x="360.500000" dy="0.000000">
+                      Tier 4B-C: v4 + Raw Ideas
+                    </tspan>
                     <tspan x="360.500000" dy="18.500000">10 design tasks</tspan>
                   </text>
                 </g>
-                <g class="KGdvLWNxcnMtbGl0ZSB2MysgUGFyZXRvIFBsYW4gLSZndDsgVDFfRG9jcylbMF0=">
+                <g
+                  class="KGdvLWNxcnMtbGl0ZSB2MysgUGFyZXRvIFBsYW4gLSZndDsgVDFfRG9jcylbMF0="
+                >
                   <marker
                     id="mk-d2-3393397275-3488378134"
                     markerWidth="10.000000"
@@ -2384,7 +2491,9 @@
                     mask="url(#d2-3393397275)"
                   />
                 </g>
-                <g class="KGdvLWNxcnMtbGl0ZSB2MysgUGFyZXRvIFBsYW4gLSZndDsgVDFfUmVjb24pWzBd">
+                <g
+                  class="KGdvLWNxcnMtbGl0ZSB2MysgUGFyZXRvIFBsYW4gLSZndDsgVDFfUmVjb24pWzBd"
+                >
                   <path
                     d="M 437.298128 85.050539 C 374.200012 124.000000 358.000000 144.000000 358.000000 180.000000"
                     stroke="#0D32B2"
@@ -2395,7 +2504,9 @@
                     mask="url(#d2-3393397275)"
                   />
                 </g>
-                <g class="KGdvLWNxcnMtbGl0ZSB2MysgUGFyZXRvIFBsYW4gLSZndDsgVDFfVGVzdHMpWzBd">
+                <g
+                  class="KGdvLWNxcnMtbGl0ZSB2MysgUGFyZXRvIFBsYW4gLSZndDsgVDFfVGVzdHMpWzBd"
+                >
                   <path
                     d="M 576.698954 85.055251 C 639.400024 124.000000 655.599976 144.000000 655.960000 180.000200"
                     stroke="#0D32B2"
@@ -2406,7 +2517,9 @@
                     mask="url(#d2-3393397275)"
                   />
                 </g>
-                <g class="KGdvLWNxcnMtbGl0ZSB2MysgUGFyZXRvIFBsYW4gLSZndDsgVDFfT3BzKVswXQ==">
+                <g
+                  class="KGdvLWNxcnMtbGl0ZSB2MysgUGFyZXRvIFBsYW4gLSZndDsgVDFfT3BzKVswXQ=="
+                >
                   <path
                     d="M 646.957717 71.409075 C 886.200012 121.400002 946.599976 144.000000 946.960000 180.000200"
                     stroke="#0D32B2"
@@ -2585,26 +2698,64 @@
                   width="1266"
                   height="2311"
                 >
-                  <rect x="-101" y="-101" width="1266" height="2311" fill="white"></rect>
-                  <rect x="63.000000" y="358.000000" width="74" height="37" fill="black"></rect>
-                  <rect x="282.000000" y="370.000000" width="103" height="37" fill="black"></rect>
-                  <rect x="191.000000" y="608.000000" width="64" height="37" fill="black"></rect>
-                  <rect x="186.000000" y="1466.000000" width="73" height="37" fill="black"></rect>
-                  <rect x="444.000000" y="1952.000000" width="56" height="37" fill="black"></rect>
+                  <rect
+                    x="-101"
+                    y="-101"
+                    width="1266"
+                    height="2311"
+                    fill="white"
+                  ></rect>
+                  <rect
+                    x="63.000000"
+                    y="358.000000"
+                    width="74"
+                    height="37"
+                    fill="black"
+                  ></rect>
+                  <rect
+                    x="282.000000"
+                    y="370.000000"
+                    width="103"
+                    height="37"
+                    fill="black"
+                  ></rect>
+                  <rect
+                    x="191.000000"
+                    y="608.000000"
+                    width="64"
+                    height="37"
+                    fill="black"
+                  ></rect>
+                  <rect
+                    x="186.000000"
+                    y="1466.000000"
+                    width="73"
+                    height="37"
+                    fill="black"
+                  ></rect>
+                  <rect
+                    x="444.000000"
+                    y="1952.000000"
+                    width="56"
+                    height="37"
+                    fill="black"
+                  ></rect>
                 </mask>
               </svg>
             </svg>
           </div>
         </div>
 
-        <h2 id="sequence"><span class="num">07</span>Recommended Execution Order</h2>
+        <h2 id="sequence">
+          <span class="num">07</span>Recommended Execution Order
+        </h2>
         <div class="migration-step">
           <div class="migration-num">1</div>
           <div class="migration-content">
             <h4>Tier 1 on master (now)</h4>
             <p>
-              Docs prune + status reconciliation + test determinism. ~4 hours. Non-breaking.
-              Transforms consumer first-impression instantly.
+              Docs prune + status reconciliation + test determinism. ~4 hours.
+              Non-breaking. Transforms consumer first-impression instantly.
             </p>
           </div>
         </div>
@@ -2613,7 +2764,8 @@
           <div class="migration-content">
             <h4>Create v3 branch</h4>
             <p>
-              Branch off master. All Tier 2 work happens here. Master stays at v2.x for consumers.
+              Branch off master. All Tier 2 work happens here. Master stays at
+              v2.x for consumers.
             </p>
           </div>
         </div>
@@ -2621,48 +2773,66 @@
           <div class="migration-num">3</div>
           <div class="migration-content">
             <h4>Delete ghost bus (T027&ndash;T036)</h4>
-            <p>Must be first v3 change. Removes 923 LOC of dead code. Unblocks memory/ move.</p>
+            <p>
+              Must be first v3 change. Removes 923 LOC of dead code. Unblocks
+              memory/ move.
+            </p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">4</div>
           <div class="migration-content">
             <h4>Move memory/ &rarr; storage/memory/ (T037&ndash;T042)</h4>
-            <p>Only 4 non-test importers. Quick module move once bus code is gone.</p>
+            <p>
+              Only 4 non-test importers. Quick module move once bus code is
+              gone.
+            </p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">5</div>
           <div class="migration-content">
             <h4>Version &rarr; uint64 (T043&ndash;T053)</h4>
-            <p>Most invasive change (156 files). Batch by module. Compile-check each batch.</p>
+            <p>
+              Most invasive change (156 files). Batch by module. Compile-check
+              each batch.
+            </p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">6</div>
           <div class="migration-content">
             <h4>Metadata split + io.Closer + readmodel (T054&ndash;T067)</h4>
-            <p>Three independent breaking changes. Can be parallelized across sub-agents.</p>
+            <p>
+              Three independent breaking changes. Can be parallelized across
+              sub-agents.
+            </p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">7</div>
           <div class="migration-content">
             <h4>HTTP &rarr; transport/ (T068&ndash;T072)</h4>
-            <p>Extracts SSE/health/metrics into transport module. Sets up Tier 3 adapters.</p>
+            <p>
+              Extracts SSE/health/metrics into transport module. Sets up Tier 3
+              adapters.
+            </p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">8</div>
           <div class="migration-content">
             <h4>Tier 3 features (T076&ndash;T089)</h4>
-            <p>gRPC/NATS/Redis transports + read-model indexes. Additive, ship independently.</p>
+            <p>
+              gRPC/NATS/Redis transports + read-model indexes. Additive, ship
+              independently.
+            </p>
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-20 &middot; 102 tasks across 4 Pareto tiers &middot; Verified against
-          go-cqrs-lite master @ <code>d9b94c8c</code>
+          Generated 2026-06-20 &middot; 102 tasks across 4 Pareto tiers &middot;
+          Verified against go-cqrs-lite master @ <code>d9b94c8c</code>
         </footer>
       </main>
     </div>

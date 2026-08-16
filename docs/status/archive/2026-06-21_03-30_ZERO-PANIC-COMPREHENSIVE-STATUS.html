@@ -30,14 +30,14 @@
         --warning: var(--color-yellow);
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -195,15 +195,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .stat-grid {
         display: grid;
@@ -420,9 +432,9 @@
           <div class="hero-badge">Zero Panic Sweep</div>
           <h1>go-cqrs-lite — Comprehensive Status</h1>
           <p class="hero-subtitle">
-            38-module CQRS/ES library for Go. All <code>Must</code>-style panic helpers eliminated —
-            every test helper now uses <code>tb.Fatalf</code> or returns errors. Zero panics in test
-            code.
+            38-module CQRS/ES library for Go. All <code>Must</code>-style panic
+            helpers eliminated — every test helper now uses
+            <code>tb.Fatalf</code> or returns errors. Zero panics in test code.
           </p>
         </div>
 
@@ -457,10 +469,12 @@
         <div class="card card-solution">
           <h4>Headline Achievement: Zero Panic Test Helpers</h4>
           <p>
-            Eliminated ALL <code>Must</code>-named functions that called <code>panic()</code> across
-            the entire codebase. Replaced with <code>tb.Fatalf</code> pattern (test code) or
-            <code>(value, error)</code> returns (production code). Ginkgo tests use raw constructors
-            + gomega <code>Expect</code>. 50+ files modified across 30+ modules.
+            Eliminated ALL <code>Must</code>-named functions that called
+            <code>panic()</code> across the entire codebase. Replaced with
+            <code>tb.Fatalf</code> pattern (test code) or
+            <code>(value, error)</code> returns (production code). Ginkgo tests
+            use raw constructors + gomega <code>Expect</code>. 50+ files
+            modified across 30+ modules.
           </p>
         </div>
 
@@ -471,8 +485,9 @@
             <div class="text">
               <strong>Zero panic test helpers (all modules)</strong>
               <span
-                >idtest.Parse*(tb,s), querytest.New(tb,t), testutil.NewCmd(tb,...), everyN(tb,n),
-                newCmd(tb,...) — all use tb.Fatalf</span
+                >idtest.Parse*(tb,s), querytest.New(tb,t),
+                testutil.NewCmd(tb,...), everyN(tb,n), newCmd(tb,...) — all use
+                tb.Fatalf</span
               >
             </div>
           </div>
@@ -481,8 +496,8 @@
             <div class="text">
               <strong>Prometheus.MustSetup deleted</strong>
               <span
-                >Setup() already exists with (Provider, error) return. Removed panic variant
-                entirely.</span
+                >Setup() already exists with (Provider, error) return. Removed
+                panic variant entirely.</span
               >
             </div>
           </div>
@@ -491,7 +506,8 @@
             <div class="text">
               <strong>catalog/docserver mustStaticFS eliminated</strong>
               <span
-                >Converted to package-level var with safe fallback. No panic on corrupt embed.</span
+                >Converted to package-level var with safe fallback. No panic on
+                corrupt embed.</span
               >
             </div>
           </div>
@@ -500,8 +516,8 @@
             <div class="text">
               <strong>Example apps: mustMarshal → marshalPayload</strong>
               <span
-                >deployer-first and user examples return errors from DecideFuncs instead of
-                panicking</span
+                >deployer-first and user examples return errors from DecideFuncs
+                instead of panicking</span
               >
             </div>
           </div>
@@ -510,8 +526,8 @@
             <div class="text">
               <strong>eventtest.AssertPanics removed</strong>
               <span
-                >Dead code after all panic-asserting tests were converted to error-expectation
-                tests</span
+                >Dead code after all panic-asserting tests were converted to
+                error-expectation tests</span
               >
             </div>
           </div>
@@ -520,8 +536,8 @@
             <div class="text">
               <strong>cmd/cqrs-gen mustAbs → absOr</strong>
               <span
-                >Misleading name — function never panicked, just returned fallback. Renamed for
-                honesty.</span
+                >Misleading name — function never panicked, just returned
+                fallback. Renamed for honesty.</span
               >
             </div>
           </div>
@@ -530,8 +546,8 @@
             <div class="text">
               <strong>API stability verified</strong>
               <span
-                >1594 exports verified against golden. Removed: MustSetup, testutil.ParseAggID.
-                Added: testutil.NewCmd.</span
+                >1594 exports verified against golden. Removed: MustSetup,
+                testutil.ParseAggID. Added: testutil.NewCmd.</span
               >
             </div>
           </div>
@@ -540,8 +556,8 @@
             <div class="text">
               <strong>All docs updated</strong>
               <span
-                >AGENTS.md, FEATURES.md, SKILL.md, testutil/README.md — all references to Must*
-                helpers updated</span
+                >AGENTS.md, FEATURES.md, SKILL.md, testutil/README.md — all
+                references to Must* helpers updated</span
               >
             </div>
           </div>
@@ -550,8 +566,8 @@
             <div class="text">
               <strong>Core library fully functional</strong>
               <span
-                >Event Sourcing, CQRS, branded IDs, projections, signing, encryption, OTel, Pebble,
-                SQL, Watermill — all working</span
+                >Event Sourcing, CQRS, branded IDs, projections, signing,
+                encryption, OTel, Pebble, SQL, Watermill — all working</span
               >
             </div>
           </div>
@@ -560,8 +576,8 @@
             <div class="text">
               <strong>v3 breaking changes complete</strong>
               <span
-                >Event=concrete type, Decider.Fold→Apply, Metadata localized per module, SSE moved
-                to transport/http</span
+                >Event=concrete type, Decider.Fold→Apply, Metadata localized per
+                module, SSE moved to transport/http</span
               >
             </div>
           </div>
@@ -581,8 +597,8 @@
               <td>Lint cleanliness</td>
               <td><span class="badge badge-high">~50 issues</span></td>
               <td>
-                Pre-existing exhaustruct, varnamelen, gosec G115 across 10+ modules. None in
-                modified files.
+                Pre-existing exhaustruct, varnamelen, gosec G115 across 10+
+                modules. None in modified files.
               </td>
             </tr>
             <tr>
@@ -593,20 +609,26 @@
             <tr>
               <td>Bundle layer coverage</td>
               <td><span class="badge badge-medium">0-87%</span></td>
-              <td>readmodel, stack presets have lighter constructor error branch coverage</td>
+              <td>
+                readmodel, stack presets have lighter constructor error branch
+                coverage
+              </td>
             </tr>
             <tr>
               <td>Remaining production panics</td>
               <td><span class="badge badge-low">~20 sites</span></td>
               <td>
-                Package init (CBOR modes), nil-param guards, arithmetic invariants. NOT Must helpers
-                — standard Go.
+                Package init (CBOR modes), nil-param guards, arithmetic
+                invariants. NOT Must helpers — standard Go.
               </td>
             </tr>
             <tr>
               <td>cattest.MustReadFile naming</td>
               <td><span class="badge badge-low">Misleading name</span></td>
-              <td>Uses tb.Fatalf (no panic), but still named "Must". Cosmetic rename pending.</td>
+              <td>
+                Uses tb.Fatalf (no panic), but still named "Must". Cosmetic
+                rename pending.
+              </td>
             </tr>
           </tbody>
         </table>
@@ -615,8 +637,8 @@
         <div class="card card-warning">
           <h4>gRPC transport adapter</h4>
           <p>
-            ADR-0025 accepted. No code exists yet. Separate <code>transport/grpc/</code> module with
-            protobuf dispatch.
+            ADR-0025 accepted. No code exists yet. Separate
+            <code>transport/grpc/</code> module with protobuf dispatch.
           </p>
         </div>
         <div class="card card-warning">
@@ -629,15 +651,15 @@
         <div class="card card-warning">
           <h4>jsonv2 + Arena experiment stabilization</h4>
           <p>
-            Build tags exist (<code>goexperiment.jsonv2</code>, <code>goexperiment.arenas</code>).
-            Pending Go stdlib stabilization.
+            Build tags exist (<code>goexperiment.jsonv2</code>,
+            <code>goexperiment.arenas</code>). Pending Go stdlib stabilization.
           </p>
         </div>
         <div class="card card-warning">
           <h4>v3: Core immutability deepening</h4>
           <p>
-            Currently opts pointer is shallow-copied on Clone. True deep immutability deferred to
-            v3.
+            Currently opts pointer is shallow-copied on Clone. True deep
+            immutability deferred to v3.
           </p>
         </div>
 
@@ -646,45 +668,63 @@
           <h4>20+ production panic() calls remain (non-Must)</h4>
           <p>
             These are NOT Must helpers — they're nil-parameter guards
-            (<code>pebble.NewStore(nil)</code>), package init failures (CBOR encoding mode
-            creation), and arithmetic invariant violations (<code>Version.Decrement()</code> on
-            zero). All are standard Go patterns. The user's "zero panics" directive targeted
-            Must-style test helpers specifically. These may or may not need conversion depending on
-            the strictness of the requirement.
+            (<code>pebble.NewStore(nil)</code>), package init failures (CBOR
+            encoding mode creation), and arithmetic invariant violations (<code
+              >Version.Decrement()</code
+            >
+            on zero). All are standard Go patterns. The user's "zero panics"
+            directive targeted Must-style test helpers specifically. These may
+            or may not need conversion depending on the strictness of the
+            requirement.
           </p>
           <div class="callout callout-warning">
             <strong>Decision needed</strong>
-            Should nil-param guards and init panics also be converted to error returns? This would
-            change public APIs (e.g., <code>pebble.NewStore(db)</code> →
+            Should nil-param guards and init panics also be converted to error
+            returns? This would change public APIs (e.g.,
+            <code>pebble.NewStore(db)</code> →
             <code>pebble.NewStore(db) (store, error)</code>).
           </div>
         </div>
         <div class="card card-warning">
           <h4>50 lint issues (all pre-existing)</h4>
           <p>
-            exhaustruct on command.Metadata/query.Metadata, varnamelen in watermill, gosec G115 in
-            middleware. None introduced by recent work. Low severity.
+            exhaustruct on command.Metadata/query.Metadata, varnamelen in
+            watermill, gosec G115 in middleware. None introduced by recent work.
+            Low severity.
           </p>
         </div>
 
         <h2 id="improve"><span class="num">E</span>What We Should Improve</h2>
         <div class="card card-solution">
           <h4>1. Rename cattest.MustReadFile → ReadFile</h4>
-          <p>It uses tb.Fatalf, not panic. Name is misleading. Quick cosmetic fix.</p>
+          <p>
+            It uses tb.Fatalf, not panic. Name is misleading. Quick cosmetic
+            fix.
+          </p>
         </div>
         <div class="card card-solution">
           <h4>2. Consider error returns for pebble nil-param guards</h4>
           <p>
-            7 pebble constructors panic on nil db. Could return errors instead. Breaking change.
+            7 pebble constructors panic on nil db. Could return errors instead.
+            Breaking change.
           </p>
         </div>
         <div class="card card-solution">
           <h4>3. Address 50 pre-existing lint issues</h4>
-          <p>Mostly exhaustruct false-positives and varnamelen. Could suppress or fix.</p>
+          <p>
+            Mostly exhaustruct false-positives and varnamelen. Could suppress or
+            fix.
+          </p>
         </div>
         <div class="card card-solution">
-          <h4>4. Example app: example/todo/commands/mixin.go panics on repository creation</h4>
-          <p>Last remaining <code>panic()</code> in example code. Should return error.</p>
+          <h4>
+            4. Example app: example/todo/commands/mixin.go panics on repository
+            creation
+          </h4>
+          <p>
+            Last remaining <code>panic()</code> in example code. Should return
+            error.
+          </p>
         </div>
 
         <h2 id="next25"><span class="num">F</span>Top 25 Things to Do Next</h2>
@@ -701,37 +741,52 @@
             <tr>
               <td>1</td>
               <td><span class="badge badge-critical">Critical</span></td>
-              <td>Rename cattest.MustReadFile → ReadFile (last Must-named function)</td>
+              <td>
+                Rename cattest.MustReadFile → ReadFile (last Must-named
+                function)
+              </td>
               <td>Naming honesty</td>
             </tr>
             <tr>
               <td>2</td>
               <td><span class="badge badge-critical">Critical</span></td>
-              <td>Fix example/todo/commands/mixin.go panic (last example panic)</td>
+              <td>
+                Fix example/todo/commands/mixin.go panic (last example panic)
+              </td>
               <td>Zero-panic examples</td>
             </tr>
             <tr>
               <td>3</td>
               <td><span class="badge badge-high">High</span></td>
-              <td>Decide on pebble nil-param guards: convert to errors or keep as panics</td>
+              <td>
+                Decide on pebble nil-param guards: convert to errors or keep as
+                panics
+              </td>
               <td>API design decision</td>
             </tr>
             <tr>
               <td>4</td>
               <td><span class="badge badge-high">High</span></td>
-              <td>Address stack/postgres 0% coverage (needs POSTGRES_TEST_DSN in CI)</td>
+              <td>
+                Address stack/postgres 0% coverage (needs POSTGRES_TEST_DSN in
+                CI)
+              </td>
               <td>Test coverage</td>
             </tr>
             <tr>
               <td>5</td>
               <td><span class="badge badge-high">High</span></td>
-              <td>Fix 50 pre-existing lint issues (exhaustruct, varnamelen, gosec)</td>
+              <td>
+                Fix 50 pre-existing lint issues (exhaustruct, varnamelen, gosec)
+              </td>
               <td>Code quality</td>
             </tr>
             <tr>
               <td>6</td>
               <td><span class="badge badge-high">High</span></td>
-              <td>Deepen event Core immutability (v3: opts deep-copy on Clone)</td>
+              <td>
+                Deepen event Core immutability (v3: opts deep-copy on Clone)
+              </td>
               <td>Correctness</td>
             </tr>
             <tr>
@@ -780,20 +835,26 @@
               <td>14</td>
               <td><span class="badge badge-low">Low</span></td>
               <td>
-                Consolidate duplicate everyN helpers (3 copies in snapshot, decider, integration)
+                Consolidate duplicate everyN helpers (3 copies in snapshot,
+                decider, integration)
               </td>
               <td>DRY</td>
             </tr>
             <tr>
               <td>15</td>
               <td><span class="badge badge-low">Low</span></td>
-              <td>Add more example apps (banking, inventory, SaaS multi-tenant)</td>
+              <td>
+                Add more example apps (banking, inventory, SaaS multi-tenant)
+              </td>
               <td>DX</td>
             </tr>
             <tr>
               <td>16</td>
               <td><span class="badge badge-low">Low</span></td>
-              <td>Formalize the test helper naming convention (Parse*/New* with tb param)</td>
+              <td>
+                Formalize the test helper naming convention (Parse*/New* with tb
+                param)
+              </td>
               <td>Consistency</td>
             </tr>
             <tr>
@@ -805,7 +866,9 @@
             <tr>
               <td>18</td>
               <td><span class="badge badge-low">Low</span></td>
-              <td>fuzz corpus expansion (encryption, codec, event serialization)</td>
+              <td>
+                fuzz corpus expansion (encryption, codec, event serialization)
+              </td>
               <td>Robustness</td>
             </tr>
             <tr>
@@ -818,21 +881,26 @@
               <td>20</td>
               <td><span class="badge badge-low">Low</span></td>
               <td>
-                Version drift detection in CI (scripts/check-version-drift.sh exists, needs
-                enforcement)
+                Version drift detection in CI (scripts/check-version-drift.sh
+                exists, needs enforcement)
               </td>
               <td>Release hygiene</td>
             </tr>
             <tr>
               <td>21</td>
               <td><span class="badge badge-low">Low</span></td>
-              <td>Decider documentation: when to use pure ES vs projection+command</td>
+              <td>
+                Decider documentation: when to use pure ES vs projection+command
+              </td>
               <td>DX</td>
             </tr>
             <tr>
               <td>22</td>
               <td><span class="badge badge-low">Low</span></td>
-              <td>Watermill CatchUpSubscriber integration test with real journal replay</td>
+              <td>
+                Watermill CatchUpSubscriber integration test with real journal
+                replay
+              </td>
               <td>Integration confidence</td>
             </tr>
             <tr>
@@ -859,11 +927,12 @@
         <h2 id="question"><span class="num">G</span>Top Question</h2>
         <div class="card card-problem">
           <h4>
-            Should production nil-parameter guards and package-init panics also be eliminated?
+            Should production nil-parameter guards and package-init panics also
+            be eliminated?
           </h4>
           <p>
-            The codebase has ~20 remaining <code>panic()</code> calls in production code. They fall
-            into three categories:
+            The codebase has ~20 remaining <code>panic()</code> calls in
+            production code. They fall into three categories:
           </p>
           <ul style="margin-left: 1.5rem; margin-bottom: 1rem">
             <li>
@@ -871,7 +940,8 @@
               <code>panic("pebble: NewStore called with nil db")</code>
             </li>
             <li>
-              <strong>Package init</strong> (4 codec/pebble CBOR mode creations) —
+              <strong>Package init</strong> (4 codec/pebble CBOR mode creations)
+              —
               <code>panic("codec: failed to create CBOR mode")</code>
             </li>
             <li>
@@ -880,21 +950,23 @@
             </li>
           </ul>
           <p>
-            Converting nil-param guards to <code>(value, error)</code> returns is a breaking API
-            change. Package init panics are standard Go (like <code>regexp.MustCompile</code> in
-            vars). Arithmetic panics are "make impossible states unrepresentable" design.
+            Converting nil-param guards to <code>(value, error)</code> returns
+            is a breaking API change. Package init panics are standard Go (like
+            <code>regexp.MustCompile</code> in vars). Arithmetic panics are
+            "make impossible states unrepresentable" design.
           </p>
           <div class="callout callout-warning">
             <strong>The question</strong>
-            Do you want these converted too, or was the directive specifically about
-            <code>Must</code>-named test helpers? Converting nil-param guards means changing every
-            <code>pebble.New*(db)</code> signature.
+            Do you want these converted too, or was the directive specifically
+            about
+            <code>Must</code>-named test helpers? Converting nil-param guards
+            means changing every <code>pebble.New*(db)</code> signature.
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-21 03:30 CEST &middot; All claims verified against source code &middot;
-          master @ 9fd6f8cc
+          Generated 2026-06-21 03:30 CEST &middot; All claims verified against
+          source code &middot; master @ 9fd6f8cc
         </footer>
       </main>
     </div>

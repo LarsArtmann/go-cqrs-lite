@@ -825,8 +825,8 @@
       }
     </style>
   </head>
-  
-<body>
+
+  <body>
     <div class="top-bar">
       <span>STATUS REPORT</span>
       <span>2026-08-16 18:57</span>
@@ -858,9 +858,11 @@
           <div class="hero-badge">Mid-Flight Snapshot</div>
           <h1>Catalog UI/UX + EventCatalog Integration Overhaul</h1>
           <p class="hero-subtitle">
-            Session scope: the user called the catalog/ UI/UX and EventCatalog integration "very bad".
-            Research verified three real integration defects against current EventCatalog source; all three are now fixed and green.
-            The docserver UI rewrite (templ-components adoption) is designed but not yet implemented.
+            Session scope: the user called the catalog/ UI/UX and EventCatalog
+            integration "very bad". Research verified three real integration
+            defects against current EventCatalog source; all three are now fixed
+            and green. The docserver UI rewrite (templ-components adoption) is
+            designed but not yet implemented.
           </p>
         </div>
 
@@ -868,11 +870,15 @@
         <div class="stat-grid">
           <div class="stat-card stat-good">
             <div class="stat-value">3</div>
-            <div class="stat-label">Integration defects fixed (verified vs upstream)</div>
+            <div class="stat-label">
+              Integration defects fixed (verified vs upstream)
+            </div>
           </div>
           <div class="stat-card stat-good">
             <div class="stat-value">14/14</div>
-            <div class="stat-label">Catalog packages green (full module suite)</div>
+            <div class="stat-label">
+              Catalog packages green (full module suite)
+            </div>
           </div>
           <div class="stat-card stat-warn">
             <div class="stat-value">0</div>
@@ -895,12 +901,17 @@
         <div class="card card-solution">
           <h4>Headline</h4>
           <p>
-            The generated EventCatalog project was <strong>invalid against current EventCatalog</strong>:
-            missing the required <code>cId</code>, an invalid empty <code>landingPage</code> URL, data stores written to a
-            directory EventCatalog no longer collects (<code>data/</code> instead of <code>containers/</code>), and one duplicate
-            message page per service for shared messages. All fixed this session. The docserver UI (bare 2-line HTML shells,
-            no index page, unregistered D2 route) is the remaining "very bad" part — adoption of
-            <code>templ-components</code> v1.8.3 is decided and researched, implementation not started.
+            The generated EventCatalog project was
+            <strong>invalid against current EventCatalog</strong>: missing the
+            required <code>cId</code>, an invalid empty
+            <code>landingPage</code> URL, data stores written to a directory
+            EventCatalog no longer collects (<code>data/</code> instead of
+            <code>containers/</code>), and one duplicate message page per
+            service for shared messages. All fixed this session. The docserver
+            UI (bare 2-line HTML shells, no index page, unregistered D2 route)
+            is the remaining "very bad" part — adoption of
+            <code>templ-components</code> v1.8.3 is decided and researched,
+            implementation not started.
           </p>
         </div>
 
@@ -910,49 +921,93 @@
             <div class="check">+</div>
             <div class="text">
               <strong>Upstream verification of every claim</strong>
-              <span>Read eventcatalog/eventcatalog main via GitHub API: config schema (cId required, tagline/homepageLink valid keys, llmsTxt), content.config.ts collection globs (containers/**, **/events/*, services/*), examples/default layout. No claim in this report rests on memory alone.</span>
+              <span
+                >Read eventcatalog/eventcatalog main via GitHub API: config
+                schema (cId required, tagline/homepageLink valid keys, llmsTxt),
+                content.config.ts collection globs (containers/**, **/events/*,
+                services/*), examples/default layout. No claim in this report
+                rests on memory alone.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>cId fix — catalog/eventcatalog/catalogid.go (new)</strong>
-              <span>Deterministic RFC 4122 v5 UUID derived from catalog title, so regeneration is idempotent and never invalidates catalog identity. Emitted in eventcatalog.config.js.</span>
+              <span
+                >Deterministic RFC 4122 v5 UUID derived from catalog title, so
+                regeneration is idempotent and never invalidates catalog
+                identity. Emitted in eventcatalog.config.js.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Config generation fix — writer.go</strong>
-              <span>Dropped invalid <code>landingPage: ''</code> (empty URL; EventCatalog defaults when absent); added tagline and <code>llmsTxt: { enabled: true }</code> (verified valid key).</span>
+              <span
+                >Dropped invalid <code>landingPage: ''</code> (empty URL;
+                EventCatalog defaults when absent); added tagline and
+                <code>llmsTxt: { enabled: true }</code> (verified valid
+                key).</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Data stores now land in containers/ — exporter_resources.go</strong>
-              <span>Current EventCatalog has NO data/ collection; writes there were dead files. Frontmatter already carried container_type etc. — only the directory was wrong.</span>
+              <strong
+                >Data stores now land in containers/ —
+                exporter_resources.go</strong
+              >
+              <span
+                >Current EventCatalog has NO data/ collection; writes there were
+                dead files. Frontmatter already carried container_type etc. —
+                only the directory was wrong.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Messages deduplicated to canonical top-level layout — exporter.go, exporter_message.go</strong>
-              <span>Events/commands/queries written once to &lt;kind&gt;/&lt;id&gt;/index.mdx with producers/consumers derived across all services (autoDeriveProducersConsumers). Previously every shared message produced one duplicate page per service (duplicate content IDs in EventCatalog).</span>
+              <strong
+                >Messages deduplicated to canonical top-level layout —
+                exporter.go, exporter_message.go</strong
+              >
+              <span
+                >Events/commands/queries written once to
+                &lt;kind&gt;/&lt;id&gt;/index.mdx with producers/consumers
+                derived across all services (autoDeriveProducersConsumers).
+                Previously every shared message produced one duplicate page per
+                service (duplicate content IDs in EventCatalog).</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Test suite migrated + green</strong>
-              <span>9 eventcatalog test files moved to the new paths, eventcatalog-config.snap regenerated. Full catalog module: 14/14 packages ok (go test, count=1).</span>
+              <span
+                >9 eventcatalog test files moved to the new paths,
+                eventcatalog-config.snap regenerated. Full catalog module: 14/14
+                packages ok (go test, count=1).</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>templ-components adoption research (decision-ready)</strong>
-              <span>v1.8.3 published (tag verified). Budget: catalog DEP_BUDGET=4, prod deps 2 → 3 with templ-components; a-h/templ is its only runtime dep. Go-side composition via templ.WithChildren verified. CSSPath=""/HTMXVersion="" suppression verified. nixpkgs tailwindcss_4 = 4.3.3 (exact match to library's build). Minimal wrapper strategy for Scalar/AsyncAPI SPAs chosen.</span>
+              <strong
+                >templ-components adoption research (decision-ready)</strong
+              >
+              <span
+                >v1.8.3 published (tag verified). Budget: catalog DEP_BUDGET=4,
+                prod deps 2 → 3 with templ-components; a-h/templ is its only
+                runtime dep. Go-side composition via templ.WithChildren
+                verified. CSSPath=""/HTMXVersion="" suppression verified.
+                nixpkgs tailwindcss_4 = 4.3.3 (exact match to library's build).
+                Minimal wrapper strategy for Scalar/AsyncAPI SPAs chosen.</span
+              >
             </div>
           </div>
         </div>
@@ -961,16 +1016,19 @@
         <div class="card card-warning">
           <h4>Docserver UI overhaul — designed, not implemented</h4>
           <p>
-            Page inventory (index at DocsPath, Scalar wrapper, AsyncAPI wrapper, D2 view), component mapping
-            (Base/Nav/PageHeader/Grid/Card/StatCard/Badge/CopyButton/ThemeToggle/ThemeScript), CSS supply strategy
-            (committed Tailwind v4 build via nix + drift gate) are all decided. Zero lines of docserver code changed yet.
+            Page inventory (index at DocsPath, Scalar wrapper, AsyncAPI wrapper,
+            D2 view), component mapping
+            (Base/Nav/PageHeader/Grid/Card/StatCard/Badge/CopyButton/ThemeToggle/ThemeScript),
+            CSS supply strategy (committed Tailwind v4 build via nix + drift
+            gate) are all decided. Zero lines of docserver code changed yet.
           </p>
         </div>
         <div class="card card-warning">
           <h4>Verification gates — partially run</h4>
           <p>
-            go build + go test green for the catalog module only. NOT yet run: nix run .#verify, lint, doc-check,
-            api-stability meta-tests, check-arch (dep budget with new dep), check-duplication.
+            go build + go test green for the catalog module only. NOT yet run:
+            nix run .#verify, lint, doc-check, api-stability meta-tests,
+            check-arch (dep budget with new dep), check-duplication.
           </p>
         </div>
 
@@ -978,9 +1036,11 @@
         <div class="card">
           <h4>Everything downstream of the docserver rewrite</h4>
           <p>
-            templ-components dependency wiring; CSS pipeline; page implementations; route registration for index + D2;
-            docserver tests; README/FEATURES/skill-reference updates; AGENTS.md adoption table; CHANGELOG entry for the
-            exporter layout change; example app refresh; TODO_LIST harvest.
+            templ-components dependency wiring; CSS pipeline; page
+            implementations; route registration for index + D2; docserver tests;
+            README/FEATURES/skill-reference updates; AGENTS.md adoption table;
+            CHANGELOG entry for the exporter layout change; example app refresh;
+            TODO_LIST harvest.
           </p>
         </div>
 
@@ -988,41 +1048,52 @@
         <div class="card card-problem">
           <h4>/mnt/buildcache died mid-session</h4>
           <p>
-            "No such device" on /mnt/buildcache — GOCACHE/GOTMPDIR defaults broke; golangci-lint LSP cache also fails
-            (input/output error), so lint diagnostics are unusable this session. Worked around with
-            GOCACHE=$HOME/.cache/go-build. The mount needs restoring or env defaults repointing; any workspace-wide
-            test run will hit this.
+            "No such device" on /mnt/buildcache — GOCACHE/GOTMPDIR defaults
+            broke; golangci-lint LSP cache also fails (input/output error), so
+            lint diagnostics are unusable this session. Worked around with
+            GOCACHE=$HOME/.cache/go-build. The mount needs restoring or env
+            defaults repointing; any workspace-wide test run will hit this.
           </p>
         </div>
         <div class="card card-problem">
           <h4>Auto-commit daemon muddied history</h4>
           <p>
-            Commit fe7c1d2e5 bundled this session's catalog changes together with unrelated id/metaengine/record changes
-            from another session. Nothing lost, but per-concern commit hygiene is gone for that batch.
+            Commit fe7c1d2e5 bundled this session's catalog changes together
+            with unrelated id/metaengine/record changes from another session.
+            Nothing lost, but per-concern commit hygiene is gone for that batch.
           </p>
         </div>
 
         <h2 id="improve"><span class="num">05</span>What We Should Improve</h2>
         <div class="issue issue-critical">
           <span class="severity severity-critical">Honesty gap</span>
-          <h3>Goldens only assert our own output — never the real EventCatalog build</h3>
+          <h3>
+            Goldens only assert our own output — never the real EventCatalog
+            build
+          </h3>
           <div class="where">catalog/eventcatalog/golden_test.go</div>
           <p>
-            Three upstream-format defects shipped and passed every golden test because the goldens verify shape, not
-            compatibility. Nothing executes <code>npx @eventcatalog/cli build</code> against generated output.
+            Three upstream-format defects shipped and passed every golden test
+            because the goldens verify shape, not compatibility. Nothing
+            executes <code>npx @eventcatalog/cli build</code> against generated
+            output.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Add an opt-in integration test (env-gated, Node available in nix devShell) that builds a generated catalog
-            with the real CLI and asserts exit 0.
+            Add an opt-in integration test (env-gated, Node available in nix
+            devShell) that builds a generated catalog with the real CLI and
+            asserts exit 0.
           </div>
         </div>
         <div class="issue issue-important">
           <span class="severity severity-important">Reproducibility</span>
           <h3>package.json pins @eventcatalog/core to "latest"</h3>
-          <div class="where">catalog/eventcatalog/writer.go — writePackageJSON</div>
+          <div class="where">
+            catalog/eventcatalog/writer.go — writePackageJSON
+          </div>
           <p>
-            "latest" means generated projects break whenever upstream shifts format again, with no pin to detect it.
+            "latest" means generated projects break whenever upstream shifts
+            format again, with no pin to detect it.
           </p>
         </div>
         <div class="issue issue-nice">
@@ -1030,67 +1101,418 @@
           <h3>cId override option</h3>
           <div class="where">catalog/eventcatalog/exporter.go</div>
           <p>
-            Deterministic v5-from-title is right by default; an Option to supply an explicit catalog identity would
-            cover orgs that manage cIds centrally.
+            Deterministic v5-from-title is right by default; an Option to supply
+            an explicit catalog identity would cover orgs that manage cIds
+            centrally.
           </p>
         </div>
 
         <h2 id="next"><span class="num">06</span>Top 50 Next Tasks</h2>
         <table>
           <thead>
-            <tr><th>#</th><th>Priority</th><th>Task</th><th>Area</th></tr>
+            <tr>
+              <th>#</th>
+              <th>Priority</th>
+              <th>Task</th>
+              <th>Area</th>
+            </tr>
           </thead>
           <tbody>
-            <tr><td>1</td><td><span class="badge badge-critical">Critical</span></td><td>Add templ-components v1.8.3 to catalog go.mod + .golangci.yml depguard allowlist (budget 3/4)</td><td>docserver</td></tr>
-            <tr><td>2</td><td><span class="badge badge-critical">Critical</span></td><td>CSS pipeline: docs.css.src + nix attr running tailwindcss_4 + committed-artifact drift gate</td><td>docserver</td></tr>
-            <tr><td>3</td><td><span class="badge badge-critical">Critical</span></td><td>Docs index page at DocsPath: Base + Nav + PageHeader + Card grid + StatCards (service/message counts)</td><td>docserver</td></tr>
-            <tr><td>4</td><td><span class="badge badge-critical">Critical</span></td><td>Run nix run .#verify after docserver work (full gate incl. lint, doc-check)</td><td>verification</td></tr>
-            <tr><td>5</td><td><span class="badge badge-high">High</span></td><td>Scalar wrapper page: slim header, back-to-index link, favicon, noscript, CSP-safe script</td><td>docserver</td></tr>
-            <tr><td>6</td><td><span class="badge badge-high">High</span></td><td>AsyncAPI wrapper page: same chrome treatment as Scalar wrapper</td><td>docserver</td></tr>
-            <tr><td>7</td><td><span class="badge badge-high">High</span></td><td>D2 view page: source block + CopyButton + download link + register under DocsPath</td><td>docserver</td></tr>
-            <tr><td>8</td><td><span class="badge badge-high">High</span></td><td>Tests for all new pages/routes (index, d2, wrappers render + content assertions)</td><td>docserver</td></tr>
-            <tr><td>9</td><td><span class="badge badge-high">High</span></td><td>CHANGELOG entry: exporter layout change is behavior-breaking for path consumers</td><td>docs</td></tr>
-            <tr><td>10</td><td><span class="badge badge-high">High</span></td><td>Update catalog README EventCatalog section (top-level messages, containers/, cId)</td><td>docs</td></tr>
-            <tr><td>11</td><td><span class="badge badge-high">High</span></td><td>Update FEATURES.md docserver/eventcatalog feature rows</td><td>docs</td></tr>
-            <tr><td>12</td><td><span class="badge badge-high">High</span></td><td>Update skill references (modules.md, recipes.md) for new layout + docserver plan</td><td>docs</td></tr>
-            <tr><td>13</td><td><span class="badge badge-high">High</span></td><td>Add templ-components adoption table to catalog/AGENTS.md (skill consumer tip)</td><td>docs</td></tr>
-            <tr><td>14</td><td><span class="badge badge-high">High</span></td><td>Run cmd/doc-check over skill references + AGENTS.md</td><td>verification</td></tr>
-            <tr><td>15</td><td><span class="badge badge-high">High</span></td><td>Verify schemas.txt/llms.txt writers reference new top-level message paths</td><td>eventcatalog</td></tr>
-            <tr><td>16</td><td><span class="badge badge-medium">Medium</span></td><td>Pin @eventcatalog/core version in generated package.json (drop "latest")</td><td>eventcatalog</td></tr>
-            <tr><td>17</td><td><span class="badge badge-medium">Medium</span></td><td>Env-gated integration test: build generated catalog with real @eventcatalog/cli</td><td>eventcatalog</td></tr>
-            <tr><td>18</td><td><span class="badge badge-medium">Medium</span></td><td>Exporter Option to override cId explicitly</td><td>eventcatalog</td></tr>
-            <tr><td>19</td><td><span class="badge badge-medium">Medium</span></td><td>Index page: raw spec links (openapi/asyncapi .json+.yaml) + catalog.json</td><td>docserver</td></tr>
-            <tr><td>20</td><td><span class="badge badge-medium">Medium</span></td><td>Index page: EventCatalog section pointing at GenerateEventCatalog output + llms.txt</td><td>docserver</td></tr>
-            <tr><td>21</td><td><span class="badge badge-medium">Medium</span></td><td>Dark mode: ThemeScript + ThemeToggle on index; confirm Scalar/AsyncAPI dark defaults</td><td>docserver</td></tr>
-            <tr><td>22</td><td><span class="badge badge-medium">Medium</span></td><td>check-arch + check-duplication runs for the new dep and generated pages</td><td>verification</td></tr>
-            <tr><td>23</td><td><span class="badge badge-medium">Medium</span></td><td>api-stability golden regen + TestEveryGoModDir meta-tests (no new module, verify no-op)</td><td>verification</td></tr>
-            <tr><td>24</td><td><span class="badge badge-medium">Medium</span></td><td>example/ app demonstrating docserver + eventcatalog end-to-end</td><td>examples</td></tr>
-            <tr><td>25</td><td><span class="badge badge-medium">Medium</span></td><td>Restore /mnt/buildcache mount or repoint GOCACHE/GOTMPDIR defaults</td><td>environment</td></tr>
-            <tr><td>26</td><td><span class="badge badge-medium">Medium</span></td><td>EC exporter: versioned/ directories for multi-version messages</td><td>eventcatalog</td></tr>
-            <tr><td>27</td><td><span class="badge badge-medium">Medium</span></td><td>EC exporter: systems/ nesting (domain→system→service) as opt-in</td><td>eventcatalog</td></tr>
-            <tr><td>28</td><td><span class="badge badge-medium">Medium</span></td><td>D2 client-side render investigation (d2-wasm size budget)</td><td>docserver</td></tr>
-            <tr><td>29</td><td><span class="badge badge-medium">Medium</span></td><td>TODO_LIST.md harvest from this report (docs-health HARVEST)</td><td>docs</td></tr>
-            <tr><td>30</td><td><span class="badge badge-medium">Medium</span></td><td>Update example/taskmanager EventCatalog references to new layout</td><td>examples</td></tr>
-            <tr><td>31</td><td><span class="badge badge-low">Low</span></td><td>Favicon: inline SVG data URI shared across docserver pages</td><td>docserver</td></tr>
-            <tr><td>32</td><td><span class="badge badge-low">Low</span></td><td>noscript + JS-failure fallback copy on wrapper pages</td><td>docserver</td></tr>
-            <tr><td>33</td><td><span class="badge badge-low">Low</span></td><td>Absolute DocsPath-anchored asset URLs (proxy-safety hardening)</td><td>docserver</td></tr>
-            <tr><td>34</td><td><span class="badge badge-low">Low</span></td><td>ETag/cache headers for embedded static assets</td><td>docserver</td></tr>
-            <tr><td>35</td><td><span class="badge badge-low">Low</span></td><td>gzip for JSON/YAML spec endpoints</td><td>docserver</td></tr>
-            <tr><td>36</td><td><span class="badge badge-low">Low</span></td><td>HealthCheckHandler: include doc URLs in healthy payload + test JSON shape</td><td>docserver</td></tr>
-            <tr><td>37</td><td><span class="badge badge-low">Low</span></td><td>catalog CLI: serve subcommand wrapping DocsServer</td><td>tooling</td></tr>
-            <tr><td>38</td><td><span class="badge badge-low">Low</span></td><td>EC exporter: changelog.(md|mdx) sidecar support</td><td>eventcatalog</td></tr>
-            <tr><td>39</td><td><span class="badge badge-low">Low</span></td><td>EC exporter: ubiquitous-language.mdx for domains</td><td>eventcatalog</td></tr>
-            <tr><td>40</td><td><span class="badge badge-low">Low</span></td><td>EC exporter: adrs/ and diagrams (mermaid) resources</td><td>eventcatalog</td></tr>
-            <tr><td>41</td><td><span class="badge badge-low">Low</span></td><td>ADR documenting the templ-components adoption decision in catalog</td><td>docs</td></tr>
-            <tr><td>42</td><td><span class="badge badge-low">Low</span></td><td>Spec endpoints: content negotiation (?format=yaml)</td><td>docserver</td></tr>
-            <tr><td>43</td><td><span class="badge badge-low">Low</span></td><td>writeExamples coverage check post-move</td><td>eventcatalog</td></tr>
-            <tr><td>44</td><td><span class="badge badge-low">Low</span></td><td>LSP golangci cache path fix (per-machine)</td><td>environment</td></tr>
-            <tr><td>45</td><td><span class="badge badge-low">Low</span></td><td>Review daemon commit fe7c1d2e5 bundling for split-brain risk</td><td>git</td></tr>
-            <tr><td>46</td><td><span class="badge badge-low">Low</span></td><td>cqrs-gen: emit catalog registration hints for handlers</td><td>tooling</td></tr>
-            <tr><td>47</td><td><span class="badge badge-low">Low</span></td><td>Index page: search/filter over services and messages (client-side)</td><td>docserver</td></tr>
-            <tr><td>48</td><td><span class="badge badge-low">Low</span></td><td>Docserver: expose spec download links with copyable curl commands</td><td>docserver</td></tr>
-            <tr><td>49</td><td><span class="badge badge-low">Low</span></td><td>EC exporter: badge/owner propagation spot-checks in goldens</td><td>eventcatalog</td></tr>
-            <tr><td>50</td><td><span class="badge badge-low">Low</span></td><td>Session close-out: update docs/status index and retire superseded notes</td><td>docs</td></tr>
+            <tr>
+              <td>1</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>
+                Add templ-components v1.8.3 to catalog go.mod + .golangci.yml
+                depguard allowlist (budget 3/4)
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>
+                CSS pipeline: docs.css.src + nix attr running tailwindcss_4 +
+                committed-artifact drift gate
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>
+                Docs index page at DocsPath: Base + Nav + PageHeader + Card grid
+                + StatCards (service/message counts)
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>
+                Run nix run .#verify after docserver work (full gate incl. lint,
+                doc-check)
+              </td>
+              <td>verification</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>
+                Scalar wrapper page: slim header, back-to-index link, favicon,
+                noscript, CSP-safe script
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>
+                AsyncAPI wrapper page: same chrome treatment as Scalar wrapper
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>
+                D2 view page: source block + CopyButton + download link +
+                register under DocsPath
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>
+                Tests for all new pages/routes (index, d2, wrappers render +
+                content assertions)
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>
+                CHANGELOG entry: exporter layout change is behavior-breaking for
+                path consumers
+              </td>
+              <td>docs</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>
+                Update catalog README EventCatalog section (top-level messages,
+                containers/, cId)
+              </td>
+              <td>docs</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Update FEATURES.md docserver/eventcatalog feature rows</td>
+              <td>docs</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>
+                Update skill references (modules.md, recipes.md) for new layout
+                + docserver plan
+              </td>
+              <td>docs</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>
+                Add templ-components adoption table to catalog/AGENTS.md (skill
+                consumer tip)
+              </td>
+              <td>docs</td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Run cmd/doc-check over skill references + AGENTS.md</td>
+              <td>verification</td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>
+                Verify schemas.txt/llms.txt writers reference new top-level
+                message paths
+              </td>
+              <td>eventcatalog</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                Pin @eventcatalog/core version in generated package.json (drop
+                "latest")
+              </td>
+              <td>eventcatalog</td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                Env-gated integration test: build generated catalog with real
+                @eventcatalog/cli
+              </td>
+              <td>eventcatalog</td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Exporter Option to override cId explicitly</td>
+              <td>eventcatalog</td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                Index page: raw spec links (openapi/asyncapi .json+.yaml) +
+                catalog.json
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                Index page: EventCatalog section pointing at
+                GenerateEventCatalog output + llms.txt
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                Dark mode: ThemeScript + ThemeToggle on index; confirm
+                Scalar/AsyncAPI dark defaults
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                check-arch + check-duplication runs for the new dep and
+                generated pages
+              </td>
+              <td>verification</td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                api-stability golden regen + TestEveryGoModDir meta-tests (no
+                new module, verify no-op)
+              </td>
+              <td>verification</td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                example/ app demonstrating docserver + eventcatalog end-to-end
+              </td>
+              <td>examples</td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                Restore /mnt/buildcache mount or repoint GOCACHE/GOTMPDIR
+                defaults
+              </td>
+              <td>environment</td>
+            </tr>
+            <tr>
+              <td>26</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                EC exporter: versioned/ directories for multi-version messages
+              </td>
+              <td>eventcatalog</td>
+            </tr>
+            <tr>
+              <td>27</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                EC exporter: systems/ nesting (domain→system→service) as opt-in
+              </td>
+              <td>eventcatalog</td>
+            </tr>
+            <tr>
+              <td>28</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>D2 client-side render investigation (d2-wasm size budget)</td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>29</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                TODO_LIST.md harvest from this report (docs-health HARVEST)
+              </td>
+              <td>docs</td>
+            </tr>
+            <tr>
+              <td>30</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                Update example/taskmanager EventCatalog references to new layout
+              </td>
+              <td>examples</td>
+            </tr>
+            <tr>
+              <td>31</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                Favicon: inline SVG data URI shared across docserver pages
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>32</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>noscript + JS-failure fallback copy on wrapper pages</td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>33</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                Absolute DocsPath-anchored asset URLs (proxy-safety hardening)
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>34</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>ETag/cache headers for embedded static assets</td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>35</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>gzip for JSON/YAML spec endpoints</td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>36</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                HealthCheckHandler: include doc URLs in healthy payload + test
+                JSON shape
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>37</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>catalog CLI: serve subcommand wrapping DocsServer</td>
+              <td>tooling</td>
+            </tr>
+            <tr>
+              <td>38</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>EC exporter: changelog.(md|mdx) sidecar support</td>
+              <td>eventcatalog</td>
+            </tr>
+            <tr>
+              <td>39</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>EC exporter: ubiquitous-language.mdx for domains</td>
+              <td>eventcatalog</td>
+            </tr>
+            <tr>
+              <td>40</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>EC exporter: adrs/ and diagrams (mermaid) resources</td>
+              <td>eventcatalog</td>
+            </tr>
+            <tr>
+              <td>41</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                ADR documenting the templ-components adoption decision in
+                catalog
+              </td>
+              <td>docs</td>
+            </tr>
+            <tr>
+              <td>42</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Spec endpoints: content negotiation (?format=yaml)</td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>43</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>writeExamples coverage check post-move</td>
+              <td>eventcatalog</td>
+            </tr>
+            <tr>
+              <td>44</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>LSP golangci cache path fix (per-machine)</td>
+              <td>environment</td>
+            </tr>
+            <tr>
+              <td>45</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                Review daemon commit fe7c1d2e5 bundling for split-brain risk
+              </td>
+              <td>git</td>
+            </tr>
+            <tr>
+              <td>46</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>cqrs-gen: emit catalog registration hints for handlers</td>
+              <td>tooling</td>
+            </tr>
+            <tr>
+              <td>47</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                Index page: search/filter over services and messages
+                (client-side)
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>48</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                Docserver: expose spec download links with copyable curl
+                commands
+              </td>
+              <td>docserver</td>
+            </tr>
+            <tr>
+              <td>49</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                EC exporter: badge/owner propagation spot-checks in goldens
+              </td>
+              <td>eventcatalog</td>
+            </tr>
+            <tr>
+              <td>50</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                Session close-out: update docs/status index and retire
+                superseded notes
+              </td>
+              <td>docs</td>
+            </tr>
           </tbody>
         </table>
 
@@ -1100,9 +1522,11 @@
           <h3>Ship the layout change as-is in v4?</h3>
           <div class="where">catalog/eventcatalog (behavior change)</div>
           <p>
-            Generated paths moved (services/&lt;svc&gt;/&lt;kind&gt;/&lt;id&gt; → &lt;kind&gt;/&lt;id&gt;; data/ → containers/). Consumers that read
-            those paths break; consumers that just run the EventCatalog CLI get strictly better output. Ship now on v4,
-            or gate behind an Exporter option / defer to v5?
+            Generated paths moved (services/&lt;svc&gt;/&lt;kind&gt;/&lt;id&gt;
+            → &lt;kind&gt;/&lt;id&gt;; data/ → containers/). Consumers that read
+            those paths break; consumers that just run the EventCatalog CLI get
+            strictly better output. Ship now on v4, or gate behind an Exporter
+            option / defer to v5?
           </p>
         </div>
         <div class="issue issue-important">
@@ -1110,9 +1534,11 @@
           <h3>Approve templ-components as a catalog production dependency?</h3>
           <div class="where">catalog/go.mod (DEP_BUDGET 3/4 after)</div>
           <p>
-            Decision made in-session: adopt for docserver pages, CSS via committed Tailwind v4 build with a nix drift
-            gate. This adds templ-components + a-h/templ to every catalog consumer's module graph. Confirm, or prefer a
-            zero-dep hand-rolled UI for the embedded pages?
+            Decision made in-session: adopt for docserver pages, CSS via
+            committed Tailwind v4 build with a nix drift gate. This adds
+            templ-components + a-h/templ to every catalog consumer's module
+            graph. Confirm, or prefer a zero-dep hand-rolled UI for the embedded
+            pages?
           </p>
         </div>
         <div class="issue issue-nice">
@@ -1120,14 +1546,16 @@
           <h3>Which @eventcatalog/core should generated projects pin?</h3>
           <div class="where">catalog/eventcatalog/writer.go</div>
           <p>
-            Today package.json says "latest". Should we pin a verified major/minor, and do you want the real-CLI build
-            test (task 17) wired into CI before unpinning?
+            Today package.json says "latest". Should we pin a verified
+            major/minor, and do you want the real-CLI build test (task 17) wired
+            into CI before unpinning?
           </p>
         </div>
 
         <footer class="footer">
-          Generated 2026-08-16 18:57 &middot; All upstream claims verified against event-catalog/eventcatalog@main via
-          GitHub API &middot; catalog module tests: 14/14 ok
+          Generated 2026-08-16 18:57 &middot; All upstream claims verified
+          against event-catalog/eventcatalog@main via GitHub API &middot;
+          catalog module tests: 14/14 ok
         </footer>
       </main>
     </div>

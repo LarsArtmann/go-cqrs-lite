@@ -56,14 +56,14 @@
         --radius-sm: 0px;
 
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
 
       * {
@@ -460,12 +460,20 @@
       .callout-teal,
       .callout-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 10%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
       }
       .callout-amber,
       .callout-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 18%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
       }
 
       .strengths {
@@ -735,9 +743,10 @@
           <div class="eyebrow">Library Deep-Dive &middot; 2026-07-23</div>
           <h1>go-cqrs-lite &amp; cqrs-htmx Ecosystem Audit</h1>
           <p class="subtitle">
-            A cross-project analysis of how 22+ consumer applications use the go-cqrs-lite
-            CQRS/Event-Sourcing library and the cqrs-htmx HTTP binding. We identify what is used
-            well, what is underused, what is misused, and what should be avoided.
+            A cross-project analysis of how 22+ consumer applications use the
+            go-cqrs-lite CQRS/Event-Sourcing library and the cqrs-htmx HTTP
+            binding. We identify what is used well, what is underused, what is
+            misused, and what should be avoided.
           </p>
           <div class="meta">
             <span class="tag amber">Scope: 22+ consumer projects</span>
@@ -752,13 +761,15 @@
           <div class="callout callout-amber">
             <strong>The bottom line.</strong>
             The ecosystem has <em>strong</em> adoption of the core go-cqrs-lite
-            event-sourcing/decider loop, but <em>weak</em> adoption of the higher-level cqrs-htmx
-            HTTP binding. Most web projects import cqrs-htmx only for its middleware chain (security
-            headers, recovery, HTMX detection) and leave the declarative <code>app.Command</code> /
-            <code>app.Query</code> routing, CSRF, rate limiting, typed decoders, and SSE/WebSocket
-            bridges on the table. Version drift is also a real problem: the dependency graph shows
-            76 version conflicts and 532 outdated consumers, with several projects mixing
-            go-cqrs-lite v3 and v4 submodules or pinning local replace-only pseudo-versions.
+            event-sourcing/decider loop, but <em>weak</em> adoption of the
+            higher-level cqrs-htmx HTTP binding. Most web projects import
+            cqrs-htmx only for its middleware chain (security headers, recovery,
+            HTMX detection) and leave the declarative <code>app.Command</code> /
+            <code>app.Query</code> routing, CSRF, rate limiting, typed decoders,
+            and SSE/WebSocket bridges on the table. Version drift is also a real
+            problem: the dependency graph shows 76 version conflicts and 532
+            outdated consumers, with several projects mixing go-cqrs-lite v3 and
+            v4 submodules or pinning local replace-only pseudo-versions.
           </div>
 
           <div class="strengths">
@@ -767,8 +778,9 @@
               <div class="text">
                 <strong>Core CQRS/ES is well understood</strong>
                 <span
-                  >bank-sync, Standup-Killer, Zlota44, github-local-sync, browser-history, and
-                  go-localsync all use deciders, event stores, and projections correctly.</span
+                  >bank-sync, Standup-Killer, Zlota44, github-local-sync,
+                  browser-history, and go-localsync all use deciders, event
+                  stores, and projections correctly.</span
                 >
               </div>
             </div>
@@ -777,8 +789,9 @@
               <div class="text">
                 <strong>Advanced production features are exercised</strong>
                 <span
-                  >bank-sync uses encryption, snapshots, and upcasting; Standup-Killer uses SSE and
-                  idempotency; browser-history uses WebAuthn/usermgmt.</span
+                  >bank-sync uses encryption, snapshots, and upcasting;
+                  Standup-Killer uses SSE and idempotency; browser-history uses
+                  WebAuthn/usermgmt.</span
                 >
               </div>
             </div>
@@ -787,9 +800,9 @@
               <div class="text">
                 <strong>Middleware awareness is growing</strong>
                 <span
-                  >Recovery, security headers, and HTMX detection are being adopted through
-                  cqrs-htmx.Chain in Standup-Killer, github-local-sync, PapDashboard, and
-                  crush-daily.</span
+                  >Recovery, security headers, and HTMX detection are being
+                  adopted through cqrs-htmx.Chain in Standup-Killer,
+                  github-local-sync, PapDashboard, and crush-daily.</span
                 >
               </div>
             </div>
@@ -822,9 +835,10 @@
           </div>
 
           <p>
-            The score is intentionally conservative. It rewards the strong event-sourcing core but
-            penalizes the ecosystem for (1) treating cqrs-htmx as a middleware-only library, (2)
-            leaving high-value features (idempotency, signing, scheduling, catalog, OTel) on the
+            The score is intentionally conservative. It rewards the strong
+            event-sourcing core but penalizes the ecosystem for (1) treating
+            cqrs-htmx as a middleware-only library, (2) leaving high-value
+            features (idempotency, signing, scheduling, catalog, OTel) on the
             shelf, and (3) letting version drift accumulate across submodules.
           </p>
         </section>
@@ -833,13 +847,16 @@
           <h2><span class="num">03</span>Ecosystem Map</h2>
 
           <p>
-            Direct consumers of <code>go-cqrs-lite</code> include DiscordSync, KeyCountdown,
-            bank-sync, crush-daily, github-local-sync, go-localsync, Kernovia, PapDashboard, SEC,
-            standard-bug-tracking-schema, StopTube, Zlota44, CV, Cyberdom, InboxClean, KeyHolderAI,
-            Standup-Killer, accountability-system, overview, storbi, timesheets, and
-            browser-history. Direct consumers of <code>cqrs-htmx</code> include CV, DiscordSync,
-            KeyCountdown, KeyHolderAI, Standup-Killer, accountability-system, bank-sync,
-            crush-daily, github-local-sync, overview, PapDashboard, SEC, timesheets, and Zlota44.
+            Direct consumers of <code>go-cqrs-lite</code> include DiscordSync,
+            KeyCountdown, bank-sync, crush-daily, github-local-sync,
+            go-localsync, Kernovia, PapDashboard, SEC,
+            standard-bug-tracking-schema, StopTube, Zlota44, CV, Cyberdom,
+            InboxClean, KeyHolderAI, Standup-Killer, accountability-system,
+            overview, storbi, timesheets, and browser-history. Direct consumers
+            of <code>cqrs-htmx</code> include CV, DiscordSync, KeyCountdown,
+            KeyHolderAI, Standup-Killer, accountability-system, bank-sync,
+            crush-daily, github-local-sync, overview, PapDashboard, SEC,
+            timesheets, and Zlota44.
           </p>
 
           <div class="table-wrap">
@@ -855,19 +872,27 @@
               <tbody>
                 <tr>
                   <td><strong>bank-sync</strong></td>
-                  <td>Deep — decider, ES, projections, snapshots, encryption, upcasting</td>
+                  <td>
+                    Deep — decider, ES, projections, snapshots, encryption,
+                    upcasting
+                  </td>
                   <td>App.Query for fragments, middleware, SSE</td>
                   <td class="yes">Good</td>
                 </tr>
                 <tr>
                   <td><strong>Standup-Killer</strong></td>
-                  <td>Deep — 3 deciders, in-memory/SQLite, idempotency, projections</td>
+                  <td>
+                    Deep — 3 deciders, in-memory/SQLite, idempotency,
+                    projections
+                  </td>
                   <td>Chain + Broadcaster only; no app.Command/app.Query</td>
                   <td class="partial">Partial</td>
                 </tr>
                 <tr>
                   <td><strong>Zlota44</strong></td>
-                  <td>Deep — typed deciders, idempotency, retry, custom read model</td>
+                  <td>
+                    Deep — typed deciders, idempotency, retry, custom read model
+                  </td>
                   <td>Imported but custom HTTP handlers</td>
                   <td class="partial">Partial</td>
                 </tr>
@@ -880,7 +905,9 @@
                 <tr>
                   <td><strong>crush-daily</strong></td>
                   <td>Medium — decider, read model, Prometheus/OTel</td>
-                  <td>app.Command only for <code>/api/collect</code>; rest manual</td>
+                  <td>
+                    app.Command only for <code>/api/collect</code>; rest manual
+                  </td>
                   <td class="partial">Partial</td>
                 </tr>
                 <tr>
@@ -928,8 +955,9 @@
                 <tr>
                   <td>
                     <strong
-                      >CV, storbi, InboxClean, Cyberdom, go-localsync, Kernovia, timesheets,
-                      PapDashboard, standard-bug-tracking-schema, StopTube</strong
+                      >CV, storbi, InboxClean, Cyberdom, go-localsync, Kernovia,
+                      timesheets, PapDashboard, standard-bug-tracking-schema,
+                      StopTube</strong
                     >
                   </td>
                   <td>Shallow to medium</td>
@@ -945,25 +973,30 @@
           <h2><span class="num">04</span>Capability Gaps</h2>
 
           <p>
-            The go-cqrs-lite suite exposes roughly 28 independent modules (event, command, query,
-            decider, id, storage, projections, snapshots, schema, signing, encryption, middleware,
-            otel, catalog, watermill, transport/http, scheduling, deriver, graph, kv, listing,
-            idempotency, projectionhost, etc.). cqrs-htmx adds declarative HTTP handlers,
-            middleware, auth/usermgmt, SSE/WebSocket bridges, typed decoders, and more. The sections
-            below grade real-world adoption of the most important capabilities.
+            The go-cqrs-lite suite exposes roughly 28 independent modules
+            (event, command, query, decider, id, storage, projections,
+            snapshots, schema, signing, encryption, middleware, otel, catalog,
+            watermill, transport/http, scheduling, deriver, graph, kv, listing,
+            idempotency, projectionhost, etc.). cqrs-htmx adds declarative HTTP
+            handlers, middleware, auth/usermgmt, SSE/WebSocket bridges, typed
+            decoders, and more. The sections below grade real-world adoption of
+            the most important capabilities.
           </p>
 
           <div class="issue issue-nice" id="cap-decider">
             <span class="severity severity-nice">Fully Leveraged</span>
             <h3>Decider / event-sourcing core</h3>
             <div class="where">
-              bank-sync, Standup-Killer, Zlota44, github-local-sync, browser-history,
-              standard-bug-tracking-schema, accountability-system, go-localsync
+              bank-sync, Standup-Killer, Zlota44, github-local-sync,
+              browser-history, standard-bug-tracking-schema,
+              accountability-system, go-localsync
             </div>
             <p>
-              The decider pattern is the most-adopted capability. Multiple projects use
-              <code>decider.NewRepository</code>, typed command handlers, and event buses correctly.
-              This is the primary strength of the ecosystem.
+              The decider pattern is the most-adopted capability. Multiple
+              projects use
+              <code>decider.NewRepository</code>, typed command handlers, and
+              event buses correctly. This is the primary strength of the
+              ecosystem.
             </p>
           </div>
 
@@ -975,19 +1008,23 @@
               github-local-sync/internal/server/server.go:78-96
             </div>
             <p>
-              Only <strong>crush-daily</strong> (one <code>app.Command</code>) and
-              <strong>github-local-sync</strong> (four <code>app.Query</code> routes) actually use
-              cqrs-htmx for routing. Standup-Killer, Zlota44, accountability-system, KeyCountdown,
-              KeyHolderAI, PapDashboard, timesheets, and overview import the library but wire their
-              endpoints manually. They still pay the dependency cost without gaining the decoding,
-              validation, auth, and error-mapping benefits.
+              Only <strong>crush-daily</strong> (one <code>app.Command</code>)
+              and <strong>github-local-sync</strong> (four
+              <code>app.Query</code> routes) actually use cqrs-htmx for routing.
+              Standup-Killer, Zlota44, accountability-system, KeyCountdown,
+              KeyHolderAI, PapDashboard, timesheets, and overview import the
+              library but wire their endpoints manually. They still pay the
+              dependency cost without gaining the decoding, validation, auth,
+              and error-mapping benefits.
             </p>
             <div class="callout callout-teal">
               <strong>Recommendation.</strong>
               For any state-changing POST/PUT route, prefer
-              <code>app.Command</code> with <code>DecodeJSON</code> or <code>DecodeForm</code> plus
-              <code>Authorize</code> and <code>NotifySuccess</code>. For read routes, use
-              <code>app.Query</code> with <code>RenderJSON</code> or <code>RenderTemplResult</code>.
+              <code>app.Command</code> with <code>DecodeJSON</code> or
+              <code>DecodeForm</code> plus <code>Authorize</code> and
+              <code>NotifySuccess</code>. For read routes, use
+              <code>app.Query</code> with <code>RenderJSON</code> or
+              <code>RenderTemplResult</code>.
             </div>
           </div>
 
@@ -995,14 +1032,17 @@
             <span class="severity severity-critical">Missed Opportunity</span>
             <h3>CSRF, rate limiting, and security headers</h3>
             <div class="where">
-              Standup-Killer, Zlota44, bank-sync, accountability-system, KeyCountdown, KeyHolderAI,
-              PapDashboard
+              Standup-Killer, Zlota44, bank-sync, accountability-system,
+              KeyCountdown, KeyHolderAI, PapDashboard
             </div>
             <p>
-              cqrs-htmx ships <code>CSRFMiddleware</code>, <code>RateLimiterMiddleware</code>, and
-              <code>SecurityHeadersMiddleware</code> with sensible defaults. Most web projects use
-              only <code>SecurityHeadersMiddleware</code> (and sometimes only with empty fields).
-              CSRF and rate limiting are rarely applied, even on state-changing endpoints.
+              cqrs-htmx ships <code>CSRFMiddleware</code>,
+              <code>RateLimiterMiddleware</code>, and
+              <code>SecurityHeadersMiddleware</code> with sensible defaults.
+              Most web projects use only
+              <code>SecurityHeadersMiddleware</code> (and sometimes only with
+              empty fields). CSRF and rate limiting are rarely applied, even on
+              state-changing endpoints.
             </p>
             <div class="callout callout-teal">
               <strong>Recommendation.</strong>
@@ -1021,40 +1061,47 @@
           <div class="issue issue-important" id="cap-idempotency">
             <span class="severity severity-important">Partially Used</span>
             <h3>Idempotency</h3>
-            <div class="where">Standup-Killer/domain/cqrs/handlers.go, Zlota44</div>
+            <div class="where">
+              Standup-Killer/domain/cqrs/handlers.go, Zlota44
+            </div>
             <p>
-              Standup-Killer and Zlota44 wire idempotency stores, but most other state-changing
-              projects — including <strong>bank-sync</strong> — do not. For financial/banking
-              commands this is a high-value gap: duplicate imports could create duplicate
-              transactions.
+              Standup-Killer and Zlota44 wire idempotency stores, but most other
+              state-changing projects — including <strong>bank-sync</strong> —
+              do not. For financial/banking commands this is a high-value gap:
+              duplicate imports could create duplicate transactions.
             </p>
             <div class="callout callout-teal">
               <strong>Recommendation.</strong>
               Add <code>go-cqrs-lite/idempotency</code> and
-              <code>middleware.CommandIdempotency</code> to the command dispatcher in projects with
-              non-idempotent state changes.
+              <code>middleware.CommandIdempotency</code> to the command
+              dispatcher in projects with non-idempotent state changes.
             </div>
           </div>
 
           <div class="issue issue-critical" id="cap-version">
             <span class="severity severity-critical">Misused / Risk</span>
             <h3>Version drift and replace-only pseudo-versions</h3>
-            <div class="where">SEC/go.mod:10-29, browser-history/cmd/server/go.mod:11-32</div>
+            <div class="where">
+              SEC/go.mod:10-29, browser-history/cmd/server/go.mod:11-32
+            </div>
             <p>
-              <strong>SEC</strong> pins every go-cqrs-lite and cqrs-htmx submodule to
-              <code>v4.0.0-00010101000000-000000000000</code> and replaces them all with local
-              paths. This only builds inside the monorepo; a fresh checkout or CI outside the
-              workspace will fail because the pseudo-versions are not fetchable.
+              <strong>SEC</strong> pins every go-cqrs-lite and cqrs-htmx
+              submodule to <code>v4.0.0-00010101000000-000000000000</code> and
+              replaces them all with local paths. This only builds inside the
+              monorepo; a fresh checkout or CI outside the workspace will fail
+              because the pseudo-versions are not fetchable.
             </p>
             <p>
-              <strong>browser-history</strong> has both v3 and v4 submodules in the same
-              <code>go.mod</code> (e.g. <code>command/v3</code> alongside <code>metadata/v4</code>).
-              This is a latent compilation and type mismatch risk.
+              <strong>browser-history</strong> has both v3 and v4 submodules in
+              the same <code>go.mod</code> (e.g.
+              <code>command/v3</code> alongside <code>metadata/v4</code>). This
+              is a latent compilation and type mismatch risk.
             </p>
             <div class="callout callout-teal">
               <strong>Recommendation.</strong>
-              Publish stable go-cqrs-lite/cqrs-htmx tags and switch SEC to published versions. For
-              browser-history, run <code>go get</code> on every go-cqrs-lite submodule to v4 and
+              Publish stable go-cqrs-lite/cqrs-htmx tags and switch SEC to
+              published versions. For browser-history, run
+              <code>go get</code> on every go-cqrs-lite submodule to v4 and
               delete v3 replaces.
             </div>
           </div>
@@ -1063,32 +1110,40 @@
             <span class="severity severity-important">Partially Used</span>
             <h3>Projections and read-model tiers</h3>
             <div class="where">
-              bank-sync, Standup-Killer, DiscordSync, browser-history, InboxClean, go-localsync
+              bank-sync, Standup-Killer, DiscordSync, browser-history,
+              InboxClean, go-localsync
             </div>
             <p>
-              Projections are used well in some projects, but many apps still build read models by
-              hand-rolling SQL over the event store or by loading full aggregate histories. The
-              library offers three projection tiers (KV/Document, Relational, Graph) and
-              <code>projectionhost</code> for crash-restart + checkpoint + DLQ, but most projects
-              stop at the simplest in-memory projection.
+              Projections are used well in some projects, but many apps still
+              build read models by hand-rolling SQL over the event store or by
+              loading full aggregate histories. The library offers three
+              projection tiers (KV/Document, Relational, Graph) and
+              <code>projectionhost</code> for crash-restart + checkpoint + DLQ,
+              but most projects stop at the simplest in-memory projection.
             </p>
             <div class="callout callout-teal">
               <strong>Recommendation.</strong>
-              For cross-aggregate lists with status, use <code>listing</code>. For complex
-              relational read models, use <code>storage.RelationalProjection</code>. For long-lived
-              projections, wire a <code>projectionhost.Host</code> with a checkpoint store.
+              For cross-aggregate lists with status, use <code>listing</code>.
+              For complex relational read models, use
+              <code>storage.RelationalProjection</code>. For long-lived
+              projections, wire a <code>projectionhost.Host</code> with a
+              checkpoint store.
             </div>
           </div>
 
           <div class="issue issue-important" id="cap-observability">
             <span class="severity severity-important">Missed Opportunity</span>
             <h3>OpenTelemetry and Prometheus</h3>
-            <div class="where">bank-sync, crush-daily, DiscordSync, Kernovia, KeyHolderAI</div>
+            <div class="where">
+              bank-sync, crush-daily, DiscordSync, Kernovia, KeyHolderAI
+            </div>
             <p>
-              Only a handful of projects import <code>go-cqrs-lite/otel</code> or
-              <code>prometheus</code>. Most projects have no distributed tracing or CQRS-specific
-              metrics around command/query dispatch latency, event throughput, or projection lag.
-              Given the library's built-in OTel middleware, this is low-hanging fruit.
+              Only a handful of projects import
+              <code>go-cqrs-lite/otel</code> or <code>prometheus</code>. Most
+              projects have no distributed tracing or CQRS-specific metrics
+              around command/query dispatch latency, event throughput, or
+              projection lag. Given the library's built-in OTel middleware, this
+              is low-hanging fruit.
             </p>
           </div>
 
@@ -1098,23 +1153,30 @@
             <div class="where">Ecosystem-wide</div>
             <p>
               High-value features are almost entirely unused:
-              <code>signing</code> (only Kernovia imports it), <code>encryption</code> (only
-              bank-sync), <code>scheduling</code> (only Standup-Killer indirectly),
-              <code>deriver</code> (event-to-command pipelines), <code>graph</code> (graph read
-              models), and <code>catalog</code> (AsyncAPI/OpenAPI/EventCatalog generation). These
-              are not needed everywhere, but several projects would benefit from them.
+              <code>signing</code> (only Kernovia imports it),
+              <code>encryption</code> (only bank-sync),
+              <code>scheduling</code> (only Standup-Killer indirectly),
+              <code>deriver</code> (event-to-command pipelines),
+              <code>graph</code> (graph read models), and
+              <code>catalog</code> (AsyncAPI/OpenAPI/EventCatalog generation).
+              These are not needed everywhere, but several projects would
+              benefit from them.
             </p>
           </div>
 
           <div class="issue issue-critical" id="cap-dead">
             <span class="severity severity-critical">Misused / Risk</span>
             <h3>Dead imports and framework mismatch</h3>
-            <div class="where">KeyHolderAI/go.mod:65, KeyHolderAI routing uses Gin</div>
+            <div class="where">
+              KeyHolderAI/go.mod:65, KeyHolderAI routing uses Gin
+            </div>
             <p>
-              <strong>KeyHolderAI</strong> imports <code>cqrs-htmx/v4</code> but uses Gin for HTTP
-              routing. No <code>app.Command</code> / <code>app.Query</code>
-              usage is visible. This is a wasted dependency that also complicates the module graph.
-              Either migrate to cqrs-htmx (net/http or Chi) or drop the import.
+              <strong>KeyHolderAI</strong> imports <code>cqrs-htmx/v4</code> but
+              uses Gin for HTTP routing. No <code>app.Command</code> /
+              <code>app.Query</code>
+              usage is visible. This is a wasted dependency that also
+              complicates the module graph. Either migrate to cqrs-htmx
+              (net/http or Chi) or drop the import.
             </p>
           </div>
         </section>
@@ -1123,9 +1185,10 @@
           <h2><span class="num">05</span>Version Drift</h2>
 
           <p>
-            The dependency graph reports a health score of 98/100, but 76 version conflicts and 532
-            outdated consumers across the workspace. The table below focuses on the go-cqrs-lite /
-            cqrs-htmx submodules that need alignment.
+            The dependency graph reports a health score of 98/100, but 76
+            version conflicts and 532 outdated consumers across the workspace.
+            The table below focuses on the go-cqrs-lite / cqrs-htmx submodules
+            that need alignment.
           </p>
 
           <div class="table-wrap">
@@ -1143,8 +1206,8 @@
                   <td><code>go-cqrs-lite/event/v4</code></td>
                   <td>v4.0.3</td>
                   <td>
-                    crush-daily, Kernovia, bank-sync, accountability-system, KeyCountdown, StopTube
-                    @ v4.0.2
+                    crush-daily, Kernovia, bank-sync, accountability-system,
+                    KeyCountdown, StopTube @ v4.0.2
                   </td>
                   <td class="partial">Low — patch drift</td>
                 </tr>
@@ -1152,8 +1215,8 @@
                   <td><code>go-cqrs-lite/command/v4</code></td>
                   <td>v4.0.1</td>
                   <td>
-                    crush-daily, bank-sync, accountability-system, KeyCountdown, KeyHolderAI @
-                    v4.0.0
+                    crush-daily, bank-sync, accountability-system, KeyCountdown,
+                    KeyHolderAI @ v4.0.0
                   </td>
                   <td class="partial">Low — patch drift</td>
                 </tr>
@@ -1181,9 +1244,10 @@
 
           <div class="callout callout-amber">
             <strong>Publish or perish.</strong>
-            SEC cannot be built outside the local workspace. The fix is either to publish all
-            required go-cqrs-lite/cqrs-htmx tags and remove the replace directives, or to document
-            clearly that SEC is a monorepo-only module.
+            SEC cannot be built outside the local workspace. The fix is either
+            to publish all required go-cqrs-lite/cqrs-htmx tags and remove the
+            replace directives, or to document clearly that SEC is a
+            monorepo-only module.
           </div>
         </section>
 
@@ -1191,8 +1255,8 @@
           <h2><span class="num">06</span>Top Opportunities</h2>
 
           <p>
-            Ranked by <em>impact × ease</em>. Impact is the value to the ecosystem; ease is the
-            estimated engineering effort.
+            Ranked by <em>impact × ease</em>. Impact is the value to the
+            ecosystem; ease is the estimated engineering effort.
           </p>
 
           <div class="table-wrap">
@@ -1217,8 +1281,8 @@
                 <tr>
                   <td>2</td>
                   <td>
-                    Adopt <code>app.Command</code> / <code>app.Query</code> in Standup-Killer,
-                    Zlota44, crush-daily
+                    Adopt <code>app.Command</code> / <code>app.Query</code> in
+                    Standup-Killer, Zlota44, crush-daily
                   </td>
                   <td class="yes">5</td>
                   <td class="yes">3</td>
@@ -1226,7 +1290,9 @@
                 </tr>
                 <tr>
                   <td>3</td>
-                  <td>Add CSRF + rate limiting to every cqrs-htmx web project</td>
+                  <td>
+                    Add CSRF + rate limiting to every cqrs-htmx web project
+                  </td>
                   <td class="yes">5</td>
                   <td class="yes">4</td>
                   <td><span class="badge badge-critical">20</span></td>
@@ -1234,7 +1300,8 @@
                 <tr>
                   <td>4</td>
                   <td>
-                    Add idempotency to financial/state-changing command paths (e.g. bank-sync)
+                    Add idempotency to financial/state-changing command paths
+                    (e.g. bank-sync)
                   </td>
                   <td class="yes">5</td>
                   <td class="yes">3</td>
@@ -1256,7 +1323,9 @@
                 </tr>
                 <tr>
                   <td>7</td>
-                  <td>Align all go-cqrs-lite submodules to latest patch versions</td>
+                  <td>
+                    Align all go-cqrs-lite submodules to latest patch versions
+                  </td>
                   <td class="yes">4</td>
                   <td class="yes">5</td>
                   <td><span class="badge badge-high">20</span></td>
@@ -1271,8 +1340,8 @@
                 <tr>
                   <td>9</td>
                   <td>
-                    Replace hand-rolled read models with <code>listing</code> / relational
-                    projections
+                    Replace hand-rolled read models with <code>listing</code> /
+                    relational projections
                   </td>
                   <td class="yes">4</td>
                   <td class="partial">2</td>
@@ -1280,7 +1349,10 @@
                 </tr>
                 <tr>
                   <td>10</td>
-                  <td>Document which projects should use <code>usermgmt</code> vs custom auth</td>
+                  <td>
+                    Document which projects should use <code>usermgmt</code> vs
+                    custom auth
+                  </td>
                   <td class="yes">3</td>
                   <td class="yes">5</td>
                   <td><span class="badge badge-medium">15</span></td>
@@ -1294,8 +1366,8 @@
           <h2><span class="num">07</span>Per-Project Notes</h2>
 
           <p>
-            Condensed findings for the most important consumers. The full import matrix is available
-            from the dependency graph tool.
+            Condensed findings for the most important consumers. The full import
+            matrix is available from the dependency graph tool.
           </p>
 
           <h3>Good examples</h3>
@@ -1303,9 +1375,10 @@
           <div class="card card-solution">
             <h4>bank-sync</h4>
             <p>
-              The most complete adoption: decider, SQLite event store, projections, snapshots every
-              50 events, AES-256-GCM encryption at rest, schema upcasting, and middleware. Uses
-              cqrs-htmx for query fragments and middleware. A natural next step is adding
+              The most complete adoption: decider, SQLite event store,
+              projections, snapshots every 50 events, AES-256-GCM encryption at
+              rest, schema upcasting, and middleware. Uses cqrs-htmx for query
+              fragments and middleware. A natural next step is adding
               idempotency to the sync/import command path.
             </p>
           </div>
@@ -1313,9 +1386,10 @@
           <div class="card card-solution">
             <h4>github-local-sync</h4>
             <p>
-              Clean cqrs-htmx usage: <code>app.Query</code> for stats, branches, flows, and health;
-              middleware chain; SSE progress stream. Also uses the <code>stack/sqlite</code> preset
-              and scenario tests. The sync trigger is intentionally a plain handler because it is a
+              Clean cqrs-htmx usage: <code>app.Query</code> for stats, branches,
+              flows, and health; middleware chain; SSE progress stream. Also
+              uses the <code>stack/sqlite</code> preset and scenario tests. The
+              sync trigger is intentionally a plain handler because it is a
               long-running process, not a domain command.
             </p>
           </div>
@@ -1325,38 +1399,42 @@
           <div class="card card-warning">
             <h4>Standup-Killer</h4>
             <p>
-              Excellent CQRS core (3 deciders, idempotency, projections) but cqrs-htmx is only used
-              for the middleware chain and SSE broadcaster. All HTTP routes are custom handlers.
-              Migrating the POST/GET routes to
-              <code>app.Command</code> / <code>app.Query</code> would remove a lot of boilerplate
-              and add CSRF/rate-limiting for free.
+              Excellent CQRS core (3 deciders, idempotency, projections) but
+              cqrs-htmx is only used for the middleware chain and SSE
+              broadcaster. All HTTP routes are custom handlers. Migrating the
+              POST/GET routes to
+              <code>app.Command</code> / <code>app.Query</code> would remove a
+              lot of boilerplate and add CSRF/rate-limiting for free.
             </p>
           </div>
 
           <div class="card card-warning">
             <h4>Zlota44</h4>
             <p>
-              Strong decider and typed command/query setup with idempotency and retry middleware. No
-              visible projection/read-model layer; dashboard queries appear to load aggregate
-              histories. cqrs-htmx is imported but routes are custom.
+              Strong decider and typed command/query setup with idempotency and
+              retry middleware. No visible projection/read-model layer;
+              dashboard queries appear to load aggregate histories. cqrs-htmx is
+              imported but routes are custom.
             </p>
           </div>
 
           <div class="card card-warning">
             <h4>crush-daily</h4>
             <p>
-              Builds a full cqrs-htmx <code>App</code> with Prometheus/OTel integration, but only
-              <code>POST /api/collect</code> uses <code>app.Command</code>. All other routes are
-              hand-rolled. Snapshots are wired through the SQLite-backed snapshot store.
+              Builds a full cqrs-htmx <code>App</code> with Prometheus/OTel
+              integration, but only <code>POST /api/collect</code> uses
+              <code>app.Command</code>. All other routes are hand-rolled.
+              Snapshots are wired through the SQLite-backed snapshot store.
             </p>
           </div>
 
           <div class="card card-warning">
             <h4>PapDashboard</h4>
             <p>
-              Uses cqrs-htmx.Chain for middleware and Huma for API routing. Does not use
-              <code>app.Command</code> / <code>app.Query</code>. Decider usage is mostly in tests;
-              runtime adoption is unclear.
+              Uses cqrs-htmx.Chain for middleware and Huma for API routing. Does
+              not use
+              <code>app.Command</code> / <code>app.Query</code>. Decider usage
+              is mostly in tests; runtime adoption is unclear.
             </p>
           </div>
 
@@ -1365,29 +1443,34 @@
           <div class="card card-problem">
             <h4>SEC</h4>
             <p>
-              All go-cqrs-lite and cqrs-htmx dependencies are pinned to non-fetchable
-              pseudo-versions and replaced with local paths. This is a build-time landmine outside
-              the monorepo. It also uses only in-memory storage, losing persistence benefits.
+              All go-cqrs-lite and cqrs-htmx dependencies are pinned to
+              non-fetchable pseudo-versions and replaced with local paths. This
+              is a build-time landmine outside the monorepo. It also uses only
+              in-memory storage, losing persistence benefits.
             </p>
           </div>
 
           <div class="card card-problem">
             <h4>browser-history</h4>
             <p>
-              Multi-module architecture is sound, but <code>cmd/server/go.mod</code> mixes
-              <code>go-cqrs-lite/.../v3</code> and <code>go-cqrs-lite/.../v4</code> submodules. Must
-              be migrated fully to v4 to avoid type collisions and compilation surprises.
+              Multi-module architecture is sound, but
+              <code>cmd/server/go.mod</code> mixes
+              <code>go-cqrs-lite/.../v3</code> and
+              <code>go-cqrs-lite/.../v4</code> submodules. Must be migrated
+              fully to v4 to avoid type collisions and compilation surprises.
             </p>
           </div>
 
           <div class="card card-problem">
             <h4>KeyHolderAI</h4>
             <p>
-              Uses Gin for routing and cqrs-htmx only for helper utilities (HTMX response builders,
-              context enrichment, HTMX detection, error mapping) and middleware. It creates a
-              cqrs-htmx <code>App</code> via DI but does not use <code>app.Command</code> /
-              <code>app.Query</code> for routing. Decision needed: either migrate routes to
-              cqrs-htmx or drop the dependency and use smaller helper imports.
+              Uses Gin for routing and cqrs-htmx only for helper utilities (HTMX
+              response builders, context enrichment, HTMX detection, error
+              mapping) and middleware. It creates a cqrs-htmx
+              <code>App</code> via DI but does not use
+              <code>app.Command</code> / <code>app.Query</code> for routing.
+              Decision needed: either migrate routes to cqrs-htmx or drop the
+              dependency and use smaller helper imports.
             </p>
           </div>
 
@@ -1395,9 +1478,9 @@
             <h4>overview</h4>
             <p>
               Imports cqrs-htmx only for middleware/SSE helpers.
-              <code>go-cqrs-lite</code> is an indirect dependency. If the project is purely a
-              dashboard, it should either start using CQRS or depend on a smaller middleware-only
-              surface to reduce coupling.
+              <code>go-cqrs-lite</code> is an indirect dependency. If the
+              project is purely a dashboard, it should either start using CQRS
+              or depend on a smaller middleware-only surface to reduce coupling.
             </p>
           </div>
         </section>
@@ -1406,33 +1489,36 @@
           <h2><span class="num">08</span>Conclusion</h2>
 
           <p>
-            The go-cqrs-lite / cqrs-htmx ecosystem is healthy at the core but underutilized at the
-            HTTP layer. The projects that "go deep" on event sourcing (bank-sync, Standup-Killer,
-            Zlota44, github-local-sync) demonstrate the library's power. The missed opportunity is
-            that most web projects still hand-roll HTTP handlers despite importing cqrs-htmx,
-            leaving security, decoding, validation, and error-mapping benefits on the table.
+            The go-cqrs-lite / cqrs-htmx ecosystem is healthy at the core but
+            underutilized at the HTTP layer. The projects that "go deep" on
+            event sourcing (bank-sync, Standup-Killer, Zlota44,
+            github-local-sync) demonstrate the library's power. The missed
+            opportunity is that most web projects still hand-roll HTTP handlers
+            despite importing cqrs-htmx, leaving security, decoding, validation,
+            and error-mapping benefits on the table.
           </p>
 
           <p>
-            The two highest-impact fixes are: (1) stabilize dependency wiring in SEC and
-            browser-history, and (2) migrate web routes to
-            <code>app.Command</code> / <code>app.Query</code> in the major web projects. After that,
-            rolling out CSRF, rate limiting, and idempotency across the web surface will raise the
-            ecosystem's production maturity significantly.
+            The two highest-impact fixes are: (1) stabilize dependency wiring in
+            SEC and browser-history, and (2) migrate web routes to
+            <code>app.Command</code> / <code>app.Query</code> in the major web
+            projects. After that, rolling out CSRF, rate limiting, and
+            idempotency across the web surface will raise the ecosystem's
+            production maturity significantly.
           </p>
 
           <div class="callout callout-teal">
             <strong>Next step.</strong>
-            Run the dependency-graph update plan for go-cqrs-lite and cqrs-htmx to align patch
-            versions, then pick one representative project (e.g. Standup-Killer) to migrate its
-            routes to cqrs-htmx declarative handlers. Use that migration as a template for the
-            others.
+            Run the dependency-graph update plan for go-cqrs-lite and cqrs-htmx
+            to align patch versions, then pick one representative project (e.g.
+            Standup-Killer) to migrate its routes to cqrs-htmx declarative
+            handlers. Use that migration as a template for the others.
           </div>
         </section>
 
         <div class="footer">
-          Generated 2026-07-23 &middot; Ecosystem audit of go-cqrs-lite and cqrs-htmx consumer
-          projects.
+          Generated 2026-07-23 &middot; Ecosystem audit of go-cqrs-lite and
+          cqrs-htmx consumer projects.
         </div>
       </main>
     </div>

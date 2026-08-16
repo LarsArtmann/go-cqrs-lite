@@ -30,14 +30,14 @@
         --warning: var(--color-yellow);
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -338,11 +338,13 @@
       </aside>
       <main class="main">
         <div class="hero">
-          <div class="hero-badge">V3 PARETO EXECUTION &middot; MID-STREAM STATUS</div>
+          <div class="hero-badge">
+            V3 PARETO EXECUTION &middot; MID-STREAM STATUS
+          </div>
           <h1>go-cqrs-lite Status Report</h1>
           <p class="hero-subtitle">
-            Where we are after 4 commits on the v3+ execution plan: what shipped, what's broken,
-            what we should stop pretending matters.
+            Where we are after 4 commits on the v3+ execution plan: what
+            shipped, what's broken, what we should stop pretending matters.
           </p>
         </div>
 
@@ -376,96 +378,113 @@
         <div class="card card-solution">
           <h4>Bottom Line</h4>
           <p>
-            Build passes. <code>go vet ./...</code> passes. 37 of 38 modules fully green. The
-            library is in a solid, shippable state. We shipped 4 high-value commits (docs prune,
-            ghost bus deletion, memory module move, Version uint64) and correctly stopped before
-            doing damage with io.Closer removal.
+            Build passes. <code>go vet ./...</code> passes. 37 of 38 modules
+            fully green. The library is in a solid, shippable state. We shipped
+            4 high-value commits (docs prune, ghost bus deletion, memory module
+            move, Version uint64) and correctly stopped before doing damage with
+            io.Closer removal.
           </p>
         </div>
         <div class="card card-problem">
           <h4>What We Caught and Stopped</h4>
           <p>
-            The io.Closer removal (ADR-0010) was <strong>verschlimmbessern</strong> — it would
-            replace typed <code>io.Closer</code> parameters with <code>any</code> and require
-            defensive type assertions on every <code>.Close()</code> call. We reverted it. This was
-            the right call: <strong>type safety &gt; interface purity</strong>.
+            The io.Closer removal (ADR-0010) was
+            <strong>verschlimmbessern</strong> — it would replace typed
+            <code>io.Closer</code> parameters with <code>any</code> and require
+            defensive type assertions on every <code>.Close()</code> call. We
+            reverted it. This was the right call:
+            <strong>type safety &gt; interface purity</strong>.
           </p>
         </div>
 
         <h2 id="done"><span class="num">A</span>Fully Done</h2>
         <h3>1A: Documentation Prune (8 tasks) — Commit f276873a</h3>
         <p>
-          612 &rarr; 62 .md files. 143,676 &rarr; 27,934 markdown LOC. Ratio 3.4:1 &rarr; 0.67:1.
-          Deleted 168 stale planning docs, 94 stale status reports, entire docs/status/archive/,
-          docs/quality/, docs/modularization/, docs/architecture-understanding/,
-          docs/planning/archive/. Created docs/planning/INDEX.md. Updated TODO_LIST.md, ROADMAP.md,
-          SKILL.md, AGENTS.md, V3_MIGRATION.md, ADR-0027.
+          612 &rarr; 62 .md files. 143,676 &rarr; 27,934 markdown LOC. Ratio
+          3.4:1 &rarr; 0.67:1. Deleted 168 stale planning docs, 94 stale status
+          reports, entire docs/status/archive/, docs/quality/,
+          docs/modularization/, docs/architecture-understanding/,
+          docs/planning/archive/. Created docs/planning/INDEX.md. Updated
+          TODO_LIST.md, ROADMAP.md, SKILL.md, AGENTS.md, V3_MIGRATION.md,
+          ADR-0027.
         </p>
 
         <h3>1B: Status File Reconciliation (7 tasks) — Commit f276873a</h3>
         <p>
-          TODO_LIST.md rewritten (TransactionID marked DONE, v3 list updated). ROADMAP.md rewritten
-          (stale items resolved). SKILL.md updated for EventBus migration. V3_MIGRATION.md verified
-          against code. ADR README status audited.
+          TODO_LIST.md rewritten (TransactionID marked DONE, v3 list updated).
+          ROADMAP.md rewritten (stale items resolved). SKILL.md updated for
+          EventBus migration. V3_MIGRATION.md verified against code. ADR README
+          status audited.
         </p>
 
         <h3>1C: Test Determinism (partial) — Commit f276873a</h3>
         <p>
-          Fixed worst offenders: <code>integration/full_flow_test.go</code> (deterministic polling
-          via waitForCondition), <code>middleware/sse_test.go</code> (ClientCount polling),
-          <code>projection/runner_dlq_test.go</code> (DLQ poll). Added
-          <code>integration/test_helpers_test.go</code> with <code>waitForCondition()</code> helper.
-          51 <code>time.Sleep</code> calls remain — most semantically correct.
+          Fixed worst offenders:
+          <code>integration/full_flow_test.go</code> (deterministic polling via
+          waitForCondition), <code>middleware/sse_test.go</code> (ClientCount
+          polling), <code>projection/runner_dlq_test.go</code> (DLQ poll). Added
+          <code>integration/test_helpers_test.go</code> with
+          <code>waitForCondition()</code> helper. 51
+          <code>time.Sleep</code> calls remain — most semantically correct.
         </p>
 
         <h3>2B: Delete Ghost Bus — Commit 8b6684ef</h3>
         <p>
-          Deleted: <code>memory/bus.go</code> (250 LOC), <code>memory/command_bus.go</code> (150
-          LOC), <code>command/reactive.go</code>, <code>query/reactive.go</code> + their test files.
-          Enhanced <code>eventtest.FakeBus</code> into a synchronous bus with real publish/handler
-          middleware chains. Replaced all 50+ <code>memory.NewMemoryBus()</code> calls in test code.
+          Deleted: <code>memory/bus.go</code> (250 LOC),
+          <code>memory/command_bus.go</code> (150 LOC),
+          <code>command/reactive.go</code>, <code>query/reactive.go</code> +
+          their test files. Enhanced <code>eventtest.FakeBus</code> into a
+          synchronous bus with real publish/handler middleware chains. Replaced
+          all 50+ <code>memory.NewMemoryBus()</code> calls in test code.
           <strong>Correction:</strong> <code>storage/pg_bus*.go</code> and
-          <code>event/reactive*.go</code> are NOT ghost code — restored after build failures proved
-          they're live production code.
+          <code>event/reactive*.go</code> are NOT ghost code — restored after
+          build failures proved they're live production code.
         </p>
 
         <h3>2C: Move memory/ &rarr; storage/memory/ — Commit 22ecccd0</h3>
         <p>
-          29 files moved via <code>git mv</code> (history preserved). All 60+ importers updated
-          across 18 go.mod files. New module path: <code>go-cqrs-lite/storage/memory/v2</code>.
-          Package name unchanged (<code>package memory</code>).
+          29 files moved via <code>git mv</code> (history preserved). All 60+
+          importers updated across 18 go.mod files. New module path:
+          <code>go-cqrs-lite/storage/memory/v2</code>. Package name unchanged
+          (<code>package memory</code>).
         </p>
 
         <h3>2D: Version &rarr; uint64 — Commit c7df1c79</h3>
         <p>
-          Changed <code>type Version int</code> &rarr; <code>type Version uint64</code>. Negative
-          versions were never valid in event sourcing — now impossible states are unrepresentable.
-          Removed dead negative-version-rejection tests. Updated ParseVersion, Version methods, fuzz
-          tests.
+          Changed <code>type Version int</code> &rarr;
+          <code>type Version uint64</code>. Negative versions were never valid
+          in event sourcing — now impossible states are unrepresentable. Removed
+          dead negative-version-rejection tests. Updated ParseVersion, Version
+          methods, fuzz tests.
         </p>
 
-        <h2 id="partial"><span class="num">B</span>Partially Done / Questionable</h2>
+        <h2 id="partial">
+          <span class="num">B</span>Partially Done / Questionable
+        </h2>
         <div class="card card-warning">
           <h4>FakeBus Enhancement — Recreated Bus Logic in Test Utility</h4>
           <p>
-            Deleted <code>memory/bus.go</code> (250 LOC), wrote 130 LOC of real middleware-chain
-            logic in <code>eventtest/fake_bus.go</code>. Net savings: 120 LOC but moved bus
-            complexity into test utilities. <strong>Verdict:</strong> Acceptable since all tests
-            pass, but test helpers should be simple stubs.
+            Deleted <code>memory/bus.go</code> (250 LOC), wrote 130 LOC of real
+            middleware-chain logic in <code>eventtest/fake_bus.go</code>. Net
+            savings: 120 LOC but moved bus complexity into test utilities.
+            <strong>Verdict:</strong> Acceptable since all tests pass, but test
+            helpers should be simple stubs.
           </p>
         </div>
         <div class="card card-warning">
           <h4>memory/ &rarr; storage/memory/ — Import Path Churn</h4>
           <p>
-            60+ files changed for a rename. Done and stable, but reverting would cause equal
-            disruption. <strong>Verdict:</strong> Accept and move on.
+            60+ files changed for a rename. Done and stable, but reverting would
+            cause equal disruption. <strong>Verdict:</strong> Accept and move
+            on.
           </p>
         </div>
         <div class="card card-warning">
           <h4>Test Determinism — 51 time.Sleep Calls Remain</h4>
           <p>
-            Fixed the flaky-prone ones. Many remaining sleeps are semantically correct (concurrency
-            overlap, TTL expiry, ULID time ordering). <strong>Verdict:</strong> Diminishing returns.
+            Fixed the flaky-prone ones. Many remaining sleeps are semantically
+            correct (concurrency overlap, TTL expiry, ULID time ordering).
+            <strong>Verdict:</strong> Diminishing returns.
           </p>
         </div>
 
@@ -535,20 +554,24 @@
         <div class="card card-problem">
           <h4>io.Closer Removal — Caught and Reverted</h4>
           <p>
-            Started removing <code>io.Closer</code> from core interfaces per ADR-0010. Required
-            replacing typed <code>io.Closer</code> with <code>any</code> in
-            <code>stack/bundle.go</code> and defensive type assertions everywhere. This is textbook
-            <strong>verschlimmbessern</strong>. <strong>Resolution:</strong> Reverted all
-            uncommitted changes. ADR-0010 should be marked "Rejected".
+            Started removing <code>io.Closer</code> from core interfaces per
+            ADR-0010. Required replacing typed <code>io.Closer</code> with
+            <code>any</code> in <code>stack/bundle.go</code> and defensive type
+            assertions everywhere. This is textbook
+            <strong>verschlimmbessern</strong>.
+            <strong>Resolution:</strong> Reverted all uncommitted changes.
+            ADR-0010 should be marked "Rejected".
           </p>
         </div>
         <div class="card card-problem">
           <h4>Accidentally Deleted Production Code (pg_bus, reactive)</h4>
           <p>
-            Plan labeled <code>storage/pg_bus*.go</code> and <code>event/reactive*.go</code> as
-            "ghost bus code". They are NOT ghost code — used by
-            <code>stack/postgres/preset.go</code> and <code>projection/runner_live.go</code>.
-            <strong>Resolution:</strong> Caught by build failures, restored immediately.
+            Plan labeled <code>storage/pg_bus*.go</code> and
+            <code>event/reactive*.go</code> as "ghost bus code". They are NOT
+            ghost code — used by <code>stack/postgres/preset.go</code> and
+            <code>projection/runner_live.go</code>.
+            <strong>Resolution:</strong> Caught by build failures, restored
+            immediately.
           </p>
         </div>
 
@@ -613,7 +636,10 @@
             </tr>
             <tr>
               <td>Stopped to reflect too late</td>
-              <td>Self-check: "Am I improving or verschlimmbessern-ing?" every 3 commits</td>
+              <td>
+                Self-check: "Am I improving or verschlimmbessern-ing?" every 3
+                commits
+              </td>
             </tr>
           </tbody>
         </table>
@@ -632,21 +658,29 @@
           <tbody>
             <tr>
               <td>1</td>
-              <td><strong>Fix CBOR fuzz test failure</strong> — duplicate map key -17 bug</td>
+              <td>
+                <strong>Fix CBOR fuzz test failure</strong> — duplicate map key
+                -17 bug
+              </td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>30m</td>
               <td>Bug fix</td>
             </tr>
             <tr>
               <td>2</td>
-              <td><strong>Audit event Clone() deep immutability</strong> — opts shallow copy</td>
+              <td>
+                <strong>Audit event Clone() deep immutability</strong> — opts
+                shallow copy
+              </td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>2h</td>
               <td>Correctness</td>
             </tr>
             <tr>
               <td>3</td>
-              <td><strong>Run data-model-review skill</strong> for full type audit</td>
+              <td>
+                <strong>Run data-model-review skill</strong> for full type audit
+              </td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>1h</td>
               <td>Audit</td>
@@ -737,7 +771,9 @@
             </tr>
             <tr>
               <td>16</td>
-              <td>Update ADR-0029 (storage consolidation) — mark "Partially Done"</td>
+              <td>
+                Update ADR-0029 (storage consolidation) — mark "Partially Done"
+              </td>
               <td><span class="badge badge-low">Low</span></td>
               <td>10m</td>
               <td>Doc fix</td>
@@ -751,7 +787,9 @@
             </tr>
             <tr>
               <td>18</td>
-              <td>Benchmark: verify Version uint64 didn't regress performance</td>
+              <td>
+                Benchmark: verify Version uint64 didn't regress performance
+              </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>30m</td>
               <td>Verification</td>
@@ -800,7 +838,10 @@
             </tr>
             <tr>
               <td>25</td>
-              <td>Add consumer migration test: memory.NewMemoryBus &rarr; watermill.EventBus</td>
+              <td>
+                Add consumer migration test: memory.NewMemoryBus &rarr;
+                watermill.EventBus
+              </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>1h</td>
               <td>Testing</td>
@@ -808,32 +849,35 @@
           </tbody>
         </table>
 
-        <h2 id="question"><span class="num">G</span>The Big Question I Cannot Answer Myself</h2>
+        <h2 id="question">
+          <span class="num">G</span>The Big Question I Cannot Answer Myself
+        </h2>
         <div class="card card-problem">
           <h4>
-            Should we keep going with breaking changes, or declare v3 "done enough" and pivot to
-            additive features?
+            Should we keep going with breaking changes, or declare v3 "done
+            enough" and pivot to additive features?
           </h4>
           <p>
-            We shipped 3 genuine v3 breaking changes (ghost bus deletion, memory move, Version
-            uint64). The remaining planned breaking changes (io.Closer removal, Metadata alias
-            break, readmodel deletion) are all <strong>verschlimmbessern</strong> — they destroy
-            type safety or create import churn for no consumer benefit.
+            We shipped 3 genuine v3 breaking changes (ghost bus deletion, memory
+            move, Version uint64). The remaining planned breaking changes
+            (io.Closer removal, Metadata alias break, readmodel deletion) are
+            all <strong>verschlimmbessern</strong> — they destroy type safety or
+            create import churn for no consumer benefit.
           </p>
           <p><strong>The question:</strong></p>
           <p>
-            Is the goal of v3 to "clean up everything the plan says" (even if some cleanups make
-            things worse), or is it to "ship the highest-value improvements and stop when
-            diminishing returns start"?
+            Is the goal of v3 to "clean up everything the plan says" (even if
+            some cleanups make things worse), or is it to "ship the
+            highest-value improvements and stop when diminishing returns start"?
           </p>
           <p>
-            If the former, we need a way to remove io.Closer without destroying type safety. If the
-            latter, we should mark the remaining breaking changes as "Rejected" and pivot to
-            additive features.
+            If the former, we need a way to remove io.Closer without destroying
+            type safety. If the latter, we should mark the remaining breaking
+            changes as "Rejected" and pivot to additive features.
           </p>
           <p>
-            <strong>I recommend the latter</strong> — but this is a product direction call, not a
-            technical one.
+            <strong>I recommend the latter</strong> — but this is a product
+            direction call, not a technical one.
           </p>
         </div>
 
@@ -866,9 +910,10 @@
         </div>
 
         <footer class="footer">
-          Generated 2026-06-20 16:15 &middot; Verified against go-cqrs-lite master @
-          <code>c7df1c79</code> &middot; Build: PASS &middot; Vet: PASS &middot; Tests: 37/38 green
-          (1 pre-existing CBOR fuzz failure)
+          Generated 2026-06-20 16:15 &middot; Verified against go-cqrs-lite
+          master @
+          <code>c7df1c79</code> &middot; Build: PASS &middot; Vet: PASS &middot;
+          Tests: 37/38 green (1 pre-existing CBOR fuzz failure)
         </footer>
       </main>
     </div>

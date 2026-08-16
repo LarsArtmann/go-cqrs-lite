@@ -91,7 +91,9 @@
         display: grid;
         grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
         gap: var(--gutter);
-        max-width: calc(var(--max-width) + var(--sidebar-width) + var(--gutter));
+        max-width: calc(
+          var(--max-width) + var(--sidebar-width) + var(--gutter)
+        );
         margin: 0 auto;
         padding: 2rem;
       }
@@ -523,15 +525,18 @@
       "
     >
       <strong>⚠ EXECUTED — historical planning artifact.</strong>
-      This was the <em>build</em> plan for the Bundle layer. It was executed in v2.7.0 (see
-      <code>docs/status/2026-06-19_15-45_BUNDLE_LAYER_v2.7.0_COMPREHENSIVE_STATUS.md</code>). Key
-      discoveries made during implementation are <strong>not</strong> reflected here:
-      <code>K</code> became <code>fmt.Stringer</code> (not <code>~string</code>); generic methods
-      are impossible so repository/read-model helpers are top-level functions;
-      <code>readmodel.Backend</code> is an alias for <code>kv.Store</code>; an Otter-based
-      <code>readmodel/cache</code> decorator and a SQL-backed <code>kv.Store</code> (persistent read
-      models for SQLite/Postgres presets) were added beyond this plan. The authoritative finish plan
-      is
+      This was the <em>build</em> plan for the Bundle layer. It was executed in
+      v2.7.0 (see
+      <code
+        >docs/status/2026-06-19_15-45_BUNDLE_LAYER_v2.7.0_COMPREHENSIVE_STATUS.md</code
+      >). Key discoveries made during implementation are
+      <strong>not</strong> reflected here: <code>K</code> became
+      <code>fmt.Stringer</code> (not <code>~string</code>); generic methods are
+      impossible so repository/read-model helpers are top-level functions;
+      <code>readmodel.Backend</code> is an alias for <code>kv.Store</code>; an
+      Otter-based <code>readmodel/cache</code> decorator and a SQL-backed
+      <code>kv.Store</code> (persistent read models for SQLite/Postgres presets)
+      were added beyond this plan. The authoritative finish plan is
       <code
         >docs/planning/2026-06-19_15-53_V2.7.0_RELEASE_HARDENING_AND_PERSISTENT_READMODELS.md</code
       >.
@@ -560,11 +565,11 @@
           <div class="eyebrow">PARETO EXECUTION PLAN &middot; 2026-06-19</div>
           <h1>Bundle Layer — Pareto Execution Plan</h1>
           <p class="subtitle">
-            A deployer picks infrastructure with one preset call. App developers never import a
-            backend. This plan executes the proposal in
-            <code>docs/brainstorming/2026-06-18_stack-layer-proposal.html</code> using the 1/4/20/80
-            impact ordering: ship the foundation first, prove it end-to-end, then complete the long
-            tail.
+            A deployer picks infrastructure with one preset call. App developers
+            never import a backend. This plan executes the proposal in
+            <code>docs/brainstorming/2026-06-18_stack-layer-proposal.html</code>
+            using the 1/4/20/80 impact ordering: ship the foundation first,
+            prove it end-to-end, then complete the long tail.
           </p>
           <div class="meta">
             <span class="tag accent">Foundation: kv.Store</span>
@@ -595,33 +600,41 @@
         </div>
 
         <p>
-          The critical discovery (already in the proposal) is that <code>kv.Store</code> already
-          <em>is</em> the read-model backend abstraction we need. Two production implementations
-          (<code>kv.MemStore</code> and <code>pebble.KVAdapter</code>) already exist and are tested.
-          This means the entire <code>readmodel</code> module is a thin typed wrapper — not a new
-          interface. The hardest structural decision is already made and already shipped. The
-          remaining work is composition, assembly, and filling gaps.
+          The critical discovery (already in the proposal) is that
+          <code>kv.Store</code> already <em>is</em> the read-model backend
+          abstraction we need. Two production implementations (<code
+            >kv.MemStore</code
+          >
+          and <code>pebble.KVAdapter</code>) already exist and are tested. This
+          means the entire <code>readmodel</code> module is a thin typed wrapper
+          — not a new interface. The hardest structural decision is already made
+          and already shipped. The remaining work is composition, assembly, and
+          filling gaps.
         </p>
 
         <div class="callout success">
-          <strong>The 1% lever:</strong> A single module — <code>readmodel.Store[T, K]</code> over
-          <code>kv.Store</code> — unblocks the entire Bundle story. Every preset, every typed
-          accessor, and the example rewrite depend on it. Nothing else delivers comparable value per
-          unit effort.
+          <strong>The 1% lever:</strong> A single module —
+          <code>readmodel.Store[T, K]</code> over <code>kv.Store</code> —
+          unblocks the entire Bundle story. Every preset, every typed accessor,
+          and the example rewrite depend on it. Nothing else delivers comparable
+          value per unit effort.
         </div>
 
-        <h2 id="baseline"><span class="num">01</span>Baseline &amp; Verification Posture</h2>
+        <h2 id="baseline">
+          <span class="num">01</span>Baseline &amp; Verification Posture
+        </h2>
         <p>
-          Before adding code, the repo is clean (<code>master</code> at <code>6f921775</code>,
-          pushed). The <code>event</code> module vets and builds with
-          <code>GOWORK=off go vet ./...</code>. The gopls diagnostics shown in the editor are stale
-          (they reference symbols that the build confirms resolve). The build gate for every commit
-          is:
+          Before adding code, the repo is clean (<code>master</code> at
+          <code>6f921775</code>, pushed). The <code>event</code> module vets and
+          builds with <code>GOWORK=off go vet ./...</code>. The gopls
+          diagnostics shown in the editor are stale (they reference symbols that
+          the build confirms resolve). The build gate for every commit is:
         </p>
         <pre><code>cd &lt;module&gt; &amp;&amp; GOWORK=off go vet ./... &amp;&amp; GOWORK=off go test ./... -count=1</code></pre>
         <p>
-          The root test command (from <code>AGENTS.md</code>) is the final integration gate. No
-          commit lands if it breaks either. BuildFlow intercepts <code>git commit</code>, so use
+          The root test command (from <code>AGENTS.md</code>) is the final
+          integration gate. No commit lands if it breaks either. BuildFlow
+          intercepts <code>git commit</code>, so use
           <code>git commit --no-verify</code>.
         </p>
 
@@ -631,80 +644,95 @@
           <h3><span class="tier-badge t1">1% → 51%</span> Foundation</h3>
           <p>
             <strong>One task.</strong> The <code>readmodel</code> module:
-            <code>readmodel.Backend = kv.Store</code> type alias (zero new code), plus
-            <code>readmodel.Store[T any, K ~string]</code> — a typed wrapper that encodes/decodes
-            via <code>codec.Codec</code> and namespaces keys. This single module is what every
-            preset composes and what the deployer/app boundary actually looks like.
+            <code>readmodel.Backend = kv.Store</code> type alias (zero new
+            code), plus <code>readmodel.Store[T any, K ~string]</code> — a typed
+            wrapper that encodes/decodes via <code>codec.Codec</code> and
+            namespaces keys. This single module is what every preset composes
+            and what the deployer/app boundary actually looks like.
           </p>
           <p>
-            <strong>Why 51%:</strong> Without it, there is no "deployer provides untyped backend,
-            app wraps it with a typed Store" story — which is the whole value proposition. It is
-            also the dependency root for the example rewrite, the cache decorator, and the contract
-            tests. Everything else is assembly on top of this.
+            <strong>Why 51%:</strong> Without it, there is no "deployer provides
+            untyped backend, app wraps it with a typed Store" story — which is
+            the whole value proposition. It is also the dependency root for the
+            example rewrite, the cache decorator, and the contract tests.
+            Everything else is assembly on top of this.
           </p>
         </div>
 
         <div class="tier-card t4">
           <h3><span class="tier-badge t4">4% → 64%</span> Composition root</h3>
           <p>
-            <strong>Three tasks.</strong> The <code>stack.Bundle</code> struct (ISP-honest
-            segregated fields: <code>EventSink</code>, <code>EventSource</code>,
-            <code>Journal</code> — not a fat <code>event.Store</code>),
-            <code>stack.New(opts ...Option)</code> with closer deduplication and partial-failure
-            rollback, and the typed accessors (<code>bundle.Repository[State](decider)</code>,
+            <strong>Three tasks.</strong> The <code>stack.Bundle</code> struct
+            (ISP-honest segregated fields: <code>EventSink</code>,
+            <code>EventSource</code>, <code>Journal</code> — not a fat
+            <code>event.Store</code>),
+            <code>stack.New(opts ...Option)</code> with closer deduplication and
+            partial-failure rollback, and the typed accessors
+            (<code>bundle.Repository[State](decider)</code>,
             <code>bundle.ReadModel[T, K](codec)</code>).
           </p>
           <p>
-            <strong>Why +13%:</strong> This is the composition root that makes the deployer's life
-            real. One call composes everything; one <code>Close()</code> tears it all down. The
-            typed accessors are how the app stays generic-free without forcing
-            <code>Bundle[T]</code> to be generic (which a deployer cannot construct without
-            importing domain types).
+            <strong>Why +13%:</strong> This is the composition root that makes
+            the deployer's life real. One call composes everything; one
+            <code>Close()</code> tears it all down. The typed accessors are how
+            the app stays generic-free without forcing <code>Bundle[T]</code> to
+            be generic (which a deployer cannot construct without importing
+            domain types).
           </p>
         </div>
 
         <div class="tier-card t20">
-          <h3><span class="tier-badge t20">20% → 80%</span> First real presets</h3>
+          <h3>
+            <span class="tier-badge t20">20% → 80%</span> First real presets
+          </h3>
           <p>
-            <strong>Four tasks.</strong> <code>stack/memory.New()</code> (pure assembly — all 6
-            memory stores already exist), <code>stack/sqlite.New()</code> (the most common
-            deployment, built on <code>storage.SQLBackend</code>), the SQLite tuning profiles
-            (<code>ForSequentialIO</code>/<code>ForRandomIO</code>), and an end-to-end validation
-            suite that proves both presets save/load events and read models.
+            <strong>Four tasks.</strong> <code>stack/memory.New()</code> (pure
+            assembly — all 6 memory stores already exist),
+            <code>stack/sqlite.New()</code> (the most common deployment, built
+            on <code>storage.SQLBackend</code>), the SQLite tuning profiles
+            (<code>ForSequentialIO</code>/<code>ForRandomIO</code>), and an
+            end-to-end validation suite that proves both presets save/load
+            events and read models.
           </p>
           <p>
-            <strong>Why +16%:</strong> At this tier a consumer can ship a real app. The deployer
-            writes <code>sqlite.New("log.db")</code>; the app writes
-            <code>bundle.ReadModel[Todo, TodoID](codec.JSONCodec{})</code>. The validation suite is
-            the proof that the 1% and 4% tiers actually compose.
+            <strong>Why +16%:</strong> At this tier a consumer can ship a real
+            app. The deployer writes <code>sqlite.New("log.db")</code>; the app
+            writes
+            <code>bundle.ReadModel[Todo, TodoID](codec.JSONCodec{})</code>. The
+            validation suite is the proof that the 1% and 4% tiers actually
+            compose.
           </p>
         </div>
 
         <div class="tier-card">
           <h3><span class="tier-badge t80">80% → 100%</span> Completeness</h3>
           <p>
-            <strong>Twelve tasks.</strong> Pebble gap-filling (command/query stores +
-            <code>ReadModels()</code> accessor), the Pebble preset, the Postgres preset, the
-            <code>TypedSnapshot[State]</code> adapter (closes the biggest type-safety hole —
-            <code>snapshot.Snapshot.State []byte</code>), the Otter-backed cache decorator, the
-            parameterized contract test suite, the example rewrite (replacing ~80 lines of
-            hand-rolled glue), benchmarks + zero-overhead proof, full documentation, CI/flake
-            wiring, and updating the proposal HTML with the <code>kv.Store</code> discovery.
+            <strong>Twelve tasks.</strong> Pebble gap-filling (command/query
+            stores + <code>ReadModels()</code> accessor), the Pebble preset, the
+            Postgres preset, the <code>TypedSnapshot[State]</code> adapter
+            (closes the biggest type-safety hole —
+            <code>snapshot.Snapshot.State []byte</code>), the Otter-backed cache
+            decorator, the parameterized contract test suite, the example
+            rewrite (replacing ~80 lines of hand-rolled glue), benchmarks +
+            zero-overhead proof, full documentation, CI/flake wiring, and
+            updating the proposal HTML with the <code>kv.Store</code> discovery.
           </p>
           <p>
-            <strong>Why +20%:</strong> Each item here is independently shippable and valuable, but
-            none of them unblocks anything in the critical path. Pebble and Postgres are alternative
-            deployments; the contract suite is confidence, not capability; docs are reach. They can
-            be parallelized and reordered freely.
+            <strong>Why +20%:</strong> Each item here is independently shippable
+            and valuable, but none of them unblocks anything in the critical
+            path. Pebble and Postgres are alternative deployments; the contract
+            suite is confidence, not capability; docs are reach. They can be
+            parallelized and reordered freely.
           </p>
         </div>
 
         <h2 id="graph"><span class="num">03</span>Execution Graph</h2>
         <p>
-          Dependencies flow top-to-bottom. Tier 1% feeds Tier 4%; Tier 4% feeds both Tier 20%
-          (presets) and Tier 80% (pebble gaps). The contract suite at Tier 80% consumes every
-          preset, so it lands last. <code>TypedSnapshot[State]</code> is optional wiring into the
-          Bundle (snapshots still work via the untyped path).
+          Dependencies flow top-to-bottom. Tier 1% feeds Tier 4%; Tier 4% feeds
+          both Tier 20% (presets) and Tier 80% (pebble gaps). The contract suite
+          at Tier 80% consumes every preset, so it lands last.
+          <code>TypedSnapshot[State]</code> is optional wiring into the Bundle
+          (snapshots still work via the untyped path).
         </p>
         <div class="svg-wrap" id="graph-svg">
           <svg
@@ -953,7 +981,9 @@
                   class="text-bold fill-N1"
                   style="text-anchor: middle; font-size: 16px"
                 >
-                  <tspan x="1234.000000" dy="0.000000">readmodel.Store[T,K]</tspan>
+                  <tspan x="1234.000000" dy="0.000000">
+                    readmodel.Store[T,K]
+                  </tspan>
                   <tspan x="1234.000000" dy="18.500000">over kv.Store</tspan>
                 </text>
               </g>
@@ -978,7 +1008,9 @@
                   style="text-anchor: middle; font-size: 16px"
                 >
                   <tspan x="1247.500000" dy="0.000000">Bundle struct</tspan>
-                  <tspan x="1247.500000" dy="17.666667">New + Close dedup</tspan>
+                  <tspan x="1247.500000" dy="17.666667">
+                    New + Close dedup
+                  </tspan>
                   <tspan x="1247.500000" dy="17.666667">rollback</tspan>
                 </text>
               </g>
@@ -1003,7 +1035,9 @@
                   style="text-anchor: middle; font-size: 16px"
                 >
                   <tspan x="1248.000000" dy="0.000000">Typed accessors</tspan>
-                  <tspan x="1248.000000" dy="17.666667">Repository[State]()</tspan>
+                  <tspan x="1248.000000" dy="17.666667">
+                    Repository[State]()
+                  </tspan>
                   <tspan x="1248.000000" dy="17.666667">ReadModel[T,K]()</tspan>
                 </text>
               </g>
@@ -1097,7 +1131,9 @@
                   style="text-anchor: middle; font-size: 16px"
                 >
                   <tspan x="526.500000" dy="0.000000">Pebble gaps</tspan>
-                  <tspan x="526.500000" dy="18.500000">(cmd/query/ReadModels)</tspan>
+                  <tspan x="526.500000" dy="18.500000">
+                    (cmd/query/ReadModels)
+                  </tspan>
                 </text>
               </g>
               <g class="dDgwLnBlYg==">
@@ -1452,8 +1488,20 @@
                 width="1664"
                 height="1547"
               >
-                <rect x="-91" y="-121" width="1664" height="1547" fill="white"></rect>
-                <rect x="544.000000" y="340.000000" width="80" height="37" fill="black"></rect>
+                <rect
+                  x="-91"
+                  y="-121"
+                  width="1664"
+                  height="1547"
+                  fill="white"
+                ></rect>
+                <rect
+                  x="544.000000"
+                  y="340.000000"
+                  width="80"
+                  height="37"
+                  fill="black"
+                ></rect>
               </mask>
             </svg>
           </svg>
@@ -1463,9 +1511,9 @@
           <span class="num">04</span>Medium-Granularity Plan (30–100 min each)
         </h2>
         <p>
-          20 tasks. Sorted by tier (impact) then by dependency order within a tier. Each task is
-          independently committable and independently revertable. Effort: XS &lt;5m, S 5–15m, M
-          15–40m, L 40–100m.
+          20 tasks. Sorted by tier (impact) then by dependency order within a
+          tier. Each task is independently committable and independently
+          revertable. Effort: XS &lt;5m, S 5–15m, M 15–40m, L 40–100m.
         </p>
         <table>
           <thead>
@@ -1482,11 +1530,14 @@
               <td class="id">M1</td>
               <td><span class="tier-badge t1">1%</span></td>
               <td>
-                <code>readmodel</code> module: <code>Backend = kv.Store</code> alias +
+                <code>readmodel</code> module:
+                <code>Backend = kv.Store</code> alias +
                 <code>Store[T,K]</code> (Get/Set/Delete/Scan) + options + tests
               </td>
               <td>
-                <code>readmodel/{go.mod,backend.go,store.go,options.go,errors.go,*_test.go}</code>
+                <code
+                  >readmodel/{go.mod,backend.go,store.go,options.go,errors.go,*_test.go}</code
+                >
               </td>
               <td class="effort"><span class="badge m">M</span></td>
             </tr>
@@ -1494,10 +1545,13 @@
               <td class="id">M2</td>
               <td><span class="tier-badge t4">4%</span></td>
               <td>
-                <code>stack.Bundle</code> core: struct with ISP-honest fields, <code>New()</code>,
-                closer dedup + rollback, <code>With*</code> options
+                <code>stack.Bundle</code> core: struct with ISP-honest fields,
+                <code>New()</code>, closer dedup + rollback,
+                <code>With*</code> options
               </td>
-              <td><code>stack/{go.mod,bundle.go,options.go,*_test.go}</code></td>
+              <td>
+                <code>stack/{go.mod,bundle.go,options.go,*_test.go}</code>
+              </td>
               <td class="effort"><span class="badge l">L</span></td>
             </tr>
             <tr>
@@ -1505,30 +1559,38 @@
               <td><span class="tier-badge t4">4%</span></td>
               <td>
                 Typed accessors: <code>Repository[State](decider)</code>,
-                <code>ReadModel[T,K](codec)</code>, <code>ProjectionRunner()</code>
+                <code>ReadModel[T,K](codec)</code>,
+                <code>ProjectionRunner()</code>
               </td>
-              <td><code>stack/accessors.go</code>, <code>stack/accessors_test.go</code></td>
+              <td>
+                <code>stack/accessors.go</code>,
+                <code>stack/accessors_test.go</code>
+              </td>
               <td class="effort"><span class="badge m">M</span></td>
             </tr>
             <tr>
               <td class="id">M4</td>
               <td><span class="tier-badge t4">4%</span></td>
               <td>
-                <code>snapshot.TypedSnapshot[State]</code> + typed sink/source adapter (closes the
-                <code>[]byte</code> hole)
+                <code>snapshot.TypedSnapshot[State]</code> + typed sink/source
+                adapter (closes the <code>[]byte</code> hole)
               </td>
-              <td><code>snapshot/{typed.go,typed_adapter.go,typed_test.go}</code></td>
+              <td>
+                <code>snapshot/{typed.go,typed_adapter.go,typed_test.go}</code>
+              </td>
               <td class="effort"><span class="badge m">M</span></td>
             </tr>
             <tr>
               <td class="id">M5</td>
               <td><span class="tier-badge t20">20%</span></td>
               <td>
-                <code>stack/memory.New()</code> preset — assembly of the 6 existing memory stores
-                into a Bundle
+                <code>stack/memory.New()</code> preset — assembly of the 6
+                existing memory stores into a Bundle
               </td>
               <td>
-                <code>stack/memory/{go.mod,preset.go,preset_test.go,integration_test.go}</code>
+                <code
+                  >stack/memory/{go.mod,preset.go,preset_test.go,integration_test.go}</code
+                >
               </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
@@ -1536,7 +1598,9 @@
               <td class="id">M6</td>
               <td><span class="tier-badge t20">20%</span></td>
               <td>
-                <code>stack/sqlite.New()</code> + <code>AppendLog()</code>/<code>Views()</code>
+                <code>stack/sqlite.New()</code> + <code>AppendLog()</code>/<code
+                  >Views()</code
+                >
                 split + tuning profiles + WAL/auto-migrate options
               </td>
               <td>
@@ -1550,8 +1614,8 @@
               <td class="id">M7</td>
               <td><span class="tier-badge t20">20%</span></td>
               <td>
-                E2E validation: smoke test proving memory + sqlite presets save/load events &amp;
-                read models end-to-end
+                E2E validation: smoke test proving memory + sqlite presets
+                save/load events &amp; read models end-to-end
               </td>
               <td>
                 <code>stack/sqlite/integration_test.go</code>,
@@ -1563,42 +1627,56 @@
               <td class="id">M8</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                Pebble gaps: <code>pebble.CommandStore</code>, <code>pebble.QueryStore</code>,
+                Pebble gaps: <code>pebble.CommandStore</code>,
+                <code>pebble.QueryStore</code>,
                 <code>Backend.ReadModels() kv.Store</code> accessor
               </td>
-              <td><code>pebble/{command_store.go,query_store.go,backend.go,*_test.go}</code></td>
+              <td>
+                <code
+                  >pebble/{command_store.go,query_store.go,backend.go,*_test.go}</code
+                >
+              </td>
               <td class="effort"><span class="badge l">L</span></td>
             </tr>
             <tr>
               <td class="id">M9</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td><code>stack/pebble.New()</code> preset + tests</td>
-              <td><code>stack/pebble/{go.mod,preset.go,preset_test.go}</code></td>
+              <td>
+                <code>stack/pebble/{go.mod,preset.go,preset_test.go}</code>
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">M10</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td><code>stack/postgres.New()</code> preset + integration tests</td>
-              <td><code>stack/postgres/{go.mod,preset.go,preset_test.go}</code></td>
+              <td>
+                <code>stack/postgres.New()</code> preset + integration tests
+              </td>
+              <td>
+                <code>stack/postgres/{go.mod,preset.go,preset_test.go}</code>
+              </td>
               <td class="effort"><span class="badge m">M</span></td>
             </tr>
             <tr>
               <td class="id">M11</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                <code>readmodel/cache</code>: <code>CachedStore[T,K]</code> decorator over Otter
+                <code>readmodel/cache</code>:
+                <code>CachedStore[T,K]</code> decorator over Otter
                 (<code>WithCapacity</code>, <code>WithTTL</code>)
               </td>
-              <td><code>readmodel/cache/{go.mod,cached_store.go,*_test.go}</code></td>
+              <td>
+                <code>readmodel/cache/{go.mod,cached_store.go,*_test.go}</code>
+              </td>
               <td class="effort"><span class="badge m">M</span></td>
             </tr>
             <tr>
               <td class="id">M12</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                Contract test suite: parameterized over every preset (events, journal ordering, read
-                models, lifecycle)
+                Contract test suite: parameterized over every preset (events,
+                journal ordering, read models, lifecycle)
               </td>
               <td>
                 <code
@@ -1611,16 +1689,23 @@
               <td class="id">M13</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                Example rewrite: <code>example/todo</code> → <code>sqlite.New()</code> +
-                <code>readmodel.Store[T,K]</code>; add split-topology variant
+                Example rewrite: <code>example/todo</code> →
+                <code>sqlite.New()</code> + <code>readmodel.Store[T,K]</code>;
+                add split-topology variant
               </td>
-              <td><code>example/todo/cmd/api/main.go</code>, <code>example/todo/storage/</code></td>
+              <td>
+                <code>example/todo/cmd/api/main.go</code>,
+                <code>example/todo/storage/</code>
+              </td>
               <td class="effort"><span class="badge l">L</span></td>
             </tr>
             <tr>
               <td class="id">M14</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td>Benchmarks + zero-overhead proof (Bundle field access vs direct store)</td>
+              <td>
+                Benchmarks + zero-overhead proof (Bundle field access vs direct
+                store)
+              </td>
               <td>
                 <code
                   >stack/bench/{bench_test.go,events.go,readmodels.go,zero_overhead_test.go}</code
@@ -1632,22 +1717,28 @@
               <td class="id">M15</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                Typed command/query payloads: <code>command.PersistedCommand[T]</code>,
+                Typed command/query payloads:
+                <code>command.PersistedCommand[T]</code>,
                 <code>query.PersistedQuery[T]</code>
               </td>
-              <td><code>command/typed.go</code>, <code>query/typed.go</code>, tests</td>
+              <td>
+                <code>command/typed.go</code>, <code>query/typed.go</code>,
+                tests
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">M16</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                Docs A: <code>docs/PRESETS.md</code> (catalog + recommendation matrix),
-                <code>docs/STORAGE_GUIDE.md</code> leads with presets, <code>stack/README.md</code>,
+                Docs A: <code>docs/PRESETS.md</code> (catalog + recommendation
+                matrix), <code>docs/STORAGE_GUIDE.md</code> leads with presets,
+                <code>stack/README.md</code>,
                 <code>readmodel/README.md</code>
               </td>
               <td>
-                <code>docs/PRESETS.md</code>, <code>docs/STORAGE_GUIDE.md</code>,
+                <code>docs/PRESETS.md</code>,
+                <code>docs/STORAGE_GUIDE.md</code>,
                 <code>stack/README.md</code>, <code>readmodel/README.md</code>
               </td>
               <td class="effort"><span class="badge m">M</span></td>
@@ -1656,18 +1747,22 @@
               <td class="id">M17</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                Docs B: <code>SKILL.md</code> recipes, <code>AGENTS.md</code> module list,
+                Docs B: <code>SKILL.md</code> recipes,
+                <code>AGENTS.md</code> module list,
                 <code>FEATURES.md</code> Bundle features
               </td>
-              <td><code>SKILL.md</code>, <code>AGENTS.md</code>, <code>FEATURES.md</code></td>
+              <td>
+                <code>SKILL.md</code>, <code>AGENTS.md</code>,
+                <code>FEATURES.md</code>
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">M18</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                CI + flake: add stack modules to <code>flake.nix</code>, <code>ci.yml</code>,
-                layer-check script
+                CI + flake: add stack modules to <code>flake.nix</code>,
+                <code>ci.yml</code>, layer-check script
               </td>
               <td>
                 <code>flake.nix</code>, <code>.github/workflows/ci.yml</code>,
@@ -1679,18 +1774,22 @@
               <td class="id">M19</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                Update proposal HTML: <code>kv.Store</code> discovery, Otter cache choice, typed
-                accessors
+                Update proposal HTML: <code>kv.Store</code> discovery, Otter
+                cache choice, typed accessors
               </td>
-              <td><code>docs/brainstorming/2026-06-18_stack-layer-proposal.html</code></td>
+              <td>
+                <code
+                  >docs/brainstorming/2026-06-18_stack-layer-proposal.html</code
+                >
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">M20</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                Optional: <code>.go-arch-lint.yml</code> for deployer/app import separation
-                (convention aid, not enforcement)
+                Optional: <code>.go-arch-lint.yml</code> for deployer/app import
+                separation (convention aid, not enforcement)
               </td>
               <td><code>.go-arch-lint.yml</code></td>
               <td class="effort"><span class="badge s">S</span></td>
@@ -1698,11 +1797,14 @@
           </tbody>
         </table>
 
-        <h2 id="plan-fine"><span class="num">05</span>Fine-Granularity Plan (≤15 min each)</h2>
+        <h2 id="plan-fine">
+          <span class="num">05</span>Fine-Granularity Plan (≤15 min each)
+        </h2>
         <p>
-          95 tasks. Each is a single committable unit: one module, one test, one option. Sorted by
-          tier then by execution order within the tier. The 1% and 4% columns are the critical path
-          — they are sequenced strictly; the 20% and 80% columns can be parallelized.
+          95 tasks. Each is a single committable unit: one module, one test, one
+          option. Sorted by tier then by execution order within the tier. The 1%
+          and 4% columns are the critical path — they are sequenced strictly;
+          the 20% and 80% columns can be parallelized.
         </p>
         <table>
           <thead>
@@ -1718,8 +1820,8 @@
               <td class="id">F1</td>
               <td><span class="tier-badge t1">1%</span></td>
               <td>
-                Create <code>readmodel/go.mod</code> + <code>readmodel/doc.go</code> (module
-                skeleton)
+                Create <code>readmodel/go.mod</code> +
+                <code>readmodel/doc.go</code> (module skeleton)
               </td>
               <td class="effort"><span class="badge xs">XS</span></td>
             </tr>
@@ -1745,15 +1847,18 @@
               <td class="id">F4</td>
               <td><span class="tier-badge t1">1%</span></td>
               <td>
-                Implement <code>Store.Get(ctx, id K) (*T, error)</code> with codec decode +
-                <code>ErrNotFound</code> mapping
+                Implement <code>Store.Get(ctx, id K) (*T, error)</code> with
+                codec decode + <code>ErrNotFound</code> mapping
               </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">F5</td>
               <td><span class="tier-badge t1">1%</span></td>
-              <td>Implement <code>Store.Set(ctx, id K, val *T) error</code> with codec encode</td>
+              <td>
+                Implement <code>Store.Set(ctx, id K, val *T) error</code> with
+                codec encode
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
@@ -1766,7 +1871,8 @@
               <td class="id">F7</td>
               <td><span class="tier-badge t1">1%</span></td>
               <td>
-                Implement <code>Store.Scan(ctx, prefix []byte) ([]*T, error)</code> via
+                Implement
+                <code>Store.Scan(ctx, prefix []byte) ([]*T, error)</code> via
                 <code>kv.Iterator</code>
               </td>
               <td class="effort"><span class="badge s">S</span></td>
@@ -1774,25 +1880,35 @@
             <tr>
               <td class="id">F8</td>
               <td><span class="tier-badge t1">1%</span></td>
-              <td>Add <code>WithCodec(c codec.Codec)</code> option (default JSON)</td>
+              <td>
+                Add <code>WithCodec(c codec.Codec)</code> option (default JSON)
+              </td>
               <td class="effort"><span class="badge xs">XS</span></td>
             </tr>
             <tr>
               <td class="id">F9</td>
               <td><span class="tier-badge t1">1%</span></td>
-              <td>Add <code>WithKeyPrefix(prefix string)</code> option for namespacing</td>
+              <td>
+                Add <code>WithKeyPrefix(prefix string)</code> option for
+                namespacing
+              </td>
               <td class="effort"><span class="badge xs">XS</span></td>
             </tr>
             <tr>
               <td class="id">F10</td>
               <td><span class="tier-badge t1">1%</span></td>
-              <td>Add <code>errors.go</code>: <code>ErrNotFound = kv.ErrNotFound</code> alias</td>
+              <td>
+                Add <code>errors.go</code>:
+                <code>ErrNotFound = kv.ErrNotFound</code> alias
+              </td>
               <td class="effort"><span class="badge xs">XS</span></td>
             </tr>
             <tr>
               <td class="id">F11</td>
               <td><span class="tier-badge t1">1%</span></td>
-              <td>Tests: Get/Set/Delete roundtrip with <code>kv.MemStore</code></td>
+              <td>
+                Tests: Get/Set/Delete roundtrip with <code>kv.MemStore</code>
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
@@ -1805,8 +1921,8 @@
               <td class="id">F13</td>
               <td><span class="tier-badge t1">1%</span></td>
               <td>
-                Tests: <code>Store[Todo, TodoID]</code> example test (branded key prevents
-                cross-domain mixing)
+                Tests: <code>Store[Todo, TodoID]</code> example test (branded
+                key prevents cross-domain mixing)
               </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
@@ -1814,15 +1930,18 @@
             <tr>
               <td class="id">F14</td>
               <td><span class="tier-badge t4">4%</span></td>
-              <td>Create <code>stack/go.mod</code> + <code>stack/doc.go</code></td>
+              <td>
+                Create <code>stack/go.mod</code> + <code>stack/doc.go</code>
+              </td>
               <td class="effort"><span class="badge xs">XS</span></td>
             </tr>
             <tr>
               <td class="id">F15</td>
               <td><span class="tier-badge t4">4%</span></td>
               <td>
-                Define <code>Bundle</code> struct with ISP-honest segregated fields
-                (Sink/Source/Journal/Seekable separate; Publisher/Subscriber separate)
+                Define <code>Bundle</code> struct with ISP-honest segregated
+                fields (Sink/Source/Journal/Seekable separate;
+                Publisher/Subscriber separate)
               </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
@@ -1830,27 +1949,35 @@
               <td class="id">F16</td>
               <td><span class="tier-badge t4">4%</span></td>
               <td>
-                Define <code>Option = func(*Bundle)</code> (no error — matches codebase convention)
+                Define <code>Option = func(*Bundle)</code> (no error — matches
+                codebase convention)
               </td>
               <td class="effort"><span class="badge xs">XS</span></td>
             </tr>
             <tr>
               <td class="id">F17</td>
               <td><span class="tier-badge t4">4%</span></td>
-              <td>Implement <code>New(opts ...Option) (*Bundle, error)</code> with validation</td>
+              <td>
+                Implement <code>New(opts ...Option) (*Bundle, error)</code> with
+                validation
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">F18</td>
               <td><span class="tier-badge t4">4%</span></td>
-              <td>Implement closer tracking + pointer-deduplicated <code>Close()</code></td>
+              <td>
+                Implement closer tracking + pointer-deduplicated
+                <code>Close()</code>
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">F19</td>
               <td><span class="tier-badge t4">4%</span></td>
               <td>
-                Implement partial-failure rollback in <code>New()</code> (close all opened on error)
+                Implement partial-failure rollback in <code>New()</code> (close
+                all opened on error)
               </td>
               <td class="effort"><span class="badge m">M</span></td>
             </tr>
@@ -1871,8 +1998,8 @@
               <td class="id">F21</td>
               <td><span class="tier-badge t4">4%</span></td>
               <td>
-                Add <code>WithEventStore(event.Store)</code> convenience (type-asserts to set
-                Sink+Source+Journal)
+                Add <code>WithEventStore(event.Store)</code> convenience
+                (type-asserts to set Sink+Source+Journal)
               </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
@@ -1881,9 +2008,12 @@
               <td><span class="tier-badge t4">4%</span></td>
               <td>
                 Add <code>WithBus(event.Bus)</code>, <code>WithPublisher</code>,
-                <code>WithSubscriber</code>, <code>WithCommandSink/Source/Store</code>,
-                <code>WithQuerySink/Source/Store</code>, <code>WithSnapshotStore</code>,
-                <code>WithCheckpointStore</code>, <code>WithReadModels(kv.Store)</code>
+                <code>WithSubscriber</code>,
+                <code>WithCommandSink/Source/Store</code>,
+                <code>WithQuerySink/Source/Store</code>,
+                <code>WithSnapshotStore</code>,
+                <code>WithCheckpointStore</code>,
+                <code>WithReadModels(kv.Store)</code>
               </td>
               <td class="effort"><span class="badge m">M</span></td>
             </tr>
@@ -1896,13 +2026,18 @@
             <tr>
               <td class="id">F24</td>
               <td><span class="tier-badge t4">4%</span></td>
-              <td>Tests: <code>Close()</code> deduplicates shared <code>*sql.DB</code></td>
+              <td>
+                Tests: <code>Close()</code> deduplicates shared
+                <code>*sql.DB</code>
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">F25</td>
               <td><span class="tier-badge t4">4%</span></td>
-              <td>Tests: partial-failure rollback closes already-opened resources</td>
+              <td>
+                Tests: partial-failure rollback closes already-opened resources
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
@@ -1932,7 +2067,10 @@
             <tr>
               <td class="id">F28</td>
               <td><span class="tier-badge t4">4%</span></td>
-              <td>Accessor: <code>bundle.ProjectionRunner(opts...) *projection.Runner</code></td>
+              <td>
+                Accessor:
+                <code>bundle.ProjectionRunner(opts...) *projection.Runner</code>
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
@@ -1946,7 +2084,9 @@
               <td><span class="tier-badge t4">4%</span></td>
               <td>
                 <code>snapshot.TypedSnapshot[State]</code> +
-                <code>TypedSnapshotSink[State]</code>/<code>TypedSnapshotSource[State]</code>
+                <code>TypedSnapshotSink[State]</code>/<code
+                  >TypedSnapshotSource[State]</code
+                >
                 interfaces
               </td>
               <td class="effort"><span class="badge s">S</span></td>
@@ -1955,8 +2095,8 @@
               <td class="id">F31</td>
               <td><span class="tier-badge t4">4%</span></td>
               <td>
-                <code>snapshot</code> typed↔untyped adapter (wraps <code>SnapshotStore</code> +
-                <code>codec.Codec</code>)
+                <code>snapshot</code> typed↔untyped adapter (wraps
+                <code>SnapshotStore</code> + <code>codec.Codec</code>)
               </td>
               <td class="effort"><span class="badge m">M</span></td>
             </tr>
@@ -1970,15 +2110,17 @@
             <tr>
               <td class="id">F33</td>
               <td><span class="tier-badge t20">20%</span></td>
-              <td>Create <code>stack/memory/go.mod</code> + <code>doc.go</code></td>
+              <td>
+                Create <code>stack/memory/go.mod</code> + <code>doc.go</code>
+              </td>
               <td class="effort"><span class="badge xs">XS</span></td>
             </tr>
             <tr>
               <td class="id">F34</td>
               <td><span class="tier-badge t20">20%</span></td>
               <td>
-                Implement <code>memory.New() (*stack.Bundle, error)</code> — assemble all 6 memory
-                stores
+                Implement <code>memory.New() (*stack.Bundle, error)</code> —
+                assemble all 6 memory stores
               </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
@@ -1986,8 +2128,8 @@
               <td class="id">F35</td>
               <td><span class="tier-badge t20">20%</span></td>
               <td>
-                Implement <code>memory.Bus()</code> / <code>memory.Checkpoints()</code> option
-                helpers
+                Implement <code>memory.Bus()</code> /
+                <code>memory.Checkpoints()</code> option helpers
               </td>
               <td class="effort"><span class="badge xs">XS</span></td>
             </tr>
@@ -2000,20 +2142,25 @@
             <tr>
               <td class="id">F37</td>
               <td><span class="tier-badge t20">20%</span></td>
-              <td>Integration test: memory preset end-to-end event roundtrip</td>
+              <td>
+                Integration test: memory preset end-to-end event roundtrip
+              </td>
               <td class="effort"><span class="badge m">M</span></td>
             </tr>
             <tr>
               <td class="id">F38</td>
               <td><span class="tier-badge t20">20%</span></td>
-              <td>Create <code>stack/sqlite/go.mod</code> + <code>doc.go</code></td>
+              <td>
+                Create <code>stack/sqlite/go.mod</code> + <code>doc.go</code>
+              </td>
               <td class="effort"><span class="badge xs">XS</span></td>
             </tr>
             <tr>
               <td class="id">F39</td>
               <td><span class="tier-badge t20">20%</span></td>
               <td>
-                Implement <code>sqlite.New(dir, opts...) (*stack.Bundle, error)</code> on
+                Implement
+                <code>sqlite.New(dir, opts...) (*stack.Bundle, error)</code> on
                 <code>storage.SQLBackend</code>
               </td>
               <td class="effort"><span class="badge m">M</span></td>
@@ -2022,7 +2169,8 @@
               <td class="id">F40</td>
               <td><span class="tier-badge t20">20%</span></td>
               <td>
-                Implement <code>sqlite.AppendLog(dir, opts...) stack.Option</code> +
+                Implement
+                <code>sqlite.AppendLog(dir, opts...) stack.Option</code> +
                 <code>sqlite.Views(dir, opts...) stack.Option</code>
               </td>
               <td class="effort"><span class="badge m">M</span></td>
@@ -2031,15 +2179,18 @@
               <td class="id">F41</td>
               <td><span class="tier-badge t20">20%</span></td>
               <td>
-                Implement <code>ForSequentialIO()</code> + <code>ForRandomIO()</code> tuning
-                profiles (correct pragmas)
+                Implement <code>ForSequentialIO()</code> +
+                <code>ForRandomIO()</code> tuning profiles (correct pragmas)
               </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">F42</td>
               <td><span class="tier-badge t20">20%</span></td>
-              <td>Implement <code>WithAutoMigrate()</code> + <code>WithWAL()</code> options</td>
+              <td>
+                Implement <code>WithAutoMigrate()</code> +
+                <code>WithWAL()</code> options
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
@@ -2073,7 +2224,10 @@
             <tr>
               <td class="id">F47</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td><code>pebble.CommandStore</code> (append-only, mirrors EventStore)</td>
+              <td>
+                <code>pebble.CommandStore</code> (append-only, mirrors
+                EventStore)
+              </td>
               <td class="effort"><span class="badge m">M</span></td>
             </tr>
             <tr>
@@ -2086,7 +2240,8 @@
               <td class="id">F49</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                Add <code>pebble.Backend.CommandStore()</code> + <code>QueryStore()</code> +
+                Add <code>pebble.Backend.CommandStore()</code> +
+                <code>QueryStore()</code> +
                 <code>ReadModels() kv.Store</code> accessors
               </td>
               <td class="effort"><span class="badge xs">XS</span></td>
@@ -2124,14 +2279,17 @@
             <tr>
               <td class="id">F54</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td>Tests: Postgres preset produces working Bundle (integration)</td>
+              <td>
+                Tests: Postgres preset produces working Bundle (integration)
+              </td>
               <td class="effort"><span class="badge m">M</span></td>
             </tr>
             <tr>
               <td class="id">F55</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                Create <code>readmodel/cache/go.mod</code> (dep: <code>maypok86/otter/v2</code>)
+                Create <code>readmodel/cache/go.mod</code> (dep:
+                <code>maypok86/otter/v2</code>)
               </td>
               <td class="effort"><span class="badge xs">XS</span></td>
             </tr>
@@ -2154,8 +2312,8 @@
               <td class="id">F58</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                Contract suite: <code>stack/contract</code> harness + parameterization by Bundle
-                factory
+                Contract suite: <code>stack/contract</code> harness +
+                parameterization by Bundle factory
               </td>
               <td class="effort"><span class="badge m">M</span></td>
             </tr>
@@ -2186,14 +2344,18 @@
             <tr>
               <td class="id">F63</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td>Wire contract suite against memory, sqlite, pebble, postgres presets</td>
+              <td>
+                Wire contract suite against memory, sqlite, pebble, postgres
+                presets
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">F64</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                Example: port <code>example/todo/cmd/api/main.go</code> to <code>sqlite.New()</code>
+                Example: port <code>example/todo/cmd/api/main.go</code> to
+                <code>sqlite.New()</code>
               </td>
               <td class="effort"><span class="badge m">M</span></td>
             </tr>
@@ -2209,7 +2371,10 @@
             <tr>
               <td class="id">F66</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td>Example: verify compiles + tests pass; add split-topology variant</td>
+              <td>
+                Example: verify compiles + tests pass; add split-topology
+                variant
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
@@ -2227,21 +2392,28 @@
             <tr>
               <td class="id">F69</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td>Zero-overhead proof: Bundle field access vs direct store (must be identical)</td>
+              <td>
+                Zero-overhead proof: Bundle field access vs direct store (must
+                be identical)
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">F70</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                <code>command.PersistedCommand[T any]</code> with typed <code>Payload() T</code>
+                <code>command.PersistedCommand[T any]</code> with typed
+                <code>Payload() T</code>
               </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">F71</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td><code>query.PersistedQuery[T any]</code> with typed <code>Payload() T</code></td>
+              <td>
+                <code>query.PersistedQuery[T any]</code> with typed
+                <code>Payload() T</code>
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
@@ -2253,13 +2425,19 @@
             <tr>
               <td class="id">F73</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td>Docs: <code>docs/PRESETS.md</code> — preset catalog + recommendation matrix</td>
+              <td>
+                Docs: <code>docs/PRESETS.md</code> — preset catalog +
+                recommendation matrix
+              </td>
               <td class="effort"><span class="badge m">M</span></td>
             </tr>
             <tr>
               <td class="id">F74</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td>Docs: update <code>docs/STORAGE_GUIDE.md</code> to lead with presets</td>
+              <td>
+                Docs: update <code>docs/STORAGE_GUIDE.md</code> to lead with
+                presets
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
@@ -2277,31 +2455,42 @@
             <tr>
               <td class="id">F77</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td>Docs: update <code>SKILL.md</code> with Bundle composition recipes</td>
+              <td>
+                Docs: update <code>SKILL.md</code> with Bundle composition
+                recipes
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">F78</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td>Docs: add stack modules to <code>AGENTS.md</code> module list</td>
+              <td>
+                Docs: add stack modules to <code>AGENTS.md</code> module list
+              </td>
               <td class="effort"><span class="badge xs">XS</span></td>
             </tr>
             <tr>
               <td class="id">F79</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td>Docs: update <code>FEATURES.md</code> with Bundle layer features</td>
+              <td>
+                Docs: update <code>FEATURES.md</code> with Bundle layer features
+              </td>
               <td class="effort"><span class="badge xs">XS</span></td>
             </tr>
             <tr>
               <td class="id">F80</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td>CI: add stack modules to <code>flake.nix</code> build/test/lint</td>
+              <td>
+                CI: add stack modules to <code>flake.nix</code> build/test/lint
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">F81</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td>CI: add stack modules to <code>.github/workflows/ci.yml</code></td>
+              <td>
+                CI: add stack modules to <code>.github/workflows/ci.yml</code>
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
@@ -2313,95 +2502,112 @@
             <tr>
               <td class="id">F83</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td>Update proposal HTML §10 (kv.Store), §12 (Otter), §03 (typed accessors)</td>
+              <td>
+                Update proposal HTML §10 (kv.Store), §12 (Otter), §03 (typed
+                accessors)
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">F84</td>
               <td><span class="tier-badge t80">80%</span></td>
-              <td>Optional: add <code>.go-arch-lint.yml</code> deployer/app separation rules</td>
+              <td>
+                Optional: add <code>.go-arch-lint.yml</code> deployer/app
+                separation rules
+              </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
             <tr>
               <td class="id">F85</td>
               <td><span class="tier-badge t80">80%</span></td>
               <td>
-                Final sweep: <code>nix run .#lint</code> + <code>nix run .#test</code> green; root
-                module list accurate
+                Final sweep: <code>nix run .#lint</code> +
+                <code>nix run .#test</code> green; root module list accurate
               </td>
               <td class="effort"><span class="badge s">S</span></td>
             </tr>
           </tbody>
         </table>
 
-        <h2 id="risks"><span class="num">06</span>Risks, Blockers &amp; Hard Limits</h2>
+        <h2 id="risks">
+          <span class="num">06</span>Risks, Blockers &amp; Hard Limits
+        </h2>
         <div class="callout danger">
           <strong>No outbox atomicity.</strong> <code>event.Save</code> and
-          <code>command.Save</code> each create a private <code>*sql.Tx</code>. Events + commands
-          cannot share a transaction. This is documented as a Known Limit in the proposal; the
-          Bundle does not pretend otherwise. The "AppendLog" bundle shares workload characteristics,
-          not transaction atomicity.
+          <code>command.Save</code> each create a private <code>*sql.Tx</code>.
+          Events + commands cannot share a transaction. This is documented as a
+          Known Limit in the proposal; the Bundle does not pretend otherwise.
+          The "AppendLog" bundle shares workload characteristics, not
+          transaction atomicity.
         </div>
         <div class="callout warn">
-          <strong>Import boundary is unenforceable by the compiler.</strong> Go has no
-          language-level import restrictions. The deployer/app separation is a convention,
-          optionally aided by <code>.go-arch-lint.yml</code> (F84). We do not claim compiler
+          <strong>Import boundary is unenforceable by the compiler.</strong> Go
+          has no language-level import restrictions. The deployer/app separation
+          is a convention, optionally aided by
+          <code>.go-arch-lint.yml</code> (F84). We do not claim compiler
           enforcement.
         </div>
         <div class="callout warn">
-          <strong>BuildFlow intercepts <code>git commit</code>.</strong> Every commit uses
-          <code>git commit --no-verify</code>. This is documented and consistent with the existing
-          workflow.
+          <strong>BuildFlow intercepts <code>git commit</code>.</strong> Every
+          commit uses <code>git commit --no-verify</code>. This is documented
+          and consistent with the existing workflow.
         </div>
         <div class="callout">
-          <strong>Pebble has 3/7 capabilities today</strong> (events, snapshots, checkpoints).
-          F47–F50 fill the command/query/ReadModels gaps before the Pebble preset (F51) can ship.
-          This is a hard ordering constraint within Tier 80%.
+          <strong>Pebble has 3/7 capabilities today</strong> (events, snapshots,
+          checkpoints). F47–F50 fill the command/query/ReadModels gaps before
+          the Pebble preset (F51) can ship. This is a hard ordering constraint
+          within Tier 80%.
         </div>
 
-        <h2 id="contracts"><span class="num">07</span>Definition of Done &amp; Contracts</h2>
+        <h2 id="contracts">
+          <span class="num">07</span>Definition of Done &amp; Contracts
+        </h2>
         <ul>
           <li>
             <strong>Build gate (every commit):</strong>
             <code
-              >cd &lt;module&gt; &amp;&amp; GOWORK=off go vet ./... &amp;&amp; GOWORK=off go test
-              ./... -count=1</code
+              >cd &lt;module&gt; &amp;&amp; GOWORK=off go vet ./... &amp;&amp;
+              GOWORK=off go test ./... -count=1</code
             >
             passes.
           </li>
           <li>
-            <strong>Integration gate (per tier):</strong> the root test command from
-            <code>AGENTS.md</code> passes.
+            <strong>Integration gate (per tier):</strong> the root test command
+            from <code>AGENTS.md</code> passes.
           </li>
           <li>
-            <strong>Zero-overhead contract:</strong> <code>bundle.EventSink.Save</code> must be
-            identical (ns/op, allocs/op) to calling the underlying store directly — the Bundle is a
-            bag of fields, not a proxy.
+            <strong>Zero-overhead contract:</strong>
+            <code>bundle.EventSink.Save</code> must be identical (ns/op,
+            allocs/op) to calling the underlying store directly — the Bundle is
+            a bag of fields, not a proxy.
           </li>
           <li>
-            <strong>ISP contract:</strong> Bundle never stores a fat <code>event.Store</code>;
-            fields are <code>EventSink</code>, <code>EventSource</code>,
-            <code>Journal</code> separately.
+            <strong>ISP contract:</strong> Bundle never stores a fat
+            <code>event.Store</code>; fields are <code>EventSink</code>,
+            <code>EventSource</code>, <code>Journal</code> separately.
           </li>
           <li>
-            <strong>Close contract:</strong> a <code>*sql.DB</code> shared across capabilities via
-            <code>AppendLog</code> is closed exactly once.
+            <strong>Close contract:</strong> a <code>*sql.DB</code> shared
+            across capabilities via <code>AppendLog</code> is closed exactly
+            once.
           </li>
           <li>
-            <strong>Rollback contract:</strong> if <code>stack.New()</code> fails on option N, every
-            closer opened by options 1..N-1 is closed before the error is returned.
+            <strong>Rollback contract:</strong> if
+            <code>stack.New()</code> fails on option N, every closer opened by
+            options 1..N-1 is closed before the error is returned.
           </li>
           <li>
             <strong>End of Tier 20%:</strong> a consumer can write
             <code>sqlite.New("log.db")</code> and
-            <code>bundle.ReadModel[Todo, TodoID](codec.JSONCodec{})</code> and have a working app.
+            <code>bundle.ReadModel[Todo, TodoID](codec.JSONCodec{})</code> and
+            have a working app.
           </li>
         </ul>
 
         <footer class="footer">
           Generated 2026-06-19 &middot; Executes
-          docs/brainstorming/2026-06-18_stack-layer-proposal.html &middot; Build baseline:
-          master@6f921775
+          docs/brainstorming/2026-06-18_stack-layer-proposal.html &middot; Build
+          baseline: master@6f921775
         </footer>
       </main>
     </div>

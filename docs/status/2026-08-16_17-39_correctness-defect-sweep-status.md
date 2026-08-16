@@ -387,18 +387,18 @@ govulncheck reproduce the table above — keep the CI Go version floating.)
 
 **All 5 TODO items complete and module-verified.** Final verification matrix:
 
-| Scope | Command | Result |
-| ----- | ------- | ------ |
-| `record` | full suite | PASS |
-| `id` | full suite + 3x `-race` | PASS |
-| `metaengine` | full suite + full `-race` | PASS |
-| `system` | full suite + full `-race` | PASS |
-| `event` | full suite `-race` | PASS |
-| api-stability | golden verify | OK 4147 exports |
-| doc-check | skill refs | OK 898 refs |
-| workspace | per-module build loop (all 88+) | PASS |
-| govulncheck | all modules | 0 third-party vulns (§j) |
-| `nix fmt` | tree-wide | applied, affected modules re-verified |
+| Scope         | Command                         | Result                                |
+| ------------- | ------------------------------- | ------------------------------------- |
+| `record`      | full suite                      | PASS                                  |
+| `id`          | full suite + 3x `-race`         | PASS                                  |
+| `metaengine`  | full suite + full `-race`       | PASS                                  |
+| `system`      | full suite + full `-race`       | PASS                                  |
+| `event`       | full suite `-race`              | PASS                                  |
+| api-stability | golden verify                   | OK 4147 exports                       |
+| doc-check     | skill refs                      | OK 898 refs                           |
+| workspace     | per-module build loop (all 88+) | PASS                                  |
+| govulncheck   | all modules                     | 0 third-party vulns (§j)              |
+| `nix fmt`     | tree-wide                       | applied, affected modules re-verified |
 
 **`nix run .#verify` NOT GREEN — for reasons outside this batch:**
 

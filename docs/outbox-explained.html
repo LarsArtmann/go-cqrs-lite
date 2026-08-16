@@ -302,7 +302,11 @@
 
       .flow-node.highlight {
         border-color: var(--accent-dim);
-        background: linear-gradient(135deg, var(--surface-2), rgba(245, 158, 11, 0.05));
+        background: linear-gradient(
+          135deg,
+          var(--surface-2),
+          rgba(245, 158, 11, 0.05)
+        );
         box-shadow: 0 0 40px rgba(245, 158, 11, 0.06);
       }
 
@@ -351,7 +355,12 @@
         top: 8px;
         bottom: 8px;
         width: 2px;
-        background: linear-gradient(to bottom, var(--accent), var(--accent-dim), transparent);
+        background: linear-gradient(
+          to bottom,
+          var(--accent),
+          var(--accent-dim),
+          transparent
+        );
         border-radius: 2px;
       }
 
@@ -718,8 +727,8 @@
       <div class="badge animate">go-cqrs-lite</div>
       <h1 class="animate delay-1">The <em>Outbox</em> Pattern</h1>
       <p class="subtitle animate delay-2">
-        How to reliably publish events in a distributed system without losing them — even when the
-        process crashes halfway through.
+        How to reliably publish events in a distributed system without losing
+        them — even when the process crashes halfway through.
       </p>
       <div
         style="
@@ -732,11 +741,13 @@
           color: var(--danger);
         "
       >
-        <strong>Removed.</strong> The outbox has been removed from go-cqrs-lite. Crash recovery now
-        uses <code style="color: var(--accent)">SeekableJournal.ReadFrom()</code> +
-        <code style="color: var(--accent)">CheckpointStore</code> — the same pattern as
-        <code style="color: var(--text-dim)">projection.Runner</code>. This document is kept for
-        historical reference.
+        <strong>Removed.</strong> The outbox has been removed from go-cqrs-lite.
+        Crash recovery now uses
+        <code style="color: var(--accent)">SeekableJournal.ReadFrom()</code> +
+        <code style="color: var(--accent)">CheckpointStore</code> — the same
+        pattern as
+        <code style="color: var(--text-dim)">projection.Runner</code>. This
+        document is kept for historical reference.
       </div>
     </header>
 
@@ -745,10 +756,11 @@
       <section class="container animate delay-3">
         <h2><span class="num">01</span>The Problem</h2>
         <p>
-          In CQRS + Event Sourcing, every state change produces an event. That event must be
-          <strong style="color: var(--text)">both</strong> persisted to the store
-          <strong style="color: var(--text)">and</strong> broadcast to subscribers. The naive
-          approach looks like this:
+          In CQRS + Event Sourcing, every state change produces an event. That
+          event must be
+          <strong style="color: var(--text)">both</strong> persisted to the
+          store <strong style="color: var(--text)">and</strong> broadcast to
+          subscribers. The naive approach looks like this:
         </p>
 
         <div class="problem-diagram">
@@ -761,7 +773,8 @@
           <div class="step-row">
             <div class="step-num">2</div>
             <div class="step-bar publish">
-              <span style="font-size: 1.1em">📡</span> Publish events to message bus
+              <span style="font-size: 1.1em">📡</span> Publish events to message
+              bus
             </div>
           </div>
           <div class="crash-divider">
@@ -774,16 +787,18 @@
         </div>
 
         <p>
-          If the process crashes after saving but before publishing, the event is
-          <strong style="color: var(--danger)">permanently lost</strong> to subscribers. The data is
-          in the store, but no projection, saga, or read model will ever see it. This violates the
-          fundamental invariant of event-driven systems: <em>every event must be delivered</em>.
+          If the process crashes after saving but before publishing, the event
+          is
+          <strong style="color: var(--danger)">permanently lost</strong> to
+          subscribers. The data is in the store, but no projection, saga, or
+          read model will ever see it. This violates the fundamental invariant
+          of event-driven systems: <em>every event must be delivered</em>.
         </p>
 
         <p>
-          Common workarounds have their own flaws: two-phase commit is slow and complex, in-process
-          buses couple store to transport, and change-data-capture (Debezium) requires external
-          infrastructure.
+          Common workarounds have their own flaws: two-phase commit is slow and
+          complex, in-process buses couple store to transport, and
+          change-data-capture (Debezium) requires external infrastructure.
         </p>
       </section>
 
@@ -791,10 +806,12 @@
       <section class="container">
         <h2><span class="num">02</span>The Solution</h2>
         <p>
-          The <strong style="color: var(--accent)">Transactional Outbox</strong> pattern writes
-          events to the database and an outbox table <em>in the same transaction</em>. A background
-          poller then reads pending entries and publishes them to the bus. If it crashes, the entry
-          remains "pending" and gets retried.
+          The
+          <strong style="color: var(--accent)">Transactional Outbox</strong>
+          pattern writes events to the database and an outbox table
+          <em>in the same transaction</em>. A background poller then reads
+          pending entries and publishes them to the bus. If it crashes, the
+          entry remains "pending" and gets retried.
         </p>
 
         <div class="flow-container">
@@ -826,10 +843,11 @@
         </div>
 
         <p>
-          The key insight: the outbox entry lives in the <em>same database</em> as the event store.
-          This means a single SQL transaction guarantees
-          <strong style="color: var(--text)">atomicity</strong> — either both commit or neither
-          does. No distributed coordination needed.
+          The key insight: the outbox entry lives in the
+          <em>same database</em> as the event store. This means a single SQL
+          transaction guarantees
+          <strong style="color: var(--text)">atomicity</strong> — either both
+          commit or neither does. No distributed coordination needed.
         </p>
       </section>
 
@@ -863,25 +881,31 @@
             <div class="method">
               <span class="method-name">Append</span>
               <span class="method-sig">(ctx, []Event) → error</span>
-              <span class="method-desc">Stage events inside the save transaction</span>
+              <span class="method-desc"
+                >Stage events inside the save transaction</span
+              >
             </div>
             <div class="method">
               <span class="method-name">PollPending</span>
               <span class="method-sig">(ctx, limit) → []OutboxEntry</span>
-              <span class="method-desc">Fetch unacknowledged entries, oldest first</span>
+              <span class="method-desc"
+                >Fetch unacknowledged entries, oldest first</span
+              >
             </div>
             <div class="method">
               <span class="method-name">Ack</span>
               <span class="method-sig">(ctx, []OutboxID) → error</span>
-              <span class="method-desc">Mark entries as successfully published</span>
+              <span class="method-desc"
+                >Mark entries as successfully published</span
+              >
             </div>
           </div>
         </div>
 
         <p>
-          Each entry wraps a batch of events with a unique ID and timestamp. The poller reads them
-          in order, publishes via the bus, and acknowledges on success. Failed entries stay pending
-          for the next poll cycle.
+          Each entry wraps a batch of events with a unique ID and timestamp. The
+          poller reads them in order, publishes via the bus, and acknowledges on
+          success. Failed entries stay pending for the next poll cycle.
         </p>
       </section>
 
@@ -937,9 +961,10 @@
         </div>
 
         <p>
-          The <code style="color: var(--text-muted)">status</code> column drives the entire
-          lifecycle. <code style="color: var(--accent)">pending</code> entries are picked up by the
-          poller. After successful publishing, they become
+          The <code style="color: var(--text-muted)">status</code> column drives
+          the entire lifecycle.
+          <code style="color: var(--accent)">pending</code> entries are picked
+          up by the poller. After successful publishing, they become
           <code style="color: var(--success)">acknowledged</code>
           (and are deleted, not updated — keeping the table small).
         </p>
@@ -948,38 +973,46 @@
       <!-- ═══ Lifecycle ═══ -->
       <section class="container">
         <h2><span class="num">05</span>The Lifecycle</h2>
-        <p>Here's exactly what happens from command to subscriber — step by step:</p>
+        <p>
+          Here's exactly what happens from command to subscriber — step by step:
+        </p>
 
         <div class="lifecycle">
           <div class="lifecycle-step">
-            <h3>Save + Outbox <code>TransactionalSink.SaveWithOutbox()</code></h3>
+            <h3>
+              Save + Outbox <code>TransactionalSink.SaveWithOutbox()</code>
+            </h3>
             <p>
-              A single SQL transaction inserts events into the event store <em>and</em> appends them
-              to the outbox table. If either fails, the entire transaction rolls back. No partial
-              state.
+              A single SQL transaction inserts events into the event store
+              <em>and</em> appends them to the outbox table. If either fails,
+              the entire transaction rolls back. No partial state.
             </p>
           </div>
           <div class="lifecycle-step">
             <h3>Poll <code>Outbox.PollPending(ctx, limit)</code></h3>
             <p>
-              A background goroutine (the <code>OutboxPublisher</code>) periodically queries for
-              entries with <code>status = 'pending'</code>, ordered by <code>created_at</code>.
+              A background goroutine (the <code>OutboxPublisher</code>)
+              periodically queries for entries with
+              <code>status = 'pending'</code>, ordered by
+              <code>created_at</code>.
             </p>
           </div>
           <div class="lifecycle-step">
             <h3>Publish <code>Bus.Publish(ctx, events...)</code></h3>
             <p>
-              For each pending entry, the poller publishes its events through the event bus. If
-              publishing fails for one entry, the remaining entries in the batch are still
-              published. The failed entry stays pending and will be retried on the next poll cycle.
+              For each pending entry, the poller publishes its events through
+              the event bus. If publishing fails for one entry, the remaining
+              entries in the batch are still published. The failed entry stays
+              pending and will be retried on the next poll cycle.
             </p>
           </div>
           <div class="lifecycle-step">
             <h3>Acknowledge <code>Outbox.Ack(ctx, ids)</code></h3>
             <p>
-              Successfully published entries are acknowledged — which deletes them from the outbox
-              table. If the process crashes before ack, the entry remains pending and gets
-              republished (subscribers must be idempotent to handle this).
+              Successfully published entries are acknowledged — which deletes
+              them from the outbox table. If the process crashes before ack, the
+              entry remains pending and gets republished (subscribers must be
+              idempotent to handle this).
             </p>
           </div>
         </div>
@@ -1015,9 +1048,10 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
 
         <p style="margin-top: 8px">
           For a lower-level approach, the
-          <code style="color: var(--text-muted)">storage.OutboxPoller</code> provides a standalone
-          <code>Run(ctx)</code> method with configurable interval and batch size, without the
-          lifecycle management of <code>OutboxPublisher</code>.
+          <code style="color: var(--text-muted)">storage.OutboxPoller</code>
+          provides a standalone <code>Run(ctx)</code> method with configurable
+          interval and batch size, without the lifecycle management of
+          <code>OutboxPublisher</code>.
         </p>
       </section>
 
@@ -1041,44 +1075,52 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
 
         <div class="problem-diagram" style="border-color: var(--accent-dim)">
           <div class="step-row">
-            <div class="step-num" style="background: rgba(245, 158, 11, 0.08)">T</div>
+            <div class="step-num" style="background: rgba(245, 158, 11, 0.08)">
+              T
+            </div>
             <div class="step-bar save">
               <span style="font-size: 1.1em">💾</span> INSERT INTO events ...
             </div>
           </div>
           <div class="step-row">
-            <div class="step-num" style="background: rgba(245, 158, 11, 0.08)">T</div>
+            <div class="step-num" style="background: rgba(245, 158, 11, 0.08)">
+              T
+            </div>
             <div
               class="step-bar"
               style="background: rgba(245, 158, 11, 0.08); color: var(--accent)"
             >
-              <span style="font-size: 1.1em">📤</span> INSERT INTO outbox (status='pending',
-              events=...)
+              <span style="font-size: 1.1em">📤</span> INSERT INTO outbox
+              (status='pending', events=...)
             </div>
           </div>
           <div class="step-row">
-            <div class="step-num" style="background: rgba(245, 158, 11, 0.08)">T</div>
+            <div class="step-num" style="background: rgba(245, 158, 11, 0.08)">
+              T
+            </div>
             <div
               class="step-bar"
               style="background: rgba(34, 197, 94, 0.08); color: var(--success)"
             >
-              <span style="font-size: 1.1em">✓</span> COMMIT — both succeed, or neither does
+              <span style="font-size: 1.1em">✓</span> COMMIT — both succeed, or
+              neither does
             </div>
           </div>
         </div>
 
         <p>
-          If the INSERT into events succeeds but the outbox INSERT fails, the entire transaction
-          rolls back. If the process crashes before COMMIT, the database rolls back automatically.
+          If the INSERT into events succeeds but the outbox INSERT fails, the
+          entire transaction rolls back. If the process crashes before COMMIT,
+          the database rolls back automatically.
           <strong style="color: var(--text)"
             >There is no window where events are saved but not outboxed.</strong
           >
         </p>
 
         <p>
-          This is why the outbox lives in the <em>same database</em> as the event store — it
-          piggybacks on the database's existing ACID guarantees instead of requiring distributed
-          coordination.
+          This is why the outbox lives in the <em>same database</em> as the
+          event store — it piggybacks on the database's existing ACID guarantees
+          instead of requiring distributed coordination.
         </p>
       </section>
 
@@ -1090,11 +1132,20 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
           <div class="tradeoff-card pro">
             <h3>+ Advantages</h3>
             <ul>
-              <li>Exactly-once storage — events are atomically stored and outboxed</li>
+              <li>
+                Exactly-once storage — events are atomically stored and outboxed
+              </li>
               <li>Crash-resilient — pending entries are retried on restart</li>
-              <li>Minimal infrastructure — single SQL table, no Debezium or Kafka required</li>
-              <li>Decoupled — poller runs independently, async consumers supported</li>
-              <li>Observable — poll metrics, pending counts, processing rates</li>
+              <li>
+                Minimal infrastructure — single SQL table, no Debezium or Kafka
+                required
+              </li>
+              <li>
+                Decoupled — poller runs independently, async consumers supported
+              </li>
+              <li>
+                Observable — poll metrics, pending counts, processing rates
+              </li>
               <li>Works with PostgreSQL, SQLite, and Turso</li>
             </ul>
           </div>
@@ -1102,15 +1153,24 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
             <h3>− Considerations</h3>
             <ul>
               <li>
-                Slight latency — events arrive after poll interval (default: 1s), not instantly
+                Slight latency — events arrive after poll interval (default:
+                1s), not instantly
               </li>
               <li>
-                At-least-once delivery — ack before crash means republish; subscribers must be
-                idempotent
+                At-least-once delivery — ack before crash means republish;
+                subscribers must be idempotent
               </li>
-              <li>Storage overhead — outbox entries exist until acknowledged and deleted</li>
-              <li>Batch-level ack — partial failure retries the entire batch</li>
-              <li>Requires wiring — Outbox + Publisher + Bus must be composed by the consumer</li>
+              <li>
+                Storage overhead — outbox entries exist until acknowledged and
+                deleted
+              </li>
+              <li>
+                Batch-level ack — partial failure retries the entire batch
+              </li>
+              <li>
+                Requires wiring — Outbox + Publisher + Bus must be composed by
+                the consumer
+              </li>
             </ul>
           </div>
         </div>
@@ -1137,8 +1197,8 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
           <div class="tradeoff-card">
             <h3>SQLOutbox</h3>
             <p style="margin: 0; font-size: 0.82rem">
-              Production implementation backed by PostgreSQL or SQLite. Supports the full lifecycle
-              with transactional co-participation via
+              Production implementation backed by PostgreSQL or SQLite. Supports
+              the full lifecycle with transactional co-participation via
               <code style="color: var(--accent)">SQLTransactionalStore</code>.
             </p>
           </div>
@@ -1146,22 +1206,25 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
             <h3>MemoryOutboxStore</h3>
             <p style="margin: 0; font-size: 0.82rem">
               In-memory implementation in the
-              <code style="color: var(--accent)">memory</code> module. Perfect for testing without a
-              real database. Thread-safe with mutex protection.
+              <code style="color: var(--accent)">memory</code> module. Perfect
+              for testing without a real database. Thread-safe with mutex
+              protection.
             </p>
           </div>
           <div class="tradeoff-card">
             <h3>FakeOutbox</h3>
             <p style="margin: 0; font-size: 0.82rem">
-              Test double in <code style="color: var(--accent)">testhelpers</code>. Records calls
-              for assertion. No actual persistence.
+              Test double in
+              <code style="color: var(--accent)">testhelpers</code>. Records
+              calls for assertion. No actual persistence.
             </p>
           </div>
           <div class="tradeoff-card" style="border-color: var(--accent-dim)">
             <h3 style="color: var(--accent)">OutboxPublisher</h3>
             <p style="margin: 0; font-size: 0.82rem">
-              Not an Outbox itself — the background poller that drives the lifecycle. Configurable
-              poll interval, batch size, and graceful shutdown via <code>Close()</code>.
+              Not an Outbox itself — the background poller that drives the
+              lifecycle. Configurable poll interval, batch size, and graceful
+              shutdown via <code>Close()</code>.
             </p>
           </div>
         </div>
@@ -1171,22 +1234,25 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
       <section class="container">
         <h2><span class="num">10</span>Why Do We Need An Outbox?</h2>
         <p>
-          A fair question. Your event store already persists events. Your bus already publishes
-          them. Why add a third component?
+          A fair question. Your event store already persists events. Your bus
+          already publishes them. Why add a third component?
         </p>
 
         <p>
-          The answer is a <strong style="color: var(--text)">single word</strong>:
+          The answer is a
+          <strong style="color: var(--text)">single word</strong>:
           <strong style="color: var(--accent)">atomicity</strong>.
         </p>
 
         <p>
           Without the outbox, you have
-          <strong style="color: var(--text)">two separate systems</strong> — a database and a
-          message broker — and
-          <strong style="color: var(--text)">no transaction that spans both</strong>. There is no
-          way to atomically commit to PostgreSQL <em>and</em> publish to NATS/Kafka/Redis in a
-          single operation. The moment you do them sequentially, you have a window where the process
+          <strong style="color: var(--text)">two separate systems</strong> — a
+          database and a message broker — and
+          <strong style="color: var(--text)"
+            >no transaction that spans both</strong
+          >. There is no way to atomically commit to PostgreSQL
+          <em>and</em> publish to NATS/Kafka/Redis in a single operation. The
+          moment you do them sequentially, you have a window where the process
           can crash between the two — and that window is always open.
         </p>
 
@@ -1194,10 +1260,11 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
           <div class="tradeoff-card" style="border-color: var(--danger)">
             <h3 style="color: var(--danger)">Two-Phase Commit</h3>
             <p style="margin: 0; font-size: 0.82rem">
-              Technically solves it. But 2PC is <strong>slow</strong>, <strong>complex</strong>, and
-              <strong>not supported</strong> by most message brokers. It also creates tight coupling
-              between your database and your broker — exactly what you want to avoid in a CQRS
-              system.
+              Technically solves it. But 2PC is <strong>slow</strong>,
+              <strong>complex</strong>, and <strong>not supported</strong> by
+              most message brokers. It also creates tight coupling between your
+              database and your broker — exactly what you want to avoid in a
+              CQRS system.
             </p>
           </div>
           <div class="tradeoff-card" style="border-color: var(--danger)">
@@ -1205,30 +1272,34 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
             <p style="margin: 0; font-size: 0.82rem">
               Run Debezium to tail the WAL. Works, but now you have
               <strong>external infrastructure</strong>
-              — Kafka Connect, Debezium connectors, schema registry. You went from "I need to
-              publish events" to "I need a platform team."
+              — Kafka Connect, Debezium connectors, schema registry. You went
+              from "I need to publish events" to "I need a platform team."
             </p>
           </div>
           <div class="tradeoff-card" style="border-color: var(--success)">
             <h3 style="color: var(--success)">Outbox Pattern</h3>
             <p style="margin: 0; font-size: 0.82rem">
-              One extra table in your <em>existing</em> database. One background goroutine.
-              <strong>No new infrastructure</strong>. Uses the ACID guarantees you already have.
-              Events and outbox entry commit together, or not at all.
+              One extra table in your <em>existing</em> database. One background
+              goroutine. <strong>No new infrastructure</strong>. Uses the ACID
+              guarantees you already have. Events and outbox entry commit
+              together, or not at all.
             </p>
           </div>
         </div>
 
         <p>
           The outbox pattern is the
-          <strong style="color: var(--text)">simplest solution that actually works</strong>. It
-          doesn't require distributed transactions, external CDC pipelines, or message broker XA
-          support. It just uses your database — which already knows how to commit atomically.
+          <strong style="color: var(--text)"
+            >simplest solution that actually works</strong
+          >. It doesn't require distributed transactions, external CDC
+          pipelines, or message broker XA support. It just uses your database —
+          which already knows how to commit atomically.
         </p>
 
         <p>
-          In go-cqrs-lite, the outbox is <strong style="color: var(--text)">opt-in</strong>. If you
-          only use the in-process
+          In go-cqrs-lite, the outbox is
+          <strong style="color: var(--text)">opt-in</strong>. If you only use
+          the in-process
           <code
             style="
               color: var(--accent);
@@ -1237,9 +1308,10 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
               border-radius: 4px;
             "
             >MemoryBus</code
-          >, you don't need it — bus.Publish happens synchronously inside the same process. But the
-          moment you publish to an <em>external broker</em> (NATS, Kafka, Google PubSub, RabbitMQ),
-          the outbox becomes essential.
+          >, you don't need it — bus.Publish happens synchronously inside the
+          same process. But the moment you publish to an
+          <em>external broker</em> (NATS, Kafka, Google PubSub, RabbitMQ), the
+          outbox becomes essential.
         </p>
       </section>
 
@@ -1247,19 +1319,22 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
       <section class="container">
         <h2><span class="num">11</span>How Watermill Handles It</h2>
         <p>
-          <a href="https://watermill.io/" style="color: var(--blue); text-decoration: underline"
+          <a
+            href="https://watermill.io/"
+            style="color: var(--blue); text-decoration: underline"
             >Watermill</a
           >
-          is a Go library for event-driven applications with built-in CQRS, routing, and middleware.
-          It solves the same problem with a component called the
-          <strong style="color: var(--text)">Forwarder</strong> — Watermill's name for the outbox
-          pattern.
+          is a Go library for event-driven applications with built-in CQRS,
+          routing, and middleware. It solves the same problem with a component
+          called the
+          <strong style="color: var(--text)">Forwarder</strong> — Watermill's
+          name for the outbox pattern.
         </p>
 
         <h3>The Forwarder</h3>
         <p>
-          Watermill's approach is architecturally identical to go-cqrs-lite's outbox, but the
-          mechanics differ:
+          Watermill's approach is architecturally identical to go-cqrs-lite's
+          outbox, but the mechanics differ:
         </p>
 
         <div class="schema-table" style="margin-bottom: 32px">
@@ -1274,22 +1349,34 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
             <tbody>
               <tr>
                 <td><span class="col-name">Storage</span></td>
-                <td>Dedicated <code>outbox</code> table (id, status, events JSON, created_at)</td>
-                <td>Watermill's built-in SQL Pub/Sub (a separate <code>messages</code> table)</td>
+                <td>
+                  Dedicated <code>outbox</code> table (id, status, events JSON,
+                  created_at)
+                </td>
+                <td>
+                  Watermill's built-in SQL Pub/Sub (a separate
+                  <code>messages</code> table)
+                </td>
               </tr>
               <tr>
                 <td><span class="col-name">Write path</span></td>
-                <td><code>SaveWithOutbox()</code> — single tx inserts into events + outbox</td>
                 <td>
-                  <code>sql.NewPublisher(tx, ...)</code> — publisher decorated to write to SQL
-                  instead of broker
+                  <code>SaveWithOutbox()</code> — single tx inserts into events
+                  + outbox
+                </td>
+                <td>
+                  <code>sql.NewPublisher(tx, ...)</code> — publisher decorated
+                  to write to SQL instead of broker
                 </td>
               </tr>
               <tr>
                 <td><span class="col-name">Read path</span></td>
-                <td><code>PollPending()</code> — explicit poll with status column</td>
                 <td>
-                  SQL Subscriber listens on an intermediate topic; Forwarder subscribes and forwards
+                  <code>PollPending()</code> — explicit poll with status column
+                </td>
+                <td>
+                  SQL Subscriber listens on an intermediate topic; Forwarder
+                  subscribes and forwards
                 </td>
               </tr>
               <tr>
@@ -1299,15 +1386,24 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
               </tr>
               <tr>
                 <td><span class="col-name">Scope</span></td>
-                <td>Domain-aware — stores typed events with aggregate metadata</td>
                 <td>
-                  Generic — wraps any <code>message.Message</code> (topic + payload + metadata)
+                  Domain-aware — stores typed events with aggregate metadata
+                </td>
+                <td>
+                  Generic — wraps any <code>message.Message</code> (topic +
+                  payload + metadata)
                 </td>
               </tr>
               <tr>
                 <td><span class="col-name">Event store coupling</span></td>
-                <td>Tight — outbox is co-located with the event store in the same tx</td>
-                <td>Loose — Forwarder is broker-agnostic, works with any SQL Pub/Sub</td>
+                <td>
+                  Tight — outbox is co-located with the event store in the same
+                  tx
+                </td>
+                <td>
+                  Loose — Forwarder is broker-agnostic, works with any SQL
+                  Pub/Sub
+                </td>
               </tr>
             </tbody>
           </table>
@@ -1317,29 +1413,49 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
 
         <div class="problem-diagram" style="border-color: var(--border)">
           <div class="step-row">
-            <div class="step-num" style="background: rgba(59, 130, 246, 0.08); color: var(--blue)">
+            <div
+              class="step-num"
+              style="background: rgba(59, 130, 246, 0.08); color: var(--blue)"
+            >
               1
             </div>
-            <div class="step-bar" style="background: rgba(59, 130, 246, 0.06); color: var(--blue)">
-              App code writes to DB + publishes via <strong>decorated Publisher</strong> (writes to
-              SQL table instead of broker)
+            <div
+              class="step-bar"
+              style="background: rgba(59, 130, 246, 0.06); color: var(--blue)"
+            >
+              App code writes to DB + publishes via
+              <strong>decorated Publisher</strong> (writes to SQL table instead
+              of broker)
             </div>
           </div>
           <div class="step-row">
-            <div class="step-num" style="background: rgba(59, 130, 246, 0.08); color: var(--blue)">
+            <div
+              class="step-num"
+              style="background: rgba(59, 130, 246, 0.08); color: var(--blue)"
+            >
               2
             </div>
-            <div class="step-bar" style="background: rgba(59, 130, 246, 0.06); color: var(--blue)">
-              <strong>Forwarder</strong> subscribes to the SQL Pub/Sub's intermediate topic
+            <div
+              class="step-bar"
+              style="background: rgba(59, 130, 246, 0.06); color: var(--blue)"
+            >
+              <strong>Forwarder</strong> subscribes to the SQL Pub/Sub's
+              intermediate topic
             </div>
           </div>
           <div class="step-row">
-            <div class="step-num" style="background: rgba(59, 130, 246, 0.08); color: var(--blue)">
+            <div
+              class="step-num"
+              style="background: rgba(59, 130, 246, 0.08); color: var(--blue)"
+            >
               3
             </div>
-            <div class="step-bar" style="background: rgba(59, 130, 246, 0.06); color: var(--blue)">
-              Forwarder <strong>unwraps</strong> the enveloped message and publishes to the
-              <strong>real broker</strong> (NATS, Kafka, etc.)
+            <div
+              class="step-bar"
+              style="background: rgba(59, 130, 246, 0.06); color: var(--blue)"
+            >
+              Forwarder <strong>unwraps</strong> the enveloped message and
+              publishes to the <strong>real broker</strong> (NATS, Kafka, etc.)
             </div>
           </div>
           <div class="step-row">
@@ -1350,7 +1466,8 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
               4
             </div>
             <div class="step-bar save">
-              On success, SQL subscriber <strong>acks</strong> → message removed from SQL table
+              On success, SQL subscriber <strong>acks</strong> → message removed
+              from SQL table
             </div>
           </div>
         </div>
@@ -1358,14 +1475,16 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
         <h3>The Key Difference</h3>
         <p>
           Watermill's Forwarder is a
-          <strong style="color: var(--text)">generic message relay</strong> — it sits between any
-          SQL-backed Pub/Sub and any broker-backed Pub/Sub. It doesn't know about event sourcing,
-          aggregates, or domain events. It just forwards opaque messages.
+          <strong style="color: var(--text)">generic message relay</strong> — it
+          sits between any SQL-backed Pub/Sub and any broker-backed Pub/Sub. It
+          doesn't know about event sourcing, aggregates, or domain events. It
+          just forwards opaque messages.
         </p>
         <p>
-          go-cqrs-lite's outbox is <strong style="color: var(--text)">domain-aware</strong> — it
-          stores typed events with aggregate IDs, versions, and metadata. It's co-designed with the
-          event store, so the
+          go-cqrs-lite's outbox is
+          <strong style="color: var(--text)">domain-aware</strong> — it stores
+          typed events with aggregate IDs, versions, and metadata. It's
+          co-designed with the event store, so the
           <code
             style="
               color: var(--accent);
@@ -1375,14 +1494,14 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
             "
             >SaveWithOutbox</code
           >
-          method is a single atomic operation that inserts into <em>both</em> tables in one
-          transaction.
+          method is a single atomic operation that inserts into
+          <em>both</em> tables in one transaction.
         </p>
         <p>
           They solve the same fundamental problem —
-          <em>"don't lose events between database and broker"</em> — with different tradeoffs.
-          Watermill is more generic and broker-agnostic. go-cqrs-lite is more integrated with the
-          event sourcing lifecycle.
+          <em>"don't lose events between database and broker"</em> — with
+          different tradeoffs. Watermill is more generic and broker-agnostic.
+          go-cqrs-lite is more integrated with the event sourcing lifecycle.
         </p>
 
         <h3>Using Them Together</h3>
@@ -1398,10 +1517,12 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
             >watermill</code
           >
           module provides adapters: <code>PublisherAdapter</code> and
-          <code>SubscriberAdapter</code> that bridge go-cqrs-lite's <code>event.Bus</code> with
-          Watermill's <code>message.Publisher</code> / <code>message.Subscriber</code>. If you want
-          to use Watermill's Forwarder <em>instead of</em>
-          the built-in outbox, you can — the adapters make the two libraries interoperable.
+          <code>SubscriberAdapter</code> that bridge go-cqrs-lite's
+          <code>event.Bus</code> with Watermill's
+          <code>message.Publisher</code> / <code>message.Subscriber</code>. If
+          you want to use Watermill's Forwarder <em>instead of</em>
+          the built-in outbox, you can — the adapters make the two libraries
+          interoperable.
         </p>
       </section>
 
@@ -1409,17 +1530,17 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
       <section class="container">
         <h2><span class="num">12</span>Wait — Is There a Simpler Way?</h2>
         <p>
-          A legitimate question. You write events to disk. The process crashes before publishing. On
-          restart, the events are <em>still there</em> in the event store. Do you really need an
-          outbox table?
+          A legitimate question. You write events to disk. The process crashes
+          before publishing. On restart, the events are <em>still there</em> in
+          the event store. Do you really need an outbox table?
         </p>
 
         <h3>The Event Store IS Already Your Outbox</h3>
         <p>
           The events are durably persisted. All you need is a
           <strong style="color: var(--text)">pointer</strong>
-          to track where you stopped publishing — a checkpoint. You already have the building
-          blocks:
+          to track where you stopped publishing — a checkpoint. You already have
+          the building blocks:
         </p>
 
         <pre
@@ -1444,8 +1565,9 @@ checkpointStore.<span class="func">Save</span>(ctx, <span class="string">"event-
             "
             >projection.Runner</code
           >
-          already does — it tails the journal from a checkpoint. You'd just swap "call projection
-          handler" with "call Bus.Publish". No extra table, no duplicate data, no outbox at all.
+          already does — it tails the journal from a checkpoint. You'd just swap
+          "call projection handler" with "call Bus.Publish". No extra table, no
+          duplicate data, no outbox at all.
         </p>
 
         <div class="schema-table" style="margin: 32px 0">
@@ -1454,10 +1576,16 @@ checkpointStore.<span class="func">Save</span>(ctx, <span class="string">"event-
               <tr>
                 <th></th>
                 <th style="color: var(--success)">
-                  Checkpoint Tail <span style="font-weight: 400; font-size: 0.7rem">(simpler)</span>
+                  Checkpoint Tail
+                  <span style="font-weight: 400; font-size: 0.7rem"
+                    >(simpler)</span
+                  >
                 </th>
                 <th style="color: var(--accent)">
-                  Outbox Table <span style="font-weight: 400; font-size: 0.7rem">(current)</span>
+                  Outbox Table
+                  <span style="font-weight: 400; font-size: 0.7rem"
+                    >(current)</span
+                  >
                 </th>
               </tr>
             </thead>
@@ -1474,8 +1602,12 @@ checkpointStore.<span class="func">Save</span>(ctx, <span class="string">"event-
               </tr>
               <tr>
                 <td><span class="col-name">Batch boundaries</span></td>
-                <td style="color: var(--danger)">Lost — you just stream from position</td>
-                <td style="color: var(--success)">Preserved — each save = one outbox entry</td>
+                <td style="color: var(--danger)">
+                  Lost — you just stream from position
+                </td>
+                <td style="color: var(--success)">
+                  Preserved — each save = one outbox entry
+                </td>
               </tr>
               <tr>
                 <td><span class="col-name">Selective publishing</span></td>
@@ -1484,13 +1616,19 @@ checkpointStore.<span class="func">Save</span>(ctx, <span class="string">"event-
               </tr>
               <tr>
                 <td><span class="col-name">Extra storage</span></td>
-                <td style="color: var(--success)">Zero — just one checkpoint row</td>
-                <td style="color: var(--danger)">Duplicate events in outbox table</td>
+                <td style="color: var(--success)">
+                  Zero — just one checkpoint row
+                </td>
+                <td style="color: var(--danger)">
+                  Duplicate events in outbox table
+                </td>
               </tr>
               <tr>
                 <td><span class="col-name">Complexity</span></td>
                 <td style="color: var(--success)">Minimal</td>
-                <td style="color: var(--danger)">Outbox + Poller + Publisher lifecycle</td>
+                <td style="color: var(--danger)">
+                  Outbox + Poller + Publisher lifecycle
+                </td>
               </tr>
             </tbody>
           </table>
@@ -1518,26 +1656,30 @@ checkpointStore.<span class="func">Save</span>(ctx, <span class="string">"event-
             "
             >CheckpointStore</code
           >
-          is simpler and sufficient. The events are already durably stored. A checkpoint lets you
-          resume exactly where you left off. No duplicate data, no extra table, no additional
-          lifecycle to manage.
+          is simpler and sufficient. The events are already durably stored. A
+          checkpoint lets you resume exactly where you left off. No duplicate
+          data, no extra table, no additional lifecycle to manage.
         </p>
         <p>
           The outbox matters when you need
           <strong style="color: var(--text)">batch-level ack semantics</strong>
           (knowing that a specific batch of events was published as a unit) or
-          <strong style="color: var(--text)">selective publishing</strong> (not all events go to the
-          broker). For the common case — "publish all events to a broker, resume on crash" — the
-          checkpoint approach is the right default.
+          <strong style="color: var(--text)">selective publishing</strong> (not
+          all events go to the broker). For the common case — "publish all
+          events to a broker, resume on crash" — the checkpoint approach is the
+          right default.
         </p>
       </section>
 
       <!-- ═══ Watermill as Outbox Backend: PRO / CONTRA ═══ -->
       <section class="container">
-        <h2><span class="num">13</span>Should We Use Watermill as the Outbox Backend?</h2>
+        <h2>
+          <span class="num">13</span>Should We Use Watermill as the Outbox
+          Backend?
+        </h2>
         <p>
-          Could go-cqrs-lite delegate the outbox entirely to Watermill's Forwarder instead of
-          maintaining its own outbox table + poller? The
+          Could go-cqrs-lite delegate the outbox entirely to Watermill's
+          Forwarder instead of maintaining its own outbox table + poller? The
           <code
             style="
               color: var(--accent);
@@ -1554,15 +1696,22 @@ checkpointStore.<span class="func">Save</span>(ctx, <span class="string">"event-
           <div class="tradeoff-card pro">
             <h3>+ PRO</h3>
             <ul>
-              <li>Battle-tested Forwarder with built-in retry, dedup, poison queue middleware</li>
-              <li>Works with every broker — NATS, Kafka, RabbitMQ, Google PubSub, AMQP, SQL...</li>
               <li>
-                <code>sql.NewPublisher(tx, ...)</code> can write to Watermill's messages table in
-                the <strong>same tx</strong> as your event store — same atomicity guarantee
+                Battle-tested Forwarder with built-in retry, dedup, poison queue
+                middleware
               </li>
               <li>
-                The <code>PublisherAdapter</code> / <code>SubscriberAdapter</code> already bridge
-                both libraries
+                Works with every broker — NATS, Kafka, RabbitMQ, Google PubSub,
+                AMQP, SQL...
+              </li>
+              <li>
+                <code>sql.NewPublisher(tx, ...)</code> can write to Watermill's
+                messages table in the <strong>same tx</strong> as your event
+                store — same atomicity guarantee
+              </li>
+              <li>
+                The <code>PublisherAdapter</code> /
+                <code>SubscriberAdapter</code> already bridge both libraries
               </li>
               <li>Less outbox code to maintain in go-cqrs-lite itself</li>
             </ul>
@@ -1571,29 +1720,32 @@ checkpointStore.<span class="func">Save</span>(ctx, <span class="string">"event-
             <h3>− CONTRA</h3>
             <ul>
               <li>
-                <strong>Heavy dependency</strong> — Watermill pulls in many transitive deps,
-                violates go-cqrs-lite's "minimal core" philosophy
+                <strong>Heavy dependency</strong> — Watermill pulls in many
+                transitive deps, violates go-cqrs-lite's "minimal core"
+                philosophy
               </li>
               <li>
-                <strong>Loses domain types</strong> — Forwarder is generic (opaque
-                <code>message.Message</code>), aggregate ID/version/event type all become metadata
-                strings
+                <strong>Loses domain types</strong> — Forwarder is generic
+                (opaque <code>message.Message</code>), aggregate
+                ID/version/event type all become metadata strings
               </li>
               <li>
-                <strong>Separate schema</strong> — Watermill's SQL Pub/Sub has its own
-                <code>messages</code> table, not co-designed with the event store
+                <strong>Separate schema</strong> — Watermill's SQL Pub/Sub has
+                its own <code>messages</code> table, not co-designed with the
+                event store
               </li>
               <li>
-                <strong>Unnecessary for embedded use</strong> — users with SQLite/Pebble who don't
-                need a broker shouldn't need Watermill
+                <strong>Unnecessary for embedded use</strong> — users with
+                SQLite/Pebble who don't need a broker shouldn't need Watermill
               </li>
               <li>
-                <strong>Marginal benefit</strong> — go-cqrs-lite's outbox is a few hundred lines;
-                replacing it adds ~15 dependencies
+                <strong>Marginal benefit</strong> — go-cqrs-lite's outbox is a
+                few hundred lines; replacing it adds ~15 dependencies
               </li>
               <li>
-                <strong>Adapter is shallow</strong> — <code>PublisherAdapter</code> is a bridge, not
-                deep integration; custom wiring still needed
+                <strong>Adapter is shallow</strong> —
+                <code>PublisherAdapter</code> is a bridge, not deep integration;
+                custom wiring still needed
               </li>
             </ul>
           </div>
@@ -1601,16 +1753,20 @@ checkpointStore.<span class="func">Save</span>(ctx, <span class="string">"event-
 
         <h3>Verdict</h3>
         <p>
-          Watermill makes sense as a <strong style="color: var(--text)">transport adapter</strong> —
+          Watermill makes sense as a
+          <strong style="color: var(--text)">transport adapter</strong> —
           publish to NATS/Kafka via Watermill instead of directly. But
-          <strong style="color: var(--text)">not as the outbox mechanism itself</strong>.
+          <strong style="color: var(--text)"
+            >not as the outbox mechanism itself</strong
+          >.
         </p>
         <p>
-          The outbox should stay in go-cqrs-lite — it's small, domain-aware, and has zero external
-          dependencies. If anything, the right move is to
-          <strong style="color: var(--accent)">simplify</strong>: make the checkpoint-based approach
-          the default for crash recovery, and keep the outbox as opt-in for batch ack semantics.
-          Watermill sits at the transport layer, not the persistence layer.
+          The outbox should stay in go-cqrs-lite — it's small, domain-aware, and
+          has zero external dependencies. If anything, the right move is to
+          <strong style="color: var(--accent)">simplify</strong>: make the
+          checkpoint-based approach the default for crash recovery, and keep the
+          outbox as opt-in for batch ack semantics. Watermill sits at the
+          transport layer, not the persistence layer.
         </p>
       </section>
     </main>
@@ -1625,7 +1781,9 @@ checkpointStore.<span class="func">Save</span>(ctx, <span class="string">"event-
             >0005-outbox-pattern</a
           >
           &nbsp;·&nbsp;
-          <a href="https://watermill.io/docs/outbox-pattern/">Watermill Forwarder docs</a>
+          <a href="https://watermill.io/docs/outbox-pattern/"
+            >Watermill Forwarder docs</a
+          >
         </p>
       </div>
     </footer>

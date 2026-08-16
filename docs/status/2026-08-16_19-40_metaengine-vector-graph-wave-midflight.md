@@ -53,18 +53,18 @@
 
 ### Engines
 
-| Engine | VectorFiltered | GraphRemoveEdge | GraphNeighborsUndirected | State |
-|---|---|---|---|---|
-| memory | yes | yes | yes (reverse scan) | built, adttest |
-| pebble | yes (vecm keys) | n/a | n/a | built, tests TODO |
-| bbolt | yes (vecm keys) | n/a | n/a | built, tests TODO |
-| badger | yes | yes (dual-key delete) | yes (dual prefix scan) | built, **13 tests green** |
-| sqlite | n/a | yes (DELETE) | yes (CTE + iterative) | built, tests green |
-| pg | n/a | yes | yes (dual-direction CTE) | built, tests TODO (server) |
-| mysql | n/a | yes | yes (CTE + iterative) | built, tests TODO (server) |
-| dgraph | n/a | yes (DelNquads both dirs) | alias (symmetric storage) | built, tests TODO (server) |
-| graphadapter | n/a | yes (sink.RemoveEdge) | deliberately NO (Traverse is outgoing-only; honest error) | built, tests TODO |
-| iroh | passthrough | passthrough | passthrough | built |
+| Engine       | VectorFiltered  | GraphRemoveEdge           | GraphNeighborsUndirected                                  | State                      |
+| ------------ | --------------- | ------------------------- | --------------------------------------------------------- | -------------------------- |
+| memory       | yes             | yes                       | yes (reverse scan)                                        | built, adttest             |
+| pebble       | yes (vecm keys) | n/a                       | n/a                                                       | built, tests TODO          |
+| bbolt        | yes (vecm keys) | n/a                       | n/a                                                       | built, tests TODO          |
+| badger       | yes             | yes (dual-key delete)     | yes (dual prefix scan)                                    | built, **13 tests green**  |
+| sqlite       | n/a             | yes (DELETE)              | yes (CTE + iterative)                                     | built, tests green         |
+| pg           | n/a             | yes                       | yes (dual-direction CTE)                                  | built, tests TODO (server) |
+| mysql        | n/a             | yes                       | yes (CTE + iterative)                                     | built, tests TODO (server) |
+| dgraph       | n/a             | yes (DelNquads both dirs) | alias (symmetric storage)                                 | built, tests TODO (server) |
+| graphadapter | n/a             | yes (sink.RemoveEdge)     | deliberately NO (Traverse is outgoing-only; honest error) | built, tests TODO          |
+| iroh         | passthrough     | passthrough               | passthrough                                               | built                      |
 
 - SQL engines: new `idx_graph_edges_to (collection, to_node)` reverse index
   (mysql: bare CREATE INDEX with duplicate-key tolerance since MySQL lacks

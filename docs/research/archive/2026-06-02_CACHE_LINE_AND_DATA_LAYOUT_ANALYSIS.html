@@ -23,7 +23,9 @@
         padding: 0;
       }
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+          sans-serif;
         background: var(--bg);
         color: var(--text);
         line-height: 1.6;
@@ -175,16 +177,16 @@
     <h1>
       Cache-Line &amp; Data Layout Analysis
       <small
-        >2026-06-02 — Memory hierarchy, struct layout, pointer chasing, and server-CPU
-        implications</small
+        >2026-06-02 — Memory hierarchy, struct layout, pointer chasing, and
+        server-CPU implications</small
       >
     </h1>
 
     <h2>Server CPU Baseline</h2>
     <p>
-      This analysis targets <strong>general server hardware</strong>, not desktop/workstation CPUs.
-      The library must perform well on AWS c6a, GCP n2, Azure D-series, and bare-metal EPYC/Xeon
-      deployments.
+      This analysis targets <strong>general server hardware</strong>, not
+      desktop/workstation CPUs. The library must perform well on AWS c6a, GCP
+      n2, Azure D-series, and bare-metal EPYC/Xeon deployments.
     </p>
 
     <table>
@@ -240,15 +242,17 @@
         <td>NUMA</td>
         <td>No</td>
         <td>Yes (multi-socket, EPYC chiplets)</td>
-        <td>NUMA-unaware alloc = cross-socket latency (~130 ns vs ~40 ns local)</td>
+        <td>
+          NUMA-unaware alloc = cross-socket latency (~130 ns vs ~40 ns local)
+        </td>
       </tr>
     </table>
 
     <div class="finding critical">
-      <strong>Key insight:</strong> On a 64-core EPYC sharing 32 MB L3, per-core L3 budget is ~500
-      KB. Under load, 32+ cores scanning event streams means L3 is constantly evicted — you live in
-      L2 (512 KB) or hit RAM (~100 ns per miss). Every byte wasted in struct layout is a real
-      throughput cost.
+      <strong>Key insight:</strong> On a 64-core EPYC sharing 32 MB L3, per-core
+      L3 budget is ~500 KB. Under load, 32+ cores scanning event streams means
+      L3 is constantly evicted — you live in L2 (512 KB) or hit RAM (~100 ns per
+      miss). Every byte wasted in struct layout is a real throughput cost.
     </div>
 
     <h2>ImmutableEvent Layout — The Core Problem</h2>
@@ -271,10 +275,11 @@
 280     deadline           24     rarely accessed</code></pre>
 
     <div class="finding warn">
-      The two most-iterated fields (<code>eventType</code> at +16 and <code>version</code> at +64)
-      are in different cache lines. When iterating 10,000 events to filter by type, you pull in the
-      entire 280-byte struct per element — 4–5 cache lines — to read 16 bytes. On a server with 32
-      KB L1D, that's only ~6–8 events' hot data in L1 at once.
+      The two most-iterated fields (<code>eventType</code> at +16 and
+      <code>version</code> at +64) are in different cache lines. When iterating
+      10,000 events to filter by type, you pull in the entire 280-byte struct
+      per element — 4–5 cache lines — to read 16 bytes. On a server with 32 KB
+      L1D, that's only ~6–8 events' hot data in L1 at once.
     </div>
 
     <h3>Proposed layout — hot fields first, grouped by access pattern</h3>
@@ -300,26 +305,28 @@
 }</code></pre>
 
     <p>
-      Filtering by <code>Type</code> + <code>Version</code> hits cache line 0 only. L1 holds ~16
-      events' hot fields (vs ~6–8 before). L2 (512 KB) holds ~2,000 events' hot fields — enough for
-      most aggregate streams. Hardware prefetcher streams sequential cache lines efficiently.
+      Filtering by <code>Type</code> + <code>Version</code> hits cache line 0
+      only. L1 holds ~16 events' hot fields (vs ~6–8 before). L2 (512 KB) holds
+      ~2,000 events' hot fields — enough for most aggregate streams. Hardware
+      prefetcher streams sequential cache lines efficiently.
     </p>
 
     <h2>Problem 1: <code>[]Event</code> = Pointer Chasing</h2>
 
     <div class="finding critical">
       <strong>Single biggest cache-layout problem.</strong>
-      <code>[]event.Event</code> is a slice of interfaces — each element is 16 bytes: (type pointer,
-      data pointer). Every iteration dereferences a pointer to a heap-allocated
-      <code>ImmutableEvent</code>. Iterating 10,000 events = 10,000 random heap reads = 10,000
-      potential cache misses. On a server under load, those pointers are scattered across NUMA
-      nodes.
+      <code>[]event.Event</code> is a slice of interfaces — each element is 16
+      bytes: (type pointer, data pointer). Every iteration dereferences a
+      pointer to a heap-allocated <code>ImmutableEvent</code>. Iterating 10,000
+      events = 10,000 random heap reads = 10,000 potential cache misses. On a
+      server under load, those pointers are scattered across NUMA nodes.
     </div>
 
     <h3>Fix A: Contiguous <code>[]ImmutableEvent</code> for internal paths</h3>
     <p>
-      For <code>MemoryStore</code> and pebble deserialization, store events as a contiguous slice of
-      value types. Convert to <code>[]Event</code> only at API boundaries:
+      For <code>MemoryStore</code> and pebble deserialization, store events as a
+      contiguous slice of value types. Convert to <code>[]Event</code> only at
+      API boundaries:
     </p>
     <pre><code>// internal: cache-friendly layout
 type eventBlock struct {
@@ -329,21 +336,23 @@ type eventBlock struct {
 // Fold/Filter operate on the block directly — no interface dispatch, no pointer chasing
 func (b *eventBlock) FilterByType(t Type) []ImmutableEvent { ... }</code></pre>
     <p>
-      10,000 × 280 bytes = 2.8 MB. Does <strong>not fit in L2</strong> on a server (512 KB), but
-      sequential access means the hardware prefetcher streams from RAM at ~10 GB/s effective
-      throughput. Compare: pointer chasing into RAM at ~100 ns per miss × 10,000 =
+      10,000 × 280 bytes = 2.8 MB. Does <strong>not fit in L2</strong> on a
+      server (512 KB), but sequential access means the hardware prefetcher
+      streams from RAM at ~10 GB/s effective throughput. Compare: pointer
+      chasing into RAM at ~100 ns per miss × 10,000 =
       <strong>1 ms in stalls alone</strong>, vs sequential scan at ~300 ns.
     </p>
     <p>
-      Impact is larger on servers than desktops: 64 cores all pointer-chasing means L3 is constantly
-      evicted, TLB misses compound (each <code>ImmutableEvent</code> likely on a different 4 KB
-      page), and NUMA cross-socket hops add ~90 ns per miss.
+      Impact is larger on servers than desktops: 64 cores all pointer-chasing
+      means L3 is constantly evicted, TLB misses compound (each
+      <code>ImmutableEvent</code> likely on a different 4 KB page), and NUMA
+      cross-socket hops add ~90 ns per miss.
     </p>
 
     <h3>Fix B: SoA (Struct of Arrays) for hot filter fields</h3>
     <p>
-      When you only need <code>Type</code>, <code>Version</code>, <code>OccurredAt</code> for
-      filtering, don't walk the full struct:
+      When you only need <code>Type</code>, <code>Version</code>,
+      <code>OccurredAt</code> for filtering, don't walk the full struct:
     </p>
     <pre><code>type eventIndex struct {
     types      []Type       // 16 bytes × N
@@ -352,26 +361,33 @@ func (b *eventBlock) FilterByType(t Type) []ImmutableEvent { ... }</code></pre>
     offsets    []uint32     // 4 bytes × N  — index into full event storage
 }</code></pre>
     <p>
-      Filter 10,000 events by type: scan 160 KB of <code>types[]</code> — fits in L2, pure
-      sequential access, hardware prefetcher-optimal. Then index into full events only for matches.
+      Filter 10,000 events by type: scan 160 KB of <code>types[]</code> — fits
+      in L2, pure sequential access, hardware prefetcher-optimal. Then index
+      into full events only for matches.
     </p>
 
-    <h2>Problem 2: <code>Payload()</code> and <code>Metadata()</code> Clone on Every Access</h2>
+    <h2>
+      Problem 2: <code>Payload()</code> and <code>Metadata()</code> Clone on
+      Every Access
+    </h2>
 
     <div class="finding critical">
       <code>event.go:161</code> — <code>slices.Clone(e.payload)</code> on every
-      <code>Payload()</code> call. <code>event.go:167</code> — <code>metadata.Clone()</code> on
-      every <code>Metadata()</code> call. In <code>SharedInsertEvents</code> (storage/), this means
-      2 clone allocations per event per insert — for a path where the caller is the store itself
+      <code>Payload()</code> call. <code>event.go:167</code> —
+      <code>metadata.Clone()</code> on every <code>Metadata()</code> call. In
+      <code>SharedInsertEvents</code> (storage/), this means 2 clone allocations
+      per event per insert — for a path where the caller is the store itself
       (trusted).
     </div>
 
     <h3>Impact at server scale</h3>
     <p>
-      A 64-core server running 10,000 events/sec per core = 640K events/sec. Each event ~280 bytes =
-      179 MB/s raw data. Add <code>Payload()</code> + <code>Metadata()</code> clones and you're at
-      ~500 MB/s just for defensive copies. On DDR4 servers with ~50 GB/s shared BW across all cores,
-      that's <strong>1% of total system bandwidth on copies alone</strong> — before business logic.
+      A 64-core server running 10,000 events/sec per core = 640K events/sec.
+      Each event ~280 bytes = 179 MB/s raw data. Add <code>Payload()</code> +
+      <code>Metadata()</code> clones and you're at ~500 MB/s just for defensive
+      copies. On DDR4 servers with ~50 GB/s shared BW across all cores, that's
+      <strong>1% of total system bandwidth on copies alone</strong> — before
+      business logic.
     </p>
 
     <h3>Fix — internal uncloned access</h3>
@@ -384,13 +400,17 @@ func (e *ImmutableEvent) payloadBytes() []byte { return e.payload }</code></pre>
     <h2>Problem 3: <code>time.Time</code> — 24 Bytes Per Instance</h2>
 
     <p>
-      <code>time.Time</code> = <code>wall (8) + ext (8) + loc (*Location, 8)</code>. Three instances
-      across event fields (<code>occurredAt</code>, <code>deadline</code>) and checkpoint paths. At
-      640K events/sec throughput, that's 46 MB/s of <code>time.Time</code> data flowing through
-      caches.
+      <code>time.Time</code> =
+      <code>wall (8) + ext (8) + loc (*Location, 8)</code>. Three instances
+      across event fields (<code>occurredAt</code>, <code>deadline</code>) and
+      checkpoint paths. At 640K events/sec throughput, that's 46 MB/s of
+      <code>time.Time</code> data flowing through caches.
     </p>
 
-    <h3>Fix — store <code>occurredAt</code> as <code>int64</code> (UnixNano) internally</h3>
+    <h3>
+      Fix — store <code>occurredAt</code> as <code>int64</code> (UnixNano)
+      internally
+    </h3>
     <pre><code>type ImmutableEvent struct {
     occurredAtNano int64  // 8 bytes instead of 24
     // ...
@@ -400,21 +420,25 @@ func (e *ImmutableEvent) OccurredAt() time.Time {
     return time.Unix(0, e.occurredAtNano)
 }</code></pre>
     <p>
-      Saves 16 bytes per <code>time.Time</code> converted → 16 bytes per event (for
-      <code>occurredAt</code> alone). Over 10,000 events = 160 KB less memory pressure. Comparison
-      <code>occurredAtNano > thresholdNano</code> is a single <code>int64</code> compare vs
-      <code>time.Time.Compare()</code> which checks both <code>wall</code> and <code>ext</code>.
+      Saves 16 bytes per <code>time.Time</code> converted → 16 bytes per event
+      (for <code>occurredAt</code> alone). Over 10,000 events = 160 KB less
+      memory pressure. Comparison <code>occurredAtNano > thresholdNano</code> is
+      a single <code>int64</code> compare vs
+      <code>time.Time.Compare()</code> which checks both <code>wall</code> and
+      <code>ext</code>.
     </p>
 
     <h2>
-      Problem 4: Pebble <code>LoadToTimestamp</code> — Full JSON Deserialization to Check One Field
+      Problem 4: Pebble <code>LoadToTimestamp</code> — Full JSON Deserialization
+      to Check One Field
     </h2>
 
     <div class="finding warn">
-      <code>pebble/iteration.go:127</code> — deserializes the entire JSON event, builds an
-      <code>ImmutableEvent</code>, just to call <code>OccurredAt()</code>. Then discards the event
-      if past threshold. At 5.4 ms for a full scan, most of the time is JSON unmarshal of events
-      that are immediately thrown away.
+      <code>pebble/iteration.go:127</code> — deserializes the entire JSON event,
+      builds an <code>ImmutableEvent</code>, just to call
+      <code>OccurredAt()</code>. Then discards the event if past threshold. At
+      5.4 ms for a full scan, most of the time is JSON unmarshal of events that
+      are immediately thrown away.
     </div>
 
     <h3>Fix — extract timestamp without full JSON unmarshal</h3>
@@ -427,15 +451,16 @@ func extractTimestamp(data []byte) (int64, bool) {
     ...
 }</code></pre>
     <p>
-      Or store <code>occurredAt</code> in the Pebble key itself — then range scan handles it
-      natively with no deserialization at all.
+      Or store <code>occurredAt</code> in the Pebble key itself — then range
+      scan handles it natively with no deserialization at all.
     </p>
 
     <h2>Problem 5: <code>Metadata</code> — 120 Bytes Copied Per Access</h2>
 
     <p>
-      <code>Metadata.Clone()</code> copies 120 bytes of fixed fields + <code>maps.Clone</code>. Most
-      hot paths that read <code>Metadata()</code> only check
+      <code>Metadata.Clone()</code> copies 120 bytes of fixed fields +
+      <code>maps.Clone</code>. Most hot paths that read
+      <code>Metadata()</code> only check
       <code>Custom[MetadataKeyTombstone]</code> or serialize it.
     </p>
 
@@ -454,9 +479,10 @@ func extractTimestamp(data []byte) (int64, bool) {
     events map[string][]event.Event
 }</code></pre>
     <p>
-      Two <code>sync.RWMutex</code> values potentially sharing a cache line. Under contention (many
-      goroutines reading), the atomic counter in <code>RWMutex</code> causes cache-line bouncing
-      between cores. On a 64-core EPYC, this is a measurable scalability limiter.
+      Two <code>sync.RWMutex</code> values potentially sharing a cache line.
+      Under contention (many goroutines reading), the atomic counter in
+      <code>RWMutex</code> causes cache-line bouncing between cores. On a
+      64-core EPYC, this is a measurable scalability limiter.
     </p>
 
     <h3>Fix — pad to separate cache lines</h3>
@@ -471,11 +497,12 @@ func extractTimestamp(data []byte) (int64, bool) {
     <h2>Problem 7: <code>MemoryStore</code> — Map Rehash Spikes</h2>
 
     <p>
-      <code>MemoryStore.events</code> is a <code>map[string][]event.Event</code>. Go maps rehash
-      when they grow, causing a stop-the-world spike proportional to map size. Under sustained event
-      ingestion on a busy server, this map grows continuously, triggering periodic rehashes that
-      stall all goroutines. Amortized cost is fine on desktop; on a server serving live traffic, it
-      causes latency spikes.
+      <code>MemoryStore.events</code> is a
+      <code>map[string][]event.Event</code>. Go maps rehash when they grow,
+      causing a stop-the-world spike proportional to map size. Under sustained
+      event ingestion on a busy server, this map grows continuously, triggering
+      periodic rehashes that stall all goroutines. Amortized cost is fine on
+      desktop; on a server serving live traffic, it causes latency spikes.
     </p>
 
     <h3>Fix — sorted append-only log + stream index</h3>
@@ -484,16 +511,20 @@ func extractTimestamp(data []byte) (int64, bool) {
     index map[string][2]int      // aggregate key → (start, end) in log
 }</code></pre>
     <p>
-      <code>ReadAll</code> becomes <code>return s.log</code> (zero-copy). <code>Load</code> uses the
-      index for a slice slice. No sorting needed if insertion order matches occurrence order.
+      <code>ReadAll</code> becomes <code>return s.log</code> (zero-copy).
+      <code>Load</code> uses the index for a slice slice. No sorting needed if
+      insertion order matches occurrence order.
     </p>
 
-    <h2>Problem 8: Projection <code>filterFromCheckpoint</code> — O(n×m) Type Filter</h2>
+    <h2>
+      Problem 8: Projection <code>filterFromCheckpoint</code> — O(n×m) Type
+      Filter
+    </h2>
 
     <p>
       <code>projection/runner_filter.go:40</code> —
-      <code>slices.Contains(types, evt.Type())</code> per event. With 50 event types and 100K
-      events, that's 5M string comparisons.
+      <code>slices.Contains(types, evt.Type())</code> per event. With 50 event
+      types and 100K events, that's 5M string comparisons.
     </p>
 
     <h3>Fix — <code>map[Type]struct{}</code> for O(1) lookup</h3>
@@ -516,12 +547,15 @@ for _, evt := range all {
       </tr>
       <tr>
         <td>1</td>
-        <td>Stop cloning <code>Payload()</code>/<code>Metadata()</code> on internal access</td>
+        <td>
+          Stop cloning <code>Payload()</code>/<code>Metadata()</code> on
+          internal access
+        </td>
         <td><span class="tag tag-red">Critical</span></td>
         <td>Low</td>
         <td>
-          Saves ~320 MB/s system BW at scale — 1% of total server memory bandwidth on defensive
-          copies alone
+          Saves ~320 MB/s system BW at scale — 1% of total server memory
+          bandwidth on defensive copies alone
         </td>
       </tr>
       <tr>
@@ -529,28 +563,41 @@ for _, evt := range all {
         <td>Reorder <code>ImmutableEvent</code> fields (hot first)</td>
         <td><span class="tag tag-red">High</span></td>
         <td>Low</td>
-        <td>L1 holds 16 events' hot fields instead of 6–8. L2 holds ~2,000 instead of ~900</td>
+        <td>
+          L1 holds 16 events' hot fields instead of 6–8. L2 holds ~2,000 instead
+          of ~900
+        </td>
       </tr>
       <tr>
         <td>3</td>
-        <td><code>time.Time</code> → <code>int64</code> for <code>occurredAt</code></td>
+        <td>
+          <code>time.Time</code> → <code>int64</code> for
+          <code>occurredAt</code>
+        </td>
         <td><span class="tag tag-red">High</span></td>
         <td>Low</td>
-        <td>16 bytes saved per event × N events = real L2 budget recovery. Faster comparison.</td>
+        <td>
+          16 bytes saved per event × N events = real L2 budget recovery. Faster
+          comparison.
+        </td>
       </tr>
       <tr>
         <td>4</td>
         <td><code>map[Type]struct{}</code> in projection filters</td>
         <td><span class="tag tag-yellow">Medium</span></td>
         <td>Trivial</td>
-        <td>O(n×m) → O(n). With 50 types × 100K events = 5M → 100K comparisons</td>
+        <td>
+          O(n×m) → O(n). With 50 types × 100K events = 5M → 100K comparisons
+        </td>
       </tr>
       <tr>
         <td>5</td>
         <td>Pad mutexes to cache lines in <code>MemoryStore</code></td>
         <td><span class="tag tag-yellow">Medium</span></td>
         <td>Trivial</td>
-        <td>Prevents false sharing under contention on high-core-count servers</td>
+        <td>
+          Prevents false sharing under contention on high-core-count servers
+        </td>
       </tr>
       <tr>
         <td>6</td>
@@ -558,8 +605,8 @@ for _, evt := range all {
         <td><span class="tag tag-red">Very High</span></td>
         <td>High</td>
         <td>
-          Eliminates pointer chasing, TLB misses, enables hardware prefetching. Biggest theoretical
-          win.
+          Eliminates pointer chasing, TLB misses, enables hardware prefetching.
+          Biggest theoretical win.
         </td>
       </tr>
       <tr>
@@ -567,28 +614,35 @@ for _, evt := range all {
         <td>Pebble timestamp extraction without full JSON unmarshal</td>
         <td><span class="tag tag-red">High</span></td>
         <td>Medium</td>
-        <td>Avoids ~90% of deserialization cost in LoadToTimestamp full scan</td>
+        <td>
+          Avoids ~90% of deserialization cost in LoadToTimestamp full scan
+        </td>
       </tr>
       <tr>
         <td>8</td>
         <td><code>MemoryStore</code> append-only log + index</td>
         <td><span class="tag tag-yellow">Medium</span></td>
         <td>Medium</td>
-        <td>Avoids map rehash spikes, ReadAll becomes zero-copy, no sort needed</td>
+        <td>
+          Avoids map rehash spikes, ReadAll becomes zero-copy, no sort needed
+        </td>
       </tr>
       <tr>
         <td>9</td>
         <td>SoA index for projection filtering</td>
         <td><span class="tag tag-yellow">Medium</span></td>
         <td>Medium</td>
-        <td>Filter 100K events in ~100 µs instead of ~10 ms — fits entirely in L2</td>
+        <td>
+          Filter 100K events in ~100 µs instead of ~10 ms — fits entirely in L2
+        </td>
       </tr>
     </table>
 
     <div class="finding good">
-      <strong>Pareto set (changes 1–5):</strong> Low effort, measurable server impact. No API
-      changes required — purely internal restructuring. Changes 6–9 are architectural and need
-      careful API design to avoid breaking consumers.
+      <strong>Pareto set (changes 1–5):</strong> Low effort, measurable server
+      impact. No API changes required — purely internal restructuring. Changes
+      6–9 are architectural and need careful API design to avoid breaking
+      consumers.
     </div>
 
     <h2>Hot-Path Iteration Summary</h2>
@@ -605,7 +659,9 @@ for _, evt := range all {
         <td><code>foldEvents</code></td>
         <td><code>decider/load.go:38</code></td>
         <td><code>[]event.Event</code></td>
-        <td>User's Fold — typically <code>Type()</code>+<code>Payload()</code></td>
+        <td>
+          User's Fold — typically <code>Type()</code>+<code>Payload()</code>
+        </td>
         <td>2 clones + interface dispatch per event</td>
       </tr>
       <tr>
@@ -641,7 +697,8 @@ for _, evt := range all {
         <td><code>listing/in_memory.go:80</code></td>
         <td><code>[]event.Event</code></td>
         <td>
-          <code>AggregateType()</code>, <code>AggregateID()</code>, <code>Version()</code>,
+          <code>AggregateType()</code>, <code>AggregateID()</code>,
+          <code>Version()</code>,
           <code>OccurredAt()</code>
         </td>
         <td>Pointer chase per event</td>
@@ -657,7 +714,10 @@ for _, evt := range all {
         <td><code>LoadToTimestamp</code></td>
         <td><code>pebble/iteration.go:127</code></td>
         <td>Pebble KV</td>
-        <td>Deserialize + <code>OccurredAt()</code> — <strong>discards full event</strong></td>
+        <td>
+          Deserialize + <code>OccurredAt()</code> —
+          <strong>discards full event</strong>
+        </td>
         <td>~90% wasted deserialization</td>
       </tr>
     </table>
@@ -724,16 +784,17 @@ for _, evt := range all {
     <h2>NUMA Considerations (Multi-Socket Servers)</h2>
     <ul>
       <li>
-        Go's memory allocator is NUMA-unaware — events allocated on socket 0 may be consumed on
-        socket 1 = ~130 ns cross-socket hop vs ~40 ns local
+        Go's memory allocator is NUMA-unaware — events allocated on socket 0 may
+        be consumed on socket 1 = ~130 ns cross-socket hop vs ~40 ns local
       </li>
       <li>
-        No code changes needed — this is an ops-level concern: pin Go goroutines to NUMA nodes via
+        No code changes needed — this is an ops-level concern: pin Go goroutines
+        to NUMA nodes via
         <code>numactl</code> or <code>runtime.LockOSThread</code>
       </li>
       <li>
-        The contiguous layout fixes (change 6) partially mitigate this: sequential access is
-        prefetcher-friendly even across NUMA boundaries
+        The contiguous layout fixes (change 6) partially mitigate this:
+        sequential access is prefetcher-friendly even across NUMA boundaries
       </li>
     </ul>
   </body>

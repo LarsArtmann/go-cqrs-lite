@@ -63,8 +63,16 @@
         position: fixed;
         inset: 0;
         background:
-          radial-gradient(ellipse 80% 60% at 20% 10%, rgba(6, 214, 160, 0.04), transparent),
-          radial-gradient(ellipse 60% 50% at 80% 80%, rgba(251, 146, 60, 0.04), transparent);
+          radial-gradient(
+            ellipse 80% 60% at 20% 10%,
+            rgba(6, 214, 160, 0.04),
+            transparent
+          ),
+          radial-gradient(
+            ellipse 60% 50% at 80% 80%,
+            rgba(251, 146, 60, 0.04),
+            transparent
+          );
         pointer-events: none;
         z-index: 0;
       }
@@ -478,7 +486,12 @@
         left: 0;
         right: 0;
         height: 3px;
-        background: linear-gradient(90deg, var(--orange), var(--accent), var(--blue));
+        background: linear-gradient(
+          90deg,
+          var(--orange),
+          var(--accent),
+          var(--blue)
+        );
       }
       .diagram-box pre {
         font-family: var(--mono);
@@ -723,14 +736,15 @@
       <section class="hero">
         <h1>TigerBeetle<br />as Event Store</h1>
         <p class="meta">
-          Date: <span>2026-05-29</span> &middot; Scope: Thought experiment — implementing
-          go-cqrs-lite persistence on TigerBeetle
+          Date: <span>2026-05-29</span> &middot; Scope: Thought experiment —
+          implementing go-cqrs-lite persistence on TigerBeetle
         </p>
         <p class="subtitle">
-          TigerBeetle is a financial accounting engine — Accounts, Transfers, Balances. It knows
-          nothing about events, aggregates, or CQRS. But its data model is secretly an append-only
-          ledger with idempotent writes, timestamp ordering, and two-phase commits. Which is...
-          exactly what an event store is.
+          TigerBeetle is a financial accounting engine — Accounts, Transfers,
+          Balances. It knows nothing about events, aggregates, or CQRS. But its
+          data model is secretly an append-only ledger with idempotent writes,
+          timestamp ordering, and two-phase commits. Which is... exactly what an
+          event store is.
         </p>
         <div class="emoji-callout">🏦 × 📦 = 🤔</div>
       </section>
@@ -741,9 +755,9 @@
           <div class="part-number">Part 1</div>
           <h2>Why This Is Delightfully Absurd (and Kinda Works)</h2>
           <p>
-            TigerBeetle's core primitives map surprisingly well to event sourcing concepts. The
-            trick is seeing a Transfer not as a money movement, but as an immutable fact recorded in
-            time.
+            TigerBeetle's core primitives map surprisingly well to event
+            sourcing concepts. The trick is seeing a Transfer not as a money
+            movement, but as an immutable fact recorded in time.
           </p>
         </div>
 
@@ -761,7 +775,8 @@
   Event Store (reverse)   ←→      GetAccountTransfers with Reversed flag
   Global Journal          ←→      QueryTransfers (cross-account)
   Position-based replay   ←→      QueryTransfers with TimestampMin
-</pre>
+</pre
+          >
         </div>
       </section>
 
@@ -786,7 +801,8 @@ tb.Account{
     Ledger:  aggregateTypeToLedger(ref.Type),
     Code:    1,   // "event stream" account type
     Flags:   AccountFlags{History: true}.ToUint16(),
-}</pre>
+}</pre
+              >
               <table>
                 <tr>
                   <th>go-cqrs-lite</th>
@@ -810,9 +826,10 @@ tb.Account{
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key insight:</strong> The <code>History</code> flag is TigerBeetle's "event
-                stream mode." Without it, TB only keeps balances. With it, every Transfer is
-                retained — exactly what an event store needs.
+                <strong>Key insight:</strong> The <code>History</code> flag is
+                TigerBeetle's "event stream mode." Without it, TB only keeps
+                balances. With it, every Transfer is retained — exactly what an
+                event store needs.
               </div>
             </div>
           </div>
@@ -836,7 +853,8 @@ tb.Transfer{
     Ledger:          aggregateTypeToLedger(ref.Type),
     Code:            eventTypeToCode(evt.Type()),
     Timestamp:       uint64(evt.OccurredAt().UnixNano()),
-}</pre>
+}</pre
+              >
               <table>
                 <tr>
                   <th>Event Field</th>
@@ -937,9 +955,9 @@ tb.Transfer{
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Note:</strong> TigerBeetle returns max 8190 results per call. Large
-                aggregates or journal replay requires pagination via <code>TimestampMin</code> from
-                the last result's timestamp.
+                <strong>Note:</strong> TigerBeetle returns max 8190 results per
+                call. Large aggregates or journal replay requires pagination via
+                <code>TimestampMin</code> from the last result's timestamp.
               </div>
             </div>
           </div>
@@ -965,7 +983,8 @@ for i, t := range transfers {
     if i < len(transfers)-1 {
         t.Flags |= TransferFlags{Linked: true}.ToUint16()
     }
-}</pre>
+}</pre
+              >
               <table>
                 <tr>
                   <th>CQRS Pattern</th>
@@ -989,9 +1008,10 @@ for i, t := range transfers {
                 </tr>
               </table>
               <div class="key-prop">
-                <strong>Key insight:</strong> TigerBeetle's two-phase commit (<code>Pending</code> →
-                <code>Post</code>/<code>Void</code>) is literally saga orchestration. A pending
-                transfer reserves capacity; posting confirms it; voiding cancels it. This maps 1:1
+                <strong>Key insight:</strong> TigerBeetle's two-phase commit
+                (<code>Pending</code> → <code>Post</code>/<code>Void</code>) is
+                literally saga orchestration. A pending transfer reserves
+                capacity; posting confirms it; voiding cancels it. This maps 1:1
                 to long-running distributed sagas.
               </div>
             </div>
@@ -1005,13 +1025,16 @@ for i, t := range transfers {
           <div class="part-number">Part 3</div>
           <h2>The Big Problem: Payload Size</h2>
           <p>
-            TigerBeetle's Transfer gives you <strong>28 bytes</strong> of user data. An event
-            payload is typically 100+ bytes of JSON. This is the central challenge.
+            TigerBeetle's Transfer gives you <strong>28 bytes</strong> of user
+            data. An event payload is typically 100+ bytes of JSON. This is the
+            central challenge.
           </p>
         </div>
 
         <div class="diagram-box">
-          <div class="diagram-label">Available User Data in a Transfer (128 bytes total)</div>
+          <div class="diagram-label">
+            Available User Data in a Transfer (128 bytes total)
+          </div>
           <pre>
 ┌─────────────────────────────────────────────────────────────────────┐
 │  Field           Size     Used For                                  │
@@ -1028,7 +1051,8 @@ for i, t := range transfers {
 
   The ratio is brutal: 34 bytes of metadata for 500+ bytes of payload.
   We need a sidecar.
-</pre>
+</pre
+          >
         </div>
       </section>
 
@@ -1056,7 +1080,8 @@ Write path:
 Read path:
   GetAccountTransfers → [Transfer, ...]
   → bulk Get hashes from BlobStore
-  → reconstruct Events</pre>
+  → reconstruct Events</pre
+              >
               <p
                 style="
                   font-size: 0.85rem;
@@ -1066,14 +1091,18 @@ Read path:
                 "
               >
                 TigerBeetle becomes the
-                <strong>ordered index + concurrency control + tombstone marker</strong>. The blob
-                store (S3, Pebble, Postgres, anything) holds the actual JSON payloads. Load path:
-                query TB for transfer list → bulk-fetch payloads by hash.
+                <strong
+                  >ordered index + concurrency control + tombstone
+                  marker</strong
+                >. The blob store (S3, Pebble, Postgres, anything) holds the
+                actual JSON payloads. Load path: query TB for transfer list →
+                bulk-fetch payloads by hash.
               </p>
               <div class="key-prop">
-                <strong>Legit architecture.</strong> TB handles what it's best at (ordering,
-                concurrency, idempotency). Blob store handles what it's best at (large values). This
-                is a real two-store architecture that makes sense in production.
+                <strong>Legit architecture.</strong> TB handles what it's best
+                at (ordering, concurrency, idempotency). Blob store handles what
+                it's best at (large values). This is a real two-store
+                architecture that makes sense in production.
               </div>
             </div>
           </div>
@@ -1095,7 +1124,8 @@ Split payload across N transfers via Linked chains:
   ...
 
   A 240-byte event  = 1 header + 10 chunks = 11 transfers
-  A 500-byte event  = ~22 transfers</pre>
+  A 500-byte event  = ~22 transfers</pre
+              >
               <p
                 style="
                   font-size: 0.85rem;
@@ -1104,18 +1134,30 @@ Split payload across N transfers via Linked chains:
                   margin-bottom: 1rem;
                 "
               >
-                Reconstruct by querying all transfers, grouping by header ID, sorting by chunk
-                index, concatenating <code>UserData</code> fields.
+                Reconstruct by querying all transfers, grouping by header ID,
+                sorting by chunk index, concatenating
+                <code>UserData</code> fields.
               </p>
               <ul class="variants">
-                <li><strong>Pro:</strong> Pure TigerBeetle — no sidecar store needed</li>
-                <li><strong>Con:</strong> 22× write amplification on a 500-byte event</li>
-                <li><strong>Con:</strong> Burns through TB's transfer space at insane rates</li>
-                <li><strong>Con:</strong> Reconstruction complexity on every load</li>
+                <li>
+                  <strong>Pro:</strong> Pure TigerBeetle — no sidecar store
+                  needed
+                </li>
+                <li>
+                  <strong>Con:</strong> 22× write amplification on a 500-byte
+                  event
+                </li>
+                <li>
+                  <strong>Con:</strong> Burns through TB's transfer space at
+                  insane rates
+                </li>
+                <li>
+                  <strong>Con:</strong> Reconstruction complexity on every load
+                </li>
               </ul>
               <div class="key-prop red">
-                <strong>Verdict:</strong> A war crime. But technically correct — the worst kind of
-                correct.
+                <strong>Verdict:</strong> A war crime. But technically correct —
+                the worst kind of correct.
               </div>
             </div>
           </div>
@@ -1146,7 +1188,8 @@ Split payload across N transfers via Linked chains:
         ↕                                ↕
   Projections rebuild            Financial reports
   from event store               query TB directly
-</pre>
+</pre
+                >
               </div>
               <p
                 style="
@@ -1157,27 +1200,28 @@ Split payload across N transfers via Linked chains:
                 "
               >
                 Don't shoehorn generic events into TB. Use TB for what it is:
-                <strong>a financial event store</strong>. Only store events that are financial
-                transactions. Bridge via middleware that writes to both stores.
+                <strong>a financial event store</strong>. Only store events that
+                are financial transactions. Bridge via middleware that writes to
+                both stores.
               </p>
               <ul class="variants">
                 <li>
-                  <strong>OrderPlaced</strong> → writes domain event to event store AND transfer to
-                  TB
+                  <strong>OrderPlaced</strong> → writes domain event to event
+                  store AND transfer to TB
                 </li>
                 <li>
-                  <strong>PaymentTaken</strong> → writes domain event to event store AND transfer to
-                  TB
+                  <strong>PaymentTaken</strong> → writes domain event to event
+                  store AND transfer to TB
                 </li>
                 <li>
-                  <strong>EmailChanged</strong> → writes domain event to event store ONLY (no
-                  financial fact)
+                  <strong>EmailChanged</strong> → writes domain event to event
+                  store ONLY (no financial fact)
                 </li>
               </ul>
               <div class="key-prop green">
-                <strong>The production answer.</strong> Use TB as the financial ledger it was
-                designed to be. Keep go-cqrs-lite's event store for domain events. Each tool does
-                what it's best at.
+                <strong>The production answer.</strong> Use TB as the financial
+                ledger it was designed to be. Keep go-cqrs-lite's event store
+                for domain events. Each tool does what it's best at.
               </div>
             </div>
           </div>
@@ -1190,7 +1234,8 @@ Split payload across N transfers via Linked chains:
           <div class="part-number">Part 5</div>
           <h2>Implementation Sketch (Option A)</h2>
           <p>
-            Pseudocode for the hash-index + blob-store approach. Maps directly to go-cqrs-lite's
+            Pseudocode for the hash-index + blob-store approach. Maps directly
+            to go-cqrs-lite's
             <code>EventSink</code> and <code>EventSource</code> interfaces.
           </p>
         </div>
@@ -1249,7 +1294,8 @@ func (s *TBEventStore) Save(
 
     results, err := s.client.CreateTransfers(transfers)
     return checkResults(results, err)
-}</pre>
+}</pre
+              >
             </div>
           </div>
 
@@ -1299,7 +1345,8 @@ func (s *TBEventStore) Load(
     payloads := s.blobs.BatchGet(hashes)
 
     return reconstructEvents(transfers, payloads), nil
-}</pre>
+}</pre
+              >
             </div>
           </div>
 
@@ -1328,7 +1375,8 @@ func reconstructEvent(t tb.Transfer, payload []byte) event.Event {
         event.WithOccurredAt(time.Unix(0, int64(t.Timestamp))),
     )
     return evt
-}</pre>
+}</pre
+              >
             </div>
           </div>
         </div>
@@ -1345,37 +1393,68 @@ func reconstructEvent(t tb.Transfer, payload []byte) event.Event {
           <div class="split-col pro">
             <h4>Free Features</h4>
             <ul>
-              <li>Append-only guarantee — transfers are immutable, no update/delete</li>
-              <li>Idempotent writes — same transfer ID always returns same result</li>
-              <li>Atomic multi-event append via Linked flag chains</li>
-              <li>Temporal ordering — Timestamp on every transfer, nanosecond precision</li>
-              <li>Native reverse iteration — AccountFilterFlags.Reversed for LoadBackwards</li>
-              <li>Global journal — QueryTransfers across all accounts</li>
-              <li>Two-phase commit — Pending + Post/Void for saga orchestration</li>
               <li>
-                Crash safety — arguably the most crash-safe DB in existence (formally verified via
-                Io_uring + mission testing)
+                Append-only guarantee — transfers are immutable, no
+                update/delete
+              </li>
+              <li>
+                Idempotent writes — same transfer ID always returns same result
+              </li>
+              <li>Atomic multi-event append via Linked flag chains</li>
+              <li>
+                Temporal ordering — Timestamp on every transfer, nanosecond
+                precision
+              </li>
+              <li>
+                Native reverse iteration — AccountFilterFlags.Reversed for
+                LoadBackwards
+              </li>
+              <li>Global journal — QueryTransfers across all accounts</li>
+              <li>
+                Two-phase commit — Pending + Post/Void for saga orchestration
+              </li>
+              <li>
+                Crash safety — arguably the most crash-safe DB in existence
+                (formally verified via Io_uring + mission testing)
               </li>
               <li>Zero-config clustering — built-in replication</li>
-              <li>Performance — millions of transfers per second on a single node</li>
+              <li>
+                Performance — millions of transfers per second on a single node
+              </li>
             </ul>
           </div>
           <div class="split-col con">
             <h4>What We Lose</h4>
             <ul>
-              <li>Single-store simplicity — need sidecar blob store for payloads</li>
               <li>
-                LoadToVersion precision — TB timestamps aren't version numbers, only approximate
-                pagination
+                Single-store simplicity — need sidecar blob store for payloads
               </li>
-              <li>Rich queries — no WHERE event_type = 'X', must filter client-side</li>
-              <li>8190 transfer limit per query — must paginate for large aggregates</li>
               <li>
-                Event schema evolution — no built-in upcasting, must handle in application layer
+                LoadToVersion precision — TB timestamps aren't version numbers,
+                only approximate pagination
               </li>
-              <li>Snapshot support — TB has no concept of snapshots, need separate store</li>
-              <li>Metadata flexibility — only 28 bytes of user data per transfer</li>
-              <li>The respect of your peers — "You did WHAT on TigerBeetle?"</li>
+              <li>
+                Rich queries — no WHERE event_type = 'X', must filter
+                client-side
+              </li>
+              <li>
+                8190 transfer limit per query — must paginate for large
+                aggregates
+              </li>
+              <li>
+                Event schema evolution — no built-in upcasting, must handle in
+                application layer
+              </li>
+              <li>
+                Snapshot support — TB has no concept of snapshots, need separate
+                store
+              </li>
+              <li>
+                Metadata flexibility — only 28 bytes of user data per transfer
+              </li>
+              <li>
+                The respect of your peers — "You did WHAT on TigerBeetle?"
+              </li>
             </ul>
           </div>
         </div>
@@ -1420,13 +1499,17 @@ func reconstructEvent(t tb.Transfer, payload []byte) event.Event {
                     <td>EventSource</td>
                     <td>LoadFromVersion</td>
                     <td style="color: var(--amber)">Approx</td>
-                    <td>GetAccountTransfers + TimestampMin (not exact version)</td>
+                    <td>
+                      GetAccountTransfers + TimestampMin (not exact version)
+                    </td>
                   </tr>
                   <tr>
                     <td>EventSource</td>
                     <td>LoadToVersion</td>
                     <td style="color: var(--amber)">Approx</td>
-                    <td>GetAccountTransfers + TimestampMax (not exact version)</td>
+                    <td>
+                      GetAccountTransfers + TimestampMax (not exact version)
+                    </td>
                   </tr>
                   <tr>
                     <td>EventSource</td>
@@ -1455,9 +1538,10 @@ func reconstructEvent(t tb.Transfer, payload []byte) event.Event {
                 </tbody>
               </table>
               <div class="key-prop">
-                <strong>Score: 7/9 perfect, 2/9 approximate.</strong> The version-based queries
-                suffer because TB uses timestamps, not integer version counters. A client-side
-                version filter on loaded transfers closes the gap at the cost of over-fetching.
+                <strong>Score: 7/9 perfect, 2/9 approximate.</strong> The
+                version-based queries suffer because TB uses timestamps, not
+                integer version counters. A client-side version filter on loaded
+                transfers closes the gap at the cost of over-fetching.
               </div>
             </div>
           </div>
@@ -1476,35 +1560,44 @@ func reconstructEvent(t tb.Transfer, payload []byte) event.Event {
             <div class="label">Option A</div>
             <h4>Hash Index + Blob Store</h4>
             <p>
-              Genuinely interesting for domains where financial correctness and event sourcing
-              overlap — payments, accounting, trading. TigerBeetle becomes the source of truth for
-              ordering and concurrency; the blob store holds payloads. You get TB's legendary safety
-              guarantees for your event stream metadata.
+              Genuinely interesting for domains where financial correctness and
+              event sourcing overlap — payments, accounting, trading.
+              TigerBeetle becomes the source of truth for ordering and
+              concurrency; the blob store holds payloads. You get TB's legendary
+              safety guarantees for your event stream metadata.
             </p>
-            <div class="verdict-tag">Legit architecture for fintech event sourcing</div>
+            <div class="verdict-tag">
+              Legit architecture for fintech event sourcing
+            </div>
           </div>
 
           <div class="verdict-card vb">
             <div class="label">Option B</div>
             <h4>Multi-Transfer Chunking</h4>
             <p>
-              Pure TigerBeetle, no sidecar. But 22× write amplification on a typical JSON event,
-              complex reconstruction logic, and you'd burn through TB's transfer space at terrifying
-              rates. Technically correct — the worst kind of correct.
+              Pure TigerBeetle, no sidecar. But 22× write amplification on a
+              typical JSON event, complex reconstruction logic, and you'd burn
+              through TB's transfer space at terrifying rates. Technically
+              correct — the worst kind of correct.
             </p>
-            <div class="verdict-tag">A war crime and I won't apologize for it</div>
+            <div class="verdict-tag">
+              A war crime and I won't apologize for it
+            </div>
           </div>
 
           <div class="verdict-card vc">
             <div class="label">Option C</div>
             <h4>Financial Events Only</h4>
             <p>
-              The production-ready answer. Use TigerBeetle as the financial ledger it was designed
-              to be. Keep go-cqrs-lite's event store (Postgres, Pebble, SQLite) for domain events.
-              Bridge them via middleware that writes financial events to both stores. Each tool does
-              what it's best at.
+              The production-ready answer. Use TigerBeetle as the financial
+              ledger it was designed to be. Keep go-cqrs-lite's event store
+              (Postgres, Pebble, SQLite) for domain events. Bridge them via
+              middleware that writes financial events to both stores. Each tool
+              does what it's best at.
             </p>
-            <div class="verdict-tag">The correct answer — use each tool for its purpose</div>
+            <div class="verdict-tag">
+              The correct answer — use each tool for its purpose
+            </div>
           </div>
         </div>
 
@@ -1529,13 +1622,15 @@ func reconstructEvent(t tb.Transfer, payload []byte) event.Event {
     7. Exact version addressing          ← TB does NOT have this
 
   The gap between "almost" and "actually" is where the design lives.
-</pre>
+</pre
+          >
         </div>
       </section>
 
       <footer>
         <p>
-          go-cqrs-lite &middot; Research &middot; TigerBeetle Thought Experiment &middot; 2026-05-29
+          go-cqrs-lite &middot; Research &middot; TigerBeetle Thought Experiment
+          &middot; 2026-05-29
         </p>
       </footer>
     </div>

@@ -31,14 +31,14 @@
         --radius: 0px;
         --radius-sm: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -230,15 +230,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .stat-grid {
         display: grid;
@@ -417,8 +429,8 @@
           <div class="hero-badge">Brutal Self-Review</div>
           <h1>What I Forgot, Lied About, and Could Do Better</h1>
           <p class="hero-subtitle">
-            An honest accounting of the gaps in my full-code-review, followed by a prioritized
-            improvement plan. No spin, no deflection.
+            An honest accounting of the gaps in my full-code-review, followed by
+            a prioritized improvement plan. No spin, no deflection.
           </p>
         </div>
 
@@ -446,47 +458,55 @@
           <h4>1. What did I forget?</h4>
           <p>
             <strong>I never ran the race detector.</strong> The CI config says
-            <code>go test -race</code> is part of the pipeline, but I only ran plain
-            <code>go test</code>. A data race would be invisible to normal tests — it would only
-            surface under <code>-race</code>. I've since run it on all concurrency-heavy modules;
-            all pass clean. But I should have done this in the original review, not as an
+            <code>go test -race</code> is part of the pipeline, but I only ran
+            plain <code>go test</code>. A data race would be invisible to normal
+            tests — it would only surface under <code>-race</code>. I've since
+            run it on all concurrency-heavy modules; all pass clean. But I
+            should have done this in the original review, not as an
             afterthought.
           </p>
           <p>
-            <strong>I never ran govulncheck.</strong> The <code>how-to-golang</code> skill mandates
-            it. I didn't because it wasn't installed. I should have installed it and run it rather
-            than skipping silently.
+            <strong>I never ran govulncheck.</strong> The
+            <code>how-to-golang</code> skill mandates it. I didn't because it
+            wasn't installed. I should have installed it and run it rather than
+            skipping silently.
           </p>
           <p>
-            <strong>I never checked AES-GCM nonce documentation.</strong> The crypto code is
-            correct, but the <code>NewAES256GCM</code>
-            constructor didn't warn about the 2³² message birthday bound — a critical piece of
-            knowledge for SDK consumers choosing between AES-GCM and XChaCha20. Fixed in this review
-            pass.
+            <strong>I never checked AES-GCM nonce documentation.</strong> The
+            crypto code is correct, but the <code>NewAES256GCM</code>
+            constructor didn't warn about the 2³² message birthday bound — a
+            critical piece of knowledge for SDK consumers choosing between
+            AES-GCM and XChaCha20. Fixed in this review pass.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>2. What's stupid that we do anyway?</h4>
           <p>
-            <strong>Nothing critical.</strong> The codebase is genuinely well-built. If I had to
-            pick: the <code>event/tombstone.go</code> string-based fallback (<code
+            <strong>Nothing critical.</strong> The codebase is genuinely
+            well-built. If I had to pick: the
+            <code>event/tombstone.go</code> string-based fallback (<code
               >Custom[MetadataKeyTombstone] == "true"</code
-            >) is a v2 backward-compat pattern that adds complexity. But it's documented as a
-            fallback behind the typed <code>TombstoneMark</code>, so it's intentional, not stupid.
+            >) is a v2 backward-compat pattern that adds complexity. But it's
+            documented as a fallback behind the typed
+            <code>TombstoneMark</code>, so it's intentional, not stupid.
           </p>
         </div>
 
         <div class="card card-problem">
           <h4>3. What could I have done better?</h4>
           <p>
-            <strong>I should have been systematic about module coverage.</strong>
+            <strong
+              >I should have been systematic about module coverage.</strong
+            >
             I reviewed maybe 15% of the 998 files in depth. I never opened
-            <code>deriver/</code>, <code>signing/ed25519.go</code>, <code>graph/memory.go</code>,
-            <code>catalog/schema/reflect.go</code>, or dozens of other files. I relied on lint
-            output and grep patterns to infer quality rather than visiting every file as the skill
-            mandates. I've since spot-checked the highest-risk modules (encryption, signing,
-            idempotency, deriver) and found them solid — but that's not the same as visiting every
+            <code>deriver/</code>, <code>signing/ed25519.go</code>,
+            <code>graph/memory.go</code>,
+            <code>catalog/schema/reflect.go</code>, or dozens of other files. I
+            relied on lint output and grep patterns to infer quality rather than
+            visiting every file as the skill mandates. I've since spot-checked
+            the highest-risk modules (encryption, signing, idempotency, deriver)
+            and found them solid — but that's not the same as visiting every
             file.
           </p>
         </div>
@@ -494,42 +514,46 @@
         <div class="card card-solution">
           <h4>4. What could I still improve?</h4>
           <p>
-            <strong>Test coverage gaps.</strong> Watermill is at 74% — the lowest of the modules I
-            touched. The catch-up subscriber's live phase error paths and the checkpoint save-error
-            paths are under-tested. This should be brought above 80% to match the rest of the
-            codebase.
+            <strong>Test coverage gaps.</strong> Watermill is at 74% — the
+            lowest of the modules I touched. The catch-up subscriber's live
+            phase error paths and the checkpoint save-error paths are
+            under-tested. This should be brought above 80% to match the rest of
+            the codebase.
           </p>
           <p>
-            <strong>AES-GCM doc</strong> was missing the nonce limit warning — fixed in this pass.
+            <strong>AES-GCM doc</strong> was missing the nonce limit warning —
+            fixed in this pass.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>5. Did I lie to you?</h4>
           <p>
-            <strong>No.</strong> Every claim in the first review was verified against source code.
-            The two critical bugs (scheduler data loss, replay mode dead context) are real and
-            fixed. The race tests pass clean. The crypto is sound. Zero lies.
+            <strong>No.</strong> Every claim in the first review was verified
+            against source code. The two critical bugs (scheduler data loss,
+            replay mode dead context) are real and fixed. The race tests pass
+            clean. The crypto is sound. Zero lies.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>6. How can I be less stupid?</h4>
           <p>
-            Run the <strong>full verification suite</strong> on the first pass: build, vet, test,
-            <strong>test -race</strong>, <strong>govulncheck</strong>, lint. Don't skip steps
-            because they're slow or tools aren't installed. Install the tools. The 10 minutes spent
-            installing govulncheck is worth it.
+            Run the <strong>full verification suite</strong> on the first pass:
+            build, vet, test, <strong>test -race</strong>,
+            <strong>govulncheck</strong>, lint. Don't skip steps because they're
+            slow or tools aren't installed. Install the tools. The 10 minutes
+            spent installing govulncheck is worth it.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>7. Ghost systems?</h4>
           <p>
-            <strong>None found.</strong> I checked <code>deriver/</code> — it's a real module with
-            391 lines of tests, a clear contract (event → derived commands), and proper composition
-            (Then/Filter/Idempotent). Not a ghost. Every other module spot-checked is properly
-            integrated.
+            <strong>None found.</strong> I checked <code>deriver/</code> — it's
+            a real module with 391 lines of tests, a clear contract (event →
+            derived commands), and proper composition (Then/Filter/Idempotent).
+            Not a ghost. Every other module spot-checked is properly integrated.
           </p>
         </div>
 
@@ -538,21 +562,24 @@
           <p>
             <strong>None found.</strong> Error taxonomy is centralized in
             <code>event/errors.go</code> and re-exported via per-module
-            <code>errors.go</code> files. No duplicate type definitions across modules. The
-            tombstone detection has one path (<code>DetectTombstone</code>), not two competing
-            implementations.
+            <code>errors.go</code> files. No duplicate type definitions across
+            modules. The tombstone detection has one path
+            (<code>DetectTombstone</code>), not two competing implementations.
           </p>
         </div>
 
-        <h2 id="findings"><span class="num">01</span>What Was Missed (Now Fixed)</h2>
+        <h2 id="findings">
+          <span class="num">01</span>What Was Missed (Now Fixed)
+        </h2>
 
         <div class="card card-problem">
           <span class="severity severity-critical">Fixed This Pass</span>
           <h4>AES-GCM nonce birthday bound was undocumented</h4>
           <p>
-            <code>NewAES256GCM</code> didn't warn that a single key must not encrypt more than ~2³²
-            messages (nonce collision = catastrophic GCM failure). Added a doc comment pointing to
-            XChaCha20-Poly1305 for high-volume use cases. <code>encryption/aesgcm.go</code>
+            <code>NewAES256GCM</code> didn't warn that a single key must not
+            encrypt more than ~2³² messages (nonce collision = catastrophic GCM
+            failure). Added a doc comment pointing to XChaCha20-Poly1305 for
+            high-volume use cases. <code>encryption/aesgcm.go</code>
           </p>
         </div>
 
@@ -560,9 +587,9 @@
           <span class="severity severity-nice">Verified Clean</span>
           <h4>Race detector — all 6 concurrency modules pass</h4>
           <p>
-            <code>go test -race</code> on scheduling, projectionhost, watermill, transport/http,
-            decider, middleware — all pass with zero data races. The concurrent code is genuinely
-            safe.
+            <code>go test -race</code> on scheduling, projectionhost, watermill,
+            transport/http, decider, middleware — all pass with zero data races.
+            The concurrent code is genuinely safe.
           </p>
         </div>
 
@@ -570,9 +597,10 @@
           <span class="severity severity-nice">Verified Clean</span>
           <h4>No banned dependencies in library code</h4>
           <p>
-            Zero direct imports of testify, gorm, viper, gorilla/mux, pkg/errors, logrus, validator,
-            etc. in non-test code. All indirect references are transitive through watermill
-            (testify) and cockroachdb/errors (pkg/errors) — acceptable.
+            Zero direct imports of testify, gorm, viper, gorilla/mux,
+            pkg/errors, logrus, validator, etc. in non-test code. All indirect
+            references are transitive through watermill (testify) and
+            cockroachdb/errors (pkg/errors) — acceptable.
           </p>
         </div>
 
@@ -580,10 +608,11 @@
           <span class="severity severity-nice">Verified Clean</span>
           <h4>Crypto is sound</h4>
           <p>
-            <code>Signature.Equal</code> uses <code>hmac.Equal</code> (constant-time). Nonces from
-            <code>crypto/rand</code> via <code>io.ReadFull</code>. Keys cloned on intake. XChaCha20
-            uses 24-byte nonces (safe well beyond 2⁹⁶). No nonce reuse, no weak key acceptance, no
-            timing oracles.
+            <code>Signature.Equal</code> uses
+            <code>hmac.Equal</code> (constant-time). Nonces from
+            <code>crypto/rand</code> via <code>io.ReadFull</code>. Keys cloned
+            on intake. XChaCha20 uses 24-byte nonces (safe well beyond 2⁹⁶). No
+            nonce reuse, no weak key acceptance, no timing oracles.
           </p>
         </div>
 
@@ -591,24 +620,31 @@
           <span class="severity severity-nice">Verified Clean</span>
           <h4>kv.Cache uses recommended otter/v2</h4>
           <p>
-            Already on <code>maypok86/otter/v2 v2.3.0</code> — the exact cache library the
-            <code>how-to-golang</code> skill recommends. No hand-rolled cache. Good call.
+            Already on <code>maypok86/otter/v2 v2.3.0</code> — the exact cache
+            library the <code>how-to-golang</code> skill recommends. No
+            hand-rolled cache. Good call.
           </p>
         </div>
 
         <h2 id="strengths"><span class="num">02</span>What's Genuinely Good</h2>
         <div class="card card-solution">
           <p>
-            The codebase passed every verification I threw at it: race detector, banned-dep audit,
-            crypto review, TOCTOU audit, module integration check. The two real bugs I found in the
-            first review (scheduler data loss, replay mode dead context) were the highest-impact
-            issues — and they were in newer code, not the battle-tested core. The core event types,
-            decider, and SQL store are exceptionally well-engineered.
+            The codebase passed every verification I threw at it: race detector,
+            banned-dep audit, crypto review, TOCTOU audit, module integration
+            check. The two real bugs I found in the first review (scheduler data
+            loss, replay mode dead context) were the highest-impact issues — and
+            they were in newer code, not the battle-tested core. The core event
+            types, decider, and SQL store are exceptionally well-engineered.
           </p>
         </div>
 
-        <h2 id="plan"><span class="num">03</span>Improvement Plan (Effort vs Impact)</h2>
-        <p>Sorted by Pareto: highest impact first, lowest effort first within each impact tier.</p>
+        <h2 id="plan">
+          <span class="num">03</span>Improvement Plan (Effort vs Impact)
+        </h2>
+        <p>
+          Sorted by Pareto: highest impact first, lowest effort first within
+          each impact tier.
+        </p>
 
         <div class="migration-step">
           <div class="migration-num">1</div>
@@ -631,7 +667,8 @@
           <div class="migration-content">
             <h4>Install govulncheck in devShell + run as CI step</h4>
             <p>
-              Effort: 15 min · Impact: HIGH (security). Add to flake.nix devShell and CI workflow.
+              Effort: 15 min · Impact: HIGH (security). Add to flake.nix
+              devShell and CI workflow.
             </p>
           </div>
         </div>
@@ -641,8 +678,8 @@
           <div class="migration-content">
             <h4>Raise watermill test coverage from 74% → 80%+</h4>
             <p>
-              Effort: 30 min · Impact: MEDIUM. Focus on CatchUpSubscriber live phase + checkpoint
-              error paths.
+              Effort: 30 min · Impact: MEDIUM. Focus on CatchUpSubscriber live
+              phase + checkpoint error paths.
             </p>
           </div>
         </div>
@@ -651,32 +688,44 @@
           <div class="migration-num">5</div>
           <div class="migration-content">
             <h4>Add godoc for AES-GCM vs XChaCha20 selection guide</h4>
-            <p>Effort: 10 min · Impact: MEDIUM. Extend encryption/doc.go with a decision table.</p>
+            <p>
+              Effort: 10 min · Impact: MEDIUM. Extend encryption/doc.go with a
+              decision table.
+            </p>
           </div>
         </div>
 
         <div class="migration-step">
           <div class="migration-num">6</div>
           <div class="migration-content">
-            <h4>Visit remaining unreviewed modules (catalog/schema, graph/memory)</h4>
-            <p>Effort: 2+ hours · Impact: MEDIUM. Full file-by-file audit per the skill mandate.</p>
+            <h4>
+              Visit remaining unreviewed modules (catalog/schema, graph/memory)
+            </h4>
+            <p>
+              Effort: 2+ hours · Impact: MEDIUM. Full file-by-file audit per the
+              skill mandate.
+            </p>
           </div>
         </div>
 
         <div class="migration-step">
           <div class="migration-num">7</div>
           <div class="migration-content">
-            <h4>Type model: ProcessingMode could be a typed int enum like TombstoneStatus</h4>
+            <h4>
+              Type model: ProcessingMode could be a typed int enum like
+              TombstoneStatus
+            </h4>
             <p>
-              Effort: 1 hour · Impact: LOW. Currently a string enum — works fine, but int enum would
-              match the TombstoneStatus pattern. Low priority — current design is correct.
+              Effort: 1 hour · Impact: LOW. Currently a string enum — works
+              fine, but int enum would match the TombstoneStatus pattern. Low
+              priority — current design is correct.
             </p>
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-29 &middot; Honest self-review &middot; All claims verified against
-          source code
+          Generated 2026-06-29 &middot; Honest self-review &middot; All claims
+          verified against source code
         </footer>
       </main>
     </div>

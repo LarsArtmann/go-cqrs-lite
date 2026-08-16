@@ -87,7 +87,12 @@
         left: -200px;
         right: -200px;
         height: 1px;
-        background: linear-gradient(90deg, transparent, var(--border-light), transparent);
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--border-light),
+          transparent
+        );
       }
 
       .hero-kicker {
@@ -163,7 +168,12 @@
         left: -200px;
         right: -200px;
         height: 1px;
-        background: linear-gradient(90deg, transparent, var(--border), transparent);
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--border),
+          transparent
+        );
       }
 
       .section-label {
@@ -860,9 +870,9 @@
         <div class="hero-kicker">Feedback from project-discovery-sdk</div>
         <h1>Why I can't<br /><em>use you</em></h1>
         <p class="hero-sub">
-          Your patterns are <strong>exactly right</strong>. Your retry logic, your circuit breaker,
-          your error taxonomy — I need all of it. But I can't import a single one without pulling in
-          the entire CQRS stack.
+          Your patterns are <strong>exactly right</strong>. Your retry logic,
+          your circuit breaker, your error taxonomy — I need all of it. But I
+          can't import a single one without pulling in the entire CQRS stack.
         </p>
         <div class="hero-meta">
           <span>project-discovery-sdk → go-cqrs-lite</span>
@@ -876,42 +886,47 @@
         <h2>The patterns are <em>beautiful</em></h2>
 
         <p>
-          project-discovery-sdk enriches projects by calling GitHub, GitLab, Bitbucket, and Gitea
-          APIs. It checks NPM, PyPI, Cargo, and four other registries. Every single one of those
-          calls has <strong>zero retry, zero backoff, and zero circuit breaking</strong>.
+          project-discovery-sdk enriches projects by calling GitHub, GitLab,
+          Bitbucket, and Gitea APIs. It checks NPM, PyPI, Cargo, and four other
+          registries. Every single one of those calls has
+          <strong>zero retry, zero backoff, and zero circuit breaking</strong>.
         </p>
 
         <p>
-          Your middleware module solves exactly this problem. The retry with exponential backoff and
-          jitter. The circuit breaker with three-state machine. The structured logging with
-          duration. I look at my enrichment pipeline and I see a 1:1 mapping to your middleware
-          chain.
+          Your middleware module solves exactly this problem. The retry with
+          exponential backoff and jitter. The circuit breaker with three-state
+          machine. The structured logging with duration. I look at my enrichment
+          pipeline and I see a 1:1 mapping to your middleware chain.
         </p>
 
         <div class="verdict">
           <p>
-            The <strong>Enricher interface</strong> in project-discovery-sdk is a single-method
-            interface — <code>Enrich(ctx, *Project) error</code> — the textbook Go shape for
-            decoration. Your middleware pattern would wrap it perfectly. The fit is so natural it
-            feels like the SDK was designed for it.
+            The <strong>Enricher interface</strong> in project-discovery-sdk is
+            a single-method interface —
+            <code>Enrich(ctx, *Project) error</code> — the textbook Go shape for
+            decoration. Your middleware pattern would wrap it perfectly. The fit
+            is so natural it feels like the SDK was designed for it.
           </p>
         </div>
 
         <p>
-          Your error taxonomy — Rejection, Conflict, Transient, Infrastructure, Corruption — would
-          let me classify "404 not found" (permanent, don't retry) vs "connection refused"
-          (transient, retry with backoff) vs "GitHub rate limit" (transient, retry after reset).
-          Right now I treat them all identically.
+          Your error taxonomy — Rejection, Conflict, Transient, Infrastructure,
+          Corruption — would let me classify "404 not found" (permanent, don't
+          retry) vs "connection refused" (transient, retry with backoff) vs
+          "GitHub rate limit" (transient, retry after reset). Right now I treat
+          them all identically.
         </p>
 
         <p>
-          And the Decider pattern — load→fold→decide→save→publish — is the cleanest implementation
-          of functional event sourcing I've seen in Go. The ISP-compliant interfaces (Publisher,
-          Subscriber, EventSink, EventSource) show real architectural thought.
+          And the Decider pattern — load→fold→decide→save→publish — is the
+          cleanest implementation of functional event sourcing I've seen in Go.
+          The ISP-compliant interfaces (Publisher, Subscriber, EventSink,
+          EventSource) show real architectural thought.
         </p>
 
         <p class="pull">
-          You built the right abstractions. The problem is purely in how they're packaged.
+          You built the right abstractions. The problem is purely in how they're
+          packaged.
         </p>
       </section>
 
@@ -921,14 +936,14 @@
         <h2>The dependency graph is <em>not lite</em></h2>
 
         <p>
-          "Lite" means I import one module and get exactly what I asked for — no more. Let me show
-          you what actually happens.
+          "Lite" means I import one module and get exactly what I asked for — no
+          more. Let me show you what actually happens.
         </p>
 
         <h3>What I want</h3>
         <p>
-          Just the retry and circuit breaker logic. Two functions. That's it. My enrichment pipeline
-          needs resilience, not a CQRS framework.
+          Just the retry and circuit breaker logic. Two functions. That's it. My
+          enrichment pipeline needs resilience, not a CQRS framework.
         </p>
 
         <h3>What I get</h3>
@@ -1003,11 +1018,11 @@
         </div>
 
         <p>
-          To get retry logic, I must import <code>middleware/v2</code>, which depends on
-          <code>event/v2</code>, which depends on 7 sibling modules. I end up with the
-          <strong>entire CQRS stack</strong> — command dispatcher, query dispatcher, event store,
-          schema, snapshot, memory implementations — plus the full OpenTelemetry SDK. For two
-          functions.
+          To get retry logic, I must import <code>middleware/v2</code>, which
+          depends on <code>event/v2</code>, which depends on 7 sibling modules.
+          I end up with the <strong>entire CQRS stack</strong> — command
+          dispatcher, query dispatcher, event store, schema, snapshot, memory
+          implementations — plus the full OpenTelemetry SDK. For two functions.
         </p>
 
         <h3>The concrete damage</h3>
@@ -1062,9 +1077,10 @@
         </table>
 
         <p>
-          The only thing I can actually use today is <code>go-error-family</code> — and that's not
-          even part of go-cqrs-lite, it's a separate library. Everything else is locked behind a
-          dependency wall.
+          The only thing I can actually use today is
+          <code>go-error-family</code> — and that's not even part of
+          go-cqrs-lite, it's a separate library. Everything else is locked
+          behind a dependency wall.
         </p>
       </section>
 
@@ -1074,9 +1090,9 @@
         <h2><em>event/v2</em> is a hub, not a leaf</h2>
 
         <p>
-          In a healthy dependency graph, the most-used module is the lightest — a leaf that
-          everything else depends on. In go-cqrs-lite, the most-used module is the heaviest — a hub
-          that depends on everything else.
+          In a healthy dependency graph, the most-used module is the lightest —
+          a leaf that everything else depends on. In go-cqrs-lite, the most-used
+          module is the heaviest — a hub that depends on everything else.
         </p>
 
         <div class="compare">
@@ -1108,17 +1124,19 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         </div>
 
         <p>
-          The core event types — <code>Event</code>, <code>Type</code>, <code>Version</code>,
-          <code>Metadata</code> — should have <strong>zero dependencies</strong>. They're value
-          types. A struct with an ID, a timestamp, a byte slice, and a version number. The fact that
-          importing them pulls in a command dispatcher and a query dispatcher is an architectural
-          accident, not a necessity.
+          The core event types — <code>Event</code>, <code>Type</code>,
+          <code>Version</code>, <code>Metadata</code> — should have
+          <strong>zero dependencies</strong>. They're value types. A struct with
+          an ID, a timestamp, a byte slice, and a version number. The fact that
+          importing them pulls in a command dispatcher and a query dispatcher is
+          an architectural accident, not a necessity.
         </p>
 
         <p>
-          Similarly, the retry logic — exponential backoff with jitter, context-aware cancellation —
-          is pure algorithmic code. It operates on <code>func() error</code>. It has no business
-          knowing about events, commands, queries, or OpenTelemetry.
+          Similarly, the retry logic — exponential backoff with jitter,
+          context-aware cancellation — is pure algorithmic code. It operates on
+          <code>func() error</code>. It has no business knowing about events,
+          commands, queries, or OpenTelemetry.
         </p>
       </section>
 
@@ -1129,9 +1147,12 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
 
         <p>
           These are ordered by impact.
-          <strong>P1 and P2 would make me adopt go-cqrs-lite immediately.</strong>
-          P3 turned out to be weaker than expected (P1 already solves it). P5 was withdrawn — the
-          wrong problem. P4 and P6 would make me recommend it to everyone.
+          <strong
+            >P1 and P2 would make me adopt go-cqrs-lite immediately.</strong
+          >
+          P3 turned out to be weaker than expected (P1 already solves it). P5
+          was withdrawn — the wrong problem. P4 and P6 would make me recommend
+          it to everyone.
         </p>
 
         <div class="proposals">
@@ -1140,8 +1161,9 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             <div class="proposal-number">P1</div>
             <h3>Extract generic middleware — zero CQRS deps</h3>
             <p>
-              Create <code>middleware/retry</code> and <code>middleware/circuitbreaker</code> as
-              standalone modules with <strong>zero internal sibling dependencies</strong>. No event
+              Create <code>middleware/retry</code> and
+              <code>middleware/circuitbreaker</code> as standalone modules with
+              <strong>zero internal sibling dependencies</strong>. No event
               types, no command types, no OTel. Just pure algorithms:
             </p>
             <div class="code-block">
@@ -1159,7 +1181,9 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
 <span class="comment">// Do retries fn with backoff and jitter. Pure algorithm.</span>
 <span class="keyword">func</span> <span class="accent">Do</span>(ctx context.Context, cfg Config, fn <span class="keyword">func</span>() error) error</pre>
             </div>
-            <p>Then the existing CQRS-specific middleware becomes thin wrappers:</p>
+            <p>
+              Then the existing CQRS-specific middleware becomes thin wrappers:
+            </p>
             <div class="code-block">
               <pre><span class="comment">// middleware/v2 keeps the typed adapters</span>
 <span class="keyword">func</span> <span class="accent">CommandRetry</span>(cfg retry.Config) Middleware {
@@ -1172,9 +1196,10 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             </div>
             <div class="rationale">
               <p>
-                <strong>Why this matters:</strong> 90% of the value of your middleware module is the
-                retry/backoff/circuit-breaker logic. Today it's locked behind 40+ transitive deps.
-                Freed from the CQRS types, it becomes useful to <em>any</em> Go project making
+                <strong>Why this matters:</strong> 90% of the value of your
+                middleware module is the retry/backoff/circuit-breaker logic.
+                Today it's locked behind 40+ transitive deps. Freed from the
+                CQRS types, it becomes useful to <em>any</em> Go project making
                 network calls.
               </p>
             </div>
@@ -1184,7 +1209,10 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
           <div class="proposal">
             <div class="proposal-number">P2</div>
             <h3>Split event/v2 into layered leaves</h3>
-            <p>Break the hub module into three layers, each independently importable:</p>
+            <p>
+              Break the hub module into three layers, each independently
+              importable:
+            </p>
             <div class="code-block">
               <pre><span class="accent">event/core</span>    <span class="comment">// Event, Type, Version, Metadata, AggregateRef — stdlib only</span>
 <span class="accent">event/bus</span>     <span class="comment">// Bus, Publisher, Subscriber interfaces — depends on core only</span>
@@ -1192,24 +1220,27 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
 <span class="accent">event/journal</span> <span class="comment">// Journal, SeekableJournal — depends on core</span></pre>
             </div>
             <p>
-              The <code>event/core</code> module contains only value types. No interfaces, no
-              behavior, no codec, no ULID dependency (the EventID can be a plain string in core).
-              Projects that only need to <em>reference</em> event types (like middleware) import
-              core and get <strong>nothing else</strong>.
+              The <code>event/core</code> module contains only value types. No
+              interfaces, no behavior, no codec, no ULID dependency (the EventID
+              can be a plain string in core). Projects that only need to
+              <em>reference</em> event types (like middleware) import core and
+              get <strong>nothing else</strong>.
             </p>
             <div class="rationale">
               <p>
-                <strong>Why this matters:</strong> The current event/v2 is the #1 transitive
-                dependency in the entire repo. Everything depends on it, and it depends on
-                everything. Splitting it turns the dependency graph from a tangled web into a clean
-                tree.
+                <strong>Why this matters:</strong> The current event/v2 is the
+                #1 transitive dependency in the entire repo. Everything depends
+                on it, and it depends on everything. Splitting it turns the
+                dependency graph from a tangled web into a clean tree.
               </p>
             </div>
           </div>
 
           <!-- P3 — self-pushback: this is weaker than P1 -->
           <div class="proposal" style="border-color: var(--border-light)">
-            <div class="proposal-number" style="background: var(--text-muted)">P3</div>
+            <div class="proposal-number" style="background: var(--text-muted)">
+              P3
+            </div>
             <h3>
               Make OTel optional, not structural
               <span
@@ -1219,24 +1250,28 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
               >
             </h3>
             <p>
-              Today, <code>decider/v2</code>, <code>projection/v2</code>, <code>storage/v2</code>,
-              and <code>middleware/v2</code> all directly import OTel packages. The heavy ones are
-              <code>otel/sdk</code> and <code>otel/sdk/metric</code> in middleware/v2 — the trace
-              API alone (<code>otel/trace</code>) is relatively lightweight.
+              Today, <code>decider/v2</code>, <code>projection/v2</code>,
+              <code>storage/v2</code>, and <code>middleware/v2</code> all
+              directly import OTel packages. The heavy ones are
+              <code>otel/sdk</code> and <code>otel/sdk/metric</code> in
+              middleware/v2 — the trace API alone (<code>otel/trace</code>) is
+              relatively lightweight.
             </p>
             <p>
-              <strong>Honest pushback:</strong> the OTel trace API is the Go ecosystem standard.
-              Shimming Tracer/Span behind custom interfaces adds maintenance burden — every new OTel
-              feature (links, events, status codes) requires updating the shim. This proposal is
+              <strong>Honest pushback:</strong> the OTel trace API is the Go
+              ecosystem standard. Shimming Tracer/Span behind custom interfaces
+              adds maintenance burden — every new OTel feature (links, events,
+              status codes) requires updating the shim. This proposal is
               <em>weaker than it appeared</em> because:
             </p>
             <div class="rationale" style="border-left-color: var(--text-muted)">
               <p>
-                <strong>P1 already solves this.</strong> Extracting generic middleware as
-                stdlib-only removes the OTel dependency for external consumers entirely. The
-                remaining modules (decider, projection, storage) are CQRS-internal — their OTel
-                usage is justified for the audience that imports them. Only middleware was the
-                problem, and P1 fixes it.
+                <strong>P1 already solves this.</strong> Extracting generic
+                middleware as stdlib-only removes the OTel dependency for
+                external consumers entirely. The remaining modules (decider,
+                projection, storage) are CQRS-internal — their OTel usage is
+                justified for the audience that imports them. Only middleware
+                was the problem, and P1 fixes it.
               </p>
             </div>
           </div>
@@ -1246,7 +1281,8 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             <div class="proposal-number">P4</div>
             <h3>Generic decorator pattern</h3>
             <p>
-              The retry and circuit breaker don't operate on CQRS types. They operate on
+              The retry and circuit breaker don't operate on CQRS types. They
+              operate on
               <code>func(ctx) error</code>. Expose this explicitly:
             </p>
             <div class="code-block">
@@ -1261,22 +1297,26 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
 <span class="keyword">func</span> <span class="accent">Do</span>(ctx context.Context, timeout <span class="type">time.Duration</span>, fn <span class="keyword">func</span>() error) error</pre>
             </div>
             <p>
-              The CQRS-specific adapters (<code>CommandRetry</code>, <code>EventRetry</code>,
-              <code>QueryRetry</code>) become one-liners that call the generic implementations.
-              Non-CQRS consumers use the generic functions directly.
+              The CQRS-specific adapters (<code>CommandRetry</code>,
+              <code>EventRetry</code>, <code>QueryRetry</code>) become
+              one-liners that call the generic implementations. Non-CQRS
+              consumers use the generic functions directly.
             </p>
             <div class="rationale">
               <p>
-                <strong>Why this matters:</strong> This is the difference between "a CQRS library
-                with middleware" and "a middleware library that also works for CQRS". The second
-                formulation has 100x the potential user base.
+                <strong>Why this matters:</strong> This is the difference
+                between "a CQRS library with middleware" and "a middleware
+                library that also works for CQRS". The second formulation has
+                100x the potential user base.
               </p>
             </div>
           </div>
 
           <!-- P5 — self-pushback: wrong problem -->
           <div class="proposal" style="border-color: var(--border-light)">
-            <div class="proposal-number" style="background: var(--text-muted)">P5</div>
+            <div class="proposal-number" style="background: var(--text-muted)">
+              P5
+            </div>
             <h3>
               Configurable ID backing type
               <span
@@ -1286,20 +1326,24 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
               >
             </h3>
             <p>
-              Original proposal: make <code>id.Of[T]</code> accept a configurable backing type so
-              non-ULID use cases (file paths, project names) could use the same module.
+              Original proposal: make <code>id.Of[T]</code> accept a
+              configurable backing type so non-ULID use cases (file paths,
+              project names) could use the same module.
             </p>
             <p>
-              <strong>Withdrawn.</strong> ULID backing is a deliberate, correct choice for
-              event-sourced systems — time-ordered, globally unique, binary-sortable, extractable
-              timestamp. Making it string-backable would dilute these guarantees.
+              <strong>Withdrawn.</strong> ULID backing is a deliberate, correct
+              choice for event-sourced systems — time-ordered, globally unique,
+              binary-sortable, extractable timestamp. Making it string-backable
+              would dilute these guarantees.
             </p>
             <div class="rationale" style="border-left-color: var(--text-muted)">
               <p>
-                <strong>This was the wrong problem.</strong> project-discovery-sdk already uses
-                <code>go-branded-id</code> directly for its string-backed needs. go-cqrs-lite's
-                <code>id/</code> module serves a different domain (event identifiers) where ULID is
-                the right answer. No change needed — the two projects already share the underlying
+                <strong>This was the wrong problem.</strong>
+                project-discovery-sdk already uses
+                <code>go-branded-id</code> directly for its string-backed needs.
+                go-cqrs-lite's <code>id/</code> module serves a different domain
+                (event identifiers) where ULID is the right answer. No change
+                needed — the two projects already share the underlying
                 <code>go-branded-id</code> library and specialize appropriately.
               </p>
             </div>
@@ -1311,8 +1355,8 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             <h3>Dependency budget per module</h3>
             <p>
               Add a mechanical rule:
-              <strong>every module must declare its dependency budget</strong>, and CI enforces it.
-              This prevents the graph from re-tangling:
+              <strong>every module must declare its dependency budget</strong>,
+              and CI enforces it. This prevents the graph from re-tangling:
             </p>
             <table class="matrix">
               <thead>
@@ -1352,10 +1396,11 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             </table>
             <div class="rationale">
               <p>
-                <strong>Why this matters:</strong> "Lite" is not a branding exercise — it's a
-                structural property that must be enforced mechanically, not by convention. A
-                dependency budget in CI would have caught the event↔memory circular dependency
-                before it formed.
+                <strong>Why this matters:</strong> "Lite" is not a branding
+                exercise — it's a structural property that must be enforced
+                mechanically, not by convention. A dependency budget in CI would
+                have caught the event↔memory circular dependency before it
+                formed.
               </p>
             </div>
           </div>
@@ -1368,8 +1413,8 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         <h2>How I'd use it <em>tomorrow</em></h2>
 
         <p>
-          With proposals P1–P2 implemented, project-discovery-sdk's enrichment pipeline would look
-          like this:
+          With proposals P1–P2 implemented, project-discovery-sdk's enrichment
+          pipeline would look like this:
         </p>
 
         <div class="compare">
@@ -1420,17 +1465,18 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         </div>
 
         <p>
-          Notice what's <em>not</em> imported: no command dispatcher, no query dispatcher, no event
-          store, no memory bus, no snapshot, no schema, no OpenTelemetry SDK. Just two tiny packages
-          doing one job each.
+          Notice what's <em>not</em> imported: no command dispatcher, no query
+          dispatcher, no event store, no memory bus, no snapshot, no schema, no
+          OpenTelemetry SDK. Just two tiny packages doing one job each.
         </p>
 
         <div class="verdict highlight">
           <p>
             That's what "lite" means.
-            <strong>I get exactly what I need and nothing I don't.</strong> Two imports. Zero
-            transitive CQRS deps. And my enrichment pipeline goes from "fails on every transient
-            network blip" to production-grade resilience.
+            <strong>I get exactly what I need and nothing I don't.</strong> Two
+            imports. Zero transitive CQRS deps. And my enrichment pipeline goes
+            from "fails on every transient network blip" to production-grade
+            resilience.
           </p>
         </div>
       </section>
@@ -1441,8 +1487,8 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         <h2>How to get there <em>incrementally</em></h2>
 
         <p>
-          This isn't a rewrite. It's a sequence of extractions that leave the existing API untouched
-          while creating new, lighter import paths.
+          This isn't a rewrite. It's a sequence of extractions that leave the
+          existing API untouched while creating new, lighter import paths.
         </p>
 
         <div class="timeline">
@@ -1450,42 +1496,46 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             <h4>Extract retry + circuit breaker as standalone</h4>
             <p>
               Move the core algorithms from <code>middleware/v2</code> into
-              <code>middleware/retry</code> and <code>middleware/circuitbreaker</code>. The existing
-              CQRS middleware becomes thin wrappers. <strong>Zero breaking changes.</strong> New
-              modules are additive.
+              <code>middleware/retry</code> and
+              <code>middleware/circuitbreaker</code>. The existing CQRS
+              middleware becomes thin wrappers.
+              <strong>Zero breaking changes.</strong> New modules are additive.
             </p>
           </div>
           <div class="timeline-step">
             <h4>Extract event/core from event/v2</h4>
             <p>
               Move <code>Event</code>, <code>Type</code>, <code>Version</code>,
-              <code>Metadata</code>, <code>AggregateRef</code> into <code>event/core</code>. The
-              full <code>event/v2</code> re-exports everything from core.
-              <strong>Zero breaking changes.</strong> Existing imports keep working.
+              <code>Metadata</code>, <code>AggregateRef</code> into
+              <code>event/core</code>. The full <code>event/v2</code> re-exports
+              everything from core.
+              <strong>Zero breaking changes.</strong> Existing imports keep
+              working.
             </p>
           </div>
           <div class="timeline-step">
             <h4>Revisit OTel coupling if needed</h4>
             <p>
-              After P1, the OTel problem is largely solved for external consumers (generic
-              middleware is stdlib-only). If CQRS-internal consumers still need lighter OTel
-              integration, the shim pattern can be evaluated then — but it's no longer a blocker for
-              adoption.
+              After P1, the OTel problem is largely solved for external
+              consumers (generic middleware is stdlib-only). If CQRS-internal
+              consumers still need lighter OTel integration, the shim pattern
+              can be evaluated then — but it's no longer a blocker for adoption.
             </p>
           </div>
           <div class="timeline-step">
             <h4>Update sibling deps to use core</h4>
             <p>
-              Point <code>command/v2</code>, <code>query/v2</code>, <code>decider/v2</code> at
-              <code>event/core</code> instead of <code>event/v2</code>. Each sheds unnecessary
-              siblings from its transitive graph.
+              Point <code>command/v2</code>, <code>query/v2</code>,
+              <code>decider/v2</code> at <code>event/core</code> instead of
+              <code>event/v2</code>. Each sheds unnecessary siblings from its
+              transitive graph.
             </p>
           </div>
           <div class="timeline-step">
             <h4>Document dependency budgets in CI</h4>
             <p>
-              Add a linter that checks each module's dependency count against its budget. Prevents
-              regression.
+              Add a linter that checks each module's dependency count against
+              its budget. Prevents regression.
             </p>
           </div>
         </div>
@@ -1510,15 +1560,27 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             </tr>
             <tr>
               <td>Is the API well-designed?</td>
-              <td><span class="badge green">yes — ISP, generics, functional options</span></td>
+              <td>
+                <span class="badge green"
+                  >yes — ISP, generics, functional options</span
+                >
+              </td>
             </tr>
             <tr>
               <td>Can I use it today?</td>
-              <td><span class="badge red">no — dependency graph blocks adoption</span></td>
+              <td>
+                <span class="badge red"
+                  >no — dependency graph blocks adoption</span
+                >
+              </td>
             </tr>
             <tr>
               <td>Is it actually "lite"?</td>
-              <td><span class="badge red">no — event/v2 is a hub with 7 siblings</span></td>
+              <td>
+                <span class="badge red"
+                  >no — event/v2 is a hub with 7 siblings</span
+                >
+              </td>
             </tr>
             <tr>
               <td>Would P1–P2 fix it?</td>
@@ -1527,16 +1589,19 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             <tr>
               <td>Is it worth fixing?</td>
               <td>
-                <span class="badge green">absolutely — unlocks every non-CQRS Go project</span>
+                <span class="badge green"
+                  >absolutely — unlocks every non-CQRS Go project</span
+                >
               </td>
             </tr>
           </tbody>
         </table>
 
         <p class="pull">
-          You built a genuinely excellent CQRS library. Extract the reusable algorithms (retry,
-          backoff, circuit breaker) as standalone modules, and every Go project making network calls
-          benefits — not just the ones doing event sourcing.
+          You built a genuinely excellent CQRS library. Extract the reusable
+          algorithms (retry, backoff, circuit breaker) as standalone modules,
+          and every Go project making network calls benefits — not just the ones
+          doing event sourcing.
         </p>
       </section>
 
@@ -1549,14 +1614,17 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         </div>
 
         <p>
-          This feedback is generous and the <strong>core diagnosis is correct</strong>: middleware's
-          retry and circuit-breaker algorithms are locked behind the full CQRS + OTel dependency
-          tree, and that blocks adoption for non-CQRS projects. We accept that fully.
+          This feedback is generous and the
+          <strong>core diagnosis is correct</strong>: middleware's retry and
+          circuit-breaker algorithms are locked behind the full CQRS + OTel
+          dependency tree, and that blocks adoption for non-CQRS projects. We
+          accept that fully.
         </p>
 
         <p>
-          But three specific claims are factually wrong, and they inflate the perceived severity.
-          The real fix is <strong>narrower and cheaper</strong> than proposed.
+          But three specific claims are factually wrong, and they inflate the
+          perceived severity. The real fix is
+          <strong>narrower and cheaper</strong> than proposed.
         </p>
 
         <h3>Claim vs. Fact</h3>
@@ -1564,33 +1632,40 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         <div class="correction wrong">
           <div class="claim">Claim: "event/v2 depends on 7 siblings"</div>
           <div class="fact">
-            <strong>False.</strong> The production code in <code>event/*.go</code> imports exactly
-            <strong>2 internal siblings</strong>: <code>id/v2</code> and <code>codec/v2</code>, plus
-            <code>go-error-family</code> and <code>samber/ro</code>. The <code>command</code>,
+            <strong>False.</strong> The production code in
+            <code>event/*.go</code> imports exactly
+            <strong>2 internal siblings</strong>: <code>id/v2</code> and
+            <code>codec/v2</code>, plus <code>go-error-family</code> and
+            <code>samber/ro</code>. The <code>command</code>,
             <code>query</code>, <code>memory</code>, <code>schema</code>, and
-            <code>snapshot</code> entries in <code>go.mod</code> are <strong>test-only</strong> —
-            they appear exclusively in <code>_test.go</code> files and the
+            <code>snapshot</code> entries in <code>go.mod</code> are
+            <strong>test-only</strong> — they appear exclusively in
+            <code>_test.go</code> files and the
             <code>eventtest/</code> sub-package.
           </div>
           <div class="evidence">
-            $ grep -rn 'command/v2\|query/v2\|memory/v2\|schema/v2\|snapshot/v2' event/*.go | grep
-            -v _test<br />
+            $ grep -rn 'command/v2\|query/v2\|memory/v2\|schema/v2\|snapshot/v2'
+            event/*.go | grep -v _test<br />
             (no results — zero production imports)<br /><br />
-            $ grep -rn 'command/v2\|query/v2\|memory/v2\|schema/v2\|snapshot/v2' event/*_test.go<br />
-            errors_taxonomy_test.go: imports command, query, snapshot (error classification
-            tests)<br />
+            $ grep -rn 'command/v2\|query/v2\|memory/v2\|schema/v2\|snapshot/v2'
+            event/*_test.go<br />
+            errors_taxonomy_test.go: imports command, query, snapshot (error
+            classification tests)<br />
             event_bdd_test.go: imports memory, schema (BDD integration tests)<br />
             stream_test.go: imports memory (stream tests)
           </div>
         </div>
 
         <div class="correction wrong">
-          <div class="claim">Claim: "event/v2 is a hub that depends on everything"</div>
+          <div class="claim">
+            Claim: "event/v2 is a hub that depends on everything"
+          </div>
           <div class="fact">
             <strong>False in production.</strong> <code>event/v2</code> is a
-            <strong>leaf node</strong> in the real import graph. The go.mod is misleading because Go
-            doesn't distinguish test-only from production direct dependencies. The problem is
-            <strong>go.mod hygiene</strong>, not architectural coupling.
+            <strong>leaf node</strong> in the real import graph. The go.mod is
+            misleading because Go doesn't distinguish test-only from production
+            direct dependencies. The problem is <strong>go.mod hygiene</strong>,
+            not architectural coupling.
           </div>
           <div class="fact" style="margin-top: 12px">
             The actual production dependency graph for <code>event/v2</code> is:
@@ -1606,41 +1681,52 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         </div>
 
         <div class="correction wrong">
-          <div class="claim">Claim: "the event↔memory circular dependency" (P6 rationale)</div>
+          <div class="claim">
+            Claim: "the event↔memory circular dependency" (P6 rationale)
+          </div>
           <div class="fact">
-            <strong>No circular dependency exists.</strong> <code>memory→event</code> is production.
-            <code>event→memory</code> is test-only. It's a one-way dependency. The P6 dependency
-            budget idea is still excellent — but the motivating example is incorrect.
+            <strong>No circular dependency exists.</strong>
+            <code>memory→event</code> is production.
+            <code>event→memory</code> is test-only. It's a one-way dependency.
+            The P6 dependency budget idea is still excellent — but the
+            motivating example is incorrect.
           </div>
         </div>
 
         <p class="pull">
-          The CQRS explosion comes from middleware's <em>own</em> direct imports of command, query,
-          and otel — not from event acting as a hub. Fix middleware, and the graph collapses.
+          The CQRS explosion comes from middleware's <em>own</em> direct imports
+          of command, query, and otel — not from event acting as a hub. Fix
+          middleware, and the graph collapses.
         </p>
 
         <h3>What we accept without dispute</h3>
 
         <div class="correction right">
-          <div class="claim">Accepted: middleware/v2 locks retry/CB behind CQRS deps</div>
+          <div class="claim">
+            Accepted: middleware/v2 locks retry/CB behind CQRS deps
+          </div>
           <div class="fact">
-            <strong>Valid.</strong> The retry core operates on <code>func() error</code> internally,
-            but <code>NewRetry[M]</code> lives in a go.mod that requires <code>command/v2</code>,
-            <code>event/v2</code>, <code>query/v2</code>, <code>id/v2</code>, <code>otel/v2</code>.
-            Error wrapping uses <code>event.WrapInfrastructure()</code> and the default
-            <code>IsRetryable</code> delegates to <code>event.IsRetryable</code>. The algorithm is
-            generic; the packaging is not. We'll fix this.
+            <strong>Valid.</strong> The retry core operates on
+            <code>func() error</code> internally, but
+            <code>NewRetry[M]</code> lives in a go.mod that requires
+            <code>command/v2</code>, <code>event/v2</code>,
+            <code>query/v2</code>, <code>id/v2</code>, <code>otel/v2</code>.
+            Error wrapping uses <code>event.WrapInfrastructure()</code> and the
+            default <code>IsRetryable</code> delegates to
+            <code>event.IsRetryable</code>. The algorithm is generic; the
+            packaging is not. We'll fix this.
           </div>
         </div>
 
         <div class="correction right">
           <div class="claim">Accepted: OTel SDK in production imports</div>
           <div class="fact">
-            <strong>Valid.</strong> <code>middleware/tracing.go</code> directly imports
-            <code>go.opentelemetry.io/otel/trace</code>. <code>decider/load.go</code> and
-            <code>decider/decider.go</code> do the same.
-            <code>go.opentelemetry.io/otel/sdk</code> is in middleware's go.mod — that's the full
-            SDK, not just the API. The shim pattern (define <code>Tracer</code>/<code>Span</code>
+            <strong>Valid.</strong> <code>middleware/tracing.go</code> directly
+            imports <code>go.opentelemetry.io/otel/trace</code>.
+            <code>decider/load.go</code> and <code>decider/decider.go</code> do
+            the same. <code>go.opentelemetry.io/otel/sdk</code> is in
+            middleware's go.mod — that's the full SDK, not just the API. The
+            shim pattern (define <code>Tracer</code>/<code>Span</code>
             interfaces in core, adapter in <code>otel/</code>) is the right fix.
           </div>
         </div>
@@ -1648,18 +1734,22 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         <div class="correction right">
           <div class="claim">Accepted: dependency budget CI (P6)</div>
           <div class="fact">
-            <strong>Excellent idea.</strong> Mechanical enforcement of per-module dependency limits
-            prevents regression regardless of convention. We'll implement this.
+            <strong>Excellent idea.</strong> Mechanical enforcement of
+            per-module dependency limits prevents regression regardless of
+            convention. We'll implement this.
           </div>
         </div>
 
         <h3>Revised action plan</h3>
 
         <p>
-          The proposals P1 and P3 are accepted. P2 (splitting event into 4 modules) is
-          <strong>rejected</strong> — the production code is already a leaf; the fix is go.mod
-          cleanup. P4 is already partially done (<code>NewRetry[M any]()</code> exists). P5 is
-          documentation, not code. P6 is accepted.
+          The proposals P1 and P3 are accepted. P2 (splitting event into 4
+          modules) is
+          <strong>rejected</strong> — the production code is already a leaf; the
+          fix is go.mod cleanup. P4 is already partially done (<code
+            >NewRetry[M any]()</code
+          >
+          exists). P5 is documentation, not code. P6 is accepted.
         </p>
 
         <div class="revised-plan">
@@ -1671,9 +1761,10 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
           <div class="revised-row">
             <div class="step">1</div>
             <div class="desc">
-              Extract <code>resilience/</code> module — pure retry, backoff, circuit breaker,
-              timeout. Stdlib only. <br /><span class="dim"
-                >Existing CQRS middleware becomes thin wrappers. Zero breaking changes.</span
+              Extract <code>resilience/</code> module — pure retry, backoff,
+              circuit breaker, timeout. Stdlib only. <br /><span class="dim"
+                >Existing CQRS middleware becomes thin wrappers. Zero breaking
+                changes.</span
               >
             </div>
             <div class="effort"><span class="badge green">1–2 days</span></div>
@@ -1681,10 +1772,11 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
           <div class="revised-row">
             <div class="step">2</div>
             <div class="desc">
-              OTel shim pattern — define Tracer/Span/Meter interfaces in core modules.
+              OTel shim pattern — define Tracer/Span/Meter interfaces in core
+              modules.
               <br /><span class="dim"
-                >Move go.opentelemetry.io/otel imports to otel/ adapter. ~15 transitive deps
-                eliminated.</span
+                >Move go.opentelemetry.io/otel imports to otel/ adapter. ~15
+                transitive deps eliminated.</span
               >
             </div>
             <div class="effort"><span class="badge amber">2–3 days</span></div>
@@ -1692,9 +1784,11 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
           <div class="revised-row">
             <div class="step">3</div>
             <div class="desc">
-              Clean up event/go.mod — move test-only sibling deps out of direct requires.
+              Clean up event/go.mod — move test-only sibling deps out of direct
+              requires.
               <br /><span class="dim"
-                >Either into eventtest/ as a separate module or use build constraints.</span
+                >Either into eventtest/ as a separate module or use build
+                constraints.</span
               >
             </div>
             <div class="effort"><span class="badge green">0.5 days</span></div>
@@ -1702,9 +1796,11 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
           <div class="revised-row">
             <div class="step">4</div>
             <div class="desc">
-              Dependency budget CI — mechanical enforcement of per-module dep limits.
+              Dependency budget CI — mechanical enforcement of per-module dep
+              limits.
               <br /><span class="dim"
-                >Prevents regression. The best long-term structural investment.</span
+                >Prevents regression. The best long-term structural
+                investment.</span
               >
             </div>
             <div class="effort"><span class="badge green">1 day</span></div>
@@ -1714,7 +1810,8 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             <div class="desc">
               Document configurable ID backing type.
               <br /><span class="dim"
-                >go-branded-id already supports cbid.ID[T, B]. Just needs examples.</span
+                >go-branded-id already supports cbid.ID[T, B]. Just needs
+                examples.</span
               >
             </div>
             <div class="effort"><span class="badge green">0.5 days</span></div>
@@ -1725,12 +1822,15 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
           <p>
             The diagnosis is correct:
             <strong
-              >retry and circuit-breaker are the most broadly useful parts of this library, and
-              they're locked behind the full CQRS + OTel dependency tree.</strong
+              >retry and circuit-breaker are the most broadly useful parts of
+              this library, and they're locked behind the full CQRS + OTel
+              dependency tree.</strong
             >
-            But the fix is narrower than proposed. Extract resilience. Shim OTel. Clean up go.mod.
-            <strong>No module splits needed.</strong> The architecture is already right — the
-            packaging needs two targeted extractions and a go.mod audit.
+            But the fix is narrower than proposed. Extract resilience. Shim
+            OTel. Clean up go.mod.
+            <strong>No module splits needed.</strong> The architecture is
+            already right — the packaging needs two targeted extractions and a
+            go.mod audit.
           </p>
         </div>
       </section>
@@ -1741,8 +1841,8 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         <h2>What I <em>overstated</em> and what I <em>missed</em></h2>
 
         <p>
-          After reflection, two things are wrong with the original feedback. One inflates the ask.
-          The other misses the real prize entirely.
+          After reflection, two things are wrong with the original feedback. One
+          inflates the ask. The other misses the real prize entirely.
         </p>
 
         <div class="correction wrong" style="margin-top: 32px">
@@ -1750,9 +1850,10 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             Overstatement: "I want the full middleware suite from go-cqrs-lite"
           </div>
           <div class="fact">
-            <strong>The SDK already imports <code>samber/ro</code>.</strong> It's the reactive
-            library that backs the entire event bus. And it already provides most of what I claimed
-            go-cqrs-lite uniquely solves:
+            <strong>The SDK already imports <code>samber/ro</code>.</strong>
+            It's the reactive library that backs the entire event bus. And it
+            already provides most of what I claimed go-cqrs-lite uniquely
+            solves:
           </div>
         </div>
 
@@ -1780,7 +1881,9 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             </tr>
             <tr>
               <td>Error fallback</td>
-              <td><span class="badge green">Catch / OnErrorResumeNextWith</span></td>
+              <td>
+                <span class="badge green">Catch / OnErrorResumeNextWith</span>
+              </td>
               <td>—</td>
               <td><span class="badge green">already have it</span></td>
             </tr>
@@ -1817,7 +1920,9 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             <tr>
               <td>Circuit breaker</td>
               <td>—</td>
-              <td><span class="badge amber">middleware/circuitbreaker</span></td>
+              <td>
+                <span class="badge amber">middleware/circuitbreaker</span>
+              </td>
               <td><span class="badge amber">real gap</span></td>
             </tr>
             <tr>
@@ -1829,7 +1934,9 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             <tr>
               <td>Error taxonomy</td>
               <td>—</td>
-              <td><span class="badge green">go-error-family (standalone)</span></td>
+              <td>
+                <span class="badge green">go-error-family (standalone)</span>
+              </td>
               <td><span class="badge green">works today</span></td>
             </tr>
           </tbody>
@@ -1837,29 +1944,34 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
 
         <p>
           The real middleware ask shrinks from <strong>"8 concerns"</strong> to
-          <strong>"circuit breaker + smart backoff"</strong>. ro's <code>RetryWithConfig</code> only
-          supports a fixed <code>Delay</code> — no
-          <code>InitialDelay * Multiplier^attempt + jitter</code>. That's the gap. But it's a
-          <em>small</em> gap — small enough to implement as a custom ro operator without importing
-          any external library.
+          <strong>"circuit breaker + smart backoff"</strong>. ro's
+          <code>RetryWithConfig</code> only supports a fixed
+          <code>Delay</code> — no
+          <code>InitialDelay * Multiplier^attempt + jitter</code>. That's the
+          gap. But it's a <em>small</em> gap — small enough to implement as a
+          custom ro operator without importing any external library.
         </p>
 
         <div class="verdict">
           <p>
-            <strong>Corrected ask:</strong> The middleware section of the original feedback
-            overstated the need by ~70%. The SDK already has retry, timeout, error fallback, rate
-            limiting, logging, debounce, and throttle via <code>samber/ro</code>. Only circuit
-            breaker and exponential backoff with jitter are genuine gaps — and those could be custom
-            ro operators.
+            <strong>Corrected ask:</strong> The middleware section of the
+            original feedback overstated the need by ~70%. The SDK already has
+            retry, timeout, error fallback, rate limiting, logging, debounce,
+            and throttle via <code>samber/ro</code>. Only circuit breaker and
+            exponential backoff with jitter are genuine gaps — and those could
+            be custom ro operators.
           </p>
         </div>
 
         <div class="correction wrong" style="margin-top: 48px">
-          <div class="claim">Missed opportunity: "the SDK doesn't need CQRS at all"</div>
+          <div class="claim">
+            Missed opportunity: "the SDK doesn't need CQRS at all"
+          </div>
           <div class="fact">
-            <strong>The daemon module is a textbook CQRS surface.</strong> The original feedback
-            dismissed the entire SDK as "not CQRS" — but it only examined the reactive discovery
-            pipeline. The daemon mode tells a different story:
+            <strong>The daemon module is a textbook CQRS surface.</strong> The
+            original feedback dismissed the entire SDK as "not CQRS" — but it
+            only examined the reactive discovery pipeline. The daemon mode tells
+            a different story:
           </div>
         </div>
 
@@ -1905,8 +2017,9 @@ query.Dispatcher
         </div>
 
         <p>
-          The daemon literally has <strong>Command → Event → Query</strong>. It's not a theoretical
-          mapping — it's the actual architecture, just hand-rolled today.
+          The daemon literally has <strong>Command → Event → Query</strong>.
+          It's not a theoretical mapping — it's the actual architecture, just
+          hand-rolled today.
         </p>
 
         <h3>What go-cqrs-lite would improve in the daemon</h3>
@@ -1955,23 +2068,28 @@ query.Dispatcher
 
         <div class="verdict highlight">
           <p>
-            The original feedback asked the wrong question: "should the SDK use go-cqrs-lite?" It
-            should have asked:
-            <strong>"which <em>part</em> of the SDK should use go-cqrs-lite?"</strong> The reactive
-            pipeline doesn't need it. The daemon does. And the daemon is exactly the part where the
-            dependency cost of event/v2 + command/v2 + query/v2 would be justified — because those
-            CQRS concepts map 1:1 to what the daemon actually does.
+            The original feedback asked the wrong question: "should the SDK use
+            go-cqrs-lite?" It should have asked:
+            <strong
+              >"which <em>part</em> of the SDK should use go-cqrs-lite?"</strong
+            >
+            The reactive pipeline doesn't need it. The daemon does. And the
+            daemon is exactly the part where the dependency cost of event/v2 +
+            command/v2 + query/v2 would be justified — because those CQRS
+            concepts map 1:1 to what the daemon actually does.
           </p>
         </div>
 
         <h3>Why it's still blocked</h3>
 
         <p>
-          Even for the daemon, the dependency cost isn't trivial. The daemon module imports the root
-          SDK (reverse dependency). Adding go-cqrs-lite's event bus means the daemon's dependency
-          tree grows by event/v2 (2 production siblings + 2 external deps) + command/v2 (1 external
-          dep) + query/v2 (1 external dep). That's <strong>reasonable</strong> for a daemon process
-          — but only after the go.mod hygiene fix (step 3 in the action plan) ensures those are the
+          Even for the daemon, the dependency cost isn't trivial. The daemon
+          module imports the root SDK (reverse dependency). Adding
+          go-cqrs-lite's event bus means the daemon's dependency tree grows by
+          event/v2 (2 production siblings + 2 external deps) + command/v2 (1
+          external dep) + query/v2 (1 external dep). That's
+          <strong>reasonable</strong> for a daemon process — but only after the
+          go.mod hygiene fix (step 3 in the action plan) ensures those are the
           real production counts, not inflated by test deps.
         </p>
 
@@ -1981,23 +2099,28 @@ query.Dispatcher
           <div class="timeline-step">
             <h4>Enrichment pipeline: samber/ro custom operators</h4>
             <p>
-              Implement circuit breaker and exponential backoff with jitter as custom
-              <code>ro</code> operators. No new external dependency. The SDK already imports ro.
+              Implement circuit breaker and exponential backoff with jitter as
+              custom
+              <code>ro</code> operators. No new external dependency. The SDK
+              already imports ro.
             </p>
           </div>
           <div class="timeline-step">
             <h4>Error taxonomy: go-error-family directly</h4>
             <p>
-              Already standalone. Use it to classify API errors (Transient vs Rejection) to power
-              smarter retry decisions in the ro operators.
+              Already standalone. Use it to classify API errors (Transient vs
+              Rejection) to power smarter retry decisions in the ro operators.
             </p>
           </div>
           <div class="timeline-step">
-            <h4>Daemon: adopt go-cqrs-lite event bus + command/query dispatchers</h4>
+            <h4>
+              Daemon: adopt go-cqrs-lite event bus + command/query dispatchers
+            </h4>
             <p>
-              After go.mod hygiene fix. Replace hand-rolled EventBus, SSEBroker, and ad-hoc JSON
-              handlers with typed command dispatcher, reactive event bus, and SSEBroker. The CQRS
-              concepts map 1:1 to the daemon's actual architecture.
+              After go.mod hygiene fix. Replace hand-rolled EventBus, SSEBroker,
+              and ad-hoc JSON handlers with typed command dispatcher, reactive
+              event bus, and SSEBroker. The CQRS concepts map 1:1 to the
+              daemon's actual architecture.
             </p>
           </div>
         </div>
@@ -2023,8 +2146,8 @@ query.Dispatcher
         >
 
         <p>
-          A triage session processed all 7 feedback files. Here's what changed for the proposals in
-          this document:
+          A triage session processed all 7 feedback files. Here's what changed
+          for the proposals in this document:
         </p>
 
         <table class="matrix">
@@ -2040,44 +2163,49 @@ query.Dispatcher
               <td>P1 — Extract generic middleware (stdlib-only)</td>
               <td><span class="badge amber">not started</span></td>
               <td>
-                Accepted but not implemented. Multi-day architectural extraction. Noted as the #1
-                next priority.
+                Accepted but not implemented. Multi-day architectural
+                extraction. Noted as the #1 next priority.
               </td>
             </tr>
             <tr>
               <td>P2 — Split event/v2 into layered leaves</td>
               <td><span class="badge red">rejected (by author)</span></td>
               <td>
-                Maintainer's response (§8) already rejected this: event/v2 IS a leaf in production
-                code. Problem is go.mod hygiene, not architecture.
+                Maintainer's response (§8) already rejected this: event/v2 IS a
+                leaf in production code. Problem is go.mod hygiene, not
+                architecture.
               </td>
             </tr>
             <tr>
               <td>P3 — Make OTel optional</td>
               <td><span class="badge amber">not started</span></td>
               <td>
-                Noted as P2 (2-3 days). P1 (resilience extraction) already solves the
-                external-consumer case.
+                Noted as P2 (2-3 days). P1 (resilience extraction) already
+                solves the external-consumer case.
               </td>
             </tr>
             <tr>
               <td>P4 — Generic decorator pattern</td>
               <td><span class="badge amber">not started</span></td>
               <td>
-                Partially exists (<code>NewRetry[M any]()</code>). Full extraction depends on P1.
+                Partially exists (<code>NewRetry[M any]()</code>). Full
+                extraction depends on P1.
               </td>
             </tr>
             <tr>
               <td>P5 — Configurable ID backing type</td>
               <td><span class="badge green">withdrawn (by author)</span></td>
               <td>
-                Self-corrected in the appendix. ULID is the right choice for event-sourced systems.
+                Self-corrected in the appendix. ULID is the right choice for
+                event-sourced systems.
               </td>
             </tr>
             <tr>
               <td>P6 — Dependency budget CI</td>
               <td><span class="badge amber">not started</span></td>
-              <td>Accepted as excellent. Noted as P1 next priority (1 day effort).</td>
+              <td>
+                Accepted as excellent. Noted as P1 next priority (1 day effort).
+              </td>
             </tr>
           </tbody>
         </table>
@@ -2123,23 +2251,30 @@ query.Dispatcher
 
         <div class="verdict">
           <p>
-            <strong>Nothing from the revised action plan was implemented yet.</strong> The session
-            focused on consumer-facing improvements (bug fixes, API additions, documentation) from
-            the other 5 feedback files. The architectural extractions (resilience, OTel shim, go.mod
-            cleanup, dep budget CI) are all multi-day efforts that need dedicated sessions. They are
-            tracked in <code>docs/status/2026-07-05_05-14_consumer-feedback-execution.md</code> as
-            the top next priorities.
+            <strong
+              >Nothing from the revised action plan was implemented yet.</strong
+            >
+            The session focused on consumer-facing improvements (bug fixes, API
+            additions, documentation) from the other 5 feedback files. The
+            architectural extractions (resilience, OTel shim, go.mod cleanup,
+            dep budget CI) are all multi-day efforts that need dedicated
+            sessions. They are tracked in
+            <code
+              >docs/status/2026-07-05_05-14_consumer-feedback-execution.md</code
+            >
+            as the top next priorities.
           </p>
         </div>
       </section>
 
       <footer>
         <p>
-          Feedback from project-discovery-sdk — a reactive Go SDK for discovering software
-          projects.<br />
+          Feedback from project-discovery-sdk — a reactive Go SDK for
+          discovering software projects.<br />
           Response from go-cqrs-lite maintainer — June 2026<br />
           Appendix: self-pushback — June 2026<br />
-          Generated June 2026 · Author: project-discovery-sdk architecture review
+          Generated June 2026 · Author: project-discovery-sdk architecture
+          review
         </p>
       </footer>
     </div>
@@ -2157,7 +2292,9 @@ query.Dispatcher
         { threshold: 0.08 },
       );
 
-      document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+      document
+        .querySelectorAll(".reveal")
+        .forEach((el) => observer.observe(el));
     </script>
   </body>
 </html>

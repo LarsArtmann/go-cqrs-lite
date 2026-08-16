@@ -75,7 +75,7 @@
 | Auto-marshal creation | `New()` — creates event from `any` payload (auto-json for structs/maps)                                                                                                                                                                                                                                                                     | ✅     |
 | Batch creation        | `NewEvents()` — batch event creation with auto-incrementing versions                                                                                                                                                                                                                                                                        | ✅     |
 | 20 functional options | `WithEventID`, `WithOccurredAt`, `WithMetadata`, `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithRequestID`, `WithSource`, `WithIPAddress`, `WithUserAgent`, `WithCustom`, `WithSchemaVersion`, `WithCausation`, `WithEncoding`, `WithCodec`, `WithClock`, `WithClientID`, `WithClientOccurredAt`, `WithDeadline`, `FromContext` | ✅     |
-| Metadata              | `Metadata` struct: embeds `Tracing` (CorrelationID, CausationID, UserID, RequestID), `Source`, `IPAddress`, `UserAgent`, `Causation` (*Causation), `Custom` (map[MetadataKey]string), `Tombstone` (*TombstoneMark — Deprecated, ADR-0114, removal v5) — ADR-0031 typed split                                                                                               | ✅     |
+| Metadata              | `Metadata` struct: embeds `Tracing` (CorrelationID, CausationID, UserID, RequestID), `Source`, `IPAddress`, `UserAgent`, `Causation` (*Causation), `Custom` (map[MetadataKey]string), `Tombstone` (*TombstoneMark — Deprecated, ADR-0114, removal v5) — ADR-0031 typed split                                                                | ✅     |
 | MetadataKey           | Typed custom metadata key (`MetadataKey` string type) with constants: `ClientID`, `ClientOccurredAt`, `CommandType`, `CommandID` — replaces raw string keys                                                                                                                                                                                 | ✅     |
 | Metadata.Merge        | `Metadata.Merge(other)` overlays non-zero fields from other onto a copy — used by `WithMetadata` and cross-module metadata composition                                                                                                                                                                                                      | ✅     |
 | Tracing struct        | Embedded `Tracing{CorrelationID, CausationID, UserID, RequestID}` — shared by event, command, and query Metadata (ADR-0031)                                                                                                                                                                                                                 | ✅     |
@@ -92,7 +92,7 @@
 | Journal               | `ReadAll()` returns all events ordered by `occurred_at ASC` — for projection replay                                                                                                                                                                                                                                                         | ✅     |
 | SeekableJournal       | `ReadFrom(ctx, afterEventID, limit)` — efficient projection catch-up                                                                                                                                                                                                                                                                        | ✅     |
 | BackwardsSource       | `LoadBackwards(ctx, streamRef)` — loads events in reverse version order                                                                                                                                                                                                                                                                     | ✅     |
-| Domain-event deletion | Deletion as a domain event (ADR-0114, direction): emit `"entity.deleted"`; metaengine is type-based (`metaengine.Remove`); elsewhere branch on `evt.Type()` in handlers or use `listing.StatusMiddleware` (deprecated metadata trigger behind it)                                                                                                                                                                        | 🧪     |
+| Domain-event deletion | Deletion as a domain event (ADR-0114, direction): emit `"entity.deleted"`; metaengine is type-based (`metaengine.Remove`); elsewhere branch on `evt.Type()` in handlers or use `listing.StatusMiddleware` (deprecated metadata trigger behind it)                                                                                           | 🧪     |
 | Time-travel queries   | `LoadToVersion` and `LoadToTimestamp` — read stream state at a point in time                                                                                                                                                                                                                                                                | ✅     |
 | Projection interface  | `Projection`: `Name`, `Handle(ctx, Event)`, `EventTypes()` (nil = all)                                                                                                                                                                                                                                                                      | ✅     |
 | Context replay marker | `WithProcessingMode(ctx, ModeReplay)` — marks context as replay; handlers can distinguish                                                                                                                                                                                                                                                   | ✅     |
@@ -894,14 +894,14 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"`
 
-| Feature        | Detail                                                                        | Status |
-| -------------- | ----------------------------------------------------------------------------- | ------ |
-| MDX generation | Services, commands, events, queries — all with YAML frontmatter               | ✅     |
-| Message pages  | Top-level `commands/`, `events/`, `queries/` dirs, deduplicated across services | ✅   |
-| Schema files   | `schema.json` per message (only when schema is non-nil)                       | ✅     |
-| Domain pages   | Domain frontmatter with service associations                                  | ✅     |
-| Config files   | `eventcatalog.config.js` (stable `cId`, tagline, llmsTxt) + `package.json` pinning `@eventcatalog/core` `^4.6.3` | ✅ |
-| LLM summary    | `llms.txt` — plain-text catalog summary for LLM consumption                   | ✅     |
+| Feature        | Detail                                                                                                           | Status |
+| -------------- | ---------------------------------------------------------------------------------------------------------------- | ------ |
+| MDX generation | Services, commands, events, queries — all with YAML frontmatter                                                  | ✅     |
+| Message pages  | Top-level `commands/`, `events/`, `queries/` dirs, deduplicated across services                                  | ✅     |
+| Schema files   | `schema.json` per message (only when schema is non-nil)                                                          | ✅     |
+| Domain pages   | Domain frontmatter with service associations                                                                     | ✅     |
+| Config files   | `eventcatalog.config.js` (stable `cId`, tagline, llmsTxt) + `package.json` pinning `@eventcatalog/core` `^4.6.3` | ✅     |
+| LLM summary    | `llms.txt` — plain-text catalog summary for LLM consumption                                                      | ✅     |
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/d2"`
 
@@ -925,17 +925,17 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver"`
 
-| Feature            | Detail                                                                | Status |
-| ------------------ | --------------------------------------------------------------------- | ------ |
-| HTTP handlers      | Framework-agnostic `net/http` handlers for serving docs               | ✅     |
-| Docs index page    | Stats, artifact links, per-service cards (templ-components UI)         | ✅     |
-| OpenAPI rendering  | Scalar UI for interactive API documentation                           | ✅     |
-| AsyncAPI rendering | AsyncAPI React for event documentation                                | ✅     |
-| D2 source view     | HTML view + raw `d2.txt` endpoint with copy/download                   | ✅     |
-| Raw spec serving   | JSON/YAML endpoints for both OpenAPI and AsyncAPI                     | ✅     |
-| Routing semantics  | Exact `/docs/` redirect; unknown `/docs/*` paths 404                   | ✅     |
-| Catalog provider   | `CatalogProvider` func — generates fresh catalog on each request      | ✅     |
-| Embedded assets    | UI stylesheet, favicon, SPA bundles embedded via `embed.FS` — zero external file dependencies | ✅ |
+| Feature            | Detail                                                                                        | Status |
+| ------------------ | --------------------------------------------------------------------------------------------- | ------ |
+| HTTP handlers      | Framework-agnostic `net/http` handlers for serving docs                                       | ✅     |
+| Docs index page    | Stats, artifact links, per-service cards (templ-components UI)                                | ✅     |
+| OpenAPI rendering  | Scalar UI for interactive API documentation                                                   | ✅     |
+| AsyncAPI rendering | AsyncAPI React for event documentation                                                        | ✅     |
+| D2 source view     | HTML view + raw `d2.txt` endpoint with copy/download                                          | ✅     |
+| Raw spec serving   | JSON/YAML endpoints for both OpenAPI and AsyncAPI                                             | ✅     |
+| Routing semantics  | Exact `/docs/` redirect; unknown `/docs/*` paths 404                                          | ✅     |
+| Catalog provider   | `CatalogProvider` func — generates fresh catalog on each request                              | ✅     |
+| Embedded assets    | UI stylesheet, favicon, SPA bundles embedded via `embed.FS` — zero external file dependencies | ✅     |
 
 ---
 
@@ -1085,18 +1085,18 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 > `import "github.com/larsartmann/go-cqrs-lite/listing/v4"`
 
-| Feature                     | Detail                                                                                               | Status |
-| --------------------------- | ---------------------------------------------------------------------------------------------------- | ------ |
-| StreamReader                | Interface: `List(ctx, ListOptions) → Page[StreamStatus]` — cursor-based stream listing               | ✅     |
-| ListBuilder                 | Fluent API: `listing.NewListBuilder(reader).OfType("User").After(cursor).Limit(50).IncludeDeleted()` | ✅     |
-| InMemoryStreamReader        | Reads from `event.Journal.ReadAll()` — single-pass, no persistence                                   | ✅     |
-| TombstonePolicy             | `TombstoneExclude` (default), `TombstoneInclude`, `TombstoneOnly` — controls visibility of soft-deleted streams                 | ✅     |
-| Page[T]                     | Cursor-based pagination with `HasMore` — no expensive TotalCount                                     | ✅     |
-| StreamListing               | Lightweight identity: ID, Type, Version, EventCount, LastEventAt                                     | ✅     |
-| StreamStatus                | Pairs StreamListing with computed TombstoneStatus                                                    | ✅     |
-| StatusMiddleware            | Event bus middleware that publishes stream status changes                                            | ✅     |
-| CacheInvalidationMiddleware | Returns `event.PublishMiddleware` that invalidates reader cache                                      | ✅     |
-| ListRefsFromStatus          | Helper that strips status from page                                                                  | ✅     |
+| Feature                     | Detail                                                                                                          | Status |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------- | ------ |
+| StreamReader                | Interface: `List(ctx, ListOptions) → Page[StreamStatus]` — cursor-based stream listing                          | ✅     |
+| ListBuilder                 | Fluent API: `listing.NewListBuilder(reader).OfType("User").After(cursor).Limit(50).IncludeDeleted()`            | ✅     |
+| InMemoryStreamReader        | Reads from `event.Journal.ReadAll()` — single-pass, no persistence                                              | ✅     |
+| TombstonePolicy             | `TombstoneExclude` (default), `TombstoneInclude`, `TombstoneOnly` — controls visibility of soft-deleted streams | ✅     |
+| Page[T]                     | Cursor-based pagination with `HasMore` — no expensive TotalCount                                                | ✅     |
+| StreamListing               | Lightweight identity: ID, Type, Version, EventCount, LastEventAt                                                | ✅     |
+| StreamStatus                | Pairs StreamListing with computed TombstoneStatus                                                               | ✅     |
+| StatusMiddleware            | Event bus middleware that publishes stream status changes                                                       | ✅     |
+| CacheInvalidationMiddleware | Returns `event.PublishMiddleware` that invalidates reader cache                                                 | ✅     |
+| ListRefsFromStatus          | Helper that strips status from page                                                                             | ✅     |
 
 ---
 
@@ -1412,7 +1412,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | Context-aware          | All handlers accept `context.Context`                                                                                                                                               |
 | Errors as values       | Zero panics in production code, explicit error returns, classified sentinels via error-family taxonomy                                                                              |
 | Defensive copies       | All public accessors return copies — callers cannot mutate internals                                                                                                                |
-| Tombstone over delete  | Soft-delete only — no `Delete` on Store. Deletion is a domain event (ADR-0114); tombstone metadata path is Deprecated (removal v5)                                                                                                                                     |
+| Tombstone over delete  | Soft-delete only — no `Delete` on Store. Deletion is a domain event (ADR-0114); tombstone metadata path is Deprecated (removal v5)                                                  |
 
 ---
 

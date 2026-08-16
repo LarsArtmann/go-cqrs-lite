@@ -19,15 +19,15 @@
 
 ## b) PARTIALLY DONE
 
-| Item | State |
-|---|---|
-| Test-file review | 18/27 touched; **partial reads** (first ~200L): lifecycle_drain_test, evolutions_test, system_projection_test, system_auto_projection_test, system_typed_decoder_test |
-| go.mod audit | replaces + dep list inventoried; **not yet** checked what CI/nix publishes vs local replaces |
-| README audit | not started |
-| `system/integration/` (doc.go, duckdb_test.go) | not started |
-| Inline TODOs / fix-on-sight | none applied yet (deliberate: findings first) |
-| HTML review report | not written yet (planned: `docs/reviews/2026-08-16_full-code-review-system.html`) |
-| TODO_LIST harvest | not started |
+| Item                                           | State                                                                                                                                                                 |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Test-file review                               | 18/27 touched; **partial reads** (first ~200L): lifecycle_drain_test, evolutions_test, system_projection_test, system_auto_projection_test, system_typed_decoder_test |
+| go.mod audit                                   | replaces + dep list inventoried; **not yet** checked what CI/nix publishes vs local replaces                                                                          |
+| README audit                                   | not started                                                                                                                                                           |
+| `system/integration/` (doc.go, duckdb_test.go) | not started                                                                                                                                                           |
+| Inline TODOs / fix-on-sight                    | none applied yet (deliberate: findings first)                                                                                                                         |
+| HTML review report                             | not written yet (planned: `docs/reviews/2026-08-16_full-code-review-system.html`)                                                                                     |
+| TODO_LIST harvest                              | not started                                                                                                                                                           |
 
 ## c) NOT STARTED
 
@@ -47,13 +47,13 @@
 
 ### Findings ledger — P1 correctness bugs (all code-verified)
 
-| # | Where | Bug |
-|---|---|---|
-| 1 | `cache.go:34-44` + `decider/load.go:27` | `CachedEventStore.Save/AppendBatch` never invalidate the `Load` cache. Decider Repository folds via `store.Load` → **permanently stale state after first write** → wrong decides, phantom version conflicts. Triggered by any `Cache: {Capacity>0}` on a source-of-truth instance. |
-| 2 | `runtime.go:157-171` + `metaengine/execute.go:27-36` | `ExecuteTyped` dispatches **by input type**; every `Count` projection shares `CountInput` → second `Count()` registration collides; `GetCount(ctx, sys, name)` ignores `name` (error-message only). **Multiple Count projections are broken by design.** |
-| 3 | `bus.go:14-30` | `createEventBus` iterates the `Buses` **map** and returns the first entry: which bus becomes THE system bus is random per process; driver validation only checks whichever entry iterates first. |
-| 4 | `bus.go:35-52` + `constructor.go:208-210` | `buildPublisher` fans out to N **fresh** in-process watermill buses unreachable through any public API (only via positional `MultiBus.Publishers()` dig — the test cements this leaky contract); they are **never closed** on shutdown. |
-| 5 | `scream_store.go:101-122` + `constructor.go:25-29` | `volatile-source-of-truth` is WARN+OVERRIDE but **cannot be ACKed** (no rule-key suffix, `isAcknowledged` never called) while `config_loader.go:33-34` documents acking exactly that rule; separately, nothing in `New()` surfaces or blocks on `HasWarnings` at all — the tier's semantics are unimplemented. |
+| # | Where                                                | Bug                                                                                                                                                                                                                                                                                                            |
+| - | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `cache.go:34-44` + `decider/load.go:27`              | `CachedEventStore.Save/AppendBatch` never invalidate the `Load` cache. Decider Repository folds via `store.Load` → **permanently stale state after first write** → wrong decides, phantom version conflicts. Triggered by any `Cache: {Capacity>0}` on a source-of-truth instance.                             |
+| 2 | `runtime.go:157-171` + `metaengine/execute.go:27-36` | `ExecuteTyped` dispatches **by input type**; every `Count` projection shares `CountInput` → second `Count()` registration collides; `GetCount(ctx, sys, name)` ignores `name` (error-message only). **Multiple Count projections are broken by design.**                                                       |
+| 3 | `bus.go:14-30`                                       | `createEventBus` iterates the `Buses` **map** and returns the first entry: which bus becomes THE system bus is random per process; driver validation only checks whichever entry iterates first.                                                                                                               |
+| 4 | `bus.go:35-52` + `constructor.go:208-210`            | `buildPublisher` fans out to N **fresh** in-process watermill buses unreachable through any public API (only via positional `MultiBus.Publishers()` dig — the test cements this leaky contract); they are **never closed** on shutdown.                                                                        |
+| 5 | `scream_store.go:101-122` + `constructor.go:25-29`   | `volatile-source-of-truth` is WARN+OVERRIDE but **cannot be ACKed** (no rule-key suffix, `isAcknowledged` never called) while `config_loader.go:33-34` documents acking exactly that rule; separately, nothing in `New()` surfaces or blocks on `HasWarnings` at all — the tier's semantics are unimplemented. |
 
 ### P2 — lying config surface / silent failures
 
@@ -137,4 +137,4 @@
 
 ---
 
-*Point-in-time snapshot. Review continues on instruction.*
+_Point-in-time snapshot. Review continues on instruction._

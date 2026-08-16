@@ -27,8 +27,10 @@
         --problem: var(--color-red);
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
-        --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-        --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-heading:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-body:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
         --font-mono: "SF Mono", Menlo, Consolas, monospace;
       }
       * {
@@ -358,13 +360,16 @@
       </aside>
       <main class="main">
         <div class="hero">
-          <div class="hero-badge">Re-Modularization Assessment &middot; 2026-06-24</div>
+          <div class="hero-badge">
+            Re-Modularization Assessment &middot; 2026-06-24
+          </div>
           <h1>Already Modular — Two Boundary Refinements</h1>
           <p class="hero-subtitle">
-            This is not a greenfield split. The repo is a mature 43-module workspace with a clean
-            6-layer DAG, <code>go.work</code>, dependency-budget enforcement, and per-module CI. The
-            assessment finds the boundaries are correct; only test-dependency hygiene and one
-            transitive conflict need attention.
+            This is not a greenfield split. The repo is a mature 43-module
+            workspace with a clean 6-layer DAG, <code>go.work</code>,
+            dependency-budget enforcement, and per-module CI. The assessment
+            finds the boundaries are correct; only test-dependency hygiene and
+            one transitive conflict need attention.
           </p>
         </div>
 
@@ -392,10 +397,11 @@
           </div>
         </div>
         <p>
-          <strong>Verdict: keep the structure.</strong> No module should be merged or split.
-          Cohesion is high, coupling is downward-only at the compiled-import level, and each module
-          is independently buildable (<code>GOWORK=off go build ./...</code> succeeds per module).
-          The Unix "do one thing well" test passes for all 43 modules.
+          <strong>Verdict: keep the structure.</strong> No module should be
+          merged or split. Cohesion is high, coupling is downward-only at the
+          compiled-import level, and each module is independently buildable
+          (<code>GOWORK=off go build ./...</code> succeeds per module). The Unix
+          "do one thing well" test passes for all 43 modules.
         </p>
 
         <h2 id="state"><span class="num">01</span>Current State</h2>
@@ -409,7 +415,10 @@
           <tbody>
             <tr>
               <td>go.mod count</td>
-              <td>43 (26 library + 7 stack + 5 examples + 3 cmd + 1 integration + 1 root)</td>
+              <td>
+                43 (26 library + 7 stack + 5 examples + 3 cmd + 1 integration +
+                1 root)
+              </td>
             </tr>
             <tr>
               <td>Workspace</td>
@@ -421,25 +430,28 @@
             <tr>
               <td>Replace strategy</td>
               <td>
-                Local <code>replace =&gt; ../x</code> per module; <code>go.work</code> for dev —
-                clean, not mixed
+                Local <code>replace =&gt; ../x</code> per module;
+                <code>go.work</code> for dev — clean, not mixed
               </td>
             </tr>
             <tr>
               <td>DAG</td>
               <td>
-                Layer 0 (id/codec/kv/dispatcher) → 6 (examples/cmd) — acyclic in compiled imports
+                Layer 0 (id/codec/kv/dispatcher) → 6 (examples/cmd) — acyclic in
+                compiled imports
               </td>
             </tr>
             <tr>
               <td>internal/ hygiene</td>
-              <td>No cross-module <code>internal/</code> access violations found</td>
+              <td>
+                No cross-module <code>internal/</code> access violations found
+              </td>
             </tr>
             <tr>
               <td>Error types</td>
               <td>
-                Sentinels + taxonomy live in <code>event</code> (importable by all) — correct
-                placement
+                Sentinels + taxonomy live in <code>event</code> (importable by
+                all) — correct placement
               </td>
             </tr>
           </tbody>
@@ -495,61 +507,81 @@
           </tbody>
         </table>
 
-        <h2 id="leak"><span class="num">03</span>Refinement 1 — kill the test-dependency leak</h2>
+        <h2 id="leak">
+          <span class="num">03</span>Refinement 1 — kill the test-dependency
+          leak
+        </h2>
         <div class="issue issue-critical">
-          <span class="severity severity-critical">Failure mode #3 (test dep leak)</span>
-          <h3>Core modules carry storage/memory as a direct production require</h3>
+          <span class="severity severity-critical"
+            >Failure mode #3 (test dep leak)</span
+          >
+          <h3>
+            Core modules carry storage/memory as a direct production require
+          </h3>
           <div class="where">
-            event, command, decider, watermill — each imports storage/memory only from _test.go
+            event, command, decider, watermill — each imports storage/memory
+            only from _test.go
           </div>
           <p>
-            This is the textbook go-modularize failure mode: test-only libraries listed in
-            production <code>require</code>. It manufactures a <em>require-graph</em> cycle (<code
+            This is the textbook go-modularize failure mode: test-only libraries
+            listed in production <code>require</code>. It manufactures a
+            <em>require-graph</em> cycle (<code
               >event → storage/memory → command → event</code
-            >) and means the leaf <code>event</code> module's advertised "3 production deps" is
-            undercut by a Layer-4 test impl in its graph.
+            >) and means the leaf <code>event</code> module's advertised "3
+            production deps" is undercut by a Layer-4 test impl in its graph.
           </p>
           <div class="callout callout-solution">
-            <strong>Fix</strong> Replace <code>storage/memory</code> usage in those tests with
-            <code>event/eventtest</code> fakes (FakeStore/FakeBus already exist) or in-package
-            stubs, then <code>go mod tidy</code> each. Verify <code>go mod graph | grep</code> shows
-            no <code>event → storage/memory</code> edge.
+            <strong>Fix</strong> Replace <code>storage/memory</code> usage in
+            those tests with <code>event/eventtest</code> fakes
+            (FakeStore/FakeBus already exist) or in-package stubs, then
+            <code>go mod tidy</code> each. Verify
+            <code>go mod graph | grep</code> shows no
+            <code>event → storage/memory</code> edge.
           </div>
         </div>
 
-        <h2 id="grpc"><span class="num">04</span>Refinement 2 — resolve the genproto conflict</h2>
+        <h2 id="grpc">
+          <span class="num">04</span>Refinement 2 — resolve the genproto
+          conflict
+        </h2>
         <div class="issue issue-important">
-          <span class="severity severity-important">Failure mode #4 (workspace conflict)</span>
+          <span class="severity severity-important"
+            >Failure mode #4 (workspace conflict)</span
+          >
           <h3>transport/grpc cannot join go.work today</h3>
           <div class="where">
             ambiguous import: googleapis/rpc/status in both genproto (mono) and
             genproto/googleapis/rpc (split)
           </div>
           <p>
-            grpc v1.81.1 requires the split <code>genproto/googleapis/rpc</code>; the merged
-            workspace also resolves the monolithic <code>genproto</code>, and both provide
-            <code>googleapis/rpc/status</code>. Until aligned, <code>transport/grpc</code> must be
-            built/tested with <code>GOWORK=off</code>.
+            grpc v1.81.1 requires the split
+            <code>genproto/googleapis/rpc</code>; the merged workspace also
+            resolves the monolithic <code>genproto</code>, and both provide
+            <code>googleapis/rpc/status</code>. Until aligned,
+            <code>transport/grpc</code> must be built/tested with
+            <code>GOWORK=off</code>.
           </p>
           <div class="callout callout-solution">
-            <strong>Fix</strong> Coordinate a workspace-wide bump: drop the monolithic
-            <code>genproto</code>, require only the split
-            <code>genproto/googleapis/{rpc,status}</code> modules across the graph (<code
-              >go mod tidy</code
-            >
-            each), then add <code>./transport/grpc</code> to <code>go.work</code> + flake
+            <strong>Fix</strong> Coordinate a workspace-wide bump: drop the
+            monolithic <code>genproto</code>, require only the split
+            <code>genproto/googleapis/{rpc,status}</code> modules across the
+            graph (<code>go mod tidy</code> each), then add
+            <code>./transport/grpc</code> to <code>go.work</code> + flake
             <code>testModules</code>.
           </div>
         </div>
 
-        <h2 id="strategy"><span class="num">05</span>Replace / Workspace Strategy</h2>
+        <h2 id="strategy">
+          <span class="num">05</span>Replace / Workspace Strategy
+        </h2>
         <p>
           Current strategy is correct and should be preserved: local
-          <code>replace =&gt; ../x</code> directives inside each module's go.mod for sibling
-          resolution, plus a root <code>go.work</code> for developer convenience. The two are
-          <strong>not mixed for the same pair</strong> (no failure-mode #4 tangle). When publishing,
-          <code>go.work</code> is ignored by consumers and the versioned requires take over. No
-          change recommended.
+          <code>replace =&gt; ../x</code> directives inside each module's go.mod
+          for sibling resolution, plus a root <code>go.work</code> for developer
+          convenience. The two are
+          <strong>not mixed for the same pair</strong> (no failure-mode #4
+          tangle). When publishing, <code>go.work</code> is ignored by consumers
+          and the versioned requires take over. No change recommended.
         </p>
 
         <h2 id="plan"><span class="num">06</span>Execution Plan (Pareto)</h2>
@@ -558,8 +590,9 @@
           <div class="migration-content">
             <h4>Swap test doubles in event/command/decider/watermill</h4>
             <p>
-              Highest leverage. Each is a standalone commit: edit tests → <code>go mod tidy</code> →
-              <code>go test ./...</code>. Rollback = <code>git revert</code>.
+              Highest leverage. Each is a standalone commit: edit tests →
+              <code>go mod tidy</code> → <code>go test ./...</code>. Rollback =
+              <code>git revert</code>.
             </p>
           </div>
         </div>
@@ -568,9 +601,11 @@
           <div class="migration-content">
             <h4>Align genproto, then admit transport/grpc</h4>
             <p>
-              Broader change; do on a branch. Bump split genproto across modules, verify
-              <code>go build ./...</code> + <code>go build ./transport/grpc/...</code> both pass
-              in-workspace, then update go.work + flake.
+              Broader change; do on a branch. Bump split genproto across
+              modules, verify
+              <code>go build ./...</code> +
+              <code>go build ./transport/grpc/...</code> both pass in-workspace,
+              then update go.work + flake.
             </p>
           </div>
         </div>
@@ -579,8 +614,9 @@
           <div class="migration-content">
             <h4>No structural merges/splits</h4>
             <p>
-              The 43-module layout is correct. Resist over-modularization (no 1-package modules) and
-              under-modularization (no god-packages). Status quo holds.
+              The 43-module layout is correct. Resist over-modularization (no
+              1-package modules) and under-modularization (no god-packages).
+              Status quo holds.
             </p>
           </div>
         </div>
@@ -588,10 +624,11 @@
         <div class="card card-solution">
           <h4>Outcome</h4>
           <p>
-            After steps 1–2: a fully cycle-free require graph, every module (including grpc) covered
-            by workspace CI, and the library's "import event alone, 3 deps" promise literally true.
-            See
-            <a href="../architecture-understanding/2026-06-24_15-35_architecture-review.html"
+            After steps 1–2: a fully cycle-free require graph, every module
+            (including grpc) covered by workspace CI, and the library's "import
+            event alone, 3 deps" promise literally true. See
+            <a
+              href="../architecture-understanding/2026-06-24_15-35_architecture-review.html"
               >architecture review</a
             >
             for the diagrams.
@@ -599,8 +636,9 @@
         </div>
 
         <footer class="footer">
-          Generated 2026-06-24 &middot; Re-modularization assessment (Phase 1–5 of the go-modularize
-          workflow). Edges derived from go.mod require/replace + import grep.
+          Generated 2026-06-24 &middot; Re-modularization assessment (Phase 1–5
+          of the go-modularize workflow). Edges derived from go.mod
+          require/replace + import grep.
         </footer>
       </main>
     </div>

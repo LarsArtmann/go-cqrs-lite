@@ -370,8 +370,9 @@
     <header class="hero page">
       <h1>samber/ro — Reactive Streams<br />for <em>go-cqrs-lite</em>?</h1>
       <p class="subtitle">
-        Can samber/ro replace our hand-rolled <code>bus/</code> and <code>dispatcher/</code>? A
-        detailed comparison of what it is, where it fits, and where it doesn't.
+        Can samber/ro replace our hand-rolled <code>bus/</code> and
+        <code>dispatcher/</code>? A detailed comparison of what it is, where it
+        fits, and where it doesn't.
       </p>
       <div class="meta">
         <span>go-cqrs-lite</span>
@@ -386,10 +387,11 @@
       <h2>What is samber/ro?</h2>
 
       <p>
-        samber/ro is <strong>ReactiveX for Go</strong> — push-based, composable, type-safe streams.
-        The core abstraction is <code>Observable[T]</code>: a lazy sequence of values that observers
-        subscribe to. Values flow through operator chains (Map, Filter, Scan, Retry, etc.) instead
-        of imperative callbacks.
+        samber/ro is <strong>ReactiveX for Go</strong> — push-based, composable,
+        type-safe streams. The core abstraction is <code>Observable[T]</code>: a
+        lazy sequence of values that observers subscribe to. Values flow through
+        operator chains (Map, Filter, Scan, Retry, etc.) instead of imperative
+        callbacks.
       </p>
 
       <h3>Core types</h3>
@@ -405,12 +407,16 @@
         <tbody>
           <tr>
             <td><code>Observable[T]</code></td>
-            <td>A stream of values. Lazy — nothing happens until subscribed.</td>
+            <td>
+              A stream of values. Lazy — nothing happens until subscribed.
+            </td>
             <td>None (closest: our <code>Bus</code> is eager)</td>
           </tr>
           <tr>
             <td><code>Observer[T]</code></td>
-            <td>Receives Next/Error/Complete notifications from an Observable.</td>
+            <td>
+              Receives Next/Error/Complete notifications from an Observable.
+            </td>
             <td><code>event.Handler</code></td>
           </tr>
           <tr>
@@ -455,7 +461,9 @@
           <tr>
             <td><code>Filter[T](fn)</code></td>
             <td>Only pass events matching predicate</td>
-            <td><code>Subscribe(eventType, handler)</code> — type-based only</td>
+            <td>
+              <code>Subscribe(eventType, handler)</code> — type-based only
+            </td>
           </tr>
           <tr>
             <td><code>Map[T,R](fn)</code></td>
@@ -500,33 +508,37 @@
         <div class="vs-card">
           <h4>dispatcher/ <span class="tag tag--ours">ours</span></h4>
           <p>
-            A synchronous handler registry. <code>map[string]H</code> + middleware chain + closed
-            flag. Register handlers by type name. Look up. Call. Return.
+            A synchronous handler registry. <code>map[string]H</code> +
+            middleware chain + closed flag. Register handlers by type name. Look
+            up. Call. Return.
           </p>
           <p style="margin-top: 8px">
             <strong>Pattern:</strong> Mediator / Command Dispatcher<br />
-            <strong>Used by:</strong> <code>command/</code>, <code>query/</code><br />
+            <strong>Used by:</strong> <code>command/</code>, <code>query/</code
+            ><br />
             <strong>Lines:</strong> 247
           </p>
         </div>
         <div class="vs-card">
           <h4>bus/ <span class="tag tag--ours">ours</span></h4>
           <p>
-            In-process event pub/sub. Subscribe to event types. Publish events. All subscribers get
-            notified. Essentially a hand-rolled <code>PublishSubject[Event]</code>.
+            In-process event pub/sub. Subscribe to event types. Publish events.
+            All subscribers get notified. Essentially a hand-rolled
+            <code>PublishSubject[Event]</code>.
           </p>
           <p style="margin-top: 8px">
             <strong>Pattern:</strong> Observer / Pub-Sub<br />
-            <strong>Used by:</strong> <code>event/</code>, <code>projection/</code>,
-            <code>outbox/</code><br />
+            <strong>Used by:</strong> <code>event/</code>,
+            <code>projection/</code>, <code>outbox/</code><br />
             <strong>Lines:</strong> 58 (interface) + 218 (MemoryBus impl)
           </p>
         </div>
         <div class="vs-card">
           <h4>samber/ro <span class="tag tag--ro">external</span></h4>
           <p>
-            ReactiveX streams. Observable → operators → Observer. Lazy, composable, context-aware.
-            Push-based with backpressure. 40+ plugin ecosystem.
+            ReactiveX streams. Observable → operators → Observer. Lazy,
+            composable, context-aware. Push-based with backpressure. 40+ plugin
+            ecosystem.
           </p>
           <p style="margin-top: 8px">
             <strong>Pattern:</strong> Reactive Streams (Rx)<br />
@@ -545,9 +557,9 @@
       <h3>❌ dispatcher/ — NO FIT</h3>
 
       <p>
-        Our <code>dispatcher/</code> is a synchronous handler lookup: register by type name,
-        dispatch, get result. samber/ro is async push-based streams. These are completely different
-        patterns.
+        Our <code>dispatcher/</code> is a synchronous handler lookup: register
+        by type name, dispatch, get result. samber/ro is async push-based
+        streams. These are completely different patterns.
       </p>
 
       <table>
@@ -579,8 +591,8 @@
 
       <div class="callout">
         <p>
-          <strong>Verdict:</strong> Keep <code>dispatcher/</code> as-is. It's 247 lines of focused
-          handler registry code. ro doesn't replace it.
+          <strong>Verdict:</strong> Keep <code>dispatcher/</code> as-is. It's
+          247 lines of focused handler registry code. ro doesn't replace it.
         </p>
       </div>
 
@@ -588,7 +600,8 @@
 
       <p>
         Our <code>bus/</code> is conceptually a <code>Subject[Event]</code>.
-        <code>MemoryBus</code> is a hand-rolled <code>PublishSubject</code>. The mapping is direct:
+        <code>MemoryBus</code> is a hand-rolled <code>PublishSubject</code>. The
+        mapping is direct:
       </p>
 
       <table>
@@ -631,14 +644,15 @@
       <div class="callout green">
         <p>
           <strong>What we gain:</strong><br />
-          <strong>BehaviorSubject</strong> — new subscribers get the last event (projection catch-up
-          for free)<br />
-          <strong>ReplaySubject</strong> — new subscribers get last N events (replaces manual
-          journal replay)<br />
-          <strong>Operators</strong> — Filter, Map, Scan, Retry, Timeout replace hand-written
-          middleware<br />
+          <strong>BehaviorSubject</strong> — new subscribers get the last event
+          (projection catch-up for free)<br />
+          <strong>ReplaySubject</strong> — new subscribers get last N events
+          (replaces manual journal replay)<br />
+          <strong>Operators</strong> — Filter, Map, Scan, Retry, Timeout replace
+          hand-written middleware<br />
           <strong>Context propagation</strong> — built-in, not bolted on<br />
-          <strong>Backpressure</strong> — natural flow control instead of unbounded channels<br />
+          <strong>Backpressure</strong> — natural flow control instead of
+          unbounded channels<br />
           <strong>Composability</strong> —
           <code>ro.Pipe(source, filter, retry, map, subscribe)</code> instead of
           <code>bus.Use(a); bus.Use(b); bus.Use(c)</code>
@@ -658,14 +672,21 @@
         <tbody>
           <tr>
             <td>Type-based subscription</td>
-            <td>ro has no built-in "subscribe by event type" — it's just <code>Filter</code></td>
-            <td>Wrap as a convenience: <code>SubscribeType(observable, "UserCreated")</code></td>
+            <td>
+              ro has no built-in "subscribe by event type" — it's just
+              <code>Filter</code>
+            </td>
+            <td>
+              Wrap as a convenience:
+              <code>SubscribeType(observable, "UserCreated")</code>
+            </td>
           </tr>
           <tr>
             <td>Ordered delivery</td>
             <td>ro's Merge is non-deterministic ordering</td>
             <td>
-              Use <code>Concat</code> for ordered, or single-subject for per-aggregate ordering
+              Use <code>Concat</code> for ordered, or single-subject for
+              per-aggregate ordering
             </td>
           </tr>
           <tr>
@@ -676,16 +697,21 @@
           <tr>
             <td>Existing middleware</td>
             <td>
-              <code>middleware/</code> has 8 event middlewares that wrap <code>event.Handler</code>
+              <code>middleware/</code> has 8 event middlewares that wrap
+              <code>event.Handler</code>
             </td>
             <td>
-              Rewrite as ro operators (or keep our Bus interface, use ro as MemoryBus impl only)
+              Rewrite as ro operators (or keep our Bus interface, use ro as
+              MemoryBus impl only)
             </td>
           </tr>
           <tr>
             <td>External dependency</td>
             <td>ro is a large dependency for what might be a thin wrapper</td>
-            <td>Accept it (we already depend on otel, watermill, etc.) or cherry-pick patterns</td>
+            <td>
+              Accept it (we already depend on otel, watermill, etc.) or
+              cherry-pick patterns
+            </td>
           </tr>
         </tbody>
       </table>
@@ -715,10 +741,11 @@ sub := userEvents.Subscribe(ro.NewObserver(
 ))</pre>
 
       <p style="margin-top: 16px">
-        <strong>Pros:</strong> Maximum power. Operators replace middleware. ReplaySubject for
-        projection catch-up.<br />
-        <strong>Cons:</strong> Rewrites <code>middleware/</code>, <code>outbox/</code>,
-        <code>projection/</code>, <code>memory/</code>. Large ro dependency in core.
+        <strong>Pros:</strong> Maximum power. Operators replace middleware.
+        ReplaySubject for projection catch-up.<br />
+        <strong>Cons:</strong> Rewrites <code>middleware/</code>,
+        <code>outbox/</code>, <code>projection/</code>, <code>memory/</code>.
+        Large ro dependency in core.
       </p>
 
       <h3>Option B: Use ro as the MemoryBus implementation only</h3>
@@ -735,9 +762,10 @@ sub := userEvents.Subscribe(ro.NewObserver(
 }</pre>
 
       <p style="margin-top: 16px">
-        <strong>Pros:</strong> Minimal blast radius. Bus interface unchanged. ro is an
-        implementation detail in <code>memory/</code> only.<br />
-        <strong>Cons:</strong> Doesn't unlock operators for consumers. ro restricted to test code.
+        <strong>Pros:</strong> Minimal blast radius. Bus interface unchanged. ro
+        is an implementation detail in <code>memory/</code> only.<br />
+        <strong>Cons:</strong> Doesn't unlock operators for consumers. ro
+        restricted to test code.
       </p>
 
       <h3>Option C: Cherry-pick patterns, don't import ro</h3>
@@ -754,8 +782,10 @@ sub := userEvents.Subscribe(ro.NewObserver(
 <span class="keyword">func</span> (s *Subject[T]) Subscribe(ob Observer[T]) Subscription { <span class="comment">/* register */</span> }</pre>
 
       <p style="margin-top: 16px">
-        <strong>Pros:</strong> Zero dependencies. Exactly the API we need. Small surface.<br />
-        <strong>Cons:</strong> Reinventing the wheel. Miss the operator ecosystem.
+        <strong>Pros:</strong> Zero dependencies. Exactly the API we need. Small
+        surface.<br />
+        <strong>Cons:</strong> Reinventing the wheel. Miss the operator
+        ecosystem.
       </p>
     </section>
 
@@ -766,7 +796,8 @@ sub := userEvents.Subscribe(ro.NewObserver(
 
       <h3>dispatcher/ — unchanged</h3>
       <p>
-        Becomes a peer-level module. Not affected by ro. It's a sync handler registry, not a stream.
+        Becomes a peer-level module. Not affected by ro. It's a sync handler
+        registry, not a stream.
       </p>
 
       <h3>bus/ — depends on approach</h3>
@@ -833,9 +864,11 @@ sub := userEvents.Subscribe(ro.NewObserver(
 
       <div class="callout amber">
         <p>
-          <strong>Recommendation:</strong> Start with <strong>Option B</strong> (ro as MemoryBus
-          impl). It validates the fit with zero blast radius. If it works well, promote to Option A
-          in a separate proposal. The core/ dissolution shouldn't be blocked on this decision.
+          <strong>Recommendation:</strong> Start with
+          <strong>Option B</strong> (ro as MemoryBus impl). It validates the fit
+          with zero blast radius. If it works well, promote to Option A in a
+          separate proposal. The core/ dissolution shouldn't be blocked on this
+          decision.
         </p>
       </div>
     </section>
@@ -856,8 +889,13 @@ sub := userEvents.Subscribe(ro.NewObserver(
         <tbody>
           <tr>
             <td>1</td>
-            <td>Is ro's performance acceptable for high-throughput event streams?</td>
-            <td>Observable has overhead (goroutines, channels). Benchmark against MemoryBus.</td>
+            <td>
+              Is ro's performance acceptable for high-throughput event streams?
+            </td>
+            <td>
+              Observable has overhead (goroutines, channels). Benchmark against
+              MemoryBus.
+            </td>
           </tr>
           <tr>
             <td>2</td>
@@ -868,30 +906,46 @@ sub := userEvents.Subscribe(ro.NewObserver(
             <td>3</td>
             <td>Should command dispatch also be stream-based?</td>
             <td>
-              Could <code>Dispatch</code> return <code>Observable[Result]</code>? Async command
-              handling?
+              Could <code>Dispatch</code> return
+              <code>Observable[Result]</code>? Async command handling?
             </td>
           </tr>
           <tr>
             <td>4</td>
             <td>How does Scan (fold over observable) interact with decider?</td>
-            <td>Could a live Observable + Scan replace the load-fold-execute cycle?</td>
+            <td>
+              Could a live Observable + Scan replace the load-fold-execute
+              cycle?
+            </td>
           </tr>
           <tr>
             <td>5</td>
-            <td>Does ro's ReplaySubject make <code>SeekableJournal</code> redundant?</td>
-            <td>ReplaySubject replays last N events from memory. But journal is persistent.</td>
+            <td>
+              Does ro's ReplaySubject make
+              <code>SeekableJournal</code> redundant?
+            </td>
+            <td>
+              ReplaySubject replays last N events from memory. But journal is
+              persistent.
+            </td>
           </tr>
           <tr>
             <td>6</td>
-            <td>Is the ro dependency acceptable for a library that claims "minimal core deps"?</td>
-            <td>ro depends only on stdlib. But it's a large API surface to expose.</td>
+            <td>
+              Is the ro dependency acceptable for a library that claims "minimal
+              core deps"?
+            </td>
+            <td>
+              ro depends only on stdlib. But it's a large API surface to expose.
+            </td>
           </tr>
         </tbody>
       </table>
     </section>
 
     <!-- ════════ FOOTER ════════ -->
-    <footer class="footer">go-cqrs-lite · samber/ro research · 2026-05-29</footer>
+    <footer class="footer">
+      go-cqrs-lite · samber/ro research · 2026-05-29
+    </footer>
   </body>
 </html>

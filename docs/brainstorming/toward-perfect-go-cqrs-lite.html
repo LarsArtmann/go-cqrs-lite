@@ -89,7 +89,9 @@
       .page {
         display: grid;
         grid-template-columns: var(--sidebar-width) 1fr;
-        max-width: calc(var(--sidebar-width) + var(--max-width) + var(--gutter) * 2);
+        max-width: calc(
+          var(--sidebar-width) + var(--max-width) + var(--gutter) * 2
+        );
         margin: 0 auto;
         min-height: 100vh;
       }
@@ -700,9 +702,9 @@
         <section class="hero">
           <h1>Toward Perfect</h1>
           <p class="lead">
-            A candid architectural assessment of <code>go-cqrs-lite</code> — celebrating what is
-            already excellent, exposing the remaining gaps, and mapping a concrete path to the
-            ideal.
+            A candid architectural assessment of <code>go-cqrs-lite</code> —
+            celebrating what is already excellent, exposing the remaining gaps,
+            and mapping a concrete path to the ideal.
           </p>
 
           <div class="summary-grid">
@@ -732,9 +734,9 @@
         <section id="current">
           <h2><span class="section-num">01</span>What We Have</h2>
           <p>
-            v2.1.0 is a genuinely strong release. The following areas are already at or near
-            production-grade trustworthiness. These should be preserved and used as the quality
-            benchmark for everything else.
+            v2.1.0 is a genuinely strong release. The following areas are
+            already at or near production-grade trustworthiness. These should be
+            preserved and used as the quality benchmark for everything else.
           </p>
 
           <div class="table-wrap">
@@ -750,90 +752,98 @@
                 <tr>
                   <td><code>event/</code></td>
                   <td>
-                    Immutable events, 19 functional options, strong error taxonomy, lazy allocation,
-                    clock injection, defensive copies.
+                    Immutable events, 19 functional options, strong error
+                    taxonomy, lazy allocation, clock injection, defensive
+                    copies.
                   </td>
                   <td><span class="tag tag-done">Done</span></td>
                 </tr>
                 <tr>
                   <td><code>id/</code></td>
                   <td>
-                    Branded ULIDs with compile-time safety, full serialization support, 97.8%
-                    coverage.
+                    Branded ULIDs with compile-time safety, full serialization
+                    support, 97.8% coverage.
                   </td>
                   <td><span class="tag tag-done">Done</span></td>
                 </tr>
                 <tr>
                   <td><code>command/</code> &amp; <code>query/</code></td>
                   <td>
-                    Typed handlers, middleware chains, lifecycle, metadata, catalog introspection.
-                    100% / 94% coverage.
+                    Typed handlers, middleware chains, lifecycle, metadata,
+                    catalog introspection. 100% / 94% coverage.
                   </td>
                   <td><span class="tag tag-done">Done</span></td>
                 </tr>
                 <tr>
                   <td><code>decider/</code></td>
                   <td>
-                    Pure-function aggregates, snapshot/time-travel support, fully deterministic.
-                    100% coverage.
+                    Pure-function aggregates, snapshot/time-travel support,
+                    fully deterministic. 100% coverage.
                   </td>
                   <td><span class="tag tag-done">Done</span></td>
                 </tr>
                 <tr>
                   <td><code>middleware/</code></td>
                   <td>
-                    8 concerns × 3 message types = 24 middleware factories. Circuit breaker, retry,
-                    tracing, metrics, logging, validation, recovery.
+                    8 concerns × 3 message types = 24 middleware factories.
+                    Circuit breaker, retry, tracing, metrics, logging,
+                    validation, recovery.
                   </td>
                   <td><span class="tag tag-done">Done</span></td>
                 </tr>
                 <tr>
                   <td><code>signing/</code></td>
-                  <td>HMAC + Ed25519 + multisig, canonical encoding, zero external crypto deps.</td>
+                  <td>
+                    HMAC + Ed25519 + multisig, canonical encoding, zero external
+                    crypto deps.
+                  </td>
                   <td><span class="tag tag-done">Done</span></td>
                 </tr>
                 <tr>
                   <td><code>catalog/</code></td>
                   <td>
-                    Auto-docs: AsyncAPI, OpenAPI, EventCatalog MDX, D2 diagrams, docserver with
-                    Scalar + AsyncAPI React.
+                    Auto-docs: AsyncAPI, OpenAPI, EventCatalog MDX, D2 diagrams,
+                    docserver with Scalar + AsyncAPI React.
                   </td>
                   <td><span class="tag tag-done">Done</span></td>
                 </tr>
                 <tr>
                   <td><code>projection/</code></td>
                   <td>
-                    Replay + live runner, checkpointing, DLQ, replay context markers, graceful
-                    close. 95%+ coverage.
+                    Replay + live runner, checkpointing, DLQ, replay context
+                    markers, graceful close. 95%+ coverage.
                   </td>
                   <td><span class="tag tag-done">Done</span></td>
                 </tr>
                 <tr>
                   <td><code>listing/</code></td>
                   <td>
-                    Aggregate listing with tombstone detection, cursor pagination, SQL + in-memory
-                    readers, cache invalidation.
+                    Aggregate listing with tombstone detection, cursor
+                    pagination, SQL + in-memory readers, cache invalidation.
                   </td>
                   <td><span class="tag tag-done">Done</span></td>
                 </tr>
                 <tr>
                   <td><code>storage/</code></td>
                   <td>
-                    PostgreSQL + SQLite + Turso, optimistic concurrency, time-travel, snapshots,
-                    checkpoints, dialect abstraction.
+                    PostgreSQL + SQLite + Turso, optimistic concurrency,
+                    time-travel, snapshots, checkpoints, dialect abstraction.
                   </td>
                   <td><span class="tag tag-done">Done</span></td>
                 </tr>
                 <tr>
                   <td><code>memory/</code></td>
-                  <td>Reference in-memory implementations for testing. 99.6% coverage.</td>
+                  <td>
+                    Reference in-memory implementations for testing. 99.6%
+                    coverage.
+                  </td>
                   <td><span class="tag tag-done">Done</span></td>
                 </tr>
                 <tr>
                   <td><code>otel/</code></td>
                   <td>
-                    Shared OpenTelemetry helpers across modules. Clean abstraction over raw OTel
-                    SDK.
+                    Shared OpenTelemetry helpers across modules. Clean
+                    abstraction over raw OTel SDK.
                   </td>
                   <td><span class="tag tag-done">Done</span></td>
                 </tr>
@@ -843,16 +853,19 @@
 
           <div class="callout">
             <p>
-              <strong>Core insight.</strong> The hard parts are solved. Event model, identity,
-              dispatch, projections, storage backends, docs generation, and middleware are all
-              credible, tested, and composable. The remaining work is mostly
+              <strong>Core insight.</strong> The hard parts are solved. Event
+              model, identity, dispatch, projections, storage backends, docs
+              generation, and middleware are all credible, tested, and
+              composable. The remaining work is mostly
               <em>connective tissue</em> and <em>production hardening</em>.
             </p>
           </div>
         </section>
 
         <section id="gaps">
-          <h2><span class="section-num">02</span>Where We Are Not Yet Perfect</h2>
+          <h2>
+            <span class="section-num">02</span>Where We Are Not Yet Perfect
+          </h2>
 
           <div class="table-wrap">
             <table>
@@ -868,32 +881,33 @@
                   <td>No generic read-model store</td>
                   <td><span class="tag tag-missing">High</span></td>
                   <td>
-                    Every projection writes its own SQL. No typed read-model store abstraction
-                    between <code>projection/</code> and <code>query/</code>.
+                    Every projection writes its own SQL. No typed read-model
+                    store abstraction between <code>projection/</code> and
+                    <code>query/</code>.
                   </td>
                 </tr>
                 <tr>
                   <td>SQL storage lacks <code>Journal</code></td>
                   <td><span class="tag tag-gap">Medium</span></td>
                   <td>
-                    Cross-aggregate replay from SQL requires table-scan workarounds instead of
-                    native <code>ReadAll/ReadFrom</code>.
+                    Cross-aggregate replay from SQL requires table-scan
+                    workarounds instead of native <code>ReadAll/ReadFrom</code>.
                   </td>
                 </tr>
                 <tr>
                   <td>Pebble gaps</td>
                   <td><span class="tag tag-gap">Medium</span></td>
                   <td>
-                    No <code>BackwardsSource</code> or <code>StreamLoader</code>; limits parity with
-                    SQL/memory.
+                    No <code>BackwardsSource</code> or
+                    <code>StreamLoader</code>; limits parity with SQL/memory.
                   </td>
                 </tr>
                 <tr>
                   <td>Turso coverage 29%</td>
                   <td><span class="tag tag-gap">Medium</span></td>
                   <td>
-                    Remote sync (Push/Pull/Checkpoint) is effectively untested. Consumers cannot
-                    trust it in production.
+                    Remote sync (Push/Pull/Checkpoint) is effectively untested.
+                    Consumers cannot trust it in production.
                   </td>
                 </tr>
                 <tr>
@@ -901,41 +915,43 @@
                   <td><span class="tag tag-gap">Medium</span></td>
                   <td>
                     The outbox was removed (YAGNI). Crash recovery uses
-                    <code>SeekableJournal + CheckpointStore</code>, but every consumer hand-rolls
-                    the tail → publish → checkpoint loop. A <code>Relay</code> component would close
-                    this gap without reintroducing an outbox table.
+                    <code>SeekableJournal + CheckpointStore</code>, but every
+                    consumer hand-rolls the tail → publish → checkpoint loop. A
+                    <code>Relay</code> component would close this gap without
+                    reintroducing an outbox table.
                   </td>
                 </tr>
                 <tr>
                   <td>No schema registry middleware</td>
                   <td><span class="tag tag-gap">Medium</span></td>
                   <td>
-                    Consumers can upcast on load, but cannot enforce schema compatibility at publish
-                    time.
+                    Consumers can upcast on load, but cannot enforce schema
+                    compatibility at publish time.
                   </td>
                 </tr>
                 <tr>
                   <td>Test utilities are thin</td>
                   <td><span class="tag tag-gap">Medium</span></td>
                   <td>
-                    No fluent <code>AggregateTester</code>, <code>ProjectionTester</code>, or
-                    <code>BusTester</code>. Every consumer hand-rolls setup.
+                    No fluent <code>AggregateTester</code>,
+                    <code>ProjectionTester</code>, or <code>BusTester</code>.
+                    Every consumer hand-rolls setup.
                   </td>
                 </tr>
                 <tr>
                   <td>BuildFlow pre-commit hook broken</td>
                   <td><span class="tag tag-gap">Low</span></td>
                   <td>
-                    Requires <code>--no-verify</code>. Annoying, not blocking, but erodes
-                    contributor trust.
+                    Requires <code>--no-verify</code>. Annoying, not blocking,
+                    but erodes contributor trust.
                   </td>
                 </tr>
                 <tr>
                   <td>Catalog lint issues (7)</td>
                   <td><span class="tag tag-gap">Low</span></td>
                   <td>
-                    Pre-existing; not correctness issues, but they stain an otherwise zero-lint
-                    codebase.
+                    Pre-existing; not correctness issues, but they stain an
+                    otherwise zero-lint codebase.
                   </td>
                 </tr>
               </tbody>
@@ -944,56 +960,61 @@
         </section>
 
         <section id="vision">
-          <h2><span class="section-num">03</span>Vision of the Perfect State</h2>
+          <h2>
+            <span class="section-num">03</span>Vision of the Perfect State
+          </h2>
           <p>
-            A perfect <code>go-cqrs-lite</code> would mean any team can build a production CQRS
-            system by composing modules without writing infrastructure glue. The library would
-            handle the <em>boring, risky</em> parts: persistence, schema evolution, observability,
-            caching, and resilience.
+            A perfect <code>go-cqrs-lite</code> would mean any team can build a
+            production CQRS system by composing modules without writing
+            infrastructure glue. The library would handle the
+            <em>boring, risky</em> parts: persistence, schema evolution,
+            observability, caching, and resilience.
           </p>
 
           <div class="two-col">
             <div class="feature-card">
               <h4>Type-safe everything</h4>
               <p>
-                No <code>any</code> in public APIs. Branded IDs, generic stores, generic
-                projections, generic queries. The compiler prevents mixing IDs and payloads.
+                No <code>any</code> in public APIs. Branded IDs, generic stores,
+                generic projections, generic queries. The compiler prevents
+                mixing IDs and payloads.
               </p>
             </div>
             <div class="feature-card">
               <h4>Observable by default</h4>
               <p>
-                Every store, bus, dispatcher, projection, and query handler emits OTel traces and
-                metrics. Zero config means zero telemetry.
+                Every store, bus, dispatcher, projection, and query handler
+                emits OTel traces and metrics. Zero config means zero telemetry.
               </p>
             </div>
             <div class="feature-card">
               <h4>Resilient by default</h4>
               <p>
-                Crash recovery via <code>SeekableJournal + CheckpointStore</code> guarantees
-                at-least-once delivery without an outbox table. Retries, circuit breakers, and DLQ
-                are opt-out, not opt-in.
+                Crash recovery via
+                <code>SeekableJournal + CheckpointStore</code> guarantees
+                at-least-once delivery without an outbox table. Retries, circuit
+                breakers, and DLQ are opt-out, not opt-in.
               </p>
             </div>
             <div class="feature-card">
               <h4>Schema-aware</h4>
               <p>
-                Publish-time validation against a registry. Versioned read models. Upcasters migrate
-                both event and projection schemas.
+                Publish-time validation against a registry. Versioned read
+                models. Upcasters migrate both event and projection schemas.
               </p>
             </div>
             <div class="feature-card">
               <h4>Testable without mocks</h4>
               <p>
-                High-level test utilities let consumers write Given-When-Then specs against real
-                in-memory infrastructure.
+                High-level test utilities let consumers write Given-When-Then
+                specs against real in-memory infrastructure.
               </p>
             </div>
             <div class="feature-card">
               <h4>Modular acyclic graph</h4>
               <p>
-                No module depends on more than it needs. Consumers import only what they use. No
-                replace-directive tangles.
+                No module depends on more than it needs. Consumers import only
+                what they use. No replace-directive tangles.
               </p>
             </div>
           </div>
@@ -1008,10 +1029,11 @@
               <h4>Add a typed <code>readmodel/</code> store module</h4>
               <p>
                 This is the highest-impact missing piece. It sits between
-                <code>projection/</code> (writes read models) and <code>query/</code> (reads them).
-                A generic <code>Store[K,V]</code> — the common denominator across KV, SQL, and
-                document backends — with cursor pagination, optimistic concurrency, cache decorator,
-                and OTel.
+                <code>projection/</code> (writes read models) and
+                <code>query/</code> (reads them). A generic
+                <code>Store[K,V]</code> — the common denominator across KV, SQL,
+                and document backends — with cursor pagination, optimistic
+                concurrency, cache decorator, and OTel.
               </p>
               <div class="phase-progress"><span data-width="0"></span></div>
             </div>
@@ -1023,9 +1045,10 @@
               <h4>Complete SQL <code>Journal</code> and Pebble parity</h4>
               <p>
                 SQL storage should implement <code>event.Journal</code> and
-                <code>event.SeekableJournal</code> natively. Pebble should implement
-                <code>BackwardsSource</code> and <code>StreamLoader</code>. All three backends
-                should pass a shared contract test suite.
+                <code>event.SeekableJournal</code> natively. Pebble should
+                implement <code>BackwardsSource</code> and
+                <code>StreamLoader</code>. All three backends should pass a
+                shared contract test suite.
               </p>
               <div class="phase-progress"><span data-width="10"></span></div>
             </div>
@@ -1037,9 +1060,10 @@
               <h4>Add a reusable <code>Relay</code> component</h4>
               <p>
                 The outbox was removed because
-                <code>SeekableJournal + CheckpointStore</code> already solves crash recovery. But
-                consumers still hand-write the "tail journal, publish, save checkpoint" loop. A
-                library-provided <code>Relay</code> would close this gap without reintroducing an
+                <code>SeekableJournal + CheckpointStore</code> already solves
+                crash recovery. But consumers still hand-write the "tail
+                journal, publish, save checkpoint" loop. A library-provided
+                <code>Relay</code> would close this gap without reintroducing an
                 outbox table or crossing the library/framework boundary.
               </p>
               <div class="phase-progress"><span data-width="10"></span></div>
@@ -1051,9 +1075,10 @@
             <div class="phase-body">
               <h4>Production-harden Turso</h4>
               <p>
-                Add integration tests for Push/Pull/Checkpoint against a local libSQL replica or
-                testcontainer. Document sync semantics, conflict resolution, and offline-first
-                guarantees. Target 80%+ coverage.
+                Add integration tests for Push/Pull/Checkpoint against a local
+                libSQL replica or testcontainer. Document sync semantics,
+                conflict resolution, and offline-first guarantees. Target 80%+
+                coverage.
               </p>
               <div class="phase-progress"><span data-width="35"></span></div>
             </div>
@@ -1064,9 +1089,9 @@
             <div class="phase-body">
               <h4>Add schema registry middleware</h4>
               <p>
-                A publish-side middleware that validates event payloads against the catalog JSON
-                schema. Prevents incompatible events from ever reaching the bus. Complements the
-                existing load-time upcaster.
+                A publish-side middleware that validates event payloads against
+                the catalog JSON schema. Prevents incompatible events from ever
+                reaching the bus. Complements the existing load-time upcaster.
               </p>
               <div class="phase-progress"><span data-width="50"></span></div>
             </div>
@@ -1077,9 +1102,10 @@
             <div class="phase-body">
               <h4>Build <code>testing/</code> fluent utilities</h4>
               <p>
-                <code>AggregateTester</code>, <code>ProjectionTester</code>, <code>BusTester</code>,
-                and <code>StoreContractSuite</code> so consumers write BDD-style tests without
-                boilerplate. This is the missing DX layer.
+                <code>AggregateTester</code>, <code>ProjectionTester</code>,
+                <code>BusTester</code>, and <code>StoreContractSuite</code> so
+                consumers write BDD-style tests without boilerplate. This is the
+                missing DX layer.
               </p>
               <div class="phase-progress"><span data-width="60"></span></div>
             </div>
@@ -1090,9 +1116,10 @@
             <div class="phase-body">
               <h4>Polish developer experience</h4>
               <p>
-                Fix BuildFlow pre-commit, eliminate catalog lint issues, add a dedicated "getting
-                started" example that uses command dispatch → decider → event store → projection →
-                query end-to-end. Make onboarding 15 minutes, not 2 hours.
+                Fix BuildFlow pre-commit, eliminate catalog lint issues, add a
+                dedicated "getting started" example that uses command dispatch →
+                decider → event store → projection → query end-to-end. Make
+                onboarding 15 minutes, not 2 hours.
               </p>
               <div class="phase-progress"><span data-width="80"></span></div>
             </div>
@@ -1107,13 +1134,14 @@
           <p>
             The core insight:
             <strong
-              >KV backends are great at <code>Get</code>/<code>Put</code>, terrible at
-              <code>List</code>. SQL backends are great at <code>List</code>, okay at
+              >KV backends are great at <code>Get</code>/<code>Put</code>,
+              terrible at <code>List</code>. SQL backends are great at
+              <code>List</code>, okay at
               <code>Get</code>/<code>Put</code>.</strong
             >
-            The interface doesn't pretend these are equivalent. Each backend is a separate package
-            with its own constructor. A detector suggests what's available in your environment — it
-            never forces a choice.
+            The interface doesn't pretend these are equivalent. Each backend is
+            a separate package with its own constructor. A detector suggests
+            what's available in your environment — it never forces a choice.
           </p>
 
           <pre><code><span class="hl-comment">// readmodel/store.go — the interface everything implements</span>
@@ -1221,16 +1249,24 @@
             </table>
           </div>
 
-          <p style="font-size: 0.85rem; color: var(--text-tertiary); margin-top: -1rem">
-            <sup>*</sup> Scylla <code>List</code> uses <code>token(key)</code> pagination — order is
-            not lexicographic, but deterministic.
+          <p
+            style="
+              font-size: 0.85rem;
+              color: var(--text-tertiary);
+              margin-top: -1rem;
+            "
+          >
+            <sup>*</sup> Scylla <code>List</code> uses
+            <code>token(key)</code> pagination — order is not lexicographic, but
+            deterministic.
           </p>
 
           <h4>Smart Defaults — Detect What's Already There</h4>
 
           <p>
-            The factory doesn't guess — it detects what's <em>already running</em> in the
-            environment and uses it. No extra infrastructure to provision.
+            The factory doesn't guess — it detects what's
+            <em>already running</em> in the environment and uses it. No extra
+            infrastructure to provision.
           </p>
 
           <pre><code><span class="hl-comment">// OpenAuto: detects what's already available, zero config</span>
@@ -1266,7 +1302,10 @@ store, err := readmodel.<span class="hl-func">Open</span>[UserID, UserSummary](r
                   <td>Kubernetes</td>
                   <td><code>KUBERNETES_SERVICE_HOST</code></td>
                   <td><strong>etcd</strong></td>
-                  <td>Already running in-cluster, distributed, consistent, no extra infra</td>
+                  <td>
+                    Already running in-cluster, distributed, consistent, no
+                    extra infra
+                  </td>
                 </tr>
                 <tr>
                   <td>AWS Lambda</td>
@@ -1301,7 +1340,9 @@ store, err := readmodel.<span class="hl-func">Open</span>[UserID, UserSummary](r
                 <tr>
                   <td>Bare metal / VM</td>
                   <td>None of the above</td>
-                  <td><strong>PostgreSQL</strong> or <strong>Scylla</strong></td>
+                  <td>
+                    <strong>PostgreSQL</strong> or <strong>Scylla</strong>
+                  </td>
                   <td>Production-grade, operator-managed</td>
                 </tr>
               </tbody>
@@ -1337,23 +1378,25 @@ source := readmodel.<span class="hl-func">NewCachedSource</span>[UserID, UserSum
             </li>
             <li>
               <strong>Honest capabilities:</strong> Every backend exposes
-              <code>Capabilities()</code> — no pretending Pebble <code>List</code> is cheap.
+              <code>Capabilities()</code> — no pretending Pebble
+              <code>List</code> is cheap.
             </li>
             <li>
-              <strong>Smart defaults:</strong> <code>OpenAuto</code> detects environment.
-              <code>Open</code> warns on workload mismatch.
+              <strong>Smart defaults:</strong> <code>OpenAuto</code> detects
+              environment. <code>Open</code> warns on workload mismatch.
             </li>
             <li>
-              <strong>Composable:</strong> Write-through, tiered, and cached decorators wrap any
-              concrete store.
+              <strong>Composable:</strong> Write-through, tiered, and cached
+              decorators wrap any concrete store.
             </li>
             <li>
-              <strong>Dependencies:</strong> <code>event</code>, <code>id</code>,
-              <code>codec</code>, <code>otel</code> only. No coupling to <code>projection</code> or
-              <code>query</code>.
+              <strong>Dependencies:</strong> <code>event</code>,
+              <code>id</code>, <code>codec</code>, <code>otel</code> only. No
+              coupling to <code>projection</code> or <code>query</code>.
             </li>
             <li>
-              <strong>Quality gate:</strong> ≥90% coverage, BDD suite, benchmarks per backend.
+              <strong>Quality gate:</strong> ≥90% coverage, BDD suite,
+              benchmarks per backend.
             </li>
           </ul>
 
@@ -1371,20 +1414,22 @@ source := readmodel.<span class="hl-func">NewCachedSource</span>[UserID, UserSum
 
           <ul class="plain">
             <li>
-              Replaces the outbox pattern without a secondary table. Uses the event store's own
-              journal.
+              Replaces the outbox pattern without a secondary table. Uses the
+              event store's own journal.
             </li>
             <li>
-              Reads from <code>SeekableJournal.ReadFrom(checkpoint)</code>, publishes to bus, saves
-              checkpoint atomically.
+              Reads from <code>SeekableJournal.ReadFrom(checkpoint)</code>,
+              publishes to bus, saves checkpoint atomically.
             </li>
             <li>
-              Composable: consumers opt into it, not forced by the framework. Pure library building
-              block.
+              Composable: consumers opt into it, not forced by the framework.
+              Pure library building block.
             </li>
           </ul>
 
-          <h3><code>schema/registry/</code> — Publish-Time Schema Validation</h3>
+          <h3>
+            <code>schema/registry/</code> — Publish-Time Schema Validation
+          </h3>
 
           <pre><code><span class="hl-comment">// registry/registry.go</span>
 <span class="hl-kw">type</span> <span class="hl-type">Registry</span> <span class="hl-kw">struct</span> { <span class="hl-comment">/* JSON schemas by (eventType, version) */</span> }
@@ -1393,10 +1438,12 @@ source := readmodel.<span class="hl-func">NewCachedSource</span>[UserID, UserSum
 <span class="hl-kw">func</span> <span class="hl-func">ValidationMiddleware</span>(r *<span class="hl-type">Registry</span>) <span class="hl-type">event.PublishMiddleware</span></code></pre>
 
           <ul class="plain">
-            <li>Reuses <code>catalog.SchemaFromType[T]()</code> to build schemas.</li>
             <li>
-              Prevents producer/consumer drift. Complements <code>schema.Upcaster</code> (load-time
-              migration).
+              Reuses <code>catalog.SchemaFromType[T]()</code> to build schemas.
+            </li>
+            <li>
+              Prevents producer/consumer drift. Complements
+              <code>schema.Upcaster</code> (load-time migration).
             </li>
           </ul>
 
@@ -1424,10 +1471,13 @@ source := readmodel.<span class="hl-func">NewCachedSource</span>[UserID, UserSum
 
           <ul class="plain">
             <li>
-              High-level BDD helpers for the three things every consumer tests: aggregates,
-              projections, and commands/events.
+              High-level BDD helpers for the three things every consumer tests:
+              aggregates, projections, and commands/events.
             </li>
-            <li>Works with real <code>memory</code> implementations — no mocks required.</li>
+            <li>
+              Works with real <code>memory</code> implementations — no mocks
+              required.
+            </li>
           </ul>
         </section>
 
@@ -1442,12 +1492,15 @@ source := readmodel.<span class="hl-func">NewCachedSource</span>[UserID, UserSum
             <span class="layer"
               ><span class="layer-lvl">Layer 1:</span>
               <span class="layer-mod"
-                >event/ (id, codec), command/ (id, dispatcher), query/ (dispatcher)</span
+                >event/ (id, codec), command/ (id, dispatcher), query/
+                (dispatcher)</span
               ></span
             >
             <span class="layer"
               ><span class="layer-lvl">Layer 2:</span>
-              <span class="layer-mod">schema/ (event), snapshot/ (event)</span></span
+              <span class="layer-mod"
+                >schema/ (event), snapshot/ (event)</span
+              ></span
             >
             <span class="layer"
               ><span class="layer-lvl">Layer 3:</span>
@@ -1455,34 +1508,39 @@ source := readmodel.<span class="hl-func">NewCachedSource</span>[UserID, UserSum
             >
             <span class="layer"
               ><span class="layer-lvl">Layer 4:</span>
-              <span class="layer-mod">memory/, signing/, otel/, readmodel/</span></span
+              <span class="layer-mod"
+                >memory/, signing/, otel/, readmodel/</span
+              ></span
             >
             <span class="layer"
               ><span class="layer-lvl">Layer 5:</span>
               <span class="layer-mod"
-                >middleware/, storage/, projection/ (+readmodel), listing/ (+readmodel), watermill/,
-                pebble/, turso/, relay/</span
+                >middleware/, storage/, projection/ (+readmodel), listing/
+                (+readmodel), watermill/, pebble/, turso/, relay/</span
               ></span
             >
             <span class="layer"
               ><span class="layer-lvl">Layer 6:</span>
               <span class="layer-mod"
-                >integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, testing/,
-                registry/</span
+                >integration/, catalog/, examples/, cmd/cqrs-gen,
+                cmd/api-stability, testing/, registry/</span
               ></span
             >
           </div>
 
           <p>
-            The key addition is <code>readmodel/</code> at Layer 4 alongside <code>memory/</code>,
-            <code>signing/</code>, and <code>otel/</code>. It becomes the standard read-model
-            persistence contract, allowing <code>projection/</code>, <code>listing/</code>, and
-            consumers to write typed read models without touching SQL.
+            The key addition is <code>readmodel/</code> at Layer 4 alongside
+            <code>memory/</code>, <code>signing/</code>, and <code>otel/</code>.
+            It becomes the standard read-model persistence contract, allowing
+            <code>projection/</code>, <code>listing/</code>, and consumers to
+            write typed read models without touching SQL.
           </p>
         </section>
 
         <section id="principles">
-          <h2><span class="section-num">07</span>Decision Principles for New Work</h2>
+          <h2>
+            <span class="section-num">07</span>Decision Principles for New Work
+          </h2>
 
           <div class="table-wrap">
             <table>
@@ -1496,49 +1554,50 @@ source := readmodel.<span class="hl-func">NewCachedSource</span>[UserID, UserSum
                 <tr>
                   <td>Library, not framework</td>
                   <td>
-                    Never impose a transport, message broker, or SQL driver. Provide interfaces and
-                    reference implementations.
+                    Never impose a transport, message broker, or SQL driver.
+                    Provide interfaces and reference implementations.
                   </td>
                 </tr>
                 <tr>
                   <td>Zero <code>any</code> in public APIs</td>
                   <td>
-                    The only exception is database driver interop. Everything else is generic or
-                    strongly typed.
+                    The only exception is database driver interop. Everything
+                    else is generic or strongly typed.
                   </td>
                 </tr>
                 <tr>
                   <td>Composition over inheritance</td>
                   <td>
-                    Store decorators (cached, versioned, retrying) wrap inner stores. No base
-                    structs.
+                    Store decorators (cached, versioned, retrying) wrap inner
+                    stores. No base structs.
                   </td>
                 </tr>
                 <tr>
                   <td>Observability built-in</td>
                   <td>
-                    Every new module uses <code>otel/</code> for traces and metrics from day one.
+                    Every new module uses <code>otel/</code> for traces and
+                    metrics from day one.
                   </td>
                 </tr>
                 <tr>
                   <td>Tombstone over delete</td>
                   <td>
-                    Read models use <code>event.TombstoneStatus</code>; deletes are soft and
-                    reversible.
+                    Read models use <code>event.TombstoneStatus</code>; deletes
+                    are soft and reversible.
                   </td>
                 </tr>
                 <tr>
                   <td>Test like we mean it</td>
                   <td>
-                    ≥90% coverage, BDD suite, benchmarks, contract tests shared across
-                    implementations.
+                    ≥90% coverage, BDD suite, benchmarks, contract tests shared
+                    across implementations.
                   </td>
                 </tr>
                 <tr>
                   <td>Acyclic module graph</td>
                   <td>
-                    No lower-layer module may depend on a higher layer. Replace directives only for
-                    CI isolation.
+                    No lower-layer module may depend on a higher layer. Replace
+                    directives only for CI isolation.
                   </td>
                 </tr>
               </tbody>
@@ -1550,46 +1609,49 @@ source := readmodel.<span class="hl-func">NewCachedSource</span>[UserID, UserSum
           <h2><span class="section-num">08</span>Summary — What to Do Next</h2>
 
           <p>
-            If I had one quarter to move this project from "excellent" to "perfect," the order would
-            be:
+            If I had one quarter to move this project from "excellent" to
+            "perfect," the order would be:
           </p>
 
           <ol>
             <li>
-              <strong>Build <code>readmodel/</code></strong> — this is the biggest missing
-              capability and unlocks everything else.
+              <strong>Build <code>readmodel/</code></strong> — this is the
+              biggest missing capability and unlocks everything else.
             </li>
             <li>
-              <strong>Add <code>relay/</code></strong> — reusable crash-recovery component using
-              SeekableJournal + CheckpointStore, without an outbox table.
+              <strong>Add <code>relay/</code></strong> — reusable crash-recovery
+              component using SeekableJournal + CheckpointStore, without an
+              outbox table.
             </li>
             <li>
               <strong>Complete storage parity</strong> — SQL Journal, Pebble
               BackwardsSource/StreamLoader, shared contract tests.
             </li>
             <li>
-              <strong>Harden Turso</strong> — integration tests for sync semantics; target 80%
-              coverage.
+              <strong>Harden Turso</strong> — integration tests for sync
+              semantics; target 80% coverage.
             </li>
             <li>
-              <strong>Add registry middleware</strong> — publish-time schema validation to
-              complement upcasters.
+              <strong>Add registry middleware</strong> — publish-time schema
+              validation to complement upcasters.
             </li>
             <li>
-              <strong>Ship <code>testing/</code></strong> — fluent BDD utilities. This is the DX
-              multiplier.
+              <strong>Ship <code>testing/</code></strong> — fluent BDD
+              utilities. This is the DX multiplier.
             </li>
             <li>
-              <strong>Polish</strong> — fix BuildFlow, zero catalog lint, better onboarding example.
+              <strong>Polish</strong> — fix BuildFlow, zero catalog lint, better
+              onboarding example.
             </li>
           </ol>
 
           <div class="callout">
             <p>
-              <strong>Bottom line.</strong> go-cqrs-lite is already one of the most thoughtfully
-              architected Go CQRS libraries available. The remaining work is not about fixing
-              fundamental mistakes — it is about closing the last gaps so consumers can assemble a
-              complete, production-grade CQRS stack using only library modules, with zero
+              <strong>Bottom line.</strong> go-cqrs-lite is already one of the
+              most thoughtfully architected Go CQRS libraries available. The
+              remaining work is not about fixing fundamental mistakes — it is
+              about closing the last gaps so consumers can assemble a complete,
+              production-grade CQRS stack using only library modules, with zero
               hand-rolled infrastructure glue.
             </p>
           </div>
@@ -1614,9 +1676,11 @@ source := readmodel.<span class="hl-func">NewCachedSource</span>[UserID, UserSum
             entries.forEach((entry) => {
               if (entry.isIntersecting) {
                 entry.target.classList.add("visible");
-                entry.target.querySelectorAll(".phase-progress > span").forEach((bar) => {
-                  bar.style.width = bar.getAttribute("data-width") + "%";
-                });
+                entry.target
+                  .querySelectorAll(".phase-progress > span")
+                  .forEach((bar) => {
+                    bar.style.width = bar.getAttribute("data-width") + "%";
+                  });
                 navLinks.forEach((link) => {
                   link.classList.toggle(
                     "active",

@@ -52,15 +52,15 @@ Machine state at report time: load 9.3/32 cores (quiet), working tree clean
 
 1. **`nix run .#verify` gate** — 5 attempts, best run reached
    check-duplication (i.e. build+vet+test+race+lint all PASSED):
-   | Run | Failed at | Cause |
-   | --- | --- | --- |
-   | 1 | build (`cmd/cqrs-lint`) | neighbor session mid-edit (transient signature mismatch) |
-   | 2 | test (benchkit ×13) | load 75/32 — documented false-failure class |
-   | 3 | test (benchkit ×8) + link | load 33 + `/mnt/buildcache` 99% full (DuckDB CGo link ENOSPC) |
-   | 4 | lint (golines, doctor.go) | neighbor's long line — fixed, see a.6 |
-   | 5 | **check-duplication** | 9 new clone groups — MINE (the seq-seek code), real, being fixed |
-   Runs 4–5 prove test+race green for ALL modules including the new paths —
-   so `-race` coverage of memory/sqlite/system adapters is DONE via the gate.
+   | Run                                                                        | Failed at                 | Cause                                                            |
+   | -------------------------------------------------------------------------- | ------------------------- | ---------------------------------------------------------------- |
+   | 1                                                                          | build (`cmd/cqrs-lint`)   | neighbor session mid-edit (transient signature mismatch)         |
+   | 2                                                                          | test (benchkit ×13)       | load 75/32 — documented false-failure class                      |
+   | 3                                                                          | test (benchkit ×8) + link | load 33 + `/mnt/buildcache` 99% full (DuckDB CGo link ENOSPC)    |
+   | 4                                                                          | lint (golines, doctor.go) | neighbor's long line — fixed, see a.6                            |
+   | 5                                                                          | **check-duplication**     | 9 new clone groups — MINE (the seq-seek code), real, being fixed |
+   | Runs 4–5 prove test+race green for ALL modules including the new paths —   |                           |                                                                  |
+   | so `-race` coverage of memory/sqlite/system adapters is DONE via the gate. |                           |                                                                  |
 2. **Clone-group cleanup** — 5/9 resolved (bbolt×… badger↔bbolt cross ×3,
    pebble intra ×2 via the consolidation). Remaining 4:
    - `metaengine/memory_stream_log.go` ×2 (lock+seek boilerplate across the 4

@@ -8,12 +8,12 @@
 
 ## a) FULLY DONE
 
-| Check | Result |
-| --- | --- |
-| Done items remaining in TODO_LIST | **0** (from 42 → 0) |
-| Open items preserved | 70, all effort tags intact |
-| TODO_LIST size | 853 → 466 lines |
-| Work committed | Yes — daemon commits `068a152f2`, `c78a66c6f` |
+| Check                             | Result                                        |
+| --------------------------------- | --------------------------------------------- |
+| Done items remaining in TODO_LIST | **0** (from 42 → 0)                           |
+| Open items preserved              | 70, all effort tags intact                    |
+| TODO_LIST size                    | 853 → 466 lines                               |
+| Work committed                    | Yes — daemon commits `068a152f2`, `c78a66c6f` |
 
 1. **Verified every done item against CHANGELOG coverage before moving.**
    26 of 42 already had entries (byte-guard batching, Wave-3/4 IO wins, layout
@@ -76,8 +76,8 @@
    Caught by checking the section date — should have section-scoped the grep
    from the start.
 4. **The status report was printed inline instead of written to
-  `docs/status/` first** (corrected immediately after user callout — this
-  file).
+   `docs/status/` first** (corrected immediately after user callout — this
+   file).
 
 ## e) WHAT WE SHOULD IMPROVE
 
@@ -106,6 +106,7 @@
 ## f) NEXT 50 THINGS (verbatim backlog, grouped)
 
 **🔥 Pareto / correctness (4):**
+
 1. storage/pebble + storage/bbolt standalone builds RED (`GOWORK=off` fails; event v4.7.0 pins/replaces needed)
 2. Repo-wide stale-pin sweep (~50 go.mod files; needs user sign-off)
 3. Tag the wave-4 module batch (event, metadata v4.5.1+, schema, metaengine, irohengine, projectionhost, storage v4.7.2)
@@ -168,7 +169,7 @@
 48. Skill docs: capability diagnostics recipe (CapabilityAudit/Doctor)
 49. Duplication-baseline hygiene (9 legacy art-dupl sites + dirty-tree guard)
 50. Correctness-sweep leftovers (`kv.Cache` shared `*T`, TypedQueryStore JSON
-    decode, ghost `event.ErrBinaryNotFound`)
+decode, ghost `event.ErrBinaryNotFound`)
 
 **Also open beyond the 50:** check-coverage.sh hardening, duckdbengine suite
 split, macOS ephemeral-PG verification, repo-root junk deletion, per-module

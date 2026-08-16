@@ -159,7 +159,7 @@ Every module is independently importable and has its own `go.mod`. Here are the 
 | **Schema evolution**                |      ✅      |   ❌    |     ❌     |   ❌    |
 | **Auto-docs (AsyncAPI/OpenAPI/D2)** |      ✅      |   ❌    |     ❌     |   ❌    |
 | **SQL-backed read models**          |      ✅      |   ❌    |     ❌     |   ❌    |
-| **Managed projection host**       |      ✅      |   ❌    |     ❌     |   ❌    |
+| **Managed projection host**         |      ✅      |   ❌    |     ❌     |   ❌    |
 | **Bundle presets**                  |      ✅      |   ❌    |     ❌     |   ❌    |
 
 ## Maturity

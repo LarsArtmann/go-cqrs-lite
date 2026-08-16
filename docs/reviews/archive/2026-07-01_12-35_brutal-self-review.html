@@ -30,7 +30,8 @@
         --good: var(--color-green);
         --font-heading: ui-sans-serif, system-ui, -apple-system, sans-serif;
         --font-body: ui-sans-serif, system-ui, -apple-system, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", monospace;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", monospace;
       }
       * {
         box-sizing: border-box;
@@ -267,8 +268,8 @@
       <header>
         <h1>Brutal Self-Review: CBOR Integration Follow-up</h1>
         <div class="meta">
-          2026-07-01 &middot; go-cqrs-lite &middot; 13 tasks executed &middot; All tests pass with
-          -race
+          2026-07-01 &middot; go-cqrs-lite &middot; 13 tasks executed &middot;
+          All tests pass with -race
         </div>
       </header>
 
@@ -296,51 +297,59 @@
 
         <div class="card card-problem">
           <h3>
-            The "mixed streams" promise was a lie <span class="tag tag-critical">Critical</span>
+            The "mixed streams" promise was a lie
+            <span class="tag tag-critical">Critical</span>
             <span class="tag tag-fixed">Fixed</span>
           </h3>
           <p>
-            <code>DecodePayload[T](evt, codec)</code> validated encoding match and
-            <strong>rejected</strong> mismatched events. Migrating JSON&rarr;CBOR broke old events
-            silently. The <code>schema.Validator</code> already had this dispatch internally
+            <code>DecodePayload[T](evt, codec)</code> validated encoding match
+            and <strong>rejected</strong> mismatched events. Migrating
+            JSON&rarr;CBOR broke old events silently. The
+            <code>schema.Validator</code> already had this dispatch internally
             (<code>decoderFor</code>), but the public decode API did not.
           </p>
           <p>
             <strong>Fix:</strong> Added <code>codec.ForEncoding(enc)</code> +
-            <code>event.DecodePayloadAuto[T](evt)</code> &mdash; dispatches based on each event's
-            encoding stamp. Mixed JSON+CBOR streams now decode correctly.
+            <code>event.DecodePayloadAuto[T](evt)</code> &mdash; dispatches
+            based on each event's encoding stamp. Mixed JSON+CBOR streams now
+            decode correctly.
           </p>
         </div>
 
         <div class="card card-problem">
           <h3>
-            gRPC query service had ZERO test coverage <span class="tag tag-critical">Critical</span>
+            gRPC query service had ZERO test coverage
+            <span class="tag tag-critical">Critical</span>
             <span class="tag tag-fixed">Fixed</span>
           </h3>
           <p>
-            The <code>WithCodec</code> option was added to <code>RegisterQueryService</code> and
-            <code>NewQueryClient</code>, but no <code>query_test.go</code> existed. The codec
-            injection was completely untested.
+            The <code>WithCodec</code> option was added to
+            <code>RegisterQueryService</code> and <code>NewQueryClient</code>,
+            but no <code>query_test.go</code> existed. The codec injection was
+            completely untested.
           </p>
           <p>
-            <strong>Fix:</strong> Added 4 tests: JSON round-trip, CBOR round-trip, handler error
-            propagation, codec mismatch detection.
+            <strong>Fix:</strong> Added 4 tests: JSON round-trip, CBOR
+            round-trip, handler error propagation, codec mismatch detection.
           </p>
         </div>
 
         <div class="card card-problem">
           <h3>
-            Non-deterministic AutoDetect test <span class="tag tag-critical">Critical</span>
+            Non-deterministic AutoDetect test
+            <span class="tag tag-critical">Critical</span>
             <span class="tag tag-fixed">Fixed</span>
           </h3>
           <p>
-            <code>TestAutoDetect_UnknownIsRaw</code> accepted EITHER <code>Raw</code> OR
-            <code>CBOR</code> &mdash; it didn't assert actual behavior. For <code>0xff</code> bytes,
-            AutoDetect always returns CBOR (byte &ge; 0x80), but the test was uncertain.
+            <code>TestAutoDetect_UnknownIsRaw</code> accepted EITHER
+            <code>Raw</code> OR <code>CBOR</code> &mdash; it didn't assert
+            actual behavior. For <code>0xff</code> bytes, AutoDetect always
+            returns CBOR (byte &ge; 0x80), but the test was uncertain.
           </p>
           <p>
-            <strong>Fix:</strong> Split into two deterministic tests: high bytes &rarr; CBOR
-            (asserted), genuinely unknown (<code>0x1f</code>) &rarr; Raw (asserted).
+            <strong>Fix:</strong> Split into two deterministic tests: high bytes
+            &rarr; CBOR (asserted), genuinely unknown (<code>0x1f</code>) &rarr;
+            Raw (asserted).
           </p>
         </div>
       </section>
@@ -350,29 +359,31 @@
 
         <div class="card card-warning">
           <h3>
-            DefaultCodec concurrency contract undocumented <span class="tag tag-high">High</span>
+            DefaultCodec concurrency contract undocumented
+            <span class="tag tag-high">High</span>
             <span class="tag tag-fixed">Fixed</span>
           </h3>
           <p>
-            Mutable package-level <code>var</code> without documenting the "set once at startup"
-            contract. Users could hit a data race if mutating after goroutines start creating
-            events.
+            Mutable package-level <code>var</code> without documenting the "set
+            once at startup" contract. Users could hit a data race if mutating
+            after goroutines start creating events.
           </p>
           <p>
-            <strong>Fix:</strong> Documented the concurrency contract clearly: "set ONCE at program
-            startup, BEFORE any goroutine creates events."
+            <strong>Fix:</strong> Documented the concurrency contract clearly:
+            "set ONCE at program startup, BEFORE any goroutine creates events."
           </p>
         </div>
 
         <div class="card card-warning">
           <h3>
             Encryption encoding bug fix lacked integration test
-            <span class="tag tag-high">High</span> <span class="tag tag-fixed">Fixed</span>
+            <span class="tag tag-high">High</span>
+            <span class="tag tag-fixed">Fixed</span>
           </h3>
           <p>
-            The encoding-preservation bug fix (CBOR events losing their stamp through
-            encrypt/decrypt) only had unit-level middleware tests &mdash; no end-to-end integration
-            test.
+            The encoding-preservation bug fix (CBOR events losing their stamp
+            through encrypt/decrypt) only had unit-level middleware tests
+            &mdash; no end-to-end integration test.
           </p>
           <p>
             <strong>Fix:</strong> Added integration test in
@@ -384,15 +395,20 @@
 
         <div class="card card-warning">
           <h3>
-            Broken doc references in AGENTS.md <span class="tag tag-high">Pre-existing</span>
+            Broken doc references in AGENTS.md
+            <span class="tag tag-high">Pre-existing</span>
             <span class="tag tag-fixed">Fixed</span>
           </h3>
           <p>
-            The codec asymmetry table referenced <code>snapshot.WithCodec</code>,
-            <code>command.TypedStore</code>, <code>command.WithTypedCodec</code> &mdash; none of
-            which exist. The doc-check caught these.
+            The codec asymmetry table referenced
+            <code>snapshot.WithCodec</code>, <code>command.TypedStore</code>,
+            <code>command.WithTypedCodec</code> &mdash; none of which exist. The
+            doc-check caught these.
           </p>
-          <p><strong>Fix:</strong> Corrected to actual APIs (positional constructor args).</p>
+          <p>
+            <strong>Fix:</strong> Corrected to actual APIs (positional
+            constructor args).
+          </p>
         </div>
       </section>
 
@@ -400,25 +416,34 @@
         <h2>Code Quality Improvements</h2>
 
         <div class="card card-solution">
-          <h3>Inlined single-use helper <span class="tag tag-fixed">Done</span></h3>
+          <h3>
+            Inlined single-use helper <span class="tag tag-fixed">Done</span>
+          </h3>
           <p>
-            <code>cborSize()</code> was called once in <code>Size()</code>. Inlined for clarity.
+            <code>cborSize()</code> was called once in <code>Size()</code>.
+            Inlined for clarity.
           </p>
         </div>
 
         <div class="card card-solution">
-          <h3>Deduplicated gRPC config <span class="tag tag-fixed">Done</span></h3>
+          <h3>
+            Deduplicated gRPC config <span class="tag tag-fixed">Done</span>
+          </h3>
           <p>
-            Renamed <code>configForServer</code> &rarr; <code>resolveConfig</code> (shared by both
-            server and client).
+            Renamed <code>configForServer</code> &rarr;
+            <code>resolveConfig</code> (shared by both server and client).
           </p>
         </div>
 
         <div class="card card-solution">
-          <h3>Documented gRPC codec asymmetry <span class="tag tag-fixed">Done</span></h3>
+          <h3>
+            Documented gRPC codec asymmetry
+            <span class="tag tag-fixed">Done</span>
+          </h3>
           <p>
-            Command service doesn't take <code>WithCodec</code> because payloads travel as metadata
-            strings, not codec-encoded wire bytes. Documented why.
+            Command service doesn't take <code>WithCodec</code> because payloads
+            travel as metadata strings, not codec-encoded wire bytes. Documented
+            why.
           </p>
         </div>
       </section>
@@ -536,22 +561,23 @@
         <div class="card card-solution">
           <h3>Encryption bug fix was correct</h3>
           <p>
-            Preserving <code>event.WithEncoding(evt.Encoding())</code> through encrypt/decrypt was
-            the right fix. The integration test now proves it end-to-end.
+            Preserving <code>event.WithEncoding(evt.Encoding())</code> through
+            encrypt/decrypt was the right fix. The integration test now proves
+            it end-to-end.
           </p>
         </div>
         <div class="card card-solution">
           <h3>AutoDetect heuristic is well-reasoned</h3>
           <p>
-            First-byte discrimination between JSON and CBOR is correct and documented as a
-            heuristic, not a security boundary.
+            First-byte discrimination between JSON and CBOR is correct and
+            documented as a heuristic, not a security boundary.
           </p>
         </div>
         <div class="card card-solution">
           <h3>gRPC options.go shared config is clean</h3>
           <p>
-            Functional options pattern with shared <code>config</code> struct for both server and
-            client is the right design.
+            Functional options pattern with shared <code>config</code> struct
+            for both server and client is the right design.
           </p>
         </div>
       </section>
@@ -562,32 +588,33 @@
           <li>
             <div class="title">gRPC command payload serialization</div>
             <div class="detail">
-              Command client doesn't serialize domain payload over gRPC (only type + metadata).
-              Pre-existing limitation, not from codec work. Would need a payload field + codec on
-              CommandEnvelope.
+              Command client doesn't serialize domain payload over gRPC (only
+              type + metadata). Pre-existing limitation, not from codec work.
+              Would need a payload field + codec on CommandEnvelope.
             </div>
           </li>
           <li>
             <div class="title">v4 blind-store encoding stamps (ADR-0044)</div>
             <div class="detail">
-              kv/snapshot/command/query stores have no encoding stamp. Switching defaults would
-              silently break data. Envelope wrapper proposed for v4.
+              kv/snapshot/command/query stores have no encoding stamp. Switching
+              defaults would silently break data. Envelope wrapper proposed for
+              v4.
             </div>
           </li>
           <li>
             <div class="title">Size() partial-failure paths</div>
             <div class="detail">
-              The -1 return paths for partial encode failures (JSON succeeds, CBOR fails) are
-              practically unreachable &mdash; both codecs handle all standard Go types. Defensive
-              code only.
+              The -1 return paths for partial encode failures (JSON succeeds,
+              CBOR fails) are practically unreachable &mdash; both codecs handle
+              all standard Go types. Defensive code only.
             </div>
           </li>
         </ol>
       </section>
 
       <footer>
-        Generated by brutal-self-review skill &middot; go-cqrs-lite CBOR integration follow-up
-        &middot; 2026-07-01
+        Generated by brutal-self-review skill &middot; go-cqrs-lite CBOR
+        integration follow-up &middot; 2026-07-01
       </footer>
     </div>
   </body>

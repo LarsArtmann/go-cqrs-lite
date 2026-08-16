@@ -129,18 +129,18 @@ Full `nix run .#verify` NOT yet run post-batch (see §e).
 
 All `TestSoak*` green, `SOAK_SKIP_*` unset, per-module GOWORK=off:
 
-| Engine | Result | Time |
-| --- | --- | --- |
-| metaengine root (`MemoryBounded_10M`, `AutoCRUDByConvention`, `RecordAwarePipeline`) | PASS | 12.5s |
-| sqliteengine | PASS | 0.8s |
-| badgerengine | PASS | 0.4s |
-| pebbleengine | PASS | 0.3s |
-| bboltengine | PASS | 0.4s |
-| projectionadapter | PASS | 0.2s (after replace fix, below) |
-| duckdbengine (CGo) | PASS | 67.3s |
-| tursoengine (embedded libSQL) | PASS | 2.6s |
-| pgengine (ephemeral nixpkgs PG 17) | PASS | 3.9s |
-| dgraphengine (`nix run .#ephemeral-dgraph`) | PASS | 82.9s |
+| Engine                                                                               | Result | Time                            |
+| ------------------------------------------------------------------------------------ | ------ | ------------------------------- |
+| metaengine root (`MemoryBounded_10M`, `AutoCRUDByConvention`, `RecordAwarePipeline`) | PASS   | 12.5s                           |
+| sqliteengine                                                                         | PASS   | 0.8s                            |
+| badgerengine                                                                         | PASS   | 0.4s                            |
+| pebbleengine                                                                         | PASS   | 0.3s                            |
+| bboltengine                                                                          | PASS   | 0.4s                            |
+| projectionadapter                                                                    | PASS   | 0.2s (after replace fix, below) |
+| duckdbengine (CGo)                                                                   | PASS   | 67.3s                           |
+| tursoengine (embedded libSQL)                                                        | PASS   | 2.6s                            |
+| pgengine (ephemeral nixpkgs PG 17)                                                   | PASS   | 3.9s                            |
+| dgraphengine (`nix run .#ephemeral-dgraph`)                                          | PASS   | 82.9s                           |
 
 - mysqlengine has no soak file (out of scope by construction).
 - **Fixed en route**: `metaengine/projectionadapter` had the same standalone
@@ -249,4 +249,4 @@ Nothing in-between: every started item is either fully done or user-skipped.
 
 ---
 
-*Report generated after batch completion; soak table current as of 19:52.*
+_Report generated after batch completion; soak table current as of 19:52._

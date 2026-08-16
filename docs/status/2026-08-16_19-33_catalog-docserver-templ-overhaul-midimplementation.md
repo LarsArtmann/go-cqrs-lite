@@ -12,8 +12,8 @@
 2. **Research loaded** — templ-components skill (consumer guide + authoring playbook), library v1.8.3 sources read directly from the Go module cache: `layout.Base`/`PageProps` (CSSPath/Favicon/HTMXSrc semantics, ThemeScript in head, children into `<main>`), `SimpleNav`/`NavLink`/`Card`/`StatCard`/`PageHeader`/`Grid`/`Badge`/`CopyButton`/`Button` prop structs (exact field names), Tailwind v4 adoption guide (`@import "tailwindcss" source(none)`, `@source` scanning, `@custom-variant dark`, theme/custom CSS roles).
 3. **Toolchain verified for reproducibility** — templ CLI v0.3.1020 at `~/go/bin/templ` (exactly matches the library's pinned generator); nixpkgs `tailwindcss_4` = 4.3.3 (exactly matches the library's own CSS build header); `templ-components@v1.8.3` present in `~/go/pkg/mod`; `DEP_BUDGET[catalog]=4`; depguard allow-list structure mapped.
 4. **The 3 open questions DECIDED autonomously** (user ordered full autonomous execution):
-   - **Q1 — EventCatalog layout change on v4: ship as-is.** Rationale: the old output was *invalid* for current EventCatalog (dead `data/` collection, duplicate per-service message pages, missing required `cId`). That is a correctness fix, not an API redesign; gating invalid output behind an Option doubles the test matrix for output nobody should want. CHANGELOG migration note still pending (see c/25).
-   - **Q2 — templ-components as production dep: ADOPTED.** Budget now 3/4 (templ-components + a-h/templ direct; go-faster/yaml + go-error-family). Library commits `*_templ.go` so *consumers* of catalog need no templ CLI — only catalog maintainers regenerate.
+   - **Q1 — EventCatalog layout change on v4: ship as-is.** Rationale: the old output was _invalid_ for current EventCatalog (dead `data/` collection, duplicate per-service message pages, missing required `cId`). That is a correctness fix, not an API redesign; gating invalid output behind an Option doubles the test matrix for output nobody should want. CHANGELOG migration note still pending (see c/25).
+   - **Q2 — templ-components as production dep: ADOPTED.** Budget now 3/4 (templ-components + a-h/templ direct; go-faster/yaml + go-error-family). Library commits `*_templ.go` so _consumers_ of catalog need no templ CLI — only catalog maintainers regenerate.
    - **Q3 — pin `@eventcatalog/core`: YES, `^4.6.3`.** Latest verified against the npm registry this session (4.6.3). "latest" makes generated projects non-reproducible and can break without any consumer change. Implementation pending (see c/16).
 5. **Dependencies added** — `go get github.com/larsartmann/templ-components@v1.8.3` + `github.com/a-h/templ@v0.3.1020`; `go mod tidy` green; module builds with `-tags "goexperiment.jsonv2"`.
 6. **Old hand-rolled HTML shells deleted** (`html.go` with `fmt.Sprintf` two-line shells + relative `static/...` URLs) — replaced by typed, accessible templ pages:
@@ -60,7 +60,7 @@
 1. **Dropped the flake edits mid-flight.** Attempted multiedit on flake.nix without a View-tool read → tool rejected → got pulled into this status report without re-applying. The drift gate I "finished" is not actually wired into verify. Mechanical fix, but it means "CSS pipeline done" is really "pipeline built, gate unwired".
 2. **`RegisterRoutes` registers `GET {prefix}/` as a subtree catch-all** — any unknown `/docs/*` path renders the index instead of 404. Masks broken links and typos. Plan: register exact `GET {prefix}` only.
 3. **Burned multiple generate-fix cycles on templ syntax the library's own examples already answered.** The library sources use plain `if`/`for` and single-line component calls everywhere; I wrote `@if`/`@for` and multi-line calls first. Lesson recorded: read working examples before writing new syntax.
-4. **Silent script interpolation failure.** `{ specURL }` inside `<script>` does not interpolate in templ (script bodies are raw text) — it renders *literally* with no error or warning. Caught only by reading the generated `_templ.go`. Fixed via `data-spec-url` attribute + `dataset.specUrl`. This is a dangerous failure mode worth a permanent note in catalog/AGENTS.md.
+4. **Silent script interpolation failure.** `{ specURL }` inside `<script>` does not interpolate in templ (script bodies are raw text) — it renders _literally_ with no error or warning. Caught only by reading the generated `_templ.go`. Fixed via `data-spec-url` attribute + `dataset.specUrl`. This is a dangerous failure mode worth a permanent note in catalog/AGENTS.md.
 5. Minor: first `go get` was undone by `go mod tidy` (no importers yet) — expected behavior, briefly confusing.
 
 ## e) WHAT WE SHOULD IMPROVE!
@@ -77,6 +77,7 @@
 ## f) Next tasks (ordered by impact — top 45)
 
 **Unblock gates (do first):**
+
 1. View flake.nix ranges; re-apply the 5 pending edits (file-size `*_templ.go` exclusion, `#build-docserver-css`, `#check-docserver-css`, verify ×2 wiring, devShell tailwindcss_4).
 2. Add `github.com/larsartmann/templ-components` + `github.com/a-h/templ` to `.golangci.yml` depguard allow.
 3. Run `nix flake check` / `nix eval` sanity for the new attrs.
@@ -144,4 +145,5 @@
 3. **templ codegen enforcement strategy**: generated `*_templ.go` are committed (correct for a library). Should `#verify` also run `templ generate` + diff (requires adding a pinned `templ` package to the flake toolchain — stronger guarantee, small toolchain cost), or keep codegen a documented local-only step with the CSS-style drift gate limited to CSS for now?
 
 ---
-*Point-in-time snapshot. The auto-commit daemon may fold parts of this work into ambient commits; treat `git log`/working tree, not this file, as source of truth for landed state.*
+
+_Point-in-time snapshot. The auto-commit daemon may fold parts of this work into ambient commits; treat `git log`/working tree, not this file, as source of truth for landed state._

@@ -341,10 +341,10 @@
           <div class="hero-badge">Pareto Plan · 80/20 Breakdown</div>
           <h1>Comprehensive Execution Plan</h1>
           <p class="hero-subtitle">
-            Every open TODO in the go-cqrs-lite project, broken into ≤12-minute tasks, sorted by
-            impact / effort / customer-value across 5 Pareto tiers. Sources: TODO_LIST.md,
-            ROADMAP.md, brutal self-review, deployer-first plan, consumer feedback, and inline code
-            annotations.
+            Every open TODO in the go-cqrs-lite project, broken into ≤12-minute
+            tasks, sorted by impact / effort / customer-value across 5 Pareto
+            tiers. Sources: TODO_LIST.md, ROADMAP.md, brutal self-review,
+            deployer-first plan, consumer feedback, and inline code annotations.
           </p>
         </div>
 
@@ -380,18 +380,19 @@
           <div class="card card-problem">
             <h4>Pareto Breakdown</h4>
             <p>
-              <strong>The 1% that delivers 51% of value:</strong> Tier 1 (17 tasks, ~3h) — Fix the
-              CBOR fuzz failure, deep-copy eventOptions, update 4 doc files, tag v3.0.0. This is the
-              "just ship it" set.
+              <strong>The 1% that delivers 51% of value:</strong> Tier 1 (17
+              tasks, ~3h) — Fix the CBOR fuzz failure, deep-copy eventOptions,
+              update 4 doc files, tag v3.0.0. This is the "just ship it" set.
             </p>
             <p>
-              <strong>The 4% that delivers 64%:</strong> Tier 1 + Tier 2 (34 tasks, ~5.5h) — Add
-              race guards, property tests, smoke test. Verify the library actually works end-to-end
-              before tagging.
+              <strong>The 4% that delivers 64%:</strong> Tier 1 + Tier 2 (34
+              tasks, ~5.5h) — Add race guards, property tests, smoke test.
+              Verify the library actually works end-to-end before tagging.
             </p>
             <p>
-              <strong>The 20% that delivers 80%:</strong> Tiers 1–3 (70 tasks, ~12h) — Coverage, BDD
-              suites, operability (backup/shutdown), codegen, SSE architecture.
+              <strong>The 20% that delivers 80%:</strong> Tiers 1–3 (70 tasks,
+              ~12h) — Coverage, BDD suites, operability (backup/shutdown),
+              codegen, SSE architecture.
             </p>
           </div>
         </div>
@@ -403,9 +404,9 @@
             <span class="tier-meta">1% → 51% value · 17 tasks · ~3h</span>
           </div>
           <p>
-            Fix blocking bugs, update docs, tag the release. Every item here is a prerequisite for
-            the v3.0.0 tag. The CBOR fuzz failure is the only real bug; the rest is polish and
-            documentation accuracy.
+            Fix blocking bugs, update docs, tag the release. Every item here is
+            a prerequisite for the v3.0.0 tag. The CBOR fuzz failure is the only
+            real bug; the rest is polish and documentation accuracy.
           </p>
           <table>
             <thead>
@@ -421,7 +422,8 @@
               <tr>
                 <td class="id">1.1</td>
                 <td>
-                  Read CBOR canonical encoder + fuzz seed <code>5f72aef8648194a5</code> in
+                  Read CBOR canonical encoder + fuzz seed
+                  <code>5f72aef8648194a5</code> in
                   <code>codec/codec_fuzz_test.go:336</code>
                 </td>
                 <td><span class="badge badge-critical">Critical</span></td>
@@ -431,7 +433,8 @@
               <tr>
                 <td class="id">1.2</td>
                 <td>
-                  Implement NaN key rejection or byte-level tiebreak in canonical CBOR encoder
+                  Implement NaN key rejection or byte-level tiebreak in
+                  canonical CBOR encoder
                 </td>
                 <td><span class="badge badge-critical">Critical</span></td>
                 <td class="effort">12m</td>
@@ -439,7 +442,10 @@
               </tr>
               <tr>
                 <td class="id">1.3</td>
-                <td>Add regression test: NaN map keys produce deterministic canonical output</td>
+                <td>
+                  Add regression test: NaN map keys produce deterministic
+                  canonical output
+                </td>
                 <td><span class="badge badge-critical">Critical</span></td>
                 <td class="effort">8m</td>
                 <td class="deps">1.2</td>
@@ -447,8 +453,8 @@
               <tr>
                 <td class="id">1.4</td>
                 <td>
-                  Investigate CBOR fuzz order-dependence (shared state or init race — passes
-                  isolated, fails in suite)
+                  Investigate CBOR fuzz order-dependence (shared state or init
+                  race — passes isolated, fails in suite)
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">12m</td>
@@ -457,8 +463,8 @@
               <tr>
                 <td class="id">1.5</td>
                 <td>
-                  Fix root cause of order-dependence (likely module-level <code>init()</code> or
-                  cached state)
+                  Fix root cause of order-dependence (likely module-level
+                  <code>init()</code> or cached state)
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">10m</td>
@@ -466,7 +472,10 @@
               </tr>
               <tr>
                 <td class="id">1.6</td>
-                <td>Full codec suite run to verify CBOR fix (isolated + full suite both pass)</td>
+                <td>
+                  Full codec suite run to verify CBOR fix (isolated + full suite
+                  both pass)
+                </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">5m</td>
                 <td class="deps">1.5</td>
@@ -474,7 +483,8 @@
               <tr>
                 <td class="id">1.7</td>
                 <td>
-                  Read event Clone path (<code>event/builder.go</code>) + identify
+                  Read event Clone path (<code>event/builder.go</code>) +
+                  identify
                   <code>*eventOptions</code> shallow-copy
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
@@ -484,7 +494,8 @@
               <tr>
                 <td class="id">1.8</td>
                 <td>
-                  Implement deep-copy of <code>*eventOptions</code> on Clone (last v3 breaking item)
+                  Implement deep-copy of <code>*eventOptions</code> on Clone
+                  (last v3 breaking item)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -492,7 +503,10 @@
               </tr>
               <tr>
                 <td class="id">1.9</td>
-                <td>Add test: mutate options after Clone, verify original event is unchanged</td>
+                <td>
+                  Add test: mutate options after Clone, verify original event is
+                  unchanged
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">8m</td>
                 <td class="deps">1.8</td>
@@ -500,8 +514,8 @@
               <tr>
                 <td class="id">1.10</td>
                 <td>
-                  Update ADR-0031 status → <strong>Implemented</strong> (metadata alias fully
-                  killed)
+                  Update ADR-0031 status →
+                  <strong>Implemented</strong> (metadata alias fully killed)
                 </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td class="effort">5m</td>
@@ -510,8 +524,8 @@
               <tr>
                 <td class="id">1.11</td>
                 <td>
-                  Update FEATURES.md: add <code>MetadataKey</code> + <code>Merge</code> to
-                  command/query sections
+                  Update FEATURES.md: add <code>MetadataKey</code> +
+                  <code>Merge</code> to command/query sections
                 </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td class="effort">10m</td>
@@ -519,7 +533,10 @@
               </tr>
               <tr>
                 <td class="id">1.12</td>
-                <td>Update ROADMAP.md: mark metadata split fully done, remove from "remaining"</td>
+                <td>
+                  Update ROADMAP.md: mark metadata split fully done, remove from
+                  "remaining"
+                </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td class="effort">5m</td>
                 <td class="deps">—</td>
@@ -527,7 +544,8 @@
               <tr>
                 <td class="id">1.13</td>
                 <td>
-                  Read V3_MIGRATION.md, identify stale entries (ghost-code refs, broken examples)
+                  Read V3_MIGRATION.md, identify stale entries (ghost-code refs,
+                  broken examples)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">10m</td>
@@ -536,8 +554,8 @@
               <tr>
                 <td class="id">1.14</td>
                 <td>
-                  Fix V3_MIGRATION.md: broken <code>memory.NewMemoryBus()</code> example +
-                  ghost-code refs
+                  Fix V3_MIGRATION.md: broken
+                  <code>memory.NewMemoryBus()</code> example + ghost-code refs
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -545,7 +563,9 @@
               </tr>
               <tr>
                 <td class="id">1.15</td>
-                <td>Verify all V3_MIGRATION.md code examples actually compile</td>
+                <td>
+                  Verify all V3_MIGRATION.md code examples actually compile
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">8m</td>
                 <td class="deps">1.14</td>
@@ -553,9 +573,8 @@
               <tr>
                 <td class="id">1.16</td>
                 <td>
-                  Run full test suite (<code>nix run .#test</code>) + build (<code
-                    >nix run .#build</code
-                  >) before tagging
+                  Run full test suite (<code>nix run .#test</code>) + build
+                  (<code>nix run .#build</code>) before tagging
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">12m</td>
@@ -564,7 +583,8 @@
               <tr>
                 <td class="id">1.17</td>
                 <td>
-                  <strong>Tag v3.0.0</strong> — <code>git tag v3.0.0</code> + GitHub release notes
+                  <strong>Tag v3.0.0</strong> — <code>git tag v3.0.0</code> +
+                  GitHub release notes
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">8m</td>
@@ -581,9 +601,10 @@
             <span class="tier-meta">4% → 64% value · 17 tasks · ~2.8h</span>
           </div>
           <p>
-            Race conditions, test gaps, quality verification. These verify the library actually
-            works under concurrent load and that every public type round-trips correctly. The
-            Metadata Merge bug found last session proves property tests are needed.
+            Race conditions, test gaps, quality verification. These verify the
+            library actually works under concurrent load and that every public
+            type round-trips correctly. The Metadata Merge bug found last
+            session proves property tests are needed.
           </p>
           <table>
             <thead>
@@ -599,8 +620,8 @@
               <tr>
                 <td class="id">2.1</td>
                 <td>
-                  Read <code>stack/postgres/pg_listener.go:39-60</code> — concurrency design
-                  rationale (channel-based sync)
+                  Read <code>stack/postgres/pg_listener.go:39-60</code> —
+                  concurrency design rationale (channel-based sync)
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">8m</td>
@@ -608,7 +629,10 @@
               </tr>
               <tr>
                 <td class="id">2.2</td>
-                <td>Write concurrent Close + Listen race test with <code>-race</code> flag</td>
+                <td>
+                  Write concurrent Close + Listen race test with
+                  <code>-race</code> flag
+                </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">12m</td>
                 <td class="deps">2.1</td>
@@ -616,8 +640,8 @@
               <tr>
                 <td class="id">2.3</td>
                 <td>
-                  If race found: add <code>sync.Mutex</code> guard on <code>l.conn</code> field. If
-                  not: document safe-by-design
+                  If race found: add <code>sync.Mutex</code> guard on
+                  <code>l.conn</code> field. If not: document safe-by-design
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">12m</td>
@@ -625,7 +649,10 @@
               </tr>
               <tr>
                 <td class="id">2.4</td>
-                <td>Verify race test passes with fix (or add concurrency doc comment)</td>
+                <td>
+                  Verify race test passes with fix (or add concurrency doc
+                  comment)
+                </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">8m</td>
                 <td class="deps">2.3</td>
@@ -633,7 +660,8 @@
               <tr>
                 <td class="id">2.5</td>
                 <td>
-                  Add rapid property test for <code>Version.Sub</code> panic-on-underflow invariant
+                  Add rapid property test for
+                  <code>Version.Sub</code> panic-on-underflow invariant
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">10m</td>
@@ -642,8 +670,9 @@
               <tr>
                 <td class="id">2.6</td>
                 <td>
-                  Write rapid property test for <code>event.Metadata</code> round-trip (Marshal →
-                  Unmarshal → equal)
+                  Write rapid property test for
+                  <code>event.Metadata</code> round-trip (Marshal → Unmarshal →
+                  equal)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -651,14 +680,20 @@
               </tr>
               <tr>
                 <td class="id">2.7</td>
-                <td>Write rapid property test for <code>command.Metadata</code> round-trip</td>
+                <td>
+                  Write rapid property test for
+                  <code>command.Metadata</code> round-trip
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">10m</td>
                 <td class="deps">2.6</td>
               </tr>
               <tr>
                 <td class="id">2.8</td>
-                <td>Write rapid property test for <code>query.Metadata</code> round-trip</td>
+                <td>
+                  Write rapid property test for
+                  <code>query.Metadata</code> round-trip
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">10m</td>
                 <td class="deps">2.6</td>
@@ -666,8 +701,9 @@
               <tr>
                 <td class="id">2.9</td>
                 <td>
-                  SSE: buffer overflow drop test — verify <code>select { default: }</code> drops
-                  silently, not blocks (<code>transport/http/sse.go:63-68</code>)
+                  SSE: buffer overflow drop test — verify
+                  <code>select { default: }</code> drops silently, not blocks
+                  (<code>transport/http/sse.go:63-68</code>)
                 </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td class="effort">10m</td>
@@ -676,7 +712,8 @@
               <tr>
                 <td class="id">2.10</td>
                 <td>
-                  SSE: subscribe error path test — verify <code>NewSSEBroker</code> handles
+                  SSE: subscribe error path test — verify
+                  <code>NewSSEBroker</code> handles
                   <code>bus.SubscribeAll</code> failure
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
@@ -686,7 +723,8 @@
               <tr>
                 <td class="id">2.11</td>
                 <td>
-                  SSE: disconnect-before-event test — client disconnects while event is in flight
+                  SSE: disconnect-before-event test — client disconnects while
+                  event is in flight
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -695,7 +733,8 @@
               <tr>
                 <td class="id">2.12</td>
                 <td>
-                  Create consumer trust smoke test scaffold — import every module, verify no panic
+                  Create consumer trust smoke test scaffold — import every
+                  module, verify no panic
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -704,7 +743,8 @@
               <tr>
                 <td class="id">2.13</td>
                 <td>
-                  Add preset construction tests (memory, sqlite, pebble, postgres — 4 presets)
+                  Add preset construction tests (memory, sqlite, pebble,
+                  postgres — 4 presets)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -712,7 +752,10 @@
               </tr>
               <tr>
                 <td class="id">2.14</td>
-                <td>Add type assertion tests (all public interfaces satisfiable from outside)</td>
+                <td>
+                  Add type assertion tests (all public interfaces satisfiable
+                  from outside)
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">10m</td>
                 <td class="deps">2.12</td>
@@ -727,7 +770,8 @@
               <tr>
                 <td class="id">2.16</td>
                 <td>
-                  Profile hot path: benchmark NewEvent → Save → Load with <code>-race -bench</code>
+                  Profile hot path: benchmark NewEvent → Save → Load with
+                  <code>-race -bench</code>
                 </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td class="effort">12m</td>
@@ -754,9 +798,10 @@
             <span class="tier-meta">20% → 80% value · 36 tasks · ~6.5h</span>
           </div>
           <p>
-            Coverage gaps, BDD suites, preset operability (backup/shutdown), codegen updates, SSE
-            architecture improvements, and deployer-first documentation. These make the library
-            trustworthy and operable in production.
+            Coverage gaps, BDD suites, preset operability (backup/shutdown),
+            codegen updates, SSE architecture improvements, and deployer-first
+            documentation. These make the library trustworthy and operable in
+            production.
           </p>
           <table>
             <thead>
@@ -773,8 +818,8 @@
               <tr>
                 <td class="id">3.1</td>
                 <td>
-                  <strong>storage/:</strong> identify uncovered error branches (dup-key, tx-fail,
-                  scan-corruption)
+                  <strong>storage/:</strong> identify uncovered error branches
+                  (dup-key, tx-fail, scan-corruption)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -782,21 +827,30 @@
               </tr>
               <tr>
                 <td class="id">3.2</td>
-                <td><strong>storage/:</strong> add duplicate-key error branch tests</td>
+                <td>
+                  <strong>storage/:</strong> add duplicate-key error branch
+                  tests
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
                 <td class="deps">3.1</td>
               </tr>
               <tr>
                 <td class="id">3.3</td>
-                <td><strong>storage/:</strong> add transaction-failure error branch tests</td>
+                <td>
+                  <strong>storage/:</strong> add transaction-failure error
+                  branch tests
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
                 <td class="deps">3.1</td>
               </tr>
               <tr>
                 <td class="id">3.4</td>
-                <td><strong>storage/:</strong> add scan-corruption error branch tests</td>
+                <td>
+                  <strong>storage/:</strong> add scan-corruption error branch
+                  tests
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
                 <td class="deps">3.1</td>
@@ -804,8 +858,8 @@
               <tr>
                 <td class="id">3.5</td>
                 <td>
-                  <strong>storage/:</strong> verify coverage ≥85% (currently 79.3% — the low
-                  outlier)
+                  <strong>storage/:</strong> verify coverage ≥85% (currently
+                  79.3% — the low outlier)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">10m</td>
@@ -815,7 +869,8 @@
               <tr>
                 <td class="id">3.6</td>
                 <td>
-                  <strong>stack/:</strong> design BDD suite for catch-up/replay ordering flows
+                  <strong>stack/:</strong> design BDD suite for catch-up/replay
+                  ordering flows
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -824,7 +879,8 @@
               <tr>
                 <td class="id">3.7</td>
                 <td>
-                  <strong>stack/:</strong> implement catch-up ordering BDD test (FIFO guarantee)
+                  <strong>stack/:</strong> implement catch-up ordering BDD test
+                  (FIFO guarantee)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -833,7 +889,8 @@
               <tr>
                 <td class="id">3.8</td>
                 <td>
-                  <strong>stack/:</strong> implement replay→live handoff BDD test (EventID dedup)
+                  <strong>stack/:</strong> implement replay→live handoff BDD
+                  test (EventID dedup)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -841,7 +898,10 @@
               </tr>
               <tr>
                 <td class="id">3.9</td>
-                <td><strong>stack/:</strong> implement checkpoint persistence BDD test</td>
+                <td>
+                  <strong>stack/:</strong> implement checkpoint persistence BDD
+                  test
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
                 <td class="deps">3.6</td>
@@ -849,8 +909,8 @@
               <tr>
                 <td class="id">3.10</td>
                 <td>
-                  <strong>stack/:</strong> implement multi-preset parity BDD test (same events →
-                  same state)
+                  <strong>stack/:</strong> implement multi-preset parity BDD
+                  test (same events → same state)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -859,7 +919,8 @@
               <tr>
                 <td class="id">3.11</td>
                 <td>
-                  <strong>stack/:</strong> run BDD across all 4 presets, fix any ordering failures
+                  <strong>stack/:</strong> run BDD across all 4 presets, fix any
+                  ordering failures
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -868,7 +929,9 @@
               <!-- 3.12-3.17: operability -->
               <tr>
                 <td class="id">3.12</td>
-                <td>Add Pebble Checkpoint (backup) accessor to stack/ presets</td>
+                <td>
+                  Add Pebble Checkpoint (backup) accessor to stack/ presets
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
                 <td class="deps">—</td>
@@ -882,7 +945,9 @@
               </tr>
               <tr>
                 <td class="id">3.14</td>
-                <td>Test Pebble Checkpoint from preset (point-in-time snapshot)</td>
+                <td>
+                  Test Pebble Checkpoint from preset (point-in-time snapshot)
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">8m</td>
                 <td class="deps">3.13</td>
@@ -911,7 +976,10 @@
               <!-- 3.18-3.21: cqrs-gen -->
               <tr>
                 <td class="id">3.18</td>
-                <td>Read <code>cmd/cqrs-gen/generate.go</code>, understand emission format</td>
+                <td>
+                  Read <code>cmd/cqrs-gen/generate.go</code>, understand
+                  emission format
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">10m</td>
                 <td class="deps">—</td>
@@ -919,7 +987,8 @@
               <tr>
                 <td class="id">3.19</td>
                 <td>
-                  Update cqrs-gen to emit <code>stack.Materialize</code> code instead of
+                  Update cqrs-gen to emit <code>stack.Materialize</code> code
+                  instead of
                   <code>projection.On</code>
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
@@ -935,7 +1004,9 @@
               </tr>
               <tr>
                 <td class="id">3.21</td>
-                <td>Verify cqrs-gen generated output compiles + works end-to-end</td>
+                <td>
+                  Verify cqrs-gen generated output compiles + works end-to-end
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">8m</td>
                 <td class="deps">3.20</td>
@@ -944,7 +1015,8 @@
               <tr>
                 <td class="id">3.22</td>
                 <td>
-                  Write deployer-first onboarding section for README (the canonical quick-start)
+                  Write deployer-first onboarding section for README (the
+                  canonical quick-start)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -952,14 +1024,19 @@
               </tr>
               <tr>
                 <td class="id">3.23</td>
-                <td>Add deployer-first quick-start code examples (3 presets side-by-side)</td>
+                <td>
+                  Add deployer-first quick-start code examples (3 presets
+                  side-by-side)
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
                 <td class="deps">3.22</td>
               </tr>
               <tr>
                 <td class="id">3.24</td>
-                <td>Cross-reference deployer-first from SKILL.md + AGENTS.md</td>
+                <td>
+                  Cross-reference deployer-first from SKILL.md + AGENTS.md
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">10m</td>
                 <td class="deps">3.22</td>
@@ -968,8 +1045,8 @@
               <tr>
                 <td class="id">3.25</td>
                 <td>
-                  <strong>SSE:</strong> design <code>fanOut[T]</code> generic pattern
-                  (channel-pointer-keyed map — fixes client ID race)
+                  <strong>SSE:</strong> design <code>fanOut[T]</code> generic
+                  pattern (channel-pointer-keyed map — fixes client ID race)
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">12m</td>
@@ -978,8 +1055,8 @@
               <tr>
                 <td class="id">3.26</td>
                 <td>
-                  <strong>SSE:</strong> implement <code>fanOut[T]</code>, replace string-keyed
-                  <code>SSEBroker</code> map
+                  <strong>SSE:</strong> implement <code>fanOut[T]</code>,
+                  replace string-keyed <code>SSEBroker</code> map
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">12m</td>
@@ -988,7 +1065,8 @@
               <tr>
                 <td class="id">3.27</td>
                 <td>
-                  <strong>SSE:</strong> migrate existing SSE tests to <code>fanOut[T]</code> broker
+                  <strong>SSE:</strong> migrate existing SSE tests to
+                  <code>fanOut[T]</code> broker
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">10m</td>
@@ -997,8 +1075,8 @@
               <tr>
                 <td class="id">3.28</td>
                 <td>
-                  <strong>SSE:</strong> read <code>Last-Event-ID</code> header in
-                  <code>SSEHandler</code> for reconnection
+                  <strong>SSE:</strong> read <code>Last-Event-ID</code> header
+                  in <code>SSEHandler</code> for reconnection
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">12m</td>
@@ -1007,8 +1085,8 @@
               <tr>
                 <td class="id">3.29</td>
                 <td>
-                  <strong>SSE:</strong> replay missed events from journal by EventID (reconnection
-                  support)
+                  <strong>SSE:</strong> replay missed events from journal by
+                  EventID (reconnection support)
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">12m</td>
@@ -1016,7 +1094,10 @@
               </tr>
               <tr>
                 <td class="id">3.30</td>
-                <td><strong>SSE:</strong> add Last-Event-ID reconnection integration test</td>
+                <td>
+                  <strong>SSE:</strong> add Last-Event-ID reconnection
+                  integration test
+                </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">10m</td>
                 <td class="deps">3.29</td>
@@ -1024,8 +1105,8 @@
               <tr>
                 <td class="id">3.31</td>
                 <td>
-                  <strong>SSE:</strong> extract <code>SSEStream</code> type (connection lifecycle:
-                  headers, flusher, heartbeat)
+                  <strong>SSE:</strong> extract <code>SSEStream</code> type
+                  (connection lifecycle: headers, flusher, heartbeat)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -1033,7 +1114,10 @@
               </tr>
               <tr>
                 <td class="id">3.32</td>
-                <td><strong>SSE:</strong> add SSEStream heartbeat + flusher lifecycle test</td>
+                <td>
+                  <strong>SSE:</strong> add SSEStream heartbeat + flusher
+                  lifecycle test
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">10m</td>
                 <td class="deps">3.31</td>
@@ -1041,9 +1125,8 @@
               <tr>
                 <td class="id">3.33</td>
                 <td>
-                  <strong>SSE:</strong> add <code>BroadcastOnSuccess</code>/<code
-                    >BroadcastOnError</code
-                  >
+                  <strong>SSE:</strong> add
+                  <code>BroadcastOnSuccess</code>/<code>BroadcastOnError</code>
                   CQRS dispatch hooks
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
@@ -1052,7 +1135,9 @@
               </tr>
               <tr>
                 <td class="id">3.34</td>
-                <td><strong>SSE:</strong> add dispatch hooks integration test</td>
+                <td>
+                  <strong>SSE:</strong> add dispatch hooks integration test
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">10m</td>
                 <td class="deps">3.33</td>
@@ -1061,7 +1146,8 @@
               <tr>
                 <td class="id">3.35</td>
                 <td>
-                  Audit <code>event.Metadata.Custom</code> map for remaining stringly-typed concepts
+                  Audit <code>event.Metadata.Custom</code> map for remaining
+                  stringly-typed concepts
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -1069,7 +1155,10 @@
               </tr>
               <tr>
                 <td class="id">3.36</td>
-                <td>Design typed fields for SecurityEnvelope + other concepts found in audit</td>
+                <td>
+                  Design typed fields for SecurityEnvelope + other concepts
+                  found in audit
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
                 <td class="deps">3.35</td>
@@ -1085,9 +1174,10 @@
             <span class="tier-meta">80% → 90% value · 19 tasks · ~3.5h</span>
           </div>
           <p>
-            Actionable items from the "why-i-cant-use-you" consumer feedback and the resilience
-            extraction proposal. These are strategic — they make the library attractive to consumers
-            who don't need CQRS but want the building blocks.
+            Actionable items from the "why-i-cant-use-you" consumer feedback and
+            the resilience extraction proposal. These are strategic — they make
+            the library attractive to consumers who don't need CQRS but want the
+            building blocks.
           </p>
           <table>
             <thead>
@@ -1104,8 +1194,8 @@
               <tr>
                 <td class="id">4.1</td>
                 <td>
-                  Design <code>resilience/</code> module — circuit breaker + jittered exponential
-                  backoff (stdlib only)
+                  Design <code>resilience/</code> module — circuit breaker +
+                  jittered exponential backoff (stdlib only)
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">12m</td>
@@ -1114,7 +1204,8 @@
               <tr>
                 <td class="id">4.2</td>
                 <td>
-                  Create <code>resilience/</code> module — <code>go.mod</code> with zero CQRS deps
+                  Create <code>resilience/</code> module —
+                  <code>go.mod</code> with zero CQRS deps
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">10m</td>
@@ -1123,7 +1214,8 @@
               <tr>
                 <td class="id">4.3</td>
                 <td>
-                  Port circuit breaker algorithm from <code>middleware/circuit_breaker.go</code>
+                  Port circuit breaker algorithm from
+                  <code>middleware/circuit_breaker.go</code>
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">12m</td>
@@ -1131,14 +1223,20 @@
               </tr>
               <tr>
                 <td class="id">4.4</td>
-                <td>Port retry with exponential backoff + jitter (ro only has fixed-delay)</td>
+                <td>
+                  Port retry with exponential backoff + jitter (ro only has
+                  fixed-delay)
+                </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">12m</td>
                 <td class="deps">4.2</td>
               </tr>
               <tr>
                 <td class="id">4.5</td>
-                <td>Add resilience/ property tests (CB state transitions, backoff schedule)</td>
+                <td>
+                  Add resilience/ property tests (CB state transitions, backoff
+                  schedule)
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
                 <td class="deps">4.3, 4.4</td>
@@ -1146,7 +1244,8 @@
               <tr>
                 <td class="id">4.6</td>
                 <td>
-                  Wire <code>middleware/</code> retry + circuit breaker to delegate to
+                  Wire <code>middleware/</code> retry + circuit breaker to
+                  delegate to
                   <code>resilience/</code>
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
@@ -1156,7 +1255,8 @@
               <tr>
                 <td class="id">4.7</td>
                 <td>
-                  Update <code>middleware/</code> go.mod — resilience/ is now the algorithm owner
+                  Update <code>middleware/</code> go.mod — resilience/ is now
+                  the algorithm owner
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">10m</td>
@@ -1166,8 +1266,9 @@
               <tr>
                 <td class="id">4.8</td>
                 <td>
-                  Design OTel shim interfaces (<code>Tracer</code>, <code>Span</code>,
-                  <code>Meter</code>) — eliminates ~15 transitive deps
+                  Design OTel shim interfaces (<code>Tracer</code>,
+                  <code>Span</code>, <code>Meter</code>) — eliminates ~15
+                  transitive deps
                 </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">12m</td>
@@ -1175,7 +1276,10 @@
               </tr>
               <tr>
                 <td class="id">4.9</td>
-                <td>Create <code>otel/</code> adapter implementations for shim interfaces</td>
+                <td>
+                  Create <code>otel/</code> adapter implementations for shim
+                  interfaces
+                </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td class="effort">12m</td>
                 <td class="deps">4.8</td>
@@ -1183,7 +1287,8 @@
               <tr>
                 <td class="id">4.10</td>
                 <td>
-                  Update <code>decider/</code> to use shim interfaces instead of direct
+                  Update <code>decider/</code> to use shim interfaces instead of
+                  direct
                   <code>otel/trace</code>
                 </td>
                 <td><span class="badge badge-high">High</span></td>
@@ -1207,8 +1312,9 @@
               <tr>
                 <td class="id">4.13</td>
                 <td>
-                  Remove <code>otel/sdk</code> from <code>middleware/</code>, <code>decider/</code>,
-                  <code>storage/</code> go.mod direct deps
+                  Remove <code>otel/sdk</code> from <code>middleware/</code>,
+                  <code>decider/</code>, <code>storage/</code> go.mod direct
+                  deps
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">10m</td>
@@ -1216,7 +1322,10 @@
               </tr>
               <tr>
                 <td class="id">4.14</td>
-                <td>Verify ~15 transitive deps eliminated from consumer dependency tree</td>
+                <td>
+                  Verify ~15 transitive deps eliminated from consumer dependency
+                  tree
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">10m</td>
                 <td class="deps">4.13</td>
@@ -1225,8 +1334,9 @@
               <tr>
                 <td class="id">4.15</td>
                 <td>
-                  Move test-only deps from <code>event/go.mod</code> direct requires to indirect
-                  (command, query, memory, schema, snapshot)
+                  Move test-only deps from <code>event/go.mod</code> direct
+                  requires to indirect (command, query, memory, schema,
+                  snapshot)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -1235,8 +1345,8 @@
               <tr>
                 <td class="id">4.16</td>
                 <td>
-                  Design per-module dependency budget CI check (Core ≤2 ext/0 sibs; Protocol ≤3/≤2;
-                  Impl ≤5/≤4)
+                  Design per-module dependency budget CI check (Core ≤2 ext/0
+                  sibs; Protocol ≤3/≤2; Impl ≤5/≤4)
                 </td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td class="effort">12m</td>
@@ -1259,7 +1369,8 @@
               <tr>
                 <td class="id">4.19</td>
                 <td>
-                  Write ID-backing type documentation + examples (configurable via
+                  Write ID-backing type documentation + examples (configurable
+                  via
                   <code>go-branded-id</code>)
                 </td>
                 <td><span class="badge badge-low">Low</span></td>
@@ -1277,9 +1388,9 @@
             <span class="tier-meta">No action until unblocked · 14 items</span>
           </div>
           <p>
-            Items that are blocked on external dependencies (Go stdlib, consumer signal) or are raw
-            ideas with no design yet. Listed for completeness — do NOT start these without explicit
-            approval.
+            Items that are blocked on external dependencies (Go stdlib, consumer
+            signal) or are raw ideas with no design yet. Listed for completeness
+            — do NOT start these without explicit approval.
           </p>
           <table>
             <thead>
@@ -1311,19 +1422,28 @@
               </tr>
               <tr>
                 <td class="id">5.4</td>
-                <td>jsonv2 codec experiment (<code>codec/jsonv2_experiment.go</code>)</td>
+                <td>
+                  jsonv2 codec experiment
+                  (<code>codec/jsonv2_experiment.go</code>)
+                </td>
                 <td><span class="badge badge-blocked">Blocked</span></td>
                 <td class="deps">Go stdlib stabilization</td>
               </tr>
               <tr>
                 <td class="id">5.5</td>
-                <td>Arena allocation experiment (<code>event/arena_experiment.go</code>)</td>
+                <td>
+                  Arena allocation experiment
+                  (<code>event/arena_experiment.go</code>)
+                </td>
                 <td><span class="badge badge-blocked">Blocked</span></td>
                 <td class="deps">Go stdlib stabilization</td>
               </tr>
               <tr>
                 <td class="id">5.6</td>
-                <td>KV secondary index design (ranged scans for large read-model sets)</td>
+                <td>
+                  KV secondary index design (ranged scans for large read-model
+                  sets)
+                </td>
                 <td><span class="badge badge-low">Design only</span></td>
                 <td class="deps">—</td>
               </tr>
@@ -1341,7 +1461,9 @@
               </tr>
               <tr>
                 <td class="id">5.9</td>
-                <td>Distributed projection runner (leader election, multi-node)</td>
+                <td>
+                  Distributed projection runner (leader election, multi-node)
+                </td>
                 <td><span class="badge badge-blocked">Raw idea</span></td>
                 <td class="deps">No deadline</td>
               </tr>
@@ -1353,7 +1475,10 @@
               </tr>
               <tr>
                 <td class="id">5.11</td>
-                <td>CQRS-lite dashboard (web UI for inspecting aggregates, events, projections)</td>
+                <td>
+                  CQRS-lite dashboard (web UI for inspecting aggregates, events,
+                  projections)
+                </td>
                 <td><span class="badge badge-blocked">Raw idea</span></td>
                 <td class="deps">No design</td>
               </tr>
@@ -1365,13 +1490,19 @@
               </tr>
               <tr>
                 <td class="id">5.13</td>
-                <td>Property-based integration testing with state machine verification</td>
+                <td>
+                  Property-based integration testing with state machine
+                  verification
+                </td>
                 <td><span class="badge badge-blocked">Raw idea</span></td>
                 <td class="deps">No design</td>
               </tr>
               <tr>
                 <td class="id">5.14</td>
-                <td>Performance regression dashboard (historical benchmark tracking)</td>
+                <td>
+                  Performance regression dashboard (historical benchmark
+                  tracking)
+                </td>
                 <td><span class="badge badge-blocked">Raw idea</span></td>
                 <td class="deps">No design</td>
               </tr>
@@ -1383,7 +1514,8 @@
         <div id="graph">
           <h2><span class="num">◈</span>Execution Graph</h2>
           <p>
-            Pareto tiers with critical path. D2 source at <code>docs/planning/pareto_plan.d2</code>.
+            Pareto tiers with critical path. D2 source at
+            <code>docs/planning/pareto_plan.d2</code>.
           </p>
           <div class="svg-container">
             <svg
@@ -1915,7 +2047,9 @@
                   >
                     <tspan x="1474.000000" dy="0.000000">Preset</tspan>
                     <tspan x="1474.000000" dy="17.666667">Operability</tspan>
-                    <tspan x="1474.000000" dy="17.666667">(Backup+Shutdown)</tspan>
+                    <tspan x="1474.000000" dy="17.666667">
+                      (Backup+Shutdown)
+                    </tspan>
                   </text>
                 </g>
                 <g class="dGllcjMuY3Fyc19nZW4=">
@@ -1963,7 +2097,9 @@
                     style="text-anchor: middle; font-size: 16px"
                   >
                     <tspan x="1474.000000" dy="0.000000">Deployer-first</tspan>
-                    <tspan x="1474.000000" dy="18.500000">Onboarding Docs</tspan>
+                    <tspan x="1474.000000" dy="18.500000">
+                      Onboarding Docs
+                    </tspan>
                   </text>
                 </g>
                 <g class="dGllcjMuc3NlX2FyY2g=">
@@ -1986,7 +2122,9 @@
                     class="text-bold fill-N1"
                     style="text-anchor: middle; font-size: 16px"
                   >
-                    <tspan x="1474.500000" dy="0.000000">SSE Architecture</tspan>
+                    <tspan x="1474.500000" dy="0.000000">
+                      SSE Architecture
+                    </tspan>
                     <tspan x="1474.500000" dy="17.666667">(fanOut[T] +</tspan>
                     <tspan x="1474.500000" dy="17.666667">Last-Event-ID)</tspan>
                   </text>
@@ -2133,7 +2271,9 @@
                     style="text-anchor: middle; font-size: 16px"
                   >
                     <tspan x="2562.500000" dy="0.000000">gRPC/NATS/Redis</tspan>
-                    <tspan x="2562.500000" dy="18.500000">(WAIT for consumer)</tspan>
+                    <tspan x="2562.500000" dy="18.500000">
+                      (WAIT for consumer)
+                    </tspan>
                   </text>
                 </g>
                 <g class="YmxvY2tlZC5leHBlcmltZW50cw==">
@@ -2157,7 +2297,9 @@
                     style="text-anchor: middle; font-size: 16px"
                   >
                     <tspan x="2562.500000" dy="0.000000">jsonv2/Arena</tspan>
-                    <tspan x="2562.500000" dy="18.500000">(BLOCKED on Go stdlib)</tspan>
+                    <tspan x="2562.500000" dy="18.500000">
+                      (BLOCKED on Go stdlib)
+                    </tspan>
                   </text>
                 </g>
                 <g class="YmxvY2tlZC5yYXdfaWRlYXM=">
@@ -2181,7 +2323,9 @@
                     style="text-anchor: middle; font-size: 16px"
                   >
                     <tspan x="2562.000000" dy="0.000000">8 Raw Ideas</tspan>
-                    <tspan x="2562.000000" dy="18.500000">(no design yet)</tspan>
+                    <tspan x="2562.000000" dy="18.500000">
+                      (no design yet)
+                    </tspan>
                   </text>
                 </g>
                 <g class="dGllcjEuKGNib3JfbmFuIC0mZ3Q7IGV2ZW50X29wdHMpWzBd">
@@ -2267,7 +2411,10 @@
                     mask="url(#d2-862700876)"
                   />
                 </g>
-                <g class="KHRpZXI0IC0mZ3Q7IGJsb2NrZWQpWzBd" style="opacity: 0.3">
+                <g
+                  class="KHRpZXI0IC0mZ3Q7IGJsb2NrZWQpWzBd"
+                  style="opacity: 0.3"
+                >
                   <marker
                     id="mk-d2-862700876-2177206569"
                     markerWidth="10.000000"
@@ -2312,8 +2459,20 @@
                   width="2963"
                   height="1044"
                 >
-                  <rect x="-89" y="-89" width="2963" height="1044" fill="white"></rect>
-                  <rect x="2235.000000" y="423.000000" width="49" height="21" fill="black"></rect>
+                  <rect
+                    x="-89"
+                    y="-89"
+                    width="2963"
+                    height="1044"
+                    fill="white"
+                  ></rect>
+                  <rect
+                    x="2235.000000"
+                    y="423.000000"
+                    width="49"
+                    height="21"
+                    fill="black"
+                  ></rect>
                 </mask>
               </svg>
             </svg>
@@ -2323,7 +2482,10 @@
         <!-- ════════ TOP FIXES ════════ -->
         <div id="topfixes">
           <h2><span class="num">★</span>The TOP Things We NEED to Fix</h2>
-          <p>Distilled to the absolute essentials. If you fix nothing else, fix these.</p>
+          <p>
+            Distilled to the absolute essentials. If you fix nothing else, fix
+            these.
+          </p>
 
           <div class="top-fix">
             <div class="top-fix-num">1</div>
@@ -2331,14 +2493,17 @@
               <h4>CBOR Canonical NaN — Fuzz Failure in CI</h4>
               <div class="meta">
                 <span class="badge badge-critical">Critical</span>
-                Tasks 1.1–1.6 · ~57 min · <code>codec/codec_fuzz_test.go:336</code> · seed
+                Tasks 1.1–1.6 · ~57 min ·
+                <code>codec/codec_fuzz_test.go:336</code> · seed
                 <code>5f72aef8648194a5</code>
               </div>
               <div class="why">
-                The canonical encoder produces non-deterministic output for NaN map keys. This
-                violates the canonical contract and fails the fuzz test in CI. Either reject NaN
-                keys at encode time, or implement byte-level tiebreaking. Also investigate why it
-                passes in isolation but fails in the full suite (likely init race or shared state).
+                The canonical encoder produces non-deterministic output for NaN
+                map keys. This violates the canonical contract and fails the
+                fuzz test in CI. Either reject NaN keys at encode time, or
+                implement byte-level tiebreaking. Also investigate why it passes
+                in isolation but fails in the full suite (likely init race or
+                shared state).
               </div>
             </div>
           </div>
@@ -2346,16 +2511,19 @@
           <div class="top-fix">
             <div class="top-fix-num">2</div>
             <div class="top-fix-body">
-              <h4>Deep-Copy <code>*eventOptions</code> on Clone — Last v3 Blocker</h4>
+              <h4>
+                Deep-Copy <code>*eventOptions</code> on Clone — Last v3 Blocker
+              </h4>
               <div class="meta">
                 <span class="badge badge-medium">Medium</span>
                 Tasks 1.7–1.9 · ~30 min · <code>event/builder.go</code>
               </div>
               <div class="why">
-                The options pointer is shallow-copied on Clone, meaning a consumer can mutate the
-                original event's metadata by modifying the clone's options. This is the last
-                remaining <code>[v3]</code> breaking change. Once fixed, v3.0.0 is feature-complete
-                with zero known breaking items left.
+                The options pointer is shallow-copied on Clone, meaning a
+                consumer can mutate the original event's metadata by modifying
+                the clone's options. This is the last remaining
+                <code>[v3]</code> breaking change. Once fixed, v3.0.0 is
+                feature-complete with zero known breaking items left.
               </div>
             </div>
           </div>
@@ -2363,15 +2531,21 @@
           <div class="top-fix">
             <div class="top-fix-num">3</div>
             <div class="top-fix-body">
-              <h4>V3_MIGRATION.md Accuracy Pass — Broken Examples Ship to Consumers</h4>
+              <h4>
+                V3_MIGRATION.md Accuracy Pass — Broken Examples Ship to
+                Consumers
+              </h4>
               <div class="meta">
                 <span class="badge badge-medium">Medium</span>
-                Tasks 1.13–1.15 · ~30 min · <code>docs/migration/V3_MIGRATION.md</code>
+                Tasks 1.13–1.15 · ~30 min ·
+                <code>docs/migration/V3_MIGRATION.md</code>
               </div>
               <div class="why">
-                The migration guide references <code>memory.NewMemoryBus()</code> (deprecated) and
-                lists <code>pg_bus</code> as ghost code (it's real). Consumers following this guide
-                will hit compile errors. The last brutal review flagged stale entries.
+                The migration guide references
+                <code>memory.NewMemoryBus()</code> (deprecated) and lists
+                <code>pg_bus</code> as ghost code (it's real). Consumers
+                following this guide will hit compile errors. The last brutal
+                review flagged stale entries.
               </div>
             </div>
           </div>
@@ -2379,16 +2553,20 @@
           <div class="top-fix">
             <div class="top-fix-num">4</div>
             <div class="top-fix-body">
-              <h4>PgxListener Concurrent-Close Race — Production Concurrency Bug</h4>
+              <h4>
+                PgxListener Concurrent-Close Race — Production Concurrency Bug
+              </h4>
               <div class="meta">
                 <span class="badge badge-high">High</span>
-                Tasks 2.1–2.4 · ~40 min · <code>stack/postgres/pg_listener.go:39-60</code>
+                Tasks 2.1–2.4 · ~40 min ·
+                <code>stack/postgres/pg_listener.go:39-60</code>
               </div>
               <div class="why">
-                The PgxListener has a known concurrent-Close race condition. The code has a design
-                rationale comment claiming channel-based synchronization makes it safe-by-design,
-                but no <code>-race</code> test verifies this claim. Either confirm safe-by-design
-                with a passing race test, or add a mutex guard.
+                The PgxListener has a known concurrent-Close race condition. The
+                code has a design rationale comment claiming channel-based
+                synchronization makes it safe-by-design, but no
+                <code>-race</code> test verifies this claim. Either confirm
+                safe-by-design with a passing race test, or add a mutex guard.
               </div>
             </div>
           </div>
@@ -2402,10 +2580,11 @@
                 Tasks 2.6–2.8 · ~32 min · event/, command/, query/
               </div>
               <div class="why">
-                The Metadata Merge map-aliasing bug (found and fixed last session) proves these
-                types need property-based testing. A rapid generator that creates arbitrary
-                Metadata, marshals it, unmarshals it, and checks equality would have caught the
-                Merge bug before it shipped. Three modules, same pattern.
+                The Metadata Merge map-aliasing bug (found and fixed last
+                session) proves these types need property-based testing. A rapid
+                generator that creates arbitrary Metadata, marshals it,
+                unmarshals it, and checks equality would have caught the Merge
+                bug before it shipped. Three modules, same pattern.
               </div>
             </div>
           </div>
@@ -2413,16 +2592,20 @@
           <div class="top-fix">
             <div class="top-fix-num">6</div>
             <div class="top-fix-body">
-              <h4>Consumer Trust Smoke Test — "Would a Consumer Trust This?"</h4>
+              <h4>
+                Consumer Trust Smoke Test — "Would a Consumer Trust This?"
+              </h4>
               <div class="meta">
                 <span class="badge badge-medium">Medium</span>
                 Tasks 2.12–2.15 · ~46 min · new integration test
               </div>
               <div class="why">
-                The quality gate for every module is "would a consumer trust this enough to import
-                it?" — but no test verifies this from outside the repo. A smoke test that imports
-                every module and constructs each of the 4 presets would catch broken constructors,
-                missing exports, and import graph issues that per-module tests can't see.
+                The quality gate for every module is "would a consumer trust
+                this enough to import it?" — but no test verifies this from
+                outside the repo. A smoke test that imports every module and
+                constructs each of the 4 presets would catch broken
+                constructors, missing exports, and import graph issues that
+                per-module tests can't see.
               </div>
             </div>
           </div>
@@ -2430,19 +2613,21 @@
           <div class="card card-warning">
             <h4>The v3.0.0 Decision</h4>
             <p>
-              <strong>Tag now or hold?</strong> All 10 v3 breaking changes are shipped and tested.
-              The only remaining work is Tier 1 (bugs + docs, ~3h). I recommend: do Tier 1 tasks
-              1.1–1.16 (fix bugs + docs + verify), THEN tag v3.0.0 (task 1.17). Holding costs
-              momentum; the bugs are real but small. The half-applied ADR limbo was worse than a
-              clean break.
+              <strong>Tag now or hold?</strong> All 10 v3 breaking changes are
+              shipped and tested. The only remaining work is Tier 1 (bugs +
+              docs, ~3h). I recommend: do Tier 1 tasks 1.1–1.16 (fix bugs + docs
+              + verify), THEN tag v3.0.0 (task 1.17). Holding costs momentum;
+              the bugs are real but small. The half-applied ADR limbo was worse
+              than a clean break.
             </p>
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-21 &middot; Sources: TODO_LIST.md, ROADMAP.md, brutal self-review
-          (2026-06-20), deployer-first plan, consumer feedback, inline code scan &middot; 103
-          actionable tasks across 5 Pareto tiers &middot; D2 graph:
+          Generated 2026-06-21 &middot; Sources: TODO_LIST.md, ROADMAP.md,
+          brutal self-review (2026-06-20), deployer-first plan, consumer
+          feedback, inline code scan &middot; 103 actionable tasks across 5
+          Pareto tiers &middot; D2 graph:
           <code>docs/planning/pareto_plan.d2</code>
         </footer>
       </main>
@@ -2470,7 +2655,9 @@
                 links.forEach(function (link) {
                   link.classList.remove("active");
                 });
-                var active = nav.querySelector('a[href="#' + entry.target.id + '"]');
+                var active = nav.querySelector(
+                  'a[href="#' + entry.target.id + '"]',
+                );
                 if (active) active.classList.add("active");
               }
             });

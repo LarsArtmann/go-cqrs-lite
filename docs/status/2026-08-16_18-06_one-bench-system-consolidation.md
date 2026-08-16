@@ -1,6 +1,6 @@
 # Status Report — One Bench System: consolidation + a real regression gate
 
-**Session:** 2026-08-16 18:06 CEST · **Scope:** TODO_LIST.md "Code Quality" → *One bench system*, executed per [`docs/planning/2026-08-16_15-09_one-bench-system-consolidation.md`](../planning/2026-08-16_15-09_one-bench-system-consolidation.md) · **Branch:** master · **Terminal state:** all work committed and pushed (`master` == `origin/master` == `c29d977f4`).
+**Session:** 2026-08-16 18:06 CEST · **Scope:** TODO_LIST.md "Code Quality" → _One bench system_, executed per [`docs/planning/2026-08-16_15-09_one-bench-system-consolidation.md`](../planning/2026-08-16_15-09_one-bench-system-consolidation.md) · **Branch:** master · **Terminal state:** all work committed and pushed (`master` == `origin/master` == `c29d977f4`).
 
 **Context:** the original TODO said "delete `metaengine/bench`"; research proved only 5 of its 36 benchmarks are benchkit-redundant, so the module was **slimmed, not deleted** (user-agreed revision, design decision D4). The session's core deliverable was not the deletions but the **enforcement**: the CI benchmark regression job ran `benchstat … || true` — a gate that cannot fail is theatre. It now runs a median-based threshold check that actually exits 1 on breach.
 

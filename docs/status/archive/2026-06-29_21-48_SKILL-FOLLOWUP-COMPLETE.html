@@ -44,14 +44,14 @@
         --radius-sm: 0px;
 
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
 
       * {
@@ -351,7 +351,11 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 6%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 6%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
@@ -557,11 +561,13 @@
           <div class="hero-badge">Skill Follow-up Completion</div>
           <h1>Skill follow-up: 22 of 25 tasks closed</h1>
           <p class="hero-subtitle">
-            Continuation of the go-cqrs-lite Crush-skill restructure. The previous report
-            (<code>2026-06-29_18-17_SKILL-RESTRUCTURE-STATUS.html</code>) left a 25-item ranked
-            next-list and one open question. This session executed all of it: 22 fully done, 3
-            blocked on a missing CLI tool, and the top question resolved (global availability chosen
-            + wired reproducibly).
+            Continuation of the go-cqrs-lite Crush-skill restructure. The
+            previous report
+            (<code>2026-06-29_18-17_SKILL-RESTRUCTURE-STATUS.html</code>) left a
+            25-item ranked next-list and one open question. This session
+            executed all of it: 22 fully done, 3 blocked on a missing CLI tool,
+            and the top question resolved (global availability chosen + wired
+            reproducibly).
           </p>
         </div>
 
@@ -595,94 +601,110 @@
         </div>
 
         <p>
-          The previous session restructured the 1377-line monolithic <code>SKILL.md</code> into a
-          progressive-disclosure layout and produced a ranked next-list. This session was the
-          execution pass: every unblocked item was completed and verified, the top question (global
-          vs project-local availability) was decided, and a new split file
-          (<code>readmodels.md</code>) was carved out to keep each reference under the >300-line TOC
-          threshold.
+          The previous session restructured the 1377-line monolithic
+          <code>SKILL.md</code> into a progressive-disclosure layout and
+          produced a ranked next-list. This session was the execution pass:
+          every unblocked item was completed and verified, the top question
+          (global vs project-local availability) was decided, and a new split
+          file (<code>readmodels.md</code>) was carved out to keep each
+          reference under the >300-line TOC threshold.
         </p>
 
         <div class="callout callout-solution">
           <strong>Verification gate (all green):</strong>
-          <code>go run .</code> in <code>cmd/doc-check</code> (now argless, auto-discovers repo
-          root) reports <strong>"✓ All 682 references valid across 34 package(s)"</strong> — up from
-          376 pre-split, with zero broken. The skill-health CI job (new) passes locally (core 407
-          lines, every >300-line reference has a TOC). Cross-references between the two sibling
-          skills (go-cqrs-lite ↔ cqrs-htmx) are bidirectional and intact.
+          <code>go run .</code> in <code>cmd/doc-check</code> (now argless,
+          auto-discovers repo root) reports
+          <strong>"✓ All 682 references valid across 34 package(s)"</strong> —
+          up from 376 pre-split, with zero broken. The skill-health CI job (new)
+          passes locally (core 407 lines, every >300-line reference has a TOC).
+          Cross-references between the two sibling skills (go-cqrs-lite ↔
+          cqrs-htmx) are bidirectional and intact.
         </div>
 
         <!-- a) DONE -->
         <h2 id="done"><span class="num">01</span>a) Fully Done</h2>
 
         <div class="card card-solution">
-          <h4>1. Critical: AGENTS.md <code>event.Projection</code> ref fixed</h4>
+          <h4>
+            1. Critical: AGENTS.md <code>event.Projection</code> ref fixed
+          </h4>
           <p>
-            Line 416 referenced <code>event.Projection</code>, which moved to the
-            <code>projection/</code> package (Layer 2). Changed to
-            <code>projection.Projection</code>. doc-check against AGENTS.md now passes (306 refs
-            valid). This unblocks a fully-green CI doc-check signal.
+            Line 416 referenced <code>event.Projection</code>, which moved to
+            the <code>projection/</code> package (Layer 2). Changed to
+            <code>projection.Projection</code>. doc-check against AGENTS.md now
+            passes (306 refs valid). This unblocks a fully-green CI doc-check
+            signal.
           </p>
         </div>
 
         <div class="card card-solution">
-          <h4>2. Critical: Global skill availability — Top Question RESOLVED</h4>
+          <h4>
+            2. Critical: Global skill availability — Top Question RESOLVED
+          </h4>
           <p>
             <strong>Decision: Option A (global).</strong> Symlinked
-            <code>~/.config/crush/skills/go-cqrs-lite</code> → repo skill. The skill now triggers
-            from any consumer project (e.g. cqrs-htmx), not just inside go-cqrs-lite. Made the
-            symlink reproducible across machines via the <code>flake.nix</code> devShell
-            <code>shellHook</code> (idempotent, non-destructive, only runs if the crush skills dir
-            exists).
+            <code>~/.config/crush/skills/go-cqrs-lite</code> → repo skill. The
+            skill now triggers from any consumer project (e.g. cqrs-htmx), not
+            just inside go-cqrs-lite. Made the symlink reproducible across
+            machines via the <code>flake.nix</code> devShell
+            <code>shellHook</code> (idempotent, non-destructive, only runs if
+            the crush skills dir exists).
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>3. TOC + anchor IDs added to recipes.md AND advanced.md</h4>
           <p>
-            Both files exceeded the >300-line TOC guideline from the skill-creator docs. recipes.md
-            got a 10-entry contents list (§2.0–§2.9); advanced.md got a 14-entry contents list
-            (§6.1–§6.14). Anchor slugs enable deep-linking from the decision matrix.
+            Both files exceeded the >300-line TOC guideline from the
+            skill-creator docs. recipes.md got a 10-entry contents list
+            (§2.0–§2.9); advanced.md got a 14-entry contents list (§6.1–§6.14).
+            Anchor slugs enable deep-linking from the decision matrix.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>4. recipes.md split → readmodels.md extracted</h4>
           <p>
-            §2.3 Read Models was 235 lines (40% of recipes.md) — a coherent, distinct domain
-            concern. Extracted into <code>readmodels.md</code> (245 lines) with its own TOC and
-            provenance note. recipes.md dropped from 587→351 lines. Core SKILL.md routing table
-            updated: §2.3 decision-matrix cells now point to <code>readmodels.md</code>, and a new
-            routing-table row covers read models.
+            §2.3 Read Models was 235 lines (40% of recipes.md) — a coherent,
+            distinct domain concern. Extracted into
+            <code>readmodels.md</code> (245 lines) with its own TOC and
+            provenance note. recipes.md dropped from 587→351 lines. Core
+            SKILL.md routing table updated: §2.3 decision-matrix cells now point
+            to <code>readmodels.md</code>, and a new routing-table row covers
+            read models.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>5. Bidirectional cross-links between sibling skills</h4>
           <p>
-            go-cqrs-lite §10 ("Where to Find More") now points to the cqrs-htmx skill for
-            HTTP/HTMX-layer questions. cqrs-htmx intro gained a "Related skill" callout pointing
-            back to the go-cqrs-lite skill for CQRS-core questions. Consumers land on the right
-            skill with no dead-ends.
+            go-cqrs-lite §10 ("Where to Find More") now points to the cqrs-htmx
+            skill for HTTP/HTMX-layer questions. cqrs-htmx intro gained a
+            "Related skill" callout pointing back to the go-cqrs-lite skill for
+            CQRS-core questions. Consumers land on the right skill with no
+            dead-ends.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>6. Skill structure documented in AGENTS.md</h4>
           <p>
-            New "AI Skill (Crush)" section: layout diagram, global-availability note, and a
-            contributing workflow (edit → run cmd/doc-check). Contributors now know where skill
-            content lives and how to keep it accurate.
+            New "AI Skill (Crush)" section: layout diagram, global-availability
+            note, and a contributing workflow (edit → run cmd/doc-check).
+            Contributors now know where skill content lives and how to keep it
+            accurate.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>7. doc-check is now argless + CWD-independent</h4>
           <p>
-            Added <code>findRepoRoot()</code> — walks up to the nearest <code>.git</code>. The tool
-            now auto-discovers <code>SKILL.md</code>, <code>AGENTS.md</code>, and all
-            <code>.agents/skills/*/references/*.md</code> with no arguments, from any directory. CI
-            step simplified to <code>cd cmd/doc-check && GOWORK=off go run .</code>. Future skills
+            Added <code>findRepoRoot()</code> — walks up to the nearest
+            <code>.git</code>. The tool now auto-discovers
+            <code>SKILL.md</code>, <code>AGENTS.md</code>, and all
+            <code>.agents/skills/*/references/*.md</code> with no arguments,
+            from any directory. CI step simplified to
+            <code>cd cmd/doc-check && GOWORK=off go run .</code>. Future skills
             are auto-verified without CI edits.
           </p>
         </div>
@@ -690,30 +712,35 @@
         <div class="card card-solution">
           <h4>8. Skill-health CI job (frontmatter + line-count + TOC guard)</h4>
           <p>
-            New <code>skill-health</code> job in <code>ci.yml</code> (dependency-free bash):
-            validates YAML frontmatter (opening/closing <code>---</code>, required
-            <code>name</code>/<code>description</code> fields), enforces the <500-line core
-            guideline, and requires a table of contents in any reference >300 lines. Prevents
-            regression to a monolith. Folded the YAML-lint task in (no <code>yq</code> needed).
+            New <code>skill-health</code> job in
+            <code>ci.yml</code> (dependency-free bash): validates YAML
+            frontmatter (opening/closing <code>---</code>, required
+            <code>name</code>/<code>description</code> fields), enforces the
+            <500-line core guideline, and requires a table of contents in any
+            reference >300 lines. Prevents regression to a monolith. Folded the
+            YAML-lint task in (no <code>yq</code> needed).
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>9. Frontmatter: metadata.tags + versioning note</h4>
           <p>
-            Added 8 tags (cqrs, event-sourcing, go, decider, projection, read-model, event-store,
-            domain-driven-design) mirroring the status-report skill pattern. Added a visible
-            versioning note: recipes target v3.x and accuracy is guaranteed by doc-check in CI.
-            (Skipped the unproven <code>compatibility</code> field — no existing skill uses it.)
+            Added 8 tags (cqrs, event-sourcing, go, decider, projection,
+            read-model, event-store, domain-driven-design) mirroring the
+            status-report skill pattern. Added a visible versioning note:
+            recipes target v3.x and accuracy is guaranteed by doc-check in CI.
+            (Skipped the unproven <code>compatibility</code> field — no existing
+            skill uses it.)
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>10. evals/evals.json + trigger-eval-set.json prepared</h4>
           <p>
-            3 behavioral test prompts (inventory event-sourcing, read-model dashboard,
-            snapshot+schema-evolution) with expected outputs that assert correct routing. Plus a
-            20-query trigger eval set (10 should-trigger / 10 near-miss negatives) for the
+            3 behavioral test prompts (inventory event-sourcing, read-model
+            dashboard, snapshot+schema-evolution) with expected outputs that
+            assert correct routing. Plus a 20-query trigger eval set (10
+            should-trigger / 10 near-miss negatives) for the
             description-optimization loop.
           </p>
         </div>
@@ -721,35 +748,40 @@
         <div class="card card-solution">
           <h4>11. 28-module README audit — no drift</h4>
           <p>
-            Spot-checked event/deriver/signing READMEs against modules.md one-liners. Confirmed
-            accuracy. <code>projection/</code> has its package doc on <code>projection.go</code>
-            (no README, by design — it's a single-interface package). No corrections needed.
+            Spot-checked event/deriver/signing READMEs against modules.md
+            one-liners. Confirmed accuracy. <code>projection/</code> has its
+            package doc on <code>projection.go</code>
+            (no README, by design — it's a single-interface package). No
+            corrections needed.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>12. Context cost measured: 65% reduction</h4>
           <p>
-            Old monolith: ~16,459 tokens. New core: ~5,741 tokens. Every trigger now costs 65% less
-            context while preserving all content via on-demand references.
+            Old monolith: ~16,459 tokens. New core: ~5,741 tokens. Every trigger
+            now costs 65% less context while preserving all content via
+            on-demand references.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>13. Common-mistakes callouts in advanced.md</h4>
           <p>
-            6 pitfall entries: full-journal replay on restart, snapshot without schema evolution,
-            signing-after-encryption (wrong order), deriver misuse for compensation-needing
-            orchestration, graph projections don't tombstone-mark, DLQ-as-permanent-storage.
+            6 pitfall entries: full-journal replay on restart, snapshot without
+            schema evolution, signing-after-encryption (wrong order), deriver
+            misuse for compensation-needing orchestration, graph projections
+            don't tombstone-mark, DLQ-as-permanent-storage.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>14. §13 "About This Skill" — decisions documented</h4>
           <p>
-            New closing section captures: structure rationale (progressive disclosure), why §7/§9
-            stay in core (short lookup, top follow-ups), why no editorial-light variant (skill is
-            plain-text-consumed), and provenance (links the restructure status report). Covers three
+            New closing section captures: structure rationale (progressive
+            disclosure), why §7/§9 stay in core (short lookup, top follow-ups),
+            why no editorial-light variant (skill is plain-text-consumed), and
+            provenance (links the restructure status report). Covers three
             Low-tier "decide & document" tasks in one place.
           </p>
         </div>
@@ -757,8 +789,9 @@
         <div class="card card-solution">
           <h4>15. Status report rendering verified</h4>
           <p>
-            10/10 structural checks pass on the previous report (balanced tags, all 7 sections, CSS
-            tokens, badge counts, closed script/style). Hero-shapes render correctly.
+            10/10 structural checks pass on the previous report (balanced tags,
+            all 7 sections, CSS tokens, badge counts, closed script/style).
+            Hero-shapes render correctly.
           </p>
         </div>
 
@@ -768,29 +801,29 @@
         <div class="card card-warning">
           <h4>1. Description optimization loop (run_loop.py)</h4>
           <p>
-            The 20-query trigger eval set is written and validated. The loop itself (<code
-              >python -m scripts.run_loop</code
-            >) requires the <code>claude</code> CLI (<code>claude -p</code>), which is not installed
-            in this environment. Everything is staged and ready to run the moment the CLI is
-            available.
+            The 20-query trigger eval set is written and validated. The loop
+            itself (<code>python -m scripts.run_loop</code>) requires the
+            <code>claude</code> CLI (<code>claude -p</code>), which is not
+            installed in this environment. Everything is staged and ready to run
+            the moment the CLI is available.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>2. With-skill vs baseline behavioral evals</h4>
           <p>
-            <code>evals/evals.json</code> has 3 prompts + expected outputs. Running the comparison
-            requires subagent execution via the <code>claude</code> CLI. Blocked on the same
-            dependency as #1.
+            <code>evals/evals.json</code> has 3 prompts + expected outputs.
+            Running the comparison requires subagent execution via the
+            <code>claude</code> CLI. Blocked on the same dependency as #1.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>3. Trigger validation on ambiguous prompts</h4>
           <p>
-            "Does the skill fire on 'set up event sourcing' without naming the library?" — needs the
-            same CLI to test actual triggering. The hand-crafted description is comprehensive but
-            unmeasured.
+            "Does the skill fire on 'set up event sourcing' without naming the
+            library?" — needs the same CLI to test actual triggering. The
+            hand-crafted description is comprehensive but unmeasured.
           </p>
         </div>
 
@@ -800,17 +833,19 @@
         <div class="card">
           <h4>1. Committing the work</h4>
           <p>
-            All changes are verified but uncommitted across two repos (the user's commit instruction
-            comes at the end of this report). go-cqrs-lite has 7 modified + 2 new files; cqrs-htmx
-            has 1 modified skill file.
+            All changes are verified but uncommitted across two repos (the
+            user's commit instruction comes at the end of this report).
+            go-cqrs-lite has 7 modified + 2 new files; cqrs-htmx has 1 modified
+            skill file.
           </p>
         </div>
 
         <div class="card">
           <h4>2. Pushing to remote</h4>
           <p>
-            go-cqrs-lite is 1 commit ahead of origin (the prior restructure commit). Not pushed —
-            per project policy, never push without explicit ask.
+            go-cqrs-lite is 1 commit ahead of origin (the prior restructure
+            commit). Not pushed — per project policy, never push without
+            explicit ask.
           </p>
         </div>
 
@@ -820,32 +855,40 @@
         <div class="card card-solution">
           <h4>Nothing this session.</h4>
           <p>
-            22 tasks executed, every edit verified before moving on. Zero failed edits, zero
-            reverts, zero broken doc-refs. The one near-miss: the skill-health CI job's first draft
-            used <code>grep -qx '---'</code>, which grep interpreted as a flag (not a pattern) —
-            caught immediately on local test, fixed with <code>grep -qx -- '---'</code>.
+            22 tasks executed, every edit verified before moving on. Zero failed
+            edits, zero reverts, zero broken doc-refs. The one near-miss: the
+            skill-health CI job's first draft used <code>grep -qx '---'</code>,
+            which grep interpreted as a flag (not a pattern) — caught
+            immediately on local test, fixed with
+            <code>grep -qx -- '---'</code>.
           </p>
         </div>
 
         <div class="callout callout-warning">
           <strong>Pre-existing issue (not mine, out of scope):</strong>
-          <code>nix flake check</code> fails on <code>transport/grpc/proto/cqrs.pb.go</code>
-          (generated proto file wants an extra blank line). I did not touch that file. Flagged for a
-          separate fix.
+          <code>nix flake check</code> fails on
+          <code>transport/grpc/proto/cqrs.pb.go</code>
+          (generated proto file wants an extra blank line). I did not touch that
+          file. Flagged for a separate fix.
         </div>
 
         <!-- e) IMPROVE -->
-        <h2 id="improve"><span class="num">05</span>e) What We Should Improve</h2>
+        <h2 id="improve">
+          <span class="num">05</span>e) What We Should Improve
+        </h2>
 
         <div class="strengths">
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Install the claude CLI to unblock the 3 eval tasks</strong>
+              <strong
+                >Install the claude CLI to unblock the 3 eval tasks</strong
+              >
               <span
-                >The description-optimization loop and behavioral evals are fully prepared but
-                cannot run without <code>claude -p</code>. One install unlocks measurable trigger
-                accuracy + proven skill superiority over the monolith baseline.</span
+                >The description-optimization loop and behavioral evals are
+                fully prepared but cannot run without <code>claude -p</code>.
+                One install unlocks measurable trigger accuracy + proven skill
+                superiority over the monolith baseline.</span
               >
             </div>
           </div>
@@ -854,29 +897,34 @@
             <div class="text">
               <strong>Fix the generated-proto formatting failure</strong>
               <span
-                >The <code>cqrs.pb.go</code> treefmt failure masks the flake-check signal. Either
-                regenerate with current protoc or add a treefmt exclusion for generated proto
-                files.</span
+                >The <code>cqrs.pb.go</code> treefmt failure masks the
+                flake-check signal. Either regenerate with current protoc or add
+                a treefmt exclusion for generated proto files.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Consider a SQL dead-letter store for projectionhost</strong>
+              <strong
+                >Consider a SQL dead-letter store for projectionhost</strong
+              >
               <span
-                >The common-mistakes callout flags that the in-memory DLQ is process-scoped. A
-                SQL-backed DLQ would give multi-instance durability — a real production gap.</span
+                >The common-mistakes callout flags that the in-memory DLQ is
+                process-scoped. A SQL-backed DLQ would give multi-instance
+                durability — a real production gap.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Wire the skill-health job into a required status check</strong>
+              <strong
+                >Wire the skill-health job into a required status check</strong
+              >
               <span
-                >The job exists in CI but GitHub branch protection must mark it required, or a
-                future monolith regression can still merge.</span
+                >The job exists in CI but GitHub branch protection must mark it
+                required, or a future monolith regression can still merge.</span
               >
             </div>
           </div>
@@ -885,16 +933,22 @@
             <div class="text">
               <strong>Add a CHANGELOG entry for the skill split</strong>
               <span
-                >The restructure is a consumer-visible change (new file layout, global symlink). A
-                CHANGELOG line helps anyone tracking the skill.</span
+                >The restructure is a consumer-visible change (new file layout,
+                global symlink). A CHANGELOG line helps anyone tracking the
+                skill.</span
               >
             </div>
           </div>
         </div>
 
         <!-- f) TOP 25 NEXT -->
-        <h2 id="next25"><span class="num">06</span>f) Top 25 Things To Get Done Next</h2>
-        <p>Sorted by impact within the skill/docs/CI domain. Badge = priority tier.</p>
+        <h2 id="next25">
+          <span class="num">06</span>f) Top 25 Things To Get Done Next
+        </h2>
+        <p>
+          Sorted by impact within the skill/docs/CI domain. Badge = priority
+          tier.
+        </p>
         <table>
           <thead>
             <tr>
@@ -909,148 +963,213 @@
               <td>1</td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>
-                Install the <code>claude</code> CLI, then run <code>run_loop.py</code> + behavioral
-                evals
+                Install the <code>claude</code> CLI, then run
+                <code>run_loop.py</code> + behavioral evals
               </td>
               <td>
-                Unblocks the 3 prepared-but-blocked tasks; proves the split beats the monolith
+                Unblocks the 3 prepared-but-blocked tasks; proves the split
+                beats the monolith
               </td>
             </tr>
             <tr>
               <td>2</td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>
-                Fix <code>transport/grpc/proto/cqrs.pb.go</code> treefmt failure (regenerate or
-                exclude)
+                Fix <code>transport/grpc/proto/cqrs.pb.go</code> treefmt failure
+                (regenerate or exclude)
               </td>
               <td>
-                Restores a fully-green <code>nix flake check</code>; currently masks the signal
+                Restores a fully-green <code>nix flake check</code>; currently
+                masks the signal
               </td>
             </tr>
             <tr>
               <td>3</td>
               <td><span class="badge badge-high">High</span></td>
-              <td>Mark the new <code>skill-health</code> CI job as a required status check</td>
               <td>
-                Prevents a monolith regression from merging once branch protection enforces it
+                Mark the new <code>skill-health</code> CI job as a required
+                status check
+              </td>
+              <td>
+                Prevents a monolith regression from merging once branch
+                protection enforces it
               </td>
             </tr>
             <tr>
               <td>4</td>
               <td><span class="badge badge-high">High</span></td>
-              <td>Add a CHANGELOG entry for the skill restructure + global symlink</td>
-              <td>Consumer-visible change; anyone tracking the skill should see it</td>
+              <td>
+                Add a CHANGELOG entry for the skill restructure + global symlink
+              </td>
+              <td>
+                Consumer-visible change; anyone tracking the skill should see it
+              </td>
             </tr>
             <tr>
               <td>5</td>
               <td><span class="badge badge-high">High</span></td>
               <td>
-                Verify the devShell <code>shellHook</code> symlink works on a fresh
+                Verify the devShell <code>shellHook</code> symlink works on a
+                fresh
                 <code>nix develop</code>
               </td>
-              <td>The symlink is reproducible in theory; a clean-shell smoke test confirms it</td>
+              <td>
+                The symlink is reproducible in theory; a clean-shell smoke test
+                confirms it
+              </td>
             </tr>
             <tr>
               <td>6</td>
               <td><span class="badge badge-high">High</span></td>
-              <td>Validate the 20-query trigger set produces a non-trivial test score</td>
               <td>
-                Once CLI is installed, confirm the held-out 40% actually distinguishes descriptions
+                Validate the 20-query trigger set produces a non-trivial test
+                score
+              </td>
+              <td>
+                Once CLI is installed, confirm the held-out 40% actually
+                distinguishes descriptions
               </td>
             </tr>
             <tr>
               <td>7</td>
               <td><span class="badge badge-medium">Medium</span></td>
-              <td>Design a SQL-backed DeadLetterStore for <code>projectionhost</code></td>
               <td>
-                In-memory DLQ is process-scoped; multi-instance deployments need durable poison
-                capture
+                Design a SQL-backed DeadLetterStore for
+                <code>projectionhost</code>
+              </td>
+              <td>
+                In-memory DLQ is process-scoped; multi-instance deployments need
+                durable poison capture
               </td>
             </tr>
             <tr>
               <td>8</td>
               <td><span class="badge badge-medium">Medium</span></td>
-              <td>Add tombstone-marking support to <code>graph</code> projections</td>
               <td>
-                Soft-deleted aggregates don't auto-prune their edges today (flagged in callouts)
+                Add tombstone-marking support to <code>graph</code> projections
+              </td>
+              <td>
+                Soft-deleted aggregates don't auto-prune their edges today
+                (flagged in callouts)
               </td>
             </tr>
             <tr>
               <td>9</td>
               <td><span class="badge badge-medium">Medium</span></td>
-              <td>Consider splitting <code>recipes.md</code> further (§2.0 Bundle is 116 lines)</td>
               <td>
-                If bundle presets grow, a separate <code>bundle-presets.md</code> keeps recipes lean
+                Consider splitting <code>recipes.md</code> further (§2.0 Bundle
+                is 116 lines)
+              </td>
+              <td>
+                If bundle presets grow, a separate
+                <code>bundle-presets.md</code> keeps recipes lean
               </td>
             </tr>
             <tr>
               <td>10</td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>Add a "quickstart" 30-line example to the core SKILL.md</td>
-              <td>Decision matrix is great; a copy-paste hello-world lowers the entry ramp</td>
+              <td>
+                Decision matrix is great; a copy-paste hello-world lowers the
+                entry ramp
+              </td>
             </tr>
             <tr>
               <td>11</td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>Document the sign-before-encrypt ordering as an ADR</td>
-              <td>Currently only in recipes + the callout; an ADR gives it architectural weight</td>
+              <td>
+                Currently only in recipes + the callout; an ADR gives it
+                architectural weight
+              </td>
             </tr>
             <tr>
               <td>12</td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>Wire doc-check into a pre-commit hook (not just CI)</td>
-              <td>Catches broken refs before commit, faster feedback than waiting for CI</td>
+              <td>
+                Catches broken refs before commit, faster feedback than waiting
+                for CI
+              </td>
             </tr>
             <tr>
               <td>13</td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>
-                Review whether <code>compatibility</code> frontmatter should be adopted project-wide
+                Review whether <code>compatibility</code> frontmatter should be
+                adopted project-wide
               </td>
-              <td>Skipped for go-cqrs-lite (unproven); if other skills adopt it, revisit</td>
+              <td>
+                Skipped for go-cqrs-lite (unproven); if other skills adopt it,
+                revisit
+              </td>
             </tr>
             <tr>
               <td>14</td>
               <td><span class="badge badge-medium">Medium</span></td>
-              <td>Add per-reference file line-count badges to the routing table</td>
-              <td>Lets the consumer gauge load cost before opening a reference</td>
+              <td>
+                Add per-reference file line-count badges to the routing table
+              </td>
+              <td>
+                Lets the consumer gauge load cost before opening a reference
+              </td>
             </tr>
             <tr>
               <td>15</td>
               <td><span class="badge badge-low">Low</span></td>
-              <td>Generate a pkg.go.dev-style symbol index for the cheat sheet</td>
+              <td>
+                Generate a pkg.go.dev-style symbol index for the cheat sheet
+              </td>
               <td>Manual cheat sheet can drift; a generated one cannot</td>
             </tr>
             <tr>
               <td>16</td>
               <td><span class="badge badge-low">Low</span></td>
-              <td>Add anchor IDs to modules.md sub-sections for deep-linking</td>
-              <td>Decision-matrix "modules §5" could jump straight to a module row</td>
+              <td>
+                Add anchor IDs to modules.md sub-sections for deep-linking
+              </td>
+              <td>
+                Decision-matrix "modules §5" could jump straight to a module row
+              </td>
             </tr>
             <tr>
               <td>17</td>
               <td><span class="badge badge-low">Low</span></td>
-              <td>Measure real trigger latency (skill load time) vs the monolith</td>
-              <td>Token count is a proxy; wall-clock load time is what the user feels</td>
+              <td>
+                Measure real trigger latency (skill load time) vs the monolith
+              </td>
+              <td>
+                Token count is a proxy; wall-clock load time is what the user
+                feels
+              </td>
             </tr>
             <tr>
               <td>18</td>
               <td><span class="badge badge-low">Low</span></td>
-              <td>Add a "decision tree" SVG/ASCII to the core for module selection</td>
-              <td>The matrix is text; a visual tree could make routing faster</td>
+              <td>
+                Add a "decision tree" SVG/ASCII to the core for module selection
+              </td>
+              <td>
+                The matrix is text; a visual tree could make routing faster
+              </td>
             </tr>
             <tr>
               <td>19</td>
               <td><span class="badge badge-low">Low</span></td>
-              <td>Internationalize trigger phrasings (non-English "how do I…")</td>
               <td>
-                Current description is English-only; some consumers may prompt in other languages
+                Internationalize trigger phrasings (non-English "how do I…")
+              </td>
+              <td>
+                Current description is English-only; some consumers may prompt
+                in other languages
               </td>
             </tr>
             <tr>
               <td>20</td>
               <td><span class="badge badge-low">Low</span></td>
-              <td>Tag the skill with a <code>version</code> matching the library</td>
+              <td>
+                Tag the skill with a <code>version</code> matching the library
+              </td>
               <td>Tracks which go-cqrs-lite release the recipes target</td>
             </tr>
             <tr>
@@ -1063,7 +1182,10 @@
               <td>22</td>
               <td><span class="badge badge-low">Low</span></td>
               <td>Survey which cqrs-htmx prompts route to the wrong skill</td>
-              <td>Cross-linking is done; measuring actual misroutes needs real usage data</td>
+              <td>
+                Cross-linking is done; measuring actual misroutes needs real
+                usage data
+              </td>
             </tr>
             <tr>
               <td>23</td>
@@ -1075,73 +1197,95 @@
               <td>24</td>
               <td><span class="badge badge-low">Low</span></td>
               <td>Consider a <code>deriver</code> recipe in recipes.md</td>
-              <td>Currently only in advanced §6.12; a quick-recipe could help common use</td>
+              <td>
+                Currently only in advanced §6.12; a quick-recipe could help
+                common use
+              </td>
             </tr>
             <tr>
               <td>25</td>
               <td><span class="badge badge-low">Low</span></td>
-              <td>Review all §-references in core for stale targets after any future split</td>
-              <td>Splits move content; a periodic grep for dangling refs prevents rot</td>
+              <td>
+                Review all §-references in core for stale targets after any
+                future split
+              </td>
+              <td>
+                Splits move content; a periodic grep for dangling refs prevents
+                rot
+              </td>
             </tr>
           </tbody>
         </table>
 
         <!-- g) TOP QUESTION -->
         <h2 id="question">
-          <span class="num">07</span>g) Top #1 Question I Cannot Figure Out Myself
+          <span class="num">07</span>g) Top #1 Question I Cannot Figure Out
+          Myself
         </h2>
 
         <div class="issue issue-important">
-          <span class="severity severity-important">Resolved — confirming direction</span>
+          <span class="severity severity-important"
+            >Resolved — confirming direction</span
+          >
           <h3>
-            The previous Top Question is answered. The new one: do you want this committed and
-            pushed?
+            The previous Top Question is answered. The new one: do you want this
+            committed and pushed?
           </h3>
-          <div class="where">git workflow · two repos · uncommitted verified changes</div>
+          <div class="where">
+            git workflow · two repos · uncommitted verified changes
+          </div>
           <p>
-            Last session's Top Question (global vs project-local availability) is
-            <strong>resolved</strong>: I chose Option A (global symlink + flake reproducibility).
-            That leaves a new top question I cannot decide for you: the commit/push boundary.
+            Last session's Top Question (global vs project-local availability)
+            is
+            <strong>resolved</strong>: I chose Option A (global symlink + flake
+            reproducibility). That leaves a new top question I cannot decide for
+            you: the commit/push boundary.
           </p>
           <p>
-            All changes are verified green (doc-check 682/682, skill-health OK, cross-links intact)
-            but <strong>uncommitted</strong> across two repos:
+            All changes are verified green (doc-check 682/682, skill-health OK,
+            cross-links intact) but <strong>uncommitted</strong> across two
+            repos:
           </p>
           <ul>
             <li>
-              <strong>go-cqrs-lite</strong> (7 modified + 2 new): skill core, 2 references, new
-              readmodels.md, evals/, ci.yml, AGENTS.md, doc-check, flake.nix
+              <strong>go-cqrs-lite</strong> (7 modified + 2 new): skill core, 2
+              references, new readmodels.md, evals/, ci.yml, AGENTS.md,
+              doc-check, flake.nix
             </li>
-            <li><strong>cqrs-htmx</strong> (1 modified): the cross-link in the cqrs-htmx skill</li>
+            <li>
+              <strong>cqrs-htmx</strong> (1 modified): the cross-link in the
+              cqrs-htmx skill
+            </li>
           </ul>
           <p>I see three valid options and can't pick for you:</p>
           <div class="callout callout-solution">
             <strong>Option A (recommended):</strong>
-            Commit go-cqrs-lite now as one focused commit ("complete skill follow-up: 22 tasks"),
-            and commit the cqrs-htmx cross-link separately (it's a different repo/module). Do NOT
-            push (per project policy) — leave that to you.
+            Commit go-cqrs-lite now as one focused commit ("complete skill
+            follow-up: 22 tasks"), and commit the cqrs-htmx cross-link
+            separately (it's a different repo/module). Do NOT push (per project
+            policy) — leave that to you.
           </div>
           <div class="callout callout-warning">
             <strong>Option B:</strong>
-            Commit go-cqrs-lite only, leave cqrs-htmx cross-link uncommitted until you review it in
-            context.
+            Commit go-cqrs-lite only, leave cqrs-htmx cross-link uncommitted
+            until you review it in context.
           </div>
           <div class="callout callout-problem">
             <strong>Option C:</strong>
-            Commit everything to both repos AND push both to remote. Highest blast radius — I won't
-            do this without explicit confirmation since the policy says never push without an
-            explicit ask.
+            Commit everything to both repos AND push both to remote. Highest
+            blast radius — I won't do this without explicit confirmation since
+            the policy says never push without an explicit ask.
           </div>
           <p>
-            <strong>My recommendation:</strong> Option A. Two clean commits, no push. Want me to
-            proceed with A?
+            <strong>My recommendation:</strong> Option A. Two clean commits, no
+            push. Want me to proceed with A?
           </p>
         </div>
 
         <footer class="footer">
           Generated 2026-06-29 21:48 CEST &middot; Verified via
-          <code>go run .</code> in cmd/doc-check (682 refs valid / 34 packages), skill-health bash
-          checks, and structural HTML validation
+          <code>go run .</code> in cmd/doc-check (682 refs valid / 34 packages),
+          skill-health bash checks, and structural HTML validation
         </footer>
       </main>
     </div>

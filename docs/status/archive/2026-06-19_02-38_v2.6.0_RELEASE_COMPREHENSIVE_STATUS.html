@@ -30,14 +30,14 @@
         --warning: var(--color-yellow);
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -452,14 +452,18 @@
       </aside>
       <main class="main">
         <div class="hero">
-          <div class="hero-badge">Comprehensive Status &middot; Post-Release</div>
+          <div class="hero-badge">
+            Comprehensive Status &middot; Post-Release
+          </div>
           <h1>v2.6.0 Released — Library is Healthy, Roadmap is Lying</h1>
           <p class="hero-subtitle">
-            28 annotated tags cut lockstep at <code>413ea523</code>. Full test suite green, lint
-            clean, layers pass. The codebase is in its strongest shape ever — but
+            28 annotated tags cut lockstep at <code>413ea523</code>. Full test
+            suite green, lint clean, layers pass. The codebase is in its
+            strongest shape ever — but
             <strong>ROADMAP.md has 5+ stale checkboxes</strong>
             marking shipped features as open, and a design mistake
-            (<code>pebble.DeleteEventsBefore</code>) escaped into a tagged release.
+            (<code>pebble.DeleteEventsBefore</code>) escaped into a tagged
+            release.
           </p>
           <div class="hero-meta">
             <span class="tag amber">v2.6.0</span>
@@ -472,19 +476,21 @@
         <section id="summary">
           <h2><span class="num">00</span>Summary</h2>
           <p>
-            This report captures the state of <strong>go-cqrs-lite</strong> immediately after
-            cutting the <strong>v2.6.0</strong> release. The release added two new modules (<code
-              >schema</code
-            >
-            Validator, <code>prometheus</code> exporter), split projection <code>Run</code> into
-            <code>RunReplay</code>/<code>RunLive</code>, closed the replay&rarr;live dedup gap, and
-            exported all ID marker types. <code>pebble.DeleteEventsBefore</code> (shipped ~24h
-            earlier in v2.5.0) was removed before adoption.
+            This report captures the state of
+            <strong>go-cqrs-lite</strong> immediately after cutting the
+            <strong>v2.6.0</strong> release. The release added two new modules
+            (<code>schema</code> Validator, <code>prometheus</code> exporter),
+            split projection <code>Run</code> into
+            <code>RunReplay</code>/<code>RunLive</code>, closed the
+            replay&rarr;live dedup gap, and exported all ID marker types.
+            <code>pebble.DeleteEventsBefore</code> (shipped ~24h earlier in
+            v2.5.0) was removed before adoption.
           </p>
           <p>
-            <strong>Headline:</strong> the engineering foundation is excellent — tests pass, lint is
-            zero-issue, coverage holds, dependency budgets are clean. The problems are documentation
-            hygiene and deferred breaking-change debt, not code quality.
+            <strong>Headline:</strong> the engineering foundation is excellent —
+            tests pass, lint is zero-issue, coverage holds, dependency budgets
+            are clean. The problems are documentation hygiene and deferred
+            breaking-change debt, not code quality.
           </p>
         </section>
 
@@ -547,7 +553,8 @@
         <section id="done">
           <h2><span class="num">A</span>Fully Done</h2>
           <p>
-            Shipped, tested, documented, tagged in v2.6.0. These are real, verified accomplishments.
+            Shipped, tested, documented, tagged in v2.6.0. These are real,
+            verified accomplishments.
           </p>
           <div class="strengths">
             <div class="strength">
@@ -556,8 +563,9 @@
                 <strong>v2.6.0 release cut cleanly</strong
                 ><span
                   >28 annotated tags (27 modules + top-level), all pointing to
-                  <code>413ea523</code>. <code>prometheus/v2.6.0</code> is its first tag ever. Docs
-                  refreshed across AGENTS/README/CONTRIBUTING/FEATURES/CHANGELOG.</span
+                  <code>413ea523</code>. <code>prometheus/v2.6.0</code> is its
+                  first tag ever. Docs refreshed across
+                  AGENTS/README/CONTRIBUTING/FEATURES/CHANGELOG.</span
                 >
               </div>
             </div>
@@ -566,8 +574,9 @@
               <div class="text">
                 <strong>Two new modules shipped</strong
                 ><span
-                  ><code>schema</code> Validator (ADR-0017: <code>RegisterType[T]()</code>,
-                  strict/lenient modes) and <code>prometheus</code> OTel&rarr;Prom bridge
+                  ><code>schema</code> Validator (ADR-0017:
+                  <code>RegisterType[T]()</code>, strict/lenient modes) and
+                  <code>prometheus</code> OTel&rarr;Prom bridge
                   (<code>Setup()</code>, <code>WithRegistry()</code>,
                   <code>MustSetup()</code>).</span
                 >
@@ -580,7 +589,8 @@
                 ><span
                   ><code>RunReplay(ctx)</code> synchronous catch-up +
                   <code>RunLive(ctx)</code> background tail. Eliminates
-                  <code>time.Sleep</code> hacks in consumers. Read-your-writes semantics.</span
+                  <code>time.Sleep</code> hacks in consumers. Read-your-writes
+                  semantics.</span
                 >
               </div>
             </div>
@@ -590,8 +600,9 @@
                 <strong>Replay&rarr;live dedup gap closed</strong
                 ><span
                   ><code>SubscriberToObservable</code> +
-                  <code>DistinctByEventIDWith(seen)</code> seeds dedup with replay IDs.
-                  Overlap-window duplicates silently suppressed.</span
+                  <code>DistinctByEventIDWith(seen)</code> seeds dedup with
+                  replay IDs. Overlap-window duplicates silently
+                  suppressed.</span
                 >
               </div>
             </div>
@@ -600,8 +611,9 @@
               <div class="text">
                 <strong>OTel correlation enricher</strong
                 ><span
-                  ><code>OTelCorrelationEnricher</code> bridges baggage&rarr;event metadata.
-                  Composes with <code>CommandCausalityEnricher</code> via
+                  ><code>OTelCorrelationEnricher</code> bridges
+                  baggage&rarr;event metadata. Composes with
+                  <code>CommandCausalityEnricher</code> via
                   <code>CompositeEnricher</code>.</span
                 >
               </div>
@@ -611,8 +623,9 @@
               <div class="text">
                 <strong>Full quality gate green</strong
                 ><span
-                  >Build EXIT 0, vet EXIT 0, 40/40 test packages pass, lint 0 issues, module-layer
-                  budget check passes, API surface stable at 1351 exports (verified via
+                  >Build EXIT 0, vet EXIT 0, 40/40 test packages pass, lint 0
+                  issues, module-layer budget check passes, API surface stable
+                  at 1351 exports (verified via
                   <code>cmd/api-stability</code>).</span
                 >
               </div>
@@ -622,8 +635,9 @@
               <div class="text">
                 <strong>Bounded dedup operators</strong
                 ><span
-                  ><code>DistinctByEventIDBounded(cap)</code> with FIFO ring eviction for 24/7
-                  projections. <code>WithDedupCapacity(n)</code> Runner option.</span
+                  ><code>DistinctByEventIDBounded(cap)</code> with FIFO ring
+                  eviction for 24/7 projections.
+                  <code>WithDedupCapacity(n)</code> Runner option.</span
                 >
               </div>
             </div>
@@ -643,8 +657,9 @@
               <div class="text">
                 <strong>cqrs-gen struct tag scanning</strong
                 ><span
-                  ><code>cqrs:"command:CreateUser"</code> tags on <code>_ struct{}</code> fields, in
-                  addition to comment markers.</span
+                  ><code>cqrs:"command:CreateUser"</code> tags on
+                  <code>_ struct{}</code> fields, in addition to comment
+                  markers.</span
                 >
               </div>
             </div>
@@ -653,8 +668,9 @@
               <div class="text">
                 <strong>LeaderElection interface (ADR-0018)</strong
                 ><span
-                  ><code>LeaderElection</code> + <code>AlwaysLeader</code> default for distributed
-                  projection coordination.</span
+                  ><code>LeaderElection</code> +
+                  <code>AlwaysLeader</code> default for distributed projection
+                  coordination.</span
                 >
               </div>
             </div>
@@ -664,71 +680,88 @@
         <section id="partial">
           <h2><span class="num">B</span>Partially Done</h2>
           <p>
-            Interfaces or scaffolds exist, but implementations are incomplete. Each has a clear path
-            to completion.
+            Interfaces or scaffolds exist, but implementations are incomplete.
+            Each has a clear path to completion.
           </p>
 
           <div class="card card-warning">
-            <h3><span class="badge badge-high">Partial</span> Streaming event reads</h3>
+            <h3>
+              <span class="badge badge-high">Partial</span> Streaming event
+              reads
+            </h3>
             <p>
-              <strong>Done:</strong> <code>EventIterator</code>, <code>StreamingSource</code>,
-              <code>StreamingJournal</code> interfaces + <code>SliceIterator</code> adapter in
-              <code>event/</code>.
+              <strong>Done:</strong> <code>EventIterator</code>,
+              <code>StreamingSource</code>,
+              <code>StreamingJournal</code> interfaces +
+              <code>SliceIterator</code> adapter in <code>event/</code>.
             </p>
             <p>
-              <strong>Missing:</strong> SQL and Pebble stores do not implement the streaming
-              variants. Large aggregates still materialize full slices. High value for event-heavy
-              domains.
+              <strong>Missing:</strong> SQL and Pebble stores do not implement
+              the streaming variants. Large aggregates still materialize full
+              slices. High value for event-heavy domains.
             </p>
           </div>
 
           <div class="card card-warning">
-            <h3><span class="badge badge-high">Partial</span> WASM compilation</h3>
+            <h3>
+              <span class="badge badge-high">Partial</span> WASM compilation
+            </h3>
             <p>
               <strong>Done:</strong> 6 of 7 core modules compile to
-              <code>GOOS=js GOARCH=wasm</code> (id, codec, dispatcher, event, command, query).
-              Verification binary at <code>wasm/main.go</code>.
+              <code>GOOS=js GOARCH=wasm</code> (id, codec, dispatcher, event,
+              command, query). Verification binary at <code>wasm/main.go</code>.
             </p>
             <p>
-              <strong>Missing:</strong> <code>decider/</code> blocked by OTel SDK's
-              <code>os/user</code> dependency. Needs dependency decoupling or a WASM-friendly OTel
-              shim.
+              <strong>Missing:</strong> <code>decider/</code> blocked by OTel
+              SDK's <code>os/user</code> dependency. Needs dependency decoupling
+              or a WASM-friendly OTel shim.
             </p>
           </div>
 
           <div class="card card-warning">
-            <h3><span class="badge badge-medium">Partial</span> Documentation site</h3>
+            <h3>
+              <span class="badge badge-medium">Partial</span> Documentation site
+            </h3>
             <p>
-              <strong>Done:</strong> MkDocs Material scaffold created (<code>mkdocs.yml</code>,
-              <code>docs/site/</code>). Theme configured.
+              <strong>Done:</strong> MkDocs Material scaffold created
+              (<code>mkdocs.yml</code>, <code>docs/site/</code>). Theme
+              configured.
             </p>
             <p>
-              <strong>Missing:</strong> Content not populated. Not deployed to GitHub Pages.
-              Currently dead scaffolding.
-            </p>
-          </div>
-
-          <div class="card card-warning">
-            <h3><span class="badge badge-medium">Partial</span> cqrs-gen code generator</h3>
-            <p>
-              <strong>Done:</strong> Command handler generation with struct-tag + comment-marker
-              scanning.
-            </p>
-            <p>
-              <strong>Missing:</strong> Event handler generation (<code>-type=event</code>) not
-              implemented.
+              <strong>Missing:</strong> Content not populated. Not deployed to
+              GitHub Pages. Currently dead scaffolding.
             </p>
           </div>
 
           <div class="card card-warning">
-            <h3><span class="badge badge-medium">Partial</span> OTel distributed tracing</h3>
+            <h3>
+              <span class="badge badge-medium">Partial</span> cqrs-gen code
+              generator
+            </h3>
+            <p>
+              <strong>Done:</strong> Command handler generation with struct-tag
+              + comment-marker scanning.
+            </p>
+            <p>
+              <strong>Missing:</strong> Event handler generation
+              (<code>-type=event</code>) not implemented.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <h3>
+              <span class="badge badge-medium">Partial</span> OTel distributed
+              tracing
+            </h3>
             <p>
               <strong>Done:</strong> Correlation enricher, baggage propagation
-              (<code>WithCorrelationID</code>), TextMapPropagator, span events, metric views.
+              (<code>WithCorrelationID</code>), TextMapPropagator, span events,
+              metric views.
             </p>
             <p>
-              <strong>Missing:</strong> "Span propagation across module boundaries" not uniformly
-              wired everywhere. Some modules opt-in only.
+              <strong>Missing:</strong> "Span propagation across module
+              boundaries" not uniformly wired everywhere. Some modules opt-in
+              only.
             </p>
           </div>
         </section>
@@ -736,56 +769,71 @@
         <section id="not-started">
           <h2><span class="num">C</span>Not Started</h2>
           <p>
-            ADR-accepted or tracked, but zero implementation exists. These are the greenfield
-            opportunities.
+            ADR-accepted or tracked, but zero implementation exists. These are
+            the greenfield opportunities.
           </p>
 
           <div class="card">
             <h3>
-              <span class="badge badge-medium">Tracked</span> Distributed checkpointing
-              implementation
+              <span class="badge badge-medium">Tracked</span> Distributed
+              checkpointing implementation
             </h3>
             <p>
               <code>LeaderElection</code> interface exists (ADR-0018), but no
-              <code>DistributedRunner</code> wrapper. Consumers must implement coordination (Redis,
-              etcd, k8s) themselves today.
-            </p>
-          </div>
-          <div class="card">
-            <h3><span class="badge badge-medium">ADR-0025</span> gRPC transport adapter</h3>
-            <p>
-              ADR accepted. No <code>transport/grpc/</code> module exists. Separate module with
-              protobuf dispatch per the transport strategy.
-            </p>
-          </div>
-          <div class="card">
-            <h3><span class="badge badge-medium">ADR-0025</span> NATS / Redis Stream adapters</h3>
-            <p>
-              ADR accepted. No <code>transport/nats/</code> or <code>transport/redis/</code> modules
-              exist.
+              <code>DistributedRunner</code> wrapper. Consumers must implement
+              coordination (Redis, etcd, k8s) themselves today.
             </p>
           </div>
           <div class="card">
             <h3>
-              <span class="badge badge-low">Experimental</span> jsonv2 / arena / SIMD experiments
+              <span class="badge badge-medium">ADR-0025</span> gRPC transport
+              adapter
             </h3>
             <p>
-              Stubs exist behind <code>goexperiment.*</code> build tags (ADR-0026). Blocked on Go
-              stdlib stabilization — not actionable until upstream lands.
+              ADR accepted. No <code>transport/grpc/</code> module exists.
+              Separate module with protobuf dispatch per the transport strategy.
             </p>
           </div>
           <div class="card">
-            <h3><span class="badge badge-low">Idea</span> Structured logging middleware</h3>
+            <h3>
+              <span class="badge badge-medium">ADR-0025</span> NATS / Redis
+              Stream adapters
+            </h3>
             <p>
-              Configurable-level structured logging middleware not started. Current logging
-              middleware is basic.
+              ADR accepted. No <code>transport/nats/</code> or
+              <code>transport/redis/</code> modules exist.
             </p>
           </div>
           <div class="card">
-            <h3><span class="badge badge-low">Idea</span> Performance regression dashboard</h3>
+            <h3>
+              <span class="badge badge-low">Experimental</span> jsonv2 / arena /
+              SIMD experiments
+            </h3>
+            <p>
+              Stubs exist behind <code>goexperiment.*</code> build tags
+              (ADR-0026). Blocked on Go stdlib stabilization — not actionable
+              until upstream lands.
+            </p>
+          </div>
+          <div class="card">
+            <h3>
+              <span class="badge badge-low">Idea</span> Structured logging
+              middleware
+            </h3>
+            <p>
+              Configurable-level structured logging middleware not started.
+              Current logging middleware is basic.
+            </p>
+          </div>
+          <div class="card">
+            <h3>
+              <span class="badge badge-low">Idea</span> Performance regression
+              dashboard
+            </h3>
             <p>
               Historical benchmark tracking. Baseline file exists
-              (<code>benchmark-baseline.txt</code>) but no dashboard or trend visualization.
+              (<code>benchmark-baseline.txt</code>) but no dashboard or trend
+              visualization.
             </p>
           </div>
         </section>
@@ -796,26 +844,33 @@
 
           <div class="card card-problem">
             <h3>
-              <span class="badge badge-critical">Critical</span> ROADMAP.md lies about open work
+              <span class="badge badge-critical">Critical</span> ROADMAP.md lies
+              about open work
             </h3>
             <p>
               <strong
-                >The roadmap has 5+ checkboxes marked <code>[ ]</code> (open) that are actually
-                DONE.</strong
+                >The roadmap has 5+ checkboxes marked <code>[ ]</code> (open)
+                that are actually DONE.</strong
               >
-              This is the worst kind of doc drift — it makes the roadmap untrustworthy and hides
-              real accomplishments.
+              This is the worst kind of doc drift — it makes the roadmap
+              untrustworthy and hides real accomplishments.
             </p>
             <ul>
               <li>
-                <strong>"Code generator (cqrs-gen) v2 with struct tag scanning"</strong>
-                <code>[ ]</code> &rarr; <strong>DONE</strong> (shipped v2.6.0, marked
-                <code>[x]</code> in TODO_LIST)
+                <strong
+                  >"Code generator (cqrs-gen) v2 with struct tag
+                  scanning"</strong
+                >
+                <code>[ ]</code> &rarr; <strong>DONE</strong> (shipped v2.6.0,
+                marked <code>[x]</code> in TODO_LIST)
               </li>
               <li>
-                <strong>"Event schema registry with validation middleware"</strong>
-                <code>[ ]</code> &rarr; <strong>DONE</strong> (<code>schema.Validator</code>,
-                ADR-0017, shipped v2.6.0)
+                <strong
+                  >"Event schema registry with validation middleware"</strong
+                >
+                <code>[ ]</code> &rarr;
+                <strong>DONE</strong> (<code>schema.Validator</code>, ADR-0017,
+                shipped v2.6.0)
               </li>
               <li>
                 <strong>"Custom metrics exporter (Prometheus format)"</strong>
@@ -823,60 +878,70 @@
                 <code>prometheus/</code> module shipped v2.6.0!)
               </li>
               <li>
-                <strong>"Streaming event reads without materializing full slice"</strong> listed as
-                open in Long-Term <code>[ ]</code> &rarr; interfaces <strong>DONE</strong> in v2.6.0
-                (only store impls remain)
+                <strong
+                  >"Streaming event reads without materializing full
+                  slice"</strong
+                >
+                listed as open in Long-Term <code>[ ]</code> &rarr; interfaces
+                <strong>DONE</strong> in v2.6.0 (only store impls remain)
               </li>
               <li>
-                <strong>"Distributed tracing span propagation"</strong> <code>[ ]</code> &rarr;
-                <strong>mostly done</strong> (OTel enricher + baggage propagation shipped)
+                <strong>"Distributed tracing span propagation"</strong>
+                <code>[ ]</code> &rarr; <strong>mostly done</strong> (OTel
+                enricher + baggage propagation shipped)
               </li>
             </ul>
             <div class="callout callout-warning">
               <strong>Impact</strong>
               <p>
-                A reader trusting the roadmap would think 5 major features are unbuilt. They're
-                shipped. This actively misleads planning and makes the project look less complete
-                than it is.
+                A reader trusting the roadmap would think 5 major features are
+                unbuilt. They're shipped. This actively misleads planning and
+                makes the project look less complete than it is.
               </p>
             </div>
           </div>
 
           <div class="card card-problem">
             <h3>
-              <span class="badge badge-critical">Critical</span> Design mistake shipped to a tagged
-              release
+              <span class="badge badge-critical">Critical</span> Design mistake
+              shipped to a tagged release
             </h3>
             <p>
-              <strong><code>pebble.DeleteEventsBefore</code> shipped in v2.5.0</strong> — a method
-              that automatically deletes events based on age. This directly contradicts the core
-              event-sourcing principle that <strong>events are immutable truth</strong>. Automatic
-              event deletion is a footgun in an event sourcing library.
+              <strong
+                ><code>pebble.DeleteEventsBefore</code> shipped in
+                v2.5.0</strong
+              >
+              — a method that automatically deletes events based on age. This
+              directly contradicts the core event-sourcing principle that
+              <strong>events are immutable truth</strong>. Automatic event
+              deletion is a footgun in an event sourcing library.
             </p>
             <p>
-              It was removed in v2.6.0 before any consumer could depend on it (24h window), but it
-              should never have passed review. This is a design-judgment gap, not a typo.
+              It was removed in v2.6.0 before any consumer could depend on it
+              (24h window), but it should never have passed review. This is a
+              design-judgment gap, not a typo.
             </p>
             <div class="callout callout-warning">
               <strong>Root cause</strong>
               <p>
-                Retention/cleanup features feel reasonable in isolation but contradict the library's
-                foundational invariant. No pre-merge check asks "does this violate event sourcing
-                immutability?"
+                Retention/cleanup features feel reasonable in isolation but
+                contradict the library's foundational invariant. No pre-merge
+                check asks "does this violate event sourcing immutability?"
               </p>
             </div>
           </div>
 
           <div class="card card-problem">
             <h3>
-              <span class="badge badge-high">High</span> <code>./...</code> from workspace root is
-              unreliable
+              <span class="badge badge-high">High</span> <code>./...</code> from
+              workspace root is unreliable
             </h3>
             <p>
-              Running <code>go test ./...</code> from the workspace root only tests
-              <strong>1 package</strong> (the root module), not all workspace modules. The canonical
-              test command in AGENTS.md must enumerate all 24 module paths explicitly. This is
-              fragile — adding a new module means remembering to update the command, or tests
+              Running <code>go test ./...</code> from the workspace root only
+              tests <strong>1 package</strong> (the root module), not all
+              workspace modules. The canonical test command in AGENTS.md must
+              enumerate all 24 module paths explicitly. This is fragile — adding
+              a new module means remembering to update the command, or tests
               silently don't run.
             </p>
           </div>
@@ -888,14 +953,16 @@
           <div class="card card-warning">
             <h3>Roadmap checkbox hygiene</h3>
             <p>
-              5+ items in ROADMAP.md are marked open but are done. The roadmap and TODO_LIST
-              disagree on the same features. Establish a rule: roadmap gets reconciled against
-              TODO_LIST at every release.
+              5+ items in ROADMAP.md are marked open but are done. The roadmap
+              and TODO_LIST disagree on the same features. Establish a rule:
+              roadmap gets reconciled against TODO_LIST at every release.
             </p>
           </div>
           <div class="card card-warning">
             <h3>Coverage gaps in 5 modules</h3>
-            <p>Five modules sit below 85% coverage — the project's stated floor:</p>
+            <p>
+              Five modules sit below 85% coverage — the project's stated floor:
+            </p>
             <table>
               <thead>
                 <tr>
@@ -936,25 +1003,28 @@
           <div class="card">
             <h3>Pre-merge invariant checklist</h3>
             <p>
-              No design mistake like <code>DeleteEventsBefore</code> should reach a tag. Add a
-              review checklist item: "Does this feature violate any core principle (immutability,
-              no-delete, tombstone-only)?"
+              No design mistake like <code>DeleteEventsBefore</code> should
+              reach a tag. Add a review checklist item: "Does this feature
+              violate any core principle (immutability, no-delete,
+              tombstone-only)?"
             </p>
           </div>
           <div class="card">
             <h3>Workspace test command fragility</h3>
             <p>
-              The explicit module-enumeration in the test command will silently skip new modules if
-              forgotten. Consider a <code>go.work</code>-aware test wrapper or a generated command.
+              The explicit module-enumeration in the test command will silently
+              skip new modules if forgotten. Consider a
+              <code>go.work</code>-aware test wrapper or a generated command.
             </p>
           </div>
           <div class="card">
             <h3>Deferred breaking-change debt is growing</h3>
             <p>
-              5 v3-deferred + 2 v4-deferred breaking changes are accumulating (io.Closer removal,
-              TransactionID, core immutability, HTTP-code move,
-              <code>query.Handler</code> any-return, catalog splits). No trigger criteria for when
-              to cut v3.
+              5 v3-deferred + 2 v4-deferred breaking changes are accumulating
+              (io.Closer removal, TransactionID, core immutability, HTTP-code
+              move,
+              <code>query.Handler</code> any-return, catalog splits). No trigger
+              criteria for when to cut v3.
             </p>
           </div>
         </section>
@@ -974,13 +1044,19 @@
             <tbody>
               <tr>
                 <td>1</td>
-                <td>Fix ROADMAP.md stale checkboxes (5+ items marked open but done)</td>
+                <td>
+                  Fix ROADMAP.md stale checkboxes (5+ items marked open but
+                  done)
+                </td>
                 <td><span class="badge badge-critical">Trust</span></td>
                 <td>10 min</td>
               </tr>
               <tr>
                 <td>2</td>
-                <td>Prometheus coverage 80% &rarr; 90%+ (new module, untested error paths)</td>
+                <td>
+                  Prometheus coverage 80% &rarr; 90%+ (new module, untested
+                  error paths)
+                </td>
                 <td><span class="badge badge-high">Quality</span></td>
                 <td>2h</td>
               </tr>
@@ -1004,25 +1080,33 @@
               </tr>
               <tr>
                 <td>6</td>
-                <td>Streaming event reads &rarr; Pebble store implementation</td>
+                <td>
+                  Streaming event reads &rarr; Pebble store implementation
+                </td>
                 <td><span class="badge badge-high">Feature</span></td>
                 <td>1 day</td>
               </tr>
               <tr>
                 <td>7</td>
-                <td>Distributed checkpointing &rarr; DistributedRunner wrapper</td>
+                <td>
+                  Distributed checkpointing &rarr; DistributedRunner wrapper
+                </td>
                 <td><span class="badge badge-high">Feature</span></td>
                 <td>2 days</td>
               </tr>
               <tr>
                 <td>8</td>
-                <td>cqrs-gen event handler generation (<code>-type=event</code>)</td>
+                <td>
+                  cqrs-gen event handler generation (<code>-type=event</code>)
+                </td>
                 <td><span class="badge badge-medium">Feature</span></td>
                 <td>1 day</td>
               </tr>
               <tr>
                 <td>9</td>
-                <td>Catalog coverage 84.5% &rarr; 90%+ (exporter edge cases)</td>
+                <td>
+                  Catalog coverage 84.5% &rarr; 90%+ (exporter edge cases)
+                </td>
                 <td><span class="badge badge-medium">Quality</span></td>
                 <td>2h</td>
               </tr>
@@ -1034,7 +1118,9 @@
               </tr>
               <tr>
                 <td>11</td>
-                <td>Decouple decider OTel dep &rarr; unblock WASM compilation</td>
+                <td>
+                  Decouple decider OTel dep &rarr; unblock WASM compilation
+                </td>
                 <td><span class="badge badge-medium">Feature</span></td>
                 <td>1 day</td>
               </tr>
@@ -1058,7 +1144,10 @@
               </tr>
               <tr>
                 <td>15</td>
-                <td>Make workspace test command self-discovering (not hand-enumerated)</td>
+                <td>
+                  Make workspace test command self-discovering (not
+                  hand-enumerated)
+                </td>
                 <td><span class="badge badge-medium">DX</span></td>
                 <td>3h</td>
               </tr>
@@ -1076,19 +1165,26 @@
               </tr>
               <tr>
                 <td>18</td>
-                <td>Performance regression dashboard (benchmark trend tracking)</td>
+                <td>
+                  Performance regression dashboard (benchmark trend tracking)
+                </td>
                 <td><span class="badge badge-low">Ops</span></td>
                 <td>2 days</td>
               </tr>
               <tr>
                 <td>19</td>
-                <td>Define v3.0.0 trigger criteria (7 deferred breaking changes growing)</td>
+                <td>
+                  Define v3.0.0 trigger criteria (7 deferred breaking changes
+                  growing)
+                </td>
                 <td><span class="badge badge-medium">Strategy</span></td>
                 <td>Decision</td>
               </tr>
               <tr>
                 <td>20</td>
-                <td>Event stream compaction / log truncation strategies (raw idea)</td>
+                <td>
+                  Event stream compaction / log truncation strategies (raw idea)
+                </td>
                 <td><span class="badge badge-low">Idea</span></td>
                 <td>Design</td>
               </tr>
@@ -1106,7 +1202,10 @@
               </tr>
               <tr>
                 <td>23</td>
-                <td>CQRS-lite dashboard web UI (inspect aggregates/events/projections)</td>
+                <td>
+                  CQRS-lite dashboard web UI (inspect
+                  aggregates/events/projections)
+                </td>
                 <td><span class="badge badge-low">Idea</span></td>
                 <td>Design</td>
               </tr>
@@ -1118,7 +1217,10 @@
               </tr>
               <tr>
                 <td>25</td>
-                <td>Property-based integration testing with state machine verification</td>
+                <td>
+                  Property-based integration testing with state machine
+                  verification
+                </td>
                 <td><span class="badge badge-low">Quality</span></td>
                 <td>Design</td>
               </tr>
@@ -1133,34 +1235,38 @@
             <h3>When do we cut v3.0.0?</h3>
             <p style="margin-bottom: 14px">
               There are now
-              <strong>5 v3-deferred and 2 v4-deferred breaking changes</strong> accumulating in
-              TODO_LIST.md: removing <code>io.Closer</code> from core interfaces (ADR-0010), adding
-              a global <code>TransactionID</code>, making event Core truly immutable, moving HTTP
-              code out of middleware, fixing <code>query.Handler</code>'s <code>any</code> return,
-              and splitting <code>catalog.Message</code>/<code>Service</code> into structured
-              embeddings.
+              <strong>5 v3-deferred and 2 v4-deferred breaking changes</strong>
+              accumulating in TODO_LIST.md: removing <code>io.Closer</code> from
+              core interfaces (ADR-0010), adding a global
+              <code>TransactionID</code>, making event Core truly immutable,
+              moving HTTP code out of middleware, fixing
+              <code>query.Handler</code>'s <code>any</code> return, and
+              splitting <code>catalog.Message</code>/<code>Service</code> into
+              structured embeddings.
             </p>
             <p style="margin-bottom: 14px">
-              I cannot determine the trigger criteria autonomously. Cutting v3 means changing all 27
-              module paths from
-              <code>/v2</code> &rarr; <code>/v3</code>, updating ~1,400 internal imports, and
-              migrating <code>go.work</code> — a real migration cost. But the debt grows with every
-              release, and each deferred fix is a known design smell that a consumer eventually
-              hits.
+              I cannot determine the trigger criteria autonomously. Cutting v3
+              means changing all 27 module paths from
+              <code>/v2</code> &rarr; <code>/v3</code>, updating ~1,400 internal
+              imports, and migrating <code>go.work</code> — a real migration
+              cost. But the debt grows with every release, and each deferred fix
+              is a known design smell that a consumer eventually hits.
             </p>
             <p style="margin-bottom: 0">
-              <strong>My question:</strong> Is there a specific milestone, consumer-count threshold,
-              or debt-count limit (e.g., "when we hit 8 v3 items") that should trigger the v3 cut?
-              Or do you want these deferred indefinitely in favor of additive v2.x releases? This is
-              a product/strategy call that depends on your adoption data and release-cadence
-              preference — I have no way to answer it from the code alone.
+              <strong>My question:</strong> Is there a specific milestone,
+              consumer-count threshold, or debt-count limit (e.g., "when we hit
+              8 v3 items") that should trigger the v3 cut? Or do you want these
+              deferred indefinitely in favor of additive v2.x releases? This is
+              a product/strategy call that depends on your adoption data and
+              release-cadence preference — I have no way to answer it from the
+              code alone.
             </p>
           </div>
         </section>
 
         <footer class="footer">
-          Generated 2026-06-19 02:38 CEST &middot; Reviewed against v2.6.0 (commit 413ea523)
-          &middot; 30 modules, 1351 exports, 40/40 tests pass
+          Generated 2026-06-19 02:38 CEST &middot; Reviewed against v2.6.0
+          (commit 413ea523) &middot; 30 modules, 1351 exports, 40/40 tests pass
         </footer>
       </main>
     </div>

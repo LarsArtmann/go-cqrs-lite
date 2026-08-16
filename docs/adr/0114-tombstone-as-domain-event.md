@@ -98,13 +98,13 @@ belongs in the same stream as the entity it deletes.
 The **decision stands as the target direction**, but the framework-level
 machinery this ADR implies is NOT shipped. State of the code today:
 
-| Area | Shipped reality |
-| ---- | --------------- |
-| `event/` | `DetectTombstone`, `MarkTombstone`, `MarkRebirth`, `TombstoneStatus` still exist, marked `// Deprecated:` (removal v5). `Metadata.Tombstone` (`*TombstoneMark`) still exists. |
-| `metaengine/` | **Fully aligned**: fold handlers bind to event types; `metaengine.Remove[V]()` removes on a deletion event type. |
-| `stack.Materialize` | Still metadata-triggered: `OnTombstone`/`OnRebirth` fire on `md.Tombstone`, not on event types. Planned `DeleteTypes`/`RebirthTypes` fields were implemented on 2026-08-10 (`e406edcfb`) and reverted on 2026-08-12 (`a6613ef0d`) before any release. Workaround: branch on `evt.Type()` inside `OnUpdate`. |
-| `listing/` | `InMemoryStreamReader` status detection still calls deprecated `event.DetectTombstone`. `StatusMiddleware(deleteTypes, rebirthTypes)` is the shipped event-type → metadata bridge. Planned `WithDeleteTypes` reader option never shipped. |
-| `storage.StreamProjection` | Persists a `tombstone_status` column; policy filtering via `ListOptions.Tombstone`. No delete-types option. |
+| Area                       | Shipped reality                                                                                                                                                                                                                                                                                             |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `event/`                   | `DetectTombstone`, `MarkTombstone`, `MarkRebirth`, `TombstoneStatus` still exist, marked `// Deprecated:` (removal v5). `Metadata.Tombstone` (`*TombstoneMark`) still exists.                                                                                                                               |
+| `metaengine/`              | **Fully aligned**: fold handlers bind to event types; `metaengine.Remove[V]()` removes on a deletion event type.                                                                                                                                                                                            |
+| `stack.Materialize`        | Still metadata-triggered: `OnTombstone`/`OnRebirth` fire on `md.Tombstone`, not on event types. Planned `DeleteTypes`/`RebirthTypes` fields were implemented on 2026-08-10 (`e406edcfb`) and reverted on 2026-08-12 (`a6613ef0d`) before any release. Workaround: branch on `evt.Type()` inside `OnUpdate`. |
+| `listing/`                 | `InMemoryStreamReader` status detection still calls deprecated `event.DetectTombstone`. `StatusMiddleware(deleteTypes, rebirthTypes)` is the shipped event-type → metadata bridge. Planned `WithDeleteTypes` reader option never shipped.                                                                   |
+| `storage.StreamProjection` | Persists a `tombstone_status` column; policy filtering via `ListOptions.Tombstone`. No delete-types option.                                                                                                                                                                                                 |
 
 A full re-landing (type-triggered `Materialize`, type-based `listing` status,
 removal of the deprecated metadata path) is tracked in `TODO_LIST.md`. Until

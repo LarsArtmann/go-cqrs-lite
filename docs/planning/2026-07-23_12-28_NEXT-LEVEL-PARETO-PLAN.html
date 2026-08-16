@@ -52,14 +52,14 @@
         --radius-sm: 0px;
 
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
 
       * {
@@ -267,15 +267,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
 
       .issue {
@@ -287,15 +299,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue h3 {
         margin-bottom: 0.3rem;
@@ -582,8 +606,9 @@
           <div class="hero-badge">Next-Level Audit</div>
           <h1>What Actually Moves go-cqrs-lite Ahead</h1>
           <p class="hero-subtitle">
-            A Pareto-ranked action plan based on consumer feedback, docs health, build/test state,
-            and the gap between what the library ships and what new users feel first.
+            A Pareto-ranked action plan based on consumer feedback, docs health,
+            build/test state, and the gap between what the library ships and
+            what new users feel first.
           </p>
         </div>
 
@@ -611,22 +636,26 @@
           <h4>Biggest Win Already in Motion</h4>
           <p>
             <code>event/v4/eventtest</code> is now published on the Go proxy as
-            <code>v0.1.0</code> and <code>v0.2.0</code>. The local incorrect <code>v4.0.0</code> tag
-            has been deleted. The only remaining step is deleting the wrong tag from the remote.
+            <code>v0.1.0</code> and <code>v0.2.0</code>. The local incorrect
+            <code>v4.0.0</code> tag has been deleted. The only remaining step is
+            deleting the wrong tag from the remote.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>Highest-Levers Still Open</h4>
           <p>
-            Consumer trust is gated by small, visible rough edges: a README example that does not
-            compile, stale skill FAQ text, missing cross-encoding tests, and no automated guard
-            against debug prints or unformatted code reaching main.
+            Consumer trust is gated by small, visible rough edges: a README
+            example that does not compile, stale skill FAQ text, missing
+            cross-encoding tests, and no automated guard against debug prints or
+            unformatted code reaching main.
           </p>
         </div>
 
         <h2 id="one-percent"><span class="num">01</span>1% Tier — Do First</h2>
-        <p>These five items deliver the majority of perceived consumer value.</p>
+        <p>
+          These five items deliver the majority of perceived consumer value.
+        </p>
 
         <div class="migration-step">
           <div class="migration-num">1</div>
@@ -634,8 +663,8 @@
             <h4>Finalize eventtest tag cleanup</h4>
             <p>
               Delete the wrong remote tag:
-              <code>git push --delete origin event/v4/eventtest/v4.0.0</code>. Update
-              SKILL.md/ROADMAP/TODO_LIST to reflect published status.
+              <code>git push --delete origin event/v4/eventtest/v4.0.0</code>.
+              Update SKILL.md/ROADMAP/TODO_LIST to reflect published status.
             </p>
           </div>
         </div>
@@ -644,8 +673,9 @@
           <div class="migration-content">
             <h4>Fix and compile-verify the README Quick Start</h4>
             <p>
-              Add the missing trailing comma in the README struct literal, create a temporary
-              compile target, and verify the snippet builds. ~20 min.
+              Add the missing trailing comma in the README struct literal,
+              create a temporary compile target, and verify the snippet builds.
+              ~20 min.
             </p>
           </div>
         </div>
@@ -656,7 +686,8 @@
             <p>
               Ban <code>fmt.Printf</code> in production packages, enforce
               <code>api_surface.txt</code> regeneration, and run
-              <code>nix fmt --fail-on-change</code> before commit. Prevents leaks to CI.
+              <code>nix fmt --fail-on-change</code> before commit. Prevents
+              leaks to CI.
             </p>
           </div>
         </div>
@@ -665,8 +696,9 @@
           <div class="migration-content">
             <h4>CBOR round-trip tests for gRPC + watermill</h4>
             <p>
-              Prove CBOR-stamped events survive transport across gRPC command/query dispatch and
-              Watermill pub/sub. Only SSE has this coverage today.
+              Prove CBOR-stamped events survive transport across gRPC
+              command/query dispatch and Watermill pub/sub. Only SSE has this
+              coverage today.
             </p>
           </div>
         </div>
@@ -676,12 +708,15 @@
             <h4>Update SKILL.md eventtest FAQ</h4>
             <p>
               Replace the "no published tag" explanation with the published
-              <code>go get</code> command. Removes the #1 source of consumer confusion.
+              <code>go get</code> command. Removes the #1 source of consumer
+              confusion.
             </p>
           </div>
         </div>
 
-        <h2 id="four-percent"><span class="num">02</span>4% Tier — High Impact, Slightly Larger</h2>
+        <h2 id="four-percent">
+          <span class="num">02</span>4% Tier — High Impact, Slightly Larger
+        </h2>
         <table>
           <thead>
             <tr>
@@ -695,13 +730,19 @@
             <tr>
               <td>1</td>
               <td>Fix 76 lint findings</td>
-              <td>Quality signal; most are <code>ireturn</code> in cqrs-lint detectors.</td>
+              <td>
+                Quality signal; most are <code>ireturn</code> in cqrs-lint
+                detectors.
+              </td>
               <td>~60m</td>
             </tr>
             <tr>
               <td>2</td>
               <td>Add <code>scheduling.SQLTimerStore</code></td>
-              <td>Both major consumers need durable deadlines; memory-only blocks prod.</td>
+              <td>
+                Both major consumers need durable deadlines; memory-only blocks
+                prod.
+              </td>
               <td>~90m</td>
             </tr>
             <tr>
@@ -725,7 +766,9 @@
           </tbody>
         </table>
 
-        <h2 id="twenty-percent"><span class="num">03</span>20% Tier — Important, Can Queue</h2>
+        <h2 id="twenty-percent">
+          <span class="num">03</span>20% Tier — Important, Can Queue
+        </h2>
         <table>
           <thead>
             <tr>
@@ -748,7 +791,9 @@
             <tr>
               <td>3</td>
               <td>Postgres CI coverage matrix</td>
-              <td><code>stack/postgres</code> currently skips without a test DB.</td>
+              <td>
+                <code>stack/postgres</code> currently skips without a test DB.
+              </td>
             </tr>
             <tr>
               <td>4</td>
@@ -758,32 +803,43 @@
           </tbody>
         </table>
 
-        <h2 id="blocked"><span class="num">04</span>Blocked / Needs Approval</h2>
+        <h2 id="blocked">
+          <span class="num">04</span>Blocked / Needs Approval
+        </h2>
         <div class="issue issue-important">
           <span class="severity severity-important">Irreversible</span>
           <h3>License swap → Apache-2.0</h3>
-          <p>Hard blocker for public adoption. Requires explicit user approval.</p>
+          <p>
+            Hard blocker for public adoption. Requires explicit user approval.
+          </p>
         </div>
         <div class="issue issue-important">
           <span class="severity severity-important">Irreversible</span>
           <h3>Git history scrub for internal strategy docs</h3>
-          <p>AGENTS.md and planning docs contain internal context. Requires user approval.</p>
+          <p>
+            AGENTS.md and planning docs contain internal context. Requires user
+            approval.
+          </p>
         </div>
 
-        <h2 id="execution"><span class="num">05</span>Recommended Execution Order</h2>
+        <h2 id="execution">
+          <span class="num">05</span>Recommended Execution Order
+        </h2>
         <div class="card">
           <p>
-            <strong>Today:</strong> 1% tier — README fix, pre-commit hooks, CBOR tests, SKILL.md
-            update, remote tag deletion command.<br />
-            <strong>This week:</strong> 4% tier — lint sweep, <code>SQLTimerStore</code>,
-            <code>SQLAggregateReader</code>, lag metric.<br />
+            <strong>Today:</strong> 1% tier — README fix, pre-commit hooks, CBOR
+            tests, SKILL.md update, remote tag deletion command.<br />
+            <strong>This week:</strong> 4% tier — lint sweep,
+            <code>SQLTimerStore</code>, <code>SQLAggregateReader</code>, lag
+            metric.<br />
             <strong>Next cycle:</strong> 20% tier + v4.1 deprecated API removal.
           </p>
         </div>
 
         <footer class="footer">
-          Generated 2026-07-23 &middot; Based on TODO_LIST.md, ROADMAP.md, consumer feedback docs,
-          build/test/lint output, and module tag verification.
+          Generated 2026-07-23 &middot; Based on TODO_LIST.md, ROADMAP.md,
+          consumer feedback docs, build/test/lint output, and module tag
+          verification.
         </footer>
       </main>
     </div>

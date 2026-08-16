@@ -39,21 +39,21 @@ cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" . ../../SKILL.
 
 ## Quick Reference
 
-| Item       | Value                                                                                                                                          |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Language   | Go 1.26.4                                                                                                                                      |
-| Build      | `nix run .#build`                                                                                                                              |
-| Test       | `nix run .#test`                                                                                                                               |
-| Lint       | `nix run .#lint`                                                                                                                               |
-| Format     | `nix fmt`                                                                                                                                      |
-| Dev shell  | `nix develop`                                                                                                                                  |
-| Verify all | `nix run .#verify` (build + vet + test + race + lint + doc-check)                                                                              |
-| Int. PG    | `nix run .#integration-pg` (ephemeral, no Docker) or `nix run .#integration-pg-vm` (QEMU VM)                                                   |
-| Int. MySQL | `nix run .#integration-mysql-nspawn` (nspawn, ~15s, needs root + uid-range) or `nix run .#integration-mysql-vm` (QEMU VM, ~131s, always works) |
-| Int. All   | `nix run .#test-integration` or `nix run .#test-all-backends` (SQLite+Pebble+bbolt+DuckDB+PG+MySQL+Dgraph)                                    |
-| Int. Dgraph| `nix run .#integration-dgraph` (ephemeral nixpkgs Dgraph, full dgraphengine suite; also a CI job)                                              |
-| Bench      | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gate: median ns/op, 25% threshold — CI fails on breach)                    |
-| CI         | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                  |
+| Item        | Value                                                                                                                                          |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Language    | Go 1.26.4                                                                                                                                      |
+| Build       | `nix run .#build`                                                                                                                              |
+| Test        | `nix run .#test`                                                                                                                               |
+| Lint        | `nix run .#lint`                                                                                                                               |
+| Format      | `nix fmt`                                                                                                                                      |
+| Dev shell   | `nix develop`                                                                                                                                  |
+| Verify all  | `nix run .#verify` (build + vet + test + race + lint + doc-check)                                                                              |
+| Int. PG     | `nix run .#integration-pg` (ephemeral, no Docker) or `nix run .#integration-pg-vm` (QEMU VM)                                                   |
+| Int. MySQL  | `nix run .#integration-mysql-nspawn` (nspawn, ~15s, needs root + uid-range) or `nix run .#integration-mysql-vm` (QEMU VM, ~131s, always works) |
+| Int. All    | `nix run .#test-integration` or `nix run .#test-all-backends` (SQLite+Pebble+bbolt+DuckDB+PG+MySQL+Dgraph)                                     |
+| Int. Dgraph | `nix run .#integration-dgraph` (ephemeral nixpkgs Dgraph, full dgraphengine suite; also a CI job)                                              |
+| Bench       | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gate: median ns/op, 25% threshold — CI fails on breach)                  |
+| CI          | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                  |
 
 Multi-module Go workspace (`go.work`) with 82 `go.mod` files (incl. root). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
 
@@ -83,7 +83,7 @@ Compact reference — see [`references/modules.md`](.agents/skills/go-cqrs-lite/
 | `kv/`                                                          | Layer-0 KV: Store, TypedStore[T,K], Cache[T,K], ViewStore[V,K]                                         |                                                   |
 | `graph/`                                                       | Graph projection tier: NodeRef, EdgeRef, MemoryDriver, GraphProjection                                 | ADR-0033, ADR-0039                                |
 | `dedup/`                                                       | Bounded dedup ring buffer (O(1) fixed-capacity)                                                        |                                                   |
-| `listing/`                                                     | StreamListing, StreamStatus (`event.TombstoneStatus`), TombstonePolicy, StatusMiddleware                   |                                                   |
+| `listing/`                                                     | StreamListing, StreamStatus (`event.TombstoneStatus`), TombstonePolicy, StatusMiddleware               |                                                   |
 | `scenario/`                                                    | Fluent BDD DSL: Given/When/Then for deciders + projections                                             |                                                   |
 | `scheduling/`                                                  | Durable deadline timers (TimerStore, Scheduler)                                                        |                                                   |
 | `idempotency/kvstore/` `idempotency/sqlstore/`                 | KV/SQL idempotency stores (over external `go-idempotency`)                                             | ADR-0065, ADR-0128                                |

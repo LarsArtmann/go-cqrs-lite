@@ -79,7 +79,11 @@
         left: -100px;
         width: 500px;
         height: 500px;
-        background: radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 70%);
+        background: radial-gradient(
+          circle,
+          rgba(245, 158, 11, 0.05) 0%,
+          transparent 70%
+        );
         pointer-events: none;
       }
       .hero::after {
@@ -89,7 +93,11 @@
         right: -80px;
         width: 400px;
         height: 400px;
-        background: radial-gradient(circle, rgba(20, 184, 166, 0.04) 0%, transparent 70%);
+        background: radial-gradient(
+          circle,
+          rgba(20, 184, 166, 0.04) 0%,
+          transparent 70%
+        );
         pointer-events: none;
       }
       .hero-badge {
@@ -759,9 +767,10 @@
         <div class="hero-badge">Upstream · Library SDK</div>
         <h1>go-cqrs-lite<br /><em>Improvement Plan</em></h1>
         <p class="hero-desc">
-          Targeted improvements to the library itself — informed by the go-localsync integration
-          review. These changes strengthen the SDK for all consumers by closing API gaps, fixing a
-          correctness issue in the projection runner, and adding missing production pieces.
+          Targeted improvements to the library itself — informed by the
+          go-localsync integration review. These changes strengthen the SDK for
+          all consumers by closing API gaps, fixing a correctness issue in the
+          projection runner, and adding missing production pieces.
         </p>
         <div class="hero-meta">
           <div class="hero-meta-item">
@@ -807,10 +816,18 @@
       <div class="container">
         <div class="nav-inner">
           <a href="#api" class="api"><span class="count">1</span> API Design</a>
-          <a href="#correctness" class="correctness"><span class="count">2</span> Correctness</a>
-          <a href="#completeness" class="completeness"><span class="count">2</span> Completeness</a>
-          <a href="#consistency" class="consistency"><span class="count">2</span> Consistency</a>
-          <a href="#summary" class="exec"><span class="count">✦</span> Summary</a>
+          <a href="#correctness" class="correctness"
+            ><span class="count">2</span> Correctness</a
+          >
+          <a href="#completeness" class="completeness"
+            ><span class="count">2</span> Completeness</a
+          >
+          <a href="#consistency" class="consistency"
+            ><span class="count">2</span> Consistency</a
+          >
+          <a href="#summary" class="exec"
+            ><span class="count">✦</span> Summary</a
+          >
           <a href="#appendix-generics" class="api"
             ><span class="count">A</span> Appendix: Generics</a
           >
@@ -823,7 +840,10 @@
       <div class="container">
         <div class="section-header">
           <h2>API Design</h2>
-          <p>Improvements to the library's public interface that reduce friction for consumers.</p>
+          <p>
+            Improvements to the library's public interface that reduce friction
+            for consumers.
+          </p>
         </div>
 
         <!-- CQ-1 -->
@@ -837,23 +857,29 @@
           </div>
           <p class="card-desc">
             The current <strong><code>DecideFunc</code></strong> returns
-            <code>([]Event, error)</code> — no way for the decider to communicate domain semantics
-            back to the caller. Consumers like go-localsync need to know
-            <em>what happened</em> (created, updated, conflict, unchanged) to classify results. The
-            current workaround is a <code>countingDecide</code> hack that reverse-engineers intent
-            by counting events and checking state — fragile and couples to implementation details.
+            <code>([]Event, error)</code> — no way for the decider to
+            communicate domain semantics back to the caller. Consumers like
+            go-localsync need to know <em>what happened</em> (created, updated,
+            conflict, unchanged) to classify results. The current workaround is
+            a <code>countingDecide</code> hack that reverse-engineers intent by
+            counting events and checking state — fragile and couples to
+            implementation details.
           </p>
           <div class="file-refs">
             <span class="file-ref"
-              >decider/decider.go <span class="line">:85</span> (DecideFunc type)</span
+              >decider/decider.go <span class="line">:85</span> (DecideFunc
+              type)</span
             >
             <span class="file-ref"
-              >decider/decider.go <span class="line">:98–155</span> (Execute method)</span
+              >decider/decider.go <span class="line">:98–155</span> (Execute
+              method)</span
             >
           </div>
           <div class="diff-grid">
             <div>
-              <div class="diff-label before"><span class="dot"></span> Current (v2)</div>
+              <div class="diff-label before">
+                <span class="dot"></span> Current (v2)
+              </div>
               <div class="code-block">
                 <pre><span class="kw">type</span> <span class="type">DecideFunc</span>[State <span class="kw">any</span>] <span class="kw">func</span>(
   state <span class="type">State</span>,
@@ -862,7 +888,9 @@
               </div>
             </div>
             <div>
-              <div class="diff-label after"><span class="dot"></span> Proposed (v3)</div>
+              <div class="diff-label after">
+                <span class="dot"></span> Proposed (v3)
+              </div>
               <div class="code-block">
                 <pre><span class="kw">type</span> <span class="type">DecideResult</span> struct {
   Events []event.<span class="type">Event</span>
@@ -881,11 +909,12 @@
               <div class="step-num">1</div>
               <div class="step-content">
                 <p>
-                  <strong>Introduce <code>DecideResult</code> struct</strong> alongside
-                  <code>DecideFunc</code>. The <code>Annotations</code> map lets consumers carry
-                  arbitrary domain metadata (e.g., <code>"action": "created"</code>,
-                  <code>"conflict_winner": "remote"</code>) without the library needing to
-                  understand domain semantics.
+                  <strong>Introduce <code>DecideResult</code> struct</strong>
+                  alongside <code>DecideFunc</code>. The
+                  <code>Annotations</code> map lets consumers carry arbitrary
+                  domain metadata (e.g., <code>"action": "created"</code>,
+                  <code>"conflict_winner": "remote"</code>) without the library
+                  needing to understand domain semantics.
                 </p>
               </div>
             </div>
@@ -895,9 +924,10 @@
                 <p>
                   <strong>Expose <code>Execute</code> result.</strong> Change
                   <code>Repository.Execute</code> to return
-                  <code>(*DecideResult, error)</code> instead of <code>error</code>. This is a
-                  breaking change — requires v3 bump. The benefit: consumers get their domain
-                  metadata back without hacks.
+                  <code>(*DecideResult, error)</code> instead of
+                  <code>error</code>. This is a breaking change — requires v3
+                  bump. The benefit: consumers get their domain metadata back
+                  without hacks.
                 </p>
               </div>
             </div>
@@ -905,19 +935,21 @@
               <div class="step-num">3</div>
               <div class="step-content">
                 <p>
-                  <strong>Backward-compatible shim for v2.</strong> In the short term, add an
-                  <code>ExecuteWithResult</code> method that returns
-                  <code>(*DecideResult, error)</code> while keeping <code>Execute</code> returning
-                  <code>error</code>. This lets consumers opt-in without a v3 bump.
+                  <strong>Backward-compatible shim for v2.</strong> In the short
+                  term, add an <code>ExecuteWithResult</code> method that
+                  returns <code>(*DecideResult, error)</code> while keeping
+                  <code>Execute</code> returning <code>error</code>. This lets
+                  consumers opt-in without a v3 bump.
                 </p>
               </div>
             </div>
           </div>
           <div class="callout">
-            <strong>Consumer impact:</strong> go-localsync's <code>countingDecide</code> hack
-            (stack.go:189–212) and <code>classifyAction</code> (stack_adapters.go:12) become
-            unnecessary. Domain semantics flow through the library's own return type instead of
-            being reverse-engineered.
+            <strong>Consumer impact:</strong> go-localsync's
+            <code>countingDecide</code> hack (stack.go:189–212) and
+            <code>classifyAction</code> (stack_adapters.go:12) become
+            unnecessary. Domain semantics flow through the library's own return
+            type instead of being reverse-engineered.
           </div>
           <div class="impact-grid">
             <div class="impact-item">
@@ -943,8 +975,8 @@
         <div class="section-header">
           <h2>Correctness</h2>
           <p>
-            Issues that could cause silent data loss or incorrect behavior under real-world
-            conditions.
+            Issues that could cause silent data loss or incorrect behavior under
+            real-world conditions.
           </p>
         </div>
 
@@ -959,9 +991,10 @@
           </div>
           <p class="card-desc">
             After <strong><code>replay()</code></strong> completes and before
-            <strong><code>subscribeLive()</code></strong> takes effect, events published to the bus
-            are <strong>silently missed</strong>. The runner does replay → live sequentially with no
-            atomic handoff. Under load or with slow projections, this window is real and causes
+            <strong><code>subscribeLive()</code></strong> takes effect, events
+            published to the bus are <strong>silently missed</strong>. The
+            runner does replay → live sequentially with no atomic handoff. Under
+            load or with slow projections, this window is real and causes
             projection drift.
           </p>
           <div class="file-refs">
@@ -970,7 +1003,8 @@
               subscribeLive)</span
             >
             <span class="file-ref"
-              >projection/runner_live.go <span class="line">:subscribeLive</span></span
+              >projection/runner_live.go
+              <span class="line">:subscribeLive</span></span
             >
           </div>
           <div class="dep-flow">
@@ -980,7 +1014,9 @@
               <span class="node ok">checkpoint saved</span>
             </div>
             <div style="margin-bottom: 8px">
-              <span class="node gap">← gap: events published here are LOST →</span>
+              <span class="node gap"
+                >← gap: events published here are LOST →</span
+              >
             </div>
             <div>
               <span class="node ok">subscribeLive()</span>
@@ -993,9 +1029,10 @@
               <div class="step-num">1</div>
               <div class="step-content">
                 <p>
-                  <strong>Subscribe to bus before replay starts.</strong> Use a buffering subscriber
-                  that queues events without processing them. This ensures no events are missed
-                  during the replay phase.
+                  <strong>Subscribe to bus before replay starts.</strong> Use a
+                  buffering subscriber that queues events without processing
+                  them. This ensures no events are missed during the replay
+                  phase.
                 </p>
               </div>
             </div>
@@ -1003,10 +1040,11 @@
               <div class="step-num">2</div>
               <div class="step-content">
                 <p>
-                  <strong>After replay completes, drain the buffer</strong> and switch to live
-                  processing. Skip any buffered events whose ID ≤ last replayed event ID (idempotent
-                  deduplication). This is the "catch-up subscription" pattern used by EventStoreDB,
-                  Kafka, and PostgreSQL logical replication.
+                  <strong>After replay completes, drain the buffer</strong> and
+                  switch to live processing. Skip any buffered events whose ID ≤
+                  last replayed event ID (idempotent deduplication). This is the
+                  "catch-up subscription" pattern used by EventStoreDB, Kafka,
+                  and PostgreSQL logical replication.
                 </p>
               </div>
             </div>
@@ -1014,17 +1052,19 @@
               <div class="step-num">3</div>
               <div class="step-content">
                 <p>
-                  <strong>Add an integration test.</strong> A test that publishes events during the
-                  replay-to-live transition window and verifies the projection processes all of
-                  them. This is the key correctness proof.
+                  <strong>Add an integration test.</strong> A test that
+                  publishes events during the replay-to-live transition window
+                  and verifies the projection processes all of them. This is the
+                  key correctness proof.
                 </p>
               </div>
             </div>
           </div>
           <div class="callout">
             <strong>Consumer impact:</strong> go-localsync's
-            <code>startProjectionRunner</code> (runner.go:12) would benefit immediately — the
-            projection runner is the backbone of read model consistency.
+            <code>startProjectionRunner</code> (runner.go:12) would benefit
+            immediately — the projection runner is the backbone of read model
+            consistency.
           </div>
           <div class="impact-grid">
             <div class="impact-item">
@@ -1052,21 +1092,26 @@
             <span class="severity correctness">Surprise Behavior</span>
           </div>
           <p class="card-desc">
-            In the <strong><code>dispatcher</code></strong> package, middleware is baked into each
-            handler at <code>Register()</code> time. Adding middleware <em>after</em> registration
-            has no effect on already-registered handlers. This is documented but surprising —
-            consumers expect middleware to apply globally regardless of registration order.
+            In the <strong><code>dispatcher</code></strong> package, middleware
+            is baked into each handler at <code>Register()</code> time. Adding
+            middleware <em>after</em> registration has no effect on
+            already-registered handlers. This is documented but surprising —
+            consumers expect middleware to apply globally regardless of
+            registration order.
           </p>
           <div class="file-refs">
             <span class="file-ref"
-              >dispatcher/dispatcher.go <span class="line">:Register</span> (middleware applied
+              >dispatcher/dispatcher.go
+              <span class="line">:Register</span> (middleware applied
               here)</span
             >
             <span class="file-ref"
-              >command/dispatcher.go <span class="line">:44</span> (Use method)</span
+              >command/dispatcher.go <span class="line">:44</span> (Use
+              method)</span
             >
             <span class="file-ref"
-              >query/dispatcher.go <span class="line">:44</span> (Use method)</span
+              >query/dispatcher.go <span class="line">:44</span> (Use
+              method)</span
             >
           </div>
           <div class="steps">
@@ -1074,12 +1119,13 @@
               <div class="step-num">1</div>
               <div class="step-content">
                 <p>
-                  <strong>Document the contract prominently.</strong> Add a package-level doc
-                  comment on <code>dispatcher</code>, <code>command</code>, and
-                  <code>query</code> that states: "Middleware must be added <em>before</em> calling
-                  Register. Middleware added after Register has no effect on existing handlers." Add
-                  a log warning in debug mode if <code>Use</code> is called after any
-                  <code>Register</code>.
+                  <strong>Document the contract prominently.</strong> Add a
+                  package-level doc comment on <code>dispatcher</code>,
+                  <code>command</code>, and <code>query</code> that states:
+                  "Middleware must be added <em>before</em> calling Register.
+                  Middleware added after Register has no effect on existing
+                  handlers." Add a log warning in debug mode if
+                  <code>Use</code> is called after any <code>Register</code>.
                 </p>
               </div>
             </div>
@@ -1087,10 +1133,13 @@
               <div class="step-num">2</div>
               <div class="step-content">
                 <p>
-                  <strong>Long-term: defer middleware application to dispatch time.</strong> Instead
-                  of wrapping the handler at registration, store the middleware chain separately and
-                  apply it at dispatch time. This is a larger refactor but removes the surprise
-                  entirely.
+                  <strong
+                    >Long-term: defer middleware application to dispatch
+                    time.</strong
+                  >
+                  Instead of wrapping the handler at registration, store the
+                  middleware chain separately and apply it at dispatch time.
+                  This is a larger refactor but removes the surprise entirely.
                 </p>
               </div>
             </div>
@@ -1132,18 +1181,20 @@
           </div>
           <p class="card-desc">
             The <strong><code>listing</code></strong> module only has
-            <code>InMemoryAggregateReader</code> backed by an in-memory cache of the event journal.
-            For production use (SQLite, PostgreSQL), consumers must implement their own
-            <code>AggregateReader</code>. The docstring mentions <code>SQLAggregateReader</code> but
-            it doesn't exist yet.
+            <code>InMemoryAggregateReader</code> backed by an in-memory cache of
+            the event journal. For production use (SQLite, PostgreSQL),
+            consumers must implement their own <code>AggregateReader</code>. The
+            docstring mentions <code>SQLAggregateReader</code> but it doesn't
+            exist yet.
           </p>
           <div class="file-refs">
             <span class="file-ref"
-              >listing/in_memory.go <span class="line">:InMemoryAggregateReader</span></span
+              >listing/in_memory.go
+              <span class="line">:InMemoryAggregateReader</span></span
             >
             <span class="file-ref"
-              >listing/aggregate_reader.go <span class="line">:12</span> (AggregateReader
-              interface)</span
+              >listing/aggregate_reader.go
+              <span class="line">:12</span> (AggregateReader interface)</span
             >
           </div>
           <div class="steps">
@@ -1151,11 +1202,16 @@
               <div class="step-num">1</div>
               <div class="step-content">
                 <p>
-                  <strong>Add <code>SQLAggregateReader</code> in listing/.</strong> Backed by a
-                  pre-computed aggregates table (populated by projection). Supports the same
-                  <code>List</code>/<code>ListWithStatus</code> interface with cursor-based
-                  pagination. Reuses the existing <code>storage</code> dialect abstraction for
-                  PG/SQLite compatibility.
+                  <strong
+                    >Add <code>SQLAggregateReader</code> in listing/.</strong
+                  >
+                  Backed by a pre-computed aggregates table (populated by
+                  projection). Supports the same <code>List</code>/<code
+                    >ListWithStatus</code
+                  >
+                  interface with cursor-based pagination. Reuses the existing
+                  <code>storage</code> dialect abstraction for PG/SQLite
+                  compatibility.
                 </p>
               </div>
             </div>
@@ -1163,10 +1219,13 @@
               <div class="step-num">2</div>
               <div class="step-content">
                 <p>
-                  <strong>Add a projection that maintains the aggregates table.</strong> Similar to
-                  how go-localsync maintains a sync items table. The
-                  <code>StatusMiddleware</code> already handles tombstone detection — the SQL reader
-                  just needs a table to read from.
+                  <strong
+                    >Add a projection that maintains the aggregates
+                    table.</strong
+                  >
+                  Similar to how go-localsync maintains a sync items table. The
+                  <code>StatusMiddleware</code> already handles tombstone
+                  detection — the SQL reader just needs a table to read from.
                 </p>
               </div>
             </div>
@@ -1197,17 +1256,20 @@
             <span class="severity completeness">Dead Interface</span>
           </div>
           <p class="card-desc">
-            <strong><code>event.BatchProjection</code></strong> interface exists but the
-            <code>projection.Runner</code> processes events one-by-one via <code>Handle</code>. The
-            <code>HandleBatch</code> path is unimplemented. This means high-throughput projections
-            can't benefit from batch processing (e.g., bulk SQL inserts).
+            <strong><code>event.BatchProjection</code></strong> interface exists
+            but the <code>projection.Runner</code> processes events one-by-one
+            via <code>Handle</code>. The <code>HandleBatch</code> path is
+            unimplemented. This means high-throughput projections can't benefit
+            from batch processing (e.g., bulk SQL inserts).
           </p>
           <div class="file-refs">
             <span class="file-ref"
-              >event/projection.go <span class="line">:BatchProjection</span> (interface)</span
+              >event/projection.go
+              <span class="line">:BatchProjection</span> (interface)</span
             >
             <span class="file-ref"
-              >projection/runner.go <span class="line">:handleAndCheckpoint</span> (single
+              >projection/runner.go
+              <span class="line">:handleAndCheckpoint</span> (single
               event)</span
             >
           </div>
@@ -1216,10 +1278,12 @@
               <div class="step-num">1</div>
               <div class="step-content">
                 <p>
-                  <strong>Add batch processing in the runner.</strong> After replay or during live
-                  subscription, accumulate events up to a batch size or flush interval, then call
+                  <strong>Add batch processing in the runner.</strong> After
+                  replay or during live subscription, accumulate events up to a
+                  batch size or flush interval, then call
                   <code>HandleBatch</code> if the projection implements
-                  <code>BatchProjection</code>. Fall back to single-event processing for regular
+                  <code>BatchProjection</code>. Fall back to single-event
+                  processing for regular
                   <code>Projection</code> implementations.
                 </p>
               </div>
@@ -1228,16 +1292,20 @@
               <div class="step-num">2</div>
               <div class="step-content">
                 <p>
-                  <strong>Add <code>WithBatchSize</code> option to the runner.</strong> Default to 1
-                  (backward-compatible). Consumers opt into batch processing explicitly.
+                  <strong
+                    >Add <code>WithBatchSize</code> option to the
+                    runner.</strong
+                  >
+                  Default to 1 (backward-compatible). Consumers opt into batch
+                  processing explicitly.
                 </p>
               </div>
             </div>
           </div>
           <div class="callout">
-            <strong>Consumer impact:</strong> go-localsync's SQLite read model could use batch
-            upserts instead of per-event inserts during replay — significant performance improvement
-            for large datasets.
+            <strong>Consumer impact:</strong> go-localsync's SQLite read model
+            could use batch upserts instead of per-event inserts during replay —
+            significant performance improvement for large datasets.
           </div>
           <div class="impact-grid">
             <div class="impact-item">
@@ -1262,7 +1330,10 @@
       <div class="container">
         <div class="section-header">
           <h2>Consistency</h2>
-          <p>Minor friction points across modules that reduce the library's cohesion.</p>
+          <p>
+            Minor friction points across modules that reduce the library's
+            cohesion.
+          </p>
         </div>
 
         <!-- CQ-6 -->
@@ -1270,22 +1341,29 @@
           <div class="card-top">
             <div>
               <div class="card-id">CQ-6</div>
-              <h3>query/ imports event/ for error wrapping — unnecessary coupling</h3>
+              <h3>
+                query/ imports event/ for error wrapping — unnecessary coupling
+              </h3>
             </div>
             <span class="severity consistency">Layer Violation</span>
           </div>
           <p class="card-desc">
-            The <strong><code>query</code></strong> dispatcher wraps errors using
-            <code>event.WrapInfrastructure</code> from the <code>event</code> module. This creates
-            an unnecessary dependency of the read-side (queries) on the write-side (events). The
-            <code>query</code> module should use <code>go-error-family</code> directly, like it does
-            in some places already — the usage is inconsistent.
+            The <strong><code>query</code></strong> dispatcher wraps errors
+            using <code>event.WrapInfrastructure</code> from the
+            <code>event</code> module. This creates an unnecessary dependency of
+            the read-side (queries) on the write-side (events). The
+            <code>query</code> module should use
+            <code>go-error-family</code> directly, like it does in some places
+            already — the usage is inconsistent.
           </p>
           <div class="file-refs">
             <span class="file-ref"
-              >query/dispatcher.go <span class="line">:import</span> (event import)</span
+              >query/dispatcher.go <span class="line">:import</span> (event
+              import)</span
             >
-            <span class="file-ref">query/go.mod <span class="line">:event dependency</span></span>
+            <span class="file-ref"
+              >query/go.mod <span class="line">:event dependency</span></span
+            >
           </div>
           <div class="layer-diagram">
             <div class="layer-row" style="margin-bottom: 8px">
@@ -1296,7 +1374,13 @@
                 <span class="layer-mod highlight">query</span>
               </div>
             </div>
-            <div style="color: var(--text-muted); padding-left: 32px; font-size: 11px">
+            <div
+              style="
+                color: var(--text-muted);
+                padding-left: 32px;
+                font-size: 11px;
+              "
+            >
               query → event = unnecessary coupling on same layer
             </div>
           </div>
@@ -1305,10 +1389,10 @@
               <div class="step-num">1</div>
               <div class="step-content">
                 <p>
-                  <strong>Replace <code>event.WrapInfrastructure</code></strong> with direct
-                  <code>errorfamily.NewInfrastructure</code> calls in query's dispatcher. Remove the
-                  <code>event</code> import. If there are other event references, audit and remove
-                  them.
+                  <strong>Replace <code>event.WrapInfrastructure</code></strong>
+                  with direct <code>errorfamily.NewInfrastructure</code> calls
+                  in query's dispatcher. Remove the <code>event</code> import.
+                  If there are other event references, audit and remove them.
                 </p>
               </div>
             </div>
@@ -1316,8 +1400,9 @@
               <div class="step-num">2</div>
               <div class="step-content">
                 <p>
-                  <strong>Update query/go.mod</strong> to remove the event dependency. Run
-                  <code>nix run .#check-layers</code> to verify the layer graph remains clean.
+                  <strong>Update query/go.mod</strong> to remove the event
+                  dependency. Run <code>nix run .#check-layers</code> to verify
+                  the layer graph remains clean.
                 </p>
               </div>
             </div>
@@ -1349,18 +1434,21 @@
           </div>
           <p class="card-desc">
             Two pagination types exist with no shared abstraction:
-            <strong><code>query.Pagination</code></strong> (offset-based, <code>Page</code> +
-            <code>PageSize</code>) and <strong><code>listing.Page[T]</code></strong> (cursor-based,
-            <code>After</code> cursor). Both live in the same library but serve different use cases
-            with no documentation explaining when to use which, and no adapter to convert between
-            them.
+            <strong><code>query.Pagination</code></strong> (offset-based,
+            <code>Page</code> + <code>PageSize</code>) and
+            <strong><code>listing.Page[T]</code></strong> (cursor-based,
+            <code>After</code> cursor). Both live in the same library but serve
+            different use cases with no documentation explaining when to use
+            which, and no adapter to convert between them.
           </p>
           <div class="file-refs">
             <span class="file-ref"
-              >query/pagination.go <span class="line">:Pagination</span> (offset)</span
+              >query/pagination.go
+              <span class="line">:Pagination</span> (offset)</span
             >
             <span class="file-ref"
-              >listing/types.go <span class="line">:30</span> (Page[T] cursor)</span
+              >listing/types.go <span class="line">:30</span> (Page[T]
+              cursor)</span
             >
           </div>
           <div class="diff-grid">
@@ -1392,10 +1480,11 @@
               <div class="step-num">1</div>
               <div class="step-content">
                 <p>
-                  <strong>Document the decision criteria.</strong> Add a package-level doc to both
-                  <code>query</code> and <code>listing</code> explaining when to use each:
-                  offset-based for user-facing paginated UIs, cursor-based for event streams and
-                  aggregate listings.
+                  <strong>Document the decision criteria.</strong> Add a
+                  package-level doc to both <code>query</code> and
+                  <code>listing</code> explaining when to use each: offset-based
+                  for user-facing paginated UIs, cursor-based for event streams
+                  and aggregate listings.
                 </p>
               </div>
             </div>
@@ -1403,10 +1492,14 @@
               <div class="step-num">2</div>
               <div class="step-content">
                 <p>
-                  <strong>Consider a shared <code>pagination</code> sub-package.</strong> If both
-                  models are needed in the same application, a shared package with clear naming
-                  (<code>OffsetPagination</code> vs <code>CursorPage[T]</code>) reduces import
-                  confusion. Low priority — both models are correct for their use cases.
+                  <strong
+                    >Consider a shared
+                    <code>pagination</code> sub-package.</strong
+                  >
+                  If both models are needed in the same application, a shared
+                  package with clear naming (<code>OffsetPagination</code> vs
+                  <code>CursorPage[T]</code>) reduces import confusion. Low
+                  priority — both models are correct for their use cases.
                 </p>
               </div>
             </div>
@@ -1434,7 +1527,10 @@
       <div class="container">
         <div class="section-header">
           <h2>Execution Summary</h2>
-          <p>Prioritized by impact on go-localsync integration and value to all consumers.</p>
+          <p>
+            Prioritized by impact on go-localsync integration and value to all
+            consumers.
+          </p>
         </div>
 
         <div class="summary-grid">
@@ -1456,7 +1552,14 @@
           </div>
         </div>
 
-        <h3 style="font-size: 17px; font-weight: 600; margin-top: 40px; margin-bottom: 20px">
+        <h3
+          style="
+            font-size: 17px;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 20px;
+          "
+        >
           Recommended Execution Order
         </h3>
 
@@ -1475,49 +1578,63 @@
               <tr>
                 <td class="mono" style="color: var(--text-muted)">1</td>
                 <td class="mono" style="color: var(--accent-amber)">CQ-2</td>
-                <td style="color: var(--text-primary)">Replay-to-live gap fix</td>
+                <td style="color: var(--text-primary)">
+                  Replay-to-live gap fix
+                </td>
                 <td>4–6 hr</td>
                 <td>Correctness — every projection user is affected</td>
               </tr>
               <tr>
                 <td class="mono" style="color: var(--text-muted)">2</td>
                 <td class="mono" style="color: var(--accent-sky)">CQ-6</td>
-                <td style="color: var(--text-primary)">Remove query → event coupling</td>
+                <td style="color: var(--text-primary)">
+                  Remove query → event coupling
+                </td>
                 <td>30 min</td>
                 <td>Quick layer hygiene, enables go.work cleanup</td>
               </tr>
               <tr>
                 <td class="mono" style="color: var(--text-muted)">3</td>
                 <td class="mono" style="color: var(--accent-amber)">CQ-3</td>
-                <td style="color: var(--text-primary)">Document middleware timing contract</td>
+                <td style="color: var(--text-primary)">
+                  Document middleware timing contract
+                </td>
                 <td>30 min</td>
                 <td>Prevents consumer surprise; doc-only is safe</td>
               </tr>
               <tr>
                 <td class="mono" style="color: var(--text-muted)">4</td>
                 <td class="mono" style="color: var(--accent-rose)">CQ-1</td>
-                <td style="color: var(--text-primary)">DecideResult + ExecuteWithResult</td>
+                <td style="color: var(--text-primary)">
+                  DecideResult + ExecuteWithResult
+                </td>
                 <td>3–4 hr</td>
                 <td>Unblocks go-localsync LS-1 fix cleanly</td>
               </tr>
               <tr>
                 <td class="mono" style="color: var(--text-muted)">5</td>
                 <td class="mono" style="color: var(--accent-teal)">CQ-5</td>
-                <td style="color: var(--text-primary)">BatchProjection in Runner</td>
+                <td style="color: var(--text-primary)">
+                  BatchProjection in Runner
+                </td>
                 <td>3–4 hr</td>
                 <td>Performance — complements CQ-2 replay fix</td>
               </tr>
               <tr>
                 <td class="mono" style="color: var(--text-muted)">6</td>
                 <td class="mono" style="color: var(--accent-teal)">CQ-4</td>
-                <td style="color: var(--text-primary)">SQL-backed AggregateReader</td>
+                <td style="color: var(--text-primary)">
+                  SQL-backed AggregateReader
+                </td>
                 <td>4–5 hr</td>
                 <td>Unlocks listing/ for production</td>
               </tr>
               <tr>
                 <td class="mono" style="color: var(--text-muted)">7</td>
                 <td class="mono" style="color: var(--accent-sky)">CQ-7</td>
-                <td style="color: var(--text-primary)">Pagination model documentation</td>
+                <td style="color: var(--text-primary)">
+                  Pagination model documentation
+                </td>
                 <td>1–2 hr</td>
                 <td>Low-risk, improves DX</td>
               </tr>
@@ -1525,7 +1642,14 @@
           </table>
         </div>
 
-        <h3 style="font-size: 17px; font-weight: 600; margin-top: 40px; margin-bottom: 20px">
+        <h3
+          style="
+            font-size: 17px;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 20px;
+          "
+        >
           Module Dependency Flow
         </h3>
 
@@ -1544,7 +1668,12 @@
               <span class="layer-mod">event</span>
               <span class="layer-mod">command</span>
               <span class="layer-mod highlight">query</span>
-              <span style="font-size: 11px; color: var(--accent-amber); margin-left: 8px"
+              <span
+                style="
+                  font-size: 11px;
+                  color: var(--accent-amber);
+                  margin-left: 8px;
+                "
                 >← CQ-6 removes event dep</span
               >
             </div>
@@ -1560,7 +1689,12 @@
             <span class="layer-num">L3</span>
             <div class="layer-modules">
               <span class="layer-mod highlight">decider</span>
-              <span style="font-size: 11px; color: var(--accent-rose); margin-left: 8px"
+              <span
+                style="
+                  font-size: 11px;
+                  color: var(--accent-rose);
+                  margin-left: 8px;
+                "
                 >← CQ-1 extends DecideFunc</span
               >
             </div>
@@ -1580,7 +1714,12 @@
               <span class="layer-mod">storage</span>
               <span class="layer-mod highlight">listing</span>
               <span class="layer-mod">middleware</span>
-              <span style="font-size: 11px; color: var(--accent-teal); margin-left: 8px"
+              <span
+                style="
+                  font-size: 11px;
+                  color: var(--accent-teal);
+                  margin-left: 8px;
+                "
                 >← CQ-2, CQ-4, CQ-5</span
               >
             </div>
@@ -1593,8 +1732,13 @@
             <code>cd projection && GOWORK=off go test ./... -count=1</code>)
           </li>
           <li>Run <code>nix run .#lint</code> after each change</li>
-          <li>Run <code>nix run .#check-layers</code> to verify dependency graph integrity</li>
-          <li>Run <code>cmd/api-stability</code> to detect breaking API changes</li>
+          <li>
+            Run <code>nix run .#check-layers</code> to verify dependency graph
+            integrity
+          </li>
+          <li>
+            Run <code>cmd/api-stability</code> to detect breaking API changes
+          </li>
           <li>Update AGENTS.md with changed patterns</li>
           <li>Run <code>nix fmt</code> before committing</li>
         </ul>
@@ -1606,8 +1750,9 @@
         <div class="section-header">
           <h2>Appendix A: Generics Opportunities</h2>
           <p>
-            How Go generics can close the remaining API gaps in the library — informed by real
-            consumer friction from the go-localsync integration. Ordered by impact.
+            How Go generics can close the remaining API gaps in the library —
+            informed by real consumer friction from the go-localsync
+            integration. Ordered by impact.
           </p>
         </div>
 
@@ -1616,26 +1761,34 @@
           <div class="card-top">
             <div>
               <div class="card-id">CQ-G1</div>
-              <h3><code>command.RegisterTyped[C]</code> — mirror the <code>query</code> pattern</h3>
+              <h3>
+                <code>command.RegisterTyped[C]</code> — mirror the
+                <code>query</code> pattern
+              </h3>
             </div>
             <span class="severity api">New API</span>
           </div>
           <p class="card-desc">
-            The <code>query</code> package has <code>RegisterTyped[Q, R]</code> and
-            <code>DispatchTyped[T]</code> — the "typed bookend" pattern that eliminates runtime type
-            assertions for consumers. The <code>command</code> package has no equivalent. Every
-            consumer must write the same <code>cmd.(*ConcreteCommand)</code> assertion + error
-            wrapping boilerplate. This is a 6× repetition in go-localsync alone.
+            The <code>query</code> package has
+            <code>RegisterTyped[Q, R]</code> and <code>DispatchTyped[T]</code> —
+            the "typed bookend" pattern that eliminates runtime type assertions
+            for consumers. The <code>command</code> package has no equivalent.
+            Every consumer must write the same
+            <code>cmd.(*ConcreteCommand)</code> assertion + error wrapping
+            boilerplate. This is a 6× repetition in go-localsync alone.
           </p>
           <div class="file-refs">
             <span class="file-ref"
-              >command/dispatcher.go <span class="line">:—</span> (no RegisterTyped)</span
+              >command/dispatcher.go <span class="line">:—</span> (no
+              RegisterTyped)</span
             >
             <span class="file-ref"
-              >query/dispatcher.go <span class="line">:77</span> (RegisterTyped — exists)</span
+              >query/dispatcher.go <span class="line">:77</span> (RegisterTyped
+              — exists)</span
             >
             <span class="file-ref"
-              >query/dispatcher.go <span class="line">:130</span> (DispatchTyped — exists)</span
+              >query/dispatcher.go <span class="line">:130</span> (DispatchTyped
+              — exists)</span
             >
           </div>
           <div class="code-block">
@@ -1662,11 +1815,13 @@
               <div class="step-content">
                 <p>
                   <strong
-                    >Add <code>TypedHandler[C]</code> and <code>RegisterTyped[C]</code></strong
+                    >Add <code>TypedHandler[C]</code> and
+                    <code>RegisterTyped[C]</code></strong
                   >
-                  to the command package. The assertion is tested once in the library instead of
-                  repeated in every consumer. Add <code>ErrTypeMismatch</code> as a new sentinel
-                  error in the error taxonomy (Rejection family).
+                  to the command package. The assertion is tested once in the
+                  library instead of repeated in every consumer. Add
+                  <code>ErrTypeMismatch</code> as a new sentinel error in the
+                  error taxonomy (Rejection family).
                 </p>
               </div>
             </div>
@@ -1674,10 +1829,11 @@
               <div class="step-num">2</div>
               <div class="step-content">
                 <p>
-                  <strong>Optionally add <code>DispatchTyped[C]</code></strong> that accepts a
-                  <code>C</code> directly and wraps it in the untyped dispatch. Less critical since
-                  <code>Dispatch(ctx, cmd)</code> already accepts the concrete type via the
-                  <code>Command</code> interface.
+                  <strong>Optionally add <code>DispatchTyped[C]</code></strong>
+                  that accepts a <code>C</code> directly and wraps it in the
+                  untyped dispatch. Less critical since
+                  <code>Dispatch(ctx, cmd)</code> already accepts the concrete
+                  type via the <code>Command</code> interface.
                 </p>
               </div>
             </div>
@@ -1685,9 +1841,10 @@
           <div class="callout">
             <span
               ><strong>Symmetry:</strong> <code>query</code> has
-              <code>RegisterTyped[Q, R]</code> because queries return typed results.
-              <code>command</code> only needs <code>RegisterTyped[C]</code> (one type param) because
-              commands return <code>error</code> only. This is the simpler case.</span
+              <code>RegisterTyped[Q, R]</code> because queries return typed
+              results. <code>command</code> only needs
+              <code>RegisterTyped[C]</code> (one type param) because commands
+              return <code>error</code> only. This is the simpler case.</span
             >
           </div>
           <div class="impact-grid">
@@ -1711,20 +1868,29 @@
           <div class="card-top">
             <div>
               <div class="card-id">CQ-G2</div>
-              <h3><code>DecideResult[R]</code> — typed domain result via second type parameter</h3>
+              <h3>
+                <code>DecideResult[R]</code> — typed domain result via second
+                type parameter
+              </h3>
             </div>
             <span class="severity api">Revises CQ-1</span>
           </div>
           <p class="card-desc">
-            CQ-1 proposes <code>Annotations map[string]any</code>. Generics offer a stronger
-            alternative:
-            <strong>a second type parameter <code>R</code> on <code>DecideFunc</code></strong> that
-            carries a typed domain result. This eliminates runtime assertions on annotation values
-            and makes the domain result a first-class part of the library's type system.
+            CQ-1 proposes <code>Annotations map[string]any</code>. Generics
+            offer a stronger alternative:
+            <strong
+              >a second type parameter <code>R</code> on
+              <code>DecideFunc</code></strong
+            >
+            that carries a typed domain result. This eliminates runtime
+            assertions on annotation values and makes the domain result a
+            first-class part of the library's type system.
           </p>
           <div class="diff-grid">
             <div>
-              <div class="diff-label before"><span class="dot"></span> CQ-1 as proposed</div>
+              <div class="diff-label before">
+                <span class="dot"></span> CQ-1 as proposed
+              </div>
               <div class="code-block">
                 <pre><span class="kw">type</span> <span class="type">DecideResult</span> <span class="kw">struct</span> {
   Events     []event.<span class="type">Event</span>
@@ -1761,11 +1927,13 @@
               <div class="step-content">
                 <p>
                   <strong>Add the second type parameter.</strong>
-                  <code>Repository[S, R]</code> carries both types. <code>Execute</code> returns
-                  <code>(*DecideResult[R], error)</code>. Existing code that doesn't care about the
-                  result uses <code>Repository[S, struct{}]</code> via the
-                  <code>SimpleDecideFunc[S]</code> alias — backward compatible in spirit, though the
-                  type signature changes.
+                  <code>Repository[S, R]</code> carries both types.
+                  <code>Execute</code> returns
+                  <code>(*DecideResult[R], error)</code>. Existing code that
+                  doesn't care about the result uses
+                  <code>Repository[S, struct{}]</code> via the
+                  <code>SimpleDecideFunc[S]</code> alias — backward compatible
+                  in spirit, though the type signature changes.
                 </p>
               </div>
             </div>
@@ -1774,9 +1942,12 @@
               <div class="step-content">
                 <p>
                   <strong>Provide v2 shim.</strong>
-                  <code>ExecuteSimple(ctx, id, aggType, decide SimpleDecideFunc[S]) error</code>
-                  wraps the typed version and discards the result. Consumers who don't need domain
-                  results don't see the complexity.
+                  <code
+                    >ExecuteSimple(ctx, id, aggType, decide SimpleDecideFunc[S])
+                    error</code
+                  >
+                  wraps the typed version and discards the result. Consumers who
+                  don't need domain results don't see the complexity.
                 </p>
               </div>
             </div>
@@ -1786,20 +1957,23 @@
                 <p>
                   <strong>Consumer side (go-localsync):</strong> Define
                   <code
-                    >type SyncDecision struct { Action SyncAction; WasNew bool; Conflict string
-                    }</code
-                  >. Return it from <code>DecideSync</code>. The <code>countingDecide</code> hack
-                  disappears — the domain result flows through the type system.
+                    >type SyncDecision struct { Action SyncAction; WasNew bool;
+                    Conflict string }</code
+                  >. Return it from <code>DecideSync</code>. The
+                  <code>countingDecide</code> hack disappears — the domain
+                  result flows through the type system.
                 </p>
               </div>
             </div>
           </div>
           <div class="callout">
             <span
-              ><strong>Tradeoff:</strong> Two-parameter generics increase the learning curve. The
-              mitigation is the <code>SimpleDecideFunc[S]</code> alias — most consumers never see
-              <code>R</code>. Only consumers who need domain semantics ("was this a create or an
-              update?") opt into the full <code>DecideFunc[S, R]</code>.</span
+              ><strong>Tradeoff:</strong> Two-parameter generics increase the
+              learning curve. The mitigation is the
+              <code>SimpleDecideFunc[S]</code> alias — most consumers never see
+              <code>R</code>. Only consumers who need domain semantics ("was
+              this a create or an update?") opt into the full
+              <code>DecideFunc[S, R]</code>.</span
             >
           </div>
           <div class="impact-grid">
@@ -1828,7 +2002,12 @@
           </div>
           <div style="font-size: 14px; color: var(--text-secondary)">
             <div
-              style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px 20px; margin-top: 8px"
+              style="
+                display: grid;
+                grid-template-columns: 1fr 2fr;
+                gap: 8px 20px;
+                margin-top: 8px;
+              "
             >
               <span
                 style="
@@ -1860,8 +2039,9 @@
                 ><code>Event[T]</code> typed payloads</span
               >
               <span
-                >Go can't express union types — the <code>DecodePayload[T]</code> + codec pattern is
-                the right tradeoff</span
+                >Go can't express union types — the
+                <code>DecodePayload[T]</code> + codec pattern is the right
+                tradeoff</span
               >
 
               <span
@@ -1873,8 +2053,8 @@
                 ><code>EventSink[AggType]</code></span
               >
               <span
-                >Aggregates handle multiple event types — a type param would be rigid and
-                restrictive</span
+                >Aggregates handle multiple event types — a type param would be
+                rigid and restrictive</span
               >
 
               <span
@@ -1886,8 +2066,8 @@
                 >Error types</span
               >
               <span
-                >Go's <code>error</code> interface + the 5-family taxonomy is already the right
-                abstraction</span
+                >Go's <code>error</code> interface + the 5-family taxonomy is
+                already the right abstraction</span
               >
 
               <span
@@ -1899,8 +2079,8 @@
                 ><code>dispatcher[H, M]</code></span
               >
               <span
-                >Already generic — this is the foundation that both <code>command</code> and
-                <code>query</code> build on</span
+                >Already generic — this is the foundation that both
+                <code>command</code> and <code>query</code> build on</span
               >
 
               <span
@@ -1912,8 +2092,8 @@
                 ><code>listing.Page[T]</code></span
               >
               <span
-                >Already generic — and the cursor-based pagination is the correct model for
-                append-only streams</span
+                >Already generic — and the cursor-based pagination is the
+                correct model for append-only streams</span
               >
             </div>
           </div>
@@ -1924,7 +2104,8 @@
     <footer class="footer">
       <div class="container">
         Generated from architecture review ·
-        <a href="https://github.com/larsartmann/go-cqrs-lite">go-cqrs-lite</a> · June 2026
+        <a href="https://github.com/larsartmann/go-cqrs-lite">go-cqrs-lite</a> ·
+        June 2026
       </div>
     </footer>
   </body>

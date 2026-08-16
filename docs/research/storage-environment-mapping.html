@@ -36,7 +36,8 @@
         --radius: 10px;
         --radius-lg: 14px;
         --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
-        --shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.3);
+        --shadow-lg:
+          0 4px 6px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.3);
         --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
@@ -62,8 +63,10 @@
           --blue-soft: rgba(66, 133, 244, 0.08);
           --purple: #7c4dff;
           --purple-soft: rgba(124, 77, 255, 0.08);
-          --shadow: 0 1px 3px rgba(60, 64, 67, 0.08), 0 4px 12px rgba(60, 64, 67, 0.06);
-          --shadow-lg: 0 4px 6px rgba(60, 64, 67, 0.08), 0 12px 32px rgba(60, 64, 67, 0.1);
+          --shadow:
+            0 1px 3px rgba(60, 64, 67, 0.08), 0 4px 12px rgba(60, 64, 67, 0.06);
+          --shadow-lg:
+            0 4px 6px rgba(60, 64, 67, 0.08), 0 12px 32px rgba(60, 64, 67, 0.1);
         }
       }
 
@@ -107,8 +110,16 @@
         right: 0;
         bottom: 0;
         background:
-          radial-gradient(ellipse 600px 300px at 10% 20%, var(--accent-glow) 0%, transparent 70%),
-          radial-gradient(ellipse 400px 200px at 90% 80%, var(--blue-soft) 0%, transparent 70%);
+          radial-gradient(
+            ellipse 600px 300px at 10% 20%,
+            var(--accent-glow) 0%,
+            transparent 70%
+          ),
+          radial-gradient(
+            ellipse 400px 200px at 90% 80%,
+            var(--blue-soft) 0%,
+            transparent 70%
+          );
         pointer-events: none;
       }
 
@@ -975,8 +986,9 @@
         <h1>Storage Environment <em>Mapping</em></h1>
         <p class="hero-desc">
           Every storage touchpoint in <code>go-cqrs-lite</code>, mapped to its
-          <strong>native backend per runtime environment</strong>. "Native" means already present,
-          no extra infrastructure to provision, idiomatic for that platform.
+          <strong>native backend per runtime environment</strong>. "Native"
+          means already present, no extra infrastructure to provision, idiomatic
+          for that platform.
         </p>
         <div class="hero-meta">
           <div class="hero-meta-item">
@@ -1008,13 +1020,16 @@
               <h3>Event Store</h3>
               <span class="status-badge ok">Implemented</span>
             </div>
-            <div class="touchpoint-meta">event.Store · Sink + Source + Journal + Seekable</div>
+            <div class="touchpoint-meta">
+              event.Store · Sink + Source + Journal + Seekable
+            </div>
             <p class="touchpoint-desc">
-              Append-only log of immutable events. Heavy append, no update/delete. Unbounded growth
-              — the primary data store.
+              Append-only log of immutable events. Heavy append, no
+              update/delete. Unbounded growth — the primary data store.
             </p>
             <div class="touchpoint-tags">
-              <span class="tag">memory</span><span class="tag">SQL (PG/SQLite)</span
+              <span class="tag">memory</span
+              ><span class="tag">SQL (PG/SQLite)</span
               ><span class="tag">Pebble</span>
             </div>
           </div>
@@ -1028,11 +1043,12 @@
               snapshot.SnapshotStore · Save/Load/LoadAtVersion/Delete
             </div>
             <p class="touchpoint-desc">
-              Serialized aggregate state at a specific version. Occasional upsert. Bounded — one per
-              aggregate.
+              Serialized aggregate state at a specific version. Occasional
+              upsert. Bounded — one per aggregate.
             </p>
             <div class="touchpoint-tags">
-              <span class="tag">memory</span><span class="tag">SQL (PG/SQLite)</span>
+              <span class="tag">memory</span
+              ><span class="tag">SQL (PG/SQLite)</span>
             </div>
           </div>
 
@@ -1043,11 +1059,12 @@
             </div>
             <div class="touchpoint-meta">event.CheckpointStore · Save/Load</div>
             <p class="touchpoint-desc">
-              Projection name → last processed event ID. Frequent overwrites. Must be durable —
-              projections resume from here.
+              Projection name → last processed event ID. Frequent overwrites.
+              Must be durable — projections resume from here.
             </p>
             <div class="touchpoint-tags">
-              <span class="tag">memory</span><span class="tag">SQL (PG/SQLite)</span>
+              <span class="tag">memory</span
+              ><span class="tag">SQL (PG/SQLite)</span>
             </div>
           </div>
 
@@ -1056,13 +1073,16 @@
               <h3>Command Store</h3>
               <span class="status-badge warn">Interface Only</span>
             </div>
-            <div class="touchpoint-meta">command.Store · CommandSink + CommandSource</div>
+            <div class="touchpoint-meta">
+              command.Store · CommandSink + CommandSource
+            </div>
             <p class="touchpoint-desc">
               Command audit log. Append-only, smaller volume than events.
               <strong>Zero implementations exist anywhere.</strong>
             </p>
             <div class="touchpoint-tags">
-              <span class="tag">interface defined</span><span class="tag">no backends</span>
+              <span class="tag">interface defined</span
+              ><span class="tag">no backends</span>
             </div>
           </div>
 
@@ -1071,13 +1091,16 @@
               <h3>Read Model Store</h3>
               <span class="status-badge planned">Planned</span>
             </div>
-            <div class="touchpoint-meta">No formal interface · Get/List/Put/Delete</div>
+            <div class="touchpoint-meta">
+              No formal interface · Get/List/Put/Delete
+            </div>
             <p class="touchpoint-desc">
-              Projected queryable state. Rebuildable from events. Every example reinvents it —
-              highest-impact addition.
+              Projected queryable state. Rebuildable from events. Every example
+              reinvents it — highest-impact addition.
             </p>
             <div class="touchpoint-tags">
-              <span class="tag">example/todo/storage</span><span class="tag">example/user</span>
+              <span class="tag">example/todo/storage</span
+              ><span class="tag">example/user</span>
             </div>
           </div>
 
@@ -1086,13 +1109,16 @@
               <h3>Aggregate Listing</h3>
               <span class="status-badge ok">Implemented</span>
             </div>
-            <div class="touchpoint-meta">listing.AggregateReader · List/ListWithStatus</div>
+            <div class="touchpoint-meta">
+              listing.AggregateReader · List/ListWithStatus
+            </div>
             <p class="touchpoint-desc">
-              Derived index of aggregates + tombstone status. NOT independent storage — derived from
-              events or SQL query.
+              Derived index of aggregates + tombstone status. NOT independent
+              storage — derived from events or SQL query.
             </p>
             <div class="touchpoint-tags">
-              <span class="tag">memory (journal scan)</span><span class="tag">SQL (query)</span>
+              <span class="tag">memory (journal scan)</span
+              ><span class="tag">SQL (query)</span>
             </div>
           </div>
 
@@ -1101,15 +1127,19 @@
               <h3>Message Bus</h3>
               <span class="status-badge warn">In-Memory Only</span>
             </div>
-            <div class="touchpoint-meta">event.Bus / event.Publisher · Publish/Subscribe</div>
+            <div class="touchpoint-meta">
+              event.Bus / event.Publisher · Publish/Subscribe
+            </div>
             <p class="touchpoint-desc">
-              Transient message delivery. Single-process only. <code>watermill/</code> provides
-              protocol adapters but no persistent backends — still uses
-              <code>memory.MemoryBus</code> underneath. No NATS, Redis, SQS, or Pub/Sub backends
-              exist.
+              Transient message delivery. Single-process only.
+              <code>watermill/</code> provides protocol adapters but no
+              persistent backends — still uses
+              <code>memory.MemoryBus</code> underneath. No NATS, Redis, SQS, or
+              Pub/Sub backends exist.
             </p>
             <div class="touchpoint-tags">
-              <span class="tag">memory</span><span class="tag">watermill adapter</span
+              <span class="tag">memory</span
+              ><span class="tag">watermill adapter</span
               ><span class="tag">no persistent backend</span>
             </div>
           </div>
@@ -1142,7 +1172,9 @@
               <tr>
                 <td><strong>AWS Lambda</strong></td>
                 <td><code>AWS_LAMBDA_FUNCTION_NAME</code></td>
-                <td><code>AWS_REGION</code> set, <code>/var/runtime/</code> exists</td>
+                <td>
+                  <code>AWS_REGION</code> set, <code>/var/runtime/</code> exists
+                </td>
                 <td class="cell-yes">High</td>
               </tr>
               <tr>
@@ -1185,13 +1217,21 @@
           <button class="env-tab active" data-env="local">
             <span class="icon">💻</span> Local Dev
           </button>
-          <button class="env-tab" data-env="k8s"><span class="icon">☸️</span> Kubernetes</button>
-          <button class="env-tab" data-env="aws"><span class="icon">λ</span> AWS Lambda</button>
-          <button class="env-tab" data-env="gcp"><span class="icon">☁️</span> GCP Cloud Run</button>
+          <button class="env-tab" data-env="k8s">
+            <span class="icon">☸️</span> Kubernetes
+          </button>
+          <button class="env-tab" data-env="aws">
+            <span class="icon">λ</span> AWS Lambda
+          </button>
+          <button class="env-tab" data-env="gcp">
+            <span class="icon">☁️</span> GCP Cloud Run
+          </button>
           <button class="env-tab" data-env="azure">
             <span class="icon">🔷</span> Azure Functions
           </button>
-          <button class="env-tab" data-env="ci"><span class="icon">🧪</span> CI / Tests</button>
+          <button class="env-tab" data-env="ci">
+            <span class="icon">🧪</span> CI / Tests
+          </button>
         </div>
 
         <!-- LOCAL -->
@@ -1222,8 +1262,8 @@
                 </div>
               </div>
               <div class="backend-verdict verdict-good">
-                Zero ops, WAL mode, file-based. The pragmatic default for everything. Use Pebble if
-                write-heavy.
+                Zero ops, WAL mode, file-based. The pragmatic default for
+                everything. Use Pebble if write-heavy.
               </div>
             </div>
           </div>
@@ -1253,8 +1293,9 @@
                 </div>
               </div>
               <div class="backend-verdict verdict-warn">
-                Better write throughput than SQLite. But snapshots and checkpoints are not yet
-                implemented — you'd need to use SQLite for those.
+                Better write throughput than SQLite. But snapshots and
+                checkpoints are not yet implemented — you'd need to use SQLite
+                for those.
               </div>
             </div>
           </div>
@@ -1265,7 +1306,9 @@
           <div class="backend-card open">
             <div class="backend-card-header">
               <h4>etcd — K8s' hidden superpower</h4>
-              <span class="recommendation rec-excellent">Excellent (KV only)</span>
+              <span class="recommendation rec-excellent"
+                >Excellent (KV only)</span
+              >
               <span class="chevron">▼</span>
             </div>
             <div class="backend-card-body">
@@ -1288,8 +1331,9 @@
                 </div>
               </div>
               <div class="backend-verdict verdict-good">
-                Already running in-cluster. Consistent, distributed, no extra infra. Use for
-                snapshots and checkpoints. <strong>Never for events</strong> — 8MB value limit, not
+                Already running in-cluster. Consistent, distributed, no extra
+                infra. Use for snapshots and checkpoints.
+                <strong>Never for events</strong> — 8MB value limit, not
                 designed for append-only logs.
               </div>
             </div>
@@ -1320,8 +1364,9 @@
                 </div>
               </div>
               <div class="backend-verdict verdict-good">
-                Use existing PG if available. Do NOT provision PG just for CQRS. If no PG exists,
-                use SQLite sidecar with PersistentVolume or managed cloud PG.
+                Use existing PG if available. Do NOT provision PG just for CQRS.
+                If no PG exists, use SQLite sidecar with PersistentVolume or
+                managed cloud PG.
               </div>
             </div>
           </div>
@@ -1355,15 +1400,18 @@
                 </div>
               </div>
               <div class="backend-verdict verdict-good">
-                PostgreSQL-compatible, serverless scaling. RDS Proxy for connection pooling. The
-                pragmatic choice for the append-only event log on AWS.
+                PostgreSQL-compatible, serverless scaling. RDS Proxy for
+                connection pooling. The pragmatic choice for the append-only
+                event log on AWS.
               </div>
             </div>
           </div>
           <div class="backend-card">
             <div class="backend-card-header">
               <h4>DynamoDB — snapshots, checkpoints, read models</h4>
-              <span class="recommendation rec-excellent">Excellent (non-event)</span>
+              <span class="recommendation rec-excellent"
+                >Excellent (non-event)</span
+              >
               <span class="chevron">▼</span>
             </div>
             <div class="backend-card-body">
@@ -1387,8 +1435,9 @@
               </div>
               <div class="backend-verdict verdict-warn">
                 Serverless-native, IAM auth, pay-per-request.
-                <strong>Do NOT use for event store</strong> — journal reads require full table scans
-                ($$$). Use Aurora PG for events, DynamoDB for everything else.
+                <strong>Do NOT use for event store</strong> — journal reads
+                require full table scans ($$$). Use Aurora PG for events,
+                DynamoDB for everything else.
               </div>
             </div>
           </div>
@@ -1422,15 +1471,17 @@
                 </div>
               </div>
               <div class="backend-verdict verdict-good">
-                Managed PostgreSQL with auto-scaling. Use for the event store and complex read
-                models.
+                Managed PostgreSQL with auto-scaling. Use for the event store
+                and complex read models.
               </div>
             </div>
           </div>
           <div class="backend-card">
             <div class="backend-card-header">
               <h4>Firestore — snapshots, checkpoints, read models</h4>
-              <span class="recommendation rec-excellent">Excellent (non-event)</span>
+              <span class="recommendation rec-excellent"
+                >Excellent (non-event)</span
+              >
               <span class="chevron">▼</span>
             </div>
             <div class="backend-card-body">
@@ -1453,8 +1504,9 @@
                 </div>
               </div>
               <div class="backend-verdict verdict-warn">
-                Native querying, auto-scaling. <strong>Do NOT use for event store</strong> — no
-                cross-document ordering guarantee. Use Cloud SQL for events, Firestore for
+                Native querying, auto-scaling.
+                <strong>Do NOT use for event store</strong> — no cross-document
+                ordering guarantee. Use Cloud SQL for events, Firestore for
                 everything else.
               </div>
             </div>
@@ -1489,16 +1541,18 @@
                 </div>
               </div>
               <div class="backend-verdict verdict-good">
-                Azure SQL or PostgreSQL on Azure are the safest choices for the append-only event
-                log. Cosmos can work for small stores but lacks the robustness of SQL for
-                high-volume append.
+                Azure SQL or PostgreSQL on Azure are the safest choices for the
+                append-only event log. Cosmos can work for small stores but
+                lacks the robustness of SQL for high-volume append.
               </div>
             </div>
           </div>
           <div class="backend-card">
             <div class="backend-card-header">
               <h4>Cosmos DB — snapshots, checkpoints, read models</h4>
-              <span class="recommendation rec-excellent">Excellent (non-event)</span>
+              <span class="recommendation rec-excellent"
+                >Excellent (non-event)</span
+              >
               <span class="chevron">▼</span>
             </div>
             <div class="backend-card-body">
@@ -1522,7 +1576,8 @@
               </div>
               <div class="backend-verdict verdict-warn">
                 Point reads are cheap and fast. SQL API for flexible queries.
-                <strong>Avoid for event store at scale</strong> — use Azure SQL instead.
+                <strong>Avoid for event store at scale</strong> — use Azure SQL
+                instead.
               </div>
             </div>
           </div>
@@ -1557,7 +1612,8 @@
               </div>
               <div class="backend-verdict verdict-good">
                 Fast, ephemeral, no cleanup. Each test gets a fresh
-                <code>memory.NewMemoryStore()</code>. No file I/O, no network calls.
+                <code>memory.NewMemoryStore()</code>. No file I/O, no network
+                calls.
               </div>
             </div>
           </div>
@@ -1733,19 +1789,23 @@
             </p>
             <ol>
               <li>
-                <strong>No native ordering:</strong> <code>Journal.ReadAll()</code> requires a full
-                table scan (<code>Scan</code> operation) or a GSI scan. At scale, this is
-                prohibitively expensive.
+                <strong>No native ordering:</strong>
+                <code>Journal.ReadAll()</code> requires a full table scan (<code
+                  >Scan</code
+                >
+                operation) or a GSI scan. At scale, this is prohibitively
+                expensive.
               </li>
               <li>
-                <strong>No cross-partition ordering:</strong> Events for different aggregates are in
-                different partitions. Time-ordering across all aggregates cannot be guaranteed
-                without application-level sorting.
+                <strong>No cross-partition ordering:</strong> Events for
+                different aggregates are in different partitions. Time-ordering
+                across all aggregates cannot be guaranteed without
+                application-level sorting.
               </li>
             </ol>
             <div class="limitation-verdict">
-              Use DynamoDB for snapshots, checkpoints, and read models. Use Aurora Serverless
-              PostgreSQL for the event store on AWS.
+              Use DynamoDB for snapshots, checkpoints, and read models. Use
+              Aurora Serverless PostgreSQL for the event store on AWS.
             </div>
           </div>
         </div>
@@ -1757,13 +1817,14 @@
           </div>
           <div class="limitation-body">
             <p>
-              Firestore has no guaranteed ordering across document collections. Event journal reads
-              would require querying all documents and sorting in-memory. Document size limits (1MB)
-              also constrain large event batches.
+              Firestore has no guaranteed ordering across document collections.
+              Event journal reads would require querying all documents and
+              sorting in-memory. Document size limits (1MB) also constrain large
+              event batches.
             </p>
             <div class="limitation-verdict">
-              Same as DynamoDB — use for snapshots/checkpoints/read models, use Cloud SQL (PG) for
-              event store.
+              Same as DynamoDB — use for snapshots/checkpoints/read models, use
+              Cloud SQL (PG) for event store.
             </div>
           </div>
         </div>
@@ -1775,10 +1836,10 @@
           </div>
           <div class="limitation-body">
             <p>
-              etcd has a hard 8MB value size limit and a soft 1.5MB recommended limit. It is
-              optimized for configuration, coordination, and small KV — not for unbounded
-              append-only logs. The etcd WAL is an internal implementation detail, not a
-              consumer-facing storage API.
+              etcd has a hard 8MB value size limit and a soft 1.5MB recommended
+              limit. It is optimized for configuration, coordination, and small
+              KV — not for unbounded append-only logs. The etcd WAL is an
+              internal implementation detail, not a consumer-facing storage API.
             </p>
             <div class="limitation-verdict">
               Use etcd for checkpoints and snapshots only. Never for events.
@@ -1793,14 +1854,15 @@
           </div>
           <div class="limitation-body">
             <p>
-              Redis is an in-memory data structure store. Without AOF + RDB persistence configured,
-              data is lost on restart. Even with persistence, Redis is not designed for the
-              consistency guarantees required by event sourcing (optimistic concurrency, strict
+              Redis is an in-memory data structure store. Without AOF + RDB
+              persistence configured, data is lost on restart. Even with
+              persistence, Redis is not designed for the consistency guarantees
+              required by event sourcing (optimistic concurrency, strict
               ordering).
             </p>
             <div class="limitation-verdict">
-              Use Redis as a read-model cache or bus only. Never as the source of truth for events
-              or checkpoints.
+              Use Redis as a read-model cache or bus only. Never as the source
+              of truth for events or checkpoints.
             </div>
           </div>
         </div>
@@ -1812,13 +1874,15 @@
           </div>
           <div class="limitation-body">
             <p>
-              Both are embedded, single-writer databases. Running them in Kubernetes requires a
-              <code>ReadWriteOnce</code> PersistentVolume, which ties the pod to a specific node.
-              This prevents horizontal scaling and creates a single point of failure.
+              Both are embedded, single-writer databases. Running them in
+              Kubernetes requires a
+              <code>ReadWriteOnce</code> PersistentVolume, which ties the pod to
+              a specific node. This prevents horizontal scaling and creates a
+              single point of failure.
             </p>
             <div class="limitation-verdict">
-              Pebble and SQLite are excellent for local dev and sidecar patterns. Use PostgreSQL or
-              etcd for shared storage in K8s.
+              Pebble and SQLite are excellent for local dev and sidecar
+              patterns. Use PostgreSQL or etcd for shared storage in K8s.
             </div>
           </div>
         </div>
@@ -1912,8 +1976,12 @@
         </div>
 
         <div style="margin-top: 20px">
-          <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6">
-            <strong style="color: var(--text)">Missing implementations (opportunities):</strong>
+          <p
+            style="color: var(--text-muted); font-size: 14px; line-height: 1.6"
+          >
+            <strong style="color: var(--text)"
+              >Missing implementations (opportunities):</strong
+            >
           </p>
           <ul
             style="
@@ -1924,9 +1992,13 @@
               margin-top: 8px;
             "
           >
-            <li><code>pebble.SnapshotStore</code> — trivial to add (single key per aggregate)</li>
             <li>
-              <code>pebble.CheckpointStore</code> — trivial to add (single key per projection)
+              <code>pebble.SnapshotStore</code> — trivial to add (single key per
+              aggregate)
+            </li>
+            <li>
+              <code>pebble.CheckpointStore</code> — trivial to add (single key
+              per projection)
             </li>
             <li>
               <code>command.Store</code> implementations —
@@ -1937,10 +2009,13 @@
               (<code>example/todo/storage/</code>)
             </li>
             <li>
-              <code>storage.AggregateProjection</code> — hardcoded <code>?</code> placeholders; not
-              dialect-aware
+              <code>storage.AggregateProjection</code> — hardcoded
+              <code>?</code> placeholders; not dialect-aware
             </li>
-            <li>Persistent bus implementations (NATS, Redis, SQS, Pub/Sub adapters)</li>
+            <li>
+              Persistent bus implementations (NATS, Redis, SQS, Pub/Sub
+              adapters)
+            </li>
           </ul>
         </div>
       </section>
@@ -1958,10 +2033,11 @@
           <div class="tree-node">
             <div class="tree-question">KUBERNETES_SERVICE_HOST set?</div>
             <div class="tree-answer">
-              <span class="arrow">→</span> Yes — Already have PostgreSQL in-cluster or managed?<br />
-              &nbsp;&nbsp;<span class="arrow">→</span> Yes — Event Store <code>→ PG</code> |
-              Snapshot <code>→ etcd</code> | Checkpoint <code>→ etcd</code> | Read Model
-              <code>→ PG</code><br />
+              <span class="arrow">→</span> Yes — Already have PostgreSQL
+              in-cluster or managed?<br />
+              &nbsp;&nbsp;<span class="arrow">→</span> Yes — Event Store
+              <code>→ PG</code> | Snapshot <code>→ etcd</code> | Checkpoint
+              <code>→ etcd</code> | Read Model <code>→ PG</code><br />
               &nbsp;&nbsp;<span class="arrow">→</span> No — Event Store
               <code>→ SQLite (sidecar with PV)</code> or provision PG | Snapshot
               <code>→ etcd</code> | Checkpoint <code>→ etcd</code>
@@ -1970,38 +2046,46 @@
           <div class="tree-node">
             <div class="tree-question">AWS_LAMBDA_FUNCTION_NAME set?</div>
             <div class="tree-answer">
-              <span class="arrow">→</span> Event Store <code>→ Aurora Serverless PG</code> |
-              Snapshot <code>→ DynamoDB</code> | Checkpoint <code>→ DynamoDB</code> | Read Model
+              <span class="arrow">→</span> Event Store
+              <code>→ Aurora Serverless PG</code> | Snapshot
+              <code>→ DynamoDB</code> | Checkpoint <code>→ DynamoDB</code> |
+              Read Model
               <code>→ DynamoDB</code>
             </div>
           </div>
           <div class="tree-node">
             <div class="tree-question">K_SERVICE set (GCP)?</div>
             <div class="tree-answer">
-              <span class="arrow">→</span> Event Store <code>→ Cloud SQL (PG)</code> | Snapshot
-              <code>→ Firestore</code> | Checkpoint <code>→ Firestore</code> | Read Model
+              <span class="arrow">→</span> Event Store
+              <code>→ Cloud SQL (PG)</code> | Snapshot
+              <code>→ Firestore</code> | Checkpoint <code>→ Firestore</code> |
+              Read Model
               <code>→ Firestore</code>
             </div>
           </div>
           <div class="tree-node">
-            <div class="tree-question">FUNCTIONS_WORKER_RUNTIME set (Azure)?</div>
+            <div class="tree-question">
+              FUNCTIONS_WORKER_RUNTIME set (Azure)?
+            </div>
             <div class="tree-answer">
               <span class="arrow">→</span> Event Store
-              <code>→ Azure SQL or PostgreSQL on Azure</code> | Snapshot <code>→ Cosmos DB</code> |
-              Checkpoint <code>→ Cosmos DB</code> | Read Model <code>→ Cosmos DB</code>
+              <code>→ Azure SQL or PostgreSQL on Azure</code> | Snapshot
+              <code>→ Cosmos DB</code> | Checkpoint <code>→ Cosmos DB</code> |
+              Read Model <code>→ Cosmos DB</code>
             </div>
           </div>
           <div class="tree-node">
             <div class="tree-question">GITHUB_ACTIONS=true or CI=true?</div>
             <div class="tree-answer">
-              <span class="arrow">→</span> Everything <code>→ memory</code> (fast, ephemeral, no
-              cleanup)
+              <span class="arrow">→</span> Everything
+              <code>→ memory</code> (fast, ephemeral, no cleanup)
             </div>
           </div>
           <div class="tree-node leaf">
             <div class="tree-question">None of the above (local dev)</div>
             <div class="tree-answer">
-              <span class="arrow">→</span> Everything <code>→ SQLite (default)</code> or
+              <span class="arrow">→</span> Everything
+              <code>→ SQLite (default)</code> or
               <code>Pebble (write-heavy)</code>
             </div>
           </div>
@@ -2019,56 +2103,56 @@
             <div class="takeaway-num">01</div>
             <h4>etcd is Kubernetes' hidden superpower</h4>
             <p>
-              Already running, consistent, distributed. Use it for snapshots and checkpoints. Never
-              for events.
+              Already running, consistent, distributed. Use it for snapshots and
+              checkpoints. Never for events.
             </p>
           </div>
           <div class="takeaway-card">
             <div class="takeaway-num">02</div>
             <h4>Serverless databases are poor event stores</h4>
             <p>
-              DynamoDB, Firestore, Cosmos DB excel at everything else. Always pair with SQL for the
-              event log.
+              DynamoDB, Firestore, Cosmos DB excel at everything else. Always
+              pair with SQL for the event log.
             </p>
           </div>
           <div class="takeaway-card">
             <div class="takeaway-num">03</div>
             <h4>Command store has zero implementations</h4>
             <p>
-              The <code>command.Store</code> interface exists but no backend implements it. This is
-              a real gap.
+              The <code>command.Store</code> interface exists but no backend
+              implements it. This is a real gap.
             </p>
           </div>
           <div class="takeaway-card">
             <div class="takeaway-num">04</div>
             <h4>Read model store has no formal module</h4>
             <p>
-              Every consumer reinvents it. A <code>readmodel/</code> module would be the
-              highest-impact addition.
+              Every consumer reinvents it. A <code>readmodel/</code> module
+              would be the highest-impact addition.
             </p>
           </div>
           <div class="takeaway-card">
             <div class="takeaway-num">05</div>
             <h4>Pebble is incomplete</h4>
             <p>
-              Only event store is implemented. Snapshots and checkpoints are trivial to add and
-              would make Pebble a complete embedded solution.
+              Only event store is implemented. Snapshots and checkpoints are
+              trivial to add and would make Pebble a complete embedded solution.
             </p>
           </div>
           <div class="takeaway-card">
             <div class="takeaway-num">06</div>
             <h4>Aggregate listing on non-SQL needs read model</h4>
             <p>
-              Derived query approach doesn't translate to DynamoDB/Firestore efficiently. Maintain a
-              separate aggregate index.
+              Derived query approach doesn't translate to DynamoDB/Firestore
+              efficiently. Maintain a separate aggregate index.
             </p>
           </div>
           <div class="takeaway-card">
             <div class="takeaway-num">07</div>
             <h4>No persistent bus exists</h4>
             <p>
-              <code>memory.MemoryBus</code> is single-process only. NATS, Redis, SQS, Pub/Sub
-              adapters would unlock multi-node deployments.
+              <code>memory.MemoryBus</code> is single-process only. NATS, Redis,
+              SQS, Pub/Sub adapters would unlock multi-node deployments.
             </p>
           </div>
         </div>
@@ -2083,10 +2167,16 @@
       // Tab switching
       document.querySelectorAll(".env-tab").forEach((tab) => {
         tab.addEventListener("click", () => {
-          document.querySelectorAll(".env-tab").forEach((t) => t.classList.remove("active"));
-          document.querySelectorAll(".env-panel").forEach((p) => p.classList.remove("active"));
+          document
+            .querySelectorAll(".env-tab")
+            .forEach((t) => t.classList.remove("active"));
+          document
+            .querySelectorAll(".env-panel")
+            .forEach((p) => p.classList.remove("active"));
           tab.classList.add("active");
-          document.getElementById("panel-" + tab.dataset.env).classList.add("active");
+          document
+            .getElementById("panel-" + tab.dataset.env)
+            .classList.add("active");
         });
       });
 

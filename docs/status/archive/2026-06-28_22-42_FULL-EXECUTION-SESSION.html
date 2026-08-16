@@ -30,14 +30,14 @@
         --warning: var(--color-yellow);
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -424,9 +424,10 @@
           <div class="hero-badge">STATUS &middot; 2026-06-28</div>
           <h1>Full Execution Session Report</h1>
           <p class="hero-subtitle">
-            Comprehensive status after a full TODO-list execution session: 35 of 65 tasks completed
-            across CI fixes, graph tier hardening, a new Deriver module, test coverage expansion,
-            and documentation cleanup. Build, vet, check-layers, and check-arch all green.
+            Comprehensive status after a full TODO-list execution session: 35 of
+            65 tasks completed across CI fixes, graph tier hardening, a new
+            Deriver module, test coverage expansion, and documentation cleanup.
+            Build, vet, check-layers, and check-arch all green.
           </p>
         </div>
 
@@ -471,9 +472,9 @@
         <div class="callout callout-solution">
           <strong>Build and Tests: ALL GREEN</strong>
           <code>go build ./...</code> passes. <code>go vet ./...</code> passes.
-          <code>nix run .#check-layers</code> passes. <code>nix run .#check-arch</code> passes. All
-          graph (50), deriver (8), storage, and integration test suites pass with
-          <code>-race</code>.
+          <code>nix run .#check-layers</code> passes.
+          <code>nix run .#check-arch</code> passes. All graph (50), deriver (8),
+          storage, and integration test suites pass with <code>-race</code>.
         </div>
 
         <h2 id="done"><span class="num">a)</span>FULLY DONE</h2>
@@ -482,9 +483,10 @@
         <div class="card card-solution">
           <h4>DEP_BUDGET[transport/http] bumped from 2 to 3</h4>
           <p>
-            Commit d19c1ead. The OTel instrumentation added otel/v3 as a direct dependency, raising
-            transport/http production dep count above budget. The check-layers gate was FAILING.
-            Fixed by bumping the budget to 3. Also committed the gofumpt formatting change in
+            Commit d19c1ead. The OTel instrumentation added otel/v3 as a direct
+            dependency, raising transport/http production dep count above
+            budget. The check-layers gate was FAILING. Fixed by bumping the
+            budget to 3. Also committed the gofumpt formatting change in
             transport/http/sse.go left behind by a concurrent OTel session.
           </p>
         </div>
@@ -493,10 +495,12 @@
         <div class="card card-solution">
           <h4>Graph schema field deleted, ADR-0039 updated with rationale</h4>
           <p>
-            Commit 275c16e8. The Required bool field existed but was never enforced by schemaSink -
-            it promised validation that never ran. Removing it is consistent with ADR-0039 minimal
-            constraint grammar: MERGE partial-update semantics make sink-level enforcement break
-            correct usage. ADR-0039 now documents the removal rationale under Consequences.
+            Commit 275c16e8. The Required bool field existed but was never
+            enforced by schemaSink - it promised validation that never ran.
+            Removing it is consistent with ADR-0039 minimal constraint grammar:
+            MERGE partial-update semantics make sink-level enforcement break
+            correct usage. ADR-0039 now documents the removal rationale under
+            Consequences.
           </p>
         </div>
 
@@ -504,9 +508,10 @@
         <div class="card card-solution">
           <h4>IndexSpec type + validation (4 tests)</h4>
           <p>
-            Commit 4b2e350a. Schema now has an Indexes field mirroring storage.ViewMapper.Indexes.
-            The MemoryDriver ignores indexes (in-memory lookups are already O(1)), but a future
-            Neo4j driver uses them to CREATE INDEX at startup. Validate() checks that index labels
+            Commit 4b2e350a. Schema now has an Indexes field mirroring
+            storage.ViewMapper.Indexes. The MemoryDriver ignores indexes
+            (in-memory lookups are already O(1)), but a future Neo4j driver uses
+            them to CREATE INDEX at startup. Validate() checks that index labels
             and properties are declared in the schema.
           </p>
         </div>
@@ -515,9 +520,10 @@
         <div class="card card-solution">
           <h4>4 contract tests via ReadableFactory in graphtest</h4>
           <p>
-            Commit 4b2e350a. graphtest.Config now has a ReadableFactory hook. When set, 4 contract
-            tests run (Query, Traverse, Neighbors, ShortestPath). Split into read_contract.go to
-            stay under 350 lines. The MemoryDriver passes all 4 via SeedReadGraph.
+            Commit 4b2e350a. graphtest.Config now has a ReadableFactory hook.
+            When set, 4 contract tests run (Query, Traverse, Neighbors,
+            ShortestPath). Split into read_contract.go to stay under 350 lines.
+            The MemoryDriver passes all 4 via SeedReadGraph.
           </p>
         </div>
 
@@ -525,34 +531,42 @@
         <div class="card card-solution">
           <h4>4 rapid test suites - 400 iterations total</h4>
           <p>
-            Commit 70f3f11a. graph/rapid_test.go (265 LOC) - Traverse (no duplicates, start node
-            excluded), ShortestPath (valid connected path, bidirectional), Query (label filter
-            correctness, no cross-contamination), Neighbors (completeness). All pass 100 iterations
-            each with -race.
+            Commit 70f3f11a. graph/rapid_test.go (265 LOC) - Traverse (no
+            duplicates, start node excluded), ShortestPath (valid connected
+            path, bidirectional), Query (label filter correctness, no
+            cross-contamination), Neighbors (completeness). All pass 100
+            iterations each with -race.
           </p>
         </div>
 
-        <h3>A6. NEW MODULE: deriver/ - Event to Command Derivation (ADR-0040)</h3>
+        <h3>
+          A6. NEW MODULE: deriver/ - Event to Command Derivation (ADR-0040)
+        </h3>
         <div class="card card-solution">
           <h4>Functional/composable Deriver API - 8 tests, 390 LOC</h4>
           <p>
-            Commit ddc7c374. The deriver module transforms events into derived commands with
-            deterministic, composable semantics. Deriver type is a function. Deriver.Then(next) is
-            fan-out composition. Deriver.Filter(types) is event-type gating.
-            Deriver.AsHandler(dispatcher) wires into event.Bus via SubscribeAll. Noop() is a
-            terminal deriver. ADR-0040 updated from Proposed to Accepted - implemented. Design
-            rationale: functional API over declarative rule registry because go-cqrs-lite is a
-            library, not a database engine.
+            Commit ddc7c374. The deriver module transforms events into derived
+            commands with deterministic, composable semantics. Deriver type is a
+            function. Deriver.Then(next) is fan-out composition.
+            Deriver.Filter(types) is event-type gating.
+            Deriver.AsHandler(dispatcher) wires into event.Bus via SubscribeAll.
+            Noop() is a terminal deriver. ADR-0040 updated from Proposed to
+            Accepted - implemented. Design rationale: functional API over
+            declarative rule registry because go-cqrs-lite is a library, not a
+            database engine.
           </p>
         </div>
 
         <h3>A7. Graph Projection Integration Test</h3>
         <div class="card card-solution">
-          <h4>First integration test: graph tier through Bundle.RunProjections</h4>
+          <h4>
+            First integration test: graph tier through Bundle.RunProjections
+          </h4>
           <p>
-            Commit d6d5fe7a. integration/graph_projection_test.go seeds user.created and
-            user.followed events, runs RunProjections with a GraphProjection, verifies the graph is
-            materialized via the ReadableDriver API. Adds graph, stack, projection, and watermill
+            Commit d6d5fe7a. integration/graph_projection_test.go seeds
+            user.created and user.followed events, runs RunProjections with a
+            GraphProjection, verifies the graph is materialized via the
+            ReadableDriver API. Adds graph, stack, projection, and watermill
             deps to integration module.
           </p>
         </div>
@@ -561,9 +575,10 @@
         <div class="card card-solution">
           <h4>2 tests showing the JOIN-replacement pattern</h4>
           <p>
-            Commit 17be571d. storage/relational_denorm_test.go demonstrates querying messages by
-            channel_id, author_id, guild_id, compound conditions, and ORDER BY + pagination - all on
-            denormalized FK columns, no JOINs. This is the pattern DiscordSync should adopt.
+            Commit 17be571d. storage/relational_denorm_test.go demonstrates
+            querying messages by channel_id, author_id, guild_id, compound
+            conditions, and ORDER BY + pagination - all on denormalized FK
+            columns, no JOINs. This is the pattern DiscordSync should adopt.
           </p>
         </div>
 
@@ -571,28 +586,33 @@
         <div class="card card-solution">
           <h4>Build-tagged PG test with SERIAL syntax adaptation</h4>
           <p>
-            Commit fbcd0197. storage/relational_pg_test.go (build tag: postgres_integration)
-            exercises the relational projection and store against PostgreSQL. Adapts INTEGER PRIMARY
-            KEY AUTOINCREMENT to SERIAL PRIMARY KEY. Skips cleanly when POSTGRES_TEST_DSN is unset.
+            Commit fbcd0197. storage/relational_pg_test.go (build tag:
+            postgres_integration) exercises the relational projection and store
+            against PostgreSQL. Adapts INTEGER PRIMARY KEY AUTOINCREMENT to
+            SERIAL PRIMARY KEY. Skips cleanly when POSTGRES_TEST_DSN is unset.
           </p>
         </div>
 
         <h3>A10. Documentation Cleanup</h3>
         <div class="card card-solution">
-          <h4>10 research docs stamped, docs cross-linked, CONTRIBUTING updated</h4>
+          <h4>
+            10 research docs stamped, docs cross-linked, CONTRIBUTING updated
+          </h4>
           <ul>
-            <li>Commit 1b1b339a: 8 docs marked RESOLVED/IMPLEMENTED, 2 marked OPEN</li>
             <li>
-              Commit 275c16e8: AGENTS.md module count 45 to 48, ADR-0039 cross-linked from
-              projection-tiers.md
+              Commit 1b1b339a: 8 docs marked RESOLVED/IMPLEMENTED, 2 marked OPEN
             </li>
             <li>
-              Commit 066b09f1: CONTRIBUTING.md updated (30 to 48 modules, 250 to 350 line limit),
-              session discipline section
+              Commit 275c16e8: AGENTS.md module count 45 to 48, ADR-0039
+              cross-linked from projection-tiers.md
             </li>
             <li>
-              Commit 066b09f1: Concurrent-session corruption investigation doc + durability profiles
-              design
+              Commit 066b09f1: CONTRIBUTING.md updated (30 to 48 modules, 250 to
+              350 line limit), session discipline section
+            </li>
+            <li>
+              Commit 066b09f1: Concurrent-session corruption investigation doc +
+              durability profiles design
             </li>
           </ul>
         </div>
@@ -601,9 +621,10 @@
         <div class="card card-solution">
           <h4>Scope detection: skip lint for doc-only commits</h4>
           <p>
-            The pre-commit hook now checks whether staged files are all docs (.md, .html, .d2, .svg,
-            .txt, .yaml). If so, it prints skipping lint and exits 0 immediately. Validated in
-            production - subsequent doc-only commits skip the 23s golangci-lint pass.
+            The pre-commit hook now checks whether staged files are all docs
+            (.md, .html, .d2, .svg, .txt, .yaml). If so, it prints skipping lint
+            and exits 0 immediately. Validated in production - subsequent
+            doc-only commits skip the 23s golangci-lint pass.
           </p>
         </div>
 
@@ -611,59 +632,70 @@
         <div class="card card-solution">
           <h4>Missing stdouttrace dep in otel module</h4>
           <p>
-            Commit 17be571d. The otel module setup.go imported stdouttrace but the dependency was
-            never added to go.mod. This was blocking workspace-level builds. Fixed by go get.
+            Commit 17be571d. The otel module setup.go imported stdouttrace but
+            the dependency was never added to go.mod. This was blocking
+            workspace-level builds. Fixed by go get.
           </p>
         </div>
 
         <h2 id="partial"><span class="num">b)</span>PARTIALLY DONE</h2>
 
         <div class="card card-warning">
-          <h4>B1. DiscordSync Migration (original trigger for relational tier)</h4>
+          <h4>
+            B1. DiscordSync Migration (original trigger for relational tier)
+          </h4>
           <p>
-            The capability (storage.RelationalProjection) exists and is tested. Denormalization
-            examples (A8) show the pattern. But the actual migration of DiscordSync
-            internal/projection/ + internal/db/query.go has NOT been started. Blocked: DiscordSync
-            lives in a separate repo not accessible from this workspace.
+            The capability (storage.RelationalProjection) exists and is tested.
+            Denormalization examples (A8) show the pattern. But the actual
+            migration of DiscordSync internal/projection/ + internal/db/query.go
+            has NOT been started. Blocked: DiscordSync lives in a separate repo
+            not accessible from this workspace.
           </p>
         </div>
 
         <div class="card card-warning">
-          <h4>B2. PostgreSQL Relational Tier - Scaffolded but Untested Against Live PG</h4>
+          <h4>
+            B2. PostgreSQL Relational Tier - Scaffolded but Untested Against
+            Live PG
+          </h4>
           <p>
-            The test scaffold exists (A9) with correct dialect adaptation. But without a running
-            PostgreSQL instance (POSTGRES_TEST_DSN unset), the actual PG path is unproven. The
-            dialect abstraction should work, but edge cases (SERIAL vs AUTOINCREMENT, type coercion)
-            remain untested.
+            The test scaffold exists (A9) with correct dialect adaptation. But
+            without a running PostgreSQL instance (POSTGRES_TEST_DSN unset), the
+            actual PG path is unproven. The dialect abstraction should work, but
+            edge cases (SERIAL vs AUTOINCREMENT, type coercion) remain untested.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>B3. Graph Neo4j/Memgraph Driver</h4>
           <p>
-            GraphSink/GraphDriver abstraction is complete and validated by contract suite + Schema.
-            A concrete Neo4j/Cypher driver does NOT exist - deliberately deferred to consumer-pull
-            per ADR-0038. Schema.Indexes (A3) is ready for when it does.
+            GraphSink/GraphDriver abstraction is complete and validated by
+            contract suite + Schema. A concrete Neo4j/Cypher driver does NOT
+            exist - deliberately deferred to consumer-pull per ADR-0038.
+            Schema.Indexes (A3) is ready for when it does.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>B4. Uncommitted Changes from Concurrent Sessions</h4>
           <p>
-            11 files in the working tree have uncommitted changes from concurrent OTel/watermill
-            sessions. These are NOT my changes. Files include: .gitignore, FEATURES.md,
-            otel/setup.go, transport/grpc/*.go, watermill/catchup_subscriber.go, and
-            integration/graph_projection_test.go. I did not touch them per safety rules.
+            11 files in the working tree have uncommitted changes from
+            concurrent OTel/watermill sessions. These are NOT my changes. Files
+            include: .gitignore, FEATURES.md, otel/setup.go,
+            transport/grpc/*.go, watermill/catchup_subscriber.go, and
+            integration/graph_projection_test.go. I did not touch them per
+            safety rules.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>B5. Deriver - Idempotency Not Yet Wired</h4>
           <p>
-            The Deriver module ships with the core API and composition combinators. ADR-0040 calls
-            for idempotency via command causation metadata, but the actual WithCommandID
-            deterministic-key derivation from source event IDs is not yet implemented. Derived
-            commands currently get fresh random IDs.
+            The Deriver module ships with the core API and composition
+            combinators. ADR-0040 calls for idempotency via command causation
+            metadata, but the actual WithCommandID deterministic-key derivation
+            from source event IDs is not yet implemented. Derived commands
+            currently get fresh random IDs.
           </p>
         </div>
 
@@ -763,23 +795,30 @@
         <h2 id="fucked"><span class="num">d)</span>TOTALLY FUCKED UP</h2>
 
         <p>
-          Honest answer: <strong>nothing is critically broken.</strong> All tests pass, the build is
-          clean, and no data-loss paths exist. But there are real issues:
+          Honest answer: <strong>nothing is critically broken.</strong> All
+          tests pass, the build is clean, and no data-loss paths exist. But
+          there are real issues:
         </p>
 
         <div class="issue issue-critical">
           <span class="severity severity-critical">Ongoing</span>
-          <h3>D1. Concurrent Sessions Still Committing to master Without Coordination</h3>
-          <div class="where">Working tree - 11 files modified by other sessions</div>
+          <h3>
+            D1. Concurrent Sessions Still Committing to master Without
+            Coordination
+          </h3>
+          <div class="where">
+            Working tree - 11 files modified by other sessions
+          </div>
           <p>
-            During this session, at least 2 other concurrent sessions committed to master (ec1e7e77,
-            e32671e3). This caused 11 files to appear modified in my working tree that I did not
-            author. Previous sessions corrupted Go source files with patch syntax. Root cause
-            documented in docs/research/2026-06-28_CONCURRENT_SESSION_CORRUPTION.md.
+            During this session, at least 2 other concurrent sessions committed
+            to master (ec1e7e77, e32671e3). This caused 11 files to appear
+            modified in my working tree that I did not author. Previous sessions
+            corrupted Go source files with patch syntax. Root cause documented
+            in docs/research/2026-06-28_CONCURRENT_SESSION_CORRUPTION.md.
           </p>
           <div class="callout callout-warning">
-            <strong>Impact:</strong> Race conditions on the working tree. Every session must
-            investigate unauthored changes before committing.
+            <strong>Impact:</strong> Race conditions on the working tree. Every
+            session must investigate unauthored changes before committing.
           </div>
         </div>
 
@@ -788,9 +827,9 @@
           <h3>D2. transport/grpc Still Not in go.work</h3>
           <div class="where">go.work - missing ./transport/grpc entry</div>
           <p>
-            Blocked upstream: cockroachdb/errors#79. The monolithic genproto conflicts with grpc-go
-            split version. Tests run with GOWORK=off. This is documented in TODO_LIST.md and has
-            been blocked for weeks.
+            Blocked upstream: cockroachdb/errors#79. The monolithic genproto
+            conflicts with grpc-go split version. Tests run with GOWORK=off.
+            This is documented in TODO_LIST.md and has been blocked for weeks.
           </p>
         </div>
 
@@ -799,47 +838,53 @@
         <div class="card card-warning">
           <h4>1. Deriver idempotency is the critical missing piece</h4>
           <p>
-            The Deriver module produces commands with fresh random IDs. For at-least-once delivery
-            to be safe, derived commands need deterministic IDs from the source event causation
-            chain. This is the difference between useful pattern and production-ready.
+            The Deriver module produces commands with fresh random IDs. For
+            at-least-once delivery to be safe, derived commands need
+            deterministic IDs from the source event causation chain. This is the
+            difference between useful pattern and production-ready.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>2. God-package splits should happen before v3.4.0</h4>
           <p>
-            storage/ (38 files) and event/ (30 files) are the two largest packages. Every new
-            feature adds to them. Splitting now is cheaper than splitting later - but it is a
-            breaking change that needs careful migration.
+            storage/ (38 files) and event/ (30 files) are the two largest
+            packages. Every new feature adds to them. Splitting now is cheaper
+            than splitting later - but it is a breaking change that needs
+            careful migration.
           </p>
         </div>
 
         <div class="card">
           <h4>3. Run the PostgreSQL integration tests in CI</h4>
           <p>
-            The scaffold exists (A9). A CI job with a PostgreSQL service container would catch
-            dialect bugs before they ship. Currently PG path is entirely untested.
+            The scaffold exists (A9). A CI job with a PostgreSQL service
+            container would catch dialect bugs before they ship. Currently PG
+            path is entirely untested.
           </p>
         </div>
 
         <div class="card">
           <h4>4. deriver/ needs to be in check-module-layers.sh</h4>
           <p>
-            The new module is in go.work but the layer-check script may not have an entry for it.
-            Need to add LAYER[deriver]=3 and DEP_BUDGET[deriver]=2.
+            The new module is in go.work but the layer-check script may not have
+            an entry for it. Need to add LAYER[deriver]=3 and
+            DEP_BUDGET[deriver]=2.
           </p>
         </div>
 
         <div class="card">
           <h4>5. Commit or discard the 11 uncommitted files</h4>
           <p>
-            The concurrent-session changes in the working tree need resolution. Either the
-            concurrent sessions should commit them, or they should be reviewed and committed or
-            discarded.
+            The concurrent-session changes in the working tree need resolution.
+            Either the concurrent sessions should commit them, or they should be
+            reviewed and committed or discarded.
           </p>
         </div>
 
-        <h2 id="top25"><span class="num">f)</span>Top 25 Things to Get Done Next</h2>
+        <h2 id="top25">
+          <span class="num">f)</span>Top 25 Things to Get Done Next
+        </h2>
 
         <h3>Tier 1: Critical (correctness, blocking, or highest leverage)</h3>
         <table>
@@ -855,8 +900,8 @@
             <tr>
               <td>1</td>
               <td>
-                <strong>Wire Deriver idempotency</strong> - deterministic command IDs from source
-                event causation chain
+                <strong>Wire Deriver idempotency</strong> - deterministic
+                command IDs from source event causation chain
               </td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>30min</td>
@@ -864,8 +909,8 @@
             <tr>
               <td>2</td>
               <td>
-                <strong>Resolve 11 uncommitted files</strong> from concurrent sessions (review +
-                commit/discard)
+                <strong>Resolve 11 uncommitted files</strong> from concurrent
+                sessions (review + commit/discard)
               </td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>20min</td>
@@ -873,7 +918,8 @@
             <tr>
               <td>3</td>
               <td>
-                <strong>Add deriver/ to check-module-layers.sh</strong> - LAYER + DEP_BUDGET entries
+                <strong>Add deriver/ to check-module-layers.sh</strong> - LAYER
+                + DEP_BUDGET entries
               </td>
               <td><span class="badge badge-high">High</span></td>
               <td>10min</td>
@@ -881,8 +927,8 @@
             <tr>
               <td>4</td>
               <td>
-                <strong>DiscordSync migration</strong> - RelationalProjection + RelationalStore
-                (separate repo)
+                <strong>DiscordSync migration</strong> - RelationalProjection +
+                RelationalStore (separate repo)
               </td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>2-3h</td>
@@ -890,8 +936,8 @@
             <tr>
               <td>5</td>
               <td>
-                <strong>PG integration tests in CI</strong> - GitHub Actions service container +
-                POSTGRES_TEST_DSN
+                <strong>PG integration tests in CI</strong> - GitHub Actions
+                service container + POSTGRES_TEST_DSN
               </td>
               <td><span class="badge badge-high">High</span></td>
               <td>1h</td>
@@ -913,8 +959,8 @@
             <tr>
               <td>6</td>
               <td>
-                <strong>God-package split: storage/</strong> (38 files into relational/, view/,
-                migrations/, sql/)
+                <strong>God-package split: storage/</strong> (38 files into
+                relational/, view/, migrations/, sql/)
               </td>
               <td><span class="badge badge-high">High</span></td>
               <td>4h+</td>
@@ -922,8 +968,8 @@
             <tr>
               <td>7</td>
               <td>
-                <strong>God-package split: event/</strong> (30 files into immutable/, metadata/,
-                options/)
+                <strong>God-package split: event/</strong> (30 files into
+                immutable/, metadata/, options/)
               </td>
               <td><span class="badge badge-high">High</span></td>
               <td>3h+</td>
@@ -931,7 +977,8 @@
             <tr>
               <td>8</td>
               <td>
-                <strong>Neo4j/Cypher GraphDriver</strong> (graph/neo4j/) - first real graph backend
+                <strong>Neo4j/Cypher GraphDriver</strong> (graph/neo4j/) - first
+                real graph backend
               </td>
               <td><span class="badge badge-high">High</span></td>
               <td>3-4h</td>
@@ -939,30 +986,35 @@
             <tr>
               <td>9</td>
               <td>
-                <strong>Deriver example</strong> (example/deriver-demo/) - show event to command
-                derivation
+                <strong>Deriver example</strong> (example/deriver-demo/) - show
+                event to command derivation
               </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>30min</td>
             </tr>
             <tr>
               <td>10</td>
-              <td><strong>Versioned schema migrations</strong> (goose/atlas-style)</td>
+              <td>
+                <strong>Versioned schema migrations</strong> (goose/atlas-style)
+              </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>2h</td>
             </tr>
             <tr>
               <td>11</td>
               <td>
-                <strong>FTS5 full-text search</strong> for RelationalStore (DiscordSync
-                SearchMessages)
+                <strong>FTS5 full-text search</strong> for RelationalStore
+                (DiscordSync SearchMessages)
               </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>2h</td>
             </tr>
             <tr>
               <td>12</td>
-              <td><strong>Durability profiles</strong> implementation (Sync/BatchedSync/Async)</td>
+              <td>
+                <strong>Durability profiles</strong> implementation
+                (Sync/BatchedSync/Async)
+              </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>1.5h</td>
             </tr>
@@ -988,31 +1040,44 @@
           <tbody>
             <tr>
               <td>14</td>
-              <td><strong>NATS JetStream transport adapter</strong> (ADR-0025)</td>
+              <td>
+                <strong>NATS JetStream transport adapter</strong> (ADR-0025)
+              </td>
               <td><span class="badge badge-medium">Medium</span></td>
               <td>3h</td>
             </tr>
             <tr>
               <td>15</td>
-              <td><strong>projection.Runner</strong> standalone journal-replay pipeline</td>
+              <td>
+                <strong>projection.Runner</strong> standalone journal-replay
+                pipeline
+              </td>
               <td><span class="badge badge-low">Low</span></td>
               <td>2h</td>
             </tr>
             <tr>
               <td>16</td>
-              <td><strong>Documentation site</strong> (Docusaurus/MkDocs) - 48 modules</td>
+              <td>
+                <strong>Documentation site</strong> (Docusaurus/MkDocs) - 48
+                modules
+              </td>
               <td><span class="badge badge-low">Low</span></td>
               <td>4h+</td>
             </tr>
             <tr>
               <td>17</td>
-              <td><strong>Commit BuildFlow hook config</strong> to repo (or document install)</td>
+              <td>
+                <strong>Commit BuildFlow hook config</strong> to repo (or
+                document install)
+              </td>
               <td><span class="badge badge-low">Low</span></td>
               <td>15min</td>
             </tr>
             <tr>
               <td>18</td>
-              <td><strong>Hot-state cache</strong> for decider (profile first)</td>
+              <td>
+                <strong>Hot-state cache</strong> for decider (profile first)
+              </td>
               <td><span class="badge badge-low">Low</span></td>
               <td>Large</td>
             </tr>
@@ -1050,7 +1115,9 @@
             </tr>
             <tr>
               <td>22</td>
-              <td><strong>Scheduler module</strong> (deadlines/timeouts/cron)</td>
+              <td>
+                <strong>Scheduler module</strong> (deadlines/timeouts/cron)
+              </td>
               <td><span class="badge badge-low">Low</span></td>
               <td>Large</td>
             </tr>
@@ -1062,59 +1129,77 @@
             </tr>
             <tr>
               <td>24</td>
-              <td><strong>Graph read API on real driver backends</strong> (Neo4j Cypher)</td>
+              <td>
+                <strong>Graph read API on real driver backends</strong> (Neo4j
+                Cypher)
+              </td>
               <td><span class="badge badge-low">Low</span></td>
               <td>Large</td>
             </tr>
             <tr>
               <td>25</td>
-              <td><strong>Event-history visualization tools</strong> (research doc OPEN)</td>
+              <td>
+                <strong>Event-history visualization tools</strong> (research doc
+                OPEN)
+              </td>
               <td><span class="badge badge-low">Low</span></td>
               <td>Large</td>
             </tr>
           </tbody>
         </table>
 
-        <h2 id="question"><span class="num">g)</span>The 1 Question I Cannot Figure Out Myself</h2>
+        <h2 id="question">
+          <span class="num">g)</span>The 1 Question I Cannot Figure Out Myself
+        </h2>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Needs Human Decision</span>
-          <h3>Should the god-package splits (storage/, event/) happen in v3.x or v4.0?</h3>
+          <h3>
+            Should the god-package splits (storage/, event/) happen in v3.x or
+            v4.0?
+          </h3>
           <p>
-            storage/ has 38 Go files and event/ has 30. Both are god-packages by any reasonable
-            definition. Splitting them into sub-packages (e.g., storage/relational/, storage/view/,
-            storage/migrations/) would improve navigability and reduce merge conflicts.
+            storage/ has 38 Go files and event/ has 30. Both are god-packages by
+            any reasonable definition. Splitting them into sub-packages (e.g.,
+            storage/relational/, storage/view/, storage/migrations/) would
+            improve navigability and reduce merge conflicts.
           </p>
           <p>
-            <strong>The tension:</strong> Splitting changes import paths. Every consumer that
-            imports storage.SQLEventStore would need to update to storage/relational.EventStore (or
-            whatever the new path is). This is a <strong>breaking change</strong> for all consumers.
+            <strong>The tension:</strong> Splitting changes import paths. Every
+            consumer that imports storage.SQLEventStore would need to update to
+            storage/relational.EventStore (or whatever the new path is). This is
+            a <strong>breaking change</strong> for all consumers.
           </p>
           <p>
-            <strong>Option A: Split in v3.x with type aliases.</strong> Keep the old types as
-            aliases in the root package. Consumers do not break, but the aliases are confusing. Go
-            type alias system supports this, but it creates a parallel declaration surface.
+            <strong>Option A: Split in v3.x with type aliases.</strong> Keep the
+            old types as aliases in the root package. Consumers do not break,
+            but the aliases are confusing. Go type alias system supports this,
+            but it creates a parallel declaration surface.
           </p>
           <p>
-            <strong>Option B: Split in v4.0.</strong> Clean break. No aliases, no confusion. But v4
-            is months away, and the packages keep growing in the meantime.
+            <strong>Option B: Split in v4.0.</strong> Clean break. No aliases,
+            no confusion. But v4 is months away, and the packages keep growing
+            in the meantime.
           </p>
           <p>
-            <strong>Option C: Do not split - they are fine as-is.</strong> The 350-line file limit
-            keeps individual files small. Maybe 38 files in one package is acceptable for a library
-            where the package IS the storage abstraction.
+            <strong>Option C: Do not split - they are fine as-is.</strong> The
+            350-line file limit keeps individual files small. Maybe 38 files in
+            one package is acceptable for a library where the package IS the
+            storage abstraction.
           </p>
           <div class="callout callout-warning">
-            <strong>I cannot determine which is correct</strong> because it depends on the project
-            versioning philosophy: is v3.x a semver-major that allows breaking changes, or a
-            semver-minor that promises stability? The 48-module architecture suggests stability is
-            paramount. But the growing god-packages suggest structural change is needed.
+            <strong>I cannot determine which is correct</strong> because it
+            depends on the project versioning philosophy: is v3.x a semver-major
+            that allows breaking changes, or a semver-minor that promises
+            stability? The 48-module architecture suggests stability is
+            paramount. But the growing god-packages suggest structural change is
+            needed.
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-28 22:42 andmiddot; Head: a5c6d336 andmiddot; All claims verified
-          against source code and test runs
+          Generated 2026-06-28 22:42 andmiddot; Head: a5c6d336 andmiddot; All
+          claims verified against source code and test runs
         </footer>
       </main>
     </div>
