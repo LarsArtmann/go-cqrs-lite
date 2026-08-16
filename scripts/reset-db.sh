@@ -31,7 +31,10 @@ DO_MYSQL=false
 ANY_SELECT=false
 
 log() { echo "[$SCRIPT_NAME] $*"; }
-die() { echo "[$SCRIPT_NAME] ERROR: $*" >&2; exit 1; }
+die() {
+	echo "[$SCRIPT_NAME] ERROR: $*" >&2
+	exit 1
+}
 
 usage() {
 	sed -n '2,/^set -euo/p' "$0" | sed 's/^# \?//' | sed '/^set -euo/d'

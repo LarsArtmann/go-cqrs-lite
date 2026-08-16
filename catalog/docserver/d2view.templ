@@ -8,21 +8,23 @@ import (
 // D2Page renders the generated D2 architecture diagram source with copy and
 // download affordances.
 templ D2Page(brand, docsPrefix, diagram string) {
-	@layout.Base(docsPageProps(brand+" — Architecture Diagram", "D2 architecture diagram generated from the catalog", docsPrefix)) {
+	{{
+		base := docsPageProps(brand+" — Architecture Diagram", "D2 architecture diagram generated from the catalog", docsPrefix)
+		headerProps := display.PageHeaderProps{
+			Title:    "Architecture diagram",
+			Subtitle: "D2 source generated from the catalog. Paste it into any D2 renderer, e.g. the D2 playground.",
+		}
+		cardProps := display.CardProps{
+			Title:        "D2 source",
+			Subtitle:     "Text · UTF-8",
+			HeaderAction: display.Button(display.ButtonProps{Text: "Download .d2", Href: docsPrefix + "/d2.txt"}),
+		}
+	}}
+	@layout.Base(base) {
 		@docsNav(brand, docsPrefix, docsPrefix+"/d2")
 		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-			@display.PageHeader(display.PageHeaderProps{
-				Title:    "Architecture diagram",
-				Subtitle: "D2 source generated from the catalog. Paste it into any D2 renderer, e.g. the D2 playground.",
-			})
-			@display.Card(display.CardProps{
-				Title:    "D2 source",
-				Subtitle: "Text · UTF-8",
-				HeaderAction: display.Button(display.ButtonProps{
-					Text: "Download .d2",
-					Href: docsPrefix + "/d2.txt",
-				}),
-			}) {
+			@display.PageHeader(headerProps)
+			@display.Card(cardProps) {
 				@display.CopyButton(display.CopyButtonProps{Text: diagram, Label: "Copy D2 source"})
 				<pre
 					aria-label="D2 diagram source"

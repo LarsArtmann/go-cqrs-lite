@@ -2,6 +2,8 @@ package pebbleengine
 
 import (
 	"context"
+	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -30,6 +32,19 @@ func (e *pebbleEngine) VectorInsert(
 		pebble.Sync,
 	); err != nil {
 		return fmt.Errorf("pebbleengine.VectorInsert: %w", err)
+	}
+
+	metaKey := keycodec.VectorMetaKey(collection, emb.ID)
+	if emb.Metadata == nil {
+		if err := e.db.Delete(metaKey, pebble.Sync); err != nil {
+			return fmt.Errorf("pebbleengine.VectorInsert: clear metadata: %w", err)
+		}
+
+		return nil
+	}
+
+	if err := e.db.Set(metaKey, encodeJSON(emb.Metadata), pebble.Sync); err != nil {
+		return fmt.Errorf("pebbleengine.VectorInsert: metadata: %w", err)
 	}
 
 	return nil
@@ -71,4 +86,75 @@ func (e *pebbleEngine) VectorSearch(
 	}
 
 	return metaengine.TopKNearest(results, k), nil
+}
+
+// VectorSearchFiltered is the metadata-filtered k-NN path: it scans the
+// vector prefix, loads each embedding's metadata (vecm key family — absent
+// means no metadata), applies the filters, and only then scores survivors.
+// Embeddings excluded by a filter never pay the distance computation.
+func (e *pebbleEngine) VectorSearchFiltered(
+	_ context.Context,
+	collection string,
+	query []float32,
+	k int,
+	metric string,
+	filters []metaengine.VectorFilter,
+) ([]metaengine.VectorResult, error) {
+	prefix := keycodec.VectorPrefix(collection)
+
+	iter, err := e.newPrefixIter(prefix)
+	if err != nil {
+		return nil, fmt.Errorf("pebbleengine.VectorSearchFiltered: %w", err)
+	}
+	defer metaengine.DeferClose(iter)
+
+	var results []metaengine.VectorResult
+
+	for iter.First(); iter.Valid(); iter.Next() {
+		id := strings.TrimPrefix(string(iter.Key()), string(prefix))
+
+		meta, err := e.vectorMetadata(collection, id)
+		if err != nil {
+			return nil, fmt.Errorf("pebbleengine.VectorSearchFiltered: %w", err)
+		}
+
+		if !metaengine.VectorMatchesFilters(meta, filters) {
+			continue
+		}
+
+		vec, err := metaengine.DecodeVectorJSON(iter.Value())
+		if err != nil {
+			return nil, fmt.Errorf("pebbleengine.VectorSearchFiltered: decode %s: %w", id, err)
+		}
+
+		results = append(results, metaengine.VectorResult{
+			ID:       id,
+			Distance: metaengine.VectorDistance(query, vec, metric),
+		})
+	}
+
+	if err := iter.Error(); err != nil {
+		return nil, fmt.Errorf("pebbleengine.VectorSearchFiltered: %w", err)
+	}
+
+	return metaengine.TopKNearest(results, k), nil
+}
+
+// vectorMetadata loads an embedding's metadata map; nil when none is stored.
+func (e *pebbleEngine) vectorMetadata(collection, id string) (map[string]any, error) {
+	value, closer, err := e.db.Get(keycodec.VectorMetaKey(collection, id))
+	if errors.Is(err, pebble.ErrNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err //nolint:wrapcheck // wrapped by caller
+	}
+	defer func() { _ = closer.Close() }()
+
+	var meta map[string]any
+	if err := json.Unmarshal(value, &meta); err != nil {
+		return nil, fmt.Errorf("metadata %s: %w", id, err)
+	}
+
+	return meta, nil
 }

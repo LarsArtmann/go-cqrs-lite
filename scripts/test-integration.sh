@@ -21,6 +21,8 @@
 # Environment overrides (skip auto-detection, use an existing database):
 #   POSTGRES_TEST_DSN / DATABASE_URL  — point PG tests at your database
 #   MYSQL_TEST_DSN                    — point MySQL tests at your database
+#   RESET_DB=0                        — skip the pre-run reset of external
+#                                        test databases (default: reset)
 set -euo pipefail
 
 # ─── Constants ────────────────────────────────────────────────────────────────
@@ -164,8 +166,26 @@ detect_mysql_strategy() {
 
 # ─── Execution: PostgreSQL ────────────────────────────────────────────────────
 
+# Reset a shared external test database before a run: drops leftover test_%
+# databases from crashed runs and recreates the DSN's default database, so
+# repeated runs (and -count>1 loops) start from a clean slate. Opt out with
+# RESET_DB=0. Warns and continues when the SQL client is missing or the
+# reset fails, so tooling gaps never block a test run.
+reset_shared_db() {
+	[ "${RESET_DB:-1}" = "1" ] || {
+		echo "==> Reset skipped (RESET_DB=0)"
+		return 0
+	}
+	if bash "$SCRIPT_DIR/reset-db.sh" "--$1"; then
+		return 0
+	fi
+	echo "WARNING: could not reset the $1 test database (client missing or reset failed); continuing with existing state"
+	return 0
+}
+
 run_pg_external() {
 	echo "==> PostgreSQL: external DSN ($POSTGRES_TEST_DSN)"
+	reset_shared_db pg
 	run_pg_modules
 }
 
@@ -236,6 +256,7 @@ run_pg() {
 
 run_mysql_external() {
 	echo "==> MySQL: external DSN ($MYSQL_TEST_DSN)"
+	reset_shared_db mysql
 	run_mysql_modules
 }
 

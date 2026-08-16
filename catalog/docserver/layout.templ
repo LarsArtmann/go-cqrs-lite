@@ -22,9 +22,9 @@ func docsPageProps(title, description, docsPrefix string) layout.PageProps {
 	return props
 }
 
-// docsNav renders the shared top navigation for documentation pages.
-templ docsNav(brand, docsPrefix, currentPath string) {
-	@navigation.SimpleNav(navigation.SimpleNavProps{
+// docsNavProps builds the shared navigation links for documentation pages.
+func docsNavProps(brand, docsPrefix, currentPath string) navigation.SimpleNavProps {
+	return navigation.SimpleNavProps{
 		BrandText: brand,
 		BrandHref: docsPrefix,
 		Links: []navigation.NavLinkProps{
@@ -36,7 +36,12 @@ templ docsNav(brand, docsPrefix, currentPath string) {
 		RightItems:  layout.ThemeToggle("Toggle theme", ""),
 		CurrentPath: currentPath,
 		Sticky:      true,
-	})
+	}
+}
+
+// docsNav renders the shared top navigation for documentation pages.
+templ docsNav(brand, docsPrefix, currentPath string) {
+	@navigation.SimpleNav(docsNavProps(brand, docsPrefix, currentPath))
 }
 
 // spaHeader is the slim top bar for full-height SPA pages (Scalar, AsyncAPI
@@ -56,5 +61,5 @@ templ spaHeader(brand, docsPrefix, pageTitle string) {
 
 // sectionHeading renders an h2 with consistent spacing for index sections.
 templ sectionHeading(text string) {
-	<h2 class="mt-12 mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">{ text }</h2>
+	<h2 class="mb-4 mt-12 text-lg font-semibold text-gray-900 dark:text-gray-100">{ text }</h2>
 }

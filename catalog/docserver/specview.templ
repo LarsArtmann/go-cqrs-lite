@@ -13,7 +13,7 @@ templ ScalarPage(brand, docsPrefix, specURL string) {
 	}}
 	@layout.Base(props) {
 		@spaHeader(brand, docsPrefix, "OpenAPI Reference")
-		<div id="app" class="h-[calc(100dvh-3.5rem)]"></div>
+		<div id="app" class="h-[calc(100dvh-3.5rem)]" data-spec-url={ specURL }></div>
 		<noscript>
 			<p class="p-4 text-sm text-gray-700 dark:text-gray-300">
 				The Scalar API reference requires JavaScript. The raw OpenAPI spec is available at
@@ -24,7 +24,7 @@ templ ScalarPage(brand, docsPrefix, specURL string) {
 		<script>
 			Scalar.createApiReference('#app', {
 				spec: {
-					url: { specURL },
+					url: document.getElementById('app').dataset.specUrl,
 				},
 			});
 		</script>
@@ -46,7 +46,7 @@ templ AsyncAPIPage(brand, docsPrefix, specURL string) {
 	}}
 	@layout.Base(props) {
 		@spaHeader(brand, docsPrefix, "Event Reference")
-		<div id="asyncapi" class="min-h-[calc(100dvh-3.5rem)]"></div>
+		<div id="asyncapi" class="min-h-[calc(100dvh-3.5rem)]" data-spec-url={ specURL }></div>
 		<noscript>
 			<p class="p-4 text-sm text-gray-700 dark:text-gray-300">
 				The AsyncAPI event reference requires JavaScript. The raw AsyncAPI spec is available at
@@ -57,7 +57,7 @@ templ AsyncAPIPage(brand, docsPrefix, specURL string) {
 		<script>
 			AsyncApiStandalone.render({
 				schema: {
-					url: { specURL },
+					url: document.getElementById('asyncapi').dataset.specUrl,
 					options: { method: "GET" },
 				},
 				config: {

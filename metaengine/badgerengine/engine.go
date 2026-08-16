@@ -5,6 +5,9 @@
 //   - Map/Set point lookups: O(1) LSM point read (comparable to Pebble)
 //   - Counter: O(1) increment via read-modify-write, O(N) CounterGet (prefix scan)
 //   - SortedMap scan: O(N) prefix scan + Go sort (degraded — no secondary indexes)
+//   - Graph: O(degree^depth) BFS via prefix seeks on dual adjacency indexes
+//     (forward + reverse marker keys)
+//   - Vector: O(N·D) brute-force scan (degraded — no ANN index)
 //
 // This module exists OUTSIDE the zero-dependency metaengine core (ADR-0062)
 // because it requires the dgraph-io/badger/v4 dependency.
@@ -121,6 +124,11 @@ func (e *badgerEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSortedMap: metaengine.ComplexityON,
 			metaengine.ADTLog:       metaengine.ComplexityOLogN,
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
+			metaengine.ADTGraph:     metaengine.ComplexityODegree, // prefix-scan BFS on adjacency keys
+			metaengine.ADTVector:    metaengine.ComplexityON,      // brute-force scan (degraded)
+		},
+		DegradedADTs: map[metaengine.ADT]bool{
+			metaengine.ADTVector: true, // O(N·D) brute-force, no ANN index
 		},
 	}
 	e.ApplyCalibration(&p)

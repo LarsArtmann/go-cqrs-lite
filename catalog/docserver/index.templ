@@ -10,42 +10,29 @@ import (
 // IndexPage renders the documentation landing page: catalog stats, links to
 // every generated artifact, and one card per service.
 templ IndexPage(data indexPageData) {
-	@layout.Base(docsPageProps(data.CatalogTitle+" — API Documentation", data.Description, data.DocsPath)) {
+	{{
+		base := docsPageProps(data.CatalogTitle+" — API Documentation", data.Description, data.DocsPath)
+		headerProps := display.PageHeaderProps{
+			Title:    data.CatalogTitle,
+			Subtitle: data.Description,
+			Action:   display.Badge(display.BadgeProps{Text: "v" + data.Version, Type: display.BadgeInfo, Pill: true}),
+		}
+	}}
+	@layout.Base(base) {
 		@docsNav(data.Brand, data.DocsPath, data.DocsPath)
 		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-			@display.PageHeader(display.PageHeaderProps{
-				Title:    data.CatalogTitle,
-				Subtitle: data.Description,
-				Action:   display.Badge(display.BadgeProps{Text: "v" + data.Version, Type: display.BadgeInfo, Pill: true}),
-			})
+			@display.PageHeader(headerProps)
 			@statGrid(data)
 			@sectionHeading("Documentation")
 			@display.Grid(display.GridProps{Cols: display.GridCols2, Gap: display.GridGapLG}) {
-				@specCard(
-					"OpenAPI reference",
-					"Interactive REST API documentation (Scalar)",
-					data.DocsPath+"/openapi", data.DocsPath+"/openapi.json", data.DocsPath+"/openapi.yaml",
-				)
-				@specCard(
-					"AsyncAPI reference",
-					"Interactive event documentation (AsyncAPI React)",
-					data.DocsPath+"/asyncapi", data.DocsPath+"/asyncapi.json", data.DocsPath+"/asyncapi.yaml",
-				)
-				@specCard(
-					"Architecture diagram",
-					"D2 diagram source generated from the catalog",
-					data.DocsPath+"/d2", data.DocsPath+"/d2.txt", "",
-				)
-				@specCard(
-					"Catalog JSON",
-					"The raw catalog snapshot this documentation is built from",
-					data.DocsPath+"/catalog.json", "", "",
-				)
+				for _, link := range data.Specs {
+					@specCard(link)
+				}
 			}
-			@if len(data.Services) > 0 {
+			if len(data.Services) > 0 {
 				@sectionHeading("Services")
 				@display.Grid(display.GridProps{Cols: display.GridCols3, Gap: display.GridGapLG}) {
-					@for _, svc := range data.Services {
+					for _, svc := range data.Services {
 						@serviceSummaryCard(svc)
 					}
 				}
@@ -65,30 +52,25 @@ templ statGrid(data indexPageData) {
 }
 
 // specCard is one documentation artifact card: a primary link plus optional
-// raw JSON/YAML links.
-templ specCard(title, subtitle, pageHref, jsonHref, yamlHref string) {
-	@display.Card(display.CardProps{Title: title, Subtitle: subtitle}) {
+// raw artifact links.
+templ specCard(link specLink) {
+	{{ cardProps := display.CardProps{Title: link.Title, Subtitle: link.Subtitle} }}
+	@display.Card(cardProps) {
 		<a
-			href={ templ.SafeURL(pageHref) }
+			href={ templ.SafeURL(link.PageHref) }
 			class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
-		>Open { title }</a>
-		@if jsonHref != "" || yamlHref != "" {
+		>Open { link.Title }</a>
+		if len(link.Raw) > 0 {
 			<p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-				Raw spec:
-				@if jsonHref != "" {
+				Raw:
+				for i, raw := range link.Raw {
+					if i > 0 {
+						·
+					}
 					<a
-						href={ templ.SafeURL(jsonHref) }
+						href={ templ.SafeURL(raw.Href) }
 						class="font-medium text-blue-600 hover:underline dark:text-blue-400"
-					>JSON</a>
-				}
-				@if jsonHref != "" && yamlHref != "" {
-					·
-				}
-				@if yamlHref != "" {
-					<a
-						href={ templ.SafeURL(yamlHref) }
-						class="font-medium text-blue-600 hover:underline dark:text-blue-400"
-					>YAML</a>
+					>{ raw.Label }</a>
 				}
 			</p>
 		}
@@ -97,28 +79,20 @@ templ specCard(title, subtitle, pageHref, jsonHref, yamlHref string) {
 
 // serviceSummaryCard shows one service with its message counts.
 templ serviceSummaryCard(svc serviceCard) {
-	@display.Card(display.CardProps{Title: svc.Name, Subtitle: svc.ID + " · v" + svc.Version}) {
-		@if svc.Summary != "" {
+	{{ cardProps := display.CardProps{Title: svc.Name, Subtitle: svc.ID + " · v" + svc.Version} }}
+	@display.Card(cardProps) {
+		if svc.Summary != "" {
 			<p class="text-sm text-gray-600 dark:text-gray-400">{ svc.Summary }</p>
 		}
 		<div class="mt-3 flex flex-wrap gap-2">
-			@if svc.Commands > 0 {
-				@display.Badge(display.BadgeProps{
-					Text: strconv.Itoa(svc.Commands) + " commands",
-					Type: display.BadgePrimary,
-				})
+			if svc.Commands > 0 {
+				@display.Badge(display.BadgeProps{Text: strconv.Itoa(svc.Commands) + " commands", Type: display.BadgePrimary})
 			}
-			@if svc.Events > 0 {
-				@display.Badge(display.BadgeProps{
-					Text: strconv.Itoa(svc.Events) + " events",
-					Type: display.BadgeSuccess,
-				})
+			if svc.Events > 0 {
+				@display.Badge(display.BadgeProps{Text: strconv.Itoa(svc.Events) + " events", Type: display.BadgeSuccess})
 			}
-			@if svc.Queries > 0 {
-				@display.Badge(display.BadgeProps{
-					Text: strconv.Itoa(svc.Queries) + " queries",
-					Type: display.BadgeInfo,
-				})
+			if svc.Queries > 0 {
+				@display.Badge(display.BadgeProps{Text: strconv.Itoa(svc.Queries) + " queries", Type: display.BadgeInfo})
 			}
 		</div>
 	}

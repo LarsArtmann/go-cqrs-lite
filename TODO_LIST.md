@@ -336,11 +336,13 @@ and is **never** duplicated here.
       ("expected 2 events, got 27") via shared-journal cross-test
       contamination under the full default PG suite — pre-existing, unrelated.
       _(Effort: S)_
-- [ ] **iroh graph `WriteOp` replication** — `GraphAddEdge`/`GraphNeighbors`
-      are local passthrough; the replication wire protocol has no graph
-      WriteOp kind, so edges do NOT converge across peers (documented on the
-      methods). Replicate edges or keep the honest local-only note in Doctor.
-      _(Effort: M)_
+- [x] **iroh graph `WriteOp` replication** — RESOLVED 2026-08-16 by keeping
+      the honest local-only note (option B): Doctor's Capability section now
+      prints the non-convergence note for replicated graph engines, the
+      forwarding policy table in `engine_passthrough.go` documents why, and
+      `engine_capability_forwarding_test.go` pins the surface. Revisit edge
+      replication only if a consumer need appears (would require a new graph
+      WriteOp kind plus CRDT edge-set semantics).
 - [x] **irohengine optional-capability forwarding audit** — DONE 2026-08-16.
       Full policy documented in `engine_passthrough.go` (forwarding policy
       table) and pinned by `engine_capability_forwarding_test.go`:
@@ -355,12 +357,18 @@ and is **never** duplicated here.
       latency tracker. Additional dropped-by-design surface noted for future
       triage: temporal reads (MapGetAsOf, StreamReadAsOfVersion, StreamVersion),
       VectorSearchFiltered, SnapshotBackend.
-- [ ] **Surface capability drift beyond tests** — Doctor: note iroh graph
-      non-replication in the Capability section; EXPLAIN: plan-time warning
-      banner from `AuditCapability`; plus a metaengine meta-test pinning
-      `adttest` stays delegating-only (no logic re-growth in the wrong
-      package).
-      _(Effort: S)_
+- [x] **Surface capability drift beyond tests** — DONE 2026-08-16.
+      Doctor `--- Capability ---` section now notes replicated graph engines:
+      "graph writes are local-only (no graph WriteOp on the replication
+      wire) — edges do NOT converge across peers" (`capability_audit.go`).
+      ExplainPlan renders a `--- Capability Warnings ---` banner with one
+      `WARN capability drift:` line per CapabilityAudit violation (clean
+      plans stay banner-free) via `explainCapabilityWarnings`. Meta-test
+      `TestAdttestStaysDelegatingOnly` (source-level AST check) pins adttest
+      as delegating-only: verdict strings stay in metaengine and every
+      CapabilityAudit call must route through the metaengine package.
+      Behavioral tests: `TestDoctorNotesGraphNonReplication`,
+      `TestExplainPlanShowsCapabilityDriftBanner`.
 - [ ] **DuckDB real aggregation pushdown (`AggregateReader`)** — approved by
       DiscordSync census review; `CounterGet` currently loads all rows into
       Go maps instead of pushing GROUP BY to columnar SQL. Highest-leverage

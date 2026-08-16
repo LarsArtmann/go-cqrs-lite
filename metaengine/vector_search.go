@@ -79,9 +79,11 @@ type VectorBackend interface {
 // match the filters are excluded BEFORE ranking, so the k results are the k
 // nearest MATCHING neighbors (unlike post-filtering a bare top-k, which can
 // return fewer than k results while matches exist). Engines that persist
-// Embedding.Metadata implement this; the executor falls back to a full
-// unfiltered scan + filter + truncate for plain VectorBackend engines.
+// Embedding.Metadata implement this; engines without it fail filtered
+// searches explicitly (results carry no metadata to filter on).
 type VectorFilterBackend interface {
+	VectorBackend
+
 	// VectorSearchFiltered returns the k nearest neighbors whose metadata
 	// matches every filter (AND semantics). An empty filter slice behaves
 	// exactly like VectorSearch.

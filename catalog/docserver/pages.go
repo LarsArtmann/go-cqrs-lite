@@ -28,6 +28,20 @@ type serviceCard struct {
 	Queries  int
 }
 
+// rawLink is a secondary raw-artifact link (JSON/YAML/D2 text) on a spec card.
+type rawLink struct {
+	Href  string
+	Label string
+}
+
+// specLink is one documentation artifact card on the index page.
+type specLink struct {
+	Title    string
+	Subtitle string
+	PageHref string
+	Raw      []rawLink
+}
+
 // indexPageData carries everything the documentation index page renders.
 type indexPageData struct {
 	Brand        string
@@ -36,6 +50,7 @@ type indexPageData struct {
 	Description  string
 	DocsPath     string
 	Stats        catalogStats
+	Specs        []specLink
 	Services     []serviceCard
 }
 
@@ -73,7 +88,45 @@ func newIndexPageData(cfg Config, cat *catalog.Catalog) indexPageData {
 			Channels:   len(cat.Channels),
 			DataStores: len(cat.DataStores),
 		},
+		Specs:    indexSpecLinks(cfg.DocsPath),
 		Services: services,
+	}
+}
+
+// indexSpecLinks builds the documentation artifact cards for the index page.
+func indexSpecLinks(docsPath string) []specLink {
+	return []specLink{
+		{
+			Title:    "OpenAPI reference",
+			Subtitle: "Interactive REST API documentation (Scalar)",
+			PageHref: docsPath + "/openapi",
+			Raw: []rawLink{
+				{Href: docsPath + "/openapi.json", Label: "JSON"},
+				{Href: docsPath + "/openapi.yaml", Label: "YAML"},
+			},
+		},
+		{
+			Title:    "AsyncAPI reference",
+			Subtitle: "Interactive event documentation (AsyncAPI React)",
+			PageHref: docsPath + "/asyncapi",
+			Raw: []rawLink{
+				{Href: docsPath + "/asyncapi.json", Label: "JSON"},
+				{Href: docsPath + "/asyncapi.yaml", Label: "YAML"},
+			},
+		},
+		{
+			Title:    "Architecture diagram",
+			Subtitle: "D2 diagram source generated from the catalog",
+			PageHref: docsPath + "/d2",
+			Raw: []rawLink{
+				{Href: docsPath + "/d2.txt", Label: "D2 text"},
+			},
+		},
+		{
+			Title:    "Catalog JSON",
+			Subtitle: "The raw catalog snapshot this documentation is built from",
+			PageHref: docsPath + "/catalog.json",
+		},
 	}
 }
 
