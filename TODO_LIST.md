@@ -687,42 +687,6 @@ and is **never** duplicated here.
 
 ---
 
-## Docs Honesty
-
-- [ ] **Reconcile the ADR-0114 tombstone story** — `DeletePolicy` rename never
-      landed; FEATURES/CHANGELOG/AGENTS/migration-guide/DOMAIN_LANGUAGE tell
-      slightly different stories. Land DeletePolicy or rewrite all four to
-      one truth.
-      _(Effort: M)_
-- [ ] **README feature table honesty** — stop selling tombstone soft-delete
-      as the headline capability; lead with what consumers actually import.
-      _(Effort: S)_
-- [ ] **Skill reference recipes** — catch-up drain pattern (projectionhost
-      TOCTOU fix); `WithoutViewAutoMigrate` (README-only today); `Increment`
-      non-clamping philosophy (FAQ); MariaDB dialect + numeric-safe sort
-      recipe (recipes.md §2.x).
-      _(Effort: S)_
-- [ ] **storage/view validated-WHERE rollout review** — the validated-checked
-      WHERE changes (query.go/store.go, landed 2026-08-15) need an API-doc
-      pass in the skill references.
-      _(Effort: S)_
-- [ ] **docs/DOMAIN_LANGUAGE.md additions** — "dialect", "capability probe",
-      "degraded ADT" became load-bearing terms with the MariaDB/CTE-probe
-      work; define them.
-      _(Effort: XS)_
-- [ ] **pebbleengine/bboltengine README symmetry** — note graph=unsupported
-      (pebble) and audit bbolt, matching the new vector rows.
-      _(Effort: XS)_
-- [ ] **`integration/README.md`** lists 5 of ~15 suites — enumerate or
-      point at the flake apps.
-      _(Effort: XS)_
-- [ ] **Revive or retire `docs/sessions/SESSION_MILESTONES.md`** — stale
-      since 2026-08-11; also fix module-count drift (82 vs 86 vs 88) in
-      every doc that hardcodes it.
-      _(Effort: S)_
-
----
-
 ## v5 Unification (Phase 8: Deletion + Cut)
 
 > Decision: [ADR-0123](docs/adr/0123-v5-unification-single-composition-root.md).

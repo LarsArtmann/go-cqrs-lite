@@ -1,5 +1,10 @@
 # Session History
 
+> **RETIRED 2026-08-16** — frozen since extraction (2026-05-21); content below is
+> sessions-1–30 era. Session history now lives in `CHANGELOG.md`, `docs/status/`,
+> and git log. Retired alongside `SESSION_MILESTONES.md` (same genre, same fate).
+> Retiring is reversible: `git mv` back to `docs/sessions/`.
+
 > Detailed session-by-session change log, extracted from AGENTS.md for brevity.
 
 **Extracted:** 2026-05-21

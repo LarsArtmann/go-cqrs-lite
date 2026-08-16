@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-16
 **Source task:** TODO_LIST.md "Code Quality" → _One bench system_ (Effort: M)
-**Status:** EXECUTING
+**Status:** DONE (2026-08-16) — all 12 tasks complete, pushed through `12565d918`; closeout in [`docs/status/2026-08-16_18-06_one-bench-system-consolidation.md`](../status/2026-08-16_18-06_one-bench-system-consolidation.md)
 
 ---
 

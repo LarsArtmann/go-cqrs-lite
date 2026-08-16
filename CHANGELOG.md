@@ -235,7 +235,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 - **mysqlengine / bboltengine / tursoengine / irohengine v4.0.0**: first
   tagged releases of the previously untagged engine modules.
 
-## [Unreleased]
+## [Unreleased — earlier 2026-08-16 work]
 
 > **Scope note (2026-08-16):** the 2026-08-10 → 2026-08-15 sections below for
 > modules tagged in the [2026-08-16 module releases] chain (metaengine,
