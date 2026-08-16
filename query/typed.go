@@ -31,7 +31,9 @@ type TypedQueryStore[P any] struct {
 
 // NewTypedQueryStore creates a typed adapter over store using c for payload
 // serialization. If c is nil, [codec.CBORCodec] is used.
-// Pre-envelope data (raw JSON) is auto-detected on read.
+// Pre-envelope data decodes via the configured codec with a JSON↔CBOR
+// cross-retry, so legacy rows written with either standard codec read
+// correctly regardless of the codec configured now.
 func NewTypedQueryStore[P any](store QueryStore, c codec.Codec) *TypedQueryStore[P] {
 	if c == nil {
 		c = codec.CBORCodec{}
@@ -92,11 +94,7 @@ func (t *TypedQueryStore[P]) LoadQueries(
 	result := make([]TypedQuery[P], 0, len(queries))
 
 	for _, q := range queries {
-		var payload P
-
-		c, inner := codec.UnwrapDecode(q.Payload(), codec.JSONCodec{})
-
-		err := c.Decode(inner, &payload)
+		payload, err := decodeEnvelopeOrLegacy[P](q.Payload(), t.codec)
 		if err != nil {
 			return nil, errorfamily.WrapCorruption(err, "query.typed_store.decode",
 				fmt.Sprintf("decode typed payload for %s", q.ID()))
@@ -112,4 +110,49 @@ func (t *TypedQueryStore[P]) LoadQueries(
 	}
 
 	return result, nil
+}
+
+// decodeEnvelopeOrLegacy decodes ADR-0044 envelope-stamped data with its
+// stamped codec, and non-envelope data with the configured codec. When the
+// configured codec fails on non-envelope bytes, one cross-retry with the
+// other standard codec rescues legacy rows written before the envelope
+// existed (raw JSON under a CBOR-configured store, or vice versa), keeping
+// ADR-0050's permanent-readability guarantee.
+//
+// art-dupl:accept duplicated across dep-isolated blind stores (kv/snapshot/command/query); sharing would add a cross-module dependency
+func decodeEnvelopeOrLegacy[P any](data []byte, configured codec.Codec) (P, error) {
+	c, inner := codec.UnwrapDecode(data, configured)
+
+	var val P
+
+	err := c.Decode(inner, &val)
+	if err == nil {
+		return val, nil
+	}
+
+	alt, ok := otherStandardCodec(c)
+	if !ok {
+		return val, err
+	}
+
+	var retry P
+
+	if altErr := alt.Decode(inner, &retry); altErr == nil {
+		return retry, nil
+	}
+
+	return val, err
+}
+
+// otherStandardCodec returns the opposite built-in codec, or false for
+// envelope-stamped or custom codecs (their data only decodes with themselves).
+func otherStandardCodec(c codec.Codec) (codec.Codec, bool) {
+	switch c.(type) {
+	case codec.CBORCodec:
+		return codec.JSONCodec{}, true
+	case codec.JSONCodec:
+		return codec.CBORCodec{}, true
+	default:
+		return nil, false
+	}
 }

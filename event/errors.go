@@ -66,13 +66,12 @@ var (
 	// Deprecated: use ErrStreamNotFound.
 	ErrAggregateNotFound = ErrStreamNotFound
 	ErrEventNotFound     = errorfamily.NewRejection("event.event_not_found", "event not found")
-	ErrBinaryNotFound    = errorfamily.NewRejection(
-		"event.binary_not_found",
-		"binary data not found in event metadata",
+	ErrStoreClosed       = errorfamily.NewInfrastructure(
+		"event.store_closed",
+		"event store is closed",
 	)
-	ErrStoreClosed = errorfamily.NewInfrastructure("event.store_closed", "event store is closed")
-	ErrBusClosed   = errorfamily.NewInfrastructure("event.bus_closed", "event bus is closed")
-	ErrNilBus      = errorfamily.NewInfrastructure("event.nil_bus", "nil bus")
+	ErrBusClosed = errorfamily.NewInfrastructure("event.bus_closed", "event bus is closed")
+	ErrNilBus    = errorfamily.NewInfrastructure("event.nil_bus", "nil bus")
 
 	// Optional-capability errors returned by DecorateStore when the inner
 	// store does not implement the asserted optional interface.

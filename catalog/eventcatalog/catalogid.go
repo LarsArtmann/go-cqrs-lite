@@ -1,60 +1,42 @@
 package eventcatalog
 
 import (
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec // UUIDv5 mandates SHA-1; not a security use
 	"encoding/hex"
 )
 
-// catalogIDNamespace is the fixed UUID namespace used to derive the
-// EventCatalog `cId` from the catalog title. The value is arbitrary but MUST
-// stay constant so repeated exports of the same catalog produce the same cId.
-const catalogIDNamespace = "9c1f9a52-6b3e-4d78-a5f0-3e2b8c7d4a19"
+// RFC 4122 bit fields for UUID formatting.
+const (
+	uuidByteLen     = 16
+	uuidVersionMask = 0x0f
+	uuidVersion5    = 0x50
+	uuidVariantMask = 0x3f
+	uuidVariantRFC  = 0x80
+)
+
+// catalogIDNamespace is the fixed UUID namespace
+// ("9c1f9a52-6b3e-4d78-a5f0-3e2b8c7d4a19") used to derive the EventCatalog
+// `cId` from the catalog title. The value is arbitrary but MUST stay constant
+// so repeated exports of the same catalog produce the same cId.
+var catalogIDNamespace = [uuidByteLen]byte{
+	0x9c, 0x1f, 0x9a, 0x52, 0x6b, 0x3e, 0x4d, 0x78,
+	0xa5, 0xf0, 0x3e, 0x2b, 0x8c, 0x7d, 0x4a, 0x19,
+}
 
 // stableCatalogID derives a deterministic RFC 4122 version 5 (SHA-1) UUID
 // from the catalog title. EventCatalog requires a `cId` per project; deriving
 // it from the title (instead of generating a random one) keeps exports
 // idempotent, so regenerating docs never invalidates the catalog identity.
 func stableCatalogID(title string) string {
-	var ns [16]byte
-
-	for i, b := range parseHexUUID(catalogIDNamespace) {
-		ns[i] = b
-	}
-
-	h := sha1.New() //nolint:gosec // UUIDv5 mandates SHA-1; not a security use
-	h.Write(ns[:])
+	h := sha1.New()
+	h.Write(catalogIDNamespace[:])
 	h.Write([]byte(title))
 
 	sum := h.Sum(nil)
-	sum[6] = sum[6]&0x0f | 0x50 // version 5
-	sum[8] = sum[8]&0x3f | 0x80 // RFC 4122 variant
+	sum[6] = sum[6]&uuidVersionMask | uuidVersion5
+	sum[8] = sum[8]&uuidVariantMask | uuidVariantRFC
 
-	return formatUUID(sum[:16])
-}
-
-func parseHexUUID(s string) []byte {
-	out := make([]byte, 16)
-
-	for i := range 16 {
-		hi := hexVal(s[i*2])
-		lo := hexVal(s[i*2+1])
-		out[i] = hi<<4 | lo
-	}
-
-	return out
-}
-
-func hexVal(c byte) byte {
-	switch {
-	case c >= '0' && c <= '9':
-		return c - '0'
-	case c >= 'a' && c <= 'f':
-		return c - 'a' + 10
-	case c >= 'A' && c <= 'F':
-		return c - 'A' + 10
-	default:
-		return 0
-	}
+	return formatUUID(sum[:uuidByteLen])
 }
 
 func formatUUID(b []byte) string {

@@ -27,6 +27,12 @@ var (
 // first, then the cache. Has checks the cache first; on miss it delegates.
 // Scan always bypasses the cache.
 //
+// Values are copy-isolated: Get returns a deep copy (one codec round-trip via
+// the TypedStore's codec) and Set caches a private copy, so mutations by one
+// caller never leak into the cache or other readers. A cache hit therefore
+// costs roughly one decode; consumers with immutable values and hot read paths
+// that must avoid that cost should use the underlying [TypedStore] directly.
+//
 // The cache is safe for concurrent use (Otter is lock-free for reads).
 type Cache[T any, K fmt.Stringer] struct {
 	store *TypedStore[T, K]
@@ -98,12 +104,13 @@ func NewCache[T any, K fmt.Stringer](
 
 // Get returns the value for id, checking the cache first.
 // On cache miss, delegates to the underlying store and caches the result.
-// Negative results (ErrNotFound) are NOT cached.
+// Negative results (ErrNotFound) are NOT cached. The returned value is a deep
+// copy owned by the caller; mutating it never affects the cache.
 func (cs *Cache[T, K]) Get(ctx context.Context, id K) (*T, error) {
 	key := id.String()
 
 	if val, ok := cs.cache.GetIfPresent(key); ok {
-		return val, nil
+		return cs.copy(val)
 	}
 
 	val, err := cs.store.Get(ctx, id)
@@ -111,7 +118,12 @@ func (cs *Cache[T, K]) Get(ctx context.Context, id K) (*T, error) {
 		return nil, err
 	}
 
-	cs.cache.Set(key, val)
+	cached, err := cs.copy(val)
+	if err != nil {
+		return nil, err
+	}
+
+	cs.cache.Set(key, cached)
 
 	return val, nil
 }
@@ -132,13 +144,20 @@ func (cs *Cache[T, K]) Has(ctx context.Context, id K) (bool, error) {
 }
 
 // Set writes val to the store and updates the cache (write-through).
+// The cache stores a private deep copy of val, so mutating val after Set
+// returns never affects subsequent reads.
 func (cs *Cache[T, K]) Set(ctx context.Context, id K, val *T) error {
 	err := cs.store.Set(ctx, id, val)
 	if err != nil {
 		return err
 	}
 
-	cs.cache.Set(id.String(), val)
+	cached, err := cs.copy(val)
+	if err != nil {
+		return err
+	}
+
+	cs.cache.Set(id.String(), cached)
 
 	return nil
 }
@@ -167,6 +186,33 @@ func (cs *Cache[T, K]) Scan(ctx context.Context, prefix []byte) ([]*T, error) {
 
 // Backend returns the underlying [Store].
 func (cs *Cache[T, K]) Backend() Store { return cs.store.Backend() }
+
+// copy deep-clones val via the TypedStore's codec so cached entries are never
+// shared with callers. Types that cannot round-trip their codec already fail
+// in TypedStore.Get, so failures here indicate the same class of breakage.
+func (cs *Cache[T, K]) copy(val *T) (*T, error) {
+	data, err := cs.store.codec.Encode(val)
+	if err != nil {
+		return nil, errorfamily.WrapCorruption(
+			err,
+			"kv.cache.copy_encode",
+			"copy value for cache isolation",
+		)
+	}
+
+	var out T
+
+	err = cs.store.codec.Decode(data, &out)
+	if err != nil {
+		return nil, errorfamily.WrapCorruption(
+			err,
+			"kv.cache.copy_decode",
+			"copy value for cache isolation",
+		)
+	}
+
+	return &out, nil
+}
 
 // Store returns the underlying unwrapped [TypedStore].
 func (cs *Cache[T, K]) Store() *TypedStore[T, K] { return cs.store }

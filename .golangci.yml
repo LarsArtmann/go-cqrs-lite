@@ -898,6 +898,14 @@ linters:
       - path: sync/
         linters:
           - modernize
+      # catalog/docserver/ — templ-generated files confuse two linters:
+      # contextcheck cannot see ctx flow through generated closures, and
+      # godoclint counts each *_templ.go file header as an extra package
+      # godoc (reported at the hand-written docserver.go).
+      - path: catalog/docserver/
+        linters:
+          - contextcheck
+          - godoclint
     # ── Globally excluded paths ────────────────────────────────────
     # event/ and event/v4/eventtest/ have their own lint config (per-module
     # GOWORK=off builds). storage/view/ is generated from the view template.

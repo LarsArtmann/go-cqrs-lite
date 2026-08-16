@@ -175,3 +175,125 @@ func TestCache_DeleteInvalidates(t *testing.T) {
 		t.Fatal("Get after Delete should return error")
 	}
 }
+
+func TestCache_GetReturnsIsolatedCopy(t *testing.T) {
+	t.Parallel()
+
+	store := kv.NewMemStore()
+	defer store.Close()
+
+	ts := kv.NewTypedStore[testUser, testID](store)
+	cache, err := kv.NewCache[testUser, testID](ts)
+	if err != nil {
+		t.Fatalf("NewCache: %v", err)
+	}
+	defer cache.Close()
+
+	ctx := context.Background()
+	id := testID("user-1")
+
+	first, err := cache.Get(ctx, id)
+	if err == nil {
+		t.Fatal("expected miss before Set")
+	}
+
+	_ = cache.Set(ctx, id, &testUser{Name: "Alice", Age: 30})
+
+	// Miss path: the returned value is fresh from the store.
+	first, err = cache.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("Get (miss path): %v", err)
+	}
+
+	first.Name = "Mutated"
+	first.Age = 99
+
+	second, err := cache.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("Get (hit path): %v", err)
+	}
+
+	if second.Name != "Alice" || second.Age != 30 {
+		t.Fatalf("mutation leaked through cache hit: got %+v, want {Alice 30}", *second)
+	}
+
+	// Hit path: the returned value is a copy of the cached entry.
+	second.Name = "MutatedAgain"
+
+	third, err := cache.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("Get (hit path 2): %v", err)
+	}
+
+	if third.Name != "Alice" {
+		t.Fatalf("mutation of a hit-path result leaked: got %s, want Alice", third.Name)
+	}
+}
+
+func TestCache_SetDoesNotShareValueWithCache(t *testing.T) {
+	t.Parallel()
+
+	store := kv.NewMemStore()
+	defer store.Close()
+
+	ts := kv.NewTypedStore[testUser, testID](store)
+	cache, err := kv.NewCache[testUser, testID](ts)
+	if err != nil {
+		t.Fatalf("NewCache: %v", err)
+	}
+	defer cache.Close()
+
+	ctx := context.Background()
+	id := testID("user-1")
+
+	val := &testUser{Name: "Alice", Age: 30}
+	if err := cache.Set(ctx, id, val); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	val.Name = "MutatedAfterSet"
+	val.Age = 99
+
+	got, err := cache.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("Get after Set: %v", err)
+	}
+
+	if got.Name != "Alice" || got.Age != 30 {
+		t.Fatalf("post-Set mutation leaked into cache: got %+v, want {Alice 30}", *got)
+	}
+}
+
+func TestCache_TwoReadersGetDistinctValues(t *testing.T) {
+	t.Parallel()
+
+	store := kv.NewMemStore()
+	defer store.Close()
+
+	ts := kv.NewTypedStore[testUser, testID](store)
+	cache, err := kv.NewCache[testUser, testID](ts)
+	if err != nil {
+		t.Fatalf("NewCache: %v", err)
+	}
+	defer cache.Close()
+
+	ctx := context.Background()
+	id := testID("user-1")
+
+	if err := cache.Set(ctx, id, &testUser{Name: "Alice"}); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	a, err := cache.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("Get a: %v", err)
+	}
+	b, err := cache.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("Get b: %v", err)
+	}
+
+	if a == b {
+		t.Fatal("two concurrent readers received the same *T — shared pointer hazard")
+	}
+}

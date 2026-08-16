@@ -28,7 +28,9 @@ type TypedStore[T any, K fmt.Stringer] struct {
 
 // NewTypedStore creates a [TypedStore] over backend, applying the given options.
 // The default codec is [codec.CBORCodec]; the default key encoding is the
-// key's String() form. Pre-envelope data (raw JSON) is auto-detected on read.
+// key's String() form. Pre-envelope data decodes via the configured codec
+// with a JSON↔CBOR cross-retry, so legacy rows written with either standard
+// codec read correctly regardless of the codec configured now.
 func NewTypedStore[T any, K fmt.Stringer](
 	backend Store,
 	opts ...TypedOption[T, K],
@@ -55,13 +57,9 @@ func (s *TypedStore[T, K]) Get(ctx context.Context, id K) (*T, error) {
 			"kv.typed_store.get", fmt.Sprintf("get key %q", s.key(id)))
 	}
 
-	var val T
-
-	c, inner := codec.UnwrapDecode(data, codec.JSONCodec{})
-
-	err = c.Decode(inner, &val)
-	if err != nil {
-		return nil, errorfamily.WrapCorruption(err, "kv.typed_store.decode",
+	val, decodeErr := decodeEnvelopeOrLegacy[T](data, s.codec)
+	if decodeErr != nil {
+		return nil, errorfamily.WrapCorruption(decodeErr, "kv.typed_store.decode",
 			fmt.Sprintf("decode key %q", s.key(id)))
 	}
 
@@ -136,13 +134,9 @@ func (s *TypedStore[T, K]) Scan(ctx context.Context, prefix []byte) ([]*T, error
 	results := make([]*T, 0)
 
 	for iter.Next() {
-		var val T
-
-		c, inner := codec.UnwrapDecode(iter.Value(), codec.JSONCodec{})
-
-		err = c.Decode(inner, &val)
-		if err != nil {
-			return nil, errorfamily.WrapCorruption(err, "kv.typed_store.scan_decode",
+		val, decodeErr := decodeEnvelopeOrLegacy[T](iter.Value(), s.codec)
+		if decodeErr != nil {
+			return nil, errorfamily.WrapCorruption(decodeErr, "kv.typed_store.scan_decode",
 				fmt.Sprintf("decode key %q", iter.Key()))
 		}
 
@@ -242,4 +236,49 @@ func (s *TypedStore[T, K]) key(id K) []byte {
 	}
 
 	return k
+}
+
+// decodeEnvelopeOrLegacy decodes ADR-0044 envelope-stamped data with its
+// stamped codec, and non-envelope data with the configured codec. When the
+// configured codec fails on non-envelope bytes, one cross-retry with the
+// other standard codec rescues legacy rows written before the envelope
+// existed (raw JSON under a CBOR-configured store, or vice versa), keeping
+// ADR-0050's permanent-readability guarantee.
+//
+//art-dupl:accept duplicated across dep-isolated blind stores (kv/snapshot/command/query); sharing would add a cross-module dependency
+func decodeEnvelopeOrLegacy[T any](data []byte, configured codec.Codec) (T, error) {
+	c, inner := codec.UnwrapDecode(data, configured)
+
+	var val T
+
+	err := c.Decode(inner, &val)
+	if err == nil {
+		return val, nil
+	}
+
+	alt, ok := otherStandardCodec(c)
+	if !ok {
+		return val, err
+	}
+
+	var retry T
+
+	if altErr := alt.Decode(inner, &retry); altErr == nil {
+		return retry, nil
+	}
+
+	return val, err
+}
+
+// otherStandardCodec returns the opposite built-in codec, or false for
+// envelope-stamped or custom codecs (their data only decodes with themselves).
+func otherStandardCodec(c codec.Codec) (codec.Codec, bool) {
+	switch c.(type) {
+	case codec.CBORCodec:
+		return codec.JSONCodec{}, true
+	case codec.JSONCodec:
+		return codec.CBORCodec{}, true
+	default:
+		return nil, false
+	}
 }
