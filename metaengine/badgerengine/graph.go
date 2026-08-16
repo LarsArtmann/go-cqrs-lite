@@ -46,6 +46,7 @@ func graphNodeKey(key any) string {
 }
 
 func graphNodeKeyJSON(v any) string {
+	// art-dupl:accept marshal-with-fallback helper; sqliteengine encodeJSON twin is dep-isolated
 	b, err := json.Marshal(v)
 	if err != nil {
 		return fmt.Sprintf("%v", v)
@@ -61,6 +62,7 @@ func (e *badgerEngine) GraphAddEdge(
 	collection string,
 	edge metaengine.Edge,
 ) error {
+	// art-dupl:accept add/remove edge share the key-encoding prologue by symmetry
 	from := graphNodeKey(edge.From)
 	to := graphNodeKey(edge.To)
 
@@ -114,6 +116,7 @@ func (e *badgerEngine) GraphNeighbors(
 	node any,
 	depth int,
 ) ([]any, error) {
+	// art-dupl:accept directed/undirected BFS share guard+init prologue
 	if depth <= 0 {
 		return []any{}, nil
 	}
@@ -147,6 +150,7 @@ func (e *badgerEngine) GraphNeighbors(
 
 		return nil
 	})
+	// art-dupl:accept view-error epilogue shared by both neighbor walks
 	if err != nil {
 		return nil, err //nolint:wrapcheck // already prefixed inside the view
 	}
@@ -204,6 +208,7 @@ func (e *badgerEngine) GraphNeighborsUndirected(
 
 		return nil
 	})
+	// art-dupl:accept view-error epilogue shared by both neighbor walks
 	if err != nil {
 		return nil, err //nolint:wrapcheck // already prefixed inside the view
 	}

@@ -446,7 +446,7 @@ and is **never** duplicated here.
       _(Effort: XS)_ — done 2026-08-16: recipes §2.12 (CapabilityAudit +
       Doctor snippet + RunCapabilityConformance gate) + modules.md metaengine
       row note; doc-check green (1139 refs).
-- [ ] **Duplication-baseline hygiene** — add `//art-dupl:accept` directives
+- [x] **Duplication-baseline hygiene** — add `//art-dupl:accept` directives
       at the 9 intentional clone sites; dirty-tree guard for baseline
       re-pins; re-pin at next clean tree (current pin includes in-flight
       foreign code).
@@ -457,12 +457,21 @@ and is **never** duplicated here.
       suppress live). The 9 legacy sites + dirty-tree guard remain.
       2026-08-16 (infra wave): dirty-tree guard DONE (`#check-duplication`
       refuses uncommitted baseline changes); 8 `register.go` driver files
-      annotated (`//art-dupl:accept`). REMAINING: 13 NEW clone groups flagged
-      by art-dupl live in the in-flight concurrent mysqlengine/
-      undirected-graph session's files (cross-engine dialect class —
-      documented-intentional, but the owning session must annotate or the
-      `#verify` duplication gate stays red); re-pin still deferred to a
-      clean tree.
+      annotated (`//art-dupl:accept`).
+      2026-08-16 (closeout): concurrent session finished (engine-correctness
+      wave committed `d7e583c82`), so the 12 flagged groups in its files were
+      annotated by this session: cross-engine dialect twins (mysql/sqlite
+      graph_undirected dispatch + row scanners, pebble/pg vector prologues,
+      badger/sqlite marshal-with-fallback helpers), same-file twins
+      (memory_graph RLock+BFS prologues, badger directed/undirected guards,
+      metaengine reflect extractors), and quickstart demo setup. Iterative —
+      suppressing the visible 5 exposed 7 masked groups (art-dupl reports
+      one group per region pair; always re-run to 0). Gate green with
+      baseline untouched; re-pin DROPPED (live annotations are the
+      documented preference — a deleted annotation re-flags its group,
+      forcing re-justification). Directive placement gotcha: it must sit
+      directly on/above the region start, not above the following func's
+      doc comment.
 - [x] **check-coverage.sh hardening** — meta-test asserting every EXPECTED
       key resolves to a real module dir (codec-dangle class); make
       `--update` auto-stamp the "verified" date.
@@ -477,7 +486,8 @@ and is **never** duplicated here.
       added, verified skipping under `-short`. Full `#test`/
       `#test-all-backends` still cover it.
 - [ ] **macOS verification of ephemeral PG** — `scripts/ephemeral-pg.sh` claims
-      cross-platform but was never tested on Darwin.
+      cross-platform but was never tested on Darwin. (Last open item of the
+      19-item Code Quality / Infrastructure section — 18/19 done.)
       _(Effort: M)_ — 2026-08-16: static review done (portability note added
       to the script header; no Linux-isms found, /dev/kvm check
       uname-guarded); hardware verification on a real Mac remains open.

@@ -65,6 +65,7 @@ func (e *pgEngine) VectorSearch(
 		`SELECT id, vector::text FROM meta_vector WHERE collection = $1`,
 		collection,
 	)
+	// art-dupl:accept scan prologue; pebbleengine vector.go is a dep-isolated dialect twin
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.VectorSearch: %w", err)
 	}
@@ -115,6 +116,7 @@ func (e *pgEngine) VectorSearchFiltered(
 		`SELECT id, vector::text, metadata::text FROM meta_vector WHERE collection = $1`,
 		collection,
 	)
+	// art-dupl:accept scan prologue; pebbleengine vector.go is a dep-isolated dialect twin
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.VectorSearchFiltered: %w", err)
 	}

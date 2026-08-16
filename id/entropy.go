@@ -50,6 +50,7 @@ var (
 	idSeq atomic.Uint64
 
 	// epochMu serializes epoch creation only — never held on the fast path.
+	//nolint:gochecknoglobals // epoch-creation mutex; never on the fast path
 	epochMu sync.Mutex
 )
 
@@ -122,7 +123,9 @@ func newULID() ulid.ULID {
 
 		var entropy [10]byte
 		copy(entropy[:6], epoch.prefix[:])
-		binary.BigEndian.PutUint32(entropy[6:], uint32(s))
+
+		seq := uint32(s) //nolint:gosec // G115: low 32 bits are the per-epoch seq suffix
+		binary.BigEndian.PutUint32(entropy[6:], seq)
 		_ = id.SetEntropy(entropy[:])
 
 		return id

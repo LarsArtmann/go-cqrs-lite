@@ -36,6 +36,7 @@ func runGraphDemo(ctx context.Context) error {
 		),
 	)
 
+	// art-dupl:accept standalone demo setup; each demo file is intentionally self-contained
 	store, err := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()}, query)
 	if err != nil {
 		return fmt.Errorf("plan graph: %w", err)
@@ -68,9 +69,11 @@ func runGraphDemo(ctx context.Context) error {
 		}
 
 		fmt.Printf("alice reaches %d account(s) within %d hop(s):", len(neighbors), depth)
+
 		for _, neighbor := range neighbors {
 			fmt.Printf(" %v", neighbor)
 		}
+
 		fmt.Println()
 	}
 

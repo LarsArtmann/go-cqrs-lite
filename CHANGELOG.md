@@ -81,6 +81,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `result/` (root-owned), `reports/` trashed; orphaned pre-recovery stash
   dropped.
 
+### Fixed — lint/duplication gate closeout (concurrent wave adopted) — 2026-08-16
+
+- **8 lint findings fixed across id/metaengine + 5 engine modules** (all
+  from the concurrent vector/undirected-graph wave or pre-existing):
+  dgraphengine `doWithAbortRetry` no longer returns an unused
+  `*api.Response` (unparam); metaengine store.go converts `EdgeRemoval` to
+  `Edge` directly (S1016); duplicate test interface `graphCapable` merged
+  into `graphBackend` (iface); pebble/badger `vectorMetadata` nil-nil
+  returns carry `//nolint:nilnil` with the documented not-found contract;
+  `id/entropy.go` epoch mutex and counter truncation annotated
+  (`gochecknoglobals`, `G115: low 32 bits are the seq suffix`).
+- **12 art-dupl clone groups annotated** (baseline untouched) —
+  cross-engine dialect twins (mysql/sqlite undirected-graph dispatch + row
+  scanners, pebble/pg vector-search prologues, badger/sqlite
+  marshal-with-fallback helpers), same-file twins (memory engine
+  directed/undirected prologues, typed-field reflect extractors), and
+  quickstart demo setup. Iterative to zero: suppressing the visible groups
+  exposes masked ones — re-run `#check-duplication` until 0.
+
 ### Added — MariaDB generated-column layouts + engine-correctness batch — 2026-08-16
 
 - **mysqlengine: MariaDB ApplyLayout is real now** — previously a recorded

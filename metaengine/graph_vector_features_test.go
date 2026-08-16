@@ -48,19 +48,14 @@ type directedOnlyEngine struct {
 	metaengine.Engine
 }
 
-type graphCapable interface {
-	GraphAddEdge(ctx context.Context, collection string, edge metaengine.Edge) error
-	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)
-}
-
 func (d directedOnlyEngine) GraphAddEdge(ctx context.Context, col string, e metaengine.Edge) error {
-	return d.Engine.(graphCapable).GraphAddEdge(ctx, col, e)
+	return d.Engine.(graphBackend).GraphAddEdge(ctx, col, e)
 }
 
 func (d directedOnlyEngine) GraphNeighbors(
 	ctx context.Context, col string, node any, depth int,
 ) ([]any, error) {
-	return d.Engine.(graphCapable).GraphNeighbors(ctx, col, node, depth)
+	return d.Engine.(graphBackend).GraphNeighbors(ctx, col, node, depth)
 }
 
 // vectorOnlyEngine exposes plain VectorBackend but NOT the filter extension.

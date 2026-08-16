@@ -31,7 +31,7 @@ import (
 func (e *dgraphEngine) doWithAbortRetry(
 	ctx context.Context,
 	req *api.Request,
-) (*api.Response, error) {
+) error {
 	const attempts = 6
 	const baseDelay = 15 * time.Millisecond
 	const maxDelay = 240 * time.Millisecond
@@ -39,25 +39,25 @@ func (e *dgraphEngine) doWithAbortRetry(
 	var lastErr error
 
 	for attempt := range attempts {
-		resp, err := e.client.NewTxn().Do(ctx, req)
+		_, err := e.client.NewTxn().Do(ctx, req)
 		if err == nil {
-			return resp, nil
+			return nil
 		}
 
 		lastErr = err
 		if !strings.Contains(err.Error(), "aborted") {
-			return nil, err
+			return err
 		}
 
 		delay := min(baseDelay<<attempt, maxDelay) + rand.N(baseDelay)
 		select {
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return ctx.Err()
 		case <-time.After(delay):
 		}
 	}
 
-	return nil, lastErr
+	return lastErr
 }
 
 func (e *dgraphEngine) GraphAddEdge(
@@ -100,7 +100,7 @@ func (e *dgraphEngine) GraphAddEdge(
 		{SetJson: toJSON, Cond: "@if(eq(len(to_node), 0))"},
 	}
 
-	if _, err := e.doWithAbortRetry(ctx, req); err != nil {
+	if err := e.doWithAbortRetry(ctx, req); err != nil {
 		return fmt.Errorf("dgraphengine.GraphAddEdge: upsert nodes: %w", err)
 	}
 
@@ -114,7 +114,7 @@ func (e *dgraphEngine) GraphAddEdge(
 		{SetNquads: fmt.Appendf(nil, "uid(to_node) <%s> uid(from_node) .", pred)},
 	}
 
-	if _, err := e.doWithAbortRetry(ctx, req2); err != nil {
+	if err := e.doWithAbortRetry(ctx, req2); err != nil {
 		return fmt.Errorf("dgraphengine.GraphAddEdge: add edges: %w", err)
 	}
 
@@ -147,7 +147,7 @@ func (e *dgraphEngine) GraphRemoveEdge(
 		{DelNquads: fmt.Appendf(nil, "uid(to_node) <%s> uid(from_node) .", pred)},
 	}
 
-	if _, err := e.doWithAbortRetry(ctx, req); err != nil {
+	if err := e.doWithAbortRetry(ctx, req); err != nil {
 		return fmt.Errorf("dgraphengine.GraphRemoveEdge: %w", err)
 	}
 

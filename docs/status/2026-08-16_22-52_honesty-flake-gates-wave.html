@@ -851,11 +851,12 @@
           <div class="hero-badge">Status Report</div>
           <h1>Honesty &amp; Flake Gates Wave — Session Closeout</h1>
           <p class="hero-subtitle">
-            The 19-item "Code Quality / Infrastructure" backlog from TODO_LIST.md was
-            executed in one session: 17 shipped and verified, 2 partially done with
-            documented blockers. All new gates were tested positive AND negative before
-            wiring into CI. Two pre-existing gates (lint, duplication) are RED from a
-            concurrent session's in-flight wave — not from this session's work.
+            The 19-item "Code Quality / Infrastructure" backlog from
+            TODO_LIST.md was executed in one session: 17 shipped and verified, 2
+            partially done with documented blockers. All new gates were tested
+            positive AND negative before wiring into CI. Two pre-existing gates
+            (lint, duplication) are RED from a concurrent session's in-flight
+            wave — not from this session's work.
           </p>
         </div>
 
@@ -880,16 +881,23 @@
 
         <h2 id="summary"><span class="num">00</span>Summary</h2>
         <div class="card card-solution">
-          <p><strong>Session scope:</strong> execute the TODO_LIST "Code Quality / Infrastructure"
-          section (19 items). <strong>Outcome:</strong> every gate added this session is green on
-          the current tree and was proven with a negative test (fabricated symbol, staged corrupt
-          file, load-soaked timing tests). The honesty gate caught <em>two</em> inaccurate
-          citations during this session's own changelog consolidation on first run — it works.</p>
-          <p><strong>Valuable side-catch:</strong> the stranded tag-chain worktree held a real,
-          unlanded release fix (command/query pinned metadata/v4.5.0 while using
-          <code>metadata.Metadata</code>, v4.5.0-only — unbuildable GOWORK=off). It was
-          cherry-picked (491379a2b), verified with standalone builds; the already-cut
-          v4.7.1/v4.6.1 tags were confirmed to carry the fixed pins.</p>
+          <p>
+            <strong>Session scope:</strong> execute the TODO_LIST "Code Quality
+            / Infrastructure" section (19 items).
+            <strong>Outcome:</strong> every gate added this session is green on
+            the current tree and was proven with a negative test (fabricated
+            symbol, staged corrupt file, load-soaked timing tests). The honesty
+            gate caught <em>two</em> inaccurate citations during this session's
+            own changelog consolidation on first run — it works.
+          </p>
+          <p>
+            <strong>Valuable side-catch:</strong> the stranded tag-chain
+            worktree held a real, unlanded release fix (command/query pinned
+            metadata/v4.5.0 while using <code>metadata.Metadata</code>,
+            v4.5.0-only — unbuildable GOWORK=off). It was cherry-picked
+            (491379a2b), verified with standalone builds; the already-cut
+            v4.7.1/v4.6.1 tags were confirmed to carry the fixed pins.
+          </p>
         </div>
 
         <h2 id="done"><span class="num">A</span>Fully Done (verified)</h2>
@@ -897,85 +905,168 @@
         <div class="issue issue-nice">
           <span class="severity severity-nice">Done &middot; XS</span>
           <h3>api-stability fails loudly on unparseable modules</h3>
-          <div class="where">cmd/api-stability/main.go &middot; was: skip &lt;module&gt;: + continue</div>
-          <p>A corrupted module now hard-errors instead of silently shrinking the golden. Verified: 4188 exports, exit 0; meta-tests pass.</p>
+          <div class="where">
+            cmd/api-stability/main.go &middot; was: skip &lt;module&gt;: +
+            continue
+          </div>
+          <p>
+            A corrupted module now hard-errors instead of silently shrinking the
+            golden. Verified: 4188 exports, exit 0; meta-tests pass.
+          </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Done &middot; S</span>
           <h3>CHANGELOG honesty gate</h3>
-          <div class="where">scripts/check-changelog-symbols.sh &middot; CI check job</div>
-          <p>Every pkg.Symbol cited in [Unreleased] Added/Changed must exist in the api-stability golden or repo source (3-tier resolution incl. subpackage fallback for citations like enginetest.X). Negative test: fabricated dedup.RingX &rarr; FICTION, exit 1. Caught 2 stale citations in the old module changelogs during consolidation.</p>
+          <div class="where">
+            scripts/check-changelog-symbols.sh &middot; CI check job
+          </div>
+          <p>
+            Every pkg.Symbol cited in [Unreleased] Added/Changed must exist in
+            the api-stability golden or repo source (3-tier resolution incl.
+            subpackage fallback for citations like enginetest.X). Negative test:
+            fabricated dedup.RingX &rarr; FICTION, exit 1. Caught 2 stale
+            citations in the old module changelogs during consolidation.
+          </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Done &middot; XS</span>
           <h3>doc-check zero-warning policy</h3>
           <div class="where">cmd/doc-check &middot; main.go + exports.go</div>
-          <p>Unreadable dirs, empty exports, and unparseable files now FAIL (were log warnings); zero total references is an error (silent no-op verification). Full verify file set: 1139 refs, 0 warnings, exit 0.</p>
+          <p>
+            Unreadable dirs, empty exports, and unparseable files now FAIL (were
+            log warnings); zero total references is an error (silent no-op
+            verification). Full verify file set: 1139 refs, 0 warnings, exit 0.
+          </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Done &middot; XS</span>
           <h3>Staged-.go syntax gate in pre-commit</h3>
-          <div class="where">scripts/check-staged-go.sh &middot; hook + install-hooks.sh + pre-commit.sh</div>
-          <p>gofmt -e -l on staged files (|| true so gofmt's exit-2 feeds the check instead of tripping set -e). Negative test: staged "func (w *workor)" &rarr; precise parse errors, exit 1. install-hooks.sh is now the canonical restorer of BOTH post-BuildFlow gates.</p>
+          <div class="where">
+            scripts/check-staged-go.sh &middot; hook + install-hooks.sh +
+            pre-commit.sh
+          </div>
+          <p>
+            gofmt -e -l on staged files (|| true so gofmt's exit-2 feeds the
+            check instead of tripping set -e). Negative test: staged "func (w
+            *workor)" &rarr; precise parse errors, exit 1. install-hooks.sh is
+            now the canonical restorer of BOTH post-BuildFlow gates.
+          </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Done &middot; S</span>
           <h3>Redis broker CI + broker-edge tests</h3>
-          <div class="where">#integration-redis &middot; watermill/broker_edge_redis_test.go &middot; CI job</div>
-          <p>Ephemeral nixpkgs Redis (mirrors #integration-pg), default command runs the watermill suite. Three new tests cover the gochannel-blind edges: Nack redelivery (NackResendSleep=200ms), consumer-group exactly-once across two subscribers (20 msgs, no dupes/losses), 2 MiB payload integrity. All 4 broker tests green against a real broker.</p>
+          <div class="where">
+            #integration-redis &middot; watermill/broker_edge_redis_test.go
+            &middot; CI job
+          </div>
+          <p>
+            Ephemeral nixpkgs Redis (mirrors #integration-pg), default command
+            runs the watermill suite. Three new tests cover the gochannel-blind
+            edges: Nack redelivery (NackResendSleep=200ms), consumer-group
+            exactly-once across two subscribers (20 msgs, no dupes/losses), 2
+            MiB payload integrity. All 4 broker tests green against a real
+            broker.
+          </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Done &middot; S</span>
           <h3>Load sweep, verify-ci, check-lint-config apps</h3>
           <div class="where">flake.nix &middot; scripts/load-sweep.sh</div>
-          <p>#load-sweep runs the 8 timing-test modules under nproc-1 CPU soakers before #verify; #verify-ci mirrors the CI matrix job (GOWORK=off per-module build+test); #check-lint-config = golangci config verify + depguard. Flake eval verified, all four new apps listed.</p>
+          <p>
+            #load-sweep runs the 8 timing-test modules under nproc-1 CPU soakers
+            before #verify; #verify-ci mirrors the CI matrix job (GOWORK=off
+            per-module build+test); #check-lint-config = golangci config verify
+            + depguard. Flake eval verified, all four new apps listed.
+          </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Done &middot; S</span>
           <h3>benchkit + duckdbengine flake/threshold fixes</h3>
-          <div class="where">benchkit/benchkit_test.go &middot; metaengine/duckdbengine/soak_autocrud_cgo_test.go</div>
-          <p>SQLite DurationAborts aligned to the flat-30s hang model (3x -race green, 22s); the DuckDB soak's comment claimed a -short skip the code never implemented — testing.Short() gate added, verified skipping (verify-fast was paying 80-100s every run).</p>
+          <div class="where">
+            benchkit/benchkit_test.go &middot;
+            metaengine/duckdbengine/soak_autocrud_cgo_test.go
+          </div>
+          <p>
+            SQLite DurationAborts aligned to the flat-30s hang model (3x -race
+            green, 22s); the DuckDB soak's comment claimed a -short skip the
+            code never implemented — testing.Short() gate added, verified
+            skipping (verify-fast was paying 80-100s every run).
+          </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Done &middot; S</span>
           <h3>Import-grouping ownership settled (gci removed)</h3>
           <div class="where">.golangci.yml &middot; AGENTS.md #18</div>
-          <p>treefmt goimports -local owns the 3-group layout; gci removed from formatters (two tools fighting over the same import blocks re-broke 95+ files once). config verify exit 0; CI nix fmt --fail-on-change enforces grouping mechanically.</p>
+          <p>
+            treefmt goimports -local owns the 3-group layout; gci removed from
+            formatters (two tools fighting over the same import blocks re-broke
+            95+ files once). config verify exit 0; CI nix fmt --fail-on-change
+            enforces grouping mechanically.
+          </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Done &middot; S</span>
           <h3>Stranded release fix landed + workspace hygiene</h3>
           <div class="where">cherry-pick 092b5e8a8 &rarr; 491379a2b</div>
-          <p>metadata/v4.5.0 pin repair + retracts + tag-release.sh GOWORK=off-build gate; standalone GOWORK=off builds of command+query green; v4.7.1/v4.6.1 tags verified fixed. 4 stray worktrees removed, junk dirs (t/, root-owned result/, reports/) trashed, orphaned stash dropped. art-dupl dirty-tree guard + register.go art-dupl:accept x8 (all engines build, CGo included).</p>
+          <p>
+            metadata/v4.5.0 pin repair + retracts + tag-release.sh
+            GOWORK=off-build gate; standalone GOWORK=off builds of command+query
+            green; v4.7.1/v4.6.1 tags verified fixed. 4 stray worktrees removed,
+            junk dirs (t/, root-owned result/, reports/) trashed, orphaned stash
+            dropped. art-dupl dirty-tree guard + register.go art-dupl:accept x8
+            (all engines build, CGo included).
+          </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Done &middot; L&rarr;M</span>
           <h3>Per-module CHANGELOGs consolidated (root-only policy)</h3>
-          <div class="where">CHANGELOG.md &middot; CONTRIBUTING.md &middot; 4 files deleted</div>
-          <p>Survey found 4 (not 6) module files, all orphaned and stale — three described already-tagged work as [Unreleased]. Unmirrored content folded into root (honesty gate caught a nonexistent InitSchemaWithIndexesAndOptimizations citation and an IndexSet.DropDDL&rarr;Index.DropDDL inaccuracy in the OLD module files during the fold). Policy + enforcement documented.</p>
+          <div class="where">
+            CHANGELOG.md &middot; CONTRIBUTING.md &middot; 4 files deleted
+          </div>
+          <p>
+            Survey found 4 (not 6) module files, all orphaned and stale — three
+            described already-tagged work as [Unreleased]. Unmirrored content
+            folded into root (honesty gate caught a nonexistent
+            InitSchemaWithIndexesAndOptimizations citation and an
+            IndexSet.DropDDL&rarr;Index.DropDDL inaccuracy in the OLD module
+            files during the fold). Policy + enforcement documented.
+          </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Done &middot; XS</span>
           <h3>Capability diagnostics docs + coverage/replace guards</h3>
-          <div class="where">recipes.md &sect;2.12 &middot; modules.md &middot; check-coverage.sh &middot; check-replace-directives.sh</div>
-          <p>CapabilityAudit/Doctor recipe + metaengine row note (doc-check 1139 refs green, TOC updated); dangling EXPECTED coverage keys fail fast + --update auto-stamps the verified date (11/11 within tolerance); absolute-path replace targets rejected (relative siblings stay the convention).</p>
+          <div class="where">
+            recipes.md &sect;2.12 &middot; modules.md &middot; check-coverage.sh
+            &middot; check-replace-directives.sh
+          </div>
+          <p>
+            CapabilityAudit/Doctor recipe + metaengine row note (doc-check 1139
+            refs green, TOC updated); dangling EXPECTED coverage keys fail fast
+            + --update auto-stamps the verified date (11/11 within tolerance);
+            absolute-path replace targets rejected (relative siblings stay the
+            convention).
+          </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Done &middot; XS</span>
           <h3>Heap-measurement contract tripwire</h3>
           <div class="where">scripts/check-heap-parallel.sh &middot; CI</div>
-          <p>Same-file grep: files calling runtime.ReadMemStats must not call t.Parallel(). 5 current files checked, contract holds. Cross-file soak-runner callers remain a review concern (documented in-script).</p>
+          <p>
+            Same-file grep: files calling runtime.ReadMemStats must not call
+            t.Parallel(). 5 current files checked, contract holds. Cross-file
+            soak-runner callers remain a review concern (documented in-script).
+          </p>
         </div>
 
         <h2 id="partial"><span class="num">B</span>Partially Done</h2>
@@ -983,31 +1074,66 @@
         <div class="issue issue-important">
           <span class="severity severity-important">Partial &middot; S</span>
           <h3>Duplication-baseline hygiene</h3>
-          <div class="where">.art-dupl-baseline.json &middot; 13 new clone groups</div>
-          <p>Dirty-tree guard DONE (#check-duplication refuses uncommitted baseline changes); 8 register.go files annotated. REMAINING: 13 NEW groups flagged by art-dupl live in the concurrent session's mysqlengine/undirected-graph wave (cross-engine dialect class = documented-intentional, but only the owning session should annotate files it is still editing); baseline re-pin deferred to a clean tree.</p>
+          <div class="where">
+            .art-dupl-baseline.json &middot; 13 new clone groups
+          </div>
+          <p>
+            Dirty-tree guard DONE (#check-duplication refuses uncommitted
+            baseline changes); 8 register.go files annotated. REMAINING: 13 NEW
+            groups flagged by art-dupl live in the concurrent session's
+            mysqlengine/undirected-graph wave (cross-engine dialect class =
+            documented-intentional, but only the owning session should annotate
+            files it is still editing); baseline re-pin deferred to a clean
+            tree.
+          </p>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Partial &middot; M</span>
           <h3>macOS verification of ephemeral PG</h3>
           <div class="where">scripts/ephemeral-pg.sh</div>
-          <p>Static review complete (portability note added; no Linux-isms, /dev/kvm check uname-guarded). Hardware verification on a real Mac remains open — no Darwin host available.</p>
+          <p>
+            Static review complete (portability note added; no Linux-isms,
+            /dev/kvm check uname-guarded). Hardware verification on a real Mac
+            remains open — no Darwin host available.
+          </p>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Partial &middot; XS</span>
           <h3>#sweep cron wiring</h3>
           <div class="where">flake.nix sweep app</div>
-          <p>Cron line documented in TODO_LIST (0 * * * * nix run .#sweep); deliberately NOT wired into pre-commit (its 5-minute lint pass would dwarf every other gate). Enabling the cron entry is a one-line user action.</p>
+          <p>
+            Cron line documented in TODO_LIST (0 * * * * nix run .#sweep);
+            deliberately NOT wired into pre-commit (its 5-minute lint pass would
+            dwarf every other gate). Enabling the cron entry is a one-line user
+            action.
+          </p>
         </div>
 
-        <h2 id="notstarted"><span class="num">C</span>Not Started (carried over)</h2>
+        <h2 id="notstarted">
+          <span class="num">C</span>Not Started (carried over)
+        </h2>
         <div class="card">
-          <ul style="padding-left:1.2rem">
-            <li><strong>.golangci.yml exclusion audit</strong> — system/ (20 linters disabled), cmd/cqrs-lint/ (17), metaengine/ (24). (M)</li>
-            <li><strong>WithActor test-coverage gaps</strong> — golden JSON, watermill wire format, CBOR roundtrip, SQL scan path, e2e propagation. (M)</li>
-            <li><strong>WithActor ecosystem propagation</strong> — scenario DSL, scheduling, deriver, commandlifecycle, ActorID-from-context. (M)</li>
-            <li><strong>Metaengine vector phases</strong> — binary float32 payloads (Phase 0, ~190x decode gap), int8 quantization (Phase 1), HNSW spike (Phase 2). (M/L)</li>
+          <ul style="padding-left: 1.2rem">
+            <li>
+              <strong>.golangci.yml exclusion audit</strong> — system/ (20
+              linters disabled), cmd/cqrs-lint/ (17), metaengine/ (24). (M)
+            </li>
+            <li>
+              <strong>WithActor test-coverage gaps</strong> — golden JSON,
+              watermill wire format, CBOR roundtrip, SQL scan path, e2e
+              propagation. (M)
+            </li>
+            <li>
+              <strong>WithActor ecosystem propagation</strong> — scenario DSL,
+              scheduling, deriver, commandlifecycle, ActorID-from-context. (M)
+            </li>
+            <li>
+              <strong>Metaengine vector phases</strong> — binary float32
+              payloads (Phase 0, ~190x decode gap), int8 quantization (Phase 1),
+              HNSW spike (Phase 2). (M/L)
+            </li>
           </ul>
         </div>
 
@@ -1015,86 +1141,421 @@
 
         <div class="issue issue-critical">
           <span class="severity severity-critical">Gate RED</span>
-          <h3>Lint gate: 7 findings across 6 modules — all from the concurrent session's committed vector/undirected wave (plus one pre-existing)</h3>
-          <div class="where">id &middot; metaengine &middot; badgerengine &middot; dgraphengine &middot; pebbleengine &middot; (mine: watermill, cmd/doc-check — FIXED, 0 issues now)</div>
-          <p>nilnil &times;3 (pebble/badger vector.go "return nil, nil"), iface &times;2 (metaengine duplicate graph interfaces in test files), staticcheck &times;1 (metaengine), gochecknoglobals + gosec G115 in id/entropy.go (pre-existing committed code). None are this session's files; all three lint findings in this session's own files were fixed and re-verified to 0 issues. The gate cannot go green until the owning session (or a follow-up) fixes or nolint-annotates these.</p>
+          <h3>
+            Lint gate: 7 findings across 6 modules — all from the concurrent
+            session's committed vector/undirected wave (plus one pre-existing)
+          </h3>
+          <div class="where">
+            id &middot; metaengine &middot; badgerengine &middot; dgraphengine
+            &middot; pebbleengine &middot; (mine: watermill, cmd/doc-check —
+            FIXED, 0 issues now)
+          </div>
+          <p>
+            nilnil &times;3 (pebble/badger vector.go "return nil, nil"), iface
+            &times;2 (metaengine duplicate graph interfaces in test files),
+            staticcheck &times;1 (metaengine), gochecknoglobals + gosec G115 in
+            id/entropy.go (pre-existing committed code). None are this session's
+            files; all three lint findings in this session's own files were
+            fixed and re-verified to 0 issues. The gate cannot go green until
+            the owning session (or a follow-up) fixes or nolint-annotates these.
+          </p>
         </div>
 
         <div class="issue issue-critical">
           <span class="severity severity-critical">Gate RED</span>
-          <h3>Duplication gate: 13 new clone groups in the concurrent session's in-flight wave</h3>
-          <div class="where">mysqlengine/graph_undirected.go &harr; sqliteengine/graph_undirected.go &middot; badgerengine/graph.go &middot; pebble/pg vector.go &middot; metaengine/memory_graph.go &middot; example demos</div>
-          <p>The undirected-graph + filtered-kNN wave (committed by the daemon mid-session) introduced cross-engine dialect clones without art-dupl:accept annotations. Cross-engine SQL similarity is the DOCUMENTED intentional pattern — they need directives, not dedup. Annotating files the other session is still editing risks conflicts (it changed CHANGELOG.md under this session mid-edit once already).</p>
+          <h3>
+            Duplication gate: 13 new clone groups in the concurrent session's
+            in-flight wave
+          </h3>
+          <div class="where">
+            mysqlengine/graph_undirected.go &harr;
+            sqliteengine/graph_undirected.go &middot; badgerengine/graph.go
+            &middot; pebble/pg vector.go &middot; metaengine/memory_graph.go
+            &middot; example demos
+          </div>
+          <p>
+            The undirected-graph + filtered-kNN wave (committed by the daemon
+            mid-session) introduced cross-engine dialect clones without
+            art-dupl:accept annotations. Cross-engine SQL similarity is the
+            DOCUMENTED intentional pattern — they need directives, not dedup.
+            Annotating files the other session is still editing risks conflicts
+            (it changed CHANGELOG.md under this session mid-edit once already).
+          </p>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Environmental</span>
           <h3>/tmp tmpfs pressure + host toolchain mismatch</h3>
-          <div class="where">tmpfs 48G shared &middot; go 1.26.5 host vs go.work 1.26.6</div>
-          <p>verify-fast died once on "final link failed: No space left on device" (DuckDB static link); reclaimed 13G via trash-empty. Systemic pressure remains (bigtest + gomodcache live under /tmp). The host Go being older than go.work floods every LSP session with phantom errors (GOTOOLCHAIN=local); builds are authoritative.</p>
+          <div class="where">
+            tmpfs 48G shared &middot; go 1.26.5 host vs go.work 1.26.6
+          </div>
+          <p>
+            verify-fast died once on "final link failed: No space left on
+            device" (DuckDB static link); reclaimed 13G via trash-empty.
+            Systemic pressure remains (bigtest + gomodcache live under /tmp).
+            The host Go being older than go.work floods every LSP session with
+            phantom errors (GOTOOLCHAIN=local); builds are authoritative.
+          </p>
         </div>
 
         <h2 id="improve"><span class="num">E</span>What We Should Improve</h2>
         <div class="card card-warning">
-          <ul style="padding-left:1.2rem">
-            <li><strong>Concurrent-wave gate discipline</strong> — the vector/undirected wave shipped without a lint or duplication sweep; both gates went red on committed code. A "verify-fast before session end" habit (now cheaper with the -short soak fix) would have caught it.</li>
-            <li><strong>Comment-vs-code split brains</strong> — the duckdb soak claimed a -short skip that never existed; the module CHANGELOGs cited functions that never existed. Doc-check + the honesty gate now catch the classes mechanically — keep claims in gates, not comments.</li>
-            <li><strong>Adopt #load-sweep</strong> before any #verify that follows timing-path edits; it converts 2&times;20-minute gate-cycle discoveries into a 2-minute pre-flight.</li>
-            <li><strong>Root-only changelog is now enforced</strong> — three tripwires (tag-content meta-test, symbol honesty, one-[Unreleased]) make fiction structural impossible rather than a discipline problem.</li>
+          <ul style="padding-left: 1.2rem">
+            <li>
+              <strong>Concurrent-wave gate discipline</strong> — the
+              vector/undirected wave shipped without a lint or duplication
+              sweep; both gates went red on committed code. A "verify-fast
+              before session end" habit (now cheaper with the -short soak fix)
+              would have caught it.
+            </li>
+            <li>
+              <strong>Comment-vs-code split brains</strong> — the duckdb soak
+              claimed a -short skip that never existed; the module CHANGELOGs
+              cited functions that never existed. Doc-check + the honesty gate
+              now catch the classes mechanically — keep claims in gates, not
+              comments.
+            </li>
+            <li>
+              <strong>Adopt #load-sweep</strong> before any #verify that follows
+              timing-path edits; it converts 2&times;20-minute gate-cycle
+              discoveries into a 2-minute pre-flight.
+            </li>
+            <li>
+              <strong>Root-only changelog is now enforced</strong> — three
+              tripwires (tag-content meta-test, symbol honesty,
+              one-[Unreleased]) make fiction structural impossible rather than a
+              discipline problem.
+            </li>
           </ul>
         </div>
 
         <h2 id="next"><span class="num">F</span>Top 25 Things To Do Next</h2>
         <table class="table">
           <thead>
-            <tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th><th>Badge</th></tr>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Badge</th>
+            </tr>
           </thead>
           <tbody>
-            <tr><td>1</td><td>Fix/annotate the 7 foreign lint findings (nilnil &times;3, iface &times;2, staticcheck, id entropy &times;2) &mdash; unblocks #lint/#verify</td><td>Critical</td><td>XS</td><td><span class="badge badge-critical">P0</span></td></tr>
-            <tr><td>2</td><td>Annotate the 13 art-dupl clone groups (cross-engine dialect class) &mdash; unblocks #check-duplication</td><td>Critical</td><td>S</td><td><span class="badge badge-critical">P0</span></td></tr>
-            <tr><td>3</td><td>Run full #verify (soaks included) once 1+2 land &mdash; first clean full gate since the wave</td><td>High</td><td>M</td><td><span class="badge badge-high">P1</span></td></tr>
-            <tr><td>4</td><td>Re-pin art-dupl baseline on a clean tree (current pin predates the wave)</td><td>High</td><td>S</td><td><span class="badge badge-high">P1</span></td></tr>
-            <tr><td>5</td><td>Metaengine vector Phase 0: binary float32 payloads (~190x JSON-decode gap, spike documented)</td><td>High</td><td>M</td><td><span class="badge badge-high">P1</span></td></tr>
-            <tr><td>6</td><td>Upgrade host Go to &ge;1.26.6 (kills the GOTOOLCHAIN LSP noise flood)</td><td>Medium</td><td>S</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>7</td><td>Move bigtest/gomodcache off /tmp tmpfs (or enlarge) &mdash; systemic link-failure pressure</td><td>Medium</td><td>S</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>8</td><td>.golangci.yml exclusion audit: system/ 20, cqrs-lint/ 17, metaengine/ 24 disabled linters</td><td>Medium</td><td>M</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>9</td><td>WithActor test-coverage gaps (golden JSON, CBOR roundtrip, e2e propagation)</td><td>Medium</td><td>M</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>10</td><td>WithActor ecosystem propagation (scenario DSL, scheduling, deriver, commandlifecycle)</td><td>Medium</td><td>M</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>11</td><td>macOS hardware verification of ephemeral-pg.sh</td><td>Medium</td><td>M</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>12</td><td>Enable the #sweep hourly cron (line documented in TODO_LIST)</td><td>Low</td><td>XS</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>13</td><td>Redis broker: subscriber-failure claim-takeover test (MaxIdleTime path)</td><td>Low</td><td>M</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>14</td><td>doc-check tripwire: fail on any module-local CHANGELOG.md (policy enforcement)</td><td>Low</td><td>XS</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>15</td><td>kv coverage 71.9% (lowest tracked) &mdash; raise toward the 80% floor</td><td>Low</td><td>M</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>16</td><td>F46: tag go-codec envelope fast-path + relax remaining exact alloc pins</td><td>Low</td><td>S</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>17</td><td>Vector Phase 1: int8 scalar quantization + exact re-rank</td><td>Low</td><td>L</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>18</td><td>cqrs-lint rule for replace-directives (belt+braces over the script gate)</td><td>Low</td><td>S</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>19</td><td>Honesty gate: extend to Fixed/Removed headings once policy freezes released sections</td><td>Low</td><td>S</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>20</td><td>benchkit soak: SOAK_SKIP env mirror of the duckdb gate for CI budgets</td><td>Low</td><td>S</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>21</td><td>HNSW Phase 2 spike (capability interface + filter-fallback strategy)</td><td>Low</td><td>L</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>22</td><td>Audit remaining TODO_LIST sections for stale premises (devShell tools were already present; "6 module changelogs" was 4)</td><td>Low</td><td>S</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>23</td><td>Turn the verify-docs build-check into verify-fast's tail (it re-runs #build redundantly today)</td><td>Low</td><td>XS</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>24</td><td>Document the register.go self-registration pattern in references/modules.md (consumer-facing)</td><td>Low</td><td>XS</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>25</td><td>Consider golangci nilnil+iface enablement review for engine modules (caught real smells this session)</td><td>Low</td><td>S</td><td><span class="badge badge-low">P3</span></td></tr>
+            <tr>
+              <td>1</td>
+              <td>
+                Fix/annotate the 7 foreign lint findings (nilnil &times;3, iface
+                &times;2, staticcheck, id entropy &times;2) &mdash; unblocks
+                #lint/#verify
+              </td>
+              <td>Critical</td>
+              <td>XS</td>
+              <td><span class="badge badge-critical">P0</span></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>
+                Annotate the 13 art-dupl clone groups (cross-engine dialect
+                class) &mdash; unblocks #check-duplication
+              </td>
+              <td>Critical</td>
+              <td>S</td>
+              <td><span class="badge badge-critical">P0</span></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>
+                Run full #verify (soaks included) once 1+2 land &mdash; first
+                clean full gate since the wave
+              </td>
+              <td>High</td>
+              <td>M</td>
+              <td><span class="badge badge-high">P1</span></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>
+                Re-pin art-dupl baseline on a clean tree (current pin predates
+                the wave)
+              </td>
+              <td>High</td>
+              <td>S</td>
+              <td><span class="badge badge-high">P1</span></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>
+                Metaengine vector Phase 0: binary float32 payloads (~190x
+                JSON-decode gap, spike documented)
+              </td>
+              <td>High</td>
+              <td>M</td>
+              <td><span class="badge badge-high">P1</span></td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>
+                Upgrade host Go to &ge;1.26.6 (kills the GOTOOLCHAIN LSP noise
+                flood)
+              </td>
+              <td>Medium</td>
+              <td>S</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>
+                Move bigtest/gomodcache off /tmp tmpfs (or enlarge) &mdash;
+                systemic link-failure pressure
+              </td>
+              <td>Medium</td>
+              <td>S</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>
+                .golangci.yml exclusion audit: system/ 20, cqrs-lint/ 17,
+                metaengine/ 24 disabled linters
+              </td>
+              <td>Medium</td>
+              <td>M</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>
+                WithActor test-coverage gaps (golden JSON, CBOR roundtrip, e2e
+                propagation)
+              </td>
+              <td>Medium</td>
+              <td>M</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>
+                WithActor ecosystem propagation (scenario DSL, scheduling,
+                deriver, commandlifecycle)
+              </td>
+              <td>Medium</td>
+              <td>M</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>macOS hardware verification of ephemeral-pg.sh</td>
+              <td>Medium</td>
+              <td>M</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td>
+                Enable the #sweep hourly cron (line documented in TODO_LIST)
+              </td>
+              <td>Low</td>
+              <td>XS</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td>
+                Redis broker: subscriber-failure claim-takeover test
+                (MaxIdleTime path)
+              </td>
+              <td>Low</td>
+              <td>M</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td>
+                doc-check tripwire: fail on any module-local CHANGELOG.md
+                (policy enforcement)
+              </td>
+              <td>Low</td>
+              <td>XS</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td>
+                kv coverage 71.9% (lowest tracked) &mdash; raise toward the 80%
+                floor
+              </td>
+              <td>Low</td>
+              <td>M</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td>
+                F46: tag go-codec envelope fast-path + relax remaining exact
+                alloc pins
+              </td>
+              <td>Low</td>
+              <td>S</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td>Vector Phase 1: int8 scalar quantization + exact re-rank</td>
+              <td>Low</td>
+              <td>L</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td>
+                cqrs-lint rule for replace-directives (belt+braces over the
+                script gate)
+              </td>
+              <td>Low</td>
+              <td>S</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td>
+                Honesty gate: extend to Fixed/Removed headings once policy
+                freezes released sections
+              </td>
+              <td>Low</td>
+              <td>S</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td>
+                benchkit soak: SOAK_SKIP env mirror of the duckdb gate for CI
+                budgets
+              </td>
+              <td>Low</td>
+              <td>S</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td>
+                HNSW Phase 2 spike (capability interface + filter-fallback
+                strategy)
+              </td>
+              <td>Low</td>
+              <td>L</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td>
+                Audit remaining TODO_LIST sections for stale premises (devShell
+                tools were already present; "6 module changelogs" was 4)
+              </td>
+              <td>Low</td>
+              <td>S</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td>
+                Turn the verify-docs build-check into verify-fast's tail (it
+                re-runs #build redundantly today)
+              </td>
+              <td>Low</td>
+              <td>XS</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td>
+                Document the register.go self-registration pattern in
+                references/modules.md (consumer-facing)
+              </td>
+              <td>Low</td>
+              <td>XS</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td>
+                Consider golangci nilnil+iface enablement review for engine
+                modules (caught real smells this session)
+              </td>
+              <td>Low</td>
+              <td>S</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
           </tbody>
         </table>
 
-        <h2 id="question"><span class="num">G</span>The One Question I Cannot Answer Myself</h2>
+        <h2 id="question">
+          <span class="num">G</span>The One Question I Cannot Answer Myself
+        </h2>
         <div class="card card-problem">
-          <p><strong>Who owns the RED gates right now?</strong> The lint findings (7) and clone
-          groups (13) live in the concurrent session's committed vector/undirected wave and one
-          pre-existing file (id/entropy.go). That session was still actively editing files during
-          this session (it rewrote CHANGELOG.md under me mid-edit). Fixing them is ~30 minutes of
-          work &mdash; but doing it while the other session is live risks edit conflicts and
-          stepping on its intent (e.g., its iface duplication may be deliberate scaffolding for
-          the undirected-graph matrix).</p>
-          <p><em>Is the concurrent session finished, and should I take over its lint/duplication
-          cleanup &mdash; or is it still running and I should stand down?</em></p>
+          <p>
+            <strong>Who owns the RED gates right now?</strong> The lint findings
+            (7) and clone groups (13) live in the concurrent session's committed
+            vector/undirected wave and one pre-existing file (id/entropy.go).
+            That session was still actively editing files during this session
+            (it rewrote CHANGELOG.md under me mid-edit). Fixing them is ~30
+            minutes of work &mdash; but doing it while the other session is live
+            risks edit conflicts and stepping on its intent (e.g., its iface
+            duplication may be deliberate scaffolding for the undirected-graph
+            matrix).
+          </p>
+          <p>
+            <em
+              >Is the concurrent session finished, and should I take over its
+              lint/duplication cleanup &mdash; or is it still running and I
+              should stand down?</em
+            >
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h3>
+            ANSWERED 2026-08-16 23:37 &mdash; question resolved, gates taken
+            over
+          </h3>
+          <p>
+            The concurrent session finished (final commit
+            <code>d7e583c82</code>, "engine-correctness batch completion",
+            23:32) and left a clean tree. This session then adopted the cleanup:
+          </p>
+          <ul>
+            <li>
+              <strong>Lint: 8 findings &rarr; 0</strong> (7 reported + a new
+              <code>unparam</code> in the concurrent wave's final commits):
+              <code>doWithAbortRetry</code> returns <code>error</code> only;
+              <code>Edge(removal)</code> conversion (S1016);
+              <code>graphCapable</code> merged into
+              <code>graphBackend</code> (the iface duplication was NOT
+              deliberate scaffolding); nilnil nolints matching the 6 existing
+              repo sites; id/entropy.go epoch-mutex + G115 annotations following
+              the file's own sibling style.
+            </li>
+            <li>
+              <strong>Duplication: 12 groups &rarr; 0</strong>, baseline
+              untouched, in 4 iterative rounds (suppressing visible groups
+              unmasks hidden ones). All are the documented intentional classes:
+              cross-engine dialect twins, same-file directed/undirected
+              prologues, demo setup.
+            </li>
+            <li>
+              Per-module build+test+lint green for all 8 touched modules;
+              findings landed in CHANGELOG, TODO_LIST closed out, AGENTS.md
+              gotcha extended (iteration + directive placement). Only the macOS
+              hardware verify of ephemeral-pg.sh remains open from the 19-item
+              section.
+            </li>
+          </ul>
         </div>
 
         <footer class="footer">
-          Generated 2026-08-16 22:52 &middot; Every claim in section A was verified by running the
-          named gate (positive + negative where applicable) &middot; verify-fast state: mine green,
-          gate red on foreign findings (see D)
+          Generated 2026-08-16 22:52 &middot; Every claim in section A was
+          verified by running the named gate (positive + negative where
+          applicable) &middot; verify-fast state: mine green, gate red on
+          foreign findings (see D)
         </footer>
       </main>
     </div>

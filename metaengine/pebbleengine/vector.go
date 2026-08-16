@@ -60,6 +60,7 @@ func (e *pebbleEngine) VectorSearch(
 	prefix := keycodec.VectorPrefix(collection)
 
 	iter, err := e.newPrefixIter(prefix)
+	// art-dupl:accept scan prologue; pgengine vector.go is a dep-isolated dialect twin
 	if err != nil {
 		return nil, fmt.Errorf("pebbleengine.VectorSearch: %w", err)
 	}
@@ -103,6 +104,7 @@ func (e *pebbleEngine) VectorSearchFiltered(
 	prefix := keycodec.VectorPrefix(collection)
 
 	iter, err := e.newPrefixIter(prefix)
+	// art-dupl:accept scan prologue; pgengine vector.go is a dep-isolated dialect twin
 	if err != nil {
 		return nil, fmt.Errorf("pebbleengine.VectorSearchFiltered: %w", err)
 	}
@@ -144,7 +146,7 @@ func (e *pebbleEngine) VectorSearchFiltered(
 func (e *pebbleEngine) vectorMetadata(collection, id string) (map[string]any, error) {
 	value, closer, err := e.db.Get(keycodec.VectorMetaKey(collection, id))
 	if errors.Is(err, pebble.ErrNotFound) {
-		return nil, nil
+		return nil, nil //nolint:nilnil // no metadata stored is not an error
 	}
 	if err != nil {
 		return nil, err //nolint:wrapcheck // wrapped by caller

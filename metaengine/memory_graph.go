@@ -46,6 +46,7 @@ func (m *memoryEngine) GraphNeighbors(
 	node any,
 	depth int,
 ) ([]any, error) {
+	// art-dupl:accept RLock prologue shared with GraphNeighborsUndirected below
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -54,6 +55,7 @@ func (m *memoryEngine) GraphNeighbors(
 		return nil, nil
 	}
 
+	// art-dupl:accept BFS init shared with GraphNeighborsUndirected below
 	start := fmt.Sprint(node)
 	visited := map[string]bool{start: true}
 	frontier := []string{start}
@@ -116,6 +118,7 @@ func (m *memoryEngine) GraphNeighborsUndirected(
 	node any,
 	depth int,
 ) ([]any, error) {
+	// art-dupl:accept RLock prologue shared with GraphNeighbors above
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 

@@ -156,7 +156,7 @@ func vectorMetadata(txn *badger.Txn, collection, id string) (map[string]any, err
 	item, err := txn.Get(keycodec.VectorMetaKey(collection, id))
 	if err != nil {
 		if errors.Is(err, badger.ErrKeyNotFound) {
-			return nil, nil
+			return nil, nil //nolint:nilnil // no metadata stored is not an error
 		}
 
 		return nil, err //nolint:wrapcheck // wrapped by caller

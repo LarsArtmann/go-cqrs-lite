@@ -734,7 +734,7 @@ func (s *Store) applyFoldEdgeRemove(
 		return unsupportedEngine(errEdgeRemoval, eng.Profile().Name)
 	}
 
-	if err := rm.GraphRemoveEdge(ctx, col, Edge{From: removal.From, To: removal.To}); err != nil {
+	if err := rm.GraphRemoveEdge(ctx, col, Edge(removal)); err != nil {
 		return fmt.Errorf("graph remove edge %s: %w", col, err)
 	}
 

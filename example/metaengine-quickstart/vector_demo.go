@@ -36,6 +36,7 @@ func runVectorDemo(ctx context.Context) error {
 		),
 	)
 
+	// art-dupl:accept standalone demo setup; each demo file is intentionally self-contained
 	store, err := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()}, query)
 	if err != nil {
 		return fmt.Errorf("plan vector: %w", err)
@@ -64,6 +65,7 @@ func runVectorDemo(ctx context.Context) error {
 	}
 
 	fmt.Printf("2 nearest documents to {1,0,0} (euclidean):\n")
+
 	for _, result := range results {
 		fmt.Printf("  %-12s distance=%.3f\n", result.ID, result.Distance)
 	}

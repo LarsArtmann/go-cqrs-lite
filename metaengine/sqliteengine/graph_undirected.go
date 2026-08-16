@@ -40,6 +40,7 @@ func (e *sqliteEngine) GraphNeighborsUndirected(
 	node any,
 	depth int,
 ) ([]any, error) {
+	// art-dupl:accept CTE-vs-iterative dispatch mirrored in dep-isolated mysqlengine
 	if depth <= 0 {
 		return []any{}, nil
 	}
@@ -124,6 +125,7 @@ func (e *sqliteEngine) graphNeighborsUndirectedIterative(
 // scanNeighborRows drains a neighbors query into []any, returning an empty
 // (non-nil) slice for no rows.
 func scanNeighborRows(rows *sql.Rows) ([]any, error) {
+	// art-dupl:accept database/sql single-column drain; mysqlengine twin is dep-isolated
 	var result []any
 	for rows.Next() {
 		var nb string

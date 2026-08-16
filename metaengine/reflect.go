@@ -175,6 +175,7 @@ func findValueByType(input any, targetType reflect.Type, skip func(name string) 
 // extractIntFieldByName reads an int field by name from the input struct,
 // returning defaultVal when the struct, field, or type is invalid.
 func extractIntFieldByName(input any, fieldName string, defaultVal int) int {
+	// art-dupl:accept typed-field extractors share the guard prologue by symmetry
 	v, ok := structValue(input)
 	if !ok {
 		return defaultVal

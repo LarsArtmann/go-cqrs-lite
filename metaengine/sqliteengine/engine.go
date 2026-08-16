@@ -221,6 +221,7 @@ func encodeValue(value any) string {
 // if v is not JSON-serializable. Centralized so encodeKey/encodeValue stay
 // in sync — both are the same operation on different conceptual inputs.
 func encodeJSON(v any) string {
+	// art-dupl:accept marshal-with-fallback helper; badgerengine graphNodeKeyJSON twin is dep-isolated
 	b, err := json.Marshal(v)
 	if err != nil {
 		return fmt.Sprintf("%v", v)
