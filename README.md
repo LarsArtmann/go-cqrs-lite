@@ -119,7 +119,7 @@ See [`example/getting-started/`](example/getting-started/) for a minimal 80-line
 
 Most Go CQRS libraries are **frameworks** — they own your transport, your broker, your SQL driver, and your project layout. go-cqrs-lite is a **library**. You import only what you need and compose your own stack. Nothing is hidden behind magic.
 
-- **Event Sourcing is first-class** — immutable events, branded IDs, optimistic concurrency, tombstone soft-delete, time-travel queries, and schema evolution via upcasters. Not an afterthought bolted onto a CRUD layer.
+- **Event Sourcing is first-class** — immutable events, branded IDs, optimistic concurrency, time-travel queries, and schema evolution via upcasters. Not an afterthought bolted onto a CRUD layer.
 - **Library, not framework** — no transport, broker, or driver is forced on you. Use standard `net/http`, gRPC, Watermill, NATS — your choice. The `stack/` presets wire sensible defaults when you want zero-config.
 - **SQL-backed read models** — `SQLViewStore` gives each projection its own table with real, queryable columns: server-side `WHERE`, `ORDER BY`, pagination, indexes, and `COUNT`. Opaque KV-blob read models cannot do this.
 - **Multi-module isolation** — each module has its own `go.mod` with minimal deps. Import `event` alone (3 dependencies) or the full `stack/sqlite` preset. Your dependency tree stays clean.
@@ -129,7 +129,7 @@ Most Go CQRS libraries are **frameworks** — they own your transport, your brok
 
 ## Key modules
 
-Every module is independently importable and has its own `go.mod`. Here are the most important ones — see [AGENTS.md](AGENTS.md) for the full 68-module catalog.
+Every module is independently importable and has its own `go.mod`. Here are the most important ones — see [AGENTS.md](AGENTS.md) for the full module catalog.
 
 | Module             | Purpose                                                               |
 | ------------------ | --------------------------------------------------------------------- |
@@ -159,12 +159,12 @@ Every module is independently importable and has its own `go.mod`. Here are the 
 | **Schema evolution**                |      ✅      |   ❌    |     ❌     |   ❌    |
 | **Auto-docs (AsyncAPI/OpenAPI/D2)** |      ✅      |   ❌    |     ❌     |   ❌    |
 | **SQL-backed read models**          |      ✅      |   ❌    |     ❌     |   ❌    |
-| **Tombstone soft-delete**           |      ✅      |   ❌    |     ❌     |   ❌    |
+| **Managed projection host**       |      ✅      |   ❌    |     ❌     |   ❌    |
 | **Bundle presets**                  |      ✅      |   ❌    |     ❌     |   ❌    |
 
 ## Maturity
 
-68 modules on `/v4` import paths. Core modules carry 82–97% test coverage (event 88%, decider 97%, id 86%, dispatcher 82%). The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, three projection tiers (document/KV, relational/SQL, graph), durable deadline scheduling, dead-letter quarantine, managed projection hosting, event signing and encryption, OTel tracing and metrics, auto-documentation generation, and a domain-aware linter (cqrs-lint).
+80+ modules on `/v4` import paths. Core modules carry 82–97% test coverage (event 88%, decider 97%, id 86%, dispatcher 82%). The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, three projection tiers (document/KV, relational/SQL, graph), durable deadline scheduling, dead-letter quarantine, managed projection hosting, event signing and encryption, OTel tracing and metrics, auto-documentation generation, and a domain-aware linter (cqrs-lint).
 
 **Migrating from v3?** Read the **[Migration Guide](docs/migration/MIGRATION-GUIDE.md)** — covers the v4 breaking changes (codec defaults, API cleanup, path migration). For v2-to-v3 changes, see the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)**.
 
