@@ -338,14 +338,14 @@ correct, the release propagated, and the downstream cleanup was verified.
 
 ## Session artifacts
 
-| Artifact | Location | Hash |
-|----------|----------|------|
-| Retract + CHANGELOG commit | go-cqrs-lite | `3b0c0e33f` |
-| gofumpt formatting commit | go-cqrs-lite | `686d1a5f8` |
-| Annotated tag | go-cqrs-lite | `storage/v4.7.1` → `686d1a5f8` |
-| GitHub Release | go-cqrs-lite | `storage/v4.7.1` |
-| Downstream bump commit | cqrs-htmx | `e3dd881b` |
-| Proxy verification | proxy.golang.org | `@latest` → `v4.7.1`, v4.7.0 hidden |
+| Artifact                   | Location         | Hash                                |
+| -------------------------- | ---------------- | ----------------------------------- |
+| Retract + CHANGELOG commit | go-cqrs-lite     | `3b0c0e33f`                         |
+| gofumpt formatting commit  | go-cqrs-lite     | `686d1a5f8`                         |
+| Annotated tag              | go-cqrs-lite     | `storage/v4.7.1` → `686d1a5f8`      |
+| GitHub Release             | go-cqrs-lite     | `storage/v4.7.1`                    |
+| Downstream bump commit     | cqrs-htmx        | `e3dd881b`                          |
+| Proxy verification         | proxy.golang.org | `@latest` → `v4.7.1`, v4.7.0 hidden |
 
 ---
 
