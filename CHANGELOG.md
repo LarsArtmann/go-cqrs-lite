@@ -6,6 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — capability-drift surfacing, DuckDB native graph, Dgraph hardening — 2026-08-16
+
+- **9-engine capability conformance loop verified against real servers** —
+  PG (ephemeral nix), MySQL (8.4 container), Dgraph (ephemeral nix), plus
+  pebble/bbolt/badger/iroh/turso/duckdb local: ALL GREEN. Gotcha recorded:
+  `go test -C <dir>` must be the FIRST flag through the ephemeral scripts'
+  `go` passthrough, with `GOWORK=off` prefixed.
+- **Doctor capability notes + EXPLAIN drift banner**: Doctor's
+  `--- Capability ---` section now prints an honest-degradation note for
+  replicated graph engines (edges do NOT converge across peers — no graph
+  WriteOp on the replication wire); `ExplainPlan` renders a
+  `--- Capability Warnings ---` banner with one `WARN capability drift:` line
+  per CapabilityAudit violation (clean plans stay banner-free).
+- **`TestAdttestStaysDelegatingOnly` meta-test**: source-level AST check
+  pinning adttest as delegating-only (verdict strings stay in metaengine;
+  every CapabilityAudit call routes through the metaengine package) so the
+  test gate and Doctor/EXPLAIN cannot drift apart.
+- **irohengine forwarding policy audited and pinned** (engine_passthrough.go
+  policy table + `engine_capability_forwarding_test.go`): Closer forwarded;
+  MapUpdater/Scan/Vector/Search/Spatial/graph local passthrough;
+  Transactional, StreamLogBackend/SeqSeekableStreamLog/AtomicAppender, and
+  Prober/TransactMeasurer deliberately NOT forwarded (silent-divergence or
+  dishonest-RTT hazards — documented per capability).
+- **DuckDB native graph via `WITH RECURSIVE`** (`duckdbengine/graph.go`):
+  `meta_graph_edges` table, `GraphAddEdge` (idempotent upsert),
+  `GraphNeighbors` single-CTE traversal mirroring pgengine; ADTGraph upgraded
+  to native O(degree^depth) and removed from DegradedADTs. Cycle-safety,
+  depth, dedup, integer-key tests (cgo) green.
+- **Dgraph hardening**: ADR-0129 documents why `Transactional` is deferred
+  (per-op txn unit of work; ambient-tx sketch included); per-test collection
+  isolation via `uniqueCollection` (pid+counter suffix) across the suite;
+  new CI job `dgraph` runs `nix run .#integration-dgraph`; AGENTS quick-ref
+  now lists Dgraph under test-all-backends.
+- DuckDB aggregation pushdown TODO resolved STALE: the full AggregateReader
+  family + single-SELECT CounterGet already exist and are test-green.
+
 ### Added — seq-carrying journal reads (7.1x faster resume) + bounded idempotency ring — 2026-08-16
 
 - **`metaengine.SeqSeekableStreamLog` capability**: optional engine interface

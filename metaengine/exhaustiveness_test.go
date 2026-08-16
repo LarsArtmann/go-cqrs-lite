@@ -70,6 +70,10 @@ func TestApplyFoldExhaustiveness(t *testing.T) {
 			event{},
 			func(_ record.Record, e event) Point { return Point{ID: e.ID, X: 1, Y: 2} },
 		), // spatialFold
+		OnRecord(
+			event{},
+			func(_ record.Record, e event) EdgeRemoval { return EdgeRemoval{From: e.ID, To: "x"} },
+		), // edgeRemoveFold
 	}
 
 	if len(folds) != len(AllFoldKinds()) {
@@ -107,6 +111,7 @@ func TestApplyFoldExhaustiveness(t *testing.T) {
 		case *vectorFold:
 		case *searchFold:
 		case *spatialFold:
+		case *edgeRemoveFold:
 		default:
 			t.Fatalf("unhandled fold type %T (FoldKind=%s) — "+
 				"add this case to applyFold's type switch in store.go",

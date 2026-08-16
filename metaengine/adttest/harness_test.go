@@ -127,12 +127,12 @@ func TestCanonicalizeScanResults_NonSliceFallback(t *testing.T) {
 	}
 }
 
-func TestScenarios_AllElevenADTs(t *testing.T) {
+func TestScenarios_AllFourteenADTs(t *testing.T) {
 	t.Parallel()
 
 	scenarios := Scenarios()
-	if len(scenarios) != 11 {
-		t.Errorf("Scenarios() returned %d scenarios, want 11", len(scenarios))
+	if len(scenarios) != 14 {
+		t.Errorf("Scenarios() returned %d scenarios, want 14", len(scenarios))
 	}
 
 	seen := make(map[string]bool)
@@ -146,7 +146,10 @@ func TestScenarios_AllElevenADTs(t *testing.T) {
 		}
 	}
 
-	for _, name := range []string{"Map", "Set", "Counter", "Graph", "SortedMap", "Log", "Multimap"} {
+	for _, name := range []string{
+		"Map", "Set", "Counter", "Graph", "SortedMap", "Log", "Multimap",
+		"GraphRemove", "GraphUndirected", "VectorFiltered",
+	} {
 		if !seen[name] {
 			t.Errorf("Scenarios() missing %q", name)
 		}
@@ -159,6 +162,7 @@ func TestBackendInterfaces_AllPresent(t *testing.T) {
 	required := []string{
 		"MapBackend", "SetBackend", "CounterBackend",
 		"GraphBackend", "ScanBackend", "LogBackend", "MultimapBackend",
+		"GraphRemovalBackend", "UndirectedGraph", "VectorFilterBackend",
 	}
 
 	for _, name := range required {

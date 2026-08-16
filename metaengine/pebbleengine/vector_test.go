@@ -140,3 +140,96 @@ func TestPebbleVector_EmptyCollection(t *testing.T) {
 		t.Errorf("expected no results, got %v", results)
 	}
 }
+
+// --- VectorFilterBackend (metadata-filtered k-NN) ---
+
+func TestPebbleVector_FilteredSearch(t *testing.T) {
+	t.Parallel()
+
+	vb := mustNewPebbleEngine(t).(metaengine.VectorFilterBackend)
+	ctx := context.Background()
+
+	embeddings := []metaengine.Embedding{
+		{ID: "near-a", Values: []float32{1, 0}, Metadata: map[string]any{"tenant": "a"}},
+		{ID: "near-b", Values: []float32{0.95, 0.05}, Metadata: map[string]any{"tenant": "b"}},
+		{ID: "far-a", Values: []float32{0, 1}, Metadata: map[string]any{"tenant": "a"}},
+	}
+	for _, emb := range embeddings {
+		if err := vb.VectorInsert(ctx, "vec_pebble_filtered", emb); err != nil {
+			t.Fatalf("VectorInsert %s: %v", emb.ID, err)
+		}
+	}
+
+	// Tenant-filtered top-2 must be the two NEAREST tenant-a vectors, not the
+	// global top-2 with tenant-b matches dropped.
+	results, err := vb.VectorSearchFiltered(ctx, "vec_pebble_filtered",
+		[]float32{1, 0}, 2, "cosine",
+		[]metaengine.VectorFilter{{Field: "tenant", Op: metaengine.FilterEq, Value: "a"}})
+	if err != nil {
+		t.Fatalf("VectorSearchFiltered: %v", err)
+	}
+
+	if len(results) != 2 {
+		t.Fatalf("expected 2 filtered results, got %d: %v", len(results), results)
+	}
+
+	if results[0].ID != "near-a" || results[1].ID != "far-a" {
+		t.Errorf("filtered k-NN = [%s, %s], want [near-a, far-a]",
+			results[0].ID, results[1].ID)
+	}
+}
+
+func TestPebbleVector_FilteredSearchUpsertClearsStaleMetadata(t *testing.T) {
+	t.Parallel()
+
+	vb := mustNewPebbleEngine(t).(metaengine.VectorFilterBackend)
+	ctx := context.Background()
+
+	col := "vec_pebble_meta_upsert"
+
+	insert := func(meta map[string]any) {
+		t.Helper()
+		emb := metaengine.Embedding{ID: "x", Values: []float32{1, 0}, Metadata: meta}
+		if err := vb.VectorInsert(ctx, col, emb); err != nil {
+			t.Fatalf("VectorInsert: %v", err)
+		}
+	}
+
+	insert(map[string]any{"tenant": "a"})
+	insert(nil) // upsert without metadata must clear the stale map
+
+	results, err := vb.VectorSearchFiltered(ctx, col, []float32{1, 0}, 5, "cosine",
+		[]metaengine.VectorFilter{{Field: "tenant", Op: metaengine.FilterEq, Value: "a"}})
+	if err != nil {
+		t.Fatalf("VectorSearchFiltered: %v", err)
+	}
+
+	if len(results) != 0 {
+		t.Errorf("expected stale metadata to be cleared (0 matches), got %v", results)
+	}
+}
+
+func TestPebbleVector_CollectionsAreIsolated(t *testing.T) {
+	t.Parallel()
+
+	vb := mustNewPebbleEngine(t).(metaengine.VectorBackend)
+	ctx := context.Background()
+
+	for _, col := range []string{"vec_pebble_c1", "vec_pebble_c2"} {
+		emb := metaengine.Embedding{ID: "same-id", Values: []float32{1, 0}}
+		if err := vb.VectorInsert(ctx, col, emb); err != nil {
+			t.Fatalf("VectorInsert %s: %v", col, err)
+		}
+	}
+
+	for _, col := range []string{"vec_pebble_c1", "vec_pebble_c2"} {
+		results, err := vb.VectorSearch(ctx, col, []float32{1, 0}, 10, "euclidean")
+		if err != nil {
+			t.Fatalf("VectorSearch %s: %v", col, err)
+		}
+
+		if len(results) != 1 {
+			t.Errorf("collection %s: expected 1 isolated entry, got %d", col, len(results))
+		}
+	}
+}

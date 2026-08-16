@@ -5,8 +5,8 @@ import (
 
 	"github.com/onsi/gomega"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // engine_capability_forwarding_test.go pins the optional-capability forwarding
@@ -47,10 +47,12 @@ func TestReplicatedDoesNotExposeWritePathCapabilities(t *testing.T) {
 	eng := newReplicatedForPolicyTest(t)
 
 	_, isTransactional := eng.(metaengine.Transactional)
-	g.Expect(isTransactional).To(gomega.BeFalse(), "RunInTx must not be exposed: see engine_passthrough.go policy")
+	g.Expect(isTransactional).
+		To(gomega.BeFalse(), "RunInTx must not be exposed: see engine_passthrough.go policy")
 
 	_, isStreamLog := eng.(metaengine.StreamLogBackend)
-	g.Expect(isStreamLog).To(gomega.BeFalse(), "StreamAppend must not be exposed: see engine_passthrough.go policy")
+	g.Expect(isStreamLog).
+		To(gomega.BeFalse(), "StreamAppend must not be exposed: see engine_passthrough.go policy")
 
 	_, isSeqSeek := eng.(metaengine.SeqSeekableStreamLog)
 	g.Expect(isSeqSeek).To(gomega.BeFalse())
@@ -70,7 +72,8 @@ func TestReplicatedDoesNotExposeProbers(t *testing.T) {
 	eng := newReplicatedForPolicyTest(t)
 
 	_, isProber := eng.(metaengine.Prober)
-	g.Expect(isProber).To(gomega.BeFalse(), "probes must not be forwarded: see engine_passthrough.go policy")
+	g.Expect(isProber).
+		To(gomega.BeFalse(), "probes must not be forwarded: see engine_passthrough.go policy")
 
 	_, isMeasurer := eng.(metaengine.TransactMeasurer)
 	g.Expect(isMeasurer).To(gomega.BeFalse())

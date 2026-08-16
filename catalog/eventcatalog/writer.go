@@ -148,7 +148,7 @@ func (e *Exporter) writePackageJSON(cat *catalog.Catalog) error {
 		"private":     true,
 		"description": string(cat.Title) + " event catalog",
 		"dependencies": map[string]string{
-			"@eventcatalog/core": "latest",
+			"@eventcatalog/core": eventCatalogCoreVersion,
 		},
 	}
 

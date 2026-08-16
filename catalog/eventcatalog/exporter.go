@@ -10,10 +10,15 @@ import (
 )
 
 const (
-	filePerm      = 0o600
-	dirPerm       = 0o750
-	indexFile     = "index.mdx"
-	schemaPathKey = "schemas/schema.json"
+	filePerm = 0o600
+	dirPerm  = 0o750
+	// eventCatalogCoreVersion pins the generated package.json dependency so
+	// `npm install` in the output dir is reproducible. Bump deliberately
+	// after verifying the new @eventcatalog/core release renders the
+	// generated MDX correctly.
+	eventCatalogCoreVersion = "^4.6.3"
+	indexFile               = "index.mdx"
+	schemaPathKey           = "schemas/schema.json"
 )
 
 // Exporter generates EventCatalog-compatible MDX files from a catalog.

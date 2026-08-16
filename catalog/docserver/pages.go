@@ -63,15 +63,26 @@ func newIndexPageData(cfg Config, cat *catalog.Catalog) indexPageData {
 
 	services := make([]serviceCard, 0, len(cat.Services))
 	for _, svc := range cat.Services {
+		// Per-service counts use local sets so messages shared across
+		// services still appear on every service card; the global sets
+		// below drive the deduplicated catalog totals.
+		localCommands := map[catalog.MessageID]bool{}
+		localEvents := map[catalog.MessageID]bool{}
+		localQueries := map[catalog.MessageID]bool{}
+
 		services = append(services, serviceCard{
 			ID:       string(svc.ID),
 			Name:     cmp.Or(string(svc.Name), string(svc.ID)),
 			Version:  string(svc.Version),
 			Summary:  string(svc.Summary),
-			Commands: countUniqueMessages(seenCommands, svc.Commands),
-			Events:   countUniqueMessages(seenEvents, svc.Events),
-			Queries:  countUniqueMessages(seenQueries, svc.Queries),
+			Commands: countUniqueMessages(localCommands, svc.Commands),
+			Events:   countUniqueMessages(localEvents, svc.Events),
+			Queries:  countUniqueMessages(localQueries, svc.Queries),
 		})
+
+		countUniqueMessages(seenCommands, svc.Commands)
+		countUniqueMessages(seenEvents, svc.Events)
+		countUniqueMessages(seenQueries, svc.Queries)
 	}
 
 	return indexPageData{
