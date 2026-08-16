@@ -71,7 +71,9 @@ func RunAutoCRUDSoak(t *testing.T, eng metaengine.Engine) {
 		foldArgs[i] = f
 	}
 
-	q := metaengine.Query[soakTaskQuery, soakTaskView]("soak-autocrud-tasks", foldArgs...)
+	q := metaengine.Query[soakTaskQuery, soakTaskView](
+		ScopedCollection("soak-autocrud-tasks"), foldArgs...,
+	)
 
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
 	if err != nil {

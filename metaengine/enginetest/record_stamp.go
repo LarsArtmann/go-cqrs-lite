@@ -37,7 +37,7 @@ func RunRecordStampTest(t *testing.T, eng metaengine.Engine) {
 	t.Helper()
 
 	q := metaengine.Query[stampItemQuery, stampItemView](
-		"record-stamp-"+engineName(eng),
+		ScopedCollection("record-stamp-"+engineName(eng)),
 		metaengine.AutoInsert[stampItemCreated, stampItemView]("ID"),
 	)
 

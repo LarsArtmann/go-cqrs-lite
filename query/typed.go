@@ -94,7 +94,7 @@ func (t *TypedQueryStore[P]) LoadQueries(
 	result := make([]TypedQuery[P], 0, len(queries))
 
 	for _, q := range queries {
-		payload, err := decodeEnvelopeOrLegacy[P](q.Payload(), t.codec)
+		payload, err := codec.DecodeEnvelopeOrLegacy[P](q.Payload(), t.codec)
 		if err != nil {
 			return nil, errorfamily.WrapCorruption(err, "query.typed_store.decode",
 				fmt.Sprintf("decode typed payload for %s", q.ID()))
@@ -110,51 +110,4 @@ func (t *TypedQueryStore[P]) LoadQueries(
 	}
 
 	return result, nil
-}
-
-// decodeEnvelopeOrLegacy decodes ADR-0044 envelope-stamped data with its
-// stamped codec, and non-envelope data with the configured codec. When the
-// configured codec fails on non-envelope bytes, one cross-retry with the
-// other standard codec rescues legacy rows written before the envelope
-// existed (raw JSON under a CBOR-configured store, or vice versa), keeping
-// ADR-0050's permanent-readability guarantee.
-//
-// art-dupl:accept dep-isolated blind stores duplicate this; sharing would add a cross-module dependency
-func decodeEnvelopeOrLegacy[P any](data []byte, configured codec.Codec) (P, error) {
-	c, inner := codec.UnwrapDecode(data, configured)
-
-	var val P
-
-	err := c.Decode(inner, &val)
-	if err == nil {
-		return val, nil
-	}
-
-	alt, ok := otherStandardCodec(c)
-	if !ok {
-		return val, err
-	}
-
-	var retry P
-
-	if altErr := alt.Decode(inner, &retry); altErr == nil {
-		return retry, nil
-	}
-
-	return val, err
-}
-
-// otherStandardCodec returns the opposite built-in codec, or false for
-// envelope-stamped or custom codecs (their data only decodes with themselves).
-func otherStandardCodec(
-	c codec.Codec,
-) (codec.Codec, bool) { //nolint:ireturn // built-in cross-retry
-	switch c.(type) {
-	case codec.CBORCodec:
-		return codec.JSONCodec{}, true
-	case codec.JSONCodec:
-		return codec.CBORCodec{}, true
-	default:
-		return nil, false
-	}
 }

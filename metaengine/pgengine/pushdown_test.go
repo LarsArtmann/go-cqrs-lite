@@ -54,11 +54,11 @@ func TestPostgresEngine_PushdownFilter(t *testing.T) {
 	eng := newPostgresPushdown(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_filter", seedProducts,
-		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan, col string) {
 			// Filter: Category = "fruit" → apple, banana.
 			results, err := ps.PushdownMapScan(
 				ctx,
-				"push_filter",
+				col,
 				[]metaengine.FilterSpec{
 					{Column: "Category", Op: metaengine.FilterEq, Value: "fruit"},
 				},
@@ -82,9 +82,9 @@ func TestPostgresEngine_PushdownSort(t *testing.T) {
 	eng := newPostgresPushdown(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_sort", seedProducts,
-		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan, col string) {
 			// Sort by Price descending, limit 3.
-			results, err := ps.PushdownMapScan(ctx, "push_sort", nil,
+			results, err := ps.PushdownMapScan(ctx, col, nil,
 				&metaengine.SortSpec{Column: "Price", Desc: true}, nil, 3)
 			if err != nil {
 				t.Fatal(err)
@@ -107,12 +107,12 @@ func TestPostgresEngine_PushdownFilterSortLimit(t *testing.T) {
 	eng := newPostgresPushdown(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_fsl", seedProducts,
-		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan, col string) {
 			// Filter: Category = "veg", Sort: Price asc, limit 2.
 			// veg items: carrot(0.99), eggplant(1.25). Sorted asc: carrot, eggplant.
 			results, err := ps.PushdownMapScan(
 				ctx,
-				"push_fsl",
+				col,
 				[]metaengine.FilterSpec{
 					{Column: "Category", Op: metaengine.FilterEq, Value: "veg"},
 				},
@@ -141,11 +141,11 @@ func TestPostgresEngine_PushdownCursor(t *testing.T) {
 	eng := newPostgresPushdown(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_cursor", seedProducts,
-		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan, col string) {
 			// Sort Price desc, cursor = 2.0 (donut's price), limit 2.
 			// Items with price < 2.0: apple(1.50), eggplant(1.25), carrot(0.99), banana(0.75).
 			// Top 2: apple, eggplant.
-			results, err := ps.PushdownMapScan(ctx, "push_cursor", nil,
+			results, err := ps.PushdownMapScan(ctx, col, nil,
 				&metaengine.SortSpec{Column: "Price", Desc: true}, 2.0, 2)
 			if err != nil {
 				t.Fatal(err)
@@ -168,9 +168,9 @@ func TestPostgresEngine_PushdownFilterIn(t *testing.T) {
 	eng := newPostgresPushdown(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_in", seedProducts,
-		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan, col string) {
 			// FilterIn: Category IN ("fruit", "snack") → apple, banana, donut.
-			results, err := ps.PushdownMapScan(ctx, "push_in",
+			results, err := ps.PushdownMapScan(ctx, col,
 				[]metaengine.FilterSpec{{
 					Column: "Category", Op: metaengine.FilterIn,
 					Value: []any{"fruit", "snack"},

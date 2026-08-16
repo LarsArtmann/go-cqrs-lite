@@ -47,10 +47,10 @@ func TestDuckDBEngine_PushdownFilter(t *testing.T) {
 	eng := mustNewDuckEngine(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_filter", seedDuckDBProducts,
-		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan, col string) {
 			results, err := ps.PushdownMapScan(
 				ctx,
-				"push_filter",
+				col,
 				[]metaengine.FilterSpec{
 					{Column: "Category", Op: metaengine.FilterEq, Value: "fruit"},
 				},
@@ -74,8 +74,8 @@ func TestDuckDBEngine_PushdownSort(t *testing.T) {
 	eng := mustNewDuckEngine(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_sort", seedDuckDBProducts,
-		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
-			results, err := ps.PushdownMapScan(ctx, "push_sort", nil,
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan, col string) {
+			results, err := ps.PushdownMapScan(ctx, col, nil,
 				&metaengine.SortSpec{Column: "Price", Desc: true}, nil, 3)
 			if err != nil {
 				t.Fatal(err)
@@ -98,10 +98,10 @@ func TestDuckDBEngine_PushdownFilterSortLimit(t *testing.T) {
 	eng := mustNewDuckEngine(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_fsl", seedDuckDBProducts,
-		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan, col string) {
 			results, err := ps.PushdownMapScan(
 				ctx,
-				"push_fsl",
+				col,
 				[]metaengine.FilterSpec{
 					{Column: "Category", Op: metaengine.FilterEq, Value: "veg"},
 				},
@@ -130,8 +130,8 @@ func TestDuckDBEngine_PushdownCursor(t *testing.T) {
 	eng := mustNewDuckEngine(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_cursor", seedDuckDBProducts,
-		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
-			results, err := ps.PushdownMapScan(ctx, "push_cursor", nil,
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan, col string) {
+			results, err := ps.PushdownMapScan(ctx, col, nil,
 				&metaengine.SortSpec{Column: "Price", Desc: true}, 2.0, 2)
 			if err != nil {
 				t.Fatal(err)
@@ -154,8 +154,8 @@ func TestDuckDBEngine_PushdownFilterIn(t *testing.T) {
 	eng := mustNewDuckEngine(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_in", seedDuckDBProducts,
-		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
-			results, err := ps.PushdownMapScan(ctx, "push_in",
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan, col string) {
+			results, err := ps.PushdownMapScan(ctx, col,
 				[]metaengine.FilterSpec{{
 					Column: "Category", Op: metaengine.FilterIn,
 					Value: []any{"fruit", "snack"},

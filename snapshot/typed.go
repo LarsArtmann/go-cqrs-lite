@@ -148,7 +148,7 @@ func (t *TypedStore[State]) LoadAtVersion(
 func (t *TypedStore[State]) Store() SnapshotStore { return t.store }
 
 func (t *TypedStore[State]) decode(raw *Snapshot) (*TypedSnapshot[State], error) {
-	state, decodeErr := decodeEnvelopeOrLegacy[State](raw.State, t.codec)
+	state, decodeErr := codec.DecodeEnvelopeOrLegacy[State](raw.State, t.codec)
 	if decodeErr != nil {
 		return nil, errorfamily.Wrapf(decodeErr, errorfamily.Corruption, "snapshot.decode_state",
 			"decode state for %s v%d", raw.StreamID, raw.Version)
@@ -161,49 +161,4 @@ func (t *TypedStore[State]) decode(raw *Snapshot) (*TypedSnapshot[State], error)
 		State:      state,
 		CreatedAt:  raw.CreatedAt,
 	}, nil
-}
-
-// decodeEnvelopeOrLegacy decodes ADR-0044 envelope-stamped data with its
-// stamped codec, and non-envelope data with the configured codec. When the
-// configured codec fails on non-envelope bytes, one cross-retry with the
-// other standard codec rescues legacy snapshots written before the envelope
-// existed (raw JSON under a CBOR-configured store, or vice versa), keeping
-// ADR-0050's permanent-readability guarantee.
-//
-// art-dupl:accept dep-isolated blind stores duplicate this; sharing would add a cross-module dependency
-func decodeEnvelopeOrLegacy[State any](data []byte, configured codec.Codec) (State, error) {
-	c, inner := codec.UnwrapDecode(data, configured)
-
-	var val State
-
-	err := c.Decode(inner, &val)
-	if err == nil {
-		return val, nil
-	}
-
-	alt, ok := otherStandardCodec(c)
-	if !ok {
-		return val, err //nolint:wrapcheck // caller wraps as Corruption
-	}
-
-	var retry State
-
-	if altErr := alt.Decode(inner, &retry); altErr == nil {
-		return retry, nil
-	}
-
-	return val, err //nolint:wrapcheck // caller wraps as Corruption
-}
-
-// otherStandardCodec returns the opposite built-in codec, or false for
-// envelope-stamped or custom codecs (their data only decodes with themselves).
-func otherStandardCodec(c codec.Codec) (codec.Codec, bool) {
-	switch c.(type) {
-	case codec.CBORCodec:
-		return codec.JSONCodec{}, true
-	case codec.JSONCodec:
-		return codec.CBORCodec{}, true
-	default:
-		return nil, false
-	}
 }

@@ -20,13 +20,12 @@ func TestAllocs_NewEvent_NoOptions(t *testing.T) {
 		_, _ = NewEvent("test.created", streamID, "Test", Version(1), payload)
 	})
 
-	// Upper bound, not exact equality: the local go.work workspace resolves
-	// go-codec to the sibling checkout, whose envelope fast-path (unpublished)
-	// eliminates one allocation → 2 here, 3 against the published tag. Both
-	// graphs must stay within the budget; only regressions fail.
-	if allocs > 3 {
+	// Upper bound, not exact equality. go-codec v0.2.0's envelope fast-path
+	// eliminated one allocation, so both the workspace and published graphs
+	// sit at 2; only regressions fail.
+	if allocs > 2 {
 		t.Errorf(
-			"NewEvent allocations = %v, want ≤ 3 (ImmutableEvent + payload clone + eventOptions)",
+			"NewEvent allocations = %v, want ≤ 2 (ImmutableEvent + payload clone)",
 			allocs,
 		)
 	}
@@ -44,8 +43,8 @@ func TestAllocs_NewEvent_WithCorrelationID(t *testing.T) {
 		)
 	})
 
-	if allocs > 3 {
-		t.Errorf("NewEvent with CorrelationID allocations = %v, want ≤ 3", allocs)
+	if allocs > 2 {
+		t.Errorf("NewEvent with CorrelationID allocations = %v, want ≤ 2", allocs)
 	}
 }
 

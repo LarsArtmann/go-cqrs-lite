@@ -57,7 +57,7 @@ func (s *TypedStore[T, K]) Get(ctx context.Context, id K) (*T, error) {
 			"kv.typed_store.get", fmt.Sprintf("get key %q", s.key(id)))
 	}
 
-	val, decodeErr := decodeEnvelopeOrLegacy[T](data, s.codec)
+	val, decodeErr := codec.DecodeEnvelopeOrLegacy[T](data, s.codec)
 	if decodeErr != nil {
 		return nil, errorfamily.WrapCorruption(decodeErr, "kv.typed_store.decode",
 			fmt.Sprintf("decode key %q", s.key(id)))
@@ -134,7 +134,7 @@ func (s *TypedStore[T, K]) Scan(ctx context.Context, prefix []byte) ([]*T, error
 	results := make([]*T, 0)
 
 	for iter.Next() {
-		val, decodeErr := decodeEnvelopeOrLegacy[T](iter.Value(), s.codec)
+		val, decodeErr := codec.DecodeEnvelopeOrLegacy[T](iter.Value(), s.codec)
 		if decodeErr != nil {
 			return nil, errorfamily.WrapCorruption(decodeErr, "kv.typed_store.scan_decode",
 				fmt.Sprintf("decode key %q", iter.Key()))
@@ -236,49 +236,4 @@ func (s *TypedStore[T, K]) key(id K) []byte {
 	}
 
 	return k
-}
-
-// decodeEnvelopeOrLegacy decodes ADR-0044 envelope-stamped data with its
-// stamped codec, and non-envelope data with the configured codec. When the
-// configured codec fails on non-envelope bytes, one cross-retry with the
-// other standard codec rescues legacy rows written before the envelope
-// existed (raw JSON under a CBOR-configured store, or vice versa), keeping
-// ADR-0050's permanent-readability guarantee.
-//
-// art-dupl:accept dep-isolated blind stores duplicate this; sharing would add a cross-module dependency
-func decodeEnvelopeOrLegacy[T any](data []byte, configured codec.Codec) (T, error) {
-	c, inner := codec.UnwrapDecode(data, configured)
-
-	var val T
-
-	err := c.Decode(inner, &val)
-	if err == nil {
-		return val, nil
-	}
-
-	alt, ok := otherStandardCodec(c)
-	if !ok {
-		return val, err //nolint:wrapcheck // caller wraps as Corruption
-	}
-
-	var retry T
-
-	if altErr := alt.Decode(inner, &retry); altErr == nil {
-		return retry, nil
-	}
-
-	return val, err //nolint:wrapcheck // caller wraps as Corruption
-}
-
-// otherStandardCodec returns the opposite built-in codec, or false for
-// envelope-stamped or custom codecs (their data only decodes with themselves).
-func otherStandardCodec(c codec.Codec) (codec.Codec, bool) {
-	switch c.(type) {
-	case codec.CBORCodec:
-		return codec.JSONCodec{}, true
-	case codec.JSONCodec:
-		return codec.CBORCodec{}, true
-	default:
-		return nil, false
-	}
 }

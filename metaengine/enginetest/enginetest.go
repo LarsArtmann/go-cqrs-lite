@@ -56,18 +56,23 @@ func RunPushdownTest(
 	eng metaengine.Engine,
 	collection string,
 	seedFixture func(t *testing.T, eng metaengine.Engine, col string),
-	run func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan),
+	run func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan, col string),
 ) {
 	t.Helper()
 
-	seedFixture(t, eng, collection)
+	// Scope the collection per run (and per call) so shared-server engines
+	// stay isolated under -count>1; run receives the scoped name so closures
+	// never capture a stale literal.
+	col := ScopedCollection(collection)
+
+	seedFixture(t, eng, col)
 
 	ps, ok := eng.(metaengine.PushdownScan)
 	if !ok {
 		t.Fatal("engine does not implement PushdownScan")
 	}
 
-	run(t, context.Background(), ps)
+	run(t, context.Background(), ps, col)
 }
 
 // RunStreamLogBackendTest exercises the standard StreamLogBackend contract:
@@ -103,6 +108,11 @@ func RunStreamLogBackendTest(t *testing.T, eng metaengine.Engine) {
 // for closing the engine (typically via t.Cleanup).
 func RunStreamLogBackendTestIn(t *testing.T, eng metaengine.Engine, col string) {
 	t.Helper()
+
+	// Per-run suffix: the contract below asserts absolute counts and an
+	// initially-empty journal, which only holds when repeated invocations
+	// (e.g. -count>1 against a shared server) get fresh collections.
+	col = ScopedCollection(col)
 
 	slb, ok := eng.(metaengine.StreamLogBackend)
 	if !ok {
@@ -224,6 +234,8 @@ func RunAtomicAppenderTest(t *testing.T, eng metaengine.Engine) {
 func RunAtomicAppenderTestIn(t *testing.T, eng metaengine.Engine, col string) {
 	t.Helper()
 
+	col = ScopedCollection(col)
+
 	ap, ok := eng.(metaengine.AtomicAppender)
 	if !ok {
 		t.Fatalf("engine %T does not implement AtomicAppender", eng)
@@ -259,6 +271,8 @@ func RunAtomicAppenderTestIn(t *testing.T, eng metaengine.Engine, col string) {
 // collection name (typically "products").
 func RunScanBackendTest(t *testing.T, eng metaengine.Engine, collection string) {
 	t.Helper()
+
+	collection = ScopedCollection(collection)
 
 	mb, ok := eng.(metaengine.MapBackend)
 	if !ok {
@@ -507,7 +521,7 @@ func assertTxCommitSetup(
 	}
 
 	ctx := context.Background()
-	col := colPrefix + engineName(eng)
+	col := ScopedCollection(colPrefix + engineName(eng))
 
 	// 1. Successful transaction commits.
 	err := tx.RunInTx(ctx, func(ctx context.Context) error {
@@ -831,7 +845,7 @@ func RunConcurrentTxTest(t *testing.T, eng metaengine.Engine) {
 	}
 
 	ctx := context.Background()
-	col := "concurrent_tx_" + engineName(eng)
+	col := ScopedCollection("concurrent_tx_" + engineName(eng))
 
 	var wg sync.WaitGroup
 

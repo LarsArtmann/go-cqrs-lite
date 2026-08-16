@@ -35,6 +35,10 @@ func RunSeqSeekableStreamLogTest(t *testing.T, eng metaengine.Engine) {
 func RunSeqSeekableStreamLogTestIn(t *testing.T, eng metaengine.Engine, col string) {
 	t.Helper()
 
+	// Per-run suffix: the contract starts from an empty journal, which only
+	// holds when repeated invocations get fresh collections.
+	col = ScopedCollection(col)
+
 	ss, ok := eng.(metaengine.SeqSeekableStreamLog)
 	if !ok {
 		t.Fatalf("engine %T does not implement SeqSeekableStreamLog", eng)
