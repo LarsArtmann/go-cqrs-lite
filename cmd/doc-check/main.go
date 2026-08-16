@@ -34,7 +34,11 @@ import (
 
 const repoImportPrefix = "github.com/larsartmann/go-cqrs-lite/"
 
-var errBrokenReferences = errors.New("broken documentation reference(s)")
+var (
+	errBrokenReferences = errors.New("broken documentation reference(s)")
+	errWarningsFound    = errors.New("doc-check warning(s) found")
+	errNoReferences     = errors.New("no Go references found")
+)
 
 type ref struct {
 	pkg    string
@@ -135,7 +139,7 @@ func run(files []string) error {
 	}
 
 	// Build package export index from cqrs-lite imports.
-	exportIndex := buildExportIndex(allImports, repoRoot)
+	exportIndex, warnings := buildExportIndex(allImports, repoRoot)
 
 	// Verify references.
 	broken := 0
@@ -156,13 +160,29 @@ func run(files []string) error {
 		return fmt.Errorf("%w: %d broken reference(s) found", errBrokenReferences, broken)
 	}
 
-	if len(allRefs) == 0 {
-		log.Printf( //nolint:lll // CLI tool, no untrusted input
-			"⚠  WARNING: 0 Go references found — no fenced ```go code blocks detected.\n" +
-				"Documents were NOT verified. Add a verification code block or pass files with Go samples.",
-		)
+	// 0-warning tripwire: doc-check warnings (unreadable dirs, empty package
+	// exports, unparseable files) have been at zero since 2026-08-15. Gate the
+	// count at zero so warning spam cannot silently creep back — a warning
+	// means a document verified against a MISSING package index, i.e. it was
+	// not really verified.
+	if len(warnings) > 0 {
+		for _, w := range warnings {
+			log.Printf("  ⚠ %s", w)
+		}
 
-		return nil
+		return fmt.Errorf(
+			"%w: %d warning(s) — fix them or extend the skip-list",
+			errWarningsFound,
+			len(warnings),
+		)
+	}
+
+	if len(allRefs) == 0 {
+		return fmt.Errorf( //nolint:lll // CLI tool, no untrusted input
+			"%w: no fenced ```go code blocks detected — documents were NOT verified. "+
+				"Add a verification code block or pass files with Go samples",
+			errNoReferences,
+		)
 	}
 
 	log.Printf( //nolint:lll

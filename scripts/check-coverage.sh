@@ -38,6 +38,19 @@ declare -A EXPECTED=(
 	[kv]=71.9
 )
 
+# Meta-check: every EXPECTED key must resolve to a real module dir. A dangling
+# key (codec-dangle class — codec was deleted by ADR-0128) computes as 0.0%
+# and is misdiagnosed as coverage DRIFT instead of a stale key. Fail fast with
+# the precise diagnosis instead.
+for mod in "${!EXPECTED[@]}"; do
+	path="${mod// /}"
+	if [ ! -f "$path/go.mod" ]; then
+		echo "::error::EXPECTED key '$mod' does not resolve to a module (missing $path/go.mod)."
+		echo "Remove the stale key or fix the path."
+		exit 1
+	fi
+done
+
 # Modules are measured in workspace mode (go.work replacements) with the
 # goexperiment.jsonv2 build tag, matching the verify gate.
 TAGS="goexperiment.jsonv2"
@@ -54,6 +67,10 @@ compute_coverage() {
 }
 
 if [ "${1:-}" = "--update" ]; then
+	# Auto-stamp the "verified" date in the EXPECTED header comment so the
+	# marker cannot go stale when numbers are recomputed. (GNU sed; this repo
+	# is Nix/Linux-first.)
+	sed -i "s|(verified [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\})|(verified $(date +%Y-%m-%d))|" "$0"
 	echo "# Recomputed coverage ($(date +%Y-%m-%d)), workspace mode, $TAGS tag:"
 	for mod in "${!EXPECTED[@]}"; do
 		printf "  %-18s %s%%\n" "$mod" "$(compute_coverage "$mod")"

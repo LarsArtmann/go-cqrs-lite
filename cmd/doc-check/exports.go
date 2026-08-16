@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -13,8 +13,10 @@ import (
 
 // buildExportIndex creates a map: package alias → set of exported symbols.
 // It maps import paths to their package directories and parses the .go files
-// to collect exported declarations.
-func buildExportIndex(imports []string, repoRoot string) map[string]map[string]bool {
+// to collect exported declarations. Every anomaly (unreadable dir, zero
+// exports, unparseable file) is returned as a warning so the caller can gate
+// on a zero-warning policy.
+func buildExportIndex(imports []string, repoRoot string) (map[string]map[string]bool, []string) {
 	seen := make(map[string]bool)
 
 	var unique []string
@@ -29,6 +31,8 @@ func buildExportIndex(imports []string, repoRoot string) map[string]map[string]b
 	sort.Strings(unique)
 
 	index := make(map[string]map[string]bool)
+
+	var warnings []string
 
 	for _, imp := range unique {
 		dir := strings.TrimPrefix(imp, repoImportPrefix)
@@ -48,9 +52,11 @@ func buildExportIndex(imports []string, repoRoot string) map[string]map[string]b
 
 		pkgName := filepath.Base(dir)
 
-		exports := parsePackageExports(fullDir)
+		exports, pkgWarnings := parsePackageExports(fullDir)
+		warnings = append(warnings, pkgWarnings...)
+
 		if len(exports) == 0 {
-			log.Printf("warning: no exports found in %s", dir) //nolint:lll
+			warnings = append(warnings, "no exports found in "+dir)
 
 			continue
 		}
@@ -64,20 +70,21 @@ func buildExportIndex(imports []string, repoRoot string) map[string]map[string]b
 		}
 	}
 
-	return index
+	return index, warnings
 }
 
 // parsePackageExports parses all non-test .go files in dir and returns
-// a set of exported symbol names (types, functions, vars, consts).
-func parsePackageExports(dir string) map[string]bool {
+// a set of exported symbol names (types, functions, vars, consts) plus any
+// warnings (unreadable dir, unparseable file).
+func parsePackageExports(dir string) (map[string]bool, []string) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		log.Printf("warning: cannot read %s: %v", dir, err) //nolint:lll
-
-		return nil
+		return nil, []string{fmt.Sprintf("cannot read %s: %v", dir, err)}
 	}
 
 	exports := make(map[string]bool)
+
+	var warnings []string
 
 	fset := token.NewFileSet()
 
@@ -90,20 +97,24 @@ func parsePackageExports(dir string) map[string]bool {
 			continue
 		}
 
-		collectExports(fset, filepath.Join(dir, entry.Name()), exports)
+		if warn := collectExports(fset, filepath.Join(dir, entry.Name()), exports); warn != "" {
+			warnings = append(warnings, warn)
+		}
 	}
 
-	return exports
+	return exports, warnings
 }
 
 func shouldParseFile(name string) bool {
 	return strings.HasSuffix(name, ".go") && !strings.HasSuffix(name, "_test.go")
 }
 
-func collectExports(fset *token.FileSet, path string, exports map[string]bool) {
+// collectExports parses one file into exports. It returns a warning string
+// when the file cannot be parsed (empty string on success).
+func collectExports(fset *token.FileSet, path string, exports map[string]bool) string {
 	file, err := parser.ParseFile(fset, path, nil, 0)
 	if err != nil {
-		return
+		return fmt.Sprintf("cannot parse %s: %v", path, err)
 	}
 
 	for _, decl := range file.Decls {
@@ -119,6 +130,8 @@ func collectExports(fset *token.FileSet, path string, exports map[string]bool) {
 			}
 		}
 	}
+
+	return ""
 }
 
 func collectGenDeclExports(spec ast.Spec, exports map[string]bool) {

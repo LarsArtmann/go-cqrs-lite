@@ -24,6 +24,18 @@ while IFS= read -r modfile; do
 		[[ "$line" =~ ^[[:space:]]*// ]] && continue
 		[[ -z "$line" ]] && continue
 
+		# Reject absolute-path targets outright: a replace pointing outside
+		# the checkout (e.g. "=> /home/lars/projects/...") breaks every CI
+		# Release build with "directory ... does not exist" (commit ceb88738b
+		# was the fix; it broke CI on every push until then). Dev-against-
+		# siblings belongs in go.work `use`, or at most a RELATIVE sibling
+		# replace that scripts/tag-release.sh strips at cut time.
+		if echo "$line" | grep -qE '=>[[:space:]]*/'; then
+			echo "ERROR: $modfile has an absolute-path replace (breaks CI Release; use go.work use or a relative sibling replace): $line"
+			errors=$((errors + 1))
+			continue
+		fi
+
 		# Extract module path and replacement path
 		# Format: "module/path => ./relative/path" or "module/path => ../relative/path"
 		if echo "$line" | grep -qE '[^[:space:]]+[[:space:]]+=>[[:space:]]+\.\.?/'; then
