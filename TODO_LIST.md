@@ -32,9 +32,6 @@ and is **never** duplicated here.
       `storage/sql/batch_insert_test.go` (SQLite/PG/MySQL/DuckDB/unknown/nil).
 - [x] **DuckDB verification of larger batch chunks** — DONE: full `./storage/...`
       tree green with CGO + 6×2 MiB view chunk test.
-- [ ] **Session verification gap** — `#verify-fast` + `#check-coverage` never
-      run end-to-end after the perf session (component gates only).
-      _(Effort: M)_
 - [x] **Projectionhost live-checkpoint batching** — DONE 2026-08-16:
       `WithCheckpointEvery(n)`/`WithCheckpointInterval(d)` (opt-in, default
       unchanged), Stop/shutdown flush, crash window ≤ n−1 reprocess; race ×3
@@ -102,40 +99,75 @@ and is **never** duplicated here.
       database/sql has no RowCount API; cap-64 pre-size, `maps.Clone`, and
       `MergeCustomMaps(len+len)` already applied. Changing the exported
       generic signature would buy nothing.
+- [ ] **`OpenSQLiteInMemory` callers: unique shared-cache DSNs** — the pool
+      pin serializes all access for the 8+ helper callers; per-test
+      `file:<name>?mode=memory&cache=shared` DSNs would parallelize better
+      (pairs with the ratify-judgment-calls release item).
+      _(Effort: S)_
 
 ---
 
 ## Release / Tagging 🔥
 
 > Blocked on user authorization (never tag/push without explicit instruction).
-> The verify gate has been GREEN four times since ADR-0128 (latest:
-> 2026-08-15, 239 ok packages, lint 76/76) — this is the release checkpoint.
+> Latest full-gate GREEN: 2026-08-16 13:15 (`#verify` run #4 EXIT=0, 591-line log,
+> build+vet+test+race+lint 76/76, doc-check, api-surface; `#check-coverage` and
+> `#check-duplication` also EXIT=0) — this is the release checkpoint. The
+> 2026-08-16 chain (id v4.5.0, record v4.3.0, metadata v4.5.0, schema v4.3.0,
+> event v4.7.0, query v4.6.0→retracted→v4.6.1, command v4.7.0→retracted→v4.7.1,
+> middleware v4.5.0, metaengine v4.11.0, sqlite/pebble/pg engines v4.1.0,
+> badger v4.0.2, watermill v4.5.0, mysql/bbolt/turso/iroh engines v4.0.0,
+> storage v4.7.0→retracted→v4.7.1) is LIVE on the proxy.
 
-- [ ] [BLOCKED] **Tag the unpublished fixes parked behind replaces** — engine
-      self-registration (sqlite/badger/pebble/pg v4.0.1 tags predate it) and
-      the watermill `errors.Join` handler-independence fix. Tag engine
-      v4.0.2+ ×4 (+ metaengine, system, stack/sqlite, stack/pebble consumers
-      as needed — the SQL `JournalReadFrom` positional fix is INVISIBLE to
-      consumers until these land; consumers on v4.0.1 double-process on
-      resume). Then remove the 6 temporary replaces in `system/go.mod` (the
-      6th, `metaengine/v4 => ../metaengine` added 2026-08-15, unblocks the
-      local `pebbleengine/vector.go` → unpublished `metaengine.VectorDistance`)
-      and the 1 in `cmd/cqrs-bench/go.mod` (`metadata/v4` — unpublished
-      generic `metadata.Metadata[K]`).
+- [ ] [BLOCKED] 🔥 **Tag the wave-4 module batch** — `event` (DecorateJournal),
+      `metadata` v4.5.1+ (BrandedString), `schema`, `metaengine` (capability
+      audit + iroh exports), `metaengine/irohengine`, `projectionhost`, and
+      `storage` v4.7.2 (SQLite `OpenSQLiteInMemory` pool pin). Constraint: the
+      batch must tag event+metadata+schema before/with projectionhost (its
+      released go.mod needs them — the release flow strips the sibling
+      replaces). Via `scripts/tag-release.sh` from a clean tree.
       _(Effort: M)_
-- [ ] [BLOCKED] **Cut `command/v4.6.1`** — v4.6.0 was published pinning
-      `storage/memory v4.2.0` whose `ReadFrom` bug fails
-      `commandtest.TestStoreSuite/ReadFrom` standalone. The pin bump is
-      already in the tree; only the tag is missing.
+- [ ] [BLOCKED] 🔥 **Land the stranded tag-chain repair commits on master** —
+      cherry-pick `092b5e8a8` (command/query `retract` directives + metadata
+      v4.5.0 pins + hardened `tag-release.sh` standalone-build gate) and
+      `4907b6afc` (metaengine/bench pseudo-version tidy) from the tag worktree
+      (`git merge-base --is-ancestor` confirms both NOT on master, verified
+      2026-08-16). Master's `command`/`query` go.mod still pin `metadata/v4
+      v4.4.0` — any future tag cut from raw master re-breaks consumers (the
+      v4.7.0/v4.6.0 incident class). Regen the api-stability golden fresh on
+      master instead of cherry-picking `d25e8a959`.
+      _(Effort: S)_
+- [ ] [BLOCKED] **go-codec F46: commit + tag the `UnwrapDecode` sniff** —
+      the first-byte fast path (fallback 181ns/6 allocs → 1.6ns/0 allocs) sits
+      UNCOMMITTED in `../go-codec` (no auto-commit daemon there); GOWORK=off
+      consumers get nothing until it is tagged.
       _(Effort: XS)_
+- [ ] [BLOCKED] **Ratify two shipped judgment calls** — (a) iroh latency P99
+      bound 50→150ms (worst-of-30 sample inflates under gate load); (b)
+      `OpenSQLiteInMemory` single-connection pool pin (serializes test DB
+      access). Both shipped + gated green; keep or revisit.
+      _(Effort: XS)_
+- [ ] **Replace-drop sweep (after the wave-4 tags)** — system ×6,
+      cqrs-bench ×7, event ×2, schema ×2, projectionhost ×2, integration ×2
+      local `replace` directives exist only because wave-3/4 code is untagged;
+      drop + tidy + GOWORK=off re-verify each module. Every one is documented
+      droppable-on-tag; the sweep cost compounds until then.
+      _(Effort: M)_
+- [ ] **Create GitHub Releases for the 2026-08-16 tags** — 20 tags, none have
+      releases (only storage/v4.7.1 got one). `gh` auth never verified from
+      this environment. Optionally curated notes for the 8 core modules.
+      _(Effort: S)_
+- [ ] **Document the retract-and-republish pattern** in CONTRIBUTING.md
+      Release Process (what happened to command/v4.7.0, query/v4.6.0,
+      storage/v4.7.0 and the exact remedy), and audit recently published tags
+      with the hardened script's standalone-build gate once `092b5e8a8` lands.
+      _(Effort: S)_
 - [ ] [BLOCKED] **Tag final v4.x patches of `transport/http` +
       `transport/grpc`** (deprecation notices included) — prerequisite for
       the v5 deletion (ADR-0127).
       _(Effort: S)_
-- [ ] **Create GitHub Releases + trigger pkg.go.dev** for the 2026-08-13
-      coordinated release (metadata/v4.4.0, event/v4.6.0, command/v4.6.0,
-      query/v4.5.0) and the upcoming engine/watermill tags — never done.
-      _(Effort: S)_
+- [ ] **Create GitHub Releases + pkg.go.dev fetch triggers** — folded into
+      the 2026-08-16 GitHub Releases item above.
 - [ ] **Consolidate indirect dep references** — after new module tags are
       published, the transitive `go-cqrs-lite/{codec,retry,idempotency,
       flightrecorder}/v4` indirect deps in ~49 consumer go.mod files clean
@@ -271,6 +303,26 @@ and is **never** duplicated here.
       `Replicated` now forwards `GraphAddEdge`/`GraphNeighbors` as local
       passthrough (+ `ErrGraphBackendNotImplemented`, regression tests);
       all 9 engines green in the conformance loop.
+- [ ] **Run the 9-engine conformance loop under `#test-integration`** —
+      mysql/dgraph/turso rows only execute against real servers (they skip
+      cleanly without them; loopback/quic have their own matrices).
+      _(Effort: S)_
+- [ ] **iroh graph `WriteOp` replication** — `GraphAddEdge`/`GraphNeighbors`
+      are local passthrough; the replication wire protocol has no graph
+      WriteOp kind, so edges do NOT converge across peers (documented on the
+      methods). Replicate edges or keep the honest local-only note in Doctor.
+      _(Effort: M)_
+- [ ] **irohengine optional-capability forwarding audit** — `Replicated` was
+      caught dropping graph dispatch (fixed 2026-08-16); audit the remaining
+      optional capabilities (Close, Transactional, StreamLogBackend, probers)
+      for the same interface-embedding promotion gap.
+      _(Effort: S)_
+- [ ] **Surface capability drift beyond tests** — Doctor: note iroh graph
+      non-replication in the Capability section; EXPLAIN: plan-time warning
+      banner from `AuditCapability`; plus a metaengine meta-test pinning
+      `adttest` stays delegating-only (no logic re-growth in the wrong
+      package).
+      _(Effort: S)_
 - [ ] **DuckDB real aggregation pushdown (`AggregateReader`)** — approved by
       DiscordSync census review; `CounterGet` currently loads all rows into
       Go maps instead of pushing GROUP BY to columnar SQL. Highest-leverage
@@ -396,6 +448,33 @@ and is **never** duplicated here.
 
 ## Code Quality / Infrastructure
 
+- [ ] **api-stability: fail loudly on parse-skip** — the checker prints `skip
+      <module>:` and proceeds when a file is unparseable, so a corrupted
+      module looks identical to a legitimately-removed one in the golden
+      (a silently-shrinking golden is the corruption tell, 07:12 report §e.2).
+      Cheapest corruption tripwire available.
+      _(Effort: XS)_
+- [ ] **BuildFlow pre-commit: `gofmt -l` syntax gate on staged `.go` files** —
+      concurrent-session mid-write corruption entered the index twice on
+      2026-08-16 (`func (w *workor)`, `fojection.`); a 1s syntax check on
+      staged files blocks the class.
+      _(Effort: XS)_
+- [ ] **Pre-gate load-sweep script** — run timing-assertion tests
+      (`-run 'Latency|Timer|Deadline'`) under a CPU soaker before `#verify`;
+      the 12:39 session burned two full gate cycles (~20 min each)
+      discovering load-sensitive flakes one at a time.
+      _(Effort: S)_
+- [ ] **Guard against local-path `replace` directives** — cqrs-lint rule,
+      buildflow check, or both: reject `replace … => /home/…` (broke CI
+      Release on every push until `ceb88738b`; dev-against-siblings belongs
+      in `go.work` `use`, never in a published go.mod). Approach is a user
+      question (11:00 report §g Q2).
+      _(Effort: S)_
+- [ ] **Clean up registered git worktrees** — `/tmp/cqrs-tagwt` (tag chain,
+      commits `092b5e8a8`/`4907b6afc` stranded there), `/home/lars/projects/
+      wt-head`, `/tmp/gcl-verify`, `go-cqrs-lite-pin` still registered.
+      After the stranded-commit cherry-pick lands.
+      _(Effort: XS)_
 - [ ] **Infrastructure polish (nix apps + shared helpers)** — add
       `#check-lint-config`, `#verify-ci` (mirror GH Actions GOWORK=off
       per-module), wire `#sweep` to pre-commit/cron, consolidate engine
@@ -425,6 +504,11 @@ and is **never** duplicated here.
       _(Effort: M)_
 - [ ] **Doc-check 0-warning CI tripwire** — warnings are at 0 since
       2026-08-15; add a regression guard so warning spam can't creep back.
+      _(Effort: XS)_
+- [ ] **Skill docs: capability diagnostics recipe** — `recipes.md` section on
+      `CapabilityAudit`/Doctor's `--- Capability ---` section
+      (consumer-facing declared-vs-implemented diagnostics), and a
+      `modules.md` metaengine row note. Shipped 2026-08-16, undocumented.
       _(Effort: XS)_
 - [ ] **Duplication-baseline hygiene** — add `//art-dupl:accept` directives
       at the 9 intentional clone sites; dirty-tree guard for baseline
