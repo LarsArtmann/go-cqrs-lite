@@ -48,7 +48,7 @@
 | `middleware`     | `middleware/v4`     | `Logging`, `Retry`, `Recovery`, `Validation`, `Metrics`, `CircuitBreaker`, `EventTracing`, `CommandMetrics`, `CommandActorContext`, etc. For command + event + query. |
 | `transport/http` | `transport/http/v4` | **DEPRECATED** (ADR-0127, removal at v5). `NewSSEBroker`, `SSEHandler`. Use `github.com/larsartmann/go-sse` or `watermill/` instead.   |
 | `otel`           | `otel/v4`           | `Tracer`, `Meter`, `Spans`, `Attributes`. Re-exports — import this, not go.opentelemetry.io.                                                   |
-| `catalog`        | `catalog/v4`        | `Registry`, `SchemaFromType[T]()`, exporters: `asyncapi`, `d2`, `eventcatalog`, `openapi`.                                                     |
+| `catalog`        | `catalog/v4`        | `Registry`, `SchemaFromType[T]()`, exporters: `asyncapi`, `d2`, `eventcatalog`, `openapi`; `docserver` serves it all (templ-components UI, embedded assets). |
 | `watermill`      | `watermill/v4`      | `EventBus` (GoChannel-backed, replaces `memory.MemoryBus`), `CatchUpSubscriber`, `EventPublisher`, `MessageToEvent`. ADR-0028. Command protocol carries actor as `actor_id` (`"kind:raw"`), both directions. |
 
 ### Reliability & Testing (Layer 1–3)

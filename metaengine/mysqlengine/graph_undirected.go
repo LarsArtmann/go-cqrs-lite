@@ -19,17 +19,21 @@ import (
 
 // mysqlGraphNeighborsUndirectedCTE walks the depth-limited neighborhood in
 // one query, expanding every node along BOTH edge directions.
+//
+// Exactly TWO arms: MySQL rejects recursive references in the non-recursive
+// term AND allows the CTE to be referenced at most once in the recursive
+// term — the seed's two directions are a derived table and the recursive
+// step expands both directions through one CASE + OR join.
 const mysqlGraphNeighborsUndirectedCTE = `WITH RECURSIVE walk(node, depth) AS (
-	SELECT to_node, 1 FROM meta_graph_edges WHERE collection = ? AND from_node = ?
+	SELECT seed.n, 1 FROM (
+		SELECT to_node AS n FROM meta_graph_edges WHERE collection = ? AND from_node = ?
+		UNION
+		SELECT from_node AS n FROM meta_graph_edges WHERE collection = ? AND to_node = ?
+	) seed
 	UNION
-	SELECT from_node, 1 FROM meta_graph_edges WHERE collection = ? AND to_node = ?
-	UNION
-	SELECT g.to_node, w.depth + 1
-	FROM meta_graph_edges g JOIN walk w ON g.collection = ? AND g.from_node = w.node
-	WHERE w.depth < ?
-	UNION
-	SELECT g.from_node, w.depth + 1
-	FROM meta_graph_edges g JOIN walk w ON g.collection = ? AND g.to_node = w.node
+	SELECT CASE WHEN g.from_node = w.node THEN g.to_node ELSE g.from_node END, w.depth + 1
+	FROM meta_graph_edges g
+	JOIN walk w ON g.collection = ? AND (g.from_node = w.node OR g.to_node = w.node)
 	WHERE w.depth < ?
 )
 SELECT DISTINCT node FROM walk WHERE node <> ?`
@@ -83,7 +87,7 @@ func (e *mysqlEngine) graphNeighborsUndirectedCTE(
 	start := encodeNodeKey(node)
 
 	rows, err := e.conn().QueryContext(ctx, mysqlGraphNeighborsUndirectedCTE,
-		col, start, col, start, col, depth, col, depth, start)
+		col, start, col, start, col, depth, start)
 	if err != nil {
 		return nil, fmt.Errorf("mysqlengine.GraphNeighborsUndirected: %w", err)
 	}

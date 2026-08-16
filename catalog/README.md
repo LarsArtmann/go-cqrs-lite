@@ -17,7 +17,7 @@ go get github.com/larsartmann/go-cqrs-lite/catalog/v4
 | `catalog/eventcatalog` | EventCatalog MDX file generator                                  |
 | `catalog/openapi`      | OpenAPI 3.0 YAML/JSON exporter                                   |
 | `catalog/d2`           | D2 diagram text exporter                                         |
-| `catalog/docserver`    | HTTP handlers for serving docs (OpenAPI/AsyncAPI UI, D2, health) |
+| `catalog/docserver`    | HTTP handlers for serving docs (index page, OpenAPI/AsyncAPI UI, D2 view) |
 | `catalog/simple`       | Single-service builder facade (streamlined API)                  |
 
 ## Quick Start
@@ -66,7 +66,7 @@ func main() {
     yamlBytes, _ := doc.MarshalYAML()
 
     // EventCatalog MDX files
-    ec := eventcatalog.Exporter{OutputDir: "./eventcatalog"}
+    ec := eventcatalog.NewExporter("./eventcatalog")
     _ = ec.Export(c)
 }
 ```
@@ -313,12 +313,19 @@ Maps CQRS types to AsyncAPI operations:
 ### EventCatalog
 
 ```go
-ec := eventcatalog.Exporter{OutputDir: "./eventcatalog"}
-ec.Export(catalog)
+ec := eventcatalog.NewExporter("./eventcatalog")
+err := ec.Export(catalog)
 ```
 
 Writes MDX files with YAML frontmatter, auto-deriving producers/consumers from message directions.
-Generates `llms.txt` and `schemas.txt` for AI consumption.
+Generates `llms.txt` and `schemas.txt` for AI consumption. The generated `package.json`
+pins `@eventcatalog/core` to a known-good version (`^4.6.3`) so `npm install` in the
+output directory is reproducible; `eventcatalog.config.js` includes a stable `cId`
+derived from the catalog title.
+
+Messages are written to the canonical top-level EventCatalog directories and
+deduplicated: a message shared by several services is written once and linked
+from each service page.
 
 #### Full Resource Coverage
 
@@ -326,13 +333,14 @@ The exporter supports all EventCatalog resource types:
 
 | Resource      | Exported To                    | Notes                                                                                                       |
 | ------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| Messages      | `commands/<id>/index.mdx`, `events/<id>/index.mdx`, `queries/<id>/index.mdx` | Top-level dirs, deduplicated across services                                 |
 | Services      | `services/<id>/index.mdx`      | With messages, specs, data stores, external flag, base config (sidebar, styles, editUrl, draft, visualiser) |
 | Domains       | `domains/<id>/index.mdx`       | With ubiquitous language, sub-domains, data products, base config                                           |
 | Entities      | `entities/<id>/index.mdx`      | DDD entities: aggregateRoot, identifier, properties with references/relationTypes                           |
 | Data Products | `data-products/<id>/index.mdx` | Data mesh products with inputs/outputs, output contracts, hidden flag                                       |
 | Agents        | `agents/<id>/index.mdx`        | AI agents with sends/receives, model, tools, data stores                                                    |
 | Channels      | `channels/<id>/index.mdx`      | With protocols, parameters, routes, delivery guarantees                                                     |
-| Data Stores   | `data/<id>/index.mdx`          | Databases/caches with authoritative, accessMode, classification                                             |
+| Data Stores   | `containers/<id>/index.mdx`    | Databases/caches with authoritative, accessMode, classification (EventCatalog 4.x collects them from `containers/`) |
 | Flows         | `flows/<id>/index.mdx`         | All step types: service, message, agent, dataStore, dataProduct, subFlow                                    |
 | Teams         | `teams/<id>.mdx`               | With external source sync, hidden, readOnly                                                                 |
 | Users         | `users/<id>.mdx`               | With external source sync, hidden, readOnly                                                                 |
@@ -481,12 +489,16 @@ type CustomDocID string   // catalog.CustomDocID
 
 ## docserver — HTTP Handlers
 
-Serve auto-generated API documentation from a `*catalog.Catalog` via stdlib `net/http`:
+Serve auto-generated API documentation from a `*catalog.Catalog` via stdlib `net/http`.
+HTML pages are rendered with [templ-components](https://github.com/larsartmann/templ-components)
+(dark-mode aware, no htmx required) and the compiled stylesheet ships as an embedded
+static asset, so the docserver needs no external files:
 
 ```go
 import "github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver"
 
-// Full docs server (OpenAPI/AsyncAPI JSON+YAML+HTML UI, catalog JSON)
+// Full docs server: index page, OpenAPI/AsyncAPI JSON+YAML+HTML UI,
+// D2 diagram view + raw text, catalog JSON, embedded static assets.
 ds := docserver.NewDocsServer(func() *catalog.Catalog {
     return builder.Build()
 }, docserver.Config{
@@ -495,12 +507,31 @@ ds := docserver.NewDocsServer(func() *catalog.Catalog {
 })
 
 mux := http.NewServeMux()
-ds.RegisterRoutes(mux) // registers /docs/openapi, /docs/asyncapi, etc.
+ds.RegisterRoutes(mux)
 
 // Standalone handlers (no DocsServer needed)
 mux.HandleFunc("/diagram.d2", docserver.D2Handler(cat))
 mux.HandleFunc("/health", docserver.HealthCheckHandler(cat))
 ```
+
+### Routes
+
+| Route                  | Content                                             |
+| ---------------------- | --------------------------------------------------- |
+| `GET {docs}`           | Index page: stats, artifact links, service cards     |
+| `GET {docs}/openapi`   | OpenAPI reference rendered with Scalar               |
+| `GET {docs}/asyncapi`  | AsyncAPI reference rendered with AsyncAPI React      |
+| `GET {docs}/d2`        | D2 diagram source view with copy/download            |
+| `GET {docs}/openapi.{json,yaml}` | Raw OpenAPI spec                          |
+| `GET {docs}/asyncapi.{json,yaml}` | Raw AsyncAPI spec                        |
+| `GET {docs}/d2.txt`    | Raw D2 diagram text                                  |
+| `GET {docs}/catalog.json` | Raw catalog snapshot                              |
+| `GET {docs}/static/*`  | Embedded assets (docs-ui.css, favicon, vendored SPAs) |
+
+`{docs}` defaults to `/docs` (override with `Config.DocsPath`). `/docs/` redirects to
+`/docs`; unknown `/docs/*` paths return 404 rather than falling back to the index.
+SPA pages reference assets with absolute DocsPath-anchored URLs and include
+`<noscript>` fallbacks linking the raw specs, so they work behind any router prefix.
 
 ### EventCatalog File Generation
 
@@ -527,9 +558,11 @@ Access the underlying `catalog.Builder` via `b.InnerBuilder()` for multi-service
 
 ## Dependencies
 
-| Dependency       | Purpose         |
-| ---------------- | --------------- |
-| `go-faster/yaml` | YAML marshaling |
+| Dependency                  | Purpose                          |
+| --------------------------- | -------------------------------- |
+| `go-faster/yaml`            | YAML marshaling                  |
+| `templ-components`          | docserver HTML UI components     |
+| `a-h/templ`                 | HTML templating (code-generated) |
 
 ## Related Modules
 

@@ -24,88 +24,16 @@ and is **never** duplicated here.
 > `cdc525fd5` + `a298ea388`. Wave 3 closed 2026-08-16 (measured numbers in
 > [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md)).
 
-- [x] 🔥 **MySQL/MariaDB byte guard for multi-VALUES batches** — DONE 2026-08-16:
-      `sql.MaxStatementBytes` (8 MiB) + `RowsWithinByteCap` dual-cap in
-      `SharedBatchInsertEvents` and `view.BatchSet`; verified on real MariaDB VM
-      (2000×8 KiB regression test in `stack/mysql`).
-- [x] **`MaxParametersForDialect` unit test** — DONE: table test in
-      `storage/sql/batch_insert_test.go` (SQLite/PG/MySQL/DuckDB/unknown/nil).
-- [x] **DuckDB verification of larger batch chunks** — DONE: full `./storage/...`
-      tree green with CGO + 6×2 MiB view chunk test.
-- [x] **Projectionhost live-checkpoint batching** — DONE 2026-08-16:
-      `WithCheckpointEvery(n)`/`WithCheckpointInterval(d)` (opt-in, default
-      unchanged), Stop/shutdown flush, crash window ≤ n−1 reprocess; race ×3
-      green. Docs: readmodels.md §2.3.
-- [x] **bbolt opt-in `db.Batch` group commit path** — DONE 2026-08-16:
-      `bbolt.WithBatchCommit()` on `OpenWithOptions`/`NewBackendWith`; all
-      write closures route through `writeTx`; idempotent-under-retry verified
-      (conflicting writer ejected solo, batch-mates land); race-tested.
-- [x] **PG `COPY FROM` bulk path** — DONE 2026-08-16: `StreamAppend` now chunked
-      multi-VALUES (10k rows/stmt) by default; `pgengine.WithCopyAppend(n)`
-      opt-in COPY via `db.Conn().Raw()` → pgx (no second pool); measured 1.41x
-      @10k / 1.49x @100k rows vs batched INSERT; falls back inside RunInTx.
-- [x] **Pebble tuning knobs** — DONE 2026-08-16: `stack/pebble`
-      `WithMemTableSize`/`WithBlockCacheSize`/`WithWALBytesPerSync`/
-      `WithPebbleCompression`; defaults byte-identical (pinned by test); block
-      cache ref released after Open.
-- [x] **SQLite durability tier when WAL off** — DONE 2026-08-16:
-      `ApplySQLiteDurability` now applies every non-empty tier (Normal
-      early-return was WAL-specific); tier application de-nested from
-      `if cfg.WAL` in stack/sqlite/preset.go + stack/turso/backend.go.
-      Tests: `WithoutWAL` table (relaxed=OFF≠FULL pin), preset-level
-      `RelaxedWithoutWAL`; stack/sqlite/turso suites green.
 - [ ] [BLOCKED] **Durability tier→per-write-sync mapping** (storage/pebble
       hardcodes `pebble.Sync`; metaengine engines no NoSync path) — real win
       (fsync per append) but a behavior change for existing Normal-tier
       consumers. AWAITS USER DECISION (status §g Q3).
       _(Effort: M)_
-- [x] **Reconstruct payload adopt-variant** — DONE 2026-08-16:
-      `event.ReconstructEventWithAdoptedPayload` (ownership-transfer contract;
-      `Payload()` stays defensive) wired into pebble+bbolt deserialize.
-      Measured: bbolt 2815→2521 ns/op (−10%), pebble 3316→2872 (−13%),
-      −32 B/op. Equivalence + alias + race tests green.
-- [x] **Bound `idempotencyTracker`** — DONE 2026-08-16: mutex-guarded
-      `dedup.Ring`, default window 131072 IDs (~10 MB) via
-      `WithIdempotencyCapacity` (≤0 = legacy unbounded). 1M-ID memory-bound,
-      eviction, and concurrent exactly-once tests race-green.
-- [x] **Envelope first-byte sniff in `UnwrapDecode`** — DONE 2026-08-16
-      (go-codec sibling repo): first byte ≥ 0x80 (CBOR major types 4-7, never
-      valid JSON) skips the doomed envelope parse. Fallback path 181ns/6
-      allocs → 1.6ns/0 allocs (-99%, n=10 benchstat); envelope path unchanged
-      (p=0.912). Pinned by `TestUnwrapDecode_FirstByteSniff` (all 128 high
-      bytes) + `BenchmarkUnwrapDecode_FallbackRawCBOR`. CONSUMER NOTE: needs a
-      go-codec tag before GOWORK=off builds pick it up (standing tagging
-      question).
-- [x] **bbolt deserialize benchmark** — DONE 2026-08-16:
-      `BenchmarkEventDeserialize` (storage/bbolt): 2815 ns/op, 1210 B/op,
-      20 allocs pre-adopt → 2521 ns/op with adopt; ledger updated.
-- [x] **Measure-then-pad cache-line candidates** — DONE 2026-08-16
-      ([evidence](docs/benchmarks/2026-08-16_false-sharing-contention.md),
-      count=10 @-cpu=16,32): multiSeqCounter PADDED (trailing 128B size-class
-      pad, 2.5-2.8x under two hot collections); worker counters NO PAD
-      (padded mirror ~58% slower for the single-writer under reader spin —
-      confirms prior analysis); SSEReplay.seq NO PAD (contradictory deltas;
-      record() touches seq and mutex fields together). Control benches kept
-      in-tree.
-- [x] **Perf ledger** — DONE 2026-08-16: [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md)
-      maps every shipped win to its runnable benchmark + baseline + last
-      measured numbers. REMAINS: benchstat baselines for the 3 new benchmarks
-      (kept open below).
-      _(Effort: S)_
-- [x] **Fix ignored `MarshalMetadataJSON` error** — DONE 2026-08-16:
-      explicit discard with ADR-0126 constraint documented + nil fallback on
-      marshal failure (zero metadata instead of partial JSON).
-- [x] **ScanSlice `RowCount()` pre-size** — VERIFIED NO-OP 2026-08-16:
-      database/sql has no RowCount API; cap-64 pre-size, `maps.Clone`, and
-      `MergeCustomMaps(len+len)` already applied. Changing the exported
-      generic signature would buy nothing.
-- [x] **`OpenSQLiteInMemory` callers: unique shared-cache DSNs** — DONE
-      2026-08-16: `OpenSQLiteInMemory` now generates a unique
-      `file:<random>?mode=memory&cache=shared` DSN per call, removing the
-      single-connection pool pin. All pooled connections share one in-memory
-      schema, enabling read concurrency. The `view` test helper was updated
-      to match. Race tests no longer need `SetMaxOpenConns(1)`.
-      _(Effort: S)_
+- [ ] **Benchstat baselines for the 3 new false-sharing control benches**
+      (multiSeqCounter padded/unpadded, WorkerCounters, SSEReplaySeq) —
+      point measurements live in [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md);
+      formal benchstat baselines still pending.
+      _(Effort: XS)_
 
 ---
 
@@ -193,12 +121,6 @@ and is **never** duplicated here.
 > it: `#verify` resolves local modules, CI runs GOWORK=off per-module — and
 > the CI "Benchmarks" job is currently RED.
 
-- [x] 🔥 **Pin-drift meta-test** — DONE 2026-08-16:
-      `cmd/api-stability/pin_drift_test.go` `TestSiblingModulePinsResolve`:
-      hard-fails unreplaced pins referencing nonexistent tags or
-      pseudo-versions; staleness warns (16 stale today, all replace-governed)
-      until the pin-sweep policy decision flips `enforceStaleness`.
-      Handles nested-module tag pollution; skips hermetic nix builds.
 - [ ] 🔥 **Repo-wide stale-pin sweep** — benchkit still pins
       `sqliteengine v4.0.1` (pre-JournalReadFrom-fix), `decider v4.3.0`,
       `event v4.6.0`… Mechanical bump of ~50 go.mod files, gate-verified.
@@ -221,68 +143,6 @@ and is **never** duplicated here.
 - [ ] **Add CI leg for GOWORK=off standalone builds of leaf modules**
       (integration/, examples/, benchkit/) to catch pin rot early.
       _(Effort: S)_
-- [x] **`system/integration` DuckDB standalone failure** — FIXED
-      2026-08-16: root cause was published duckdbengine v4.0.1 predating
-      register.go's `metaengine.RegisterDriver` self-registration (workspace
-      mode masked it). Added replace via `go mod edit` + tidy; standalone
-      GOWORK=off suite green. Drop the replace once duckdbengine v4.0.2+
-      tags the registration.
-
----
-
-## Metaengine — Layout Planning (Phase 6b)
-
-> Core shipped 2026-08-11: priority system, embed-vs-normalize scoring,
-> `ReplanLayout`, `ConfirmRebuild`, runtime backend add/remove, audit trail,
-> 16-combination regression test, `cqrs-bench layout` CLI. KV/LSM scoring
-> split with 60s on-disk calibration. Layout docs + ADR-0124 addendum
-> corrected 2026-08-14. See ADR-0124, ADR-0125.
-
-- [x] **Calibrate DuckDB (Columnar)** — DONE 2026-08-15: benchmarked via
-      `BenchmarkColumnarLayoutCalibration_*` (cgo-gated); the exact-tie cell is
-      now a measured 0.08-margin Embed win; a literal 60s confirmation run
-      reproduced ratios within 2%.
-- [x] **Calibrate SQLite/Postgres/MySQL (Row)** — DONE 2026-08-15: measured on
-      file-backed SQLite, Postgres 16 (`.#integration-pg`), MySQL
-      (`.#integration-mysql-vm`); geomean read 1.27x / write 0.52x / storage
-      0.35x; normalize-reads-cheaper myth corrected.
-- [x] **Multi-engine integration test with two real backends** — DONE
-      2026-08-15: `metaengine/bench/multi_engine_integration_test.go` drives
-      SQLite + Pebble through plan → AddEngine(Migration) → Backfill →
-      Promote → Demote → live mirroring; both engines serve identical results.
-- [x] **Converge `ReplanLayout` into `Store.Replan`** — DONE 2026-08-15:
-      ReplanLayout funnels through the single `replanWithTrigger` path and
-      diffs plan snapshots; the duplicate scoring loop is deleted. Semantic
-      change: ReplanLayout now APPLIES the priority config (SetPriority+Replan
-      equivalent).
-
-### Layout roles (long-horizon, depend on a design doc first)
-
-> Shipped 2026-08-15 — engine roles, async shadow replication, promote/
-> cutover, workload traces, shared-collection boundaries, per-fold locks.
-> See CHANGELOG and
-> [`docs/planning/METAENGINE-LAYOUT-ROLES.md`](docs/planning/METAENGINE-LAYOUT-ROLES.md).
-
-- [x] **`DemoteEngine` (role transition v2)** — DONE 2026-08-15: atomic
-      drain-then-unroute via `replanWithTransition` (role flip + replicator +
-      EventLog snapshot under one write lock), targeted mirror catch-up +
-      re-routed replay, `engine-demoted` audit trigger; PromoteEngine hardened
-      through the same atomic path. Exactly-once proven by a concurrent-apply
-      race test. See METAENGINE-LAYOUT-ROLES.md §4.4.
-- [x] **`Re-derive KV/LSM layout constants from size-stable benches`** — DONE
-      2026-08-16: both benches fixed (memory EmbedWrite drifted via unbounded
-      append; disk EmbedWrite's typed assertion never matched the map form disk
-      engines decode into, so the mutation silently no-oped — the TODO's
-      premise was wrong for the disk bench), re-measured exclusively with
-      median-of-10, and constants updated (KV norm write 0.84; LSM norm
-      1.67/0.62/0.98). Includes a NEW real-bytes storage bench
-      (`BenchmarkDiskLayoutCalibration_Storage`): the JSON model overstated
-      normalize's LSM storage advantage ~2x (real 0.86x geomean — per-child
-      seq-suffixed keys eat the dedup saving). All 16 matrix winners preserved;
-      LSM × Balanced margin 0.01 → 0.28. See
-      [ADR-0124 addendum](docs/adr/0124-operator-driven-layout-planning.md)
-      and
-      [`docs/status/2026-08-16_14-09_kv-lsm-recalibration-size-stable-benches.md`](docs/status/2026-08-16_14-09_kv-lsm-recalibration-size-stable-benches.md).
 
 ---
 
@@ -298,110 +158,6 @@ and is **never** duplicated here.
 > Follow-ups below harvested from
 > `docs/status/2026-08-15_22-04_metaengine-followup-closeout.md` §f.
 
-- [x] **Seq-carrying journal reads (perf follow-up)** — DONE 2026-08-16:
-      `metaengine.SeqSeekableStreamLog` capability
-      (`JournalReadAllWithSeq`/`JournalReadFromSeq`, `StreamLogEntry{Seq,Value}`)
-      implemented by 8 engines (memory, sqlite, pg, mysql, duckdb, pebble,
-      bbolt, badger; turso inherits via sqliteengine; dgraph/iroh intentionally
-      out per design §7). Resume is a pure `collection+seq` index seek —
-      O(log n) per page instead of O(offset) — and gap-tolerant by
-      construction. `enginetest.RunSeqSeekableStreamLogTest` conformance gates
-      every engine; memory gap-tolerance test covers journal-entry deletion.
-      `system` EventAdapter + AdapterCore resume on true engine tokens
-      (zero-cursor reads skip journal scanning entirely; cursor resolution
-      paged 512/batch). Measured (sqlite, 100k-entry drain, page 500,
-      benchstat): **761.8 ms ±17% → 106.8 ms ±20% = 7.1x** —
-      [ledger](docs/BENCHMARKS.md). Design +
-      implementation: [`docs/planning/SEQ-CARRYING-JOURNAL-READS.md`](docs/planning/SEQ-CARRYING-JOURNAL-READS.md)
-      (IMPLEMENTED).
-- [x] **Engine capability conformance test** — DONE 2026-08-16 (F60 +
-      Doctor wiring): `metaengine.CapabilityAudit` (root package) enforces
-      the three rules (over-declaration, under-declaration, Degraded ⊆
-      Supports); `adttest.RunCapabilityConformance` gates all 10 engines;
-      `Store.Doctor` renders a `--- Capability ---` section per engine so
-      lying engines surface at runtime. adttest delegates to the root
-      implementation (dependency direction: adttest → metaengine).
-      Follow-up same day: irohengine graph over-declaration fixed —
-      `Replicated` now forwards `GraphAddEdge`/`GraphNeighbors` as local
-      passthrough (+ `ErrGraphBackendNotImplemented`, regression tests);
-      all 9 engines green in the conformance loop.
-- [x] **Run the 9-engine conformance loop under `#test-integration`** — DONE
-      2026-08-16, ALL GREEN. Real-server rows executed: PG via
-      `nix run .#integration-pg`, Dgraph via `nix run .#ephemeral-dgraph`,
-      MySQL via ephemeral `mysql:8.4` container + `MYSQL_TEST_DSN`;
-      pebble/bbolt/badger/iroh/turso/duckdb(cgo) local; root module
-      (memory+sqlite) green. Gotchas: `go test -C <dir>` must be the FIRST
-      flag through the ephemeral scripts' `go` passthrough, and prefix
-      `GOWORK=off`. Incidental: storage `TestPostgresEventStore_CRUD` flaked
-      ("expected 2 events, got 27") via shared-journal cross-test
-      contamination under the full default PG suite — pre-existing, unrelated.
-      _(Effort: S)_
-- [x] **iroh graph `WriteOp` replication** — RESOLVED 2026-08-16 by keeping
-      the honest local-only note (option B): Doctor's Capability section now
-      prints the non-convergence note for replicated graph engines, the
-      forwarding policy table in `engine_passthrough.go` documents why, and
-      `engine_capability_forwarding_test.go` pins the surface. Revisit edge
-      replication only if a consumer need appears (would require a new graph
-      WriteOp kind plus CRDT edge-set semantics).
-- [x] **irohengine optional-capability forwarding audit** — DONE 2026-08-16.
-      Full policy documented in `engine_passthrough.go` (forwarding policy
-      table) and pinned by `engine_capability_forwarding_test.go`:
-      Closer forwarded (transport + local both close); MapUpdater/Scan/
-      Vector/Search/Spatial/graph forwarded as local passthrough (writes among
-      them do NOT replicate — no WriteOp kinds); Transactional,
-      StreamLogBackend/SeqSeekableStreamLog/AtomicAppender, and
-      Prober/TransactMeasurer DELIBERATELY not forwarded — forwarding would
-      either silently diverge state (tx/stream writes bypass publish; the
-      system adapters' LogBackend fallback is the converging route) or
-      calibrate NetworkRTT to ~0 overriding the honest replication-derived
-      latency tracker. Additional dropped-by-design surface noted for future
-      triage: temporal reads (MapGetAsOf, StreamReadAsOfVersion, StreamVersion),
-      VectorSearchFiltered, SnapshotBackend.
-- [x] **Surface capability drift beyond tests** — DONE 2026-08-16.
-      Doctor `--- Capability ---` section now notes replicated graph engines:
-      "graph writes are local-only (no graph WriteOp on the replication
-      wire) — edges do NOT converge across peers" (`capability_audit.go`).
-      ExplainPlan renders a `--- Capability Warnings ---` banner with one
-      `WARN capability drift:` line per CapabilityAudit violation (clean
-      plans stay banner-free) via `explainCapabilityWarnings`. Meta-test
-      `TestAdttestStaysDelegatingOnly` (source-level AST check) pins adttest
-      as delegating-only: verdict strings stay in metaengine and every
-      CapabilityAudit call must route through the metaengine package.
-      Behavioral tests: `TestDoctorNotesGraphNonReplication`,
-      `TestExplainPlanShowsCapabilityDriftBanner`.
-- [x] **DuckDB real aggregation pushdown (`AggregateReader`)** — RESOLVED
-      STALE 2026-08-16: re-verified against current code. The premise no
-      longer holds — `duckdbengine/aggregations.go` implements the FULL
-      pushdown family (Aggregate, GroupedAggregate, MultiAggregate,
-      MultiGroupedAggregate, DistinctValues; planned-path + standard JSON
-      path) and `CounterGet` is a single SQL SELECT over a dedicated
-      `meta_counter` table (no Go-side row loads). All
-      `TestDuckDB_Aggregate*`/`Grouped*`/`Multi*`/`Distinct*` tests green
-      (cgo). No further work needed.
-- [x] **Dgraph engine hardening** — DONE 2026-08-16. (1) Transactional:
-      ADR-0129 documents why `RunInTx` is deferred (per-op txn unit of work;
-      ambient-tx plumbing + ErrAborted→Conflict mapping + conformance gate
-      sketched for when a consumer needs it); capability table stays honestly
-      undeclared. (2) Per-test isolation: `uniqueCollection(tb, base)` in
-      helper_test.go (pid + atomic counter suffix) now backs every fixed
-      collection name in the suite (injection, stream_log, multimap/log,
-      products, events_parity) — reruns and `-count>1` against a shared
-      persistent server no longer collide. Full dgraphengine suite green
-      against ephemeral Dgraph post-change. (3) CI: new `dgraph` job in
-      ci.yml runs `nix run .#integration-dgraph`; `test-all-backends.sh`
-      already had Phase 4 Dgraph — AGENTS quick-ref updated to list Dgraph.
-- [x] **DuckDB native graph via recursive CTE** — DONE 2026-08-16.
-      `duckdbengine/graph.go` mirrors the pgengine implementation: new
-      `meta_graph_edges` table (PK collection,from,to) in init DDL,
-      `GraphAddEdge` (ON CONFLICT DO NOTHING, idempotent), `GraphNeighbors`
-      via a single `WITH RECURSIVE walk` CTE (DuckDB ≥0.8; no capability probe
-      needed). Profile: ADTGraph upgraded O(N)→O(degree^depth) native and
-      REMOVED from DegradedADTs. Node-key encoding mirrors
-      sqlite/pg/mysql (`art-dupl:accept` cross-module pattern). Tests
-      (`graph_cgo_test.go`): depth 1-3 traversal, cycle safety, dedup,
-      duplicate-edge idempotency, integer keys, depth-0/empty honesty.
-      Capability conformance + full duckdbengine suite green; api-stability
-      golden regenerated.
 - [ ] **Turso explicit CTE-probe test** — the sqliteengine probe covers
       local drivers; add a tursoengine test confirming it holds over the
       remote protocol.
@@ -469,21 +225,6 @@ and is **never** duplicated here.
 > workspace-global by design (low leakage risk). F030 (deprecated transport
 > imports) shipped 2026-08-14 — 203 rules total.
 
-- [x] **Add per-module regression tests for remaining migrated rules** —
-      ~~F004, F007, F009, F012, F017, F023-F029, B030 lack dedicated per-module
-      tests~~ STALE (verified 2026-08-16): the "F006-F021 batch" file
-      (`coaching_permodule_extra_test.go`) was extended past F021 — all listed
-      rules now have per-module tests; B030 is in `b029_b031_permodule_test.go`.
-- [x] **Teach E005 about `system.RegisterCommand`** and regenerate the
-      taskmanager lint golden — killed the 10 enshrined false positives
-      (scanner records the first generic type arg; done 2026-08-16).
-- [x] **Wishlist (parked from consumer feedback rounds)** — all four shipped
-      2026-08-16: `--doctor --fix` removes stale whole-line suppressions
-      (trailing-on-code left manual); stale-suppression warnings run in every
-      output format (stderr-only, `--quiet` still silences); health score
-      shows an "Excluded from score by config" footer for disabled rules;
-      `features.monetary` (`on`/`off`/`unknown`) overrides the money
-      heuristics: C008 downgrades to Info on `off`, S006 skips entirely.
 - [ ] **Audit `.golangci.yml` exclusion blocks** — `system/` (20 linters
       disabled), `cmd/cqrs-lint/` (17), `metaengine/` (24) have the broadest
       exclusions. Track which can be removed after migrations complete.
@@ -497,9 +238,6 @@ and is **never** duplicated here.
 > (metadata/v4.4.0, event/v4.6.0, command/v4.6.0, query/v4.5.0 — 2026-08-13).
 > id/v4.4.0 contains `actor_id.go` (verified in tag).
 
-- [x] **Document `WithActor` in skill references** — core.md §3.8 + recipes
-      §2.21 + modules.md row all shipped (verified 2026-08-16).
-      _(Effort: S)_
 - [ ] **Test-coverage gaps** — golden JSON for full `event.Event`/`command.
       BasicCommand` with ActorID; watermill wire-format preservation; CBOR
       roundtrip (events default to CBOR); SQL `MarshalMetadata` scan path;
@@ -604,92 +342,10 @@ and is **never** duplicated here.
 - [ ] **macOS verification of ephemeral PG** — `scripts/ephemeral-pg.sh` claims
       cross-platform but was never tested on Darwin.
       _(Effort: M)_
-- [x] **Build `example/metaengine-quickstart` in CI** — DONE 2026-08-16:
-      added to flake `examplePaths` (builds under `#verify`/CI), plus the
-      missing `metadata/v4 => ../../metadata` replace so standalone
-      GOWORK=off builds resolve the local event/ tree's unpublished symbols.
-      _(Effort: XS)_
-- [x] **`storage/backuptest`: wire into bbolt/pebble or delete** — DONE
-      2026-08-16: WIRED, not deleted (tag `storage/backuptest/v4.0.0` is
-      published API). Recovered both thin adapters from git history
-      (a6613ef0d^) into `storage/{bbolt,pebble}/backup_lifecycle_test.go`;
-      suites pass standalone + `-race`. Found + worked around TWO blocking
-      defects: (1) the published tag points at `d49311e12`, one commit
-      BEFORE the module's go.mod existed — unusable from the proxy/VCS, so
-      both go.mod use `=> ../backuptest` replaces until the tag is re-cut;
-      (2) bbolt+pebble required `event/v4 v4.6.0` but local code uses
-      post-v4.7.0 `ReconstructEventWithAdoptedPayload` — bumped require to
-      v4.7.0 + `=> ../../event` + `=> ../../metadata` replaces (standard
-      unpublished-sibling pattern).
-      _(Effort: S)_
-- [x] **CI `shfmt -d` drift check on `scripts/`** — DONE 2026-08-16:
-      `shfmt-drift` job in ci.yml (nix shell nixpkgs#shfmt, whole `scripts/`
-      tree, 5min budget); local tree verified clean first.
-      _(Effort: XS)_
-- [x] **`reset_db` helper for docker mysql/mariadb/pg test loops** — DONE
-      2026-08-16: `scripts/reset-db.sh` (--pg/--mysql/--dry-run; drops
-      leftover `test_%` DBs + recreates the DSN default DB). Wired into
-      test-integration.sh external-DSN paths via `RESET_DB` (default on,
-      warns-and-continues on missing client). Verified live against a
-      throwaway PG (URL+kv DSNs) and MySQL 8.0 container; shellcheck +
-      shfmt clean; `mariadb.client` + `postgresql` added to devShell and
-      the `#test-integration` app.
-      _(Effort: XS)_
-- [ ] **Re-run soak suite** (`SOAK_SKIP_*` unset) after the graph/vector
-      engine additions.
-      _(Effort: S)_ 2026-08-16: IN PROGRESS (local engines running; bbolt
-      soak is the long pole).
-- [x] **quic convergence flake watch in CI** — DONE 2026-08-16:
-      `quic-flake-watch` job in ci.yml runs `TestQuicConvergenceSuite`
-      `-race -count=3 -timeout=10m` on every push; command verified locally
-      (3x green under race, 1.4s).
-      _(Effort: S)_
-- [x] **metaengine-quickstart: graph + vector demos** — DONE 2026-08-16:
-      example split into `graph_demo.go` (follow network → `metaengine.Edge`
-      folds, depth-1/2 BFS traversal) and `vector_demo.go` (doc embeddings →
-      `metaengine.Embedding` folds, euclidean k-NN); `main.go` runs all
-      three ADT sections; output verified (`go run .`).
-      _(Effort: S)_
-- [x] **Prune docker test images** — DONE 2026-08-16: removed `mysql:8` +
-      `mariadb:11` (~1.1GB); kept `postgres:16-alpine` (testcontainers),
-      `mysql:8.0` (stack/mysql testcontainer tests), `mysql:8.4` (running
-      container image, unreferenced by repo config — flagged, not removed).
-      _(Effort: XS)_
-- [x] **`#verify` per-module timeout headroom** — DONE 2026-08-16:
-      convergence-suite `pollTimeout` 15s→30s (passing runs still exit
-      early; only genuinely slow convergence pays) + `#verify` per-package
-      Test 8m→10m / Race 8m→12m, `#verify-fast` Race(short) 8m→10m.
-      Convergence suite re-run green after the change.
-      _(Effort: XS)_
 - [ ] **Delete junk from repo root** — `t/`, `result/` (16MB root-owned),
       `reports/coverage.out` (empty), `reports/jscpd-report.json`; drop the
       orphaned `stash@{0}` (WIP @ `e87be3143`, pre-recovery leftovers).
       _(Effort: XS)_
-- [x] **One bench system** — DONE 2026-08-16, revised on research: keep benchkit
-      (SDK) + cqrs-bench (CLI) + stack/bench (go test -bench entry, feeds the
-      gate); metaengine/bench SLIMMED, not deleted (31 of 36 benchmarks test
-      planner internals + layout calibration via direct engine imports that the
-      factory-driven, engine-agnostic benchkit cannot reach; only the 5
-      benchkit-redundant ones removed). Deleted: 15 integration bench files +
-      1 bench func, v2-era `benchmarks/` dir + root baseline. CI regression
-      gate now FAILS on breach (median-based `scripts/benchmark-regression.sh`,
-      25% threshold, artifact-baseline self-refresh).
-      Plan: `docs/planning/2026-08-16_15-09_one-bench-system-consolidation.md`.
-      _(Effort: M)_
-- [x] **`DecorateJournal` for `VersionedSeekableJournal`** — DONE 2026-08-16:
-      `event.DecorateJournal(journal, sourceT)` added (ADR-0126 journal
-      counterpart; preserves Journal + SeekableJournal + StreamingJournal +
-      io.Closer, applies the transform per 128-event chunk on streaming reads;
-      new `event.ErrInnerStoreNotStreaming` sentinel). The old hand-wrapper
-      silently dropped StreamingJournal (bbolt/pebble/memory/eventstore all
-      implement it). `schema.NewVersionedSeekableJournal` is now a deprecated
-      shell delegating to `DecorateJournal` + `UpcastSourceTransform`;
-      canonical recipe documented in skill core.md.
-      _(Effort: M)_
-- [ ] **Decide + implement (or permanently drop) `brandedString` extraction
-      into `record/`** — the asrecord clone pair is larger than the helper;
-      needs a judgment call.
-      _(Effort: S)_
 - [ ] **Per-module CHANGELOGs** — 6 of ~82 modules have one. Decide policy
       (root CHANGELOG only vs per-module) and either write them or document
       the decision.
@@ -699,88 +355,13 @@ and is **never** duplicated here.
 
 ## Correctness Defect Sweep (brutal-review backlog)
 
-> From `docs/reviews/2026-08-14_14-25_brutal-self-review.md` — verified
-> findings, not yet fixed. Grouped by module.
+> From `docs/reviews/2026-08-14_14-25_brutal-self-review.md`. All other
+> verified findings shipped 2026-08-15/16 — see CHANGELOG. These remain:
 
-- [x] **SQL injection surface** — allowlists + ORDER BY quoting.
-      SHIPPED 2026-08-15 (`storage/sql.ValidateIdentifier`/`ValidateOperator`,
-      `BuildWhereClauseChecked`, view query validation — see CHANGELOG).
-      tursoengine DSN-redaction SHIPPED 2026-08-16 (`redactDSN` on every open
-      error, `tursoengine/register.go`). Fuzz `ValidateIdentifier` against
-      sqlite/pg/mysql metacharacter sets SHIPPED 2026-08-16
-      (`storage/sql/validate_fuzz_test.go` — 3 fuzz targets, 451K execs, 0
-      crashes). Item closed.
-      _(Effort: S)_
-- [x] **Resource leaks** — `sqliteengine`/`tursoengine` self-opened
-      `*sql.DB` `Close()` leak. DONE 2026-08-16: `sqliteengine.OwnDB(eng)` marks
-      self-opened DBs as engine-owned (pinned by `close_ownership_test.go`);
-      both `NewSQLiteEngineFromDSN` and `tursoengine.New` use it.
-- [x] **Core defects** — DONE 2026-08-16 (commit `06e046c2f`, each pinned by a
-      dedicated regression test): singleflight leader-ctx capture
-      (`decider/load.go`, `context.WithoutCancel`); per-handler command
-      middleware (`command/memory_bus_test.go`); query audit fake RequestIDs
-      (`query/audit_test.go`); `Pagination.Offset()` underflow
-      (`query/pagination_test.go`). STILL OPEN: `kv.Cache` shared `*T`;
+- [ ] **Correctness-sweep leftovers** — `kv.Cache` shared `*T`;
       TypedQueryStore hardcoded JSON decode (`query/typed.go`); ghost
       `event.ErrBinaryNotFound` (document or delete).
       _(Effort: M)_
-- [x] **Planner cost model** — graph cost `branching^depth`; volume without
-      silent default; filter selectivity.
-      DONE 2026-08-16: `metaengine/cost.go` graph cost is
-      `math.Pow(10, 2)`=100 (was `10*2`=20); volume default 1000 surfaced via
-      INFO diagnostic ("volume not set"); `filterSelectivity()` (0.1^n,
-      clamp 0.001) emits an INFO diagnostic gated on the effective READ
-      complexity (`rankedEngine.readComplexity`) — deliberately NOT applied to
-      routing cost (applying it flipped engine ranking and broke cursor
-      pagination; reverted in `157ed48e1`). Regression-locked by
-      `cost_unit_test.go` + `cost_diagnostics_test.go`.
-      _(Effort: M)_
-- [x] **Strong types** — `record.NewStreamRef` validation (+ `Split()` on
-      `/`); `id` global-mutex ULID entropy (sharded).
-      DONE 2026-08-16: `StreamRef.Validate()` + `ErrInvalidStreamRef` added
-      (non-breaking; empty streamType legal for command/query asrecord);
-      `Split()` aligned with `Validate()` on leading-slash + round-trip
-      tested; breaking `(StreamRef, error)` constructor queued for v5 (Phase
-      8 item below). ULID entropy: global mutex REPLACED by lock-free
-      millisecond-epoch generator (`id/entropy.go`): 48-bit crypto prefix per
-      ms + 32-bit global atomic counter — same-ms IDs strictly ordered across
-      ALL goroutines, 10.6x faster under contention (155→15 ns/op parallel,
-      0 allocs), race-clean 3x.
-      _(Effort: M)_
-- [x] **Security hygiene** — SECURITY.md v3 table stale; govulncheck failures
-      swallowed in release.yml; remove iroh fork pin (`git.coopcloud.tech`
-      supply-chain flag).
-      DONE 2026-08-16: SECURITY.md table v3→v4 + "Supply-Chain Notes" section
-      disclosing the iroh fork; release.yml govulncheck failures now propagate
-      (no `|| echo WARN`, no stderr swallow). Fork pin kept as documented
-      opt-in risk — migration decision open (see status report
-      2026-08-16_17-39 §g). govulncheck baseline sweep still owed before next
-      release.
-      _(Effort: S)_
-- [x] **Serialize or re-budget the system projection-wait tests** —
-      `TestSystem_ResetProjection_RestartAndReplay` (tight 5s
-      `waitForProjectionProcessed` budget) overlaps the `t.Parallel`-ed
-      `TestSystem_HealthCheck_FailedProjection`; load-flaky on busy machines
-      (observed 2026-08-16, pre-existing). The deterministic "phase-2 replay
-      dead" defect this was originally filed under turned out to be a test
-      fixture bug — the shared-cache in-memory SQLite DSN was wiped once engines
-      began closing self-opened `*sql.DB`; fixed by `5d66308c3` (file-backed
-      `sqliteFileDSN`), verified green 3x. Evidence:
-      `docs/status/2026-08-16_03-44_withactor-resume-gate-investigation-two-defects.md` §h.
-      DONE 2026-08-16: `t.Parallel()` removed from the replay test + wait
-      budget 5s→15s + ctx 20s→30s; verified 3x with `-race`.
-      _(Effort: S)_
-- [x] **Enforce api-stability golden regen mechanically** — three consecutive
-      feature commits (`842741cab`, `313d14b02`, plus sqliteengine DSN/OwnDB)
-      shipped new exports without regenerating `docs/api_surface.txt`; every
-      fresh checkout of those revisions fails the gate. Add the checker as a
-      pre-commit hook step (fast: ~1s GOWORK=off run) so the drift cannot land.
-      DONE 2026-08-16: canonical `scripts/pre-commit.sh` runs the checker with
-      `-tags "goexperiment.jsonv2"` and fails hard; the INSTALLED
-      `.git/hooks/pre-commit` (BuildFlow-generated) got an appended scoped
-      api-stability block. Caveat: BuildFlow owns the hook file — reinstall
-      wipes the block (AGENTS.md gotcha documented).
-      _(Effort: S)_
 
 ---
 

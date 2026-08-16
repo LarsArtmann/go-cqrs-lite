@@ -64,6 +64,53 @@ func TestAdapter_ImplementsInterfaces(t *testing.T) {
 	if !metaengine.HasGraphSupport(eng) {
 		t.Fatal("Adapter does not implement graph dispatch (GraphAddEdge + GraphNeighbors)")
 	}
+
+	if !metaengine.HasGraphEdgeRemoval(eng) {
+		t.Fatal("Adapter should implement GraphRemoveEdge (driver RemoveEdge)")
+	}
+
+	// Undirected traversal is deliberately NOT implemented: the driver's
+	// Traverse walks outgoing edges only, so undirected queries must fail
+	// with the explicit missing-capability error instead of wrong nodes.
+	if metaengine.HasUndirectedGraphSupport(eng) {
+		t.Fatal("Adapter must NOT implement GraphNeighborsUndirected (outgoing-only driver)")
+	}
+}
+
+func TestAdapter_GraphRemoveEdge(t *testing.T) {
+	t.Parallel()
+
+	a := graphadapter.New()
+	defer a.Close()
+
+	ctx := context.Background()
+
+	for _, e := range []metaengine.Edge{
+		{From: "alice", To: "t1"},
+		{From: "alice", To: "t2"},
+	} {
+		if err := a.GraphAddEdge(ctx, "assign", e); err != nil {
+			t.Fatalf("GraphAddEdge %v: %v", e, err)
+		}
+	}
+
+	if err := a.GraphRemoveEdge(ctx, "assign", metaengine.Edge{From: "alice", To: "t1"}); err != nil {
+		t.Fatalf("GraphRemoveEdge: %v", err)
+	}
+
+	neighbors, err := a.GraphNeighbors(ctx, "assign", "alice", 1)
+	if err != nil {
+		t.Fatalf("GraphNeighbors after removal: %v", err)
+	}
+
+	if len(neighbors) != 1 || neighbors[0] != "t2" {
+		t.Errorf("after removal = %v, want [t2]", neighbors)
+	}
+
+	// Idempotent: removing a missing edge is a no-op.
+	if err := a.GraphRemoveEdge(ctx, "assign", metaengine.Edge{From: "alice", To: "t1"}); err != nil {
+		t.Fatalf("GraphRemoveEdge (re-remove): %v", err)
+	}
 }
 
 func TestAdapter_StoreIntegration_RecordAware(t *testing.T) {

@@ -498,13 +498,34 @@ import (
 )
 
 reg := catalog.NewRegistry("My API", "1.0.0")
-reg.RegisterEvent("user.created", catalog.SchemaFromType[UserCreated]())
-reg.RegisterCommand("user.create", catalog.SchemaFromType[CreateUser]())
+reg.AddService(catalog.Service{ID: "user-svc", Name: "User Service"})
+reg.AddCommand("user-svc", catalog.Message{
+    ID: "user.create", Name: "CreateUser", Version: "1.0.0",
+    Schema: catalog.SchemaFromType[CreateUser](), Direction: catalog.Receives,
+})
+reg.AddEvent("user-svc", catalog.Message{
+    ID: "user.created", Name: "UserCreated", Version: "1.0.0",
+    Schema: catalog.SchemaFromType[UserCreated](), Direction: catalog.Sends,
+})
 
-asyncAPIDoc, _ := asyncapi.Generate(reg)
-openAPIDoc, _  := openapi.Generate(reg)
-catalogDir, _  := eventcatalog.Generate(reg)
-d2Diagram, _   := d2.Generate(reg)
+cat := reg.Build()
+
+asyncYAML, _ := asyncapi.Exporter{}.Export(cat).MarshalYAML()
+openAPIDoc, _ := openapi.NewExporter("My API", "1.0.0").Export(cat)
+_ = eventcatalog.NewExporter("./eventcatalog").Export(cat) // MDX files, deduped top-level commands|events|queries/
+d2Text := d2.NewExporter("My API", "1.0.0").Export(cat)
+```
+
+Serve everything over HTTP with the docserver (templ-components UI, embedded
+assets, dark mode):
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver"
+
+ds := docserver.NewDocsServer(func() *catalog.Catalog { return reg.Build() },
+    docserver.Config{ServiceName: "My API", Version: "1.0.0"})
+mux := http.NewServeMux()
+ds.RegisterRoutes(mux) // /docs index, /docs/openapi (Scalar), /docs/asyncapi, /docs/d2, raw specs
 ```
 
 ### 2.10 Cost-Based Storage Planning (metaengine)

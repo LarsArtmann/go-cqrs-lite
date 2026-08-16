@@ -16,17 +16,21 @@ import (
 
 // pgGraphNeighborsUndirectedCTE walks the depth-limited neighborhood in one
 // query, following edges in both directions.
+//
+// Exactly TWO arms: PostgreSQL (and MySQL) reject recursive references in
+// what they parse as the non-recursive term — the seed's two directions are
+// a derived table and the recursive step expands both directions through one
+// CASE + OR join, keeping the single self-reference legal.
 const pgGraphNeighborsUndirectedCTE = `WITH RECURSIVE walk(node, depth) AS (
-	SELECT to_node, 1 FROM meta_graph_edges WHERE collection = $1 AND from_node = $2
+	SELECT seed.n, 1 FROM (
+		SELECT to_node AS n FROM meta_graph_edges WHERE collection = $1 AND from_node = $2
+		UNION
+		SELECT from_node AS n FROM meta_graph_edges WHERE collection = $1 AND to_node = $2
+	) seed
 	UNION
-	SELECT from_node, 1 FROM meta_graph_edges WHERE collection = $1 AND to_node = $2
-	UNION
-	SELECT g.to_node, w.depth + 1
-	FROM meta_graph_edges g JOIN walk w ON g.collection = $1 AND g.from_node = w.node
-	WHERE w.depth < $3
-	UNION
-	SELECT g.from_node, w.depth + 1
-	FROM meta_graph_edges g JOIN walk w ON g.collection = $1 AND g.to_node = w.node
+	SELECT CASE WHEN g.from_node = w.node THEN g.to_node ELSE g.from_node END, w.depth + 1
+	FROM meta_graph_edges g
+	JOIN walk w ON g.collection = $1 AND (g.from_node = w.node OR g.to_node = w.node)
 	WHERE w.depth < $3
 )
 SELECT DISTINCT node FROM walk WHERE node <> $2`

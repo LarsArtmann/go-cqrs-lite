@@ -6,41 +6,93 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
-### Added — capability-drift surfacing, DuckDB native graph, Dgraph hardening — 2026-08-16
+### Changed — catalog: EventCatalog layout correctness + docserver templ UI — 2026-08-16
+
+- **EventCatalog exporter layout fixed** (correctness fix — the old output was
+  invalid for EventCatalog 4.x): messages now go to the canonical top-level
+  `commands/`, `events/`, `queries/` directories, deduplicated across services
+  (was: duplicate per-service copies); data stores moved from the dead `data/`
+  dir to `containers/`; `eventcatalog.config.js` now carries the required stable
+  `cId` (v5 UUID derived from the catalog title) plus tagline/llmsTxt config;
+  `package.json` pins `@eventcatalog/core` to `^4.6.3` instead of `latest`.
+  Migration: re-run the exporter; repoint any scripts that consumed the old
+  per-service message paths or `data/` dir.
+- **docserver UI rewritten with templ-components**: new docs index page (catalog
+  stats, artifact links, per-service cards), Scalar and AsyncAPI React pages, and
+  a D2 source view with copy/download — dark-mode aware, stylesheet embedded at
+  `/docs/static/docs-ui.css` (zero external asset files), absolute
+  DocsPath-anchored asset URLs, and `<noscript>` fallbacks linking the raw specs.
+  New handlers `Index()`, `D2View()`, `D2Diagram()`; new routes `GET {docs}`,
+  `GET {docs}/d2`, `GET {docs}/d2.txt`. Unknown `/docs/*` paths now 404 (the
+  subtree catch-all is removed; exact `/docs/` redirects to `/docs`).
+- **Tooling**: `nix run .#build-docserver-css` rebuilds the stylesheet from
+  `docs-ui.src.css`; `nix run .#check-docserver-css` gates drift inside
+  `#verify`/`#verify-fast`. Generated `*_templ.go` files are excluded from
+  formatters and the 350-line gate; depguard allow list covers templ-components.
+  Maintainer contracts recorded in `catalog/AGENTS.md`.
+
+### Added — 9-engine conformance loop on real servers + DuckDB native graph — 2026-08-16
 
 - **9-engine capability conformance loop verified against real servers** —
   PG (ephemeral nix), MySQL (8.4 container), Dgraph (ephemeral nix), plus
   pebble/bbolt/badger/iroh/turso/duckdb local: ALL GREEN. Gotcha recorded:
   `go test -C <dir>` must be the FIRST flag through the ephemeral scripts'
   `go` passthrough, with `GOWORK=off` prefixed.
-- **Doctor capability notes + EXPLAIN drift banner**: Doctor's
-  `--- Capability ---` section now prints an honest-degradation note for
-  replicated graph engines (edges do NOT converge across peers — no graph
-  WriteOp on the replication wire); `ExplainPlan` renders a
-  `--- Capability Warnings ---` banner with one `WARN capability drift:` line
-  per CapabilityAudit violation (clean plans stay banner-free).
-- **`TestAdttestStaysDelegatingOnly` meta-test**: source-level AST check
-  pinning adttest as delegating-only (verdict strings stay in metaengine;
-  every CapabilityAudit call routes through the metaengine package) so the
-  test gate and Doctor/EXPLAIN cannot drift apart.
-- **irohengine forwarding policy audited and pinned** (engine_passthrough.go
-  policy table + `engine_capability_forwarding_test.go`): Closer forwarded;
-  MapUpdater/Scan/Vector/Search/Spatial/graph local passthrough;
-  Transactional, StreamLogBackend/SeqSeekableStreamLog/AtomicAppender, and
-  Prober/TransactMeasurer deliberately NOT forwarded (silent-divergence or
-  dishonest-RTT hazards — documented per capability).
 - **DuckDB native graph via `WITH RECURSIVE`** (`duckdbengine/graph.go`):
-  `meta_graph_edges` table, `GraphAddEdge` (idempotent upsert),
-  `GraphNeighbors` single-CTE traversal mirroring pgengine; ADTGraph upgraded
-  to native O(degree^depth) and removed from DegradedADTs. Cycle-safety,
-  depth, dedup, integer-key tests (cgo) green.
-- **Dgraph hardening**: ADR-0129 documents why `Transactional` is deferred
-  (per-op txn unit of work; ambient-tx sketch included); per-test collection
-  isolation via `uniqueCollection` (pid+counter suffix) across the suite;
-  new CI job `dgraph` runs `nix run .#integration-dgraph`; AGENTS quick-ref
-  now lists Dgraph under test-all-backends.
+  `meta_graph_edges` table (PK collection,from,to) in init DDL,
+  `GraphAddEdge` (ON CONFLICT DO NOTHING — idempotent), `GraphNeighbors`
+  single-CTE traversal mirroring pgengine (DuckDB ≥0.8, no probe needed);
+  ADTGraph upgraded to native O(degree^depth) and removed from DegradedADTs.
+  Node-key encoding mirrors sqlite/pg/mysql (`art-dupl:accept` cross-module
+  pattern). Cycle-safety, depth 1-3, dedup, duplicate-edge idempotency,
+  integer-key, depth-0/empty honesty tests (cgo) green; api-stability golden
+  regenerated.
 - DuckDB aggregation pushdown TODO resolved STALE: the full AggregateReader
   family + single-SELECT CounterGet already exist and are test-green.
+
+### Added — CI + infra wave: backuptest wiring, drift/flake guards, reset-db, quickstart demos — 2026-08-16
+
+- **`storage/backuptest` wired into bbolt + pebble** (was an orphan module,
+  zero dependents): both thin test adapters recovered from git history
+  (`a6613ef0d^`) into `storage/{bbolt,pebble}/backup_lifecycle_test.go`;
+  suites pass standalone + `-race`. Two blockers worked around: the published
+  `storage/backuptest/v4.0.0` tag points at `d49311e12`, one commit BEFORE
+  the module's go.mod existed (unusable from the proxy — `=> ../backuptest`
+  replaces until the tag is re-cut), and both engines required
+  `event/v4 v4.7.0` + `=> ../../event` + `=> ../../metadata` replaces for the
+  post-v4.7.0 adopt API (standard unpublished-sibling pattern).
+- **`example/metaengine-quickstart` now built by `#verify`/CI** — added to
+  flake `examplePaths`, plus the missing `metadata/v4 => ../../metadata`
+  replace so standalone GOWORK=off builds resolve local `event/`'s
+  unpublished symbols.
+- **metaengine-quickstart: graph + vector demos** — example split into
+  `graph_demo.go` (follow network → `metaengine.Edge` folds, depth-1/2 BFS
+  traversal) and `vector_demo.go` (doc embeddings → `metaengine.Embedding`
+  folds, euclidean k-NN); `main.go` runs all three ADT sections; output
+  verified via `go run .`.
+- **CI: `shfmt-drift` job** — `shfmt -d` over the whole `scripts/` tree
+  (nix shell, 5min budget); local tree verified clean first. Catches
+  formatter drift before it reaches the staged-files-only pre-commit hook
+  (root-cause class of the 4× map-key mangling).
+- **CI: `quic-flake-watch` job** — `TestQuicConvergenceSuite` under
+  `-race -count=3 -timeout=10m` on every push; command verified locally
+  (3x green under race, 1.4s).
+- **`scripts/reset-db.sh`** — `--pg`/`--mysql`/`--dry-run`; drops leftover
+  `test_%` DBs and recreates the DSN default DB. Wired into
+  `test-integration.sh` external-DSN paths via `RESET_DB` (default on;
+  warns-and-continues on missing client). Verified live against a throwaway
+  PG (URL + kv DSNs) and a MySQL 8.0 container; shellcheck + shfmt clean;
+  `mariadb.client` + `postgresql` added to devShell and the
+  `#test-integration` app.
+- **Full soak suite re-run green** after the graph/vector engine additions:
+  metaengine root (incl. 10M soak), sqlite, badger, pebble, bbolt, duckdb
+  (CGo), turso, projectionadapter (after fixing its standalone replace rot),
+  PG (ephemeral nixpkgs), Dgraph (`#ephemeral-dgraph`). Evidence:
+  `docs/status/2026-08-16_19-52_maintenance-sweep-status.md`.
+- **`#verify` timeout headroom**: convergence-suite `pollTimeout` 15s→30s
+  (passing runs still exit early); per-package Test 8m→10m, Race 8m→12m
+  (`#verify-fast` Race 8m→10m). Convergence suite re-run green after the
+  change.
 
 ### Added — seq-carrying journal reads (7.1x faster resume) + bounded idempotency ring — 2026-08-16
 
@@ -184,6 +236,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   goroutines, uniqueness holds under any concurrency, backwards clock steps
   pin the millisecond (IDs never regress). Parallel `id.New` is 10.6x faster
   (155→15 ns/op, 0 allocs); race-clean.
+- `metadata`: `BrandedString[T]` + `ActorString(Tracing)` (`metadata/ids.go`)
+  — the shared branded-string helper extracted from the asrecord clone pair;
+  consumed by all three asrecord converters (event, command, query — no local
+  copies remain). Lives in `metadata/` (not `record/`) because `ActorString`
+  needs `Tracing` and `record/` is zero-dep.
 
 ### Fixed — cost model + flaky tests
 

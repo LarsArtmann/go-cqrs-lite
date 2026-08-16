@@ -897,9 +897,10 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Feature        | Detail                                                                        | Status |
 | -------------- | ----------------------------------------------------------------------------- | ------ |
 | MDX generation | Services, commands, events, queries — all with YAML frontmatter               | ✅     |
+| Message pages  | Top-level `commands/`, `events/`, `queries/` dirs, deduplicated across services | ✅   |
 | Schema files   | `schema.json` per message (only when schema is non-nil)                       | ✅     |
 | Domain pages   | Domain frontmatter with service associations                                  | ✅     |
-| Config files   | `eventcatalog.config.js`, `package.json` with `@eventcatalog/core` dependency | ✅     |
+| Config files   | `eventcatalog.config.js` (stable `cId`, tagline, llmsTxt) + `package.json` pinning `@eventcatalog/core` `^4.6.3` | ✅ |
 | LLM summary    | `llms.txt` — plain-text catalog summary for LLM consumption                   | ✅     |
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/d2"`
@@ -927,11 +928,14 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Feature            | Detail                                                                | Status |
 | ------------------ | --------------------------------------------------------------------- | ------ |
 | HTTP handlers      | Framework-agnostic `net/http` handlers for serving docs               | ✅     |
+| Docs index page    | Stats, artifact links, per-service cards (templ-components UI)         | ✅     |
 | OpenAPI rendering  | Scalar UI for interactive API documentation                           | ✅     |
 | AsyncAPI rendering | AsyncAPI React for event documentation                                | ✅     |
+| D2 source view     | HTML view + raw `d2.txt` endpoint with copy/download                   | ✅     |
 | Raw spec serving   | JSON/YAML endpoints for both OpenAPI and AsyncAPI                     | ✅     |
+| Routing semantics  | Exact `/docs/` redirect; unknown `/docs/*` paths 404                   | ✅     |
 | Catalog provider   | `CatalogProvider` func — generates fresh catalog on each request      | ✅     |
-| Embedded assets    | HTML/JS/CSS embedded via `embed.FS` — zero external file dependencies | ✅     |
+| Embedded assets    | UI stylesheet, favicon, SPA bundles embedded via `embed.FS` — zero external file dependencies | ✅ |
 
 ---
 
