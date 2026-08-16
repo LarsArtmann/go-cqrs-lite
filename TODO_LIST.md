@@ -99,10 +99,12 @@ and is **never** duplicated here.
       database/sql has no RowCount API; cap-64 pre-size, `maps.Clone`, and
       `MergeCustomMaps(len+len)` already applied. Changing the exported
       generic signature would buy nothing.
-- [ ] **`OpenSQLiteInMemory` callers: unique shared-cache DSNs** — the pool
-      pin serializes all access for the 8+ helper callers; per-test
-      `file:<name>?mode=memory&cache=shared` DSNs would parallelize better
-      (pairs with the ratify-judgment-calls release item).
+- [x] **`OpenSQLiteInMemory` callers: unique shared-cache DSNs** — DONE
+      2026-08-16: `OpenSQLiteInMemory` now generates a unique
+      `file:<random>?mode=memory&cache=shared` DSN per call, removing the
+      single-connection pool pin. All pooled connections share one in-memory
+      schema, enabling read concurrency. The `view` test helper was updated
+      to match. Race tests no longer need `SetMaxOpenConns(1)`.
       _(Effort: S)_
 
 ---
@@ -142,10 +144,10 @@ and is **never** duplicated here.
       UNCOMMITTED in `../go-codec` (no auto-commit daemon there); GOWORK=off
       consumers get nothing until it is tagged.
       _(Effort: XS)_
-- [ ] [BLOCKED] **Ratify two shipped judgment calls** — (a) iroh latency P99
-      bound 50→150ms (worst-of-30 sample inflates under gate load); (b)
-      `OpenSQLiteInMemory` single-connection pool pin (serializes test DB
-      access). Both shipped + gated green; keep or revisit.
+- [ ] [BLOCKED] **Ratify one shipped judgment call** — iroh latency P99
+      bound 50→150ms (worst-of-30 sample inflates under gate load). Shipped +
+      gated green; keep or revisit. (The `OpenSQLiteInMemory` pool-pin
+      judgment call was resolved: replaced with shared-cache DSNs.)
       _(Effort: XS)_
 - [ ] **Replace-drop sweep (after the wave-4 tags)** — system ×6,
       cqrs-bench ×7, event ×2, schema ×2, projectionhost ×2, integration ×2

@@ -257,6 +257,18 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
   Regression tests pin `HasGraphSupport`, the dispatch roundtrip, and the
   graphless error path. All 9 engines pass the conformance loop.
 
+### Changed — storage: `OpenSQLiteInMemory` uses named shared-cache DSNs — 2026-08-16
+
+- **The in-memory SQLite helper now generates a unique
+  `file:<random>?mode=memory&cache=shared` DSN per call**, replacing the
+  previous single-connection pool pin (`SetMaxOpenConns(1)`). All pooled
+  connections within one `*sql.DB` share the same in-memory schema via the
+  shared-cache, so concurrent reads no longer serialize on a single
+  connection. The `view` package's local `openSQLiteInMemory` test helper
+  was updated to match. Race tests no longer need manual `SetMaxOpenConns(1)`.
+  Regression test renamed to `TestOpenSQLiteInMemory_SharedCacheDatabase`,
+  verifying that a write on a second pooled connection sees the same schema.
+
 ### Fixed — storage: `OpenSQLiteInMemory` per-connection database flake — 2026-08-16
 
 - **The in-memory SQLite helper now pins its pool to a single connection**

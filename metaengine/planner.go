@@ -353,6 +353,15 @@ func planDiagnostics(meta queryMeta, best rankedEngine, cfg QueryConfig) []Diagn
 		})
 	}
 
+	if cfg.Volume <= 0 {
+		diags = append(diags, Diagnostic{
+			Level: DiagLevelInfo,
+			Query: meta.QueryName(),
+			Message: "volume not set; cost model assumed default of 1000 items. " +
+				"Set QueryConfig.Volume for accurate latency estimates.",
+		})
+	}
+
 	if diag := checkScaleThreshold(meta.QueryADT(), cfg.Volume); diag != nil {
 		diag.Query = meta.QueryName()
 		diags = append(diags, *diag)

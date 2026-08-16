@@ -974,7 +974,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | HealthCheck (all stores)   | `OwnedDBHandle.HealthCheck(ctx)` — inherited by all SQL stores via embedding. Pings DB, checks closed state                                  | ✅     |
 | Keyset pagination         | `ReadFrom`/`ReadStreamFrom` paginate via `sql.ResolveCursorTimestamp` + `sql.KeysetPositionQuery` — full drains drop from O(N²) self-JOIN to index range scans (~285x on a 200k-event SQLite journal)        | ✅     |
 | Packet-safe chunking      | `sql.MaxParametersForDialect`, `sql.MaxStatementBytes`, `sql.RowsWithinByteCap` — multi-VALUES INSERTs chunked by param limit AND byte cap (8 MiB default) | ✅     |
-| In-memory SQLite pin      | `OpenSQLiteInMemory` pins its pool to one connection — modernc `file::memory:` gives each pooled connection a private DB (fixes "no such table" flakes under parallel load) | ✅     |
+| In-memory SQLite shared-cache | `OpenSQLiteInMemory` uses a unique `file:<random>?mode=memory&cache=shared` DSN per call — modernc `file::memory:` gives each pooled connection a private DB; the named shared-cache DSN fixes this without pinning the pool to one connection, enabling read concurrency | ✅     |
 
 ### Pebble Key-Value Store
 
