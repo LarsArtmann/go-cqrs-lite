@@ -8,15 +8,18 @@ Benchmark data for go-cqrs-lite modules. All numbers measured on AMD Ryzen AI MA
 
 ## Core Throughput
 
-End-to-end scale benchmarks (10K aggregates, 100 events each, concurrent):
+End-to-end scale benchmarks (10K aggregates, 100 events each, concurrent). Measured 2026-06-02
+via the (since-removed) integration scale harness; equivalent coverage now lives in
+`stack/bench` (`BenchmarkFullPipeline_Memory`, the CI regression gate set) and the benchkit
+phases (`nix run .#bench`, `cmd/cqrs-bench`):
 
-| Operation                                  | Throughput              | Source                                |
-| ------------------------------------------ | ----------------------- | ------------------------------------- |
-| Event publish (MemoryBus)                  | **43.7M events/sec**    | `integration/scale_benchmark_test.go` |
-| Command dispatch (100 handlers)            | **6.5M commands/sec**   | `integration/scale_benchmark_test.go` |
-| Query dispatch (1K handlers)               | **8.0M queries/sec**    | `integration/scale_benchmark_test.go` |
-| Event save (memory store)                  | **2.6M events/sec**     | `integration/scale_benchmark_test.go` |
-| Full pipeline (cmd→event→projection→query) | **160K aggregates/sec** | `integration/scale_benchmark_test.go` |
+| Operation                                  | Throughput              |
+| ------------------------------------------ | ----------------------- |
+| Event publish (MemoryBus)                  | **43.7M events/sec**    |
+| Command dispatch (100 handlers)            | **6.5M commands/sec**   |
+| Query dispatch (1K handlers)               | **8.0M queries/sec**    |
+| Event save (memory store)                  | **2.6M events/sec**     |
+| Full pipeline (cmd→event→projection→query) | **160K aggregates/sec** |
 
 ---
 
@@ -37,7 +40,7 @@ End-to-end scale benchmarks (10K aggregates, 100 events each, concurrent):
 | signing    | Ed25519 Sign   | 13,486 |  416 |         7 |
 | signing    | Ed25519 Verify | 30,369 |  352 |         6 |
 
-Full benchmark output: `benchmarks/2026-06-02_20-18-40.md`
+Full benchmark output: run `nix run .#bench` (per-module `go test -bench=.` sweep)
 
 ---
 

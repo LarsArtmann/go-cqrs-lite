@@ -42,6 +42,19 @@
 | ------------------------------ | ----------------------------------------- | ---------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | projectionhost live checkpoint | `TestLiveCheckpoint_*` (`projectionhost`) | `go test ./projectionhost/ -run Checkpoint -count=3 -race` | save-per-event (default, unchanged) | opt-in `WithCheckpointEvery`/`WithCheckpointInterval` batch saves; crash window ≤ n−1 reprocess, flushed on Stop |
 
+## Regression gate
+
+CI (`benchmarks.yml` → `regression` job, master pushes) runs the focused gate set
+`BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$` in `stack/bench`
+(`-benchtime=10x -count=5`) and compares the **median ns/op per benchmark**
+against the previous run's `benchmark-baseline` artifact (same runner class).
+Any median regression above **25%** fails the build; the artifact self-refreshes
+each run. Implementation: `scripts/benchmark-regression.sh` (also usable locally:
+`./scripts/benchmark-regression.sh --save benchmarks/benchmark-baseline.txt`
+refreshes the committed local baseline — baselines are hardware-specific, never
+compare across machines). Breadth (all backends, metaengine matrix) stays in the
+nightly/matrix jobs, not the gate.
+
 ## How to add an entry
 
 1. Name the runnable benchmark (tests count when they assert perf budgets).

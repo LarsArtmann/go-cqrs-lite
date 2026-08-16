@@ -98,13 +98,15 @@ Confirmed **O(n) linear scaling** — no sort overhead.
 
 ---
 
-## Realistic Scale Benchmarks
+## Realistic Scale Benchmarks (ARCHIVED 2026-08-16)
 
-Run with: `go test ./integration/... -tags=scale -bench=BenchmarkRealistic -benchmem -run=^$ -benchtime=1x -timeout=10m`
+> The `//go:build scale` integration harness (`integration/realistic_bench_*.go`,
+> `scale_bench_*.go`, `scale_benchmark_test.go`) was removed in the one-bench-system
+> consolidation — redundant with benchkit phases + `stack/bench`. The numbers below
+> are the last recorded measurements (2026-06 era, e-commerce order model). Re-measure
+> equivalents via `cmd/cqrs-bench` (realistic workloads) or `stack/bench` pipelines.
 
-Gated by `//go:build scale` — excluded from normal builds and CI.
-
-These use realistic JSON payloads (e-commerce order model) and exercise the full CQRS stack.
+These used realistic JSON payloads (e-commerce order model) and exercised the full CQRS stack.
 
 ### Full Pipeline
 
