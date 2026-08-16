@@ -329,7 +329,7 @@ Client A                    Sync Backend                    Client B
 | Remove event definition | ❌       | Never — event definitions are permanent     |
 | Add struct field        | ✅       | Must have default value or be optional      |
 | Remove struct field     | ✅       | Forward-compatible (old data still decodes) |
-| Change field type       | ⚠️       | Only if backward-compatible decode works    |
+| Change field type       | ⚠️        | Only if backward-compatible decode works    |
 
 ### Read Model (State/SQLite)
 
@@ -683,20 +683,20 @@ type RunnerConfig struct {
 
 ### Priority Matrix
 
-| #   | Opportunity                          | Impact                                          | Effort              | Priority |
-| --- | ------------------------------------ | ----------------------------------------------- | ------------------- | -------- |
-| 1   | Catch-up projection runner           | Critical — projections are useless without it   | Medium              | **P0**   |
-| 2   | `CheckpointStore.Delete(name)`       | Enables reset + rebuild                         | Low                 | **P0**   |
-| 3   | Transactional projection contract    | Prevents partial state on error                 | Low                 | **P0**   |
-| 4   | Global log position in `Store`       | Enables efficient catch-up                      | Medium              | **P1**   |
-| 5   | Dead letter queue                    | Operational resilience                          | Medium              | **P1**   |
-| 6   | Query access during projection       | Rich projections (like LiveStore `ctx.query()`) | Medium              | **P2**   |
-| 7   | Projection rebuild/reset API         | Schema evolution support                        | Low (depends on #2) | **P2**   |
-| 8   | Batch `HandleBatch`                  | High-throughput optimization                    | Low                 | **P2**   |
-| 9   | Versioned event names convention     | Documentation only                              | Minimal             | **P3**   |
-| 10  | Soft delete best practice            | Documentation only                              | Minimal             | **P3**   |
-| 11  | Past-tense event name convention     | Documentation only                              | Minimal             | **P3**   |
-| 12  | Client-only events (`WithLocalOnly`) | Future sync layer prep                          | Low                 | **P3**   |
+| #  | Opportunity                          | Impact                                          | Effort              | Priority |
+| -- | ------------------------------------ | ----------------------------------------------- | ------------------- | -------- |
+| 1  | Catch-up projection runner           | Critical — projections are useless without it   | Medium              | **P0**   |
+| 2  | `CheckpointStore.Delete(name)`       | Enables reset + rebuild                         | Low                 | **P0**   |
+| 3  | Transactional projection contract    | Prevents partial state on error                 | Low                 | **P0**   |
+| 4  | Global log position in `Store`       | Enables efficient catch-up                      | Medium              | **P1**   |
+| 5  | Dead letter queue                    | Operational resilience                          | Medium              | **P1**   |
+| 6  | Query access during projection       | Rich projections (like LiveStore `ctx.query()`) | Medium              | **P2**   |
+| 7  | Projection rebuild/reset API         | Schema evolution support                        | Low (depends on #2) | **P2**   |
+| 8  | Batch `HandleBatch`                  | High-throughput optimization                    | Low                 | **P2**   |
+| 9  | Versioned event names convention     | Documentation only                              | Minimal             | **P3**   |
+| 10 | Soft delete best practice            | Documentation only                              | Minimal             | **P3**   |
+| 11 | Past-tense event name convention     | Documentation only                              | Minimal             | **P3**   |
+| 12 | Client-only events (`WithLocalOnly`) | Future sync layer prep                          | Low                 | **P3**   |
 
 ### Quick Wins (Can Do Today)
 

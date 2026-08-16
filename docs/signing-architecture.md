@@ -1,8 +1,8 @@
 # Signing Module Architecture
 
-**Module:** `github.com/larsartmann/go-cqrs-lite/signing`  
-**Coverage:** 94.2%  
-**Algorithms:** HMAC-SHA256, Ed25519  
+**Module:** `github.com/larsartmann/go-cqrs-lite/signing`\
+**Coverage:** 94.2%\
+**Algorithms:** HMAC-SHA256, Ed25519\
 **Last Updated:** 2026-05-28
 
 ---

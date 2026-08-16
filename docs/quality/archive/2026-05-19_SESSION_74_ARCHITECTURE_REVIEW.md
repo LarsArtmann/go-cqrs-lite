@@ -6,12 +6,12 @@
 
 ### Current State: GOOD with caveats
 
-| Dimension              | Rating     | Detail                                                              |
-| ---------------------- | ---------- | ------------------------------------------------------------------- |
-| Horizontal scaling     | ✅ Good    | Stateless library — consumers add instances freely                  |
+| Dimension              | Rating    | Detail                                                              |
+| ---------------------- | --------- | ------------------------------------------------------------------- |
+| Horizontal scaling     | ✅ Good   | Stateless library — consumers add instances freely                  |
 | Event store throughput | ⚠️ Limited | `projection.Runner.filterEvents` is O(n) per projection per startup |
-| Module isolation       | ✅ Good    | 11 independent go.mod files, clean DAG                              |
-| Catalog generation     | ✅ Good    | Immutable catalog after Build() — safe for concurrent reads         |
+| Module isolation       | ✅ Good   | 11 independent go.mod files, clean DAG                              |
+| Catalog generation     | ✅ Good   | Immutable catalog after Build() — safe for concurrent reads         |
 
 ### Throughput Bottlenecks
 
@@ -78,15 +78,15 @@ This is a **library**, not a service. The "service-oriented" question translates
 
 ### Composability Assessment
 
-| Capability               | Score     | Detail                                                                          |
-| ------------------------ | --------- | ------------------------------------------------------------------------------- |
-| Custom event store       | ✅ Easy   | Implement `event.Store` interface (7 methods)                                   |
-| Custom bus               | ✅ Easy   | Implement `event.Bus` (4 methods)                                               |
-| Custom middleware        | ✅ Easy   | Middleware is just a function wrapper                                           |
-| Custom serializer        | ✅ Easy   | Implement `event.Codec` (2 methods)                                             |
-| Custom projection        | ✅ Easy   | Implement `event.Projection` (3 methods)                                        |
+| Capability               | Score    | Detail                                                                          |
+| ------------------------ | -------- | ------------------------------------------------------------------------------- |
+| Custom event store       | ✅ Easy  | Implement `event.Store` interface (7 methods)                                   |
+| Custom bus               | ✅ Easy  | Implement `event.Bus` (4 methods)                                               |
+| Custom middleware        | ✅ Easy  | Middleware is just a function wrapper                                           |
+| Custom serializer        | ✅ Easy  | Implement `event.Codec` (2 methods)                                             |
+| Custom projection        | ✅ Easy  | Implement `event.Projection` (3 methods)                                        |
 | Custom catalog exporter  | ⚠️ Medium | No shared exporter interface — must follow 4 existing patterns                  |
-| Custom conflict resolver | ✅ Easy   | Implement `sync.ConflictResolver[T]` (1 method)                                 |
+| Custom conflict resolver | ✅ Easy  | Implement `sync.ConflictResolver[T]` (1 method)                                 |
 | Custom storage backend   | ⚠️ Medium | `Dialect` abstraction exists but schema DDL is free functions, not on interface |
 
 ### Missing Extension Points
@@ -123,25 +123,25 @@ This is a **library**, not a service. The "service-oriented" question translates
 
 ### High Impact, Low Effort
 
-| #   | Action                                         | Impact                   |
-| --- | ---------------------------------------------- | ------------------------ |
-| 1   | Fix testhelpers v1.1.0 version mismatch        | Unblocks isolated builds |
-| 2   | Move test deps out of core's production go.mod | Cleaner dependency tree  |
-| 3   | Add `catalog.Exporter` interface               | Enables custom exporters |
-| 4   | Add clock injection option to NewEvent         | Deterministic testing    |
+| # | Action                                         | Impact                   |
+| - | ---------------------------------------------- | ------------------------ |
+| 1 | Fix testhelpers v1.1.0 version mismatch        | Unblocks isolated builds |
+| 2 | Move test deps out of core's production go.mod | Cleaner dependency tree  |
+| 3 | Add `catalog.Exporter` interface               | Enables custom exporters |
+| 4 | Add clock injection option to NewEvent         | Deterministic testing    |
 
 ### High Impact, Medium Effort
 
-| #   | Action                                          | Impact                             |
-| --- | ----------------------------------------------- | ---------------------------------- |
-| 5   | Unify aggregate/decider repository logic        | Fix bugs once, reduce 200 lines    |
-| 6   | Add position-based loading to GlobalLoader      | Production-scale projection replay |
-| 7   | Standardize logger injection across all modules | Consistent observability           |
-| 8   | Move schema DDL onto Dialect interface          | Cleaner storage extensibility      |
+| # | Action                                          | Impact                             |
+| - | ----------------------------------------------- | ---------------------------------- |
+| 5 | Unify aggregate/decider repository logic        | Fix bugs once, reduce 200 lines    |
+| 6 | Add position-based loading to GlobalLoader      | Production-scale projection replay |
+| 7 | Standardize logger injection across all modules | Consistent observability           |
+| 8 | Move schema DDL onto Dialect interface          | Cleaner storage extensibility      |
 
 ### Lower Priority
 
-| #   | Action                                                    | Impact                          |
-| --- | --------------------------------------------------------- | ------------------------------- |
-| 9   | Merge projection/ into core/event                         | Fewer packages to understand    |
-| 10  | Unify error sentinels across aggregate/decider/projection | One errors.Is check per concept |
+| #  | Action                                                    | Impact                          |
+| -- | --------------------------------------------------------- | ------------------------------- |
+| 9  | Merge projection/ into core/event                         | Fewer packages to understand    |
+| 10 | Unify error sentinels across aggregate/decider/projection | One errors.Is check per concept |

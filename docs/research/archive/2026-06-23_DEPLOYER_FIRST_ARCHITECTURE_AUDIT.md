@@ -166,15 +166,15 @@ engine — they all operate on the abstract `Bundle`.
 
 ## Honest Gaps
 
-| #   | Gap                                           | Impact                                                                   | Effort                                      |
-| --- | --------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------- |
-| 1   | **Postgres has no multi-DB split**            | Production users can't isolate concerns on the most common production DB | Medium — pattern exists in sqlite, port it  |
-| 2   | **Pebble has no multi-DB split**              | Can't isolate Pebble stores by column family                             | Low-Medium                                  |
-| 3   | **No distributed bus except Postgres**        | Kafka/NATS users must hand-wire via Watermill router                     | High per-adapter                            |
-| 4   | **No external KV/read-model adapters**        | Columnar/graph/document are "bring your own" with zero guidance          | High                                        |
-| 5   | **No heterogeneous example**                  | The killer feature (mix engines per-concern) has zero demonstration      | Low — just an example                       |
-| 6   | **deployer-first example uses manual wiring** | Flagship example doesn't showcase the preset one-liner path              | Low                                         |
-| 7   | **Turso multi-DB + sync incompatible**        | `WithEventDB` etc. silently ignored in sync mode                         | Low — documented but could error explicitly |
+| # | Gap                                           | Impact                                                                   | Effort                                      |
+| - | --------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------- |
+| 1 | **Postgres has no multi-DB split**            | Production users can't isolate concerns on the most common production DB | Medium — pattern exists in sqlite, port it  |
+| 2 | **Pebble has no multi-DB split**              | Can't isolate Pebble stores by column family                             | Low-Medium                                  |
+| 3 | **No distributed bus except Postgres**        | Kafka/NATS users must hand-wire via Watermill router                     | High per-adapter                            |
+| 4 | **No external KV/read-model adapters**        | Columnar/graph/document are "bring your own" with zero guidance          | High                                        |
+| 5 | **No heterogeneous example**                  | The killer feature (mix engines per-concern) has zero demonstration      | Low — just an example                       |
+| 6 | **deployer-first example uses manual wiring** | Flagship example doesn't showcase the preset one-liner path              | Low                                         |
+| 7 | **Turso multi-DB + sync incompatible**        | `WithEventDB` etc. silently ignored in sync mode                         | Low — documented but could error explicitly |
 
 ---
 

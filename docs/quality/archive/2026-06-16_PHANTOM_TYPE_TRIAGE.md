@@ -21,18 +21,18 @@
 
 ## Verdict Categories
 
-| #   | Category                             | Count | Verdict    | Why                                                                                                                                                                   |
-| --- | ------------------------------------ | ----- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A   | Spec-mirroring serialization structs | ~35   | **Reject** | Mirror external JSON/YAML specs (AsyncAPI 2.x, OpenAPI 3.x, JSON Schema). Field types must be `string`/`bool` to serialize correctly via `encoding/json`.             |
-| B   | Builder/option boundary functions    | ~65   | **Reject** | Documented pattern: public API accepts `string`, converts to phantom type internally. Catalog already defines 17 domain phantom types in `types_phantom.go`.          |
-| C   | SQL/storage plumbing                 | ~35   | **Reject** | Table names, WHERE fragments, SQL templates, column lists flow into `database/sql`. Must be plain `string`. `limit int` is part of cross-module interface signatures. |
-| D   | OTel API constraint                  | 8     | **Reject** | Params feed directly into `go.opentelemetry.io/otel/attribute` which takes `string`. Values originate from phantom-typed upstream types (`event.Type`, etc.).         |
-| E   | Watermill API constraint             | 4     | **Reject** | Watermill's `Publisher.Publish(topic string)` / `Subscriber.Subscribe(topic string)` dictate `string`.                                                                |
-| F   | Turso SQL analysis internals         | ~28   | **Reject** | `query`/`table`/`sqlDDL` flow into `EXPLAIN QUERY PLAN` SQL statements. Internal-only.                                                                                |
-| G   | Example/demo code                    | ~24   | **Reject** | `example/` demonstrates the library, not itself. Not the product.                                                                                                     |
-| H   | Public API — breaking change         | ~12   | **Reject** | Changing field types on released v2.3.0 structs (e.g. `query.Pagination.Page uint`) would break consumers. Cannot change without major version bump.                  |
-| J   | Test helpers                         | 10    | **Reject** | `cattest` builders mirror the catalog builder pattern. `limit`/`update`/`expected` are standard test API params.                                                      |
-| K   | Internal single-concept params       | ~36   | **Reject** | Unexported functions with a single string/int param. Zero mixing risk → phantom types add noise.                                                                      |
+| # | Category                             | Count | Verdict    | Why                                                                                                                                                                   |
+| - | ------------------------------------ | ----- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A | Spec-mirroring serialization structs | ~35   | **Reject** | Mirror external JSON/YAML specs (AsyncAPI 2.x, OpenAPI 3.x, JSON Schema). Field types must be `string`/`bool` to serialize correctly via `encoding/json`.             |
+| B | Builder/option boundary functions    | ~65   | **Reject** | Documented pattern: public API accepts `string`, converts to phantom type internally. Catalog already defines 17 domain phantom types in `types_phantom.go`.          |
+| C | SQL/storage plumbing                 | ~35   | **Reject** | Table names, WHERE fragments, SQL templates, column lists flow into `database/sql`. Must be plain `string`. `limit int` is part of cross-module interface signatures. |
+| D | OTel API constraint                  | 8     | **Reject** | Params feed directly into `go.opentelemetry.io/otel/attribute` which takes `string`. Values originate from phantom-typed upstream types (`event.Type`, etc.).         |
+| E | Watermill API constraint             | 4     | **Reject** | Watermill's `Publisher.Publish(topic string)` / `Subscriber.Subscribe(topic string)` dictate `string`.                                                                |
+| F | Turso SQL analysis internals         | ~28   | **Reject** | `query`/`table`/`sqlDDL` flow into `EXPLAIN QUERY PLAN` SQL statements. Internal-only.                                                                                |
+| G | Example/demo code                    | ~24   | **Reject** | `example/` demonstrates the library, not itself. Not the product.                                                                                                     |
+| H | Public API — breaking change         | ~12   | **Reject** | Changing field types on released v2.3.0 structs (e.g. `query.Pagination.Page uint`) would break consumers. Cannot change without major version bump.                  |
+| J | Test helpers                         | 10    | **Reject** | `cattest` builders mirror the catalog builder pattern. `limit`/`update`/`expected` are standard test API params.                                                      |
+| K | Internal single-concept params       | ~36   | **Reject** | Unexported functions with a single string/int param. Zero mixing risk → phantom types add noise.                                                                      |
 
 ---
 

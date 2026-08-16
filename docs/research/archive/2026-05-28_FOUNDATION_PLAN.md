@@ -25,16 +25,16 @@ These are sequential but mostly additive. Each step improves the foundation with
 
 ## Guiding Principles
 
-| #   | Principle                                                                                    | Source      |
-| --- | -------------------------------------------------------------------------------------------- | ----------- |
-| 1   | **History is immutable** — No `Delete`. Append-only.                                         | v4          |
-| 2   | **Sink is write, Source is read** — Separate concerns, separate deployment.                  | Zig + v4    |
-| 3   | **Transport stays untyped** — Generics at boundaries, not in persistence.                    | Watermill   |
-| 4   | **Read models are projections** — They subscribe to the bus, not query the store.            | v3/v4       |
-| 5   | **Composable, not forced** — Small interfaces, type assertions, no wrappers that lose types. | v2 critique |
-| 6   | **`uint` for counts** — Negative values are impossible states.                               | v3          |
-| 7   | **Cursor pagination only** — `Page[T]` with `HasMore`, no `TotalCount`.                      | v4          |
-| 8   | **Additive first, breaking last** — Implement new interfaces before removing old ones.       | v4 critique |
+| # | Principle                                                                                    | Source      |
+| - | -------------------------------------------------------------------------------------------- | ----------- |
+| 1 | **History is immutable** — No `Delete`. Append-only.                                         | v4          |
+| 2 | **Sink is write, Source is read** — Separate concerns, separate deployment.                  | Zig + v4    |
+| 3 | **Transport stays untyped** — Generics at boundaries, not in persistence.                    | Watermill   |
+| 4 | **Read models are projections** — They subscribe to the bus, not query the store.            | v3/v4       |
+| 5 | **Composable, not forced** — Small interfaces, type assertions, no wrappers that lose types. | v2 critique |
+| 6 | **`uint` for counts** — Negative values are impossible states.                               | v3          |
+| 7 | **Cursor pagination only** — `Page[T]` with `HasMore`, no `TotalCount`.                      | v4          |
+| 8 | **Additive first, breaking last** — Implement new interfaces before removing old ones.       | v4 critique |
 
 ---
 

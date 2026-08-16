@@ -2,8 +2,8 @@
 
 > **Status:** RESOLVED — Watermill adopted (ADR-0028); Honker and Turso rejected
 
-> **Date:** 2026-05-27  
-> **Scope:** Evaluate SQLite-based pub/sub and task queue options for go-cqrs-lite consumers who want a zero-external-dependency storage path.  
+> **Date:** 2026-05-27\
+> **Scope:** Evaluate SQLite-based pub/sub and task queue options for go-cqrs-lite consumers who want a zero-external-dependency storage path.\
 > **Research artifacts:** [russellromney/honker](https://github.com/russellromney/honker), [ThreeDotsLabs/watermill-sqlite](https://watermill.io/pubsubs/sqlite/), [tursodatabase/turso/COMPAT.md](https://raw.githubusercontent.com/tursodatabase/turso/refs/heads/main/COMPAT.md)
 
 ---
@@ -163,26 +163,26 @@ Three factors:
 
 ### Option A: Watermill SQLite via `wmsqlitemodernc` (Recommended)
 
-**Effort:** Low  
-**Value:** High  
+**Effort:** Low\
+**Value:** High\
 **Why:** Pure Go, no new module needed. Consumers already using Watermill get SQLite pub/sub "for free." Fits the library's "zero external dependencies" philosophy.
 
 ### Option B: Build a `storage/turso` module (Future)
 
-**Effort:** High  
-**Value:** Medium  
+**Effort:** High\
+**Value:** Medium\
 **Why:** Turso is distributed and has no queue primitives, so this requires building a polling-based outbox pattern or integrating a separate broker. Not recommended until Turso adds native pub/sub or change-data-capture (CDC) hooks.
 
 ### Option C: Build a `storage/honker` module (Not Recommended)
 
-**Effort:** High  
-**Value:** Medium  
+**Effort:** High\
+**Value:** Medium\
 **Why:** Adds Rust/CGO burden to a Go library. Schema conflicts with existing `storage.SQLStore`. Cross-language interop is irrelevant for a Go SDK. Honker's alpha status and architectural ceiling make it a risky dependency.
 
 ### Option D: Keep Current Architecture (PG for storage, memory for bus)
 
-**Effort:** Zero  
-**Value:** Current  
+**Effort:** Zero\
+**Value:** Current\
 **Why:** Valid. PostgreSQL is battle-tested for event sourcing. Add Watermill SQLite as a documented consumer option for those who need SQLite.
 
 ---

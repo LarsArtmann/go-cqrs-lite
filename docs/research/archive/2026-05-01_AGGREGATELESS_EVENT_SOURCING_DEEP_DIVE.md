@@ -170,33 +170,33 @@ Events are **not tied to any aggregate**. They are standalone records of things 
 
 ```json
 {
-	"eventType": "DeviceRegistered",
-	"payload": {
-		"deviceId": "550e8400-e29b-41d4-a716-446655440000",
-		"registeredAt": "2025-06-22T10:00:00Z"
-	}
+  "eventType": "DeviceRegistered",
+  "payload": {
+    "deviceId": "550e8400-e29b-41d4-a716-446655440000",
+    "registeredAt": "2025-06-22T10:00:00Z"
+  }
 }
 ```
 
 ```json
 {
-	"eventType": "AssetRegistered",
-	"payload": {
-		"assetId": "660e8400-e29b-41d4-a716-446655440000",
-		"assetName": "Server Rack",
-		"registeredAt": "2025-06-22T10:30:00Z"
-	}
+  "eventType": "AssetRegistered",
+  "payload": {
+    "assetId": "660e8400-e29b-41d4-a716-446655440000",
+    "assetName": "Server Rack",
+    "registeredAt": "2025-06-22T10:30:00Z"
+  }
 }
 ```
 
 ```json
 {
-	"eventType": "DeviceBoundToAsset",
-	"payload": {
-		"deviceId": "550e8400-e29b-41d4-a716-446655440000",
-		"assetId": "660e8400-e29b-41d4-a716-446655440000",
-		"boundAt": "2025-06-22T11:00:00Z"
-	}
+  "eventType": "DeviceBoundToAsset",
+  "payload": {
+    "deviceId": "550e8400-e29b-41d4-a716-446655440000",
+    "assetId": "660e8400-e29b-41d4-a716-446655440000",
+    "boundAt": "2025-06-22T11:00:00Z"
+  }
 }
 ```
 

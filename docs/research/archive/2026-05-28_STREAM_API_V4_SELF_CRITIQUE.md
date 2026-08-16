@@ -192,19 +192,19 @@ This way, steps 1-5 can be implemented and tested before the big breaking change
 
 ## Summary of recommended changes to v4 proposal
 
-| #   | Change                                                          | Priority |
-| --- | --------------------------------------------------------------- | -------- |
-| 1   | Rename `AutoTombstone` → `StatusMiddleware`                     | High     |
-| 2   | `InMemoryAggregateReader` takes `GlobalSource`, not `Source`    | High     |
-| 3   | Move `EventReader` to "Future work"                             | High     |
-| 4   | Remove `EventCount` from `AggregateRef`, add `AggregateInfo`    | Medium   |
-| 5   | Make `Type` required in `ListOptions`                           | Medium   |
-| 6   | Document `Close()` behavior for composite `Store`               | Medium   |
-| 7   | Use `INT` for tombstone_status in SQL schema                    | Medium   |
-| 8   | Refine implementation order (additive first, Delete last)       | Medium   |
-| 9   | Rename builder: `NewAggregateQuery` → `NewListBuilder`          | Low      |
-| 10  | Rename `StreamLoader` → `StreamSource`                          | Low      |
-| 11  | Keep `TransactionalStore` as composite, add `TransactionalSink` | Low      |
+| #  | Change                                                          | Priority |
+| -- | --------------------------------------------------------------- | -------- |
+| 1  | Rename `AutoTombstone` → `StatusMiddleware`                     | High     |
+| 2  | `InMemoryAggregateReader` takes `GlobalSource`, not `Source`    | High     |
+| 3  | Move `EventReader` to "Future work"                             | High     |
+| 4  | Remove `EventCount` from `AggregateRef`, add `AggregateInfo`    | Medium   |
+| 5  | Make `Type` required in `ListOptions`                           | Medium   |
+| 6  | Document `Close()` behavior for composite `Store`               | Medium   |
+| 7  | Use `INT` for tombstone_status in SQL schema                    | Medium   |
+| 8  | Refine implementation order (additive first, Delete last)       | Medium   |
+| 9  | Rename builder: `NewAggregateQuery` → `NewListBuilder`          | Low      |
+| 10 | Rename `StreamLoader` → `StreamSource`                          | Low      |
+| 11 | Keep `TransactionalStore` as composite, add `TransactionalSink` | Low      |
 
 ---
 

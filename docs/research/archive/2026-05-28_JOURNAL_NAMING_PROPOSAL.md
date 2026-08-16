@@ -114,7 +114,7 @@ Journal                  ← cross-aggregate, time-ordered
     └── ReadFrom()       ← events after checkpoint (SeekableJournal)
 ```
 
-**Store** = the write model and per-aggregate read model.  
+**Store** = the write model and per-aggregate read model.\
 **Journal** = the read model for replay, audit, and projections.
 
 This naming also opens the door for future extensions naturally:

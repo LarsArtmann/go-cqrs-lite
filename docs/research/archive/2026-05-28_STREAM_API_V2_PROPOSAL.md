@@ -18,14 +18,14 @@ The v1 proposal had five structural problems:
 
 ## v2 Design Principles
 
-| #   | Principle                                    | How                                                           |
-| --- | -------------------------------------------- | ------------------------------------------------------------- |
-| 1   | **Extend existing Store via type assertion** | New small interfaces in `core/event/`, like `BackwardsLoader` |
-| 2   | **Tombstone is metadata, not callbacks**     | Metadata key like signing uses, O(1) detection                |
-| 3   | **Builder pattern for queries**              | Fluent, composable, impossible to construct invalid queries   |
-| 4   | **One pagination model**                     | Cursor-based everywhere (ULIDs are natural cursors)           |
-| 5   | **SQL stores implement natively**            | Efficient queries, not fallback in-memory filtering           |
-| 6   | **No wrapper that loses types**              | Tombstone as store-level capability, not decorator            |
+| # | Principle                                    | How                                                           |
+| - | -------------------------------------------- | ------------------------------------------------------------- |
+| 1 | **Extend existing Store via type assertion** | New small interfaces in `core/event/`, like `BackwardsLoader` |
+| 2 | **Tombstone is metadata, not callbacks**     | Metadata key like signing uses, O(1) detection                |
+| 3 | **Builder pattern for queries**              | Fluent, composable, impossible to construct invalid queries   |
+| 4 | **One pagination model**                     | Cursor-based everywhere (ULIDs are natural cursors)           |
+| 5 | **SQL stores implement natively**            | Efficient queries, not fallback in-memory filtering           |
+| 6 | **No wrapper that loses types**              | Tombstone as store-level capability, not decorator            |
 
 ---
 

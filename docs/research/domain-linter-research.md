@@ -728,9 +728,9 @@ func runLint(ctx context.Context, cfg *CQRSLintConfig, flags LintFlags) error {
 | ------------- | ------------------- | ------ | ----- |
 | Critical      | `SeverityCritical`  | `CRIT` | `🔴`  |
 | High          | `SeverityError`     | `ERR`  | `❌`  |
-| Medium        | `SeverityWarning`   | `WARN` | `⚠️`  |
-| Low           | `SeverityInfo`      | `INFO` | `ℹ️`  |
-| Informational | `SeverityInfo`      | `INFO` | `ℹ️`  |
+| Medium        | `SeverityWarning`   | `WARN` | `⚠️`   |
+| Low           | `SeverityInfo`      | `INFO` | `ℹ️`   |
+| Informational | `SeverityInfo`      | `INFO` | `ℹ️`   |
 
 ### 4.8 Mapping FixStrategy
 
@@ -1250,7 +1250,7 @@ case eventCreated:
 
 - Intentional best-effort decode with fallback default. Suppression: `//cqrs-lint:ignore(C010) best-effort decode`.
 
-**Auto-fix:** Replace `_, ` with `err, ` and add error check. Risk: **Low**.
+**Auto-fix:** Replace `_,` with `err,` and add error check. Risk: **Low**.
 
 ---
 
@@ -2304,33 +2304,33 @@ For projects with systemic issues, the linter generates a step-by-step plan:
 
 ```json
 {
-	"migration_plan": {
-		"project": "standard-bug-tracking-schema",
-		"health_score": 25,
-		"steps": [
-			{
-				"priority": 1,
-				"rule": "A008",
-				"action": "Replace types.AggregateID with id.AggregateID across all files",
-				"estimated_files": 15,
-				"risk": "Medium"
-			},
-			{
-				"priority": 2,
-				"rule": "A007",
-				"action": "Delete OO aggregate model (types.Issue with uncommittedEvents), keep functional decider",
-				"estimated_files": 8,
-				"risk": "High"
-			},
-			{
-				"priority": 3,
-				"rule": "A005",
-				"action": "Replace custom projectionRunner with projectionhost.Host",
-				"estimated_files": 3,
-				"risk": "Medium"
-			}
-		]
-	}
+  "migration_plan": {
+    "project": "standard-bug-tracking-schema",
+    "health_score": 25,
+    "steps": [
+      {
+        "priority": 1,
+        "rule": "A008",
+        "action": "Replace types.AggregateID with id.AggregateID across all files",
+        "estimated_files": 15,
+        "risk": "Medium"
+      },
+      {
+        "priority": 2,
+        "rule": "A007",
+        "action": "Delete OO aggregate model (types.Issue with uncommittedEvents), keep functional decider",
+        "estimated_files": 8,
+        "risk": "High"
+      },
+      {
+        "priority": 3,
+        "rule": "A005",
+        "action": "Replace custom projectionRunner with projectionhost.Host",
+        "estimated_files": 3,
+        "risk": "Medium"
+      }
+    ]
+  }
 }
 ```
 
@@ -2391,14 +2391,14 @@ func createEvent(version event.Version) {
 
 ```json
 [
-	{
-		"rule": "C006",
-		"line": 8,
-		"column": 9,
-		"message": "Manual version arithmetic: use version.Increment() instead of event.Version(version.Int()+1)",
-		"confidence": "High",
-		"fixable": true
-	}
+  {
+    "rule": "C006",
+    "line": 8,
+    "column": 9,
+    "message": "Manual version arithmetic: use version.Increment() instead of event.Version(version.Int()+1)",
+    "confidence": "High",
+    "fixable": true
+  }
 ]
 ```
 

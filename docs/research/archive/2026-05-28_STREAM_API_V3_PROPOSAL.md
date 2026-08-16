@@ -54,15 +54,15 @@ That's four responsibilities for one struct. The `aggregates` table is a **read-
 
 ## v3 Design Principles
 
-| #   | Principle                              | Rationale                                                                 |
-| --- | -------------------------------------- | ------------------------------------------------------------------------- |
-| 1   | **Store is write model only**          | No read-model methods on `Store`                                          |
-| 2   | **Read model is separate**             | `stream/` provides readers, not store extensions                          |
-| 3   | **`uint` for all counts/limits**       | Negative values are impossible states                                     |
-| 4   | **Descriptive constructors, no magic** | `NewInMemoryReader(loader)`, `NewSQLReader(db)` — no `Q()`                |
-| 5   | **Tombstone is metadata, not wrapper** | Same pattern as `signing` — metadata key on events                        |
-| 6   | **SQL read model is a projection**     | Separate table, maintained by event subscription                          |
-| 7   | **Cursor pagination only**             | `Page[T]` has `HasMore`, no `TotalCount` (expensive for append-only logs) |
+| # | Principle                              | Rationale                                                                 |
+| - | -------------------------------------- | ------------------------------------------------------------------------- |
+| 1 | **Store is write model only**          | No read-model methods on `Store`                                          |
+| 2 | **Read model is separate**             | `stream/` provides readers, not store extensions                          |
+| 3 | **`uint` for all counts/limits**       | Negative values are impossible states                                     |
+| 4 | **Descriptive constructors, no magic** | `NewInMemoryReader(loader)`, `NewSQLReader(db)` — no `Q()`                |
+| 5 | **Tombstone is metadata, not wrapper** | Same pattern as `signing` — metadata key on events                        |
+| 6 | **SQL read model is a projection**     | Separate table, maintained by event subscription                          |
+| 7 | **Cursor pagination only**             | `Page[T]` has `HasMore`, no `TotalCount` (expensive for append-only logs) |
 
 ---
 

@@ -121,17 +121,17 @@ Time travel is the ability to **observe or reconstruct the state of a system at 
 
 ### 4.1 What's Missing — Ranked by Impact
 
-| #   | Gap                                              | Use Case                                       | Current Workaround                                             | Severity                  |
-| --- | ------------------------------------------------ | ---------------------------------------------- | -------------------------------------------------------------- | ------------------------- |
-| 1   | **No `Store.LoadToVersion`**                     | "Reconstruct state at version N"               | Load ALL events → filter manually → O(n) even for small slices | **CRITICAL**              |
-| 2   | **No `Store.LoadToTimestamp`**                   | "What was the state at time T?"                | Same manual filter approach                                    | **HIGH**                  |
-| 3   | **No position-based `GlobalLoader`**             | Production-scale projection replay             | `LoadAll()` loads everything into memory → O(n) memory         | **HIGH**                  |
-| 4   | **No `Repository.LoadAtVersion` / `LoadAtTime`** | "Give me the aggregate at this point in time"  | Must use Store directly + manually fold                        | **HIGH**                  |
-| 5   | **No backward reads**                            | "Last N events", "most recent event of type X" | Load all → take last N manually                                | **MEDIUM**                |
-| 6   | **No global transaction position**               | Cross-aggregate temporal consistency           | No equivalent — per-aggregate versioning only                  | **MEDIUM**                |
-| 7   | **No `ValidAt` / bi-temporal**                   | "Salary effective on Jan 1"                    | No representation of valid-time                                | **LOW** (domain-specific) |
-| 8   | **No speculative application**                   | "What-if" dry-run without persisting           | Clone aggregate in memory manually                             | **LOW**                   |
-| 9   | **No temporal projections**                      | Versioned read-model snapshots over time       | No equivalent                                                  | **LOW**                   |
+| # | Gap                                              | Use Case                                       | Current Workaround                                             | Severity                  |
+| - | ------------------------------------------------ | ---------------------------------------------- | -------------------------------------------------------------- | ------------------------- |
+| 1 | **No `Store.LoadToVersion`**                     | "Reconstruct state at version N"               | Load ALL events → filter manually → O(n) even for small slices | **CRITICAL**              |
+| 2 | **No `Store.LoadToTimestamp`**                   | "What was the state at time T?"                | Same manual filter approach                                    | **HIGH**                  |
+| 3 | **No position-based `GlobalLoader`**             | Production-scale projection replay             | `LoadAll()` loads everything into memory → O(n) memory         | **HIGH**                  |
+| 4 | **No `Repository.LoadAtVersion` / `LoadAtTime`** | "Give me the aggregate at this point in time"  | Must use Store directly + manually fold                        | **HIGH**                  |
+| 5 | **No backward reads**                            | "Last N events", "most recent event of type X" | Load all → take last N manually                                | **MEDIUM**                |
+| 6 | **No global transaction position**               | Cross-aggregate temporal consistency           | No equivalent — per-aggregate versioning only                  | **MEDIUM**                |
+| 7 | **No `ValidAt` / bi-temporal**                   | "Salary effective on Jan 1"                    | No representation of valid-time                                | **LOW** (domain-specific) |
+| 8 | **No speculative application**                   | "What-if" dry-run without persisting           | Clone aggregate in memory manually                             | **LOW**                   |
+| 9 | **No temporal projections**                      | Versioned read-model snapshots over time       | No equivalent                                                  | **LOW**                   |
 
 ### 4.2 The Time Travel Workflow Today (Painful)
 
@@ -464,21 +464,21 @@ How go-cqrs-lite compares to other event sourcing systems for time-travel capabi
 
 All 13 known time-travel mechanisms, mapped to go-cqrs-lite status:
 
-| #   | Mechanism                   | Status         | Implementation                                                               |
-| --- | --------------------------- | -------------- | ---------------------------------------------------------------------------- |
-| 1   | Full Event Replay           | ✅ **Working** | `Store.Load` → manual fold                                                   |
-| 2   | Snapshot-Optimized Replay   | ✅ **Working** | `SnapshotStore.LoadAtVersion` + `LoadFromVersion`                            |
-| 3   | Version-Based Stream Read   | ❌ **Missing** | → `Store.LoadToVersion` (P0)                                                 |
-| 4   | Timestamp-Based Stream Read | ❌ **Missing** | → `Store.LoadToTimestamp` (P1)                                               |
-| 5   | Global Position Read        | ❌ **Missing** | → `PositionalLoader.LoadAllFromPosition` (P1) / `Event.TransactionID()` (P3) |
-| 6   | Database-as-Value           | ❌ **Skip**    | Incompatible with our architecture                                           |
-| 7   | Speculative Application     | ❌ **Missing** | → `Repository.ApplySpeculative` (P4)                                         |
-| 8   | History Query               | ❌ **Skip**    | Requires datom-based storage                                                 |
-| 9   | Temporal Projections        | ❌ **Missing** | → `TemporalProjection` type (P4)                                             |
-| 10  | Bi-Temporal Events          | ❌ **Missing** | → `WithValidAt` + `LoadToValidTime` (P3)                                     |
-| 11  | Reverse Reads               | ❌ **Missing** | → `Store.ReadBackwards` (P2)                                                 |
-| 12  | Event Compaction            | ❌ **Skip**    | Destroys time-travel ability                                                 |
-| 13  | Forking/Branching           | ❌ **Skip**    | No standard pattern, unclear semantics                                       |
+| #  | Mechanism                   | Status         | Implementation                                                               |
+| -- | --------------------------- | -------------- | ---------------------------------------------------------------------------- |
+| 1  | Full Event Replay           | ✅ **Working** | `Store.Load` → manual fold                                                   |
+| 2  | Snapshot-Optimized Replay   | ✅ **Working** | `SnapshotStore.LoadAtVersion` + `LoadFromVersion`                            |
+| 3  | Version-Based Stream Read   | ❌ **Missing** | → `Store.LoadToVersion` (P0)                                                 |
+| 4  | Timestamp-Based Stream Read | ❌ **Missing** | → `Store.LoadToTimestamp` (P1)                                               |
+| 5  | Global Position Read        | ❌ **Missing** | → `PositionalLoader.LoadAllFromPosition` (P1) / `Event.TransactionID()` (P3) |
+| 6  | Database-as-Value           | ❌ **Skip**    | Incompatible with our architecture                                           |
+| 7  | Speculative Application     | ❌ **Missing** | → `Repository.ApplySpeculative` (P4)                                         |
+| 8  | History Query               | ❌ **Skip**    | Requires datom-based storage                                                 |
+| 9  | Temporal Projections        | ❌ **Missing** | → `TemporalProjection` type (P4)                                             |
+| 10 | Bi-Temporal Events          | ❌ **Missing** | → `WithValidAt` + `LoadToValidTime` (P3)                                     |
+| 11 | Reverse Reads               | ❌ **Missing** | → `Store.ReadBackwards` (P2)                                                 |
+| 12 | Event Compaction            | ❌ **Skip**    | Destroys time-travel ability                                                 |
+| 13 | Forking/Branching           | ❌ **Skip**    | No standard pattern, unclear semantics                                       |
 
 ---
 

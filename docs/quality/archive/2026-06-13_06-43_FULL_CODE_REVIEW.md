@@ -52,7 +52,7 @@
 | snapshot/   | ~250  | >85%     | ✅   | 0       | ✅  | ✅ Good      |
 | codec/      | ~350  | >90%     | ✅   | 0       | ✅  | ✅ Excellent |
 | memory/     | ~800  | >85%     | ✅   | 0       | ✅  | ✅ Good      |
-| catalog/    | ~2500 | >80%     | ⚠️ 2 | 1 (low) | ✅  | ⚠️ Good      |
+| catalog/    | ~2500 | >80%     | ⚠️ 2  | 1 (low) | ✅  | ⚠️ Good       |
 | middleware/ | ~1200 | >85%     | ✅   | 1 (low) | ✅  | ✅ Good      |
 | signing/    | ~800  | >90%     | ✅   | 2 (med) | ✅  | ✅ Good      |
 | encryption/ | ~600  | >90%     | ✅   | 2 (med) | ✅  | ✅ Good      |

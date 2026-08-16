@@ -311,10 +311,10 @@ Vector.Search(embedding, k)    // Similarity
 ### 1. B-Tree / B+Tree
 
 ```
-           [Internal Node: Keys + Child Pointers]
-          /              |                \
-  [Leaf: K,V,K,V]  [Leaf: K,V,K,V]  [Leaf: K,V,K,V]
-       ↔ linked list for range scans ↔
+         [Internal Node: Keys + Child Pointers]
+        /              |                \
+[Leaf: K,V,K,V]  [Leaf: K,V,K,V]  [Leaf: K,V,K,V]
+     ↔ linked list for range scans ↔
 ```
 
 | Dimension               | Detail                                                                                  |
@@ -593,24 +593,24 @@ Old root still valid → readers see consistent snapshot
 ### Storage Engine Trade-off Map
 
 ```
-                        Write Throughput
-                              ↑
-                              |
-           LSM-Tree ●         |         ● Fractal Tree
-                              |
-     ScyllaDB (sharded LSM)   |
-                              |
-                              |
-    ──────────────────────────┼──────────────────→ Read Performance
-                              |
-            Hash Index ●      |         ● B+Tree
-                              |              ● mmap (LMDB)
-                              |
-              Append-Only ●   |
-                              |              ● Columnar
-                              |                    ● ART (in-memory)
-                              |
-                        Low Space Usage ←→ High Space Usage
+                    Write Throughput
+                          ↑
+                          |
+       LSM-Tree ●         |         ● Fractal Tree
+                          |
+ ScyllaDB (sharded LSM)   |
+                          |
+                          |
+──────────────────────────┼──────────────────→ Read Performance
+                          |
+        Hash Index ●      |         ● B+Tree
+                          |              ● mmap (LMDB)
+                          |
+          Append-Only ●   |
+                          |              ● Columnar
+                          |                    ● ART (in-memory)
+                          |
+                    Low Space Usage ←→ High Space Usage
 ```
 
 ---

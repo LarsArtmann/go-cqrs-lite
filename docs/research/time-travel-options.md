@@ -366,13 +366,13 @@ forkedStreamID := store.Fork(ctx, aggType, aggID, atVersion: 5)
 
 ### Kafka (Infrastructure-Level)
 
-| Capability            | Implementation                                          |
-| --------------------- | ------------------------------------------------------- |
-| Offset-based reads    | `consumer.seek(partition, offset)`                      |
-| Timestamp-based reads | `offsetsForTimes()` to find offset by timestamp         |
-| Log retention         | Configurable (time-based or size-based)                 |
+| Capability            | Implementation                                         |
+| --------------------- | ------------------------------------------------------ |
+| Offset-based reads    | `consumer.seek(partition, offset)`                     |
+| Timestamp-based reads | `offsetsForTimes()` to find offset by timestamp        |
+| Log retention         | Configurable (time-based or size-based)                |
 | Log compaction        | ⚠️ **INCOMPATIBLE with ES** — keeps only latest per key |
-| Global ordering       | Per-partition only, not cross-partition                 |
+| Global ordering       | Per-partition only, not cross-partition                |
 
 **Key insight:** Kafka provides offset-based and timestamp-based time travel at the infrastructure level, but log compaction destroys event sourcing history. For ES, use `retention.ms=-1` with `cleanup.policy=delete`.
 
@@ -952,7 +952,7 @@ LoadAsOf(ctx, root, validTime) → error
 | Eventuous                | Go         | `ReadEvents(ctx, stream, startVersion, count)`, `ReadEventsBackwards`, `GlobalPosition`, `LoadState` with fold        |
 | Rails EventStore         | Ruby       | `as_at`/`as_of` read scopes, `valid_at` metadata, bi-temporal                                                         |
 | EventSourcingDB          | Any (HTTP) | `upperBound` parameter, subject-based scoping, time-bucketed aggregations                                             |
-| Kafka                    | Any        | Offset-based reads, timestamp-based offset lookup, ⚠️ log compaction incompatible with ES                             |
+| Kafka                    | Any        | Offset-based reads, timestamp-based offset lookup, ⚠️ log compaction incompatible with ES                              |
 
 ### Key References
 

@@ -20,15 +20,15 @@
 
 These are the only places in go-cqrs-lite that actually store bytes on disk or over the network.
 
-| #   | Touchpoint            | Interface                                          | Status            | Data Shape                                      | Write Pattern                      | Read Pattern                                     | Size Growth                       |
-| --- | --------------------- | -------------------------------------------------- | ----------------- | ----------------------------------------------- | ---------------------------------- | ------------------------------------------------ | --------------------------------- |
-| 1   | **Event Store**       | `event.Store` (Sink + Source + Journal + Seekable) | ✅ Implemented    | Append-only log of immutable events             | Heavy append, no update/delete     | By aggregate, by time range, global journal scan | Unbounded — primary data store    |
-| 2   | **Snapshot Store**    | `snapshot.SnapshotStore`                           | ✅ Implemented    | Serialized aggregate state at version           | Occasional upsert (every N events) | Point lookup by aggregate                        | Bounded — one per aggregate       |
-| 3   | **Checkpoint Store**  | `event.CheckpointStore`                            | ✅ Implemented    | Projection name → last event ID                 | Frequent overwrite (per batch)     | Point lookup by projection name                  | Bounded — one per projection      |
-| 4   | **Command Store**     | `command.Store`                                    | ⚠️ Interface only | Persisted command audit log                     | Append-only                        | By aggregate, by timestamp                       | Unbounded — audit trail           |
-| 5   | **Read Model Store**  | _(no interface yet — examples only)_               | 📝 Planned        | Projected queryable state (Get/List/Put/Delete) | Write on projection, read-heavy    | Point lookup, filtered list                      | Bounded — rebuildable from events |
-| 6   | **Aggregate Listing** | `listing.AggregateReader`                          | ✅ Implemented    | Derived index of aggregates + tombstone status  | Read-only (derived from events)    | Cursor-pagination list                           | Derived — no independent storage  |
-| 7   | **Message Bus**       | `event.Bus` / `event.Publisher`                    | ✅ In-memory only | Transient message delivery                      | Publish                            | Subscribe                                        | None — in-memory only             |
+| # | Touchpoint            | Interface                                          | Status            | Data Shape                                      | Write Pattern                      | Read Pattern                                     | Size Growth                       |
+| - | --------------------- | -------------------------------------------------- | ----------------- | ----------------------------------------------- | ---------------------------------- | ------------------------------------------------ | --------------------------------- |
+| 1 | **Event Store**       | `event.Store` (Sink + Source + Journal + Seekable) | ✅ Implemented    | Append-only log of immutable events             | Heavy append, no update/delete     | By aggregate, by time range, global journal scan | Unbounded — primary data store    |
+| 2 | **Snapshot Store**    | `snapshot.SnapshotStore`                           | ✅ Implemented    | Serialized aggregate state at version           | Occasional upsert (every N events) | Point lookup by aggregate                        | Bounded — one per aggregate       |
+| 3 | **Checkpoint Store**  | `event.CheckpointStore`                            | ✅ Implemented    | Projection name → last event ID                 | Frequent overwrite (per batch)     | Point lookup by projection name                  | Bounded — one per projection      |
+| 4 | **Command Store**     | `command.Store`                                    | ⚠️ Interface only  | Persisted command audit log                     | Append-only                        | By aggregate, by timestamp                       | Unbounded — audit trail           |
+| 5 | **Read Model Store**  | _(no interface yet — examples only)_               | 📝 Planned        | Projected queryable state (Get/List/Put/Delete) | Write on projection, read-heavy    | Point lookup, filtered list                      | Bounded — rebuildable from events |
+| 6 | **Aggregate Listing** | `listing.AggregateReader`                          | ✅ Implemented    | Derived index of aggregates + tombstone status  | Read-only (derived from events)    | Cursor-pagination list                           | Derived — no independent storage  |
+| 7 | **Message Bus**       | `event.Bus` / `event.Publisher`                    | ✅ In-memory only | Transient message delivery                      | Publish                            | Subscribe                                        | None — in-memory only             |
 
 `watermill/` provides protocol adapters ( PublisherAdapter / SubscriberAdapter ) to bridge with the Watermill ecosystem, but the underlying bus is still `memory.MemoryBus`. No persistent backends (NATS, Redis, SQS, Pub/Sub) exist.
 
@@ -179,19 +179,19 @@ These are the only places in go-cqrs-lite that actually store bytes on disk or o
 
 ## 5. Backend Capability Summary
 
-| Backend            |  Event Store   |  Snapshot  | Checkpoint |   Read Model   |     Bus      |    K8s Native    | Serverless | Embedded |
-| ------------------ | :------------: | :--------: | :--------: | :------------: | :----------: | :--------------: | :--------: | :------: |
-| **SQLite**         |  ✅ Excellent  |     ✅     |     ✅     |       ✅       |      ❌      |   ⚠️ PV needed   |     ❌     |    ✅    |
-| **PostgreSQL**     |  ✅ Excellent  |     ✅     |     ✅     |       ✅       |      ❌      |    ❌ Deploy     |     ❌     |    ❌    |
-| **PebbleDB**       |  ✅ Excellent  |     ✅     |     ✅     |       ✅       |      ❌      |   ⚠️ PV needed   |     ❌     |    ✅    |
+| Backend            |  Event Store   |  Snapshot  | Checkpoint |  Read Model   |     Bus      |    K8s Native    | Serverless | Embedded |
+| ------------------ | :------------: | :--------: | :--------: | :-----------: | :----------: | :--------------: | :--------: | :------: |
+| **SQLite**         |  ✅ Excellent  |     ✅     |     ✅     |      ✅       |      ❌      |   ⚠️ PV needed    |     ❌     |    ✅    |
+| **PostgreSQL**     |  ✅ Excellent  |     ✅     |     ✅     |      ✅       |      ❌      |    ❌ Deploy     |     ❌     |    ❌    |
+| **PebbleDB**       |  ✅ Excellent  |     ✅     |     ✅     |      ✅       |      ❌      |   ⚠️ PV needed    |     ❌     |    ✅    |
 | **etcd**           |    ❌ Never    | ✅ Perfect | ✅ Perfect | ⚠️ Small only  |      ❌      | ✅ Already there |     ❌     |    ❌    |
-| **DynamoDB**       |  ⚠️ Poor scan  | ✅ Perfect | ✅ Perfect |  ✅ Excellent  |      ❌      |        ❌        |   ✅ AWS   |    ❌    |
-| **Firestore**      | ⚠️ No ordering | ✅ Perfect | ✅ Perfect |  ✅ Excellent  |      ❌      |        ❌        |   ✅ GCP   |    ❌    |
-| **Cosmos DB**      | ⚠️ Small only  | ✅ Perfect | ✅ Perfect |  ✅ Excellent  |      ❌      |        ❌        |  ✅ Azure  |    ❌    |
+| **DynamoDB**       |  ⚠️ Poor scan   | ✅ Perfect | ✅ Perfect | ✅ Excellent  |      ❌      |        ❌        |   ✅ AWS   |    ❌    |
+| **Firestore**      | ⚠️ No ordering  | ✅ Perfect | ✅ Perfect | ✅ Excellent  |      ❌      |        ❌        |   ✅ GCP   |    ❌    |
+| **Cosmos DB**      |  ⚠️ Small only  | ✅ Perfect | ✅ Perfect | ✅ Excellent  |      ❌      |        ❌        |  ✅ Azure  |    ❌    |
 | **ScyllaDB**       |  ✅ Excellent  |     ✅     |     ✅     | ⚠️ GSI limited |      ❌      |        ❌        |     ❌     |    ❌    |
-| **NATS JetStream** |   ⚠️ Log ok    |     ❌     |     ❌     |       ❌       | ✅ Excellent |     ✅ Helm      |     ❌     |    ❌    |
-| **Redis**          | ❌ Not durable |  ✅ Cache  |  ✅ Cache  |    ✅ Cache    | ✅ Excellent |     ✅ Helm      |     ❌     |    ❌    |
-| **memory**         |    ✅ Tests    |  ✅ Tests  |  ✅ Tests  |    ✅ Tests    |   ✅ Tests   |        ❌        |     ❌     |    ✅    |
+| **NATS JetStream** |    ⚠️ Log ok    |     ❌     |     ❌     |      ❌       | ✅ Excellent |     ✅ Helm      |     ❌     |    ❌    |
+| **Redis**          | ❌ Not durable |  ✅ Cache  |  ✅ Cache  |   ✅ Cache    | ✅ Excellent |     ✅ Helm      |     ❌     |    ❌    |
+| **memory**         |    ✅ Tests    |  ✅ Tests  |  ✅ Tests  |   ✅ Tests    |   ✅ Tests   |        ❌        |     ❌     |    ✅    |
 
 ---
 

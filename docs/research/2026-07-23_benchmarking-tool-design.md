@@ -393,12 +393,12 @@ The default generator produces payloads like:
 
 ```json
 {
-	"id": "01HX...",
-	"name": "Order-4287",
-	"value": 129.99,
-	"items": 3,
-	"tags": ["priority", "express"],
-	"metadata": { "source": "web", "session": "abc123" }
+  "id": "01HX...",
+  "name": "Order-4287",
+  "value": 129.99,
+  "items": 3,
+  "tags": ["priority", "express"],
+  "metadata": { "source": "web", "session": "abc123" }
 }
 ```
 
@@ -753,15 +753,15 @@ Storage:
 
 ```json
 {
-	"backend": "sqlite",
-	"profile": "medium",
-	"timestamp": "2026-07-23T14:30:00Z",
-	"duration": "12.4s",
-	"writeLatency": { "p50": "38µs", "p95": "82µs", "p99": "145µs" },
-	"writeThroughput": 42318.5,
-	"loadLatency": { "p50": "41µs", "p95": "89µs", "p99": "160µs" },
-	"memory": { "heapDelta": 142000000 },
-	"disk": { "databaseBytes": 18400000 }
+  "backend": "sqlite",
+  "profile": "medium",
+  "timestamp": "2026-07-23T14:30:00Z",
+  "duration": "12.4s",
+  "writeLatency": { "p50": "38µs", "p95": "82µs", "p99": "145µs" },
+  "writeThroughput": 42318.5,
+  "loadLatency": { "p50": "41µs", "p95": "89µs", "p99": "160µs" },
+  "memory": { "heapDelta": 142000000 },
+  "disk": { "databaseBytes": 18400000 }
 }
 ```
 
@@ -978,15 +978,15 @@ cqrs-bench compare \
 
 ## 16. Open Questions
 
-| #   | Question                                                                                        | Recommendation                                                                                                                                                                                 |
-| --- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Should `benchkit` depend on `decider/` for decider benchmarks, or stay at the store level only? | Stay at store level for v1. Decider benchmarks are domain-specific and already handled by `integration/realistic_bench_test.go`. Add a `DeciderBenchmark[State]` generic type in v2 if needed. |
-| 2   | HDR histogram vs sorted-slice for percentiles?                                                  | Sorted-slice with reservoir sampling for v1 (zero deps). Add optional HDR integration in v2 for >1M sample precision.                                                                          |
-| 3   | Should benchmarks write to real disk or tmpfs?                                                  | Real disk by default (realistic). Add `--tmpfs` flag for CI environments that mount tmpfs. Document the difference.                                                                            |
-| 4   | How to handle Postgres/Turso in `compare` (they need external servers)?                         | Skip backends whose connection fails. Print "skipped (unreachable)" in the comparison table. Document `POSTGRES_TEST_DSN` / `TURSO_TEST_DSN` env vars.                                         |
-| 5   | Should the tool support distributed benchmarks (multiple processes)?                            | No — v1 is single-process. Distributed benchmarking is a deployment concern, not a library concern. The JSON output format supports aggregating results from multiple runs.                    |
-| 6   | Should benchmarks run in CI or be manual?                                                       | Manual by default (gated by build tag or CLI invocation). Add an optional CI workflow that runs `Dev` profile on every PR for regression detection.                                            |
-| 7   | Where to store baseline results for regression detection?                                       | Commit `docs/benchmarks/baseline.json` to the repo. Update via `cqrs-bench compare --update-baseline`. CI compares against this.                                                               |
+| # | Question                                                                                        | Recommendation                                                                                                                                                                                 |
+| - | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Should `benchkit` depend on `decider/` for decider benchmarks, or stay at the store level only? | Stay at store level for v1. Decider benchmarks are domain-specific and already handled by `integration/realistic_bench_test.go`. Add a `DeciderBenchmark[State]` generic type in v2 if needed. |
+| 2 | HDR histogram vs sorted-slice for percentiles?                                                  | Sorted-slice with reservoir sampling for v1 (zero deps). Add optional HDR integration in v2 for >1M sample precision.                                                                          |
+| 3 | Should benchmarks write to real disk or tmpfs?                                                  | Real disk by default (realistic). Add `--tmpfs` flag for CI environments that mount tmpfs. Document the difference.                                                                            |
+| 4 | How to handle Postgres/Turso in `compare` (they need external servers)?                         | Skip backends whose connection fails. Print "skipped (unreachable)" in the comparison table. Document `POSTGRES_TEST_DSN` / `TURSO_TEST_DSN` env vars.                                         |
+| 5 | Should the tool support distributed benchmarks (multiple processes)?                            | No — v1 is single-process. Distributed benchmarking is a deployment concern, not a library concern. The JSON output format supports aggregating results from multiple runs.                    |
+| 6 | Should benchmarks run in CI or be manual?                                                       | Manual by default (gated by build tag or CLI invocation). Add an optional CI workflow that runs `Dev` profile on every PR for regression detection.                                            |
+| 7 | Where to store baseline results for regression detection?                                       | Commit `docs/benchmarks/baseline.json` to the repo. Update via `cqrs-bench compare --update-baseline`. CI compares against this.                                                               |
 
 ---
 

@@ -8,19 +8,19 @@ The project is already split into 11 Go modules with a `go.work` workspace. This
 
 ## Module Landscape
 
-| Module       | Path           | Internal Deps                                              | Replace Directives | State                        |
-| ------------ | -------------- | ---------------------------------------------------------- | ------------------ | ---------------------------- |
-| sync         | ./sync         | none                                                       | none               | ✅ Clean                     |
-| testhelpers  | ./testhelpers  | core                                                       | none               | ✅ Clean                     |
+| Module       | Path           | Internal Deps                                              | Replace Directives | State                       |
+| ------------ | -------------- | ---------------------------------------------------------- | ------------------ | --------------------------- |
+| sync         | ./sync         | none                                                       | none               | ✅ Clean                    |
+| testhelpers  | ./testhelpers  | core                                                       | none               | ✅ Clean                    |
 | core         | ./core         | memory, testhelpers                                        | none               | ⚠️ Prod deps on test modules |
-| memory       | ./memory       | core, testhelpers                                          | 2 replaces         | ✅ Clean (go.work)           |
+| memory       | ./memory       | core, testhelpers                                          | 2 replaces         | ✅ Clean (go.work)          |
 | catalog      | ./catalog      | core                                                       | 1 replace          | ⚠️ Should use go.work only   |
-| middleware   | ./middleware   | core, testhelpers                                          | 2 replaces         | ✅ Clean (go.work)           |
+| middleware   | ./middleware   | core, testhelpers                                          | 2 replaces         | ✅ Clean (go.work)          |
 | storage      | ./storage      | core                                                       | 1 replace          | ⚠️ Should use go.work only   |
-| projection   | ./projection   | core, memory, testhelpers                                  | 3 replaces         | ✅ Clean (go.work)           |
+| projection   | ./projection   | core, memory, testhelpers                                  | 3 replaces         | ✅ Clean (go.work)          |
 | integration  | ./integration  | core, memory, middleware, projection, storage, testhelpers | 5+ replaces        | ⚠️ Complex                   |
-| example/user | ./example/user | core, memory, catalog, middleware                          | 4 replaces         | ✅ Clean (demo)              |
-| example/todo | ./example/todo | core, memory, storage                                      | 1 replace          | 🔴 Build broken              |
+| example/user | ./example/user | core, memory, catalog, middleware                          | 4 replaces         | ✅ Clean (demo)             |
+| example/todo | ./example/todo | core, memory, storage                                      | 1 replace          | 🔴 Build broken             |
 
 ## Issues Found
 

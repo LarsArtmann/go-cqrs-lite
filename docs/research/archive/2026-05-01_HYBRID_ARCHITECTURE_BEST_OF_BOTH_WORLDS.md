@@ -1440,39 +1440,39 @@ func foldAccountState(events []event.Event, accountID id.AggregateID) AccountSta
 When writing a new command handler, use this decision tree:
 
 ```
-                        ┌─────────────────────────────┐
-                        │  New Command Handler          │
-                        └──────────────┬──────────────┘
-                                       │
-                        ┌──────────────▼──────────────┐
-                        │  Does it touch ONE entity?   │
-                        └──────────────┬──────────────┘
-                                       │
-                          ┌────────────┴────────────┐
-                          │ YES                     │ NO
-                          ▼                         ▼
-               ┌─────────────────────┐  ┌─────────────────────────┐
-               │  Use Aggregate      │  │  Does it need strong    │
-               │  Repository         │  │  consistency?           │
-               │  (traditional)      │  │                         │
-               │                     │  │  i.e., must all writes  │
-               │  • Load aggregate   │  │  succeed or fail as     │
-               │  • Mutate state     │  │  one unit?              │
-               │  • RecordEvent      │  └──────────┬──────────────┘
-               │  • Save aggregate   │             │
-               └─────────────────────┘  ┌──────────┴──────────┐
-                                        │ YES                 │ NO
-                                        ▼                     ▼
-                              ┌───────────────────┐  ┌───────────────────┐
-                              │  Use Context       │  │  Use eventual     │
-                              │  Repository        │  │  consistency      │
-                              │  (aggregateless)   │  │                   │
-                              │                    │  │  • Publish event   │
-                              │  • Define filter   │  │  • Bus.Subscribe  │
-                              │  • Query context   │  │  • React async    │
-                              │  • Decide (pure)   │  │  • Idempotent     │
-                              │  • CTE append      │  │    handlers       │
-                              └───────────────────┘  └───────────────────┘
+         ┌─────────────────────────────┐
+         │  New Command Handler          │
+         └──────────────┬──────────────┘
+                        │
+         ┌──────────────▼──────────────┐
+         │  Does it touch ONE entity?   │
+         └──────────────┬──────────────┘
+                        │
+           ┌────────────┴────────────┐
+           │ YES                     │ NO
+           ▼                         ▼
+┌─────────────────────┐  ┌─────────────────────────┐
+│  Use Aggregate      │  │  Does it need strong    │
+│  Repository         │  │  consistency?           │
+│  (traditional)      │  │                         │
+│                     │  │  i.e., must all writes  │
+│  • Load aggregate   │  │  succeed or fail as     │
+│  • Mutate state     │  │  one unit?              │
+│  • RecordEvent      │  └──────────┬──────────────┘
+│  • Save aggregate   │             │
+└─────────────────────┘  ┌──────────┴──────────┐
+                         │ YES                 │ NO
+                         ▼                     ▼
+               ┌───────────────────┐  ┌───────────────────┐
+               │  Use Context       │  │  Use eventual     │
+               │  Repository        │  │  consistency      │
+               │  (aggregateless)   │  │                   │
+               │                    │  │  • Publish event   │
+               │  • Define filter   │  │  • Bus.Subscribe  │
+               │  • Query context   │  │  • React async    │
+               │  • Decide (pure)   │  │  • Idempotent     │
+               │  • CTE append      │  │    handlers       │
+               └───────────────────┘  └───────────────────┘
 ```
 
 ### Rules of Thumb

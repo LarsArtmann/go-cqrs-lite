@@ -456,33 +456,33 @@ Design rationale:
 #### Segment Lifecycle
 
 ```
-                   ┌──────────────────────────────────────────┐
-                   │          SegmentWriter                   │
-  events ────────► │  GenericBuffer[EventRecord]              │
-                   │  ┌──────────────────────────────────┐    │
-                   │  │ buffer.Write(records)             │    │
-                   │  │ buffer.Len() >= flushThreshold?   │    │
-                   │  └──────────┬───────────────────────┘    │
-                   │             │ yes                         │
-                   │             ▼                             │
-                   │  NewGenericWriter[EventRecord](file)     │
-                   │  CopyRows(writer, buffer.Rows())         │
-                   │  writer.Close()                          │
-                   │  buffer.Reset()                          │
-                   │             │                             │
-                   │             ▼                             │
-                   │  manifest.Append(segmentMeta)            │
-                   │  manifest.Save()                         │
-                   └──────────────┬───────────────────────────┘
-                                  │
-                                  ▼
-                   ┌──────────────────────────────────────────┐
-                   │          Segment Files                   │
-                   │  segments/                                │
-                   │    seg_000001.parquet  (rows 0-9999)     │
-                   │    seg_000002.parquet  (rows 10000-19999)│
-                   │    seg_000003.parquet  (rows 20000+)     │
-                   └──────────────────────────────────────────┘
+                 ┌──────────────────────────────────────────┐
+                 │          SegmentWriter                   │
+events ────────► │  GenericBuffer[EventRecord]              │
+                 │  ┌──────────────────────────────────┐    │
+                 │  │ buffer.Write(records)             │    │
+                 │  │ buffer.Len() >= flushThreshold?   │    │
+                 │  └──────────┬───────────────────────┘    │
+                 │             │ yes                         │
+                 │             ▼                             │
+                 │  NewGenericWriter[EventRecord](file)     │
+                 │  CopyRows(writer, buffer.Rows())         │
+                 │  writer.Close()                          │
+                 │  buffer.Reset()                          │
+                 │             │                             │
+                 │             ▼                             │
+                 │  manifest.Append(segmentMeta)            │
+                 │  manifest.Save()                         │
+                 └──────────────┬───────────────────────────┘
+                                │
+                                ▼
+                 ┌──────────────────────────────────────────┐
+                 │          Segment Files                   │
+                 │  segments/                                │
+                 │    seg_000001.parquet  (rows 0-9999)     │
+                 │    seg_000002.parquet  (rows 10000-19999)│
+                 │    seg_000003.parquet  (rows 20000+)     │
+                 └──────────────────────────────────────────┘
 ```
 
 #### Manifest Format

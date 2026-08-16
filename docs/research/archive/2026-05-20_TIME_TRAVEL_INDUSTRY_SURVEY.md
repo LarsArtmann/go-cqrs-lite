@@ -648,36 +648,36 @@ Every framework that does projection replay needs to suppress side effects:
 
 ### Working Capabilities
 
-| #   | Capability          | API                                                         | Quality                       |
-| --- | ------------------- | ----------------------------------------------------------- | ----------------------------- |
-| 1   | Load all events     | `Store.Load(ctx, aggType, aggID)`                           | ✅ Production                 |
-| 2   | Load from version   | `Store.LoadFromVersion(ctx, aggType, aggID, version)`       | ✅ Production                 |
-| 3   | Snapshot at version | `SnapshotStore.LoadAtVersion(ctx, aggType, aggID, version)` | ✅ Production                 |
-| 4   | Snapshot latest     | `SnapshotStore.Load(ctx, aggType, aggID)`                   | ✅ Production                 |
-| 5   | Snapshot strategy   | `EveryNEvents(n)`                                           | ✅ Production                 |
-| 6   | Aggregate replay    | `Core.LoadFromHistory(root, events)`                        | ✅ Production                 |
-| 7   | Decider fold        | `Repository.Load(ctx, aggID, aggType)`                      | ✅ Production                 |
-| 8   | Global loader       | `GlobalLoader.LoadAll(ctx)`                                 | ✅ Working but O(n) memory    |
-| 9   | Projection replay   | `Runner.replay()` with checkpoint                           | ⚠️ Works but loads all events |
-| 10  | Upcasting           | `UpcasterRegistry` with lazy chains                         | ✅ Production                 |
-| 11  | Schema versioning   | `event.SchemaVersion` branded type                          | ✅ Production                 |
-| 12  | Outbox replay       | `OutboxPublisher.PublishNow(ctx)`                           | ✅ Production                 |
-| 13  | Checkpoint tracking | `CheckpointStore.Load/Save`                                 | ✅ Production                 |
-| 14  | Bulk import         | `Store.AppendBatch(ctx, aggType, aggID, events)`            | ✅ Production                 |
+| #  | Capability          | API                                                         | Quality                      |
+| -- | ------------------- | ----------------------------------------------------------- | ---------------------------- |
+| 1  | Load all events     | `Store.Load(ctx, aggType, aggID)`                           | ✅ Production                |
+| 2  | Load from version   | `Store.LoadFromVersion(ctx, aggType, aggID, version)`       | ✅ Production                |
+| 3  | Snapshot at version | `SnapshotStore.LoadAtVersion(ctx, aggType, aggID, version)` | ✅ Production                |
+| 4  | Snapshot latest     | `SnapshotStore.Load(ctx, aggType, aggID)`                   | ✅ Production                |
+| 5  | Snapshot strategy   | `EveryNEvents(n)`                                           | ✅ Production                |
+| 6  | Aggregate replay    | `Core.LoadFromHistory(root, events)`                        | ✅ Production                |
+| 7  | Decider fold        | `Repository.Load(ctx, aggID, aggType)`                      | ✅ Production                |
+| 8  | Global loader       | `GlobalLoader.LoadAll(ctx)`                                 | ✅ Working but O(n) memory   |
+| 9  | Projection replay   | `Runner.replay()` with checkpoint                           | ⚠️ Works but loads all events |
+| 10 | Upcasting           | `UpcasterRegistry` with lazy chains                         | ✅ Production                |
+| 11 | Schema versioning   | `event.SchemaVersion` branded type                          | ✅ Production                |
+| 12 | Outbox replay       | `OutboxPublisher.PublishNow(ctx)`                           | ✅ Production                |
+| 13 | Checkpoint tracking | `CheckpointStore.Load/Save`                                 | ✅ Production                |
+| 14 | Bulk import         | `Store.AppendBatch(ctx, aggType, aggID, events)`            | ✅ Production                |
 
 ### Critical Gaps
 
-| #   | Gap                                   | Impact                                   | Every Peer Has It?            |
-| --- | ------------------------------------- | ---------------------------------------- | ----------------------------- |
-| 1   | **No LoadToVersion**                  | O(n) for all temporal queries            | ✅ Yes — all peers            |
-| 2   | **No LoadToTimestamp**                | No "as-at" queries                       | ~50% of peers                 |
-| 3   | **No position-based GlobalLoader**    | O(n) memory projection replay            | ✅ Yes — all production peers |
-| 4   | **No Repository.LoadAtVersion**       | Consumers must compose manually          | ✅ Yes — Marten, Axon         |
-| 5   | **No backward reads**                 | Can't efficiently get last N events      | ~60% of peers                 |
-| 6   | **No replay-side-effect suppression** | Handlers fire side effects during replay | Axon, LiveStore               |
-| 7   | **No global transaction position**    | No cross-aggregate temporal consistency  | ✅ Yes — all production peers |
-| 8   | **No ValidAt metadata**               | No bi-temporal support                   | Rails EventStore only         |
-| 9   | **No speculative application**        | No "what-if" queries                     | Datomic only                  |
+| # | Gap                                   | Impact                                   | Every Peer Has It?            |
+| - | ------------------------------------- | ---------------------------------------- | ----------------------------- |
+| 1 | **No LoadToVersion**                  | O(n) for all temporal queries            | ✅ Yes — all peers            |
+| 2 | **No LoadToTimestamp**                | No "as-at" queries                       | ~50% of peers                 |
+| 3 | **No position-based GlobalLoader**    | O(n) memory projection replay            | ✅ Yes — all production peers |
+| 4 | **No Repository.LoadAtVersion**       | Consumers must compose manually          | ✅ Yes — Marten, Axon         |
+| 5 | **No backward reads**                 | Can't efficiently get last N events      | ~60% of peers                 |
+| 6 | **No replay-side-effect suppression** | Handlers fire side effects during replay | Axon, LiveStore               |
+| 7 | **No global transaction position**    | No cross-aggregate temporal consistency  | ✅ Yes — all production peers |
+| 8 | **No ValidAt metadata**               | No bi-temporal support                   | Rails EventStore only         |
+| 9 | **No speculative application**        | No "what-if" queries                     | Datomic only                  |
 
 ---
 

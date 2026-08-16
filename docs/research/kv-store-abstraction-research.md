@@ -94,7 +94,7 @@ type Store interface {
 | Criteria              | Verdict                                                                                                                                        |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | Backends              | 6 — Consul, etcd v2/v4, ZooKeeper, Redis, BoltDB, DynamoDB                                                                                     |
-| Iteration/range scans | ⚠️ `List(directory)` returns all keys under a prefix — crude but works                                                                         |
+| Iteration/range scans | ⚠️ `List(directory)` returns all keys under a prefix — crude but works                                                                          |
 | Atomic batch writes   | ❌ `AtomicPut` is CAS on a single key, not multi-key batch                                                                                     |
 | Transactions          | ❌ No multi-key transactions                                                                                                                   |
 | Watch                 | ✅ `Watch`/`WatchTree` for change notification                                                                                                 |
@@ -124,13 +124,13 @@ type KV interface {
 }
 ```
 
-| Criteria              | Verdict                                                                                                                                                                    |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Backends              | 3 — Pebble, Azure, Redis                                                                                                                                                   |
-| Iteration/range scans | ✅ `Enumerate` + `Query` with range support                                                                                                                                |
-| Atomic batch writes   | ✅ `Batch` method                                                                                                                                                          |
-| RemoveRange           | ✅ `RemoveRange` for bulk deletion                                                                                                                                         |
-| Maintenance           | Very new, small community                                                                                                                                                  |
+| Criteria              | Verdict                                                                                                                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backends              | 3 — Pebble, Azure, Redis                                                                                                                                                  |
+| Iteration/range scans | ✅ `Enumerate` + `Query` with range support                                                                                                                               |
+| Atomic batch writes   | ✅ `Batch` method                                                                                                                                                         |
+| RemoveRange           | ✅ `RemoveRange` for bulk deletion                                                                                                                                        |
+| Maintenance           | Very new, small community                                                                                                                                                 |
 | **Verdict**           | ⚠️ **Closest to what we need**, but too new and too few backends. Depends on `lexkey` package for key encoding. Interesting design but not battle-tested enough to bet on. |
 
 ### 2.5. chenyanchen/kv
@@ -255,7 +255,7 @@ Cursor:  First() → (key, value []byte)
 | **Atomic batch**      | `Batch.Set/Delete/Commit`                 | `WriteBatch.Set/Delete/Flush`                  | `DB.Update(fn)` (whole TX)                  |
 | **Transactions**      | ❌ Single write TX at a time              | ✅ MVCC concurrent TX                          | ✅ Concurrent read TX, single write TX      |
 | **Delete range**      | ✅ `DeleteRange(start, end)`              | ❌ Must iterate + delete                       | ❌ Must iterate + delete                    |
-| **Sync/Async writes** | ✅ `WriteOptions{Sync bool}`              | ✅ `Options.SyncWrites`                        | ⚠️ `Options.NoSync` (default: synced)       |
+| **Sync/Async writes** | ✅ `WriteOptions{Sync bool}`              | ✅ `Options.SyncWrites`                        | ⚠️ `Options.NoSync` (default: synced)        |
 | **Pure Go**           | ✅                                        | ✅                                             | ✅                                          |
 | **Write performance** | Very high (LSM)                           | Very high (LSM)                                | Moderate (B+tree)                           |
 | **Read performance**  | High (bloom filters)                      | High (bloom filters)                           | Very high (direct B+tree lookup)            |
@@ -420,17 +420,17 @@ badger/                # Future module
 
 ### Why This Design Beats the Alternatives
 
-| Criterion                        | gokv        | valkeyrie      | hyddenio/kv | **Our kv/** |
-| -------------------------------- | ----------- | -------------- | ----------- | ----------- |
+| Criterion                        | gokv        | valkeyrie     | hyddenio/kv | **Our kv/** |
+| -------------------------------- | ----------- | ------------- | ----------- | ----------- |
 | Iteration/range scans            | ❌          | ⚠️ (List only) | ✅          | ✅          |
-| Atomic batch writes              | ❌          | ❌             | ✅          | ✅          |
-| Byte-slice keys                  | ❌ (string) | ❌ (string)    | ⚠️ (lexkey) | ✅          |
-| Lexicographic ordering guarantee | ❌          | ❌             | ✅          | ✅          |
-| Zero external deps               | ❌          | ❌             | ❌          | ✅          |
-| Event store semantics            | ❌          | ❌             | ⚠️          | ✅          |
-| No marshalling opinion           | ❌ (auto)   | ✅             | ✅          | ✅          |
-| Independent module               | N/A         | N/A            | N/A         | ✅          |
-| Go generics where useful         | ❌          | ❌             | ⚠️          | ✅ (future) |
+| Atomic batch writes              | ❌          | ❌            | ✅          | ✅          |
+| Byte-slice keys                  | ❌ (string) | ❌ (string)   | ⚠️ (lexkey)  | ✅          |
+| Lexicographic ordering guarantee | ❌          | ❌            | ✅          | ✅          |
+| Zero external deps               | ❌          | ❌            | ❌          | ✅          |
+| Event store semantics            | ❌          | ❌            | ⚠️           | ✅          |
+| No marshalling opinion           | ❌ (auto)   | ✅            | ✅          | ✅          |
+| Independent module               | N/A         | N/A           | N/A         | ✅          |
+| Go generics where useful         | ❌          | ❌            | ⚠️           | ✅ (future) |
 
 ---
 
