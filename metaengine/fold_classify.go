@@ -18,7 +18,7 @@ func classifyADT(folds []Fold) (ADT, error) {
 			hasSet = true
 		case *countFold:
 			hasCount = true
-		case *edgeFold:
+		case *edgeFold, *edgeRemoveFold:
 			hasEdge = true
 		case *multiInsertFold:
 			hasMulti = true

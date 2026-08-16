@@ -390,10 +390,18 @@ and is **never** duplicated here.
       against ephemeral Dgraph post-change. (3) CI: new `dgraph` job in
       ci.yml runs `nix run .#integration-dgraph`; `test-all-backends.sh`
       already had Phase 4 Dgraph — AGENTS quick-ref updated to list Dgraph.
-- [ ] **DuckDB native graph via recursive CTE** — DuckDB supports
-      `WITH RECURSIVE`; mirror the pgengine `meta_graph_edges` implementation
-      (currently intentionally degraded).
-      _(Effort: M)_
+- [x] **DuckDB native graph via recursive CTE** — DONE 2026-08-16.
+      `duckdbengine/graph.go` mirrors the pgengine implementation: new
+      `meta_graph_edges` table (PK collection,from,to) in init DDL,
+      `GraphAddEdge` (ON CONFLICT DO NOTHING, idempotent), `GraphNeighbors`
+      via a single `WITH RECURSIVE walk` CTE (DuckDB ≥0.8; no capability probe
+      needed). Profile: ADTGraph upgraded O(N)→O(degree^depth) native and
+      REMOVED from DegradedADTs. Node-key encoding mirrors
+      sqlite/pg/mysql (`art-dupl:accept` cross-module pattern). Tests
+      (`graph_cgo_test.go`): depth 1-3 traversal, cycle safety, dedup,
+      duplicate-edge idempotency, integer keys, depth-0/empty honesty.
+      Capability conformance + full duckdbengine suite green; api-stability
+      golden regenerated.
 - [ ] **Turso explicit CTE-probe test** — the sqliteengine probe covers
       local drivers; add a tursoengine test confirming it holds over the
       remote protocol.
@@ -596,38 +604,62 @@ and is **never** duplicated here.
 - [ ] **macOS verification of ephemeral PG** — `scripts/ephemeral-pg.sh` claims
       cross-platform but was never tested on Darwin.
       _(Effort: M)_
-- [ ] **Build `example/metaengine-quickstart` in CI** — not in flake
-      `examplePaths` (getting-started, readme-quickstart, taskmanager are);
-      never built by `#verify`/CI.
+- [x] **Build `example/metaengine-quickstart` in CI** — DONE 2026-08-16:
+      added to flake `examplePaths` (builds under `#verify`/CI), plus the
+      missing `metadata/v4 => ../../metadata` replace so standalone
+      GOWORK=off builds resolve the local event/ tree's unpublished symbols.
       _(Effort: XS)_
-- [ ] **`storage/backuptest`: wire into bbolt/pebble or delete** — orphan
-      module; no engine go.mod depends on it (verified 2026-08-15).
+- [x] **`storage/backuptest`: wire into bbolt/pebble or delete** — DONE
+      2026-08-16: WIRED, not deleted (tag `storage/backuptest/v4.0.0` is
+      published API). Recovered both thin adapters from git history
+      (a6613ef0d^) into `storage/{bbolt,pebble}/backup_lifecycle_test.go`;
+      suites pass standalone + `-race`. Found + worked around TWO blocking
+      defects: (1) the published tag points at `d49311e12`, one commit
+      BEFORE the module's go.mod existed — unusable from the proxy/VCS, so
+      both go.mod use `=> ../backuptest` replaces until the tag is re-cut;
+      (2) bbolt+pebble required `event/v4 v4.6.0` but local code uses
+      post-v4.7.0 `ReconstructEventWithAdoptedPayload` — bumped require to
+      v4.7.0 + `=> ../../event` + `=> ../../metadata` replaces (standard
+      unpublished-sibling pattern).
       _(Effort: S)_
-- [ ] **CI `shfmt -d` drift check on `scripts/`** — the pre-commit hook
-      formats staged files only; a CI check on the whole tree catches
-      formatter drift before it reaches a hook (root cause of the 4x key
-      mangling).
+- [x] **CI `shfmt -d` drift check on `scripts/`** — DONE 2026-08-16:
+      `shfmt-drift` job in ci.yml (nix shell nixpkgs#shfmt, whole `scripts/`
+      tree, 5min budget); local tree verified clean first.
       _(Effort: XS)_
-- [ ] **`reset_db` helper for docker mysql/mariadb/pg test loops** —
-      reset-before each run, not just after; a shared-DB `-count>1` run
-      polluted state mid-loop on 2026-08-15.
+- [x] **`reset_db` helper for docker mysql/mariadb/pg test loops** — DONE
+      2026-08-16: `scripts/reset-db.sh` (--pg/--mysql/--dry-run; drops
+      leftover `test_%` DBs + recreates the DSN default DB). Wired into
+      test-integration.sh external-DSN paths via `RESET_DB` (default on,
+      warns-and-continues on missing client). Verified live against a
+      throwaway PG (URL+kv DSNs) and MySQL 8.0 container; shellcheck +
+      shfmt clean; `mariadb.client` + `postgresql` added to devShell and
+      the `#test-integration` app.
       _(Effort: XS)_
 - [ ] **Re-run soak suite** (`SOAK_SKIP_*` unset) after the graph/vector
       engine additions.
+      _(Effort: S)_ 2026-08-16: IN PROGRESS (local engines running; bbolt
+      soak is the long pole).
+- [x] **quic convergence flake watch in CI** — DONE 2026-08-16:
+      `quic-flake-watch` job in ci.yml runs `TestQuicConvergenceSuite`
+      `-race -count=3 -timeout=10m` on every push; command verified locally
+      (3x green under race, 1.4s).
       _(Effort: S)_
-- [ ] **quic convergence flake watch in CI** — `TestQuicConvergenceSuite`
-      under `-race -count=3` in the matrix; the Log order-tolerance fix
-      landed 2026-08-15, watch for recurrence.
+- [x] **metaengine-quickstart: graph + vector demos** — DONE 2026-08-16:
+      example split into `graph_demo.go` (follow network → `metaengine.Edge`
+      folds, depth-1/2 BFS traversal) and `vector_demo.go` (doc embeddings →
+      `metaengine.Embedding` folds, euclidean k-NN); `main.go` runs all
+      three ADT sections; output verified (`go run .`).
       _(Effort: S)_
-- [ ] **metaengine-quickstart: graph + vector demos** — 4 engines now ship
-      them; the example covers maps only.
-      _(Effort: S)_
-- [ ] **Prune docker test images** — mysql:8 + mariadb:11 probe images
-      (~1.2GB) after the 2026-08-15 container cleanup; keep
-      postgres:16-alpine (testcontainers reuses it).
+- [x] **Prune docker test images** — DONE 2026-08-16: removed `mysql:8` +
+      `mariadb:11` (~1.1GB); kept `postgres:16-alpine` (testcontainers),
+      `mysql:8.0` (stack/mysql testcontainer tests), `mysql:8.4` (running
+      container image, unreferenced by repo config — flagged, not removed).
       _(Effort: XS)_
-- [ ] **`#verify` per-module timeout headroom** — quic convergence hit a
-      15s near-miss under load; revisit per-package `-timeout` tuning.
+- [x] **`#verify` per-module timeout headroom** — DONE 2026-08-16:
+      convergence-suite `pollTimeout` 15s→30s (passing runs still exit
+      early; only genuinely slow convergence pays) + `#verify` per-package
+      Test 8m→10m / Race 8m→12m, `#verify-fast` Race(short) 8m→10m.
+      Convergence suite re-run green after the change.
       _(Effort: XS)_
 - [ ] **Delete junk from repo root** — `t/`, `result/` (16MB root-owned),
       `reports/coverage.out` (empty), `reports/jscpd-report.json`; drop the

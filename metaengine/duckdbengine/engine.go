@@ -116,6 +116,12 @@ func (e *duckdbEngine) init() error {
 			stream_id VARCHAR NOT NULL,
 			value VARCHAR NOT NULL
 		)`,
+		`CREATE TABLE IF NOT EXISTS meta_graph_edges (
+			collection VARCHAR NOT NULL,
+			from_node VARCHAR NOT NULL,
+			to_node VARCHAR NOT NULL,
+			PRIMARY KEY (collection, from_node, to_node)
+		)`,
 	}
 
 	for _, ddl := range ddls {
@@ -160,7 +166,7 @@ func (e *duckdbEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTCounter:   metaengine.ComplexityO1,
 			metaengine.ADTSortedMap: metaengine.ComplexityOLogN,
 			metaengine.ADTSet:       metaengine.ComplexityON,
-			metaengine.ADTGraph:     metaengine.ComplexityON,
+			metaengine.ADTGraph:     metaengine.ComplexityODegree, // native WITH RECURSIVE on meta_graph_edges
 			metaengine.ADTLog:       metaengine.ComplexityON,
 			metaengine.ADTMultimap:  metaengine.ComplexityON,
 			metaengine.ADTVector:    metaengine.ComplexityON,
@@ -169,7 +175,6 @@ func (e *duckdbEngine) Profile() metaengine.EngineProfile {
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
 			metaengine.ADTSet:      true,
-			metaengine.ADTGraph:    true,
 			metaengine.ADTLog:      true,
 			metaengine.ADTMultimap: true,
 			metaengine.ADTVector:   true,

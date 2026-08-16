@@ -6,6 +6,129 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — seq-carrying journal reads (7.1x faster resume) + bounded idempotency ring — 2026-08-16
+
+- **`metaengine.SeqSeekableStreamLog` capability**: optional engine interface
+  (`JournalReadAllWithSeq`/`JournalReadFromSeq`, `StreamLogEntry{Seq, Value}`)
+  implemented by 8 engines (memory, sqlite, pg, mysql, duckdb, pebble, bbolt,
+  badger; turso inherits via sqliteengine; dgraph/iroh intentionally out per
+  design §7). Resume is a pure `collection+seq` index seek — O(log n) per page
+  instead of O(offset) — and gap-tolerant by construction.
+  `enginetest.RunSeqSeekableStreamLogTest` gates every engine. `system`
+  EventAdapter + AdapterCore resume on true engine tokens (zero-cursor reads
+  skip journal scanning entirely; cursor resolution paged 512/batch).
+  Measured on sqlite, 100k-entry drain, page 500 (benchstat): **761.8 ms ±17%
+  → 106.8 ms ±20% = 7.1x** (allocs +18% from `StreamLogEntry`). Design:
+  [`docs/planning/SEQ-CARRYING-JOURNAL-READS.md`](docs/planning/SEQ-CARRYING-JOURNAL-READS.md)
+  (IMPLEMENTED); ledger row in [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md).
+- **`metaengine.WithIdempotencyCapacity(n)`**: the planner's idempotency
+  tracker is now a mutex-guarded `dedup.Ring` — default window 131072 IDs
+  (~10 MB) instead of an unbounded map; `n ≤ 0` restores the legacy unbounded
+  behavior. 1M-ID memory-bound, eviction, and concurrent exactly-once tests
+  are race-green.
+
+### Added — `event.ReconstructEventWithAdoptedPayload` (ownership-transfer fast path) — 2026-08-16
+
+- New reconstruct variant with an ownership-transfer contract: the caller
+  guarantees the payload slice is not mutated afterwards, so the event adopts
+  it directly — `Payload()` stays defensive (`slices.Clone`). Wired into the
+  pebble + bbolt deserialize paths. Measured: bbolt 2815→2521 ns/op (−10%),
+  pebble 3316→2872 (−13%), −32 B/op; pinned by the new
+  `BenchmarkEventDeserialize` (storage/bbolt) with equivalence, alias-safety,
+  and race tests green.
+
+### Fixed — correctness-sweep core defects (decider, command, query) — 2026-08-16
+
+- Four defects, each pinned by a dedicated regression test (commit
+  `06e046c2f`): singleflight leader-context capture (`decider/load.go` — the
+  leader's cancellation now uses `context.WithoutCancel`, so coalesced waiters
+  no longer inherit an unrelated ctx); per-handler command middleware
+  (`command`); query audit fake RequestIDs (`query/audit_test.go`);
+  `Pagination.Offset()` underflow on `Page=0` (`query/pagination_test.go`).
+  Remaining sweep items (`kv.Cache` shared `*T`, `TypedQueryStore` hardcoded
+  JSON decode, ghost `event.ErrBinaryNotFound`) stay open in TODO_LIST.
+- `system`: previously-ignored `MarshalMetadataJSON` error in
+  `encodeEvent` is now handled — nil fallback on marshal failure persists a
+  nil Metadata field (zero-value metadata) instead of partial JSON, with the
+  ADR-0126 cannot-propagate constraint documented at the call site.
+
+### Fixed — self-opened `*sql.DB` leak: `sqliteengine.OwnDB` — 2026-08-16
+
+- `sqliteengine.OwnDB(eng)` marks a self-opened `*sql.DB` as engine-owned so
+  `Engine.Close` closes it (pinned by `close_ownership_test.go`);
+  `NewSQLiteEngineFromDSN` and `tursoengine.New` both use it. Previously a
+  self-opened DB was leaked on Close.
+
+### Fixed — SQLite durability tiers now apply with WAL off — 2026-08-16
+
+- `stack/sqlopt.ApplySQLiteDurability` applies every non-empty tier (the
+  Normal early-return was WAL-specific), and tier application is de-nested
+  from `if cfg.WAL` in `stack/sqlite/preset.go` + `stack/turso/backend.go`.
+  Tests: `WithoutWAL` table (relaxed=OFF≠FULL pin), preset-level
+  `RelaxedWithoutWAL`.
+
+### Security — tursoengine DSN redaction on open errors — 2026-08-16
+
+- `redactDSN` strips credentials/tokens from every turso open-error message
+  (`tursoengine/register.go`) — a bad embedded-connection-string DSN no longer
+  echoes its auth token in the returned error.
+
+### Added — dgraphengine hardening: per-test isolation, CI job, ADR-0129 — 2026-08-16
+
+- Per-test collection isolation: `uniqueCollection(tb, base)` (pid + atomic
+  counter suffix) backs every fixed collection name in the suite — reruns and
+  `-count>1` against a shared persistent server no longer collide. Full
+  dgraphengine suite green against ephemeral Dgraph post-change.
+- [ADR-0129](docs/adr/0129-dgraph-engine-transactional-deferred.md) documents
+  why `RunInTx` is deferred (per-op txn unit of work; ambient-tx plumbing +
+  `ErrAborted`→Conflict mapping + conformance gate sketched for when a
+  consumer needs it); the capability table stays honestly undeclared.
+- CI: new `dgraph` job in `ci.yml` runs `nix run .#integration-dgraph`.
+
+### Added — standalone-build hygiene: pin-drift meta-test + system/integration fix — 2026-08-16
+
+- `cmd/api-stability/pin_drift_test.go` `TestSiblingModulePinsResolve`:
+  hard-fails unreplaced sibling pins referencing nonexistent tags or
+  pseudo-versions; staleness warns (16 stale today, all replace-governed)
+  until the pin-sweep policy decision flips `enforceStaleness`. Handles
+  nested-module tag pollution; skips hermetic nix builds.
+- `system/integration` standalone (`GOWORK=off`) build fixed: published
+  duckdbengine v4.0.1 predates register.go's `metaengine.RegisterDriver`
+  self-registration (workspace mode masked it); added the sibling replace +
+  tidy — drop once duckdbengine tags v4.0.2+.
+
+### Added — cqrs-lint: `--doctor --fix`, monetary profile, health-score transparency — 2026-08-16
+
+- `--doctor --fix` removes stale whole-line suppressions (trailing-on-code
+  left manual); stale-suppression warnings now run in every output format
+  (stderr-only, `--quiet` still silences).
+- Health score shows an "Excluded from score by config" footer for disabled
+  rules.
+- `features.monetary` (`on`/`off`/`unknown`) overrides the money heuristics:
+  C008 downgrades to Info on `off`, S006 skips entirely.
+- E005 now understands `system.RegisterCommand` (scanner records the first
+  generic type arg) — killed the 10 enshrined taskmanager false positives;
+  lint golden regenerated.
+
+### Added — irohengine forwarding policy + capability-drift surfacing — 2026-08-16
+
+- **Forwarding policy documented and pinned**
+  (`engine_passthrough.go` policy table +
+  `engine_capability_forwarding_test.go`): Closer forwarded (transport +
+  local both close); MapUpdater/Scan/Vector/Search/Spatial/graph forwarded as
+  local passthrough (writes among them do NOT replicate — no WriteOp kinds);
+  Transactional, StreamLogBackend/SeqSeekableStreamLog/AtomicAppender, and
+  Prober/TransactMeasurer DELIBERATELY not forwarded — forwarding would
+  either silently diverge state or calibrate NetworkRTT to ~0, overriding the
+  honest replication-derived latency tracker. Dropped-by-design surface noted
+  for future triage: temporal reads, VectorSearchFiltered, SnapshotBackend.
+- **Capability drift surfaces at runtime**: Doctor's `--- Capability ---`
+  section notes that replicated graph engines' edges do NOT converge across
+  peers; ExplainPlan renders a `--- Capability Warnings ---` banner with one
+  `WARN capability drift:` line per `CapabilityAudit` violation (clean plans
+  stay banner-free). Meta-test `TestAdttestStaysDelegatingOnly` (AST-level)
+  pins adttest as delegating-only — verdict strings stay in metaengine.
+
 ### Added — StreamRef validation, planner diagnostics, lock-free ID generation
 
 - `record`: `StreamRef.Validate()` + `ErrInvalidStreamRef` — a missing `/`

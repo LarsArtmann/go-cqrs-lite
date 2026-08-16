@@ -51,3 +51,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 => ../../projectionhost
 	github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record
 )
+
+replace github.com/larsartmann/go-cqrs-lite/metadata/v4 => ../../metadata

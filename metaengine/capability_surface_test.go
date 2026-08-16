@@ -39,7 +39,11 @@ func TestDoctorNotesGraphNonReplication(t *testing.T) {
 
 	want := "graph writes are local-only"
 	if !strings.Contains(doctor, want) {
-		t.Errorf("Doctor Capability section missing %q note for replicated graph engine:\n%s", want, doctor)
+		t.Errorf(
+			"Doctor Capability section missing %q note for replicated graph engine:\n%s",
+			want,
+			doctor,
+		)
 	}
 
 	// A non-replicated graph engine must NOT get the note.
@@ -65,7 +69,10 @@ func TestExplainPlanShowsCapabilityDriftBanner(t *testing.T) {
 	t.Parallel()
 
 	// A plain memory engine conforms; its plan must NOT show the banner.
-	honest, err := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()}, findTaskQuery())
+	honest, err := metaengine.Plan(
+		[]metaengine.Engine{metaengine.NewMemoryEngine()},
+		findTaskQuery(),
+	)
 	if err != nil {
 		t.Fatal(err)
 	}

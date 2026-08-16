@@ -35,7 +35,7 @@ func (r ReadPattern) Valid() bool {
 func AllFoldKinds() []FoldKind {
 	return []FoldKind{
 		FoldInsert, FoldUpdate, FoldRemove, FoldCount, FoldEdge,
-		FoldSet, FoldSkip, FoldMultiInsert, FoldAppend,
+		FoldEdgeRemove, FoldSet, FoldSkip, FoldMultiInsert, FoldAppend,
 		FoldVector, FoldSearch, FoldSpatial,
 	}
 }

@@ -172,7 +172,12 @@ func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	prefix := ds.config.DocsPath
 
 	mux.HandleFunc("GET "+prefix, ds.serveIndex)
-	mux.HandleFunc("GET "+prefix+"/", ds.serveIndex)
+	// Exact trailing-slash convenience only: "/docs/" redirects to "/docs".
+	// No subtree catch-all, so unknown /docs/* paths 404 instead of serving
+	// the index with a wrong relative-asset base.
+	mux.HandleFunc("GET "+prefix+"/{$}", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, prefix, http.StatusPermanentRedirect)
+	})
 	mux.HandleFunc("GET "+prefix+"/openapi", ds.serveOpenAPIHTML)
 	mux.HandleFunc("GET "+prefix+"/openapi.json", ds.serveOpenAPIJSON)
 	mux.HandleFunc("GET "+prefix+"/openapi.yaml", ds.serveOpenAPIYAML)
@@ -231,8 +236,13 @@ func (ds *DocsServer) serveAsyncAPIYAML(w http.ResponseWriter, _ *http.Request) 
 
 func (ds *DocsServer) serveAsyncAPIHTML(w http.ResponseWriter, r *http.Request) {
 	ds.renderComponent(
-		w, r,
-		AsyncAPIPage(ds.config.ServiceName, ds.config.DocsPath, ds.config.DocsPath+"/asyncapi.json"),
+		w,
+		r,
+		AsyncAPIPage(
+			ds.config.ServiceName,
+			ds.config.DocsPath,
+			ds.config.DocsPath+"/asyncapi.json",
+		),
 	)
 }
 

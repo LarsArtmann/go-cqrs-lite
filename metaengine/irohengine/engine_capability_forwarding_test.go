@@ -14,11 +14,20 @@ import (
 // graph dispatch once (fixed 2026-08-16); these tests fail if a future refactor
 // silently changes which optional capabilities the wrapper exposes.
 
+func newReplicatedForPolicyTest(t *testing.T) metaengine.Engine {
+	t.Helper()
+
+	eng := irohengine.Replicated(metaengine.NewMemoryEngine())
+	t.Cleanup(func() { _ = eng.Close() })
+
+	return eng
+}
+
 func TestReplicatedImplementsCloser(t *testing.T) {
 	t.Parallel()
 	g := gomega.NewWithT(t)
 
-	var eng metaengine.Engine = irohengine.Replicated(metaengine.NewMemoryEngine())
+	eng := newReplicatedForPolicyTest(t)
 
 	_, isCloser := eng.(metaengine.Closer)
 	g.Expect(isCloser).To(gomega.BeTrue())
@@ -35,8 +44,7 @@ func TestReplicatedDoesNotExposeWritePathCapabilities(t *testing.T) {
 	t.Parallel()
 	g := gomega.NewWithT(t)
 
-	var eng metaengine.Engine = irohengine.Replicated(metaengine.NewMemoryEngine())
-	defer eng.Close()
+	eng := newReplicatedForPolicyTest(t)
 
 	_, isTransactional := eng.(metaengine.Transactional)
 	g.Expect(isTransactional).To(gomega.BeFalse(), "RunInTx must not be exposed: see engine_passthrough.go policy")
@@ -59,8 +67,7 @@ func TestReplicatedDoesNotExposeProbers(t *testing.T) {
 	t.Parallel()
 	g := gomega.NewWithT(t)
 
-	var eng metaengine.Engine = irohengine.Replicated(metaengine.NewMemoryEngine())
-	defer eng.Close()
+	eng := newReplicatedForPolicyTest(t)
 
 	_, isProber := eng.(metaengine.Prober)
 	g.Expect(isProber).To(gomega.BeFalse(), "probes must not be forwarded: see engine_passthrough.go policy")

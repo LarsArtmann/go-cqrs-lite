@@ -188,7 +188,12 @@ func (s *Store) capabilityDoctorSection() string {
 		if len(res.Violations) == 0 {
 			fmt.Fprintf(&b, "  %s: declarations consistent\n", profile.Name)
 		} else {
-			fmt.Fprintf(&b, "  %s: %d conformance violation(s)\n", profile.Name, len(res.Violations))
+			fmt.Fprintf(
+				&b,
+				"  %s: %d conformance violation(s)\n",
+				profile.Name,
+				len(res.Violations),
+			)
 
 			for _, v := range res.Violations {
 				fmt.Fprintf(&b, "    %s\n", v)

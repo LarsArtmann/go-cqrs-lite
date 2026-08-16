@@ -172,7 +172,12 @@ func (e *replicatedEngine) GraphNeighbors(
 // (edge removal + undirected traversal) of the wrapped local engine.
 type graphExtCapable interface {
 	GraphRemoveEdge(ctx context.Context, collection string, edge metaengine.Edge) error
-	GraphNeighborsUndirected(ctx context.Context, collection string, node any, depth int) ([]any, error)
+	GraphNeighborsUndirected(
+		ctx context.Context,
+		collection string,
+		node any,
+		depth int,
+	) ([]any, error)
 }
 
 // GraphRemoveEdge forwards to the local engine WITHOUT replication (same

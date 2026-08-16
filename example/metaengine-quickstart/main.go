@@ -1,13 +1,13 @@
 // Example: metaengine-quickstart
 //
-// Demonstrates the full Record-aware ES-native pipeline:
-// 1. Define event types following the Created/Updated/Deleted convention
-// 2. Use AutoCRUDByConvention to auto-generate folds (zero boilerplate)
-// 3. Wire through projectionadapter (event.Event → record.Record bridge)
-// 4. Apply events and query results — Record metadata is auto-stamped
+// Demonstrates the Record-aware metaengine pipeline in three sections:
+// 1. Maps: CRUD folds by Created/Updated/Deleted convention (zero boilerplate)
+// 2. Graph: a follow network folded into edges, queried by traversal depth
+// 3. Vector: document embeddings folded into vectors, queried by k-NN search
 //
-// This is the simplest possible metaengine consumer: 3 event types, 1 view,
-// and the convention-based API eliminates all manual fold code.
+// All three go through the same pipeline: declare folds + queries, Plan a
+// store over an engine, apply records, execute typed queries. Swap the
+// Memory engine for any backend without touching the domain code.
 package main
 
 import (
@@ -61,14 +61,26 @@ type TaskQuery struct {
 }
 
 func main() {
-	if err := run(); err != nil {
-		log.Fatal(err)
+	ctx := context.Background()
+
+	sections := []struct {
+		title string
+		run   func(context.Context) error
+	}{
+		{title: "1/3 Map ADT: CRUD task view (convention folds)", run: runTaskDemo},
+		{title: "2/3 Graph ADT: follow network traversal", run: runGraphDemo},
+		{title: "3/3 Vector ADT: k-NN semantic search", run: runVectorDemo},
+	}
+
+	for _, section := range sections {
+		fmt.Printf("\n═══ %s ═══\n", section.title)
+		if err := section.run(ctx); err != nil {
+			log.Fatalf("%s: %v", section.title, err)
+		}
 	}
 }
 
-func run() error {
-	ctx := context.Background()
-
+func runTaskDemo(ctx context.Context) error {
 	// 1. Auto-generate CRUD folds by naming convention — zero boilerplate.
 	folds, err := metaengine.AutoCRUDByConvention[TaskView]("ID",
 		TaskCreated{}, TaskUpdated{}, TaskDeleted{},

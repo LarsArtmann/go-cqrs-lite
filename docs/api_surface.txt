@@ -1376,6 +1376,10 @@ metaengine/badgerengine/func NewBadgerEngineFromDB
 metaengine/badgerengine/method Close
 metaengine/badgerengine/method CounterGet
 metaengine/badgerengine/method CounterIncrement
+metaengine/badgerengine/method GraphAddEdge
+metaengine/badgerengine/method GraphNeighbors
+metaengine/badgerengine/method GraphNeighborsUndirected
+metaengine/badgerengine/method GraphRemoveEdge
 metaengine/badgerengine/method HealthCheck
 metaengine/badgerengine/method JournalReadAll
 metaengine/badgerengine/method JournalReadAllWithSeq
@@ -1398,6 +1402,9 @@ metaengine/badgerengine/method StreamAppendExpected
 metaengine/badgerengine/method StreamRead
 metaengine/badgerengine/method StreamScan
 metaengine/badgerengine/method StreamVersion
+metaengine/badgerengine/method VectorInsert
+metaengine/badgerengine/method VectorSearch
+metaengine/badgerengine/method VectorSearchFiltered
 metaengine/bboltengine/const BboltNsPerOp
 metaengine/bboltengine/const BboltNsPerRead
 metaengine/bboltengine/const BboltNsPerWrite
@@ -1430,6 +1437,7 @@ metaengine/bboltengine/method StreamScan
 metaengine/bboltengine/method StreamVersion
 metaengine/bboltengine/method VectorInsert
 metaengine/bboltengine/method VectorSearch
+metaengine/bboltengine/method VectorSearchFiltered
 metaengine/const ADTCounter
 metaengine/const ADTGraph
 metaengine/const ADTLog
@@ -1469,6 +1477,7 @@ metaengine/const FilterNe
 metaengine/const FoldAppend
 metaengine/const FoldCount
 metaengine/const FoldEdge
+metaengine/const FoldEdgeRemove
 metaengine/const FoldInsert
 metaengine/const FoldMultiInsert
 metaengine/const FoldRemove
@@ -1530,6 +1539,8 @@ metaengine/dgraphengine/method CounterGet
 metaengine/dgraphengine/method CounterIncrement
 metaengine/dgraphengine/method GraphAddEdge
 metaengine/dgraphengine/method GraphNeighbors
+metaengine/dgraphengine/method GraphNeighborsUndirected
+metaengine/dgraphengine/method GraphRemoveEdge
 metaengine/dgraphengine/method HealthCheck
 metaengine/dgraphengine/method JournalReadAll
 metaengine/dgraphengine/method JournalReadFrom
@@ -1565,6 +1576,8 @@ metaengine/duckdbengine/method CounterIncrement
 metaengine/duckdbengine/method DistinctValues
 metaengine/duckdbengine/method ExplainAggregateQuery
 metaengine/duckdbengine/method ExplainScanQuery
+metaengine/duckdbengine/method GraphAddEdge
+metaengine/duckdbengine/method GraphNeighbors
 metaengine/duckdbengine/method GroupedAggregate
 metaengine/duckdbengine/method HealthCheck
 metaengine/duckdbengine/method JournalReadAll
@@ -1620,7 +1633,9 @@ metaengine/func ExtractFields
 metaengine/func FilterOn
 metaengine/func FilterOnField
 metaengine/func FormatLiveLatency
+metaengine/func HasGraphEdgeRemoval
 metaengine/func HasGraphSupport
+metaengine/func HasUndirectedGraphSupport
 metaengine/func Infer
 metaengine/func InferFromNamedEvents
 metaengine/func ItemFieldByName
@@ -1691,6 +1706,7 @@ metaengine/func TopKNearest
 metaengine/func TraceStats
 metaengine/func VectorDistance
 metaengine/func VectorExecuteTyped
+metaengine/func VectorMatchesFilters
 metaengine/func VerifyChecksum
 metaengine/func Volume
 metaengine/func WatchTyped
@@ -1752,6 +1768,7 @@ metaengine/graphadapter/method Close
 metaengine/graphadapter/method Driver
 metaengine/graphadapter/method GraphAddEdge
 metaengine/graphadapter/method GraphNeighbors
+metaengine/graphadapter/method GraphRemoveEdge
 metaengine/graphadapter/method Profile
 metaengine/graphadapter/struct Adapter
 metaengine/interface AggregateReader
@@ -1799,6 +1816,7 @@ metaengine/interface TrackerHost
 metaengine/interface TransactMeasurer
 metaengine/interface Transactional
 metaengine/interface VectorBackend
+metaengine/interface VectorFilterBackend
 metaengine/interface VersionedStorage
 metaengine/irohengine/const FrameHeaderSize
 metaengine/irohengine/const OpCounterInc
@@ -1843,6 +1861,8 @@ metaengine/irohengine/method CounterIncrement
 metaengine/irohengine/method DeliveryStats
 metaengine/irohengine/method GraphAddEdge
 metaengine/irohengine/method GraphNeighbors
+metaengine/irohengine/method GraphNeighborsUndirected
+metaengine/irohengine/method GraphRemoveEdge
 metaengine/irohengine/method Join
 metaengine/irohengine/method LatencySnapshot
 metaengine/irohengine/method LogAppend
@@ -1867,6 +1887,7 @@ metaengine/irohengine/method SpatialRange
 metaengine/irohengine/method Subscribe
 metaengine/irohengine/method VectorInsert
 metaengine/irohengine/method VectorSearch
+metaengine/irohengine/method VectorSearchFiltered
 metaengine/irohengine/quic/func New
 metaengine/irohengine/quic/func WithALPN
 metaengine/irohengine/quic/func WithBindAddr
@@ -1966,6 +1987,8 @@ metaengine/method EventSample
 metaengine/method EventSample
 metaengine/method EventSample
 metaengine/method EventSample
+metaengine/method EventSample
+metaengine/method EventType
 metaengine/method EventType
 metaengine/method EventType
 metaengine/method EventType
@@ -2002,6 +2025,8 @@ metaengine/method GetEngineStats
 metaengine/method GetLayoutInfo
 metaengine/method GraphAddEdge
 metaengine/method GraphNeighbors
+metaengine/method GraphNeighborsUndirected
+metaengine/method GraphRemoveEdge
 metaengine/method GroupBy
 metaengine/method GroupedAvg
 metaengine/method GroupedCount
@@ -2033,6 +2058,7 @@ metaengine/method JournalReadAll
 metaengine/method JournalReadAllWithSeq
 metaengine/method JournalReadFrom
 metaengine/method JournalReadFromSeq
+metaengine/method Kind
 metaengine/method Kind
 metaengine/method Kind
 metaengine/method Kind
@@ -2130,12 +2156,15 @@ metaengine/method Scan
 metaengine/method ScanPage
 metaengine/method ScoreWeighted
 metaengine/method Search
+metaengine/method SearchFiltered
 metaengine/method SearchInsert
 metaengine/method SearchQuery
 metaengine/method SetAdd
 metaengine/method SetCalibration
 metaengine/method SetCalibration
 metaengine/method SetContains
+metaengine/method SetCurrentRecord
+metaengine/method SetCurrentRecord
 metaengine/method SetCurrentRecord
 metaengine/method SetCurrentRecord
 metaengine/method SetCurrentRecord
@@ -2181,6 +2210,7 @@ metaengine/method Valid
 metaengine/method Valid
 metaengine/method VectorInsert
 metaengine/method VectorSearch
+metaengine/method VectorSearchFiltered
 metaengine/method Verify
 metaengine/method VerifyFingerprint
 metaengine/method Watch
@@ -2207,6 +2237,8 @@ metaengine/mysqlengine/method ExplainAggregateQuery
 metaengine/mysqlengine/method ExplainScanQuery
 metaengine/mysqlengine/method GraphAddEdge
 metaengine/mysqlengine/method GraphNeighbors
+metaengine/mysqlengine/method GraphNeighborsUndirected
+metaengine/mysqlengine/method GraphRemoveEdge
 metaengine/mysqlengine/method HealthCheck
 metaengine/mysqlengine/method JournalReadAll
 metaengine/mysqlengine/method JournalReadAllWithSeq
@@ -2262,6 +2294,7 @@ metaengine/pebbleengine/method StreamScan
 metaengine/pebbleengine/method StreamVersion
 metaengine/pebbleengine/method VectorInsert
 metaengine/pebbleengine/method VectorSearch
+metaengine/pebbleengine/method VectorSearchFiltered
 metaengine/pgengine/const PG_NetworkRTT
 metaengine/pgengine/const PG_NsPerOp
 metaengine/pgengine/const PG_NsPerRead
@@ -2278,6 +2311,8 @@ metaengine/pgengine/method ExplainAggregateQuery
 metaengine/pgengine/method ExplainScanQuery
 metaengine/pgengine/method GraphAddEdge
 metaengine/pgengine/method GraphNeighbors
+metaengine/pgengine/method GraphNeighborsUndirected
+metaengine/pgengine/method GraphRemoveEdge
 metaengine/pgengine/method GroupedAggregate
 metaengine/pgengine/method HealthCheck
 metaengine/pgengine/method JournalReadAll
@@ -2339,6 +2374,8 @@ metaengine/sqliteengine/method ExplainScanQuery
 metaengine/sqliteengine/method GetRawValue
 metaengine/sqliteengine/method GraphAddEdge
 metaengine/sqliteengine/method GraphNeighbors
+metaengine/sqliteengine/method GraphNeighborsUndirected
+metaengine/sqliteengine/method GraphRemoveEdge
 metaengine/sqliteengine/method GroupedAggregate
 metaengine/sqliteengine/method HealthCheck
 metaengine/sqliteengine/method JournalReadAll
@@ -2396,6 +2433,7 @@ metaengine/struct Cursor
 metaengine/struct Diagnostic
 metaengine/struct DriverConfig
 metaengine/struct Edge
+metaengine/struct EdgeRemoval
 metaengine/struct Embedding
 metaengine/struct EngineProfile
 metaengine/struct EngineStats
@@ -2471,6 +2509,7 @@ metaengine/struct TraceOp
 metaengine/struct TraceRecorder
 metaengine/struct TraceSummary
 metaengine/struct TypedReader
+metaengine/struct VectorFilter
 metaengine/struct VectorResult
 metaengine/struct Watcher
 metaengine/struct WorkloadStats

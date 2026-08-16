@@ -198,6 +198,7 @@ linters:
             - github.com/knadh/koanf
             - github.com/larsartmann/go-output
             - github.com/LarsArtmann/gogenfilter
+            - github.com/larsartmann/templ-components
             - github.com/a-h/templ
             - github.com/bmatcuk/doublestar
             - github.com/clipperhouse

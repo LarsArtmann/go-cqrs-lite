@@ -15,7 +15,12 @@ type graphBackend interface {
 
 type graphExtBackend interface {
 	GraphRemoveEdge(ctx context.Context, collection string, edge metaengine.Edge) error
-	GraphNeighborsUndirected(ctx context.Context, collection string, node any, depth int) ([]any, error)
+	GraphNeighborsUndirected(
+		ctx context.Context,
+		collection string,
+		node any,
+		depth int,
+	) ([]any, error)
 }
 
 func sortedNeighbors(items []any) []string {
@@ -32,7 +37,11 @@ func sortedNeighbors(items []any) []string {
 func addEdge(t *testing.T, eng metaengine.Engine, ctx context.Context, col, from, to string) {
 	t.Helper()
 
-	if err := eng.(graphBackend).GraphAddEdge(ctx, col, metaengine.Edge{From: from, To: to}); err != nil {
+	if err := eng.(graphBackend).GraphAddEdge(
+		ctx,
+		col,
+		metaengine.Edge{From: from, To: to},
+	); err != nil {
 		t.Fatalf("GraphAddEdge %s→%s: %v", from, to, err)
 	}
 }
@@ -93,7 +102,12 @@ func TestBadgerGraph_NeighborsUndirected(t *testing.T) {
 	addEdge(t, eng, ctx, "graph_badger_und", "A", "B")
 	addEdge(t, eng, ctx, "graph_badger_und", "C", "A") // incoming edge, wrong direction
 
-	neighbors, err := eng.(graphExtBackend).GraphNeighborsUndirected(ctx, "graph_badger_und", "A", 1)
+	neighbors, err := eng.(graphExtBackend).GraphNeighborsUndirected(
+		ctx,
+		"graph_badger_und",
+		"A",
+		1,
+	)
 	if err != nil {
 		t.Fatalf("GraphNeighborsUndirected(A, 1): %v", err)
 	}
@@ -112,7 +126,11 @@ func TestBadgerGraph_RemoveEdge(t *testing.T) {
 	addEdge(t, eng, ctx, "graph_badger_rm", "A", "B")
 	addEdge(t, eng, ctx, "graph_badger_rm", "A", "C")
 
-	if err := eng.(graphExtBackend).GraphRemoveEdge(ctx, "graph_badger_rm", metaengine.Edge{From: "A", To: "B"}); err != nil {
+	if err := eng.(graphExtBackend).GraphRemoveEdge(
+		ctx,
+		"graph_badger_rm",
+		metaengine.Edge{From: "A", To: "B"},
+	); err != nil {
 		t.Fatalf("GraphRemoveEdge: %v", err)
 	}
 
@@ -126,7 +144,11 @@ func TestBadgerGraph_RemoveEdge(t *testing.T) {
 	}
 
 	// Idempotent: removing a missing edge is a no-op.
-	if err := eng.(graphExtBackend).GraphRemoveEdge(ctx, "graph_badger_rm", metaengine.Edge{From: "A", To: "B"}); err != nil {
+	if err := eng.(graphExtBackend).GraphRemoveEdge(
+		ctx,
+		"graph_badger_rm",
+		metaengine.Edge{From: "A", To: "B"},
+	); err != nil {
 		t.Fatalf("GraphRemoveEdge (idempotent re-remove): %v", err)
 	}
 }
@@ -139,11 +161,20 @@ func TestBadgerGraph_RemoveEdgeCleansReverseIndex(t *testing.T) {
 
 	addEdge(t, eng, ctx, "graph_badger_rmdir", "A", "B")
 
-	if err := eng.(graphExtBackend).GraphRemoveEdge(ctx, "graph_badger_rmdir", metaengine.Edge{From: "A", To: "B"}); err != nil {
+	if err := eng.(graphExtBackend).GraphRemoveEdge(
+		ctx,
+		"graph_badger_rmdir",
+		metaengine.Edge{From: "A", To: "B"},
+	); err != nil {
 		t.Fatalf("GraphRemoveEdge: %v", err)
 	}
 
-	neighbors, err := eng.(graphExtBackend).GraphNeighborsUndirected(ctx, "graph_badger_rmdir", "B", 1)
+	neighbors, err := eng.(graphExtBackend).GraphNeighborsUndirected(
+		ctx,
+		"graph_badger_rmdir",
+		"B",
+		1,
+	)
 	if err != nil {
 		t.Fatalf("GraphNeighborsUndirected after remove: %v", err)
 	}

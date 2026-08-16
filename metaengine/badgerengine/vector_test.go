@@ -103,7 +103,11 @@ func TestBadgerVector_UpsertOverwrites(t *testing.T) {
 	col := "vec_badger_upsert"
 
 	for _, values := range [][]float32{{1, 0}, {0, 1}} {
-		if err := vb.VectorInsert(ctx, col, metaengine.Embedding{ID: "x", Values: values}); err != nil {
+		if err := vb.VectorInsert(
+			ctx,
+			col,
+			metaengine.Embedding{ID: "x", Values: values},
+		); err != nil {
 			t.Fatalf("VectorInsert: %v", err)
 		}
 	}
@@ -257,7 +261,8 @@ func TestBadgerEngine_ImplementsVectorAndGraphBackends(t *testing.T) {
 	}
 
 	p := eng.Profile()
-	if p.Supports[metaengine.ADTVector] != metaengine.ComplexityON || !p.DegradedADTs[metaengine.ADTVector] {
+	if p.Supports[metaengine.ADTVector] != metaengine.ComplexityON ||
+		!p.DegradedADTs[metaengine.ADTVector] {
 		t.Errorf("ADTVector must be declared ComplexityON + degraded, got %v degraded=%v",
 			p.Supports[metaengine.ADTVector], p.DegradedADTs[metaengine.ADTVector])
 	}

@@ -40,6 +40,25 @@ type graphBackend interface {
 	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)
 }
 
+// graphRemovalBackend extends graphBackend with tombstone-driven edge
+// deletion (ADR-0114 style) for the GraphRemove scenario.
+type graphRemovalBackend interface {
+	graphBackend
+	GraphRemoveEdge(ctx context.Context, collection string, edge metaengine.Edge) error
+}
+
+// undirectedGraphBackend extends graphBackend with both-direction traversal
+// for the GraphUndirected scenario.
+type undirectedGraphBackend interface {
+	graphBackend
+	GraphNeighborsUndirected(
+		ctx context.Context,
+		collection string,
+		node any,
+		depth int,
+	) ([]any, error)
+}
+
 // Factory creates a fresh, isolated engine for testing.
 type Factory struct {
 	Name     string
@@ -63,17 +82,20 @@ type Scenario struct {
 // required backend interface, RunMatrix skips that subtest instead of
 // panicking on a failed type assertion inside Setup/Read.
 var backendInterfaces = map[string]reflect.Type{ //nolint:gochecknoglobals // immutable lookup table
-	"MapBackend":       reflect.TypeFor[metaengine.MapBackend](),
-	"SetBackend":       reflect.TypeFor[metaengine.SetBackend](),
-	"CounterBackend":   reflect.TypeFor[metaengine.CounterBackend](),
-	"GraphBackend":     reflect.TypeFor[graphBackend](),
-	"ScanBackend":      reflect.TypeFor[metaengine.ScanBackend](),
-	"LogBackend":       reflect.TypeFor[metaengine.LogBackend](),
-	"MultimapBackend":  reflect.TypeFor[metaengine.MultimapBackend](),
-	"StreamLogBackend": reflect.TypeFor[metaengine.StreamLogBackend](),
-	"VectorBackend":    reflect.TypeFor[metaengine.VectorBackend](),
-	"SearchBackend":    reflect.TypeFor[metaengine.SearchBackend](),
-	"SpatialBackend":   reflect.TypeFor[metaengine.SpatialBackend](),
+	"MapBackend":          reflect.TypeFor[metaengine.MapBackend](),
+	"SetBackend":          reflect.TypeFor[metaengine.SetBackend](),
+	"CounterBackend":      reflect.TypeFor[metaengine.CounterBackend](),
+	"GraphBackend":        reflect.TypeFor[graphBackend](),
+	"GraphRemovalBackend": reflect.TypeFor[graphRemovalBackend](),
+	"UndirectedGraph":     reflect.TypeFor[undirectedGraphBackend](),
+	"ScanBackend":         reflect.TypeFor[metaengine.ScanBackend](),
+	"LogBackend":          reflect.TypeFor[metaengine.LogBackend](),
+	"MultimapBackend":     reflect.TypeFor[metaengine.MultimapBackend](),
+	"StreamLogBackend":    reflect.TypeFor[metaengine.StreamLogBackend](),
+	"VectorBackend":       reflect.TypeFor[metaengine.VectorBackend](),
+	"VectorFilterBackend": reflect.TypeFor[metaengine.VectorFilterBackend](),
+	"SearchBackend":       reflect.TypeFor[metaengine.SearchBackend](),
+	"SpatialBackend":      reflect.TypeFor[metaengine.SpatialBackend](),
 }
 
 // RunMatrix runs all ADT scenarios across all engine factories and asserts
@@ -289,6 +311,71 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Canonicalize: CanonicalizeNeighbors,
 		},
 
+		// --- Graph ADT: tombstone-driven edge removal (ADR-0114 style) ---
+		{
+			Name:     "GraphRemove",
+			Requires: "GraphRemovalBackend",
+			Setup: func(ctx context.Context, eng metaengine.Engine) error {
+				gr := eng.(graphRemovalBackend)
+				edges := []metaengine.Edge{
+					{From: "A", To: "B"},
+					{From: "A", To: "C"},
+				}
+				for _, e := range edges {
+					if err := gr.GraphAddEdge(ctx, "graph_rm", e); err != nil {
+						return err //nolint:wrapcheck
+					}
+				}
+
+				// Tombstone: retract A→B, then idempotently re-remove it.
+				if err := gr.GraphRemoveEdge(
+					ctx,
+					"graph_rm",
+					metaengine.Edge{From: "A", To: "B"},
+				); err != nil {
+					return err //nolint:wrapcheck
+				}
+
+				return gr.GraphRemoveEdge(
+					ctx,
+					"graph_rm",
+					metaengine.Edge{From: "A", To: "B"},
+				) //nolint:wrapcheck
+			},
+			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
+				gr := eng.(graphRemovalBackend)
+
+				return gr.GraphNeighbors(ctx, "graph_rm", "A", 1)
+			},
+			Canonicalize: CanonicalizeNeighbors,
+		},
+
+		// --- Graph ADT: undirected traversal (both edge directions) ---
+		{
+			Name:     "GraphUndirected",
+			Requires: "UndirectedGraph",
+			Setup: func(ctx context.Context, eng metaengine.Engine) error {
+				ug := eng.(undirectedGraphBackend)
+				edges := []metaengine.Edge{
+					{From: "B", To: "A"}, // incoming edge for A
+					{From: "A", To: "C"}, // outgoing edge for A
+				}
+				for _, e := range edges {
+					if err := ug.GraphAddEdge(ctx, "graph_und", e); err != nil {
+						return err //nolint:wrapcheck
+					}
+				}
+
+				return nil
+			},
+			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
+				ug := eng.(undirectedGraphBackend)
+
+				return ug.GraphNeighborsUndirected(ctx, "graph_und", "A", 1)
+			},
+			Canonicalize: CanonicalizeNeighbors,
+		},
+
 		// --- SortedMap ADT: MapSet + MapScan (filter + sort) ---
 		{
 			Name:     "SortedMap",
@@ -454,6 +541,54 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 				vb := eng.(metaengine.VectorBackend)
 
 				return vb.VectorSearch(ctx, "vectors", []float32{1.0, 0.0, 0.0}, 2, "cosine")
+			},
+			Canonicalize: CanonicalizeVector,
+		},
+
+		// --- Vector ADT: metadata-filtered k-NN ---
+		{
+			Name:     "VectorFiltered",
+			Requires: "VectorFilterBackend",
+			Setup: func(ctx context.Context, eng metaengine.Engine) error {
+				vf := eng.(metaengine.VectorFilterBackend)
+				embeddings := []metaengine.Embedding{
+					{
+						ID:       "v1",
+						Values:   []float32{1.0, 0.0, 0.0},
+						Metadata: map[string]any{"tenant": "a"},
+					},
+					{
+						ID:       "v2",
+						Values:   []float32{0.9, 0.1, 0.0},
+						Metadata: map[string]any{"tenant": "b"},
+					},
+					{
+						ID:       "v3",
+						Values:   []float32{0.0, 1.0, 0.0},
+						Metadata: map[string]any{"tenant": "a"},
+					},
+				}
+				for _, emb := range embeddings {
+					if err := vf.VectorInsert(ctx, "vectors_filtered", emb); err != nil {
+						return err //nolint:wrapcheck
+					}
+				}
+
+				return nil
+			},
+			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
+				vf := eng.(metaengine.VectorFilterBackend)
+
+				return vf.VectorSearchFiltered(
+					ctx,
+					"vectors_filtered",
+					[]float32{1.0, 0.0, 0.0},
+					2,
+					"cosine",
+					[]metaengine.VectorFilter{
+						{Field: "tenant", Op: metaengine.FilterEq, Value: "a"},
+					},
+				)
 			},
 			Canonicalize: CanonicalizeVector,
 		},

@@ -160,7 +160,11 @@ func TestStreamLog_JournalReadFrom(t *testing.T) {
 // Uses a unique collection — the Dgraph server persists across tests, and
 // the default "events" collection is also written by the ADT matrix.
 func TestStreamLog_HarnessParity(t *testing.T) {
-	enginetest.RunStreamLogBackendTestIn(t, mustNewDgraphEngine(t), uniqueCollection(t, "events_parity"))
+	enginetest.RunStreamLogBackendTestIn(
+		t,
+		mustNewDgraphEngine(t),
+		uniqueCollection(t, "events_parity"),
+	)
 }
 
 // TestStreamLog_AppendExpected verifies optimistic concurrency control.

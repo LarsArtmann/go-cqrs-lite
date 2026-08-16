@@ -24,7 +24,12 @@ type graphEdgeRemover interface {
 // the depth limit. Engines whose storage is already symmetric (dgraph stores
 // both directions on add) implement it as an alias of GraphNeighbors.
 type undirectedGraphBackend interface {
-	GraphNeighborsUndirected(ctx context.Context, collection string, node any, depth int) ([]any, error)
+	GraphNeighborsUndirected(
+		ctx context.Context,
+		collection string,
+		node any,
+		depth int,
+	) ([]any, error)
 }
 
 // HasGraphSupport returns true if the engine implements the graph dispatch

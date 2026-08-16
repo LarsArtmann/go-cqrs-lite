@@ -9,7 +9,12 @@ import (
 
 type graphExtBackend interface {
 	GraphRemoveEdge(ctx context.Context, collection string, edge metaengine.Edge) error
-	GraphNeighborsUndirected(ctx context.Context, collection string, node any, depth int) ([]any, error)
+	GraphNeighborsUndirected(
+		ctx context.Context,
+		collection string,
+		node any,
+		depth int,
+	) ([]any, error)
 }
 
 func TestSQLiteGraph_RemoveEdge(t *testing.T) {
