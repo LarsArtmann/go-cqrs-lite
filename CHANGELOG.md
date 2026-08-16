@@ -38,6 +38,48 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   full implementation is tracked in TODO_LIST. Documentation and the
   migration guide were realigned to the shipped API on 2026-08-16.
 
+### Changed — benchmark regression gate now FAILS on breach (one bench system)
+
+> The CI regression job previously ran `benchstat … || true` — it could never
+> fail, so every benchmark in the repo was unenforced. Plan:
+> `docs/planning/2026-08-16_15-09_one-bench-system-consolidation.md`.
+
+- **CI regression gate** (`benchmarks.yml` → `regression`) now compares the
+  **median ns/op per benchmark** of the focused gate set
+  (`BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$` in
+  `stack/bench`, `-benchtime=10x -count=5`) against the previous run's
+  `benchmark-baseline` artifact (same runner class) and **fails the build
+  above 25%**. The artifact self-refreshes each run; a missing baseline
+  (first run) saves-only and passes.
+- **`scripts/benchmark-regression.sh` rewritten** as the one threshold
+  implementation (median-based — the old per-line `grep | awk` arithmetic
+  broke on `-count>1` output; flags: `--baseline/--current/--save/--threshold/
+  --bench/--dir/--count/--benchtime`). Committed
+  `benchmarks/benchmark-baseline.txt` is regenerated fresh (v4) and is
+  local-machine-only; baselines are hardware-specific.
+- The informational full-sweep job in `ci.yml` (`nix run .#bench`) lost its
+  dead warn-only compare step (it read the deleted v2-era root baseline).
+
+### Removed — redundant benchmark harnesses (one bench system)
+
+- **15 integration bench files** + 1 bench func
+  (`BenchmarkEventGenerator_Generate`): `integration/scale_benchmark_test.go`,
+  `scale_bench_{event,concurrent,decider,query,listing}_test.go`,
+  `realistic_bench_test.go`,
+  `realistic_bench_{concurrent,query,listing,signing,snapshot}_test.go`
+  (`//go:build scale`), `integration/{event,command,query}/benchmark_test.go`.
+  All were redundant with benchkit phases + `stack/bench` pipelines. The
+  `integration` module keeps all its tests.
+- **`metaengine/bench` slimmed by 5 benchkit-redundant benchmarks**
+  (`BenchmarkPromise_ApplyThroughput`, `BenchmarkPromise_ConcurrentApply`,
+  `BenchmarkFilteredScan_Memory`, `BenchmarkEventStorm_Concurrent`,
+  `BenchmarkMultiQuery_EventFanOut`); the other 31 — planner internals and
+  layout cost-model calibration requiring direct engine imports — stay.
+  `scripts/bench-matrix.sh` pattern updated accordingly.
+- **v2-era stale artifacts**: `benchmarks/` dir (8 files, June ANSI dumps,
+  `event/v2` references) and root `benchmark-baseline.txt`. A baseline from
+  different hardware/era manufactured false confidence.
+
 ## [storage/v4.7.1] — 2026-08-16
 
 > Module-only patch release of `storage/v4`. Retracts the broken `v4.7.0`
