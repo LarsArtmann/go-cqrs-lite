@@ -77,8 +77,8 @@ var adtContracts = map[metaengine.ADT]adtContract{ //nolint:gochecknoglobals // 
 
 // KnownGaps documents an ADT that violates a conformance rule with the reason
 // it is currently acceptable, forcing explicit tracking instead of silence.
-// Rule 1 gaps (declared native, not implemented) should reference a ticket or
-// TODO_LIST item; rule 2 gaps (implemented, undeclared) should explain why
+// Rule 1 gaps (declared native, not implemented) should reference a tracked
+// backlog item; rule 2 gaps (implemented, undeclared) should explain why
 // the planner deliberately does not route to the engine for that ADT.
 type KnownGaps map[metaengine.ADT]string
 
@@ -133,6 +133,20 @@ func CapabilityTable(engineName string, eng metaengine.Engine) []string {
 	table, _, _ := capabilityTable(engineName, eng, nil)
 
 	return table
+}
+
+// AuditCapability returns the rendered capability table plus the rule
+// violations for an engine. It is the plumbing-free form of
+// RunCapabilityConformance: callers that want to assert or persist the
+// findings (Diagnostics tooling, reports) use this instead of a testing.T.
+func AuditCapability(
+	engineName string,
+	eng metaengine.Engine,
+	gaps KnownGaps,
+) (table, violations []string) {
+	table, violations, _ = capabilityTable(engineName, eng, gaps)
+
+	return table, violations
 }
 
 func capabilityTable(
@@ -207,7 +221,8 @@ func capabilityTable(
 			string(adt), declCell, implCell, status))
 	}
 
-	violations, notes = degradedSubsetViolations(engineName, profile)
+	degradedViolations, notes := degradedSubsetViolations(engineName, profile)
+	violations = append(violations, degradedViolations...)
 
 	return table, violations, notes
 }
