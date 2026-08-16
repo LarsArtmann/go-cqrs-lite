@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [storage/v4.7.1] — 2026-08-16
+
+> Module-only patch release of `storage/v4`. Retracts the broken `v4.7.0`
+> (which did not compile: `sql/keyset.go:43` assigned an undeclared `err`)
+> and ships the one-line fix so `go get` resolves to a working version.
+
+- **Retracted `v4.7.0`** via a `retract` directive in `storage/go.mod`.
+  `go get` now skips the broken version by default; an explicit `@v4.7.0`
+  still resolves but warns. The version is permanent on `proxy.golang.org`
+  (immutable), so the retraction is advisory deprecation, not deletion.
+- **Fixed** `sql/keyset.go:43`: `err =` → `err :=`. The undeclared-variable
+  assignment made the whole `storage/v4` module fail to compile. This is
+  the only code change in this release.
+
 ## [storage/v4.7.0] — 2026-08-16
 
 > Module-only release of the `storage/v4` module (sql, eventstore, view,

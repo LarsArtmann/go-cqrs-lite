@@ -111,3 +111,5 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )
+
+retract v4.7.0 // does not compile: sql/keyset.go:43 assigns undeclared err; use v4.7.1
