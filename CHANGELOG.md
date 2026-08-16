@@ -6,6 +6,189 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — honesty & flake gates wave (CHANGELOG/api-stability/doc-check/broker) — 2026-08-16
+
+- **CHANGELOG honesty gate** — `scripts/check-changelog-symbols.sh` (CI):
+  every `pkg.Symbol` cited in the `[Unreleased]` Added/Changed sections must
+  exist in the api-stability golden or repo source; kills the reverted-work
+  fiction class mechanically. It caught two inaccurate citations during this
+  session's own changelog consolidation.
+- **api-stability fails loudly on unparseable modules** — was `skip <module>:`
+  + proceed, which made a corrupted module indistinguishable from a
+  legitimately-removed one in the golden (silently-shrinking-golden
+  corruption tell).
+- **doc-check zero-warning policy** — unreadable dirs, empty package exports,
+  and unparseable files now FAIL the tool instead of logging warnings; the
+  zero-references case (silent no-op verification) is an error too.
+- **Staged-`.go` syntax gate** — `scripts/check-staged-go.sh` (gofmt
+  `-e -l`) wired into the installed pre-commit hook,
+  `scripts/install-hooks.sh` (now the canonical restorer of BOTH
+  post-BuildFlow gates), and `scripts/pre-commit.sh`; blocks the
+  concurrent-session mid-write corruption class (`func (w *workor)`,
+  `fojection.` — twice on 2026-08-16).
+- **Heap-measurement contract tripwire** — `scripts/check-heap-parallel.sh`
+  (CI): `_test.go` files calling `runtime.ReadMemStats` must not call
+  `t.Parallel()` in the same file.
+- **Load sweep** — `nix run .#load-sweep` (`scripts/load-sweep.sh`): runs
+  the timing-assertion suites (`-run 'Latency|Timer|Deadline'`, 8 modules)
+  under CPU soakers BEFORE `#verify`, front-loading load-sensitive flake
+  discovery instead of burning 20-minute gate cycles.
+- **Redis broker CI** — `nix run .#integration-redis` (ephemeral nixpkgs
+  Redis) + `redis-integration` CI job; `ephemeral-redis.sh` runs the
+  watermill suite by default; new broker-edge tests
+  (`TestRedisStream_NackRedelivers`,
+  `TestRedisStream_ConsumerGroupExactlyOnce`,
+  `TestRedisStream_LargePayloadRoundtrip`) cover Nack redelivery,
+  consumer-group exactly-once delivery, and 2 MiB payload integrity — the
+  edges in-process gochannel cannot catch.
+- **`nix run .#verify-ci`** — GOWORK=off per-module build+test, mirroring
+  the CI matrix job locally. **`nix run .#check-lint-config`** — golangci
+  config verify + depguard allow-list check.
+- **check-replace-directives rejects absolute-path replaces** —
+  `replace … => /home/…` broke every CI Release build until `ceb88738b`;
+  now a hard error (relative sibling replaces remain the documented
+  convention, stripped by `tag-release.sh` at cut time).
+
+### Fixed — load-sensitive thresholds, stale claims, release tooling — 2026-08-16
+
+- **`TestRun_SQLite_DurationAborts` flat 30s ceiling** — the 5s non-race
+  hang threshold shared the load-sensitivity mis-model already fixed for
+  `DurationAborts`/`CancelledContext`; verified 3x under `-race`.
+- **duckdbengine soak now actually skips in `-short`** — the comment claimed
+  it but the code never checked `testing.Short()` (doc-vs-code split brain);
+  `#verify-fast` was paying the 80-100s soak on every run.
+- **command/query metadata pins repaired (stranded `092b5e8a8` landed as
+  `491379a2b`)** — both modules pinned `metadata/v4.4.0` while using
+  `metadata.Metadata` (v4.5.0-only), unbuildable GOWORK=off for consumers
+  and masked in-workspace by the replace; broken `command/v4.7.0` and
+  `query/v4.6.0` retracted; `tag-release.sh` now GOWORK=off-builds each
+  module against its stripped go.mod before tagging.
+- **`check-coverage.sh` hardening** — dangling EXPECTED keys fail fast with
+  a precise diagnosis (codec-dangle class); `--update` auto-stamps the
+  verified date.
+- **Import-grouping ownership settled** — `gci` removed from
+  `.golangci.yml` formatters: treefmt goimports `-local` owns the 3-group
+  layout and CI's `nix fmt --fail-on-change` enforces it. Two tools
+  fighting over the same import blocks re-broke 95+ files once; one tool
+  (the formatter) now owns grouping.
+- **art-dupl dirty-tree guard** — `#check-duplication` refuses to run while
+  `.art-dupl-baseline.json` has uncommitted changes (re-pins must happen on
+  a committed baseline). All 8 engine `register.go` driver files carry
+  `//art-dupl:accept` directives (database/sql self-registration pattern —
+  per-package `init()` is mandatory, not deduplicable).
+- **Workspace hygiene** — 4 stray git worktrees removed (incl. the stranded
+  tag-chain one, after its valuable commit landed); junk dirs `t/`,
+  `result/` (root-owned), `reports/` trashed; orphaned pre-recovery stash
+  dropped.
+
+### Added — MariaDB generated-column layouts + engine-correctness batch — 2026-08-16
+
+- **mysqlengine: MariaDB ApplyLayout is real now** — previously a recorded
+  no-op (graceful degradation). Each declared filter/sort field gains a
+  VIRTUAL TEXT generated column
+  (`JSON_UNQUOTE(JSON_EXTRACT(value, '$.<field>'))`) plus a composite
+  `(collection, gc(190))` prefix index: metadata-only ALTER (no table
+  rebuild, same mechanics as MySQL's hidden functional-index columns),
+  computed on read (no backfill gap), prefix recheck keeps long-value filter
+  semantics exact. `filterExpr` rewrites pushdown filters to the generated
+  column because MariaDB 11.4 does NOT substitute generated columns into raw
+  JSON expressions (empirically verified via EXPLAIN — the index would be
+  dead weight otherwise). EXPLAIN-verified `ref` access; pinned by
+  `TestMariaDBApplyLayout_GeneratedColumnFilter`.
+- **Shared-server test isolation** — `enginetest.ScopedCollection` scopes
+  every helper-built collection per run, and adttest `Scenarios()` suffixes
+  all 17 collection names with a per-RUN token (per-run, not per-call, so
+  cross-engine parity compares identical state within one RunMatrix).
+  `stack/mysql` derived multidb databases now DROP before CREATE. Together:
+  `-count>1` reruns against one persistent MySQL/MariaDB server are GREEN.
+- **pgengine degraded VectorBackend** (same batch, earlier session):
+  pgengine declared ADTVector but implemented nothing — vector queries
+  routed to a pg-only deployment would fail. Now a brute-force
+  `meta_vector` scan via the shared metaengine distance helpers
+  (semantics identical to bbolt's degraded path).
+- **CTE-vs-iterative and sort-dialect benchmarks** —
+  `mysqlengine/graph_bench_test.go` (depth 1-6 × 1k-100k edges, both
+  traversal modes) and `sort_bench_test.go` (dual-key vs single-key vs
+  JSON-typed ORDER BY). Crossover tables recorded in
+  `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md` §9: iterative BFS wins
+  depth-1 walks 2-4x, CTE wins depth ≥3 up to 6x; MariaDB's numeric-safety
+  dual-key sort costs +26%, and MySQL's JSON-typed sort is 2.5x faster than
+  MariaDB's dual form.
+- **mysqlengine graphWalk dedup** — the directed and undirected iterative
+  BFS fallbacks shared a 40-line skeleton; extracted `graphWalk` with an
+  adjacency callback, plus a new undirected iterative↔CTE parity test (the
+  fallback path had zero coverage).
+
+### Changed — changelog consolidation: per-module CHANGELOGs folded into root — 2026-08-16
+
+Four orphaned per-module `CHANGELOG.md` files (catalog, benchkit, cmd/cqrs-lint,
+storage/turso/indexing) were read by nothing — no release script, CI gate, or
+doc-check touched them — and drifted: three of the four carried `[Unreleased]`
+sections describing work that had ALREADY shipped via module tags (catalog
+v4.1.0–v4.2.1, benchkit v4.2.0–v4.4.0, cqrs-lint v4.4.0–v4.6.0). Their
+unmirrored content is folded in below and the files are deleted. **Policy: the
+root CHANGELOG.md is the single changelog** (enforced by
+`TestTagContentMatchesChangelog` + verify-docs); per-module changelogs are
+forbidden — see CONTRIBUTING.md → Release Process.
+
+### Added — benchkit phases folded from module changelog (shipped via benchkit/v4.2.0–v4.4.0)
+
+- **Journey phase** (`Config.SkipJourney`) — end-to-end
+  publish→projection→query round-trip latency benchmark per sample; records
+  `JourneyLatency`, `JourneyProjectionLatency`, `JourneyQueryLatency`,
+  `JourneySamples`. Auto-skips when the bundle lacks EventSink + ReadModels.
+- **Query dispatch phase** (`Config.SkipQuery`) — hit/miss/paginated
+  `query.Dispatcher` overhead (`QueryHitLatency`, `QueryMissLatency`,
+  `QueryPaginatedLatency`, `QueryCorrectnessErrors`).
+- **Snapshot/cache hit-rate phase** (`Config.SkipSnapshot`) — decider `Load`
+  under cold replay vs `EveryNEvents(1)` snapshot vs state-cache strategies,
+  with state/version correctness assertions.
+- **Soak mode** (`RunSoak` / `cqrs-bench run --soak 5m`) — sustained workload
+  with forced GC; drift metrics `HeapGrowthBytes`, `HeapLeakRate`,
+  `ThroughputDriftPct`, `WriteP99DriftPct` + per-phase P99 drift.
+- **CLI flags** `--skip-journey` / `--skip-query` / `--skip-snapshot`.
+- Fixed: `Config.Codec` round-trips through JSON via `CodecName`
+  (external go-codec `ForEncoding` registry) — was silently nil after unmarshal; soak
+  loop no longer records partial zero-event iterations; `WriteBenchstat` and
+  `ExpectedJSONFields` extended for the new result fields.
+
+### Added — catalog REST/OpenAPI operations folded from module changelog (shipped via catalog/v4.1.0–v4.2.1)
+
+- **`catalog.MsgOperation(method, path, statusCodes...)` + `catalog.Operation`**
+  — explicit HTTP operation attachment for commands/queries/events; exporters
+  emit the real REST path instead of the derived default.
+- **`catalog.Response[T](statusCode, description)` + `catalog.ResponseSpec`** —
+  typed response specs with JSON schema derivation.
+- **`catalog.SecurityScheme` + `MsgSecurity(schemeIDs...)`** — API-key/bearer
+  scheme declaration at catalog and message level.
+- **`catalog.Parameter` + `Schema.Parameters`** — explicit path/query/header
+  parameter extraction.
+- OpenAPI/AsyncAPI/D2 exporters render operations, typed responses, security
+  schemes, and `[POST /api/users]`-style edge labels; `httptyped` package
+  (`RequestSchema[T]`, `ResponseSchema[T]`, `OKResponse[T]`,
+  `CreatedResponse[T]`, `ErrorResponse[T]`); `huma` adapter (`ToMessages`);
+  `catalog.Validate()` (duplicate `(method, path)`, method-without-path, 2xx
+  without body schema); `cmd/go-cqrs-lite-catalog` CLI (OpenAPI, AsyncAPI, D2,
+  llms.txt).
+- Fixed: `validateOperation` response-schema checks run even without an
+  explicit `Operation` (previously silently skipped); llms.txt per-service
+  ordering; json/v2 golden fixtures.
+
+### Added — turso/indexing advisor v2.2.1 (folded; package untagged, genuinely unreleased)
+
+- `Index.Partial` explicit partial-index predicates; `Index.DropDDL()`
+  per-index DROP statements; `Priority` enum on `Recommendation`
+  (`Optional`/`Recommended`/`Critical`); `AdvisorOption` functional options
+  (`WithExcludedTables`); `AutoIndexerOption` (`WithAutoAnalyze`,
+  `WithDryRun` + `LastDDL()`); `AutoIndexer.Close`/`Drop`/`RecommendAndApply`;
+  `Stats`/`UnusedIndexes` planner observability; `CheckpointScheduler`;
+  `ApplyOptimizationsTraced` (OTel spans on all major operations) plus
+  `SchemaChangeHook` for after-schema-change re-analysis (composed with
+  `turso.InitSchema` for one-shot setup).
+- Changed: `Recommendation.Reason` → `Recommendation.Explanation`;
+  removed never-populated `Recommendation.EstimatedCost`; `ApplyRecommended`
+  consistently enforces `IsEnabled()`.
+
 ### Added — metaengine graph removal + undirected traversal + filtered k-NN (wave) — 2026-08-16
 
 - **`GraphRemoveEdge` + `HasGraphEdgeRemoval`** — ADR-0114-style tombstone-driven
