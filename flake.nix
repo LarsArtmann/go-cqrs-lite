@@ -730,90 +730,92 @@
             dgraph-vm = dgraphTest;
           };
 
-          # No-op default package so `nix build .` (BuildFlow's full mode) succeeds.
-          # This is a Go library with no single binary; real artifacts live in apps.*
-          # and are invoked via `nix run .#<app>`. Pattern mirrors cqrs-htmx/flake.nix.
-          packages.default = pkgs.stdenvNoCC.mkDerivation {
-            pname = "go-cqrs-lite";
-            version = self.rev or self.dirtyRev or "dev";
+          packages = {
+            # No-op default package so `nix build .` (BuildFlow's full mode) succeeds.
+            # This is a Go library with no single binary; real artifacts live in apps.*
+            # and are invoked via `nix run .#<app>`. Pattern mirrors cqrs-htmx/flake.nix.
+            default = pkgs.stdenvNoCC.mkDerivation {
+              pname = "go-cqrs-lite";
+              version = self.rev or self.dirtyRev or "dev";
 
-            dontUnpack = true;
-            dontConfigure = true;
-            dontBuild = true;
+              dontUnpack = true;
+              dontConfigure = true;
+              dontBuild = true;
 
-            installPhase = ''
-              mkdir -p $out
-            '';
+              installPhase = ''
+                mkdir -p $out
+              '';
 
-            meta = with lib; {
-              description = "Lightweight CQRS/Event-Sourcing library for Go";
-              homepage = "https://github.com/larsartmann/go-cqrs-lite";
-              license = licenses.mit;
-              maintainers = [
-                {
-                  name = "Lars Artmann";
-                  github = "LarsArtmann";
-                }
-              ];
-              platforms = platforms.unix;
-            };
-          };
-
-          # QEMU VM images for integration testing (Linux only).
-          # Build: nix build .#pg-vm or .#mysql-vm
-          # Run:   result/bin/run-nixos-vm
-          packages.pg-vm = pgVM;
-          packages.mysql-vm = mysqlVM;
-
-          # Domain-aware linter for go-cqrs-lite consumers.
-          # Built from cmd/cqrs-lint/ which has its own go.mod (standalone module).
-          # Only go-finding is replaced via mkPreparedSource (private repo);
-          # all other LarsArtmann deps are public and served by proxy.golang.org.
-          packages.cqrs-lint = (pkgs.buildGoModule.override { go = goPkg; }) {
-            pname = "cqrs-lint";
-            inherit version;
-
-            src = mkCqrsLintSource pkgs;
-
-            vendorHash = "sha256-UybpmKl64sdM3uK0tp5j6kH9b1btK5QkhUqUtXBjlxE=";
-            proxyVendor = true;
-
-            subPackages = [ "." ];
-
-            ldflags = [
-              "-s"
-              "-w"
-              "-X main.commitHash=${builtins.substring 0 7 (self.rev or self.dirtyRev or "dev")}"
-              "-X main.buildDate=${self.lastModifiedDate or "unknown"}"
-            ];
-
-            env = {
-              CGO_ENABLED = "0";
-              GOWORK = "off";
+              meta = with lib; {
+                description = "Lightweight CQRS/Event-Sourcing library for Go";
+                homepage = "https://github.com/larsartmann/go-cqrs-lite";
+                license = licenses.mit;
+                maintainers = [
+                  {
+                    name = "Lars Artmann";
+                    github = "LarsArtmann";
+                  }
+                ];
+                platforms = platforms.unix;
+              };
             };
 
-            # buildGoModule silently drops GOEXPERIMENT from env (not in its
-            # whitelist), so export it in preBuild. The "goexperiment.jsonv2"
-            # build tag is set internally by the toolchain from GOEXPERIMENT.
-            preBuild = ''
-              export GOEXPERIMENT=jsonv2
-              export HOME=$TMPDIR
-              go mod tidy
-            '';
+            # QEMU VM images for integration testing (Linux only).
+            # Build: nix build .#pg-vm or .#mysql-vm
+            # Run:   result/bin/run-nixos-vm
+            pg-vm = pgVM;
+            mysql-vm = mysqlVM;
 
-            doCheck = false;
+            # Domain-aware linter for go-cqrs-lite consumers.
+            # Built from cmd/cqrs-lint/ which has its own go.mod (standalone module).
+            # Only go-finding is replaced via mkPreparedSource (private repo);
+            # all other LarsArtmann deps are public and served by proxy.golang.org.
+            cqrs-lint = (pkgs.buildGoModule.override { go = goPkg; }) {
+              pname = "cqrs-lint";
+              inherit version;
 
-            meta = with lib; {
-              description = "Domain-aware linter for go-cqrs-lite consumers";
-              license = licenses.mit;
-              maintainers = [
-                {
-                  name = "Lars Artmann";
-                  github = "LarsArtmann";
-                }
+              src = mkCqrsLintSource pkgs;
+
+              vendorHash = "sha256-UybpmKl64sdM3uK0tp5j6kH9b1btK5QkhUqUtXBjlxE=";
+              proxyVendor = true;
+
+              subPackages = [ "." ];
+
+              ldflags = [
+                "-s"
+                "-w"
+                "-X main.commitHash=${builtins.substring 0 7 (self.rev or self.dirtyRev or "dev")}"
+                "-X main.buildDate=${self.lastModifiedDate or "unknown"}"
               ];
-              mainProgram = "cqrs-lint";
-              platforms = platforms.unix;
+
+              env = {
+                CGO_ENABLED = "0";
+                GOWORK = "off";
+              };
+
+              # buildGoModule silently drops GOEXPERIMENT from env (not in its
+              # whitelist), so export it in preBuild. The "goexperiment.jsonv2"
+              # build tag is set internally by the toolchain from GOEXPERIMENT.
+              preBuild = ''
+                export GOEXPERIMENT=jsonv2
+                export HOME=$TMPDIR
+                go mod tidy
+              '';
+
+              doCheck = false;
+
+              meta = with lib; {
+                description = "Domain-aware linter for go-cqrs-lite consumers";
+                license = licenses.mit;
+                maintainers = [
+                  {
+                    name = "Lars Artmann";
+                    github = "LarsArtmann";
+                  }
+                ];
+                mainProgram = "cqrs-lint";
+                platforms = platforms.unix;
+              };
             };
           };
 
