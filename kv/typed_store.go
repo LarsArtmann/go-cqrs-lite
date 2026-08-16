@@ -258,7 +258,7 @@ func decodeEnvelopeOrLegacy[T any](data []byte, configured codec.Codec) (T, erro
 
 	alt, ok := otherStandardCodec(c)
 	if !ok {
-		return val, err
+		return val, err //nolint:wrapcheck // caller wraps as Corruption
 	}
 
 	var retry T
@@ -267,7 +267,7 @@ func decodeEnvelopeOrLegacy[T any](data []byte, configured codec.Codec) (T, erro
 		return retry, nil
 	}
 
-	return val, err
+	return val, err //nolint:wrapcheck // caller wraps as Corruption
 }
 
 // otherStandardCodec returns the opposite built-in codec, or false for

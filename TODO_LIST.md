@@ -70,7 +70,11 @@ and is **never** duplicated here.
 - [ ] [BLOCKED] **go-codec F46: commit + tag the `UnwrapDecode` sniff** —
       the first-byte fast path (fallback 181ns/6 allocs → 1.6ns/0 allocs) sits
       UNCOMMITTED in `../go-codec` (no auto-commit daemon there); GOWORK=off
-      consumers get nothing until it is tagged.
+      consumers get nothing until it is tagged. NOTE (2026-08-16): the same
+      uncommitted tree drops `event.NewEvent` allocs 3→2, so
+      `TestAllocs_NewEvent_*` FAILS under workspace-mode gates (`#verify-fast`)
+      while passing GOWORK=off — update the allocs expectations in the same
+      change that tags go-codec.
       _(Effort: XS)_
 - [ ] [BLOCKED] **Ratify one shipped judgment call** — iroh latency P99
       bound 50→150ms (worst-of-30 sample inflates under gate load). Shipped +

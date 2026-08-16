@@ -146,7 +146,7 @@ func decodeEnvelopeOrLegacy[P any](data []byte, configured codec.Codec) (P, erro
 
 // otherStandardCodec returns the opposite built-in codec, or false for
 // envelope-stamped or custom codecs (their data only decodes with themselves).
-func otherStandardCodec(c codec.Codec) (codec.Codec, bool) {
+func otherStandardCodec(c codec.Codec) (codec.Codec, bool) { //nolint:ireturn // built-in cross-retry
 	switch c.(type) {
 	case codec.CBORCodec:
 		return codec.JSONCodec{}, true
