@@ -208,3 +208,19 @@ bumped to `-timeout=30m`. Remaining gate work: full `#verify` re-run
 (exclusive window), then `#verify-fast`. Known risk: the parallel session's
 in-flight WIP (storage/view batch exports, `docs/api_surface.txt` drift) may
 trip check-api-stability before it lands its own regen.
+
+**Checkpoint result (2026-08-16 ~05:20)**: full `#verify` at pinned `954cef1a4`
+(worktree `wt-head`, log `/tmp/verify-954.log`) — Build ✓ Vet ✓ and the ENTIRE
+Test phase green across 118 packages: `metaengine/bboltengine` **9.5s** (was
+509-1145s → soak skip works), `system` **2.4s ok** (replay fix works). Sole
+failure: the two api-stability meta-tests — the PRE-EXISTING golden drift
+documented in §i.4 of the 01-33 report (4087 committed vs 4089 actual:
+`event.ReconstructEventWithMetadata`, `storage/sql.MaxParametersForDialect`),
+plus the parallel session's newer wave-3 exports. Additionally, master tip
+`fde8f9444` transiently breaks `nix run .#build` (`storage/sql/keyset.go`:
+`undefined: err` — committed mid-edit; their fix is staged in the working
+tree). Both are the parallel session's in-flight state, not this session's
+defects; a fully GREEN gate needs their wave to land (keyset fix + golden
+regen, both already visible as working-tree WIP), then a re-pin + full
+`#verify` at that tip (Race/Lint/Arch/Duplication/Coverage phases are what
+remained unexecuted after the Test-phase abort).
