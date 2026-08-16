@@ -221,11 +221,13 @@ jobs:
             --threshold 25
 
       - name: Refresh baseline for next run
+        if: ${{ !cancelled() }} # D3: refresh even on breach — a failed gate must not freeze the baseline artifact
         run: |
           mkdir -p baseline
           cp current.txt baseline/baseline.txt
 
       - name: Upload baseline
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: benchmark-baseline

@@ -20,11 +20,14 @@
 #   --bench REGEX     go test -bench pattern (default: the CI gate set)
 #   --dir PATH        package dir to benchmark in (default: stack/bench)
 #   --count N         benchmark repetitions feeding the median (default: 5)
-#   --benchtime T     go test -benchtime value (default: 10x)
+#   --benchtime T     go test -benchtime value (default: 100x — short samples
+#                     of microsecond benchmarks skew badly under CPU steal from
+#                     concurrent builds/LSP; CI passes its own 10x)
 #
-# Baselines are hardware-specific: only compare numbers from the same machine
-# or runner class. CI compares against its own `benchmark-baseline` artifact;
-# the committed file is for local runs on this machine only.
+# Baselines are hardware- and load-specific: only compare numbers from the
+# same machine or runner class, measured on a quiet machine. CI compares
+# against its own `benchmark-baseline` artifact; the committed file is for
+# local runs on this machine only.
 
 set -euo pipefail
 
@@ -35,7 +38,7 @@ THRESHOLD="25"
 BENCH='BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$'
 BENCH_DIR="stack/bench"
 COUNT="5"
-BENCHTIME="10x"
+BENCHTIME="100x"
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
