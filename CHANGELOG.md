@@ -33,7 +33,141 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `sql.RowsWithinByteCap`); `view.BatchSet` INSERT…SELECT UNION ALL shuttle.
 - Pebble/bbolt deserialize fast path via `event.ReconstructEventWithMetadata`.
 
+### Detail — journal `ReadFrom` keyset pagination replaces O(N²) self-JOIN cursor
+
+- **`sql.JournalReader.ReadFrom` and `eventstore.ReadStreamFrom` now paginate
+  with keyset pagination** (`sql.ResolveCursorTimestamp` point lookup +
+  `sql.KeysetPositionQuery` timestamp-range scan) instead of a self-JOIN on the
+  cursor row (`e.ts > c.ts OR (e.ts = c.ts AND e.id > c.id)`). The self-JOIN
+  defeated `idx_events_occurred_at` in SQLite — `EXPLAIN QUERY PLAN` showed a
+  MULTI-INDEX OR plan plus a temp B-tree sort of the remaining tail on EVERY
+  batch, making a full journal drain O(N²) in batch count. Measured on a
+  200k-event SQLite journal drained in batches of 100: 62.9s before → 0.22s
+  after (~285x). Real-world impact: projectionhost workers with in-memory
+  checkpoint stores (full replay each start) burned ~4.5 min CPU per restart
+  on a production browser-history journal; drains are now single-digit
+  seconds. Dangling cursors (pruned journal rows) keep the former contract of
+  returning zero rows instead of silently replaying from the start. Verified
+  on SQLite (equivalence with tie-broken `(occurred_at, id)` ordering across
+  tie-groups, dangling-cursor, EXPLAIN QUERY PLAN regression pin, full-drain
+  benchmark: 5k events in 29ms) and real Postgres (placeholder numbering +
+  time.Time round-trip; `pg_integration_readfrom_test.go`).
+
+### Detail — packet-safe SQL batching + deserialize fast path
+
+- **Dialect-aware SQL batch chunking (33x fewer round-trips, now
+  packet-safe)**: `SharedBatchInsertEvents` and `view.BatchSet` chunk
+  multi-VALUES INSERTs by the dialect's bound-parameter limit (SQLite 999;
+  PostgreSQL/MySQL/DuckDB 32767 — 99 → 3276 rows per statement) AND by an
+  estimated statement-size cap (`sql.MaxStatementBytes`, 8 MiB = 50% of
+  MariaDB's default `max_allowed_packet`), so large payloads shrink chunks
+  instead of failing the whole batch write with a packet error. New exports:
+  `sql.MaxParametersForDialect`, `sql.MaxStatementBytes`,
+  `sql.RowsWithinByteCap`. Unknown custom dialects conservatively get the
+  SQLite limit; metadata is marshaled once per Save instead of per chunk.
+  Verified on real Postgres (ephemeral nix env) and MariaDB-in-VM (2000
+  events × 8 KiB regression test in `stack/mysql`).
+- **Pebble/bbolt read fast path via `event.ReconstructEventWithMetadata`**:
+  passing decoded metadata directly (no JSON round-trip) cut pebble
+  deserialize −46% ns/op and −53% allocs (5000→2680 ns/op, 2247→1205 B/op,
+  43→20 allocs/op); bbolt adopts the identical shape.
+
+## [2026-08-16 module releases]
+
+Coordinated 22-tag release cutting the actor-propagation + ADR-0126 (store
+transforms, metadata generic, WAL unification) era across the core modules,
+the metaengine tree, and watermill. Three broken versions were retracted and
+repaired the same day — `storage/v4.7.0` (see its section above) and
+`command/v4.7.0` / `query/v4.6.0` (entries below).
+
+### Added (id/v4.5.0)
+
+- **`ActorID` methods**: `Validate`, `MarshalBinary`, `UnmarshalBinary` on the
+  branded actor type introduced in v4.4.0.
+
+### Added (record/v4.3.0)
+
+- No source changes — re-cut so the core-module version set resolves
+  consistently (tree identical to v4.2.0).
+
+### Added (metadata/v4.5.0)
+
+- **Canonical `Metadata[K ~string]` generic** (ADR-0126): typed custom-data
+  map with `Clone`/`Merge`/`WithCustom`/`EnsureCustom`; `CustomData[K]` is
+  now a deprecated alias (removal at v5).
+
+### Added (schema/v4.3.0)
+
+- **`UpcastSourceTransform(upcasters ...Upcaster) event.SourceTransform`**:
+  source-side transform for upcasting. `VersionedStore` is now a
+  compatibility shell delegating to the transforms (ADR-0126; removal at v5).
+
+### Added (event/v4.7.0)
+
+- **Store transforms (ADR-0126)**: `SinkTransform`/`SourceTransform` types +
+  `DecorateStore` — capability-preserving store wrapping.
+  `RejectingPublishMiddleware`/`RejectingHandlerMiddleware` move to `event`
+  as the canonical home (`signing` wrappers deprecated).
+- **Actor context**: `WithActorContext`, `ActorFromContext`, `ActorEnricher`.
+- **`ReconstructEventWithMetadata`** deserialize fast path (pebble/bbolt
+  adopt it; see the storage/v4.7.0 detail above).
+
+### Added (command/v4.7.0 → v4.7.1) — ⚠ v4.7.0 RETRACTED
+
+- `command.Metadata` is now an alias of `metadata.Metadata[MetadataKey]`
+  (the v4.5.0 generic); `BasicCommand.ApplyOptions`; `AsRecord` actor
+  precedence; MemoryBus middleware-runs-once fix.
+- **v4.7.0 retracted** (directive in the v4.7.1 `go.mod`): the tag pinned
+  `metadata/v4 v4.4.0`, so the module did not compile standalone
+  (`GOWORK=off`: `undefined: metadata.Metadata` — the workspace build masked
+  it). **v4.7.1** re-pins `metadata/v4 v4.5.0`; no other change.
+
+### Added (query/v4.6.0 → v4.6.1) — ⚠ v4.6.0 RETRACTED
+
+- **`query.AsRecord(*PersistedQuery) record.Record`** adapter; `Metadata`
+  alias of the v4.5.0 generic; `BasicQuery.ApplyOptions`; AuditMiddleware
+  carries RequestID + metadata.
+- **v4.6.0 retracted** (same metadata-pin breakage; directive in the v4.6.1
+  `go.mod`). **v4.6.1** re-pins `metadata/v4 v4.5.0`; no other change.
+
+### Added (middleware/v4.5.0)
+
+- **`CommandActorContext()`** middleware: lifts an actor from the context
+  into command metadata (pairs with `event.ActorEnricher`).
+
+### Fixed (watermill/v4.5.0)
+
+- **`CatchUpSubscriber` no longer misses events published during replay**
+  (live-phase draining reworked); broker integration tests; event-to-message
+  actor roundtrip.
+
+### metaengine/v4.11.0 + engines
+
+- **metaengine/v4.11.0** ships the 2026-08-10 → 2026-08-15 metaengine work
+  detailed in the dated sections below: engine roles + shadow replication +
+  `PromoteEngine`/`DemoteEngine`, live-cost measurement, row/columnar layout
+  calibration, `ReplanLayout` convergence, MariaDB dialect + numeric-safe
+  sorts, native graph dispatch (PG/MySQL) + vector search on LSM engines,
+  five brutal-review defect fixes, SQL injection guards + DSN redaction, and
+  the `workloadMeter` cache-line pad (contended ops −46..51%: 6.3→3.4 ns/op
+  @4 procs, 6.6→3.2 @8).
+- **sqliteengine/pebbleengine/pgengine v4.1.0**: layout-roles support,
+  calibration embedded in engine structs, defect-sweep fixes; pgengine gains
+  `meta_graph_edges` + `WITH RECURSIVE` neighborhood resolution.
+- **badgerengine v4.0.2**: position-based journal resumption + dependency
+  refresh.
+- **mysqlengine / bboltengine / tursoengine / irohengine v4.0.0**: first
+  tagged releases of the previously untagged engine modules.
+
 ## [Unreleased]
+
+> **Scope note (2026-08-16):** the 2026-08-10 → 2026-08-15 sections below for
+> modules tagged in the [2026-08-16 module releases] chain (metaengine,
+> engine modules, storage, event, command, query, metadata, schema, record,
+> id, middleware, watermill) shipped in those tags. Sections for modules
+> outside the chain (projectionhost, stack/\*, storage/bbolt,
+> storage/pebble, storage/memory, benchkit, catalog, system, cmd/\*) and the
+> Wave-3/Wave-4 entries dated 2026-08-16 remain unreleased.
 
 ### Added — Wave-4: `event.DecorateJournal` (ADR-0126 completion) — 2026-08-16
 
@@ -152,26 +286,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   **`docs/BENCHMARKS.md`** — a perf ledger mapping every shipped win to its
   runnable benchmark, baseline, and last measured numbers.
 
-### Fixed — storage: journal `ReadFrom` keyset pagination replaces O(N²) self-JOIN cursor — 2026-08-16
-
-- **`sql.JournalReader.ReadFrom` and `eventstore.ReadStreamFrom` now paginate
-  with keyset pagination** (`sql.ResolveCursorTimestamp` point lookup +
-  `sql.KeysetPositionQuery` timestamp-range scan) instead of a self-JOIN on the
-  cursor row (`e.ts > c.ts OR (e.ts = c.ts AND e.id > c.id)`). The self-JOIN
-  defeated `idx_events_occurred_at` in SQLite — `EXPLAIN QUERY PLAN` showed a
-  MULTI-INDEX OR plan plus a temp B-tree sort of the remaining tail on EVERY
-  batch, making a full journal drain O(N²) in batch count. Measured on a
-  200k-event SQLite journal drained in batches of 100: 62.9s before → 0.22s
-  after (~285x). Real-world impact: projectionhost workers with in-memory
-  checkpoint stores (full replay each start) burned ~4.5 min CPU per restart
-  on a production browser-history journal; drains are now single-digit
-  seconds. Dangling cursors (pruned journal rows) keep the former contract of
-  returning zero rows instead of silently replaying from the start. Verified
-  on SQLite (equivalence with tie-broken `(occurred_at, id)` ordering across
-  tie-groups, dangling-cursor, EXPLAIN QUERY PLAN regression pin, full-drain
-  benchmark: 5k events in 29ms) and real Postgres (placeholder numbering +
-  time.Time round-trip; `pg_integration_readfrom_test.go`).
-
 ### Added — projectionhost: opt-in live-checkpoint batching — 2026-08-16
 
 - **`WithCheckpointEvery(n)` / `WithCheckpointInterval(d)`**: batch live-phase
@@ -181,28 +295,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   reprocesses at most n−1 live events on restart (at-least-once, same
   contract as the replay→live overlap). Catch-up phase still saves per batch.
   Default behavior unchanged.
-
-### Changed — storage perf: packet-safe SQL batching, cache-line pad, deserialize fast path — 2026-08-16
-
-- **Dialect-aware SQL batch chunking (33x fewer round-trips, now
-  packet-safe)**: `SharedBatchInsertEvents` and `view.BatchSet` chunk
-  multi-VALUES INSERTs by the dialect's bound-parameter limit (SQLite 999;
-  PostgreSQL/MySQL/DuckDB 32767 — 99 → 3276 rows per statement) AND by an
-  estimated statement-size cap (`sql.MaxStatementBytes`, 8 MiB = 50% of
-  MariaDB's default `max_allowed_packet`), so large payloads shrink chunks
-  instead of failing the whole batch write with a packet error. New exports:
-  `sql.MaxParametersForDialect`, `sql.MaxStatementBytes`,
-  `sql.RowsWithinByteCap`. Unknown custom dialects conservatively get the
-  SQLite limit; metadata is marshaled once per Save instead of per chunk.
-  Verified on real Postgres (ephemeral nix env) and MariaDB-in-VM (2000
-  events × 8 KiB regression test in `stack/mysql`).
-- **False-sharing pad on metaengine `workloadMeter`**: 128-byte separation of
-  adjacent hot counters cut contended ops −46..51% (6.3→3.4 ns/op @4 procs,
-  6.6→3.2 @8).
-- **Pebble/bbolt read fast path via `event.ReconstructEventWithMetadata`**:
-  passing decoded metadata directly (no JSON round-trip) cut pebble
-  deserialize −46% ns/op and −53% allocs (5000→2680 ns/op, 2247→1205 B/op,
-  43→20 allocs/op); bbolt adopts the identical shape.
 
 ### Added — metaengine layout calibration + DemoteEngine + replan convergence — 2026-08-15
 
