@@ -101,11 +101,11 @@ in-line. **Judgment call — flagged for user review in questions.**
 
 ### Final gates — 3 verify runs, blocked at the last step
 
-| Run | Result | What happened |
-| --- | --- | --- |
-| #1 | FAIL (storage flake) | Timer-store double-dispatch → root-caused → SQLite pool fix (a.4) |
-| #2 | FAIL (iroh flake) | Latency P99 bound under load → recalibrated (a.5) |
-| #3 | EXIT=2 at **art-dupl only** | ALL tests (incl. race), lint, doc-check GREEN; `check-duplication` reports **5 new clone groups** (baseline 99) |
+| Run | Result                      | What happened                                                                                                   |
+| --- | --------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| #1  | FAIL (storage flake)        | Timer-store double-dispatch → root-caused → SQLite pool fix (a.4)                                               |
+| #2  | FAIL (iroh flake)           | Latency P99 bound under load → recalibrated (a.5)                                                               |
+| #3  | EXIT=2 at **art-dupl only** | ALL tests (incl. race), lint, doc-check GREEN; `check-duplication` reports **5 new clone groups** (baseline 99) |
 
 The 5 groups (from direct `#check-duplication` run):
 
@@ -230,4 +230,4 @@ after triage — NOT executed yet (this is where the status request arrived).
 - Environment quirks unchanged: GOTOOLCHAIN=auto prefixes used throughout;
   LSP diagnostics were phantom noise all session (ignored per protocol).
 
-*Arte in Aeternum — report written 12:39 CEST, 2026-08-16.*
+_Arte in Aeternum — report written 12:39 CEST, 2026-08-16._

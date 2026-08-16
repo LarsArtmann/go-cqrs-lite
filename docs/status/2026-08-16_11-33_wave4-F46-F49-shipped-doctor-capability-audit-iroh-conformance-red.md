@@ -46,12 +46,12 @@ only.
 
 Three new bench files, campaign run exclusively, count=10, @16/32 cores:
 
-| Target | Result @16 / @32 | Decision |
-| --- | --- | --- |
-| `workloadMeter` (metaengine) | 4.38n ± 7% / 4.83n ± 5% | shipped 128B pad **holds at scale** (ledger extended) |
+| Target                           | Result @16 / @32                               | Decision                                                                                                                                                                        |
+| -------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `workloadMeter` (metaengine)     | 4.38n ± 7% / 4.83n ± 5%                        | shipped 128B pad **holds at scale** (ledger extended)                                                                                                                           |
 | `multiSeqCounter` (sqliteengine) | 19.7n → **6.9n** / 18.8n → **7.4n** (2.5-2.8x) | **PADDED** — trailing `_ [96]byte` (128B size class, same convention as workloadMeter) applied to production struct; re-benched to confirm; unpadded control bench kept in-tree |
-| worker counters (projectionhost) | 217.8n vs 344.5n @16 | **NO PAD** — padded mirror ~58% *slower* for the single-writer under reader spin; confirms prior analysis |
-| `SSEReplay.seq` (metaengine) | 54.7n vs 61.5n @16, 70.6n vs 49.3n @32 | **NO PAD** — contradictory deltas; `record()` touches `seq` and mutex-guarded fields together |
+| worker counters (projectionhost) | 217.8n vs 344.5n @16                           | **NO PAD** — padded mirror ~58% _slower_ for the single-writer under reader spin; confirms prior analysis                                                                       |
+| `SSEReplay.seq` (metaengine)     | 54.7n vs 61.5n @16, 70.6n vs 49.3n @32         | **NO PAD** — contradictory deltas; `record()` touches `seq` and mutex-guarded fields together                                                                                   |
 
 - Evidence committed: `docs/benchmarks/2026-08-16_false-sharing-contention.md`
   (full tables, commands, decisions recorded either way per protocol).
@@ -114,7 +114,7 @@ Three new bench files, campaign run exclusively, count=10, @16/32 cores:
   module's gate, or it regressed in the formatter commit.
 - Likely root cause (not yet confirmed): `replicatedEngine.Profile()`
   (`engine.go:50`) copies the inner engine's profile wholesale, while
-  `engine_passthrough.go` embeds the `metaengine.Engine` *interface* —
+  `engine_passthrough.go` embeds the `metaengine.Engine` _interface_ —
   structural capabilities (graph dispatch methods) are not promoted through
   an interface embed. Same disease class as ADR-0126 (wrappers silently
   dropping optional capabilities). Attempt to print the memory engine's
@@ -126,8 +126,8 @@ Three new bench files, campaign run exclusively, count=10, @16/32 cores:
 
 - **Final gates**: full `nix run .#verify` end-to-end, `#check-coverage`
   (schema/event coverage re-baseline), `#check-duplication` (decorator/shell
-  + delegate-wrapper similarity may need baselining) — was next in the queue
-  when the status request arrived.
+  - delegate-wrapper similarity may need baselining) — was next in the queue
+    when the status request arrived.
 - Conformance under `#test-integration` so mysql/dgraph/turso rows execute
   against real servers.
 - go-codec: no tag cut (blocked on user question, see g).
@@ -185,6 +185,7 @@ Three new bench files, campaign run exclusively, count=10, @16/32 cores:
 ## f) NEXT — up to 50, priority-ordered
 
 **P0 — unblock the red and the gates:**
+
 1. Finish iroh root-cause: print memory engine profile (throwaway test, not
    heredoc); confirm whether `*memoryEngine` implements `graphBackend`.
 2. Fix iroh honestly: if the wrapper drops structural capabilities, either
@@ -202,53 +203,53 @@ Three new bench files, campaign run exclusively, count=10, @16/32 cores:
 
 **P1 — landing this session's work:**
 8. Commit go-codec changes (their repo has no daemon) — needs user OK on
-   co-existing with the other session's uncommitted edits there.
+co-existing with the other session's uncommitted edits there.
 9. Tag go-codec (sniff) — consumer-visible only after a tag.
 10. Decide the metadata/event tagging wave so replace-directives can stay
-    dead (v4.7.1 path proved local replaces break CI).
+dead (v4.7.1 path proved local replaces break CI).
 11. Verify event/schema standalone builds still pass GOWORK=off AFTER the
-    replace removal (`ceb88738b`) — the F55 breakage may have returned.
+replace removal (`ceb88738b`) — the F55 breakage may have returned.
 12. Run conformance under `#test-integration` (mysql/dgraph/turso rows for
-    real).
+real).
 13. metaengine meta-test: assert `adttest` exports stay delegating-only
-    (prevent re-growth of logic in the wrong package).
+(prevent re-growth of logic in the wrong package).
 
 **P2 — natural follow-ups from this session's findings:**
 14. Generalize `capabilityDoctorSection` violations into a structured
-    diagnostic (not just Doctor strings) for monitoring scrapes.
+diagnostic (not just Doctor strings) for monitoring scrapes.
 15. Consider `CapabilityAudit` in `EXPLAIN` output (plan-time warning banner).
 16. workloadMeter: add @64 core column to the ledger if a bigger machine is
-    ever available (or drop the ambition honestly).
+ever available (or drop the ambition honestly).
 17. sqliteengine: audit OTHER sync.Map-stored small structs for the same
-    allocator-packing false-share (multiSeqCounter was one instance).
+allocator-packing false-share (multiSeqCounter was one instance).
 18. Apply the measure-then-pad evidence-doc protocol as a template in
-    `docs/benchmarks/README.md` so future benches follow it.
+`docs/benchmarks/README.md` so future benches follow it.
 19. bbolt/pebble secondary counters: same adjacency audit as sqliteengine.
 20. `SSEReplay`: if record() contention ever matters, the fix is sharding
-    per-watcher journals, not padding — note in the evidence doc stands.
+per-watcher journals, not padding — note in the evidence doc stands.
 21. iroh `engine_passthrough.go`: full optional-capability audit (Close,
-   Transactional, StreamLogBackend, probers) — graph is probably not the only
-   dropped one.
+Transactional, StreamLogBackend, probers) — graph is probably not the only
+dropped one.
 22. Consider `reflect.TypeFor` caching for adtContracts on the audit hot path
-    if Doctor is called per-request (probably fine: Doctor is diagnostic).
+if Doctor is called per-request (probably fine: Doctor is diagnostic).
 
 **P3 — standing backlog re-surfaced by this session:**
 23. go-codec: fold `BenchmarkUnwrapDecode_FallbackRawCBOR` into the next full
-    baseline refresh.
+baseline refresh.
 24. go-codec: CI matrix run for the sniff tests specifically (both modes
-    locally green; CI should confirm).
+locally green; CI should confirm).
 25. Update `.agents/skills/go-cqrs-lite/references/recipes.md` with the
-    CapabilityAudit/Doctor section (consumer-facing diagnostics recipe).
+CapabilityAudit/Doctor section (consumer-facing diagnostics recipe).
 26. Update skill `modules.md` metaengine row to mention Doctor's Capability
-    section.
+section.
 27. TODO_LIST: add "wrapper capability-preservation audit" as a standing item
-    (ADR-0126 extends to engine wrappers, not just Store wrappers).
+(ADR-0126 extends to engine wrappers, not just Store wrappers).
 28. CHANGELOG: cut the wave-4 Unreleased section into a metaengine/storage
-    module release when tagging question (g) is answered.
+module release when tagging question (g) is answered.
 29. `docs/status/2026-08-16_09-13_*` report: annotate the iroh claim as stale
-    (docs-health ANNOTATE mode).
+(docs-health ANNOTATE mode).
 30. Re-verify `TestEveryGoModDirIsInTestModules` and api-stability meta-tests
-    after the concurrent session's release churn.
+after the concurrent session's release churn.
 
 ---
 

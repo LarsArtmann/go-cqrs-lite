@@ -14,13 +14,13 @@
 
 Each group judged on its merits (consolidate vs. annotate), not blanket-baselined:
 
-| # | Clone group | Verdict | Action |
-|---|-------------|---------|--------|
-| 1 | `metaengine/sse_replay.go` ↔ `sse_replay_falsesharing_bench_test.go` | Intentional | `//art-dupl:accept` — the mirror MUST be isomorphic for a valid A/B false-sharing measurement (F49 measure-then-pad protocol) |
-| 2 | `projectionhost/worker.go` ↔ `worker_falsesharing_bench_test.go` | Intentional | Same — isomorphic mirror is the methodology |
-| 3 | `capability_audit.go:172` ↔ `engine_stats.go:48` (engines-snapshot mutex idiom) | Consolidated | New named helper `Store.enginesSnapshot()` (`metaengine/store.go`) — gives the idiom a name, both call sites now one line |
-| 4 | `event/journal_middleware.go:86` ↔ `store_middleware.go:186` (ReadFrom SeekableJournal delegation) | Consolidated | New shared `seekableReadFrom(ctx, inner, afterEventID, limit, noun)` (`event/store_middleware.go`) — parameterized noun preserves the distinct observable error codes (`event.journal_not_seekable` vs `event.store_not_seekable`); eliminates lockstep-drift risk between the two wrappers |
-| 5 | `catalog/internal/cattest/assertions.go` ↔ `cmd/api-stability/pin_drift_test.go` (test read-file idiom) | Intentional | `//art-dupl:accept` — cross-module `internal/` package cannot be shared, 6-line universal Go testing idiom, zero drift risk |
+| # | Clone group                                                                                             | Verdict      | Action                                                                                                                                                                                                                                                                                      |
+| - | ------------------------------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `metaengine/sse_replay.go` ↔ `sse_replay_falsesharing_bench_test.go`                                    | Intentional  | `//art-dupl:accept` — the mirror MUST be isomorphic for a valid A/B false-sharing measurement (F49 measure-then-pad protocol)                                                                                                                                                               |
+| 2 | `projectionhost/worker.go` ↔ `worker_falsesharing_bench_test.go`                                        | Intentional  | Same — isomorphic mirror is the methodology                                                                                                                                                                                                                                                 |
+| 3 | `capability_audit.go:172` ↔ `engine_stats.go:48` (engines-snapshot mutex idiom)                         | Consolidated | New named helper `Store.enginesSnapshot()` (`metaengine/store.go`) — gives the idiom a name, both call sites now one line                                                                                                                                                                   |
+| 4 | `event/journal_middleware.go:86` ↔ `store_middleware.go:186` (ReadFrom SeekableJournal delegation)      | Consolidated | New shared `seekableReadFrom(ctx, inner, afterEventID, limit, noun)` (`event/store_middleware.go`) — parameterized noun preserves the distinct observable error codes (`event.journal_not_seekable` vs `event.store_not_seekable`); eliminates lockstep-drift risk between the two wrappers |
+| 5 | `catalog/internal/cattest/assertions.go` ↔ `cmd/api-stability/pin_drift_test.go` (test read-file idiom) | Intentional  | `//art-dupl:accept` — cross-module `internal/` package cannot be shared, 6-line universal Go testing idiom, zero drift risk                                                                                                                                                                 |
 
 **Empirical finding encoded into AGENTS.md contract #14**: `//art-dupl:accept`
 suppresses a clone group LIVE — baseline regen is NOT needed for annotated
@@ -52,11 +52,11 @@ workspace gate, which masks it):
 
 ### 3. Gates — all green
 
-| Gate | Result | Evidence |
-|------|--------|----------|
-| `nix run .#check-duplication` | ✅ EXIT=0 | 0 clone groups, baseline 99 untouched |
-| `nix run .#verify` (run #4) | ✅ EXIT=0 | build+vet+test+race+lint 76/76 modules clean+doc-check+api-surface(-race); no FAIL lines in 591-line log (`/tmp/verify-full4.log`) |
-| `nix run .#check-coverage` | ✅ EXIT=0 | all 11 tracked modules within ±2%; wave-4 tests RAISED: id +1.9%, schema +0.9%, metaengine +0.2% |
+| Gate                          | Result    | Evidence                                                                                                                           |
+| ----------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `nix run .#check-duplication` | ✅ EXIT=0 | 0 clone groups, baseline 99 untouched                                                                                              |
+| `nix run .#verify` (run #4)   | ✅ EXIT=0 | build+vet+test+race+lint 76/76 modules clean+doc-check+api-surface(-race); no FAIL lines in 591-line log (`/tmp/verify-full4.log`) |
+| `nix run .#check-coverage`    | ✅ EXIT=0 | all 11 tracked modules within ±2%; wave-4 tests RAISED: id +1.9%, schema +0.9%, metaengine +0.2%                                   |
 
 Per-module verification before the gates: metaengine (full suite), event
 (full suite incl. all Decorate* tests — error-code paths pinned), projectionhost
@@ -76,11 +76,12 @@ api-stability; gofumpt clean.
 
 Shipped: F46 (go-codec sniff, uncommitted external), F47 (benchstat baselines),
 F48 (contention benches), F49 (false-sharing campaign: SSEReplay unpadded-keep
-+ worker unpadded-keep verdicts, benches + mirrors), Doctor capability audit
-section, irohengine graph forwarding + conformance 9/9, SQLite in-memory pool
-pin + RED-proven regression test, bbolt batch-commit + pebble knobs + PG COPY
-(wave-3 spillover), art-dupl triage, projectionhost standalone fix.
-**Every fix root-caused; every gate green.**
+
+- worker unpadded-keep verdicts, benches + mirrors), Doctor capability audit
+  section, irohengine graph forwarding + conformance 9/9, SQLite in-memory pool
+  pin + RED-proven regression test, bbolt batch-commit + pebble knobs + PG COPY
+  (wave-3 spillover), art-dupl triage, projectionhost standalone fix.
+  **Every fix root-caused; every gate green.**
 
 ---
 
