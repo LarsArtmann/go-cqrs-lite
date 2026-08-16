@@ -21,36 +21,36 @@ and is **never** duplicated here.
 > Shipped: workloadMeter cache-line pad (−46..51% contended ops), dialect-aware SQL
 > batching (99→3276 rows on PG/MySQL/DuckDB; PG integration GREEN), pebble+bbolt
 > deserialize JSON round-trip elimination (−46% ns / −53% allocs) — commits
-> `cdc525fd5` + `a298ea388`.
+> `cdc525fd5` + `a298ea388`. Wave 3 closed 2026-08-16 (measured numbers in
+> [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md)).
 
-- [ ] 🔥 **MySQL/MariaDB byte guard for multi-VALUES batches** — the 33x batch
-      size can exceed default `max_allowed_packet` (16MB) with realistic
-      payloads (~5KB × 3276 ≈ 16MB). Add estimated-bytes chunk cap (~8MB),
-      unit tests with oversized payloads, and verify on
-      `#integration-mysql-vm`. MUST land before any tag.
-      _(Effort: M)_
-- [ ] **`MaxParametersForDialect` unit test** — table test SQLite→999 /
-      PG→32767 / unknown→999 (shipped without one).
-      _(Effort: XS)_
-- [ ] **DuckDB verification of larger batch chunks** (view BatchSet now 32767).
-      _(Effort: M)_
+- [x] 🔥 **MySQL/MariaDB byte guard for multi-VALUES batches** — DONE 2026-08-16:
+      `sql.MaxStatementBytes` (8 MiB) + `RowsWithinByteCap` dual-cap in
+      `SharedBatchInsertEvents` and `view.BatchSet`; verified on real MariaDB VM
+      (2000×8 KiB regression test in `stack/mysql`).
+- [x] **`MaxParametersForDialect` unit test** — DONE: table test in
+      `storage/sql/batch_insert_test.go` (SQLite/PG/MySQL/DuckDB/unknown/nil).
+- [x] **DuckDB verification of larger batch chunks** — DONE: full `./storage/...`
+      tree green with CGO + 6×2 MiB view chunk test.
 - [ ] **Session verification gap** — `#verify-fast` + `#check-coverage` never
       run end-to-end after the perf session (component gates only).
       _(Effort: M)_
-- [ ] **Projectionhost live-checkpoint batching** — checkpoint saved per live
-      event (worker_drain.go:205); add opt-in `WithCheckpointInterval`/N-batch
-      flush (default unchanged), tests incl. crash-replay window.
-      _(Effort: M)_
-- [ ] **bbolt opt-in `db.Batch` group commit path** — zero Batch usage
-      repo-wide; document callback-retry caveat.
-      _(Effort: M)_
-- [ ] **PG `COPY FROM` bulk path** for stream-log replay/backfill (pgx via
-      database/sql today; INSERT stays default). Bench COPY vs multi-VALUES.
-      _(Effort: L)_
-- [ ] **Pebble tuning knobs** — expose MemTableSize/Cache/WALBytesPerSync/
-      Compression (options.go sets only bloom + 4 compactions; defaults
-      unchanged).
-      _(Effort: M)_
+- [x] **Projectionhost live-checkpoint batching** — DONE 2026-08-16:
+      `WithCheckpointEvery(n)`/`WithCheckpointInterval(d)` (opt-in, default
+      unchanged), Stop/shutdown flush, crash window ≤ n−1 reprocess; race ×3
+      green. Docs: readmodels.md §2.3.
+- [x] **bbolt opt-in `db.Batch` group commit path** — DONE 2026-08-16:
+      `bbolt.WithBatchCommit()` on `OpenWithOptions`/`NewBackendWith`; all
+      write closures route through `writeTx`; idempotent-under-retry verified
+      (conflicting writer ejected solo, batch-mates land); race-tested.
+- [x] **PG `COPY FROM` bulk path** — DONE 2026-08-16: `StreamAppend` now chunked
+      multi-VALUES (10k rows/stmt) by default; `pgengine.WithCopyAppend(n)`
+      opt-in COPY via `db.Conn().Raw()` → pgx (no second pool); measured 1.41x
+      @10k / 1.49x @100k rows vs batched INSERT; falls back inside RunInTx.
+- [x] **Pebble tuning knobs** — DONE 2026-08-16: `stack/pebble`
+      `WithMemTableSize`/`WithBlockCacheSize`/`WithWALBytesPerSync`/
+      `WithPebbleCompression`; defaults byte-identical (pinned by test); block
+      cache ref released after Open.
 - [ ] **SQLite durability tier when WAL off** — preset.go:243 applies the tier
       PRAGMA only `if cfg.WAL`; non-WAL Relaxed silently FULL-fsyncs
       (bugfix-class).
@@ -79,8 +79,10 @@ and is **never** duplicated here.
       analyzed single-writer: padding would NOT pay — keep as documented
       decision).
       _(Effort: S)_
-- [ ] **Perf ledger** — `docs/BENCHMARKS.md` (path→benchmark→baseline) so wins
-      can't silently regress; benchstat baselines for the 3 new benchmarks.
+- [x] **Perf ledger** — DONE 2026-08-16: [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md)
+      maps every shipped win to its runnable benchmark + baseline + last
+      measured numbers. REMAINS: benchstat baselines for the 3 new benchmarks
+      (kept open below).
       _(Effort: S)_
 - [ ] **Fix ignored `MarshalMetadataJSON` error** —
       system/adapter_event_serial.go:31 `metaJSON, _ :=`.
@@ -482,17 +484,22 @@ and is **never** duplicated here.
 - [ ] **SQL injection surface (remainder)** — allowlists + ORDER BY quoting
       SHIPPED 2026-08-15 (`storage/sql.ValidateIdentifier`/`ValidateOperator`,
       `BuildWhereClauseChecked`, view query validation — see CHANGELOG).
-      Remaining: stop leaking DSNs in errors (`tursoengine/register.go:69`);
-      fuzz `ValidateIdentifier` against sqlite/pg/mysql metacharacter sets.
+      tursoengine DSN-redaction SHIPPED 2026-08-16 (`redactDSN` on every open
+      error, `tursoengine/register.go`). Remaining: fuzz `ValidateIdentifier`
+      against sqlite/pg/mysql metacharacter sets.
       _(Effort: S)_
-- [ ] **Resource leaks** — `sqliteengine`/`tursoengine` self-opened
-      `*sql.DB` `Close()` leak.
-      _(Effort: S)_
-- [ ] **Core defects** — singleflight leader-ctx capture (`decider/load.go`);
-      per-handler command middleware (`memory_bus.go`); query audit fake
-      RequestIDs (`audit.go`); `Pagination.Offset()` underflow; `kv.Cache`
-      shared `*T`; TypedQueryStore hardcoded JSON decode (`query/typed.go`);
-      ghost `event.ErrBinaryNotFound` (document or delete).
+- [x] **Resource leaks** — `sqliteengine`/`tursoengine` self-opened
+      `*sql.DB` `Close()` leak. DONE 2026-08-16: `sqliteengine.OwnDB(eng)` marks
+      self-opened DBs as engine-owned (pinned by `close_ownership_test.go`);
+      both `NewSQLiteEngineFromDSN` and `tursoengine.New` use it.
+- [x] **Core defects** — DONE 2026-08-16 (commit `06e046c2f`, each pinned by a
+      dedicated regression test): singleflight leader-ctx capture
+      (`decider/load.go`, `context.WithoutCancel`); per-handler command
+      middleware (`command/memory_bus_test.go`); query audit fake RequestIDs
+      (`query/audit_test.go`); `Pagination.Offset()` underflow
+           (`query/pagination_test.go`). STILL OPEN: `kv.Cache` shared `*T`;
+      TypedQueryStore hardcoded JSON decode (`query/typed.go`); ghost
+      `event.ErrBinaryNotFound` (document or delete).
       _(Effort: M)_
 - [ ] **Planner cost model** — graph cost `branching^depth`; volume without
       silent default; filter selectivity.

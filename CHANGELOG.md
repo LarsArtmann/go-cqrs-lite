@@ -21,6 +21,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — Wave-3 IO wins: bbolt group commit, PG COPY, pebble operator knobs, checkpoint batching — 2026-08-16
+
+- **bbolt opt-in group commit**: `bbolt.WithBatchCommit()` on
+  `OpenWithOptions`/`NewBackendWith` routes all Backend store writes through
+  `db.Batch` — concurrent writers share one transaction and one fsync per
+  group. Write closures are transaction-pure (idempotent under bbolt's
+  batch-mate retry), and version conflicts still surface correctly (the
+  failing writer re-runs solo). Default (`db.Update` per call) unchanged;
+  journal verified byte-identical under 8 concurrent writers (race-tested).
+- **pgengine bulk stream append**: `StreamAppend`/`StreamAppendExpected` now
+  insert as chunked multi-VALUES statements (10k rows/statement) instead of
+  one INSERT per value; new `WithCopyAppend(minValues)` option routes large
+  appends through Postgres `COPY FROM` on a raw pgx connection — measured
+  1.41x @10k rows (39.3→27.9 ms) and 1.49x @100k (368→248 ms) vs the new
+  batched default. Falls back to INSERTs inside `RunInTx` (COPY cannot join
+  the transaction) and on non-pgx drivers.
+- **Pebble operator knobs on the stack preset**: `stack/pebble`
+  `WithMemTableSize`, `WithBlockCacheSize`, `WithWALBytesPerSync`,
+  `WithPebbleCompression` — scalar deploy-time tuning without hand-building
+  `*pebble.Options`. Defaults byte-identical (pinned by
+  `TestKnobs_DefaultsByteIdentical`); the block cache's reference is
+  released after Open (no leak on replacement).
+- **projectionhost checkpoint batching** (see Added section below) and
+  **`docs/BENCHMARKS.md`** — a perf ledger mapping every shipped win to its
+  runnable benchmark, baseline, and last measured numbers.
+
 ### Fixed — storage: journal `ReadFrom` keyset pagination replaces O(N²) self-JOIN cursor — 2026-08-16
 
 - **`sql.JournalReader.ReadFrom` and `eventstore.ReadStreamFrom` now paginate

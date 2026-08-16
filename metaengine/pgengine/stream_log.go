@@ -12,19 +12,15 @@ import (
 // --- StreamLogBackend implementation ---
 
 func (e *pgEngine) StreamAppend(ctx context.Context, col, sid string, values []any) error {
-	return e.inTx(ctx, func(conn metaengine.SQLExec) error {
-		for _, v := range values {
-			encoded := metaengine.EncodeStreamValue(v)
-			if _, err := conn.ExecContext(
-				ctx,
-				`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
-				col, sid, encoded,
-			); err != nil {
-				return fmt.Errorf("pgengine.StreamAppend: %w", err)
-			}
+	if e.copyMin > 0 && len(values) >= e.copyMin && e.activeTx.Load() == nil {
+		if err := e.copyAppend(ctx, col, sid, values); !errors.Is(err, errCopyUnavailable) {
+			return err
 		}
+		// COPY unavailable (non-pgx driver): fall through to INSERTs.
+	}
 
-		return nil
+	return e.inTx(ctx, func(conn metaengine.SQLExec) error {
+		return streamInsertBatch(ctx, conn, col, sid, values)
 	})
 }
 
@@ -55,18 +51,7 @@ func (e *pgEngine) StreamAppendExpected(
 			return metaengine.ErrVersionConflict
 		}
 
-		for _, v := range values {
-			encoded := metaengine.EncodeStreamValue(v)
-			if _, err := conn.ExecContext(
-				ctx,
-				`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
-				col, sid, encoded,
-			); err != nil {
-				return fmt.Errorf("pgengine.StreamAppendExpected insert: %w", err)
-			}
-		}
-
-		return nil
+		return streamInsertBatch(ctx, conn, col, sid, values)
 	})
 }
 

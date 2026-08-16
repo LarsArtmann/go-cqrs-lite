@@ -67,7 +67,7 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 		select {
 		case <-deadline.C:
 			//cqrs-lint:ignore(C023) library code or intentional pattern
-			_ = host.Stop()
+			_ = host.Stop() //nolint:contextcheck // Host.Stop is ctx-free by API; flush is best-effort
 
 			r.collectProjectionStats(host)
 
@@ -75,7 +75,7 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 		case <-ticker.C:
 		case <-ctx.Done():
 			//cqrs-lint:ignore(C023) library code or intentional pattern
-			_ = host.Stop()
+			_ = host.Stop() //nolint:contextcheck // Host.Stop is ctx-free by API; flush is best-effort
 
 			r.collectProjectionStats(host)
 
@@ -84,7 +84,7 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 	}
 
 	//cqrs-lint:ignore(C023) library code or intentional pattern
-	_ = host.Stop()
+	_ = host.Stop() //nolint:contextcheck // Host.Stop is ctx-free by API; flush is best-effort
 
 	r.collectProjectionStats(host)
 

@@ -23,6 +23,27 @@ const (
 type storeBase struct {
 	db     *bolt.DB
 	logger *slog.Logger
+	batch  bool
+}
+
+// writeTx runs fn in a write transaction: db.Batch (group commit across
+// concurrent writers, one fsync per group) when batch mode is enabled via
+// [WithBatchCommit], db.Update (the default) otherwise. fn must be
+// idempotent: bbolt re-invokes it when a combined batch-mate fails and the
+// transaction is retried — all closures in this package only mutate the
+// transaction, never external state.
+func (s *storeBase) writeTx(fn func(*bolt.Tx) error) error {
+	if s.batch {
+		return s.db.Batch(fn)
+	}
+
+	return s.db.Update(fn)
+}
+
+// enableBatchCommit switches this store's write transactions to group commit.
+// Unexported: enabled via [WithBatchCommit] on the Backend constructors.
+func (s *storeBase) enableBatchCommit() {
+	s.batch = true
 }
 
 // createBuckets creates all CQRS buckets inside a write transaction.

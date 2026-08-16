@@ -37,7 +37,7 @@ func (s *QueryStore) SaveQuery(ctx context.Context, q *query.PersistedQuery) err
 
 	key := queryKey(q.ID())
 
-	return recordErr(span, wrapBucketErr(s.db.Update(func(tx *bolt.Tx) error {
+	return recordErr(span, wrapBucketErr(s.writeTx(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketQueries))
 		if bucket.Get(key) != nil {
 			return query.ErrDuplicateQuery

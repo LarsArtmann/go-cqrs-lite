@@ -17,7 +17,22 @@ import (
 // bucket. The adapter does NOT own the *bbolt.DB — Close is a no-op.
 type KVAdapter struct {
 	db     *bolt.DB
+	batch  bool
 	closed atomic.Bool
+}
+
+// writeTx mirrors [storeBase.writeTx]: group commit when batch mode is
+// enabled via [WithBatchCommit], db.Update otherwise.
+func (a *KVAdapter) writeTx(fn func(*bolt.Tx) error) error {
+	if a.batch {
+		return a.db.Batch(fn)
+	}
+
+	return a.db.Update(fn)
+}
+
+func (a *KVAdapter) enableBatchCommit() {
+	a.batch = true
 }
 
 func NewKVStore(database *bolt.DB) (kv.Store, error) {
@@ -86,7 +101,7 @@ func (a *KVAdapter) Set(_ context.Context, key, value []byte) error {
 		return err
 	}
 
-	return a.db.Update(func(tx *bolt.Tx) error {
+	return a.writeTx(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketKV))
 		if bucket == nil {
 			return errorfamily.NewInfrastructure("bbolt.bucket_missing", "kv bucket not found")
@@ -102,7 +117,7 @@ func (a *KVAdapter) Delete(_ context.Context, key []byte) error {
 		return err
 	}
 
-	return a.db.Update(func(tx *bolt.Tx) error {
+	return a.writeTx(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketKV))
 		if bucket == nil {
 			return nil
@@ -118,7 +133,7 @@ func (a *KVAdapter) Batch(_ context.Context) (kv.Batch, error) {
 		return nil, err
 	}
 
-	return &bboltBatch{db: a.db}, nil
+	return &bboltBatch{db: a.db, batch: a.batch}, nil
 }
 
 func (a *KVAdapter) NewIterator(_ context.Context, prefix []byte) (kv.Iterator, error) {
@@ -170,7 +185,7 @@ func (a *KVAdapter) SetIfAbsent(_ context.Context, key, value []byte) (bool, err
 
 	var inserted bool
 
-	err := a.db.Update(func(tx *bolt.Tx) error {
+	err := a.writeTx(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketKV))
 		if bucket == nil {
 			return errorfamily.NewInfrastructure("bbolt.bucket_missing", "kv bucket not found")

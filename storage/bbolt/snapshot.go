@@ -39,7 +39,7 @@ func (s *SnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) error 
 
 	key := snapshotKey(snap.StreamType, snap.StreamID)
 
-	err := s.db.Update(func(tx *bolt.Tx) error {
+	err := s.writeTx(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketSnapshots))
 		if bucket == nil {
 			return errorfamily.NewInfrastructure("bbolt.bucket_missing",
@@ -155,7 +155,7 @@ func (s *SnapshotStore) Delete(ctx context.Context, ref id.StreamRef) error {
 
 	key := snapshotKey(ref.Type, ref.ID)
 
-	err := s.db.Update(func(tx *bolt.Tx) error {
+	err := s.writeTx(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketSnapshots))
 		if bucket == nil {
 			return nil

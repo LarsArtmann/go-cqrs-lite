@@ -82,7 +82,7 @@ func (s *EventStore) Save(
 		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, expectedVersion.Int()))
 	defer span.End()
 
-	err := s.db.Update(func(tx *bolt.Tx) error {
+	err := s.writeTx(func(tx *bolt.Tx) error {
 		currentVersion, err := s.currentVersion(tx, ref)
 		if err != nil {
 			return err
@@ -149,7 +149,7 @@ func (s *EventStore) AppendBatch(
 		cqrsotel.AttrInt("event.count", len(events)))
 	defer span.End()
 
-	err := s.db.Update(func(tx *bolt.Tx) error {
+	err := s.writeTx(func(tx *bolt.Tx) error {
 		eventsBucket := tx.Bucket([]byte(bucketEvents))
 		journalBucket := tx.Bucket([]byte(bucketJournal))
 

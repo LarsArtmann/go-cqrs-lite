@@ -41,8 +41,7 @@ type hostOptions struct {
 	flightRecorder        *flightrecorder.Recorder
 	flightRecorderTrigger flightrecorder.TriggerFunc
 
-	// cpEvery/cpInterval batch LIVE-phase checkpoint saves (see
-	// WithCheckpointEvery / WithCheckpointInterval). Zero values keep the
+	// cpEvery/cpInterval batch LIVE-phase checkpoint saves (s Zero values keep the
 	// default save-after-every-event behavior.
 	cpEvery    int
 	cpInterval time.Duration

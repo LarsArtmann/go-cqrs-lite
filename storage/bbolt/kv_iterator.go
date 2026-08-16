@@ -68,8 +68,17 @@ func (*emptyIterator) Error() error  { return nil }
 func (*emptyIterator) Close() error  { return nil }
 
 type bboltBatch struct {
-	db  *bolt.DB
-	ops []batchOp
+	db    *bolt.DB
+	batch bool
+	ops   []batchOp
+}
+
+func (b *bboltBatch) writeTx(fn func(*bolt.Tx) error) error {
+	if b.batch {
+		return b.db.Batch(fn)
+	}
+
+	return b.db.Update(fn)
 }
 
 type batchOp struct {
@@ -89,7 +98,7 @@ func (b *bboltBatch) Delete(_ context.Context, key []byte) error {
 }
 
 func (b *bboltBatch) Commit(_ context.Context) error {
-	return b.db.Update(func(tx *bolt.Tx) error {
+	return b.writeTx(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketKV))
 		if bucket == nil {
 			return errorfamily.NewInfrastructure(

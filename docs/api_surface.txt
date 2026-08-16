@@ -2236,6 +2236,7 @@ metaengine/pgengine/const PG_NsPerOp
 metaengine/pgengine/const PG_NsPerRead
 metaengine/pgengine/func New
 metaengine/pgengine/func NewFromDB
+metaengine/pgengine/func WithCopyAppend
 metaengine/pgengine/method Aggregate
 metaengine/pgengine/method ApplyLayout
 metaengine/pgengine/method Close
@@ -2265,6 +2266,7 @@ metaengine/pgengine/method StreamAppend
 metaengine/pgengine/method StreamAppendExpected
 metaengine/pgengine/method StreamRead
 metaengine/pgengine/method StreamVersion
+metaengine/pgengine/type Option
 metaengine/projectionadapter/func New
 metaengine/projectionadapter/func NewTypeDecoder
 metaengine/projectionadapter/func NewWithDecoder
@@ -3098,9 +3100,13 @@ stack/mysql/func WithStack
 stack/mysql/type Option
 stack/mysql/var ErrNoDatabase
 stack/pebble/func New
+stack/pebble/func WithBlockCacheSize
 stack/pebble/func WithDurability
 stack/pebble/func WithLogger
+stack/pebble/func WithMemTableSize
+stack/pebble/func WithPebbleCompression
 stack/pebble/func WithPebbleOptions
+stack/pebble/func WithWALBytesPerSync
 stack/pebble/method Checkpoint
 stack/pebble/method Flush
 stack/pebble/method GracefulClose
@@ -3160,6 +3166,7 @@ storage/backuptest/func RunIncrementalCheckpoints
 storage/backuptest/interface Backend
 storage/backuptest/struct Factory
 storage/bbolt/func NewBackend
+storage/bbolt/func NewBackendWith
 storage/bbolt/func NewCheckpointStore
 storage/bbolt/func NewCommandStore
 storage/bbolt/func NewKVStore
@@ -3168,6 +3175,8 @@ storage/bbolt/func NewSnapshotStore
 storage/bbolt/func NewStore
 storage/bbolt/func Open
 storage/bbolt/func OpenWith
+storage/bbolt/func OpenWithOptions
+storage/bbolt/func WithBatchCommit
 storage/bbolt/method AppendBatch
 storage/bbolt/method AppendBatch
 storage/bbolt/method Batch
@@ -3243,6 +3252,7 @@ storage/bbolt/struct EventStore
 storage/bbolt/struct KVAdapter
 storage/bbolt/struct QueryStore
 storage/bbolt/struct SnapshotStore
+storage/bbolt/type BackendOption
 storage/bbolt/var ErrNilDatabase
 storage/bbolt/var ErrStreamIDMismatch
 storage/bbolt/var ErrStreamTypeMismatch

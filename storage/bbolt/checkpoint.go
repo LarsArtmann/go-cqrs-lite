@@ -50,7 +50,7 @@ func (s *CheckpointStore) Save(
 			"serialize checkpoint for projection "+projectionName)
 	}
 
-	return recordErr(span, s.db.Update(func(tx *bolt.Tx) error {
+	return recordErr(span, s.writeTx(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketCheckpoints))
 		if bucket == nil {
 			return errorfamily.NewInfrastructure("bbolt.bucket_missing",

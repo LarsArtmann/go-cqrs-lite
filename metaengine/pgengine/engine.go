@@ -71,18 +71,22 @@ type pgEngine struct {
 	done           bool
 	layoutMu       sync.Mutex
 	appliedLayouts map[string]bool
+	copyMin        int // WithCopyAppend: bulk StreamAppend threshold; 0 = off
 }
 
 // New creates a Postgres-backed metaengine Engine from a DSN.
 // The DSN must be a valid Postgres connection string
 // (e.g. "postgres://user:pass@host:5432/db?sslmode=disable").
-func New(dsn string) (metaengine.Engine, error) {
+func New(dsn string, opts ...Option) (metaengine.Engine, error) {
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.New: open: %w", err)
 	}
 
 	eng := &pgEngine{db: db}
+	for _, opt := range opts {
+		opt(eng)
+	}
 
 	if err := eng.init(); err != nil {
 		_ = db.Close()

@@ -40,7 +40,7 @@ func ResolveCursorTimestamp(
 
 	var ts any
 
-	err = db.QueryRowContext(ctx, query, id).Scan(&ts)
+	err := db.QueryRowContext(ctx, query, id).Scan(&ts)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, false, nil
 	}

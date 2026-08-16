@@ -13,6 +13,31 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
+// BackendOption configures bbolt Backend behavior.
+type BackendOption func(*backendOptions)
+
+type backendOptions struct {
+	batchCommit bool
+}
+
+// WithBatchCommit routes all Backend store writes (events, snapshots,
+// checkpoints, KV read models, commands, queries) through bbolt group commit
+// (db.Batch): concurrent writers are combined into a single write
+// transaction, paying one fsync per group instead of one per call. Only
+// worthwhile with concurrent writers — a lone caller gains nothing.
+//
+// The write closures may be re-invoked when a combined batch-mate fails
+// (bbolt re-runs the surviving group in a fresh transaction and the failed
+// caller solo); every closure in this package only mutates its transaction,
+// so re-runs are idempotent. Optimistic-concurrency conflicts (event version
+// mismatches) are still detected: the failing writer re-runs solo against
+// committed state. Default (no option): db.Update per call, unchanged.
+func WithBatchCommit() BackendOption {
+	return func(o *backendOptions) {
+		o.batchCommit = true
+	}
+}
+
 // Backend is a facade providing access to all bbolt-backed stores sharing a
 // single *bbolt.DB via disjoint buckets. The Backend OWNS the *bbolt.DB.
 type Backend struct {
@@ -52,12 +77,50 @@ func OpenWith(path string, opts *bolt.Options, logger *slog.Logger) (*Backend, e
 	return newBackend(db, logger)
 }
 
+// OpenWithOptions creates a new Backend with custom bbolt.Options and
+// Backend options (e.g. [WithBatchCommit]). The Backend owns the *bbolt.DB.
+func OpenWithOptions(
+	path string,
+	boltOpts *bolt.Options,
+	logger *slog.Logger,
+	opts ...BackendOption,
+) (*Backend, error) {
+	if logger == nil {
+		logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
+	}
+
+	if boltOpts == nil {
+		boltOpts = &bolt.Options{Timeout: 5 * time.Second}
+	}
+
+	db, err := bolt.Open(path, 0o600, boltOpts)
+	if err != nil {
+		return nil, errorfamily.WrapInfrastructure(err, "bbolt.open_backend",
+			"open bbolt database at "+path)
+	}
+
+	return newBackend(db, logger, opts...)
+}
+
 // NewBackend wraps an existing *bbolt.DB. The Backend does NOT own the DB.
 func NewBackend(database *bolt.DB, logger *slog.Logger) (*Backend, error) {
 	return newBackend(database, logger)
 }
 
-func newBackend(database *bolt.DB, logger *slog.Logger) (*Backend, error) {
+// NewBackendWith is [NewBackend] with Backend options (e.g. [WithBatchCommit]).
+func NewBackendWith(
+	database *bolt.DB,
+	logger *slog.Logger,
+	opts ...BackendOption,
+) (*Backend, error) {
+	return newBackend(database, logger, opts...)
+}
+
+func newBackend(database *bolt.DB, logger *slog.Logger, opts ...BackendOption) (*Backend, error) {
+	cfg := backendOptions{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	if err := createBuckets(database); err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "bbolt.create_buckets",
 			"create CQRS buckets")
@@ -91,6 +154,17 @@ func newBackend(database *bolt.DB, logger *slog.Logger) (*Backend, error) {
 	queries, err := NewQueryStore(database, logger)
 	if err != nil {
 		return nil, err
+	}
+
+	if cfg.batchCommit {
+		events.enableBatchCommit()
+		snap.enableBatchCommit()
+		checkpt.enableBatchCommit()
+		if adapter, ok := readMods.(*KVAdapter); ok {
+			adapter.enableBatchCommit()
+		}
+		cmds.enableBatchCommit()
+		queries.enableBatchCommit()
 	}
 
 	return &Backend{

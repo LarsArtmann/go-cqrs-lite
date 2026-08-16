@@ -20,6 +20,7 @@ type config struct {
 	pebbleOpts *pebble.Options
 	logger     *slog.Logger
 	durability stack.DurabilityTier
+	blockCache *pebble.Cache // created by WithBlockCacheSize; Unref'd after Open
 }
 
 func defaultConfig() config {
@@ -49,7 +50,67 @@ func WithDurability(tier stack.DurabilityTier) Option {
 // on point reads, MaxConcurrentCompactions=4 for write throughput). Callers
 // who need different settings pass a fully constructed *pebble.Options.
 func WithPebbleOptions(opts *pebble.Options) Option {
-	return func(c *config) { c.pebbleOpts = opts }
+	return func(c *config) {
+		if opts != nil {
+			c.pebbleOpts = opts
+		}
+	}
+}
+
+// WithMemTableSize sets the Pebble write-buffer (memtable) size. Larger
+// memtables batch more writes in memory before flushing, trading RAM for
+// write throughput. Zero or negative leaves the pebble default.
+//
+// Operator knob for the deploy-time vision: read it from config/env and pass
+// it here instead of hand-building *pebble.Options.
+func WithMemTableSize(bytes int64) Option {
+	return func(c *config) {
+		if bytes > 0 {
+			c.pebbleOpts.MemTableSize = uint64(bytes)
+		}
+	}
+}
+
+// WithBlockCacheSize sets the shared block-cache size (uncompressed sstable
+// blocks). Bigger caches speed repeated reads. Zero or negative leaves the
+// pebble default. The cache created here is released after Open; the database
+// keeps its own reference for its lifetime.
+func WithBlockCacheSize(bytes int64) Option {
+	return func(c *config) {
+		if bytes <= 0 {
+			return
+		}
+
+		if c.blockCache != nil {
+			c.blockCache.Unref() // replaced by a later WithBlockCacheSize
+		}
+
+		c.blockCache = pebble.NewCache(bytes)
+		c.pebbleOpts.Cache = c.blockCache
+	}
+}
+
+// WithWALBytesPerSync batches write-ahead-log fsyncs by bytes written
+// (background sync every N bytes instead of relying on Sync writes alone).
+// Zero or negative leaves the pebble default (0 = no background syncing).
+func WithWALBytesPerSync(bytes int64) Option {
+	return func(c *config) {
+		if bytes > 0 {
+			c.pebbleOpts.WALBytesPerSync = int(bytes)
+		}
+	}
+}
+
+// WithPebbleCompression sets sstable block compression for every level
+// (e.g. pebble.NoCompression, pebble.SnappyCompression, pebble.ZstdCompression).
+// Compression trades CPU for disk space; event payloads that are already
+// compressed (encrypted/CBOR) may prefer NoCompression.
+func WithPebbleCompression(compression pebble.Compression) Option {
+	return func(c *config) {
+		for i := range c.pebbleOpts.Levels {
+			c.pebbleOpts.Levels[i].Compression = compression
+		}
+	}
 }
 
 // WithLogger sets the slog.Logger used by PebbleDB stores. Defaults to slog.Default().
@@ -126,8 +187,17 @@ func New(dir string, opts ...Option) (*Bundle, error) {
 
 	backend, err := cqrspebble.Open(dir, cfg.pebbleOpts, cfg.logger)
 	if err != nil {
+		if cfg.blockCache != nil {
+			cfg.blockCache.Unref()
+		}
+
 		return nil, errorfamily.WrapInfrastructure(err, "pebble_preset.open_backend",
 			"open pebble backend")
+	}
+
+	// The DB holds its own cache reference; drop ours.
+	if cfg.blockCache != nil {
+		cfg.blockCache.Unref()
 	}
 
 	b, err := stack.New(

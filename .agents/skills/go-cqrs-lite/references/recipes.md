@@ -38,6 +38,22 @@ store := kv.NewTypedStore[TodoView, TodoID](b.ReadModels)
 // Projections use b.Journal + b.Subscriber + b.CheckpointStore
 ```
 
+**Pebble deploy-time tuning** — operators size the storage engine without
+hand-building `*pebble.Options`:
+
+```go
+b, err := cqrspebble.New("/var/lib/myapp/pebble",
+    cqrspebble.WithMemTableSize(64<<20),        // write buffer
+    cqrspebble.WithBlockCacheSize(256<<20),     // read cache
+    cqrspebble.WithWALBytesPerSync(512<<10),    // batch WAL fsyncs
+    cqrspebble.WithPebbleCompression(pebble.ZstdCompression),
+)
+```
+
+Defaults are unchanged when no knobs are passed (bloom filters, 4 concurrent
+compactions). `WithPebbleOptions(*pebble.Options)` remains the full escape
+hatch; scalar knobs compose on top of it.
+
 #### Production options (SQLite / Turso)
 
 ```go

@@ -56,7 +56,7 @@ func (s *CommandStore) Save(
 	streamKey := commandStreamKey(ref, cmdID)
 	journalKey := commandJournalKey(cmdID)
 
-	return recordErr(span, s.db.Update(func(tx *bolt.Tx) error {
+	return recordErr(span, s.writeTx(func(tx *bolt.Tx) error {
 		jBucket := tx.Bucket([]byte(bucketCmdJournal))
 		if jBucket.Get(journalKey) != nil {
 			return command.ErrDuplicateCommand
@@ -90,7 +90,7 @@ func (s *CommandStore) AppendBatch(
 		cqrsotel.AttrInt("command.count", len(cmds)))
 	defer span.End()
 
-	return recordErr(span, s.db.Update(func(tx *bolt.Tx) error {
+	return recordErr(span, s.writeTx(func(tx *bolt.Tx) error {
 		sBucket := tx.Bucket([]byte(bucketCommands))
 		jBucket := tx.Bucket([]byte(bucketCmdJournal))
 
