@@ -6,6 +6,7 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// art-dupl:accept database/sql-style driver self-registration: init() must live in each dep-isolated engine module
 func init() {
 	metaengine.RegisterDriver(
 		"postgres",
