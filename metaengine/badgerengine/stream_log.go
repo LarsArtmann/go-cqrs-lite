@@ -11,6 +11,7 @@ import (
 	"github.com/dgraph-io/badger/v4"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
 
 // --- StreamLogBackend implementation ---
@@ -205,6 +206,114 @@ func (e *badgerEngine) JournalReadFrom(
 
 	if result == nil {
 		result = []any{}
+	}
+
+	return result, nil
+}
+
+// JournalReadAllWithSeq returns every journal entry with its resume token
+// (the per-collection journal seq embedded in the journal key). Implements
+// metaengine.SeqSeekableStreamLog.
+func (e *badgerEngine) JournalReadAllWithSeq(
+	_ context.Context,
+	col string,
+) ([]metaengine.StreamLogEntry, error) {
+	prefix := journalPrefix(col)
+
+	var result []metaengine.StreamLogEntry
+
+	err := e.db.View(func(txn *badger.Txn) error {
+		iter := txn.NewIterator(badger.IteratorOptions{Prefix: prefix})
+		defer iter.Close()
+
+		for iter.Rewind(); iter.Valid(); iter.Next() {
+			if seq, ok := keycodec.JournalSeq(iter.Item().Key()); ok {
+				val, err := iter.Item().ValueCopy(nil)
+				if err != nil {
+					return err
+				}
+
+				result = append(result, metaengine.StreamLogEntry{
+					Seq:   seq,
+					Value: extractJournalValue(val),
+				})
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if result == nil {
+		result = []metaengine.StreamLogEntry{}
+	}
+
+	return result, nil
+}
+
+// JournalReadFromSeq returns up to limit entries with Seq > afterSeq by
+// seeking journalKey(col, afterSeq+1) — the same O(log n) Seek
+// JournalReadFrom performs. Implements metaengine.SeqSeekableStreamLog. The
+// token is read back out of the journal key, so callers resume on true
+// engine seqs.
+func (e *badgerEngine) JournalReadFromSeq(
+	_ context.Context,
+	col string,
+	afterSeq int64,
+	limit int,
+) ([]metaengine.StreamLogEntry, error) {
+	prefix := journalPrefix(col)
+
+	// Start from afterSeq+1 (exclusive lower bound).
+	startKey := journalKey(col, afterSeq+1)
+
+	var result []metaengine.StreamLogEntry
+
+	count := 0
+
+	err := e.db.View(func(txn *badger.Txn) error {
+		opts := badger.IteratorOptions{}
+
+		iter := txn.NewIterator(opts)
+		defer iter.Close()
+
+		for iter.Seek(startKey); iter.Valid(); iter.Next() {
+			item := iter.Item()
+
+			// Check prefix match.
+			if !bytes.HasPrefix(item.Key(), prefix) {
+				break
+			}
+
+			if limit > 0 && count >= limit {
+				break
+			}
+
+			if seq, ok := keycodec.JournalSeq(item.Key()); ok {
+				val, err := item.ValueCopy(nil)
+				if err != nil {
+					return err
+				}
+
+				result = append(result, metaengine.StreamLogEntry{
+					Seq:   seq,
+					Value: extractJournalValue(val),
+				})
+
+				count++
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if result == nil {
+		result = []metaengine.StreamLogEntry{}
 	}
 
 	return result, nil

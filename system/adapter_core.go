@@ -128,28 +128,52 @@ func (c *AdapterCore[T]) LoadStream(ctx context.Context, streamKey string) ([]T,
 
 // ReadFromAfter returns up to limit journal items after the item whose IDOf
 // matches afterID. An empty afterID reads from the start of the journal.
-// The cursor is resolved by scanning the journal once; adapters that need
-// cheaper resolution (EventAdapter's sequence cache) implement their own.
+//
+// On backends implementing SeqSeekableStreamLog the cursor is resolved by
+// paging through token-carrying reads (bounded memory — the whole journal is
+// never materialized), then the read itself is an O(log n) seq-token index
+// seek. Otherwise the cursor is resolved by scanning the journal once and
+// the read uses position-based JournalReadFrom.
 func (c *AdapterCore[T]) ReadFromAfter(
 	ctx context.Context,
 	afterID string,
 	limit int,
 ) ([]T, error) {
-	afterSeq := int64(0)
+	seeker, canSeek := c.Backend.(metaengine.SeqSeekableStreamLog)
+
+	var afterSeq int64
 
 	if afterID != "" {
-		all, err := c.ReadAll(ctx)
+		if canSeek {
+			seq, err := c.resolveSeqToken(ctx, seeker, afterID)
+			if err != nil {
+				return nil, fmt.Errorf("%s adapter: read from: %w", c.Noun, err)
+			}
+
+			afterSeq = seq
+		} else {
+			all, err := c.ReadAll(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("%s adapter: read from: %w", c.Noun, err)
+			}
+
+			for i, item := range all {
+				if c.IDOf(item) == afterID {
+					afterSeq = int64(i + 1)
+
+					break
+				}
+			}
+		}
+	}
+
+	if canSeek {
+		entries, err := seeker.JournalReadFromSeq(ctx, c.Collection, afterSeq, limit)
 		if err != nil {
 			return nil, fmt.Errorf("%s adapter: read from: %w", c.Noun, err)
 		}
 
-		for i, item := range all {
-			if c.IDOf(item) == afterID {
-				afterSeq = int64(i + 1)
-
-				break
-			}
-		}
+		return c.entriesToItems(entries)
 	}
 
 	values, err := c.Backend.JournalReadFrom(ctx, c.Collection, afterSeq, limit)
@@ -158,4 +182,60 @@ func (c *AdapterCore[T]) ReadFromAfter(
 	}
 
 	return c.FromAny(values)
+}
+
+// resolveSeqToken pages through token-carrying journal reads to find the seq
+// of the item whose IDOf matches afterID. Memory is bounded by the page size
+// instead of the journal length. An unknown ID resolves to 0 (read from the
+// start), matching the position-based resolution above.
+func (c *AdapterCore[T]) resolveSeqToken(
+	ctx context.Context,
+	seeker metaengine.SeqSeekableStreamLog,
+	afterID string,
+) (int64, error) {
+	const page = 512
+
+	for cursor := int64(0); ; {
+		entries, err := seeker.JournalReadFromSeq(ctx, c.Collection, cursor, page)
+		if err != nil {
+			return 0, err //nolint:wrapcheck // wrapped by caller
+		}
+
+		if len(entries) == 0 {
+			return 0, nil
+		}
+
+		cursor = entries[len(entries)-1].Seq
+
+		for _, entry := range entries {
+			item, err := c.decodeValue(entry.Value)
+			if err != nil {
+				return 0, err
+			}
+
+			if c.IDOf(item) == afterID {
+				return entry.Seq, nil
+			}
+		}
+
+		if len(entries) < page {
+			return 0, nil
+		}
+	}
+}
+
+// entriesToItems decodes token-carrying journal entries into items.
+func (c *AdapterCore[T]) entriesToItems(entries []metaengine.StreamLogEntry) ([]T, error) {
+	result := make([]T, 0, len(entries))
+
+	for _, entry := range entries {
+		item, err := c.decodeValue(entry.Value)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, item)
+	}
+
+	return result, nil
 }

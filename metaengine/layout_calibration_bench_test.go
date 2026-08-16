@@ -13,8 +13,17 @@ import (
 // This file calibrates the layout-scoring cost multipliers in
 // layout_scoring.go by measuring embed-vs-normalize read/write patterns on the
 // memory engine (LayoutKV). The measured ratios replace placeholder constants.
+// Disk engines (LayoutLSM) are calibrated separately by
+// BenchmarkDiskLayoutCalibration_* in metaengine/bench.
 //
-// Run: go test -run='^$' -bench='BenchmarkLayoutCalibration' -benchtime=1s ./...
+// All write benches are SIZE-STABLE: the embed mutation REPLACES the child
+// collection with a fixed-size slice (never appends), so the value shape is
+// constant and per-op cost cannot drift as the run progresses. The pre-
+// 2026-08-15 shape appended one child per iteration and grew values
+// unboundedly mid-run.
+//
+// Run: GOWORK=off go test -tags "goexperiment.jsonv2" -run '^$' \
+//	-bench 'BenchmarkLayoutCalibration' -benchtime 2s .
 
 // calibOrder simulates an aggregate root with embedded child items.
 // This is the "Embed" layout: the whole aggregate is one value.
@@ -82,8 +91,19 @@ func BenchmarkLayoutCalibration_EmbedRead(b *testing.B) {
 	}
 }
 
+// calibFixedChildren is the post-mutation child slice: the three seeded items
+// plus one changed child. Replacing items with this FIXED-size slice models a
+// child mutation at constant value size (size-stable measurement).
+var calibFixedChildren = []calibItem{
+	{SKU: "WIDGET-001", Qty: 2, Price: 10.25},
+	{SKU: "GADGET-002", Qty: 1, Price: 22.00},
+	{SKU: "GIZMO-003", Qty: 3, Price: 3.42},
+	{SKU: "EXTRA-999", Qty: 1, Price: 5.00},
+}
+
 // BenchmarkLayoutCalibration_EmbedWrite measures a child mutation under the
-// embed layout: read-modify-write the parent (Get + append + Set).
+// embed layout: read-modify-write the parent (Get + replace child slice + Set).
+// Replace-only keeps the value size constant so per-op cost cannot drift.
 func BenchmarkLayoutCalibration_EmbedWrite(b *testing.B) {
 	eng := metaengine.NewMemoryEngine()
 	defer eng.Close()
@@ -97,8 +117,6 @@ func BenchmarkLayoutCalibration_EmbedWrite(b *testing.B) {
 		_ = mb.MapSet(ctx, "orders_embed", fmt.Sprintf("order-%d", i), makeCalibOrder(i))
 	}
 
-	newItem := calibItem{SKU: "EXTRA-999", Qty: 1, Price: 5.00}
-
 	b.ResetTimer()
 	b.ReportAllocs()
 
@@ -109,7 +127,7 @@ func BenchmarkLayoutCalibration_EmbedWrite(b *testing.B) {
 			if !ok {
 				return prev
 			}
-			order.Items = append(order.Items, newItem)
+			order.Items = calibFixedChildren
 			return order
 		})
 	}
@@ -146,7 +164,10 @@ func BenchmarkLayoutCalibration_NormalizeRead(b *testing.B) {
 }
 
 // BenchmarkLayoutCalibration_NormalizeWrite measures a child mutation under the
-// normalize layout: a single O(1) append to the child collection.
+// normalize layout: a single O(1) append to the child collection. MultiAdd is
+// O(1) on every engine (memory: slice append; disk: one seq-keyed entry), so
+// per-op cost is stable even though the collection gains one entry per op —
+// the same shape as the Row/Columnar child-insert benches.
 func BenchmarkLayoutCalibration_NormalizeWrite(b *testing.B) {
 	eng := metaengine.NewMemoryEngine()
 	defer eng.Close()

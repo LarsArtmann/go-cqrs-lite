@@ -20,6 +20,12 @@ type HealthScore struct {
 	Score     int
 	Grade     string
 	Breakdown map[string]int
+	// ConfigExcluded lists rules whose findings were dropped from scoring
+	// because the rule is disabled via config ("rules": {"disable"}), a
+	// preset, or --exclude-rules — mapped to the dropped finding count.
+	// Surfaced in the health output so a high score is never silently
+	// inflated by disabled rules.
+	ConfigExcluded map[string]int
 	// RawScore is the unclamped score (may be negative). When Score is 0
 	// because deductions exceed 100, RawScore shows how far below zero the
 	// project actually is — e.g., "0/100 (clamped from -43)" motivates the

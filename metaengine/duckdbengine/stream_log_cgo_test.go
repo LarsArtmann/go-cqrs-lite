@@ -14,6 +14,9 @@ func TestStreamLogBackend_DuckDBRoundtrip(t *testing.T) {
 	eng := mustNewDuckEngine(t)
 
 	enginetest.RunStreamLogBackendTest(t, eng)
+	// Guards the DuckDB SEQUENCE token semantics: strictly increasing,
+	// never reused across transactions (design doc risk #1).
+	enginetest.RunSeqSeekableStreamLogTest(t, eng)
 }
 
 func TestStreamLogBackend_DuckDBAtomicAppender(t *testing.T) {

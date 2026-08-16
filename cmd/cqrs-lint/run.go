@@ -96,6 +96,9 @@ func run(ctx context.Context, cfg *AppConfig) error {
 			infoCap = defaultInfoDeductionCap
 		}
 		hs := ComputeHealthScoreWithCap(scoreFindings, infoCap)
+		hs.ConfigExcluded = countConfigExcluded(
+			collectFindings(result), buildDisabledRuleSet(cfg, actx),
+		)
 		fmt.Print(renderHealthScore(hs, parseColorMode(cfg.Color)))
 	}
 
@@ -426,27 +429,6 @@ func printSummary(
 			fmt.Fprintf(os.Stderr, "%d finding(s) suppressed by inline comments\n", suppressedCount)
 		}
 
-		goFilePaths := make([]string, 0, len(actx.GoFiles))
-		for _, gf := range actx.GoFiles {
-			goFilePaths = append(goFilePaths, gf.Path)
-		}
-
-		stale := suppression.DetectStaleSuppressions(goFilePaths, allFindings)
-		for _, s := range stale {
-			fmt.Fprintln(os.Stderr, suppression.FormatStaleWarning(s))
-		}
-
-		// Detect suppressions that reference unknown (typo'd or removed) rule IDs.
-		knownRuleIDs := make(map[string]bool, 200)
-		for _, r := range rules.AllRules() {
-			knownRuleIDs[r.ID] = true
-		}
-
-		unknown := suppression.DetectUnknownRuleSuppressions(goFilePaths, knownRuleIDs)
-		for _, s := range unknown {
-			fmt.Fprintln(os.Stderr, suppression.FormatStaleWarning(s))
-		}
-
 		if cfg.FPSuspects {
 			fmt.Fprintf(os.Stderr,
 				"Showing %d low-confidence finding(s) — likely false positives.\n"+
@@ -455,6 +437,13 @@ func printSummary(
 		}
 
 		fmt.Fprintln(os.Stderr)
+	}
+
+	// Stale-suppression detection runs by default in EVERY output format (not
+	// just text): the warnings go to stderr so machine-readable stdout
+	// (json/sarif/csv) stays parseable. Only --quiet silences them.
+	if !cfg.Quiet {
+		warnStaleSuppressions(actx, allFindings)
 	}
 
 	if cfg.Verbose && !cfg.Quiet {
@@ -468,5 +457,29 @@ func printSummary(
 			fmt.Fprintln(os.Stderr)
 		}
 		printDetectorTimings(os.Stderr, result.Metrics)
+	}
+}
+
+// warnStaleSuppressions prints warnings for stale inline suppressions (no
+// finding fires at the comment's location) and suppressions referencing
+// unknown rule IDs (typos or removed rules). Runs on every non-quiet lint run
+// regardless of output format — the warnings go to stderr.
+func warnStaleSuppressions(actx *analyzer.AnalysisContext, allFindings []finding.Finding) {
+	goFilePaths := make([]string, 0, len(actx.GoFiles))
+	for _, gf := range actx.GoFiles {
+		goFilePaths = append(goFilePaths, gf.Path)
+	}
+
+	for _, s := range suppression.DetectStaleSuppressions(goFilePaths, allFindings) {
+		fmt.Fprintln(os.Stderr, suppression.FormatStaleWarning(s))
+	}
+
+	knownRuleIDs := make(map[string]bool, 200)
+	for _, r := range rules.AllRules() {
+		knownRuleIDs[r.ID] = true
+	}
+
+	for _, s := range suppression.DetectUnknownRuleSuppressions(goFilePaths, knownRuleIDs) {
+		fmt.Fprintln(os.Stderr, suppression.FormatStaleWarning(s))
 	}
 }

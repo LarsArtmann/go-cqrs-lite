@@ -101,6 +101,29 @@ func filterByDisabledRules(findings []finding.Finding, disabled map[string]bool)
 	return result
 }
 
+// countConfigExcluded counts, per rule, how many findings the disabled-rule
+// filter dropped from the run. Only rules that actually fired are listed — a
+// disabled rule with no findings doesn't affect the score and isn't noise.
+// The health output renders this so score inflation via config disables is
+// always visible.
+func countConfigExcluded(
+	findings []finding.Finding,
+	disabled map[string]bool,
+) map[string]int {
+	if len(disabled) == 0 {
+		return nil
+	}
+
+	excluded := make(map[string]int)
+	for _, f := range findings {
+		if disabled[string(f.Rule)] {
+			excluded[string(f.Rule)]++
+		}
+	}
+
+	return excluded
+}
+
 func collectFindings(result *pipeline.PipelineResult) []finding.Finding {
 	var all []finding.Finding
 	for _, iter := range result.Iterations {

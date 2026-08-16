@@ -12,6 +12,7 @@ func TestStreamLogBackend_BboltRoundtrip(t *testing.T) {
 	eng := mustNewBboltEngine(t)
 
 	enginetest.RunStreamLogBackendTest(t, eng)
+	enginetest.RunSeqSeekableStreamLogTest(t, eng)
 }
 
 func TestStreamLogBackend_BboltAtomicAppender(t *testing.T) {

@@ -372,6 +372,7 @@ var (
 	_ metaengine.LayoutPlanner               = (*duckdbEngine)(nil)
 	_ metaengine.LayoutPlanApplier           = (*duckdbEngine)(nil)
 	_ metaengine.StreamLogBackend            = (*duckdbEngine)(nil)
+	_ metaengine.SeqSeekableStreamLog        = (*duckdbEngine)(nil)
 	_ metaengine.AtomicAppender              = (*duckdbEngine)(nil)
 	_ metaengine.Transactional               = (*duckdbEngine)(nil)
 	_ metaengine.AggregateReader             = (*duckdbEngine)(nil)

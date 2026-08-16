@@ -77,7 +77,20 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			// those findings to Info/Low rather than polluting a non-monetary
 			// codebase with Warning/Medium noise. Covers item f-8 in the
 			// DiscordSync feedback triage.
+			//
+			// An explicit config declaration ("features": {"monetary": ...})
+			// overrides the heuristic: "off" forces the Info downgrade even in
+			// a project whose names merely look monetary; "on" keeps full
+			// severity even without monetary-looking names.
 			projectMonetary := projectHasMonetarySignal(ctx, moneyKeywords)
+
+			switch ctx.FeatureProfile.Monetary {
+			case analyzer.MonetaryOn:
+				projectMonetary = true
+			case analyzer.MonetaryOff:
+				projectMonetary = false
+			case analyzer.MonetaryUnknown:
+			}
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {

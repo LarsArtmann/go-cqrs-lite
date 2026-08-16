@@ -68,6 +68,10 @@ type sqliteQuerySet struct {
 	streamAppendExp string
 	journalReadAll  string
 	journalReadFrom string
+	// Seq-resumable journal reads (SeqSeekableStreamLog)
+	journalReadAllWithSeq string
+	journalReadFromSeq    string
+	journalReadFromSeqAll string
 	// Graph (iterative BFS on meta_graph_edges)
 	graphAddEdge string
 	// DDL
@@ -131,7 +135,13 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		journalReadAll:   `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
 		// afterSeq is a journal position within the collection (seq is a
 		// global AUTOINCREMENT shared across collections — see JournalReadFrom).
-		journalReadFrom: `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq LIMIT ? OFFSET ?`,
+		journalReadFrom:       `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq LIMIT ? OFFSET ?`,
+		journalReadAllWithSeq: `SELECT seq, value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
+		// Token resumption: a pure index range seek on
+		// idx_stream_log_journal(collection, seq) — O(log n) per page, and
+		// gaps in the shared counter cannot shift the cursor.
+		journalReadFromSeq:    `SELECT seq, value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq LIMIT ?`,
+		journalReadFromSeqAll: `SELECT seq, value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq LIMIT -1`,
 		// Graph (recursive CTE)
 		graphAddEdge: `INSERT OR IGNORE INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`,
 	}

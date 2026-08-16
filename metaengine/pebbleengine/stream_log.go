@@ -9,6 +9,7 @@ import (
 	"github.com/cockroachdb/pebble"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
 
 // --- StreamLogBackend implementation ---
@@ -177,6 +178,106 @@ func (e *pebbleEngine) JournalReadFrom(
 	return result, nil
 }
 
+// JournalReadAllWithSeq returns every journal entry with its resume token
+// (the per-collection journal seq embedded in the journal key). Implements
+// metaengine.SeqSeekableStreamLog.
+func (e *pebbleEngine) JournalReadAllWithSeq(
+	_ context.Context,
+	col string,
+) ([]metaengine.StreamLogEntry, error) {
+	iter, err := e.newPrefixIter(journalPrefix(col))
+	if err != nil {
+		return nil, fmt.Errorf("pebbleengine.JournalReadAllWithSeq: %w", err)
+	}
+
+	defer metaengine.DeferClose(iter)
+
+	var result []metaengine.StreamLogEntry
+
+	for iter.First(); iter.Valid(); iter.Next() {
+		if entry, ok := journalEntryFromKey(iter.Key(), iter.Value()); ok {
+			result = append(result, entry)
+		}
+	}
+
+	if err := iter.Error(); err != nil {
+		return nil, fmt.Errorf("pebbleengine.JournalReadAllWithSeq iter: %w", err)
+	}
+
+	if result == nil {
+		result = []metaengine.StreamLogEntry{}
+	}
+
+	return result, nil
+}
+
+// JournalReadFromSeq returns up to limit entries with Seq > afterSeq by
+// seeking journalKey(col, afterSeq+1) — the same O(log n) seek JournalReadFrom
+// performs. Implements metaengine.SeqSeekableStreamLog. The token is read back
+// out of the journal key, so callers resume on true engine seqs.
+func (e *pebbleEngine) JournalReadFromSeq(
+	_ context.Context,
+	col string,
+	afterSeq int64,
+	limit int,
+) ([]metaengine.StreamLogEntry, error) {
+	upperBound := nextKey(journalPrefix(col))
+
+	// LowerBound is exclusive of afterSeq: start at afterSeq+1.
+	startKey := journalKey(col, afterSeq+1)
+
+	iter, err := e.db.NewIter(&pebble.IterOptions{
+		LowerBound: startKey,
+		UpperBound: upperBound,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("pebbleengine.JournalReadFromSeq: %w", err)
+	}
+
+	defer metaengine.DeferClose(iter)
+
+	var result []metaengine.StreamLogEntry
+	count := 0
+
+	for iter.First(); iter.Valid(); iter.Next() {
+		if limit > 0 && count >= limit {
+			break
+		}
+
+		if entry, ok := journalEntryFromKey(iter.Key(), iter.Value()); ok {
+			result = append(result, entry)
+			count++
+		}
+	}
+
+	if err := iter.Error(); err != nil {
+		return nil, fmt.Errorf("pebbleengine.JournalReadFromSeq iter: %w", err)
+	}
+
+	if result == nil {
+		result = []metaengine.StreamLogEntry{}
+	}
+
+	return result, nil
+}
+
+// journalEntryFromKey builds a StreamLogEntry from a journal key and its raw
+// "streamID\x00value" payload. The seq token is the zero-padded decimal in
+// the key's tail. Returns false when the key carries no parseable seq.
+func journalEntryFromKey(key, raw []byte) (metaengine.StreamLogEntry, bool) {
+	seq, ok := keycodec.JournalSeq(key)
+	if !ok {
+		return metaengine.StreamLogEntry{}, false
+	}
+
+	idx := bytes.Index(raw, []byte(sep))
+	if idx >= 0 {
+		return metaengine.StreamLogEntry{Seq: seq, Value: decodeJSON(raw[idx+1:])}, true
+	}
+
+	return metaengine.StreamLogEntry{Seq: seq, Value: decodeJSON(raw)}, true
+}
+
 // StreamAppendExpected implements AtomicAppender for optimistic concurrency.
 func (e *pebbleEngine) StreamAppendExpected(
 	_ context.Context,
@@ -236,6 +337,7 @@ func (e *pebbleEngine) countStreamEntries(col, sid string) (int64, error) {
 
 // Compile-time assertions.
 var (
-	_ metaengine.StreamLogBackend = (*pebbleEngine)(nil)
-	_ metaengine.AtomicAppender   = (*pebbleEngine)(nil)
+	_ metaengine.StreamLogBackend     = (*pebbleEngine)(nil)
+	_ metaengine.SeqSeekableStreamLog = (*pebbleEngine)(nil)
+	_ metaengine.AtomicAppender       = (*pebbleEngine)(nil)
 )

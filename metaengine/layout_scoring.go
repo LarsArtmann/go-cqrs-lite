@@ -39,23 +39,39 @@ func (lc LayoutCost) ScoreWeighted(w PriorityWeights) float64 {
 // scoreEmbed returns the relative cost of embedding on the given storage layout.
 // KV/LSM engines favor embedding (native single-key lookup).
 //
-// KV values are the anchor (1.0-center convention): Embed ReadCost < 1.0
-// because single-key hash-map lookup is the cheapest operation; WriteCost = 1.0
-// as the baseline; StorageCost > 1.0 because embedding duplicates the aggregate
-// across projections.
+// Two constant conventions coexist:
 //
-// KV Normalize values are CALIBRATED via BenchmarkLayoutCalibration_* on the
-// memory engine (AMD Ryzen AI MAX+ 395, 2026-08-11). Measured normalize/embed
-// ratios: read 2.2x, write 0.48x, storage 0.63x. The read ratio includes
-// application-level merge overhead (combining parent + child results) that
-// brings the effective ratio above the raw 2.2x hash-map lookup difference.
+//   - KV/LSM (anchor convention): the embed row is the baseline per dimension
+//     (read: the cheapest op on the engine; write: 1.0; storage: the
+//     3-projection duplication penalty) and normalize values are measured
+//     normalize/embed ratios scaled off those anchors.
+//   - Row/Columnar (geomean-centered): every embed x normalize pair multiplies
+//     to 1.0 per dimension, so only the measured ratio drives decisions.
 //
-// LSM values are CALIBRATED 2026-08-11 via
-// BenchmarkDiskLayoutCalibration_* in metaengine/bench on real on-disk Pebble
-// and bbolt databases. Measured normalize/embed ratios:
+// KV values are CALIBRATED 2026-08-16 via BenchmarkLayoutCalibration_* on the
+// memory engine (AMD Ryzen AI MAX+ 395, size-stable benches, medians of 10
+// runs; the pre-2026-08-15 benches appended a child per iteration, so values
+// grew unboundedly and drifted mid-run). Measured normalize/embed ratios:
+// read 1.80x, write 0.84x, storage 0.485x (3-projection model).
 //
-//	read  1.35x (geomean across Pebble 1.49x and bbolt 1.23x)
-//	write 0.75x (geomean across Pebble 0.53x and bbolt 1.05x)
+// LSM values are CALIBRATED 2026-08-16 via BenchmarkDiskLayoutCalibration_* in
+// metaengine/bench on real on-disk Pebble and bbolt databases (size-stable;
+// the old bench asserted a typed value MapUpdate never produces, so its
+// mutation silently no-oped). Measured normalize/embed ratios:
+//
+//	read  1.59x (geomean across Pebble 1.66x and bbolt 1.52x)
+//	write 0.56x (geomean across Pebble 0.32x and bbolt 1.00x; bbolt's
+//	             single-writer model neutralizes normalize's write advantage)
+//
+// READ values are floor-adjusted, not raw ratios. Honest values (KV 0.90 =
+// 0.5x1.80, LSM 1.18 = 0.74x1.59) would flip KV/LSM Balanced and KV ReadSpeed
+// to Normalize: the 3-projection storage model carries weight 1.0 under those
+// priorities and overrides the measured 1.6-1.8x embed read advantage. The
+// read constants are pinned at the minimum that keeps the designed lever
+// matrix (KV/LSM Balanced and ReadSpeed resolve to Embed) with a >= 0.10
+// margin, which also keeps decisions stable across machines (honest margins
+// of ~0.05 sit within cross-machine bench variance). This lever-pinning
+// tradeoff was first adopted 2026-08-11 and is retained deliberately.
 //
 // Row values are CALIBRATED 2026-08-15 via BenchmarkRowLayoutCalibration_* in
 // metaengine/bench on file-backed SQLite, Postgres 16 (ephemeral local), and
@@ -76,10 +92,6 @@ func (lc LayoutCost) ScoreWeighted(w PriorityWeights) float64 {
 //	read  2.62x (point lookups on OLAP engine favor embed strongly)
 //	write 0.20x (DuckDB row UPDATE costs ~5x an insert)
 //	storage 0.59x (columnar compression absorbs embed duplication)
-//
-// All calibrated cells are geometric-mean centered: per cost dimension the
-// embed/normalize pair multiplies to 1.0, so only the measured ratio drives
-// decisions.
 func scoreEmbed(layout StorageLayout) LayoutCost {
 	switch layout {
 	case LayoutKV:

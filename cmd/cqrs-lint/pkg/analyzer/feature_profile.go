@@ -54,6 +54,12 @@ type FeatureProfile struct {
 	// MetaenginePushdown is true when the project uses FilterOnField or
 	// SortOnField — indicating it has adopted declarative pushdown.
 	MetaenginePushdown bool
+	// Monetary declares whether the project handles monetary values.
+	// Unknown (the default) lets money rules infer the signal from source
+	// heuristics; "on"/"off" are explicit user declarations that override
+	// the inference — e.g. C008 downgrades to Info when "off" is declared
+	// for a project whose struct names merely look monetary.
+	Monetary MonetaryKind
 }
 
 // StoreKind enumerates the persistence backends go-cqrs-lite supports.
@@ -168,6 +174,23 @@ func AllDomainKinds() []DomainKind {
 	return []DomainKind{DomainFinancial, DomainInternal, DomainSecurity}
 }
 
+// MonetaryKind declares whether the project handles monetary values.
+// Unknown defers to per-rule source heuristics; On/Off are explicit user
+// declarations that override those heuristics.
+type MonetaryKind string
+
+const (
+	MonetaryUnknown MonetaryKind = "unknown"
+	MonetaryOn      MonetaryKind = "on"
+	MonetaryOff     MonetaryKind = "off"
+)
+
+// AllMonetaryKinds returns every defined MonetaryKind value, sorted
+// alphabetically. Excludes the Unknown sentinel.
+func AllMonetaryKinds() []MonetaryKind {
+	return []MonetaryKind{MonetaryOn, MonetaryOff}
+}
+
 // DomainKind classifies the business domain of a consumer project.
 // Financial domains get stricter severity on security and money rules.
 // The domain is auto-detected from event/command type names but can be
@@ -218,6 +241,7 @@ func (fp FeatureProfile) String() string {
 		_, _ = fmt.Fprintf(&b, "  engines:     %s\n", strings.Join(fp.MetaengineEngines, ", "))
 	}
 	_, _ = fmt.Fprintf(&b, "  pushdown:    %t\n", fp.MetaenginePushdown)
+	_, _ = fmt.Fprintf(&b, "monetary:      %s\n", fp.Monetary)
 	return b.String()
 }
 
@@ -232,6 +256,7 @@ type ConfigFeatures struct {
 	Tracing     *TracingKind     `json:"tracing,omitempty"`
 	Snapshot    *SnapshotKind    `json:"snapshot,omitempty"`
 	Domain      *DomainKind      `json:"domain,omitempty"`
+	Monetary    *MonetaryKind    `json:"monetary,omitempty"`
 	Transport   *bool            `json:"transport,omitempty"`
 	ServerLocal *bool            `json:"server-local,omitempty"` //nolint:tagliatelle // CLI config key
 	AsyncBus    *bool            `json:"async-bus,omitempty"`    //nolint:tagliatelle // CLI config key
@@ -466,6 +491,9 @@ func ResolveFeatureProfile(
 	if merged.Domain != nil {
 		result.Domain = *merged.Domain
 	}
+	if merged.Monetary != nil {
+		result.Monetary = *merged.Monetary
+	}
 	if merged.Transport != nil {
 		result.HasTransport = *merged.Transport
 	}
@@ -501,6 +529,9 @@ func mergeConfigFeatures(dst *ConfigFeatures, src ConfigFeatures) {
 	}
 	if src.Domain != nil {
 		dst.Domain = src.Domain
+	}
+	if src.Monetary != nil {
+		dst.Monetary = src.Monetary
 	}
 	if src.Transport != nil {
 		dst.Transport = src.Transport
@@ -539,6 +570,9 @@ func (fp FeatureProfile) ToConfigFeatures() ConfigFeatures {
 	}
 	if fp.Domain != "" && fp.Domain != DomainUnknown {
 		cf.Domain = &fp.Domain
+	}
+	if fp.Monetary != "" && fp.Monetary != MonetaryUnknown {
+		cf.Monetary = &fp.Monetary
 	}
 	if fp.HasTransport {
 		cf.Transport = &fp.HasTransport

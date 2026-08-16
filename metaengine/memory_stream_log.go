@@ -3,6 +3,7 @@ package metaengine
 import (
 	"context"
 	"slices"
+	"sort"
 )
 
 // --- StreamLogBackend ---
@@ -139,6 +140,57 @@ func (m *memoryEngine) JournalReadFrom(
 	return result, nil
 }
 
+// JournalReadAllWithSeq returns every journal entry with its resume token.
+// Implements the SeqSeekableStreamLog optional interface.
+func (m *memoryEngine) JournalReadAllWithSeq(
+	_ context.Context,
+	col string,
+) ([]StreamLogEntry, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	journal := m.data.streamJournal[col]
+	result := make([]StreamLogEntry, 0, len(journal))
+
+	for _, entry := range journal {
+		result = append(result, StreamLogEntry{Seq: entry.seq, Value: entry.value})
+	}
+
+	return result, nil
+}
+
+// JournalReadFromSeq returns up to limit entries with Seq > afterSeq.
+// Implements the SeqSeekableStreamLog optional interface. The seek is a
+// binary search on the journal's per-collection seq field: O(log n) on large
+// journals and gap-tolerant should entries ever be removed.
+func (m *memoryEngine) JournalReadFromSeq(
+	_ context.Context,
+	col string,
+	afterSeq int64,
+	limit int,
+) ([]StreamLogEntry, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	journal := m.data.streamJournal[col]
+
+	start := sort.Search(len(journal), func(i int) bool {
+		return journal[i].seq > afterSeq
+	})
+
+	remaining := journal[start:]
+	if limit <= 0 || limit > len(remaining) {
+		limit = len(remaining)
+	}
+
+	result := make([]StreamLogEntry, 0, limit)
+	for i := range limit {
+		result = append(result, StreamLogEntry{Seq: remaining[i].seq, Value: remaining[i].value})
+	}
+
+	return result, nil
+}
+
 // RunInTx executes fn without additional locking for the memory engine.
 // Individual operations (Map, Counter, etc.) already hold the mutex
 // independently, so for cross-collection Store.InTransaction this provides
@@ -193,6 +245,7 @@ func (m *memoryEngine) StreamAppendExpected(
 // Compile-time assertions for memoryEngine.
 var (
 	_ StreamLogBackend     = (*memoryEngine)(nil)
+	_ SeqSeekableStreamLog = (*memoryEngine)(nil)
 	_ AtomicAppender       = (*memoryEngine)(nil)
 	_ StreamTemporalReader = (*memoryEngine)(nil)
 )

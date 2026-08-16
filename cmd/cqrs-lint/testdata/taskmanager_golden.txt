@@ -17,16 +17,6 @@ C026 Idempotency TTL mismatch — literal TTL passed but a TTL constant (project
 C026 Idempotency TTL mismatch — literal TTL passed but a TTL constant (projectionSettleMs) is defined and not used here
 D013 Project creates 11 events without event.WithSchemaVersion — schema evolution (upcasting) is impossible to add retroactively
 E003 Package github.com/larsartmann/go-cqrs-lite/example/taskmanager mixes 4 CQRS concerns (command, event, fold, projection) — split into domain/infrastructure boundaries
-E005 Command type "AddBlockerCmd" has no registered handler — dispatching it will return ErrNoHandler
-E005 Command type "ArchiveTaskCmd" has no registered handler — dispatching it will return ErrNoHandler
-E005 Command type "AssignTaskCmd" has no registered handler — dispatching it will return ErrNoHandler
-E005 Command type "ChangePriorityCmd" has no registered handler — dispatching it will return ErrNoHandler
-E005 Command type "CompleteTaskCmd" has no registered handler — dispatching it will return ErrNoHandler
-E005 Command type "CreateTaskCmd" has no registered handler — dispatching it will return ErrNoHandler
-E005 Command type "DeleteTaskCmd" has no registered handler — dispatching it will return ErrNoHandler
-E005 Command type "SetDueDateCmd" has no registered handler — dispatching it will return ErrNoHandler
-E005 Command type "StartTaskCmd" has no registered handler — dispatching it will return ErrNoHandler
-E005 Command type "UpdateTitleCmd" has no registered handler — dispatching it will return ErrNoHandler
 E017 signal.Notify without GracefulClose/Stop — in-flight events lost on SIGTERM
 S010 Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext
 V003 metaengine/sqliteengine/v4 is on v4.0.x — 3 minor versions behind latest (v4.3.x), missing bug fixes and features

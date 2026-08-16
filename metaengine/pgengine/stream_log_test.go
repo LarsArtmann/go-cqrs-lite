@@ -15,6 +15,7 @@ func TestPostgresEngine_StreamLogRoundtrip(t *testing.T) {
 	eng := mustNewPgEngine(t)
 
 	enginetest.RunStreamLogBackendTest(t, eng)
+	enginetest.RunSeqSeekableStreamLogTest(t, eng)
 }
 
 func TestPostgresEngine_StreamLogAtomicAppender(t *testing.T) {

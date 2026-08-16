@@ -13,6 +13,7 @@ func TestStreamLogBackend_MySQLRoundtrip(t *testing.T) {
 	t.Parallel()
 	eng := mustNewMySQLEngine(t)
 	enginetest.RunStreamLogBackendTestIn(t, eng, "events_mysql_roundtrip")
+	enginetest.RunSeqSeekableStreamLogTestIn(t, eng, "events_mysql_seqseek")
 }
 
 func TestStreamLogBackend_MySQLAtomicAppender(t *testing.T) {

@@ -31,6 +31,12 @@ type EventAdapter struct {
 	// enabling efficient version-bounded reads without loading the full stream.
 	temporal metaengine.StreamTemporalReader
 
+	// seqSeek is non-nil when the backend implements SeqSeekableStreamLog.
+	// ReadFrom then resumes on engine seq tokens (O(log n) index seeks)
+	// instead of journal positions (O(offset) OFFSET scans), and the seq
+	// cache below stores true tokens rather than positions.
+	seqSeek metaengine.SeqSeekableStreamLog
+
 	seqCache   map[string]int64
 	seqCacheMu sync.RWMutex
 }
@@ -58,6 +64,12 @@ func NewEventAdapter(
 	// Detect StreamTemporalReader support for efficient version-bounded reads.
 	if tr, ok := backend.(metaengine.StreamTemporalReader); ok {
 		a.temporal = tr
+	}
+
+	// Detect token-resumable journal reads: ReadFrom switches from
+	// position-based OFFSET skips to O(log n) seq-token index seeks.
+	if ss, ok := backend.(metaengine.SeqSeekableStreamLog); ok {
+		a.seqSeek = ss
 	}
 
 	return a
@@ -222,64 +234,3 @@ func (a *EventAdapter) LoadToTimestamp(
 }
 
 // ReadAll is promoted from AdapterCore and satisfies event.Journal.
-
-// ─── SeekableJournal ───
-
-func (a *EventAdapter) ReadFrom(
-	ctx context.Context,
-	afterEventID id.EventID,
-	limit int,
-) ([]event.Event, error) {
-	afterSeq := a.lookupSeq(ctx, afterEventID)
-
-	values, err := a.Backend.JournalReadFrom(ctx, a.Collection, afterSeq, limit)
-	if err != nil {
-		return nil, fmt.Errorf("event adapter: read from: %w", err)
-	}
-
-	events, err := a.FromAny(values)
-	if err != nil {
-		return nil, err
-	}
-
-	a.seqCacheMu.Lock()
-	for i, evt := range events {
-		a.seqCache[evt.ID().String()] = afterSeq + int64(i) + 1
-	}
-	a.seqCacheMu.Unlock()
-
-	return events, nil
-}
-
-// lookupSeq returns the global journal sequence number for the given event ID.
-func (a *EventAdapter) lookupSeq(ctx context.Context, eventID id.EventID) int64 {
-	key := eventID.String()
-
-	a.seqCacheMu.RLock()
-	seq, ok := a.seqCache[key]
-	a.seqCacheMu.RUnlock()
-
-	if ok {
-		return seq
-	}
-
-	all, err := a.Backend.JournalReadAll(ctx, a.Collection)
-	if err != nil {
-		return 0
-	}
-
-	events, _ := a.FromAny(all)
-
-	a.seqCacheMu.Lock()
-	defer a.seqCacheMu.Unlock()
-
-	for i, evt := range events {
-		a.seqCache[evt.ID().String()] = int64(i + 1)
-	}
-
-	if seq, ok := a.seqCache[key]; ok {
-		return seq
-	}
-
-	return 0
-}

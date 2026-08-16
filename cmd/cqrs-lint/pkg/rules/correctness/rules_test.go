@@ -486,6 +486,81 @@ type Wallet struct {
 	}
 }
 
+// An explicit "monetary": "off" declaration overrides the source heuristic:
+// even a struct named Wallet (monetary by name) downgrades to Info/Low because
+// the user asserted the project does not handle money. Covers the DiscordSync
+// round-2 wishlist (feature-profile-aware C008).
+func TestC008_MonetaryOffConfigDowngradesToInfo(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"model.go": `package main
+
+type Wallet struct {
+	Balance float64
+}
+`,
+	})
+	ctx.FeatureProfile.Monetary = analyzer.MonetaryOff
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	if len(findings) != 1 {
+		t.Fatalf("expected 1 C008 finding, got %d", len(findings))
+	}
+	if findings[0].Severity != finding.SeverityInfo {
+		t.Errorf("expected Info severity with monetary=off, got %s", findings[0].Severity)
+	}
+	if findings[0].Confidence != finding.ConfidenceLow {
+		t.Errorf("expected Low confidence with monetary=off, got %s", findings[0].Confidence)
+	}
+}
+
+// An explicit "monetary": "on" declaration keeps full severity even when no
+// package or struct name looks monetary — the user assertion is trusted over
+// the naming heuristic.
+func TestC008_MonetaryOnConfigKeepsWarning(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"buffer.go": `package main
+
+type Buffer struct {
+	Amount float64
+}
+`,
+	})
+	ctx.FeatureProfile.Monetary = analyzer.MonetaryOn
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	if len(findings) != 1 {
+		t.Fatalf("expected 1 C008 finding, got %d", len(findings))
+	}
+	if findings[0].Severity != finding.SeverityWarning {
+		t.Errorf("expected Warning severity with monetary=on, got %s", findings[0].Severity)
+	}
+	if findings[0].Confidence != finding.ConfidenceMedium {
+		t.Errorf("expected Medium confidence with monetary=on, got %s", findings[0].Confidence)
+	}
+}
+
+// MonetaryUnknown (the default) defers to the naming heuristic — identical to
+// the pre-feature behavior.
+func TestC008_MonetaryUnknownUsesHeuristic(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"buffer.go": `package main
+
+type Buffer struct {
+	Amount float64
+}
+`,
+	})
+	ctx.FeatureProfile.Monetary = analyzer.MonetaryUnknown
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	if len(findings) != 1 {
+		t.Fatalf("expected 1 C008 finding, got %d", len(findings))
+	}
+	if findings[0].Severity != finding.SeverityInfo {
+		t.Errorf(
+			"expected Info severity via heuristic (non-monetary project), got %s",
+			findings[0].Severity,
+		)
+	}
+}
+
 // C008 must NOT flag fields that match observability/performance metric
 // patterns (latency, throughput, ratio, percentage, duration, seconds).
 // Regression test for the DiscordSync round-2 feedback (26 suppressed fields).

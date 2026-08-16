@@ -20,9 +20,19 @@ import (
 // cannot measure disk effects (fsync, SSTable compaction, B+Tree page reads),
 // so this bench drives Pebble and bbolt against a real disk directory.
 //
+// All write benches are SIZE-STABLE: the embed mutation REPLACES the child
+// collection with a fixed-size slice (never appends), so the value shape is
+// constant and per-op cost cannot drift as the run progresses. The mutation
+// operates on the map form the engines actually decode into
+// (rmwReplaceChildren in bench_layout_calibration_row_test.go) — the pre-
+// 2026-08-16 bench asserted a typed value that MapUpdate never produces, so
+// the mutation silently no-oped.
+//
 // Run:
-//   cd metaengine/bench
-//   GOWORK=off go test -run='^$' -bench='BenchmarkDiskLayoutCalibration' -benchtime=0.5s ./...
+//
+//	cd metaengine/bench
+//	GOWORK=off go test -tags "goexperiment.jsonv2" -run '^$' \
+//	  -bench 'BenchmarkDiskLayoutCalibration' -benchtime 2s ./...
 //
 // The per-engine ratios (normalize/embed for read and write) are what feed
 // layout_scoring.go. Storage ratios are engine-independent and measured once.
@@ -161,7 +171,10 @@ func BenchmarkDiskLayoutCalibration_EmbedRead(b *testing.B) {
 }
 
 // BenchmarkDiskLayoutCalibration_EmbedWrite: child mutation = read-modify-write
-// the parent value (MapUpdate = Get + mutate + Set).
+// the parent value (MapUpdate = Get + mutate + Set). The mutation replaces the
+// child collection at fixed size via rmwReplaceChildren (map form — the shape
+// disk engines decode into), so the measured RMW cost is size-stable and the
+// mutation actually applies.
 func BenchmarkDiskLayoutCalibration_EmbedWrite(b *testing.B) {
 	for _, eng := range []struct {
 		name string
@@ -179,20 +192,12 @@ func BenchmarkDiskLayoutCalibration_EmbedWrite(b *testing.B) {
 
 			mu := e.(metaengine.MapUpdater)
 			ctx := context.Background()
-			newItem := diskCalibItem{SKU: "EXTRA-999", Qty: 1, Price: 5.00}
 
 			b.ResetTimer()
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
 				key := fmt.Sprintf("order-%d", i%1000)
-				_ = mu.MapUpdate(ctx, "orders_embed", key, func(prev any) any {
-					order, ok := prev.(diskCalibOrder)
-					if !ok {
-						return prev
-					}
-					order.Items = append(order.Items, newItem)
-					return order
-				})
+				_ = mu.MapUpdate(ctx, "orders_embed", key, rmwReplaceChildren)
 			}
 		})
 	}

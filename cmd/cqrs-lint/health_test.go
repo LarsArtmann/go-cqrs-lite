@@ -74,6 +74,33 @@ func TestRenderHealthScore(t *testing.T) {
 	}
 }
 
+func TestRenderHealthScore_ConfigExcludedFooter(t *testing.T) {
+	t.Parallel()
+
+	hs := HealthScore{
+		Score:          100,
+		Grade:          "Excellent",
+		Breakdown:      map[string]int{},
+		ConfigExcluded: map[string]int{"C008": 3, "A004": 1},
+	}
+	out := renderHealthScore(hs, parseColorMode("never"))
+
+	if !strings.Contains(out, "Excluded from score by config: A004 (1), C008 (3)") {
+		t.Errorf("output should list config-excluded rules sorted by ID, got:\n%s", out)
+	}
+}
+
+func TestRenderHealthScore_NoFooterWithoutExclusions(t *testing.T) {
+	t.Parallel()
+
+	hs := HealthScore{Score: 100, Grade: "Excellent", Breakdown: map[string]int{}}
+	out := renderHealthScore(hs, parseColorMode("never"))
+
+	if strings.Contains(out, "Excluded from score") {
+		t.Error("no footer expected when nothing was excluded by config")
+	}
+}
+
 func TestComputeHealthScore_Grades(t *testing.T) {
 	t.Parallel()
 

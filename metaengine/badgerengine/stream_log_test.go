@@ -12,4 +12,5 @@ func TestStreamLogBackend_BadgerContract(t *testing.T) {
 	eng := mustNewBadgerEngine(t)
 
 	enginetest.RunStreamLogBackendTest(t, eng)
+	enginetest.RunSeqSeekableStreamLogTest(t, eng)
 }

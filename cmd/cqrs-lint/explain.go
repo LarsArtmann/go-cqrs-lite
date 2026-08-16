@@ -255,6 +255,9 @@ func formatConfigFeatures(cf analyzer.ConfigFeatures) string {
 	if cf.Domain != nil {
 		parts = append(parts, fmt.Sprintf("domain=%s", *cf.Domain))
 	}
+	if cf.Monetary != nil {
+		parts = append(parts, fmt.Sprintf("monetary=%s", *cf.Monetary))
+	}
 	if cf.Transport != nil {
 		parts = append(parts, fmt.Sprintf("transport=%t", *cf.Transport))
 	}
@@ -325,6 +328,12 @@ var featureKeys = []featureKey{
 		typ:         "string",
 		description: "Business domain (escalates security/money rules for financial)",
 		derive:      deriveStrings(analyzer.AllDomainKinds),
+	},
+	{
+		key:         "monetary",
+		typ:         "string",
+		description: "Project handles monetary values (C008 auto-INFO when off)",
+		derive:      deriveStrings(analyzer.AllMonetaryKinds),
 	},
 	{
 		key:         "transport",

@@ -13,6 +13,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -103,7 +104,7 @@ func renderHealthScore(hs HealthScore, colorMode output.ColorMode) string {
 	}
 
 	if len(hs.Breakdown) == 0 {
-		return scoreTable + "\n"
+		return scoreTable + "\n" + formatConfigExcluded(hs.ConfigExcluded)
 	}
 
 	breakdownBuilder := output.NewTableBuilder().
@@ -131,7 +132,32 @@ func renderHealthScore(hs HealthScore, colorMode output.ColorMode) string {
 			hs.InfoRawDeduction, hs.InfoCapApplied)
 	}
 
+	result += formatConfigExcluded(hs.ConfigExcluded)
+
 	return result
+}
+
+// formatConfigExcluded renders the config-disabled-rule transparency footer
+// for the health score. Disabled rules that would have fired are listed with
+// their dropped-finding count so score inflation via config disables is
+// always visible. Returns "" when nothing was excluded.
+func formatConfigExcluded(configExcluded map[string]int) string {
+	if len(configExcluded) == 0 {
+		return ""
+	}
+
+	rules := make([]string, 0, len(configExcluded))
+	for rule := range configExcluded {
+		rules = append(rules, rule)
+	}
+	slices.Sort(rules)
+
+	entries := make([]string, 0, len(rules))
+	for _, rule := range rules {
+		entries = append(entries, fmt.Sprintf("%s (%d)", rule, configExcluded[rule]))
+	}
+
+	return fmt.Sprintf("Excluded from score by config: %s\n", strings.Join(entries, ", "))
 }
 
 // findingsToTable models findings as a flat output.Table for delimited formats

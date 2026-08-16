@@ -99,6 +99,43 @@ func (e *mysqlEngine) JournalReadAll(ctx context.Context, col string) ([]any, er
 		col)
 }
 
+// JournalReadAllWithSeq returns every journal entry with its resume token
+// (the AUTO_INCREMENT seq). Implements metaengine.SeqSeekableStreamLog.
+func (e *mysqlEngine) JournalReadAllWithSeq(
+	ctx context.Context,
+	col string,
+) ([]metaengine.StreamLogEntry, error) {
+	return e.scanStreamEntries(ctx,
+		`SELECT seq, value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
+		col)
+}
+
+// JournalReadFromSeq returns up to limit entries with Seq > afterSeq via a
+// pure index range seek on idx_stream_log_journal(collection, seq). Implements
+// metaengine.SeqSeekableStreamLog. Unlike the OFFSET-based JournalReadFrom,
+// resume cost is O(log n) per page and counter gaps (interleaved collections,
+// rolled-back inserts) cannot shift the cursor.
+func (e *mysqlEngine) JournalReadFromSeq(
+	ctx context.Context,
+	col string,
+	afterSeq int64,
+	limit int,
+) ([]metaengine.StreamLogEntry, error) {
+	if limit <= 0 {
+		return e.scanStreamEntries(ctx,
+			`SELECT seq, value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq`,
+			col, afterSeq)
+	}
+
+	return e.scanStreamEntries(
+		ctx,
+		`SELECT seq, value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq LIMIT ?`,
+		col,
+		afterSeq,
+		limit,
+	)
+}
+
 func (e *mysqlEngine) JournalReadFrom(
 	ctx context.Context,
 	col string,
@@ -154,6 +191,45 @@ func (e *mysqlEngine) scanStreamValues(
 
 	if result == nil {
 		result = []any{}
+	}
+
+	return result, rows.Err()
+}
+
+// scanStreamEntries executes a (seq, value) query and scans rows as journal
+// entries carrying their resume tokens.
+func (e *mysqlEngine) scanStreamEntries(
+	ctx context.Context,
+	query string,
+	args ...any,
+) ([]metaengine.StreamLogEntry, error) {
+	rows, err := e.conn().QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("mysqlengine.scanStreamEntries: %w", err)
+	}
+
+	defer metaengine.DeferClose(rows)
+	//art-dupl:accept cross-module SQL engine pattern — separate go.mod
+
+	var result []metaengine.StreamLogEntry
+
+	for rows.Next() {
+		var (
+			seq    int64
+			valStr string
+		)
+		if err := rows.Scan(&seq, &valStr); err != nil {
+			return nil, fmt.Errorf("mysqlengine.scanStreamEntries scan: %w", err)
+		}
+
+		result = append(result, metaengine.StreamLogEntry{
+			Seq:   seq,
+			Value: metaengine.DecodeStreamValue(valStr),
+		})
+	}
+
+	if result == nil {
+		result = []metaengine.StreamLogEntry{}
 	}
 
 	return result, rows.Err()

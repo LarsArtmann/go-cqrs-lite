@@ -44,6 +44,33 @@ func (e *sqliteEngine) JournalReadAll(ctx context.Context, col string) ([]any, e
 	return e.scanStreamValues(ctx, e.queries.journalReadAll, col)
 }
 
+// JournalReadAllWithSeq returns every journal entry with its resume token
+// (the global AUTOINCREMENT seq). Implements metaengine.SeqSeekableStreamLog.
+func (e *sqliteEngine) JournalReadAllWithSeq(
+	ctx context.Context,
+	col string,
+) ([]metaengine.StreamLogEntry, error) {
+	return e.scanStreamEntries(ctx, e.queries.journalReadAllWithSeq, col)
+}
+
+// JournalReadFromSeq returns up to limit entries with Seq > afterSeq via a
+// pure index range seek on idx_stream_log_journal(collection, seq). Implements
+// metaengine.SeqSeekableStreamLog. Unlike the OFFSET-based JournalReadFrom,
+// resume cost is O(log n) per page and counter gaps (interleaved collections,
+// rolled-back inserts) cannot shift the cursor.
+func (e *sqliteEngine) JournalReadFromSeq(
+	ctx context.Context,
+	col string,
+	afterSeq int64,
+	limit int,
+) ([]metaengine.StreamLogEntry, error) {
+	if limit <= 0 {
+		return e.scanStreamEntries(ctx, e.queries.journalReadFromSeqAll, col, afterSeq)
+	}
+
+	return e.scanStreamEntries(ctx, e.queries.journalReadFromSeq, col, afterSeq, limit)
+}
+
 func (e *sqliteEngine) JournalReadFrom(
 	ctx context.Context,
 	col string,
@@ -179,9 +206,48 @@ func (e *sqliteEngine) scanStreamValues(
 	return result, rows.Err() //nolint:wrapcheck // passthrough
 }
 
+// scanStreamEntries executes a (seq, value) query and scans all rows as
+// journal entries carrying their resume tokens.
+func (e *sqliteEngine) scanStreamEntries(
+	ctx context.Context,
+	query string,
+	args ...any,
+) ([]metaengine.StreamLogEntry, error) {
+	rows, err := e.xd().QueryContext(ctx, query, args...) //nolint:sqlclosecheck
+	if err != nil {
+		return nil, err //nolint:wrapcheck // passthrough
+	}
+
+	defer metaengine.DeferClose(rows)
+
+	var result []metaengine.StreamLogEntry
+
+	for rows.Next() {
+		var (
+			seq    int64
+			valStr string
+		)
+		if err := rows.Scan(&seq, &valStr); err != nil {
+			return nil, err //nolint:wrapcheck // passthrough
+		}
+
+		result = append(result, metaengine.StreamLogEntry{
+			Seq:   seq,
+			Value: metaengine.DecodeStreamValue(valStr),
+		})
+	}
+
+	if result == nil {
+		result = []metaengine.StreamLogEntry{}
+	}
+
+	return result, rows.Err() //nolint:wrapcheck // passthrough
+}
+
 // Compile-time assertions for sqliteEngine.
 var (
 	_ metaengine.StreamLogBackend     = (*sqliteEngine)(nil)
+	_ metaengine.SeqSeekableStreamLog = (*sqliteEngine)(nil)
 	_ metaengine.AtomicAppender       = (*sqliteEngine)(nil)
 	_ metaengine.StreamTemporalReader = (*sqliteEngine)(nil)
 	_ metaengine.SnapshotBackend      = (*sqliteEngine)(nil)

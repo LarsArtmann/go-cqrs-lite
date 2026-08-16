@@ -12,6 +12,7 @@ func TestStreamLogBackend_PebbleRoundtrip(t *testing.T) {
 	eng := mustNewPebbleEngineInternal(t)
 
 	enginetest.RunStreamLogBackendTest(t, eng)
+	enginetest.RunSeqSeekableStreamLogTest(t, eng)
 }
 
 func TestStreamLogBackend_PebbleAtomicAppender(t *testing.T) {

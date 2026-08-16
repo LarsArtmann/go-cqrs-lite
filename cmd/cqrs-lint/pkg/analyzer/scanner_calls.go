@@ -79,6 +79,17 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 		// feedback (E005 false positives on dispatcher.Register).
 		recordTypeConstArg(ctx, call, 0)
 
+	case funcName == "RegisterCommand" && pkgName == "system":
+		// system.RegisterCommand[MyCmd, MyState](sys, name, handler) — the
+		// System composition root's typed command registration. The command
+		// type is the FIRST generic type argument; the closure handler's
+		// first non-context parameter is the fallback. Without this case
+		// E005 flags every system-registered command as handlerless
+		// (example/taskmanager: 10 false positives).
+		if name := commandTypeFromSystemRegisterCommand(call); name != "" {
+			ctx.Registry.CommandTypesRegistered[name] = true
+		}
+
 	case funcName == "Event" && pkgName == "catalog":
 		if len(call.Args) > 0 {
 			if eventTypeStr := StringLit(call.Args[0]); eventTypeStr != "" {
@@ -151,6 +162,28 @@ func handlerTypeFromClosure(fn *ast.FuncLit) string {
 	}
 
 	return ""
+}
+
+// commandTypeFromSystemRegisterCommand extracts the command struct name from
+// a system.RegisterCommand[Cmd, State](sys, name, handler) call. The FIRST
+// generic type argument names the command type (CreateTaskCmd above). When
+// the call carries no resolvable generic argument, fall back to the closure
+// handler's first non-context parameter.
+func commandTypeFromSystemRegisterCommand(call *ast.CallExpr) string {
+	switch fn := call.Fun.(type) {
+	case *ast.IndexExpr:
+		if name := typeNameFromGenericArg(fn.Index); name != "" {
+			return name
+		}
+	case *ast.IndexListExpr:
+		if len(fn.Indices) > 0 {
+			if name := typeNameFromGenericArg(fn.Indices[0]); name != "" {
+				return name
+			}
+		}
+	}
+
+	return handlerTypeFromCall(call)
 }
 
 // capturePayloadType records the struct type name used as the event payload.

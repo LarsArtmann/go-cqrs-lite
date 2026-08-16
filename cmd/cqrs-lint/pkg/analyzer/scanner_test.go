@@ -146,6 +146,32 @@ func setup() {
 	}
 }
 
+func TestScanCallExpr_SystemRegisterCommand(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"register.go": `package main
+
+import "context"
+
+func register(sys *system.System) {
+	_ = system.RegisterCommand[CreateTaskCmd, TaskState](sys, cmdCreateTask,
+		func(ctx context.Context, cmd CreateTaskCmd) error { return nil })
+	_ = system.RegisterCommand[*DeleteTaskCmd, TaskState](sys, cmdDeleteTask,
+		func(ctx context.Context, cmd *DeleteTaskCmd) error { return nil })
+}
+`,
+	})
+
+	if !ctx.Registry.CommandTypesRegistered["CreateTaskCmd"] {
+		t.Error("expected CreateTaskCmd in CommandTypesRegistered (generic type argument)")
+	}
+
+	if !ctx.Registry.CommandTypesRegistered["DeleteTaskCmd"] {
+		t.Error("expected DeleteTaskCmd in CommandTypesRegistered (pointer generic argument)")
+	}
+}
+
 func TestScanCallExpr_NewProjectionRegistration(t *testing.T) {
 	t.Parallel()
 

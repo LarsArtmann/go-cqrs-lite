@@ -26,6 +26,7 @@ import (
 	"encoding/binary"
 	"encoding/json/v2"
 	"fmt"
+	"strconv"
 )
 
 // Sep is the key separator. Null byte sorts before all printable characters,
@@ -141,6 +142,24 @@ func JournalKey(col string, gseq int64) []byte {
 // JournalPrefix returns the scan prefix for the global journal of a collection.
 func JournalPrefix(col string) []byte {
 	return []byte("jl" + Sep + col + Sep)
+}
+
+// JournalSeq parses the seq out of a journal key produced by JournalKey (the
+// trailing 20-digit zero-padded decimal). Returns false when the key does not
+// end in a parseable seq. Used by the KV engines to attach resume tokens to
+// journal entries they are already iterating.
+func JournalSeq(key []byte) (int64, bool) {
+	const seqLen = 20
+	if len(key) < seqLen {
+		return 0, false
+	}
+
+	seq, err := strconv.ParseInt(string(key[len(key)-seqLen:]), 10, 64)
+	if err != nil {
+		return 0, false
+	}
+
+	return seq, true
 }
 
 // StreamSeqKey builds the in-memory map key for per-stream sequence counters.

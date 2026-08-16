@@ -211,18 +211,19 @@ func (e *badgerEngine) seedSeqCounters() error {
 
 // Compile-time assertions.
 var (
-	_ metaengine.Engine           = (*badgerEngine)(nil)
-	_ metaengine.MapBackend       = (*badgerEngine)(nil)
-	_ metaengine.MapUpdater       = (*badgerEngine)(nil)
-	_ metaengine.ScanBackend      = (*badgerEngine)(nil)
-	_ metaengine.SetBackend       = (*badgerEngine)(nil)
-	_ metaengine.CounterBackend   = (*badgerEngine)(nil)
-	_ metaengine.MultimapBackend  = (*badgerEngine)(nil)
-	_ metaengine.LogBackend       = (*badgerEngine)(nil)
-	_ metaengine.StreamLogBackend = (*badgerEngine)(nil)
-	_ metaengine.AtomicAppender   = (*badgerEngine)(nil)
-	_ metaengine.Calibratable     = (*badgerEngine)(nil)
-	_ metaengine.TrackerHost      = (*badgerEngine)(nil)
+	_ metaengine.Engine               = (*badgerEngine)(nil)
+	_ metaengine.MapBackend           = (*badgerEngine)(nil)
+	_ metaengine.MapUpdater           = (*badgerEngine)(nil)
+	_ metaengine.ScanBackend          = (*badgerEngine)(nil)
+	_ metaengine.SetBackend           = (*badgerEngine)(nil)
+	_ metaengine.CounterBackend       = (*badgerEngine)(nil)
+	_ metaengine.MultimapBackend      = (*badgerEngine)(nil)
+	_ metaengine.LogBackend           = (*badgerEngine)(nil)
+	_ metaengine.StreamLogBackend     = (*badgerEngine)(nil)
+	_ metaengine.SeqSeekableStreamLog = (*badgerEngine)(nil)
+	_ metaengine.AtomicAppender       = (*badgerEngine)(nil)
+	_ metaengine.Calibratable         = (*badgerEngine)(nil)
+	_ metaengine.TrackerHost          = (*badgerEngine)(nil)
 )
 
 var (

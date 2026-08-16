@@ -30,6 +30,10 @@ func TestStreamLogBackend_Contract(t *testing.T) {
 	// Shared StreamLogBackend contract suite, including the
 	// interleaved-collections positional-resumption regression.
 	enginetest.RunStreamLogBackendTest(t, eng)
+
+	// Token-resumption contract (SeqSeekableStreamLog): index-seek resume
+	// with gapped, non-contiguous tokens from the shared AUTOINCREMENT.
+	enginetest.RunSeqSeekableStreamLogTest(t, eng)
 }
 
 func TestStreamLogBackend_SQLiteRoundtrip(t *testing.T) {

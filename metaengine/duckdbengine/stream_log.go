@@ -105,6 +105,47 @@ func (e *duckdbEngine) JournalReadAll(ctx context.Context, col string) ([]any, e
 		col)
 }
 
+// JournalReadAllWithSeq returns every journal entry with its resume token
+// (the seq_stream_log SEQUENCE value). Implements
+// metaengine.SeqSeekableStreamLog.
+func (e *duckdbEngine) JournalReadAllWithSeq(
+	ctx context.Context,
+	col string,
+) ([]metaengine.StreamLogEntry, error) {
+	return e.scanStreamEntries(ctx,
+		`SELECT seq, value FROM meta_stream_log WHERE collection = $1 ORDER BY seq`,
+		col)
+}
+
+// JournalReadFromSeq returns up to limit entries with Seq > afterSeq via a
+// pure index range seek on the (collection, seq) primary key ordering.
+// Implements metaengine.SeqSeekableStreamLog. Unlike the OFFSET-based
+// JournalReadFrom, resume cost is O(log n) per page and sequence gaps
+// (interleaved collections, rolled-back inserts) cannot shift the cursor.
+func (e *duckdbEngine) JournalReadFromSeq(
+	ctx context.Context,
+	col string,
+	afterSeq int64,
+	limit int,
+) ([]metaengine.StreamLogEntry, error) {
+	if limit <= 0 {
+		return e.scanStreamEntries(
+			ctx,
+			`SELECT seq, value FROM meta_stream_log WHERE collection = $1 AND seq > $2 ORDER BY seq`,
+			col,
+			afterSeq,
+		)
+	}
+
+	return e.scanStreamEntries(
+		ctx,
+		`SELECT seq, value FROM meta_stream_log WHERE collection = $1 AND seq > $2 ORDER BY seq LIMIT $3`,
+		col,
+		afterSeq,
+		limit,
+	)
+}
+
 func (e *duckdbEngine) JournalReadFrom(
 	ctx context.Context,
 	col string,
@@ -159,6 +200,45 @@ func (e *duckdbEngine) scanStreamValues(
 
 	if result == nil {
 		result = []any{}
+	}
+
+	return result, rows.Err()
+}
+
+// scanStreamEntries executes a (seq, value) query and scans rows as journal
+// entries carrying their resume tokens.
+func (e *duckdbEngine) scanStreamEntries(
+	ctx context.Context,
+	query string,
+	args ...any,
+) ([]metaengine.StreamLogEntry, error) {
+	rows, err := e.conn().QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("duckdbengine.scanStreamEntries: %w", err)
+	}
+
+	defer metaengine.DeferClose(rows)
+	//art-dupl:accept cross-module SQL engine pattern — separate go.mod
+
+	var result []metaengine.StreamLogEntry
+
+	for rows.Next() {
+		var (
+			seq    int64
+			valStr string
+		)
+		if err := rows.Scan(&seq, &valStr); err != nil {
+			return nil, fmt.Errorf("duckdbengine.scanStreamEntries scan: %w", err)
+		}
+
+		result = append(result, metaengine.StreamLogEntry{
+			Seq:   seq,
+			Value: metaengine.DecodeStreamValue(valStr),
+		})
+	}
+
+	if result == nil {
+		result = []metaengine.StreamLogEntry{}
 	}
 
 	return result, rows.Err()
