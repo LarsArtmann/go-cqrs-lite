@@ -100,6 +100,9 @@ graph/testdata/rapid/
 # doc-check binary (cmd/doc-check/doc-check)
 /cmd/doc-check/doc-check
 
+# BuildFlow tailwind-build intermediate (regenerated on every pre-commit run)
+/catalog/docserver/static/docs-ui.src.out.css
+
 # >>> buildflow-managed (.gitignore) >>>
 # Auto-managed by buildflow. Edit outside these markers; this block is regenerated on `buildflow --fix`.
 
