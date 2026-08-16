@@ -94,7 +94,11 @@ func TestAdapter_GraphRemoveEdge(t *testing.T) {
 		}
 	}
 
-	if err := a.GraphRemoveEdge(ctx, "assign", metaengine.Edge{From: "alice", To: "t1"}); err != nil {
+	if err := a.GraphRemoveEdge(
+		ctx,
+		"assign",
+		metaengine.Edge{From: "alice", To: "t1"},
+	); err != nil {
 		t.Fatalf("GraphRemoveEdge: %v", err)
 	}
 
@@ -108,7 +112,11 @@ func TestAdapter_GraphRemoveEdge(t *testing.T) {
 	}
 
 	// Idempotent: removing a missing edge is a no-op.
-	if err := a.GraphRemoveEdge(ctx, "assign", metaengine.Edge{From: "alice", To: "t1"}); err != nil {
+	if err := a.GraphRemoveEdge(
+		ctx,
+		"assign",
+		metaengine.Edge{From: "alice", To: "t1"},
+	); err != nil {
 		t.Fatalf("GraphRemoveEdge (re-remove): %v", err)
 	}
 }
