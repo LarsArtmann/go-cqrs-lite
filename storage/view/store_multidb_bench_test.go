@@ -17,7 +17,7 @@ func BenchmarkSQLViewStore_MultiDB_vs_SingleDB(b *testing.B) {
 	mapper := testMapper()
 
 	b.Run("SingleDB", func(b *testing.B) {
-		db, err := openSQLiteInMemory()
+		db, err := openSQLiteInMemory(b)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -82,7 +82,7 @@ func BenchmarkKV_vs_SQL_Comparison(b *testing.B) {
 	})
 
 	b.Run("SQL/Set", func(b *testing.B) {
-		db, err := openSQLiteInMemory()
+		db, err := openSQLiteInMemory(b)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -119,7 +119,7 @@ func BenchmarkKV_vs_SQL_Comparison(b *testing.B) {
 	})
 
 	b.Run("SQL/Get", func(b *testing.B) {
-		db, err := openSQLiteInMemory()
+		db, err := openSQLiteInMemory(b)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -156,7 +156,7 @@ func BenchmarkKV_vs_SQL_Comparison(b *testing.B) {
 	})
 
 	b.Run("SQL/Scan", func(b *testing.B) {
-		db, err := openSQLiteInMemory()
+		db, err := openSQLiteInMemory(b)
 		if err != nil {
 			b.Fatal(err)
 		}

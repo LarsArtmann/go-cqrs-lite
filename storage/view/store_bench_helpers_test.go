@@ -8,7 +8,7 @@ import (
 func newBenchViewStore(b *testing.B) (*SQLViewStore[testView, testKey], context.Context) {
 	b.Helper()
 
-	db, err := openSQLiteInMemory()
+	db, err := openSQLiteInMemory(b)
 	if err != nil {
 		b.Fatalf("OpenSQLiteInMemory: %v", err)
 	}

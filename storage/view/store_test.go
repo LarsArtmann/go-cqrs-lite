@@ -50,7 +50,7 @@ func testMapper() ViewMapper[testView] {
 func newTestViewStore(t *testing.T) *SQLViewStore[testView, testKey] {
 	t.Helper()
 
-	db, err := openSQLiteInMemory()
+	db, err := openSQLiteInMemory(t)
 	if err != nil {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}

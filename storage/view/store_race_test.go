@@ -12,11 +12,10 @@ import (
 func TestSQLViewStore_ConcurrentSetQuery(t *testing.T) {
 	t.Parallel()
 
-	db, err := openSQLiteInMemory()
+	db, err := openSQLiteInMemory(t)
 	if err != nil {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
-	db.SetMaxOpenConns(1) // in-memory SQLite needs single connection
 	t.Cleanup(func() { _ = db.Close() })
 
 	store, err := NewSQLiteViewStore[testView, testKey](db, testMapper())
@@ -96,11 +95,10 @@ func TestSQLViewStore_ConcurrentSetQuery(t *testing.T) {
 func TestSQLViewStore_ConcurrentBatchAndCount(t *testing.T) {
 	t.Parallel()
 
-	db, err := openSQLiteInMemory()
+	db, err := openSQLiteInMemory(t)
 	if err != nil {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
-	db.SetMaxOpenConns(1)
 	t.Cleanup(func() { _ = db.Close() })
 
 	store, err := NewSQLiteViewStore[testView, testKey](db, testMapper())

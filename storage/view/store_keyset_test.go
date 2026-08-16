@@ -280,7 +280,7 @@ func TestSQLViewStore_Query_MultiColumnOrder(t *testing.T) {
 func TestSQLViewStore_PartialIndex(t *testing.T) {
 	t.Parallel()
 
-	db, err := openSQLiteInMemory()
+	db, err := openSQLiteInMemory(t)
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}

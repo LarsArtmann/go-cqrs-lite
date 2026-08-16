@@ -20,7 +20,7 @@ func (v *autoView) IsTombstoned() bool { return v.Tombstoned }
 func TestSQLViewStore_AutoMapper(t *testing.T) {
 	t.Parallel()
 
-	db, err := openSQLiteInMemory()
+	db, err := openSQLiteInMemory(t)
 	if err != nil {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
@@ -96,7 +96,7 @@ func TestSQLViewStore_AutoMapperBlobType(t *testing.T) {
 		}
 	}
 
-	db, err := openSQLiteInMemory()
+	db, err := openSQLiteInMemory(t)
 	if err != nil {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}

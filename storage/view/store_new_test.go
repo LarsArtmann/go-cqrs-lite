@@ -217,7 +217,7 @@ func TestSQLViewStore_BatchSet(t *testing.T) {
 func TestSQLViewStore_Indexes(t *testing.T) {
 	t.Parallel()
 
-	db, err := openSQLiteInMemory()
+	db, err := openSQLiteInMemory(t)
 	if err != nil {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}

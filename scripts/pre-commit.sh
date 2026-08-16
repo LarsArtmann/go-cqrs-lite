@@ -37,6 +37,9 @@ if grep -R 'fmt\.Printf' --include='*.go' . |
 fi
 
 echo "==> Checking api_surface.txt is up to date"
-(cd cmd/api-stability && GOWORK=off go run main.go)
+if ! (cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" .); then
+	echo "ERROR: docs/api_surface.txt is stale. Run: cd cmd/api-stability && GOWORK=off go run -tags 'goexperiment.jsonv2' . --update"
+	exit 1
+fi
 
 echo "✅ Pre-commit checks passed"

@@ -61,7 +61,10 @@ func OpenSQLiteInMemory() (*sql.DB, error) {
 		)
 	}
 	name := "mem-" + hex.EncodeToString(buf[:])
-	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared&_loc=auto&_time_format=sqlite", name)
+	dsn := fmt.Sprintf(
+		"file:%s?mode=memory&cache=shared&_loc=auto&_time_format=sqlite&_pragma=busy_timeout(5000)",
+		name,
+	)
 	db, err := OpenSQLite(dsn)
 	if err != nil {
 		return nil, err

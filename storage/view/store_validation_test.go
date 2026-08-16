@@ -8,7 +8,7 @@ import (
 func TestSQLViewStore_WithoutAutoMigrate(t *testing.T) {
 	t.Parallel()
 
-	db, err := openSQLiteInMemory()
+	db, err := openSQLiteInMemory(t)
 	if err != nil {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
@@ -30,7 +30,7 @@ func TestSQLViewStore_WithoutAutoMigrate(t *testing.T) {
 func TestSQLViewStore_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
-	db, err := openSQLiteInMemory()
+	db, err := openSQLiteInMemory(t)
 	if err != nil {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
@@ -106,7 +106,7 @@ func TestSQLViewStore_ValidationErrors(t *testing.T) {
 func TestSQLViewStore_DuplicateColumn(t *testing.T) {
 	t.Parallel()
 
-	db, err := openSQLiteInMemory()
+	db, err := openSQLiteInMemory(t)
 	if err != nil {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
