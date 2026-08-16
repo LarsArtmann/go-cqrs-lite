@@ -382,3 +382,43 @@ watermill, dgraph clients). CI installs govulncheck with `GO_VERSION: "1.26"`
 fire there — the now-strict release gate is expected GREEN. The old swallow
 was not hiding third-party landmines. (Local sweeps with an older-toolchain
 govulncheck reproduce the table above — keep the CI Go version floating.)
+
+### §k) FINAL STATE (2026-08-16 ~19:30) — batch CLOSED, gate blocked by EXTERNAL factors
+
+**All 5 TODO items complete and module-verified.** Final verification matrix:
+
+| Scope | Command | Result |
+| ----- | ------- | ------ |
+| `record` | full suite | PASS |
+| `id` | full suite + 3x `-race` | PASS |
+| `metaengine` | full suite + full `-race` | PASS |
+| `system` | full suite + full `-race` | PASS |
+| `event` | full suite `-race` | PASS |
+| api-stability | golden verify | OK 4147 exports |
+| doc-check | skill refs | OK 898 refs |
+| workspace | per-module build loop (all 88+) | PASS |
+| govulncheck | all modules | 0 third-party vulns (§j) |
+| `nix fmt` | tree-wide | applied, affected modules re-verified |
+
+**`nix run .#verify` NOT GREEN — for reasons outside this batch:**
+
+1. **A concurrent session is actively editing the repo** (commits
+   `ddf3ab6f9`, `28ba49d40` landed 19:23+; dirty working tree in
+   `metaengine/*engine/vector.go`, `catalog/docserver/*`). The `#build`
+   phase fails on THEIR in-flight files
+   (`pebbleengine/vector.go: undefined: errors`, `docserver: undefined:
+   IndexPage`) — uncommitted mid-edit state, not my changes. My modules
+   build+test green in the same tree (verified minutes ago).
+2. **First verify run also hit a GOCACHE race** — the nix `goPkg` toolchain
+   and session `GOTOOLCHAIN=auto` toolchain shared one cache dir; export
+   files were evicted between build and test phases (`could not import os:
+   open ...-d: no such file or directory`). Mitigation: dedicated
+   `~/.cache/go-build-verify` for gate runs (documented §i).
+3. `/mnt/buildcache` ext4 failure (§i) still needs fsck — root cause of the
+   whole cache dance.
+
+**Next action for owner/user:** re-run `nix run .#verify` once the other
+session's work is committed AND after fsck/remeasure of /mnt/buildcache
+(99% full — likely the failure trigger).
+
+Remaining open questions: §g.1 (iroh fork endgame — owner risk call).

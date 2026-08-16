@@ -50,7 +50,8 @@ cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" . ../../SKILL.
 | Verify all | `nix run .#verify` (build + vet + test + race + lint + doc-check)                                                                              |
 | Int. PG    | `nix run .#integration-pg` (ephemeral, no Docker) or `nix run .#integration-pg-vm` (QEMU VM)                                                   |
 | Int. MySQL | `nix run .#integration-mysql-nspawn` (nspawn, ~15s, needs root + uid-range) or `nix run .#integration-mysql-vm` (QEMU VM, ~131s, always works) |
-| Int. All   | `nix run .#test-integration` or `nix run .#test-all-backends` (SQLite+Pebble+bbolt+DuckDB+PG+MySQL)                                            |
+| Int. All   | `nix run .#test-integration` or `nix run .#test-all-backends` (SQLite+Pebble+bbolt+DuckDB+PG+MySQL+Dgraph)                                    |
+| Int. Dgraph| `nix run .#integration-dgraph` (ephemeral nixpkgs Dgraph, full dgraphengine suite; also a CI job)                                              |
 | Bench      | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gate: median ns/op, 25% threshold — CI fails on breach)                    |
 | CI         | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                  |
 

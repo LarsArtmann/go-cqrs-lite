@@ -78,6 +78,51 @@ func (e *dgraphEngine) GraphAddEdge(
 	return nil
 }
 
+// GraphRemoveEdge deletes both stored directions of the edge (ADR-0114
+// style tombstone dispatch; GraphAddEdge writes both). Idempotent: when
+// either node does not exist the upsert resolves no uids and the delete
+// quads expand to nothing.
+func (e *dgraphEngine) GraphRemoveEdge(
+	ctx context.Context,
+	collection string,
+	edge metaengine.Edge,
+) error {
+	fromStr := fmt.Sprint(edge.From)
+	toStr := fmt.Sprint(edge.To)
+
+	pred := graphEdgePredicate(collection)
+
+	req := &api.Request{CommitNow: true}
+	req.Query = `query nodes($col: string, $from: string, $to: string) {
+		from_node as var(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $from))
+		to_node as var(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $to))
+	}`
+	req.Vars = map[string]string{"$col": collection, "$from": fromStr, "$to": toStr}
+
+	req.Mutations = []*api.Mutation{
+		{DelNquads: fmt.Appendf(nil, "uid(from_node) <%s> uid(to_node) .", pred)},
+		{DelNquads: fmt.Appendf(nil, "uid(to_node) <%s> uid(from_node) .", pred)},
+	}
+
+	if _, err := e.client.NewTxn().Do(ctx, req); err != nil {
+		return fmt.Errorf("dgraphengine.GraphRemoveEdge: %w", err)
+	}
+
+	return nil
+}
+
+// GraphNeighborsUndirected is an alias of GraphNeighbors: Dgraph stores
+// edges bidirectionally (GraphAddEdge writes both directions), so directed
+// traversal already sees incoming edges too.
+func (e *dgraphEngine) GraphNeighborsUndirected(
+	ctx context.Context,
+	collection string,
+	node any,
+	depth int,
+) ([]any, error) {
+	return e.GraphNeighbors(ctx, collection, node, depth)
+}
+
 func (e *dgraphEngine) GraphNeighbors(
 	ctx context.Context,
 	collection string,

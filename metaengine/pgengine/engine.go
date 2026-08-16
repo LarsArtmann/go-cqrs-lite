@@ -138,6 +138,7 @@ func (e *pgEngine) init() error {
 			PRIMARY KEY (collection, from_node, to_node)
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_graph_edges_from ON meta_graph_edges(collection, from_node)`,
+		`CREATE INDEX IF NOT EXISTS idx_graph_edges_to ON meta_graph_edges(collection, to_node)`,
 	}
 
 	for _, ddl := range ddls {

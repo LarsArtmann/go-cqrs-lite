@@ -369,16 +369,27 @@ and is **never** duplicated here.
       CapabilityAudit call must route through the metaengine package.
       Behavioral tests: `TestDoctorNotesGraphNonReplication`,
       `TestExplainPlanShowsCapabilityDriftBanner`.
-- [ ] **DuckDB real aggregation pushdown (`AggregateReader`)** — approved by
-      DiscordSync census review; `CounterGet` currently loads all rows into
-      Go maps instead of pushing GROUP BY to columnar SQL. Highest-leverage
-      DuckDB item.
-      _(Effort: L)_
-- [ ] **Dgraph engine hardening** — `Transactional` (RunInTx) support or an
-      ADR documenting why not; per-test collection isolation for the shared
-      persistent server; add Dgraph to `test-all-backends`/CI matrix
-      (AGENTS quick-ref lists no Dgraph backend today).
-      _(Effort: M)_
+- [x] **DuckDB real aggregation pushdown (`AggregateReader`)** — RESOLVED
+      STALE 2026-08-16: re-verified against current code. The premise no
+      longer holds — `duckdbengine/aggregations.go` implements the FULL
+      pushdown family (Aggregate, GroupedAggregate, MultiAggregate,
+      MultiGroupedAggregate, DistinctValues; planned-path + standard JSON
+      path) and `CounterGet` is a single SQL SELECT over a dedicated
+      `meta_counter` table (no Go-side row loads). All
+      `TestDuckDB_Aggregate*`/`Grouped*`/`Multi*`/`Distinct*` tests green
+      (cgo). No further work needed.
+- [x] **Dgraph engine hardening** — DONE 2026-08-16. (1) Transactional:
+      ADR-0129 documents why `RunInTx` is deferred (per-op txn unit of work;
+      ambient-tx plumbing + ErrAborted→Conflict mapping + conformance gate
+      sketched for when a consumer needs it); capability table stays honestly
+      undeclared. (2) Per-test isolation: `uniqueCollection(tb, base)` in
+      helper_test.go (pid + atomic counter suffix) now backs every fixed
+      collection name in the suite (injection, stream_log, multimap/log,
+      products, events_parity) — reruns and `-count>1` against a shared
+      persistent server no longer collide. Full dgraphengine suite green
+      against ephemeral Dgraph post-change. (3) CI: new `dgraph` job in
+      ci.yml runs `nix run .#integration-dgraph`; `test-all-backends.sh`
+      already had Phase 4 Dgraph — AGENTS quick-ref updated to list Dgraph.
 - [ ] **DuckDB native graph via recursive CTE** — DuckDB supports
       `WITH RECURSIVE`; mirror the pgengine `meta_graph_edges` implementation
       (currently intentionally degraded).

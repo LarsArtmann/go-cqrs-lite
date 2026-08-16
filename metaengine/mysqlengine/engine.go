@@ -114,12 +114,21 @@ func (e *mysqlEngine) init() error {
 			from_node VARCHAR(255) NOT NULL,
 			to_node VARCHAR(255) NOT NULL,
 			PRIMARY KEY (collection, from_node, to_node),
-			INDEX idx_graph_edges_from (collection, from_node)
+			INDEX idx_graph_edges_from (collection, from_node),
+			INDEX idx_graph_edges_to (collection, to_node)
 		)`,
+		// Existing deployments predate idx_graph_edges_to (undirected
+		// traversal); CREATE TABLE IF NOT EXISTS will not add it. MySQL has no
+		// CREATE INDEX IF NOT EXISTS, so tolerate the duplicate-key error.
+		`CREATE INDEX idx_graph_edges_to ON meta_graph_edges (collection, to_node)`,
 	}
 
 	for _, ddl := range ddls {
 		if _, err := e.db.ExecContext(context.Background(), ddl); err != nil {
+			if isMySQLDuplicateIndex(err) {
+				continue
+			}
+
 			return fmt.Errorf("mysqlengine.init: %w", err)
 		}
 	}

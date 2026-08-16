@@ -152,6 +152,22 @@ jobs:
             cd metaengine/irohengine/quic && GOWORK=off CGO_ENABLED=1 go test -tags "goexperiment.jsonv2" ./... -count=1
           '
 
+  dgraph:
+    name: Dgraph Integration (ephemeral)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
+
+      - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+
+      # Ephemeral nixpkgs Dgraph (Zero + Alpha), full dgraphengine suite,
+      # teardown on exit. Same path as `nix run .#integration-dgraph`.
+      - name: Run dgraphengine tests against ephemeral Dgraph
+        run: nix run .#integration-dgraph
+
   quic-flake-watch:
     name: QUIC Convergence Flake Watch (-race x3)
     runs-on: ubuntu-latest

@@ -229,5 +229,7 @@ watermill/     — Watermill protocol adapter
 | [0125](0125-developer-priority-is-layout-only.md)                 | Developer Priority Is Layout-Only                             | 2026-08-11 | Accepted                                                                                                                      |
 | [0126](0126-metadata-generic-store-transforms-wal-unification.md) | Metadata Canonical Generic, Store Transforms, WAL Unification | 2026-08-14 | Implemented                                                                                                                   |
 | [0127](0127-deprecate-transport-modules.md)                       | Deprecate transport/* — watermill + go-sse Instead            | 2026-08-14 | Accepted                                                                                                                      |
+| [0128](0128-extract-codec-and-remove-shim-modules.md)             | Extract go-codec, Remove In-Repo Shims                        | 2026-08-14 | Implemented                                                                                                                   |
+| [0129](0129-dgraph-engine-transactional-deferred.md)              | Dgraph Engine: Transactional Deferred                         | 2026-08-16 | Accepted                                                                                                                      |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).

@@ -84,3 +84,25 @@ func (a *Adapter) GraphNeighbors(
 
 	return result, nil
 }
+
+// GraphRemoveEdge deletes the edge via the driver's GraphSink (ADR-0114
+// style tombstone dispatch). Idempotent: removing a missing edge is a no-op.
+// Undirected traversal is deliberately NOT implemented here — the driver's
+// Traverse walks outgoing edges only; the executor reports the missing
+// capability instead of returning wrong nodes.
+func (a *Adapter) GraphRemoveEdge(
+	_ context.Context,
+	collection string,
+	edge metaengine.Edge,
+) error {
+	fromRef := graph.NodeRef{Label: "entity", KeyProp: "id", KeyValue: fmt.Sprint(edge.From)}
+	toRef := graph.NodeRef{Label: "entity", KeyProp: "id", KeyValue: fmt.Sprint(edge.To)}
+
+	return a.driver.RunInTx(func(sink graph.GraphSink) error {
+		return sink.RemoveEdge(graph.EdgeRef{
+			Type: collection,
+			From: fromRef,
+			To:   toRef,
+		}) //nolint:wrapcheck // driver error is self-describing
+	})
+}

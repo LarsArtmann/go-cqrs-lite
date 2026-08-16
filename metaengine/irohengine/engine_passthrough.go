@@ -167,3 +167,52 @@ func (e *replicatedEngine) GraphNeighbors(
 	}
 	return nil, ErrGraphBackendNotImplemented
 }
+
+// graphExtCapable mirrors the optional graph extension capabilities
+// (edge removal + undirected traversal) of the wrapped local engine.
+type graphExtCapable interface {
+	GraphRemoveEdge(ctx context.Context, collection string, edge metaengine.Edge) error
+	GraphNeighborsUndirected(ctx context.Context, collection string, node any, depth int) ([]any, error)
+}
+
+// GraphRemoveEdge forwards to the local engine WITHOUT replication (same
+// wire-protocol limitation as GraphAddEdge — edges do not converge).
+func (e *replicatedEngine) GraphRemoveEdge(
+	ctx context.Context,
+	collection string,
+	edge metaengine.Edge,
+) error {
+	if gx, ok := e.local.(graphExtCapable); ok {
+		return gx.GraphRemoveEdge(ctx, collection, edge)
+	}
+	return ErrGraphBackendNotImplemented
+}
+
+// GraphNeighborsUndirected forwards to the local engine. Reads never replicate.
+func (e *replicatedEngine) GraphNeighborsUndirected(
+	ctx context.Context,
+	collection string,
+	node any,
+	depth int,
+) ([]any, error) {
+	if gx, ok := e.local.(graphExtCapable); ok {
+		return gx.GraphNeighborsUndirected(ctx, collection, node, depth)
+	}
+	return nil, ErrGraphBackendNotImplemented
+}
+
+// --- VectorFilterBackend (local passthrough) ---
+
+func (e *replicatedEngine) VectorSearchFiltered(
+	ctx context.Context,
+	collection string,
+	query []float32,
+	k int,
+	metric string,
+	filters []metaengine.VectorFilter,
+) ([]metaengine.VectorResult, error) {
+	if vf, ok := e.local.(metaengine.VectorFilterBackend); ok {
+		return vf.VectorSearchFiltered(ctx, collection, query, k, metric, filters)
+	}
+	return nil, ErrVectorBackendNotImplemented
+}
