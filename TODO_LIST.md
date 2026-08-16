@@ -71,17 +71,25 @@ and is **never** duplicated here.
       `dedup.Ring`, default window 131072 IDs (~10 MB) via
       `WithIdempotencyCapacity` (≤0 = legacy unbounded). 1M-ID memory-bound,
       eviction, and concurrent exactly-once tests race-green.
-- [ ] **Envelope first-byte sniff in `UnwrapDecode`** — full JSON parse per
-      blind-store read just to detect codec (go-codec, external repo).
-      _(Effort: M)_
+- [x] **Envelope first-byte sniff in `UnwrapDecode`** — DONE 2026-08-16
+      (go-codec sibling repo): first byte ≥ 0x80 (CBOR major types 4-7, never
+      valid JSON) skips the doomed envelope parse. Fallback path 181ns/6
+      allocs → 1.6ns/0 allocs (-99%, n=10 benchstat); envelope path unchanged
+      (p=0.912). Pinned by `TestUnwrapDecode_FirstByteSniff` (all 128 high
+      bytes) + `BenchmarkUnwrapDecode_FallbackRawCBOR`. CONSUMER NOTE: needs a
+      go-codec tag before GOWORK=off builds pick it up (standing tagging
+      question).
 - [x] **bbolt deserialize benchmark** — DONE 2026-08-16:
       `BenchmarkEventDeserialize` (storage/bbolt): 2815 ns/op, 1210 B/op,
       20 allocs pre-adopt → 2521 ns/op with adopt; ledger updated.
-- [ ] **Measure-then-pad cache-line candidates** — worker counters, multiSeqCounter,
-      SSEReplay.seq @-cpu=16,32; pad ONLY if contended >10% (worker counters
-      analyzed single-writer: padding would NOT pay — keep as documented
-      decision).
-      _(Effort: S)_
+- [x] **Measure-then-pad cache-line candidates** — DONE 2026-08-16
+      ([evidence](docs/benchmarks/2026-08-16_false-sharing-contention.md),
+      count=10 @-cpu=16,32): multiSeqCounter PADDED (trailing 128B size-class
+      pad, 2.5-2.8x under two hot collections); worker counters NO PAD
+      (padded mirror ~58% slower for the single-writer under reader spin —
+      confirms prior analysis); SSEReplay.seq NO PAD (contradictory deltas;
+      record() touches seq and mutex fields together). Control benches kept
+      in-tree.
 - [x] **Perf ledger** — DONE 2026-08-16: [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md)
       maps every shipped win to its runnable benchmark + baseline + last
       measured numbers. REMAINS: benchstat baselines for the 3 new benchmarks
@@ -252,11 +260,13 @@ and is **never** duplicated here.
       per-engine token table, adapter integration, rollout, risks).
       Implementation remains open (Effort M).
       _(Effort: M)_
-- [ ] **Engine capability conformance test** — plan-time `Supports`-declared
-      vs actually-implemented interface check per engine (brutal review
-      finding: 6 engines over-declare; e.g. pg/mysql/duckdb declare Set/Log/
-      Multimap/Graph/Vector with no native implementations).
-      _(Effort: M)_
+- [x] **Engine capability conformance test** — DONE 2026-08-16 (F60 +
+      Doctor wiring): `metaengine.CapabilityAudit` (root package) enforces
+      the three rules (over-declaration, under-declaration, Degraded ⊆
+      Supports); `adttest.RunCapabilityConformance` gates all 10 engines;
+      `Store.Doctor` renders a `--- Capability ---` section per engine so
+      lying engines surface at runtime. adttest delegates to the root
+      implementation (dependency direction: adttest → metaengine).
 - [ ] **DuckDB real aggregation pushdown (`AggregateReader`)** — approved by
       DiscordSync census review; `CounterGet` currently loads all rows into
       Go maps instead of pushing GROUP BY to columnar SQL. Highest-leverage

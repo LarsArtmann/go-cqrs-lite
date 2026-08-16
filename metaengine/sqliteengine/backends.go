@@ -136,10 +136,18 @@ func (e *sqliteEngine) MultiGet(ctx context.Context, col string, key any) ([]any
 // that seeds the counter from MAX(seq), preventing PK collisions with rows
 // persisted by a previous process. All subsequent calls hit the atomic fast
 // path with no DB access.
+//
+// The trailing pad pushes the allocation to the 128-byte size class so two
+// per-collection counters can never share a cache line — Go's small-object
+// allocator otherwise packs 32-byte objects 16-per-512B span and two hot
+// multimap collections false-share (measured 2.2-2.8x Add slowdown,
+// docs/benchmarks/2026-08-16_false-sharing-contention.md). 128 covers
+// 128-byte-line ARM cores as well as the 64-byte x86 line.
 type multiSeqCounter struct {
 	once    sync.Once
 	counter atomic.Int64
 	initErr error
+	_       [96]byte
 }
 
 func (e *sqliteEngine) nextMultiSeq(ctx context.Context, col string) (int64, error) {

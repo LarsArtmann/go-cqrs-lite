@@ -1595,6 +1595,7 @@ metaengine/func BuildColumnarLayoutPlan
 metaengine/func BuildLayoutPlan
 metaengine/func BuildLayoutPlanFromType
 metaengine/func CalibrateEngine
+metaengine/func CapabilityAudit
 metaengine/func Checksum
 metaengine/func CompareValues
 metaengine/func ContractSuite
@@ -2364,6 +2365,7 @@ metaengine/struct BenchmarkResult
 metaengine/struct BenchmarkSummary
 metaengine/struct Calibration
 metaengine/struct CalibrationCosts
+metaengine/struct CapabilityAuditResult
 metaengine/struct CollectionInfo
 metaengine/struct CollectionStats
 metaengine/struct CostAccuracyReporter
@@ -2456,6 +2458,7 @@ metaengine/type ADT
 metaengine/type AddEngineOption
 metaengine/type AggregateFn
 metaengine/type BackfillOption
+metaengine/type CapabilityGaps
 metaengine/type Complexity
 metaengine/type Delta
 metaengine/type DemoteOption

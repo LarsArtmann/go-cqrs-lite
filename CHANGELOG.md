@@ -39,6 +39,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   same reason. All three replaces drop once `metadata` v4.5.1+ and `event`
   are tagged.
 
+### Added — Wave-4: false-sharing measure-then-pad campaign — 2026-08-16
+
+- **Doctor now audits engine capability conformance**: new
+  `metaengine.CapabilityAudit` / `CapabilityGaps` / `CapabilityAuditResult`
+  enforce the declared-vs-implemented rules (over-declaration,
+  under-declaration, DegradedADTs ⊆ Supports) in the root package, and
+  `Store.Doctor` renders a `--- Capability ---` section per registered
+  engine — lying engines surface at runtime, not just in tests. The audit
+  core moved out of `adttest` (which now delegates; `adttest.KnownGaps` is an
+  alias of `metaengine.CapabilityGaps`) because the dependency direction is
+  adttest → metaengine and Doctor lives in metaengine. ADTGraph detection
+  reuses the existing internal `graphBackend` dispatch contract.
+- **`sqliteengine.multiSeqCounter` padded**: trailing `_ [96]byte` pushes the
+  per-multimap-collection counter to the 128-byte size class so two hot
+  collections can never share a cache line (Go packs 32-byte objects
+  16-per-512B span). Measured 2.5-2.8x under two contended collections:
+  19.7→6.9 ns @16, 18.8→7.4 ns @32 (count=10). Control benches
+  `BenchmarkMultiSeqCounterUnpadded`/`Padded` kept in-tree.
+- **projectionhost worker counters and `metaengine.SSEReplay.seq` measured,
+  NOT padded** (documented decisions): worker counters are single-writer and
+  the padded mirror measured ~58% SLOWER for the writer under reader spin;
+  `SSEReplay.record` touches `seq` and the mutex-guarded fields together, and
+  padded deltas were contradictory across core counts. New evidence benches
+  `BenchmarkWorkerCounters*` and `BenchmarkSSEReplaySeq*` pin both layouts.
+- **workloadMeter baseline extended to @16,32 cores** (4.38/4.83 ns — the
+  shipped 128-byte pad holds at scale). Full campaign evidence:
+  [`docs/benchmarks/2026-08-16_false-sharing-contention.md`](docs/benchmarks/2026-08-16_false-sharing-contention.md);
+  ledger rows in [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md).
+
 ### Added — Wave-3 IO wins: bbolt group commit, PG COPY, pebble operator knobs, checkpoint batching — 2026-08-16
 
 - **bbolt opt-in group commit**: `bbolt.WithBatchCommit()` on
