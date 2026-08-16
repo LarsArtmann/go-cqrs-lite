@@ -119,6 +119,10 @@ cached, _ := kv.NewCache(store,
     kv.WithCacheTTL[TodoView, TodoID](5*time.Minute))
 ```
 
+Every `Get` returns an isolated deep copy (each `*T` is private), so
+concurrent readers can safely mutate results. For immutable hot paths where
+copies are waste, use `kv.TypedStore` directly.
+
 #### Shared database (events + reads in one \*sql.DB)
 
 When your events and read models share a single SQLite/Postgres database, skip the

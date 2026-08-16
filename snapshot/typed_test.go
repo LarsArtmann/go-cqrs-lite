@@ -202,3 +202,27 @@ func TestTypedStore_LegacyStateDecodesAcrossCodecs(t *testing.T) {
 		t.Fatalf("legacy raw CBOR under JSON config: got %+v", loaded.State)
 	}
 }
+
+func TestTypedStore_GarbageStateStillErrors(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	fake := newFakeStore()
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Counter", streamID)
+	if err := fake.Save(ctx, snapshot.Snapshot{
+		StreamID:   streamID,
+		StreamType: "Counter",
+		Version:    1,
+		State:      []byte{0xc1, 0xff, 0xfe, 0x00},
+	}); err != nil {
+		t.Fatalf("seed Save: %v", err)
+	}
+
+	ts := snapshot.NewTypedStore[counterState](fake, nil)
+
+	if _, err := ts.Load(ctx, ref); err == nil {
+		t.Fatal("expected decode error for garbage state")
+	}
+}

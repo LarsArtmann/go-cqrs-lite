@@ -12,8 +12,9 @@ matured significantly:
 
 1. **ADR-0044 envelopes** — All blind stores (kv, snapshot, command, query) now
    stamp their encoding on write and auto-detect on read via `WrapEncode`/
-   `UnwrapDecode`. The `UnwrapDecode` fallback path uses `JSONCodec` for
-   backward compatibility with pre-envelope data (ADR-0050).
+   `UnwrapDecode`. The `UnwrapDecode` fallback path uses the store's configured
+   codec (with one JSON↔CBOR cross-retry) for backward compatibility with
+   pre-envelope data (ADR-0050, amended 2026-08-16).
 
 2. **`DecodePayloadAuto[T]`** — Events are self-describing: each event stamps
    its encoding via `ImmutableEvent.Encoding()`. Mixed JSON+CBOR event streams

@@ -6,6 +6,58 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — metaengine graph removal + undirected traversal + filtered k-NN (wave) — 2026-08-16
+
+- **`GraphRemoveEdge` + `HasGraphEdgeRemoval`** — ADR-0114-style tombstone-driven
+  edge removal on memory, badger, sqlite, pg, mysql, dgraph, graphadapter, and
+  iroh (passthrough). Dgraph deletes both stored directions (symmetric
+  storage); `FoldEdgeRemove` folds removals into a Store so event-sourced
+  replay reconstructs edge deletion. Idempotent everywhere (removing a
+  missing edge is a no-op). pebble/bbolt unchanged (no graph ADT).
+- **`GraphNeighborsUndirected` + `HasUndirectedGraphSupport`** — undirected
+  traversal on memory, badger, sqlite (recursive CTE seeded from both
+  directions), pg, mysql, iroh (passthrough), and dgraph (alias of the
+  directed call: storage is symmetric). The PG/MySQL implementations use a
+  derived-table seed + single OR-join recursive arm — the tempting 4-arm
+  form (self-reference in the non-recursive term) is rejected by PG
+  (SQLSTATE 42P19) and MySQL (single recursive reference limit).
+  graphadapter deliberately does NOT implement it (gap documented in its
+  interface test).
+- **`VectorSearchFiltered` + `VectorFilter`/`VectorFilterBackend`** —
+  metadata-filtered k-NN: equality/in/range predicates evaluated against
+  `Embedding.Metadata` (new field) before ranking, native on memory, badger,
+  pebble, bbolt, and iroh (passthrough). The generic Store path falls back
+  to filter-then-rank for engines without the capability, so filtered k-NN
+  works wherever vectors work. `VectorUpsert` replaces stale metadata
+  (upserting a vector without filters clears the old set).
+- **adttest matrix 11 → 14 scenarios** — `GraphRemove`, `GraphUndirected`,
+  and `VectorFiltered` scenarios with `GraphRemovalBackend`,
+  `UndirectedGraph`, and `VectorFilterBackend` capability gates; exhaustiveness
+  mirror covers the new `FoldEdgeRemove` kind.
+- **Vector-at-scale spike with measured baselines** —
+  [`docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md`](docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md):
+  memory ~90 ns/vector vs pebble ~17 µs/vector (D=128 cosine) — the ~190x gap
+  is JSON float decoding, not the scan. Phased plan: binary float32 payloads
+  (Phase 0, unconditional), int8 scalar quantization + exact re-rank
+  (Phase 1), optional HNSW behind a capability interface with a
+  filter-fallback strategy (Phase 2). Benchmarks checked in:
+  `metaengine/vector_scale_bench_test.go` (memory ceiling) and
+  `metaengine/pebbleengine/vector_bench_test.go` (LSM point).
+- **dgraphengine upsert abort resilience** — `GraphAddEdge`/`GraphRemoveEdge`
+  upserts retry on Dgraph transaction abort (6 attempts, exponential backoff
+  with jitter, capped at 240 ms). Read-then-write upserts routinely abort
+  under concurrent writers (bulk corpus builds sustain contention for
+  seconds); retrying the whole request is Dgraph's documented resolution.
+
+### Fixed — event alloc pins tolerate unpublished sibling codec improvements — 2026-08-16
+
+- **`event/allocs_test.go` exact-equality alloc pins → upper-bound budgets** —
+  the local `go.work` workspace resolves `go-codec` to the sibling checkout,
+  whose envelope fast-path (unpublished) legitimately drops `NewEvent` from 3
+  to 2 allocations; the exact `!= 3` assertions went red only in workspace
+  `#verify*` runs (CI builds against the published tag and stayed green).
+  The guards now fail on regressions (`> 3`) in both dependency graphs.
+
 ### Fixed — correctness-sweep leftovers (brutal-review backlog) — 2026-08-16
 
 - **Blind stores respect their configured codec on read** (kv.TypedStore,
@@ -27,6 +79,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `TestTypedQueryStore_NilCodecDefaultsToJSON` → `...DefaultsToCBOR` (and the
   command/snapshot equivalents) — the nil-codec default has been CBOR since
   ADR-0051.
+- Follow-up hardening (same day): mirrored the garbage-still-errors tests into
+  command + snapshot (kv and query already had them), and corrected the stale
+  "fallback uses JSONCodec" claims in the migration guide, ADR-0051, and
+  ADR-0053 to the shipped configured-codec + cross-retry behavior.
 
 ### Removed — 2026-08-16
 

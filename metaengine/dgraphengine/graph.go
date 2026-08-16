@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json/v2"
 	"fmt"
+	"math/rand/v2"
 	"strings"
 	"time"
 
@@ -23,14 +24,21 @@ import (
 // read-then-write upsert pattern (query + @if mutation) aborts when a
 // concurrent transaction commits first ("Transaction has been aborted.
 // Please retry") — retrying the whole request is Dgraph's documented
-// resolution and keeps parallel graph operations reliable.
+// resolution and keeps parallel graph operations reliable. Bulk writers
+// (corpus builds, projection catch-up) sustain contention for seconds, so
+// the schedule is 6 attempts with exponential backoff plus jitter
+// (15ms base doubling, capped at 240ms).
 func (e *dgraphEngine) doWithAbortRetry(
 	ctx context.Context,
 	req *api.Request,
 ) (*api.Response, error) {
+	const attempts = 6
+	const baseDelay = 15 * time.Millisecond
+	const maxDelay = 240 * time.Millisecond
+
 	var lastErr error
 
-	for attempt := range 3 {
+	for attempt := range attempts {
 		resp, err := e.client.NewTxn().Do(ctx, req)
 		if err == nil {
 			return resp, nil
@@ -41,10 +49,11 @@ func (e *dgraphEngine) doWithAbortRetry(
 			return nil, err
 		}
 
+		delay := min(baseDelay<<attempt, maxDelay) + rand.N(baseDelay)
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
-		case <-time.After(time.Duration(attempt+1) * 10 * time.Millisecond):
+		case <-time.After(delay):
 		}
 	}
 

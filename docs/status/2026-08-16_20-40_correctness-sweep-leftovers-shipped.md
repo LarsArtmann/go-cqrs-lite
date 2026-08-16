@@ -44,14 +44,14 @@ uncommitted `../go-codec` tree, not this diff).
 | Item | State | Blocker |
 |------|-------|---------|
 | `nix run .#verify-fast` | Run 1 exercised the WHOLE workspace with the behavioral changes — every module green except 2 `TestAllocs_NewEvent_*` in event. Run 2 (exclusive, no concurrent load) failed on the SAME 2 tests → root-caused: workspace resolves the **uncommitted** `../go-codec` tree whose perf work drops `NewEvent` allocs 3→2. `GOWORK=off` (published go-codec v0.1.0) passes; pre-session commit passes; my diff never touched `NewEvent`. | BLOCKED on go-codec F46 (commit+tag). Compensated with per-module gates; gate left RED and documented. |
-| Doc sweep for stale fallback claims | AGENTS.md fixed; **MIGRATION-GUIDE.md:96, ADR-0051:15, ADR-0053:22+54 still say the fallback uses JSONCodec** (confirmed by grep at 20:40). Skill references mention `kv.Cache` (core.md:119, recipes.md:117) — semantics claims not yet re-checked. | None — plain oversights, fixable in minutes. |
+| Doc sweep for stale fallback claims | ~~AGENTS.md fixed; **MIGRATION-GUIDE.md:96, ADR-0051:15, ADR-0053:22+54 still say the fallback uses JSONCodec** (confirmed by grep at 20:40). Skill references mention `kv.Cache` (core.md:119, recipes.md:117) — semantics claims not yet re-checked.~~ done 2026-08-16 later session: all three docs updated to configured-codec + cross-retry; skill references carry no false claims (recipes.md got a copy-isolation note). | ~~None~~ resolved. |
 
 ## c) NOT STARTED (natural follow-ons from this work) ⏳
 
 1. Benchmark quantifying `kv.Cache` hit-path cost (no `BenchmarkCache*` exists anywhere).
 2. Rework option: cache encoded bytes instead of decoded `*T` → hit costs 1 decode instead of encode+decode.
 3. Custom-codec test through `decodeEnvelopeOrLegacy` (only built-ins covered).
-4. FEATURES.md row for the cross-codec legacy rescue.
+4. ~~FEATURES.md row for the cross-codec legacy rescue.~~ done (same-day follow-up session).
 5. Skill-references fallback/semantics sweep + doc-check rerun.
 6. Shorten the `//art-dupl:accept` lines (~131 chars — over the golines 120 budget; AGENTS advises nolint-style comments under ~40 chars to survive `nix fmt` reformatting).
 7. `nix run .#check-arch` / `#check-coverage` / `#vulncheck` (no dep changes were made, so low risk — but they were not run).

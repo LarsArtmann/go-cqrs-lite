@@ -93,7 +93,9 @@ This is safe thanks to two mechanisms (see ADR-0053):
 - **Blind stores:** Envelope-wrapped via `codec.WrapEncode`/`UnwrapDecode`
   (ADR-0044). The envelope records the codec used. On read, `UnwrapDecode`
   auto-detects the envelope and uses the stamped codec. For pre-envelope data
-  (raw JSON), the fallback decoder uses `JSONCodec` — so old data reads correctly.
+  (raw rows written before envelopes existed), the fallback decoder is the
+  store's configured codec with one JSON↔CBOR cross-retry — so old data
+  reads correctly in either direction (ADR-0050 addendum).
 
 ### What this means for you
 

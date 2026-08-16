@@ -130,10 +130,10 @@ pg/mysql/duckdb own and close their `*sql.DB`; sqliteengine documents "caller ow
 - Command bus middleware runs once per handler, double-counting side effects (`command/memory_bus.go:115`)
 - Query audit middleware mints a fresh RequestID and drops actor/correlation/duration (`query/audit.go:95`)
 - `Pagination.Offset()` underflows on zero-value structs (`query/pagination.go:40`)
-- `kv.Cache` hands the same `*T` to all readers (mutation hazard)
+- ~~`kv.Cache` hands the same `*T` to all readers (mutation hazard)~~ **FIXED (2026-08-16): Get/Set copy-isolate values via codec round-trip (`3161eb182`)**
 - `id` serializes ALL generation behind one global mutex (process-wide ceiling)
-- TypedQueryStore decodes with hardcoded JSON fallback while ignoring its configured codec on read (`query/typed.go:97`)
-- Ghost symbol: `event.ErrBinaryNotFound` referenced nowhere (`event/errors.go:69`)
+- ~~TypedQueryStore decodes with hardcoded JSON fallback while ignoring its configured codec on read (`query/typed.go:97`)~~ **FIXED (2026-08-16): all four blind stores decode via configured codec + JSON↔CBOR cross-retry (ADR-0050 addendum)**
+- ~~Ghost symbol: `event.ErrBinaryNotFound` referenced nowhere (`event/errors.go:69`)~~ **FIXED (2026-08-16): deleted (`3161eb182`)**
 
 ---
 

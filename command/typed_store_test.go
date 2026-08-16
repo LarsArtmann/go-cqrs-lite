@@ -211,6 +211,28 @@ func TestTypedCommandStore_LegacyPayloadsDecodeAcrossCodecs(t *testing.T) {
 	}
 }
 
+func TestTypedCommandStore_GarbagePayloadStillErrors(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	ref := command.NewStreamRef("Todo", id.NewStreamID())
+
+	store := memory.NewMemoryCommandStore()
+	pc, err := command.NewPersistedCommand("todo.create", ref, []byte{0xc1, 0xff, 0xfe, 0x00})
+	if err != nil {
+		t.Fatalf("NewPersistedCommand: %v", err)
+	}
+	if err = store.Save(ctx, ref, pc); err != nil {
+		t.Fatalf("seed Save: %v", err)
+	}
+
+	ts := command.NewTypedCommandStore[createTodoPayload](store, nil)
+
+	if _, err := ts.Load(ctx, ref); err == nil {
+		t.Fatal("expected decode error for garbage payload")
+	}
+}
+
 func TestTypedCommandStore_AppendBatch(t *testing.T) {
 	t.Parallel()
 

@@ -166,22 +166,45 @@ and is **never** duplicated here.
       local drivers; add a tursoengine test confirming it holds over the
       remote protocol.
       _(Effort: S)_
-- [ ] **Badger engine vector + graph parity audit** — has neither; audit
+- [x] **Badger engine vector + graph parity audit** — has neither; audit
       against the pebble/bbolt precedent and either implement or document
       the gap.
-      _(Effort: S)_
-- [ ] **Vector search at scale** — quantization/HNSW spike for LSM engines
+      _(Effort: S)_ — done 2026-08-16: `badgerengine/vector.go` + `graph.go`
+      implement both ADTs at pebble/bbolt parity (filtered k-NN included);
+      suite green.
+- [x] **Vector search at scale** — quantization/HNSW spike for LSM engines
       when collections exceed ~100K vectors (brute-force scan is O(N)).
-      _(Effort: L)_
-- [ ] **`VectorResult` filtered k-NN** — metadata-filtered vector search
+      _(Effort: L)_ — done 2026-08-16: spike complete with measured
+      baselines (memory ~90ns/vector vs pebble ~17µs — the 190x gap is JSON
+      decode, not the scan); phased plan (binary float32 → int8 quantization
+      → optional HNSW with filter fallback) in
+      [`docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md`](docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md).
+      Implementation of the phases is NOT done — Phase 0 (binary encoding)
+      is the follow-up.
+- [x] **`VectorResult` filtered k-NN** — metadata-filtered vector search
       (filter + top-k in one query); API currently returns bare top-k.
-      _(Effort: M)_
-- [ ] **`GraphRemoveEdge`** — the edges table exists but nothing removes
+      _(Effort: M)_ — done 2026-08-16: `VectorSearchFiltered` +
+      `VectorFilter`/`VectorFilterBackend` natively on memory, badger, pebble,
+      bbolt, iroh (passthrough); the generic Store path falls back to
+      filter-then-rank for any engine without the capability, so filtered
+      k-NN works everywhere vectors work. Filters ride
+      `Embedding.Metadata` and upsert clears stale metadata; adttest
+      `VectorFiltered` scenario pins cross-engine parity.
+- [x] **`GraphRemoveEdge`** — the edges table exists but nothing removes
       edges; tombstone events should drive edge removal (ADR-0114 style).
-      _(Effort: M)_
-- [ ] **Graph directed-vs-undirected option** — `GraphNeighbors` is
+      _(Effort: M)_ — done 2026-08-16: `GraphRemoveEdge` + `HasGraphEdgeRemoval`
+      on memory, badger, sqlite, pg, mysql, dgraph (symmetric both-direction
+      delete), graphadapter, iroh (passthrough); `FoldEdgeRemove` folds
+      removals into the store; adttest `GraphRemove` scenario. (pebble/bbolt
+      have no graph ADT at all — unchanged.)
+- [x] **Graph directed-vs-undirected option** — `GraphNeighbors` is
       directed-only today.
-      _(Effort: S)_
+      _(Effort: S)_ — done 2026-08-16: `GraphNeighborsUndirected` +
+      `HasUndirectedGraphSupport` on memory, badger, sqlite (recursive CTE
+      both directions), pg, mysql (derived-table seed + OR-join recursive
+      arm — the 4-arm form is illegal in both), dgraph (alias of directed:
+      storage is symmetric), iroh (passthrough); graphadapter deliberately
+      does NOT implement it (documented gap). (pebble/bbolt: no graph ADT.)
 - [ ] **mysqlengine upsert semantics audit** — confirm `MapSet` uses
       `INSERT ... ON DUPLICATE KEY UPDATE` consistently with pg's
       `ON CONFLICT` (atomicity + affected-rows parity).

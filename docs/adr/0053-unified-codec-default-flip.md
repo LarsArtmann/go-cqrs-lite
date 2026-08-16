@@ -19,8 +19,9 @@ Three prior ADRs built the safety net that makes the flip safe:
 1. **ADR-0044** — Envelope wrapping for blind stores (`kv`, `snapshot`,
    `command`, `query`). Every write stamps the encoding; every read
    auto-detects it.
-2. **ADR-0050** — The `UnwrapDecode` fallback path permanently uses
-   `JSONCodec`. Pre-envelope data (raw JSON) is transparently handled.
+2. **ADR-0050** — The `UnwrapDecode` fallback path permanently reads
+   pre-envelope data: the store's configured codec first, then one JSON↔CBOR
+   cross-retry (amended 2026-08-16).
 3. **ADR-0051** — `event.DefaultCodec` flipped to `CBORCodec`. Events are
    self-describing via `evt.Encoding()`, so mixed streams decode correctly.
 
@@ -51,8 +52,9 @@ configuration.
 **Blind stores:** Every write goes through `codec.WrapEncode`, which produces
 a JSON envelope (`{"$":"cqrs","enc":"cbor","dat":"..."}`). Every read goes
 through `codec.UnwrapDecode`, which detects the envelope and uses the stamped
-codec. Old pre-envelope data (raw JSON) is caught by the fallback path, which
-permanently uses `JSONCodec` (ADR-0050).
+codec. Old pre-envelope data (raw rows) is caught by the fallback path: the
+store's configured codec first, then one JSON↔CBOR cross-retry
+(ADR-0050 addendum).
 
 **What this means for consumers upgrading to v4:** stored data from v3 decodes
 correctly with zero migration. New writes are CBOR. The codec transition is
@@ -61,10 +63,11 @@ gradual — old keys decode as JSON, new keys decode as CBOR, both coexist.
 ### Testing
 
 The migration path is verified by integration tests in `kv/typed_store_test.go`:
-`TestTypedStore_Migration_OldRawJSON_ReadByNewCBORDefault` and
-`TestTypedStore_Migration_MixedOldAndNewData`. These simulate the exact
-scenario every consumer walks: old raw JSON data read through a new
-CBOR-default store.
+`TestTypedStore_Migration_OldRawJSON_ReadByNewCBORDefault`,
+`TestTypedStore_Migration_MixedOldAndNewData`, and
+`TestTypedStore_Migration_OldRawCBOR_ReadByJSONConfigured`. These simulate the
+scenarios every consumer walks: old raw JSON data read through a new
+CBOR-default store, and the reverse direction.
 
 ## Consequences
 

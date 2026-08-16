@@ -119,7 +119,7 @@ func (t *TypedQueryStore[P]) LoadQueries(
 // existed (raw JSON under a CBOR-configured store, or vice versa), keeping
 // ADR-0050's permanent-readability guarantee.
 //
-// art-dupl:accept duplicated across dep-isolated blind stores (kv/snapshot/command/query); sharing would add a cross-module dependency
+// art-dupl:accept dep-isolated blind stores duplicate this; sharing would add a cross-module dependency
 func decodeEnvelopeOrLegacy[P any](data []byte, configured codec.Codec) (P, error) {
 	c, inner := codec.UnwrapDecode(data, configured)
 
@@ -146,7 +146,9 @@ func decodeEnvelopeOrLegacy[P any](data []byte, configured codec.Codec) (P, erro
 
 // otherStandardCodec returns the opposite built-in codec, or false for
 // envelope-stamped or custom codecs (their data only decodes with themselves).
-func otherStandardCodec(c codec.Codec) (codec.Codec, bool) { //nolint:ireturn // built-in cross-retry
+func otherStandardCodec(
+	c codec.Codec,
+) (codec.Codec, bool) { //nolint:ireturn // built-in cross-retry
 	switch c.(type) {
 	case codec.CBORCodec:
 		return codec.JSONCodec{}, true

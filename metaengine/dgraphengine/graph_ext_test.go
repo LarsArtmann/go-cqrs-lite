@@ -33,9 +33,10 @@ func sortedExtNeighbors(items []any) []string {
 	return out
 }
 
+// Serial (no t.Parallel): these semantics tests write upserts that abort
+// under the GraphRAG stress corpus build's write burst; the serial phase
+// runs before parallel tests release, so they execute uncontended.
 func TestDgraphGraph_RemoveEdgeDeletesBothDirections(t *testing.T) {
-	t.Parallel()
-
 	gb := mustNewDgraphEngine(t).(graphBackend)
 	gx := gb.(graphExtBackend)
 	ctx := context.Background()
@@ -81,8 +82,6 @@ func TestDgraphGraph_RemoveEdgeDeletesBothDirections(t *testing.T) {
 }
 
 func TestDgraphGraph_UndirectedSeesIncomingEdges(t *testing.T) {
-	t.Parallel()
-
 	gb := mustNewDgraphEngine(t).(graphBackend)
 	gx := gb.(graphExtBackend)
 	ctx := context.Background()

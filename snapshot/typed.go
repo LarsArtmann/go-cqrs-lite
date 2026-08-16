@@ -170,7 +170,7 @@ func (t *TypedStore[State]) decode(raw *Snapshot) (*TypedSnapshot[State], error)
 // existed (raw JSON under a CBOR-configured store, or vice versa), keeping
 // ADR-0050's permanent-readability guarantee.
 //
-// art-dupl:accept duplicated across dep-isolated blind stores (kv/snapshot/command/query); sharing would add a cross-module dependency
+// art-dupl:accept dep-isolated blind stores duplicate this; sharing would add a cross-module dependency
 func decodeEnvelopeOrLegacy[State any](data []byte, configured codec.Codec) (State, error) {
 	c, inner := codec.UnwrapDecode(data, configured)
 

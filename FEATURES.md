@@ -593,6 +593,7 @@ as a library primitive.
 | Cross-codec transcode | `TranscodeToJSON(payload, enc)` — schema-free CBOR→JSON bridge for browser/REST output  | ✅     |
 | Encoding constants    | `EncodingJSON`, `EncodingCBOR`, `EncodingRaw`                                           | ✅     |
 | Envelope wrapping     | `WrapEncode`/`UnwrapDecode` — self-describing blind stores (ADR-0044)                   | ✅     |
+| Legacy row rescue     | Blind stores decode pre-envelope rows via configured codec + JSON↔CBOR retry (ADR-0050 addendum) | ✅     |
 | CBOR default          | All codec defaults flipped to CBOR (ADR-0053) — backward-compat via envelopes           | ✅     |
 | Timezone-safe types   | `Instant`, `WallTime`, `Date` — prevent CBOR timezone loss in event payloads (ADR-0056) | ✅     |
 | C013 lint rule        | Detects `time.Time` fields in event payloads, suggests timezone-safe alternatives       | ✅     |
