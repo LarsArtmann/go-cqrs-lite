@@ -202,6 +202,15 @@ and is **never** duplicated here.
       `event v4.6.0`… Mechanical bump of ~50 go.mod files, gate-verified.
       (Needs user sign-off on policy — see ROADMAP Open Questions.)
       _(Effort: M)_
+- [ ] 🔥🔥 **storage/pebble + storage/bbolt standalone builds RED** (verified
+      2026-08-16 14:20, `GOWORK=off go build` fails): both pin
+      `event/v4 v4.6.0` but `serialization.go` calls
+      `event.ReconstructEventWithAdoptedPayload` (shipped after v4.6.0; needs
+      ≥ v4.7.0 + the unreleased adopt API or a local `../event` replace until
+      tagged). Same workspace-masking class as the command/v4.7.0 incident.
+      Fix: bump pins (or add sibling replaces) + add both to the GOWORK=off
+      standalone gate.
+      _(Effort: S)_
 - [ ] **`#verify-standalone` nix app (GOWORK=off per module) or explicit
       decision that CI owns that signal** — then CHECK CI after gates.
       Investigate how long the CI Benchmarks job has been red (`gh run list`)
