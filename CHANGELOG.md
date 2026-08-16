@@ -49,7 +49,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   under concurrent writers (bulk corpus builds sustain contention for
   seconds); retrying the whole request is Dgraph's documented resolution.
 
-### Fixed — event alloc pins tolerate unpublished sibling codec improvements — 2026-08-16
+### Fixed — verify-gate flakes: alloc pins + checkpoint race — 2026-08-16
 
 - **`event/allocs_test.go` exact-equality alloc pins → upper-bound budgets** —
   the local `go.work` workspace resolves `go-codec` to the sibling checkout,
@@ -57,6 +57,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   to 2 allocations; the exact `!= 3` assertions went red only in workspace
   `#verify*` runs (CI builds against the published tag and stayed green).
   The guards now fail on regressions (`> 3`) in both dependency graphs.
+- **`projectionadapter` checkpoint test no longer races the batch close** —
+  the projectionhost drain loop reports `Processed` per event but persists
+  the checkpoint once per batch; `TestProjectionHost_CheckpointAdvances` read
+  the checkpoint store immediately after the counter hit its target and
+  failed under parallel-gate scheduler load. It now polls the checkpoint
+  with a bounded deadline (product behavior unchanged — batch checkpointing
+  is the documented design).
 
 ### Fixed — correctness-sweep leftovers (brutal-review backlog) — 2026-08-16
 

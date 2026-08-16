@@ -63,6 +63,23 @@ func WithBindAddr(addr string) Option {
 // connection-level coordination, finish+read-to-end teardown) and reduces
 // latency under high throughput.
 //
+// Ordering guarantee (verified 2026-08-16): pooled mode delivers ops to a
+// given peer in FIRST-IN-FIRST-OUT order. Three mechanisms combine:
+//   - QUIC guarantees byte order within a single stream.
+//   - The sender serializes the write-frame → read-ack cycle per peer under
+// 	 pc.streamMu, so op N is fully acked before op N+1 is written.
+//   - The receiver (handlePooledStream) processes frames strictly sequentially
+// 	 in one loop — decode and dispatch complete before the next frame is read.
+//
+// Scope: ordering is per (sender, peer) pair. Ops from DIFFERENT peers to the
+// same receiver interleave arbitrarily (separate streams), and relayed ops are
+// not globally ordered across hops. The default one-stream-per-op mode has NO
+// cross-op ordering at all — each op rides its own stream and is handled by a
+// concurrent goroutine, so arrival order is scheduler-dependent.
+//
+// Tradeoff: the per-op ack makes pooled mode head-of-line blocking on a peer
+// (a stalled peer delays that peer's subsequent ops, never other peers).
+//
 // Both the sender and receiver must have pooling enabled — the framing
 // protocol is incompatible with the default one-stream-per-op mode.
 //

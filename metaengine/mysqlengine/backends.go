@@ -17,6 +17,21 @@ const keyCol = "`key`"
 
 // --- MapBackend ---
 
+// MapSet atomically upserts a map entry.
+//
+// Upsert semantics audited for parity with pgengine (2026-08-16):
+//   - Atomicity: single INSERT ... ON DUPLICATE KEY UPDATE statement, equivalent
+//     to pg's `ON CONFLICT (collection, key) DO UPDATE SET value = excluded.value`.
+//     Routes through conn(), so it participates in RunInTx like pg.
+//   - Affected rows: MySQL returns 1 (insert) / 2 (update) / 0 (update to the
+//     same value, without CLIENT_FOUND_ROWS) where pg always returns 1. Neither
+//     engine reads RowsAffected, so the difference is unobservable.
+//   - Divergence caveats: (1) ON DUPLICATE KEY UPDATE fires on ANY unique-key
+//     conflict while ON CONFLICT names a constraint — meta_map has only its
+//     PRIMARY KEY today; adding a second unique index would silently widen the
+//     MySQL conflict trigger. (2) VALUES() is deprecated in MySQL 8.0.20+ in
+//     favor of row aliases, but MariaDB does not support the alias form, so
+//     VALUES() is the portable choice for this dual-dialect engine.
 func (e *mysqlEngine) MapSet(ctx context.Context, col string, key any, value any) error {
 	data, err := json.Marshal(value)
 	if err != nil {

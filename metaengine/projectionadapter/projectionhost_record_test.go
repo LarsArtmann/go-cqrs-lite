@@ -192,12 +192,24 @@ func TestProjectionHost_CheckpointAdvances(t *testing.T) {
 
 	waitForProcessed(t, host, "cp-items", 2)
 
-	cp, err := cpStore.Load(context.Background(), "cp-items")
-	if err != nil {
-		t.Fatalf("checkpoint Load: %v", err)
-	}
+	// The drain loop reports Processed per event but persists the checkpoint
+	// once per BATCH (worker_drain.go), so the counter can lead the store
+	// under scheduler load — poll until the checkpoint lands.
+	deadline := time.Now().Add(3 * time.Second)
+	for {
+		cp, err := cpStore.Load(context.Background(), "cp-items")
+		if err != nil {
+			t.Fatalf("checkpoint Load: %v", err)
+		}
 
-	if cp.EventID.IsZero() {
-		t.Error("checkpoint EventID is zero — checkpoint not advancing")
+		if !cp.EventID.IsZero() {
+			break
+		}
+
+		if time.Now().After(deadline) {
+			t.Fatal("checkpoint EventID is zero — checkpoint not advancing")
+		}
+
+		time.Sleep(20 * time.Millisecond)
 	}
 }

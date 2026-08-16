@@ -172,6 +172,16 @@ and is **never** duplicated here.
       _(Effort: S)_ — done 2026-08-16: `badgerengine/vector.go` + `graph.go`
       implement both ADTs at pebble/bbolt parity (filtered k-NN included);
       suite green.
+- [ ] 🔥 **Vector payload binary encoding (spike Phase 0)** — replace the
+      JSON vector payload with fixed-width little-endian float32 bytes on
+      the brute-force engines (memory ceiling ~90ns/vector vs pebble
+      ~17µs today; decode is ~190x of the cost). Format marker must keep
+      old JSON rows readable (self-describing envelope precedent). This is
+      the unconditional 80/20 from
+      [`docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md`](docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md)
+      §4 Option A / §5 Phase 0; int8 quantization (Phase 1) only if p99 is
+      still above budget afterwards.
+      _(Effort: M)_
 - [x] **Vector search at scale** — quantization/HNSW spike for LSM engines
       when collections exceed ~100K vectors (brute-force scan is O(N)).
       _(Effort: L)_ — done 2026-08-16: spike complete with measured

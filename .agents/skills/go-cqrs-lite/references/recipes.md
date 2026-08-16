@@ -911,13 +911,13 @@ pt, _ := metaengine.ExecuteTyped[projections.ProcessingTimeQuery, projections.Pr
 // pt.DurationMs is the delta between received and completed
 ```
 
-| Event type               | Emitted when                   | Projection      |
-| ------------------------ | ------------------------------ | --------------- |
-| `command.received`       | Server accepts command         | ProcessingTime  |
-| `command.failed`         | Single attempt fails           | FailureLog      |
-| `command.retried`        | Before each retry              | RetryCount      |
-| `command.dead-lettered`  | All retries exhausted          | DLQ             |
-| `command.completed`      | Command processed successfully | ProcessingTime  |
+| Event type              | Emitted when                   | Projection     |
+| ----------------------- | ------------------------------ | -------------- |
+| `command.received`      | Server accepts command         | ProcessingTime |
+| `command.failed`        | Single attempt fails           | FailureLog     |
+| `command.retried`       | Before each retry              | RetryCount     |
+| `command.dead-lettered` | All retries exhausted          | DLQ            |
+| `command.completed`     | Command processed successfully | ProcessingTime |
 
 ### 2.20 Engine Roles, Shadow Replication & Promote Cutover (metaengine)
 
@@ -1381,21 +1381,21 @@ and
 
 **Four priorities** (cost-type multipliers):
 
-| Priority | ReadW | WriteW | StorageW | Favors |
-|----------|-------|--------|----------|--------|
-| `PriorityBalanced` (default) | 1.0 | 1.0 | 1.0 | No preference |
-| `PriorityReadSpeed` | 1.5 | 0.5 | 1.0 | Embedded (single-read aggregate) |
-| `PriorityWriteSpeed` | 0.5 | 1.5 | 1.0 | Normalized (O(1) child insert) |
-| `PriorityStorageSpace` | 0.8 | 0.8 | 2.5 | Normalized (no duplication) |
+| Priority                     | ReadW | WriteW | StorageW | Favors                           |
+| ---------------------------- | ----- | ------ | -------- | -------------------------------- |
+| `PriorityBalanced` (default) | 1.0   | 1.0    | 1.0      | No preference                    |
+| `PriorityReadSpeed`          | 1.5   | 0.5    | 1.0      | Embedded (single-read aggregate) |
+| `PriorityWriteSpeed`         | 0.5   | 1.5    | 1.0      | Normalized (O(1) child insert)   |
+| `PriorityStorageSpace`       | 0.8   | 0.8    | 2.5      | Normalized (no duplication)      |
 
 **Decision matrix** (which layout wins per engine type × priority):
 
-| Engine type | Balanced | ReadSpeed | WriteSpeed | StorageSpace |
-|-------------|----------|-----------|------------|--------------|
-| KV (Memory) | Embed | Embed | Normalize | Normalize |
-| LSM (Pebble/bbolt) | Embed | Embed | Normalize | Normalize |
-| Row (SQL) | Normalize | Normalize | Normalize | Normalize |
-| Columnar (DuckDB) | Normalize | Embed (tie) | Normalize | Normalize |
+| Engine type        | Balanced  | ReadSpeed   | WriteSpeed | StorageSpace |
+| ------------------ | --------- | ----------- | ---------- | ------------ |
+| KV (Memory)        | Embed     | Embed       | Normalize  | Normalize    |
+| LSM (Pebble/bbolt) | Embed     | Embed       | Normalize  | Normalize    |
+| Row (SQL)          | Normalize | Normalize   | Normalize  | Normalize    |
+| Columnar (DuckDB)  | Normalize | Embed (tie) | Normalize  | Normalize    |
 
 **Set priority at Plan time** (static):
 

@@ -376,6 +376,110 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Canonicalize: CanonicalizeNeighbors,
 		},
 
+		// --- Graph ADT: depth-3 diamond (multi-path reachability canary) ---
+		//
+		// The recursive-CTE path (WITH RECURSIVE + UNION + DISTINCT) and the
+		// iterative BFS fallback only diverge observably at depth > 2 when
+		// nodes are reachable via multiple paths: here D is reachable at
+		// depth 2 via BOTH A→B→D and A→C→D, and E requires a third hop.
+		// Every engine must return exactly the deduplicated set {B,C,D,E} —
+		// a duplicate D (missing DISTINCT in a CTE) or a missing E (frontier
+		// lost in an iterative walk) fails cross-engine parity.
+		{
+			Name:     "GraphDepth3Diamond",
+			Requires: "GraphBackend",
+			Setup: func(ctx context.Context, eng metaengine.Engine) error {
+				gb := eng.(graphBackend)
+				edges := []metaengine.Edge{
+					{From: "A", To: "B"},
+					{From: "A", To: "C"},
+					{From: "B", To: "D"},
+					{From: "C", To: "D"},
+					{From: "D", To: "E"},
+				}
+				for _, e := range edges {
+					if err := gb.GraphAddEdge(ctx, "graph_deep", e); err != nil {
+						return err //nolint:wrapcheck
+					}
+				}
+
+				return nil
+			},
+			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
+				gb := eng.(graphBackend)
+
+				return gb.GraphNeighbors(ctx, "graph_deep", "A", 3)
+			},
+			Canonicalize: CanonicalizeNeighbors,
+		},
+
+		// --- Graph ADT: cycle termination + duplicate suppression ---
+		//
+		// A→B→C→A closes a cycle back to the start node; D→B re-enters the
+		// cycle from a side branch. A depth-4 walk must terminate (no
+		// infinite recursion in CTE mode, no frontier regrowth in iterative
+		// mode), exclude the start node A, and return each reachable node
+		// exactly once: {B,C,D}.
+		{
+			Name:     "GraphCycle",
+			Requires: "GraphBackend",
+			Setup: func(ctx context.Context, eng metaengine.Engine) error {
+				gb := eng.(graphBackend)
+				edges := []metaengine.Edge{
+					{From: "A", To: "B"},
+					{From: "B", To: "C"},
+					{From: "C", To: "A"},
+					{From: "C", To: "D"},
+					{From: "D", To: "B"},
+				}
+				for _, e := range edges {
+					if err := gb.GraphAddEdge(ctx, "graph_cycle", e); err != nil {
+						return err //nolint:wrapcheck
+					}
+				}
+
+				return nil
+			},
+			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
+				gb := eng.(graphBackend)
+
+				return gb.GraphNeighbors(ctx, "graph_cycle", "A", 4)
+			},
+			Canonicalize: CanonicalizeNeighbors,
+		},
+
+		// --- Graph ADT: depth bound excludes deeper nodes ---
+		//
+		// A linear chain A→B→C→D→E with depth 2 must return only {B,C}:
+		// D and E exist but sit beyond the bound. Catches engines whose
+		// CTE depth predicate or iterative level counter is off by one.
+		{
+			Name:     "GraphDepthBound",
+			Requires: "GraphBackend",
+			Setup: func(ctx context.Context, eng metaengine.Engine) error {
+				gb := eng.(graphBackend)
+				edges := []metaengine.Edge{
+					{From: "A", To: "B"},
+					{From: "B", To: "C"},
+					{From: "C", To: "D"},
+					{From: "D", To: "E"},
+				}
+				for _, e := range edges {
+					if err := gb.GraphAddEdge(ctx, "graph_bound", e); err != nil {
+						return err //nolint:wrapcheck
+					}
+				}
+
+				return nil
+			},
+			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
+				gb := eng.(graphBackend)
+
+				return gb.GraphNeighbors(ctx, "graph_bound", "A", 2)
+			},
+			Canonicalize: CanonicalizeNeighbors,
+		},
+
 		// --- SortedMap ADT: MapSet + MapScan (filter + sort) ---
 		{
 			Name:     "SortedMap",

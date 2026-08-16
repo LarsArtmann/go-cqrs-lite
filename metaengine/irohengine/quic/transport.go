@@ -228,6 +228,11 @@ func (t *QuicTransport) Publish(_ context.Context, op irohengine.WriteOp) error 
 // send side, then reads the empty ack. This is the default one-stream-per-op
 // mode — simple and robust, with one QUIC stream ID allocation per op.
 //
+// Ordering: this mode provides NO cross-op delivery ordering. Each op rides
+// its own stream and is dispatched by a concurrent handleStream goroutine, so
+// subscribers may see ops out of publish order. Use WithStreamPooling() for
+// per-peer FIFO ordering.
+//
 // For high-throughput scenarios, enable WithStreamPooling() to use persistent
 // BiStreams with length-prefix framing (sendOpPooled), eliminating per-op
 // stream creation overhead.

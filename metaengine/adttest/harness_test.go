@@ -131,8 +131,8 @@ func TestScenarios_AllFourteenADTs(t *testing.T) {
 	t.Parallel()
 
 	scenarios := Scenarios()
-	if len(scenarios) != 14 {
-		t.Errorf("Scenarios() returned %d scenarios, want 14", len(scenarios))
+	if len(scenarios) != 17 {
+		t.Errorf("Scenarios() returned %d scenarios, want 17", len(scenarios))
 	}
 
 	seen := make(map[string]bool)
@@ -148,7 +148,8 @@ func TestScenarios_AllFourteenADTs(t *testing.T) {
 
 	for _, name := range []string{
 		"Map", "Set", "Counter", "Graph", "SortedMap", "Log", "Multimap",
-		"GraphRemove", "GraphUndirected", "VectorFiltered",
+		"GraphRemove", "GraphUndirected", "GraphDepth3Diamond", "GraphCycle",
+		"GraphDepthBound", "VectorFiltered",
 	} {
 		if !seen[name] {
 			t.Errorf("Scenarios() missing %q", name)

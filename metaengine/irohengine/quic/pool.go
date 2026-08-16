@@ -23,8 +23,16 @@ const pooledStreamMagic byte = 0x50
 // framing, then reads a minimal ack. The persistent stream is opened lazily on
 // first use and reused for all subsequent ops to the same peer.
 //
+// Ordering: the entire write-frame → read-ack cycle runs under pc.streamMu, so
+// ops to a given peer are strictly FIFO — op N is acked by the receiver before
+// op N+1's frame is written. Combined with QUIC's in-order per-stream delivery
+// and handlePooledStream's sequential frame loop, this is a full per-peer
+// ordering guarantee (see WithStreamPooling for scope and tradeoffs).
+//
 // On any stream error, the pooled stream is evicted so the next call reopens
 // a fresh stream — self-healing after connection resets or transient failures.
+// Note: the op whose stream errored is silently dropped (no retry, no error
+// surfaced to Publish callers) — identical loss semantics to sendOp.
 func (t *QuicTransport) sendOpPooled(pc *peerConn, data []byte) {
 	pc.streamMu.Lock()
 	defer pc.streamMu.Unlock()

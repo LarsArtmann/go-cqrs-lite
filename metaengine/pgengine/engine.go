@@ -139,6 +139,13 @@ func (e *pgEngine) init() error {
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_graph_edges_from ON meta_graph_edges(collection, from_node)`,
 		`CREATE INDEX IF NOT EXISTS idx_graph_edges_to ON meta_graph_edges(collection, to_node)`,
+		`CREATE TABLE IF NOT EXISTS meta_vector (
+			collection TEXT NOT NULL,
+			id TEXT NOT NULL,
+			vector JSONB NOT NULL,
+			metadata JSONB,
+			PRIMARY KEY (collection, id)
+		)`,
 	}
 
 	for _, ddl := range ddls {
