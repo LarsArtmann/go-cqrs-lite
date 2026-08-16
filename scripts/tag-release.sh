@@ -190,6 +190,28 @@ if grep -q "00010101000000" "$gomod"; then
 	exit 1
 fi
 
+# --- Verify the stripped module actually COMPILES standalone ---
+#
+# `go mod tidy` resolves the import graph but does not typecheck: a module
+# whose code uses symbols from a NEWER sibling than its go.mod pins builds
+# fine under workspace replaces and then breaks for every consumer of the
+# tag (command/v4.7.0 shipped exactly this — metadata.Metadata existed only
+# at metadata/v4.5.0). One GOWORK=off build against the stripped go.mod
+# proves the tagged go.mod is self-sufficient.
+echo "Verifying ${module} builds standalone with stripped go.mod..."
+build_err="$(mktemp)"
+if ! (cd "$module" && GOWORK=off go build -tags goexperiment.jsonv2 ./... 2>"$build_err"); then
+	echo "ERROR: ${module} does not compile against its published requires."
+	echo "The go.mod pins a sibling older than the code needs. Bump the"
+	echo "require to the published tag providing the missing symbols, then"
+	echo "re-run. Build output:"
+	cat "$build_err"
+	rm -f "$build_err"
+	restore_working_tree
+	exit 1
+fi
+rm -f "$build_err"
+
 # --- Dry-run preview ---
 if $dry_run; then
 	echo ""

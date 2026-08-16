@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/go-codec v0.1.0
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
@@ -40,3 +40,6 @@ require (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/metadata/v4 => ../metadata
+
+// v4.6.0 pinned metadata/v4.4.0 while using metadata.Metadata (v4.5.0): unbuildable for consumers.
+retract v4.6.0
