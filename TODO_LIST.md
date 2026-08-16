@@ -413,18 +413,21 @@ and is **never** duplicated here.
 > workspace-global by design (low leakage risk). F030 (deprecated transport
 > imports) shipped 2026-08-14 — 203 rules total.
 
-- [ ] **Add per-module regression tests for remaining migrated rules** —
-      F004, F007, F009, F012, F017, F023-F029, B030 lack dedicated per-module
-      tests (only F003/F013/F022/B029/B031 + the F006-F021 batch have them).
-      _(Effort: M)_
-- [ ] **Teach E005 about `system.RegisterCommand`** and regenerate the
-      taskmanager lint golden — kills 10 enshrined false positives.
-      _(Effort: S)_
-- [ ] **Wishlist (parked from consumer feedback rounds)** — `--doctor --fix`
-      auto-write; stale-suppression detection as default (not `--strict`
-      only); config-disabled rules in health breakdown; feature-profile-aware
-      C008 (`monetary: false` → auto-INFO).
-      _(Effort: M each)_
+- [x] **Add per-module regression tests for remaining migrated rules** —
+      ~~F004, F007, F009, F012, F017, F023-F029, B030 lack dedicated per-module
+      tests~~ STALE (verified 2026-08-16): the "F006-F021 batch" file
+      (`coaching_permodule_extra_test.go`) was extended past F021 — all listed
+      rules now have per-module tests; B030 is in `b029_b031_permodule_test.go`.
+- [x] **Teach E005 about `system.RegisterCommand`** and regenerate the
+      taskmanager lint golden — killed the 10 enshrined false positives
+      (scanner records the first generic type arg; done 2026-08-16).
+- [x] **Wishlist (parked from consumer feedback rounds)** — all four shipped
+      2026-08-16: `--doctor --fix` removes stale whole-line suppressions
+      (trailing-on-code left manual); stale-suppression warnings run in every
+      output format (stderr-only, `--quiet` still silences); health score
+      shows an "Excluded from score by config" footer for disabled rules;
+      `features.monetary` (`on`/`off`/`unknown`) overrides the money
+      heuristics: C008 downgrades to Info on `off`, S006 skips entirely.
 - [ ] **Audit `.golangci.yml` exclusion blocks** — `system/` (20 linters
       disabled), `cmd/cqrs-lint/` (17), `metaengine/` (24) have the broadest
       exclusions. Track which can be removed after migrations complete.

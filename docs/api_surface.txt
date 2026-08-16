@@ -1378,7 +1378,9 @@ metaengine/badgerengine/method CounterGet
 metaengine/badgerengine/method CounterIncrement
 metaengine/badgerengine/method HealthCheck
 metaengine/badgerengine/method JournalReadAll
+metaengine/badgerengine/method JournalReadAllWithSeq
 metaengine/badgerengine/method JournalReadFrom
+metaengine/badgerengine/method JournalReadFromSeq
 metaengine/badgerengine/method LogAppend
 metaengine/badgerengine/method LogTail
 metaengine/badgerengine/method MapDelete
@@ -1406,7 +1408,9 @@ metaengine/bboltengine/method CounterGet
 metaengine/bboltengine/method CounterIncrement
 metaengine/bboltengine/method HealthCheck
 metaengine/bboltengine/method JournalReadAll
+metaengine/bboltengine/method JournalReadAllWithSeq
 metaengine/bboltengine/method JournalReadFrom
+metaengine/bboltengine/method JournalReadFromSeq
 metaengine/bboltengine/method LogAppend
 metaengine/bboltengine/method LogTail
 metaengine/bboltengine/method MapDelete
@@ -1564,7 +1568,9 @@ metaengine/duckdbengine/method ExplainScanQuery
 metaengine/duckdbengine/method GroupedAggregate
 metaengine/duckdbengine/method HealthCheck
 metaengine/duckdbengine/method JournalReadAll
+metaengine/duckdbengine/method JournalReadAllWithSeq
 metaengine/duckdbengine/method JournalReadFrom
+metaengine/duckdbengine/method JournalReadFromSeq
 metaengine/duckdbengine/method MapDelete
 metaengine/duckdbengine/method MapGet
 metaengine/duckdbengine/method MapScan
@@ -1778,6 +1784,7 @@ metaengine/interface RecordAwareFold
 metaengine/interface SQLExec
 metaengine/interface ScanBackend
 metaengine/interface SearchBackend
+metaengine/interface SeqSeekableStreamLog
 metaengine/interface SetBackend
 metaengine/interface SnapshotBackend
 metaengine/interface Span
@@ -2022,7 +2029,9 @@ metaengine/method IsReplicated
 metaengine/method IsShadow
 metaengine/method IsVolatile
 metaengine/method JournalReadAll
+metaengine/method JournalReadAllWithSeq
 metaengine/method JournalReadFrom
+metaengine/method JournalReadFromSeq
 metaengine/method Kind
 metaengine/method Kind
 metaengine/method Kind
@@ -2199,7 +2208,9 @@ metaengine/mysqlengine/method GraphAddEdge
 metaengine/mysqlengine/method GraphNeighbors
 metaengine/mysqlengine/method HealthCheck
 metaengine/mysqlengine/method JournalReadAll
+metaengine/mysqlengine/method JournalReadAllWithSeq
 metaengine/mysqlengine/method JournalReadFrom
+metaengine/mysqlengine/method JournalReadFromSeq
 metaengine/mysqlengine/method MapDelete
 metaengine/mysqlengine/method MapGet
 metaengine/mysqlengine/method MapScan
@@ -2226,7 +2237,9 @@ metaengine/pebbleengine/method CounterIncrement
 metaengine/pebbleengine/method GetRawValue
 metaengine/pebbleengine/method HealthCheck
 metaengine/pebbleengine/method JournalReadAll
+metaengine/pebbleengine/method JournalReadAllWithSeq
 metaengine/pebbleengine/method JournalReadFrom
+metaengine/pebbleengine/method JournalReadFromSeq
 metaengine/pebbleengine/method LogAppend
 metaengine/pebbleengine/method LogTail
 metaengine/pebbleengine/method MapDelete
@@ -2267,7 +2280,9 @@ metaengine/pgengine/method GraphNeighbors
 metaengine/pgengine/method GroupedAggregate
 metaengine/pgengine/method HealthCheck
 metaengine/pgengine/method JournalReadAll
+metaengine/pgengine/method JournalReadAllWithSeq
 metaengine/pgengine/method JournalReadFrom
+metaengine/pgengine/method JournalReadFromSeq
 metaengine/pgengine/method MapDelete
 metaengine/pgengine/method MapGet
 metaengine/pgengine/method MapScan
@@ -2326,7 +2341,9 @@ metaengine/sqliteengine/method GraphNeighbors
 metaengine/sqliteengine/method GroupedAggregate
 metaengine/sqliteengine/method HealthCheck
 metaengine/sqliteengine/method JournalReadAll
+metaengine/sqliteengine/method JournalReadAllWithSeq
 metaengine/sqliteengine/method JournalReadFrom
+metaengine/sqliteengine/method JournalReadFromSeq
 metaengine/sqliteengine/method LogAppend
 metaengine/sqliteengine/method LogTail
 metaengine/sqliteengine/method MapDelete
@@ -2446,6 +2463,7 @@ metaengine/struct SortColumn
 metaengine/struct SortSpec
 metaengine/struct SpatialResult
 metaengine/struct Store
+metaengine/struct StreamLogEntry
 metaengine/struct TTLConfig
 metaengine/struct TieredStore
 metaengine/struct TraceOp

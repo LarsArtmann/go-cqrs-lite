@@ -46,6 +46,16 @@ func NewS006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
+			// A project that explicitly declares features.monetary="off"
+			// asserts it handles no monetary data at all — the rule's premise
+			// is void. Same trust model as the encryption guard and the same
+			// declaration C008 honors: explicit config beats the naming
+			// heuristic. "on"/"unknown" change nothing here — S006's tiers
+			// already encode escalation from lexical evidence alone.
+			if ctx.FeatureProfile.Monetary == analyzer.MonetaryOff {
+				return nil, nil
+			}
+
 			var matches []financialMatch
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {

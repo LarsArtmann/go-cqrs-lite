@@ -15,10 +15,13 @@ import (
 // runSuppressionAudit runs the full lint pipeline, collects all inline
 // suppressions, cross-references them with findings, and renders an audit
 // report showing each suppression's status (active, stale, unknown-rule).
+// When fix is set, stale whole-line suppressions are removed from disk first
+// and the report reflects the post-fix state.
 func runSuppressionAudit(
 	ctx context.Context,
 	cfg *AppConfig,
 	actx *analyzer.AnalysisContext,
+	fix bool,
 ) error {
 	applyConfigOverrides(cfg, actx)
 
@@ -42,9 +45,76 @@ func runSuppressionAudit(
 	}
 
 	entries := suppression.AuditSuppressions(goFilePaths, allFindings, knownRuleIDs)
+
+	if fix {
+		fixResult := suppression.RemoveStaleInlineSuppressions(entries)
+		renderFixSummary(os.Stdout, fixResult)
+		entries = dropRemovedEntries(entries, fixResult.Removed)
+	}
+
 	renderSuppressionAudit(os.Stdout, entries)
 
 	return nil
+}
+
+// dropRemovedEntries filters audit entries whose (file, line) was rewritten
+// by the fixer, so the rendered audit reflects the post-fix file state.
+func dropRemovedEntries(
+	entries []suppression.SuppressionAuditEntry,
+	removed []suppression.SuppressionAuditEntry,
+) []suppression.SuppressionAuditEntry {
+	gone := make(map[string]bool, len(removed))
+	for _, e := range removed {
+		gone[fmt.Sprintf("%s:%d", e.File, e.Line)] = true
+	}
+
+	kept := make([]suppression.SuppressionAuditEntry, 0, len(entries))
+	for _, e := range entries {
+		if !gone[fmt.Sprintf("%s:%d", e.File, e.Line)] {
+			kept = append(kept, e)
+		}
+	}
+
+	return kept
+}
+
+// renderFixSummary reports what --fix rewrote and what was left for manual
+// removal.
+func renderFixSummary(w io.Writer, res suppression.FixResult) {
+	if len(res.Removed) == 0 && len(res.Skipped) == 0 {
+		_, _ = fmt.Fprintln(
+			w,
+			"AUTO-FIX: no stale whole-line suppressions found — nothing removed.",
+		)
+		_, _ = fmt.Fprintln(w)
+		return
+	}
+
+	header := fmt.Sprintf(
+		"AUTO-FIX — removed %d stale suppression line(s) in %d file(s)",
+		len(res.Removed),
+		len(res.Files),
+	)
+	_, _ = fmt.Fprintln(w, header)
+	_, _ = fmt.Fprintln(w, strings.Repeat("─", len(header)))
+
+	for _, e := range res.Removed {
+		_, _ = fmt.Fprintf(w, "  removed %s:%d  [%s]\n", shortenPath(e.File), e.Line, e.Rule)
+	}
+
+	if len(res.Skipped) > 0 {
+		_, _ = fmt.Fprintln(w)
+		_, _ = fmt.Fprintf(
+			w,
+			"  %d stale suppression(s) left in place (trailing on code or unreadable) — remove manually:\n",
+			len(res.Skipped),
+		)
+		for _, e := range res.Skipped {
+			_, _ = fmt.Fprintf(w, "  %s:%d  [%s]\n", shortenPath(e.File), e.Line, e.Rule)
+		}
+	}
+
+	_, _ = fmt.Fprintln(w)
 }
 
 // renderSuppressionAudit prints the audit report grouped by status.

@@ -9,6 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
 
 // captureStderr redirects os.Stderr to a pipe, runs fn, and returns whatever
@@ -37,6 +40,57 @@ func captureStderr(t *testing.T, fn func()) string {
 	}
 
 	return buf.String()
+}
+
+// TestPrintSummary_StaleWarningsInEveryFormat verifies that stale-suppression
+// warnings are emitted on stderr regardless of the output format. Machine
+// formats (json/sarif/csv) keep stdout parseable — the warnings belong on
+// stderr in every mode. NOT parallel: captureStderr swaps os.Stderr.
+func TestPrintSummary_StaleWarningsInEveryFormat(t *testing.T) {
+	for _, format := range []string{"text", "json", "sarif", "csv"} {
+		t.Run(format, func(t *testing.T) {
+			actx, _ := analyzer.BuildContextFromTempFiles(t, map[string]string{
+				"example.go": "package main\n\n//cqrs-lint:ignore(D002)\ntype Foo struct{}\n",
+			})
+
+			stderr := captureStderr(t, func() {
+				printSummary(
+					&AppConfig{Format: format},
+					actx,
+					time.Now(),
+					nil, nil, 0, nil, nil, nil,
+				)
+			})
+
+			if !strings.Contains(stderr, "stale suppression") {
+				t.Errorf(
+					"format %s: expected stale suppression warning on stderr, got: %s",
+					format, stderr,
+				)
+			}
+		})
+	}
+}
+
+// TestPrintSummary_QuietSilencesStaleWarnings verifies --quiet suppresses the
+// stale-suppression warnings even though they are format-independent.
+func TestPrintSummary_QuietSilencesStaleWarnings(t *testing.T) {
+	actx, _ := analyzer.BuildContextFromTempFiles(t, map[string]string{
+		"example.go": "package main\n\n//cqrs-lint:ignore(D002)\ntype Foo struct{}\n",
+	})
+
+	stderr := captureStderr(t, func() {
+		printSummary(
+			&AppConfig{Format: "json", Quiet: true},
+			actx,
+			time.Now(),
+			nil, nil, 0, nil, nil, nil,
+		)
+	})
+
+	if strings.Contains(stderr, "stale suppression") {
+		t.Errorf("--quiet should silence stale warnings, got stderr: %s", stderr)
+	}
 }
 
 // TestRun_BrokenProject_ExitsNonZero verifies that run() returns

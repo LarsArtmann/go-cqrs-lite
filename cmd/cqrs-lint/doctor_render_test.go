@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/suppression"
 )
 
 func TestRenderDoctorPreset_NoPreset(t *testing.T) {
@@ -192,5 +193,73 @@ func TestRenderDoctorLoadErrors_WithErrors(t *testing.T) {
 	}
 	if !strings.Contains(out, "test-mod") {
 		t.Errorf("expected 'test-mod' in output, got:\n%s", out)
+	}
+}
+
+func TestRenderFixSummary_WithRemovals(t *testing.T) {
+	t.Parallel()
+
+	res := suppression.FixResult{
+		Removed: []suppression.SuppressionAuditEntry{
+			{File: "/tmp/a/example.go", Line: 3, Rule: "D002", Status: suppression.AuditStale},
+		},
+		Skipped: []suppression.SuppressionAuditEntry{
+			{File: "/tmp/a/other.go", Line: 7, Rule: "C008", Status: suppression.AuditStale},
+		},
+		Files: []string{"/tmp/a/example.go"},
+	}
+
+	buf := &bytes.Buffer{}
+	renderFixSummary(buf, res)
+
+	out := buf.String()
+	if !strings.Contains(out, "AUTO-FIX — removed 1 stale suppression line(s) in 1 file(s)") {
+		t.Errorf("expected removal header, got:\n%s", out)
+	}
+	if !strings.Contains(out, "removed a/example.go:3  [D002]") {
+		t.Errorf("expected removed line detail, got:\n%s", out)
+	}
+	if !strings.Contains(out, "1 stale suppression(s) left in place") {
+		t.Errorf("expected skipped summary, got:\n%s", out)
+	}
+	if !strings.Contains(out, "a/other.go:7  [C008]") {
+		t.Errorf("expected skipped line detail, got:\n%s", out)
+	}
+}
+
+func TestRenderFixSummary_NothingToDo(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	renderFixSummary(buf, suppression.FixResult{})
+
+	out := buf.String()
+	if !strings.Contains(out, "nothing removed") {
+		t.Errorf("expected no-op message, got:\n%s", out)
+	}
+}
+
+func TestDropRemovedEntries(t *testing.T) {
+	t.Parallel()
+
+	entries := []suppression.SuppressionAuditEntry{
+		{File: "a.go", Line: 3, Rule: "A001", Status: suppression.AuditActive},
+		{File: "a.go", Line: 5, Rule: "D002", Status: suppression.AuditStale},
+		{File: "b.go", Line: 5, Rule: "D002", Status: suppression.AuditStale},
+	}
+	removed := []suppression.SuppressionAuditEntry{
+		{File: "a.go", Line: 5, Rule: "D002", Status: suppression.AuditStale},
+	}
+
+	kept := dropRemovedEntries(entries, removed)
+
+	if len(kept) != 2 {
+		t.Fatalf("kept %d entries, want 2: %+v", len(kept), kept)
+	}
+	if kept[0].File != "a.go" || kept[0].Line != 3 {
+		t.Errorf("kept[0] = %+v, want a.go:3", kept[0])
+	}
+	if kept[1].File != "b.go" || kept[1].Line != 5 {
+		t.Errorf("kept[1] = %+v, want b.go:5 (same line, different file)", kept[1])
 	}
 }

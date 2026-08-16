@@ -5,6 +5,50 @@ Tags use the full module path: `cmd/cqrs-lint/vX.Y.Z`.
 
 ## [Unreleased]
 
+### Added — Consumer-feedback wishlist + E005 registration coverage — 2026-08-16
+
+> Ships all four items parked from the round-2 consumer feedback review
+> (`docs/feedback/reviewed/2026-08-13_DiscordSync_cqrs-lint-feedback-round2-review.md`)
+> plus the E005 false-positive fix for `system.RegisterCommand` consumers.
+
+- **`doctor --fix`** — auto-removes stale inline suppressions whose line
+  contains nothing but the `//cqrs-lint:ignore(...)` comment (implies
+  `--audit-suppressions`). Trailing-on-code directives, block markers
+  (`ignore-start`/`ignore-end`), and unknown-rule references are never
+  touched — they are listed for manual cleanup instead, since deleting them
+  would remove code, break paired markers, or discard a typo the user may
+  want to correct. Combined directives (`ignore(A,B)`) that went fully stale
+  are removed as one line. The post-fix audit report reflects the rewritten
+  files.
+- **`features.monetary` config flag** — tri-state declaration (`"on"` /
+  `"off"` / `"unknown"`, default `unknown`) that overrides the money-naming
+  heuristics: `"off"` downgrades C008's money-looking float fields
+  (Balance, Amount, ...) to Info and skips S006 entirely (a declared
+  non-monetary project has no plaintext-financial-data premise);
+  `"on"` keeps C008's Warning even without money-shaped names; `"unknown"`
+  preserves the heuristics exactly. Wired through the full feature-profile
+  resolution chain (preset → config → detected) and documented in
+  `cqrs-lint explain`.
+- **Health-score config-excluded footer** — when rules are disabled via
+  config/preset, `--health-score` output now shows how many findings each
+  disabled rule would have contributed (`Excluded from score by config:
+  A004 (1), C008 (3)`). Disabled rules remain excluded from the score —
+  the fix is transparency, not second-guessing the user's choice.
+
+### Improved — 2026-08-16
+
+- **E005 understands `system.RegisterCommand[Cmd, State](...)`** — the
+  scanner records the first generic type argument as a registered command
+  (closure-handler param as fallback), matching how `RegisterTyped`,
+  `RegisterQuery`, and `dispatcher.Register` are already tracked. Kills the
+  10 enshrined E005 false positives in `example/taskmanager` (its golden is
+  regenerated: zero E005, 23 findings across 17 rules remain).
+- **Stale-suppression warnings in every output format** — warnings for stale
+  and unknown-rule suppressions now print on stderr regardless of
+  `--format` (json/sarif/csv included), keeping stdout machine-parseable.
+  `--quiet` still silences them; `--fail-on-stale-suppressions` remains
+  opt-in for exit codes.
+
 ### Added — Per-module coaching rule migration — 2026-08-11
 
 > Completes the per-module feature profile feedback item (cqrs-htmx issue 2).

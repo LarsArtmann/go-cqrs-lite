@@ -152,17 +152,19 @@ previous session's report
 
 ## NEXT STEPS
 
-1. Once the concurrent session lands its sqliteengine/tursoengine work:
+~~1. Once the concurrent session lands its sqliteengine/tursoengine work:
    re-run `cd metaengine/bench && GOWORK=off go test -count=1 -race .` (full
    package) and `nix run .#lint` (expect only the commandlifecycle finding
-   or its fix).
-2. Full exclusive `nix run .#verify` on a QUIET tree (per AGENTS.md, never
+   or its fix).~~ done — full `#verify` GREEN (13:15 run #4, see 13-15 report) incl. lint/race stages; the exhaustruct finding fixed at `5b8a9a615`
+
+~~2. Full exclusive `nix run .#verify` on a QUIET tree (per AGENTS.md, never
    concurrent with another session's edits) — everything except the foreign
-   findings has passed individually.
+   findings has passed individually.~~ done — verify run #4 GREEN on a quiet tree (13-15 report)
+
 3. Optional deferred: TODO_LIST's new "size-stable KV/LSM calibration
    benches" item (re-derive KV/LSM constants without append-drift).
-4. If desired: `git tag` per-module releases per CONTRIBUTING release
-   process (metaengine has new exports — minor bump, non-breaking).
+~~4. If desired: `git tag` per-module releases per CONTRIBUTING release
+   process (metaengine has new exports — minor bump, non-breaking).~~ done — `metaengine/v4.11.0` + 8 engine tags + `watermill/v4.5.0` tagged 2026-08-16 (chain)
 
 ## What I discovered / lessons
 

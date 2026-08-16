@@ -46,6 +46,8 @@ cqrs-lint init --preset local-cli   # generate a config for a local CLI project
 cqrs-lint init                       # generate a default config skeleton
 cqrs-lint explain                    # full documentation of every config key
 cqrs-lint doctor                     # show resolved config + detected profile
+cqrs-lint doctor --audit-suppressions # active vs stale vs unknown-rule suppressions
+cqrs-lint doctor --fix              # auto-remove stale whole-line suppressions
 cqrs-lint scorecard                  # module adoption scorecard (Used/Missing/Irrelevant)
 cqrs-lint scorecard --format sarif   # SARIF output for CI/Code Scanning integration
 cqrs-lint --scorecard                # same via flag
@@ -167,6 +169,9 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 | `tracing`      | string | `off`, `on`                                                                  |
 | `snapshot`     | string | `off`, `on`                                                                  |
 | `domain`       | string | `financial` (escalates security/money rules), `internal`, `security`         |
+| `monetary`     | string | `on`, `off`, `unknown` (default) — declares whether the project handles     |
+|                |        | money; `off` downgrades C008 to Info and skips S006 entirely, `on` keeps    |
+|                |        | C008's Warning regardless of naming, `unknown` defers to the heuristics    |
 | `transport`    | bool   | `true` if watermill/, go-sse, cqrs-htmx, or deprecated transport/* imported  |
 | `server-local` | bool   | `true` if server lacks production signals                                    |
 | `async-bus`    | bool   | `true` if a distributed (Watermill) bus is wired                             |
@@ -472,6 +477,14 @@ adjustments prevent heuristic noise from drowning real bugs:
 
   When the cap applies, `--verbose` output shows the raw vs capped deduction.
 
+When rules are disabled via config or preset, the score output lists how many
+findings each disabled rule would have contributed — disabled rules stay
+excluded from scoring, but the omission is visible:
+
+```text
+Excluded from score by config: A004 (1), C008 (3)
+```
+
 ### Rule Overrides
 
 Some rules read project-specific overrides from the `"rules"` key so you can
@@ -542,6 +555,26 @@ For bulk exclusion prefer the `rules.external-api-struct-prefixes` config above.
 Suppressed findings are excluded from all output formats, the health score, and
 the error-exit check. The lint run prints a count of suppressed findings to
 stderr for visibility.
+
+### Stale Suppressions
+
+Every lint run warns on stderr when a suppression no longer suppresses anything
+(the rule stopped firing at that location) or references an unknown rule ID —
+in every output format, so `--format json` stdout stays parseable. `--quiet`
+silences the warnings; `--fail-on-stale-suppressions` turns them into a
+non-zero exit for CI.
+
+To review all suppressions at once and clean up the stale ones:
+
+```bash
+cqrs-lint doctor --audit-suppressions   # report: active vs stale vs unknown
+cqrs-lint doctor --fix                  # delete stale whole-line directives
+```
+
+`--fix` only removes directives that occupy an entire line. Trailing-on-code
+directives (sharing a line with code), block markers
+(`ignore-start`/`ignore-end`), and unknown-rule references are never rewritten —
+the report lists them for manual cleanup.
 
 ### Reviewing False Positives
 

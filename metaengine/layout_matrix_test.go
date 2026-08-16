@@ -17,9 +17,14 @@ import (
 // priority.go (Priority.Weights). Lower weighted score wins; ties resolve to
 // Embed (SelectLayout uses strict <).
 //
-// Two cells are deliberately fragile and documented:
+// Two cells are deliberately tight and documented:
 //
-//   - LSM × Balanced: Embed wins by a margin of 0.01 (2.99 vs 3.00).
+//   - LSM × StorageSpace: Normalize wins by 0.07 (4.28 vs 4.35) — the tightest
+//     cell after the 2026-08-16 real-bytes storage recalibration (per-child
+//     keys eat most of normalize's dedup saving). The margin is deterministic
+//     arithmetic on storage constants (byte counts do not vary across
+//     machines), so it is safe despite being under the 0.10 latency-margin
+//     rule.
 //   - Columnar × ReadSpeed: Embed wins by a measured margin of 0.08
 //     (3.35 vs 3.43) — the DuckDB calibration (2026-08-15) turned the former
 //     exact tie into a real margin; if recalibration flips it, update here.

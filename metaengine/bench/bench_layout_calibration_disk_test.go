@@ -28,14 +28,20 @@ import (
 // 2026-08-16 bench asserted a typed value that MapUpdate never produces, so
 // the mutation silently no-oped.
 //
+// DERIVATION PROTOCOL (used 2026-08-16): run EXCLUSIVELY (nothing else on the
+// machine), then take the MEDIAN of -count=10 runs per subbench; family
+// constants use the geomean across Pebble and bbolt.
+//
 // Run:
 //
 //	cd metaengine/bench
 //	GOWORK=off go test -tags "goexperiment.jsonv2" -run '^$' \
-//	  -bench 'BenchmarkDiskLayoutCalibration' -benchtime 2s ./...
+//	  -bench 'BenchmarkDiskLayoutCalibration' -benchtime 1s -count 10 .
 //
-// The per-engine ratios (normalize/embed for read and write) are what feed
-// layout_scoring.go. Storage ratios are engine-independent and measured once.
+// The per-engine ratios (normalize/embed for read, write, and storage) are
+// what feed layout_scoring.go. Storage ratios are measured as REAL on-disk
+// bytes by BenchmarkDiskLayoutCalibration_Storage
+// (bench_layout_calibration_disk_storage_test.go).
 
 // diskCalibOrder simulates an aggregate root with embedded child items,
 // mirroring the Memory calibration fixture ("Embed" layout: one value per key).
@@ -198,6 +204,21 @@ func BenchmarkDiskLayoutCalibration_EmbedWrite(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				key := fmt.Sprintf("order-%d", i%1000)
 				_ = mu.MapUpdate(ctx, "orders_embed", key, rmwReplaceChildren)
+			}
+
+			// Self-verification: a silently non-applying mutation (the bug class
+			// this bench was fixed for) must fail the bench, not skew the
+			// calibration.
+			after, _, err := e.(metaengine.MapBackend).MapGet(ctx, "orders_embed", "order-0")
+			if err != nil {
+				b.Fatal(err)
+			}
+			m, ok := after.(map[string]any)
+			if !ok {
+				b.Fatalf("embed mutation did not apply: %T", after)
+			}
+			if items, ok := m["items"].([]any); !ok || len(items) != 4 {
+				b.Fatalf("embed mutation did not apply: %d items", len(items))
 			}
 		})
 	}

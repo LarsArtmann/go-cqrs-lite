@@ -60,10 +60,10 @@ If V006 is disabled, D005 noise from submodule version mismatches should also be
 | ------------------------------------------------------------ | -------------------------------------------------- |
 | `rules.disable` config                                       | ✅ Already implemented                             |
 | `doctor` command + `features` config                         | ✅ Already implemented                             |
-| `--doctor --fix` auto-write features                         | Not implemented (wishlist)                         |
+| `--doctor --fix` auto-write features                         | ✅ Shipped 2026-08-16 — `doctor --fix` removes stale whole-line suppressions |
 | gofumpt interaction with package-level suppressions          | Resolved — `rules.disable` is the recommended path |
-| Stale-suppression detection as default (not `--strict`-only) | Not changed — kept behind `--strict` by design     |
-| Show config-disabled rules in health breakdown               | Not implemented (wishlist)                         |
+| Stale-suppression detection as default (not `--strict`-only) | ✅ Shipped 2026-08-16 — warnings on stderr in every format; `--fail-on-stale-suppressions` stays opt-in |
+| Show config-disabled rules in health breakdown               | ✅ Shipped 2026-08-16 — "Excluded from score by config" footer |
 
 ---
 
@@ -75,6 +75,6 @@ If V006 is disabled, D005 noise from submodule version mismatches should also be
 | P013 | False positive      | Fixed     | DSN pragma detection implemented    |
 | C034 | False positive      | Fixed     | Derived context tracing implemented |
 | C036 | Stale suppression   | Excellent | No action needed                    |
-| C008 | Feature enhancement | Wishlist  | Not implemented                     |
+| C008 | Feature enhancement | Shipped  | `features.monetary` on/off/unknown override (2026-08-16) |
 | V006 | Config request      | Supported | `rules.disable` works               |
 | D005 | Symptom of V006     | Supported | Disable via config                  |

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json/v2"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -22,8 +21,13 @@ import (
 // 2026-08-15 shape appended one child per iteration and grew values
 // unboundedly mid-run.
 //
+// DERIVATION PROTOCOL (used 2026-08-16): run EXCLUSIVELY (nothing else on the
+// machine — a concurrent LSM run skewed results by 60%+), then take the MEDIAN
+// of -count=10 runs. Single long runs (the pre-2026-08-16 protocol) are noise
+// on multi-tenant hardware.
+//
 // Run: GOWORK=off go test -tags "goexperiment.jsonv2" -run '^$' \
-//	-bench 'BenchmarkLayoutCalibration' -benchtime 2s .
+//	-bench 'BenchmarkLayoutCalibration' -benchtime 1s -count 10 .
 
 // calibOrder simulates an aggregate root with embedded child items.
 // This is the "Embed" layout: the whole aggregate is one value.
@@ -131,6 +135,16 @@ func BenchmarkLayoutCalibration_EmbedWrite(b *testing.B) {
 			return order
 		})
 	}
+
+	// Self-verification: a silently non-applying mutation (the bug class this
+	// bench was fixed for) must fail the bench, not skew the calibration.
+	after, _, err := mb.MapGet(ctx, "orders_embed", "order-0")
+	if err != nil {
+		b.Fatal(err)
+	}
+	if order, ok := after.(calibOrder); !ok || len(order.Items) != len(calibFixedChildren) {
+		b.Fatalf("embed mutation did not apply: %T with %d items", after, len(order.Items))
+	}
 }
 
 // BenchmarkLayoutCalibration_NormalizeRead measures a multi-key read+merge
@@ -198,9 +212,12 @@ func BenchmarkLayoutCalibration_NormalizeWrite(b *testing.B) {
 }
 
 // BenchmarkLayoutCalibration_StorageOverhead measures the relative byte size
-// of embed vs normalize storage. Embed duplicates the parent header in each
-// projection that references the aggregate; normalize stores it once.
-// Prints calibration details to stderr.
+// of embed vs normalize storage under the 3-projection CQRS model (order
+// summary + history + search). Embed duplicates the full aggregate in each
+// projection; normalize duplicates only the header and stores child facts
+// once. The memory engine holds native Go values (no stable byte size), so
+// this is the JSON-encoded size model — the disk engines measure REAL bytes
+// instead (BenchmarkDiskLayoutCalibration_Storage).
 func BenchmarkLayoutCalibration_StorageOverhead(b *testing.B) {
 	order := makeCalibOrder(0)
 	header := calibOrderHeader{ID: order.ID, Total: order.Total, Status: order.Status}
@@ -213,25 +230,16 @@ func BenchmarkLayoutCalibration_StorageOverhead(b *testing.B) {
 		itemBytesTotal += len(mustJSONEncode(b, item))
 	}
 
-	normalizeBytes := len(headerBytes) + itemBytesTotal
-	embedSingle := len(embedBytes)
-
-	// Simulate 3 projections referencing the same aggregate (realistic for
-	// CQRS: order summary + order history + order search index).
+	// Three projections referencing the same aggregate.
 	const numProjections = 3
-	embedTotal := embedSingle * numProjections
+	embedTotal := len(embedBytes) * numProjections
 	normalizeTotal := len(headerBytes)*numProjections + itemBytesTotal
-	storageRatio := float64(embedTotal) / float64(normalizeTotal)
 
 	for range b.N {
-		_ = storageRatio
+		_ = embedTotal
 	}
 
-	b.StopTimer()
-	fmt.Fprintf(os.Stderr, "\n=== Layout Storage Calibration ===\n")
-	fmt.Fprintf(os.Stderr, "Embed single proj:  %d bytes\n", embedSingle)
-	fmt.Fprintf(os.Stderr, "Normalize single:   %d bytes\n", normalizeBytes)
-	fmt.Fprintf(os.Stderr, "Embed x%d projs:     %d bytes\n", numProjections, embedTotal)
-	fmt.Fprintf(os.Stderr, "Normalize x%d projs: %d bytes\n", numProjections, normalizeTotal)
-	fmt.Fprintf(os.Stderr, "Storage ratio:      %.2fx\n\n", storageRatio)
+	b.ReportMetric(float64(normalizeTotal)/float64(embedTotal), "norm/embed-bytes")
+	b.ReportMetric(float64(embedTotal), "embed-bytes-3x")
+	b.ReportMetric(float64(normalizeTotal), "norm-bytes")
 }

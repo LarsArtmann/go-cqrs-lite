@@ -104,6 +104,9 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/tools v0.48.0 // indirect
+	// Post-split genproto pin: cockroachdb/errors pulls the monolithic
+	// google.golang.org/genproto, causing "ambiguous import". Keep the
+	// googleapis/rpc submodule pinned (docs/status/2026-08-16_01-33, b.2).
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260810153831-ec0a7760b754 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

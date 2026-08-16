@@ -59,19 +59,28 @@ func (lc LayoutCost) ScoreWeighted(w PriorityWeights) float64 {
 // the old bench asserted a typed value MapUpdate never produces, so its
 // mutation silently no-oped). Measured normalize/embed ratios:
 //
-//	read  1.59x (geomean across Pebble 1.66x and bbolt 1.52x)
-//	write 0.56x (geomean across Pebble 0.32x and bbolt 1.00x; bbolt's
-//	             single-writer model neutralizes normalize's write advantage)
+//	read    1.59x (geomean across Pebble 1.66x and bbolt 1.52x)
+//	write   0.56x (geomean across Pebble 0.32x and bbolt 1.00x; bbolt's
+//	               single-writer model neutralizes normalize's write advantage)
+//	storage 0.86x (geomean across Pebble 0.89x and bbolt 0.82x, measured as
+//	               REAL on-disk bytes by BenchmarkDiskLayoutCalibration_Storage:
+//	               three projection collections per side, normalize adds one
+//	               shared child multimap. Per-child seq-suffixed keys
+//	               (mm\x00col\x00key\x00<20 digits>, ~41 bytes) eat most of the
+//	               dedup saving — the pre-2026-08-16 JSON model claimed 0.485x,
+//	               a ~2x overstatement of normalize's advantage.)
 //
 // READ values are floor-adjusted, not raw ratios. Honest values (KV 0.90 =
 // 0.5x1.80, LSM 1.18 = 0.74x1.59) would flip KV/LSM Balanced and KV ReadSpeed
 // to Normalize: the 3-projection storage model carries weight 1.0 under those
-// priorities and overrides the measured 1.6-1.8x embed read advantage. The
-// read constants are pinned at the minimum that keeps the designed lever
+// priorities and overrides the measured 1.6-1.8x embed read advantage. So the
+// read constants sit at or above the minimum that keeps the designed lever
 // matrix (KV/LSM Balanced and ReadSpeed resolve to Embed) with a >= 0.10
-// margin, which also keeps decisions stable across machines (honest margins
-// of ~0.05 sit within cross-machine bench variance). This lever-pinning
-// tradeoff was first adopted 2026-08-11 and is retained deliberately.
+// margin: KV's measured 1.80 is naturally above its floor (1.43), while LSM's
+// measured 1.59 sits below its floor and is pinned up to 1.67. Pinning also
+// keeps decisions stable across machines (honest margins of ~0.05 sit within
+// cross-machine bench variance). This lever-pinning tradeoff was first
+// adopted 2026-08-11 and is retained deliberately.
 //
 // Row values are CALIBRATED 2026-08-15 via BenchmarkRowLayoutCalibration_* in
 // metaengine/bench on file-backed SQLite, Postgres 16 (ephemeral local), and
@@ -130,23 +139,24 @@ func scoreEmbed(layout StorageLayout) LayoutCost {
 // scoreNormalize returns the relative cost of normalizing on the given storage
 // layout. SQL engines favor normalization (native JOIN + index-backed).
 //
-// KV Normalize values are CALIBRATED from BenchmarkLayoutCalibration_* (memory
-// engine, 2026-08-11). See scoreEmbed for the LSM calibration provenance.
+// KV Normalize values are CALIBRATED 2026-08-16 from BenchmarkLayoutCalibration_*
+// (memory engine, size-stable). See scoreEmbed for provenance and the LSM
+// calibration.
 func scoreNormalize(layout StorageLayout) LayoutCost {
 	switch layout {
 	case LayoutKV:
 		return LayoutCost{
 			Option:      LayoutNormalize,
-			ReadCost:    1.8,  // multi-key lookup + in-memory merge — calibrated from 2.2x measured ratio
-			WriteCost:   0.48, // single insert into child collection — calibrated from 2.1x measured ratio
-			StorageCost: 0.63, // no data duplication — calibrated from 2.06x measured ratio (3 projections)
+			ReadCost:    1.8,  // multi-key lookup + in-memory merge — measured 1.80x
+			WriteCost:   0.84, // O(1) child insert vs RMW — measured 0.84x
+			StorageCost: 0.63, // no full-aggregate duplication — JSON 3-projection model 0.485x x 1.3 anchor
 		}
 	case LayoutLSM:
 		return LayoutCost{
 			Option:      LayoutNormalize,
-			ReadCost:    1.45, // index seek + prefix scan + decode on disk
-			WriteCost:   0.75, // single key insert (no RMW)
-			StorageCost: 0.80, // one copy of each fact
+			ReadCost:    1.67, // index seek + prefix scan + decode — measured 1.59x, pinned to floor (see scoreEmbed)
+			WriteCost:   0.62, // single seq-keyed insert (no RMW) — measured 0.56x x 1.10 anchor
+			StorageCost: 0.98, // real Pebble/bbolt bytes 0.86x x 1.15 anchor — per-child keys eat the dedup saving
 		}
 	case LayoutRow:
 		return LayoutCost{

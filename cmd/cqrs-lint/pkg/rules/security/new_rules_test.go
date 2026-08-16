@@ -440,3 +440,29 @@ type OrderTotal struct {
 	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
 	ruletest.AssertRule(t, findings, "S006", 1)
 }
+
+// An explicit features.monetary="off" declaration voids S006's premise — the
+// project asserts it holds no monetary data, so even strong financial
+// indicators (IBAN) are not flagged. Consistent with C008's use of the same
+// flag; "unknown" (default) preserves the heuristic.
+func TestS006_MonetaryOffConfigSkipsDetector(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"bank.go": `package main
+
+type BankAccount struct {
+	IBAN string ` + "`json:\"iban\"`" + `
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+
+	ctx.FeatureProfile.Monetary = analyzer.MonetaryUnknown
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 1)
+
+	ctx.FeatureProfile.Monetary = analyzer.MonetaryOff
+	findings = ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 0)
+}

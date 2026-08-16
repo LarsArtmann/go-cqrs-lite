@@ -3,6 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/bench/v4
 go 1.26.5
 
 require (
+	github.com/cockroachdb/pebble v1.1.5
 	github.com/duckdb/duckdb-go/v2 v2.10505.0
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/jackc/pgx/v5 v5.10.0
@@ -14,6 +15,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0
+	go.etcd.io/bbolt v1.5.0
 	modernc.org/sqlite v1.56.0
 )
 
@@ -26,7 +28,6 @@ require (
 	github.com/cockroachdb/errors v1.14.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240816210425-c5d0cb0b6fc0 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20241215232642-bb51bb14a506 // indirect
-	github.com/cockroachdb/pebble v1.1.5 // indirect
 	github.com/cockroachdb/redact v1.1.8 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20250429170803-42689b6311bb // indirect
 	github.com/duckdb/duckdb-go-bindings v0.10505.0 // indirect
@@ -66,7 +67,6 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
-	go.etcd.io/bbolt v1.5.0 // indirect
 	golang.org/x/exp v0.0.0-20260813180055-c1d0aacb2297 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect

@@ -130,29 +130,43 @@ need baselining or dedup judgment).
 14. `nix run .#vulncheck`.
 
 **Release follow-ups (from prior session, still open):**
-15. Tag `metadata` minor (Metadata[K] WAL-unification symbols are unpublished → command/query
-standalone builds only work via replace today).
-16. Tag `schema` minor (`UpcastSourceTransform` unpublished; event's test dep).
-17. Tag `event` minor (ActorEnricher/WithActorContext/ActorFromContext).
-18. Tag `middleware` minor (CommandActorContext).
-19. Tag `command` patch if needed; then strip replaces from event/command/query/middleware/
-integration go.mods in one sweep.
-20. Confirm module version-sequence rule before tagging (`git tag -l '<module>/v4*' | sort -V`).
+~~15. Tag `metadata` minor (Metadata[K] WAL-unification symbols are unpublished → command/query
+standalone builds only work via replace today).~~ done — `metadata/v4.5.0` tagged 2026-08-16 04:15
 
-**Hardening leftovers worth considering:**
-21. Decide/document AsRecord `"user:<ulid>"` legacy-UserID fallback (open question from prior
-session — consumers previously saw bare ULID).
-22. `.golangci.yml` depguard: no new external deps added, but verify after go.mod edits.
-23. `TestStoreMetadataRoundtrip` actor assertion — confirm it ran against pebble AND bbolt in
-this session's runs (it did via module tests; keep as regression canary).
-24. Consider golden/snapshot for watermill actor roundtrip already regenerated — verify the
-`.snap` deletion didn't break `snaps.Clean` meta-tests (covered by watermill tests green).
-25. gopls/LSP noise (`go.work requires go >= 1.26.6`) will disappear once toolchain matches.
-26. Consider pinning `.go-version` file in go-cqrs-lite to 1.26.6 for non-nix users.
+~~16. Tag `schema` minor (`UpcastSourceTransform` unpublished; event's test dep).~~ done — `schema/v4.3.0` tagged 04:15
+
+~~17. Tag `event` minor (ActorEnricher/WithActorContext/ActorFromContext).~~ done — `event/v4.7.0` tagged 04:16
+
+~~18. Tag `middleware` minor (CommandActorContext).~~ done — `middleware/v4.5.0` tagged 04:16
+
+~~19. Tag `command` patch if needed; then strip replaces from event/command/query/middleware/
+integration go.mods in one sweep.~~ done for the tags (`command/v4.7.1`); repo-wide replace-strip sweep still open (TODO_LIST)
+
+~~20. Confirm module version-sequence rule before tagging (`git tag -l '<module>/v4*' | sort -V`).
+
+**Hardening leftovers worth considering:**~~ done — chain tagged with sequence checks; standalone-build gate added to `tag-release.sh` at `092b5e8a8` (cherry-pick onto master pending)
+
+~~21. Decide/document AsRecord `"user:<ulid>"` legacy-UserID fallback (open question from prior
+session — consumers previously saw bare ULID).~~ done — resolved in §h.2 (no behavior change; locked by `event/asrecord_test.go:69`)
+
+~~22. `.golangci.yml` depguard: no new external deps added, but verify after go.mod edits.~~ done — no new external deps; depguard green
+
+~~23. `TestStoreMetadataRoundtrip` actor assertion — confirm it ran against pebble AND bbolt in
+this session's runs (it did via module tests; keep as regression canary).~~ done — ran via module tests; kept as regression canary
+
+~~24. Consider golden/snapshot for watermill actor roundtrip already regenerated — verify the
+`.snap` deletion didn't break `snaps.Clean` meta-tests (covered by watermill tests green).~~ done — watermill module green; `watermill/v4.5.0` tagged
+
+~~25. gopls/LSP noise (`go.work requires go >= 1.26.6`) will disappear once toolchain matches.~~ done at `ea8fa5072` (Go 1.26.6 adopted)
+
+~~26. Consider pinning `.go-version` file in go-cqrs-lite to 1.26.6 for non-nix users.~~ done at `ea8fa5072` (`.go-version` added)
+
 27. Document the genproto split-pin in integration/go.mod with a comment (why it's required).
-28. Consider extracting the actor-propagation e2e pattern into `example/` (optional, YAGNI-check).
-29. Update `CHANGELOG.md` [Unreleased] with the WithActor hardening entries if project
-convention requires (verify — doc-assertion currently passes with 1 section).
+~~28. Consider extracting the actor-propagation e2e pattern into `example/` (optional, YAGNI-check).~~ Won't implement — YAGNI; the e2e pattern is documented in recipes.md §2.21
+
+~~29. Update `CHANGELOG.md` [Unreleased] with the WithActor hardening entries if project
+convention requires (verify — doc-assertion currently passes with 1 section).~~ done — CHANGELOG 2026-08-13 section + `[2026-08-16 module releases]` entries
+
 30. Session-milestones entry for WithActor hardening completion.
 
 ## g) QUESTIONS (cannot be resolved from the repo alone)
