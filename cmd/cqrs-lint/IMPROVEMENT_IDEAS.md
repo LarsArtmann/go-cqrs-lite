@@ -59,7 +59,7 @@
 
 7. ~~**C022: Context ignored in handler (`_ = ctx`)** — crush-daily's Handle method ignores the context (setup.go:185). C016 exists for `context.Background()` but not for `_ = ctx` — the context is explicitly discarded. Detect: `_ = ctx` or `ctx` assigned to `_` inside a function with a `context.Context` parameter.~~ done at `1422f8e2`
 
-8. ~~**C023: Shutdown error ignored** — go-appkit's `Shutdown` ignores `host.Stop()` error (`eventservice.go:117`: `_ = es.host.Stop()`). The projection host may have pending events that are lost. Detect: `_ = ` assignment on `.Close()`, `.Stop()`, `.Shutdown()` return values. Extends C015 (unchecked Close) to lifecycle methods.~~ done at `3285a3e7`
+8. ~~**C023: Shutdown error ignored** — go-appkit's `Shutdown` ignores `host.Stop()` error (`eventservice.go:117`: `_ = es.host.Stop()`). The projection host may have pending events that are lost. Detect: `_ =` assignment on `.Close()`, `.Stop()`, `.Shutdown()` return values. Extends C015 (unchecked Close) to lifecycle methods.~~ done at `3285a3e7`
 
 9. ~~**C024: Dual-write read model without rollback** — cqrs-htmx's SQL read model mutates in-memory state before `syncToSQL` (sql_readmodel.go:98-103). If SQL write fails, in-memory and SQL diverge with no rollback. Detect: in-memory mutation followed by `syncToSQL`/`WriteToSQL`/DB write in same handler without transaction/rollback.~~ done at `c165b2e8`
 
@@ -370,7 +370,7 @@
 
 125. ~~**Comma-separated rule IDs in suppression comments** — `//cqrs-lint:ignore(A001,E005)` should parse as two rules, not one literal string `"A001,E005"`.~~ done — `ParseSuppressions` now splits on comma
 
-126. ~~**Space after `//` in suppression comments** — `// cqrs-lint:ignore(X)` (with space) should be accepted alongside `//cqrs-lint:ignore(X)`. gofmt may produce either form.~~ done — parser now strips `// ` prefix before checking
+126. ~~**Space after `//` in suppression comments** — `// cqrs-lint:ignore(X)` (with space) should be accepted alongside `//cqrs-lint:ignore(X)`. gofmt may produce either form.~~ done — parser now strips `//` prefix before checking
 
 127. ~~**Stale suppression checker must see ALL findings** — `DetectStaleSuppressions` received only unsuppressed findings, meaning every suppression was falsely reported as stale when all findings at a location were suppressed.~~ done — `printSummary` now passes `allFindings` instead of `unsuppressed`
 

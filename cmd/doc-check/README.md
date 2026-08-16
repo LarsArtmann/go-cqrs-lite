@@ -35,7 +35,7 @@ Exit code is non-zero if any broken references are found.
 
 ## How It Works
 
-1. Scans Markdown files for ` ```go ` fenced code blocks.
+1. Scans Markdown files for `` ```go `` fenced code blocks.
 2. Extracts import paths matching `github.com/larsartmann/go-cqrs-lite/...` via regex.
 3. Extracts qualified references (`pkgSymbol.Symbol` — lowercase-dot-uppercase pattern).
 4. Builds an export index by parsing actual `.go` files with `go/ast`.

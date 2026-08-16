@@ -66,17 +66,17 @@ You can override auto-detection in `.cqrs-lint.json`:
 
 ```json
 {
-	"features": {
-		"store": "sqlite",
-		"command-flow": "sync",
-		"server": false,
-		"soft-delete": true,
-		"tracing": "off",
-		"snapshot": "off",
-		"domain": "financial",
-		"transport": false,
-		"server-local": false
-	}
+  "features": {
+    "store": "sqlite",
+    "command-flow": "sync",
+    "server": false,
+    "soft-delete": true,
+    "tracing": "off",
+    "snapshot": "off",
+    "domain": "financial",
+    "transport": false,
+    "server-local": false
+  }
 }
 ```
 
@@ -114,7 +114,7 @@ Or set the preset directly in `.cqrs-lint.json`:
 
 ```json
 {
-	"preset": "local-cli"
+  "preset": "local-cli"
 }
 ```
 
@@ -256,7 +256,7 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 | A027 | repeated-withcodec                          | Info     | event.WithCodec called 3+ times in one file — set codec once via event.DefaultCodec |
 | A030 | incomplete-snapshot-config                  | Error    | WithSnapshotStrategy without WithSnapshotStore — ErrIncompleteSnapshotConfig        |
 | A032 | string-id-instead-of-branded                | Warning  | Struct field named *ID with type string/int — use id.Of[T] branded ID               |
-| A033 | branded-id-string-roundtrip                 | Warning  | id.Parse[T](<x.String()>) — pointless branded-ID roundtrip, discards typed value    |
+| A033 | branded-id-string-roundtrip                 | Warning  | id.Parse[T](x.String()) — pointless branded-ID roundtrip, discards typed value      |
 | A034 | metaengine-execute-untyped                  | Warning  | metaengine.Execute returns any — use ExecuteTyped[Q,R] for compile-time type safety |
 
 ## Boilerplate Rules
@@ -363,7 +363,7 @@ Adoption rules (F-series) are advisory: they suggest modules and patterns that i
 
 | ID   | Rule                             | Severity | Description                                                                                                        |
 | ---- | -------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
-| F001 | no-domain-delete-event           | Info     | Delete operations without a domain deletion event — consider emitting a "entity.deleted" event for audit trail       |
+| F001 | no-domain-delete-event           | Info     | Delete operations without a domain deletion event — consider emitting a "entity.deleted" event for audit trail     |
 | F002 | no-catalog-documentation         | Info     | 3+ event types but no catalog.NewBuilder — event documentation not generated                                       |
 | F003 | no-otel-tracing                  | Info     | Server-mode project with no OpenTelemetry tracing                                                                  |
 | F004 | no-prometheus-metrics            | Info     | Server-mode project with no Prometheus metrics                                                                     |
@@ -392,7 +392,7 @@ Adoption rules (F-series) are advisory: they suggest modules and patterns that i
 | F027 | missing-otel-sdk-init            | Info     | Server-mode project with no cqrsotel.Setup call — traces are no-op                                                 |
 | F028 | missing-slog-setdefault          | Info     | Server-mode project using slog without slog.SetDefault — default logger has no structured output                   |
 | F029 | missing-span-creation            | Info     | OTel import but no span creation in handlers — distributed traces are empty                                        |
-| F030 | deprecated-transport-import       | Warning  | Deprecated transport/* import — removed at v5; migrate per ADR-0127                                                |
+| F030 | deprecated-transport-import      | Warning  | Deprecated transport/* import — removed at v5; migrate per ADR-0127                                                |
 
 ## CLI
 
@@ -427,14 +427,14 @@ A `.cqrs-lint.json` file in the project root is auto-loaded. The format is
 
 ```jsonc
 {
-	// Output JSON for CI pipelines
-	"format": "json",
+  // Output JSON for CI pipelines
+  "format": "json",
 
-	/* Hide info-level findings — only show warnings and errors */
-	"min-severity": "warning",
-	"min-confidence": "medium",
+  /* Hide info-level findings — only show warnings and errors */
+  "min-severity": "warning",
+  "min-confidence": "medium",
 
-	"fast": false,
+  "fast": false,
 }
 ```
 
@@ -464,9 +464,9 @@ adjustments prevent heuristic noise from drowning real bugs:
 
   ```json
   {
-  	"health": {
-  		"info-cap": 15
-  	}
+    "health": {
+      "info-cap": 15
+    }
   }
   ```
 
@@ -485,9 +485,9 @@ can't change, exclude those structs so they don't count toward the mix:
 
 ```json
 {
-	"rules": {
-		"external-api-struct-prefixes": ["Discord", "Stripe", "GitHub"]
-	}
+  "rules": {
+    "external-api-struct-prefixes": ["Discord", "Stripe", "GitHub"]
+  }
 }
 ```
 
@@ -504,10 +504,10 @@ float64 (cost estimates, metrics, observability counters), exclude them:
 
 ```json
 {
-	"rules": {
-		"c008-ignore-fields": ["CostEstimate", "PriceIndex"],
-		"c008-ignore-structs": ["PricingMetrics", "CostEstimate"]
-	}
+  "rules": {
+    "c008-ignore-fields": ["CostEstimate", "PriceIndex"],
+    "c008-ignore-structs": ["PricingMetrics", "CostEstimate"]
+  }
 }
 ```
 
