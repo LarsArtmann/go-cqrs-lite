@@ -29,6 +29,25 @@ func TestADTMatrix(t *testing.T) {
 	})
 }
 
+// TestCapabilityConformance runs the declared-vs-implemented capability
+// table (structural check) for the in-repo engines. Engine modules run the
+// same check for their own engine in their adt_matrix_test.go.
+func TestCapabilityConformance(t *testing.T) {
+	t.Parallel()
+
+	t.Run("memory", func(t *testing.T) {
+		t.Parallel()
+
+		adttest.RunCapabilityConformance(t, "memory", metaengine.NewMemoryEngine(), nil)
+	})
+
+	t.Run("sqlite", func(t *testing.T) {
+		t.Parallel()
+
+		adttest.RunCapabilityConformance(t, "sqlite", newIsolatedSQLiteEngine(t), nil)
+	})
+}
+
 func TestLayoutMatrix(t *testing.T) {
 	t.Parallel()
 

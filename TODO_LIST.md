@@ -246,6 +246,11 @@ and is **never** duplicated here.
       Value}`, adapters resume on engine seqs) would make it O(log n) via
       index seek. Correctness is now guaranteed; this is purely a
       large-journal performance item.
+      **Design DONE 2026-08-16** — see
+      [`docs/planning/SEQ-CARRYING-JOURNAL-READS.md`](docs/planning/SEQ-CARRYING-JOURNAL-READS.md)
+      (`SeqSeekableStreamLog` capability + `StreamLogEntry{Seq,Value}`,
+      per-engine token table, adapter integration, rollout, risks).
+      Implementation remains open (Effort M).
       _(Effort: M)_
 - [ ] **Engine capability conformance test** — plan-time `Supports`-declared
       vs actually-implemented interface check per engine (brutal review

@@ -35,3 +35,16 @@ func TestBadgerADTMatrix(t *testing.T) {
 		},
 	})
 }
+
+// TestCapabilityConformance verifies this engine's Profile() declarations
+// against its implemented backend interfaces (declared-vs-implemented table).
+func TestCapabilityConformance(t *testing.T) {
+	t.Parallel()
+
+	eng, err := badgerengine.NewBadgerEngine("")
+	if err != nil {
+		t.Skipf("badger not available: %v", err)
+	}
+
+	adttest.RunCapabilityConformance(t, "badger", eng, nil)
+}

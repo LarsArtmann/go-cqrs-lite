@@ -30,3 +30,11 @@ func TestDgraphADTMatrix(t *testing.T) {
 		},
 	})
 }
+
+// TestCapabilityConformance verifies this engine's Profile() declarations
+// against its implemented backend interfaces (declared-vs-implemented table).
+func TestCapabilityConformance(t *testing.T) {
+	t.Parallel()
+
+	adttest.RunCapabilityConformance(t, "dgraph", newDgraphEngineOrSkip(t), nil)
+}

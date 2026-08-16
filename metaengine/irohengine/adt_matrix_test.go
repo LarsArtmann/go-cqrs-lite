@@ -39,3 +39,11 @@ func TestProfileIsReplicated(t *testing.T) {
 	g.Expect(p.Replication).To(gomega.Equal(metaengine.ReplicationLeaderless))
 	g.Expect(p.Name).To(gomega.ContainSubstring("iroh("))
 }
+
+// TestCapabilityConformance verifies this engine's Profile() declarations
+// against its implemented backend interfaces (declared-vs-implemented table).
+func TestCapabilityConformance(t *testing.T) {
+	t.Parallel()
+
+	adttest.RunCapabilityConformance(t, "iroh", irohengine.Replicated(metaengine.NewMemoryEngine()), nil)
+}
