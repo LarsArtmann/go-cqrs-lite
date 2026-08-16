@@ -39,6 +39,7 @@ func (p *paddedWorkerCounters) snapshot() WorkerState {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
+	//art-dupl:accept intentional isomorphic mirror of worker.snapshot — false-sharing A/B bench
 	s := p.state
 	s.Processed = p.processed.Load()
 	s.Errors = p.errors.Load()

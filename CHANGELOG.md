@@ -82,6 +82,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   [`docs/benchmarks/2026-08-16_false-sharing-contention.md`](docs/benchmarks/2026-08-16_false-sharing-contention.md);
   ledger rows in [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md).
 
+### Fixed — Wave-4: irohengine graph dispatch forwarding (conformance RED) — 2026-08-16
+
+- **`irohengine.Replicated` now forwards `GraphAddEdge`/`GraphNeighbors`** to
+  the wrapped engine. `replicatedEngine.Profile()` copies the local engine's
+  declarations wholesale (memory declares graph `O(degree^depth)`), but the
+  wrapper never implemented the structural graph dispatch contract — so
+  `metaengine.HasGraphSupport` was false and the new capability audit flagged
+  irohengine OVER-DECLARED (`TestCapabilityConformance` RED, pre-existing at
+  HEAD). Forwarding is local passthrough like vector/search/spatial: the
+  replication wire protocol has no graph `WriteOp` kind, so edges do NOT
+  converge across peers (documented on the methods). Graph-less local engines
+  get the new sentinel `ErrGraphBackendNotImplemented` instead of a panic.
+  Regression tests pin `HasGraphSupport`, the dispatch roundtrip, and the
+  graphless error path. All 9 engines pass the conformance loop.
+
+### Fixed — storage: `OpenSQLiteInMemory` per-connection database flake — 2026-08-16
+
+- **The in-memory SQLite helper now pins its pool to a single connection**
+  (via the existing `ConfigureSQLitePool`). modernc.org/sqlite gives every
+  pooled connection to `file::memory:` its own private, empty database, so
+  any query overlapping another connection's lifetime (e.g. the timer
+  scheduler polling while a transaction or another statement held the first
+  connection) landed on a fresh database with no schema — flaking under
+  parallel test load as `no such table: timers`, failed `MarkFired`, and
+  double dispatches (`TestSQLTimerStore_IntegrationWithScheduler`: "expected
+  1 dispatch, got 2"). Callers now serialize on one connection — correct and
+  fast enough for test-sized workloads. New regression test
+  `TestOpenSQLiteInMemory_SingleSharedDatabase` fails deterministically on
+  the unpinned pool (verified RED pre-fix, GREEN 5/5 post-fix).
+
+### Fixed — projectionhost: standalone (`GOWORK=off`) build after DecorateJournal adoption — 2026-08-16
+
+- `versioned_journal_integration_test.go` (wave-4) consumes
+  `schema.UpcastSourceTransform` and `event.DecorateJournal`, but
+  `projectionhost/go.mod` still required `schema/v4 v4.1.0` (symbol shipped in
+  `v4.3.0`) and had no `event` replace (DecorateJournal is unreleased). The
+  workspace gate masked both; `GOWORK=off` per-module builds failed with
+  `undefined: schema.UpcastSourceTransform`. Fixed by bumping
+  `schema/v4 → v4.3.0` and adding the sibling-convention relative replaces
+  (`event/v4 => ../event`, `metadata/v4 => ../metadata` — replaces do not
+  cascade, so the unpublished `metadata.BrandedString` used by local `event`
+  needed the second one), matching `middleware/`, `schema/`, and
+  `integration/`.
+
 ### Added — Wave-3 IO wins: bbolt group commit, PG COPY, pebble operator knobs, checkpoint batching — 2026-08-16
 
 - **bbolt opt-in group commit**: `bbolt.WithBatchCommit()` on

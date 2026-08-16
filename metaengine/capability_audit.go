@@ -169,9 +169,7 @@ func auditADTRow(
 // violations inline. This surfaces lying engines at runtime, complementing
 // the plan-time ADT diagnostics.
 func (s *Store) capabilityDoctorSection() string {
-	s.mu.RLock()
-	engines := s.engines
-	s.mu.RUnlock()
+	engines := s.enginesSnapshot()
 
 	var b strings.Builder
 

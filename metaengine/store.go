@@ -218,6 +218,16 @@ func (s *Store) lookupQuery(name string) (queryMeta, bool) {
 	return q, ok
 }
 
+// enginesSnapshot returns the registered engines slice header under the read
+// lock. The returned slice must not be mutated. Shared by diagnostics paths
+// (GetEngineStats, Doctor) that iterate engines outside the lock.
+func (s *Store) enginesSnapshot() []Engine {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.engines
+}
+
 // collectionEngine returns the engine assigned to a query/collection by name.
 // Used by TypedReader to access the engine for typed reads without going through
 // the reflective Execute path.

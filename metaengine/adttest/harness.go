@@ -31,9 +31,10 @@ import (
 )
 
 // graphBackend is the local graph dispatch contract for test scenarios.
-// Engines with graph support (graphadapter, dgraphengine) implement this
-// structurally. The memory engine does NOT — graph operations route through
-// graphadapter exclusively (ADR-0113).
+// Engines with graph support implement this structurally: the memory engine
+// natively (universal fallback), dgraphengine natively, and irohengine by
+// forwarding to its wrapped local engine. Consumers add graph support via
+// graphadapter (ADR-0113).
 type graphBackend interface {
 	GraphAddEdge(ctx context.Context, collection string, edge metaengine.Edge) error
 	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)

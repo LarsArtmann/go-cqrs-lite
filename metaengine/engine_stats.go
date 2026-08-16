@@ -45,9 +45,7 @@ type EngineStats struct {
 // readiness probes, and any operator dashboard that needs to show whether the
 // planner is routing on measured or prior latency.
 func (s *Store) GetEngineStats(_ context.Context) []EngineStats {
-	s.mu.RLock()
-	engines := s.engines
-	s.mu.RUnlock()
+	engines := s.enginesSnapshot()
 
 	out := make([]EngineStats, 0, len(engines))
 

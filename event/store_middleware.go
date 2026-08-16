@@ -177,20 +177,35 @@ func (s *decoratedStore) ReadAll(ctx context.Context) ([]Event, error) {
 	return s.applySource(journal.ReadAll(ctx))
 }
 
+// seekableReadFrom performs the SeekableJournal capability check and ReadFrom
+// delegation shared by decoratedStore and decoratedJournal. The noun ("store"
+// or "journal") parameterizes the error code and message so each wrapper
+// reports itself accurately.
+func seekableReadFrom(
+	ctx context.Context,
+	inner any,
+	afterEventID id.EventID,
+	limit int,
+	noun string,
+) ([]Event, error) {
+	seekable, ok := inner.(SeekableJournal)
+	if !ok {
+		return nil, errorfamily.Wrapf(ErrInnerStoreNotSeekable, errorfamily.Rejection,
+			"event."+noun+"_not_seekable",
+			"limit=%d: inner %s %T does not implement SeekableJournal", limit, noun, inner)
+	}
+
+	return seekable.ReadFrom(ctx, afterEventID, limit)
+}
+
 // ReadFrom delegates to the inner store's SeekableJournal.ReadFrom when supported.
 func (s *decoratedStore) ReadFrom(
 	ctx context.Context,
 	afterEventID id.EventID,
 	limit int,
 ) ([]Event, error) {
-	seekable, ok := s.inner.(SeekableJournal)
-	if !ok {
-		return nil, errorfamily.Wrapf(ErrInnerStoreNotSeekable, errorfamily.Rejection,
-			"event.store_not_seekable",
-			"limit=%d: inner store %T does not implement SeekableJournal", limit, s.inner)
-	}
-
-	return s.applySource(seekable.ReadFrom(ctx, afterEventID, limit))
+	events, err := seekableReadFrom(ctx, s.inner, afterEventID, limit, "store")
+	return s.applySource(events, err)
 }
 
 // LoadBackwards delegates to the inner store's BackwardsSource.LoadBackwards

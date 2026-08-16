@@ -83,14 +83,8 @@ func (j *decoratedJournal) ReadFrom(
 	afterEventID id.EventID,
 	limit int,
 ) ([]Event, error) {
-	seekable, ok := j.inner.(SeekableJournal)
-	if !ok {
-		return nil, errorfamily.Wrapf(ErrInnerStoreNotSeekable, errorfamily.Rejection,
-			"event.journal_not_seekable",
-			"limit=%d: inner journal %T does not implement SeekableJournal", limit, j.inner)
-	}
-
-	return j.applySource(seekable.ReadFrom(ctx, afterEventID, limit))
+	events, err := seekableReadFrom(ctx, j.inner, afterEventID, limit, "journal")
+	return j.applySource(events, err)
 }
 
 // ReadStream delegates to the inner journal's StreamingJournal.ReadStream

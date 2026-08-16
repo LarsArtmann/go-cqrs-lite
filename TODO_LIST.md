@@ -267,6 +267,10 @@ and is **never** duplicated here.
       `Store.Doctor` renders a `--- Capability ---` section per engine so
       lying engines surface at runtime. adttest delegates to the root
       implementation (dependency direction: adttest → metaengine).
+      Follow-up same day: irohengine graph over-declaration fixed —
+      `Replicated` now forwards `GraphAddEdge`/`GraphNeighbors` as local
+      passthrough (+ `ErrGraphBackendNotImplemented`, regression tests);
+      all 9 engines green in the conformance loop.
 - [ ] **DuckDB real aggregation pushdown (`AggregateReader`)** — approved by
       DiscordSync census review; `CounterGet` currently loads all rows into
       Go maps instead of pushing GROUP BY to columnar SQL. Highest-leverage
@@ -426,7 +430,11 @@ and is **never** duplicated here.
       at the 9 intentional clone sites; dirty-tree guard for baseline
       re-pins; re-pin at next clean tree (current pin includes in-flight
       foreign code).
-      _(Effort: S)_
+      _(Effort: S)_ 2026-08-16: wave-4 triage added 3 more directives
+      (2 false-sharing bench mirrors, 1 cross-module test read-file idiom)
+      and consolidated 2 groups (metaengine `enginesSnapshot`, event
+      `seekableReadFrom`) — gate green, baseline untouched (annotations
+      suppress live). The 9 legacy sites + dirty-tree guard remain.
 - [ ] **check-coverage.sh hardening** — meta-test asserting every EXPECTED
       key resolves to a real module dir (codec-dangle class); make
       `--update` auto-stamp the "verified" date.

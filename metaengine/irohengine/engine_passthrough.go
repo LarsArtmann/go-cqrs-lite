@@ -98,3 +98,42 @@ func (e *replicatedEngine) SpatialRange(
 	}
 	return nil, ErrSpatialBackendNotImplemented
 }
+
+// --- GraphBackend (local passthrough) ---
+
+// graphCapable mirrors metaengine's unexported graph dispatch contract
+// (ADR-0113). The canonical interface is deliberately unexported; this mirror
+// exists only to assert and forward the capability of the wrapped engine.
+type graphCapable interface {
+	GraphAddEdge(ctx context.Context, collection string, edge metaengine.Edge) error
+	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)
+}
+
+// GraphAddEdge forwards to the local engine WITHOUT replication: the wire
+// protocol has no graph WriteOp kind yet, so edges added on one node do not
+// converge to peers. Profile() still declares the wrapped engine's graph
+// complexity, so the wrapper must forward the dispatch contract structurally —
+// graphadapter relies on HasGraphSupport detecting these methods.
+func (e *replicatedEngine) GraphAddEdge(
+	ctx context.Context,
+	collection string,
+	edge metaengine.Edge,
+) error {
+	if gb, ok := e.local.(graphCapable); ok {
+		return gb.GraphAddEdge(ctx, collection, edge)
+	}
+	return ErrGraphBackendNotImplemented
+}
+
+// GraphNeighbors forwards to the local engine. Reads never replicate.
+func (e *replicatedEngine) GraphNeighbors(
+	ctx context.Context,
+	collection string,
+	node any,
+	depth int,
+) ([]any, error) {
+	if gb, ok := e.local.(graphCapable); ok {
+		return gb.GraphNeighbors(ctx, collection, node, depth)
+	}
+	return nil, ErrGraphBackendNotImplemented
+}

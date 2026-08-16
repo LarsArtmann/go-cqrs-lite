@@ -36,6 +36,7 @@ func (r *paddedReplay) record(value int) uint64 {
 	seq := r.seq.Add(1)
 
 	r.mu.Lock()
+	//art-dupl:accept intentional isomorphic mirror of SSEReplay.record — false-sharing A/B bench
 	r.entries[r.head] = seqEntry[int]{seq: seq, value: value}
 	r.head = (r.head + 1) % r.cap
 	if r.count < r.cap {

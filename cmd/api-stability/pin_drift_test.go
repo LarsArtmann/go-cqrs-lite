@@ -167,6 +167,7 @@ func listTags(t *testing.T, root string) []string {
 func parseGoMod(t *testing.T, path string) (map[string]string, map[string]struct{}) {
 	t.Helper()
 
+	//art-dupl:accept cross-module test read-file idiom — internal cattest pkg, separate go.mod
 	data, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("read %s: %v", path, err)

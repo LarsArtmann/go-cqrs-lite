@@ -3,10 +3,97 @@ package storage
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 )
+
+// TestOpenSQLiteInMemory_SingleSharedDatabase pins the single-connection
+// guarantee of OpenSQLiteInMemory. modernc.org/sqlite gives each pooled
+// connection to "file::memory:" a private empty database; before the pool was
+// pinned, a write that overlapped an open transaction (which holds the first
+// connection) landed on a fresh connection with no schema — flaking under
+// parallel load as "no such table" and double dispatches.
+func TestOpenSQLiteInMemory_SingleSharedDatabase(t *testing.T) {
+	t.Parallel()
+
+	db, err := OpenSQLiteInMemory()
+	if err != nil {
+		t.Fatalf("OpenSQLiteInMemory: %v", err)
+	}
+	defer func() { _ = db.Close() }()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if _, err := db.ExecContext(ctx, "CREATE TABLE probe (k TEXT)"); err != nil {
+		t.Fatalf("create probe table: %v", err)
+	}
+	if _, err := db.ExecContext(ctx, "INSERT INTO probe (k) VALUES ('seed')"); err != nil {
+		t.Fatalf("seed insert: %v", err)
+	}
+
+	// The transaction pins the (only) connection; the concurrent write must
+	// queue on that same connection instead of opening a second, empty
+	// in-memory database.
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		t.Fatalf("BeginTx: %v", err)
+	}
+
+	writeErr := make(chan error, 1)
+	go func() {
+		_, err := db.ExecContext(ctx, "INSERT INTO probe (k) VALUES ('queued')")
+		writeErr <- err
+	}()
+
+	select {
+	case err := <-writeErr:
+		// The write completed while the transaction still held a connection,
+		// so it used a different one — the pool pin regressed.
+		if err != nil {
+			t.Fatalf("write on second connection saw no schema: %v", err)
+		}
+		t.Fatal("write completed on a second connection while tx held the first")
+	case <-time.After(50 * time.Millisecond):
+		// Still queued on the pinned connection — expected.
+	}
+
+	if err := tx.Rollback(); err != nil {
+		t.Fatalf("rollback: %v", err)
+	}
+
+	select {
+	case err := <-writeErr:
+		if err != nil {
+			t.Fatalf("queued write: %v", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("queued write never ran after tx release")
+	}
+
+	var wg sync.WaitGroup
+	for i := 0; i < 8; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if _, err := db.ExecContext(ctx, "INSERT INTO probe (k) VALUES ('burst')"); err != nil {
+				t.Errorf("burst write: %v", err)
+			}
+		}()
+	}
+	wg.Wait()
+
+	var n int
+	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM probe").Scan(&n); err != nil {
+		t.Fatalf("count: %v", err)
+	}
+	if want := 2 + 8; n != want {
+		t.Fatalf("expected %d rows in the single shared database, got %d", want, n)
+	}
+}
 
 func TestOpenSQLite_InMemory(t *testing.T) {
 	t.Parallel()

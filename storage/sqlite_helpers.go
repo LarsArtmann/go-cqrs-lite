@@ -43,7 +43,22 @@ func OpenSQLite(dbPath string) (*sql.DB, error) {
 	return db, nil
 }
 
-func OpenSQLiteInMemory() (*sql.DB, error) { return OpenSQLite("file::memory:") }
+// OpenSQLiteInMemory returns an isolated in-memory SQLite database. The pool
+// is pinned to a single connection: modernc.org/sqlite gives every pooled
+// connection to "file::memory:" its own private, empty database, so without
+// the pin any query that overlaps another connection's lifetime (e.g. a
+// background scheduler polling while a transaction is open) lands on a fresh
+// database with no schema — surfacing as flaky "no such table" errors.
+// Callers serialize on the one connection, which is correct and fast enough
+// for test-sized workloads.
+func OpenSQLiteInMemory() (*sql.DB, error) {
+	db, err := OpenSQLite("file::memory:")
+	if err != nil {
+		return nil, err
+	}
+	ConfigureSQLitePool(db)
+	return db, nil
+}
 
 func execDDL(ctx context.Context, db *sql.DB, ddls []string) error {
 	for _, ddl := range ddls {

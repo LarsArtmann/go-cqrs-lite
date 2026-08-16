@@ -1834,6 +1834,8 @@ metaengine/irohengine/method ConvergenceStats
 metaengine/irohengine/method CounterGet
 metaengine/irohengine/method CounterIncrement
 metaengine/irohengine/method DeliveryStats
+metaengine/irohengine/method GraphAddEdge
+metaengine/irohengine/method GraphNeighbors
 metaengine/irohengine/method Join
 metaengine/irohengine/method LatencySnapshot
 metaengine/irohengine/method LogAppend
@@ -1886,6 +1888,7 @@ metaengine/irohengine/type InProcessNetworkOption
 metaengine/irohengine/type OpKind
 metaengine/irohengine/type Option
 metaengine/irohengine/var ErrFrameTooLarge
+metaengine/irohengine/var ErrGraphBackendNotImplemented
 metaengine/irohengine/var ErrMapUpdaterNotImplemented
 metaengine/irohengine/var ErrScanBackendNotImplemented
 metaengine/irohengine/var ErrSearchBackendNotImplemented
