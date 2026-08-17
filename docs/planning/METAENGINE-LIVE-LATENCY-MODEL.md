@@ -499,8 +499,12 @@ Findings (identical shape on both servers, independent of graph size 1k-100k):
    Implemented 2026-08-17: `GraphNeighbors(depth==1)` (and the undirected
    twin) short-circuit to the direct adjacency query with
    `AND to_node <> ?` on every server, ahead of the CTE/iterative mode
-   switch. Re-verified against MariaDB 11.4: both forced modes converge to
-   ~83-133µs at depth 1 (the CTE mode previously measured 137-253µs).
+   switch. Re-verified 2026-08-17 against MariaDB 11.4 with the forced-mode
+   benches calling the CTE directly at depth 1 (bypassing the dispatch
+   short-circuit): short-circuit 53-59µs vs true CTE 94-129µs — 1.6-2.4x on
+   this run, consistent with the table above. (An earlier "both forced modes
+   converge" observation was a bench artifact: the pre-fix bench routed both
+   modes through the dispatch, so both executed the direct query.)
 3. For the cost model: model CTE graph reads as ~flat in depth (one RTT +
    small per-level CPU), iterative as `RTT × frontier_size × depth`.
 

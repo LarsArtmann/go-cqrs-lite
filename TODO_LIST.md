@@ -201,7 +201,11 @@ and is **never** duplicated here.
       ~460-560ns/vector vs the ~85-95ns in-RAM ceiling). pgengine stays
       JSON (JSONB column — needs a BYTEA DDL migration; deliberate scope
       cut, noted in the spike doc §4). Phase 1 (int8) remains deferred
-      until p99 is above budget.
+      until p99 is above budget. Follow-up benches (same day) cover all
+      three LSM engines (pebble 457µs/5.23ms, bbolt 426µs/5.79ms, badger
+      647µs/5.85ms at 1K/10K), filtered k-NN (1034µs @1K pebble), and a
+      codec micro-bench (196ns binary vs 8.5µs JSON decode @D=128) — spike
+      doc §2.
 - [x] **Vector search at scale** — quantization/HNSW spike for LSM engines
       when collections exceed ~100K vectors (brute-force scan is O(N)).
       _(Effort: L)_ — done 2026-08-16: spike complete with measured

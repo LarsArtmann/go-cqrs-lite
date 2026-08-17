@@ -31,10 +31,28 @@ Per-vector cost drops from ~17 µs to **~460-560 ns** (~31-35x); the LSM scan
 sits within ~6x of the in-RAM ceiling instead of ~190x. The remaining gap is
 scan I/O plus the fixed-width decode, not text parsing.
 
+Follow-up (2026-08-17, same host/params; bench twins added for the other two
+LSM engines):
+
+| Collection size | MemoryVectorIndex | Pebble   | bbolt    | badger   |
+| --------------- | ----------------- | -------- | -------- | -------- |
+| 1K              | 79.8 µs           | 457.4 µs | 425.7 µs | 646.7 µs |
+| 10K             | 825.9 µs          | 5.23 ms  | 5.79 ms  | 5.85 ms  |
+
+All three LSM engines land in the same ~430-650 ns/vector band — the win is
+the shared format, not a pebble artifact. Filtered k-NN on pebble (half the
+1K collection matching the filter): 1034.5 µs/query vs 457.4 µs unfiltered —
+the per-row metadata read + filter evaluation roughly doubles the scan cost.
+Codec-level micro-bench, pure decode cost per vector: binary 196 ns (D=128)
+/ 1.81 µs (D=1536) with 1 alloc, vs JSON 8.51 µs / 110.1 µs with 8-13
+allocs — 43-61x, the constant the engine numbers converge to once scan I/O
+dominates.
+
 Benchmarks live in the repo and can be re-run as things change:
 
 - `metaengine/vector_scale_bench_test.go` — memory ceiling (1K/10K/100K)
-- `metaengine/pebbleengine/vector_bench_test.go` — LSM validation point (1K/10K)
+- `metaengine/{pebble,bbolt,badger}engine/vector_bench_test.go` — LSM validation points (1K/10K; pebble adds a filtered 1K)
+- `metaengine/vector_binary_bench_test.go` — codec micro-bench (decode/encode, binary vs JSON, D=128/1536)
 
 Command: `GOWORK=off go test -tags "goexperiment.jsonv2" -bench 'VectorSearch' -benchtime=20x -run XXX .`
 

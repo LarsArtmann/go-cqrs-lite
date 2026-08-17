@@ -119,11 +119,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   brute-force vector backends now write binary and read through the sniffing
   decoder, so JSON rows written by earlier versions keep decoding —
   deployments upgrade in place and mixed-format collections work (pinned by
-  per-engine legacy-payload tests). Measured on the LSM validation bench
-  (D=128, k=10, cosine, 20x): pebble VectorSearch drops from 15.9ms →
-  460µs (1K vectors) and 172.2ms → 5.63ms (10K) — ~31-35x, landing within
-  ~6x of the in-RAM ceiling instead of ~190x; the 190x gap was JSON decode,
-  exactly as the spike predicted. pgengine intentionally stays JSON (its
+  per-engine legacy-payload tests). Measured on the LSM validation benches
+  (D=128, k=10, cosine, 20x, all three engines): VectorSearch drops from
+  15.9ms → ~426-647µs (1K vectors) and 172.2ms → ~5.2-5.9ms (10K) — ~31-35x
+  on pebble with bbolt and badger in the same band, landing within ~6-8x of
+  the in-RAM ceiling instead of ~190x; the 190x gap was JSON decode
+  (codec micro-bench: 196ns binary vs 8.5µs JSON decode per D=128 vector,
+  43x), exactly as the spike predicted. pgengine intentionally stays JSON (its
   vector column is typed JSONB; binary needs a BYTEA DDL migration —
   documented in the spike doc §4). Design + measurements:
   `docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md` §2/§4/§7.
@@ -133,9 +135,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   instead of the recursive CTE, ahead of the CTE/iterative mode switch; the
   CTE's recursive arm contributes zero rows at depth 1, so the short-circuit
   is provably equivalent. Follows the measured 2-4x win
-  (`METAENGINE-LIVE-LATENCY-MODEL.md` §9; re-verified against MariaDB 11.4:
-  both forced modes converge to ~83-133µs at depth 1, CTE mode previously
-  137-253µs). Single-query graph reads now share one `queryGraphRows` drain.
+  (`METAENGINE-LIVE-LATENCY-MODEL.md` §9; re-verified 2026-08-17 against
+  MariaDB 11.4 with the forced-mode benches calling the CTE directly at
+  depth 1: short-circuit 53-59µs vs true CTE 94-129µs). Single-query graph
+  reads now share one `queryGraphRows` drain.
 
 ### Added — honesty & flake gates wave (CHANGELOG/api-stability/doc-check/broker) — 2026-08-16
 

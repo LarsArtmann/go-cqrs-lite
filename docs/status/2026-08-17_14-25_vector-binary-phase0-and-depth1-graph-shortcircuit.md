@@ -213,3 +213,52 @@ metaengine live-latency P2/P3 items — untouched by this session).
    measurement now (f-1/f-2), or leave the table as the historical pre-change record
    and only fix the wording? (Append-only keeps provenance; re-measuring keeps it
    current — both defensible, your preference.)
+
+---
+
+## h) FOLLOW-UP EXECUTED (2026-08-17, later session — backlog items f-1..f-7, f-11, f-12)
+
+All actionable follow-up items from §f executed and verified:
+
+1. **f-1 FIXED — forced-mode graph bench now honest.** The forced-CTE arm of
+   `runGraphNeighborsBench` calls `e.graphNeighborsCTE` directly, bypassing
+   the depth-1 dispatch short-circuit (documented as the "honesty rule" in
+   the file header). The forced-iterative arm keeps the public entry point
+   (a no-CTE server takes the short-circuit at depth 1 by design).
+2. **f-1/f-2 MEASURED — the "convergence" claim was indeed false.** Honest
+   depth-1 numbers (MariaDB 11.4, 20x, 1k-100k graphs): short-circuit
+   53-59µs vs TRUE CTE 94-129µs — **1.6-2.4x win** on this run, consistent
+   with the original §9 table's 2-4x. §9 finding #2 and the CHANGELOG entry
+   now carry these numbers and note the earlier convergence observation as a
+   bench artifact. Historical §9 table left intact (append-only provenance —
+   superset-safe under open question 3).
+3. **f-3 DONE — all three LSM engines measured** (new
+   `bboltengine/vector_bench_test.go` + `badgerengine/vector_bench_test.go`,
+   `art-dupl:accept`-annotated mirrors): pebble 457.4µs/5.23ms, bbolt
+   425.7µs/5.79ms, badger 646.7µs/5.85ms (1K/10K). Same ~430-650ns/vector
+   band — the win is the shared format, not a pebble artifact. Spike doc §2
+   follow-up table added.
+4. **f-4 DONE — `BenchmarkPebbleVectorSearchFiltered_1K`:** 1034.5µs vs
+   457.4µs unfiltered (half the collection matching) — per-row metadata
+   read + filter eval ≈ 2.2x over the bare scan.
+5. **f-5 DONE — codec micro-bench** (`metaengine/vector_binary_bench_test.go`):
+   decode 196ns binary vs 8.51µs JSON @D=128 (**43x**), 1.81µs vs 110.1µs
+   @D=1536 (**61x**); 1 alloc vs 8-13. Encode: 152ns/1.4µs, 1 alloc.
+6. **f-7 DONE — gosec G115 house pattern applied** (`vectorBinaryDim` helper,
+   mirroring `transport/grpc/event_version.go`); metaengine lint clean.
+7. **f-11 DONE — MariaDB test hygiene:** `cqrs_test` dropped/recreated (11
+   accumulated tables pruned); `cqrs` TCP user re-provisioned; full
+   mysqlengine suite green (31 top-level tests, 0 skips) + honest benches.
+8. **f-12 CHECKED — no re-pin needed:** `benchmark-regression.sh` gate set is
+   `BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$` (stack/bench);
+   baseline contains 0 references to GraphNeighbors/VectorSearch series.
+9. **Q1 (go.mod sweep) ANSWERED BY EVENTS:** the concurrent session's own
+   CHANGELOG entry ("stale id/v4.4.0 pins silently dropped ActorID in CBOR —
+   all 59 modules bumped to v4.5.0") documents the sweep as an intentional
+   bugfix. No action needed from this workstream.
+10. **Open questions 2 and 3 remain user-gated** but are now superset-safe:
+    the three-engine numbers exist (satisfies the strictest Phase-0 reading),
+    and §9 keeps its historical table plus an honest dated addendum.
+
+**Remaining from this follow-up:** full exclusive `#load-sweep` + `#verify`
+(see tracked todos) — everything else banked.
