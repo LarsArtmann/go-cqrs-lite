@@ -34,13 +34,21 @@ func NewCachedEventStore(store event.Store, capacity int) (*CachedEventStore, er
 func (c *CachedEventStore) Save(
 	ctx context.Context, ref id.StreamRef, events []event.Event, expectedVersion event.Version,
 ) error {
-	return c.store.Save(ctx, ref, events, expectedVersion)
+	if err := c.store.Save(ctx, ref, events, expectedVersion); err != nil {
+		return err
+	}
+	c.cache.Invalidate(ref.StreamKey())
+	return nil
 }
 
 func (c *CachedEventStore) AppendBatch(
 	ctx context.Context, ref id.StreamRef, events []event.Event,
 ) error {
-	return c.store.AppendBatch(ctx, ref, events)
+	if err := c.store.AppendBatch(ctx, ref, events); err != nil {
+		return err
+	}
+	c.cache.Invalidate(ref.StreamKey())
+	return nil
 }
 
 func (c *CachedEventStore) Load(ctx context.Context, ref id.StreamRef) ([]event.Event, error) {

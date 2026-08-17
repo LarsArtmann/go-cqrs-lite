@@ -108,14 +108,17 @@ func CheckSafety(_ context.Context, deployment DeploymentConfig) (*ScreamReport,
 
 			if engCfg, ok := deployment.Engines[engineName]; ok {
 				if engCfg.Driver == "memory" && inst.Durability != DurabilityRelaxed {
-					report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
-						Tier: TierWarnOverride,
-						Rule: "volatile-source-of-truth",
-						Detail: fmt.Sprintf(
-							"instance %q uses volatile 'memory' driver for source-of-truth — data will be lost on restart",
-							inst.Role,
-						),
-					})
+					ruleKey := fmt.Sprintf("volatile-source-of-truth:%s", inst.Role)
+					if !isAcknowledged(deployment, ruleKey) {
+						report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
+							Tier: TierWarnOverride,
+							Rule: ruleKey,
+							Detail: fmt.Sprintf(
+								"instance %q uses volatile 'memory' driver for source-of-truth — data will be lost on restart",
+								inst.Role,
+							),
+						})
+					}
 				}
 			}
 		}

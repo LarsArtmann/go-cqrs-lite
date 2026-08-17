@@ -154,12 +154,43 @@ func TestSystem_ScreamStoreWarnsOnMemorySOT(t *testing.T) {
 	foundVolatileRule := false
 
 	for _, d := range report.Diagnostics {
-		if d.Rule == "volatile-source-of-truth" {
+		if d.Rule == "volatile-source-of-truth:source-of-truth" {
 			foundVolatileRule = true
 		}
 	}
 
 	if !foundVolatileRule {
-		t.Fatal("expected volatile-source-of-truth warning")
+		t.Fatal("expected volatile-source-of-truth:source-of-truth warning")
+	}
+}
+
+// TestSystem_ScreamStoreVolatileWarnIsAckable is the regression test for the
+// unackable-warning bug: acknowledging "volatile-source-of-truth:source-of-truth"
+// (the rule:role convention documented in config_loader.go) must silence the
+// WARN+OVERRIDE diagnostic.
+func TestSystem_ScreamStoreVolatileWarnIsAckable(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	deployment := system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"primary": {Driver: "memory"},
+		},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engine: "primary"},
+		},
+		AcknowledgeWarnings: []string{"volatile-source-of-truth:source-of-truth"},
+	}
+
+	report, err := system.CheckSafety(ctx, deployment)
+	if err != nil {
+		t.Fatalf("CheckSafety: %v", err)
+	}
+
+	for _, d := range report.Diagnostics {
+		if d.Rule == "volatile-source-of-truth:source-of-truth" {
+			t.Fatal("acknowledged volatile-source-of-truth warning still emitted")
+		}
 	}
 }

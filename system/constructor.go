@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"maps"
+	"slices"
+	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -52,9 +55,12 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	}
 
 	// Create engines from the deployment config via the driver registry.
+	// Iterate in sorted name order so engine creation (and error selection
+	// when two engines are both invalid) is deterministic across boots.
 	engineCache := make(map[string]metaengine.Engine)
 
-	for name, cfg := range deployment.Engines {
+	for _, name := range slices.Sorted(maps.Keys(deployment.Engines)) {
+		cfg := deployment.Engines[name]
 		eng, err := createEngineFromDriver(ctx, cfg)
 		if err != nil {
 			return nil, fmt.Errorf("system: create engine %q: %w", name, err)
@@ -145,11 +151,21 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			}
 
 			var projEngines []metaengine.Engine
+			var unresolved []string
 
 			for _, name := range engineNames {
 				if eng, ok := engineCache[name]; ok {
 					projEngines = append(projEngines, eng)
+				} else {
+					unresolved = append(unresolved, name)
 				}
+			}
+
+			if len(unresolved) > 0 {
+				return nil, fmt.Errorf(
+					"%w: projections instance references undefined engine(s): %s",
+					ErrUnknownEngine, strings.Join(unresolved, ", "),
+				)
 			}
 
 			if len(projEngines) > 0 && len(processedProjections) > 0 {
@@ -202,11 +218,17 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	}
 
 	sys.bus = bus
-	sys.pubBus = buildPublisher(deployment, sys.bus)
+	pub, fanOutClosers := buildPublisher(deployment, sys.bus)
+	sys.pubBus = pub
 
 	// Register the bus for lifecycle management (watermill.EventBus implements io.Closer).
 	if closer, ok := bus.(io.Closer); ok {
 		sys.closers = append(sys.closers, namedCloser{closer: closer, name: "event-bus"})
+	}
+
+	// Register each fan-out bus so Close() does not leak them.
+	for i, closer := range fanOutClosers {
+		sys.closers = append(sys.closers, namedCloser{closer: closer, name: fmt.Sprintf("fanout-bus-%d", i)})
 	}
 
 	// Wire projection host if we have projections and an event journal.
