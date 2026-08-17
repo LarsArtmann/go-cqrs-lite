@@ -25,18 +25,27 @@ import (
 // RegisterQuery). Then call Start to begin projection processing.
 func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) (*System, error) {
 	// Safety check: refuse to start if SCREAM-tier violations exist.
+	// WARN+OVERRIDE / ADVISORY findings are kept on the System for
+	// post-construction introspection via ScreamReport.
+	safetyReport := &ScreamReport{}
+
 	if report, err := CheckSafety(ctx, deployment); err != nil {
 		return nil, fmt.Errorf("system: safety check: %w", err)
 	} else if report.HasErrors() {
 		return nil, fmt.Errorf("%w: %s", ErrUnsafeChange, report.Diagnostics[0].Detail)
+	} else {
+		safetyReport.Diagnostics = append(
+			[]ScreamDiagnostic(nil), report.Diagnostics...,
+		)
 	}
 
 	sys := &System{
-		deployment: deployment,
-		repos:      make(map[string]any),
-		deciders:   make(map[string]any),
-		cmdDisp:    command.NewDispatcher(),
-		qryDisp:    query.NewDispatcher(),
+		deployment:   deployment,
+		safetyReport: safetyReport,
+		repos:        make(map[string]any),
+		deciders:     make(map[string]any),
+		cmdDisp:      command.NewDispatcher(),
+		qryDisp:      query.NewDispatcher(),
 	}
 
 	// Process ProjectionDeclaration values (auto-projection) before planning.
@@ -120,7 +129,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 				cmdOpts = append(cmdOpts, WithCommandSerialization())
 			}
 
-			if inst.Role == RoleSourceOfTruth || inst.Role == RoleCommands {
+			if inst.Role == RoleSourceOfTruth { // dedicated RoleCommands wiring: see TODO_LIST role proposal
 				sys.cmdStore = NewCommandAdapter(backend, "commands", cmdOpts...)
 			}
 
@@ -129,7 +138,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 				qryOpts = append(qryOpts, WithQuerySerialization())
 			}
 
-			if inst.Role == RoleSourceOfTruth || inst.Role == RoleQueries {
+			if inst.Role == RoleSourceOfTruth { // dedicated RoleQueries wiring: see TODO_LIST role proposal
 				sys.queryStore = NewQueryAdapter(backend, "queries", qryOpts...)
 			}
 
@@ -309,6 +318,11 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		if err != nil {
 			return nil, fmt.Errorf("system: plan safety check: %w", err)
 		}
+
+		// Surface plan-drift WARN/ADVISORY findings alongside config findings.
+		safetyReport.Diagnostics = append(
+			safetyReport.Diagnostics, planReport.Diagnostics...,
+		)
 
 		if planReport.HasErrors() {
 			detail := "unknown"

@@ -153,6 +153,12 @@ type System struct {
 	// handlerCount tracks registered command handlers for introspection.
 	cmdHandlerCount int
 
+	// safetyReport holds the construction-time safety diagnostics (SCREAM
+	// blocked construction; WARN+OVERRIDE and ADVISORY findings are kept here
+	// so operators can inspect them via ScreamReport without re-running the
+	// checks against a possibly-mutated deployment config).
+	safetyReport *ScreamReport
+
 	started bool
 	stopped bool
 }

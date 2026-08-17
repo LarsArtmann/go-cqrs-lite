@@ -154,8 +154,15 @@ func isAcknowledged(cfg DeploymentConfig, ruleKey string) bool {
 	return false
 }
 
-// ScreamReportAccess returns the safety report for the running system.
+// ScreamReport returns the safety report for the running system: the
+// construction-time config findings plus any plan-drift findings from the
+// pinned manifest. Systems constructed without New (zero-value in tests)
+// fall back to re-running the config safety checks.
 func (s *System) ScreamReport() *ScreamReport {
+	if s.safetyReport != nil {
+		return s.safetyReport
+	}
+
 	report, _ := CheckSafety(context.Background(), s.deployment)
 
 	return report

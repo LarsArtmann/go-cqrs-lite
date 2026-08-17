@@ -19,7 +19,16 @@ func (a *EventAdapter) ReadFrom(
 		return a.readFromSeq(ctx, afterEventID, limit)
 	}
 
-	afterSeq := a.lookupSeq(ctx, afterEventID)
+	afterSeq := int64(0)
+
+	if !afterEventID.IsZero() {
+		seq, err := a.lookupSeq(ctx, afterEventID)
+		if err != nil {
+			return nil, fmt.Errorf("event adapter: resolve resume cursor %s: %w", afterEventID, err)
+		}
+
+		afterSeq = seq
+	}
 
 	values, err := a.Backend.JournalReadFrom(ctx, a.Collection, afterSeq, limit)
 	if err != nil {
@@ -31,11 +40,9 @@ func (a *EventAdapter) ReadFrom(
 		return nil, err
 	}
 
-	a.seqCacheMu.Lock()
 	for i, evt := range events {
-		a.seqCache[evt.ID().String()] = afterSeq + int64(i) + 1
+		a.seqCache.Set(evt.ID().String(), afterSeq+int64(i)+1)
 	}
-	a.seqCacheMu.Unlock()
 
 	return events, nil
 }
@@ -53,7 +60,12 @@ func (a *EventAdapter) readFromSeq(
 	afterSeq := int64(0)
 
 	if !afterEventID.IsZero() {
-		afterSeq = a.lookupSeqToken(ctx, afterEventID)
+		token, err := a.lookupSeqToken(ctx, afterEventID)
+		if err != nil {
+			return nil, fmt.Errorf("event adapter: resolve resume token %s: %w", afterEventID, err)
+		}
+
+		afterSeq = token
 	}
 
 	entries, err := a.seqSeek.JournalReadFromSeq(ctx, a.Collection, afterSeq, limit)
@@ -72,46 +84,43 @@ func (a *EventAdapter) readFromSeq(
 		events = append(events, evt)
 	}
 
-	a.seqCacheMu.Lock()
 	for i, evt := range events {
-		a.seqCache[evt.ID().String()] = entries[i].Seq
+		a.seqCache.Set(evt.ID().String(), entries[i].Seq)
 	}
-	a.seqCacheMu.Unlock()
 
 	return events, nil
 }
 
 // lookupSeq returns the global journal sequence number for the given event ID.
-func (a *EventAdapter) lookupSeq(ctx context.Context, eventID id.EventID) int64 {
+// A cache miss triggers one full journal scan that seeds the cache. An ID not
+// present in the journal resolves to 0 (read from start) — that is not an
+// error, it is the documented cold-start resume behavior.
+func (a *EventAdapter) lookupSeq(ctx context.Context, eventID id.EventID) (int64, error) {
 	key := eventID.String()
 
-	a.seqCacheMu.RLock()
-	seq, ok := a.seqCache[key]
-	a.seqCacheMu.RUnlock()
-
-	if ok {
-		return seq
+	if seq, ok := a.seqCache.GetIfPresent(key); ok {
+		return seq, nil
 	}
 
 	all, err := a.Backend.JournalReadAll(ctx, a.Collection)
 	if err != nil {
-		return 0
+		return 0, fmt.Errorf("event adapter: scan journal for resume cursor: %w", err)
 	}
 
-	events, _ := a.FromAny(all)
-
-	a.seqCacheMu.Lock()
-	defer a.seqCacheMu.Unlock()
+	events, err := a.FromAny(all)
+	if err != nil {
+		return 0, err
+	}
 
 	for i, evt := range events {
-		a.seqCache[evt.ID().String()] = int64(i + 1)
+		a.seqCache.Set(evt.ID().String(), int64(i+1))
 	}
 
-	if seq, ok := a.seqCache[key]; ok {
-		return seq
+	if seq, ok := a.seqCache.GetIfPresent(key); ok {
+		return seq, nil
 	}
 
-	return 0
+	return 0, nil
 }
 
 // lookupSeqToken resolves an event ID to its engine seq token on a cold
@@ -119,24 +128,17 @@ func (a *EventAdapter) lookupSeq(ctx context.Context, eventID id.EventID) int64 
 // true tokens — after this, every subsequent resume (including the caller's
 // current one) is an index seek. Unknown IDs resolve to 0 (read from start),
 // matching lookupSeq.
-func (a *EventAdapter) lookupSeqToken(ctx context.Context, eventID id.EventID) int64 {
+func (a *EventAdapter) lookupSeqToken(ctx context.Context, eventID id.EventID) (int64, error) {
 	key := eventID.String()
 
-	a.seqCacheMu.RLock()
-	seq, ok := a.seqCache[key]
-	a.seqCacheMu.RUnlock()
-
-	if ok {
-		return seq
+	if seq, ok := a.seqCache.GetIfPresent(key); ok {
+		return seq, nil
 	}
 
 	entries, err := a.seqSeek.JournalReadAllWithSeq(ctx, a.Collection)
 	if err != nil {
-		return 0
+		return 0, fmt.Errorf("event adapter: scan journal for resume token: %w", err)
 	}
-
-	a.seqCacheMu.Lock()
-	defer a.seqCacheMu.Unlock()
 
 	for _, entry := range entries {
 		evt, err := a.decodeValue(entry.Value)
@@ -144,12 +146,12 @@ func (a *EventAdapter) lookupSeqToken(ctx context.Context, eventID id.EventID) i
 			continue
 		}
 
-		a.seqCache[evt.ID().String()] = entry.Seq
+		a.seqCache.Set(evt.ID().String(), entry.Seq)
 	}
 
-	if seq, ok := a.seqCache[key]; ok {
-		return seq
+	if seq, ok := a.seqCache.GetIfPresent(key); ok {
+		return seq, nil
 	}
 
-	return 0
+	return 0, nil
 }

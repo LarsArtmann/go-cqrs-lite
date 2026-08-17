@@ -4,13 +4,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 	"time"
+
+	"github.com/maypok86/otter/v2"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
+
+// seqCacheCapacity bounds the event-ID → seq cache. 4096 covers resume
+// cursors for thousands of concurrent subscribers while keeping the cache
+// in the L1/L2-friendly range; evictions only cost a re-seed scan.
+const seqCacheCapacity = 4096
 
 // EventAdapterOption tunes an EventAdapter at construction time.
 type EventAdapterOption func(*EventAdapter)
@@ -37,8 +43,11 @@ type EventAdapter struct {
 	// cache below stores true tokens rather than positions.
 	seqSeek metaengine.SeqSeekableStreamLog
 
-	seqCache   map[string]int64
-	seqCacheMu sync.RWMutex
+	// seqCache maps event IDs to journal positions or engine seq tokens.
+	// Bounded (default 4096 entries, LRU eviction via otter) so long-running
+	// processes cannot grow it without limit; otter is safe for concurrent
+	// use, so no external mutex is needed.
+	seqCache *otter.Cache[string, int64]
 }
 
 // NewEventAdapter creates an event.Store backed by a StreamLogBackend.
@@ -47,7 +56,9 @@ func NewEventAdapter(
 	collection string,
 	opts ...EventAdapterOption,
 ) *EventAdapter {
-	a := &EventAdapter{seqCache: make(map[string]int64)}
+	a := &EventAdapter{seqCache: otter.Must(&otter.Options[string, int64]{
+		MaximumSize: seqCacheCapacity,
+	})}
 	a.AdapterCore = AdapterCore[event.Event]{
 		Backend:    backend,
 		Collection: collection,

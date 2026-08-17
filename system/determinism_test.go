@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
@@ -146,10 +145,7 @@ func TestSystem_FanOutBusesClosedOnClose(t *testing.T) {
 	ref := id.NewStreamRef("FanOutClose", id.NewStreamID())
 	evt := eventtest.NewEvent(t, "fanout.closed", ref.ID, ref.Type, 1, nil)
 
-	pub, ok := pubs[1].(event.Publisher)
-	if !ok {
-		t.Fatalf("fan-out bus 1 does not implement event.Publisher, got %T", pubs[1])
-	}
+	pub := pubs[1]
 
 	if err := pub.Publish(ctx, evt); err == nil {
 		t.Fatal("fan-out bus still publishable after system Close() — bus was leaked")
