@@ -6,5 +6,8 @@ reports/** linguist-generated
 # Exclude from language statistics
 *.pb.go linguist-generated
 *_mock.go linguist-generated
+# Vendored UI bundles (embedded for the catalog docserver) — not project-authored code
+catalog/docserver/static/*.js linguist-vendored
+catalog/docserver/static/*.css linguist-vendored
 # Enforce consistent line endings across all platforms
 * text=auto eol=lf
