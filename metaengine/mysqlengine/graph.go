@@ -13,8 +13,13 @@ import (
 // --- graph dispatch ---
 //
 // MySQL/MariaDB implements graph traversal natively on meta_graph_edges in
-// two modes, chosen automatically at construction time:
+// three modes, chosen automatically:
 //
+//   - depth-1 short-circuit: the direct adjacency lookup with the start node
+//     excluded. The WITH RECURSIVE machinery (UNION dedup + DISTINCT)
+//     contributes nothing at depth 1 — measured 2-4x slower than the direct
+//     form on MySQL 8.4 and MariaDB 11.4 (METAENGINE-LIVE-LATENCY-MODEL.md
+//     §9), so depth 1 routes here on every server.
 //   - recursive CTE: a single WITH RECURSIVE statement (MySQL 8.0+,
 //     MariaDB 10.2+) walks the depth-limited neighborhood in one query.
 //   - iterative BFS: one indexed SELECT per node per level
@@ -23,8 +28,8 @@ import (
 //     are probed at construction and degrade to this path instead of
 //     failing every graph read.
 //
-// Both modes use the index on (collection, from_node) so each hop is an
-// index lookup; both beat the degraded multimap BFS fallback
+// All modes use the index on (collection, from_node) so each hop is an
+// index lookup; all beat the degraded multimap BFS fallback
 // (O(N * degree^depth)) that non-graph engines take.
 
 // mysqlGraphNeighborsCTE walks the depth-limited neighborhood in one query.
@@ -43,6 +48,13 @@ SELECT DISTINCT node FROM walk WHERE node <> ?`
 // mysqlGraphNeighborsDirect is the per-hop adjacency lookup used by the
 // iterative fallback when the server lacks WITH RECURSIVE.
 const mysqlGraphNeighborsDirect = `SELECT to_node FROM meta_graph_edges WHERE collection = ? AND from_node = ?`
+
+// mysqlGraphNeighborsDepth1 resolves a depth-1 neighborhood in one indexed
+// lookup: plain adjacency plus the start-node exclusion the CTE form applies
+// in its outer WHERE. The composite primary key
+// (collection, from_node, to_node) already deduplicates rows, so no UNION or
+// DISTINCT is needed to match the recursive path's result.
+const mysqlGraphNeighborsDepth1 = `SELECT to_node FROM meta_graph_edges WHERE collection = ? AND from_node = ? AND to_node <> ?`
 
 // mysqlCTEProbeSQL verifies the server executes WITH RECURSIVE. Any error
 // (unsupported syntax, restricted proxy) disables the CTE path.
@@ -74,9 +86,9 @@ func (e *mysqlEngine) GraphAddEdge(
 }
 
 // GraphNeighbors returns all nodes within depth hops of node (excluding
-// node itself), deduplicated. Servers with WITH RECURSIVE resolve the walk
-// in one query; older servers (MySQL 5.7, MariaDB <10.2) fall back to an
-// iterative BFS over the indexed edges table.
+// node itself), deduplicated. Depth 1 resolves via the direct adjacency
+// lookup (cheapest on every server); deeper walks use WITH RECURSIVE when
+// available, otherwise an iterative BFS over the indexed edges table.
 func (e *mysqlEngine) GraphNeighbors(
 	ctx context.Context,
 	col string,
@@ -87,11 +99,48 @@ func (e *mysqlEngine) GraphNeighbors(
 		return []any{}, nil
 	}
 
+	if depth == 1 {
+		return e.graphNeighborsDepth1(ctx, col, node) //nolint:wrapcheck
+	}
+
 	if e.graphCTE {
 		return e.graphNeighborsCTE(ctx, col, node, depth)
 	}
 
 	return e.graphNeighborsIterative(ctx, col, node, depth)
+}
+
+// graphNeighborsDepth1 serves the depth-1 short-circuit on every server.
+func (e *mysqlEngine) graphNeighborsDepth1(
+	ctx context.Context,
+	col string,
+	node any,
+) ([]any, error) {
+	start := encodeNodeKey(node)
+
+	result, err := e.queryGraphRows(ctx, mysqlGraphNeighborsDepth1, col, start, start)
+	if err != nil {
+		return nil, fmt.Errorf("mysqlengine.GraphNeighbors: %w", err)
+	}
+
+	return result, nil
+}
+
+// queryGraphRows runs a single-column neighbors query and drains it into
+// []any (empty and non-nil when there are no rows). Shared by every
+// single-query graph read.
+func (e *mysqlEngine) queryGraphRows(
+	ctx context.Context,
+	query string,
+	args ...any,
+) ([]any, error) {
+	rows, err := e.conn().QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err //nolint:wrapcheck // wrapped by caller
+	}
+	defer metaengine.DeferClose(rows)
+
+	return scanGraphRows(rows) //nolint:wrapcheck // wrapped by caller
 }
 
 // graphNeighborsCTE resolves the depth-limited neighborhood in a single
@@ -104,28 +153,9 @@ func (e *mysqlEngine) graphNeighborsCTE(
 ) ([]any, error) {
 	start := encodeNodeKey(node)
 
-	rows, err := e.conn().QueryContext(ctx, mysqlGraphNeighborsCTE, col, start, col, depth, start)
+	result, err := e.queryGraphRows(ctx, mysqlGraphNeighborsCTE, col, start, col, depth, start)
 	if err != nil {
 		return nil, fmt.Errorf("mysqlengine.GraphNeighbors: %w", err)
-	}
-	defer metaengine.DeferClose(rows)
-
-	var result []any
-	for rows.Next() {
-		var nb string
-		if err := rows.Scan(&nb); err != nil {
-			return nil, fmt.Errorf("mysqlengine.GraphNeighbors: row: %w", err)
-		}
-
-		result = append(result, nb)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("mysqlengine.GraphNeighbors: %w", err)
-	}
-
-	if result == nil {
-		result = []any{}
 	}
 
 	return result, nil

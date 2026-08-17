@@ -197,8 +197,8 @@ github.com/larsartmann/go-atomic-write v0.5.1 h1:bMJY+/hpcbjyjFBLtzONX5/aN3F4TkT
 github.com/larsartmann/go-atomic-write v0.5.1/go.mod h1:pkmHWPaCXUdJstjggiHCQufE1vquDCfwYsQfHPywxNI=
 github.com/larsartmann/go-branded-id v0.5.1 h1:4Cyv41AkbtQuf66TuNfWugjqHYA48I3KfxjjM/KwBKk=
 github.com/larsartmann/go-branded-id v0.5.1/go.mod h1:ElTJY6HNf3ziPytNA5mpW32bxjfsZ/C8ILn4nPQdbmI=
-github.com/larsartmann/go-codec v0.1.0 h1:Qc24tP5Sg4GQUDO/5kDjznYDiW62p2cUcCrw7ThiYbw=
-github.com/larsartmann/go-codec v0.1.0/go.mod h1:Ay1+MFkEQaPV70rbMucLfX/3LYcq7i8EkARoXChG2Co=
+github.com/larsartmann/go-codec v0.2.0 h1:BjjkTaeauAB6HHV7epFdkCDf1zRTk2jehv+GkERhyTY=
+github.com/larsartmann/go-codec v0.2.0/go.mod h1:XjmXTgIBNNrDsOTKYqBbuCGqpxF0cRjz/4sZNaxVWmU=
 github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.4.0 h1:DtZPf8OxBB+Np6NUHiF5U3Hf9v5ThgFzE8caiIxHuoE=
 github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.4.0/go.mod h1:hlFUA99nMpexslsw2rg1xUnMrZEripO+XeNZk2AzTLU=
 github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 h1:PnUN4VdglHJpPJQEhg/seGAw5v7hoPcxFUDjEiu6fKU=

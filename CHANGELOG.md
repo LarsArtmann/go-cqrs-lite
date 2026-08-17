@@ -6,6 +6,81 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — WithActor hardening: scheduling actor propagation + coverage gates — 2026-08-17
+
+- **`scheduling.Timer.Actor`** — timer-initiated commands can now carry the
+  audit-trail actor through the timer lifecycle: `Timer[P]` gains an `Actor`
+  field holding the self-describing "kind:raw" ActorID wire format (e.g.
+  `"user:01JXYZ..."`, `"system:scheduler"`), delivered to the `DispatchFunc`
+  so dispatchers stamp `command.WithActor(id.ParseActorID(t.Actor))`. Plain
+  string (not `id.ActorID`) by design: scheduling is a
+  zero-production-dependency module, mirroring `record.CommonMetadata.ActorID`.
+  The SQL timer store now writes a versioned payload envelope
+  (`{"v":1,"actor":"...","payload":<P>}`, ADR-0044 pattern) so the actor
+  survives SQL persistence; legacy bare-payload rows (including non-object
+  payloads) still decode with an empty actor. Zero value = unspecified
+  (dispatcher decides attribution).
+- **WithActor coverage gates** — `TestMetadata_CBORRoundtrip_PreservesActor`
+  (event) locks ActorID through the CBOR binary codec; golden JSON snapshots
+  for full event metadata (`event/testdata/golden/event-metadata-actor.json`)
+  and full command metadata (`command/testdata/golden/command-metadata-actor.snap`)
+  pin the persisted JSON shapes incl. `actorId`; each golden doubles as a
+  round-trip test through the store load path
+  (`event.UnmarshalMetadataJSON` / `command.Metadata` scan).
+- **Verified already-shipped coverage** — watermill wire-format round-trips,
+  SQL `MarshalMetadata` scan, pebble/bbolt store metadata round-trip, the
+  e2e decider+projection propagation test, `TestQuery_AllMetadata`, json/v1
+  `omitzero` fallback, scenario DSL actor support, deriver/commandlifecycle
+  propagation, `middleware.CommandActorContext`, and `id.ActorID.Validate`
+  all re-run green after this wave.
+
+### Fixed — stale id/v4.4.0 pins silently dropped ActorID in CBOR — 2026-08-17
+
+- **All 59 modules pinning `id/v4 v4.4.0` bumped to `v4.5.0`** — the
+  `ActorID.MarshalBinary`/`UnmarshalBinary` binary codec (what makes
+  fxamacker/cbor preserve the actor instead of reflecting it into an empty
+  map) first shipped in `id/v4.5.0`, but every consumer module still pinned
+  `v4.4.0`. Workspace builds were green only because `go.work` resolved the
+  local `id/` source; any `GOWORK=off` build or published consumer that
+  CBOR-encoded `Tracing` (event/command/query metadata, typed stores,
+  envelopes) silently lost the actor — silent audit-trail data loss, caught
+  by the new `TestMetadata_CBORRoundtrip_PreservesActor`. The bump is purely
+  additive (id v4.4.0→v4.5.0 diff: +151/-0).
+- **Pre-existing GOWORK=off build breaks repaired** — `middleware`, `encryption`,
+  and `signing` referenced event/metadata symbols that exist only on disk
+  (never tagged) without sibling `replace` directives, so standalone builds
+  resolved published tags and failed with `undefined:`. Added the
+  unpublished-symbol sibling replaces (`event` + the cascading `metadata`
+  required when event is replaced). Repo-wide `GOWORK=off go build` is now
+  green across all 82 modules.
+
+### Added — vector payload binary encoding + depth-1 graph short-circuit — 2026-08-17
+
+- **Binary float32 vector payloads (spike Phase 0)** — new
+  `metaengine.EncodeVectorBinary` / `metaengine.DecodeVectorBinary` /
+  `metaengine.DecodeVectorAuto` (`metaengine/vector_binary.go`): wire format
+  `'b' | dim uint32 LE | dim × float32 LE`. The pebble, bbolt, and badger
+  brute-force vector backends now write binary and read through the sniffing
+  decoder, so JSON rows written by earlier versions keep decoding —
+  deployments upgrade in place and mixed-format collections work (pinned by
+  per-engine legacy-payload tests). Measured on the LSM validation bench
+  (D=128, k=10, cosine, 20x): pebble VectorSearch drops from 15.9ms →
+  460µs (1K vectors) and 172.2ms → 5.63ms (10K) — ~31-35x, landing within
+  ~6x of the in-RAM ceiling instead of ~190x; the 190x gap was JSON decode,
+  exactly as the spike predicted. pgengine intentionally stays JSON (its
+  vector column is typed JSONB; binary needs a BYTEA DDL migration —
+  documented in the spike doc §4). Design + measurements:
+  `docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md` §2/§4/§7.
+- **mysqlengine depth-1 graph short-circuit** — `GraphNeighbors` and
+  `GraphNeighborsUndirected` with `depth == 1` now resolve via the direct
+  adjacency query (`AND to_node <> ?` preserves start-node exclusion)
+  instead of the recursive CTE, ahead of the CTE/iterative mode switch; the
+  CTE's recursive arm contributes zero rows at depth 1, so the short-circuit
+  is provably equivalent. Follows the measured 2-4x win
+  (`METAENGINE-LIVE-LATENCY-MODEL.md` §9; re-verified against MariaDB 11.4:
+  both forced modes converge to ~83-133µs at depth 1, CTE mode previously
+  137-253µs). Single-query graph reads now share one `queryGraphRows` drain.
+
 ### Added — honesty & flake gates wave (CHANGELOG/api-stability/doc-check/broker) — 2026-08-16
 
 - **CHANGELOG honesty gate** — `scripts/check-changelog-symbols.sh` (CI):

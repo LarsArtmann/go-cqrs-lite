@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/middleware/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/failsafe-go/failsafe-go v0.9.6
@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.5.0
 	github.com/larsartmann/go-error-family v0.10.0
@@ -61,7 +61,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/larsartmann/go-codec v0.1.0 // indirect
+	github.com/larsartmann/go-codec v0.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
@@ -82,3 +82,5 @@ require (
 // Workspace-local replace. flightrecorder is not yet tagged.
 
 replace github.com/larsartmann/go-cqrs-lite/event/v4 => ../event
+
+replace github.com/larsartmann/go-cqrs-lite/metadata/v4 => ../metadata

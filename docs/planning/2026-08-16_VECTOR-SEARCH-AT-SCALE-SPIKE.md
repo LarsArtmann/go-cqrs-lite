@@ -1,7 +1,7 @@
 # Vector Search at Scale — Quantization / HNSW Spike
 
 **Date:** 2026-08-16
-**Status:** Spike complete, phased plan proposed (no implementation yet)
+**Status:** Spike complete; Phase 0 (binary float32 encoding) implemented 2026-08-17 — see §4 Option A and §7 Q1. Phases 1-2 remain proposed.
 **TODO item:** "Vector search at scale — quantization/HNSW spike for LSM engines when collections exceed ~100K vectors (brute-force scan is O(N))"
 
 ## 1. Problem
@@ -19,6 +19,17 @@ Filtered k-NN (`VectorSearchFiltered`, shipped same day) is also linear — it f
 | 100K            | 9.57 ms/query                      | ~1.7 s/query (extrapolated; insert-path fsync makes a 100K setup pass impractical in a bench harness) |
 
 Per-vector cost: **~90 ns** (memory) vs **~17 µs** (pebble) — a ~190x constant-factor gap.
+
+After Phase 0 shipped (2026-08-17, binary payloads, same host/params):
+
+| Collection size | MemoryVectorIndex (in-RAM ceiling) | Pebble (LSM, binary payloads) |
+| --------------- | ---------------------------------- | ------------------------------ |
+| 1K              | 79.8 µs/query                      | 459.9 µs/query                 |
+| 10K             | 825.9 µs/query                     | 5.63 ms/query                  |
+
+Per-vector cost drops from ~17 µs to **~460-560 ns** (~31-35x); the LSM scan
+sits within ~6x of the in-RAM ceiling instead of ~190x. The remaining gap is
+scan I/O plus the fixed-width decode, not text parsing.
 
 Benchmarks live in the repo and can be re-run as things change:
 
@@ -44,6 +55,15 @@ Replace the JSON vector payload with fixed-width little-endian float32 bytes (`m
 - Risk: low. Reversible by re-encoding.
 
 **Verdict: do this regardless of anything else.** It is the 80/20 of this whole spike.
+
+**Implemented 2026-08-17** as `metaengine.EncodeVectorBinary` /
+`DecodeVectorBinary` / `DecodeVectorAuto` (`metaengine/vector_binary.go`):
+wire format `'b' | dim uint32 LE | dim × float32 LE`; pebble, bbolt, and
+badger write binary and read through the sniffing decoder, so legacy JSON
+rows keep working in place (mixed-format collections verified by per-engine
+tests). Measured ~31-35x faster VectorSearch than the JSON baseline (§2).
+pgengine stays JSON — its vector column is typed JSONB, so binary needs a
+BYTEA DDL migration; deferred until the KV win proves insufficient there.
 
 ### Option B — scalar quantization (int8)
 
@@ -83,7 +103,7 @@ The metaengine north star: "developer declares, operator deploys." The planner a
 
 | Phase | Action                                                                | Trigger                                                                                                                                             |
 | ----- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0     | Binary float32 encoding for vector payloads (all brute-force engines) | Now — it is cheap and unconditionally good                                                                                                          |
+| 0     | ✅ Done 2026-08-17: binary float32 encoding for vector payloads (pebble, bbolt, badger; legacy JSON rows still readable) | Shipped — ~31-35x measured scan win |
 | 1     | int8 scalar quantization + exact re-rank                              | Post-Phase-0 p99 still above budget at real N                                                                                                       |
 | 2     | Optional ANN capability (HNSW or IVF) with filter-aware fallback      | Sustained collections > ~500K or latency-critical vector queries                                                                                    |
 | -     | Size-triggered advisory                                               | Cheap to add anytime: a `VectorCount` optional capability lets `Doctor`/`EXPLAIN` say "collection X has N vectors on a degraded engine" with a WARN |
@@ -96,6 +116,11 @@ The metaengine north star: "developer declares, operator deploys." The planner a
 
 ## 7. Open questions for implementation time
 
-1. Phase 0 format marker: new key family vs 1-byte tag on existing payloads (read path must prefer exact decode; old engines' bytes must stay readable).
+1. ~~Phase 0 format marker~~ **Answered 2026-08-17:** value-level 1-byte marker
+   (`'b'`) plus a uint32 LE dimension header on the existing `vec\x00` payloads —
+   not a new key family. One key family means one prefix scan (no dual-family
+   reads or migration backfill), a JSON text can never start with `'b'` so the
+   sniff is unambiguous, and the dim header makes torn writes detectable. The
+   read path prefers the exact binary decode and falls back to JSON.
 2. Does Phase 1's quantized copy live in the same key (value = header + int8 + float32) or a sidecar family? Same key halves the seeks but doubles the write width.
 3. For Phase 2, is the HNSW build synchronous-on-insert (simple, slow writes) or background-compaction style (fast writes, eventual consistency)? The event-sourced replay path (`Apply` of historical events) favors bulk-build.

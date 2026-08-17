@@ -82,6 +82,10 @@ func (e *pgEngine) VectorSearch(
 			return nil, fmt.Errorf("pgengine.VectorSearch: scan: %w", err)
 		}
 
+		// JSONB column keeps this scan JSON-decoding on purpose: the binary
+		// float32 payload format (metaengine.EncodeVectorBinary) needs a raw
+		// BYTEA column, which is a DDL migration on existing deployments —
+		// deferred until the KV-engine win proves insufficient here.
 		vec, err := metaengine.DecodeVectorJSON(raw)
 		if err != nil {
 			return nil, fmt.Errorf("pgengine.VectorSearch: decode %s: %w", id, err)

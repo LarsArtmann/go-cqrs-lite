@@ -15,6 +15,7 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"errors"
 	"fmt"
@@ -150,10 +151,35 @@ func newStore[P any](ctx context.Context, db *sql.DB, d Dialect) (*SQLTimerStore
 // Close is a no-op; the caller owns the *sql.DB.
 func (s *SQLTimerStore[P]) Close() error { return nil }
 
+// timerEnvelopeVersion is the payload-column format version. v1 wraps the
+// payload so [scheduling.Timer.Actor] survives SQL persistence; v0 (legacy)
+// rows hold the bare JSON of P and decode with an empty actor.
+const timerEnvelopeVersion = 1
+
+// timerEnvelope is the versioned payload-column format (ADR-0044 pattern):
+//
+//	{"v":1,"actor":"user:01JXYZ...","payload":<P>}
+//
+// Detection requires BOTH a "v":1 integer AND a "payload" key, so a legacy
+// payload whose own JSON happens to carry a "v" field is not misread — only
+// a legacy payload that is itself an object with exactly these two keys
+// (v=1 + payload) would be, which is outside the contract.
+type timerEnvelope[P any] struct {
+	Version int    `json:"v"`
+	Actor   string `json:"actor,omitzero"`
+	Payload P      `json:"payload"`
+}
+
 // Schedule records a timer. If a timer with the same ID already exists, it is
 // a no-op (idempotent scheduling).
 func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) error {
-	payload, err := json.Marshal(t.Payload)
+	envelope := timerEnvelope[P]{
+		Version: timerEnvelopeVersion,
+		Actor:   t.Actor,
+		Payload: t.Payload,
+	}
+
+	payload, err := json.Marshal(envelope)
 	if err != nil {
 		return errorfamily.WrapCorruption(
 			err,
@@ -214,9 +240,8 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 			return nil, err
 		}
 
-		var p P
-
-		if err := json.Unmarshal(payload, &p); err != nil {
+		envelope, err := decodeTimerPayload[P](payload)
+		if err != nil {
 			return nil, errorfamily.WrapCorruption(
 				err,
 				"scheduling.sqlstore.unmarshal_payload",
@@ -227,7 +252,8 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 		timers = append(timers, scheduling.Timer[P]{
 			ID:      id,
 			FireAt:  fireAt,
-			Payload: p,
+			Payload: envelope.Payload,
+			Actor:   envelope.Actor,
 		})
 	}
 
@@ -304,3 +330,33 @@ func (s *SQLTimerStore[P]) parseTime(src any) (time.Time, error) {
 }
 
 var _ scheduling.TimerStore[any] = (*SQLTimerStore[any])(nil)
+
+// decodeTimerPayload decodes a payload-column blob. v1 rows carry the full
+// envelope (actor + payload); legacy rows hold the bare JSON of P and decode
+// with an empty actor. A probe requiring BOTH a "v":1 integer AND a "payload"
+// key distinguishes the shapes; non-object legacy payloads (strings, arrays)
+// fail the probe and decode directly as P.
+func decodeTimerPayload[P any](data []byte) (timerEnvelope[P], error) {
+	var probe struct {
+		Version *int            `json:"v"`
+		Payload *jsontext.Value `json:"payload"`
+	}
+
+	if err := json.Unmarshal(data, &probe); err == nil &&
+		probe.Version != nil && *probe.Version == timerEnvelopeVersion && probe.Payload != nil {
+		var env timerEnvelope[P]
+		if err := json.Unmarshal(data, &env); err != nil {
+			return timerEnvelope[P]{}, err
+		}
+
+		return env, nil
+	}
+
+	var p P
+
+	if err := json.Unmarshal(data, &p); err != nil {
+		return timerEnvelope[P]{}, err
+	}
+
+	return timerEnvelope[P]{Payload: p}, nil
+}

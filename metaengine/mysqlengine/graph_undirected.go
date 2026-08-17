@@ -42,6 +42,16 @@ SELECT DISTINCT node FROM walk WHERE node <> ?`
 // edges). Served by idx_graph_edges_to.
 const mysqlGraphNeighborsReverse = `SELECT from_node FROM meta_graph_edges WHERE collection = ? AND to_node = ?`
 
+// mysqlGraphNeighborsUndirectedDepth1 is the undirected depth-1
+// short-circuit: exactly the CTE's seed union without the recursive arm,
+// which contributes no rows at depth 1. UNION deduplicates across both
+// directions; the outer filter preserves the start-node exclusion.
+const mysqlGraphNeighborsUndirectedDepth1 = `SELECT n FROM (
+	SELECT to_node AS n FROM meta_graph_edges WHERE collection = ? AND from_node = ?
+	UNION
+	SELECT from_node AS n FROM meta_graph_edges WHERE collection = ? AND to_node = ?
+) seed WHERE n <> ?`
+
 // GraphRemoveEdge deletes the specific directed edge (ADR-0114 style
 // tombstone dispatch). Idempotent: deleting a missing edge affects 0 rows.
 func (e *mysqlEngine) GraphRemoveEdge(
@@ -60,7 +70,9 @@ func (e *mysqlEngine) GraphRemoveEdge(
 }
 
 // GraphNeighborsUndirected returns all nodes within depth hops when edges
-// are followed in BOTH directions.
+// are followed in BOTH directions. Depth 1 resolves via the direct
+// both-directions union; deeper walks use WITH RECURSIVE when available,
+// otherwise the iterative BFS fallback.
 func (e *mysqlEngine) GraphNeighborsUndirected(
 	ctx context.Context,
 	col string,
@@ -72,11 +84,33 @@ func (e *mysqlEngine) GraphNeighborsUndirected(
 		return []any{}, nil
 	}
 
+	if depth == 1 {
+		return e.graphNeighborsUndirectedDepth1(ctx, col, node) //nolint:wrapcheck
+	}
+
 	if e.graphCTE {
 		return e.graphNeighborsUndirectedCTE(ctx, col, node, depth)
 	}
 
 	return e.graphNeighborsUndirectedIterative(ctx, col, node, depth)
+}
+
+// graphNeighborsUndirectedDepth1 serves the undirected depth-1
+// short-circuit on every server (see mysqlGraphNeighborsDepth1).
+func (e *mysqlEngine) graphNeighborsUndirectedDepth1(
+	ctx context.Context,
+	col string,
+	node any,
+) ([]any, error) {
+	start := encodeNodeKey(node)
+
+	result, err := e.queryGraphRows(ctx, mysqlGraphNeighborsUndirectedDepth1,
+		col, start, col, start, start)
+	if err != nil {
+		return nil, fmt.Errorf("mysqlengine.GraphNeighborsUndirected: %w", err)
+	}
+
+	return result, nil
 }
 
 func (e *mysqlEngine) graphNeighborsUndirectedCTE(
@@ -87,14 +121,8 @@ func (e *mysqlEngine) graphNeighborsUndirectedCTE(
 ) ([]any, error) {
 	start := encodeNodeKey(node)
 
-	rows, err := e.conn().QueryContext(ctx, mysqlGraphNeighborsUndirectedCTE,
+	result, err := e.queryGraphRows(ctx, mysqlGraphNeighborsUndirectedCTE,
 		col, start, col, start, col, depth, start)
-	if err != nil {
-		return nil, fmt.Errorf("mysqlengine.GraphNeighborsUndirected: %w", err)
-	}
-	defer metaengine.DeferClose(rows)
-
-	result, err := scanGraphRows(rows)
 	if err != nil {
 		return nil, fmt.Errorf("mysqlengine.GraphNeighborsUndirected: %w", err)
 	}

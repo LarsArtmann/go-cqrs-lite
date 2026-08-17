@@ -496,9 +496,11 @@ Findings (identical shape on both servers, independent of graph size 1k-100k):
    frontier node per level). Crossover sits between depth 1 and 2.
 2. **Depth-1 walks are 2-4x faster via the direct adjacency query** — the
    WITH RECURSIVE machinery (UNION dedup + DISTINCT) is pure overhead there.
-   Optimization candidate: short-circuit `depth == 1` to
-   `mysqlGraphNeighborsDirect` (+ `AND to_node <> ?` to preserve the
-   start-node exclusion). Unimplemented; see TODO_LIST.
+   Implemented 2026-08-17: `GraphNeighbors(depth==1)` (and the undirected
+   twin) short-circuit to the direct adjacency query with
+   `AND to_node <> ?` on every server, ahead of the CTE/iterative mode
+   switch. Re-verified against MariaDB 11.4: both forced modes converge to
+   ~83-133µs at depth 1 (the CTE mode previously measured 137-253µs).
 3. For the cost model: model CTE graph reads as ~flat in depth (one RTT +
    small per-level CPU), iterative as `RTT × frontier_size × depth`.
 

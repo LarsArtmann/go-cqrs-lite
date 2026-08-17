@@ -15,11 +15,13 @@ import (
 
 // --- VectorBackend (degraded, brute-force) ---
 //
-// Vector embeddings are stored JSON-encoded under the "vec\x00<col>\x00"
-// prefix. VectorSearch scans the collection prefix and computes every
-// distance in Go — O(N·D) per query, declared as ComplexityON + degraded in
-// the profile. Suitable for small collections; for production scale, pair
-// the store with an engine that provides ANN search.
+// Vector embeddings are stored under the "vec\x00<col>\x00" prefix as
+// binary float32 payloads (metaengine.EncodeVectorBinary); rows written by
+// pre-binary versions as bare JSON arrays keep decoding via
+// metaengine.DecodeVectorAuto. VectorSearch scans the collection prefix and
+// computes every distance in Go — O(N·D) per query, declared as ComplexityON
+// + degraded in the profile. Suitable for small collections; for production
+// scale, pair the store with an engine that provides ANN search.
 
 func (e *pebbleEngine) VectorInsert(
 	_ context.Context,
@@ -28,7 +30,7 @@ func (e *pebbleEngine) VectorInsert(
 ) error {
 	if err := e.db.Set(
 		keycodec.VectorKey(collection, emb.ID),
-		encodeJSON(emb.Values),
+		metaengine.EncodeVectorBinary(emb.Values),
 		pebble.Sync,
 	); err != nil {
 		return fmt.Errorf("pebbleengine.VectorInsert: %w", err)
@@ -71,7 +73,7 @@ func (e *pebbleEngine) VectorSearch(
 	for iter.First(); iter.Valid(); iter.Next() {
 		id := strings.TrimPrefix(string(iter.Key()), string(prefix))
 
-		vec, err := metaengine.DecodeVectorJSON(iter.Value())
+		vec, err := metaengine.DecodeVectorAuto(iter.Value())
 		if err != nil {
 			return nil, fmt.Errorf("pebbleengine.VectorSearch: decode %s: %w", id, err)
 		}
@@ -124,7 +126,7 @@ func (e *pebbleEngine) VectorSearchFiltered(
 			continue
 		}
 
-		vec, err := metaengine.DecodeVectorJSON(iter.Value())
+		vec, err := metaengine.DecodeVectorAuto(iter.Value())
 		if err != nil {
 			return nil, fmt.Errorf("pebbleengine.VectorSearchFiltered: decode %s: %w", id, err)
 		}

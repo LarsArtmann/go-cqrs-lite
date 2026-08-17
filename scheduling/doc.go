@@ -14,12 +14,17 @@
 //
 //	store := scheduling.NewMemoryTimerStore[CancelOrderCmd]()
 //	sched := scheduling.New[CancelOrderCmd](store, func(ctx context.Context, t scheduling.Timer[CancelOrderCmd]) error {
-//	    return commandBus.Dispatch(ctx, t.Payload)
+//	    opts := []command.Option{command.WithActor(id.NewSystemActor("scheduler"))}
+//	    if actor, err := id.ParseActorID(t.Actor); err == nil && !actor.IsZero() {
+//	        opts = append(opts, command.WithActor(actor))
+//	    }
+//	    return commandBus.Dispatch(ctx, t.Payload, opts...)
 //	})
 //	store.Schedule(ctx, scheduling.Timer[CancelOrderCmd]{
 //	    ID:        "order-cancel-123",
 //	    FireAt:    time.Now().Add(30 * time.Minute),
 //	    Payload:   CancelOrderCmd{OrderID: "123"},
+//	    Actor:     "user:01JXYZ...",
 //	})
 //	go sched.Start(ctx)
 package scheduling

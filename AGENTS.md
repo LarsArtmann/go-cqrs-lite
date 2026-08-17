@@ -194,6 +194,7 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 - Modules without event dependency (otel, codec) use `go-snaps` directly via local `matchGolden(t, name, got)` helpers
 - **Postgres integration tests** use `testcontainers-go` (postgres:16-alpine). Each test gets its own fresh database. `POSTGRES_TEST_DSN`/`DATABASE_URL` env var overrides.
 - **Nix-based integration tests (no Docker)**: ephemeral PG/Redis/NATS/Dgraph via nixpkgs services. See Quick Reference for commands.
+- **Relaunching the userspace MariaDB** (datadir persists across sessions at `/tmp/mariadb-cqrs`, port 33061): `nix build nixpkgs#mariadb -o /tmp/mariadb-cqrs-bin && /tmp/mariadb-cqrs-bin/bin/mariadbd --datadir=/tmp/mariadb-cqrs/data --socket=/tmp/mariadb-cqrs/mysql.sock --port=33061 --bind-address=127.0.0.1 --tmpdir=/tmp/mariadb-cqrs/tmpdir --silent-startup &`. Root logs in via the socket (unix_socket auth); reset the TCP user with `ALTER USER 'cqrs'@'%' IDENTIFIED BY 'cqrs';` then `MYSQL_TEST_DSN="cqrs:cqrs@tcp(127.0.0.1:33061)/cqrs_test"`. Probe with the server's own client (`mariadb -e "SELECT 1"`), not /dev/tcp.
 - **Race-aware test thresholds**: `-race` inflates allocations/CPU 5-10x. Use `testutil.RaceEnabled` (or `enginetest.RaceEnabled` for metaengine modules) to pick relaxed bounds. Three lean-budget modules (`benchkit`, `transport/grpc`, `idempotency/kvstore`) keep local copies because adding testutil/enginetest would exceed dep budget. Always run affected test 3x with `-count=3 -race` after touching a threshold.
 - **Soak test env vars**: `SOAK_SKIP_10M=1` skips 10M-event soak (~5s/25s-race). `SOAK_SKIP_DUCKDB=1` skips DuckDB AutoCRUD soak (~80s/100s-race). `SOAK_SKIP_BOLT=1` skips bbolt AutoCRUD soak (509-1145s under load; exported by the full `nix run .#verify` app, whose 8m per-package timeout it exceeds). The 50K-event `TestSoak_MemoryBounded` always runs as smoke.
 - Coverage drift checked by `nix run .#check-coverage` (`scripts/check-coverage.sh`).
@@ -220,6 +221,32 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 - **NEVER use `git checkout <commit> -- .`** — destructively overwrites the working tree. Use `git worktree add /tmp/work <commit>` instead.
 - **Tool-shell false negatives on live servers** — `/dev/tcp/127.0.0.1/<port>` redirections silently fail in the tool shell (mvdan/sh has no /dev/tcp), reporting a healthy server as DOWN; probe with the server's own client instead (`mysqladmin ping` for MariaDB/MySQL). `kill` is not a builtin there — use `/run/current-system/sw/bin/kill <pid>`. A mysqld whose datadir was trashed keeps serving from unlinked inodes with all its old state; before diagnosing "corruption" or "mystery stale data", check `pgrep -a mysqld` + process start time vs datadir mtime, kill, and restart on a fresh datadir.
 
+### system/v4 (composition root) — 2026-08-17 review outcomes
+
+- **Full review done** — every file reviewed; 5×P1 + actionable P2/P3 fixed
+  (commits a211ebcb2, 449e0e5a7, 42dfab5b0, each with regression tests);
+  remaining design-level items routed in TODO_LIST "system/v4 Full-Code-Review
+  Follow-Ups" + `docs/adr/2026-08-17_system-v4-review-proposals.md`.
+- **Fixes are NOT in published system/v4.4.0** — system/go.mod carries 6 local
+  replaces (metaengine + 4 engine adapters + watermill); local metaengine is
+  ≥12 commits past published v4.11.0. Shipping the fixes requires a
+  metaengine release, then system/v4.5.0 via the go-release flow.
+- **Count projections collide by construction** — metaengine dispatches by
+  input type; only one `Count()` projection per system until named dispatch
+  lands (routed). Same input type across two `Get`s is fine (dispatch by name).
+- **Fan-out buses are positional** — `MultiBus.Publishers()[0]` is always the
+  local bus; fan-out buses are closed by `Close()` since 2026-08-17 but still
+  have no name binding.
+- **ACK keys are `rule:target`** — e.g.
+  `volatile-source-of-truth:source-of-truth`, `durability-downgrade:<role>`.
+  New scream rules must follow this convention and guard emission with
+  `isAcknowledged`.
+- **CachedEventStore invalidates on write** — `Save`/`AppendBatch` evict the
+  stream key; wrap any new write path in the adapter the same way.
+- **cqrs-lint C025 in system/ is a false-positive batch** — the flagged
+  fmt.Errorf calls have no error operand to wrap (`WorkerState.LastError` is a
+  string). Don't "fix" them into noise.
+
 ### Module & Dependency Management
 
 - **`testModules` ↔ `lintModules` coupling** — `testModules` in `flake.nix` feeds BOTH `nix run .#test` AND `nix run .#lint`. Adding a new module requires adding its path to `testModules` — otherwise it's silently never built, tested, or linted. Meta-test: `TestEveryGoModDirIsInTestModules`.
@@ -232,6 +259,8 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 - **Version-sequence breaks in published tags** — tags must be monotonically increasing in BOTH semver AND commit ancestry. Always tag with NEXT semver above all existing: `git tag -l '<module>/v4*' | sort -V | tail -1`.
 - **Bash maps keyed by module use plain paths, never `/` spaces — and slashed keys MUST be quoted** — `check-module-layers.sh` LAYER/DEP_BUDGET keys MUST be literal module dirs (`LAYER["storage/memory"]`, `LAYER["cmd/cqrs-gen"]`). ROOT CAUSE of the recurring mangling (4 occurrences through 2026-08-15): the buildflow pre-commit hook runs `shfmt` on staged `.sh` files, and shfmt formats unquoted slashed subscripts (`LAYER[storage/memory]`) as arithmetic (`LAYER[storage / memory]`), silently disabling the budget/layer checks. Fix: quote every slashed map key (`LAYER["storage/memory"]=4`) — shfmt leaves quoted subscripts untouched and bash semantics are identical. The api-stability meta-tests (`normalizeLayerKey`) accept both forms. EXCEPTIONS deps also use plain `/` (`storage/memory`). Test-infra modules (`event/v4/eventtest`, `testutil`, `testutil/pgtestcontainer`) are exempt from layer ordering via `TEST_INFRA_MODULES`.
 - **WithoutGlobalRegistration for isolated OTel providers** — `otel.Setup(cqrsotel.WithoutGlobalRegistration())` skips global calls. Use in tests and multi-service setups where global state would conflict.
+- **Codec-critical methods require a consumer-pin sweep in the same wave** — 2026-08-17: `id.ActorID.MarshalBinary` (what keeps CBOR from silently zeroing the actor) shipped in `id/v4.5.0` while all 59 consumer modules still pinned `v4.4.0`; workspace greens (go.work resolves local source) hid that every `GOWORK=off`/published build silently lost the actor. Whenever a method that codecs/stores depend on lands in a tagged module, bump every consumer pin in the same wave (`grep -rl 'module/v4 vX' --include=go.mod .` + `go mod edit -require` + `go mod tidy`), and gate with a round-trip test run under `GOWORK=off`.
+- **Unpublished-symbol sibling replaces (middleware/encryption/signing, 2026-08-17)** — these three modules reference event/metadata symbols that exist only on disk (`metadata.BrandedString`/`ActorString`, `event.ErrInnerStoreNot*`, `event.Rejecting*`); without `replace ... => ../event` + the cascading `=> ../metadata` (replaces do NOT cascade), standalone `GOWORK=off` builds fail with `undefined:`. Drop these replaces in the existing replace-strip sweep once metadata/event tags carrying the symbols are cut.
 
 ### Language & Library Footguns
 

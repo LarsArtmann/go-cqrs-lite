@@ -172,7 +172,7 @@ and is **never** duplicated here.
       _(Effort: S)_ — done 2026-08-16: `badgerengine/vector.go` + `graph.go`
       implement both ADTs at pebble/bbolt parity (filtered k-NN included);
       suite green.
-- [ ] 🔥 **Vector payload binary encoding (spike Phase 0)** — replace the
+- [x] 🔥 **Vector payload binary encoding (spike Phase 0)** — replace the
       JSON vector payload with fixed-width little-endian float32 bytes on
       the brute-force engines (memory ceiling ~90ns/vector vs pebble
       ~17µs today; decode is ~190x of the cost). Format marker must keep
@@ -181,7 +181,16 @@ and is **never** duplicated here.
       [`docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md`](docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md)
       §4 Option A / §5 Phase 0; int8 quantization (Phase 1) only if p99 is
       still above budget afterwards.
-      _(Effort: M)_
+      _(Effort: M)_ — done 2026-08-17: `metaengine.EncodeVectorBinary` /
+      `DecodeVectorBinary` / `DecodeVectorAuto` (`'b'` marker + uint32 LE
+      dim + LE float32s); pebble/bbolt/badger write binary and read via the
+      sniffing decoder so legacy JSON rows keep working in place
+      (mixed-format collections pinned by per-engine tests). Measured
+      ~31-35x VectorSearch win (pebble 10K: 172.2ms → 5.63ms/query;
+      ~460-560ns/vector vs the ~85-95ns in-RAM ceiling). pgengine stays
+      JSON (JSONB column — needs a BYTEA DDL migration; deliberate scope
+      cut, noted in the spike doc §4). Phase 1 (int8) remains deferred
+      until p99 is above budget.
 - [x] **Vector search at scale** — quantization/HNSW spike for LSM engines
       when collections exceed ~100K vectors (brute-force scan is O(N)).
       _(Effort: L)_ — done 2026-08-16: spike complete with measured
@@ -273,12 +282,16 @@ and is **never** duplicated here.
       +26% vs single-expression on both servers; MySQL JSON-typed arrow
       form is 2.5x faster than MariaDB's dual-key (19 vs 47ms / 50k rows);
       table in `METAENGINE-LIVE-LATENCY-MODEL.md` §9.
-- [ ] **mysqlengine: depth-1 graph short-circuit** — measured 2-4x win
+- [x] **mysqlengine: depth-1 graph short-circuit** — measured 2-4x win
       (bench table in `METAENGINE-LIVE-LATENCY-MODEL.md` §9): route
       `GraphNeighbors(depth==1)` to the direct adjacency query (+ `AND
       to_node <> ?` to preserve start-node exclusion) instead of the
       recursive CTE.
-      _(Effort: XS)_
+      _(Effort: XS)_ — done 2026-08-17: directed + undirected depth-1 both
+      short-circuit ahead of the CTE/iterative switch (the recursive arm
+      contributes zero rows at depth 1, so the CTE seed alone is provably
+      equivalent); per-engine CTE-parity tests against MariaDB 11.4;
+      single-query drain consolidated into `queryGraphRows`.
 - [ ] [BLOCKED] **Run `nix run .#integration-mysql-nspawn`** (needs root) — real-env
       verification incl. `stack/mysql`; live verification so far used docker
       probes only. Partially covered 2026-08-16: userspace MariaDB 11.4
@@ -309,17 +322,36 @@ and is **never** duplicated here.
 > (metadata/v4.4.0, event/v4.6.0, command/v4.6.0, query/v4.5.0 — 2026-08-13).
 > id/v4.4.0 contains `actor_id.go` (verified in tag).
 
-- [ ] **Test-coverage gaps** — golden JSON for full `event.Event`/`command.
+- [x] **Test-coverage gaps** — golden JSON for full `event.Event`/`command.
       BasicCommand` with ActorID; watermill wire-format preservation; CBOR
       roundtrip (events default to CBOR); SQL `MarshalMetadata` scan path;
       pebble/bbolt encode/decode; e2e decider (command→events) and projection
       (events→read) propagation; `TestQuery_AllMetadata`; json/v1 fallback
       `omitempty` behavior.
-      _(Effort: M)_
-- [ ] **Ecosystem propagation checks** — scenario DSL actor support;
+      _(Effort: M)_ — done 2026-08-17: most lanes were already shipped by the
+      actor wave (`1153c7d11`/`842741cab`) and re-verified green (watermill
+      round-trips, `TestMarshalMetadata_ActorRoundtrip`, `TestStoreMetadataRoundtrip`
+      in pebble+bbolt, `integration.TestActorPropagationEndToEnd`,
+      `TestQuery_AllMetadata`, `TestTracing_JSONv1Fallback`). Newly added:
+      `event/golden_metadata_test.go` + `command/golden_metadata_test.go`
+      (golden JSON + store-load round-trip) and
+      `event/metadata_cbor_test.go`. The CBOR lane FOUND A REAL DEFECT: every
+      module pinned `id/v4 v4.4.0`, which lacks `ActorID.MarshalBinary`
+      (first tagged in `id/v4.5.0`) — GOWORK=off/published consumers silently
+      lost the actor in CBOR. Fixed by bumping all 59 pins to v4.5.0 (see
+      CHANGELOG Fixed entry).
+- [x] **Ecosystem propagation checks** — scenario DSL actor support;
       `scheduling/`, `deriver/`, `commandlifecycle/` ActorID propagation;
       ActorID-from-context middleware; `id.ActorID.Validate()`.
-      _(Effort: M)_
+      _(Effort: M)_ — done 2026-08-17: scenario (`TestGiven_When_ThenEvents_ActorMetadata`),
+      deriver (`TestDeriver_Idempotent_PreservesActor`), commandlifecycle
+      (`commandTracing` recorder), middleware (`middleware.CommandActorContext`),
+      and `id.ActorID.Validate` were already shipped — verified green. The one
+      genuine gap was `scheduling/`: `Timer[P].Actor` added (plain string in
+      the "kind:raw" wire format — zero-dep module, `record.CommonMetadata`
+      precedent) + versioned payload envelope in `scheduling/sqlstore` with
+      legacy bare-payload fallback, so timer-initiated commands can carry the
+      originating actor durably (see CHANGELOG Added entry).
 
 ---
 
@@ -522,6 +554,48 @@ and is **never** duplicated here.
       decode non-envelope data via the configured codec + JSON↔CBOR
       cross-retry (ADR-0050 addendum); ErrBinaryNotFound deleted (orphan of
       the removed event/blob.go helpers).
+
+---
+
+## system/v4 Full-Code-Review Follow-Ups (2026-08-16/17)
+
+> From `docs/reviews/2026-08-16_full-code-review-system.html`. All 5 P1 and
+> the actionable P2/P3 findings are FIXED (commits a211ebcb2, 449e0e5a7,
+> 42dfab5b0 — shipped with regression tests). These remain, routed:
+
+- [ ] **Count-by-name dispatch (P1-2)** — metaengine ExecuteTyped dispatches
+      by input type; all Count projections share CountInput, so a second
+      `Count()` registration silently shadows the first. Needs named
+      dispatch in metaengine (cross-module, contract change).
+      Proposal: docs/adr/2026-08-17_system-v4-review-proposals.md.
+      _(Effort: M, impact: correctness for multi-counter domains)_
+- [ ] **Named-bus API** — fan-out buses are reachable only via positional
+      `MultiBus.Publishers()`; bind-by-name + close-on-shutdown API.
+      _(Effort: M)_
+- [ ] **Role wiring** — dedicated RoleCommands/RoleQueries/RoleSnapshots
+      instances are parsed but never wired; dead conditions removed in
+      449e0e5a7, semantics still TODO. _(Effort: M)_
+- [ ] **Reserved-config honesty** — BusConfig.Mode, InstanceConfig.Subscribe,
+      InstanceConfig.Collections, CacheConfig.Engine are documented in YAML
+      examples but never read. Implement or deprecate per the table in the
+      proposals doc. _(Effort: S per field)_
+- [ ] **Durability wiring** — DurabilityTier is parsed + one scream rule,
+      nothing else. Map to per-engine pragmas (proposal written).
+      _(Effort: M)_
+- [ ] **EventAdapter backend contract doc** — document which backends are
+      Atomic vs Tx vs racy for Save. _(Effort: S)_
+- [ ] **Release coordination: system/v4.5.0** — fixes live only on master;
+      published system/v4.4.0 still has all 5 P1 bugs. Needs a metaengine
+      release first (local ../metaengine is ≥12 commits past v4.11.0) and
+      replace-directive stripping per the go-release flow. _(Effort: M)_
+- [ ] **stack.Bundle cross-check** — Bundle shares the ack-key and WARN-drop
+      patterns fixed in system (pre-fix copies); verify and port the fixes
+      before the planned stack deletion (v5 Phase 8).
+      _(Effort: S, impact: correctness on the still-shipped stack path)_
+- [ ] **system/ coverage 74.4%** — uncovered mass in evolutions reflection
+      error paths; no repo threshold exists yet. _(Effort: M)_
+- [ ] **Host buildcache repair** — /mnt/buildcache 99% full, I/O errors;
+      session worked via $HOME fallback caches. Ops ticket.
 
 ---
 

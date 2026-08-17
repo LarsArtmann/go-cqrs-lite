@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/larsartmann/go-codec v0.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0

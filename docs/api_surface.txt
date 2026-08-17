@@ -1620,11 +1620,14 @@ metaengine/func ContractSuite
 metaengine/func DecodeFloat
 metaengine/func DecodeFloatResults
 metaengine/func DecodeStreamValue
+metaengine/func DecodeVectorAuto
+metaengine/func DecodeVectorBinary
 metaengine/func DecodeVectorJSON
 metaengine/func DefaultRebuildThreshold
 metaengine/func DeferClose
 metaengine/func DeserializePlan
 metaengine/func EncodeStreamValue
+metaengine/func EncodeVectorBinary
 metaengine/func EvalFilterOp
 metaengine/func EventTypeName
 metaengine/func ExecuteTyped

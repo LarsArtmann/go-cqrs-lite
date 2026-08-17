@@ -25,6 +25,25 @@ type Timer[P any] struct {
 
 	// Payload is delivered to the dispatch callback when the timer fires.
 	Payload P `json:"payload"`
+
+	// Actor attributes the timer's eventual dispatch to an initiator, in the
+	// self-describing "kind:raw" ActorID wire format (e.g. "user:01JXYZ...",
+	// "system:scheduler"). Set it when the actor who scheduled the timer
+	// should remain the actor of the command the timer later dispatches —
+	// the audit-trail answer to "who caused this timeout to fire?".
+	//
+	// The value is a plain string (not id.ActorID) because scheduling is a
+	// zero-production-dependency module, mirroring record.CommonMetadata.ActorID.
+	// Round-trip it at the dispatch boundary:
+	//
+	//	actor, err := id.ParseActorID(t.Actor)
+	//	if err == nil && !actor.IsZero() {
+	//	    opts = append(opts, command.WithActor(actor))
+	//	}
+	//
+	// Zero value ("") means unspecified: the dispatch callback decides
+	// attribution (typically id.NewSystemActor("scheduler")).
+	Actor string `json:"actor,omitzero"`
 }
 
 // TimerStore persists scheduled timers across restarts.

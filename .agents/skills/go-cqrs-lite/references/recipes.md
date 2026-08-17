@@ -1064,19 +1064,32 @@ ctx = event.WithActorContext(ctx, id.NewSystemActor("reconciler"))
 actor, ok := event.ActorFromContext(ctx)
 ```
 
-**Scheduling** — timer-driven commands should attribute to the scheduler, not to "nobody".
-`scheduling.Scheduler` is generic over payload P; the DispatchFunc is the caller's hook:
+**Scheduling** — timer-driven commands should attribute to the originating actor, not to "nobody".
+`Timer[P].Actor` (plain string, `"kind:raw"` wire format — scheduling is a zero-dep module)
+carries the scheduling actor durably through any TimerStore; the DispatchFunc lifts it onto the
+command, defaulting to the scheduler when the timer did not record one:
 
 ```go
+_ = timerStore.Schedule(ctx, scheduling.Timer[CancelOrderCmd]{
+    ID: "order-cancel-123", FireAt: due,
+    Payload: CancelOrderCmd{OrderID: "123"},
+    Actor:   actor.PrefixedString(), // e.g. "user:01ARZ..." — who asked for the timeout
+})
+
 scheduler := scheduling.New[CancelOrderCmd](timerStore,
     func(ctx context.Context, t scheduling.Timer[CancelOrderCmd]) error {
-        ctx = event.WithActorContext(ctx, id.NewSystemActor("scheduler"))
+        actor := id.NewSystemActor("scheduler")
+        if parsed, err := id.ParseActorID(t.Actor); err == nil && !parsed.IsZero() {
+            actor = parsed
+        }
+        ctx = event.WithActorContext(ctx, actor)
         return cmds.Dispatch(ctx, &CancelOrderCmd{OrderID: t.Payload.OrderID})
     })
 ```
 
-The scheduler itself is payload-agnostic; attribution is the DispatchFunc's job — set the actor
-context (and/or stamp `command.WithActor`) there, never inside the decider.
+The SQL timer store persists the actor in a versioned payload envelope; legacy bare-payload rows
+decode with an empty actor. Attribution still never happens inside the decider — only in the
+DispatchFunc or command middleware.
 
 **Trust levels / validation** — kind-discriminated actors enable authorization decisions
 (a `system` actor may cancel orders, a `bot` may not). Reject malformed IDs at the boundary:

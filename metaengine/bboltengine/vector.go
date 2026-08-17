@@ -15,12 +15,14 @@ import (
 
 // --- VectorBackend (degraded, brute-force) ---
 //
-// Vector embeddings are stored JSON-encoded under the "vec\x00<col>\x00"
-// prefix inside the cqrs_meta bucket. VectorSearch scans the prefix and
-// computes every distance in Go — O(N·D) per query, declared as
-// ComplexityON + degraded in the profile. Suitable for small collections;
-// for production scale, pair the store with an engine that provides ANN
-// search.
+// Vector embeddings are stored under the "vec\x00<col>\x00" prefix inside
+// the cqrs_meta bucket as binary float32 payloads
+// (metaengine.EncodeVectorBinary); rows written by pre-binary versions as
+// bare JSON arrays keep decoding via metaengine.DecodeVectorAuto.
+// VectorSearch scans the prefix and computes every distance in Go —
+// O(N·D) per query, declared as ComplexityON + degraded in the profile.
+// Suitable for small collections; for production scale, pair the store with
+// an engine that provides ANN search.
 
 func (e *bboltEngine) VectorInsert(
 	_ context.Context,
@@ -36,7 +38,7 @@ func (e *bboltEngine) VectorInsert(
 
 	return e.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketName))
-		if err := bucket.Put(k, encodeJSON(emb.Values)); err != nil {
+		if err := bucket.Put(k, metaengine.EncodeVectorBinary(emb.Values)); err != nil {
 			return err //nolint:wrapcheck // bbolt error is self-describing
 		}
 
@@ -66,7 +68,7 @@ func (e *bboltEngine) VectorSearch(
 		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
 			id := strings.TrimPrefix(string(k), string(prefix))
 
-			vec, err := metaengine.DecodeVectorJSON(v)
+			vec, err := metaengine.DecodeVectorAuto(v)
 			if err != nil {
 				return fmt.Errorf("bboltengine.VectorSearch: decode %s: %w", id, err)
 			}
@@ -120,7 +122,7 @@ func (e *bboltEngine) VectorSearchFiltered(
 				continue
 			}
 
-			vec, err := metaengine.DecodeVectorJSON(v)
+			vec, err := metaengine.DecodeVectorAuto(v)
 			if err != nil {
 				return fmt.Errorf("bboltengine.VectorSearchFiltered: decode %s: %w", id, err)
 			}

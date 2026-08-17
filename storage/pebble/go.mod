@@ -1,15 +1,15 @@
 module github.com/larsartmann/go-cqrs-lite/storage/pebble/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/gkampitakis/go-snaps v0.5.23
-	github.com/larsartmann/go-codec v0.1.0
+	github.com/larsartmann/go-codec v0.2.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.5.0

@@ -15,11 +15,14 @@ import (
 
 // --- VectorBackend (degraded, brute-force) ---
 //
-// Mirrors the pebble/bbolt precedent: embeddings are stored JSON-encoded
-// under the "vec\x00<col>\x00" prefix; VectorSearch prefix-scans and computes
-// every distance in Go — O(N·D) per query, declared ComplexityON + degraded
-// in the profile. Metadata lives in a separate "vecm" key family so the
-// vector format is byte-identical across the LSM engines.
+// Mirrors the pebble/bbolt precedent: embeddings are stored under the
+// "vec\x00<col>\x00" prefix as binary float32 payloads
+// (metaengine.EncodeVectorBinary); rows written by pre-binary versions as
+// bare JSON arrays keep decoding via metaengine.DecodeVectorAuto.
+// VectorSearch prefix-scans and computes every distance in Go — O(N·D) per
+// query, declared ComplexityON + degraded in the profile. Metadata lives in
+// a separate "vecm" key family so the vector format is byte-identical across
+// the LSM engines.
 
 func (e *badgerEngine) VectorInsert(
 	_ context.Context,
@@ -27,7 +30,7 @@ func (e *badgerEngine) VectorInsert(
 	emb metaengine.Embedding,
 ) error {
 	k := keycodec.VectorKey(collection, emb.ID)
-	val := encodeJSON(emb.Values)
+	val := metaengine.EncodeVectorBinary(emb.Values)
 
 	metaKey := keycodec.VectorMetaKey(collection, emb.ID)
 	var metaVal []byte
@@ -73,7 +76,7 @@ func (e *badgerEngine) VectorSearch(
 				return fmt.Errorf("badgerengine.VectorSearch: value %s: %w", id, err)
 			}
 
-			vec, err := metaengine.DecodeVectorJSON(val)
+			vec, err := metaengine.DecodeVectorAuto(val)
 			if err != nil {
 				return fmt.Errorf("badgerengine.VectorSearch: decode %s: %w", id, err)
 			}
@@ -130,7 +133,7 @@ func (e *badgerEngine) VectorSearchFiltered(
 				return fmt.Errorf("badgerengine.VectorSearchFiltered: value %s: %w", id, err)
 			}
 
-			vec, err := metaengine.DecodeVectorJSON(val)
+			vec, err := metaengine.DecodeVectorAuto(val)
 			if err != nil {
 				return fmt.Errorf("badgerengine.VectorSearchFiltered: decode %s: %w", id, err)
 			}
