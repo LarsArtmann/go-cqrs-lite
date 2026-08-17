@@ -228,7 +228,10 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 	// Register each fan-out bus so Close() does not leak them.
 	for i, closer := range fanOutClosers {
-		sys.closers = append(sys.closers, namedCloser{closer: closer, name: fmt.Sprintf("fanout-bus-%d", i)})
+		sys.closers = append(
+			sys.closers,
+			namedCloser{closer: closer, name: fmt.Sprintf("fanout-bus-%d", i)},
+		)
 	}
 
 	// Wire projection host if we have projections and an event journal.

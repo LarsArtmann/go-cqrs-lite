@@ -14,7 +14,14 @@ import (
 func newCacheTestEvent(t *testing.T, ref id.StreamRef, version event.Version) event.Event {
 	t.Helper()
 
-	return eventtest.NewEvent(t, "cache.test", ref.ID, ref.Type, version, []byte(`{"kind":"cache"}`))
+	return eventtest.NewEvent(
+		t,
+		"cache.test",
+		ref.ID,
+		ref.Type,
+		version,
+		[]byte(`{"kind":"cache"}`),
+	)
 }
 
 // TestCachedEventStore_SaveInvalidatesCache is the regression test for the
@@ -54,7 +61,10 @@ func TestCachedEventStore_SaveInvalidatesCache(t *testing.T) {
 		t.Fatalf("post-write Load: %v", err)
 	}
 	if len(loaded) != 2 {
-		t.Fatalf("post-write Load: want 2 events (cache invalidated), got %d — cache is stale", len(loaded))
+		t.Fatalf(
+			"post-write Load: want 2 events (cache invalidated), got %d — cache is stale",
+			len(loaded),
+		)
 	}
 }
 
@@ -83,7 +93,11 @@ func TestCachedEventStore_AppendBatchInvalidatesCache(t *testing.T) {
 		t.Fatalf("warm Load: want 1 event, got %d", len(loaded))
 	}
 
-	if err := cached.AppendBatch(ctx, ref, []event.Event{newCacheTestEvent(t, ref, 2)}); err != nil {
+	if err := cached.AppendBatch(
+		ctx,
+		ref,
+		[]event.Event{newCacheTestEvent(t, ref, 2)},
+	); err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
@@ -92,7 +106,10 @@ func TestCachedEventStore_AppendBatchInvalidatesCache(t *testing.T) {
 		t.Fatalf("post-append Load: %v", err)
 	}
 	if len(loaded) != 2 {
-		t.Fatalf("post-append Load: want 2 events (cache invalidated), got %d — cache is stale", len(loaded))
+		t.Fatalf(
+			"post-append Load: want 2 events (cache invalidated), got %d — cache is stale",
+			len(loaded),
+		)
 	}
 }
 
@@ -156,7 +173,15 @@ func TestCachedEventStore_SaveErrorKeepsCacheEntry(t *testing.T) {
 	store.SaveFn(func(context.Context, id.StreamRef, []event.Event, event.Version) error {
 		return boom
 	})
-	if err := cached.Save(ctx, ref, []event.Event{newCacheTestEvent(t, ref, 2)}, 1); !errors.Is(err, boom) {
+	if err := cached.Save(
+		ctx,
+		ref,
+		[]event.Event{newCacheTestEvent(t, ref, 2)},
+		1,
+	); !errors.Is(
+		err,
+		boom,
+	) {
 		t.Fatalf("failed Save: want boom, got %v", err)
 	}
 
