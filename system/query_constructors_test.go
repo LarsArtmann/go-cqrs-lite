@@ -174,7 +174,7 @@ func TestSystem_Count_E2E(t *testing.T) {
 
 	// Apply events directly to the store (bypassing command dispatch for simplicity).
 	store := sys.MetaEngine()
-	_ = store.Apply(ctx, "e2e.created", E2ECreated{ID: "1"})
+	mustApply(t, store, "e2e.created", E2ECreated{ID: "1"})
 
 	// Query the counter.
 	result, err := metaengine.ExecuteTyped[system.CountInput, map[string]int64](

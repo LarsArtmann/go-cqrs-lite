@@ -44,18 +44,21 @@ func TestSystem_HealthCheck_Stopped(t *testing.T) {
 
 	ctx := context.Background()
 
-	sys, _ := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
+	sys, err := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{"primary": {Driver: "memory"}},
 		Instances: []system.InstanceConfig{
 			{Role: system.RoleSourceOfTruth, Engine: "primary"},
 		},
 	})
+	if err != nil {
+		t.Fatalf("system.New: %v", err)
+	}
 
 	if err := sys.Close(); err != nil {
 		t.Fatalf("Close: %v", err)
 	}
 
-	err := sys.HealthCheck(ctx)
+	err = sys.HealthCheck(ctx)
 	if err == nil {
 		t.Fatal("expected error from HealthCheck on stopped system")
 	}
@@ -98,18 +101,21 @@ func TestSystem_GracefulClose_ContextExpired(t *testing.T) {
 
 	ctx := context.Background()
 
-	sys, _ := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
+	sys, err := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{"primary": {Driver: "memory"}},
 		Instances: []system.InstanceConfig{
 			{Role: system.RoleSourceOfTruth, Engine: "primary"},
 		},
 	})
+	if err != nil {
+		t.Fatalf("system.New: %v", err)
+	}
 
 	// Use an already-cancelled context to trigger the timeout path.
 	cancelCtx, cancel := context.WithCancel(ctx)
 	cancel()
 
-	err := sys.GracefulClose(cancelCtx)
+	err = sys.GracefulClose(cancelCtx)
 	if err == nil {
 		t.Fatal("expected error from GracefulClose with cancelled context")
 	}
@@ -121,15 +127,18 @@ func TestSystem_ResetProjection_NoHost(t *testing.T) {
 	ctx := context.Background()
 
 	// No projection instance configured → no projHost.
-	sys, _ := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
+	sys, err := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{"primary": {Driver: "memory"}},
 		Instances: []system.InstanceConfig{
 			{Role: system.RoleSourceOfTruth, Engine: "primary"},
 		},
 	})
+	if err != nil {
+		t.Fatalf("system.New: %v", err)
+	}
 	defer sys.Close()
 
-	err := sys.ResetProjection(ctx, "nonexistent")
+	err = sys.ResetProjection(ctx, "nonexistent")
 	if err == nil {
 		t.Fatal("expected error from ResetProjection with no projection host")
 	}

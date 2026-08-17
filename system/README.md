@@ -191,7 +191,7 @@ at construction time (no silent fallback).
 | `System.HealthCheck(ctx)`         | Error if any resource is unhealthy.             |
 | `System.HealthCheckDetailed(ctx)` | Per-engine health status ([]EngineHealth).      |
 | `System.Explain(ctx)`             | Human-readable explanation of the deployment.   |
-| `System.EngineNames()`            | Engine names in creation order (diagnostics).   |
+| `System.EngineNames()`            | Engine names in deterministic sorted order (diagnostics). |
 | `System.ShutdownOrder()`          | Resolved close order as engine names.           |
 | `System.LagPerProjection()`       | Per-projection lag map (delegates to host).     |
 | `System.LagDuration()`            | Max lag across all workers.                     |

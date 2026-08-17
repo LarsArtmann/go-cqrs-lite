@@ -76,7 +76,7 @@ func TestSystem_Evolution_Convention(t *testing.T) {
 	defer sys.Close()
 
 	store := sys.MetaEngine()
-	_ = store.Apply(ctx, "evo.created", EvoCreated{ID: "e1", Title: "Task", Status: "open"})
+	mustApply(t, store, "evo.created", EvoCreated{ID: "e1", Title: "Task", Status: "open"})
 
 	v, err := system.Get[EvoView](ctx, sys, "evo_lookup", "e1")
 	if err != nil {
@@ -133,9 +133,9 @@ func TestSystem_Evolution_ExplicitFold(t *testing.T) {
 	defer sys.Close()
 
 	store := sys.MetaEngine()
-	_ = store.Apply(ctx, "evo.created", EvoCreated{ID: "e2", Title: "Task2", Status: "open"})
-	_ = store.Apply(ctx, "evo.started", EvoStarted{ID: "e2"})
-	_ = store.Apply(ctx, "evo.completed", EvoCompleted{ID: "e2"})
+	mustApply(t, store, "evo.created", EvoCreated{ID: "e2", Title: "Task2", Status: "open"})
+	mustApply(t, store, "evo.started", EvoStarted{ID: "e2"})
+	mustApply(t, store, "evo.completed", EvoCompleted{ID: "e2"})
 
 	v, err := system.Get[EvoView](ctx, sys, "evo_lookup2", "e2")
 	if err != nil {
@@ -190,8 +190,8 @@ func TestSystem_Evolution_QuerySet(t *testing.T) {
 	defer sys.Close()
 
 	store := sys.MetaEngine()
-	_ = store.Apply(ctx, "evo.created", EvoCreated{ID: "1", Title: "A", Status: "open"})
-	_ = store.Apply(ctx, "evo.created", EvoCreated{ID: "2", Title: "B", Status: "done"})
+	mustApply(t, store, "evo.created", EvoCreated{ID: "1", Title: "A", Status: "open"})
+	mustApply(t, store, "evo.created", EvoCreated{ID: "2", Title: "B", Status: "done"})
 
 	results, err := system.Find[EvoView](ctx, sys, "evo_set",
 		system.Where("status", "open"),

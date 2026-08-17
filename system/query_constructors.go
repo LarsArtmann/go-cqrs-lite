@@ -75,7 +75,7 @@ func (b *lookupBuilder[R]) Done() ProjectionDeclaration {
 		build: func(evoIndex map[reflect.Type]*evolutionSpec) (any, []decoderEntry, error) {
 			if len(samplesCopy) > 0 {
 				return buildCRUDQuery[LookupInput[string], R](
-					name, keyField, samplesCopy, layoutPriority,
+					name, keyField, samplesCopy, nil, layoutPriority,
 				)
 			}
 
@@ -208,7 +208,7 @@ func (b *querySetBuilder[R]) Done() ProjectionDeclaration {
 			}
 
 			if len(samplesCopy) > 0 {
-				return buildCRUDQueryWithOptions[ScanInput, R](
+				return buildCRUDQuery[ScanInput, R](
 					name, keyField, samplesCopy, opts, layoutPriority,
 				)
 			}
@@ -311,34 +311,10 @@ func (b *countBuilder) Done() ProjectionDeclaration {
 
 // ─── Shared build helpers ───
 
-// buildCRUDQuery generates a CRUD query declaration from named event samples.
+// buildCRUDQuery generates a CRUD query declaration from named event
+// samples. Extra options (FilterOnField, SortOnField, ...) are appended
+// after the folds; layout priority is appended last.
 func buildCRUDQuery[Q any, R any](
-	name, keyField string,
-	samples []metaengine.NamedSample,
-	layoutPriority metaengine.Priority,
-) (any, []decoderEntry, error) {
-	folds, err := metaengine.AutoCRUDByNamedEvents[R](keyField, samples...)
-	if err != nil {
-		return nil, nil, fmt.Errorf("system: projection %q: %w", name, err)
-	}
-
-	args := make([]any, 0, len(folds)+1)
-	for _, f := range folds {
-		args = append(args, f)
-	}
-
-	if layoutPriority.Valid() {
-		args = append(args, metaengine.WithLayoutPriority(layoutPriority))
-	}
-
-	query := metaengine.Query[Q, R](name, args...)
-
-	return query, samplesToDecoderEntries(samples), nil
-}
-
-// buildCRUDQueryWithOptions is like buildCRUDQuery but appends QueryOption
-// values (FilterOnField, SortOnField) after the folds.
-func buildCRUDQueryWithOptions[Q any, R any](
 	name, keyField string,
 	samples []metaengine.NamedSample,
 	opts []any,

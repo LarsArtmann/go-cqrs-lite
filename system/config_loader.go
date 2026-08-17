@@ -38,13 +38,8 @@ import (
 //	    primary: ReadSpeed
 //	  perQuery:
 //	    find_tasks: StorageSpace
-//	engines:
-//	  primary:
-//	    driver: sqlite
-//	    dsn: file:events.db
-//	    pragmas: [journal_mode=wal, foreign_keys=on]
-//	    priority: Balanced
 //
+// Per-engine priority can also be set inline via engines.<name>.priority.
 // Priority values: WriteSpeed, ReadSpeed, StorageSpace, Balanced (default).
 //
 // Env var overrides use the CQRS_ prefix with double-underscore as the

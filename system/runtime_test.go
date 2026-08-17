@@ -71,7 +71,7 @@ func TestSystem_Runtime_Get(t *testing.T) {
 
 	// Apply events directly to the metaengine store.
 	store := sys.MetaEngine()
-	_ = store.Apply(ctx, "rt.created", RuntimeCreated{
+	mustApply(t, store, "rt.created", RuntimeCreated{
 		ID: "rt-1", Title: "Test", Status: "open", Priority: 5,
 	})
 
@@ -86,7 +86,7 @@ func TestSystem_Runtime_Get(t *testing.T) {
 	}
 
 	// Update and verify.
-	_ = store.Apply(ctx, "rt.updated", RuntimeUpdated{ID: "rt-1", Status: "done"})
+	mustApply(t, store, "rt.updated", RuntimeUpdated{ID: "rt-1", Status: "done"})
 	v, err = system.Get[RuntimeView](ctx, sys, "rt_lookup", "rt-1")
 	if err != nil {
 		t.Fatalf("Get after update: %v", err)
@@ -139,21 +139,9 @@ func TestSystem_Runtime_Find(t *testing.T) {
 
 	store := sys.MetaEngine()
 
-	_ = store.Apply(
-		ctx,
-		"rt.created",
-		RuntimeCreated{ID: "1", Title: "A", Status: "open", Priority: 1},
-	)
-	_ = store.Apply(
-		ctx,
-		"rt.created",
-		RuntimeCreated{ID: "2", Title: "B", Status: "done", Priority: 3},
-	)
-	_ = store.Apply(
-		ctx,
-		"rt.created",
-		RuntimeCreated{ID: "3", Title: "C", Status: "open", Priority: 5},
-	)
+	mustApply(t, store, "rt.created", RuntimeCreated{ID: "1", Title: "A", Status: "open", Priority: 1})
+	mustApply(t, store, "rt.created", RuntimeCreated{ID: "2", Title: "B", Status: "done", Priority: 3})
+	mustApply(t, store, "rt.created", RuntimeCreated{ID: "3", Title: "C", Status: "open", Priority: 5})
 
 	// All results.
 	all, err := system.Find[RuntimeView](ctx, sys, "rt_set")
@@ -223,8 +211,8 @@ func TestSystem_Runtime_GetCount(t *testing.T) {
 	defer sys.Close()
 
 	store := sys.MetaEngine()
-	_ = store.Apply(ctx, "rt.created", RuntimeCreated{ID: "1"})
-	_ = store.Apply(ctx, "rt.created", RuntimeCreated{ID: "2"})
+	mustApply(t, store, "rt.created", RuntimeCreated{ID: "1"})
+	mustApply(t, store, "rt.created", RuntimeCreated{ID: "2"})
 
 	counts, err := system.GetCount(ctx, sys, "rt_counts")
 	if err != nil {

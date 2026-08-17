@@ -3,7 +3,9 @@ package system
 import (
 	"context"
 	"fmt"
+	"maps"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -77,9 +79,12 @@ func (s *System) instanceHealth(inst InstanceConfig) string {
 }
 
 // Snapshot returns a structured topology snapshot of the entire system.
-func (s *System) Snapshot(ctx context.Context) (*Topology, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+// The context is accepted for future consistency with health-checking
+// introspection; the current implementation is purely in-memory and never
+// returns an error.
+func (s *System) Snapshot(_ context.Context) (*Topology, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	topo := &Topology{}
 
@@ -105,7 +110,8 @@ func (s *System) Snapshot(ctx context.Context) (*Topology, error) {
 		})
 	}
 
-	for name, busCfg := range s.deployment.Buses {
+	for _, name := range slices.Sorted(maps.Keys(s.deployment.Buses)) {
+		busCfg := s.deployment.Buses[name]
 		topo.Buses = append(topo.Buses, BusTopology{
 			Name:   name,
 			Driver: busCfg.Driver,
@@ -130,9 +136,9 @@ func (s *System) Snapshot(ctx context.Context) (*Topology, error) {
 }
 
 // Health returns aggregated health across all components.
-func (s *System) Health(ctx context.Context) string {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func (s *System) Health(_ context.Context) string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	parts := []string{"ok"}
 
@@ -186,9 +192,9 @@ func (s *System) HealthCheck(ctx context.Context) error {
 }
 
 // Explain returns a human-readable topology description.
-func (s *System) Explain(ctx context.Context) string {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func (s *System) Explain(_ context.Context) string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	var b strings.Builder
 

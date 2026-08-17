@@ -159,6 +159,10 @@ func makeExplicitFold(resultType reflect.Type, ef explicitFoldEntry) metaengine.
 
 // reifyTo converts a raw value (potentially map[string]any from JSON engines)
 // into the target. For Memory engine, the direct type assignment succeeds.
+// Marshal/unmarshal failures panic: the fold signature has no error channel,
+// and silently dropping the previous state would corrupt the projection
+// without any signal. A schema mismatch between stored state and the result
+// type is a programmer error — fail loud, not wrong.
 func reifyTo(src, dst any) {
 	if src == nil {
 		return
@@ -175,10 +179,12 @@ func reifyTo(src, dst any) {
 
 	data, err := json.Marshal(src)
 	if err != nil {
-		return
+		panic(fmt.Sprintf("system: reifyTo: marshal %T: %v", src, err))
 	}
 
-	_ = json.Unmarshal(data, dst)
+	if err := json.Unmarshal(data, dst); err != nil {
+		panic(fmt.Sprintf("system: reifyTo: unmarshal %T into %T: %v", src, dst, err))
+	}
 }
 
 // evolutionDecoderEntries extracts decoder entries from an evolutionSpec's

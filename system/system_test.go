@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -233,5 +235,14 @@ func TestSystem_Close(t *testing.T) {
 	}
 	if err := sys.Close(); err != nil {
 		t.Fatalf("double Close: %v", err)
+	}
+}
+
+// mustApply seeds a fold event and fails the test on error.
+func mustApply(t *testing.T, store *metaengine.Store, eventType string, payload any) {
+	t.Helper()
+
+	if err := store.Apply(context.Background(), eventType, payload); err != nil {
+		t.Fatalf("Apply %s: %v", eventType, err)
 	}
 }

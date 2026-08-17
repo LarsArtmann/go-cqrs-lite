@@ -32,10 +32,14 @@ func NewSnapshotAdapter(backend metaengine.SnapshotBackend, collection string) *
 var _ snapshot.SnapshotStore = (*SnapshotAdapter)(nil)
 
 func (a *SnapshotAdapter) Save(ctx context.Context, snap snapshot.Snapshot) error {
+	// Same key format as Load/Delete (ref.StreamKey) so a snapshot saved
+	// here is found by the ref-based reads.
+	key := id.StreamRef{Type: snap.StreamType, ID: snap.StreamID}.StreamKey()
+
 	return a.backend.SnapshotSave(
 		ctx,
 		a.collection,
-		snap.StreamType.String()+":"+snap.StreamID.String(),
+		key,
 		int64(snap.Version),
 		snap.State,
 	)
