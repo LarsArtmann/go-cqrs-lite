@@ -144,6 +144,9 @@ func WithLogger(logger *slog.Logger) Option {
 // Bundle wraps [stack.Bundle] with Pebble-specific backup and observability
 // capabilities. It embeds *stack.Bundle, so all Bundle fields and methods are
 // available directly.
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root. Migrate to system.New with DeploymentConfig before v5.
 type Bundle struct {
 	*stack.Bundle
 
@@ -196,6 +199,9 @@ func (b *Bundle) GracefulClose(ctx context.Context) error {
 // The returned Bundle owns the *pebble.DB; Close releases it along with all
 // stores. Use Checkpoint(dir) for point-in-time backups.
 // On any setup failure the database is closed before the error is returned.
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root. Migrate to system.New with DeploymentConfig before v5.
 func New(dir string, opts ...Option) (*Bundle, error) {
 	cfg := defaultConfig()
 

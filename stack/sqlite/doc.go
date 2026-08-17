@@ -71,4 +71,8 @@
 //
 // New enables WAL mode and runs schema migration by default. Disable either
 // with [WithoutWAL] or [WithDSN] (passing [sqlopt.WithoutAutoMigrate]).
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root; presets do not survive the v5 cut. Migrate to
+// system.New with DeploymentConfig (the sqliteengine backend) before v5.
 package sqlite

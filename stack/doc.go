@@ -40,4 +40,9 @@
 // through construction, it closes everything it already opened before
 // returning the error. [New] itself only validates — it does not open
 // resources, so it has nothing to roll back.
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root. New code should build on system.New and DeploymentConfig;
+// the Bundle, its presets, and its accessors do not survive the v5 cut.
+// See docs/adr/0123-v5-unification-single-composition-root.md.
 package stack

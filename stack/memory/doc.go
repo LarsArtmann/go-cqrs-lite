@@ -14,4 +14,8 @@
 // Nothing in this preset is persistent: all data is lost when the process
 // exits. For persistence, use [github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4]
 // or [github.com/larsartmann/go-cqrs-lite/stack/pebble/v4].
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root; presets do not survive the v5 cut. Migrate to
+// system.New with DeploymentConfig before v5.
 package memory

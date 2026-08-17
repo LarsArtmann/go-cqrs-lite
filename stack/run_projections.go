@@ -32,6 +32,9 @@ import (
 //
 //	err := bundle.RunProjections(ctx, mat, relationalProj, graphProj)
 //	// blocks until ctx.Done()
+//
+// Deprecated: removed in v5 (ADR-0123): projectionhost.Host is the only
+// projection runner — crash-restart, DLQ, and checkpoint management built in.
 func (b *Bundle) RunProjections(
 	ctx context.Context,
 	projections ...cqrsprojection.Projection,

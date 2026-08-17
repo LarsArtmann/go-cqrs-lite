@@ -147,6 +147,9 @@ func TypedRepository[State, Cmd any](
 //	    func(evt event.Event) (UserID, error) { ... })
 //
 // Then wire it as a Watermill handler: mat.HandlerFunc().
+//
+// Deprecated: removed in v5 (ADR-0123): metaengine auto-projection replaces
+// [Materialize]. Declare Events and Query types; the planner infers the folds.
 func NewMaterialize[V any, K fmt.Stringer](
 	b *Bundle,
 	c codec.Codec,

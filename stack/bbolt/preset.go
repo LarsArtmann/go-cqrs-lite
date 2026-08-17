@@ -7,6 +7,10 @@
 // provides excellent point-read performance and predictable latency. The
 // single-writer model eliminates the need for per-stream locking — version
 // checks and event writes happen atomically inside one transaction.
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root; presets do not survive the v5 cut. Migrate to
+// system.New with DeploymentConfig (the bboltengine backend) before v5.
 package bbolt
 
 import (

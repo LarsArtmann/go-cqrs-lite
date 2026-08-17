@@ -25,4 +25,8 @@
 //	// Read models → views_db
 //
 // All data is persistent. The returned Bundle owns the *sql.DB; Close releases it.
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root; presets do not survive the v5 cut. Migrate to
+// system.New with DeploymentConfig (the pgengine backend) before v5.
 package postgres

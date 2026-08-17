@@ -31,6 +31,10 @@ import (
 // look identical.
 //
 // The zero value is not usable; construct a Bundle with [New].
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root. Migrate to system.New with DomainConfig +
+// DeploymentConfig before the v5 cut.
 type Bundle struct {
 	// ── Events: segregated read/write ──
 	EventSink   event.EventSink
@@ -138,6 +142,9 @@ type shutdownEdge struct {
 //
 // Returns an error only if validation fails (see [Bundle.validate]).
 // At least one capability must be set; an entirely empty Bundle is a bug.
+//
+// Deprecated: removed in v5 (ADR-0123): use system.New — system.System is
+// the single composition root.
 func New(opts ...Option) (*Bundle, error) {
 	b := &Bundle{} //nolint:exhaustruct // options fill fields
 

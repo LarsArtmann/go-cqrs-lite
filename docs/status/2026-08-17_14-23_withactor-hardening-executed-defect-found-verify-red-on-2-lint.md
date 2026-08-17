@@ -238,3 +238,50 @@ scheduling/sqlstore lint 0 issues, tests green, race x3 green; doc-check green.
 repo-wide deliberately DEFERRED while the parallel session edits the tree
 (formatting their in-flight files would corrupt their work); my files are
 gofumpt+goimports clean.
+
+---
+
+## Addendum 2 — 16:05 final state (all gates green; single-run verify blocked by ambient load)
+
+Attempt 3 (15:00-15:12) sailed through Build+Vet+Test+Race **repo-wide**
+(incl. benchkit 42s/51s, duckdbengine, system) and died in Lint on **4 findings
+— all in the parallel session's durability wave files** (none in my lane).
+Coordination: their 15:17 report declares their work done and hands lint to
+this lane; after 19 min of silence I fixed all 4:
+
+1. `stack/pebble/durability_test.go:21` golines — fixed by `nix fmt` (repo-wide
+   fmt was safe by then: only misformatted file repo-wide; it also closed the
+   deferred fmt todo).
+2. `stack/pebble/preset.go` exhaustive — explicit `case stack.DurabilityStrict`
+   returning the same `false, false` as default; matches their documented
+   "Strict (and any unrecognized): safest interpretation" intent.
+3. `stack/pebble/preset.go` nonamedreturns — dropped unused result names.
+4. `storage/pebble/durability_bench_test.go:34` usetesting — justified
+   `//nolint` (the suggested `b.TempDir()` would MOVE the bench dir away from
+   the configured disk-backed base — a behavior change, not a fix).
+
+**NEW standalone break found + fixed:** the durability wave uses untagged
+`cqrspebble.BackendOption`/`WithBackendAsyncWrites` — stack/pebble GOWORK=off
+failed `undefined:` (same class as the middleware/encryption/signing fixes;
+their session never reached a GOWORK=off build). Fixed with cascading sibling
+replaces in stack/pebble/go.mod: `storage/pebble` → `storage/backuptest` →
+`event` + `metadata` (replaces do NOT cascade — each level needed its own).
+**Repo-wide 82/82 GOWORK=off build sweep green.** These replaces become
+droppable when storage/pebble + event/metadata tag the symbols (pre-tag sweep
+rule; folds into Questions 1+3).
+
+**Final gate tally on the current tree** (single-run #verify impossible:
+ambient load 44→165, disk 96% — the parallel report documents timing-test
+death at load 75; a run now would produce known-flaky evidence):
+
+| Phase | Result |
+| --- | --- |
+| verify-docs, check-modules, Build, Vet, Test, Race | ✓ attempt 3 repo-wide (subsequent changes: behavior-identical lint fixes, each standalone-tested; fmt reflows; workspace-invisible replaces; docs) |
+| Lint | ✓ **fresh full run: 76/76 modules, 0 issues** |
+| check-arch / check-depguard / check-docserver-css | ✓ fresh (120 deps covered) |
+| check-duplication / check-coverage / check-api-stability | ✓ fresh (0 new clones; ±2% tolerance; no drift) |
+| doc-check | ✓ 921 refs |
+
+Remaining for a single-run GREEN: one calm-window `nix run .#verify` (load < ~5,
+disk freed) — the SAME re-run the parallel session's f.1 already requests;
+whoever gets the window runs it once for both waves. No code work remains.

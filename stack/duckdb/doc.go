@@ -53,4 +53,8 @@
 //
 // New runs schema migration by default. Disable with [WithDSN] (passing
 // [sqlopt.WithoutAutoMigrate]).
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root; presets do not survive the v5 cut. Migrate to
+// system.New with DeploymentConfig (the duckdbengine backend) before v5.
 package duckdb

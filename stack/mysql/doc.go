@@ -41,4 +41,8 @@
 // Watermill event bus ([cqrswatermill.NewEventBus]) for single-process
 // deployments. For multi-process event delivery, use a message broker
 // (NATS, Redis, Kafka) via the [watermill] module.
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root; presets do not survive the v5 cut. Migrate to
+// system.New with DeploymentConfig (the mysqlengine backend) before v5.
 package mysql

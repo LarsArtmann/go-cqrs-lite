@@ -12,4 +12,8 @@
 //
 // All data is persistent on disk. The returned Bundle owns the *pebble.DB;
 // Close releases it.
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root; presets do not survive the v5 cut. Migrate to
+// system.New with DeploymentConfig (the pebbleengine backend) before v5.
 package pebble

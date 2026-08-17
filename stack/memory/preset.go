@@ -29,6 +29,9 @@ import (
 //
 // Extra options (e.g. [stack.WithMetaEngine]) can be passed to override or
 // extend the default wiring.
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root. Migrate to system.New with DeploymentConfig before v5.
 func New(extra ...stack.Option) (*stack.Bundle, error) {
 	const defaultOpts = 7
 

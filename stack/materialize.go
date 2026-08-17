@@ -14,14 +14,23 @@ import (
 )
 
 // TombstonePolicy controls which records appear in [Materialize.List] results.
+//
+// Deprecated: removed in v5 (ADR-0123): [Materialize] is replaced by
+// metaengine auto-projection, where deletion is event-type-driven.
 type TombstonePolicy int
 
 const (
 	// IncludeTombstoned returns all records, including tombstoned ones.
+	//
+	// Deprecated: removed in v5 (ADR-0123): see TombstonePolicy.
 	IncludeTombstoned TombstonePolicy = iota
 	// ExcludeTombstoned filters out tombstoned records (default behavior).
+	//
+	// Deprecated: removed in v5 (ADR-0123): see TombstonePolicy.
 	ExcludeTombstoned
 	// OnlyTombstoned returns only tombstoned records.
+	//
+	// Deprecated: removed in v5 (ADR-0123): see TombstonePolicy.
 	OnlyTombstoned
 )
 
@@ -53,6 +62,10 @@ const (
 //
 //	store, _ := storage.NewSQLiteViewStore[UserView, UserID](db, mapper)
 //	mat := stack.Materialize[UserView, UserID]{Store: store, ...}
+//
+// Deprecated: removed in v5 (ADR-0123): metaengine auto-projection replaces
+// it. Declare Events and Query types; the planner infers the folds — no
+// hand-written view handlers survive the v5 cut.
 type Materialize[V any, K fmt.Stringer] struct {
 	// Store is the typed view store that holds the materialized view.
 	// Use [kv.TypedStore] for KV backends or storage.SQLViewStore for
