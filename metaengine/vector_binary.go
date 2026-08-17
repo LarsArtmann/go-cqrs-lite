@@ -35,8 +35,7 @@ const vectorBinaryHeaderLen = 5
 // EncodeVectorBinary serializes values as marker + dimension (uint32 LE) +
 // little-endian float32s — fixed-width, no text parsing on decode.
 func EncodeVectorBinary(values []float32) []byte {
-	// A []float32 exceeding 4B elements would need a 16GB+ payload; unreachable.
-	dim := uint32(len(values)) //nolint:gosec // G115: bounded by memory long before uint32
+	dim := vectorBinaryDim(values)
 
 	data := make([]byte, vectorBinaryHeaderLen+4*len(values))
 	data[0] = vectorBinaryMarker
@@ -47,6 +46,13 @@ func EncodeVectorBinary(values []float32) []byte {
 	}
 
 	return data
+}
+
+// vectorBinaryDim converts the slice length to the wire-format dimension
+// count without triggering gosec G115. Extracted as a helper per AGENTS.md
+// convention.
+func vectorBinaryDim(values []float32) uint32 {
+	return uint32(len(values)) //nolint:gosec // G115: bounded by memory long before uint32
 }
 
 // errNotBinaryVector rejects payloads without the binary marker or with a

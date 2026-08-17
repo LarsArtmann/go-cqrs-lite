@@ -55,8 +55,10 @@ func WithDurability(tier stack.DurabilityTier) Option {
 //   - Relaxed: DisableWAL + async writes. Both flags matter: with the WAL
 //     disabled, pebble.Sync degrades to a memtable flush per write — the
 //     slowest possible path — so the "fast" tier must also drop the sync.
-func tierToSettings(tier stack.DurabilityTier) (disableWAL, asyncStores bool) {
+func tierToSettings(tier stack.DurabilityTier) (bool, bool) {
 	switch tier {
+	case stack.DurabilityStrict:
+		return false, false
 	case stack.DurabilityNormal:
 		return false, true
 	case stack.DurabilityRelaxed:

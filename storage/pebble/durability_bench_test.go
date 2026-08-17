@@ -31,6 +31,7 @@ func openDurabilityBenchStore(b *testing.B, opts ...StoreOption) *EventStore {
 		b.Skipf("disk-backed bench dir %s unavailable: %v", base, err)
 	}
 
+	//nolint:usetesting // must live under the configured base dir, not b.TempDir
 	dir, err := os.MkdirTemp(base, "bench-*")
 	if err != nil {
 		b.Skipf("create bench dir under %s: %v", base, err)

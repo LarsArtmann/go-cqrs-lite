@@ -71,3 +71,56 @@ func benchmarkPebbleVectorSearchAt(b *testing.B, n int) {
 
 func BenchmarkPebbleVectorSearch_1K(b *testing.B)  { benchmarkPebbleVectorSearchAt(b, 1_000) }
 func BenchmarkPebbleVectorSearch_10K(b *testing.B) { benchmarkPebbleVectorSearchAt(b, 10_000) }
+
+// BenchmarkPebbleVectorSearchFiltered_1K measures metadata-filtered k-NN:
+// the same binary decode path as VectorSearch plus the per-row metadata
+// read and filter evaluation. Half the collection matches the filter, so
+// the scan still visits every row — the filtered number isolates the added
+// metadata-read cost, not a smaller candidate set.
+func BenchmarkPebbleVectorSearchFiltered_1K(b *testing.B) {
+	eng, err := pebbleengine.NewPebbleEngine("")
+	if err != nil {
+		b.Skipf("pebble not available: %v", err)
+	}
+	defer func() { _ = eng.Close() }()
+
+	vb := eng.(metaengine.VectorFilterBackend)
+	const col = "bench_vec_filtered_pebble"
+
+	rng := rand.New(rand.NewPCG(42, 7))
+	batch := make([]float32, vectorBenchDims)
+
+	for i := range 1_000 {
+		for j := range batch {
+			batch[j] = rng.Float32()*2 - 1
+		}
+
+		emb := metaengine.Embedding{ID: fmt.Sprintf("v%d", i), Values: batch}
+		if i%2 == 0 {
+			emb.Metadata = map[string]any{"parity": "even"}
+		}
+
+		if err := vb.VectorInsert(context.Background(), col, emb); err != nil {
+			b.Fatalf("VectorInsert %d: %v", i, err)
+		}
+	}
+
+	q := make([]float32, vectorBenchDims)
+	for j := range q {
+		q[j] = rng.Float32()*2 - 1
+	}
+
+	filters := []metaengine.VectorFilter{{Field: "parity", Op: metaengine.FilterEq, Value: "even"}}
+	ctx := context.Background()
+	b.ResetTimer()
+
+	for b.Loop() {
+		results, err := vb.VectorSearchFiltered(ctx, col, q, 10, "cosine", filters)
+		if err != nil {
+			b.Fatalf("VectorSearchFiltered: %v", err)
+		}
+		if len(results) != 10 {
+			b.Fatalf("k=10 got %d", len(results))
+		}
+	}
+}
