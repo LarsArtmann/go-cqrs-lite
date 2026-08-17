@@ -51,6 +51,9 @@ func WithStack(opts ...stack.Option) Option {
 //
 // The bundle auto-migrates all CQRS tables unless [mysql.WithDSN] is called
 // with [sqlopt.WithoutAutoMigrate].
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root. Migrate to system.New with DeploymentConfig before v5.
 func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 	cfg := defaultConfig()
 	for _, opt := range opts {

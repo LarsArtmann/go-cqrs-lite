@@ -6,6 +6,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Deprecated — v1 read-model tiers + stack presets marked ahead of the v5 cut — 2026-08-17
+
+ADR-0123 Phase 8 pre-cut wave: every API scheduled for deletion at v5 now
+carries a `Deprecated: removed in v5 (ADR-0123): <replacement>` doc marker,
+so consumers get godoc banners and staticcheck SA1019 warnings a full minor
+release before the cut. Nothing is deleted yet and no behavior changed —
+this is step 2 of the ADR-0123 migration path.
+
+- **`stack`** — `Bundle`, `New`, `Materialize`, `NewMaterialize`,
+  `TombstonePolicy` (with `IncludeTombstoned`/`ExcludeTombstoned`/
+  `OnlyTombstoned`), and `(*Bundle).RunProjections`. Replacement: the
+  `system/` composition root (`system.System` + `projectionhost.Host`).
+- **All 8 stack presets** — `stack/memory`, `stack/sqlite`, `stack/pebble`,
+  `stack/bbolt`, `stack/postgres`, `stack/mysql`, `stack/turso`, and
+  `stack/duckdb` (package docs, `Bundle`, `New`, and `stack/turso.NewSync`).
+  Replacement: `system/` deployment config over the storage backends.
+- **`storage/view`** — `SQLViewStore` with its three constructors,
+  `ViewColumn`, `ViewMapper`, `AutoMapper`, `AutoMapperWithTombstone`,
+  `IndexSpec`, and the store options, plus the `storage` facade re-exports
+  (`view_aliases.go`). Replacement: metaengine auto-projection.
+- **`storage/relational`** — `RelationalProjection` (with handler and
+  options), `ProjectionSink`, `Row`, `SetExpr`, `RelationalStore`, and the
+  `RelationalSchema`/`RelationalTable`/`RelationalColumn` schema types.
+  Replacement: metaengine (multi-collection atomicity via engine
+  transactions).
+- **`graph.GraphProjection`** — `Handler`, `ProjectionOption`, `WithSchema`,
+  `NewGraphProjection`. Replacement: `metaengine/graphadapter`.
+  `graph.GraphSink`/`GraphDriver` are NOT deprecated — graphadapter is built
+  on them.
+- **`record.NewStreamRef`** — not deprecated; it now carries a NOTE
+  documenting the v5 signature change to
+  `NewStreamRef(streamType, entityID) (StreamRef, error)`, with
+  `StreamRef.Validate()` as the interim check.
+
+Internal callers (stack presets, the storage facade, benchkit, cqrs-bench,
+examples, integration tests) keep compiling without new warnings via a
+scoped `.golangci.yml` SA1019 exclusion keyed to the uniform marker phrase;
+every other deprecation in the repo stays loud. The already-deprecated
+ADR-0126 shells, `storage/sql.BuildWhereClause`, and the ADR-0127 transport
+modules predate this wave and are unchanged.
+
 ### Changed — Durability tiers now de-escalate per-write sync on Pebble — 2026-08-17
 
 - **`stack/pebble` Normal tier maps to async WAL writes** (behavior change,

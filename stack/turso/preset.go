@@ -73,6 +73,9 @@ func WithSyncOptions(opts ...cqrsturso.SyncOption) Option {
 
 // Bundle wraps [stack.Bundle] with Turso-specific sync capabilities. It embeds
 // *stack.Bundle, so all Bundle fields and methods are available directly.
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root. Migrate to system.New with DeploymentConfig before v5.
 type Bundle struct {
 	*stack.Bundle
 
@@ -97,6 +100,9 @@ func (b *Bundle) Sync() *cqrsturso.SyncDB {
 //
 // On any setup failure the database is closed before the error is returned —
 // no resource leaks. The returned Bundle owns the database; Close releases it.
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root. Migrate to system.New with DeploymentConfig before v5.
 func New(dbPath string, opts ...Option) (*Bundle, error) {
 	cfg := defaultConfig()
 
@@ -122,6 +128,9 @@ func New(dbPath string, opts ...Option) (*Bundle, error) {
 //
 // Use [WithSyncOptions] for advanced sync configuration (client name, long-poll
 // timeout, busy timeout, namespace, bootstrap behavior).
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root. Migrate to system.New with DeploymentConfig before v5.
 func NewSync(
 	ctx context.Context,
 	dbPath, remoteURL, authToken string,

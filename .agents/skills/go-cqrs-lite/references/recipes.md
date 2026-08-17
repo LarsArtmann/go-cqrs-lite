@@ -17,6 +17,12 @@
 
 ### 2.0 Bundle Presets — one-call infrastructure wiring
 
+> **v5 deprecation notice (ADR-0123):** `stack.Bundle`, all `stack/*`
+> presets (memory, sqlite, pebble, bbolt, postgres, mysql, turso, duckdb),
+> and `(*Bundle).RunProjections` are **deprecated and removed in v5** —
+> `system.System` becomes the single composition root. They remain fully
+> functional through v4.x. New code should compose via `system/`.
+
 > **New in v2.7.** Consumers should NOT decide on infrastructure manually.
 > The deployer picks a preset; the app developer never imports a backend.
 

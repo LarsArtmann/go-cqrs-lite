@@ -74,6 +74,9 @@ func WithDurability(tier stack.DurabilityTier) Option {
 // The returned Bundle owns the *bbolt.DB; Close releases it along with all
 // stores. On any setup failure the database is closed before the error is
 // returned.
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root. Migrate to system.New with DeploymentConfig before v5.
 func New(path string, opts ...Option) (*stack.Bundle, error) {
 	cfg := defaultConfig()
 	for _, opt := range opts {

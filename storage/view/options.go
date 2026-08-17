@@ -41,6 +41,8 @@ var (
 )
 
 // ViewStoreOption configures a [SQLViewStore] at construction time.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type ViewStoreOption func(*viewStoreConfig)
 
 type viewStoreConfig struct {
@@ -49,6 +51,8 @@ type viewStoreConfig struct {
 
 // WithoutViewAutoMigrate skips automatic CREATE TABLE IF NOT EXISTS.
 // Use this when the caller manages schema manually (e.g. external migrations).
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 func WithoutViewAutoMigrate() ViewStoreOption {
 	return func(c *viewStoreConfig) { c.autoMigrate = false }
 }

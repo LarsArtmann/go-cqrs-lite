@@ -620,6 +620,15 @@ and is **never** duplicated here.
 > Phases 1-7 done (type foundation, dead-code removal, self-registration,
 > backend porting, record-typed folds, auto-projection, layout planning,
 > universal ADT coverage). Phase 8 is the breaking cut.
+>
+> **Pre-cut deprecation wave shipped 2026-08-17:** every API below that dies
+> at v5 now carries a `Deprecated: removed in v5 (ADR-0123)` doc marker —
+> `stack` Bundle/Materialize/RunProjections + all 8 presets, `storage/view`,
+> `storage/relational`, `graph.GraphProjection`; `record.NewStreamRef` got a
+> NOTE documenting its v5 signature change. Internal callers stay warning-free
+> via a scoped `.golangci.yml` SA1019 exclusion keyed to the marker phrase.
+> The deletions themselves are still TODO. See CHANGELOG `[Unreleased]` →
+> `### Deprecated`.
 
 - [ ] **Delete `stack.Materialize`** — auto-projection replaces it.
       _(Effort: S)_

@@ -48,6 +48,8 @@ const (
 //
 // For tombstone support, name the boolean column "tombstoned" or pass the
 // column name via [AutoMapperWithTombstone].
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 func AutoMapper[V any](table string) ViewMapper[V] {
 	return AutoMapperWithTombstone[V](table, "")
 }
@@ -58,6 +60,8 @@ func AutoMapper[V any](table string) ViewMapper[V] {
 //
 // Panics if V is not a struct or a pointer to a struct — this is a programmer
 // error detected at startup, not a runtime condition.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 func AutoMapperWithTombstone[V any](table, tombstoneCol string) ViewMapper[V] {
 	var zero V
 

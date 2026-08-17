@@ -419,6 +419,18 @@ linters:
           - staticcheck
         text: "SA1019: (event\\.MarkTombstone|event\\.TombstoneStatus|event\\.TombstoneMark|event\\.DetectTombstone|event\\.MarkRebirth|event\\.MetadataKeyTombstone|event\\.MetadataKeyRebirth) is deprecated"
 
+      # ── v5 pre-cut deprecations (ADR-0123 Migration Path step 2) ─
+      # stack/ (Bundle, Materialize, RunProjections), all stack presets,
+      # storage/view, storage/relational, and graph.GraphProjection are
+      # deprecated ahead of the v5 cut with the uniform "removed in v5"
+      # phrase. Internal callers (presets, the storage facade, benchkit,
+      # cqrs-bench, examples, integration tests) keep using them until
+      # the cut. The text anchor keeps all OTHER deprecations loud.
+      - path: (stack|storage|graph|benchkit|cmd/cqrs-bench|example|integration)/.*\.go$
+        linters:
+          - staticcheck
+        text: 'SA1019: .*removed in v5.*'
+
       # ── EnsureCustom backward-compat tests ──────────────────────
       # EnsureCustom is deprecated (use WithCustom). Dedicated tests in
       # event/ and metadata/ verify the deprecated API still works.

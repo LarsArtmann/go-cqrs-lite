@@ -21,6 +21,8 @@ import (
 // The "any" value type here is the accepted database/sql interop exception to
 // the library's no-"any"-in-domain rule — this is storage infrastructure, not
 // domain logic.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type Row map[string]any
 
 // ProjectionSink is a transactional, dialect-agnostic write context passed to
@@ -43,6 +45,8 @@ type Row map[string]any
 // only partial meaning on a graph (FK columns should be edges, not properties).
 // For KV/document backends use stack.Materialize + kv.ViewStore[V,K]; a graph
 // backend would need a distinct sink exposing node/edge operations instead.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type ProjectionSink interface {
 	// Upsert inserts a row, or on conflict with conflictCols updates the
 	// conflicting row's other columns to the new values. An empty conflictCols
@@ -149,6 +153,8 @@ type ProjectionSink interface {
 // ON CONFLICT DO UPDATE SET clause. Expr is a raw SQL expression — it may
 // reference excluded.<col> for incoming values and <table>.<col> for the
 // existing row. Args supplies any bound parameters the expression needs.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type SetExpr struct {
 	Column string
 	Expr   string

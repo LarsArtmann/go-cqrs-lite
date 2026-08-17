@@ -431,6 +431,12 @@ bus.SubscribeAll(composed.AsHandler(cmdDispatcher))
 
 ### 6.13 Graph Projections (graph)
 
+> **v5 deprecation notice (ADR-0123):** `graph.GraphProjection` (with
+> `Handler`, `WithSchema`, `NewGraphProjection`) is **deprecated and removed
+> in v5** — the replacement is `metaengine/graphadapter` over the
+> metaengine Graph ADT. `graph.GraphSink`/`GraphDriver` survive v5
+> (graphadapter is built on them).
+
 The third projection tier. Where `stack.Materialize` writes one document per
 key and `storage.RelationalProjection` writes across SQL tables, `graph`
 merges events into **nodes and edges** — the right shape for variable-depth

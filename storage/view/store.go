@@ -1,3 +1,10 @@
+// Package view provides [SQLViewStore] — a [kv.ViewStore] backed by a
+// dedicated SQL table with real, queryable columns.
+//
+// Deprecated: removed in v5 (ADR-0123): metaengine engines with layout
+// planning replace SQL view stores. Declare Query types and let the planner
+// synthesize queryable collections — no hand-written column mappers survive
+// the v5 cut.
 package view
 
 import (
@@ -16,6 +23,8 @@ import (
 // Name is the SQL column name. Type is the SQL type declaration ("TEXT",
 // "INTEGER", "REAL", etc.). Extract returns the column value from a *V for
 // INSERT/UPDATE. Extract must not be nil.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type ViewColumn[V any] struct {
 	Name    string
 	Type    string
@@ -47,6 +56,8 @@ type ViewColumn[V any] struct {
 //	    },
 //	    TombstoneColumn: "tombstoned", // enables server-side tombstone filtering
 //	}
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type ViewMapper[V any] struct {
 	Table   string
 	Columns []ViewColumn[V]
@@ -73,6 +84,8 @@ type ViewMapper[V any] struct {
 }
 
 // IndexSpec declares a secondary index on a view table.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type IndexSpec struct {
 	// Name is the SQL index name (must be unique within the database).
 	Name string
@@ -99,6 +112,9 @@ type IndexSpec struct {
 // The store does NOT own the *sql.DB; the caller manages the connection
 // lifecycle (same convention as [SQLKVStore]). The table is auto-created on
 // construction unless [WithoutViewAutoMigrate] is passed.
+//
+// Deprecated: removed in v5 (ADR-0123): metaengine engines with layout
+// planning replace SQL view stores.
 type SQLViewStore[V any, K fmt.Stringer] struct {
 	sqlpkg.DBHandle
 
@@ -150,6 +166,8 @@ func (s *SQLViewStore[V, K]) InTx(tx *sql.Tx) *SQLViewStore[V, K] {
 }
 
 // NewSQLiteViewStore creates a SQLViewStore for SQLite.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 func NewSQLiteViewStore[V any, K fmt.Stringer](
 	db *sql.DB,
 	mapper ViewMapper[V],
@@ -159,6 +177,8 @@ func NewSQLiteViewStore[V any, K fmt.Stringer](
 }
 
 // NewSQLViewStore creates a SQLViewStore for PostgreSQL.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 func NewSQLViewStore[V any, K fmt.Stringer](
 	db *sql.DB,
 	mapper ViewMapper[V],
@@ -168,6 +188,8 @@ func NewSQLViewStore[V any, K fmt.Stringer](
 }
 
 // NewViewStoreWithDialect creates a SQLViewStore with an explicit dialect.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 func NewViewStoreWithDialect[V any, K fmt.Stringer](
 	db *sql.DB,
 	dialect sqlpkg.Dialect,

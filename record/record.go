@@ -96,6 +96,12 @@ var ErrInvalidStreamRef = errors.New(
 // NewStreamRef constructs a StreamRef from a stream type and entity ID.
 // The streamType may be empty (for command/query records that store the
 // type separately), but entityID must be non-empty.
+//
+// NOTE — v5 breaking change (ADR-0123 Phase 8): at v5 this constructor
+// becomes NewStreamRef(streamType, entityID string) (StreamRef, error) and
+// returns ErrInvalidStreamRef for an empty entityID at construction. Call
+// [StreamRef.Validate] now to catch malformed refs before the cut; empty
+// streamType stays legal. Not deprecated — the constructor survives v5.
 func NewStreamRef(streamType, entityID string) StreamRef {
 	return StreamRef(streamType + "/" + entityID)
 }

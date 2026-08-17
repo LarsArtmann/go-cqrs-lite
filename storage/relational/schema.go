@@ -19,6 +19,8 @@ import (
 // column types TEXT, INTEGER, REAL, BLOB). The backend is chosen at deployment
 // time via the [sql.Dialect], not at development time — so projection handlers
 // written against this schema are portable across SQLite and PostgreSQL.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type RelationalSchema struct {
 	Tables []RelationalTable
 }
@@ -71,6 +73,8 @@ func (s RelationalSchema) Validate() error {
 // junction table). When empty, no PRIMARY KEY clause is emitted — use this for
 // tables whose key is an auto-incrementing column declared in its own Type
 // (e.g. {Name: "id", Type: "INTEGER PRIMARY KEY AUTOINCREMENT"}).
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type RelationalTable struct {
 	Name       string
 	Columns    []RelationalColumn
@@ -182,6 +186,8 @@ func (t RelationalTable) validate() error {
 // appended verbatim after "REFERENCES ", so callers control the target table,
 // column, and any ON DELETE / ON UPDATE actions (e.g.
 // References: "guilds(id) ON DELETE CASCADE").
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type RelationalColumn struct {
 	Name       string
 	Type       string
@@ -219,6 +225,8 @@ func (c RelationalColumn) DDL() string {
 // entries in order). Where, when non-empty, appends a partial-index predicate
 // verbatim ("WHERE deleted_at IS NULL"). The caller is responsible for the
 // SQL syntax of Where — it is not parameterised.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type IndexSpec struct {
 	Name    string
 	Columns []string
@@ -229,6 +237,8 @@ type IndexSpec struct {
 // Unlike the single-column [RelationalColumn.Unique] flag, UniqueSpec covers
 // multi-column uniqueness (e.g. "one reaction per user per message per emoji").
 // It emits a "UNIQUE (<cols>)" clause inside the CREATE TABLE statement.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type UniqueSpec struct {
 	Name    string
 	Columns []string

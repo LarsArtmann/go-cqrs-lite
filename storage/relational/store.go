@@ -35,6 +35,8 @@ import (
 // push the relational model's complexity back onto the consumer.
 // Denormalization is the standard event-sourcing read-model pattern: the write
 // model stays normalised (events), the read model is shaped for its queries.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type RelationalStore struct {
 	schema  RelationalSchema
 	db      *sql.DB
@@ -44,6 +46,8 @@ type RelationalStore struct {
 // NewRelationalStore creates a read store for schema backed by db and dialect.
 // The schema must already be migrated (NewRelationalProjection migrates
 // automatically); this constructor performs no DDL.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 func NewRelationalStore(
 	schema RelationalSchema,
 	db *sql.DB,

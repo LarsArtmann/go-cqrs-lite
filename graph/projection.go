@@ -15,6 +15,9 @@ import (
 // handler is driver-agnostic: it never references Neo4j, Cypher, or any
 // concrete driver. The backend is fixed when the [GraphProjection] is
 // constructed.
+//
+// Deprecated: removed in v5 (ADR-0123): metaengine auto-projection +
+// graphadapter replace [GraphProjection].
 type Handler func(ctx context.Context, evt cqrsevent.Event, sink GraphSink) error
 
 // GraphProjection is an [cqrsprojection.Projection] that materialises events into a
@@ -28,6 +31,10 @@ type Handler func(ctx context.Context, evt cqrsevent.Event, sink GraphSink) erro
 //
 // All writes within one Handle call are atomic (driver transaction): a partial
 // failure leaves the graph untouched and the event can be retried.
+//
+// Deprecated: removed in v5 (ADR-0123): metaengine auto-projection +
+// graphadapter replace [GraphProjection]. GraphDriver and GraphSink survive
+// as engine internals.
 type GraphProjection struct {
 	name    string
 	driver  GraphDriver
@@ -37,6 +44,8 @@ type GraphProjection struct {
 }
 
 // ProjectionOption configures a [GraphProjection].
+//
+// Deprecated: removed in v5 (ADR-0123): see [GraphProjection].
 type ProjectionOption func(*GraphProjection)
 
 // WithSchema attaches a [Schema] to the projection. Every write issued by the
@@ -45,6 +54,8 @@ type ProjectionOption func(*GraphProjection)
 // properties, edge endpoint mismatches) regardless of which [GraphDriver] is
 // used — the validation happens at the projection boundary, not inside the
 // driver.
+//
+// Deprecated: removed in v5 (ADR-0123): see [GraphProjection].
 func WithSchema(schema *Schema) ProjectionOption {
 	return func(p *GraphProjection) {
 		p.schema = schema
@@ -54,6 +65,9 @@ func WithSchema(schema *Schema) ProjectionOption {
 // NewGraphProjection creates a projection that materialises events into driver.
 // handler is driver-agnostic; types filters which event types the projection
 // receives. Options allow attaching a [Schema] for write validation.
+//
+// Deprecated: removed in v5 (ADR-0123): metaengine auto-projection +
+// graphadapter replace [GraphProjection].
 func NewGraphProjection(
 	name string,
 	driver GraphDriver,

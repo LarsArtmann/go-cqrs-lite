@@ -107,6 +107,9 @@ func WithDSN(opts ...sqlopt.DSNOption) Option {
 //
 // On any setup failure the database is closed before the error is returned —
 // no resource leaks. The returned Bundle owns the *sql.DB; Close releases it.
+//
+// Deprecated: removed in v5 (ADR-0123): system.System is the single
+// composition root. Migrate to system.New with DeploymentConfig before v5.
 func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 	cfg := defaultConfig()
 

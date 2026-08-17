@@ -1,3 +1,11 @@
+// Package relational provides [RelationalProjection] — an event projection
+// that materialises events into a multi-table SQL read model with atomic,
+// per-event transactions.
+//
+// Deprecated: removed in v5 (ADR-0123): multi-table concepts are absorbed as
+// engine internals. metaengine multi-collection batch atomicity +
+// auto-projection replace this public API — declare Events and Query types
+// and let the planner synthesize the collections.
 package relational
 
 import (
@@ -20,6 +28,8 @@ import (
 // The handler is dialect-agnostic: it never references *sql.DB, *sql.Tx, or a
 // specific SQL dialect. The backend (SQLite or PostgreSQL) is fixed when the
 // [RelationalProjection] is constructed.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type RelationalHandler func(ctx context.Context, evt cqrsevent.Event, sink ProjectionSink) error
 
 // RelationalProjection is an [cqrsprojection.Projection] that materialises events
@@ -35,6 +45,8 @@ type RelationalHandler func(ctx context.Context, evt cqrsevent.Event, sink Proje
 //
 // All writes within one Handle call are atomic (BEGIN … COMMIT), so a partial
 // failure leaves the read model untouched and the event can be retried.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type RelationalProjection struct {
 	name        string
 	schema      RelationalSchema
@@ -46,6 +58,8 @@ type RelationalProjection struct {
 }
 
 // RelationalProjectionOption configures a RelationalProjection.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 type RelationalProjectionOption func(*RelationalProjection)
 
 // NewRelationalProjection creates a projection that writes events into schema
@@ -55,6 +69,8 @@ type RelationalProjectionOption func(*RelationalProjection)
 //
 // The schema is auto-migrated (CREATE TABLE IF NOT EXISTS) at construction.
 // Pass [WithoutRelationalAutoMigrate] to manage migrations externally.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 func NewRelationalProjection(
 	name string,
 	schema RelationalSchema,
@@ -140,6 +156,8 @@ func (p *RelationalProjection) Handle(ctx context.Context, evt cqrsevent.Event) 
 
 // WithoutRelationalAutoMigrate skips CREATE TABLE IF NOT EXISTS at construction.
 // Use it when the caller manages schema via external migrations.
+//
+// Deprecated: removed in v5 (ADR-0123): see the package documentation.
 func WithoutRelationalAutoMigrate() RelationalProjectionOption {
 	return func(p *RelationalProjection) { p.autoMigrate = false }
 }

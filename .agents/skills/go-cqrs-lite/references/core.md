@@ -114,7 +114,7 @@ with projection + read model.
 | Verify doc code references compile                                    | `cmd/doc-check`                                                                                | modules §5      |
 | In-memory command bus (typed pub/sub)                                 | `command` (`NewMemoryBus`)                                                                     | recipes §2.1    |
 | In-memory implementations for tests/dev                               | `memory`                                                                                       | recipes §2.1    |
-| One-call infrastructure wiring (Bundle presets)                       | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/mysql`, `stack/turso` | recipes §2.0    |
+| One-call infrastructure wiring (Bundle presets)                       | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/mysql`, `stack/turso` *(all deprecated, removed in v5 — ADR-0123)* | recipes §2.0    |
 | Typed read-model store over KV backend                                | `kv.TypedStore`                                                                                | recipes §2.0    |
 | Cache decorator for read models                                       | `kv.Cache`                                                                                     | recipes §2.0    |
 | Run projections with crash-restart + checkpoint + DLQ                 | `projectionhost`                                                                               | advanced §6.9   |
@@ -137,11 +137,18 @@ with projection + read model.
 
 **Three tiers** — pick by read-access pattern, not by preference:
 
+> **v5 deprecation notice (ADR-0123):** all three v1 tiers below
+> (`stack.Materialize` + `SQLViewStore`, `storage.RelationalProjection`,
+> `graph.GraphProjection`) and the `stack/*` presets are **deprecated and
+> removed in v5** — new code should prefer the `metaengine` Store +
+> `projectionadapter` / `system` composition root. They remain fully
+> functional through v4.x.
+
 | Tier            | Module                               | One event writes…       | Use when                                                                            | Do NOT use for                                           |
 | --------------- | ------------------------------------ | ----------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| **Document/KV** | `stack.Materialize` + `kv.ViewStore` | one record, one table   | single-entity lookups, CRUD reads, simple WHERE/ORDER BY on columns                 | composite keys, multi-table writes, OR conditions, JOINs |
-| **Relational**  | `storage.RelationalProjection`       | several tables (atomic) | composite primary keys, junction tables, multi-table denormalization, complex WHERE | variable-depth traversal                                 |
-| **Graph**       | `graph.GraphProjection`              | nodes + edges           | N-hop traversal, adjacency, path-finding, causation DAGs                            | simple CRUD (overkill)                                   |
+| **Document/KV** | `stack.Materialize` + `kv.ViewStore` *(deprecated, v5)* | one record, one table   | single-entity lookups, CRUD reads, simple WHERE/ORDER BY on columns                 | composite keys, multi-table writes, OR conditions, JOINs |
+| **Relational**  | `storage.RelationalProjection` *(deprecated, v5)*       | several tables (atomic) | composite primary keys, junction tables, multi-table denormalization, complex WHERE | variable-depth traversal                                 |
+| **Graph**       | `graph.GraphProjection` *(deprecated, v5)*              | nodes + edges           | N-hop traversal, adjacency, path-finding, causation DAGs                            | simple CRUD (overkill)                                   |
 
 `SQLViewStore` is the document tier **with queryable SQL columns** — still one record per event, single-column primary key. If you need composite keys or one event writing to multiple tables, that's `RelationalProjection`. Don't try to make ViewStore do relational work — the tiers exist because no single tier serves all read patterns well.
 
