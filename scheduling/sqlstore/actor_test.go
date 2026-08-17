@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 )
 
@@ -114,5 +116,36 @@ func TestSQLiteTimerStore_NonObjectLegacyPayloadDecodes(t *testing.T) {
 
 	if len(timers) != 1 || timers[0].Payload != "just-a-string" {
 		t.Fatalf("string payload round-trip: got %+v (len %d)", timers, len(timers))
+	}
+}
+
+// TestSQLiteTimerStore_CorruptPayloadClassifiedAsCorruption proves a row whose
+// payload column no longer decodes as P surfaces as a Corruption-family error
+// naming the offending timer — operators can distinguish a rotting payload
+// column from an infrastructure outage.
+func TestSQLiteTimerStore_CorruptPayloadClassifiedAsCorruption(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store, db := newSQLiteStore[testPayload](t)
+
+	due := time.Now().Add(-time.Minute).UTC().Format("2006-01-02T15:04:05.000000000Z07:00")
+
+	_, err := db.ExecContext(
+		ctx,
+		`INSERT INTO timers (id, fire_at, payload) VALUES (?, ?, ?)`,
+		"corrupt-timer", due, `{"action":42}`, // P declares Action string; number is a type mismatch
+	)
+	if err != nil {
+		t.Fatalf("seed corrupt row: %v", err)
+	}
+
+	_, err = store.Due(ctx, time.Now())
+	if err == nil {
+		t.Fatal("expected decode failure for corrupt payload row, got nil")
+	}
+
+	if got := errorfamily.Classify(err); got != errorfamily.Corruption {
+		t.Errorf("corrupt payload must classify as Corruption, got %v", got)
 	}
 }

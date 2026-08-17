@@ -15,6 +15,9 @@ import (
 //
 // Unlike SQLBackend (which borrows the *sql.DB), Backend OWNS the *pebble.DB.
 // Calling Close() closes the database AND all stores.
+//
+// By default every store writes with pebble.Sync (fsync per write). Pass
+// [WithBackendAsyncWrites] to construct all stores with asynchronous writes.
 type Backend struct {
 	database *pebble.DB
 	events   *EventStore
@@ -25,53 +28,104 @@ type Backend struct {
 	readMods kv.Store
 }
 
+// BackendOption configures how a [Backend] constructs its stores.
+type BackendOption func(*backendConfig)
+
+type backendConfig struct {
+	asyncWrites bool
+}
+
+// WithBackendAsyncWrites constructs every Backend store — events, commands,
+// queries, snapshots, checkpoints, and the shared read-model KV store — with
+// asynchronous writes: each write is appended to the write-ahead log in the
+// page cache but returns before the fsync. Writes survive an application
+// crash; a kernel or power crash may lose the most recent ones.
+//
+// This is the per-store [WithAsyncWrites] / [WithCommandAsyncWrites] / ...
+// family applied to every store at once, typically driven by a durability
+// tier (see stack.DurabilityTier). The default Backend keeps synchronous
+// writes (pebble.Sync per write).
+func WithBackendAsyncWrites() BackendOption {
+	return func(cfg *backendConfig) { cfg.asyncWrites = true }
+}
+
 // Open creates a new Backend by opening a Pebble database at the given directory.
 // The Backend owns the *pebble.DB — Close() will close it.
-func Open(dir string, opts *pebble.Options, logger *slog.Logger) (*Backend, error) {
+func Open(
+	dir string,
+	opts *pebble.Options,
+	logger *slog.Logger,
+	backendOpts ...BackendOption,
+) (*Backend, error) {
 	database, err := pebble.Open(dir, opts)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "pebble.open_backend",
 			"open pebble database")
 	}
 
-	return newBackend(database, logger)
+	return newBackend(database, logger, backendOpts...)
 }
 
 // NewBackend wraps an existing *pebble.DB into a Backend.
 // The Backend does NOT own the DB — the caller is responsible for closing it.
 // Use Open() instead if you want the Backend to own the DB lifecycle.
 // Returns ErrNilDatabase if database is nil.
-func NewBackend(database *pebble.DB, logger *slog.Logger) (*Backend, error) {
-	return newBackend(database, logger)
+func NewBackend(database *pebble.DB, logger *slog.Logger, backendOpts ...BackendOption) (*Backend, error) {
+	return newBackend(database, logger, backendOpts...)
 }
 
-func newBackend(database *pebble.DB, logger *slog.Logger) (*Backend, error) {
-	events, err := NewStore(database, logger)
+func newBackend(database *pebble.DB, logger *slog.Logger, backendOpts ...BackendOption) (*Backend, error) {
+	cfg := backendConfig{}
+	for _, opt := range backendOpts {
+		opt(&cfg)
+	}
+
+	var storeOpts []StoreOption
+	var commandOpts []CommandStoreOption
+	var queryOpts []QueryStoreOption
+	var snapshotOpts []SnapshotOption
+	var checkpointOpts []CheckpointOption
+
+	kvOpts := []KVOption{WithBorrowedDB()}
+
+	if cfg.asyncWrites {
+		storeOpts = append(storeOpts, WithAsyncWrites())
+		commandOpts = append(commandOpts, WithCommandAsyncWrites())
+		queryOpts = append(queryOpts, WithQueryAsyncWrites())
+		snapshotOpts = append(snapshotOpts, WithSnapshotAsyncWrites())
+		checkpointOpts = append(checkpointOpts, WithCheckpointAsyncWrites())
+	} else {
+		// Standalone KVAdapter defaults to async writes; the Backend's shared
+		// read-model store keeps its historical synchronous behavior.
+		kvOpts = append(kvOpts, WithKVSyncWrites())
+	}
+
+	events, err := NewStore(database, logger, storeOpts...)
 	if err != nil {
 		return nil, err
 	}
 
-	commands, err := NewCommandStore(database, logger)
+	commands, err := NewCommandStore(database, logger, commandOpts...)
 	if err != nil {
 		return nil, err
 	}
 
-	queries, err := NewQueryStore(database, logger)
+	queries, err := NewQueryStore(database, logger, queryOpts...)
 	if err != nil {
 		return nil, err
 	}
 
-	snapshot, err := NewSnapshotStore(database, logger)
+	snapshot, err := NewSnapshotStore(database, logger, snapshotOpts...)
 	if err != nil {
 		return nil, err
 	}
 
-	checkpt, err := NewCheckpointStore(database, logger)
+	checkpt, err := NewCheckpointStore(database, logger, checkpointOpts...)
 	if err != nil {
 		return nil, err
 	}
 
-	readMods, err := NewKVStore(database, WithBorrowedDB(), WithKVSyncWrites())
+	readMods, err := NewKVStore(database, kvOpts...)
 	if err != nil {
 		return nil, err
 	}

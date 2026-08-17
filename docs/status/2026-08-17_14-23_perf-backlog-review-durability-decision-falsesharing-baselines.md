@@ -202,3 +202,55 @@ Nothing destroyed, no false GREEN claims, no reverts. Honest failures:
 _Baseline context: session started from a tree carrying foreign uncommitted changes
 (`metaengine/mysqlengine/graph*.go` modified, `event/metadata_cbor_test.go` untracked) — untouched
 throughout and still present. Auto-commit daemon may have committed work mid-session as usual._
+
+---
+
+## h) RESUME SESSION (2026-08-17 ~14:35) — autonomous decisions on §g
+
+The resumed session was instructed to execute without waiting. Decisions taken autonomously:
+
+1. **g.1 → (a) bbolt Normal stays sync-on-commit; preset default stays Strict.** The tier contract
+   promises Normal = safe against app crash. bbolt has no WAL; its only async knob (`NoSync`) is
+   documented by upstream as dangerous and carries a murky corruption story on unclean shutdown —
+   a library must not encode a guarantee the storage engine refuses to make. bbolt simply has no
+   app-crash-safe middle tier: Normal ≡ Strict for bbolt, recorded as an explicit exception in
+   `stack/durability.go` (bbolt row added to the tier table). Default stays Strict (not aligned to
+   Normal) deliberately: since Normal ≡ Strict behaviorally, a Normal default would be a no-op
+   label today but a silent durability drop the day anyone "fixes" bbolt Normal→NoSync. Strict
+   default makes that trap impossible. `DurabilityRange` keeps advertising all three tiers.
+
+2. **g.2 → (a) evidence-doc baselines only, no CI gate.** The three false-sharing benches measure
+   cache-line contention geometry — hardware-pinned, and the observed SSEReplaySeq ±56% cell would
+   flake a 25%-median gate. Their value is the RELATIVE padded-vs-adjacent comparison (protocol:
+   pad only if padded wins >10%), which a median-ns/op gate cannot express.
+   `scripts/benchmark-regression.sh` stays the ONE gate (stack/bench set). Committed baselines +
+   re-run commands in the evidence doc replace CI wiring.
+
+3. **g.3 → re-run ONLY the anomalous suite (SSEReplaySeq) as tie-breaker; accept the two tight
+   suites.** The two stable suites (sqliteengine ±1–7%, projectionhost ±1–7%) reproduce the
+   recorded decisions — re-running them at today's HIGHER load (2.28–3.10 vs 1.3–2.1) can only
+   add noise. The SSEReplaySeq tie-breaker decides DIRECTION, which ambient load does not invent.
+   Mechanism argument from the recorded decision still holds: `record()` touches BOTH `seq` and
+   the mutex-guarded fields every call, so padding the pair cannot pay; a padded win must come
+   from allocation size-class side effects. NO-PAD stands unless the tie-breaker shows a clean
+   (>10%, both cpu counts, tight variance) padded win — then the decision reopens per protocol.
+
+4. **Naming review outcome (user's explicit gate, applied per naming-review checklist):**
+   - `cqrspebble.BackendOption` + `WithBackendAsyncWrites()` — extends the existing
+     `With{Command,Query,Snapshot,Checkpoint}AsyncWrites` family; scope prefix is the type name
+     (`Backend`). Bare `WithAsyncWrites` is taken by EventStore's `StoreOption`.
+   - `pebbleengine.Option` + `WithAsyncWrites()` — mirrors `storage/pebble` vocabulary for the
+     identical mechanism (per-write WriteOptions). Also added to `NewPebbleEngineFromDB` (per-write
+     sync is a store-level concern there, so it applies cleanly).
+   - `bboltengine.Option` + `WithNoSync()` — deliberately NOT `WithAsyncWrites`: bbolt has no WAL,
+     so "async writes" would falsely suggest the same durability class as pebble's async WAL.
+     `WithNoSync` states the actual mechanism (bbolt's own `NoSync` + `NoFreelistSync` companion),
+     each engine option names its backend's native knob. Not added to `NewBboltEngineFromDB`
+     (NoSync is fixed at `bolt.Open` time; changing it post-open is impossible).
+   - Preset API unchanged: `WithDurability` was already the right name; only the tier mapping
+     and docs change.
+
+5. **Latent bug found during research:** today's Relaxed mapping sets `DisableWAL=true` but stores
+   still write with `pebble.Sync` — with the WAL disabled, pebble turns Sync into a memtable
+   flush, so Relaxed (the "fast" tier) forces the most expensive write path. Option A fixes this
+   as a side effect (Relaxed now also gets async writes). Recorded in CHANGELOG Changed.

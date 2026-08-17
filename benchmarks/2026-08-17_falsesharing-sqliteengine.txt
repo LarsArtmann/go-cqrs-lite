@@ -1,0 +1,46 @@
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkMultiSeqCounterUnpadded-16    	63687586	        18.64 ns/op
+BenchmarkMultiSeqCounterUnpadded-16    	163486790	        19.17 ns/op
+BenchmarkMultiSeqCounterUnpadded-16    	67524428	        18.39 ns/op
+BenchmarkMultiSeqCounterUnpadded-16    	166309658	        18.79 ns/op
+BenchmarkMultiSeqCounterUnpadded-16    	67517134	        18.25 ns/op
+BenchmarkMultiSeqCounterUnpadded-16    	168000092	        19.22 ns/op
+BenchmarkMultiSeqCounterUnpadded-16    	96507800	        20.27 ns/op
+BenchmarkMultiSeqCounterUnpadded-16    	97773900	        19.47 ns/op
+BenchmarkMultiSeqCounterUnpadded-16    	77449784	        14.03 ns/op
+BenchmarkMultiSeqCounterUnpadded-16    	77102948	        18.96 ns/op
+BenchmarkMultiSeqCounterUnpadded-32    	69340489	        17.13 ns/op
+BenchmarkMultiSeqCounterUnpadded-32    	100000000	        20.07 ns/op
+BenchmarkMultiSeqCounterUnpadded-32    	63816303	        21.55 ns/op
+BenchmarkMultiSeqCounterUnpadded-32    	100000000	        17.79 ns/op
+BenchmarkMultiSeqCounterUnpadded-32    	100000000	        19.87 ns/op
+BenchmarkMultiSeqCounterUnpadded-32    	100000000	        20.19 ns/op
+BenchmarkMultiSeqCounterUnpadded-32    	100000000	        20.87 ns/op
+BenchmarkMultiSeqCounterUnpadded-32    	100000000	        20.52 ns/op
+BenchmarkMultiSeqCounterUnpadded-32    	100000000	        19.80 ns/op
+BenchmarkMultiSeqCounterUnpadded-32    	100000000	        19.74 ns/op
+BenchmarkMultiSeqCounterPadded-16      	166570228	         8.558 ns/op
+BenchmarkMultiSeqCounterPadded-16      	163310718	         7.405 ns/op
+BenchmarkMultiSeqCounterPadded-16      	160851532	         7.287 ns/op
+BenchmarkMultiSeqCounterPadded-16      	166380516	         7.236 ns/op
+BenchmarkMultiSeqCounterPadded-16      	159359773	         7.287 ns/op
+BenchmarkMultiSeqCounterPadded-16      	164681215	         7.329 ns/op
+BenchmarkMultiSeqCounterPadded-16      	164394880	         7.242 ns/op
+BenchmarkMultiSeqCounterPadded-16      	165175872	         7.341 ns/op
+BenchmarkMultiSeqCounterPadded-16      	162527840	         7.285 ns/op
+BenchmarkMultiSeqCounterPadded-16      	166471449	         7.197 ns/op
+BenchmarkMultiSeqCounterPadded-32      	158681614	         7.342 ns/op
+BenchmarkMultiSeqCounterPadded-32      	166685596	         7.254 ns/op
+BenchmarkMultiSeqCounterPadded-32      	151444833	         7.215 ns/op
+BenchmarkMultiSeqCounterPadded-32      	165338826	         7.045 ns/op
+BenchmarkMultiSeqCounterPadded-32      	170646265	         7.058 ns/op
+BenchmarkMultiSeqCounterPadded-32      	168199374	         7.164 ns/op
+BenchmarkMultiSeqCounterPadded-32      	169643560	         7.140 ns/op
+BenchmarkMultiSeqCounterPadded-32      	169231347	         7.041 ns/op
+BenchmarkMultiSeqCounterPadded-32      	164456254	         7.212 ns/op
+BenchmarkMultiSeqCounterPadded-32      	169188234	         6.929 ns/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4	81.411s

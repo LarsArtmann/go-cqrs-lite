@@ -31,9 +31,9 @@
 | Path                                       | Benchmark                                               | How to run                                                               | Baseline                                                        | Last measured                                                                                                                                                                        |
 | ------------------------------------------ | ------------------------------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | metaengine workloadMeter (contended)       | `BenchmarkWorkloadMeter*` (`metaengine`)                | `go test ./metaengine/ -bench WorkloadMeter -cpu 4,8,16,32`              | adjacent hot counters share cache lines: 6.3 ns/op @4, 6.6 @8   | 128-byte pad: 3.4 ns/op @4, 3.2 @8 (−46..51%); pad holds at scale: 4.38 ns @16, 4.83 @32 (2026-08-16, count=10)                                                                      |
-| sqliteengine multiSeqCounter false sharing | `BenchmarkMultiSeqCounter*` (`metaengine/sqliteengine`) | `go test ./metaengine/sqliteengine/ -bench MultiSeqCounter -cpu 16,32`   | per-collection 32B counters can share a cache line: 19.7 ns @16 | trailing pad to 128B size class (2026-08-16): 6.9 ns @16, 7.4 @32 (−61..65%, 2.5-2.8x); unpadded control bench kept — [evidence](benchmarks/2026-08-16_false-sharing-contention.md)  |
-| projectionhost worker counters             | `BenchmarkWorkerCounters*` (`projectionhost`)           | `go test ./projectionhost/ -bench WorkerCounters -cpu 16,32`             | —                                                               | NO PAD (measured): padded mirror ~58% slower for the writer under reader spin; counters are single-writer — [evidence](benchmarks/2026-08-16_false-sharing-contention.md)            |
-| metaengine SSEReplay.seq                   | `BenchmarkSSEReplaySeq*` (`metaengine`)                 | `go test ./metaengine/ -bench SSEReplaySeq -cpu 16,32`                   | —                                                               | NO PAD (measured): contradictory deltas (+12% @16, −30% @32); record() touches seq and mutex-guarded fields together — [evidence](benchmarks/2026-08-16_false-sharing-contention.md) |
+| sqliteengine multiSeqCounter false sharing | `BenchmarkMultiSeqCounter*` (`metaengine/sqliteengine`) | `go test ./metaengine/sqliteengine/ -bench MultiSeqCounter -cpu 16,32`   | per-collection 32B counters can share a cache line: 19.7 ns @16 | trailing pad to 128B size class (2026-08-16): 6.9 ns @16, 7.4 @32 (−61..65%, 2.5-2.8x); unpadded control bench kept — [evidence](benchmarks/2026-08-16_false-sharing-contention.md); benchstat baseline: [2026-08-17](../benchmarks/2026-08-17_falsesharing-sqliteengine.txt) (padded 7.29n ±2% / 7.15n ±2%) |
+| projectionhost worker counters             | `BenchmarkWorkerCounters*` (`projectionhost`)           | `go test ./projectionhost/ -bench WorkerCounters -cpu 16,32`             | —                                                               | NO PAD (measured): padded mirror ~58% slower for the writer under reader spin; counters are single-writer — [evidence](benchmarks/2026-08-16_false-sharing-contention.md); benchstat baseline: [2026-08-17](../benchmarks/2026-08-17_falsesharing-projectionhost.txt) (adjacent 190.4n ±1% / 233.8n ±7%)            |
+| metaengine SSEReplay.seq                   | `BenchmarkSSEReplaySeq*` (`metaengine`)                 | `go test ./metaengine/ -bench SSEReplaySeq -cpu 16,32`                   | —                                                               | NO PAD (confirmed 2026-08-17 tie-breaker: padded +8% slower @16, tied @32; earlier "padded wins" run was ±56%-under-load noise) — [evidence](benchmarks/2026-08-16_false-sharing-contention.md); benchstat baseline: [2026-08-17](../benchmarks/2026-08-17_falsesharing-metaengine.txt) |
 | metaengine row layout scoring              | `BenchmarkRowLayoutCalibration_*` (`metaengine/bench`)  | `go test ./metaengine/bench/ -bench RowLayout -run XXX` (engines needed) | assumed normalize≪embed                                         | measurement-derived: geomean reads 1.27x, writes 0.52x, storage 0.35x; sign-flip corrected (JOIN reads NOT cheaper)                                                                  |
 
 ## Read-model / projection paths
@@ -54,6 +54,16 @@ each run. Implementation: `scripts/benchmark-regression.sh` (also usable locally
 refreshes the committed local baseline — baselines are hardware-specific, never
 compare across machines). Breadth (all backends, metaengine matrix) stays in the
 nightly/matrix jobs, not the gate.
+
+Diagnostic micro-benchmarks (false-sharing controls) are NOT gated — their value
+is the relative padded-vs-adjacent comparison, which a median gate cannot
+express; their committed baselines and re-run commands live in
+[benchmarks/2026-08-17_falsesharing-*.txt](../benchmarks/) and the
+[evidence doc](benchmarks/2026-08-16_false-sharing-contention.md).
+
+**benchstat** (comparing baseline files) is not packaged in nixpkgs — install
+once per machine: `go install golang.org/x/perf/cmd/benchstat@latest` (lands in
+`$(go env GOPATH)/bin`).
 
 ## How to add an entry
 

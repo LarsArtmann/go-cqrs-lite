@@ -1,0 +1,46 @@
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/projectionhost/v4
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkWorkerCountersAdjacent-16    	 5429610	       263.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-16    	 6534031	       188.8 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-16    	 6364938	       190.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-16    	 6116494	       191.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-16    	 6211851	       190.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-16    	 6566400	       188.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-16    	 6353068	       189.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-16    	 6380373	       190.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-16    	 6414172	       190.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-16    	 6238849	       192.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-32    	 5814855	       213.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-32    	 4709629	       233.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-32    	 4717940	       230.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-32    	 6059970	       225.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-32    	 4822922	       249.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-32    	 5343156	       234.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-32    	 5541493	       266.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-32    	 4896033	       243.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-32    	 4949037	       239.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersAdjacent-32    	 5553193	       226.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-16      	 3051384	       388.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-16      	 3474592	       333.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-16      	 3685044	       334.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-16      	 3458041	       343.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-16      	 3529268	       347.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-16      	 3558500	       342.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-16      	 3469256	       343.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-16      	 3494305	       343.8 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-16      	 3453649	       346.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-16      	 3490416	       341.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-32      	 3264948	       376.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-32      	 2713132	       447.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-32      	 3113065	       419.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-32      	 3002902	       382.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-32      	 3160524	       372.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-32      	 3061006	       408.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-32      	 2997614	       390.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-32      	 3266108	       369.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-32      	 2756227	       397.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWorkerCountersPadded-32      	 2582486	       410.4 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/projectionhost/v4	48.580s

@@ -32,17 +32,38 @@ func defaultConfig() config {
 }
 
 // WithDurability sets the durability tier for the Pebble backend. This maps
-// to Pebble's WAL and sync settings:
+// to Pebble's WAL and per-write sync settings (see [tierToSettings]):
 //
-//   - [stack.DurabilityStrict]  → WAL enabled, sync writes (the default)
-//   - [stack.DurabilityNormal]  → same as Strict for Pebble (no change)
-//   - [stack.DurabilityRelaxed] → DisableWAL=true (writes go to memtable only,
-//     data loss on crash)
+//   - [stack.DurabilityStrict]  → WAL enabled, sync writes (fsync per write)
+//   - [stack.DurabilityNormal]  → WAL enabled, async writes (no per-write
+//     fsync — safe against app crash, not kernel crash). The default.
+//   - [stack.DurabilityRelaxed] → DisableWAL=true + async writes (writes go
+//     to memtable only; data loss on crash)
 //
 // The chosen tier is recorded on the Bundle via [stack.WithDurability] so
 // benchmark tools can compare backends at the same durability level.
 func WithDurability(tier stack.DurabilityTier) Option {
 	return func(c *config) { c.durability = tier }
+}
+
+// tierToSettings translates a durability tier to Pebble's WAL and per-write
+// sync settings:
+//
+//   - Strict (and any unrecognized value): WAL enabled, sync writes — the
+//     safest interpretation.
+//   - Normal: WAL enabled, async writes (no per-write fsync).
+//   - Relaxed: DisableWAL + async writes. Both flags matter: with the WAL
+//     disabled, pebble.Sync degrades to a memtable flush per write — the
+//     slowest possible path — so the "fast" tier must also drop the sync.
+func tierToSettings(tier stack.DurabilityTier) (disableWAL, asyncStores bool) {
+	switch tier {
+	case stack.DurabilityNormal:
+		return false, true
+	case stack.DurabilityRelaxed:
+		return true, true
+	default:
+		return false, false
+	}
 }
 
 // WithPebbleOptions overrides the default PebbleDB options. The preset ships
@@ -180,12 +201,18 @@ func New(dir string, opts ...Option) (*Bundle, error) {
 		opt(&cfg)
 	}
 
-	// Translate durability tier to Pebble WAL settings.
-	if cfg.durability == stack.DurabilityRelaxed {
+	// Translate durability tier to Pebble WAL and per-write sync settings.
+	disableWAL, asyncStores := tierToSettings(cfg.durability)
+	if disableWAL {
 		cfg.pebbleOpts.DisableWAL = true
 	}
 
-	backend, err := cqrspebble.Open(dir, cfg.pebbleOpts, cfg.logger)
+	var backendOpts []cqrspebble.BackendOption
+	if asyncStores {
+		backendOpts = append(backendOpts, cqrspebble.WithBackendAsyncWrites())
+	}
+
+	backend, err := cqrspebble.Open(dir, cfg.pebbleOpts, cfg.logger, backendOpts...)
 	if err != nil {
 		if cfg.blockCache != nil {
 			cfg.blockCache.Unref()

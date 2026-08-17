@@ -46,8 +46,13 @@ func WithLogger(logger *slog.Logger) Option {
 }
 
 // WithDurability sets the durability tier.
-// DurabilityRelaxed enables NoSync (skips fsync — data loss possible on crash).
-// DurabilityNormal and DurabilityStrict use bbolt's default sync-on-commit.
+// DurabilityRelaxed enables NoSync + NoFreelistSync (skips fsync — bbolt
+// upstream documents this as dangerous; data loss possible on crash).
+// DurabilityNormal and DurabilityStrict both use bbolt's default
+// sync-on-commit: bbolt has no WAL, so it has no app-crash-safe middle tier
+// (see the exception note on stack.DurabilityNormal). The preset defaults to
+// Strict rather than Normal so the default tier name matches the actual
+// guarantee.
 func WithDurability(tier stack.DurabilityTier) Option {
 	return func(c *config) { c.durability = tier }
 }

@@ -17,7 +17,6 @@ import (
 	"database/sql"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
-	"errors"
 	"fmt"
 	"time"
 
@@ -25,80 +24,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 )
-
-// ErrUnknownDialect is returned when an unsupported [Dialect] is passed to a
-// constructor.
-var ErrUnknownDialect = errors.New("sqlstore: unknown dialect")
-
-// Dialect selects SQL syntax for table creation and placeholders.
-// Intentional duplicate: see idempotency/sqlstore/store.go. Values MUST match.
-// art-dupl:accept intentional cross-module duplicate — separate go.mod, values MUST match
-type Dialect int
-
-const (
-	// DialectSQLite uses ? placeholders and stores timestamps as RFC3339 text.
-	DialectSQLite Dialect = iota
-	// DialectPostgres uses $N placeholders and native TIMESTAMP WITH TIME ZONE.
-	DialectPostgres
-	// DialectMySQL uses ? placeholders and native DATETIME(3).
-	DialectMySQL
-)
-
-// sqliteTimeFormat is a fixed-width RFC3339 variant that always emits 9
-// fractional digits so lexicographic comparison matches chronological order.
-const sqliteTimeFormat = "2006-01-02T15:04:05.000000000Z07:00"
-
-type queries struct {
-	ddl        string
-	schedule   string
-	due        string
-	deleteByID string
-}
-
-func sqliteQueries() queries {
-	return queries{
-		ddl: `CREATE TABLE IF NOT EXISTS timers (
-	id         TEXT PRIMARY KEY,
-	fire_at    TEXT NOT NULL,
-	payload    BLOB NOT NULL,
-	created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-CREATE INDEX IF NOT EXISTS idx_timers_fire_at ON timers(fire_at);`,
-		schedule:   `INSERT INTO timers (id, fire_at, payload) VALUES (?, ?, ?) ON CONFLICT(id) DO NOTHING`,
-		due:        `SELECT id, fire_at, payload FROM timers WHERE fire_at <= ? ORDER BY fire_at ASC`,
-		deleteByID: `DELETE FROM timers WHERE id = ?`,
-	}
-}
-
-func postgresQueries() queries {
-	return queries{
-		ddl: `CREATE TABLE IF NOT EXISTS timers (
-	id         TEXT PRIMARY KEY,
-	fire_at    TIMESTAMP WITH TIME ZONE NOT NULL,
-	payload    BYTEA NOT NULL,
-	created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
-CREATE INDEX IF NOT EXISTS idx_timers_fire_at ON timers(fire_at);`,
-		schedule:   `INSERT INTO timers (id, fire_at, payload) VALUES ($1, $2, $3) ON CONFLICT(id) DO NOTHING`,
-		due:        `SELECT id, fire_at, payload FROM timers WHERE fire_at <= $1 ORDER BY fire_at ASC`,
-		deleteByID: `DELETE FROM timers WHERE id = $1`,
-	}
-}
-
-func mysqlQueries() queries {
-	return queries{
-		ddl: `CREATE TABLE IF NOT EXISTS timers (
-	id         VARCHAR(255) PRIMARY KEY,
-	fire_at    DATETIME(3) NOT NULL,
-	payload    BLOB NOT NULL,
-	created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
-);`,
-		schedule: "INSERT INTO timers (id, fire_at, payload) VALUES (?, ?, ?) " +
-			"ON DUPLICATE KEY UPDATE id = id",
-		due:        `SELECT id, fire_at, payload FROM timers WHERE fire_at <= ? ORDER BY fire_at ASC`,
-		deleteByID: `DELETE FROM timers WHERE id = ?`,
-	}
-}
 
 // SQLTimerStore is a SQL-backed [scheduling.TimerStore]. Payloads are
 // serialized to JSON and stored in the payload column. The caller owns the
@@ -240,13 +165,9 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 			return nil, err
 		}
 
-		envelope, err := decodeTimerPayload[P](payload)
+		envelope, err := decodeTimerPayload[P](id, payload)
 		if err != nil {
-			return nil, errorfamily.WrapCorruption(
-				err,
-				"scheduling.sqlstore.unmarshal_payload",
-				"unmarshal timer payload for "+id,
-			)
+			return nil, err
 		}
 
 		timers = append(timers, scheduling.Timer[P]{
@@ -331,12 +252,14 @@ func (s *SQLTimerStore[P]) parseTime(src any) (time.Time, error) {
 
 var _ scheduling.TimerStore[any] = (*SQLTimerStore[any])(nil)
 
-// decodeTimerPayload decodes a payload-column blob. v1 rows carry the full
-// envelope (actor + payload); legacy rows hold the bare JSON of P and decode
-// with an empty actor. A probe requiring BOTH a "v":1 integer AND a "payload"
-// key distinguishes the shapes; non-object legacy payloads (strings, arrays)
-// fail the probe and decode directly as P.
-func decodeTimerPayload[P any](data []byte) (timerEnvelope[P], error) {
+// decodeTimerPayload decodes a payload-column blob for the timer with the
+// given ID (used for error context). v1 rows carry the full envelope (actor +
+// payload); legacy rows hold the bare JSON of P and decode with an empty
+// actor. A probe requiring BOTH a "v":1 integer AND a "payload" key
+// distinguishes the shapes; non-object legacy payloads (strings, arrays) fail
+// the probe and decode directly as P. Decode failures are classified as
+// corruption — a row whose payload no longer matches P is a corrupt row.
+func decodeTimerPayload[P any](id string, data []byte) (timerEnvelope[P], error) {
 	var probe struct {
 		Version *int            `json:"v"`
 		Payload *jsontext.Value `json:"payload"`
@@ -346,7 +269,11 @@ func decodeTimerPayload[P any](data []byte) (timerEnvelope[P], error) {
 		probe.Version != nil && *probe.Version == timerEnvelopeVersion && probe.Payload != nil {
 		var env timerEnvelope[P]
 		if err := json.Unmarshal(data, &env); err != nil {
-			return timerEnvelope[P]{}, err
+			return timerEnvelope[P]{}, errorfamily.WrapCorruption(
+				err,
+				"scheduling.sqlstore.unmarshal_envelope",
+				"unmarshal timer envelope for "+id,
+			)
 		}
 
 		return env, nil
@@ -355,8 +282,12 @@ func decodeTimerPayload[P any](data []byte) (timerEnvelope[P], error) {
 	var p P
 
 	if err := json.Unmarshal(data, &p); err != nil {
-		return timerEnvelope[P]{}, err
+		return timerEnvelope[P]{}, errorfamily.WrapCorruption(
+			err,
+			"scheduling.sqlstore.unmarshal_legacy_payload",
+			"unmarshal legacy timer payload for "+id,
+		)
 	}
 
-	return timerEnvelope[P]{Payload: p}, nil
+	return timerEnvelope[P]{Version: 0, Actor: "", Payload: p}, nil
 }

@@ -53,7 +53,7 @@ func (e *pebbleEngine) StreamAppend(_ context.Context, col, sid string, values [
 		_ = batch.Set(journalKey(col, gseq), []byte(journalEntry), nil)
 	}
 
-	if err := batch.Commit(pebble.Sync); err != nil {
+	if err := batch.Commit(e.writeOptions()); err != nil {
 		return fmt.Errorf("pebbleengine.StreamAppend: %w", err)
 	}
 
@@ -240,7 +240,7 @@ func (e *pebbleEngine) StreamAppendExpected(
 		_ = batch.Set(journalKey(col, gseq), []byte(journalEntry), nil)
 	}
 
-	if err := batch.Commit(pebble.Sync); err != nil {
+	if err := batch.Commit(e.writeOptions()); err != nil {
 		return fmt.Errorf("pebbleengine.StreamAppendExpected: %w", err)
 	}
 

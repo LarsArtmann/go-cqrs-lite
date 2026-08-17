@@ -14,6 +14,11 @@ import (
 // synthetic graph to measure where each wins, feeding the planner's cost
 // model (see docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md).
 //
+// Honesty rule: the forced-CTE arm calls the CTE query directly. Production
+// dispatch short-circuits depth 1 to the direct adjacency lookup BEFORE the
+// graphCTE switch, so routing the forced-CTE arm through the public
+// GraphNeighbors would silently measure the direct query under a CTE label.
+//
 // Run against a server:
 //
 //	MYSQL_TEST_DSN="..." go test -bench 'BenchmarkGraphNeighbors' -benchtime 20x -run '^$'
@@ -81,7 +86,17 @@ func runGraphNeighborsBench(b *testing.B, useCTE bool) {
 				b.ResetTimer()
 
 				for range b.N {
-					if _, err := e.GraphNeighbors(ctx, col, 0, depth); err != nil {
+					var err error
+					if useCTE {
+						// Direct CTE call, bypassing the depth-1 dispatch
+						// short-circuit (see the honesty rule above).
+						_, err = e.graphNeighborsCTE(ctx, col, 0, depth)
+					} else {
+						// Public entry point: a no-CTE server runs the
+						// depth-1 short-circuit plus iterative BFS deeper.
+						_, err = e.GraphNeighbors(ctx, col, 0, depth)
+					}
+					if err != nil {
 						b.Fatalf("GraphNeighbors: %v", err)
 					}
 				}

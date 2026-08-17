@@ -31,21 +31,21 @@ func (e *pebbleEngine) VectorInsert(
 	if err := e.db.Set(
 		keycodec.VectorKey(collection, emb.ID),
 		metaengine.EncodeVectorBinary(emb.Values),
-		pebble.Sync,
+		e.writeOptions(),
 	); err != nil {
 		return fmt.Errorf("pebbleengine.VectorInsert: %w", err)
 	}
 
 	metaKey := keycodec.VectorMetaKey(collection, emb.ID)
 	if emb.Metadata == nil {
-		if err := e.db.Delete(metaKey, pebble.Sync); err != nil {
+		if err := e.db.Delete(metaKey, e.writeOptions()); err != nil {
 			return fmt.Errorf("pebbleengine.VectorInsert: clear metadata: %w", err)
 		}
 
 		return nil
 	}
 
-	if err := e.db.Set(metaKey, encodeJSON(emb.Metadata), pebble.Sync); err != nil {
+	if err := e.db.Set(metaKey, encodeJSON(emb.Metadata), e.writeOptions()); err != nil {
 		return fmt.Errorf("pebbleengine.VectorInsert: metadata: %w", err)
 	}
 

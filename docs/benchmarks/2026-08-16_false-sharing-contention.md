@@ -5,6 +5,13 @@
 > Protocol: bench adjacent (production) layout against a padded mirror at
 > `-cpu 16,32`, `count=10`; pad ONLY if the padded variant wins by more than
 > 10%. Decisions recorded either way.
+>
+> **Before running: check `uptime`.** These are contention micro-benchmarks —
+> ambient load inflates variance (a ±56% cell traced to load 1.3–2.1 with 40+
+> user sessions). If the 1-minute load average exceeds ~1.5 on an otherwise
+> idle-class machine, defer or record the load next to the numbers. Run from
+> the WORKSPACE ROOT (per-module `GOWORK=off` runs can fail on sibling go
+> directives and produce non-comparable numbers).
 
 ## Machine context
 
@@ -87,6 +94,56 @@ Decision: **no pad** — deltas are contradictory across core counts (+12% @16,
 mutex-guarded fields on every call, so concurrent recorders pull both cache
 lines regardless of layout; separating them cannot pay. `SSEReplay` keeps its
 current layout.
+
+**Tie-breaker (2026-08-17):** a later re-run showed padded "winning" at both
+core counts (50.9n/41.0n vs adjacent 81.0n/81.3n) but with a ±56% cell, so a
+third exclusive-ish run (load ~3.3, see baselines section) decided it:
+adjacent 75.25n ±2% @16 / 77.88n ±17% @32 vs padded 81.42n ±6% / 78.72n ±12%
+— padded +8% SLOWER @16, statistically tied @32. Across three runs the signal
+is unstable and never a clean >10% padded win; the mechanism argument above
+explains why. **NO-PAD confirmed — decision closed unless a quiet-machine run
+shows a clean, tight, >10% padded win at BOTH core counts.**
+
+## Committed benchstat baselines (2026-08-17)
+
+Raw protocol outputs are committed under `benchmarks/` (hardware-specific —
+never compare across machines):
+
+- `benchmarks/2026-08-17_falsesharing-sqliteengine.txt` — run at load ~1.3–2.1
+- `benchmarks/2026-08-17_falsesharing-projectionhost.txt` — run at load ~1.3–2.1
+- `benchmarks/2026-08-17_falsesharing-metaengine.txt` — the SSEReplaySeq
+  tie-breaker run (load ~3.3; tightest variance of the three metaengine runs)
+
+```bash
+# Regenerate any baseline (from the workspace root):
+go test -tags "goexperiment.jsonv2" -run '^$' -bench 'MultiSeqCounter' \
+	-cpu 16,32 -count=10 -timeout 10m ./metaengine/sqliteengine/
+go test -tags "goexperiment.jsonv2" -run '^$' -bench 'WorkerCounters' \
+	-cpu 16,32 -count=10 -timeout 10m ./projectionhost/
+go test -tags "goexperiment.jsonv2" -run '^$' -bench 'SSEReplaySeq' \
+	-cpu 16,32 -count=10 -timeout 10m ./metaengine/
+
+# Compare (benchstat is not in nixpkgs — install once per machine):
+go install golang.org/x/perf/cmd/benchstat@latest
+benchstat benchmarks/2026-08-17_falsesharing-<suite>.txt
+```
+
+Benchstat summaries (sec/op, n=10):
+
+| Suite / variant     | @16 cpu        | @32 cpu        |
+| ------------------- | -------------- | -------------- |
+| sqliteengine Unpadded | 18.88n ± 3%  | 19.97n ± 11%   |
+| sqliteengine Padded | **7.287n ± 2%** | **7.152n ± 2%** |
+| projectionhost Adjacent | **190.4n ± 1%** | **233.8n ± 7%** |
+| projectionhost Padded | 343.6n ± 3%  | 393.8n ± 7%    |
+| metaengine Adjacent | **75.25n ± 2%** | 77.88n ± 17%   |
+| metaengine Padded   | 81.42n ± 6%    | 78.72n ± 12%   |
+
+Bold = the layout each decision kept. These baselines are diagnostic evidence,
+NOT a CI gate: their value is the relative padded-vs-adjacent comparison
+(protocol: pad only on a reproducible >10% win), which a median-ns/op gate
+cannot express — and the observed ±56%-under-load cell would flake it. The
+regression gate stays `scripts/benchmark-regression.sh` (stack/bench set).
 
 ## Ledger updates
 

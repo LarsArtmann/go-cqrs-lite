@@ -9,7 +9,8 @@ package stack
 //   - SQLite:     PRAGMA synchronous (FULL / NORMAL / OFF)
 //   - Turso:      PRAGMA synchronous (libSQL = SQLite fork)
 //   - Postgres:   synchronous_commit (on / off)
-//   - Pebble:     DisableWAL (true = Relaxed only)
+//   - Pebble:     WAL + per-write sync settings
+//   - bbolt:      NoSync (bbolt has no WAL — see the exception notes below)
 //
 // [DurabilityNormal] is the default — the same semantics every preset shipped
 // before this type existed. Consumers who need strict durability on
@@ -26,7 +27,8 @@ const (
 	//
 	//   - SQLite:   synchronous=FULL (fsync at every commit)
 	//   - Postgres: synchronous_commit=on (WAL fsync per commit)
-	//   - Pebble:   WAL enabled, no special async flags
+	//   - Pebble:   WAL enabled, sync writes (fsync per write)
+	//   - bbolt:    fsync on every commit (the bbolt default)
 	DurabilityStrict DurabilityTier = "strict"
 
 	// DurabilityNormal balances durability and throughput. The default tier
@@ -39,7 +41,17 @@ const (
 	//   - Postgres: synchronous_commit=off (no per-commit WAL fsync — safe
 	//               against app crash; small window of lost transactions on
 	//               kernel crash)
-	//   - Pebble:   WAL enabled, default flush behaviour
+	//   - Pebble:   WAL enabled, async writes (no per-write fsync — safe
+	//               against app crash; small window of lost writes on kernel
+	//               crash)
+	//   - bbolt:    same as Strict. EXCEPTION: bbolt has no WAL, so its only
+	//               async knob (NoSync) skips the commit fsync entirely —
+	//               a weaker guarantee than every other backend's Normal,
+	//               and one bbolt upstream documents as dangerous. bbolt
+	//               therefore cannot offer an app-crash-safe middle tier;
+	//               the bbolt preset also defaults to Strict (not Normal)
+	//               so this no-op alias can never silently become a
+	//               durability drop.
 	DurabilityNormal DurabilityTier = "normal"
 
 	// DurabilityRelaxed prioritises throughput. Data may be lost on process
@@ -50,7 +62,11 @@ const (
 	//   - SQLite:   synchronous=OFF (no fsync ever — SQLite docs: "transaction
 	//               will be lost if the application crashes")
 	//   - Postgres: synchronous_commit=off + local synchronous_standby_names
-	//   - Pebble:   DisableWAL=true (writes go to memtable only)
+	//   - Pebble:   DisableWAL=true + async writes (writes go to memtable
+	//               only; async matters — with the WAL disabled, a sync write
+	//               forces a memtable flush, the slowest path pebble has)
+	//   - bbolt:    NoSync + NoFreelistSync (skips the commit fsync — bbolt
+	//               upstream: dangerous, data loss possible on crash)
 	DurabilityRelaxed DurabilityTier = "relaxed"
 )
 

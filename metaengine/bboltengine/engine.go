@@ -52,6 +52,35 @@ const BboltNsPerWrite = 5000.0
 
 var _ metaengine.TrackerHost = (*bboltEngine)(nil)
 
+// Option configures a bbolt engine at construction time.
+type Option func(*engineConfig)
+
+type engineConfig struct {
+	noSync bool
+}
+
+// WithNoSync opens the database with bbolt's NoSync (and its companion
+// NoFreelistSync): write transactions skip the commit fsync. bbolt upstream
+// documents this as dangerous — data loss (and on unclean shutdown, possible
+// corruption) can occur on crash. bbolt has no WAL, so unlike Pebble's async
+// writes this is NOT app-crash-safe; the option is named after the bbolt knob
+// it sets rather than "async writes" to avoid implying that equivalence.
+func WithNoSync() Option {
+	return func(cfg *engineConfig) { cfg.noSync = true }
+}
+
+// boltOptions translates the engine config to bbolt open options, copying
+// bolt.DefaultOptions so the shared global is never mutated.
+func boltOptions(cfg engineConfig) *bolt.Options {
+	opts := *bolt.DefaultOptions
+	if cfg.noSync {
+		opts.NoSync = true
+		opts.NoFreelistSync = true
+	}
+
+	return &opts
+}
+
 type bboltEngine struct {
 	metaengine.Calibration
 
@@ -71,7 +100,12 @@ type bboltEngine struct {
 // a temporary file is used (for testing, volatile); otherwise path is the
 // on-disk database file (persisted across opens). The caller owns the returned
 // Engine and must call Close.
-func NewBboltEngine(path string) (metaengine.Engine, error) {
+func NewBboltEngine(path string, opts ...Option) (metaengine.Engine, error) {
+	cfg := engineConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
 	persistence := metaengine.PersistencePersistent
 	tmpPath := ""
 
@@ -87,7 +121,7 @@ func NewBboltEngine(path string) (metaengine.Engine, error) {
 		persistence = metaengine.PersistenceVolatile
 	}
 
-	db, err := bolt.Open(path, 0o600, bolt.DefaultOptions)
+	db, err := bolt.Open(path, 0o600, boltOptions(cfg))
 	if err != nil {
 		if tmpPath != "" {
 			_ = os.Remove(tmpPath)

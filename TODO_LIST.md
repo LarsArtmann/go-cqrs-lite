@@ -29,10 +29,13 @@ and is **never** duplicated here.
       (fsync per append) but a behavior change for existing Normal-tier
       consumers. AWAITS USER DECISION (status §g Q3).
       _(Effort: M)_
-- [ ] **Benchstat baselines for the 3 new false-sharing control benches**
+- [x] **Benchstat baselines for the 3 new false-sharing control benches**
       (multiSeqCounter padded/unpadded, WorkerCounters, SSEReplaySeq) —
-      point measurements live in [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md);
-      formal benchstat baselines still pending.
+      committed 2026-08-17: [`benchmarks/2026-08-17_falsesharing-*.txt`](benchmarks/),
+      benchstat tables + re-run commands in the
+      [evidence doc](docs/benchmarks/2026-08-16_false-sharing-contention.md);
+      SSEReplaySeq tie-breaker confirmed NO-PAD (padded +8% slower @16, tied @32).
+      Not CI-gated (relative-comparison benches, see evidence doc rationale).
       _(Effort: XS)_
 
 ---

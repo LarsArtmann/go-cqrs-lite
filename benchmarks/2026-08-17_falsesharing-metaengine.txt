@@ -1,0 +1,46 @@
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/metaengine/v4
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkSSEReplaySeqAdjacent-16    	15705127	        75.07 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-16    	16800421	        73.73 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-16    	15333145	        75.33 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-16    	15744310	        75.49 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-16    	17677149	        75.16 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-16    	15391395	        74.07 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-16    	15274845	        76.36 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-16    	14232142	        75.50 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-16    	16196425	        76.04 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-16    	16026469	        74.29 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-32    	15784479	        78.61 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-32    	15714699	        78.06 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-32    	15077809	        73.83 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-32    	18191602	        64.35 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-32    	22844565	        57.00 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-32    	16905642	        78.29 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-32    	15723693	        78.78 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-32    	15007723	        77.69 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-32    	15454677	        80.21 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqAdjacent-32    	15985436	        76.69 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-16      	15330747	        81.96 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-16      	15215028	        74.03 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-16      	16554603	        76.13 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-16      	13248891	        80.88 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-16      	15420522	        80.02 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-16      	13994689	        78.54 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-16      	14499554	        82.36 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-16      	14687504	        87.14 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-16      	14864899	        82.87 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-16      	14166385	        82.35 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-32      	14360046	        79.00 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-32      	15052302	        72.68 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-32      	28184260	        60.93 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-32      	25742772	        69.53 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-32      	27242227	        81.18 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-32      	14291228	        83.58 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-32      	13992666	        78.44 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-32      	14186636	        83.58 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-32      	14794754	        84.19 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSSEReplaySeqPadded-32      	14154432	        71.98 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/metaengine/v4	54.850s

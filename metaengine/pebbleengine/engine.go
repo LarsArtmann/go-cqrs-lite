@@ -52,11 +52,27 @@ const PebbleNsPerWrite = 2500.0
 
 var _ metaengine.TrackerHost = (*pebbleEngine)(nil)
 
+// Option configures a Pebble engine at construction time.
+type Option func(*engineConfig)
+
+type engineConfig struct {
+	syncWrites bool
+}
+
+// WithAsyncWrites skips the per-write fsync: each write is appended to the
+// write-ahead log in the page cache but returns before the fsync. Writes
+// survive an application crash; a kernel or power crash may lose the most
+// recent ones. The default engine fsyncs every write (pebble.Sync).
+func WithAsyncWrites() Option {
+	return func(cfg *engineConfig) { cfg.syncWrites = false }
+}
+
 type pebbleEngine struct {
 	metaengine.Calibration
 
 	db          *pebble.DB
 	ownsDB      bool
+	syncWrites  bool
 	persistence metaengine.Persistence
 	mu          sync.Mutex // guards counter/multimap/log seq operations
 	logSeq      sync.Map   // collection → *atomic.Int64 (log sequence counter)
@@ -67,19 +83,34 @@ type pebbleEngine struct {
 	layouts     map[string]layoutPlan // collection → layout plan (secondary indexes)
 }
 
+// writeOptions returns pebble.Sync when sync writes are enabled, otherwise
+// nil (pebble's default asynchronous write semantics).
+func (e *pebbleEngine) writeOptions() *pebble.WriteOptions {
+	if e.syncWrites {
+		return pebble.Sync
+	}
+
+	return nil
+}
+
 // NewPebbleEngine creates a Pebble-backed metaengine engine. If dir is empty,
 // an in-memory database is used (for testing); otherwise dir is the on-disk
 // database directory (persisted across opens). The caller owns the returned
 // Engine and must call Close.
-func NewPebbleEngine(dir string) (metaengine.Engine, error) {
-	opts := &pebble.Options{}
+func NewPebbleEngine(dir string, opts ...Option) (metaengine.Engine, error) {
+	cfg := engineConfig{syncWrites: true}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	dbOpts := &pebble.Options{}
 	persistence := metaengine.PersistencePersistent
 	if dir == "" {
-		opts.FS = vfs.NewMem()
+		dbOpts.FS = vfs.NewMem()
 		persistence = metaengine.PersistenceVolatile
 	}
 
-	db, err := pebble.Open(dir, opts)
+	db, err := pebble.Open(dir, dbOpts)
 	if err != nil {
 		return nil, fmt.Errorf("pebbleengine: open: %w", err)
 	}
@@ -87,6 +118,7 @@ func NewPebbleEngine(dir string) (metaengine.Engine, error) {
 	eng := &pebbleEngine{
 		db:          db,
 		ownsDB:      true,
+		syncWrites:  cfg.syncWrites,
 		persistence: persistence,
 	}
 
@@ -104,10 +136,16 @@ func NewPebbleEngine(dir string) (metaengine.Engine, error) {
 
 // NewPebbleEngineFromDB wraps an existing *pebble.DB. The caller retains
 // ownership of the DB — Close on the engine is a no-op.
-func NewPebbleEngineFromDB(db *pebble.DB) (metaengine.Engine, error) {
+func NewPebbleEngineFromDB(db *pebble.DB, opts ...Option) (metaengine.Engine, error) {
+	cfg := engineConfig{syncWrites: true}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
 	eng := &pebbleEngine{
 		db:          db,
 		ownsDB:      false,
+		syncWrites:  cfg.syncWrites,
 		persistence: metaengine.PersistencePersistent,
 	}
 
@@ -255,10 +293,10 @@ func (e *pebbleEngine) MapSet(_ context.Context, col string, key, value any) err
 			return err
 		}
 
-		return batch.Commit(pebble.Sync)
+		return batch.Commit(e.writeOptions())
 	}
 
-	return e.db.Set(mapKey(col, keyStr), valueJSON, pebble.Sync)
+	return e.db.Set(mapKey(col, keyStr), valueJSON, e.writeOptions())
 }
 
 func (e *pebbleEngine) MapGet(_ context.Context, col string, key any) (any, bool, error) {
@@ -292,10 +330,10 @@ func (e *pebbleEngine) MapDelete(_ context.Context, col string, key any) error {
 			return fmt.Errorf("pebbleengine: MapDelete: %w", err)
 		}
 
-		return batch.Commit(pebble.Sync)
+		return batch.Commit(e.writeOptions())
 	}
 
-	return e.db.Delete(mapKey(col, keyStr), pebble.Sync)
+	return e.db.Delete(mapKey(col, keyStr), e.writeOptions())
 }
 
 // --- MapUpdater ---
@@ -355,10 +393,10 @@ func (e *pebbleEngine) MapUpdate(
 			return err
 		}
 
-		return batch.Commit(pebble.Sync)
+		return batch.Commit(e.writeOptions())
 	}
 
-	return e.db.Set(k, newValJSON, pebble.Sync)
+	return e.db.Set(k, newValJSON, e.writeOptions())
 }
 
 // --- ScanBackend ---
@@ -422,7 +460,7 @@ func (e *pebbleEngine) MapScan(
 // --- SetBackend ---
 
 func (e *pebbleEngine) SetAdd(_ context.Context, col string, key any) error {
-	return e.db.Set(setKey(col, encodeKeyStr(key)), nil, pebble.Sync)
+	return e.db.Set(setKey(col, encodeKeyStr(key)), nil, e.writeOptions())
 }
 
 func (e *pebbleEngine) SetContains(_ context.Context, col string, key any) (bool, error) {
@@ -461,7 +499,7 @@ func (e *pebbleEngine) CounterIncrement(
 			return err
 		}
 
-		if err := e.db.Set(ck, encodeCounterValue(current+d), pebble.Sync); err != nil {
+		if err := e.db.Set(ck, encodeCounterValue(current+d), e.writeOptions()); err != nil {
 			return err
 		}
 	}
@@ -507,7 +545,7 @@ func (e *pebbleEngine) MultiAdd(_ context.Context, col string, key, value any) e
 	seq := e.nextMmSeq(col)
 	k := multimapKey(col, encodeKeyStr(key), seq)
 
-	return e.db.Set(k, encodeJSON(value), pebble.Sync)
+	return e.db.Set(k, encodeJSON(value), e.writeOptions())
 }
 
 // iterJSON scans the given prefix range and decodes every value as JSON. The
@@ -559,7 +597,7 @@ func (e *pebbleEngine) LogAppend(_ context.Context, col string, value any) error
 	seq := e.nextLogSeq(col)
 	k := logKey(col, seq)
 
-	return e.db.Set(k, encodeJSON(value), pebble.Sync)
+	return e.db.Set(k, encodeJSON(value), e.writeOptions())
 }
 
 func (e *pebbleEngine) LogTail(_ context.Context, col string, limit int) ([]any, error) {
