@@ -6,6 +6,62 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Changed — Durability tiers now de-escalate per-write sync on Pebble — 2026-08-17
+
+- **`stack/pebble` Normal tier maps to async WAL writes** (behavior change,
+  minor version): the preset now translates `stack.DurabilityNormal` (its
+  default) to async writes — WAL entries land in the page cache without a
+  per-write fsync (safe against app crash; a kernel/power crash may lose the
+  most recent writes) — instead of fsync-per-write. Every other backend
+  already de-escalated at Normal (SQLite `synchronous=NORMAL`, Postgres
+  `synchronous_commit=off`); Pebble was the outlier, and `stack/durability.go`
+  had documented this exact behavior all along while `stack/pebble/preset.go`
+  claimed "Normal → same as Strict" — the doc split brain is fixed, both now
+  tell the truth. Strict is unchanged (fsync per write) and remains what
+  write-critical consumers should opt into explicitly.
+- **`stack/pebble` Relaxed tier no longer forces a memtable flush per write** —
+  latent bug fixed as a side effect: Relaxed set `DisableWAL=true` but stores
+  still wrote with synchronous writes, which with the WAL disabled degrades to
+  a memtable flush per write — the slowest path Pebble has, in the tier that
+  exists for speed. Relaxed now also writes async (memtable only, data loss
+  on crash — as documented).
+- **bbolt is the documented exception**: it has no WAL, so its only async knob
+  (`NoSync`) skips the commit fsync entirely — a weaker guarantee than every
+  other backend's Normal and one bbolt upstream calls dangerous. bbolt
+  Normal therefore ≡ Strict (sync-on-commit), the exception is recorded in
+  `stack/durability.go`'s tier table, and the bbolt preset keeps defaulting
+  to Strict so the default tier name matches the actual guarantee.
+
+### Added — Backend + engine async-write options — 2026-08-17
+
+- **`pebble.WithBackendAsyncWrites`** (`storage/pebble`, with the new
+  `pebble.BackendOption` type) — constructs every Backend store (events,
+  commands, queries, snapshots, checkpoints, and the shared read-model KV
+  store) with async writes in one call; the per-store
+  `pebble.WithAsyncWrites` family unchanged. Default Backend behavior is
+  unchanged (sync writes; the shared read-model KV store keeps its historical
+  synchronous mode). What the `stack/pebble` tier mapping drives internally.
+- **`pebbleengine.WithAsyncWrites`** (`metaengine/pebbleengine`, with the new
+  `pebbleengine.Option` type) — replaces 15 hardcoded synchronous write sites
+  with one seam; both `NewPebbleEngine` and `NewPebbleEngineFromDB`
+  accept options. Default (fsync per write) unchanged.
+- **`bboltengine.WithNoSync`** (`metaengine/bboltengine`, with the new
+  `bboltengine.Option` type) — opens the DB with bbolt's NoSync and
+  NoFreelistSync flags, set on a copy of bbolt's default options (the shared
+  global is never mutated). Named after the bbolt knob rather than "async
+  writes" because bbolt has no WAL: skipping the commit fsync is NOT
+  app-crash-safe the way Pebble's async WAL is, and the name must not imply
+  that equivalence. Default unchanged.
+- **`BenchmarkEventAppendSync`/`BenchmarkEventAppendAsync`**
+  (`storage/pebble/durability_bench_test.go`) — disk-backed append-throughput
+  comparison for the two tiers (writes under
+  `$HOME/.cache/pebble-durability-bench`, override
+  `PEBBLE_DURABILITY_BENCH_DIR`; skips when unavailable — tmpfs would erase
+  the fsync cost being measured). First measurement attempt (2026-08-17) was
+  inconclusive: ambient load 3–4 on a 96%-full btrfs had raw async `Set` at
+  ~2.5 ms/op (device queue saturated) — recorded as PENDING a quiet window
+  in `docs/BENCHMARKS.md`.
+
 ### Added — WithActor hardening: scheduling actor propagation + coverage gates — 2026-08-17
 
 - **`scheduling.Timer.Actor`** — timer-initiated commands can now carry the

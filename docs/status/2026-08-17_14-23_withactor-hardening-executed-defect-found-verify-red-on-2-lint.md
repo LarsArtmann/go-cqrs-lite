@@ -182,3 +182,59 @@ integration, scheduling, scheduling/sqlstore) · **full `#verify` RED — 2 lint
 scheduling/sqlstore/store.go (mine), phases before lint all green**.
 
 Artifacts: `/tmp/withactor-verify.log` (full gate log), `/tmp/cborprobe/` (isolation probes).
+
+---
+
+## Addendum — 15:00 continuation session (lint fixes executed + new findings)
+
+**All 3 lint findings fixed** (the log held 3, not 2 — a second `wrapcheck` at
+store.go:358 hid behind the first):
+
+1. `exhaustruct` (store.go:361) → full named-field literal
+   `timerEnvelope[P]{Version: 0, Actor: "", Payload: p}` in the legacy fallback
+   (v0 is semantically honest for legacy rows).
+2. + 3. `wrapcheck` (store.go:349, 358) → **Question 2 resolved autonomously**:
+   lifted `errorfamily.WrapCorruption` INTO `decodeTimerPayload` (now takes the
+   timer ID for error context; distinct codes `unmarshal_envelope` /
+   `unmarshal_legacy_payload`), caller slimmed to `return nil, err` (same
+   pattern as `parseTime`). The report's "existing tests match on message text"
+   worry was checked and unfounded — no test asserted messages; Corruption
+   family classification is unchanged (was caller-wrapped before, helper-wrapped
+   now). Locked in by new `TestSQLiteTimerStore_CorruptPayloadClassifiedAsCorruption`.
+4. **Latent gate violation found**: store.go was 362 lines — over the 350-line
+   `#check-file-size` limit (not part of `#verify`, but repo law). Fixed by
+   splitting dialect SQL (`Dialect`, `queries`, 3 constructors,
+   `ErrUnknownDialect`, `sqliteTimeFormat`) into `scheduling/sqlstore/dialect.go`
+   (77 lines; store.go now 293). The `//art-dupl:accept` directive moved with
+   its block; targeted module lint confirms no new clone findings.
+
+**Item 5 executed (id pin sweep):** only `stack/bench` had a direct stale pin
+(v4.2.0) → bumped to v4.5.0 (sweep-consistent; additive). `scheduling`'s
+v4.2.0 is indirect-only (no direct id usage — zero-dep preserved).
+
+**NEW DEFECT DISCOVERED (feeds Questions 1+3): published preset tags are
+mutually inconsistent for standalone builds.** `stack/bench` GOWORK=off tests
+are broken (PRE-EXISTING — verified identical at id v4.2.0 in a revert probe):
+`stack/v4.3.0` sqlopt calls `storage.SQLiteSetSynchronous` (first in
+storage/v4.6.0) while its own go.mod requires storage v4.5.0; lifting storage
+to v4.7.1 then breaks `storage/pebble/v4@v4.0.3` (uses pre-rename
+`AggregateID`/`AggregateType` fields). No pin combination resolves — needs the
+coordinated re-tag wave. Workspace-mode tests (what `#verify` runs) are
+unaffected.
+
+**Items 9+10 executed:** sqlstore README gained an "Actor Attribution" section;
+modules.md scheduling entry now mentions `Timer.Actor` (doc-check green, 921
+refs); `decode_test.go` locks the dual-key probe contract (v1 envelope, legacy
+bare object, `{"v":1}`-only NOT misread, Corruption classification on both
+paths).
+
+**Concurrent-session hazard hit:** a mid-air `#verify` launch sampled the
+parallel false-sharing wave's pebbleengine mid-edit (`writeOptions` undefined,
+BUILD phase RED in ~5 min — `/tmp/withactor-verify2.log`). Their tree compiles
+again; relaunching the full gate. Targeted state at addendum time:
+scheduling/sqlstore lint 0 issues, tests green, race x3 green; doc-check green.
+
+**Gates:** full `#verify` re-run in flight at addendum time. `nix fmt`
+repo-wide deliberately DEFERRED while the parallel session edits the tree
+(formatting their in-flight files would corrupt their work); my files are
+gofumpt+goimports clean.

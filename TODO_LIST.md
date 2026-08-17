@@ -24,10 +24,18 @@ and is **never** duplicated here.
 > `cdc525fd5` + `a298ea388`. Wave 3 closed 2026-08-16 (measured numbers in
 > [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md)).
 
-- [ ] [BLOCKED] **Durability tier→per-write-sync mapping** (storage/pebble
-      hardcodes `pebble.Sync`; metaengine engines no NoSync path) — real win
-      (fsync per append) but a behavior change for existing Normal-tier
-      consumers. AWAITS USER DECISION (status §g Q3).
+- [x] **Durability tier→per-write-sync mapping** (storage/pebble
+      hardcodes `pebble.Sync`; metaengine engines no NoSync path) — DONE
+      2026-08-17 (Option A "align all layers"): `stack/pebble` maps
+      Strict→sync, Normal→async WAL, Relaxed→DisableWAL+async (also fixes
+      Relaxed forcing a memtable flush per write); new options
+      `pebble.WithBackendAsyncWrites`, `pebbleengine.WithAsyncWrites`,
+      `bboltengine.WithNoSync`; bbolt Normal≡Strict documented exception
+      (no WAL); doc split brain fixed in `stack/durability.go`. Tier→options
+      mapping tests + engine smoke tests green; throughput bench added
+      (`BenchmarkEventAppendSync/Async`) — honest numbers PENDING a quiet
+      window (see [BENCHMARKS.md](docs/BENCHMARKS.md): device queue
+      saturated at load 3–4, sync≈async≈2.5 ms).
       _(Effort: M)_
 - [x] **Benchstat baselines for the 3 new false-sharing control benches**
       (multiSeqCounter padded/unpadded, WorkerCounters, SSEReplaySeq) —

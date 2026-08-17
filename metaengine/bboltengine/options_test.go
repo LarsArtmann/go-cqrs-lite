@@ -11,13 +11,18 @@ func TestBoltOptions(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name             string
-		cfg              engineConfig
-		wantNoSync       bool
+		name               string
+		cfg                engineConfig
+		wantNoSync         bool
 		wantNoFreelistSync bool
 	}{
 		{name: "default sync", cfg: engineConfig{}, wantNoSync: false, wantNoFreelistSync: false},
-		{name: "no sync", cfg: engineConfig{noSync: true}, wantNoSync: true, wantNoFreelistSync: true},
+		{
+			name:               "no sync",
+			cfg:                engineConfig{noSync: true},
+			wantNoSync:         true,
+			wantNoFreelistSync: true,
+		},
 	}
 
 	for _, tt := range tests {

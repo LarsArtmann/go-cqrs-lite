@@ -1409,6 +1409,7 @@ metaengine/bboltengine/const BboltNsPerRead
 metaengine/bboltengine/const BboltNsPerWrite
 metaengine/bboltengine/func NewBboltEngine
 metaengine/bboltengine/func NewBboltEngineFromDB
+metaengine/bboltengine/func WithNoSync
 metaengine/bboltengine/method Close
 metaengine/bboltengine/method CounterGet
 metaengine/bboltengine/method CounterIncrement
@@ -1437,6 +1438,7 @@ metaengine/bboltengine/method StreamVersion
 metaengine/bboltengine/method VectorInsert
 metaengine/bboltengine/method VectorSearch
 metaengine/bboltengine/method VectorSearchFiltered
+metaengine/bboltengine/type Option
 metaengine/const ADTCounter
 metaengine/const ADTGraph
 metaengine/const ADTLog
@@ -2264,6 +2266,7 @@ metaengine/pebbleengine/const PebbleNsPerRead
 metaengine/pebbleengine/const PebbleNsPerWrite
 metaengine/pebbleengine/func NewPebbleEngine
 metaengine/pebbleengine/func NewPebbleEngineFromDB
+metaengine/pebbleengine/func WithAsyncWrites
 metaengine/pebbleengine/interface ScanCounter
 metaengine/pebbleengine/method ApplyLayout
 metaengine/pebbleengine/method Close
@@ -2297,6 +2300,7 @@ metaengine/pebbleengine/method StreamVersion
 metaengine/pebbleengine/method VectorInsert
 metaengine/pebbleengine/method VectorSearch
 metaengine/pebbleengine/method VectorSearchFiltered
+metaengine/pebbleengine/type Option
 metaengine/pgengine/const PG_NetworkRTT
 metaengine/pgengine/const PG_NsPerOp
 metaengine/pgengine/const PG_NsPerRead
@@ -3482,6 +3486,7 @@ storage/pebble/func NewSnapshotStore
 storage/pebble/func NewStore
 storage/pebble/func Open
 storage/pebble/func WithAsyncWrites
+storage/pebble/func WithBackendAsyncWrites
 storage/pebble/func WithBorrowedDB
 storage/pebble/func WithCheckpointAsyncWrites
 storage/pebble/func WithCheckpointPrefix
@@ -3569,6 +3574,7 @@ storage/pebble/struct KVAdapter
 storage/pebble/struct PebbleMetrics
 storage/pebble/struct QueryStore
 storage/pebble/struct SnapshotStore
+storage/pebble/type BackendOption
 storage/pebble/type CheckpointOption
 storage/pebble/type CommandStoreOption
 storage/pebble/type KVOption

@@ -139,9 +139,24 @@ func TestSystem_Runtime_Find(t *testing.T) {
 
 	store := sys.MetaEngine()
 
-	mustApply(t, store, "rt.created", RuntimeCreated{ID: "1", Title: "A", Status: "open", Priority: 1})
-	mustApply(t, store, "rt.created", RuntimeCreated{ID: "2", Title: "B", Status: "done", Priority: 3})
-	mustApply(t, store, "rt.created", RuntimeCreated{ID: "3", Title: "C", Status: "open", Priority: 5})
+	mustApply(
+		t,
+		store,
+		"rt.created",
+		RuntimeCreated{ID: "1", Title: "A", Status: "open", Priority: 1},
+	)
+	mustApply(
+		t,
+		store,
+		"rt.created",
+		RuntimeCreated{ID: "2", Title: "B", Status: "done", Priority: 3},
+	)
+	mustApply(
+		t,
+		store,
+		"rt.created",
+		RuntimeCreated{ID: "3", Title: "C", Status: "open", Priority: 5},
+	)
 
 	// All results.
 	all, err := system.Find[RuntimeView](ctx, sys, "rt_set")

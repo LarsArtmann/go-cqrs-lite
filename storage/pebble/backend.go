@@ -70,11 +70,19 @@ func Open(
 // The Backend does NOT own the DB — the caller is responsible for closing it.
 // Use Open() instead if you want the Backend to own the DB lifecycle.
 // Returns ErrNilDatabase if database is nil.
-func NewBackend(database *pebble.DB, logger *slog.Logger, backendOpts ...BackendOption) (*Backend, error) {
+func NewBackend(
+	database *pebble.DB,
+	logger *slog.Logger,
+	backendOpts ...BackendOption,
+) (*Backend, error) {
 	return newBackend(database, logger, backendOpts...)
 }
 
-func newBackend(database *pebble.DB, logger *slog.Logger, backendOpts ...BackendOption) (*Backend, error) {
+func newBackend(
+	database *pebble.DB,
+	logger *slog.Logger,
+	backendOpts ...BackendOption,
+) (*Backend, error) {
 	cfg := backendConfig{}
 	for _, opt := range backendOpts {
 		opt(&cfg)

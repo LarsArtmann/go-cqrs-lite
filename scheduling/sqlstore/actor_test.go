@@ -134,7 +134,9 @@ func TestSQLiteTimerStore_CorruptPayloadClassifiedAsCorruption(t *testing.T) {
 	_, err := db.ExecContext(
 		ctx,
 		`INSERT INTO timers (id, fire_at, payload) VALUES (?, ?, ?)`,
-		"corrupt-timer", due, `{"action":42}`, // P declares Action string; number is a type mismatch
+		"corrupt-timer",
+		due,
+		`{"action":42}`, // P declares Action string; number is a type mismatch
 	)
 	if err != nil {
 		t.Fatalf("seed corrupt row: %v", err)

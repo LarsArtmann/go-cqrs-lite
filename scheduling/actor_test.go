@@ -24,12 +24,15 @@ func TestTimer_ActorDeliveredToDispatch(t *testing.T) {
 
 	fired := make(chan struct{})
 
-	sched := scheduling.New[testPayload](store, func(_ context.Context, timer scheduling.Timer[testPayload]) error {
-		gotActor = timer.Actor
-		close(fired)
+	sched := scheduling.New[testPayload](
+		store,
+		func(_ context.Context, timer scheduling.Timer[testPayload]) error {
+			gotActor = timer.Actor
+			close(fired)
 
-		return nil
-	})
+			return nil
+		},
+	)
 
 	go sched.Start(ctx)
 
@@ -65,11 +68,15 @@ func TestTimer_JSONOmitsZeroActor(t *testing.T) {
 		t.Fatalf("marshal without actor: %v", err)
 	}
 
-	if got, want := string(withoutActor), `{"id":"t1","fireAt":"0001-01-01T00:00:00Z","payload":"p"}`; got != want {
+	if got, want := string(
+		withoutActor,
+	), `{"id":"t1","fireAt":"0001-01-01T00:00:00Z","payload":"p"}`; got != want {
 		t.Errorf("zero-actor JSON = %s, want %s", got, want)
 	}
 
-	withActor, err := json.Marshal(scheduling.Timer[string]{ID: "t1", Payload: "p", Actor: "system:scheduler"})
+	withActor, err := json.Marshal(
+		scheduling.Timer[string]{ID: "t1", Payload: "p", Actor: "system:scheduler"},
+	)
 	if err != nil {
 		t.Fatalf("marshal with actor: %v", err)
 	}

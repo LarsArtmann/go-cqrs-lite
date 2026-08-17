@@ -51,6 +51,13 @@ Timers are persisted to the `timers` table on `Schedule`. The schema matches
 the `timers` table in the storage module's embedded migrations, so consumers
 using both see no conflicts. The caller owns the `*sql.DB`; `Close` is a no-op.
 
+## Actor Attribution
+
+`Timer.Actor` (the "kind:raw" audit-trail attribution, e.g. `user:01JXYZ...`)
+survives SQL persistence via a versioned payload envelope
+(`{"v":1,"actor":...,"payload":...}`). Rows written by pre-actor versions
+(bare payload JSON) still decode, with an empty actor.
+
 ## API
 
 | Method      | Description                                       |
