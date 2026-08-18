@@ -28,6 +28,9 @@ func resolveDedicatedRoles(
 			}
 
 			dedicated[inst.Role] = inst
+		case RoleSourceOfTruth, RoleEvents, RoleProjections:
+			// Not dedicated-role instances; wired by wireSourceOfTruth /
+			// the projection-instance loop in the constructor.
 		}
 	}
 
@@ -57,7 +60,7 @@ func wireDedicatedRoles(
 
 		serialize := engineNeedsSerialization(deployment, engineName)
 
-		switch role {
+		switch role { //nolint:exhaustive // loop iterates exactly the three dedicated roles
 		case RoleCommands:
 			store, err := buildCommandStore(eng, serialize)
 			if err != nil {
