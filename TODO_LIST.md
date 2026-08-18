@@ -616,10 +616,15 @@ and is **never** duplicated here.
       `system/doc.go` documents Atomic (all shipped engines) vs
       Transactional vs racy fallback for Save. _(Effort: S)_
 - [ ] **Release coordination: system/v4.5.0** — DECIDED 2026-08-18: cut
-      NOW (durability breadth included). Fixes live only on master;
-      published system/v4.4.0 still has all 5 P1 bugs. Needs a metaengine
-      release first (local ../metaengine is ≥12 commits past v4.11.0) and
-      replace-directive stripping per the go-release flow. _(Effort: M)_
+      NOW (durability breadth included). IN FLIGHT: metaengine/v4.12.0 +
+      sqliteengine/v4.2.0 pushed; remaining: pebbleengine/v4.2.0,
+      badgerengine/v4.1.0, bboltengine/v4.1.0, pgengine/v4.2.0 (each needs
+      the `go mod edit -require metaengine/v4@v4.12.0` pin bump first —
+      tidy never bumps pinned requires), then system/v4.5.0. Contingency
+      re-tags the dry-runs may demand: record/v4.4.0, id/v4.6.0,
+      watermill/v4.6.0 (user go/no-go pending — see status report
+      2026-08-18_19-57 §g). Private repo: verify via GOPRIVATE+VCS, never
+      proxy.golang.org polling. _(Effort: M)_
 - [x] **stack.Bundle cross-check** — VERIFIED 2026-08-17 (proposal §8,
       read-only): Bundle has no ack/WARN machinery at all (no CheckSafety
       equivalent) — nothing shares the fixed scream-store bugs, nothing to
