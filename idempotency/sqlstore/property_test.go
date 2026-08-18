@@ -19,6 +19,17 @@ import (
 
 var propDBCounter atomic.Int64
 
+// ttlTestParams returns a (ttl, wait) pair with enough headroom to survive
+// scheduler jitter under -race without making the non-race path slow. Shared
+// by the TTL property test (and the build-tagged integration tests).
+func ttlTestParams() (time.Duration, time.Duration) {
+	if raceEnabled {
+		return 100 * time.Millisecond, 400 * time.Millisecond
+	}
+
+	return 10 * time.Millisecond, 50 * time.Millisecond
+}
+
 func newTestStore(tb testing.TB) (*sqlstore.Store, *sql.DB) {
 	tb.Helper()
 
@@ -149,11 +160,11 @@ func TestProperty_SQLiteTTLExpiry(t *testing.T) {
 		defer store.Close()
 
 		key := rapid.String().Draw(rt, "key")
-		// Use a generous TTL (200ms) and sleep (500ms) to avoid flakes
-		// under -race / heavy parallel load. The original 50ms+100ms
-		// was too tight — scheduling jitter could cause the expiry check
-		// to race with the sleep.
-		ttl := 200 * time.Millisecond
+		// Race-aware timing: -race inflates scheduling latency 5-10x, so the
+		// wait must clear the TTL by a wide margin (see race_on_test.go). The
+		// original fixed 50ms+100ms (and later 200ms+500ms) margins still
+		// flaked under heavy parallel load, leaving stale .fail seeds behind.
+		ttl, wait := ttlTestParams()
 
 		if err := store.Record(context.Background(), key, ttl); err != nil {
 			rt.Fatalf("Record: %v", err)
@@ -164,7 +175,7 @@ func TestProperty_SQLiteTTLExpiry(t *testing.T) {
 			rt.Fatal("key should be seen immediately after Record")
 		}
 
-		time.Sleep(ttl + 300*time.Millisecond)
+		time.Sleep(wait)
 
 		seen, _ = store.Seen(context.Background(), key)
 		if seen {
