@@ -11,11 +11,12 @@ func init() {
 	metaengine.RegisterDriver(
 		"pebble",
 		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
-			if err := metaengine.RejectDurabilityTier("pebble", cfg); err != nil {
+			opts, err := tierToOptions(cfg.Durability)
+			if err != nil {
 				return nil, err
 			}
 
-			return NewPebbleEngine(cfg.DSN)
+			return NewPebbleEngine(cfg.DSN, opts...) //nolint:wrapcheck // factory passthrough
 		},
 	)
 }

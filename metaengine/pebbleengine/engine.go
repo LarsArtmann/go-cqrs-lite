@@ -57,6 +57,7 @@ type Option func(*engineConfig)
 
 type engineConfig struct {
 	syncWrites bool
+	disableWAL bool
 }
 
 // WithAsyncWrites skips the per-write fsync: each write is appended to the
@@ -65,6 +66,17 @@ type engineConfig struct {
 // recent ones. The default engine fsyncs every write (pebble.Sync).
 func WithAsyncWrites() Option {
 	return func(cfg *engineConfig) { cfg.syncWrites = false }
+}
+
+// WithDisableWAL disables Pebble's write-ahead log: writes land in the
+// memtable only and reach disk via flushes. Data may be lost on any crash.
+// Only meaningful with [WithAsyncWrites] — with the WAL disabled a sync
+// write degrades to a memtable flush, the slowest path Pebble has.
+//
+// Only [NewPebbleEngine] can apply it: [NewPebbleEngineFromDB] receives a
+// database the caller already opened, so the option is ignored there.
+func WithDisableWAL() Option {
+	return func(cfg *engineConfig) { cfg.disableWAL = true }
 }
 
 type pebbleEngine struct {
@@ -103,7 +115,7 @@ func NewPebbleEngine(dir string, opts ...Option) (metaengine.Engine, error) {
 		opt(&cfg)
 	}
 
-	dbOpts := &pebble.Options{}
+	dbOpts := &pebble.Options{DisableWAL: cfg.disableWAL}
 	persistence := metaengine.PersistencePersistent
 	if dir == "" {
 		dbOpts.FS = vfs.NewMem()

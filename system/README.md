@@ -184,21 +184,21 @@ at construction time (no silent fallback).
 
 ### Introspection
 
-| Symbol                            | Description                                     |
-| --------------------------------- | ----------------------------------------------- |
-| `System.Snapshot(ctx)`            | Returns a `Topology` snapshot of all instances. |
-| `System.Health(ctx)`              | Aggregate health status string.                 |
-| `System.HealthCheck(ctx)`         | Error if any resource is unhealthy.             |
-| `System.HealthCheckDetailed(ctx)` | Per-engine health status ([]EngineHealth).      |
-| `System.Explain(ctx)`             | Human-readable explanation of the deployment.   |
+| Symbol                            | Description                                               |
+| --------------------------------- | --------------------------------------------------------- |
+| `System.Snapshot(ctx)`            | Returns a `Topology` snapshot of all instances.           |
+| `System.Health(ctx)`              | Aggregate health status string.                           |
+| `System.HealthCheck(ctx)`         | Error if any resource is unhealthy.                       |
+| `System.HealthCheckDetailed(ctx)` | Per-engine health status ([]EngineHealth).                |
+| `System.Explain(ctx)`             | Human-readable explanation of the deployment.             |
 | `System.EngineNames()`            | Engine names in deterministic sorted order (diagnostics). |
-| `System.ShutdownOrder()`          | Resolved close order as engine names.           |
-| `System.LagPerProjection()`       | Per-projection lag map (delegates to host).     |
-| `System.LagDuration()`            | Max lag across all workers.                     |
-| `System.WorkerStatus()`           | Projection worker states.                       |
-| `System.ProjectionPlan()`         | Serializable plan for projection engines.       |
-| `System.ProjectionExplain()`      | Human-readable projection plan explanation.     |
-| `System.VerifyProjections(ctx)`   | Verify projection stores match source-of-truth. |
+| `System.ShutdownOrder()`          | Resolved close order as engine names.                     |
+| `System.LagPerProjection()`       | Per-projection lag map (delegates to host).               |
+| `System.LagDuration()`            | Max lag across all workers.                               |
+| `System.WorkerStatus()`           | Projection worker states.                                 |
+| `System.ProjectionPlan()`         | Serializable plan for projection engines.                 |
+| `System.ProjectionExplain()`      | Human-readable projection plan explanation.               |
+| `System.VerifyProjections(ctx)`   | Verify projection stores match source-of-truth.           |
 
 ### Safety Checks
 
@@ -354,6 +354,26 @@ CQRS_DEFAULT_DSN=file:events.db
   projection layer.
 - **Scream store**: Pre-flight safety checks warn about dangerous
   configurations (volatile engines in production, missing durability, etc.).
+
+### Durability Tiers
+
+An instance's `durability` (strict / normal / relaxed) resolves per ENGINE —
+all instances sharing an engine must name the same tier or construction fails
+(`system.ErrDurabilityConflict`). An unset tier means engine defaults. How
+each driver maps a named tier:
+
+| Driver   | strict                                                               | normal                                   | relaxed                                  |
+| -------- | -------------------------------------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| sqlite   | `synchronous=FULL`                                                   | `synchronous=NORMAL`                     | `synchronous=OFF`                        |
+| pebble   | WAL + sync writes                                                    | WAL + async writes                       | DisableWAL + async writes                |
+| postgres | `synchronous_commit=on`                                              | `synchronous_commit=off`                 | `synchronous_commit=off` (no lower knob) |
+| bbolt    | sync-on-commit                                                       | same as strict (no middle tier — no WAL) | NoSync + NoFreelistSync                  |
+| badger   | sync writes                                                          | async writes                             | async writes (badger's floor)            |
+| memory   | rejected (cannot fsync)                                              | accepted (advisory)                      | accepted (advisory)                      |
+| other    | rejected with `ErrUnsupportedDurability` until the driver maps tiers |                                          |                                          |
+
+Setting a tier on sqlite while also passing a `synchronous` pragma — or on
+postgres while the DSN sets `synchronous_commit` — is a configuration error.
 
 ## Related Modules
 

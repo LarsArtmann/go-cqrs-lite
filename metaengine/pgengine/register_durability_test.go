@@ -9,7 +9,7 @@ import (
 )
 
 // art-dupl:accept dep-isolated engine modules each need their own registration guard test
-func TestRegisterDriver_RejectsDurabilityTier(t *testing.T) {
+func TestRegisterDriver_InvalidDurabilityTier(t *testing.T) {
 	t.Parallel()
 
 	factory, err := metaengine.LookupDriver("postgres")
@@ -18,7 +18,7 @@ func TestRegisterDriver_RejectsDurabilityTier(t *testing.T) {
 	}
 
 	_, err = factory(context.Background(), metaengine.DriverConfig{
-		Durability: metaengine.DurabilityNormal,
+		Durability: "bogus",
 	})
 	if !errors.Is(err, metaengine.ErrUnsupportedDurability) {
 		t.Fatalf("durability tier error = %v, want ErrUnsupportedDurability", err)

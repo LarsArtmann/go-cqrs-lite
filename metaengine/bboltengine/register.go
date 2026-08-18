@@ -11,11 +11,14 @@ func init() {
 	metaengine.RegisterDriver(
 		"bbolt",
 		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
-			if err := metaengine.RejectDurabilityTier("bbolt", cfg); err != nil {
+			opts, err := tierToOptions(cfg.Durability)
+			if err != nil {
 				return nil, err
 			}
 
-			return NewBboltEngine(cfg.DSN) //nolint:contextcheck // constructor doesn't take ctx
+			return NewBboltEngine(
+				cfg.DSN,
+				opts...) //nolint:contextcheck,wrapcheck // no ctx; factory passthrough
 		},
 	)
 }

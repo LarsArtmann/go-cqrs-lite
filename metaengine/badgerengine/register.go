@@ -11,11 +11,12 @@ func init() {
 	metaengine.RegisterDriver(
 		"badger",
 		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
-			if err := metaengine.RejectDurabilityTier("badger", cfg); err != nil {
+			opts, err := tierToOptions(cfg.Durability)
+			if err != nil {
 				return nil, err
 			}
 
-			return NewBadgerEngine(cfg.DSN)
+			return NewBadgerEngine(cfg.DSN, opts...) //nolint:wrapcheck // factory passthrough
 		},
 	)
 }

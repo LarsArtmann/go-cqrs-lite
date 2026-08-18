@@ -59,11 +59,32 @@ type badgerEngine struct {
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
 }
 
+// Option configures a Badger engine at construction time.
+type Option func(*engineConfig)
+
+type engineConfig struct {
+	syncWrites bool
+}
+
+// WithAsyncWrites skips the per-write fsync (badger SyncWrites=false): each
+// write returns before the value-log sync. Survives an application crash
+// (the value log is still written and replayed on open); a kernel or power
+// crash may lose the most recent writes. The default engine fsyncs every
+// write.
+func WithAsyncWrites() Option {
+	return func(cfg *engineConfig) { cfg.syncWrites = false }
+}
+
 // NewBadgerEngine creates a Badger-backed metaengine engine. If dir is empty,
 // an in-memory database is used (for testing); otherwise dir is the on-disk
 // database directory (persisted across opens). The caller owns the returned
 // Engine and must call Close.
-func NewBadgerEngine(dir string) (metaengine.Engine, error) {
+func NewBadgerEngine(dir string, engineOpts ...Option) (metaengine.Engine, error) {
+	cfg := engineConfig{syncWrites: true}
+	for _, opt := range engineOpts {
+		opt(&cfg)
+	}
+
 	opts := badger.DefaultOptions(dir)
 	persistence := metaengine.PersistencePersistent
 
@@ -73,7 +94,7 @@ func NewBadgerEngine(dir string) (metaengine.Engine, error) {
 	}
 
 	// Suppress Badger's default logger noise in production.
-	opts = opts.WithLogger(nil)
+	opts = opts.WithLogger(nil).WithSyncWrites(cfg.syncWrites)
 
 	db, err := badger.Open(opts)
 	if err != nil {

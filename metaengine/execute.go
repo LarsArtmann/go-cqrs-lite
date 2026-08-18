@@ -12,22 +12,33 @@ func (s *Store) Execute(input any) (any, error) {
 	return s.ExecuteCtx(context.Background(), input)
 }
 
+// acquireRead is the shared guard preamble for Store read paths: it counts
+// the read on the workload meter, refuses cancelled contexts, and takes the
+// read lock. The returned release func unlocks; callers MUST defer it when
+// err is nil.
+func (s *Store) acquireRead(ctx context.Context, op string) (func(), error) {
+	s.meter.IncRead()
+
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("metaengine.%s: %w", op, err)
+	}
+
+	s.mu.RLock()
+
+	return s.mu.RUnlock, nil
+}
+
 // ExecuteCtx dispatches a query input to the query registered for its input
 // struct TYPE. When several queries share one input type (e.g. every counter
 // projection built on the same CountInput struct), type dispatch resolves to
 // the most recently registered query — earlier registrations are shadowed.
 // Disambiguate with [Store.ExecuteQueryByName].
 func (s *Store) ExecuteCtx(ctx context.Context, input any) (any, error) {
-	s.meter.IncRead()
-
-	select {
-	case <-ctx.Done():
-		return nil, fmt.Errorf("metaengine.ExecuteCtx: %w", ctx.Err())
-	default:
+	release, err := s.acquireRead(ctx, "ExecuteCtx")
+	if err != nil {
+		return nil, err
 	}
-
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	defer release()
 
 	inputType := qualifiedTypeName(input)
 
@@ -49,16 +60,11 @@ func (s *Store) ExecuteCtx(ctx context.Context, input any) (any, error) {
 //
 // Returns [ErrNoQueryForName] when no query is registered under that name.
 func (s *Store) ExecuteQueryByName(ctx context.Context, queryName string, input any) (any, error) {
-	s.meter.IncRead()
-
-	select {
-	case <-ctx.Done():
-		return nil, fmt.Errorf("metaengine.ExecuteQueryByName: %w", ctx.Err())
-	default:
+	release, err := s.acquireRead(ctx, "ExecuteQueryByName")
+	if err != nil {
+		return nil, err
 	}
-
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	defer release()
 
 	q, ok := s.queries[queryName]
 	if !ok {

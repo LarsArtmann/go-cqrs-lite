@@ -6,63 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
-### Added — system/v4 review follow-ups: named dispatch, dedicated roles, named buses, durability wiring — 2026-08-18
-
-Executing the routed follow-ups from
-`docs/reviews/2026-08-16_full-code-review-system.html` (proposals in
-`docs/adr/2026-08-17_system-v4-review-proposals.md`).
-
-- **`metaengine`** — named query dispatch alongside type dispatch:
-  `metaengine.ExecuteQueryByName` and `metaengine.ExecuteTypedByName`
-  execute a declared query by name; unknown names fail with
-  `metaengine.ErrNoQueryForName`. Type dispatch (ExecuteCtx/ExecuteTyped)
-  resolves to the most recently registered query and therefore cannot
-  address two queries sharing one input type — which is exactly what a
-  second `system.Count` declaration does (all counters share
-  `system.CountInput`).
-- **`metaengine`** — durability tiers at the driver boundary:
-  `metaengine.DurabilityTier` (strict/normal/relaxed) travels on
-  `metaengine.DriverConfig`; `metaengine.ValidateDurabilityTier` and
-  `metaengine.RejectDurabilityTier` implement the fail-loudly contract
-  (invalid tiers fail with `metaengine.ErrUnsupportedDurability`). The
-  sqlite driver maps tiers to `PRAGMA synchronous` (FULL/NORMAL/OFF) and
-  errors when the operator also sets `synchronous` themselves; the memory
-  driver rejects strict (in-process storage cannot fsync); every other
-  driver (badger, bbolt, dgraph, duckdb, mysql, pebble, postgres, turso)
-  rejects explicit tiers until it implements real mappings.
-- **`system`** — the second `system.Count` declaration no longer silently
-  shadows the first: GetCount dispatches by counter name.
-- **`system`** — dedicated role instances are wired: RoleCommands,
-  RoleQueries, and RoleSnapshots instances bind their stores from their own
-  engines (`system.CommandStore`, `system.QueryStore`), one engine may
-  serve multiple roles (collections are namespaced), duplicate roles fail
-  with `system.ErrDuplicateInstanceRole`, and a snapshots instance on an
-  engine without SnapshotBackend fails with `system.ErrNotSnapshotBackend`.
-- **`system`** — fan-out buses are bound by name, not position:
-  `system.AddNamedPublisher`, `system.PublisherByName`, `MultiBus.Names`,
-  and `system.PublisherFor` resolve buses by their YAML `publish:` target.
-- **`system`** — instance durability tiers now reach engine construction:
-  all instances sharing an engine must agree (a conflict fails with
-  `system.ErrDurabilityConflict`); an unset tier means engine defaults —
-  the config loader's silent "normal" defaulting was removed because it
-  would now push an explicit tier onto every engine.
-
-### Changed — reserved config honesty + Save-atomicity contract — 2026-08-18
-
-- **`system`** — every parsed-but-unread config field now says so:
-  `BusConfig.Mode` is documented introspection-only (publish is always
-  synchronous on the gochannel bus; the README's `mode: sync` example was
-  removed), `InstanceConfig.Subscribe` and `CacheConfig.Engine` are
-  documented reserved/not read (removal at v5), and
-  `InstanceConfig.Collections` is documented introspection-only. The
-  `system.Internal` evolution marker is documented as recorded but not yet
-  enforced.
-- **`system`** — EventAdapter Save atomicity is now a documented contract
-  (`system/doc.go`): engines implementing `metaengine.AtomicAppender` (all
-  shipped engines) get all-or-nothing saves; Transactional engines get
-  transactional saves; engines with neither get a racy check-then-append
-  fallback that exists only so minimal third-party engines function.
-
 ### Deprecated — v1 read-model tiers + stack presets marked ahead of the v5 cut — 2026-08-17
 
 ADR-0123 Phase 8 pre-cut wave: every API scheduled for deletion at v5 now
@@ -882,6 +825,84 @@ forbidden — see CONTRIBUTING.md → Release Process.
 - The new badgerengine/bboltengine `StreamLog` tail similarity is annotated
   `//art-dupl:accept` (dep-isolated engines implementing the same contract)
   rather than re-pinning the art-dupl baseline.
+
+## [metaengine/v4.12.0, sqliteengine/v4.2.0, pebbleengine/v4.2.0, badgerengine/v4.1.0, bboltengine/v4.1.0, pgengine/v4.2.0] — 2026-08-18
+
+Executing the routed follow-ups from
+`docs/reviews/2026-08-16_full-code-review-system.html` (proposals in
+`docs/adr/2026-08-17_system-v4-review-proposals.md`).
+
+### Added
+
+- **`metaengine`** — named query dispatch alongside type dispatch:
+  `metaengine.ExecuteQueryByName` and `metaengine.ExecuteTypedByName`
+  execute a declared query by name; unknown names fail with
+  `metaengine.ErrNoQueryForName`. Type dispatch (ExecuteCtx/ExecuteTyped)
+  resolves to the most recently registered query and therefore cannot
+  address two queries sharing one input type — which is exactly what a
+  second `system.Count` declaration does (all counters share
+  `system.CountInput`).
+- **`metaengine`** — durability tiers at the driver boundary:
+  `metaengine.DurabilityTier` (strict/normal/relaxed) travels on
+  `metaengine.DriverConfig`; `metaengine.ValidateDurabilityTier` and
+  `metaengine.RejectDurabilityTier` implement the fail-loudly contract
+  (invalid tiers fail with `metaengine.ErrUnsupportedDurability`). The
+  sqlite driver maps tiers to `PRAGMA synchronous` (FULL/NORMAL/OFF) and
+  errors when the operator also sets `synchronous` themselves; the memory
+  driver rejects strict (in-process storage cannot fsync); every other
+  driver (dgraph, duckdb, mysql, turso) rejects explicit tiers until it
+  implements real mappings.
+- **`metaengine/*engine`** — durability breadth: the pebble, postgres,
+  bbolt, and badger drivers map explicit tiers instead of rejecting them.
+  Pebble: strict = WAL + sync writes, normal = WAL + async writes
+  (`pebbleengine.WithAsyncWrites`), relaxed = DisableWAL + async writes
+  (`pebbleengine.WithDisableWAL`). Postgres: strict =
+  `synchronous_commit=on`, normal/relaxed = `off`, applied as a DSN runtime
+  parameter so every pooled connection inherits it — a DSN that already
+  sets `synchronous_commit` plus a tier is a configuration error. bbolt:
+  strict/normal = sync-on-commit (normal is an accepted alias — bbolt has
+  no WAL and therefore no app-crash-safe middle tier), relaxed = NoSync
+  (`bboltengine.WithNoSync`). Badger: strict = sync writes, normal/relaxed
+  = async writes (`badgerengine.WithAsyncWrites`) — async is badger's
+  floor because the value log is always written and replayed on open.
+
+## [system/v4.5.0] — 2026-08-18
+
+### Added
+
+- **`system`** — the second `system.Count` declaration no longer silently
+  shadows the first: GetCount dispatches by counter name.
+- **`system`** — dedicated role instances are wired: RoleCommands,
+  RoleQueries, and RoleSnapshots instances bind their stores from their own
+  engines (`system.CommandStore`, `system.QueryStore`), one engine may
+  serve multiple roles (collections are namespaced), duplicate roles fail
+  with `system.ErrDuplicateInstanceRole`, and a snapshots instance on an
+  engine without SnapshotBackend fails with `system.ErrNotSnapshotBackend`.
+- **`system`** — fan-out buses are bound by name, not position:
+  `system.AddNamedPublisher`, `system.PublisherByName`, `MultiBus.Names`,
+  and `system.PublisherFor` resolve buses by their YAML `publish:` target.
+- **`system`** — instance durability tiers now reach engine construction:
+  all instances sharing an engine must agree (a conflict fails with
+  `system.ErrDurabilityConflict`); an unset tier means engine defaults —
+  the config loader's silent "normal" defaulting was removed because it
+  would now push an explicit tier onto every engine.
+
+### Changed
+
+- **`system`** — every parsed-but-unread config field now says so:
+  `BusConfig.Mode` is documented introspection-only (publish is always
+  synchronous on the gochannel bus; the README's `mode: sync` example was
+  removed), `InstanceConfig.Subscribe` and `CacheConfig.Engine` are
+  documented reserved/not read (removal at v5), and
+  `InstanceConfig.Collections` is documented introspection-only. The
+  `system.Internal` evolution marker is documented as recorded but not yet
+  enforced. DECIDED 2026-08-18: `BusConfig.Mode` will be REMOVED at v5 —
+  it never gains sync/async publish semantics.
+- **`system`** — EventAdapter Save atomicity is now a documented contract
+  (`system/doc.go`): engines implementing `metaengine.AtomicAppender` (all
+  shipped engines) get all-or-nothing saves; Transactional engines get
+  transactional saves; engines with neither get a racy check-then-append
+  fallback that exists only so minimal third-party engines function.
 
 ## [storage/v4.7.1] — 2026-08-16
 

@@ -11,11 +11,12 @@ func init() {
 	metaengine.RegisterDriver(
 		"postgres",
 		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
-			if err := metaengine.RejectDurabilityTier("postgres", cfg); err != nil {
+			dsn, err := durabilityDSN(cfg.Durability, cfg.DSN)
+			if err != nil {
 				return nil, err
 			}
 
-			return New(cfg.DSN) //nolint:contextcheck // constructor doesn't take ctx
+			return New(dsn) //nolint:contextcheck // constructor doesn't take ctx
 		},
 	)
 }

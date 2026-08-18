@@ -178,8 +178,9 @@ type BusConfig struct {
 
 	// Mode is introspection-only: parsed and surfaced in Introspection(),
 	// but publish is always synchronous on the gochannel bus regardless of
-	// this value. Sync/async publish semantics may be implemented at v5;
-	// until then, setting it changes nothing.
+	// this value. DECISION (2026-08-18): the field will be REMOVED at v5
+	// rather than gaining sync/async publish semantics — setting it changes
+	// nothing and never will.
 	Mode string `koanf:"mode"`
 }
 

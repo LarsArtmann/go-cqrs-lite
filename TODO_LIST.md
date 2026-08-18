@@ -601,19 +601,25 @@ and is **never** duplicated here.
 - [x] **Durability wiring** — DONE 2026-08-18: `DriverConfig.Durability` +
       tier constants + `ValidateDurabilityTier`/`RejectDurabilityTier` in
       metaengine; sqlite maps tier → `PRAGMA synchronous` (conflicting
-      operator pragma errors); memory rejects strict; all other drivers
-      reject explicit tiers loudly; system resolves per-engine tiers
-      (conflict → `ErrDurabilityConflict`) and no longer silently defaults
-      instances to "normal". _(Effort: M)_
+      operator pragma errors); memory rejects strict; system resolves
+      per-engine tiers (conflict → `ErrDurabilityConflict`) and no longer
+      silently defaults instances to "normal". _(Effort: M)_
+- [x] **Durability breadth** — DONE 2026-08-18: pebble (WAL/sync/async/
+      DisableWAL via `WithAsyncWrites`/`WithDisableWAL`), postgres
+      (`synchronous_commit` DSN runtime param, conflict = config error),
+      bbolt (normal aliases strict — no middle tier; relaxed = `WithNoSync`),
+      badger (async floor via new `Option`/`WithAsyncWrites`) all map
+      explicit tiers now; dgraph/duckdb/mysql/turso still reject.
+      `BusConfig.Mode` endgame DECIDED: remove at v5, never implement.
+      _(Effort: M)_
 - [x] **EventAdapter backend contract doc** — DONE 2026-08-18:
       `system/doc.go` documents Atomic (all shipped engines) vs
       Transactional vs racy fallback for Save. _(Effort: S)_
-- [ ] **Release coordination: system/v4.5.0** — fixes live only on master;
+- [ ] **Release coordination: system/v4.5.0** — DECIDED 2026-08-18: cut
+      NOW (durability breadth included). Fixes live only on master;
       published system/v4.4.0 still has all 5 P1 bugs. Needs a metaengine
       release first (local ../metaengine is ≥12 commits past v4.11.0) and
-      replace-directive stripping per the go-release flow. All code work
-      done 2026-08-18; awaiting release window decision (cut now vs v5
-      pre-cut wave). _(Effort: M)_
+      replace-directive stripping per the go-release flow. _(Effort: M)_
 - [x] **stack.Bundle cross-check** — VERIFIED 2026-08-17 (proposal §8,
       read-only): Bundle has no ack/WARN machinery at all (no CheckSafety
       equivalent) — nothing shares the fixed scream-store bugs, nothing to

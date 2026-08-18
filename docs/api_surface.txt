@@ -1372,6 +1372,7 @@ metaengine/badgerengine/const BadgerNsPerRead
 metaengine/badgerengine/const BadgerNsPerWrite
 metaengine/badgerengine/func NewBadgerEngine
 metaengine/badgerengine/func NewBadgerEngineFromDB
+metaengine/badgerengine/func WithAsyncWrites
 metaengine/badgerengine/method Close
 metaengine/badgerengine/method CounterGet
 metaengine/badgerengine/method CounterIncrement
@@ -1404,6 +1405,7 @@ metaengine/badgerengine/method StreamVersion
 metaengine/badgerengine/method VectorInsert
 metaengine/badgerengine/method VectorSearch
 metaengine/badgerengine/method VectorSearchFiltered
+metaengine/badgerengine/type Option
 metaengine/bboltengine/const BboltNsPerOp
 metaengine/bboltengine/const BboltNsPerRead
 metaengine/bboltengine/const BboltNsPerWrite
@@ -2274,6 +2276,7 @@ metaengine/pebbleengine/const PebbleNsPerWrite
 metaengine/pebbleengine/func NewPebbleEngine
 metaengine/pebbleengine/func NewPebbleEngineFromDB
 metaengine/pebbleengine/func WithAsyncWrites
+metaengine/pebbleengine/func WithDisableWAL
 metaengine/pebbleengine/interface ScanCounter
 metaengine/pebbleengine/method ApplyLayout
 metaengine/pebbleengine/method Close
