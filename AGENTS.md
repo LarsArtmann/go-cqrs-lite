@@ -222,31 +222,14 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 - **NEVER use `git checkout <commit> -- .`** — destructively overwrites the working tree. Use `git worktree add /tmp/work <commit>` instead.
 - **Tool-shell false negatives on live servers** — `/dev/tcp/127.0.0.1/<port>` redirections silently fail in the tool shell (mvdan/sh has no /dev/tcp), reporting a healthy server as DOWN; probe with the server's own client instead (`mysqladmin ping` for MariaDB/MySQL). `kill` is not a builtin there — use `/run/current-system/sw/bin/kill <pid>`. A mysqld whose datadir was trashed keeps serving from unlinked inodes with all its old state; before diagnosing "corruption" or "mystery stale data", check `pgrep -a mysqld` + process start time vs datadir mtime, kill, and restart on a fresh datadir.
 
-### system/v4 (composition root) — 2026-08-17 review outcomes
+### system/v4 (composition root)
 
-- **Full review done** — every file reviewed; 5×P1 + actionable P2/P3 fixed
-  (commits a211ebcb2, 449e0e5a7, 42dfab5b0, each with regression tests);
-  remaining design-level items routed in TODO_LIST "system/v4 Full-Code-Review
-  Follow-Ups" + `docs/adr/2026-08-17_system-v4-review-proposals.md`.
-- **Fixes are NOT in published system/v4.4.0** — system/go.mod carries 6 local
-  replaces (metaengine + 4 engine adapters + watermill); local metaengine is
-  ≥12 commits past published v4.11.0. Shipping the fixes requires a
-  metaengine release, then system/v4.5.0 via the go-release flow.
-- **Count projections collide by construction** — metaengine dispatches by
-  input type; only one `Count()` projection per system until named dispatch
-  lands (routed). Same input type across two `Get`s is fine (dispatch by name).
-- **Fan-out buses are positional** — `MultiBus.Publishers()[0]` is always the
-  local bus; fan-out buses are closed by `Close()` since 2026-08-17 but still
-  have no name binding.
-- **ACK keys are `rule:target`** — e.g.
-  `volatile-source-of-truth:source-of-truth`, `durability-downgrade:<role>`.
-  New scream rules must follow this convention and guard emission with
-  `isAcknowledged`.
-- **CachedEventStore invalidates on write** — `Save`/`AppendBatch` evict the
-  stream key; wrap any new write path in the adapter the same way.
-- **cqrs-lint C025 in system/ is a false-positive batch** — the flagged
-  fmt.Errorf calls have no error operand to wrap (`WorkerState.LastError` is a
-  string). Don't "fix" them into noise.
+- Full review done 2026-08-17 (5×P1 + actionable P2/P3, each with regression tests); design-level follow-ups live in TODO_LIST "system/v4 Full-Code-Review Follow-Ups" + `docs/adr/2026-08-17_system-v4-review-proposals.md`.
+- `Get`s dispatch by name, `Count`s by input type — same input type across two `Get`s is fine; two `Count()` projections on one input type still collide.
+- Fan-out buses are positional — `MultiBus.Publishers()[0]` is always the local bus.
+- ACK keys are `rule:target` (e.g. `durability-downgrade:<role>`); guard emission with `isAcknowledged`.
+- `CachedEventStore` invalidates on write (`Save`/`AppendBatch` evict the stream key); wrap any new write path the same way.
+- cqrs-lint C025 in system/ is a false-positive batch (`WorkerState.LastError` is a string — no error operand to wrap). Don't "fix" into noise.
 
 ### Module & Dependency Management
 
@@ -353,20 +336,7 @@ ES-native planner depends on the `Record` type ([ADR-0111](docs/adr/0111-record-
 
 ### Live Cost Measurement (dynamic NetworkRTT / per-op latency)
 
-Remote engines (PG, MySQL, Dgraph, Turso) declare compile-time RTT priors. The live measurement system replaces those priors with runtime observations so the cost-based planner routes on honest data.
-
-| Component                                       | Role                                                                                                                                                                                                                                                    |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Prober` / `TransactMeasurer`                   | Optional engine capability interfaces (Probe = RTT, MeasureTransact = per-read latency). PG: `SELECT 1` + `meta_map` point lookup. MySQL: same. Dgraph: healthcheck query + predicate index seek. Turso: `db.PingContext` via `sqliteengine.SetProber`. |
-| `ProbeEngine(eng, opts...) *ProbeHandle`        | Starts background probe loop, installs live trackers via `Calibration`. Returns `ProbeHandle` with `Stop()` + `Failures()`. No-op for local engines (IsRemote guard).                                                                                   |
-| `LatencyTracker`                                | Ring buffer + incremental EWMA + P50/P95/P99. Configurable window, alpha, stale-after. `Fresh()` is RTT-specific (read-only tracker doesn't set it).                                                                                                    |
-| `Calibration.ApplyCalibration`                  | Layers live tracker EWMA into `Profile()` when fresh. Precedence: compile-time defaults → calibration priors → live measurement (highest).                                                                                                              |
-| `Store.Replan(ctx)`                             | In-place re-plan picking up live latency shifts. Three-phase locking (assign → rules → swap). Increments plan version.                                                                                                                                  |
-| `Store.CheckRouting(ctx)`                       | Execution-time re-scoring with hysteresis deadband. Differential: caches result until any engine's RTT changes. Emits `REPLAN-SUGGESTED` beyond threshold.                                                                                              |
-| `Store.StartAutoReplan(ctx, interval)`          | Background loop calling CheckRouting + Replan when drift detected. Parent context controls lifecycle.                                                                                                                                                   |
-| `WithRoutingHysteresis` / `WithRoutingMinDelta` | Plan options to tune the re-routing deadband (fractional + absolute floor).                                                                                                                                                                             |
-| `GetEngineStats` / `Doctor` / `EXPLAIN`         | Surface live RTT, stale labels, and routing drift in diagnostics. Doctor includes `--- Routing ---` section with plan version, replan count, and drift summary.                                                                                         |
-| `NsForRead` RTT amortization                    | Scan-pattern fallback costs subtract RTT to avoid overestimating batch reads (a 10K-row scan pays RTT once, not 10K times).                                                                                                                             |
+Remote engines (PG, MySQL, Dgraph, Turso) declare compile-time RTT priors; the live system replaces them with runtime observations so the cost-based planner routes on honest data. Surface: `Prober`/`TransactMeasurer` capability interfaces, `ProbeEngine` background loop + `LatencyTracker` (EWMA/P50/P95/P99), `Calibration.ApplyCalibration` (precedence: compile-time defaults -> calibration priors -> live measurement), `Store.Replan`/`CheckRouting`/`StartAutoReplan` + `WithRoutingHysteresis`/`WithRoutingMinDelta`, `NsForRead` RTT amortization (a 10K-row scan pays RTT once), and `GetEngineStats`/`Doctor`/`EXPLAIN` diagnostics.
 
 Design doc: [`METAENGINE-LIVE-LATENCY-MODEL.md`](docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md). Recipe: `recipes.md` §2.11.
 

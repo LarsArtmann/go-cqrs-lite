@@ -147,6 +147,8 @@ func runTaskDemo(ctx context.Context) error {
 	}
 
 	// Update
+	const taskUpdatedPosition = 2
+
 	updatePayload, _ := json.Marshal(
 		TaskUpdated{ID: demoTaskID, Title: "Build metaengine app", Status: "in_progress"},
 	)
@@ -155,7 +157,7 @@ func runTaskDemo(ctx context.Context) error {
 		"TaskUpdated",
 		streamID,
 		"Task",
-		event.Version(2),
+		event.Version(taskUpdatedPosition),
 		updatePayload,
 		event.WithCorrelationID(correlationID),
 	)

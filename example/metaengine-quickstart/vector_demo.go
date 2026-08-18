@@ -56,15 +56,17 @@ func runVectorDemo(ctx context.Context) error {
 		}
 	}
 
+	const nearest = 2
+
 	results, err := metaengine.VectorExecuteTyped[SemanticSearchQuery](
 		ctx, store,
-		SemanticSearchQuery{Vector: []float32{1, 0, 0}, Metric: "euclidean", K: 2},
+		SemanticSearchQuery{Vector: []float32{1, 0, 0}, Metric: "euclidean", K: nearest},
 	)
 	if err != nil {
 		return fmt.Errorf("search: %w", err)
 	}
 
-	fmt.Printf("2 nearest documents to {1,0,0} (euclidean):\n")
+	fmt.Printf("%d nearest documents to {1,0,0} (euclidean):\n", nearest)
 
 	for _, result := range results {
 		fmt.Printf("  %-12s distance=%.3f\n", result.ID, result.Distance)

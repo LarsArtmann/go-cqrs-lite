@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -24,6 +25,15 @@ type FollowGraphQuery struct {
 	Depth int    `json:"depth"`
 }
 
+const (
+	demoUserAlice = "alice"
+	demoUserBob   = "bob"
+	demoUserCarol = "carol"
+	demoUserDave  = "dave"
+)
+
+var errUnexpectedTraverseResult = errors.New("unexpected result type")
+
 func runGraphDemo(ctx context.Context) error {
 	query := metaengine.Query[FollowGraphQuery, []string](
 		"follow_graph",
@@ -45,10 +55,10 @@ func runGraphDemo(ctx context.Context) error {
 	defer func() { _ = store.Close() }()
 
 	follows := []UserFollowed{
-		{From: "alice", To: "bob"},
-		{From: "bob", To: "carol"},
-		{From: "carol", To: "dave"},
-		{From: "alice", To: "carol"},
+		{From: demoUserAlice, To: demoUserBob},
+		{From: demoUserBob, To: demoUserCarol},
+		{From: demoUserCarol, To: demoUserDave},
+		{From: demoUserAlice, To: demoUserCarol},
 	}
 
 	for _, follow := range follows {
@@ -58,14 +68,19 @@ func runGraphDemo(ctx context.Context) error {
 	}
 
 	for _, depth := range []int{1, 2} {
-		result, err := store.ExecuteCtx(ctx, FollowGraphQuery{Node: "alice", Depth: depth})
+		result, err := store.ExecuteCtx(ctx, FollowGraphQuery{Node: demoUserAlice, Depth: depth})
 		if err != nil {
 			return fmt.Errorf("traverse depth %d: %w", depth, err)
 		}
 
 		neighbors, ok := result.([]any)
 		if !ok {
-			return fmt.Errorf("traverse depth %d: unexpected result type %T", depth, result)
+			return fmt.Errorf(
+				"traverse depth %d: %w: %T",
+				depth,
+				errUnexpectedTraverseResult,
+				result,
+			)
 		}
 
 		fmt.Printf("alice reaches %d account(s) within %d hop(s):", len(neighbors), depth)
