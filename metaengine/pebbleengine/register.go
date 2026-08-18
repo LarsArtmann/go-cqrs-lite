@@ -11,6 +11,10 @@ func init() {
 	metaengine.RegisterDriver(
 		"pebble",
 		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
+			if err := metaengine.RejectDurabilityTier("pebble", cfg); err != nil {
+				return nil, err
+			}
+
 			return NewPebbleEngine(cfg.DSN)
 		},
 	)

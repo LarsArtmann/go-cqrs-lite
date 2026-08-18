@@ -578,39 +578,54 @@ and is **never** duplicated here.
 > the actionable P2/P3 findings are FIXED (commits a211ebcb2, 449e0e5a7,
 > 42dfab5b0 — shipped with regression tests). These remain, routed:
 
-- [ ] **Count-by-name dispatch (P1-2)** — metaengine ExecuteTyped dispatches
-      by input type; all Count projections share CountInput, so a second
-      `Count()` registration silently shadows the first. Needs named
-      dispatch in metaengine (cross-module, contract change).
+- [x] **Count-by-name dispatch (P1-2)** — DONE 2026-08-18: metaengine
+      `ExecuteQueryByName`/`ExecuteTypedByName` (unknown name →
+      `ErrNoQueryForName`); `GetCount` dispatches by counter name; regression
+      test covers two counters. Type dispatch kept, shadowing documented.
       Proposal: docs/adr/2026-08-17_system-v4-review-proposals.md.
       _(Effort: M, impact: correctness for multi-counter domains)_
-- [ ] **Named-bus API** — fan-out buses are reachable only via positional
-      `MultiBus.Publishers()`; bind-by-name + close-on-shutdown API.
-      _(Effort: M)_
-- [ ] **Role wiring** — dedicated RoleCommands/RoleQueries/RoleSnapshots
-      instances are parsed but never wired; dead conditions removed in
-      449e0e5a7, semantics still TODO. _(Effort: M)_
-- [ ] **Reserved-config honesty** — BusConfig.Mode, InstanceConfig.Subscribe,
-      InstanceConfig.Collections, CacheConfig.Engine are documented in YAML
-      examples but never read. Implement or deprecate per the table in the
-      proposals doc. _(Effort: S per field)_
-- [ ] **Durability wiring** — DurabilityTier is parsed + one scream rule,
-      nothing else. Map to per-engine pragmas (proposal written).
-      _(Effort: M)_
-- [ ] **EventAdapter backend contract doc** — document which backends are
-      Atomic vs Tx vs racy for Save. _(Effort: S)_
+- [x] **Named-bus API** — DONE 2026-08-18: `MultiBus.AddNamedPublisher`/
+      `PublisherByName`/`Names` + `System.PublisherFor(target)` bind fan-out
+      buses by their YAML `publish:` target; closers named
+      `fanout-bus-<target>`. _(Effort: M)_
+- [x] **Role wiring** — DONE 2026-08-18: dedicated RoleCommands/RoleQueries/
+      RoleSnapshots instances bind stores from their own engines
+      (`System.CommandStore`/`QueryStore` accessors); one engine may serve
+      multiple roles; duplicates → `ErrDuplicateInstanceRole`; missing
+      SnapshotBackend → `ErrNotSnapshotBackend`. _(Effort: M)_
+- [x] **Reserved-config honesty** — DONE 2026-08-18: Mode documented
+      introspection-only (README `mode: sync` example removed), Subscribe +
+      CacheConfig.Engine documented reserved/not-read (removal at v5),
+      Collections documented introspection-only, `Evolve(Internal())`
+      documented recorded-but-not-enforced. _(Effort: S per field)_
+- [x] **Durability wiring** — DONE 2026-08-18: `DriverConfig.Durability` +
+      tier constants + `ValidateDurabilityTier`/`RejectDurabilityTier` in
+      metaengine; sqlite maps tier → `PRAGMA synchronous` (conflicting
+      operator pragma errors); memory rejects strict; all other drivers
+      reject explicit tiers loudly; system resolves per-engine tiers
+      (conflict → `ErrDurabilityConflict`) and no longer silently defaults
+      instances to "normal". _(Effort: M)_
+- [x] **EventAdapter backend contract doc** — DONE 2026-08-18:
+      `system/doc.go` documents Atomic (all shipped engines) vs
+      Transactional vs racy fallback for Save. _(Effort: S)_
 - [ ] **Release coordination: system/v4.5.0** — fixes live only on master;
       published system/v4.4.0 still has all 5 P1 bugs. Needs a metaengine
       release first (local ../metaengine is ≥12 commits past v4.11.0) and
-      replace-directive stripping per the go-release flow. _(Effort: M)_
-- [ ] **stack.Bundle cross-check** — Bundle shares the ack-key and WARN-drop
-      patterns fixed in system (pre-fix copies); verify and port the fixes
-      before the planned stack deletion (v5 Phase 8).
-      _(Effort: S, impact: correctness on the still-shipped stack path)_
-- [ ] **system/ coverage 74.4%** — uncovered mass in evolutions reflection
-      error paths; no repo threshold exists yet. _(Effort: M)_
-- [ ] **Host buildcache repair** — /mnt/buildcache 99% full, I/O errors;
-      session worked via $HOME fallback caches. Ops ticket.
+      replace-directive stripping per the go-release flow. All code work
+      done 2026-08-18; awaiting release window decision (cut now vs v5
+      pre-cut wave). _(Effort: M)_
+- [x] **stack.Bundle cross-check** — VERIFIED 2026-08-17 (proposal §8,
+      read-only): Bundle has no ack/WARN machinery at all (no CheckSafety
+      equivalent) — nothing shares the fixed scream-store bugs, nothing to
+      port. _(Effort: S, impact: correctness on the still-shipped stack path)_
+- [x] **system/ coverage 74.4%** — DONE 2026-08-18: raised to 79.4% —
+      CachedEventStore passthroughs/stats/capability fallbacks,
+      CommandAdapter batch + time-filtered loads + journal reads,
+      EvolveKey/Internal options, and the reifyTo JSON branch (sqlite
+      explicit-fold test). _(Effort: M)_
+- [x] **Host buildcache repair** — DONE 2026-08-18: /mnt/buildcache
+      repaired (64% used, writable); the /tmp cache env workaround can be
+      retired.
 
 ---
 

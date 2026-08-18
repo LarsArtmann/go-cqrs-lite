@@ -11,6 +11,10 @@ func init() {
 	metaengine.RegisterDriver(
 		"mysql",
 		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
+			if err := metaengine.RejectDurabilityTier("mysql", cfg); err != nil {
+				return nil, err
+			}
+
 			return New(cfg.DSN) //nolint:contextcheck // constructor doesn't take ctx
 		},
 	)

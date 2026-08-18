@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
@@ -45,7 +48,7 @@ func TestSystem_RoleWiring_DedicatedCommandsQueries(t *testing.T) {
 	}
 
 	// Round-trip one command through the dedicated store.
-	ref := command.NewStreamRef(id.NewStreamID(), "Task")
+	ref := command.NewStreamRef("Task", id.NewStreamID())
 	pc, err := command.NewPersistedCommand("task.create", ref, []byte(`{"title":"x"}`))
 	if err != nil {
 		t.Fatalf("NewPersistedCommand: %v", err)
@@ -96,17 +99,25 @@ func TestSystem_RoleWiring_DedicatedSnapshots(t *testing.T) {
 
 	streamID := id.NewStreamID()
 
-	if err := snapStore.SaveSnapshot(ctx, streamID, "Task", 3, []byte("state")); err != nil {
-		t.Fatalf("SaveSnapshot: %v", err)
+	snap := snapshot.Snapshot{
+		StreamID:   streamID,
+		StreamType: "Task",
+		Version:    event.Version(3),
+		State:      []byte("state"),
+		CreatedAt:  time.Now(),
 	}
 
-	data, version, err := snapStore.LoadSnapshot(ctx, streamID, "Task")
+	if err := snapStore.Save(ctx, snap); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	loaded, err := snapStore.Load(ctx, id.NewStreamRef("Task", streamID))
 	if err != nil {
-		t.Fatalf("LoadSnapshot: %v", err)
+		t.Fatalf("Load: %v", err)
 	}
 
-	if string(data) != "state" || version != 3 {
-		t.Fatalf("snapshot = (%q, %d), want (state, 3)", data, version)
+	if loaded == nil || string(loaded.State) != "state" || loaded.Version != event.Version(3) {
+		t.Fatalf("snapshot = %+v, want (state, version 3)", loaded)
 	}
 }
 

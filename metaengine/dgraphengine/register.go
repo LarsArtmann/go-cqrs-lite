@@ -11,6 +11,10 @@ func init() {
 	metaengine.RegisterDriver(
 		"dgraph",
 		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
+			if err := metaengine.RejectDurabilityTier("dgraph", cfg); err != nil {
+				return nil, err
+			}
+
 			return New(cfg.DSN) //nolint:contextcheck // constructor doesn't take ctx
 		},
 	)

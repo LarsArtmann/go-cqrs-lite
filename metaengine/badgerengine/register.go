@@ -11,6 +11,10 @@ func init() {
 	metaengine.RegisterDriver(
 		"badger",
 		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
+			if err := metaengine.RejectDurabilityTier("badger", cfg); err != nil {
+				return nil, err
+			}
+
 			return NewBadgerEngine(cfg.DSN)
 		},
 	)

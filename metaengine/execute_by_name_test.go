@@ -12,8 +12,10 @@ import (
 // other counter helper) declares every counter projection on ONE input type.
 type sharedCountInput struct{}
 
-type countEventOne struct{ Key string }
-type countEventTwo struct{ Key string }
+type (
+	countEventOne struct{ Key string }
+	countEventTwo struct{ Key string }
+)
 
 func counterOneQuery() any {
 	return Query[sharedCountInput, map[string]int64](

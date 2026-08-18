@@ -39,12 +39,26 @@ func TestStore_NonPositiveTTLRejected_AllStores(t *testing.T) {
 			for _, tc := range invalidTTLs {
 				key := "ttl-rejected/" + tc.name
 
-				if err := store.Record(ctx, key, tc.ttl); !errors.Is(err, idempotency.ErrInvalidTTL) {
+				if err := store.Record(
+					ctx,
+					key,
+					tc.ttl,
+				); !errors.Is(
+					err,
+					idempotency.ErrInvalidTTL,
+				) {
 					t.Errorf("Record(%s): want ErrInvalidTTL, got %v", tc.name, err)
 				}
 
 				claimKey := "ttl-rejected-claim/" + tc.name
-				if err := store.CheckAndRecord(ctx, claimKey, tc.ttl); !errors.Is(err, idempotency.ErrInvalidTTL) {
+				if err := store.CheckAndRecord(
+					ctx,
+					claimKey,
+					tc.ttl,
+				); !errors.Is(
+					err,
+					idempotency.ErrInvalidTTL,
+				) {
 					t.Errorf("CheckAndRecord(%s): want ErrInvalidTTL, got %v", tc.name, err)
 				}
 

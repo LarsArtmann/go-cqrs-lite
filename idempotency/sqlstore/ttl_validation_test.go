@@ -35,12 +35,26 @@ func TestSQLiteStore_NonPositiveTTLRejected(t *testing.T) {
 	}
 
 	for _, tc := range invalidTTLs {
-		if err := store.Record(ctx, "ttl-rejected/"+tc.name, tc.ttl); !errors.Is(err, idempotency.ErrInvalidTTL) {
+		if err := store.Record(
+			ctx,
+			"ttl-rejected/"+tc.name,
+			tc.ttl,
+		); !errors.Is(
+			err,
+			idempotency.ErrInvalidTTL,
+		) {
 			t.Errorf("Record(%s): want ErrInvalidTTL, got %v", tc.name, err)
 		}
 
 		key := "ttl-rejected-checkandrecord/" + tc.name
-		if err := store.CheckAndRecord(ctx, key, tc.ttl); !errors.Is(err, idempotency.ErrInvalidTTL) {
+		if err := store.CheckAndRecord(
+			ctx,
+			key,
+			tc.ttl,
+		); !errors.Is(
+			err,
+			idempotency.ErrInvalidTTL,
+		) {
 			t.Errorf("CheckAndRecord(%s): want ErrInvalidTTL, got %v", tc.name, err)
 		}
 	}

@@ -84,7 +84,12 @@ func concurrentClaimExactlyOnce(t *testing.T, store *sqlstore.Store, key string,
 	}
 
 	if wins != 1 || dups != n-1 {
-		t.Fatalf("atomic claim: want 1 win + %d duplicates, got %d wins + %d duplicates", n-1, wins, dups)
+		t.Fatalf(
+			"atomic claim: want 1 win + %d duplicates, got %d wins + %d duplicates",
+			n-1,
+			wins,
+			dups,
+		)
 	}
 }
 

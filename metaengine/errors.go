@@ -34,7 +34,10 @@ var (
 	errNoQueryForName      = errors.New("no query declared for name")
 	errUnsupportedPattern  = errors.New("unsupported read pattern")
 	errUnknownFoldKind     = errors.New("unknown fold kind")
-	errExecuteTypeMismatch = errors.New(
+
+	// Construction-time errors.
+	errUnsupportedDurability = errors.New("unsupported durability tier")
+	errExecuteTypeMismatch   = errors.New(
 		"metaengine.ExecuteTyped: result type does not match expected",
 	)
 	errKeyTypeMismatch = errors.New(
@@ -176,4 +179,9 @@ var (
 	// current version does not match the expected version. This is the
 	// optimistic concurrency sentinel for the StreamLogBackend.
 	ErrVersionConflict = errors.New("metaengine: version conflict")
+
+	// ErrUnsupportedDurability is returned at engine construction when the
+	// requested DurabilityTier is invalid or not implemented by the driver.
+	// See ValidateDurabilityTier and RejectDurabilityTier.
+	ErrUnsupportedDurability = errUnsupportedDurability
 )

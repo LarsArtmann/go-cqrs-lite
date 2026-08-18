@@ -1468,6 +1468,9 @@ metaengine/const DiagLevelDegraded
 metaengine/const DiagLevelInfo
 metaengine/const DiagLevelScream
 metaengine/const DiagLevelWarn
+metaengine/const DurabilityNormal
+metaengine/const DurabilityRelaxed
+metaengine/const DurabilityStrict
 metaengine/const FilterEq
 metaengine/const FilterGe
 metaengine/const FilterGt
@@ -1633,6 +1636,7 @@ metaengine/func EncodeVectorBinary
 metaengine/func EvalFilterOp
 metaengine/func EventTypeName
 metaengine/func ExecuteTyped
+metaengine/func ExecuteTypedByName
 metaengine/func ExtractFields
 metaengine/func FilterOn
 metaengine/func FilterOnField
@@ -1689,6 +1693,7 @@ metaengine/func ReadTrace
 metaengine/func RecordTrace
 metaengine/func RegisterDriver
 metaengine/func RegisteredDrivers
+metaengine/func RejectDurabilityTier
 metaengine/func Remove
 metaengine/func ReplayCost
 metaengine/func ReplayTrace
@@ -1708,6 +1713,7 @@ metaengine/func SpatialExecuteTyped
 metaengine/func StoreTraceSink
 metaengine/func TopKNearest
 metaengine/func TraceStats
+metaengine/func ValidateDurabilityTier
 metaengine/func VectorDistance
 metaengine/func VectorExecuteTyped
 metaengine/func VectorMatchesFilters
@@ -2012,6 +2018,7 @@ metaengine/method Execute
 metaengine/method Execute
 metaengine/method ExecuteAsOf
 metaengine/method ExecuteCtx
+metaengine/method ExecuteQueryByName
 metaengine/method Exists
 metaengine/method Explain
 metaengine/method ExplainAggregate
@@ -2534,6 +2541,7 @@ metaengine/type Delta
 metaengine/type DemoteOption
 metaengine/type Diagnostics
 metaengine/type DriverFactory
+metaengine/type DurabilityTier
 metaengine/type FilterOp
 metaengine/type FoldKind
 metaengine/type ItemCount
@@ -2560,11 +2568,13 @@ metaengine/var ErrExecuteTypeMismatch
 metaengine/var ErrKeyTypeMismatch
 metaengine/var ErrLayoutConflict
 metaengine/var ErrNoQueryForInputType
+metaengine/var ErrNoQueryForName
 metaengine/var ErrNotFound
 metaengine/var ErrPoisoned
 metaengine/var ErrUnknownDriver
 metaengine/var ErrUnknownFoldKind
 metaengine/var ErrUnsupportedADT
+metaengine/var ErrUnsupportedDurability
 metaengine/var ErrUnsupportedPattern
 metaengine/var ErrVersionConflict
 metaengine/var V1StabilizationChecklist
@@ -3889,6 +3899,7 @@ system/func WithSnapshotStrategy
 system/interface Drainer
 system/interface EvolutionSpec
 system/interface ProjectionDeclaration
+system/method AddNamedPublisher
 system/method AddPublisher
 system/method AppendBatch
 system/method AppendBatch
@@ -3899,6 +3910,7 @@ system/method Close
 system/method Close
 system/method Close
 system/method CommandDispatcher
+system/method CommandStore
 system/method Delete
 system/method Done
 system/method Done
@@ -3937,6 +3949,7 @@ system/method LoadToTimestamp
 system/method LoadToVersion
 system/method LoadToVersion
 system/method MetaEngine
+system/method Names
 system/method On
 system/method On
 system/method On
@@ -3948,8 +3961,11 @@ system/method ProjectionHost
 system/method ProjectionPlan
 system/method Publish
 system/method Publisher
+system/method PublisherByName
+system/method PublisherFor
 system/method Publishers
 system/method QueryDispatcher
+system/method QueryStore
 system/method ReadAll
 system/method ReadAll
 system/method ReadAllQueries
@@ -4025,12 +4041,15 @@ system/var ErrAlreadyStarted
 system/var ErrCacheCapacityInvalid
 system/var ErrCommandTypeMismatch
 system/var ErrDeciderTypeMismatch
+system/var ErrDuplicateInstanceRole
+system/var ErrDurabilityConflict
 system/var ErrEventStoreMissing
 system/var ErrJournalMissing
 system/var ErrNoDecider
 system/var ErrNoProjectionHost
 system/var ErrNoProjections
 system/var ErrNotFound
+system/var ErrNotSnapshotBackend
 system/var ErrNotStreamLogBackend
 system/var ErrQueryResultMismatch
 system/var ErrQueryTypeMismatch

@@ -10,6 +10,7 @@ var (
 	ErrCommandTypeMismatch    = errors.New("system: command type mismatch")
 	ErrDeciderTypeMismatch    = errors.New("system: decider type mismatch")
 	ErrDuplicateInstanceRole  = errors.New("system: duplicate dedicated instance role")
+	ErrDurabilityConflict     = errors.New("system: conflicting durability tiers for engine")
 	ErrEventStoreMissing      = errors.New("system: no event store")
 	ErrJournalMissing         = errors.New("system: store does not implement event.Journal")
 	ErrNoDecider              = errors.New("system: no decider registered for stream type")

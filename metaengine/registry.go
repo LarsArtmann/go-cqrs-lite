@@ -19,6 +19,13 @@ type DriverConfig struct {
 	// consult it to adapt engine-level defaults (e.g., a SQLite engine could
 	// prefer normalized layouts under WriteSpeed).
 	Priority Priority
+
+	// Durability is the durability tier requested for this engine: strict,
+	// normal, or relaxed (see DurabilityTier). Empty (the default) means
+	// unspecified — the engine applies its own defaults. Engines that do not
+	// implement per-tier behavior fail construction on any non-empty value
+	// (see RejectDurabilityTier) rather than silently ignoring the request.
+	Durability DurabilityTier
 }
 
 // DriverFactory creates an Engine from a DriverConfig. Implementations are

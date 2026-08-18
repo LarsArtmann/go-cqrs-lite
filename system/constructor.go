@@ -66,11 +66,18 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	// Create engines from the deployment config via the driver registry.
 	// Iterate in sorted name order so engine creation (and error selection
 	// when two engines are both invalid) is deterministic across boots.
+	// Durability tiers are resolved per engine first: instances sharing an
+	// engine must agree (see resolveEngineDurability).
+	engineDurability, err := resolveEngineDurability(deployment)
+	if err != nil {
+		return nil, err
+	}
+
 	engineCache := make(map[string]metaengine.Engine)
 
 	for _, name := range slices.Sorted(maps.Keys(deployment.Engines)) {
 		cfg := deployment.Engines[name]
-		eng, err := createEngineFromDriver(ctx, cfg)
+		eng, err := createEngineFromDriver(ctx, cfg, engineDurability[name])
 		if err != nil {
 			return nil, fmt.Errorf("system: create engine %q: %w", name, err)
 		}

@@ -96,14 +96,11 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 		cfg.Instances = []InstanceConfig{}
 	}
 
-	// 5. Default durability for instances.
-	for i := range cfg.Instances {
-		if cfg.Instances[i].Durability == "" {
-			cfg.Instances[i].Durability = DurabilityNormal
-		}
-	}
-
-	// 6. Apply legacy env var overrides for backward compatibility.
+	// 5. Apply legacy env var overrides for backward compatibility.
+	// (No durability defaulting: an unset instance Durability means
+	// unspecified — engine defaults. Silently stamping "normal" would push
+	// an explicit tier onto every engine, breaking engines without tier
+	// support.)
 	applyLegacyEnvOverrides(&cfg)
 
 	return cfg, nil

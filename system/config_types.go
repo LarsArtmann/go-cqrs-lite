@@ -175,13 +175,23 @@ type EngineConfig struct {
 type BusConfig struct {
 	Driver string `koanf:"driver"` // "gochannel", "nats", "redis"
 	URL    string `koanf:"url"`    // broker URL (empty for gochannel)
-	Mode   string `koanf:"mode"`   // "sync" (block on publish) or "async" (fire-and-forget)
+
+	// Mode is introspection-only: parsed and surfaced in Introspection(),
+	// but publish is always synchronous on the gochannel bus regardless of
+	// this value. Sync/async publish semantics may be implemented at v5;
+	// until then, setting it changes nothing.
+	Mode string `koanf:"mode"`
 }
 
 // CacheConfig declares an optional read-through cache tier for an instance.
 type CacheConfig struct {
-	Engine   string `koanf:"engine"`   // named engine to use as cache (e.g., "hot-cache")
-	Capacity int    `koanf:"capacity"` // max entries (otter W-TinyLFU handles eviction)
+	// Engine is reserved and NOT read: the cache tier wraps the instance's
+	// event store directly, so a separate cache engine is never opened.
+	// The field is parsed for backward compatibility; removal at v5.
+	Engine string `koanf:"engine"`
+
+	// Capacity is the max entry count (otter W-TinyLFU handles eviction).
+	Capacity int `koanf:"capacity"`
 }
 
 // InstanceConfig describes one metaengine.Store instance.
@@ -190,9 +200,12 @@ type InstanceConfig struct {
 	// RoleSnapshots, RoleProjections, or RoleSourceOfTruth (combined).
 	Role InstanceRole `koanf:"role"`
 
-	// Collections lists the collection names this instance serves.
-	// For RoleEvents, this is typically ["events"]. For RoleSourceOfTruth,
-	// it may be ["events", "commands", "queries", "snapshots", "checkpoints"].
+	// Collections lists the collection names this instance serves. It is
+	// introspection-only: surfaced in Introspection() and topology output,
+	// but it does not gate routing — the role determines which collections
+	// are wired. For RoleEvents, this is typically ["events"]. For
+	// RoleSourceOfTruth, it may be ["events", "commands", "queries",
+	// "snapshots", "checkpoints"].
 	Collections []string `koanf:"collections"`
 
 	// Engine is the named engine for a single-engine instance.
@@ -204,15 +217,21 @@ type InstanceConfig struct {
 	// Mutually exclusive with Engine.
 	Engines []string `koanf:"engines"`
 
-	// Durability is the persistence tier for this instance.
+	// Durability is the persistence tier for this instance: strict, normal,
+	// or relaxed. Empty means unspecified — engine defaults. All instances
+	// sharing an engine must agree on the tier; the resolved tier is applied
+	// at engine construction (e.g. SQLite PRAGMA synchronous). Engines
+	// without per-tier behavior fail construction on an explicit tier.
 	Durability DurabilityTier `koanf:"durability"`
 
 	// Publish lists bus names that events from this instance are published to.
 	// Events fan-out to all listed buses (D9: multi-bus support).
 	Publish []string `koanf:"publish"`
 
-	// Subscribe lists bus names that projections on this instance consume from.
-	// The projectionhost uses CatchUpSubscriber for each subscribed bus.
+	// Subscribe is reserved and NOT read: the projection host consumes from
+	// the deployment's bus topology directly, so per-instance subscriptions
+	// are not (yet) wired. Parsed for backward compatibility; per-instance
+	// subscription may arrive at v5.
 	Subscribe []string `koanf:"subscribe"`
 
 	// Cache configures an optional read-through cache tier.
@@ -253,7 +272,7 @@ const (
 	DurabilityStrict DurabilityTier = "strict"
 
 	// DurabilityNormal is safe against app/OS crash. WAL checkpoint window
-	// may be lost on power loss. Default for all instances.
+	// may be lost on power loss.
 	DurabilityNormal DurabilityTier = "normal"
 
 	// DurabilityRelaxed may lose data on crash. Use only for rebuildable

@@ -318,7 +318,6 @@ engines:
 buses:
   local:
     driver: gochannel
-    mode: sync
 instances:
   - role: source-of-truth
     engine: primary

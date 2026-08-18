@@ -13,10 +13,15 @@ func init() {
 	metaengine.RegisterDriver(
 		"sqlite",
 		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
+			pragmas, err := durabilityPragmas(cfg.Durability, cfg.Pragmas)
+			if err != nil {
+				return nil, err
+			}
+
 			// Owning variant: the driver factory cannot hand the *sql.DB to
 			// the caller, so the engine must close it on Close.
 			// Engine API takes no ctx (same as benchkit/phases_metaengine_sqlite.go).
-			return NewSQLiteEngineFromDSN(cfg.DSN, cfg.Pragmas...) //nolint:contextcheck,wrapcheck
+			return NewSQLiteEngineFromDSN(cfg.DSN, pragmas...) //nolint:contextcheck,wrapcheck
 		},
 	)
 }

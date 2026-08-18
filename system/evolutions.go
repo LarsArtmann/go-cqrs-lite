@@ -43,8 +43,10 @@ type evolveOptConfig struct {
 	internal bool
 }
 
-// Internal marks the Evolution as state-only — not queryable via Get or Find,
-// but available for command state loading.
+// Internal marks the Evolution as state-only — intended for command state
+// loading, not querying. RESERVED: the marker is recorded on the spec but
+// not yet enforced — internal evolutions currently behave like any other
+// (Lookup/Find can still inherit their folds). Enforcement may arrive at v5.
 func Internal() EvolveOption {
 	return func(c *evolveOptConfig) { c.internal = true }
 }
