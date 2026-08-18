@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-idempotency"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/larsartmann/go-idempotency"
 
 	"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
 )

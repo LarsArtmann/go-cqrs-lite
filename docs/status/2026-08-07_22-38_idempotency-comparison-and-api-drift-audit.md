@@ -150,6 +150,15 @@ GOWORK=off builds would use the v4.2.0 tag which does NOT have ErrInvalidTTL.
 8. Add tests for the TTL validation in kvstore and sqlstore (the daemon's
    `expiryFromTTL` helper may not have dedicated tests)
 
+   > **RESOLVED 2026-08-18**: `TestSQLiteStore_NonPositiveTTLRejected`
+   > (sqlstore, incl. no-write-before-validation via row-count check) and
+   > `TestStore_NonPositiveTTLRejected_AllStores` (kvstore, cross-store
+   > contract over memory/kvstore/sqlstore backends). The kvstore contract
+   > test exposed that published `sqlstore v4.0.0` (pinned in kvstore's
+   > go.mod) predates the validation — fixed with a relative `replace` until
+   > the next sqlstore tag. Stale replay-green rapid `.fail` seeds were also
+   > removed and the sqlstore TTL property made race-aware.
+
 ---
 
 ## d) TOTALLY FUCKED UP
