@@ -615,16 +615,24 @@ and is **never** duplicated here.
 - [x] **EventAdapter backend contract doc** — DONE 2026-08-18:
       `system/doc.go` documents Atomic (all shipped engines) vs
       Transactional vs racy fallback for Save. _(Effort: S)_
-- [ ] **Release coordination: system/v4.5.0** — DECIDED 2026-08-18: cut
-      NOW (durability breadth included). IN FLIGHT: metaengine/v4.12.0 +
-      sqliteengine/v4.2.0 pushed; remaining: pebbleengine/v4.2.0,
-      badgerengine/v4.1.0, bboltengine/v4.1.0, pgengine/v4.2.0 (each needs
-      the `go mod edit -require metaengine/v4@v4.12.0` pin bump first —
-      tidy never bumps pinned requires), then system/v4.5.0. Contingency
-      re-tags the dry-runs may demand: record/v4.4.0, id/v4.6.0,
-      watermill/v4.6.0 (user go/no-go pending — see status report
-      2026-08-18_19-57 §g). Private repo: verify via GOPRIVATE+VCS, never
-      proxy.golang.org polling. _(Effort: M)_
+- [x] **Release coordination: system/v4.5.0** — DONE 2026-08-18: all 7 tags
+      cut, pushed, and VCS-verified (metaengine/v4.12.0, sqliteengine/v4.2.0,
+      pebbleengine/v4.2.0, badgerengine/v4.1.0, bboltengine/v4.1.0,
+      pgengine/v4.2.0, system/v4.5.0). Zero contingency tags were needed:
+      record/v4.2.0, id/v4.5.0, watermill/v4.4.0 all satisfied the stripped
+      standalone builds (the §g question dissolved). Post-wave: clean-room
+      consumer build of system/v4@v4.5.0 GREEN; 10 stale-pin consumer modules
+      standalone-build GREEN (no sweep needed); vulncheck + changelog-symbol
+      gate + api-stability meta-tests GREEN. Also unblocked en route: reverted
+      a gci/depguard .golangci.yml regression and trimmed AGENTS.md 399 → 369
+      (BuildFlow ≤377 gate). GitHub Releases skipped (repo convention: one
+      legacy entry only). _(Effort: M)_
+- [ ] **Fix GitHub Actions billing** — BLOCKED on user (2026-08-18): every
+      paid CI job (Release, Benchmarks, ci.yml) fails in 3-7s with "recent
+      account payments have failed or your spending limit needs to be
+      increased"; broken since ~2026-07-17. Local `nix run .#verify` remains
+      the authoritative gate until billing is restored. _(Effort: S, user
+      action: Billing & plans settings)_
 - [x] **stack.Bundle cross-check** — VERIFIED 2026-08-17 (proposal §8,
       read-only): Bundle has no ack/WARN machinery at all (no CheckSafety
       equivalent) — nothing shares the fixed scream-store bugs, nothing to
