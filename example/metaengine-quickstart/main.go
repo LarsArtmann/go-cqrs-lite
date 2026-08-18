@@ -155,7 +155,7 @@ func runTaskDemo(ctx context.Context) error {
 		"TaskUpdated",
 		streamID,
 		"Task",
-		event.Version(2), //nolint:mnd // sequential stream position
+		event.Version(2),
 		updatePayload,
 		event.WithCorrelationID(correlationID),
 	)
