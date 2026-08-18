@@ -150,7 +150,9 @@ func Find[R any](ctx context.Context, sys *System, name string, opts ...FindOpti
 
 // ─── GetCount: counter read ───
 
-// GetCount reads all counter keys and values from a Count projection.
+// GetCount reads all counter keys and values from a Count projection by its
+// declared name. Dispatch is by name (not input type), so multiple Count
+// projections coexist without shadowing each other.
 //
 //	counts, err := system.GetCount(ctx, sys, "task-counts")
 //	fmt.Println(counts["active"]) // int64
@@ -160,8 +162,8 @@ func GetCount(ctx context.Context, sys *System, name string) (map[string]int64, 
 		return nil, ErrNoProjections
 	}
 
-	result, err := metaengine.ExecuteTyped[CountInput, map[string]int64](
-		ctx, store, CountInput{},
+	result, err := metaengine.ExecuteTypedByName[CountInput, map[string]int64](
+		ctx, store, name, CountInput{},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("system: count %q: %w", name, err)

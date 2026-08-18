@@ -109,8 +109,10 @@ else
 	echo "--- idempotency/sqlstore ---"
 	(
 		cd idempotency/sqlstore
-		CGO_ENABLED=1 GOWORK=off \
-			go test -tags "integration goexperiment.jsonv2" ./... -count=1 -v 2>&1
+		# QEMU slirp port-forwarding resets bursts of simultaneous MySQL
+		# connections; 10 contenders still prove row-lock serialization.
+		CGO_ENABLED=1 GOWORK=off MYSQL_TEST_CONCURRENCY=10 \
+			go test -tags "integration goexperiment.jsonv2" -run TestIntegration_MySQL ./... -count=1 -v 2>&1
 	)
 fi
 

@@ -31,6 +31,7 @@ var (
 
 	// Dispatch-time errors.
 	errNoQueryForInputType = errors.New("no query declared for input type")
+	errNoQueryForName      = errors.New("no query declared for name")
 	errUnsupportedPattern  = errors.New("unsupported read pattern")
 	errUnknownFoldKind     = errors.New("unknown fold kind")
 	errExecuteTypeMismatch = errors.New(
@@ -145,6 +146,10 @@ var (
 	// ErrNoQueryForInputType is returned when no registered query matches the
 	// input struct type passed to Execute/ExecuteCtx.
 	ErrNoQueryForInputType = errNoQueryForInputType
+
+	// ErrNoQueryForName is returned when no registered query matches the
+	// query name passed to ExecuteQueryByName/ExecuteTypedByName.
+	ErrNoQueryForName = errNoQueryForName
 
 	// ErrUnsupportedPattern is returned when the engine does not support the
 	// query's read pattern.

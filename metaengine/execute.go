@@ -12,6 +12,11 @@ func (s *Store) Execute(input any) (any, error) {
 	return s.ExecuteCtx(context.Background(), input)
 }
 
+// ExecuteCtx dispatches a query input to the query registered for its input
+// struct TYPE. When several queries share one input type (e.g. every counter
+// projection built on the same CountInput struct), type dispatch resolves to
+// the most recently registered query — earlier registrations are shadowed.
+// Disambiguate with [Store.ExecuteQueryByName].
 func (s *Store) ExecuteCtx(ctx context.Context, input any) (any, error) {
 	s.meter.IncRead()
 
@@ -32,6 +37,33 @@ func (s *Store) ExecuteCtx(ctx context.Context, input any) (any, error) {
 	}
 
 	q := s.queries[queryName]
+
+	return s.executeQuery(ctx, q, input)
+}
+
+// ExecuteQueryByName dispatches a query input to the query registered under
+// queryName, bypassing input-type dispatch. Unlike [Store.ExecuteCtx], it
+// disambiguates queries that share one input type — every counter projection
+// on the same CountInput struct, for example — by addressing each query by
+// its unique registration name.
+//
+// Returns [ErrNoQueryForName] when no query is registered under that name.
+func (s *Store) ExecuteQueryByName(ctx context.Context, queryName string, input any) (any, error) {
+	s.meter.IncRead()
+
+	select {
+	case <-ctx.Done():
+		return nil, fmt.Errorf("metaengine.ExecuteQueryByName: %w", ctx.Err())
+	default:
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	q, ok := s.queries[queryName]
+	if !ok {
+		return nil, fmt.Errorf("%w: %q", errNoQueryForName, queryName)
+	}
 
 	return s.executeQuery(ctx, q, input)
 }
@@ -591,8 +623,22 @@ func (s *Store) sortKeyFn(inputType string) func(any) any {
 		return nil
 	}
 
-	q := s.queries[queryName]
-	if q.QueryConfig().sortAccessor.closure == nil {
+	return sortKeyClosureFor(s.queries[queryName])
+}
+
+// sortKeyFnForQuery returns the sort-key closure for a query by name, or nil
+// when the query is unknown or declares no sort accessor.
+func (s *Store) sortKeyFnForQuery(queryName string) func(any) any {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return sortKeyClosureFor(s.queries[queryName])
+}
+
+// sortKeyClosureFor extracts the reflective sort-key closure from a query's
+// config. Returns nil for a nil query or a query without a sort accessor.
+func sortKeyClosureFor(q queryMeta) func(any) any {
+	if q == nil || q.QueryConfig().sortAccessor.closure == nil {
 		return nil
 	}
 
@@ -611,33 +657,92 @@ func (s *Store) sortKeyFn(inputType string) func(any) any {
 // slice from the []any returned by the engine.
 //
 // Usage: result, err := metaengine.ExecuteTyped[FindUser, FindUserResult](ctx, store, FindUser{ID: uid}).
+//
+// Dispatch is by input TYPE: when several queries share one input type, the
+// most recently registered query wins. Use [ExecuteTypedByName] to dispatch
+// by query name instead.
 func ExecuteTyped[Q any, R any](
 	ctx context.Context,
 	store *Store,
 	input Q,
 ) (R, error) {
-	var zero R
-
 	raw, err := store.ExecuteCtx(ctx, input)
 	if err != nil {
+		var zero R
+
 		return zero, err
 	}
 
 	if raw == nil {
+		var zero R
+
 		return zero, ErrNotFound
 	}
 
 	if isCollectionResult[R]() {
 		sortFn := store.sortKeyFn(qualifiedTypeName(input))
 
-		if result, ok := raw.(ScanResult); ok {
-			return reconstructCollection[R](result, sortFn), nil
-		}
-
-		if items, ok := raw.([]any); ok {
-			return reconstructCollection[R](ScanResult{Items: items}, sortFn), nil
-		}
+		return reconstructTypedResult[R](raw, sortFn)
 	}
+
+	return coerceScalarResult[R](raw)
+}
+
+// ExecuteTypedByName is the by-name variant of [ExecuteTyped]: it dispatches
+// to the query registered under queryName and type-asserts the result.
+//
+// Use it when several queries share one input type (e.g. multiple counter
+// projections on the same CountInput struct) — type dispatch would shadow all
+// but the most recently registered query.
+//
+// Usage: counts, err := metaengine.ExecuteTypedByName[CountInput, map[string]int64](ctx, store, "task-counts", CountInput{}).
+func ExecuteTypedByName[Q any, R any](
+	ctx context.Context,
+	store *Store,
+	queryName string,
+	input Q,
+) (R, error) {
+	raw, err := store.ExecuteQueryByName(ctx, queryName, input)
+	if err != nil {
+		var zero R
+
+		return zero, err
+	}
+
+	if raw == nil {
+		var zero R
+
+		return zero, ErrNotFound
+	}
+
+	if isCollectionResult[R]() {
+		sortFn := store.sortKeyFnForQuery(queryName)
+
+		return reconstructTypedResult[R](raw, sortFn)
+	}
+
+	return coerceScalarResult[R](raw)
+}
+
+// reconstructTypedResult rebuilds a typed collection result from engine
+// output (ScanResult or []any), falling back to scalar coercion.
+func reconstructTypedResult[R any](raw any, sortFn func(any) any) (R, error) {
+	if result, ok := raw.(ScanResult); ok {
+		return reconstructCollection[R](result, sortFn), nil
+	}
+
+	if items, ok := raw.([]any); ok {
+		return reconstructCollection[R](ScanResult{Items: items}, sortFn), nil
+	}
+
+	return coerceScalarResult[R](raw)
+}
+
+// coerceScalarResult asserts an engine result to R, reifying via JSON for
+// engines that return map[string]any for struct values (SQL round-trip
+// through any).
+func coerceScalarResult[R any](raw any) (R, error) {
+	var zero R
 
 	result, ok := raw.(R)
 	if !ok {

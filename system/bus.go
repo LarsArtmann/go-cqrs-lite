@@ -48,43 +48,41 @@ func createEventBus(deployment DeploymentConfig) (event.Bus, error) {
 	return watermill.NewEventBus(), nil
 }
 
+// fanoutBus pairs a fan-out bus with its Publish target name from the
+// deployment config. The name is what the operator wrote under Publish and
+// what [System.PublisherFor] resolves.
+type fanoutBus struct {
+	name      string
+	publisher event.Publisher
+	closer    io.Closer
+}
+
 // buildPublisher creates the publisher for the decider repository.
 // If the source-of-truth has multiple Publish targets, returns a MultiBus
-// wrapping a Watermill bus for each target. Otherwise returns the local bus.
-// The second return value lists any fan-out buses created (the caller must
-// register them for lifecycle closure).
+// wrapping a Watermill bus per named target. Otherwise returns the local
+// bus. The second return value lists the fan-out buses created (the caller
+// must register them for lifecycle closure).
 func buildPublisher(
 	deployment DeploymentConfig, localBus event.Publisher,
-) (event.Publisher, []io.Closer) {
+) (event.Publisher, []fanoutBus) {
 	for _, inst := range deployment.Instances {
 		if isSourceOfTruth(inst.Role) && len(inst.Publish) > 1 {
-			buses := make([]event.Publisher, len(inst.Publish))
-			closers := make([]io.Closer, len(inst.Publish))
+			multi := NewMultiBus(localBus)
+			fanouts := make([]fanoutBus, 0, len(inst.Publish))
 
-			for i := range inst.Publish {
+			for _, target := range inst.Publish {
 				bus := watermill.NewEventBus()
-				buses[i] = bus
-				closers[i] = bus
+				multi.AddNamedPublisher(target, bus)
+				fanouts = append(fanouts, fanoutBus{
+					name:      target,
+					publisher: bus,
+					closer:    bus,
+				})
 			}
 
-			// Include the local bus so local subscribers still receive events.
-			buses = append([]event.Publisher{localBus}, buses...)
-
-			return NewMultiBus(buses...), compactClosers(closers)
+			return multi, fanouts
 		}
 	}
 
 	return localBus, nil
-}
-
-func compactClosers(closers []io.Closer) []io.Closer {
-	result := make([]io.Closer, 0, len(closers))
-
-	for _, closer := range closers {
-		if closer != nil {
-			result = append(result, closer)
-		}
-	}
-
-	return result
 }

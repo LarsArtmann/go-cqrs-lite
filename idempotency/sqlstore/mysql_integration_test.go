@@ -18,6 +18,7 @@ import (
 	"database/sql"
 	"errors"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -51,6 +52,12 @@ func mysqlOpen(t *testing.T) *sqlstore.Store {
 	if err != nil {
 		t.Fatalf("open mysql: %v", err)
 	}
+
+	// Bound the pool: 30 concurrent claimers over unlimited fresh connections
+	// storms the server with simultaneous dials (connection resets through VM
+	// port-forwards). A bounded pool still proves row-lock serialization —
+	// goroutines queue for connections and then contend on the row.
+	db.SetMaxOpenConns(10)
 	t.Cleanup(func() { _ = db.Close() })
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -92,9 +99,21 @@ func TestIntegration_MySQLIdempotency_CheckAndRecordLifecycle(t *testing.T) {
 	}
 }
 
+// mysqlConcurrency returns the contender count for the atomic-claim test.
+// Default 30; MYSQL_TEST_CONCURRENCY overrides it for constrained runners
+// (the QEMU slirp port-forward resets bursts of simultaneous connections —
+// scripts/vm-mysql.sh exports a lower value).
+func mysqlConcurrency() int {
+	if v, err := strconv.Atoi(os.Getenv("MYSQL_TEST_CONCURRENCY")); err == nil && v >= 2 {
+		return v
+	}
+
+	return 30
+}
+
 func TestIntegration_MySQLIdempotency_AtomicClaimUnderConcurrency(t *testing.T) {
 	store := mysqlOpen(t)
-	concurrentClaimExactlyOnce(t, store, "my-atomic", 30)
+	concurrentClaimExactlyOnce(t, store, "my-atomic", mysqlConcurrency())
 }
 
 func TestIntegration_MySQLIdempotency_TTLExpiryReclaimsKey(t *testing.T) {

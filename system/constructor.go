@@ -79,77 +79,18 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		sys.engines = append(sys.engines, namedEngine{engine: eng, name: name})
 	}
 
-	// Find the source-of-truth instance and wire the adapters.
+	// Dedicated role instances (commands/queries/snapshots) take precedence
+	// over the source-of-truth instance for their store.
+	dedicated, err := resolveDedicatedRoles(deployment)
+	if err != nil {
+		return nil, err
+	}
+
+	// Wire source-of-truth and projection instances.
 	for _, inst := range deployment.Instances {
 		if isSourceOfTruth(inst.Role) {
-			engineName := inst.Engine
-			if engineName == "" && len(inst.Engines) > 0 {
-				engineName = inst.Engines[0]
-			}
-
-			eng, ok := engineCache[engineName]
-			if !ok {
-				return nil, fmt.Errorf(
-					"%w: instance %q references engine %q",
-					ErrUnknownEngine, inst.Role, engineName,
-				)
-			}
-
-			backend, ok := eng.(metaengine.StreamLogBackend)
-			if !ok {
-				return nil, fmt.Errorf(
-					"%w: engine %q",
-					ErrNotStreamLogBackend, engineName,
-				)
-			}
-
-			// Auto-detect serialization: Memory stores pointers directly; all
-			// other engines need JSON envelope serialization.
-			serialize := false
-
-			var adapterOpts []EventAdapterOption
-
-			if engCfg, hasCfg := deployment.Engines[engineName]; hasCfg &&
-				engCfg.Driver != "memory" {
-				serialize = true
-
-				adapterOpts = append(adapterOpts, WithSerialization())
-			}
-
-			sys.eventStore = NewEventAdapter(backend, "events", adapterOpts...)
-
-			// Wire snapshot store if the engine implements SnapshotBackend (D12).
-			if snapBackend, ok := eng.(metaengine.SnapshotBackend); ok {
-				sys.snapStore = NewSnapshotAdapter(snapBackend, "snapshots")
-			}
-
-			// Wire command and query audit stores from the same backend.
-			var cmdOpts []CommandAdapterOption
-			if serialize {
-				cmdOpts = append(cmdOpts, WithCommandSerialization())
-			}
-
-			if inst.Role == RoleSourceOfTruth { // dedicated RoleCommands wiring: see TODO_LIST role proposal
-				sys.cmdStore = NewCommandAdapter(backend, "commands", cmdOpts...)
-			}
-
-			var qryOpts []QueryAdapterOption
-			if serialize {
-				qryOpts = append(qryOpts, WithQuerySerialization())
-			}
-
-			if inst.Role == RoleSourceOfTruth { // dedicated RoleQueries wiring: see TODO_LIST role proposal
-				sys.queryStore = NewQueryAdapter(backend, "queries", qryOpts...)
-			}
-
-			// Wire cache tier if configured.
-			if inst.Cache != nil && inst.Cache.Capacity > 0 {
-				cached, err := NewCachedEventStore(sys.eventStore, inst.Cache.Capacity)
-				if err != nil {
-					return nil, fmt.Errorf("system: create cache: %w", err)
-				}
-
-				sys.eventStore = cached
+			if err := wireSourceOfTruth(sys, deployment, inst, engineCache, dedicated); err != nil {
+				return nil, err
 			}
 		}
 
@@ -199,6 +140,12 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		}
 	}
 
+	// Bind dedicated command/query/snapshot instances (after the loop so they
+	// take precedence over any source-of-truth wiring above).
+	if err := wireDedicatedRoles(sys, deployment, dedicated, engineCache); err != nil {
+		return nil, err
+	}
+
 	// If no source-of-truth instance, create a default Memory engine.
 	if sys.eventStore == nil {
 		eng := metaengine.NewMemoryEngine()
@@ -227,7 +174,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	}
 
 	sys.bus = bus
-	pub, fanOutClosers := buildPublisher(deployment, sys.bus)
+	pub, fanouts := buildPublisher(deployment, sys.bus)
 	sys.pubBus = pub
 
 	// Register the bus for lifecycle management (watermill.EventBus implements io.Closer).
@@ -235,11 +182,12 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		sys.closers = append(sys.closers, namedCloser{closer: closer, name: "event-bus"})
 	}
 
-	// Register each fan-out bus so Close() does not leak them.
-	for i, closer := range fanOutClosers {
+	// Register each fan-out bus by its Publish target name so Close() does not
+	// leak them and diagnostics show the operator-facing name.
+	for _, fb := range fanouts {
 		sys.closers = append(
 			sys.closers,
-			namedCloser{closer: closer, name: fmt.Sprintf("fanout-bus-%d", i)},
+			namedCloser{closer: fb.closer, name: "fanout-bus-" + fb.name},
 		)
 	}
 

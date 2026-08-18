@@ -77,6 +77,15 @@ database engine. No application-level locking is needed.
 
 - `NewSQLiteStore(ctx, db)` — creates table, uses `?` placeholders
 - `NewPostgresStore(ctx, db)` — creates table, uses `$N` placeholders
+- `NewMySQLStore(ctx, db)` — creates table, uses `?` placeholders and
+  `ON DUPLICATE KEY UPDATE` (no-op update reports 0 affected rows → `ErrDuplicate`)
+
+## Testing
+
+- Unit + property suites run against in-memory SQLite: `go test ./...`
+- Live Postgres integration (tagged `integration`): `nix run .#integration-pg`
+- Live MySQL/MariaDB integration (tagged `integration`, needs `MYSQL_TEST_DSN`):
+  `nix run .#integration-mysql-nspawn` (or `-vm`)
 
 ## Related Modules
 

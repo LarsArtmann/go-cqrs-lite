@@ -187,6 +187,22 @@ func (s *System) Publisher() event.Publisher {
 	return s.pubBus
 }
 
+// PublisherFor returns the fan-out publisher bound to the given Publish
+// target name from the deployment config — the name the operator wrote in
+// YAML (e.g. publish: [local, nats] → PublisherFor("nats")).
+//
+// The bool is false when no fan-out publisher is bound to that name (no
+// multi-bus configured, or an unknown target). The local bus is always entry
+// 0 of MultiBus.Publishers() and has no name binding.
+func (s *System) PublisherFor(target string) (event.Publisher, bool) {
+	multi, ok := s.pubBus.(*MultiBus)
+	if !ok {
+		return nil, false
+	}
+
+	return multi.PublisherByName(target)
+}
+
 // ProjectionHost returns the projection host, or nil if not configured.
 func (s *System) ProjectionHost() *projectionhost.Host {
 	if h, ok := s.projHost.(*projectionhost.Host); ok {
@@ -224,6 +240,18 @@ func (s *System) EventStore() event.Store {
 // directly (e.g., manual SaveSnapshot after batch imports).
 func (s *System) SnapshotStore() snapshot.SnapshotStore {
 	return s.snapStore
+}
+
+// CommandStore returns the command audit store, or nil when no instance
+// provides one (no source-of-truth, no dedicated commands instance).
+func (s *System) CommandStore() command.Store {
+	return s.cmdStore
+}
+
+// QueryStore returns the query audit store, or nil when no instance provides
+// one (no source-of-truth, no dedicated queries instance).
+func (s *System) QueryStore() query.QueryStore {
+	return s.queryStore
 }
 
 // Close shuts down all owned infrastructure: projection host, engines, stores.

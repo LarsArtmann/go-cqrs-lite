@@ -239,6 +239,68 @@ func TestSystem_Runtime_GetCount(t *testing.T) {
 	}
 }
 
+// TestSystem_Runtime_GetCount_MultipleCounters is the regression test for the
+// Count shadowing bug (P1-2): every Count projection shares one CountInput
+// type, so type-based dispatch resolved to the most recently registered
+// counter. GetCount dispatches by name and must reach both independently.
+func TestSystem_Runtime_GetCount_MultipleCounters(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	domain := system.DomainConfig{
+		Projections: []system.ProjectionDeclaration{
+			system.Count("rt_task_counts").
+				On("rt.created", RuntimeCreated{}, +1, "tasks").
+				Done(),
+			system.Count("rt_user_counts").
+				On("rt.updated", RuntimeUpdated{}, +1, "users").
+				Done(),
+		},
+	}
+
+	deployment := system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"primary": {Driver: "memory"},
+		},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engine: "primary"},
+			{Role: system.RoleProjections, Engine: "primary"},
+		},
+	}
+
+	sys, err := system.New(ctx, domain, deployment)
+	if err != nil {
+		t.Fatalf("system.New: %v", err)
+	}
+
+	defer sys.Close()
+
+	store := sys.MetaEngine()
+	mustApply(t, store, "rt.created", RuntimeCreated{ID: "1"})
+	mustApply(t, store, "rt.created", RuntimeCreated{ID: "2"})
+	mustApply(t, store, "rt.updated", RuntimeUpdated{ID: "1", Status: "done"})
+
+	tasks, err := system.GetCount(ctx, sys, "rt_task_counts")
+	if err != nil {
+		t.Fatalf("GetCount rt_task_counts: %v", err)
+	}
+
+	if tasks["tasks"] != 2 {
+		t.Fatalf("rt_task_counts = %v, want tasks=2", tasks)
+	}
+
+	users, err := system.GetCount(ctx, sys, "rt_user_counts")
+	if err != nil {
+		t.Fatalf("GetCount rt_user_counts: %v", err)
+	}
+
+	if users["users"] != 1 {
+		t.Fatalf("rt_user_counts = %v, want users=1", users)
+	}
+}
+
 // TestSystem_Runtime_Get_NoProjections verifies Get returns an error when
 // no projections are configured.
 func TestSystem_Runtime_Get_NoProjections(t *testing.T) {
