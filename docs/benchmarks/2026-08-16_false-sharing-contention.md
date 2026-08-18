@@ -130,14 +130,14 @@ benchstat benchmarks/2026-08-17_falsesharing-<suite>.txt
 
 Benchstat summaries (sec/op, n=10):
 
-| Suite / variant     | @16 cpu        | @32 cpu        |
-| ------------------- | -------------- | -------------- |
-| sqliteengine Unpadded | 18.88n ± 3%  | 19.97n ± 11%   |
-| sqliteengine Padded | **7.287n ± 2%** | **7.152n ± 2%** |
+| Suite / variant         | @16 cpu         | @32 cpu         |
+| ----------------------- | --------------- | --------------- |
+| sqliteengine Unpadded   | 18.88n ± 3%     | 19.97n ± 11%    |
+| sqliteengine Padded     | **7.287n ± 2%** | **7.152n ± 2%** |
 | projectionhost Adjacent | **190.4n ± 1%** | **233.8n ± 7%** |
-| projectionhost Padded | 343.6n ± 3%  | 393.8n ± 7%    |
-| metaengine Adjacent | **75.25n ± 2%** | 77.88n ± 17%   |
-| metaengine Padded   | 81.42n ± 6%    | 78.72n ± 12%   |
+| projectionhost Padded   | 343.6n ± 3%     | 393.8n ± 7%     |
+| metaengine Adjacent     | **75.25n ± 2%** | 77.88n ± 17%    |
+| metaengine Padded       | 81.42n ± 6%     | 78.72n ± 12%    |
 
 Bold = the layout each decision kept. These baselines are diagnostic evidence,
 NOT a CI gate: their value is the relative padded-vs-adjacent comparison

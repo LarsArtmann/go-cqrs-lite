@@ -23,9 +23,9 @@ Per-vector cost: **~90 ns** (memory) vs **~17 µs** (pebble) — a ~190x constan
 After Phase 0 shipped (2026-08-17, binary payloads, same host/params):
 
 | Collection size | MemoryVectorIndex (in-RAM ceiling) | Pebble (LSM, binary payloads) |
-| --------------- | ---------------------------------- | ------------------------------ |
-| 1K              | 79.8 µs/query                      | 459.9 µs/query                 |
-| 10K             | 825.9 µs/query                     | 5.63 ms/query                  |
+| --------------- | ---------------------------------- | ----------------------------- |
+| 1K              | 79.8 µs/query                      | 459.9 µs/query                |
+| 10K             | 825.9 µs/query                     | 5.63 ms/query                 |
 
 Per-vector cost drops from ~17 µs to **~460-560 ns** (~31-35x); the LSM scan
 sits within ~6x of the in-RAM ceiling instead of ~190x. The remaining gap is
@@ -119,12 +119,12 @@ The metaengine north star: "developer declares, operator deploys." The planner a
 
 ## 5. Recommended phasing
 
-| Phase | Action                                                                | Trigger                                                                                                                                             |
-| ----- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0     | ✅ Done 2026-08-17: binary float32 encoding for vector payloads (pebble, bbolt, badger; legacy JSON rows still readable) | Shipped — ~31-35x measured scan win |
-| 1     | int8 scalar quantization + exact re-rank                              | Post-Phase-0 p99 still above budget at real N                                                                                                       |
-| 2     | Optional ANN capability (HNSW or IVF) with filter-aware fallback      | Sustained collections > ~500K or latency-critical vector queries                                                                                    |
-| -     | Size-triggered advisory                                               | Cheap to add anytime: a `VectorCount` optional capability lets `Doctor`/`EXPLAIN` say "collection X has N vectors on a degraded engine" with a WARN |
+| Phase | Action                                                                                                                   | Trigger                                                                                                                                             |
+| ----- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | ✅ Done 2026-08-17: binary float32 encoding for vector payloads (pebble, bbolt, badger; legacy JSON rows still readable) | Shipped — ~31-35x measured scan win                                                                                                                 |
+| 1     | int8 scalar quantization + exact re-rank                                                                                 | Post-Phase-0 p99 still above budget at real N                                                                                                       |
+| 2     | Optional ANN capability (HNSW or IVF) with filter-aware fallback                                                         | Sustained collections > ~500K or latency-critical vector queries                                                                                    |
+| -     | Size-triggered advisory                                                                                                  | Cheap to add anytime: a `VectorCount` optional capability lets `Doctor`/`EXPLAIN` say "collection X has N vectors on a degraded engine" with a WARN |
 
 ## 6. Non-goals / explicitly deferred
 

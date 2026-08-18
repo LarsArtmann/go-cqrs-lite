@@ -1,11 +1,11 @@
 # Status: v5 Pre-Cut Deprecation Markers (ADR-0123 Phase 8 preparation)
 
 **Date:** 2026-08-17 16:27
- **Task:** Mark ALL v5-deletion-target APIs as `Deprecated:` (from TODO_LIST "v5
+**Task:** Mark ALL v5-deletion-target APIs as `Deprecated:` (from TODO_LIST "v5
 Unification Phase 8: Deletion + Cut") WITHOUT deleting anything, so v4 consumers
 get compile-time warnings (SA1019) and godoc banners before the v5 breaking cut.
-Explicitly sanctioned by ADR-0123 Migration Path step 2: *"v4.x+1: mark v1 tiers
-as deprecated."*
+Explicitly sanctioned by ADR-0123 Migration Path step 2: _"v4.x+1: mark v1 tiers
+as deprecated."_
 
 ---
 
@@ -13,19 +13,19 @@ as deprecated."*
 
 ### Deprecation markers applied (uniform phrase: `Deprecated: removed in v5 (ADR-0123): <replacement>`)
 
-| Area | Marked symbols |
-| --- | --- |
-| `stack/` (package) | package doc (whole module dies at v5) |
-| `stack/bundle.go` | `Bundle` type, `New` |
-| `stack/materialize.go` | `Materialize`, `TombstonePolicy` + 3 constants |
-| `stack/accessors.go` | `NewMaterialize` |
-| `stack/run_projections.go` | `(*Bundle).RunProjections` |
-| 8 presets (`memory, sqlite, pebble, bbolt, postgres, mysql, turso, duckdb`) | package docs (doc.go; bbolt inline) + `New`; plus `pebble.Bundle`, `turso.Bundle`, `turso.NewSync` |
-| `storage/view` (package) | package doc + `SQLViewStore`, `ViewMapper`, `ViewColumn`, `IndexSpec`, `ViewStoreOption`, `NewSQLiteViewStore`, `NewSQLViewStore`, `NewViewStoreWithDialect`, `AutoMapper`, `AutoMapperWithTombstone`, `WithoutViewAutoMigrate` |
-| `storage/view_aliases.go` (facade re-exports) | all 5 type aliases + all 7 functions |
-| `storage/relational` (package) | package doc + `RelationalHandler`, `RelationalProjection`, `RelationalProjectionOption`, `NewRelationalProjection`, `WithoutRelationalAutoMigrate`, `Row`, `ProjectionSink`, `SetExpr`, `RelationalStore`, `NewRelationalStore`, `RelationalSchema`, `RelationalTable`, `RelationalColumn`, `IndexSpec`, `UniqueSpec` |
-| `graph/projection.go` | `Handler`, `GraphProjection`, `ProjectionOption`, `WithSchema`, `NewGraphProjection` |
-| `record/record.go` | `NewStreamRef` — NOT deprecated (survives v5); added v5-breaking-change NOTE pointing to `Validate()` |
+| Area                                                                        | Marked symbols                                                                                                                                                                                                                                                                                                        |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `stack/` (package)                                                          | package doc (whole module dies at v5)                                                                                                                                                                                                                                                                                 |
+| `stack/bundle.go`                                                           | `Bundle` type, `New`                                                                                                                                                                                                                                                                                                  |
+| `stack/materialize.go`                                                      | `Materialize`, `TombstonePolicy` + 3 constants                                                                                                                                                                                                                                                                        |
+| `stack/accessors.go`                                                        | `NewMaterialize`                                                                                                                                                                                                                                                                                                      |
+| `stack/run_projections.go`                                                  | `(*Bundle).RunProjections`                                                                                                                                                                                                                                                                                            |
+| 8 presets (`memory, sqlite, pebble, bbolt, postgres, mysql, turso, duckdb`) | package docs (doc.go; bbolt inline) + `New`; plus `pebble.Bundle`, `turso.Bundle`, `turso.NewSync`                                                                                                                                                                                                                    |
+| `storage/view` (package)                                                    | package doc + `SQLViewStore`, `ViewMapper`, `ViewColumn`, `IndexSpec`, `ViewStoreOption`, `NewSQLiteViewStore`, `NewSQLViewStore`, `NewViewStoreWithDialect`, `AutoMapper`, `AutoMapperWithTombstone`, `WithoutViewAutoMigrate`                                                                                       |
+| `storage/view_aliases.go` (facade re-exports)                               | all 5 type aliases + all 7 functions                                                                                                                                                                                                                                                                                  |
+| `storage/relational` (package)                                              | package doc + `RelationalHandler`, `RelationalProjection`, `RelationalProjectionOption`, `NewRelationalProjection`, `WithoutRelationalAutoMigrate`, `Row`, `ProjectionSink`, `SetExpr`, `RelationalStore`, `NewRelationalStore`, `RelationalSchema`, `RelationalTable`, `RelationalColumn`, `IndexSpec`, `UniqueSpec` |
+| `graph/projection.go`                                                       | `Handler`, `GraphProjection`, `ProjectionOption`, `WithSchema`, `NewGraphProjection`                                                                                                                                                                                                                                  |
+| `record/record.go`                                                          | `NewStreamRef` — NOT deprecated (survives v5); added v5-breaking-change NOTE pointing to `Validate()`                                                                                                                                                                                                                 |
 
 **Deliberately NOT marked (survive v5):** `graph.GraphSink`, `graph.GraphDriver`,
 `graph.Schema` internals (graphadapter — the v5 replacement — uses them);

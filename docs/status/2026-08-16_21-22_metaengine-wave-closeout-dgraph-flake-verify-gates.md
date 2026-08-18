@@ -61,6 +61,7 @@
 ## f) NEXT — up to 50 items
 
 **Immediate (this handoff):**
+
 1. Wait for job `0AE` (cache move) to finish; verify `/mnt/buildcache/gocache-verify` etc. landed.
 2. Re-run `nix run .#verify-fast` → expect GREEN (code causes all fixed).
 3. Trash remaining ~21 `go-build*` + ~33 `tmp.*` stale dirs in /tmp (after §g approval).

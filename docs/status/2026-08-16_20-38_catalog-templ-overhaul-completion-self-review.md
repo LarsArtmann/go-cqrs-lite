@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-16 20:38
 **Scope of this report:** Session 3 of the catalog UI/EventCatalog overhaul (this session: flake wiring, route fix, tests, version pin, docs sweep, gate close-out). Sessions 1–2 (exporter defects, templ rewrite, CSS pipeline) are prior context. NOT a repo-wide audit.
-**Verification claims are scoped:** everything below was verified at *catalog-module + gate* level with `GOCACHE=$HOME/.cache/go-build GOMODCACHE=$HOME/go/pkg/mod GOTOOLCHAIN=auto GOWORK=off`. Full `nix run .#verify` / `#verify-fast` was **never run this session** (blocked by a concurrent agent's in-flight modules — see d).
+**Verification claims are scoped:** everything below was verified at _catalog-module + gate_ level with `GOCACHE=$HOME/.cache/go-build GOMODCACHE=$HOME/go/pkg/mod GOTOOLCHAIN=auto GOWORK=off`. Full `nix run .#verify` / `#verify-fast` was **never run this session** (blocked by a concurrent agent's in-flight modules — see d).
 
 ---
 
@@ -46,7 +46,7 @@
 1. **`/mnt/buildcache` dead mount** — breaks default GOCACHE/GOMODCACHE/golangci cache; every command needs env overrides; the gopls/golangci-lint_ls diagnostics in this session's tool output (108 "errors") are 100% this environment lie, not code.
 2. **Shared-golden-dir `UPDATE_SNAPS` footgun** — a per-package update run deletes snaps owned by other packages. Bit me twice in one session before I understood the full semantics (restore + re-observe). Tooling defect, now documented in catalog/AGENTS.md but not fixed upstream in cattest.
 3. **`nix fmt` vs templ codegen conflict** (resolved this session, worth recording as a near-fuck): running repo-wide `nix fmt` before adding the treefmt exclusion reformatted 4 generated files + ~14 files belonging to a concurrent agent's WIP. I regenerated the templ files; the agent's files were formatting-only changes left as-is.
-4. **Repo-wide lint + duplication gates RED** (see b-1) — the honest headline: "GREEN" today means *catalog-scope GREEN*, not repo GREEN.
+4. **Repo-wide lint + duplication gates RED** (see b-1) — the honest headline: "GREEN" today means _catalog-scope GREEN_, not repo GREEN.
 
 ## e) WHAT WE SHOULD IMPROVE (brutal self-critique)
 
@@ -66,6 +66,7 @@
 ## f) NEXT — up to 50, grouped by priority (brainstorm fuel; route via docs-health HARVEST)
 
 **P0 — close the session's open loops (1–8)**
+
 1. Re-run `nix run .#lint` + `#check-duplication` after the concurrent metaengine wave lands; expect their findings to clear.
 2. Run `nix run .#verify-fast` (exclusive, nothing heavy parallel) to validate the full chain incl. the new CSS step.
 3. docs-health HARVEST: pull §f P0/P1 into TODO_LIST.md.
@@ -135,4 +136,4 @@
 
 ---
 
-*Point-in-time snapshot; auto-commit daemon will fold this file in. Verification scope: catalog module + repo gates, 2026-08-16 20:38.*
+_Point-in-time snapshot; auto-commit daemon will fold this file in. Verification scope: catalog module + repo gates, 2026-08-16 20:38._

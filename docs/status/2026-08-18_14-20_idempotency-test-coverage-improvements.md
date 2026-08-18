@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-18 14:20 · **Scope:** this session only — closing the idempotency test-coverage audit gaps (`docs/status/2026-08-07_22-38`, item c.8) and everything that cascaded from it.
 
-**Input question:** "Did we ever fully test an idempotency case?" → answer was *mostly yes, with 4 documented gaps* → "Improve them!" → this session.
+**Input question:** "Did we ever fully test an idempotency case?" → answer was _mostly yes, with 4 documented gaps_ → "Improve them!" → this session.
 
 ---
 

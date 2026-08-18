@@ -9,12 +9,13 @@
 ## 1. Count-by-name dispatch (P1-2)
 
 **Problem.** `metaengine.ExecuteTyped` and the typed reader dispatch by input
-*type* (`metaengine/execute.go:27-36`). Every `Count()` projection uses the
+_type_ (`metaengine/execute.go:27-36`). Every `Count()` projection uses the
 same `CountInput`, so a second `Count()` registration silently shadows the
 first; `system.GetCount`'s name parameter only feeds error messages. Get/Find
 are unaffected (they dispatch by name via their input's `ID`/filter fields).
 
 **Options.**
+
 - A. metaengine gains named dispatch: `ExecuteTypedByName[Q,R](name, input)` —
   queries register in a name→handler map alongside the type map. Additive,
   cross-module release required.
@@ -23,7 +24,8 @@ are unaffected (they dispatch by name via their input's `ID`/filter fields).
 
 **Recommendation.** A. The type-keyed map is an implementation shortcut, not a
 contract; named lookup already exists for readers. Ship as metaengine minor
-+ system minor.
+
+- system minor.
 
 ## 2. Named-bus API
 
@@ -49,12 +51,12 @@ conditions were removed (449e0e5a7); the semantics remain unimplemented.
 
 ## 4. Reserved-config honesty table
 
-| Field | Status | Recommendation |
-| --- | --- | --- |
-| `BusConfig.Mode` | parsed, never read (README documents `mode: sync`) | implement (sync/async publish semantics) or delete field + README example |
-| `InstanceConfig.Subscribe` | parsed, never read | implement (bus subscription per instance) or delete |
-| `InstanceConfig.Collections` | parsed, surfaced in topology only | keep (introspection value) but document as non-behavioral |
-| `CacheConfig.Engine` | parsed, never read | delete — cache wraps the event store, not an engine |
+| Field                        | Status                                             | Recommendation                                                            |
+| ---------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------- |
+| `BusConfig.Mode`             | parsed, never read (README documents `mode: sync`) | implement (sync/async publish semantics) or delete field + README example |
+| `InstanceConfig.Subscribe`   | parsed, never read                                 | implement (bus subscription per instance) or delete                       |
+| `InstanceConfig.Collections` | parsed, surfaced in topology only                  | keep (introspection value) but document as non-behavioral                 |
+| `CacheConfig.Engine`         | parsed, never read                                 | delete — cache wraps the event store, not an engine                       |
 
 Rule going forward: any config field that is parsed must either change
 behavior or carry a doc comment saying it is introspection-only.

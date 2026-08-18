@@ -10,6 +10,7 @@ fucked-up, improvements, next work, and 3 questions I cannot answer myself.
 ## 0. Brutal self-review (the questions, answered honestly)
 
 ### What did you forget?
+
 1. **The MySQL-dialect branch of my own change was never tested against MySQL.**
    `filterExpr` now sits in front of every pushdown/EXPLAIN filter render, and
    `ApplyLayout` grew a MariaDB branch — but the full mysqlengine suite only ran
@@ -34,6 +35,7 @@ fucked-up, improvements, next work, and 3 questions I cannot answer myself.
    111µs — warmup artifact). Conclusion survives; the table's depth-1 row is inflated.
 
 ### What is something stupid that we do anyway?
+
 - **Two run-suffix mechanisms with different feature sets.**
   `enginetest.ScopedCollection` supports `ENGINETEST_RUN_TOKEN` env pinning;
   adttest's `Scenarios()` suffix is a bare `time.Now().UnixNano()` with no pinning.
@@ -43,6 +45,7 @@ fucked-up, improvements, next work, and 3 questions I cannot answer myself.
   DSN shape) now lives across three status reports instead of one script.
 
 ### What could you have done better?
+
 1. **The datadir incident (see §d).** I destroyed a live datadir on the strength of a
    probe I now know lies (`/dev/tcp` unsupported in mvdan/sh). A single `mysqladmin
    ping` before `trash` would have prevented everything. Destructive ops deserve a
@@ -62,6 +65,7 @@ fucked-up, improvements, next work, and 3 questions I cannot answer myself.
    (ok), but I did not re-check that the test suite was idle first, just lucky.
 
 ### What could you still improve? (beyond §e/§f)
+
 - Make the layout column type usage-aware (filter→TEXT, sort→DECIMAL) so sort fields
   get columns the sort path can actually consume — this converts the +26% dual-key
   penalty into an indexed native sort.
@@ -69,11 +73,13 @@ fucked-up, improvements, next work, and 3 questions I cannot answer myself.
   TEXT for everything.
 
 ### Did you lie to me?
+
 One overstatement, self-caught: my closing line "All gates GREEN" — true for the
 modules I ran, false as a repo-level claim (`#verify` not run, MySQL dialect not
 run). Corrected here; nothing else was knowingly wrong.
 
 ### How can we be less stupid?
+
 - Rule adopted into AGENTS.md this session: never trust a connectivity probe the
   tool-shell can't actually express; use the server's own client. Next: extend the
   rule to "no destructive filesystem op on a resource a process may hold, without
@@ -84,21 +90,25 @@ run). Corrected here; nothing else was knowingly wrong.
   last process left behind.
 
 ### Ghost systems?
+
 One candidate found — **the sort-field gc columns (§0.3)**: written by ApplyLayout,
 read by nothing. Not a full ghost system (filter fields genuinely use theirs), but
 the sort half is infrastructure with zero consumers. Fix: typed columns + sort-path
 integration, or stop creating columns for pure sort fields.
 
 ### Scope creep?
+
 The `graphWalk` dedup was lint-driven adjacent work, not batch scope — justified (it
 was a real dupl finding blocking a clean lint run, and the undirected iterative
 fallback had ZERO tests; both fixed). Status/TODO/CHANGELOG/AGENTS updates are
 required hygiene per repo policy. Otherwise: no.
 
 ### Did we remove something useful?
+
 No. (`register.go`'s art-dupl annotation predates this session; verified legitimate.)
 
 ### Split brains created?
+
 1. adttest vs enginetest suffix mechanisms (§0-stupid-1).
 2. Filter path reads gc columns; sort path reads JSON expressions — one layout
    feature, two divergent renderers.
@@ -106,6 +116,7 @@ No. (`register.go`'s art-dupl annotation predates this session; verified legitim
    used to name the public operation — worse for consumer debugging.
 
 ### Tests — how are we doing?
+
 Strong where touched: `-count=3` shared-server reruns, clean-slate DB inspection,
 EXPLAIN-based index assertions, iterative↔CTE parity both directions, duckdb CGo 8/8.
 Gaps: MySQL-dialect rerun, `applyMariaDBLayout` error paths (ALTER failure,
@@ -115,19 +126,20 @@ non-duplicate index failure), art-dupl gate, full `#verify`, race mode.
 
 ## a) FULLY DONE (this session, verified)
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | adttest per-RUN scenario suffix (17 collections) | clean-server `-count=3` GREEN; DB contains only `*_r<nano>` collections, exact per-run state (counters alpha=13 ×3) |
-| 2 | Stale test renamed `TestScenarios_AllADTs` + 4 missing scenario names added to coverage list | test GREEN |
-| 3 | MariaDB generated-column layouts (`mysqlengine/layout.go`) | VIRTUAL TEXT gc column + `(collection, gc(190))` prefix index; EXPLAIN `ref` access verified live; `TestMariaDBApplyLayout_GeneratedColumnFilter` pins DDL, index use, missing-field/long-value(>255/>190) semantics, idempotency |
-| 4 | Empirical finding recorded: MariaDB 11.4 does NOT substitute gc columns into JSON predicates | EXPLAIN `access_type: ALL` with index in possible_keys (raw expr) vs `ref` (column ref) — this is WHY `filterExpr` exists |
-| 5 | Graph bench (item 8) | `graph_bench_test.go`, depth 1-6 × 1k-100k, both modes, MariaDB + MySQL 8.4; crossover table in METAENGINE-LIVE-LATENCY-MODEL.md §9 |
-| 6 | Sort bench (item 9) | `sort_bench_test.go`, 3 forms × 2 servers; dual-key +26%, MySQL arrow 2.5x faster than MariaDB dual; §9 |
-| 7 | `stack/mysql` suite vs userspace MariaDB (nspawn substitute) | GREEN `-count=3` after DROP-before-CREATE fix + `cqrs_%` wildcard grants |
-| 8 | `graphWalk` dedup + undirected iterative↔CTE parity test | lint 0 issues; both parity tests GREEN ×2 |
-| 9 | Wrap-ups | api-stability golden (daemon had committed; verified), `nix fmt`, doc-check 916 refs, duckdb pushdown CGo 8/8, metaengine core GREEN, TODO_LIST/CHANGELOG/AGENTS.md/status addendum updated, MySQL container + probe.sql cleaned up |
+| # | Item                                                                                         | Evidence                                                                                                                                                                                                                            |
+| - | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | adttest per-RUN scenario suffix (17 collections)                                             | clean-server `-count=3` GREEN; DB contains only `*_r<nano>` collections, exact per-run state (counters alpha=13 ×3)                                                                                                                 |
+| 2 | Stale test renamed `TestScenarios_AllADTs` + 4 missing scenario names added to coverage list | test GREEN                                                                                                                                                                                                                          |
+| 3 | MariaDB generated-column layouts (`mysqlengine/layout.go`)                                   | VIRTUAL TEXT gc column + `(collection, gc(190))` prefix index; EXPLAIN `ref` access verified live; `TestMariaDBApplyLayout_GeneratedColumnFilter` pins DDL, index use, missing-field/long-value(>255/>190) semantics, idempotency   |
+| 4 | Empirical finding recorded: MariaDB 11.4 does NOT substitute gc columns into JSON predicates | EXPLAIN `access_type: ALL` with index in possible_keys (raw expr) vs `ref` (column ref) — this is WHY `filterExpr` exists                                                                                                           |
+| 5 | Graph bench (item 8)                                                                         | `graph_bench_test.go`, depth 1-6 × 1k-100k, both modes, MariaDB + MySQL 8.4; crossover table in METAENGINE-LIVE-LATENCY-MODEL.md §9                                                                                                 |
+| 6 | Sort bench (item 9)                                                                          | `sort_bench_test.go`, 3 forms × 2 servers; dual-key +26%, MySQL arrow 2.5x faster than MariaDB dual; §9                                                                                                                             |
+| 7 | `stack/mysql` suite vs userspace MariaDB (nspawn substitute)                                 | GREEN `-count=3` after DROP-before-CREATE fix + `cqrs_%` wildcard grants                                                                                                                                                            |
+| 8 | `graphWalk` dedup + undirected iterative↔CTE parity test                                     | lint 0 issues; both parity tests GREEN ×2                                                                                                                                                                                           |
+| 9 | Wrap-ups                                                                                     | api-stability golden (daemon had committed; verified), `nix fmt`, doc-check 916 refs, duckdb pushdown CGo 8/8, metaengine core GREEN, TODO_LIST/CHANGELOG/AGENTS.md/status addendum updated, MySQL container + probe.sql cleaned up |
 
 ## b) PARTIALLY DONE
+
 - **Item 2 (MariaDB layouts)** — shipped for FILTER fields only; sort fields get
   unused columns (§0.3). MySQL-dialect branch untested against a real MySQL (§0.1).
 - **Shared-server isolation story** — mysqlengine + stack/mysql proven; other
@@ -136,12 +148,14 @@ non-duplicate index failure), art-dupl gate, full `#verify`, race mode.
   warmup-inflated; no error bars.
 
 ## c) NOT STARTED
+
 - `nix run .#integration-mysql-nspawn` (root; blocked — tool policy).
 - `scripts/dev-mariadb.sh` extraction (awaits user endorsement, Q2).
 - adttest env-pinning parity (awaits user decision, Q3).
 - Skill-reference sweep for stale MariaDB-degradation claims.
 
 ## d) TOTALLY FUCKED UP (own mistakes, worst first)
+
 1. **Trashed a live datadir on a false-negative probe.** Previous session's mysqld
    (pid 2264464, started 21:20:06) was up all along; `/dev/tcp/127.0.0.1/33061`
    silently fails in mvdan/sh → "MARIADB DOWN" → `job_kill` + `trash data` +
@@ -161,6 +175,7 @@ non-duplicate index failure), art-dupl gate, full `#verify`, race mode.
 4. Skipped a state re-view between sequential multiedits (root cause of 2).
 
 ## e) WHAT WE SHOULD IMPROVE
+
 1. Verification discipline: full `#verify` before claiming repo-green; dialect matrix
    (MariaDB AND MySQL) before claiming engine-green; zero-state before claiming
    isolation-green.
@@ -174,6 +189,7 @@ non-duplicate index failure), art-dupl gate, full `#verify`, race mode.
 6. Benchmarks: warmup exclusion, `-count` replication, report medians.
 
 ## f) Next up to 50 (roughly Pareto-ordered; ⭐ = small/high-value)
+
 1. ⭐ Run mysqlengine full suite against real MySQL 8.4 (docker) — close §0.1.
 2. ⭐ Run `nix run .#verify` exclusively (nothing else heavy).
 3. ⭐ Depth-1 graph short-circuit — direct adjacency query for `depth==1` (measured 2-4x; XS; TODO filed).
@@ -198,7 +214,7 @@ non-duplicate index failure), art-dupl gate, full `#verify`, race mode.
 22. pg/dgraph/turso `-count=2` shared-server proof (finish the isolation story).
 23. `layout_test.go` bulk seed → use engine `MapSet` batching or keep multi-VALUES but parameterize (string-built SQL with inlined ints only — fine, but note it).
 24. Add MariaDB layout coverage to the nix integration targets when a MariaDB service exists there.
-25. Doc: record `GRANT ON `cqrs_%`.*` requirement for stack/mysql shared-server runs (README or test comment).
+25. Doc: record `GRANT ON`cqrs_%`.*` requirement for stack/mysql shared-server runs (README or test comment).
 26. Consider prefix length 191 vs 190 audit across utf8mb4 collations (3072-byte limit table in layout.go comment).
 27. `TestScenarios_AllADTs`: derive expected names from a canonical list shared with Scenarios() (kill the literal list).
 28. CHANGELOG: mention stack/mysql DROP fix under Fixed (currently folded into the batch bullet).
@@ -220,6 +236,7 @@ non-duplicate index failure), art-dupl gate, full `#verify`, race mode.
 44. Consider recording this session's MariaDB ops runbook as `docs/runbooks/mariadb-dev.md` if Q2 endorses the script.
 
 ## g) Questions (cannot resolve myself)
+
 1. **nspawn**: tool policy bans sudo/root for me — will YOU run `nix run .#integration-mysql-nspawn` yourself as the final real-env gate, or do we accept userspace-MariaDB as canonical and retire the nspawn expectation for agent sessions?
 2. **dev-mariadb.sh**: should I extract the userspace-MariaDB startup into `scripts/dev-mariadb.sh` (+ optional flake app) as the canonical rootless integration path, or is that unwanted surface area given nspawn exists?
 3. **Suffix unification**: one run-token mechanism for both enginetest and adttest — env-pinnable everywhere (my recommendation, fixes the split brain AND CI correlation), or keep adttest internal-only (previous session's open Q3, still unanswered)?

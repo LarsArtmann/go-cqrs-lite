@@ -481,14 +481,14 @@ include ~60-100µs loopback RTT; ratios are the durable signal.
 Synthetic graph, out-degree 2 (chain + scattered edge), start node 0,
 `GraphNeighbors(depth)`; median of forced-mode runs (ns/op, 10x):
 
-| depth | MariaDB CTE | MariaDB iter | MySQL CTE | MySQL iter | Winner |
-| ----- | ----------- | ------------ | --------- | ---------- | ------ |
+| depth | MariaDB CTE | MariaDB iter | MySQL CTE | MySQL iter  | Winner           |
+| ----- | ----------- | ------------ | --------- | ----------- | ---------------- |
 | 1     | 160-253µs   | **65-109µs** | 137-253µs | **69-98µs** | iterative (2-4x) |
-| 2     | 111-167µs   | 96-168µs     | 169-181µs | 137-138µs   | ~parity |
-| 3     | 128-143µs   | 176-232µs    | 117-175µs | 220-241µs   | CTE (1.3-1.9x) |
-| 4     | 144-189µs   | 308-330µs    | 117-142µs | 380-415µs   | CTE (2.2-2.9x) |
-| 5     | 156-275µs   | 470-571µs    | 134-239µs | 620-735µs   | CTE (3.0-4.3x) |
-| 6     | 169-245µs   | 887-963µs    | 176-221µs | 1013-1339µs | CTE (4.4-6.1x) |
+| 2     | 111-167µs   | 96-168µs     | 169-181µs | 137-138µs   | ~parity          |
+| 3     | 128-143µs   | 176-232µs    | 117-175µs | 220-241µs   | CTE (1.3-1.9x)   |
+| 4     | 144-189µs   | 308-330µs    | 117-142µs | 380-415µs   | CTE (2.2-2.9x)   |
+| 5     | 156-275µs   | 470-571µs    | 134-239µs | 620-735µs   | CTE (3.0-4.3x)   |
+| 6     | 169-245µs   | 887-963µs    | 176-221µs | 1013-1339µs | CTE (4.4-6.1x)   |
 
 Findings (identical shape on both servers, independent of graph size 1k-100k):
 
@@ -513,11 +513,11 @@ Findings (identical shape on both servers, independent of graph size 1k-100k):
 50k shuffled numeric-priority rows in `meta_map`, `ORDER BY ... LIMIT 100`
 (20x runs):
 
-| Form | MariaDB 11.4 | MySQL 8.4 |
-| ---- | ------------ | --------- |
-| dual-key `CAST(... AS DECIMAL), JSON_UNQUOTE(...)` (engine's MariaDB form) | 47.0ms | 48.1ms |
-| single `JSON_UNQUOTE(JSON_EXTRACT(...))` (text-order control) | 37.4ms | 37.7ms |
-| single `value->'$.p'` (JSON-typed; engine's MySQL form) | n/a (1064) | **19.0ms** |
+| Form                                                                       | MariaDB 11.4 | MySQL 8.4  |
+| -------------------------------------------------------------------------- | ------------ | ---------- |
+| dual-key `CAST(... AS DECIMAL), JSON_UNQUOTE(...)` (engine's MariaDB form) | 47.0ms       | 48.1ms     |
+| single `JSON_UNQUOTE(JSON_EXTRACT(...))` (text-order control)              | 37.4ms       | 37.7ms     |
+| single `value->'$.p'` (JSON-typed; engine's MySQL form)                    | n/a (1064)   | **19.0ms** |
 
 Findings:
 

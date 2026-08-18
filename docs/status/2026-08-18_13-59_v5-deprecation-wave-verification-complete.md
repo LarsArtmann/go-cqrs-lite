@@ -139,6 +139,7 @@ missed, what was flubbed, and what remains.
 ## f) UP TO 50 NEXT THINGS (prioritized: impact ÷ effort)
 
 **Decisions first (unblock everything):**
+
 1. Answer Q1 (method-level markers) → execute or close the ~60-marker idea.
 2. Answer Q2 (durability re-home) → implement the move; unblocks v5 stack deletion.
 3. Answer Q3 (tag now vs batch) → tag the v4.x wave (stack + 8 presets + storage + graph + record).
@@ -176,7 +177,7 @@ missed, what was flubbed, and what remains.
 29. `system/` coverage 74.4% (pre-existing TODO).
 30. Re-run verify after the concurrent idempotency/sqlstore session lands, so the tree has an uncontaminated green.
 31. Sweep `docs/` (beyond skill refs) for stack/view/relational/graph recommendations — likely hits in architecture docs.
-32. Consider a ` Deprecated marker count` assertion in doc-assertions (73 today; intentional growth only).
+32. Consider a `Deprecated marker count` assertion in doc-assertions (73 today; intentional growth only).
 33. Audit lint-exclusion path list after ANY new internal consumer of deprecated APIs appears.
 34. TODO_LIST: add explicit items for benchkit/cqrs-bench/example v5 migrations if missing (verify they exist; the report assumed).
 35. After tagging: `go get github.com/larsartmann/go-cqrs-lite/stack/v4@latest` smoke-test in a scratch module to confirm consumers see SA1019 + godoc banners.

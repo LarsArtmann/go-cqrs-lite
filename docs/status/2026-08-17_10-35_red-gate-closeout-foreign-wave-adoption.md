@@ -179,6 +179,6 @@ clone groups). Three commits landed. Only macOS hardware verify remains from the
 
 ---
 
-*Every green claim above names its evidence: verify-fast EXIT=0 with "Lint: 76/76
+_Every green claim above names its evidence: verify-fast EXIT=0 with "Lint: 76/76
 modules clean" and "No new clones detected (baseline: 111 groups)" log lines;
-per-module GOWORK=off build+test+lint runs; art-dupl check EXIT=0 after round 4.*
+per-module GOWORK=off build+test+lint runs; art-dupl check EXIT=0 after round 4._

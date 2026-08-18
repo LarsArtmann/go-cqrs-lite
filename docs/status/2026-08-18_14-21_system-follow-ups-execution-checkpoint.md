@@ -3,11 +3,12 @@
 **Date:** 2026-08-18 14:21
 **Session goal:** Execute the "system/v4 Full-Code-Review Follow-Ups" backlog
 (TODO_LIST.md, 10 routed items from `docs/reviews/2026-08-16_full-code-review-system.html`
-+ `docs/adr/2026-08-17_system-v4-review-proposals.md`).
-**State at interruption:** 3 of 13 planned steps complete and GREEN, step 4
-(role wiring) ~90% done with a test compile failure pending. Working tree is
-clean — the auto-commit daemon has already committed session WIP as
-`8e1b5c0fd` (including a non-compiling test file; see §d).
+
+- `docs/adr/2026-08-17_system-v4-review-proposals.md`).
+  **State at interruption:** 3 of 13 planned steps complete and GREEN, step 4
+  (role wiring) ~90% done with a test compile failure pending. Working tree is
+  clean — the auto-commit daemon has already committed session WIP as
+  `8e1b5c0fd` (including a non-compiling test file; see §d).
 
 ---
 

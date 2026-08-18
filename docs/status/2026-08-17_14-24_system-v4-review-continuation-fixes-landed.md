@@ -43,9 +43,9 @@
 
 ## d) TOTALLY FUCKED UP (caught and corrected, but honestly)
 
-1. **I asserted stack.Bundle shared the ack/WARN bugs without reading it.** The proposals doc §8 was drafted from the summary's assumption. When I verified against source, stack has NO scream machinery at all — my premise was flat wrong. Corrected the section and flipped its direction (stack's Durability tables are the *input* system needs). Lesson re-confirmed: verify-external-claims exists for exactly this.
+1. **I asserted stack.Bundle shared the ack/WARN bugs without reading it.** The proposals doc §8 was drafted from the summary's assumption. When I verified against source, stack has NO scream machinery at all — my premise was flat wrong. Corrected the section and flipped its direction (stack's Durability tables are the _input_ system needs). Lesson re-confirmed: verify-external-claims exists for exactly this.
 2. **Two build failures from Go basics.** `(*T){}` is not a valid composite literal (test file), and `pubs[1].(event.Publisher)` asserted to the same type (staticcheck). Small, but each cost a round trip I should have avoided.
-3. **My first bus-validation fix was wrong.** Returning on the first *sorted* entry still skipped validation of later entries — my own new test caught it, fixed with a validate-all-then-select two-pass. Good process outcome, sloppy first attempt.
+3. **My first bus-validation fix was wrong.** Returning on the first _sorted_ entry still skipped validation of later entries — my own new test caught it, fixed with a validate-all-then-select two-pass. Good process outcome, sloppy first attempt.
 4. **M14 gates initially "failed" on a foreign breakage.** A concurrent workspace wave added a broken `scheduling/scheduling` replace that broke even `go build ./system/` in workspace mode. Not my damage; re-ran everything with `GOWORK=off`. But it means **workspace-mode verification of this session's work is unproven** — only isolated module-mode is.
 
 ## e) WHAT WE SHOULD IMPROVE
@@ -60,6 +60,7 @@
 ## f) NEXT — up to 50, ordered
 
 **Release & push (blocking everything):**
+
 1. Decide on push of the 5 session commits (see §g Q1).
 2. Verify the foreign wave's state compiles (`go build ./...` workspace-mode) before pushing master.
 3. Tag metaengine v4.12.0 (local is ≥12 commits past v4.11.0 — release notes need those features).

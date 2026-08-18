@@ -30,7 +30,7 @@
 >   arrow 2.5x faster than MariaDB dual-key. New TODO: depth-1 graph
 >   short-circuit (XS, measured 2-4x win).
 > - **`stack/mysql` suite GREEN `-count=3`** against the userspace MariaDB
->   (nspawn substitute; needed `GRANT ON `cqrs_%`.*` for derived multidb DBs).
+>   (nspawn substitute; needed `GRANT ON`cqrs_%`.*` for derived multidb DBs).
 >   Found + fixed a rerun-isolation bug: `createMySQLDB` now DROPs derived
 >   databases before CREATE (testcontainers always fresh, shared servers were not).
 > - **All wrap-up gates:** api-stability golden regenerated; `nix fmt` + doc-check
@@ -55,6 +55,7 @@ local engines GREEN under `-count=2`; shared MariaDB 11.4.12 running at `127.0.0
 ## 1. Fully done and verified
 
 ### 1.1 mysqlengine upsert semantics audit ✅
+
 - Audited every upsert site vs pgengine: `MapSet` (`ON DUPLICATE KEY UPDATE value = VALUES(value)`
   ≡ `ON CONFLICT ... DO UPDATE SET value = excluded.value`), `CounterIncrement`
   (`value = value + VALUES(value)` ≡ `meta_counter.value + excluded.value`),
@@ -68,6 +69,7 @@ local engines GREEN under `-count=2`; shared MariaDB 11.4.12 running at `127.0.0
   MySQL 8.0.20+ but MariaDB lacks the alias form, so `VALUES()` is the correct dual-dialect choice.
 
 ### 1.2 quic pooled-stream ordering guarantee — verified + documented ✅
+
 - **Verified by code reading:** pooled mode (`sendOpPooled`) is strict per-peer FIFO via three
   stacked mechanisms: (1) QUIC per-stream byte ordering, (2) sender serializes
   write-frame→read-ack under `pc.streamMu`, (3) receiver (`handlePooledStream`) processes frames
@@ -78,6 +80,7 @@ local engines GREEN under `-count=2`; shared MariaDB 11.4.12 running at `127.0.0
   with `sendOp`).
 
 ### 1.3 Convergence suite order-tolerance audit ✅
+
 - Swept ALL `waitFor*` helpers: `waitForMap` (single-value DeepEqual), `waitForCounter`
   (exact convergent CRDT value), `waitForSetContains` (membership), `waitForLogTail`
   (unordered multiset via fixed `sameLogTail`), `waitForMultimap` (set equality via
@@ -87,6 +90,7 @@ local engines GREEN under `-count=2`; shared MariaDB 11.4.12 running at `127.0.0
   Cleaned in `metaengine/irohengine/convergence_suite.go`.
 
 ### 1.4 adttest graph depth>2 + cycle scenarios ✅
+
 - Added 3 scenarios to `Scenarios()`: `GraphDepth3Diamond` (D reachable via 2 paths + E at hop 3),
   `GraphCycle` (A→B→C→A + D→B re-entry, depth-4 walk must terminate, dedupe, exclude start),
   `GraphDepthBound` (chain depth-2 read excludes deeper nodes; off-by-one canary for CTE depth
@@ -96,6 +100,7 @@ local engines GREEN under `-count=2`; shared MariaDB 11.4.12 running at `127.0.0
   iterative BFS divergence — the exact divergence class the TODO targeted — none found)**.
 
 ### 1.5 pgengine Vector — implemented (was a real capability bug) ✅
+
 - **Discovery:** pgengine's Profile declared `ADTVector` in `Supports` + `DegradedADTs`, but the
   engine implemented **no VectorBackend at all** — and `Store.executeVectorSearch` has no
   degraded fallback, so any vector query routed to a pg-only deployment failed with
@@ -109,6 +114,7 @@ local engines GREEN under `-count=2`; shared MariaDB 11.4.12 running at `127.0.0
   CapabilityConformance GREEN.
 
 ### 1.6 enginetest per-run collection suffixes ✅ (the TODO item itself)
+
 - New `metaengine/enginetest/runcollection.go`: process-unique `runToken` (pinnable via
   `ENGINETEST_RUN_TOKEN`) + exported `ScopedCollection(name)` with per-call disambiguator.
 - Applied at every internal chokepoint: `RunStreamLogBackendTestIn`, `RunSeqSeekableStreamLogTestIn`,
@@ -125,11 +131,14 @@ local engines GREEN under `-count=2`; shared MariaDB 11.4.12 running at `127.0.0
 ## 2. Partially done / mid-flight
 
 ### 2.1 adttest.RunMatrix has the SAME shared-server bug — fix designed, not yet landed ⚠️
+
 Running `mysqlengine` tests twice against the shared MariaDB exposed it live:
+
 ```
 Counter:  memory=alpha=13  mysql=alpha=52   (4 runs of accumulation)
 StreamLog: memory=version:3 mysql=version:12
 ```
+
 The matrix's scenario collections are fixed constants ("counters", "events", ...) and the
 RunMatrix doc merely DOCUMENTS "never run twice against the same server" — the exact
 documented-constraint anti-pattern the enginetest TODO item set out to remove.
@@ -145,6 +154,7 @@ graph_bound, sorted, log, tasks_by_user, events, vectors, vectors_filtered, docs
 **Current state: mysqlengine `-count>1` against a shared server is RED because of this.**
 
 ### 2.2 Benchmarks (items 8+9) — infrastructure ready, benches not written
+
 - Ephemeral userspace MariaDB 11.4.12 is UP: `127.0.0.1:33061`,
   `MYSQL_TEST_DSN="cqrs:cqrs@tcp(127.0.0.1:33061)/cqrs_test?parseTime=true&multiStatements=true"`
   (log: `/tmp/mariadb-cqrs/mysqld.log`, socket `/tmp/mariadb-cqrs/mysql.sock`).
@@ -154,6 +164,7 @@ graph_bound, sorted, log, tasks_by_user, events, vectors, vectors_filtered, docs
 ---
 
 ## 3. Not started
+
 - **Item 2 — MariaDB functional-index alternative** (generated columns + plain index instead of
   ApplyLayout no-op). Effort M. Ready to test against the live MariaDB.
 - **Item 10 — `nix run .#integration-mysql-nspawn`**: needs root (`systemd-nspawn`), which this
@@ -164,6 +175,7 @@ graph_bound, sorted, log, tasks_by_user, events, vectors, vectors_filtered, docs
 ---
 
 ## 4. Totally fucked up / loose ends (own mistakes first)
+
 1. **`TestScenarios_AllFourteenADTs` name is now stale** — asserts 17 scenarios; rename to
    `TestScenarios_AllSeventeen` or count-neutral `TestScenarios_Coverage`.
 2. **api-stability golden NOT regenerated** — `enginetest.ScopedCollection` is a new exported
@@ -181,6 +193,7 @@ graph_bound, sorted, log, tasks_by_user, events, vectors, vectors_filtered, docs
 ---
 
 ## 5. What I could have done better
+
 - Run a shared-server `-count=2` pass BEFORE building the enginetest suffix infra — would have
   exposed the adttest twin bug at design time instead of after.
 - Batch the doc-comment writes and run `nix fmt` once at the end instead of leaving formatting
@@ -190,6 +203,7 @@ graph_bound, sorted, log, tasks_by_user, events, vectors, vectors_filtered, docs
 ---
 
 ## 6. Next tasks (ordered)
+
 1. Land the adttest per-run scenario suffix (design in §2.1) + re-run mysqlengine `-count=2` GREEN.
 2. Rename `TestScenarios_AllFourteenADTs`.
 3. Regenerate api-stability golden (`ScopedCollection` export).
@@ -198,7 +212,7 @@ graph_bound, sorted, log, tasks_by_user, events, vectors, vectors_filtered, docs
 5. Run duckdbengine pushdown tests (CGo) against the userspace server or temp DB.
 6. Item 2: MariaDB generated columns in `ApplyLayout` — `ALTER TABLE meta_map ADD COLUMN
    gc_<field> <type> GENERATED ALWAYS AS (JSON_UNQUOTE(JSON_EXTRACT(value,'$.<field>')))`,
-   + plain index; guard by `e.dialect == "mariadb"`; verify EXPLAIN uses the index.
+   - plain index; guard by `e.dialect == "mariadb"`; verify EXPLAIN uses the index.
 7. Bench: CTE vs iterative BFS crossover across depth 1–6 × row counts → record crossover table
    → feed `ReadCosts`/planner notes in METAENGINE-LIVE-LATENCY-MODEL.md.
 8. Bench: MariaDB dual-key `CAST(... AS DECIMAL)` sort vs MySQL single JSON key (same dataset,
@@ -210,6 +224,7 @@ graph_bound, sorted, log, tasks_by_user, events, vectors, vectors_filtered, docs
 12. Consider documenting pgengine's `meta_vector` table in pgengine README capability table.
 
 ## 7. Questions (cannot resolve myself)
+
 1. Is passwordless sudo available to agent sessions for `integration-mysql-nspawn`, or should the
    rootless userspace-MariaDB pattern become the canonical real-env verification?
 2. For MariaDB generated columns: ALTER the live `meta_map` in-place (online DDL risk on large

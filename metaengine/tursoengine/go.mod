@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0
 	github.com/onsi/gomega v1.42.1
 	turso.tech/database/tursogo v0.7.2
 )

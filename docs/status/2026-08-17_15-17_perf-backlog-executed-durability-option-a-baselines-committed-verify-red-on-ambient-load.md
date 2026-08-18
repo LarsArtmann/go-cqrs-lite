@@ -178,6 +178,7 @@ claim. No code work remains from the backlog.
 ---
 
 _Environment: verify ran with GOTOOLCHAIN=auto + /tmp cache redirects (GOCACHE/GOMODCACHE/GOPATH
-+ GOLANGCI_LINT_CACHE); /mnt/buildcache remained untrusted. Load at report time: 38.5 falling
-from a 75.8 peak. Foreign worktree changes (scheduling/, modules.md from another session, the
-other session's status report) untouched throughout._
+
+- GOLANGCI_LINT_CACHE); /mnt/buildcache remained untrusted. Load at report time: 38.5 falling
+  from a 75.8 peak. Foreign worktree changes (scheduling/, modules.md from another session, the
+  other session's status report) untouched throughout._

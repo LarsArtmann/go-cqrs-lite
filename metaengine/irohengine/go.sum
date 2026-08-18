@@ -16,8 +16,8 @@ github.com/larsartmann/go-branded-id v0.5.1 h1:4Cyv41AkbtQuf66TuNfWugjqHYA48I3Kf
 github.com/larsartmann/go-branded-id v0.5.1/go.mod h1:ElTJY6HNf3ziPytNA5mpW32bxjfsZ/C8ILn4nPQdbmI=
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 h1:cz9UT/X4sIPvPqIF8YNp4ngPcXIi10OLJTjALEXE+2Q=
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0/go.mod h1:SOk4O0UJPD3MZz/H1mctUdgLYGBhdFRB/1DmTa7HUQY=
-github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0 h1:lDbcBl/g/uH53jj8R/mNxUygnAQi9/2JUtAk2UKWYoI=
-github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0/go.mod h1:JtyLB/TVaLDi5jydCst4x8ytMVvCqBFc9Nga4Yu4qi4=
+github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0 h1:7bhIS1IjF8waY3WbhBG53es1/fLlunWx3rbI2y4+ZFg=
+github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0/go.mod h1:JtyLB/TVaLDi5jydCst4x8ytMVvCqBFc9Nga4Yu4qi4=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0 h1:awLMBQw8fJ1OqcH8AD0dIFsM4oSJ1gzRz1hp6i01T70=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0/go.mod h1:c9y9FYHL6GW4dUOIMBR9HpMGeTYwD5u74M1nNCjlEWw=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0 h1:SaSX0JPn6k2LfV7yBMT4SRniVD1lWcn/YnveNDobljk=

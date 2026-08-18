@@ -1,257 +1,722 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Full Code Review — system/v4 — 2026-08-16</title>
-<style>
-  :root {
-    --surface: #0e0e10; --surface-raised: #18181d; --surface-sunken: #16161a;
-    --text: #f4f4f0; --text-muted: rgba(244,244,240,0.72); --text-faint: rgba(244,244,240,0.45);
-    --border: rgba(244,244,240,0.12); --border-strong: rgba(244,244,240,0.25);
-    --problem: #ff6b6b; --solution: #6eb5ff; --warning: #f4d35e; --accent: #ffb347;
-    --font-mono: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
-  }
-  * { box-sizing: border-box; margin: 0; }
-  body { background: var(--surface); color: var(--text); font: 15px/1.65 ui-sans-serif, system-ui, sans-serif; padding: 48px 24px; max-width: 1080px; margin: 0 auto; }
-  h1 { font-size: 30px; letter-spacing: -0.02em; margin-bottom: 4px; }
-  h2 { font-size: 20px; margin: 42px 0 14px; padding-top: 18px; border-top: 1px solid var(--border-strong); letter-spacing: -0.01em; }
-  h3 { font-size: 15px; margin: 22px 0 8px; }
-  .sub { color: var(--text-muted); margin-bottom: 32px; }
-  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-sunken); padding: 1px 5px; border: 1px solid var(--border); }
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 18px 0; }
-  .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 16px 18px; }
-  .card .n { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
-  .card .l { color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
-  .p1 .n { color: var(--problem); } .p2 .n { color: var(--warning); } .p3 .n { color: var(--accent); }
-  .ok .n { color: var(--solution); } .route .n { color: var(--text-muted); }
-  .issue { background: var(--surface-raised); border: 1px solid var(--border); border-left: 3px solid var(--warning); padding: 14px 18px; margin: 12px 0; }
-  .issue.fixed { border-left-color: var(--solution); }
-  .issue.routed { border-left-color: var(--text-faint); }
-  .issue.p1 { border-left-color: var(--problem); } .issue.p1.fixed { border-left-color: var(--solution); }
-  .issue .id { font-family: var(--font-mono); font-size: 12px; color: var(--text-faint); }
-  .issue .where { font-family: var(--font-mono); font-size: 12px; color: var(--warning); }
-  .badge { display: inline-block; font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 8px; border: 1px solid var(--border-strong); margin-left: 8px; }
-  .badge.fixed { color: var(--solution); border-color: var(--solution); }
-  .badge.routed { color: var(--text-faint); }
-  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 13.5px; }
-  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
-  th { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-  ul { padding-left: 20px; } li { margin: 4px 0; }
-  .muted { color: var(--text-muted); }
-  .mono { font-family: var(--font-mono); font-size: 12.5px; }
-</style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Full Code Review — system/v4 — 2026-08-16</title>
+    <style>
+      :root {
+        --surface: #0e0e10;
+        --surface-raised: #18181d;
+        --surface-sunken: #16161a;
+        --text: #f4f4f0;
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: rgba(244, 244, 240, 0.12);
+        --border-strong: rgba(244, 244, 240, 0.25);
+        --problem: #ff6b6b;
+        --solution: #6eb5ff;
+        --warning: #f4d35e;
+        --accent: #ffb347;
+        --font-mono: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font:
+          15px/1.65 ui-sans-serif,
+          system-ui,
+          sans-serif;
+        padding: 48px 24px;
+        max-width: 1080px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 30px;
+        letter-spacing: -0.02em;
+        margin-bottom: 4px;
+      }
+      h2 {
+        font-size: 20px;
+        margin: 42px 0 14px;
+        padding-top: 18px;
+        border-top: 1px solid var(--border-strong);
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 15px;
+        margin: 22px 0 8px;
+      }
+      .sub {
+        color: var(--text-muted);
+        margin-bottom: 32px;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 1px 5px;
+        border: 1px solid var(--border);
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin: 18px 0;
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 16px 18px;
+      }
+      .card .n {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .card .l {
+        color: var(--text-muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 2px;
+      }
+      .p1 .n {
+        color: var(--problem);
+      }
+      .p2 .n {
+        color: var(--warning);
+      }
+      .p3 .n {
+        color: var(--accent);
+      }
+      .ok .n {
+        color: var(--solution);
+      }
+      .route .n {
+        color: var(--text-muted);
+      }
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--warning);
+        padding: 14px 18px;
+        margin: 12px 0;
+      }
+      .issue.fixed {
+        border-left-color: var(--solution);
+      }
+      .issue.routed {
+        border-left-color: var(--text-faint);
+      }
+      .issue.p1 {
+        border-left-color: var(--problem);
+      }
+      .issue.p1.fixed {
+        border-left-color: var(--solution);
+      }
+      .issue .id {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--text-faint);
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--warning);
+      }
+      .badge {
+        display: inline-block;
+        font-size: 11px;
+        font-family: var(--font-mono);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 2px 8px;
+        border: 1px solid var(--border-strong);
+        margin-left: 8px;
+      }
+      .badge.fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .badge.routed {
+        color: var(--text-faint);
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 14px 0;
+        font-size: 13.5px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 7px 10px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      th {
+        color: var(--text-muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      ul {
+        padding-left: 20px;
+      }
+      li {
+        margin: 4px 0;
+      }
+      .muted {
+        color: var(--text-muted);
+      }
+      .mono {
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Full Code Review — <code>system/v4</code></h1>
+    <p class="sub">
+      go-cqrs-lite · deployer-driven composition root · review 2026-08-16 →
+      2026-08-17 · reviewer: Crush (full-code-review skill)
+    </p>
 
-<h1>Full Code Review — <code>system/v4</code></h1>
-<p class="sub">go-cqrs-lite · deployer-driven composition root · review 2026-08-16 → 2026-08-17 · reviewer: Crush (full-code-review skill)</p>
+    <div class="cards">
+      <div class="card p1">
+        <div class="n">5</div>
+        <div class="l">P1 correctness</div>
+      </div>
+      <div class="card p2">
+        <div class="n">14</div>
+        <div class="l">P2 integrity</div>
+      </div>
+      <div class="card p3">
+        <div class="n">11</div>
+        <div class="l">P3 polish</div>
+      </div>
+      <div class="card ok">
+        <div class="n">12</div>
+        <div class="l">fixed on the spot</div>
+      </div>
+      <div class="card route">
+        <div class="n">7</div>
+        <div class="l">routed (design)</div>
+      </div>
+    </div>
 
-<div class="cards">
-  <div class="card p1"><div class="n">5</div><div class="l">P1 correctness</div></div>
-  <div class="card p2"><div class="n">14</div><div class="l">P2 integrity</div></div>
-  <div class="card p3"><div class="n">11</div><div class="l">P3 polish</div></div>
-  <div class="card ok"><div class="n">12</div><div class="l">fixed on the spot</div></div>
-  <div class="card route"><div class="n">7</div><div class="l">routed (design)</div></div>
-</div>
+    <h2>Scope and Method</h2>
+    <p class="muted">
+      Every file under <span class="mono">system/</span> visited one at a time —
+      29 source files, 27 root test files, plus
+      <span class="mono">system/integration/</span> (duckdb sub-module), README,
+      go.mod replaces, and the flake publish path. Cross-module verification:
+      <span class="mono">decider/load.go</span> (proves the cache-staleness
+      path), <span class="mono">metaengine/execute.go</span> (proves the
+      Count-input collision),
+      <span class="mono">id/stream_type.go</span> (snapshot key symmetry),
+      <span class="mono">watermill/event_bus.go</span> (close semantics).
+      Baseline and post-fix gates: build + vet + race via the
+      <span class="mono">$HOME</span> fallback caches (the
+      <span class="mono">/mnt/buildcache</span> host mount is broken — repair
+      ticket routed).
+    </p>
 
-<h2>Scope and Method</h2>
-<p class="muted">Every file under <span class="mono">system/</span> visited one at a time — 29 source files, 27 root test files, plus <span class="mono">system/integration/</span> (duckdb sub-module), README, go.mod replaces, and the flake publish path. Cross-module verification: <span class="mono">decider/load.go</span> (proves the cache-staleness path), <span class="mono">metaengine/execute.go</span> (proves the Count-input collision), <span class="mono">id/stream_type.go</span> (snapshot key symmetry), <span class="mono">watermill/event_bus.go</span> (close semantics). Baseline and post-fix gates: build + vet + race via the <span class="mono">$HOME</span> fallback caches (the <span class="mono">/mnt/buildcache</span> host mount is broken — repair ticket routed).</p>
+    <h2>P1 — Correctness (5)</h2>
 
-<h2>P1 — Correctness (5)</h2>
+    <div class="issue p1 fixed">
+      <div class="id">
+        P1-1 · CachedEventStore never invalidated on write
+        <span class="badge fixed">fixed a211ebc</span>
+      </div>
+      <div class="where">system/cache.go:34-44 · regression: cache_test.go</div>
+      <p class="muted">
+        <code>Save</code>/<code>AppendBatch</code> delegated straight to the
+        wrapped store, leaving stale entries in the read-through
+        <code>Load</code> cache forever. Because
+        <code>decider.Repository</code> folds state via <code>store.Load</code>,
+        any deployment with <code>Cache.Capacity &gt; 0</code> replayed the
+        pre-write snapshot on every decision after the first write — permanently
+        stale aggregates, silently. Fix: evict the stream key after each
+        successful write; failed writes keep the still-valid entry.
+      </p>
+    </div>
 
-<div class="issue p1 fixed">
-  <div class="id">P1-1 · CachedEventStore never invalidated on write <span class="badge fixed">fixed a211ebc</span></div>
-  <div class="where">system/cache.go:34-44 · regression: cache_test.go</div>
-  <p class="muted"><code>Save</code>/<code>AppendBatch</code> delegated straight to the wrapped store, leaving stale entries in the read-through <code>Load</code> cache forever. Because <code>decider.Repository</code> folds state via <code>store.Load</code>, any deployment with <code>Cache.Capacity &gt; 0</code> replayed the pre-write snapshot on every decision after the first write — permanently stale aggregates, silently. Fix: evict the stream key after each successful write; failed writes keep the still-valid entry.</p>
-</div>
+    <div class="issue p1 routed">
+      <div class="id">
+        P1-2 · Count projections collide on shared CountInput
+        <span class="badge routed">routed</span>
+      </div>
+      <div class="where">
+        system/runtime.go:157-171 + metaengine/execute.go:27-36
+      </div>
+      <p class="muted">
+        <code>ExecuteTyped</code> dispatches by input <em>type</em>; every
+        <code>Count()</code> projection shares <code>CountInput</code>, so a
+        second <code>Count()</code> registration silently shadows the first.
+        <code>GetCount</code>'s name parameter only feeds error messages. Fixing
+        requires named dispatch in metaengine (cross-module, exported-behavior
+        change) → proposal
+        <code>docs/adr/2026-08-17_system-v4-review-proposals.md</code>.
+      </p>
+    </div>
 
-<div class="issue p1 routed">
-  <div class="id">P1-2 · Count projections collide on shared CountInput <span class="badge routed">routed</span></div>
-  <div class="where">system/runtime.go:157-171 + metaengine/execute.go:27-36</div>
-  <p class="muted"><code>ExecuteTyped</code> dispatches by input <em>type</em>; every <code>Count()</code> projection shares <code>CountInput</code>, so a second <code>Count()</code> registration silently shadows the first. <code>GetCount</code>'s name parameter only feeds error messages. Fixing requires named dispatch in metaengine (cross-module, exported-behavior change) → proposal <code>docs/adr/2026-08-17_system-v4-review-proposals.md</code>.</p>
-</div>
+    <div class="issue p1 fixed">
+      <div class="id">
+        P1-3 · Bus selection random per boot; only first-iterated entry
+        validated <span class="badge fixed">a211ebc</span>
+      </div>
+      <div class="where">system/bus.go:14-30</div>
+      <p class="muted">
+        <code>createEventBus</code> returned on the first map-range entry —
+        which bus became the system bus was random per process, and an unknown
+        driver elsewhere in the map was never checked. Fix: validate every entry
+        first, then select deterministically; unknown driver anywhere fails
+        <code>New()</code> with <code>ErrUnknownBusDriver</code>.
+      </p>
+    </div>
 
-<div class="issue p1 fixed">
-  <div class="id">P1-3 · Bus selection random per boot; only first-iterated entry validated <span class="badge fixed">a211ebc</span></div>
-  <div class="where">system/bus.go:14-30</div>
-  <p class="muted"><code>createEventBus</code> returned on the first map-range entry — which bus became the system bus was random per process, and an unknown driver elsewhere in the map was never checked. Fix: validate every entry first, then select deterministically; unknown driver anywhere fails <code>New()</code> with <code>ErrUnknownBusDriver</code>.</p>
-</div>
+    <div class="issue p1 fixed">
+      <div class="id">
+        P1-4 · Fan-out buses leaked on Close
+        <span class="badge fixed">a211ebc</span>
+      </div>
+      <div class="where">system/bus.go:35-52 + constructor.go:208-210</div>
+      <p class="muted">
+        <code>buildPublisher</code> created N fresh in-process watermill buses
+        per publish target, reachable only via the positional
+        <code>MultiBus.Publishers()</code> dig, and never closed them. Fix: each
+        fan-out bus is registered as a named closer; regression test proves
+        <code>Publish</code> fails on a fan-out bus after <code>Close()</code>.
+      </p>
+    </div>
 
-<div class="issue p1 fixed">
-  <div class="id">P1-4 · Fan-out buses leaked on Close <span class="badge fixed">a211ebc</span></div>
-  <div class="where">system/bus.go:35-52 + constructor.go:208-210</div>
-  <p class="muted"><code>buildPublisher</code> created N fresh in-process watermill buses per publish target, reachable only via the positional <code>MultiBus.Publishers()</code> dig, and never closed them. Fix: each fan-out bus is registered as a named closer; regression test proves <code>Publish</code> fails on a fan-out bus after <code>Close()</code>.</p>
-</div>
+    <div class="issue p1 fixed">
+      <div class="id">
+        P1-5 · volatile-source-of-truth warning unackable
+        <span class="badge fixed">a211ebc</span>
+      </div>
+      <div class="where">
+        system/scream_store.go:101-122 · regression: system_phase3_test.go
+      </div>
+      <p class="muted">
+        The rule emitted a bare <code>volatile-source-of-truth</code> key while
+        the documented ACK convention (config_loader.go:33-34) and the adjacent
+        durability rule both use <code>rule:target</code>. Operators could never
+        silence it. Fix: key is now
+        <code>volatile-source-of-truth:&lt;role&gt;</code> and guarded by
+        <code>isAcknowledged</code>; un-acked message text unchanged.
+      </p>
+    </div>
 
-<div class="issue p1 fixed">
-  <div class="id">P1-5 · volatile-source-of-truth warning unackable <span class="badge fixed">a211ebc</span></div>
-  <div class="where">system/scream_store.go:101-122 · regression: system_phase3_test.go</div>
-  <p class="muted">The rule emitted a bare <code>volatile-source-of-truth</code> key while the documented ACK convention (config_loader.go:33-34) and the adjacent durability rule both use <code>rule:target</code>. Operators could never silence it. Fix: key is now <code>volatile-source-of-truth:&lt;role&gt;</code> and guarded by <code>isAcknowledged</code>; un-acked message text unchanged.</p>
-</div>
+    <h2>P2 — Config Integrity (14)</h2>
 
-<h2>P2 — Config Integrity (14)</h2>
+    <div class="issue fixed">
+      <div class="id">
+        P2-7 · Typo'd projection engine silently dropped projections
+        <span class="badge fixed">a211ebc</span>
+      </div>
+      <div class="where">system/constructor.go:141-153</div>
+      <p class="muted">
+        Unresolved engine names in the projections instance were skipped without
+        error — the system started with <em>no</em> projections. Fix:
+        <code>New()</code> returns <code>ErrUnknownEngine</code> listing the
+        unresolved names.
+      </p>
+    </div>
 
-<div class="issue fixed">
-  <div class="id">P2-7 · Typo'd projection engine silently dropped projections <span class="badge fixed">a211ebc</span></div>
-  <div class="where">system/constructor.go:141-153</div>
-  <p class="muted">Unresolved engine names in the projections instance were skipped without error — the system started with <em>no</em> projections. Fix: <code>New()</code> returns <code>ErrUnknownEngine</code> listing the unresolved names.</p>
-</div>
+    <div class="issue fixed">
+      <div class="id">
+        P2-8 · Engine creation order nondeterministic
+        <span class="badge fixed">a211ebc</span>
+      </div>
+      <div class="where">system/constructor.go:57-65</div>
+      <p class="muted">
+        Map-iteration order decided which engine was created first, which error
+        surfaced first between two bad engines, and
+        <code>EngineNames()</code> output. Fix: sorted-name creation;
+        <code>EngineNames()</code> pinned stable across 10 boots.
+      </p>
+    </div>
 
-<div class="issue fixed">
-  <div class="id">P2-8 · Engine creation order nondeterministic <span class="badge fixed">a211ebc</span></div>
-  <div class="where">system/constructor.go:57-65</div>
-  <p class="muted">Map-iteration order decided which engine was created first, which error surfaced first between two bad engines, and <code>EngineNames()</code> output. Fix: sorted-name creation; <code>EngineNames()</code> pinned stable across 10 boots.</p>
-</div>
+    <div class="issue fixed">
+      <div class="id">
+        P2-1/2 · lookupSeq / lookupSeqToken swallowed journal errors
+        <span class="badge fixed">449e0e5</span>
+      </div>
+      <div class="where">system/adapter_event_journal.go:96-99,133-136</div>
+      <p class="muted">
+        A failed journal scan resolved the resume cursor to 0 → projection
+        catch-up silently restarted from the beginning and replayed
+        already-processed events. Fix: both lookups propagate errors; a zero
+        cursor skips the scan entirely on both position and token paths (cold
+        start can no longer fail on an unrelated scan).
+      </p>
+    </div>
 
-<div class="issue fixed">
-  <div class="id">P2-1/2 · lookupSeq / lookupSeqToken swallowed journal errors <span class="badge fixed">449e0e5</span></div>
-  <div class="where">system/adapter_event_journal.go:96-99,133-136</div>
-  <p class="muted">A failed journal scan resolved the resume cursor to 0 → projection catch-up silently restarted from the beginning and replayed already-processed events. Fix: both lookups propagate errors; a zero cursor skips the scan entirely on both position and token paths (cold start can no longer fail on an unrelated scan).</p>
-</div>
+    <div class="issue fixed">
+      <div class="id">
+        P2-3 · seqCache unbounded map <span class="badge fixed">449e0e5</span>
+      </div>
+      <div class="where">system/adapter_event.go:40-41</div>
+      <p class="muted">
+        Event-ID → seq map grew without bound for the process lifetime. Fix:
+        otter cache, MaximumSize 4096 (documented choice); mutex dropped (otter
+        is concurrency-safe).
+      </p>
+    </div>
 
-<div class="issue fixed">
-  <div class="id">P2-3 · seqCache unbounded map <span class="badge fixed">449e0e5</span></div>
-  <div class="where">system/adapter_event.go:40-41</div>
-  <p class="muted">Event-ID → seq map grew without bound for the process lifetime. Fix: otter cache, MaximumSize 4096 (documented choice); mutex dropped (otter is concurrency-safe).</p>
-</div>
+    <div class="issue fixed">
+      <div class="id">
+        P2-4 · WARN diagnostics invisible post-construction
+        <span class="badge fixed">449e0e5</span>
+      </div>
+      <div class="where">system/constructor.go:276-296 + system.go</div>
+      <p class="muted">
+        Nothing in <code>New()</code> surfaced or blocked on WARN findings;
+        <code>ScreamReport()</code> recomputed only config checks (dropping
+        plan-drift warnings). Fix: construction-time report (config + manifest
+        drift) stored on the System and returned by <code>ScreamReport()</code>;
+        zero-value Systems keep the recompute fallback.
+      </p>
+    </div>
 
-<div class="issue fixed">
-  <div class="id">P2-4 · WARN diagnostics invisible post-construction <span class="badge fixed">449e0e5</span></div>
-  <div class="where">system/constructor.go:276-296 + system.go</div>
-  <p class="muted">Nothing in <code>New()</code> surfaced or blocked on WARN findings; <code>ScreamReport()</code> recomputed only config checks (dropping plan-drift warnings). Fix: construction-time report (config + manifest drift) stored on the System and returned by <code>ScreamReport()</code>; zero-value Systems keep the recompute fallback.</p>
-</div>
+    <div class="issue fixed">
+      <div class="id">
+        P2-5/6 · Dead RoleCommands/RoleQueries conditions
+        <span class="badge fixed">449e0e5</span>
+      </div>
+      <div class="where">system/constructor.go:117,126</div>
+      <p class="muted">
+        Inside <code>isSourceOfTruth</code> (only SOT/events roles) the
+        <code>== RoleCommands</code>/<code>== RoleQueries</code> disjuncts could
+        never fire. Removed with a pointer to the routed role-wiring proposal;
+        behavior unchanged.
+      </p>
+    </div>
 
-<div class="issue fixed">
-  <div class="id">P2-5/6 · Dead RoleCommands/RoleQueries conditions <span class="badge fixed">449e0e5</span></div>
-  <div class="where">system/constructor.go:117,126</div>
-  <p class="muted">Inside <code>isSourceOfTruth</code> (only SOT/events roles) the <code>== RoleCommands</code>/<code>== RoleQueries</code> disjuncts could never fire. Removed with a pointer to the routed role-wiring proposal; behavior unchanged.</p>
-</div>
+    <div class="issue routed">
+      <div class="id">
+        P2-9 · Durability declared but not wired
+        <span class="badge routed">routed</span>
+      </div>
+      <div class="where">
+        system/config_types.go (DurabilityTier) vs constructor
+      </div>
+      <p class="muted">
+        <code>durability</code> is parsed, checked by one scream rule, and
+        otherwise ignored — no per-engine pragma/durability mapping exists.
+        Routed: per-engine pragma mapping proposal.
+      </p>
+    </div>
 
-<div class="issue routed">
-  <div class="id">P2-9 · Durability declared but not wired <span class="badge routed">routed</span></div>
-  <div class="where">system/config_types.go (DurabilityTier) vs constructor</div>
-  <p class="muted"><code>durability</code> is parsed, checked by one scream rule, and otherwise ignored — no per-engine pragma/durability mapping exists. Routed: per-engine pragma mapping proposal.</p>
-</div>
+    <div class="issue routed">
+      <div class="id">
+        P2-10 · Reserved config fields silently unused
+        <span class="badge routed">routed</span>
+      </div>
+      <div class="where">
+        system/config_types.go — BusConfig.Mode,
+        InstanceConfig.Subscribe/Collections, CacheConfig.Engine
+      </div>
+      <p class="muted">
+        Documented in YAML examples (README shows <code>mode: sync</code>) but
+        never read at runtime. Routed: implement-or-deprecate table per field.
+      </p>
+    </div>
 
-<div class="issue routed">
-  <div class="id">P2-10 · Reserved config fields silently unused <span class="badge routed">routed</span></div>
-  <div class="where">system/config_types.go — BusConfig.Mode, InstanceConfig.Subscribe/Collections, CacheConfig.Engine</div>
-  <p class="muted">Documented in YAML examples (README shows <code>mode: sync</code>) but never read at runtime. Routed: implement-or-deprecate table per field.</p>
-</div>
+    <div class="issue routed">
+      <div class="id">
+        P2-11 · Replace directives shadow published versions
+        <span class="badge routed">routed</span>
+      </div>
+      <div class="where">system/go.mod:118-128</div>
+      <p class="muted">
+        Six local replaces: metaengine v4.10.0→local (local is ≥12 commits past
+        published v4.11.0: MariaDB generated-column layout, vector ADT,
+        CBOR-default unification), 4 engine adapters v4.0.1→local, watermill
+        v4.4.0→local. Local tests exercise unpublished code; fixes landed here
+        are NOT in published system/v4.4.0 — a system/v4.5.0+ release
+        (coordinated with a metaengine release) is required to ship them.
+        <code>go mod tidy</code> applied (eventtest test dep was missing).
+      </p>
+    </div>
 
-<div class="issue routed">
-  <div class="id">P2-11 · Replace directives shadow published versions <span class="badge routed">routed</span></div>
-  <div class="where">system/go.mod:118-128</div>
-  <p class="muted">Six local replaces: metaengine v4.10.0→local (local is ≥12 commits past published v4.11.0: MariaDB generated-column layout, vector ADT, CBOR-default unification), 4 engine adapters v4.0.1→local, watermill v4.4.0→local. Local tests exercise unpublished code; fixes landed here are NOT in published system/v4.4.0 — a system/v4.5.0+ release (coordinated with a metaengine release) is required to ship them. <code>go mod tidy</code> applied (eventtest test dep was missing).</p>
-</div>
+    <div class="issue">
+      <div class="id">P2-12 · README overstates scream-store coverage</div>
+      <div class="where">system/README.md:356-357</div>
+      <p class="muted">
+        "warn about … missing durability" — no such rule exists (only
+        volatile-memory and Relaxed-downgrade rules). Recorded here; wording
+        deliberately left until the Durability wiring lands.
+      </p>
+    </div>
 
-<div class="issue">
-  <div class="id">P2-12 · README overstates scream-store coverage</div>
-  <div class="where">system/README.md:356-357</div>
-  <p class="muted">"warn about … missing durability" — no such rule exists (only volatile-memory and Relaxed-downgrade rules). Recorded here; wording deliberately left until the Durability wiring lands.</p>
-</div>
+    <div class="issue">
+      <div class="id">
+        P2-13 · Postgres/duckdb integration tests not runnable in this
+        environment
+      </div>
+      <div class="where">
+        system/integration_postgres_test.go, system/integration/duckdb_test.go
+      </div>
+      <p class="muted">
+        Postgres tests skip without <code>POSTGRES_TEST_DSN</code> (skip logic
+        verified correct); duckdb requires CGo + the integration sub-module
+        (structure reviewed, sound: keeps CGo deps out of system/go.mod).
+        Recorded as not-run, not as passed.
+      </p>
+    </div>
 
-<div class="issue">
-  <div class="id">P2-13 · Postgres/duckdb integration tests not runnable in this environment</div>
-  <div class="where">system/integration_postgres_test.go, system/integration/duckdb_test.go</div>
-  <p class="muted">Postgres tests skip without <code>POSTGRES_TEST_DSN</code> (skip logic verified correct); duckdb requires CGo + the integration sub-module (structure reviewed, sound: keeps CGo deps out of system/go.mod). Recorded as not-run, not as passed.</p>
-</div>
+    <div class="issue">
+      <div class="id">
+        P2-14 · cqrs-lint C025 batch: 7 fmt.Errorf without %w
+      </div>
+      <div class="where">
+        introspection.go:180, introspection_extended.go:79,
+        projection_builder.go:77/106/138, query_constructors.go:103 (+1)
+      </div>
+      <p class="muted">
+        Audited individually: <em>all are false positives</em> — the format
+        operands are strings or type names, with no underlying error to wrap
+        (e.g. <code>WorkerState.LastError</code> is a <code>string</code>). Left
+        in place; noted so future runs are not "fixed" into noise.
+      </p>
+    </div>
 
-<div class="issue">
-  <div class="id">P2-14 · cqrs-lint C025 batch: 7 fmt.Errorf without %w</div>
-  <div class="where">introspection.go:180, introspection_extended.go:79, projection_builder.go:77/106/138, query_constructors.go:103 (+1)</div>
-  <p class="muted">Audited individually: <em>all are false positives</em> — the format operands are strings or type names, with no underlying error to wrap (e.g. <code>WorkerState.LastError</code> is a <code>string</code>). Left in place; noted so future runs are not "fixed" into noise.</p>
-</div>
+    <h2>P3 — Polish (11)</h2>
 
-<h2>P3 — Polish (11)</h2>
+    <div class="issue fixed">
+      <div class="id">
+        P3-1 · Write locks on read-only introspection
+        <span class="badge fixed">42dfab5</span>
+      </div>
+      <div class="where">system/introspection.go:81,134,190</div>
+      <p class="muted">
+        <code>Snapshot</code>/<code>Health</code>/<code>Explain</code> used
+        <code>mu.Lock()</code>; now <code>RLock()</code>. Snapshot's bus
+        topology now emits sorted names; ctx params documented as currently
+        unused.
+      </p>
+    </div>
 
-<div class="issue fixed">
-  <div class="id">P3-1 · Write locks on read-only introspection <span class="badge fixed">42dfab5</span></div>
-  <div class="where">system/introspection.go:81,134,190</div>
-  <p class="muted"><code>Snapshot</code>/<code>Health</code>/<code>Explain</code> used <code>mu.Lock()</code>; now <code>RLock()</code>. Snapshot's bus topology now emits sorted names; ctx params documented as currently unused.</p>
-</div>
+    <div class="issue fixed">
+      <div class="id">
+        P3-2 · reifyTo silently dropped state on decode failure
+        <span class="badge fixed">42dfab5</span>
+      </div>
+      <div class="where">system/evolutions.go:162-182</div>
+      <p class="muted">
+        The fold signature has no error channel, so marshal/unmarshal failures
+        returned zero-value results without signal. Now panics with a classified
+        message: a schema mismatch between stored state and result type is a
+        programmer error — fail loud, not wrong.
+      </p>
+    </div>
 
-<div class="issue fixed">
-  <div class="id">P3-2 · reifyTo silently dropped state on decode failure <span class="badge fixed">42dfab5</span></div>
-  <div class="where">system/evolutions.go:162-182</div>
-  <p class="muted">The fold signature has no error channel, so marshal/unmarshal failures returned zero-value results without signal. Now panics with a classified message: a schema mismatch between stored state and result type is a programmer error — fail loud, not wrong.</p>
-</div>
+    <div class="issue fixed">
+      <div class="id">
+        P3-3/4 · Duplicated doc blocks <span class="badge fixed">42dfab5</span>
+      </div>
+      <div class="where">
+        system/config_loader.go:18-46 · system/introspection_extended.go:32-38
+      </div>
+      <p class="muted">
+        LoadConfig doc had the engines YAML block twice; ShutdownOrder had two
+        stacked doc comments. Merged.
+      </p>
+    </div>
 
-<div class="issue fixed">
-  <div class="id">P3-3/4 · Duplicated doc blocks <span class="badge fixed">42dfab5</span></div>
-  <div class="where">system/config_loader.go:18-46 · system/introspection_extended.go:32-38</div>
-  <p class="muted">LoadConfig doc had the engines YAML block twice; ShutdownOrder had two stacked doc comments. Merged.</p>
-</div>
+    <div class="issue fixed">
+      <div class="id">
+        P3-5 · buildCRUDQuery / buildCRUDQueryWithOptions duplication
+        <span class="badge fixed">42dfab5</span>
+      </div>
+      <div class="where">system/query_constructors.go:315-366</div>
+      <p class="muted">
+        Merged into one helper with an options slice; both call sites updated,
+        behavior identical.
+      </p>
+    </div>
 
-<div class="issue fixed">
-  <div class="id">P3-5 · buildCRUDQuery / buildCRUDQueryWithOptions duplication <span class="badge fixed">42dfab5</span></div>
-  <div class="where">system/query_constructors.go:315-366</div>
-  <p class="muted">Merged into one helper with an options slice; both call sites updated, behavior identical.</p>
-</div>
+    <div class="issue fixed">
+      <div class="id">
+        P3-6 · SnapshotAdapter key symmetry by convention
+        <span class="badge fixed">42dfab5</span>
+      </div>
+      <div class="where">system/snapshot_adapter.go:34-42</div>
+      <p class="muted">
+        <code>Save</code> hand-built the key (<code>type+":"+id</code>) while
+        <code>Load</code>/<code>Delete</code> used <code>ref.StreamKey()</code>.
+        Save now derives the key through the same StreamRef helper — symmetry is
+        structural.
+      </p>
+    </div>
 
-<div class="issue fixed">
-  <div class="id">P3-6 · SnapshotAdapter key symmetry by convention <span class="badge fixed">42dfab5</span></div>
-  <div class="where">system/snapshot_adapter.go:34-42</div>
-  <p class="muted"><code>Save</code> hand-built the key (<code>type+":"+id</code>) while <code>Load</code>/<code>Delete</code> used <code>ref.StreamKey()</code>. Save now derives the key through the same StreamRef helper — symmetry is structural.</p>
-</div>
+    <div class="issue fixed">
+      <div class="id">
+        P3-7 · Test nits: discarded errors, unchecked New
+        <span class="badge fixed">42dfab5</span>
+      </div>
+      <div class="where">
+        evolutions_test, query_constructors_test, runtime_test,
+        system_hardening_test
+      </div>
+      <p class="muted">
+        Seed events now go through a checked <code>mustApply</code> helper (11
+        sites); three hardening tests assert <code>system.New</code> success
+        instead of <code>sys, _ :=</code>.
+      </p>
+    </div>
 
-<div class="issue fixed">
-  <div class="id">P3-7 · Test nits: discarded errors, unchecked New <span class="badge fixed">42dfab5</span></div>
-  <div class="where">evolutions_test, query_constructors_test, runtime_test, system_hardening_test</div>
-  <p class="muted">Seed events now go through a checked <code>mustApply</code> helper (11 sites); three hardening tests assert <code>system.New</code> success instead of <code>sys, _ :=</code>.</p>
-</div>
+    <div class="issue fixed">
+      <div class="id">
+        P3-8 · EngineNames "creation order" doc lie
+        <span class="badge fixed">42dfab5</span>
+      </div>
+      <div class="where">
+        system/README.md:194 + introspection_extended.go:18
+      </div>
+      <p class="muted">
+        Docs claimed creation order; creation is now sorted and deterministic —
+        both docs updated to say so.
+      </p>
+    </div>
 
-<div class="issue fixed">
-  <div class="id">P3-8 · EngineNames "creation order" doc lie <span class="badge fixed">42dfab5</span></div>
-  <div class="where">system/README.md:194 + introspection_extended.go:18</div>
-  <p class="muted">Docs claimed creation order; creation is now sorted and deterministic — both docs updated to say so.</p>
-</div>
+    <div class="issue">
+      <div class="id">P3-9 · engine caching not shared across instances</div>
+      <div class="where">system/constructor.go:55</div>
+      <p class="muted">
+        engineCache is per-New; two Systems on the same DSN open independent
+        engine instances (fine for tests, surprising for hot-reload patterns).
+        Recorded for the role-wiring proposal.
+      </p>
+    </div>
 
-<div class="issue">
-  <div class="id">P3-9 · engine caching not shared across instances</div>
-  <div class="where">system/constructor.go:55</div>
-  <p class="muted">engineCache is per-New; two Systems on the same DSN open independent engine instances (fine for tests, surprising for hot-reload patterns). Recorded for the role-wiring proposal.</p>
-</div>
+    <div class="issue">
+      <div class="id">P3-10 · A016/P008 adoption-coaching findings</div>
+      <div class="where">
+        constructor.go:38 (idempotency middleware), constructor.go:260
+        (WithBatchSize)
+      </div>
+      <p class="muted">
+        Deliberate library-framework choices — consumers inject their own
+        middleware/host options via DomainConfig. Documented, not changed.
+      </p>
+    </div>
 
-<div class="issue">
-  <div class="id">P3-10 · A016/P008 adoption-coaching findings</div>
-  <div class="where">constructor.go:38 (idempotency middleware), constructor.go:260 (WithBatchSize)</div>
-  <p class="muted">Deliberate library-framework choices — consumers inject their own middleware/host options via DomainConfig. Documented, not changed.</p>
-</div>
+    <div class="issue">
+      <div class="id">P3-11 · Coverage 74.4%</div>
+      <div class="where">system/ (race, count=1)</div>
+      <p class="muted">
+        No repo threshold configured. Uncovered mass is concentrated in
+        evolutions/reflection error paths and evolutions.go schema inference —
+        routed to TODO_LIST as a bounded task.
+      </p>
+    </div>
 
-<div class="issue">
-  <div class="id">P3-11 · Coverage 74.4%</div>
-  <div class="where">system/ (race, count=1)</div>
-  <p class="muted">No repo threshold configured. Uncovered mass is concentrated in evolutions/reflection error paths and evolutions.go schema inference — routed to TODO_LIST as a bounded task.</p>
-</div>
+    <h2>Verification</h2>
+    <table>
+      <tr>
+        <th>Gate</th>
+        <th>Command</th>
+        <th>Result</th>
+      </tr>
+      <tr>
+        <td>Build + vet</td>
+        <td class="mono">go build ./... &amp;&amp; go vet ./...</td>
+        <td>GREEN (GOWORK=off, fallback caches)</td>
+      </tr>
+      <tr>
+        <td>Race ×3</td>
+        <td class="mono">go test ./ -race -count=3 -timeout=15m</td>
+        <td>GREEN after each fix batch and at close</td>
+      </tr>
+      <tr>
+        <td>golangci-lint</td>
+        <td class="mono">golangci-lint run ./...</td>
+        <td>0 issues</td>
+      </tr>
+      <tr>
+        <td>cqrs-lint</td>
+        <td class="mono">cqrs-lint .</td>
+        <td>Warnings only (C025 batch audited as false positives)</td>
+      </tr>
+      <tr>
+        <td>Postgres / duckdb</td>
+        <td>—</td>
+        <td>Not run (no DSN / CGo env) — recorded, not claimed</td>
+      </tr>
+    </table>
+    <p class="muted">
+      Environment note: <span class="mono">/mnt/buildcache</span> is broken (99%
+      full, I/O errors). All gates ran with
+      <span class="mono">GOMODCACHE/GOCACHE</span> pointing at
+      <span class="mono">$HOME</span> fallbacks and
+      <span class="mono">GOTOOLCHAIN=auto</span>. A concurrent workspace wave
+      (foreign module restructuring) was active during the session; system/ was
+      verified with <span class="mono">GOWORK=off</span> to stay isolated.
+    </p>
 
-<h2>Verification</h2>
-<table>
-  <tr><th>Gate</th><th>Command</th><th>Result</th></tr>
-  <tr><td>Build + vet</td><td class="mono">go build ./... &amp;&amp; go vet ./...</td><td>GREEN (GOWORK=off, fallback caches)</td></tr>
-  <tr><td>Race ×3</td><td class="mono">go test ./ -race -count=3 -timeout=15m</td><td>GREEN after each fix batch and at close</td></tr>
-  <tr><td>golangci-lint</td><td class="mono">golangci-lint run ./...</td><td>0 issues</td></tr>
-  <tr><td>cqrs-lint</td><td class="mono">cqrs-lint .</td><td>Warnings only (C025 batch audited as false positives)</td></tr>
-  <tr><td>Postgres / duckdb</td><td>—</td><td>Not run (no DSN / CGo env) — recorded, not claimed</td></tr>
-</table>
-<p class="muted">Environment note: <span class="mono">/mnt/buildcache</span> is broken (99% full, I/O errors). All gates ran with <span class="mono">GOMODCACHE/GOCACHE</span> pointing at <span class="mono">$HOME</span> fallbacks and <span class="mono">GOTOOLCHAIN=auto</span>. A concurrent workspace wave (foreign module restructuring) was active during the session; system/ was verified with <span class="mono">GOWORK=off</span> to stay isolated.</p>
+    <h2>Fixed-on-Spot Ledger</h2>
+    <table>
+      <tr>
+        <th>Commit</th>
+        <th>Contents</th>
+      </tr>
+      <tr>
+        <td class="mono">a211ebcb2</td>
+        <td>
+          P1-1 cache invalidation, P1-5 ackable warn, P1-3 bus
+          validation/determinism, P1-4 fan-out closers, P2-7 unknown-engine
+          error, P2-8 sorted creation (+ regression tests for each)
+        </td>
+      </tr>
+      <tr>
+        <td class="mono">449e0e5a7</td>
+        <td>
+          P2-1/2 cursor error propagation + zero-cursor skip, P2-3 bounded seq
+          cache, P2-4 WARN surfacing, P2-5/6 dead role code, go mod tidy (+
+          regression tests)
+        </td>
+      </tr>
+      <tr>
+        <td class="mono">42dfab5b0</td>
+        <td>
+          P3-1..P3-8: RLock, loud reifyTo, doc dedupe, helper merge, snapshot
+          key symmetry, test seed checks, doc honesty
+        </td>
+      </tr>
+    </table>
 
-<h2>Fixed-on-Spot Ledger</h2>
-<table>
-  <tr><th>Commit</th><th>Contents</th></tr>
-  <tr><td class="mono">a211ebcb2</td><td>P1-1 cache invalidation, P1-5 ackable warn, P1-3 bus validation/determinism, P1-4 fan-out closers, P2-7 unknown-engine error, P2-8 sorted creation (+ regression tests for each)</td></tr>
-  <tr><td class="mono">449e0e5a7</td><td>P2-1/2 cursor error propagation + zero-cursor skip, P2-3 bounded seq cache, P2-4 WARN surfacing, P2-5/6 dead role code, go mod tidy (+ regression tests)</td></tr>
-  <tr><td class="mono">42dfab5b0</td><td>P3-1..P3-8: RLock, loud reifyTo, doc dedupe, helper merge, snapshot key symmetry, test seed checks, doc honesty</td></tr>
-</table>
-
-<h2>Routed Follow-Ups</h2>
-<ul>
-  <li><span class="mono">docs/adr/2026-08-17_system-v4-review-proposals.md</span> — Count-by-name dispatch (metaengine), named-bus API, role wiring, reserved-config honesty table, Durability wiring, EventAdapter backend contract.</li>
-  <li>Release coordination: system/v4.5.0 needs a metaengine release first (local drift ≥12 commits past v4.11.0).</li>
-  <li>Host buildcache repair (ops ticket) and full <span class="mono">nix run .#verify</span> once usable.</li>
-  <li>Ecosystem cross-checks: stack.Bundle shares the pre-fix ack/WARN patterns (upstream bugs, see proposals doc); go-appkit cqrs unaffected (published pins, no replaces).</li>
-</ul>
-
-</body>
+    <h2>Routed Follow-Ups</h2>
+    <ul>
+      <li>
+        <span class="mono"
+          >docs/adr/2026-08-17_system-v4-review-proposals.md</span
+        >
+        — Count-by-name dispatch (metaengine), named-bus API, role wiring,
+        reserved-config honesty table, Durability wiring, EventAdapter backend
+        contract.
+      </li>
+      <li>
+        Release coordination: system/v4.5.0 needs a metaengine release first
+        (local drift ≥12 commits past v4.11.0).
+      </li>
+      <li>
+        Host buildcache repair (ops ticket) and full
+        <span class="mono">nix run .#verify</span> once usable.
+      </li>
+      <li>
+        Ecosystem cross-checks: stack.Bundle shares the pre-fix ack/WARN
+        patterns (upstream bugs, see proposals doc); go-appkit cqrs unaffected
+        (published pins, no replaces).
+      </li>
+    </ul>
+  </body>
 </html>

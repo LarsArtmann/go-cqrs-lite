@@ -156,6 +156,7 @@
 ## f) NEXT — prioritized backlog from this session (not researched beyond it)
 
 **Directly from this session's work:**
+
 1. Fix the forced-mode graph bench: route forced CTE depth-1 through
    `graphNeighborsCTE` directly (or skip depth-1 when forcing); re-measure and append
    honest numbers to LATENCY-MODEL §9.
@@ -184,13 +185,13 @@
 
 **Session-observed, pre-existing (not investigated further):**
 13. benchkit timing tests flake under parallel gate load (3 tests, this session) —
-    isolate/quarantine or relax bounds under load (already a known class).
+isolate/quarantine or relax bounds under load (already a known class).
 14. `[BLOCKED] nix run .#integration-mysql-nspawn` still needs root — unchanged.
 15. TODO_LIST F46 (go-codec tagging shifting workspace alloc pins) — still open.
 16. `/mnt/buildcache` corruption status — caches still redirected to /tmp per AGENTS.md.
 17. go.mod version-drift sweep across ~40 modules (id/v4 v4.4.0→v4.5.0 etc.) landed
-    via the concurrent session — verify it was intentional and tag-complete
-    (`#vulncheck` / version-sequence check before next release).
+via the concurrent session — verify it was intentional and tag-complete
+(`#vulncheck` / version-sequence check before next release).
 
 **Backlog beyond f-17:** nothing else was observed this session; the existing
 TODO_LIST.md remains the authoritative backlog (cqrs-lint section, F-items,

@@ -43,7 +43,7 @@ has not begun.
    > Relaxed→DisableWAL. Bare storage/pebble defaults stay sync. Doc contradiction fixed. CHANGELOG
    > Changed entry.**
    > Plus explicit instruction: **"Make sure our naming is right, good, and easily understandable!"**
-   → The TODO_LIST item is now UNBLOCKED with a decided direction and a naming-quality gate.
+   > → The TODO_LIST item is now UNBLOCKED with a decided direction and a naming-quality gate.
 
 4. **benchstat made available** — `nixpkgs#benchstat` does not exist as a flake attr;
    `go install golang.org/x/perf/cmd/benchstat@latest` built to `/tmp/bin/benchstat` (works).
@@ -55,11 +55,11 @@ has not begun.
    projectionhost,metaengine}.txt`, 40 benchmark lines each, and **benchstat reproduces the recorded
    2026-08-16 decisions**:
 
-   | Suite | Baseline result (this run) | vs 2026-08-16 evidence doc |
-   | --- | --- | --- |
-   | MultiSeqCounter (sqliteengine) | Unpadded 18.88n±3% @16 / 19.97n±11% @32; Padded 7.29n±2% / 7.15n±2% | ✅ Pad decision confirmed (2.6–2.8x, matches −61..65%) |
-   | WorkerCounters (projectionhost) | Adjacent 190.4n±1% / 233.8n±7%; Padded 343.6n±3% / 393.8n±7% | ✅ NO-PAD decision confirmed (padded ~1.7x slower for writer) |
-   | SSEReplaySeq (metaengine) | Adjacent 81.0n±1% / 81.3n±5%; Padded 50.9n±56% / 41.0n±9% | ⚠️ See c.1 — this run's padded cells came out FASTER with huge variance |
+   | Suite                           | Baseline result (this run)                                          | vs 2026-08-16 evidence doc                                             |
+   | ------------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+   | MultiSeqCounter (sqliteengine)  | Unpadded 18.88n±3% @16 / 19.97n±11% @32; Padded 7.29n±2% / 7.15n±2% | ✅ Pad decision confirmed (2.6–2.8x, matches −61..65%)                 |
+   | WorkerCounters (projectionhost) | Adjacent 190.4n±1% / 233.8n±7%; Padded 343.6n±3% / 393.8n±7%        | ✅ NO-PAD decision confirmed (padded ~1.7x slower for writer)          |
+   | SSEReplaySeq (metaengine)       | Adjacent 81.0n±1% / 81.3n±5%; Padded 50.9n±56% / 41.0n±9%           | ⚠️ See c.1 — this run's padded cells came out FASTER with huge variance |
 
 ---
 
@@ -100,7 +100,7 @@ Nothing destroyed, no false GREEN claims, no reverts. Honest failures:
    with empty labels, then a missing `description`). Pure schema sloppiness; wasted 3 round trips
    and put noise in front of the user mid-decision.
 2. **First bench run in the wrong mode — had to throw away 2 GREEN suites.** Ran per-module with
-   `GOWORK=off` (as AGENTS.md prescribes for *module* work); `projectionhost` failed with
+   `GOWORK=off` (as AGENTS.md prescribes for _module_ work); `projectionhost` failed with
    `module ../event requires go >= 1.26.6 (running go 1.26.5)` despite `GOTOOLCHAIN=auto` being
    exported (per-module mode doesn't get rescued the way workspace mode does), and mixing
    GOWORK=off numbers with workspace numbers would make the baselines non-comparable — so I

@@ -19,74 +19,393 @@
         --solution: #6eb5ff;
         --warning: #f4d35e;
         --radius: 0px;
-        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      section[id], [id] { scroll-margin-top: 60px; }
-      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
-      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-      .top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
-      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
-      .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none; }
-      .sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); }
-      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
-      .sidebar a { font-size: 0.85rem; color: var(--text-muted); text-decoration: none; padding: 0.45rem 0.75rem; border-left: 2px solid transparent; font-weight: 500; line-height: 1.4; }
-      .sidebar a:hover { color: var(--accent); border-left-color: var(--accent); }
-      .main { flex: 1; min-width: 0; }
-      @media (min-width: 1024px) { .sidebar { display: block; } }
-      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
-      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
-      h2 { font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem; }
-      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
-      h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
-      h4 { font-size: 0.98rem; margin: 0 0 0.3rem; font-weight: 700; }
-      p { margin: 0 0 1rem; }
-      ul, ol { margin: 0 0 1rem 1.2rem; }
-      li { margin-bottom: 0.35rem; }
-      code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface-sunken); border: 1px solid var(--border); padding: 0.08em 0.35em; }
-      .hero { padding: 1.5rem 0 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
-      .hero-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--surface); background: var(--accent); padding: 0.3rem 0.7rem; margin-bottom: 0.9rem; }
-      .hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 72ch; margin: 0; }
-      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
-      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
-      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
-      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
-      .card h3 { margin-bottom: 0.3rem; }
-      .card .where { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0.2rem 0 0.6rem; }
-      .card p:last-child, .card ul:last-child, .card ol:last-child { margin-bottom: 0; }
-      .severity { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.55rem; margin-bottom: 0.6rem; color: var(--surface); }
-      .severity-critical { background: var(--problem); }
-      .severity-important { background: var(--warning); }
-      .severity-nice { background: var(--solution); }
-      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.5rem; border: 1px solid var(--border-strong); color: var(--text-muted); white-space: nowrap; }
-      .badge-critical { color: var(--problem); border-color: var(--problem); }
-      .badge-high { color: var(--warning); border-color: var(--warning); }
-      .badge-medium { color: var(--accent); border-color: var(--accent); }
-      .badge-low { color: var(--text-muted); }
-      .badge-fixed { color: var(--solution); border-color: var(--solution); }
-      .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.5rem; }
-      .stat-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1rem; position: relative; }
-      .stat-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border-strong); }
-      .stat-good::before { background: var(--solution); }
-      .stat-warn::before { background: var(--warning); }
-      .stat-bad::before { background: var(--problem); }
-      .stat-value { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
-      .stat-good .stat-value { color: var(--solution); }
-      .stat-warn .stat-value { color: var(--warning); }
-      .stat-bad .stat-value { color: var(--problem); }
-      .stat-label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.5rem; }
-      .callout { margin: 0.8rem 0 0; padding: 0.7rem 0.9rem; border-left: 3px solid var(--border-strong); background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 0.9rem; }
-      .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, transparent); }
-      .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); }
-      .callout strong { display: inline-block; margin-right: 0.4rem; }
-      table { width: 100%; border-collapse: collapse; margin: 0.5rem 0 1.25rem; font-size: 0.88rem; }
-      th { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); text-align: left; padding: 0.5rem 0.6rem; border-bottom: 2px solid var(--border-strong); }
-      td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-      td.num-cell { font-family: var(--font-mono); font-weight: 700; color: var(--accent); white-space: nowrap; }
-      .footer-note { margin-top: 3rem; padding-top: 1rem; border-top: 2px solid var(--border-strong); font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-faint); }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        font-weight: 500;
+        line-height: 1.4;
+      }
+      .sidebar a:hover {
+        color: var(--accent);
+        border-left-color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 1rem 1.2rem;
+      }
+      li {
+        margin-bottom: 0.35rem;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 0.08em 0.35em;
+      }
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 72ch;
+        margin: 0;
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card h3 {
+        margin-bottom: 0.3rem;
+      }
+      .card .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .card p:last-child,
+      .card ul:last-child,
+      .card ol:last-child {
+        margin-bottom: 0;
+      }
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+        white-space: nowrap;
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before {
+        background: var(--warning);
+      }
+      .stat-bad::before {
+        background: var(--problem);
+      }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.5rem 0 1.25rem;
+        font-size: 0.88rem;
+      }
+      th {
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        text-align: left;
+        padding: 0.5rem 0.6rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      td {
+        padding: 0.5rem 0.6rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      td.num-cell {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--accent);
+        white-space: nowrap;
+      }
+      .footer-note {
+        margin-top: 3rem;
+        padding-top: 1rem;
+        border-top: 2px solid var(--border-strong);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--text-faint);
+      }
     </style>
   </head>
   <body>
@@ -111,71 +430,169 @@
       <main class="main">
         <div class="hero">
           <span class="hero-badge">Release wave in flight</span>
-          <h1>Durability breadth shipped; metaengine/v4.12.0 + sqliteengine/v4.2.0 pushed; 5 tags remain</h1>
+          <h1>
+            Durability breadth shipped; metaengine/v4.12.0 + sqliteengine/v4.2.0
+            pushed; 5 tags remain
+          </h1>
           <p class="hero-subtitle">
-            Session executed the user's three decisions — cut the release NOW, map durability tiers in
-            pebble/postgres/bbolt/badger BEFORE the cut, delete <code>BusConfig.Mode</code> at v5 — and drove the
-            first full single-run GREEN verify of this wave, then started the go-release flow. The wave is
-            interrupted mid-flight: 2 of 7 tags are pushed, the remaining 5 follow the same proven recipe.
+            Session executed the user's three decisions — cut the release NOW,
+            map durability tiers in pebble/postgres/bbolt/badger BEFORE the cut,
+            delete <code>BusConfig.Mode</code> at v5 — and drove the first full
+            single-run GREEN verify of this wave, then started the go-release
+            flow. The wave is interrupted mid-flight: 2 of 7 tags are pushed,
+            the remaining 5 follow the same proven recipe.
           </p>
         </div>
 
         <section id="verdict">
           <div class="stat-grid">
-            <div class="stat-card stat-good"><div class="stat-value">2/7</div><div class="stat-label">tags pushed</div></div>
-            <div class="stat-card stat-good"><div class="stat-value">0</div><div class="stat-label">open gate failures</div></div>
-            <div class="stat-card stat-good"><div class="stat-value">16</div><div class="stat-label">new durability tests</div></div>
-            <div class="stat-card stat-warn"><div class="stat-value">5</div><div class="stat-label">tags remaining</div></div>
-            <div class="stat-card stat-warn"><div class="stat-value">3</div><div class="stat-label">contingency re-tags possible</div></div>
-            <div class="stat-card stat-bad"><div class="stat-value">6</div><div class="stat-label">session mistakes (all fixed)</div></div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">2/7</div>
+              <div class="stat-label">tags pushed</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">0</div>
+              <div class="stat-label">open gate failures</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">16</div>
+              <div class="stat-label">new durability tests</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">5</div>
+              <div class="stat-label">tags remaining</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">3</div>
+              <div class="stat-label">contingency re-tags possible</div>
+            </div>
+            <div class="stat-card stat-bad">
+              <div class="stat-value">6</div>
+              <div class="stat-label">session mistakes (all fixed)</div>
+            </div>
           </div>
         </section>
 
         <section id="done">
-          <h2><span class="num">a</span> FULLY DONE — verified GREEN this session</h2>
+          <h2>
+            <span class="num">a</span> FULLY DONE — verified GREEN this session
+          </h2>
 
           <div class="card card-solution">
             <span class="severity severity-nice">gates</span>
-            <h3>First single-run GREEN <code>nix run .#verify</code> for the whole wave</h3>
+            <h3>
+              First single-run GREEN <code>nix run .#verify</code> for the whole
+              wave
+            </h3>
             <p class="where">/tmp/verify-final-2026-08-18.log</p>
             <ul>
-              <li>Exit 0, 241 <code>ok</code> packages, zero lint findings, zero new clone groups.</li>
-              <li>The base-state run earlier in the session passed build/vet/test/race/lint and failed ONLY the duplication gate — fixed in-file (see below), not annotated.</li>
-              <li><code>#check-arch</code> GREEN, <code>#check-coverage</code> GREEN (system stays at the 79.4% lift), changelog-symbol gate GREEN (61 citations pre-roll, 39 post-roll), doc-assertions GREEN, api-stability meta-tests GREEN.</li>
+              <li>
+                Exit 0, 241 <code>ok</code> packages, zero lint findings, zero
+                new clone groups.
+              </li>
+              <li>
+                The base-state run earlier in the session passed
+                build/vet/test/race/lint and failed ONLY the duplication gate —
+                fixed in-file (see below), not annotated.
+              </li>
+              <li>
+                <code>#check-arch</code> GREEN,
+                <code>#check-coverage</code> GREEN (system stays at the 79.4%
+                lift), changelog-symbol gate GREEN (61 citations pre-roll, 39
+                post-roll), doc-assertions GREEN, api-stability meta-tests
+                GREEN.
+              </li>
             </ul>
           </div>
 
           <div class="card card-solution">
             <span class="severity severity-nice">refactor</span>
             <h3>Clone gate failure deduplicated at the source</h3>
-            <p class="where">metaengine/execute.go — ExecuteCtx vs ExecuteQueryByName preamble</p>
+            <p class="where">
+              metaengine/execute.go — ExecuteCtx vs ExecuteQueryByName preamble
+            </p>
             <ul>
-              <li>The named-dispatch follow-up left both Execute methods with an identical 10-line guard (meter, ctx check, RLock) — art-dupl flagged it as a new clone group.</li>
-              <li>Extracted <code>(*Store).acquireRead(ctx, op)</code>; both methods now defer the returned release func. Deduplicated, not annotated — same-file extractable clones get refactored in this repo.</li>
+              <li>
+                The named-dispatch follow-up left both Execute methods with an
+                identical 10-line guard (meter, ctx check, RLock) — art-dupl
+                flagged it as a new clone group.
+              </li>
+              <li>
+                Extracted <code>(*Store).acquireRead(ctx, op)</code>; both
+                methods now defer the returned release func. Deduplicated, not
+                annotated — same-file extractable clones get refactored in this
+                repo.
+              </li>
             </ul>
           </div>
 
           <div class="card card-solution">
             <span class="severity severity-nice">feature</span>
-            <h3>Durability breadth: 4 engines map tiers instead of rejecting them</h3>
-            <p class="where">metaengine/{pebbleengine,pgengine,bboltengine,badgerengine}/durability.go (new × 4)</p>
+            <h3>
+              Durability breadth: 4 engines map tiers instead of rejecting them
+            </h3>
+            <p class="where">
+              metaengine/{pebbleengine,pgengine,bboltengine,badgerengine}/durability.go
+              (new × 4)
+            </p>
             <ul>
-              <li><strong>pebble</strong> — strict = WAL + sync, normal = <code>WithAsyncWrites()</code>, relaxed = DisableWAL + async via new <code>pebbleengine.WithDisableWAL()</code> (engineConfig + constructor wiring included).</li>
-              <li><strong>postgres</strong> — strict = <code>synchronous_commit=on</code>, normal/relaxed = <code>off</code>, appended to the DSN as a pgx runtime parameter so every pooled connection inherits it; a DSN that already sets <code>synchronous_commit</code> plus a tier is a config error (mirrors the sqlite pragma-conflict rule).</li>
-              <li><strong>bbolt</strong> — strict/normal = sync-on-commit (normal documented as an accepted alias: no WAL, no middle tier), relaxed = existing <code>WithNoSync()</code>.</li>
-              <li><strong>badger</strong> — new <code>Option</code> type + <code>WithAsyncWrites()</code> (SyncWrites plumbing in the constructor); strict = sync, normal/relaxed = async — async is badger's floor because the value log is always written and replayed on open.</li>
-              <li>All mappings are translations of the authoritative <code>stack/durability.go</code> tier table. 16 new tests (4 per engine: translation table, invalid tier, factory round-trip per tier, DSN table for pg) — all GREEN in their dep-isolated modules, pgengine full suite GREEN (104s incl. container tests).</li>
-              <li>dgraph / duckdb / mysql / turso still reject explicit tiers with <code>ErrUnsupportedDurability</code> (turso deferred deliberately: remote libSQL URLs cannot honor per-session pragmas reliably).</li>
+              <li>
+                <strong>pebble</strong> — strict = WAL + sync, normal =
+                <code>WithAsyncWrites()</code>, relaxed = DisableWAL + async via
+                new <code>pebbleengine.WithDisableWAL()</code> (engineConfig +
+                constructor wiring included).
+              </li>
+              <li>
+                <strong>postgres</strong> — strict =
+                <code>synchronous_commit=on</code>, normal/relaxed =
+                <code>off</code>, appended to the DSN as a pgx runtime parameter
+                so every pooled connection inherits it; a DSN that already sets
+                <code>synchronous_commit</code> plus a tier is a config error
+                (mirrors the sqlite pragma-conflict rule).
+              </li>
+              <li>
+                <strong>bbolt</strong> — strict/normal = sync-on-commit (normal
+                documented as an accepted alias: no WAL, no middle tier),
+                relaxed = existing <code>WithNoSync()</code>.
+              </li>
+              <li>
+                <strong>badger</strong> — new <code>Option</code> type +
+                <code>WithAsyncWrites()</code> (SyncWrites plumbing in the
+                constructor); strict = sync, normal/relaxed = async — async is
+                badger's floor because the value log is always written and
+                replayed on open.
+              </li>
+              <li>
+                All mappings are translations of the authoritative
+                <code>stack/durability.go</code> tier table. 16 new tests (4 per
+                engine: translation table, invalid tier, factory round-trip per
+                tier, DSN table for pg) — all GREEN in their dep-isolated
+                modules, pgengine full suite GREEN (104s incl. container tests).
+              </li>
+              <li>
+                dgraph / duckdb / mysql / turso still reject explicit tiers with
+                <code>ErrUnsupportedDurability</code> (turso deferred
+                deliberately: remote libSQL URLs cannot honor per-session
+                pragmas reliably).
+              </li>
             </ul>
           </div>
 
           <div class="card card-solution">
             <span class="severity severity-nice">decision</span>
             <h3>BusConfig.Mode endgame recorded: DELETE at v5</h3>
-            <p class="where">system/config_types.go · TODO_LIST.md · CHANGELOG.md</p>
+            <p class="where">
+              system/config_types.go · TODO_LIST.md · CHANGELOG.md
+            </p>
             <ul>
-              <li>Doc comment now states the field never gains sync/async publish semantics and will be removed at v5.</li>
-              <li>Decision captured in the CHANGELOG reserved-config bullet and the TODO_LIST breadth item.</li>
+              <li>
+                Doc comment now states the field never gains sync/async publish
+                semantics and will be removed at v5.
+              </li>
+              <li>
+                Decision captured in the CHANGELOG reserved-config bullet and
+                the TODO_LIST breadth item.
+              </li>
             </ul>
           </div>
 
@@ -183,11 +600,34 @@
             <span class="severity severity-nice">docs</span>
             <h3>Docs + golden updated in the same wave</h3>
             <ul>
-              <li><code>system/README.md</code>: per-driver durability matrix table (7 rows incl. memory + the rejection row) with the two-source-of-truth conflict note.</li>
-              <li><code>CHANGELOG.md</code>: breadth bullet added to the engine-wave section; the old "every other driver rejects" sentence corrected to list only the four still-rejecting drivers.</li>
-              <li>Skill reference <code>modules.md</code> metaengine row updated with the per-engine mapping summary (doc-check stays honest).</li>
-              <li>API golden regenerated: exactly 3 new symbols (<code>badgerengine.Option</code>, <code>badgerengine.WithAsyncWrites</code>, <code>pebbleengine.WithDisableWAL</code>).</li>
-              <li>CHANGELOG rolled for release: engine-wave header + <code>system/v4.5.0</code> header; the 2026-08-17 deprecation waves correctly LEFT under [Unreleased] (their modules are not tagged in this wave) — module-prefixed headers are invisible to <code>TestTagContentMatchesChangelog</code> by design.</li>
+              <li>
+                <code>system/README.md</code>: per-driver durability matrix
+                table (7 rows incl. memory + the rejection row) with the
+                two-source-of-truth conflict note.
+              </li>
+              <li>
+                <code>CHANGELOG.md</code>: breadth bullet added to the
+                engine-wave section; the old "every other driver rejects"
+                sentence corrected to list only the four still-rejecting
+                drivers.
+              </li>
+              <li>
+                Skill reference <code>modules.md</code> metaengine row updated
+                with the per-engine mapping summary (doc-check stays honest).
+              </li>
+              <li>
+                API golden regenerated: exactly 3 new symbols
+                (<code>badgerengine.Option</code>,
+                <code>badgerengine.WithAsyncWrites</code>,
+                <code>pebbleengine.WithDisableWAL</code>).
+              </li>
+              <li>
+                CHANGELOG rolled for release: engine-wave header +
+                <code>system/v4.5.0</code> header; the 2026-08-17 deprecation
+                waves correctly LEFT under [Unreleased] (their modules are not
+                tagged in this wave) — module-prefixed headers are invisible to
+                <code>TestTagContentMatchesChangelog</code> by design.
+              </li>
             </ul>
           </div>
 
@@ -195,32 +635,110 @@
             <span class="severity severity-nice">release</span>
             <h3>Release wave started: metaengine + sqliteengine pushed</h3>
             <ul>
-              <li>Release prep committed (<code>7cff1207c</code>) after BuildFlow pre-commit passed with <code>GOTOOLCHAIN=auto</code>; master pushed.</li>
-              <li><strong>metaengine/v4.12.0</strong> — dry-run verified (published deps resolve, standalone build passes), tagged via <code>tag-release.sh</code> (annotated, replace-stripped temp commit), pushed.</li>
-              <li>Chicken-and-egg fixed for the engine layer: <code>go mod edit -require metaengine/v4@v4.12.0</code> in sqliteengine (tidy alone never bumps a pinned require), pin committed (<code>03b228912</code>).</li>
-              <li><strong>metaengine/sqliteengine/v4.2.0</strong> — tagged + pushed; VCS resolution verified.</li>
-              <li><strong>Private-repo release path validated</strong>: this repo is private, so proxy.golang.org 404 is permanent/expected — consumers resolve via <code>GOPRIVATE</code> + the global git HTTPS→SSH insteadOf redirect. Verified <code>go list -m …metaengine/v4@v4.12.0</code> resolves from a clean module cache via VCS.</li>
-              <li>Stale auto-commit-daemon <code>index.lock</code> cleared (0 bytes, 21 min old, no live git process — verified before removal).</li>
+              <li>
+                Release prep committed (<code>7cff1207c</code>) after BuildFlow
+                pre-commit passed with <code>GOTOOLCHAIN=auto</code>; master
+                pushed.
+              </li>
+              <li>
+                <strong>metaengine/v4.12.0</strong> — dry-run verified
+                (published deps resolve, standalone build passes), tagged via
+                <code>tag-release.sh</code> (annotated, replace-stripped temp
+                commit), pushed.
+              </li>
+              <li>
+                Chicken-and-egg fixed for the engine layer:
+                <code>go mod edit -require metaengine/v4@v4.12.0</code> in
+                sqliteengine (tidy alone never bumps a pinned require), pin
+                committed (<code>03b228912</code>).
+              </li>
+              <li>
+                <strong>metaengine/sqliteengine/v4.2.0</strong> — tagged +
+                pushed; VCS resolution verified.
+              </li>
+              <li>
+                <strong>Private-repo release path validated</strong>: this repo
+                is private, so proxy.golang.org 404 is permanent/expected —
+                consumers resolve via <code>GOPRIVATE</code> + the global git
+                HTTPS→SSH insteadOf redirect. Verified
+                <code>go list -m …metaengine/v4@v4.12.0</code> resolves from a
+                clean module cache via VCS.
+              </li>
+              <li>
+                Stale auto-commit-daemon <code>index.lock</code> cleared (0
+                bytes, 21 min old, no live git process — verified before
+                removal).
+              </li>
             </ul>
           </div>
         </section>
 
         <section id="partial">
-          <h2><span class="num">b</span> PARTIALLY DONE — release wave 2/7 tags</h2>
+          <h2>
+            <span class="num">b</span> PARTIALLY DONE — release wave 2/7 tags
+          </h2>
           <table>
-            <thead><tr><th>Module tag</th><th>State</th><th>Blocker / recipe</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Module tag</th>
+                <th>State</th>
+                <th>Blocker / recipe</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td><code>metaengine/v4.12.0</code></td><td><span class="badge badge-fixed">pushed</span></td><td>—</td></tr>
-              <tr><td><code>metaengine/sqliteengine/v4.2.0</code></td><td><span class="badge badge-fixed">pushed</span></td><td>—</td></tr>
-              <tr><td><code>metaengine/pebbleengine/v4.2.0</code></td><td><span class="badge badge-high">next</span></td><td>pin metaengine@v4.12.0 → commit → tag → push</td></tr>
-              <tr><td><code>metaengine/badgerengine/v4.1.0</code></td><td><span class="badge badge-high">queued</span></td><td>pin metaengine + sqliteengine@v4.2.0; dry-run may demand record re-tag (local is 4 commits past record/v4.3.0)</td></tr>
-              <tr><td><code>metaengine/bboltengine/v4.1.0</code></td><td><span class="badge badge-high">queued</span></td><td>pin metaengine; id contingency (local 4 commits past id/v4.5.0)</td></tr>
-              <tr><td><code>metaengine/pgengine/v4.2.0</code></td><td><span class="badge badge-high">queued</span></td><td>pin metaengine; pgtestcontainer replace is test-only</td></tr>
-              <tr><td><code>system/v4.5.0</code></td><td><span class="badge badge-critical">headline</span></td><td>needs all 4 engine tags + watermill contingency (local watermill is 2 commits past v4.5.0; if system's standalone build fails against published watermill → cut watermill/v4.6.0 first)</td></tr>
+              <tr>
+                <td><code>metaengine/v4.12.0</code></td>
+                <td><span class="badge badge-fixed">pushed</span></td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>metaengine/sqliteengine/v4.2.0</code></td>
+                <td><span class="badge badge-fixed">pushed</span></td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>metaengine/pebbleengine/v4.2.0</code></td>
+                <td><span class="badge badge-high">next</span></td>
+                <td>pin metaengine@v4.12.0 → commit → tag → push</td>
+              </tr>
+              <tr>
+                <td><code>metaengine/badgerengine/v4.1.0</code></td>
+                <td><span class="badge badge-high">queued</span></td>
+                <td>
+                  pin metaengine + sqliteengine@v4.2.0; dry-run may demand
+                  record re-tag (local is 4 commits past record/v4.3.0)
+                </td>
+              </tr>
+              <tr>
+                <td><code>metaengine/bboltengine/v4.1.0</code></td>
+                <td><span class="badge badge-high">queued</span></td>
+                <td>
+                  pin metaengine; id contingency (local 4 commits past
+                  id/v4.5.0)
+                </td>
+              </tr>
+              <tr>
+                <td><code>metaengine/pgengine/v4.2.0</code></td>
+                <td><span class="badge badge-high">queued</span></td>
+                <td>pin metaengine; pgtestcontainer replace is test-only</td>
+              </tr>
+              <tr>
+                <td><code>system/v4.5.0</code></td>
+                <td><span class="badge badge-critical">headline</span></td>
+                <td>
+                  needs all 4 engine tags + watermill contingency (local
+                  watermill is 2 commits past v4.5.0; if system's standalone
+                  build fails against published watermill → cut watermill/v4.6.0
+                  first)
+                </td>
+              </tr>
             </tbody>
           </table>
           <div class="callout callout-warning">
-            <strong>master ref 1 ahead:</strong> the sqliteengine pin commit's objects reached the remote via the tag push, but the <code>master</code> ref itself is not fast-forwarded. Push it before or with the next engine tag.
+            <strong>master ref 1 ahead:</strong> the sqliteengine pin commit's
+            objects reached the remote via the tag push, but the
+            <code>master</code> ref itself is not fast-forwarded. Push it before
+            or with the next engine tag.
           </div>
         </section>
 
@@ -229,59 +747,129 @@
           <div class="card card-warning">
             <h3>Post-release verification + closeout</h3>
             <ul>
-              <li>Clean-dir consumer verification: <code>go get …system/v4@v4.5.0</code> with GOPRIVATE from an empty module.</li>
-              <li><code>nix run .#vulncheck</code> (per-module standalone builds — catches version-sequence breaks across the wave).</li>
-              <li>Working-tree <code>go.sum</code> sync: <code>GOWORK=off go mod tidy</code> for the 5 engine modules + system once all tags are pushed (tag-time tidy happens on the strip commit only).</li>
-              <li>GitHub Releases for the 7 tags; CI green check on the tagged commits; consumer pin sweep (modules still requiring metaengine v4.11.0 / system v4.4.0).</li>
-              <li>Prior status report closeout (docs/status/2026-08-18_15-05_* §f items 1–5 are now done — annotate).</li>
+              <li>
+                Clean-dir consumer verification:
+                <code>go get …system/v4@v4.5.0</code> with GOPRIVATE from an
+                empty module.
+              </li>
+              <li>
+                <code>nix run .#vulncheck</code> (per-module standalone builds —
+                catches version-sequence breaks across the wave).
+              </li>
+              <li>
+                Working-tree <code>go.sum</code> sync:
+                <code>GOWORK=off go mod tidy</code> for the 5 engine modules +
+                system once all tags are pushed (tag-time tidy happens on the
+                strip commit only).
+              </li>
+              <li>
+                GitHub Releases for the 7 tags; CI green check on the tagged
+                commits; consumer pin sweep (modules still requiring metaengine
+                v4.11.0 / system v4.4.0).
+              </li>
+              <li>
+                Prior status report closeout (docs/status/2026-08-18_15-05_* §f
+                items 1–5 are now done — annotate).
+              </li>
             </ul>
           </div>
           <div class="card card-warning">
             <h3>Deliberately out of scope this wave</h3>
             <ul>
-              <li>Turso tier acceptance (needs an apply-pragmas-to-existing-DB path in sqliteengine; remote URL semantics uncertain).</li>
-              <li>mysql <code>innodb_flush_log_at_trx_commit</code> mapping (user scoped breadth to pebble/pg/bbolt/badger).</li>
+              <li>
+                Turso tier acceptance (needs an apply-pragmas-to-existing-DB
+                path in sqliteengine; remote URL semantics uncertain).
+              </li>
+              <li>
+                mysql <code>innodb_flush_log_at_trx_commit</code> mapping (user
+                scoped breadth to pebble/pg/bbolt/badger).
+              </li>
             </ul>
           </div>
         </section>
 
         <section id="fucked">
-          <h2><span class="num">d</span> TOTALLY FUCKED UP — session mistakes, all caught and fixed</h2>
+          <h2>
+            <span class="num">d</span> TOTALLY FUCKED UP — session mistakes, all
+            caught and fixed
+          </h2>
           <div class="card card-problem">
             <span class="severity severity-critical">wasted cycle</span>
             <h3>Polled the public proxy on a private repo</h3>
-            <p class="where">proxy.golang.org → 404 twice, ~3.5 min of sleeps</p>
-            <p>The go-release skill's proxy-wait step does not apply to private repos: proxy.golang.org can never cache them. Should have run <code>gh repo view --json isPrivate</code> before the first poll. The correct verification path (GOPRIVATE + VCS resolution) is now proven and should be encoded in AGENTS.md.</p>
+            <p class="where">
+              proxy.golang.org → 404 twice, ~3.5 min of sleeps
+            </p>
+            <p>
+              The go-release skill's proxy-wait step does not apply to private
+              repos: proxy.golang.org can never cache them. Should have run
+              <code>gh repo view --json isPrivate</code> before the first poll.
+              The correct verification path (GOPRIVATE + VCS resolution) is now
+              proven and should be encoded in AGENTS.md.
+            </p>
           </div>
           <div class="card card-problem">
             <span class="severity severity-critical">known-doc miss</span>
             <h3>Chicken-and-egg discovered per-module instead of upfront</h3>
-            <p class="where">sqliteengine dry-run → <code>undefined: metaengine.StreamLogEntry</code></p>
-            <p>Engine go.mods pin metaengine v4.11.0; <code>go mod tidy</code> never bumps a pinned require, so the standalone build failed against the old tag even though v4.12.0 was pushed. The multi-module release reference documents <code>go mod edit -require</code> as the standard pre-tag step — it should have been applied to all 5 engines preemptively. One failed dry-run cycle burned; the fix is now the recipe for the remaining 4.</p>
+            <p class="where">
+              sqliteengine dry-run →
+              <code>undefined: metaengine.StreamLogEntry</code>
+            </p>
+            <p>
+              Engine go.mods pin metaengine v4.11.0;
+              <code>go mod tidy</code> never bumps a pinned require, so the
+              standalone build failed against the old tag even though v4.12.0
+              was pushed. The multi-module release reference documents
+              <code>go mod edit -require</code> as the standard pre-tag step —
+              it should have been applied to all 5 engines preemptively. One
+              failed dry-run cycle burned; the fix is now the recipe for the
+              remaining 4.
+            </p>
           </div>
           <div class="card card-problem">
             <span class="severity severity-critical">env miss</span>
             <h3>First commit attempt without GOTOOLCHAIN=auto</h3>
             <p class="where">BuildFlow pre-commit → go-tool-run exit 1</p>
-            <p>The hook spawns <code>go</code> and the host toolchain (1.26.5, GOTOOLCHAIN=local) is below go.work's requirement. AGENTS.md documents this exact class; the commit protocol in this repo is <code>GOTOOLCHAIN=auto git commit …</code>. Second attempt passed.</p>
+            <p>
+              The hook spawns <code>go</code> and the host toolchain (1.26.5,
+              GOTOOLCHAIN=local) is below go.work's requirement. AGENTS.md
+              documents this exact class; the commit protocol in this repo is
+              <code>GOTOOLCHAIN=auto git commit …</code>. Second attempt passed.
+            </p>
           </div>
           <div class="card card-problem">
             <span class="severity severity-important">small</span>
             <h3>Test-log loop used module paths as filenames</h3>
-            <p class="where">/tmp/test-$m.log with slashes in $m → "no such file", 4 false EXIT=1s</p>
-            <p>The redirect failed before go test ran — the EXIT=1s were the shell, not the tests. Reran with flattened names: all 4 modules GREEN.</p>
+            <p class="where">
+              /tmp/test-$m.log with slashes in $m → "no such file", 4 false
+              EXIT=1s
+            </p>
+            <p>
+              The redirect failed before go test ran — the EXIT=1s were the
+              shell, not the tests. Reran with flattened names: all 4 modules
+              GREEN.
+            </p>
           </div>
           <div class="card card-problem">
             <span class="severity severity-important">small</span>
             <h3>Guessed a nolint directive that the codebase doesn't use</h3>
             <p class="where">pebbleengine/durability.go</p>
-            <p>Added <code>//nolint:err113</code> speculatively; sqliteengine's identical pattern carries none. Removed before it could become a nolintlint finding.</p>
+            <p>
+              Added <code>//nolint:err113</code> speculatively; sqliteengine's
+              identical pattern carries none. Removed before it could become a
+              nolintlint finding.
+            </p>
           </div>
           <div class="card card-problem">
             <span class="severity severity-important">hazard</span>
             <h3>Auto-commit daemon left a stale index.lock</h3>
-            <p class="where">.git/index.lock — 0 bytes, 21 min old, no live git process</p>
-            <p>Blocked the release-prep commit mid-wave (worst possible moment). Verified staleness on all three axes before trashing. The daemon leaving locks behind is a recurring failure mode worth a watchdog.</p>
+            <p class="where">
+              .git/index.lock — 0 bytes, 21 min old, no live git process
+            </p>
+            <p>
+              Blocked the release-prep commit mid-wave (worst possible moment).
+              Verified staleness on all three axes before trashing. The daemon
+              leaving locks behind is a recurring failure mode worth a watchdog.
+            </p>
           </div>
         </section>
 
@@ -289,11 +877,37 @@
           <h2><span class="num">e</span> WHAT WE SHOULD IMPROVE</h2>
           <div class="card card-solution">
             <ol>
-              <li><strong>tag-release.sh auto-pin-bump</strong> — when a stripped replace target has a newer pushed tag than the require line pins, run <code>go mod edit -require</code> automatically (or at least warn). Removes the entire manual pin dance and the failed-dry-run tax.</li>
-              <li><strong>AGENTS.md release section</strong> — record the private-repo verification path (GOPRIVATE + git insteadOf + <code>go list -m …@version</code>, never proxy polling) and the <code>GOTOOLCHAIN=auto git commit</code> protocol.</li>
-              <li><strong>Require-pin drift gate</strong> — a check comparing each module's sibling requires against the latest pushed tags would catch the "local replace masks a stale pin" class before release day.</li>
-              <li><strong>metaengine's own sqliteengine pin</strong> — v4.12.0's go.mod still requires sqliteengine v4.0.0 (MVS kept the old pin; standalone build passes). Harmless for system consumers (MVS bumps via system's require), but standalone metaengine users pull the pre-durability sqlite. Bump in the next metaengine touch.</li>
-              <li><strong>Daemon lock watchdog</strong> — auto-commit daemon should self-heal or alarm on index.lock older than N minutes.</li>
+              <li>
+                <strong>tag-release.sh auto-pin-bump</strong> — when a stripped
+                replace target has a newer pushed tag than the require line
+                pins, run <code>go mod edit -require</code> automatically (or at
+                least warn). Removes the entire manual pin dance and the
+                failed-dry-run tax.
+              </li>
+              <li>
+                <strong>AGENTS.md release section</strong> — record the
+                private-repo verification path (GOPRIVATE + git insteadOf +
+                <code>go list -m …@version</code>, never proxy polling) and the
+                <code>GOTOOLCHAIN=auto git commit</code> protocol.
+              </li>
+              <li>
+                <strong>Require-pin drift gate</strong> — a check comparing each
+                module's sibling requires against the latest pushed tags would
+                catch the "local replace masks a stale pin" class before release
+                day.
+              </li>
+              <li>
+                <strong>metaengine's own sqliteengine pin</strong> — v4.12.0's
+                go.mod still requires sqliteengine v4.0.0 (MVS kept the old pin;
+                standalone build passes). Harmless for system consumers (MVS
+                bumps via system's require), but standalone metaengine users
+                pull the pre-durability sqlite. Bump in the next metaengine
+                touch.
+              </li>
+              <li>
+                <strong>Daemon lock watchdog</strong> — auto-commit daemon
+                should self-heal or alarm on index.lock older than N minutes.
+              </li>
             </ol>
           </div>
         </section>
@@ -301,71 +915,270 @@
         <section id="next">
           <h2><span class="num">f</span> TOP 25 NEXT — ordered</h2>
           <table>
-            <thead><tr><th>#</th><th>Task</th><th>Priority</th></tr></thead>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Task</th>
+                <th>Priority</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td class="num-cell">1</td><td>Tag pebbleengine/v4.2.0: pin metaengine@v4.12.0 → commit → tag-release.sh → push</td><td><span class="badge badge-critical">P0</span></td></tr>
-              <tr><td class="num-cell">2</td><td>Tag badgerengine/v4.1.0: pin metaengine + sqliteengine@v4.2.0; dry-run decides the record/v4.4.0 contingency</td><td><span class="badge badge-critical">P0</span></td></tr>
-              <tr><td class="num-cell">3</td><td>Tag bboltengine/v4.1.0: pin metaengine; id/v4.6.0 contingency per dry-run</td><td><span class="badge badge-critical">P0</span></td></tr>
-              <tr><td class="num-cell">4</td><td>Tag pgengine/v4.2.0: pin metaengine</td><td><span class="badge badge-critical">P0</span></td></tr>
-              <tr><td class="num-cell">5</td><td>Push master (1 ahead), then dry-run system/v4.5.0 — watermill/v4.6.0 contingency per build check</td><td><span class="badge badge-critical">P0</span></td></tr>
-              <tr><td class="num-cell">6</td><td>Tag + push system/v4.5.0; clean-dir <code>go get</code> consumer verification (GOPRIVATE)</td><td><span class="badge badge-critical">P0</span></td></tr>
-              <tr><td class="num-cell">7</td><td>GOWORK=off go mod tidy on the 5 engines + system (go.sum sync); commit</td><td><span class="badge badge-high">P1</span></td></tr>
-              <tr><td class="num-cell">8</td><td><code>nix run .#vulncheck</code> — per-module standalone builds across the wave</td><td><span class="badge badge-high">P1</span></td></tr>
-              <tr><td class="num-cell">9</td><td>CI green check on tagged commits (<code>gh run list</code>)</td><td><span class="badge badge-high">P1</span></td></tr>
-              <tr><td class="num-cell">10</td><td>GitHub Releases for the 7 tags (format per user preference)</td><td><span class="badge badge-high">P1</span></td></tr>
-              <tr><td class="num-cell">11</td><td>Consumer pin sweep: grep requires of metaengine v4.11.0 / system v4.4.0 → edit + tidy (the id.ActorID lesson)</td><td><span class="badge badge-high">P1</span></td></tr>
-              <tr><td class="num-cell">12</td><td>Roll forward: system/v4.5.0 ships the 5 P1 review fixes — annotate review HTML items as routed/done</td><td><span class="badge badge-medium">P2</span></td></tr>
-              <tr><td class="num-cell">13</td><td>Turso durability: sqliteengine pragma-application path on an existing *sql.DB, or document permanent rejection</td><td><span class="badge badge-medium">P2</span></td></tr>
-              <tr><td class="num-cell">14</td><td>mysql innodb_flush_log_at_trx_commit (1/2/0) tier mapping if desired</td><td><span class="badge badge-medium">P2</span></td></tr>
-              <tr><td class="num-cell">15</td><td>Surface resolved per-engine tiers in Introspection()</td><td><span class="badge badge-medium">P2</span></td></tr>
-              <tr><td class="num-cell">16</td><td>Doctor EXPLAIN-style durability resolution output</td><td><span class="badge badge-medium">P2</span></td></tr>
-              <tr><td class="num-cell">17</td><td>Named-dispatch recipe (two counters) in skill recipes.md</td><td><span class="badge badge-medium">P2</span></td></tr>
-              <tr><td class="num-cell">18</td><td>Durability-tier ADR (contract currently: proposal §5 + godoc + README matrix)</td><td><span class="badge badge-medium">P2</span></td></tr>
-              <tr><td class="num-cell">19</td><td>tag-release.sh auto-pin-bump improvement (see e-1)</td><td><span class="badge badge-medium">P2</span></td></tr>
-              <tr><td class="num-cell">20</td><td>AGENTS.md: private-repo release path + GOTOOLCHAIN commit protocol; AGENTS.md is 399 lines vs 377 BuildFlow max — trim</td><td><span class="badge badge-medium">P2</span></td></tr>
-              <tr><td class="num-cell">21</td><td>sqlite strict-vs-relaxed write-throughput bench to quantify the tier trade-off</td><td><span class="badge badge-low">P3</span></td></tr>
-              <tr><td class="num-cell">22</td><td>system coverage: introspection_extended/multi_bus/runtime/projection_builder zero-cov fns; query_constructors 6 fns at 0%</td><td><span class="badge badge-low">P3</span></td></tr>
-              <tr><td class="num-cell">23</td><td>v5 pre-cut: delete Mode/Subscribe/Cache.Engine reserved fields; stack preset Phase 8 (durability tables now have a metaengine home)</td><td><span class="badge badge-low">P3</span></td></tr>
-              <tr><td class="num-cell">24</td><td>metaengine go.mod sqliteengine pin bump (v4.0.0 → v4.2.0) on next metaengine touch</td><td><span class="badge badge-low">P3</span></td></tr>
-              <tr><td class="num-cell">25</td><td>Close out docs/status/2026-08-18_15-05_* (its §f 1–5 are done as of this report)</td><td><span class="badge badge-low">P3</span></td></tr>
+              <tr>
+                <td class="num-cell">1</td>
+                <td>
+                  Tag pebbleengine/v4.2.0: pin metaengine@v4.12.0 → commit →
+                  tag-release.sh → push
+                </td>
+                <td><span class="badge badge-critical">P0</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">2</td>
+                <td>
+                  Tag badgerengine/v4.1.0: pin metaengine + sqliteengine@v4.2.0;
+                  dry-run decides the record/v4.4.0 contingency
+                </td>
+                <td><span class="badge badge-critical">P0</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">3</td>
+                <td>
+                  Tag bboltengine/v4.1.0: pin metaengine; id/v4.6.0 contingency
+                  per dry-run
+                </td>
+                <td><span class="badge badge-critical">P0</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">4</td>
+                <td>Tag pgengine/v4.2.0: pin metaengine</td>
+                <td><span class="badge badge-critical">P0</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">5</td>
+                <td>
+                  Push master (1 ahead), then dry-run system/v4.5.0 —
+                  watermill/v4.6.0 contingency per build check
+                </td>
+                <td><span class="badge badge-critical">P0</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">6</td>
+                <td>
+                  Tag + push system/v4.5.0; clean-dir
+                  <code>go get</code> consumer verification (GOPRIVATE)
+                </td>
+                <td><span class="badge badge-critical">P0</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">7</td>
+                <td>
+                  GOWORK=off go mod tidy on the 5 engines + system (go.sum
+                  sync); commit
+                </td>
+                <td><span class="badge badge-high">P1</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">8</td>
+                <td>
+                  <code>nix run .#vulncheck</code> — per-module standalone
+                  builds across the wave
+                </td>
+                <td><span class="badge badge-high">P1</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">9</td>
+                <td>
+                  CI green check on tagged commits (<code>gh run list</code>)
+                </td>
+                <td><span class="badge badge-high">P1</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">10</td>
+                <td>
+                  GitHub Releases for the 7 tags (format per user preference)
+                </td>
+                <td><span class="badge badge-high">P1</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">11</td>
+                <td>
+                  Consumer pin sweep: grep requires of metaengine v4.11.0 /
+                  system v4.4.0 → edit + tidy (the id.ActorID lesson)
+                </td>
+                <td><span class="badge badge-high">P1</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">12</td>
+                <td>
+                  Roll forward: system/v4.5.0 ships the 5 P1 review fixes —
+                  annotate review HTML items as routed/done
+                </td>
+                <td><span class="badge badge-medium">P2</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">13</td>
+                <td>
+                  Turso durability: sqliteengine pragma-application path on an
+                  existing *sql.DB, or document permanent rejection
+                </td>
+                <td><span class="badge badge-medium">P2</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">14</td>
+                <td>
+                  mysql innodb_flush_log_at_trx_commit (1/2/0) tier mapping if
+                  desired
+                </td>
+                <td><span class="badge badge-medium">P2</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">15</td>
+                <td>Surface resolved per-engine tiers in Introspection()</td>
+                <td><span class="badge badge-medium">P2</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">16</td>
+                <td>Doctor EXPLAIN-style durability resolution output</td>
+                <td><span class="badge badge-medium">P2</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">17</td>
+                <td>
+                  Named-dispatch recipe (two counters) in skill recipes.md
+                </td>
+                <td><span class="badge badge-medium">P2</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">18</td>
+                <td>
+                  Durability-tier ADR (contract currently: proposal §5 + godoc +
+                  README matrix)
+                </td>
+                <td><span class="badge badge-medium">P2</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">19</td>
+                <td>tag-release.sh auto-pin-bump improvement (see e-1)</td>
+                <td><span class="badge badge-medium">P2</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">20</td>
+                <td>
+                  AGENTS.md: private-repo release path + GOTOOLCHAIN commit
+                  protocol; AGENTS.md is 399 lines vs 377 BuildFlow max — trim
+                </td>
+                <td><span class="badge badge-medium">P2</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">21</td>
+                <td>
+                  sqlite strict-vs-relaxed write-throughput bench to quantify
+                  the tier trade-off
+                </td>
+                <td><span class="badge badge-low">P3</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">22</td>
+                <td>
+                  system coverage:
+                  introspection_extended/multi_bus/runtime/projection_builder
+                  zero-cov fns; query_constructors 6 fns at 0%
+                </td>
+                <td><span class="badge badge-low">P3</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">23</td>
+                <td>
+                  v5 pre-cut: delete Mode/Subscribe/Cache.Engine reserved
+                  fields; stack preset Phase 8 (durability tables now have a
+                  metaengine home)
+                </td>
+                <td><span class="badge badge-low">P3</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">24</td>
+                <td>
+                  metaengine go.mod sqliteengine pin bump (v4.0.0 → v4.2.0) on
+                  next metaengine touch
+                </td>
+                <td><span class="badge badge-low">P3</span></td>
+              </tr>
+              <tr>
+                <td class="num-cell">25</td>
+                <td>
+                  Close out docs/status/2026-08-18_15-05_* (its §f 1–5 are done
+                  as of this report)
+                </td>
+                <td><span class="badge badge-low">P3</span></td>
+              </tr>
             </tbody>
           </table>
         </section>
 
         <section id="question">
-          <h2><span class="num">g</span> QUESTION — cannot figure out myself</h2>
+          <h2>
+            <span class="num">g</span> QUESTION — cannot figure out myself
+          </h2>
           <div class="card card-warning">
             <span class="severity severity-important">scope</span>
-            <h3>May the release wave autonomously grow via contingency re-tags?</h3>
-            <p>The approval covered <code>metaengine/v4.12.0</code> + <code>system/v4.5.0</code> (plus the engine re-tags named as prerequisites). But making system/v4.5.0's standalone build pass may REQUIRE tagging <strong>additional</strong> modules that were not in the approved set: <code>record/v4.4.0</code>, <code>id/v4.6.0</code> (badger/bbolt pin bumps), and <code>watermill/v4.6.0</code> (system replace-strip). Tags are immutable and public to every consumer.</p>
-            <p><strong>Option A — autonomous:</strong> I cut any contingency tag the dry-runs demand, since without them system/v4.5.0 cannot ship and "release now" implies the whole dependency closure.</p>
-            <p><strong>Option B — checkpoint:</strong> I stop at system's dry-run and present the exact contingency list (with the local commits each would ship) for a go/no-go before pushing anything outside the approved set.</p>
-            <p class="callout callout-warning" style="margin-bottom:0"><strong>Secondary:</strong> want GitHub Release entries for the 7 tags (Phase 7), and should the consumer pin sweep run immediately after the wave or in a follow-up session?</p>
+            <h3>
+              May the release wave autonomously grow via contingency re-tags?
+            </h3>
+            <p>
+              The approval covered <code>metaengine/v4.12.0</code> +
+              <code>system/v4.5.0</code> (plus the engine re-tags named as
+              prerequisites). But making system/v4.5.0's standalone build pass
+              may REQUIRE tagging <strong>additional</strong> modules that were
+              not in the approved set: <code>record/v4.4.0</code>,
+              <code>id/v4.6.0</code> (badger/bbolt pin bumps), and
+              <code>watermill/v4.6.0</code> (system replace-strip). Tags are
+              immutable and public to every consumer.
+            </p>
+            <p>
+              <strong>Option A — autonomous:</strong> I cut any contingency tag
+              the dry-runs demand, since without them system/v4.5.0 cannot ship
+              and "release now" implies the whole dependency closure.
+            </p>
+            <p>
+              <strong>Option B — checkpoint:</strong> I stop at system's dry-run
+              and present the exact contingency list (with the local commits
+              each would ship) for a go/no-go before pushing anything outside
+              the approved set.
+            </p>
+            <p class="callout callout-warning" style="margin-bottom: 0">
+              <strong>Secondary:</strong> want GitHub Release entries for the 7
+              tags (Phase 7), and should the consumer pin sweep run immediately
+              after the wave or in a follow-up session?
+            </p>
           </div>
         </section>
 
         <p class="footer-note">
-          Point-in-time snapshot · generated 2026-08-18 19:57 CEST · verify exit 0 (241 pkgs) · arch GREEN · coverage GREEN ·
-          tags pushed: metaengine/v4.12.0, sqliteengine/v4.2.0 · next: pebbleengine/v4.2.0
+          Point-in-time snapshot · generated 2026-08-18 19:57 CEST · verify exit
+          0 (241 pkgs) · arch GREEN · coverage GREEN · tags pushed:
+          metaengine/v4.12.0, sqliteengine/v4.2.0 · next: pebbleengine/v4.2.0
         </p>
       </main>
     </div>
     <script>
       // Progressive-enhancement scrollspy: highlights the active sidebar link.
       const links = Array.from(document.querySelectorAll(".sidebar a"));
-      const sections = links.map((a) => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+      const sections = links
+        .map((a) => document.querySelector(a.getAttribute("href")))
+        .filter(Boolean);
       if ("IntersectionObserver" in window && sections.length > 0) {
         const observer = new IntersectionObserver(
           (entries) => {
             for (const entry of entries) {
               if (entry.isIntersecting) {
                 links.forEach((l) => l.classList.remove("active"));
-                const match = links.find((l) => l.getAttribute("href") === "#" + entry.target.id);
+                const match = links.find(
+                  (l) => l.getAttribute("href") === "#" + entry.target.id,
+                );
                 if (match) match.classList.add("active");
               }
             }
           },
-          { rootMargin: "-20% 0px -70% 0px" }
+          { rootMargin: "-20% 0px -70% 0px" },
         );
         sections.forEach((s) => observer.observe(s));
       }

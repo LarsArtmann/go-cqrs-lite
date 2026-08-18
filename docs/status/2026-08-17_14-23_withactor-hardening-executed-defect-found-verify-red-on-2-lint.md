@@ -82,8 +82,8 @@ AGENTS.md (appended 2 gotchas in a different section).
      (fix: wrap via `errorfamily` like the callers do, or return fmt.Errorf with %w — note
      the CALLER already wraps with WrapCorruption, so the inner wrap is arguably redundant;
      cleanest is wrapping once inside and returning nil-path errors wrapped there).
-   Build ✓ Vet ✓ Test ✓ Race ✓ doc-assertions ✓ lint 79/82 modules 0-findings — failure is
-   strictly these 2 lines. Every earlier phase of the log green.
+     Build ✓ Vet ✓ Test ✓ Race ✓ doc-assertions ✓ lint 79/82 modules 0-findings — failure is
+     strictly these 2 lines. Every earlier phase of the log green.
 
 ## c) NOT STARTED
 
@@ -159,9 +159,9 @@ AGENTS.md (appended 2 gotchas in a different section).
 ## g) QUESTIONS (cannot resolve from the repo alone)
 
 1. **Tag now or batch?** The id-pin bump + scheduling Timer.Actor want tags (`scheduling/v4.3.0`
-   + consumer minors) for published consumers to actually receive the CBOR fix. Tag this wave
-   now, or fold into the next coordinated release chain (the parallel session's system/v4.5.0
-   lane is also waiting on a metaengine release)?
+   - consumer minors) for published consumers to actually receive the CBOR fix. Tag this wave
+     now, or fold into the next coordinated release chain (the parallel session's system/v4.5.0
+     lane is also waiting on a metaengine release)?
 2. **wrapcheck style in `decodeTimerPayload`** — wrap the `json.Unmarshal` error with
    `errorfamily.WrapCorruption` inside the helper (double-wrap risk: the caller already wraps),
    or lift the corruption wrap INTO the helper and slim the caller? I lean the latter (single
@@ -193,15 +193,17 @@ store.go:358 hid behind the first):
 1. `exhaustruct` (store.go:361) → full named-field literal
    `timerEnvelope[P]{Version: 0, Actor: "", Payload: p}` in the legacy fallback
    (v0 is semantically honest for legacy rows).
-2. + 3. `wrapcheck` (store.go:349, 358) → **Question 2 resolved autonomously**:
-   lifted `errorfamily.WrapCorruption` INTO `decodeTimerPayload` (now takes the
-   timer ID for error context; distinct codes `unmarshal_envelope` /
-   `unmarshal_legacy_payload`), caller slimmed to `return nil, err` (same
-   pattern as `parseTime`). The report's "existing tests match on message text"
-   worry was checked and unfounded — no test asserted messages; Corruption
-   family classification is unchanged (was caller-wrapped before, helper-wrapped
-   now). Locked in by new `TestSQLiteTimerStore_CorruptPayloadClassifiedAsCorruption`.
-4. **Latent gate violation found**: store.go was 362 lines — over the 350-line
+2.
+   -
+     3. `wrapcheck` (store.go:349, 358) → **Question 2 resolved autonomously**:
+        lifted `errorfamily.WrapCorruption` INTO `decodeTimerPayload` (now takes the
+        timer ID for error context; distinct codes `unmarshal_envelope` /
+        `unmarshal_legacy_payload`), caller slimmed to `return nil, err` (same
+        pattern as `parseTime`). The report's "existing tests match on message text"
+        worry was checked and unfounded — no test asserted messages; Corruption
+        family classification is unchanged (was caller-wrapped before, helper-wrapped
+        now). Locked in by new `TestSQLiteTimerStore_CorruptPayloadClassifiedAsCorruption`.
+3. **Latent gate violation found**: store.go was 362 lines — over the 350-line
    `#check-file-size` limit (not part of `#verify`, but repo law). Fixed by
    splitting dialect SQL (`Dialect`, `queries`, 3 constructors,
    `ErrUnknownDialect`, `sqliteTimeFormat`) into `scheduling/sqlstore/dialect.go`
@@ -274,13 +276,13 @@ rule; folds into Questions 1+3).
 ambient load 44→165, disk 96% — the parallel report documents timing-test
 death at load 75; a run now would produce known-flaky evidence):
 
-| Phase | Result |
-| --- | --- |
-| verify-docs, check-modules, Build, Vet, Test, Race | ✓ attempt 3 repo-wide (subsequent changes: behavior-identical lint fixes, each standalone-tested; fmt reflows; workspace-invisible replaces; docs) |
-| Lint | ✓ **fresh full run: 76/76 modules, 0 issues** |
-| check-arch / check-depguard / check-docserver-css | ✓ fresh (120 deps covered) |
-| check-duplication / check-coverage / check-api-stability | ✓ fresh (0 new clones; ±2% tolerance; no drift) |
-| doc-check | ✓ 921 refs |
+| Phase                                                    | Result                                                                                                                                             |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| verify-docs, check-modules, Build, Vet, Test, Race       | ✓ attempt 3 repo-wide (subsequent changes: behavior-identical lint fixes, each standalone-tested; fmt reflows; workspace-invisible replaces; docs) |
+| Lint                                                     | ✓ **fresh full run: 76/76 modules, 0 issues**                                                                                                      |
+| check-arch / check-depguard / check-docserver-css        | ✓ fresh (120 deps covered)                                                                                                                         |
+| check-duplication / check-coverage / check-api-stability | ✓ fresh (0 new clones; ±2% tolerance; no drift)                                                                                                    |
+| doc-check                                                | ✓ 921 refs                                                                                                                                         |
 
 Remaining for a single-run GREEN: one calm-window `nix run .#verify` (load < ~5,
 disk freed) — the SAME re-run the parallel session's f.1 already requests;
