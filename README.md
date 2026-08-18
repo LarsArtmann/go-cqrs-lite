@@ -111,6 +111,14 @@ Five presets cover every deployment shape:
 | `stack/mysql`    | MySQL/MariaDB with pure-Go driver                 |
 | `stack/turso`    | Embedded Turso Database with optional remote sync |
 
+> **Heads-up (v5):** the `stack/*` presets and the v1 read-model tiers
+> (`stack.Materialize`, `SQLViewStore`, `RelationalProjection`,
+> `GraphProjection`) are deprecated and will be **removed in v5**
+> ([ADR-0123](docs/adr/0123-v5-unification-single-composition-root.md)) —
+> `system.System` becomes the single composition root and metaengine
+> auto-projection serves read models. Everything above works unchanged
+> through v4.x; new projects can already adopt `system/` + `metaengine`.
+
 See [`example/getting-started/`](example/getting-started/) for a minimal 80-line tour of the core loop (event sourcing + projection + materialized view), and [`example/taskmanager/`](example/taskmanager/) for a complete HTTP service (CQRS/ES, projections, signing, SSE, snapshots).
 
 ---
