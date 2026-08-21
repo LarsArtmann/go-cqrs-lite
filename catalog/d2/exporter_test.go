@@ -189,6 +189,49 @@ func TestExporter_Export_WithDescription(t *testing.T) {
 	assertContains(t, output, "A test description", "expected description in subtitle")
 }
 
+func TestExporter_Export_TooltipFieldsAndLabelsSorted(t *testing.T) {
+	t.Parallel()
+
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg.AddCommand("svc", catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      "CreateOrder",
+		Name:    "CreateOrder",
+		Version: "1.0.0",
+		Summary: "Create a new order",
+		Labels:  map[string]string{"zeta": "last", "alpha": "first", "middle": "second"},
+		Schema: &catalog.Schema{
+			Type: "object",
+			Properties: map[string]catalog.Property{
+				"zField": {Type: "string"},
+				"aField": {Type: "number"},
+				"mField": {Type: "boolean"},
+			},
+		},
+	})
+
+	cat := reg.Build()
+
+	// Map iteration order varies per run; every export must render the same
+	// alphabetically sorted tooltip (deterministic committed artifacts).
+	var want string
+
+	for range 20 {
+		out := NewExporter("Test", "1.0.0").Export(cat)
+
+		if want == "" {
+			want = out
+		} else if out != want {
+			t.Fatal("export output is not deterministic across repeated runs")
+		}
+
+		assertContains(t, out, "Labels: alpha=first, middle=second, zeta=last",
+			"labels must render in alphabetical key order")
+		assertContains(t, out, "Fields: aField: number, mField: boolean, zField: string",
+			"schema fields must render in alphabetical key order")
+	}
+}
+
 func TestExporter_Export_SchemaTooltip(t *testing.T) {
 	t.Parallel()
 

@@ -2,6 +2,8 @@ package d2
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
@@ -156,8 +158,11 @@ func (e *Exporter) buildTooltip(msg catalog.Message) string {
 	if len(msg.Labels) > 0 {
 		labelParts := make([]string, 0, len(msg.Labels))
 
-		for k, v := range msg.Labels {
-			labelParts = append(labelParts, k+"="+v)
+		// Sorted: map iteration order is random per run, which would make the
+		// exported diagram text nondeterministic (diff-churn for committed
+		// artifacts, flaky golden tests).
+		for _, k := range slices.Sorted(maps.Keys(msg.Labels)) {
+			labelParts = append(labelParts, k+"="+msg.Labels[k])
 		}
 
 		parts = append(parts, "Labels: "+strings.Join(labelParts, ", "))
@@ -166,7 +171,9 @@ func (e *Exporter) buildTooltip(msg catalog.Message) string {
 	if msg.Schema != nil && len(msg.Schema.Properties) > 0 {
 		props := make([]string, 0, len(msg.Schema.Properties))
 
-		for name, p := range msg.Schema.Properties {
+		// Sorted — same determinism contract as Labels above.
+		for _, name := range slices.Sorted(maps.Keys(msg.Schema.Properties)) {
+			p := msg.Schema.Properties[name]
 			propStr := name + ": " + string(p.Type)
 
 			if p.Description != "" {
