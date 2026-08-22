@@ -26,6 +26,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`snapshot.SaveSnapshot`** is Deprecated (removed in v5): it cannot know
   the codec, so it stamps the unknown constant. The decider repository now
   saves via the constructor with its real codec stamp.
+- The Pebble and bbolt snapshot stores persist the new stamp: their
+  CBOR wire structs gained an additive `encoding` field (old rows decode
+  as the unknown constant; roundtrip tests pin it). The SQL snapshot
+  schema has no encoding column — the ADR-0044 envelope inside State
+  remains authoritative there (see TODO_LIST §v5 Unification audit).
 
 ### Changed — record.Encoding is now a compact typed stamp — 2026-08-22
 

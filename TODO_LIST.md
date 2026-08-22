@@ -722,6 +722,26 @@ and is **never** duplicated here.
       reverted (`a6613ef0d`) before release; docs realigned 2026-08-16.
       Owner decision M20 (2026-08-11): full rename deferred to v5.
       _(Effort: M)_
+- [ ] **Honest snapshot wire tags at v5 (T18 audit 2026-08-22)** — rename
+      `snapshot.Snapshot` JSON tags (`aggregateId`/`aggregateType` →
+      `streamId`/`streamType`) only together with the per-backend wire
+      changes, keeping old tags readable until then. Audit findings:
+      **memory** = in-process struct copy, no wire (nothing to do);
+      **pebble** = CBOR local `serializableSnapshot` with OLD vocabulary
+      (`aggregate_id`/`aggregate_type` tags) + legacy-JSON fallback — rename
+      needs dual-read (try new tags, fall back to old) or a key-prefix
+      version bump; **bbolt** = CBOR local struct already on honest
+      `stream_type`/`stream_id` tags (only struct-level JSON tags change,
+      wire stays); **SQL** = schema columns `aggregate_type`/`aggregate_id`
+      (postgres/sqlite/mysql/duckdb) — rename = ALTER TABLE + backfill per
+      dialect. The new `Encoding` stamp: persisted by pebble/bbolt/memory
+      (additive `omitempty` field, old rows decode as Unknown); NOT
+      persisted by SQL (no column — the ADR-0044 envelope inside State
+      stays authoritative there; add a column only if SQL consumers need
+      the stamp outside State). Pre-req for the SQL rename: migration
+      scripts under `storage/sql/migrations/` + `nix run .#integration-pg`
+      over the renamed schema.
+      _(Effort: M)_
 - [ ] **Write v5 migration guide** — document the path from v4 (stack presets,
       v1 tiers, transport/*, manual RelationalProjection/view reads) to v5
       (`system.System`, auto-projection, watermill/go-sse delivery).
@@ -828,9 +848,12 @@ and is **never** duplicated here.
       deprecated; per-module test+lint green, golden +4, arch exception
       snapshot→storage/memory test-only)
       _(Effort: M)_
-- [ ] **Snapshot wire-tag migration audit** — pebble/bbolt/sql/memory
+- [x] **Snapshot wire-tag migration audit** — pebble/bbolt/sql/memory
       backends; decide keep-old-tags-until-v5; note into §v5 Unification
-      (plan T18, after the constructor).
+      (plan T18, after the constructor). ✅ 2026-08-22 (audit table in §v5
+      Unification above; keep-old-tags decision recorded; pebble+bbolt now
+      PERSIST the encoding stamp additively with roundtrip tests; SQL
+      envelope stays authoritative)
       _(Effort: S)_
 - [ ] **Deprecation census artifact** — exact 36-alias list + snapshot wire
       tags + stale error codes → `docs/planning/v5-deprecation-sweep.md`

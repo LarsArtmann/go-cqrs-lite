@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
 
@@ -58,6 +59,7 @@ func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 	streamID := id.NewStreamID()
 	ref := id.NewStreamRef("Order", streamID)
 	snap := testSnapshot(t, streamID, 5, `{"status":"shipped"}`)
+	snap.Encoding = record.EncodingCBOR
 
 	if err := store.Save(ctx, snap); err != nil {
 		t.Fatalf("Save: %v", err)
@@ -66,6 +68,11 @@ func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 	loaded, err := store.Load(ctx, ref)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
+	}
+
+	if loaded.Encoding != record.EncodingCBOR {
+		t.Errorf("Encoding = %s, want %s (stamp must survive roundtrip)",
+			loaded.Encoding, record.EncodingCBOR)
 	}
 
 	if loaded.StreamID != streamID {

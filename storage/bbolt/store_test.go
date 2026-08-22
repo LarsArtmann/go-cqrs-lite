@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
 
@@ -127,6 +128,7 @@ func TestSnapshotSaveLoad(t *testing.T) {
 		StreamID:   streamID,
 		Version:    5,
 		State:      []byte(`{"name":"alice"}`),
+		Encoding:   record.EncodingCBOR,
 	}
 
 	if err := snapStore.Save(ctx, snap); err != nil {
@@ -144,6 +146,10 @@ func TestSnapshotSaveLoad(t *testing.T) {
 
 	if string(loaded.State) != `{"name":"alice"}` {
 		t.Fatalf("unexpected state: %s", loaded.State)
+	}
+
+	if loaded.Encoding != record.EncodingCBOR {
+		t.Fatalf("expected encoding stamp to survive roundtrip, got %s", loaded.Encoding)
 	}
 }
 
