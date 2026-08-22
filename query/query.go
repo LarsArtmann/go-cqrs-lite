@@ -5,24 +5,20 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // Type identifies a query type.
-type Type string
-
-// String returns the query type as a string.
-func (t Type) String() string { return string(t) }
-
-// IsZero returns true if the query type is empty.
-func (t Type) IsZero() bool { return t == "" }
+//
+// It is an alias of record.Type (ADR-0111): one definition shared with
+// event and command, so the per-module copies cannot drift.
+type Type = record.Type
 
 // ParseType validates and returns a Type. Returns an error if empty.
+//
+// Deprecated: removed in v5. Use record.ParseType(s, ErrEmptyQueryType).
 func ParseType(s string) (Type, error) {
-	if s == "" {
-		return "", ErrEmptyQueryType
-	}
-
-	return Type(s), nil
+	return record.ParseType(s, ErrEmptyQueryType)
 }
 
 // Query represents a read-side query.

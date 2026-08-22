@@ -1,9 +1,11 @@
 package query_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func TestType_IsZero(t *testing.T) {
@@ -39,7 +41,19 @@ func TestType_ParseType_Empty(t *testing.T) {
 	t.Parallel()
 
 	_, err := query.ParseType("")
-	if err == nil {
-		t.Fatal("expected error for empty type")
+	if !errors.Is(err, query.ErrEmptyQueryType) {
+		t.Errorf("empty type err = %v, want ErrEmptyQueryType", err)
+	}
+}
+
+// TestType_IsAliasOfRecord locks the ADR-0111 alias: query.Type must remain
+// assignment-compatible with record.Type — the cross-type comparison below
+// only compiles while Type is an alias. Reverting to a standalone defined
+// type fails this file at compile time.
+func TestType_IsAliasOfRecord(t *testing.T) {
+	t.Parallel()
+
+	if query.Type("user.getById") != record.Type("user.getById") {
+		t.Error("query.Type must be comparable to record.Type unchanged")
 	}
 }

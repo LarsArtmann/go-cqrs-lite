@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Changed — record.Type consolidation (ADR-0111) — 2026-08-22
+
+- **`event.Type`**, **`command.Type`**, and **`query.Type`** are now type
+  aliases of **`record.Type`** — one canonical definition shared by all three
+  domain-message kinds, so the triplicated per-module copies cannot drift.
+  Behavior unchanged: same underlying string, same String/IsZero method set
+  (inherited from the shared definition), same JSON and wire form. A
+  cross-type comparison test in each module pins the alias at compile time —
+  reverting to a standalone defined type fails the build.
+- The per-module Type methods (the module-local String and IsZero on the old
+  standalone types) are gone, superseded by the shared definition.
+- **`event.ParseType`**, **`command.ParseType`**, and **`query.ParseType`** are
+  Deprecated (removed in v5) one-line forwarders onto the canonical
+  `record.ParseType`. Each wrapper still returns its module's own empty-type
+  sentinel (ErrEmptyEventType, ErrEmptyCommandType, ErrEmptyQueryType), so
+  existing error handling is unchanged.
+- Added **`record.Type`** (with String/IsZero) and **`record.ParseType`** — the
+  parametrized validator taking the caller's empty-value sentinel, so each
+  module keeps its error identity while sharing one implementation.
+
 ### Changed — scheduling: branded timer identity + typed actor — 2026-08-22
 
 - **`scheduling.TimerMarker`** + **`scheduling.TimerID`** — timer identity is

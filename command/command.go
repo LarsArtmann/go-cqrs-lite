@@ -4,24 +4,20 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // Type identifies a command type.
-type Type string
-
-// String returns the command type as a string.
-func (t Type) String() string { return string(t) }
-
-// IsZero returns true if the command type is empty.
-func (t Type) IsZero() bool { return t == "" }
+//
+// It is an alias of record.Type (ADR-0111): one definition shared with
+// event and query, so the per-module copies cannot drift.
+type Type = record.Type
 
 // ParseType validates and returns a Type. Returns an error if empty.
+//
+// Deprecated: removed in v5. Use record.ParseType(s, ErrEmptyCommandType).
 func ParseType(s string) (Type, error) {
-	if s == "" {
-		return "", ErrEmptyCommandType
-	}
-
-	return Type(s), nil
+	return record.ParseType(s, ErrEmptyCommandType)
 }
 
 // Command represents a domain command.

@@ -1,12 +1,14 @@
 package event_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func TestWithEventID(t *testing.T) {
@@ -74,8 +76,20 @@ func TestParseType_Empty(t *testing.T) {
 	t.Parallel()
 
 	_, err := event.ParseType("")
-	if err == nil {
-		t.Fatal("expected error for empty type")
+	if !errors.Is(err, event.ErrEmptyEventType) {
+		t.Errorf("empty type err = %v, want ErrEmptyEventType", err)
+	}
+}
+
+// TestType_IsAliasOfRecord locks the ADR-0111 alias: event.Type must remain
+// assignment-compatible with record.Type — the cross-type comparison below
+// only compiles while Type is an alias. Reverting to a standalone defined
+// type fails this file at compile time.
+func TestType_IsAliasOfRecord(t *testing.T) {
+	t.Parallel()
+
+	if event.Type("user.created") != record.Type("user.created") {
+		t.Error("event.Type must be comparable to record.Type unchanged")
 	}
 }
 

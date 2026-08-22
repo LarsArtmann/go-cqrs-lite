@@ -430,7 +430,6 @@ command/method Close
 command/method Dispatch
 command/method ID
 command/method ID
-command/method IsZero
 command/method Load
 command/method Metadata
 command/method Metadata
@@ -444,7 +443,6 @@ command/method StreamID
 command/method StreamID
 command/method StreamRef
 command/method StreamType
-command/method String
 command/method String
 command/method Subscribe
 command/method SubscribeAll
@@ -856,7 +854,6 @@ event/method IsZero
 event/method IsZero
 event/method IsZero
 event/method IsZero
-event/method IsZero
 event/method Load
 event/method LoadBackwards
 event/method LoadFromVersion
@@ -890,7 +887,6 @@ event/method SaveMultiBatch
 event/method SchemaVersion
 event/method StreamID
 event/method StreamType
-event/method String
 event/method String
 event/method String
 event/method String
@@ -2909,7 +2905,6 @@ query/method Dispatch
 query/method HasNext
 query/method HasPrev
 query/method ID
-query/method IsZero
 query/method LoadQueries
 query/method Metadata
 query/method Metadata
@@ -2918,7 +2913,6 @@ query/method Payload
 query/method ReceivedAt
 query/method Register
 query/method SaveQuery
-query/method String
 query/method String
 query/method Type
 query/method Type
@@ -2965,11 +2959,14 @@ record/const CauseUnknown
 record/func NewStamp
 record/func NewStreamRef
 record/func NewStreamRefOrZero
+record/func ParseType
+record/method IsZero
 record/method IsZero
 record/method IsZero
 record/method IsZero
 record/method MarshalJSON
 record/method Split
+record/method String
 record/method String
 record/method String
 record/method String
@@ -2987,6 +2984,7 @@ record/struct Stamp
 record/type ActorKind
 record/type CauseKind
 record/type StreamRef
+record/type Type
 record/var ErrInvalidStreamRef
 scenario/func Given
 scenario/func GivenProjection
