@@ -220,7 +220,10 @@ func TestScheduler_RetryDelayIsRespected(t *testing.T) {
 	runCtx, cancel := context.WithCancel(ctx)
 	go sched.Start(runCtx)
 
-	waitFor(t, 2*time.Second, func() bool { return attempts.Load() >= 2 })
+	// Wait for the second attempt's timestamp, not the attempt counter:
+	// attempts is incremented before secondAt is stored, so gating on the
+	// counter alone can read a zero secondAt and compute a bogus elapsed.
+	waitFor(t, 2*time.Second, func() bool { return secondAt.Load() > 0 })
 	cancel()
 
 	elapsed := time.Duration(secondAt.Load() - firstAt.Load())
