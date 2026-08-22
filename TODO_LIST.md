@@ -925,9 +925,13 @@ and is **never** duplicated here.
       template-diff audit for the core review (Related reviews / Next skills
       sections already added 2026-08-22) (plan T16).
       _(Effort: S)_
-- [ ] **Upstream skill fixes** — `docs/reviews` ↔ `docs/brainstorming`
+- [x] **Upstream skill fixes** — `docs/reviews` ↔ `docs/brainstorming`
       divergence in data-model-review skill docs; add "read prior reports" +
       "copy template, never transcribe" steps (plan T23).
+      ✅ 2026-08-22 (`~/.config/crush/skills/data-model-review/`:
+      output-guide.md now says `docs/reviews/` matching SKILL.md + repo
+      truth; Step 5 gained both steps before writing — skill lives outside
+      this repo, hence no repo commit)
       _(Effort: S)_
 
 ---
