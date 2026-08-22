@@ -2037,6 +2037,44 @@
             Annotation added 2026-08-03. Full execution details in
             docs/status/2026-08-02_00-05_metaengine-refactor-executed.md.
           </p>
+          <h3 style="color: #4a9; margin-top: 1.5rem">
+            Related review (2026-08-22)
+          </h3>
+          <p class="section-lede">
+            <a href="2026-08-22_core-data-model-review.html"
+              >2026-08-22_core-data-model-review.html</a
+            >
+            reviews the core modules (<code>record/</code>, <code>id/</code>,
+            <code>metadata/</code>, <code>event/</code>, <code>command/</code>,
+            <code>query/</code>, &hellip;) this review deliberately did not
+            touch. De-dupe verdict (2026-08-22):
+          </p>
+          <ul style="margin: 0.5rem 0 0 1.25rem; color: #ccc">
+            <li>
+              <strong>Zero overlapping findings.</strong> That review&rsquo;s
+              catalog (StreamRef identity shapes, CommonMetadata, Cause,
+              Actor, stamps, Record.ID/Encoding) addresses the core type
+              system; this review addressed metaengine internals (Fold, Store,
+              QueryDecl, enums, cost units). No finding is counted twice.
+            </li>
+            <li>
+              <strong>P-numbering collision.</strong> Here
+              <code>P1&ndash;P12</code> label the <em>canonical anti-pattern
+              classes</em>; there <code>P1&ndash;P12</code> label that
+              review&rsquo;s <em>findings</em>. Same glyphs, different axes
+              &mdash; cite them as &ldquo;anti-pattern P4&rdquo; vs
+              &ldquo;core-review P4&rdquo;.
+            </li>
+            <li>
+              <strong>Shared waves.</strong> Deferred item M2 (Delta wrapper,
+              &ldquo;until major version bump&rdquo;) and partial M3 (branded
+              units into EngineProfile) ride the same v5 cut that the core
+              review&rsquo;s execution plan prepares (see
+              <code
+                >docs/planning/2026-08-22_03-52_core-data-model-v5-execution-plan.md</code
+              >).
+            </li>
+          </ul>
         </section>
 
         <footer class="footer">
