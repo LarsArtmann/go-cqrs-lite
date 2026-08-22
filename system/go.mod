@@ -76,6 +76,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
+	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
@@ -127,3 +128,5 @@ replace github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 => ../metaeng
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../metaengine
 
 replace github.com/larsartmann/go-cqrs-lite/watermill/v4 => ../watermill
+
+replace github.com/larsartmann/go-cqrs-lite/decider/v4 => ../decider
