@@ -820,9 +820,13 @@ and is **never** duplicated here.
       compile-time alias lockstep tests; golden regen; exclusive gate green
       `f518d24a0`)
       _(Effort: M)_
-- [ ] **`snapshot.NewSnapshot` constructor + codec stamp** — envelope-style
+- [x] **`snapshot.NewSnapshot` constructor + codec stamp** — envelope-style
       encoding stamp (ADR-0044 pattern), `Validate`, invariants (non-nil
-      State, Version ≥ 1). Kills P10 (plan T17).
+      State, Version ≥ 1). Kills P10 (plan T17). ✅ 2026-08-22 (validating
+      ctor + `Validate`/`Ref`/`ErrInvalidSnapshot` + `Encoding record.Encoding`
+      stamp on Snapshot; TypedStore + decider stamp on save; `SaveSnapshot`
+      deprecated; per-module test+lint green, golden +4, arch exception
+      snapshot→storage/memory test-only)
       _(Effort: M)_
 - [ ] **Snapshot wire-tag migration audit** — pebble/bbolt/sql/memory
       backends; decide keep-old-tags-until-v5; note into §v5 Unification

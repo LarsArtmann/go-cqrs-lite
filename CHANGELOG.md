@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — snapshots are constructing-validated and self-describing (P10) — 2026-08-22
+
+- Added **`snapshot.NewSnapshot`** (ref, version, state, encoding): the
+  validating constructor for **`snapshot.Snapshot`**. It rejects a zero
+  stream ref, `version < 1`, and empty state (family Rejection, codes
+  `snapshot.invalid_ref` / `snapshot.zero_version` /
+  `snapshot.nil_state`), stamps `CreatedAt` in UTC, and defensively clones
+  the state bytes.
+- Added **`snapshot.Snapshot.Validate`** (same invariants, for values built
+  by other means), **`snapshot.Snapshot.Ref`** (pair-form identity), and
+  the **`snapshot.ErrInvalidSnapshot`** sentinel.
+- **`snapshot.Snapshot`** gained an **`Encoding`** field typed
+  **`record.Encoding`** (envelope pattern, ADR-0044 style): snapshots saved
+  through **`snapshot.TypedStore`** or the decider repository now carry the
+  codec stamp, making the struct self-describing. Legacy snapshots read as
+  the unknown constant; decode stays envelope-authoritative, so no stored
+  wire format changed.
+- **`snapshot.SaveSnapshot`** is Deprecated (removed in v5): it cannot know
+  the codec, so it stamps the unknown constant. The decider repository now
+  saves via the constructor with its real codec stamp.
+
 ### Changed — record.Encoding is now a compact typed stamp — 2026-08-22
 
 - The **`record.Encoding`** field changed from a plain string

@@ -125,6 +125,10 @@ EXCEPTIONS[event]="schema snapshot storage/memory"
 # schema (L2) — test-only: VersionedStore integration + golden tests
 EXCEPTIONS[schema]="storage/memory"
 
+# snapshot (L2) — storage/memory test-only (constructor roundtrip tests);
+# same test-cycle shape as event↔snapshot above.
+EXCEPTIONS[snapshot]="storage/memory"
+
 # decider (L3) — storage/memory test-only (bench/BDD/example tests);
 # otel PRODUCTION (tracing in decider.go, load.go, otel.go, wait_for_version.go)
 EXCEPTIONS[decider]="storage/memory otel"

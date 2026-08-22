@@ -66,7 +66,7 @@ func SaveSnapshot(
 			err,
 			errorfamily.Rejection,
 			"snapshot.save_invalid",
-			"save snapshot for "+string(aggType)+" "+aggID.String(),
+			"save snapshot for %s %s", aggType, aggID,
 		)
 	}
 
