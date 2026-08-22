@@ -787,17 +787,21 @@ and is **never** duplicated here.
       `metadata.RecordActor`; legacy `UserID` fallback upgraded to
       `ActorUser`)
       _(Effort: M)_
-- [ ] **Metadata capability interface** 🔥 — additive `MetadataCarrier`-style
+- [x] **Metadata capability interface** 🔥 — additive `MetadataCarrier`-style
       interface adopted by `query/audit` middleware; deprecate the two
       duck-typed interfaces (`query/audit.go:86,114`). Growing the exported
       `Command`/`Query` interfaces with `Metadata()` is BREAKING for
       hand-rolled implementations — decided to ride the v5 cut (owner input
-      2026-08-22). Kills P6 (plan T09).
+      2026-08-22). Kills P6 (plan T09). ✅ 2026-08-22 (T09: `query.MetadataCarrier`
+      + `query.PayloadCarrier` + `command.MetadataCarrier` shipped; audit.go
+      migrated; Appendix C comparison memo; gate green `8c0f48ab0`)
       _(Effort: M)_
-- [ ] **`Decider.ExecuteRef`/`LoadRef` additive variants** — pair forms
+- [x] **`Decider.ExecuteRef`/`LoadRef` additive variants** — pair forms
       delegate + get `Deprecated: removed in v5`; migrate internal callers
       (scenario/, examples). One identity convention on the hot path (plan
-      T10).
+      T10). ✅ 2026-08-22 (T10: ref forms are the real impls on `id.StreamRef`;
+      `system/register.go` migrated — the only production pair-form caller;
+      lockstep tests `decider/ref_forms_test.go`; gate green `8c0f48ab0`)
       _(Effort: M)_
 - [ ] **Brand `scheduling.TimerID` + `Timer.Actor id.ActorID`** —
       `id.Of[TimerMarker]`; JSON wire form via PrefixedString round-trip; add
