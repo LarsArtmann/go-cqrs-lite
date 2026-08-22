@@ -106,6 +106,17 @@ func (s *EventServer) handleEvent(_ context.Context, evt event.Event) error {
 	return nil
 }
 
+// ClientCount returns the number of currently connected subscribers.
+// Callers that publish events right after starting a client subscription can
+// wait on it instead of sleeping: events published before the client's
+// stream is registered are silently dropped by the fan-out.
+func (s *EventServer) ClientCount() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return len(s.clients)
+}
+
 func (s *EventServer) registerClient() chan *cqrsproto.EventEnvelope {
 	s.mu.Lock()
 	defer s.mu.Unlock()

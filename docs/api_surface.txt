@@ -4126,6 +4126,7 @@ transport/grpc/interface EventSubscriber
 transport/grpc/interface QueryDispatcher
 transport/grpc/method Ask
 transport/grpc/method Ask
+transport/grpc/method ClientCount
 transport/grpc/method Dispatch
 transport/grpc/method Dispatch
 transport/grpc/method Subscribe

@@ -57,18 +57,8 @@ func (b *miniBus) UsePublish(...event.PublishMiddleware) error {
 	return nil
 }
 
-// subscriberCount returns the number of registered handlers. Tests wait on
-// it instead of sleeping: publishing before the gRPC stream has subscribed
-// the handler onto the bus silently drops the events.
-func (b *miniBus) subscriberCount() int {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	return len(b.subs)
-}
-
 // waitTimeout bounds condition polling. Generous on purpose: under parallel
-// test load, stream establishment regularly exceeds 100ms.
+// test load, gRPC stream setup regularly exceeds 100ms.
 const waitTimeout = 2 * time.Second
 
 // waitFor polls cond until it holds or the deadline expires. On timeout the
@@ -86,6 +76,7 @@ func waitFor(t *testing.T, cond func() bool) {
 // used by the event pub/sub tests.
 type eventTestEnv struct {
 	bus      *miniBus
+	eventSrv *cqrsgrpc.EventServer
 	client   *cqrsgrpc.EventClient
 	ctx      context.Context //nolint:containedctx // test helper, scoped to test lifecycle
 	cancel   context.CancelFunc
@@ -104,7 +95,7 @@ func newEventTestEnv(t *testing.T) *eventTestEnv {
 	lis := listen(t)
 	srv := grpc.NewServer()
 
-	_, err := cqrsgrpc.RegisterEventService(srv, bus)
+	eventSrv, err := cqrsgrpc.RegisterEventService(srv, bus)
 	if err != nil {
 		t.Fatalf("RegisterEventService: %v", err)
 	}
@@ -126,10 +117,11 @@ func newEventTestEnv(t *testing.T) *eventTestEnv {
 	t.Cleanup(cancel)
 
 	return &eventTestEnv{
-		bus:    bus,
-		client: cqrsgrpc.NewEventClient(conn),
-		ctx:    ctx,
-		cancel: cancel,
+		bus:      bus,
+		eventSrv: eventSrv,
+		client:   cqrsgrpc.NewEventClient(conn),
+		ctx:      ctx,
+		cancel:   cancel,
 	}
 }
 
@@ -147,12 +139,12 @@ func (env *eventTestEnv) subscribe(filters ...string) {
 	})
 }
 
-// waitSubscribed blocks until the subscriber's gRPC stream has registered a
-// handler on the bus, so a subsequent Publish cannot race stream setup.
+// waitSubscribed blocks until the subscriber's gRPC stream is registered on
+// the server's fan-out, so a subsequent Publish cannot race stream setup.
 func (env *eventTestEnv) waitSubscribed(t *testing.T) {
 	t.Helper()
 
-	waitFor(t, func() bool { return env.bus.subscriberCount() > 0 })
+	waitFor(t, func() bool { return env.eventSrv.ClientCount() > 0 })
 }
 
 // waitReceived blocks until exactly n event types have been received.
