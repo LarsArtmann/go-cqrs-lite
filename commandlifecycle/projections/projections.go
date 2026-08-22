@@ -64,7 +64,7 @@ type DeadLetterEntry = commandlifecycle.DeadLetteredPayload
 // check whether a specific command is dead-lettered or to enumerate all
 // dead-lettered commands.
 //
-// ADT: Map (key = command ID from CausationID, value = DeadLetteredPayload).
+// ADT: Map (key = command ID from Cause, value = DeadLetteredPayload).
 func DeadLetterQueue() metaengine.QueryDecl[DeadLetterQuery, DeadLetterEntry] {
 	return metaengine.Query[DeadLetterQuery, DeadLetterEntry](
 		"command_dlq",
@@ -72,7 +72,7 @@ func DeadLetterQueue() metaengine.QueryDecl[DeadLetterQuery, DeadLetterEntry] {
 			string(commandlifecycle.TypeDeadLettered),
 			commandlifecycle.DeadLetteredPayload{}, //nolint:exhaustruct // type inference hint for OnRecordTyped
 			func(rec record.Record, payload commandlifecycle.DeadLetteredPayload) (string, DeadLetterEntry) {
-				return rec.MetaData.CausationID, payload
+				return rec.MetaData.Cause.ID, payload
 			},
 		),
 	)
@@ -82,7 +82,7 @@ func DeadLetterQueue() metaengine.QueryDecl[DeadLetterQuery, DeadLetterEntry] {
 // command.retried events into a Counter. Each retried event increments the
 // counter for its command by 1.
 //
-// ADT: Counter (key = command ID from CausationID, delta = +1 per retried event).
+// ADT: Counter (key = command ID from Cause, delta = +1 per retried event).
 func RetryCount() metaengine.QueryDecl[RetryCountQuery, map[string]int64] {
 	return metaengine.Query[RetryCountQuery, map[string]int64](
 		"command_retry_count",
@@ -90,7 +90,7 @@ func RetryCount() metaengine.QueryDecl[RetryCountQuery, map[string]int64] {
 			string(commandlifecycle.TypeRetried),
 			commandlifecycle.RetriedPayload{}, //nolint:exhaustruct // type inference hint for OnRecordTyped
 			func(rec record.Record, _ commandlifecycle.RetriedPayload) metaengine.Delta {
-				return metaengine.Delta{rec.MetaData.CausationID: 1}
+				return metaengine.Delta{rec.MetaData.Cause.ID: 1}
 			},
 		),
 	)

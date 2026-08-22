@@ -210,6 +210,7 @@ func makeRecord(eventType string, cmdID id.CommandID) record.Record {
 		StreamID:   record.NewStreamRef("CommandLifecycle", cmdID.String()),
 		MetaData: record.CommonMetadata{
 			CausationID: cmdID.String(),
+			Cause:       record.Cause{Kind: record.CauseCommand, ID: cmdID.String()},
 		},
 	}
 }

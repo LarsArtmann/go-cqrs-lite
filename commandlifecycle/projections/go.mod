@@ -32,3 +32,5 @@ require (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 => ../
+
+replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record

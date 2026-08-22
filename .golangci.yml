@@ -421,12 +421,16 @@ linters:
 
       # ── v5 pre-cut deprecations (ADR-0123 Migration Path step 2) ─
       # stack/ (Bundle, Materialize, RunProjections), all stack presets,
-      # storage/view, storage/relational, and graph.GraphProjection are
-      # deprecated ahead of the v5 cut with the uniform "removed in v5"
-      # phrase. Internal callers (presets, the storage facade, benchkit,
-      # cqrs-bench, examples, integration tests) keep using them until
-      # the cut. The text anchor keeps all OTHER deprecations loud.
-      - path: (stack|storage|graph|benchkit|cmd/cqrs-bench|example|integration)/.*\.go$
+      # storage/view, storage/relational, graph.GraphProjection, and the
+      # 2026-08-22 record-bridge fields (CausationID, ActorID,
+      # ClientCreatedAt/ServerReceivedAt/ServerStoredAt) are deprecated
+      # ahead of the v5 cut with the uniform "removed in v5" phrase.
+      # Internal callers (presets, the storage facade, benchkit,
+      # cqrs-bench, examples, integration tests, the AsRecord lockstep
+      # tests, and metaengine's name-keyed record stamps that preserve
+      # the legacy wire shapes) keep using them until the cut. The text
+      # anchor keeps all OTHER deprecations loud.
+      - path: (stack|storage|graph|benchkit|cmd/cqrs-bench|example|integration|record|metadata|event|command|query|metaengine|commandlifecycle)/.*\.go$
         linters:
           - staticcheck
         text: "SA1019: .*removed in v5.*"
