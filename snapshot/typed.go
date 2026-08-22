@@ -21,7 +21,8 @@ import (
 // every downstream consumer holds a State of the right type.
 //
 // TypedSnapshot mirrors [Snapshot] field-for-field except State, which is
-// generic. Convert between them with [TypedStore.TypedToBytes] and
+// generic, and Encoding, which the adapter owns (it stamps the configured
+// codec on save). Convert between them with [TypedStore.TypedToBytes] and
 // [TypedStore.BytesToTyped] (or just let the adapter handle it).
 type TypedSnapshot[State any] struct {
 	StreamID   id.StreamID
@@ -93,6 +94,7 @@ func (t *TypedStore[State]) Save(ctx context.Context, snapshot TypedSnapshot[Sta
 		StreamType: snapshot.StreamType,
 		Version:    snapshot.Version,
 		State:      encoded,
+		Encoding:   recordEncodingFrom(t.codec),
 		CreatedAt:  snapshot.CreatedAt,
 	})
 	if err != nil {
@@ -146,6 +148,20 @@ func (t *TypedStore[State]) LoadAtVersion(
 
 // Store returns the underlying untyped [SnapshotStore].
 func (t *TypedStore[State]) Store() SnapshotStore { return t.store }
+
+// recordEncodingFrom maps the codec's encoding name onto the compact typed
+// stamp carried on [Snapshot]. Unknown codec names stamp
+// [record.EncodingUnknown] rather than guessing. The bytes-level envelope
+// (ADR-0044) remains authoritative for decode; this field makes the struct
+// self-describing even when read through raw stores.
+func recordEncodingFrom(c codec.Codec) record.Encoding {
+	parsed, err := record.ParseEncoding(string(c.Encoding()))
+	if err != nil {
+		return record.EncodingUnknown
+	}
+
+	return parsed
+}
 
 func (t *TypedStore[State]) decode(raw *Snapshot) (*TypedSnapshot[State], error) {
 	state, decodeErr := codec.DecodeEnvelopeOrLegacy[State](raw.State, t.codec)

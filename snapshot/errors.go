@@ -5,6 +5,10 @@ import (
 )
 
 var (
+	ErrInvalidSnapshot = errorfamily.NewRejection(
+		"snapshot.invalid",
+		"invalid snapshot",
+	)
 	ErrSnapshotNotFound    = errorfamily.NewRejection("snapshot.not_found", "snapshot not found")
 	ErrSnapshotStoreClosed = errorfamily.NewInfrastructure(
 		"snapshot.store_closed",

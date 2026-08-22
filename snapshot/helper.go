@@ -2,13 +2,13 @@ package snapshot
 
 import (
 	"context"
-	"time"
 
 	"github.com/larsartmann/go-codec"
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func ShouldSnapshot(
@@ -47,6 +47,11 @@ func ShouldSnapshotFor(
 	return strategy.ShouldSnapshot(ref.Type, version)
 }
 
+// SaveSnapshot encodes nothing and knows no codec, so it cannot populate
+// the encoding stamp; snapshots it writes carry [record.EncodingUnknown].
+//
+// Deprecated: removed in v5. Construct via [NewSnapshot] (passing the real
+// encoding) and save through [SnapshotSink.Save] instead.
 func SaveSnapshot(
 	ctx context.Context,
 	sink SnapshotSink,
@@ -55,13 +60,17 @@ func SaveSnapshot(
 	version event.Version,
 	state []byte,
 ) error {
-	err := sink.Save(ctx, Snapshot{
-		StreamID:   aggID,
-		StreamType: aggType,
-		Version:    version,
-		State:      state,
-		CreatedAt:  time.Now().UTC(),
-	})
+	snap, err := NewSnapshot(id.NewStreamRef(aggType, aggID), version, state, record.EncodingUnknown)
+	if err != nil {
+		return errorfamily.Wrapf(
+			err,
+			errorfamily.Rejection,
+			"snapshot.save_invalid",
+			"save snapshot for "+string(aggType)+" "+aggID.String(),
+		)
+	}
+
+	err = sink.Save(ctx, snap)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(
 			err,

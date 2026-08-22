@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
 
@@ -208,6 +209,18 @@ func (r *Repository[State]) Execute(
 // saveSnapshotAfterEvents folds new events onto state to get the final state,
 // then attempts to save a snapshot. Errors are recorded on the active span and
 // swallowed — snapshots are best-effort and must not block the write path.
+// snapshotEncoding maps the repository codec's encoding name onto the
+// compact typed stamp carried on saved snapshots. Unknown codec names stamp
+// record.EncodingUnknown rather than guessing.
+func snapshotEncoding(c codec.Codec) record.Encoding {
+	parsed, err := record.ParseEncoding(string(c.Encoding()))
+	if err != nil {
+		return record.EncodingUnknown
+	}
+
+	return parsed
+}
+
 func (r *Repository[State]) saveSnapshotAfterEvents(
 	ctx context.Context,
 	ref id.StreamRef,
@@ -252,7 +265,15 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 		return
 	}
 
-	saveErr := snapshot.SaveSnapshot(ctx, r.snapshotStore, ref.Type, ref.ID, newVersion, encoded)
+	snap, snapErr := snapshot.NewSnapshot(ref, newVersion, encoded, snapshotEncoding(r.codec))
+	if snapErr != nil {
+		cqrsotel.RecordError(cqrsotel.SpanFromContext(ctx), snapErr)
+		slog.WarnContext(ctx, "snapshot construct failed", "ref", ref, "error", snapErr)
+
+		return
+	}
+
+	saveErr := r.snapshotStore.Save(ctx, snap)
 	if saveErr != nil {
 		cqrsotel.RecordError(cqrsotel.SpanFromContext(ctx), saveErr)
 		slog.WarnContext(
