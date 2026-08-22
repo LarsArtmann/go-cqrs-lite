@@ -481,3 +481,35 @@ Note: ADR-0123 itself never names `NewStreamRef`; the decision was recorded in T
 **Option B — keep the recorded plan.** The review's underlying goals (validated construction, identity convergence) are fully deliverable without the struct: the v5 validating constructor delivers construction safety; T04/T10/T22 deliver convention convergence. Option A's structural elegance does not survive contact with the facts: it adds a third struct shape rather than removing one, taxes the hottest paths, and would require re-litigating the storage layer's ref plumbing to reach the "one shape" endgame. The review's Step 6 should be amended to Option B semantics (T02), with P1's resolution riding T04+T10+T22 instead of a type swap.
 
 **If the owner prefers A anyway:** T04 then implements `record.Stream{Type, EntityID string}` + `NewStream` validating constructor + `String()`; TODO_LIST Phase 8 gains the `id.StreamRef` endgame decision; T22 becomes mandatory before T04 ships.
+## Appendix C — T09 Decision Memo: Metadata Access on Command/Query (capability interface now vs interface growth at v5)
+
+**Status: DECIDED 2026-08-22 (owner, "Table view comparison") — capability interface ships in v4.x; growing the core `Command`/`Query` interfaces rides the v5 cut.** Recorded in TODO_LIST §Core Data Model. This memo is the comparison table backing that decision.
+
+### C.1 The problem (review P6)
+
+`query/audit.go` middlewared metadata off dispatched queries via two inline duck-typed interfaces (`type metadatable interface{ Metadata() Metadata }`, declared twice, lines 86 and 114) plus one inline `interface{ Payload() []byte }` assertion. Inline duck types are invisible to implementors, unnameable in consumer code, and drift silently. The obvious fix — add `Metadata()` to the exported `Command`/`Query` interfaces — is NOT free.
+
+### C.2 Why "just add the method" is breaking
+
+This is a LIBRARY. Consumers hand-roll `Command`/`Query` implementations by design (only `Type()`, `StreamID()`, `ID()` are required today). Adding a method to an exported interface breaks compilation of every hand-rolled implementation that does not add it. Embedders of `*BasicCommand`/`*BasicQuery` inherit the method for free; hand-rollers do not. The original review's "zero consumer breakage" claim for this step was wrong (corrected in T02).
+
+### C.3 Comparison
+
+| Axis | A. Capability interface (v4.x) | B. Grow core interfaces (v5) |
+|---|---|---|
+| Consumer breakage in v4.x | **None** — purely additive export | Breaks every hand-rolled Command/Query impl |
+| Hand-rolled impls can opt in | Yes — add `Metadata()` method | Forced — no method, no compile |
+| Discoverability | Capability type is exported and documented (`MetadataCarrier`) | Method is part of the core contract |
+| Middleware code | Type-asserts to the named capability (no inline duck types) | Direct method call |
+| Static enforcement for embedders | Compile-time `var _ MetadataCarrier = (*BasicQuery)(nil)` | Same via interface satisfaction |
+| Cost for non-carriers | Assertion fails, falls back — same as today | N/A |
+| Semantic clarity | "may carry" — capability is optional by design | "must carry" — every query owes metadata |
+| When | Ships now (T09) | v5 cut, together with the rest of the interface redesign |
+
+### C.4 Decision and shape
+
+Ship **A now**: `query.MetadataCarrier`, `query.PayloadCarrier`, `command.MetadataCarrier`; adopt in `query/audit.go` (replaces all three inline assertions); compile-time conformance asserts on `*BasicQuery`/`*BasicCommand`. Revisit **B at v5** when the breaking window is open — the capability types then either fold into the core interfaces or remain as the optional-capability pattern, decided by the v5 interface review.
+
+### C.5 Survey basis (T09·a)
+
+Production duck-typing sites: exactly `query/audit.go:86,101,114` (this file only — middleware/, commandlifecycle/ use concrete or already-named provider types). `*BasicCommand` and `*BasicQuery` already implement `Metadata()`.

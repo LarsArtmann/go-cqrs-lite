@@ -83,9 +83,7 @@ func AuditMiddleware(sink QuerySink, level AuditLevel, logger *slog.Logger) Midd
 // metadata, so audit records correlate with the live request. Falls back to a
 // freshly minted ID for queries without one.
 func requestIDOf(q Query) id.RequestID {
-	type metadatable interface{ Metadata() Metadata }
-
-	if m, ok := q.(metadatable); ok {
+	if m, ok := q.(MetadataCarrier); ok {
 		if rid := m.Metadata().RequestID; rid.String() != "" {
 			return rid
 		}
@@ -98,7 +96,7 @@ func buildAuditQuery(q Query, level AuditLevel, receivedAt time.Time) (*Persiste
 	var payload []byte
 
 	if level == AuditFull {
-		if p, ok := q.(interface{ Payload() []byte }); ok {
+		if p, ok := q.(PayloadCarrier); ok {
 			payload = p.Payload()
 		}
 	}
@@ -111,9 +109,7 @@ func buildAuditQuery(q Query, level AuditLevel, receivedAt time.Time) (*Persiste
 	// Carry the query's own metadata (correlation, causation, actor, user)
 	// onto the audit record so it correlates with the live request instead of
 	// arriving stripped.
-	type metadatable interface{ Metadata() Metadata }
-
-	if m, ok := q.(metadatable); ok {
+	if m, ok := q.(MetadataCarrier); ok {
 		opts = append(opts, WithQueryMetadata(m.Metadata()))
 	}
 
