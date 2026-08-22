@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — structural record.Actor (kind-discriminated producer) — 2026-08-22
+
+- **`record.Actor` + `record.ActorKind`** — the structural mirror of
+  `id.ActorID`: the kind-discriminated producer of a record (user / bot /
+  system / service) explicit at the type level, instead of smuggled through
+  the "kind:raw" stringly `ActorID` field every consumer had to parse
+  (review P3). `record/` stays zero-dep (ADR-0111) — the union is restated,
+  and `Actor.String()` emits the identical wire form as
+  `id.ActorID.PrefixedString`.
+- **`metadata.RecordActor`** — resolves a `Tracing` into the structural
+  actor: kind-discriminated `ActorID` wins; the legacy `UserID` fallback is
+  upgraded to `ActorUser` (a user ID is by definition a human user — the
+  kind it always implicitly had). Structural counterpart of `ActorString`.
+- **`CommonMetadata.Actor`** added; **`CommonMetadata.ActorID` (`string`)
+  is Deprecated (removed in v5)** — all three AsRecord bridges populate
+  both via `metadata.RecordActor` until the cut. `metadata` gains a
+  `record/v4` dependency (Tier 0 → Tier 0, `#check-arch` clean).
+
 ### Added — record.Stamp: explicit timestamp presence — 2026-08-22
 
 - **`record.Stamp` + `record.NewStamp`** — a timestamp whose presence is

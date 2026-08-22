@@ -1358,6 +1358,7 @@ listing/type TombstonePolicy
 metadata/func ActorString
 metadata/func BrandedString
 metadata/func MergeCustomMaps
+metadata/func RecordActor
 metadata/method Clone
 metadata/method EnsureCustom
 metadata/method IsZero
@@ -2941,6 +2942,11 @@ query/var ErrHandlerNotFound
 query/var ErrQueryNotFound
 query/var ErrStoreClosed
 query/var ErrTypeAssertion
+record/const ActorBot
+record/const ActorService
+record/const ActorSystem
+record/const ActorUnknown
+record/const ActorUser
 record/const CauseCommand
 record/const CauseEvent
 record/const CauseNone
@@ -2951,8 +2957,11 @@ record/func NewStreamRef
 record/func NewStreamRefOrZero
 record/method IsZero
 record/method IsZero
+record/method IsZero
 record/method MarshalJSON
 record/method Split
+record/method String
+record/method String
 record/method String
 record/method String
 record/method String
@@ -2960,10 +2969,12 @@ record/method String
 record/method Time
 record/method UnmarshalJSON
 record/method Validate
+record/struct Actor
 record/struct Cause
 record/struct CommonMetadata
 record/struct Record
 record/struct Stamp
+record/type ActorKind
 record/type CauseKind
 record/type StreamRef
 record/var ErrInvalidStreamRef

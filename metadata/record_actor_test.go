@@ -76,12 +76,21 @@ func TestRecordActor_MatchesActorString(t *testing.T) {
 		ActorID: id.NewServiceActor("api-gateway"),
 	}
 
-	if got, want := metadata.RecordActor(tracing).String(), metadata.ActorString(tracing); got != want {
+	if got, want := metadata.RecordActor(tracing).
+		String(),
+		metadata.ActorString(
+			tracing,
+		); got != want {
 		t.Errorf("RecordActor.String() = %q, want %q (must match ActorString wire form)", got, want)
 	}
 
 	legacy := metadata.Tracing{UserID: id.NewUserID()}
-	if got, want := metadata.RecordActor(legacy).String(), metadata.ActorString(legacy); got != want {
-		t.Errorf("legacy fallback RecordActor.String() = %q, want %q", got, want)
+	// The legacy wire form carried a bare user ID (no kind prefix); the
+	// structural form is self-describing. The difference is deliberate —
+	// RecordActor upgrades the legacy fallback with the kind it always had.
+	structural, wireForm := metadata.RecordActor(legacy).String(), metadata.ActorString(legacy)
+	if structural != "user:"+wireForm {
+		t.Errorf("legacy fallback RecordActor.String() = %q, want %q prefixed with the user kind",
+			structural, wireForm)
 	}
 }
