@@ -513,3 +513,5 @@ Ship **A now**: `query.MetadataCarrier`, `query.PayloadCarrier`, `command.Metada
 ### C.5 Survey basis (T09·a)
 
 Production duck-typing sites: exactly `query/audit.go:86,101,114` (this file only — middleware/, commandlifecycle/ use concrete or already-named provider types). `*BasicCommand` and `*BasicQuery` already implement `Metadata()`.
+
+> **Post-T09 note (2026-08-22):** the line refs above describe the pre-T09 layout. T09·d removed the inline duck-typed interfaces; `query/audit.go` now type-asserts the exported `query.MetadataCarrier`/`query.PayloadCarrier` capabilities (~lines 87/100/113).

@@ -53,10 +53,12 @@ using both see no conflicts. The caller owns the `*sql.DB`; `Close` is a no-op.
 
 ## Actor Attribution
 
-`Timer.Actor` (the "kind:raw" audit-trail attribution, e.g. `user:01JXYZ...`)
-survives SQL persistence via a versioned payload envelope
-(`{"v":1,"actor":...,"payload":...}`). Rows written by pre-actor versions
-(bare payload JSON) still decode, with an empty actor.
+`Timer.Actor` (typed `id.ActorID`; wire form is the "kind:raw" audit-trail
+attribution, e.g. `user:01JXYZ...`) survives SQL persistence via a
+versioned payload envelope (`{"v":1,"actor":...,"payload":...}`). The
+column stays a plain string — conversion happens at the store boundary.
+Rows written by pre-actor versions (bare payload JSON) still decode, with
+an empty actor.
 
 ## API
 

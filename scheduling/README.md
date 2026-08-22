@@ -35,13 +35,13 @@ func main() {
 
     // Schedule a timer
     _ = store.Schedule(ctx, scheduling.Timer[CancelOrderCmd]{
-        ID:      "order-cancel-123",
+        ID:      scheduling.MustParseTimerID("order-cancel-123"),
         FireAt:  time.Now().Add(30 * time.Minute),
         Payload: CancelOrderCmd{OrderID: "123"},
     })
 
     // Cancel it if the order is paid
-    _ = store.Cancel(ctx, "order-cancel-123")
+    _ = store.Cancel(ctx, scheduling.MustParseTimerID("order-cancel-123"))
 
     go sched.Start(ctx) // polls for due timers, dispatches, marks fired
 }
@@ -54,7 +54,7 @@ func main() {
 | Symbol            | Kind      | Description                                                      |
 | ----------------- | --------- | ---------------------------------------------------------------- |
 | `Timer[P]`        | Struct    | A scheduled timer: `ID`, `FireAt`, `Payload P`. Generic payload. |
-| `TimerID`         | Type      | `= string`                                                       |
+| `TimerID`         | Type      | Branded type over `string` (the `id.StreamID` pattern). Construct via `MustParseTimerID`/`ParseTimerID`. Wire form: plain string. |
 | `TimerStore[P]`   | Interface | `Schedule`, `Due`, `MarkFired`, `Cancel`. Persistence boundary.  |
 | `DispatchFunc[P]` | Type      | `func(ctx, Timer[P]) error`. Called when a timer fires.          |
 
