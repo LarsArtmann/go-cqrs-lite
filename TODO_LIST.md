@@ -803,14 +803,22 @@ and is **never** duplicated here.
       `system/register.go` migrated — the only production pair-form caller;
       lockstep tests `decider/ref_forms_test.go`; gate green `8c0f48ab0`)
       _(Effort: M)_
-- [ ] **Brand `scheduling.TimerID` + `Timer.Actor id.ActorID`** —
+- [x] **Brand `scheduling.TimerID` + `Timer.Actor id.ActorID`** —
       `id.Of[TimerMarker]`; JSON wire form via PrefixedString round-trip; add
       `id/v4` dep (Tier-1→Tier-0 legal) + `#check-arch`; consumer-pin sweep
-      in the same wave. Kills P11 (plan T11).
+      in the same wave. Kills P11 (plan T11). ✅ 2026-08-22 (T11 shipped
+      `82517580d`: string-backed branded TimerID — DEVIATION from the
+      `id.Of[TimerMarker]` sketch, timer IDs are semantic idempotency keys;
+      Actor→`id.ActorID` wire-identical; SQL envelope actor stays a string
+      column with boundary conversion; dep budget 0→2; gate green with T12)
       _(Effort: M)_
-- [ ] **`record.Type` consolidation** — define once, alias in event/command/
+- [x] **`record.Type` consolidation** — define once, alias in event/command/
       query; collapse triplicated ParseType/IsZero. Kills P12 drift (plan
-      T12, after the StreamRef bridge work).
+      T12, after the StreamRef bridge work). ✅ 2026-08-22 (T12: `record.Type`
+      + parametrized `record.ParseType(s, emptyErr)`; event/command/query
+      `Type` are aliases with deprecated sentinel-preserving wrappers;
+      compile-time alias lockstep tests; golden regen; exclusive gate green
+      `f518d24a0`)
       _(Effort: M)_
 - [ ] **`snapshot.NewSnapshot` constructor + codec stamp** — envelope-style
       encoding stamp (ADR-0044 pattern), `Validate`, invariants (non-nil
