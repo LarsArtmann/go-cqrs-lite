@@ -921,9 +921,13 @@ and is **never** duplicated here.
       new conventions (validating-population pattern, capability-interface
       rule) once the PRs land (plan T25).
       _(Effort: S)_
-- [ ] **Report polish remnants** — programmatic TOC-anchor check + CSS
+- [x] **Report polish remnants** — programmatic TOC-anchor check + CSS
       template-diff audit for the core review (Related reviews / Next skills
-      sections already added 2026-08-22) (plan T16).
+      sections already added 2026-08-22) (plan T16). ✅ 2026-08-22 (anchor
+      check: 0 broken after adding Amendments to the TOC + Related
+      Reviews/Next Skills sections with cross-links to the extended review;
+      CSS diff vs kit template: zero token drift — report is a clean subset
+      + 2 report-specific additions)
       _(Effort: S)_
 - [x] **Upstream skill fixes** — `docs/reviews` ↔ `docs/brainstorming`
       divergence in data-model-review skill docs; add "read prior reports" +

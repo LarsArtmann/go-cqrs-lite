@@ -823,6 +823,9 @@
             <li><a href="#anti-patterns">10 · Anti-Patterns</a></li>
             <li><a href="#roadmap">11 · Migration Roadmap</a></li>
             <li><a href="#conclusion">12 · Conclusion</a></li>
+            <li><a href="#amendments">Amendments</a></li>
+            <li><a href="#related">Related Reviews</a></li>
+            <li><a href="#next-skills">Next Skills</a></li>
           </ul>
         </nav>
 
@@ -2168,7 +2171,61 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
           command/, query/, decider/, snapshot/, kv/, listing/, graph/,
           scheduling/ · Every finding verified against source at review time
         </footer>
-      </main>
+      
+        <!-- ================= RELATED REVIEWS ================= -->
+        <section id="related" style="margin-top: 2rem">
+          <h2>Related Reviews</h2>
+          <p>
+            This report is one document in a review series. Its findings are
+            executed by the plan
+            <code>docs/planning/2026-08-22_03-52_core-data-model-v5-execution-plan.md</code>;
+            the storage/system/stack/watermill/middleware surface got the
+            same rigor in the companion review
+            <code>docs/reviews/2026-08-22_extended-data-model-review.md</code>
+            (15 findings E1&#8211;E15, capability matrix).
+          </p>
+          <ul>
+            <li>
+              <code>docs/reviews/2026-08-22_extended-data-model-review.md</code>
+              &#8212; companion: the remaining model surface (T21)
+            </li>
+            <li>
+              <code>docs/reviews/2026-08-16_full-code-review-system.html</code>
+              &#8212; system/v4 composition root review (P1s feeding this
+              plan&#8217;s context)
+            </li>
+            <li>
+              <code>docs/reviews/2026-08-01_metaengine-data-model.html</code>
+              &#8212; metaengine model review (the strategic layer&#8217;s
+              own cleanup)
+            </li>
+            <li>
+              <code>docs/reviews/2026-08-14_14-25_brutal-self-review.html</code>
+              &#8212; repo-wide self-review that motivated the v5 wave
+            </li>
+          </ul>
+        </section>
+
+        <!-- ================= NEXT SKILLS ================= -->
+        <section id="next-skills" style="margin-top: 2rem">
+          <h2>Next Skills</h2>
+          <ul>
+            <li>
+              <strong>naming-review</strong> &#8212; executed as plan T22
+              (vocabulary table recorded in plan Appendix D;
+              <code>record.StreamKey</code> rename queued for v5)
+            </li>
+            <li>
+              <strong>docs-health</strong> &#8212; keep TODO_LIST, FEATURES,
+              and the v5 deprecation sweep honest as the tail executes
+            </li>
+            <li>
+              <strong>data-model-review</strong> (re-run after the v5 cut)
+              &#8212; verify the redesigned model survived the breaking cut
+            </li>
+          </ul>
+        </section>
+</main>
     </div>
 
     <script>
