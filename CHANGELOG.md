@@ -16,12 +16,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`CommonMetadata.Created` / `Received` / `Stored`** (`Stamp`) added;
   **`ClientCreatedAt` / `ServerReceivedAt` / `ServerStoredAt` (`time.Time`)
   are Deprecated (removed in v5)**.
-- **Bridge mapping**: `event.AsRecord` sets `Created` from
-  `evt.OccurredAt()` (Received/Stored stay unknown — the store stamps them);
-  `query.AsRecord` sets `Received` from `q.ReceivedAt()` — the honest home
-  for the server-receive clock the old field parked in `ClientCreatedAt`
-  (Created stays unknown: PersistedQuery carries no client clock). Commands
-  carry no timestamps.
+- **Bridge mapping**: `event.AsRecord` sets `Created` from the event's
+  `OccurredAt` (Received/Stored stay unknown — the store stamps them);
+  `query.AsRecord` sets `Received` from `PersistedQuery.ReceivedAt` — the
+  honest home for the server-receive clock the old field parked in
+  `ClientCreatedAt` (Created stays unknown: PersistedQuery carries no client
+  clock). Commands carry no timestamps.
 
 ### Added — explicit record.Cause (kind-discriminated causation) — 2026-08-22
 
