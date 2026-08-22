@@ -155,6 +155,7 @@ func (t *TypedStore[State]) Store() SnapshotStore { return t.store }
 // [record.EncodingUnknown] rather than guessing. The bytes-level envelope
 // (ADR-0044) remains authoritative for decode; this field makes the struct
 // self-describing even when read through raw stores.
+//art-dupl:accept cross-module codec->record conversion mirror of decider.snapshotEncoding (dep-isolated modules, ADR-0111 zero-dep pattern)
 func recordEncodingFrom(c codec.Codec) record.Encoding {
 	parsed, err := record.ParseEncoding(string(c.Encoding()))
 	if err != nil {

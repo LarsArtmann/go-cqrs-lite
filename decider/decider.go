@@ -212,6 +212,7 @@ func (r *Repository[State]) Execute(
 // snapshotEncoding maps the repository codec's encoding name onto the
 // compact typed stamp carried on saved snapshots. Unknown codec names stamp
 // record.EncodingUnknown rather than guessing.
+//art-dupl:accept cross-module codec->record conversion mirror of snapshot.recordEncodingFrom (dep-isolated modules, ADR-0111 zero-dep pattern)
 func snapshotEncoding(c codec.Codec) record.Encoding {
 	parsed, err := record.ParseEncoding(string(c.Encoding()))
 	if err != nil {
