@@ -4,10 +4,33 @@ import (
 	"context"
 	"sync"
 	"time"
+
+	cbid "github.com/larsartmann/go-branded-id"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
+// TimerMarker is a phantom type for branding [TimerID].
+type TimerMarker struct{}
+
 // TimerID uniquely identifies a scheduled timer.
-type TimerID = string
+//
+// It is string-backed (the id.StreamID pattern), NOT ULID-backed: timer IDs
+// are semantic idempotency keys ("cancel-order-01J...", "delay-test") that
+// callers choose for stable re-scheduling and cancellation. Forcing ULIDs
+// would break every idempotent scheduling flow.
+//
+// Construct from a semantic name with [ParseTimerID].
+type TimerID = cbid.ID[TimerMarker, string]
+
+// ParseTimerID converts a semantic timer name into a [TimerID]. Accepts any
+// non-empty string. Returns [ErrEmptyTimerID] for empty input.
+func ParseTimerID(s string) (TimerID, error) {
+	if s == "" {
+		return TimerID{}, ErrEmptyTimerID
+	}
+
+	return cbid.NewID[TimerMarker](s), nil
+}
 
 // Timer represents a scheduled command to fire at a future time.
 //
@@ -26,24 +49,17 @@ type Timer[P any] struct {
 	// Payload is delivered to the dispatch callback when the timer fires.
 	Payload P `json:"payload"`
 
-	// Actor attributes the timer's eventual dispatch to an initiator, in the
-	// self-describing "kind:raw" ActorID wire format (e.g. "user:01JXYZ...",
-	// "system:scheduler"). Set it when the actor who scheduled the timer
-	// should remain the actor of the command the timer later dispatches —
-	// the audit-trail answer to "who caused this timeout to fire?".
+	// Actor attributes the timer's eventual dispatch to an initiator.
+	// Set it when the actor who scheduled the timer should remain the actor
+	// of the command the timer later dispatches — the audit-trail answer to
+	// "who caused this timeout to fire?".
 	//
-	// The value is a plain string (not id.ActorID) because scheduling is a
-	// zero-production-dependency module, mirroring record.CommonMetadata.ActorID.
-	// Round-trip it at the dispatch boundary:
-	//
-	//	actor, err := id.ParseActorID(t.Actor)
-	//	if err == nil && !actor.IsZero() {
-	//	    opts = append(opts, command.WithActor(actor))
-	//	}
-	//
-	// Zero value ("") means unspecified: the dispatch callback decides
-	// attribution (typically id.NewSystemActor("scheduler")).
-	Actor string `json:"actor,omitzero"`
+	// The zero value means unspecified: the dispatch callback decides
+	// attribution (typically id.NewSystemActor("scheduler")). The JSON wire
+	// form is the self-describing "kind:raw" string ("user:01JXYZ...",
+	// "system:scheduler") — omitted when zero — exactly the shape the field
+	// carried before it became typed.
+	Actor id.ActorID `json:"actor,omitzero"`
 }
 
 // TimerStore persists scheduled timers across restarts.
