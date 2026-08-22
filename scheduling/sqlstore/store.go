@@ -150,13 +150,13 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 	var timers []scheduling.Timer[P]
 
 	for rows.Next() {
-		var id string
+		var rawID string
 
 		var payload []byte
 
 		dest := s.scanTimeDest()
 
-		if err := rows.Scan(&id, dest, &payload); err != nil {
+		if err := rows.Scan(&rawID, dest, &payload); err != nil {
 			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"scheduling.sqlstore.scan",
@@ -169,17 +169,17 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 			return nil, err
 		}
 
-		envelope, err := decodeTimerPayload[P](id, payload)
+		envelope, err := decodeTimerPayload[P](rawID, payload)
 		if err != nil {
 			return nil, err
 		}
 
-		timerID, err := scheduling.ParseTimerID(id)
+		timerID, err := scheduling.ParseTimerID(rawID)
 		if err != nil {
 			return nil, errorfamily.WrapCorruption(
 				err,
 				"scheduling.sqlstore.parse_timer_id",
-				"parse timer ID "+id,
+				"parse timer ID "+rawID,
 			)
 		}
 
@@ -188,7 +188,7 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 			return nil, errorfamily.WrapCorruption(
 				err,
 				"scheduling.sqlstore.parse_actor",
-				"parse actor for timer "+id,
+				"parse actor for timer "+rawID,
 			)
 		}
 

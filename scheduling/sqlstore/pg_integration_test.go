@@ -66,17 +66,17 @@ func TestIntegration_PostgresTimerStore_ScheduleAndDue(t *testing.T) {
 
 	timers := []scheduling.Timer[testPayload]{
 		{
-			ID:      "pg-t3",
+			ID:      scheduling.MustParseTimerID("pg-t3"),
 			FireAt:  now.Add(30 * time.Second),
 			Payload: testPayload{Action: "c", Amount: 3},
 		},
 		{
-			ID:      "pg-t1",
+			ID:      scheduling.MustParseTimerID("pg-t1"),
 			FireAt:  now.Add(5 * time.Second),
 			Payload: testPayload{Action: "a", Amount: 1},
 		},
 		{
-			ID:      "pg-t2",
+			ID:      scheduling.MustParseTimerID("pg-t2"),
 			FireAt:  now.Add(10 * time.Second),
 			Payload: testPayload{Action: "b", Amount: 2},
 		},
@@ -94,7 +94,7 @@ func TestIntegration_PostgresTimerStore_ScheduleAndDue(t *testing.T) {
 		t.Fatalf("Due: %v", err)
 	}
 
-	if len(due) != 1 || due[0].ID != "pg-t1" {
+	if len(due) != 1 || due[0].ID.String() != "pg-t1" {
 		t.Fatalf("expected only pg-t1 due, got %+v", due)
 	}
 
@@ -112,7 +112,7 @@ func TestIntegration_PostgresTimerStore_ScheduleAndDue(t *testing.T) {
 		t.Fatalf("expected 3 due timers, got %d", len(due))
 	}
 
-	if due[0].ID != "pg-t1" || due[1].ID != "pg-t2" || due[2].ID != "pg-t3" {
+	if due[0].ID.String() != "pg-t1" || due[1].ID != "pg-t2" || due[2].ID != "pg-t3" {
 		t.Fatalf("ordering wrong: got %s,%s,%s", due[0].ID, due[1].ID, due[2].ID)
 	}
 }
@@ -130,7 +130,7 @@ func TestIntegration_PostgresTimerStore_IdempotentSchedule(t *testing.T) {
 	}
 
 	timer := scheduling.Timer[testPayload]{
-		ID:      "pg-idempotent",
+		ID:      scheduling.MustParseTimerID("pg-idempotent"),
 		FireAt:  time.Now().Add(1 * time.Hour),
 		Payload: testPayload{Action: "original", Amount: 42},
 	}
@@ -177,7 +177,7 @@ func TestIntegration_PostgresTimerStore_SurvivesRestart(t *testing.T) {
 	fireAt := time.Now().Add(50 * time.Millisecond)
 
 	if err := store1.Schedule(ctx, scheduling.Timer[testPayload]{
-		ID:      "pg-order-timeout",
+		ID:      scheduling.MustParseTimerID("pg-order-timeout"),
 		FireAt:  fireAt,
 		Payload: testPayload{Action: "cancel", Amount: 42},
 	}); err != nil {
@@ -213,7 +213,7 @@ func TestIntegration_PostgresTimerStore_SurvivesRestart(t *testing.T) {
 		t.Fatalf("expected 1 timer survived restart, got %d", len(due))
 	}
 
-	if due[0].ID != "pg-order-timeout" {
+	if due[0].ID.String() != "pg-order-timeout" {
 		t.Fatalf("timer ID: got %q, want %q", due[0].ID, "pg-order-timeout")
 	}
 
@@ -222,7 +222,7 @@ func TestIntegration_PostgresTimerStore_SurvivesRestart(t *testing.T) {
 	}
 
 	// After dispatching, mark fired and confirm it is gone.
-	if err := store2.MarkFired(ctx, "pg-order-timeout"); err != nil {
+	if err := store2.MarkFired(ctx, scheduling.MustParseTimerID("pg-order-timeout")); err != nil {
 		t.Fatalf("MarkFired: %v", err)
 	}
 
@@ -252,7 +252,7 @@ func TestIntegration_PostgresTimerStore_SchedulerIntegration_Recovery(t *testing
 	deadline := time.Now().Add(20 * time.Millisecond)
 
 	if err := store1.Schedule(ctx, scheduling.Timer[testPayload]{
-		ID:      "pg-timeout-1",
+		ID:      scheduling.MustParseTimerID("pg-timeout-1"),
 		FireAt:  deadline,
 		Payload: testPayload{Action: "expire"},
 	}); err != nil {

@@ -66,7 +66,7 @@ func SQLiteTimerSchema() string { return sqlpkg.SQLiteDialect{}.TimerSchema() }
 // Schedule records a timer. If a timer with the same ID already exists, the
 // INSERT is ignored (idempotent scheduling, matching MemoryTimerStore).
 func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) error {
-	ctx, span := s.startSpan(ctx, "timer.schedule", t.ID)
+	ctx, span := s.startSpan(ctx, "timer.schedule", t.ID.String())
 	defer span.End()
 
 	payload, err := json.Marshal(t.Payload, json.Deterministic(true))
@@ -74,7 +74,7 @@ func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) 
 		cqrsotel.RecordError(span, err)
 
 		return errorfamily.WrapCorruption(err, "storage.schedule_timer",
-			"marshal timer payload for "+t.ID)
+			"marshal timer payload for "+t.ID.String())
 	}
 
 	// Idempotent scheduling: a retry of the same timer ID (e.g. after a crash)
@@ -94,7 +94,7 @@ func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) 
 		cqrsotel.RecordError(span, err)
 
 		return errorfamily.WrapInfrastructure(err, "storage.schedule_timer",
-			"insert timer "+t.ID)
+			"insert timer "+t.ID.String())
 	}
 
 	return nil
@@ -141,7 +141,7 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 			cqrsotel.RecordError(span, err)
 
 			return nil, errorfamily.WrapCorruption(err, "storage.parse_fire_at",
-				"parse fire_at for timer "+t.ID)
+				"parse fire_at for timer "+t.ID.String())
 		}
 
 		t.FireAt = fireAt
@@ -154,7 +154,7 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 			cqrsotel.RecordError(span, err)
 
 			return nil, errorfamily.WrapCorruption(err, "storage.unmarshal_timer_payload",
-				"unmarshal payload for timer "+t.ID)
+				"unmarshal payload for timer "+t.ID.String())
 		}
 
 		due = append(due, t)
@@ -180,7 +180,7 @@ func (s *SQLTimerStore[P]) deleteTimer(
 	id scheduling.TimerID,
 	spanName, errCode string,
 ) error {
-	ctx, span := s.startSpan(ctx, spanName, id)
+	ctx, span := s.startSpan(ctx, spanName, id.String())
 	defer span.End()
 
 	query := "DELETE FROM timers WHERE id = " + s.Dialect.Placeholder(1)
@@ -188,7 +188,7 @@ func (s *SQLTimerStore[P]) deleteTimer(
 	if _, err := s.DB.ExecContext(ctx, query, id); err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return errorfamily.WrapInfrastructure(err, errCode, "delete timer "+id)
+		return errorfamily.WrapInfrastructure(err, errCode, "delete timer "+id.String())
 	}
 
 	return nil

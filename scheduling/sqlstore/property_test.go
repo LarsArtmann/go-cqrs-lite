@@ -50,7 +50,7 @@ func TestProperty_ScheduleIsIdempotent(t *testing.T) {
 		store := newPropStore[testPayload](t)
 		ctx := context.Background()
 
-		id := "timer-" + rapid.String().Draw(rt, "id")
+		id := scheduling.MustParseTimerID("timer-" + rapid.String().Draw(rt, "id"))
 		fireAt := time.Now().
 			Add(time.Duration(rapid.IntRange(1, 3600).Draw(rt, "seconds")) * time.Second)
 		originalPayload := testPayload{
@@ -98,7 +98,7 @@ func TestProperty_ConcurrentScheduleSameID(t *testing.T) {
 		store := newPropStore[testPayload](t)
 		ctx := context.Background()
 
-		id := "concurrent-" + rapid.String().Draw(rt, "id")
+		id := scheduling.MustParseTimerID("concurrent-" + rapid.String().Draw(rt, "id"))
 		n := rapid.IntRange(2, 12).Draw(rt, "goroutines")
 		fireAt := time.Now().Add(1 * time.Hour)
 
@@ -154,7 +154,7 @@ func TestProperty_DueOrdering(t *testing.T) {
 		for i := 0; i < n; i++ {
 			offset := time.Duration(rapid.IntRange(1, 3600).Draw(rt, "offset")) * time.Second
 			if err := store.Schedule(ctx, scheduling.Timer[testPayload]{
-				ID:      fmt.Sprintf("timer-%d", i),
+				ID:      scheduling.MustParseTimerID(fmt.Sprintf("timer-%d", i)),
 				FireAt:  base.Add(offset),
 				Payload: testPayload{Action: "test", Amount: i},
 			}); err != nil {
@@ -191,7 +191,7 @@ func TestProperty_MarkFiredRemovesTimer(t *testing.T) {
 		store := newPropStore[testPayload](t)
 		ctx := context.Background()
 
-		id := "fire-" + rapid.String().Draw(rt, "id")
+		id := scheduling.MustParseTimerID("fire-" + rapid.String().Draw(rt, "id"))
 		fireAt := time.Now().Add(1 * time.Hour)
 
 		if err := store.Schedule(ctx, scheduling.Timer[testPayload]{
@@ -241,7 +241,7 @@ func TestProperty_ConcurrentScheduleAndMarkFired(t *testing.T) {
 				defer wg.Done()
 
 				_ = store.Schedule(ctx, scheduling.Timer[testPayload]{
-					ID:      fmt.Sprintf("race-%d", i),
+					ID:      scheduling.MustParseTimerID(fmt.Sprintf("race-%d", i)),
 					FireAt:  base.Add(time.Duration(i) * time.Second),
 					Payload: testPayload{Action: "race", Amount: i},
 				})
@@ -255,7 +255,7 @@ func TestProperty_ConcurrentScheduleAndMarkFired(t *testing.T) {
 			go func(i int) {
 				defer wg.Done()
 
-				_ = store.MarkFired(ctx, fmt.Sprintf("race-%d", i))
+				_ = store.MarkFired(ctx, scheduling.MustParseTimerID(fmt.Sprintf("race-%d", i)))
 				_, _ = store.Due(ctx, base.Add(1*time.Hour))
 			}(i)
 		}

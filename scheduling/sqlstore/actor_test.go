@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // TestSQLiteTimerStore_ActorSurvivesRoundtrip locks the guarantee that
@@ -22,11 +22,16 @@ func TestSQLiteTimerStore_ActorSurvivesRoundtrip(t *testing.T) {
 
 	due := time.Now().Add(-time.Minute)
 
-	err := store.Schedule(ctx, scheduling.Timer[testPayload]{
-		ID:      "actor-roundtrip",
+	actor, err := id.ParseActorID("user:01HK1540X0841Y0A6BSX1VKR99")
+	if err != nil {
+		t.Fatalf("parse actor: %v", err)
+	}
+
+	err = store.Schedule(ctx, scheduling.Timer[testPayload]{
+		ID:      scheduling.MustParseTimerID("actor-roundtrip"),
 		FireAt:  due,
 		Payload: testPayload{Action: "cancel", Amount: 3},
-		Actor:   "user:01HK1540X0841Y0A6BSX1VKR99",
+		Actor:   actor,
 	})
 	if err != nil {
 		t.Fatalf("Schedule: %v", err)
@@ -41,7 +46,7 @@ func TestSQLiteTimerStore_ActorSurvivesRoundtrip(t *testing.T) {
 		t.Fatalf("expected 1 due timer, got %d", len(timers))
 	}
 
-	if got, want := timers[0].Actor, "user:01HK1540X0841Y0A6BSX1VKR99"; got != want {
+	if got, want := timers[0].Actor.PrefixedString(), "user:01HK1540X0841Y0A6BSX1VKR99"; got != want {
 		t.Errorf("actor lost through SQL round-trip: got %q, want %q", got, want)
 	}
 
@@ -84,8 +89,8 @@ func TestSQLiteTimerStore_LegacyBarePayloadRowsStillDecode(t *testing.T) {
 		t.Errorf("legacy payload mismatch: got %+v", timers[0].Payload)
 	}
 
-	if timers[0].Actor != "" {
-		t.Errorf("legacy row should decode with empty actor, got %q", timers[0].Actor)
+	if !timers[0].Actor.IsZero() {
+		t.Errorf("legacy row should decode with empty actor, got %q", timers[0].Actor.PrefixedString())
 	}
 }
 

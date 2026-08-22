@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Changed — scheduling: branded timer identity + typed actor — 2026-08-22
+
+- **`scheduling.TimerMarker`** + **`scheduling.TimerID`** — timer identity is
+  now a branded type (string-backed, the documented `id.StreamID` pattern)
+  instead of a bare `string` alias.
+  String-backed on purpose: timer IDs are semantic idempotency keys
+  ("cancel-order-...", "delay-test") that callers choose for stable
+  re-scheduling and cancellation; ULID backing would break every idempotent
+  scheduling flow. Deviation from the original plan sketch (`id.Of[TimerMarker]`,
+  ULID-backed) for exactly this reason. Wire form unchanged: IDs still
+  serialize as plain strings (SQL columns and JSON both unchanged).
+  NOTE: source-level breaking for callers that assigned raw strings to
+  Timer.ID — construct via `scheduling.ParseTimerID`.
+- **`scheduling.ParseTimerID`** / **`scheduling.MustParseTimerID`** /
+  **`scheduling.ErrEmptyTimerID`** — semantic-name constructors; the Must
+  form is for compile-time-known names.
+- **Timer.Actor** is now `id.ActorID` instead of `string` — the typed
+  attribution the doc comment previously told callers to round-trip by hand
+  via ParseActorID. Wire-compatible: zero marshals ""/omitted, non-zero
+  marshals the same self-describing "kind:raw" string; SQL stores keep the
+  envelope actor column a plain string and convert at the boundary, so
+  existing rows (including legacy bare-payload rows) decode unchanged.
+  `scheduling` gains `id/v4` + `go-branded-id` as direct production deps
+  (Tier 1 → Tier 0, budget raised 0→2; `#check-arch` green).
+
 ### Added — decider *Ref identity forms — 2026-08-22
 
 - **`decider.Repository.ExecuteRef`** / **`decider.Repository.LoadRef`** /

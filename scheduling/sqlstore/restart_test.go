@@ -43,7 +43,7 @@ func TestSQLiteTimerStore_SurvivesRestart(t *testing.T) {
 	fireAt := time.Now().Add(50 * time.Millisecond)
 
 	if err := store1.Schedule(ctx, scheduling.Timer[testPayload]{
-		ID:      "order-123-timeout",
+		ID:      scheduling.MustParseTimerID("order-123-timeout"),
 		FireAt:  fireAt,
 		Payload: testPayload{Action: "cancel", Amount: 42},
 	}); err != nil {
@@ -80,7 +80,7 @@ func TestSQLiteTimerStore_SurvivesRestart(t *testing.T) {
 		t.Fatalf("expected 1 timer survived restart, got %d", len(due))
 	}
 
-	if due[0].ID != "order-123-timeout" {
+	if due[0].ID.String() != "order-123-timeout" {
 		t.Fatalf("timer ID: got %q, want %q", due[0].ID, "order-123-timeout")
 	}
 
@@ -92,7 +92,7 @@ func TestSQLiteTimerStore_SurvivesRestart(t *testing.T) {
 	}
 
 	// After dispatching, the second process marks the timer as fired.
-	if err := store2.MarkFired(ctx, "order-123-timeout"); err != nil {
+	if err := store2.MarkFired(ctx, scheduling.MustParseTimerID("order-123-timeout")); err != nil {
 		t.Fatalf("MarkFired: %v", err)
 	}
 
@@ -133,7 +133,7 @@ func TestSQLiteTimerStore_SchedulerIntegration_Recovery(t *testing.T) {
 	deadline := time.Now().Add(20 * time.Millisecond)
 
 	if err := store1.Schedule(ctx, scheduling.Timer[testPayload]{
-		ID:      "timeout-1",
+		ID:      scheduling.MustParseTimerID("timeout-1"),
 		FireAt:  deadline,
 		Payload: testPayload{Action: "expire"},
 	}); err != nil {

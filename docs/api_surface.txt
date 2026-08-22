@@ -3002,8 +3002,10 @@ scenario/method When
 scenario/struct DeciderScenario
 scenario/struct ProjectionScenario
 scenario/type DecideFunc
+scheduling/func MustParseTimerID
 scheduling/func New
 scheduling/func NewMemoryTimerStore
+scheduling/func ParseTimerID
 scheduling/func WithLogger
 scheduling/func WithMaxRetries
 scheduling/func WithPollInterval
@@ -3031,9 +3033,11 @@ scheduling/sqlstore/var ErrUnknownDialect
 scheduling/struct MemoryTimerStore
 scheduling/struct Scheduler
 scheduling/struct Timer
+scheduling/struct TimerMarker
 scheduling/type DispatchFunc
 scheduling/type Option
 scheduling/type TimerID
+scheduling/var ErrEmptyTimerID
 schema/func NewUpcaster
 schema/func NewValidator
 schema/func NewVersionedSeekableJournal

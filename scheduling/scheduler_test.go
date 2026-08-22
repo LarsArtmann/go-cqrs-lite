@@ -19,11 +19,19 @@ func TestMemoryTimerStore_ScheduleAndDue(t *testing.T) {
 	now := time.Now()
 	store.Schedule(
 		ctx,
-		scheduling.Timer[string]{ID: scheduling.MustParseTimerID("a"), FireAt: now.Add(-1 * time.Minute), Payload: "early"},
+		scheduling.Timer[string]{
+			ID:      scheduling.MustParseTimerID("a"),
+			FireAt:  now.Add(-1 * time.Minute),
+			Payload: "early",
+		},
 	)
 	store.Schedule(
 		ctx,
-		scheduling.Timer[string]{ID: scheduling.MustParseTimerID("b"), FireAt: now.Add(1 * time.Hour), Payload: "late"},
+		scheduling.Timer[string]{
+			ID:      scheduling.MustParseTimerID("b"),
+			FireAt:  now.Add(1 * time.Hour),
+			Payload: "late",
+		},
 	)
 
 	due, err := store.Due(ctx, now)
@@ -65,7 +73,10 @@ func TestMemoryTimerStore_Cancel(t *testing.T) {
 
 	store.Schedule(
 		ctx,
-		scheduling.Timer[string]{ID: scheduling.MustParseTimerID("cancel-me"), FireAt: time.Now().Add(-1 * time.Minute)},
+		scheduling.Timer[string]{
+			ID:     scheduling.MustParseTimerID("cancel-me"),
+			FireAt: time.Now().Add(-1 * time.Minute),
+		},
 	)
 	store.Cancel(ctx, scheduling.MustParseTimerID("cancel-me"))
 

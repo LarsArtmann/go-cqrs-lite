@@ -47,9 +47,21 @@ func TestSQLiteTimerStore_ScheduleAndDue(t *testing.T) {
 	now := time.Now().UTC().Truncate(time.Millisecond)
 
 	timers := []scheduling.Timer[testPayload]{
-		{ID: "t3", FireAt: now.Add(30 * time.Second), Payload: testPayload{Action: "c", Amount: 3}},
-		{ID: "t1", FireAt: now.Add(5 * time.Second), Payload: testPayload{Action: "a", Amount: 1}},
-		{ID: "t2", FireAt: now.Add(10 * time.Second), Payload: testPayload{Action: "b", Amount: 2}},
+		{
+			ID:      scheduling.MustParseTimerID("t3"),
+			FireAt:  now.Add(30 * time.Second),
+			Payload: testPayload{Action: "c", Amount: 3},
+		},
+		{
+			ID:      scheduling.MustParseTimerID("t1"),
+			FireAt:  now.Add(5 * time.Second),
+			Payload: testPayload{Action: "a", Amount: 1},
+		},
+		{
+			ID:      scheduling.MustParseTimerID("t2"),
+			FireAt:  now.Add(10 * time.Second),
+			Payload: testPayload{Action: "b", Amount: 2},
+		},
 	}
 
 	for _, tm := range timers {
@@ -68,7 +80,7 @@ func TestSQLiteTimerStore_ScheduleAndDue(t *testing.T) {
 		t.Fatalf("expected 1 due timer, got %d", len(due))
 	}
 
-	if due[0].ID != "t1" {
+	if due[0].ID.String() != "t1" {
 		t.Fatalf("expected t1, got %s", due[0].ID)
 	}
 
@@ -86,7 +98,7 @@ func TestSQLiteTimerStore_ScheduleAndDue(t *testing.T) {
 		t.Fatalf("expected 3 due timers, got %d", len(due))
 	}
 
-	if due[0].ID != "t1" || due[1].ID != "t2" || due[2].ID != "t3" {
+	if due[0].ID.String() != "t1" || due[1].ID.String() != "t2" || due[2].ID.String() != "t3" {
 		t.Fatalf("expected order t1,t2,t3 got %s,%s,%s", due[0].ID, due[1].ID, due[2].ID)
 	}
 }
@@ -98,7 +110,7 @@ func TestSQLiteTimerStore_ScheduleIsIdempotent(t *testing.T) {
 	ctx := context.Background()
 
 	timer := scheduling.Timer[testPayload]{
-		ID:      "order-timeout",
+		ID:      scheduling.MustParseTimerID("order-timeout"),
 		FireAt:  time.Now().Add(1 * time.Hour),
 		Payload: testPayload{Action: "cancel", Amount: 100},
 	}
@@ -137,14 +149,14 @@ func TestSQLiteTimerStore_MarkFired(t *testing.T) {
 	ctx := context.Background()
 
 	timer := scheduling.Timer[testPayload]{
-		ID:      "fire-me",
+		ID:      scheduling.MustParseTimerID("fire-me"),
 		FireAt:  time.Now().Add(1 * time.Minute),
 		Payload: testPayload{Action: "go"},
 	}
 
 	_ = store.Schedule(ctx, timer)
 
-	if err := store.MarkFired(ctx, "fire-me"); err != nil {
+	if err := store.MarkFired(ctx, scheduling.MustParseTimerID("fire-me")); err != nil {
 		t.Fatalf("MarkFired: %v", err)
 	}
 
@@ -165,14 +177,14 @@ func TestSQLiteTimerStore_Cancel(t *testing.T) {
 	ctx := context.Background()
 
 	timer := scheduling.Timer[testPayload]{
-		ID:      "cancel-me",
+		ID:      scheduling.MustParseTimerID("cancel-me"),
 		FireAt:  time.Now().Add(1 * time.Minute),
 		Payload: testPayload{Action: "go"},
 	}
 
 	_ = store.Schedule(ctx, timer)
 
-	if err := store.Cancel(ctx, "cancel-me"); err != nil {
+	if err := store.Cancel(ctx, scheduling.MustParseTimerID("cancel-me")); err != nil {
 		t.Fatalf("Cancel: %v", err)
 	}
 
