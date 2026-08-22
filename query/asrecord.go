@@ -35,6 +35,9 @@ import (
 //     tracing chain does not discriminate the causer's kind, so the Cause
 //     states that honestly instead of guessing
 //   - ActorID         ← Tracing.ActorID ("kind:raw") when set, else Tracing.UserID
+//     (Deprecated: removed in v5)
+//   - Actor           ← metadata.RecordActor(tracing): same precedence,
+//     resolved structurally (kind explicit, no parse tax)
 //   - ClientCreatedAt ← q.ReceivedAt() (Deprecated: removed in v5 — kept in
 //     lockstep until the cut; note the source is the server-receive clock)
 //   - Received        ← NewStamp(q.ReceivedAt()) — the honest home for the
@@ -66,6 +69,7 @@ func AsRecord(q *PersistedQuery) record.Record {
 			CausationID:     metadata.BrandedString(tracing.CausationID),
 			Cause:           cause,
 			ActorID:         metadata.ActorString(tracing),
+			Actor:           metadata.RecordActor(tracing),
 			ClientCreatedAt: q.ReceivedAt(),
 			Received:        record.NewStamp(q.ReceivedAt()),
 		},

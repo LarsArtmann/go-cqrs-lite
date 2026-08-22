@@ -71,6 +71,10 @@ func TestAsRecord_MapsStructuralFields(t *testing.T) {
 		t.Errorf("ActorID = %q, want %q", got.MetaData.ActorID, userID)
 	}
 
+	if got.MetaData.Actor != (record.Actor{Kind: record.ActorUser, Raw: userID.String()}) {
+		t.Errorf("Actor = %+v, want structural user actor", got.MetaData.Actor)
+	}
+
 	if !got.MetaData.ClientCreatedAt.Equal(receivedAt) {
 		t.Errorf("ClientCreatedAt = %v, want %v", got.MetaData.ClientCreatedAt, receivedAt)
 	}

@@ -26,7 +26,9 @@ import (
 //   - CorrelationID    ← evt.Metadata().Tracing.CorrelationID
 //   - CausationID      ← see precedence rule below (Deprecated: removed in v5)
 //   - Cause            ← see precedence rule below
-//   - ActorID          ← see precedence rule below
+//   - ActorID          ← see precedence rule below (Deprecated: removed in v5)
+//   - Actor            ← metadata.RecordActor(tracing): the same precedence
+//     as ActorID, resolved structurally (kind explicit, no parse tax)
 //   - ClientCreatedAt  ← evt.OccurredAt() (Deprecated: removed in v5 —
 //     populated in lockstep with Created until the cut)
 //   - Created          ← NewStamp(evt.OccurredAt()) — same source, explicit
@@ -89,6 +91,7 @@ func AsRecord(evt Event) record.Record {
 			CausationID:     causationID,
 			Cause:           cause,
 			ActorID:         metadata.ActorString(tracing),
+			Actor:           metadata.RecordActor(tracing),
 			ClientCreatedAt: evt.OccurredAt(),
 			Created:         record.NewStamp(evt.OccurredAt()),
 			SchemaVersion:   int(evt.SchemaVersion()),

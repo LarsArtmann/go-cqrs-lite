@@ -70,6 +70,11 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("ActorID = %q, want %q", rec.MetaData.ActorID, userID.String())
 	}
 
+	if rec.MetaData.Actor != (record.Actor{Kind: record.ActorUser, Raw: userID.String()}) {
+		t.Errorf("Actor = %+v, want structural user actor (legacy UserID fallback)",
+			rec.MetaData.Actor)
+	}
+
 	t.Run("kind-discriminated ActorID wins over UserID", func(t *testing.T) {
 		t.Parallel()
 

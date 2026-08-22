@@ -45,8 +45,20 @@ type CommonMetadata struct {
 	Cause Cause
 
 	// ActorID identifies who or what produced this record: a user ID, a service
-	// name, a cron job identifier, or "system" for internal processes.
+	// name, a cron job identifier, or "system" for internal processes —
+	// kind-discriminated actors serialized as "kind:raw", legacy user IDs as
+	// bare strings. Consumers pay a parse tax to recover the kind.
+	//
+	// Deprecated: removed in v5. Use Actor, which carries the
+	// kind-discriminated union structurally. The AsRecord bridges populate
+	// both fields until the v5 cut.
 	ActorID string
+
+	// Actor identifies who or what produced this record — user, bot, system,
+	// or service — with the kind explicit at the type level instead of
+	// smuggled through a "kind:raw" string. The zero value means no actor
+	// was recorded.
+	Actor Actor
 
 	// ClientCreatedAt is the client's clock at the moment of creation. This may
 	// lie (clock skew, offline tampering). Use for offline-first conflict

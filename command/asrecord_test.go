@@ -71,6 +71,10 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("ActorID: got %q, want %q", rec.MetaData.ActorID, userID.String())
 	}
 
+	if rec.MetaData.Actor != (record.Actor{Kind: record.ActorUser, Raw: userID.String()}) {
+		t.Errorf("Actor: got %+v, want structural user actor", rec.MetaData.Actor)
+	}
+
 	if rec.Payload != nil {
 		t.Errorf("Payload: got %v, want nil (commands have no blob payload)", rec.Payload)
 	}
