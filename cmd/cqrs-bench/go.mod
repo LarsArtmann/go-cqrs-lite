@@ -118,7 +118,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/turso/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect

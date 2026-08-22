@@ -269,8 +269,8 @@ github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.2.0 h1:3XpOY76woOMKrIOD
 github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.2.0/go.mod h1:/svNc0GjClIeWtHZNGHr2iwna0GngAzJuPM/2S7RwhA=
 github.com/larsartmann/go-cqrs-lite/storage/turso/v4 v4.2.0 h1:AI/y+TtEeTV/f83hyS6e7Uq5XyxWLjOcliKfLbd3pfk=
 github.com/larsartmann/go-cqrs-lite/storage/turso/v4 v4.2.0/go.mod h1:ppqn+CfswniwtfNAqklCQ4qUUv8ZpQ0xJdzD5iT4Qrc=
-github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 h1:0Et/qWIT7j5wLeB9MfKZ6kKw1Fgtg96dvS72VJYkFfI=
-github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0/go.mod h1:rNF2TN94YMoeEpA9QAVquVqyx+THT+nyDWNeunbQPVs=
+github.com/larsartmann/go-cqrs-lite/storage/v4 v4.8.0 h1:EZdu5Rmhx0q9eYb9QQrWhbS4xnq9iymsFtz4sICgl/E=
+github.com/larsartmann/go-cqrs-lite/storage/v4 v4.8.0/go.mod h1:3IUJ2hoVq4AYjB+21bWNjs1dBi6NghW0NVWxdCgk5Jc=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0 h1:Quk6HrTJU/cvGezrkSl/mSTULraGvNd3kSoaRTf3hHc=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0/go.mod h1:mLyJ2JYRDO56bfoSDNYlGy25fA2fiteiVr53hFmnMFE=
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0 h1:uXTKwYa7mUUwsCg+ycwg7TtFjBmLsVOmy6MYXkI0sS0=
