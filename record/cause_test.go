@@ -53,7 +53,7 @@ func TestCause_StringWireForm(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name string
+		name  string
 		cause record.Cause
 		want  string
 	}{

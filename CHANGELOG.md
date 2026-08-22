@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — explicit record.Cause (kind-discriminated causation) — 2026-08-22
+
+- **`record.Cause` + `record.CauseKind`** — the single causation home that
+  replaces the stringly `CommonMetadata.CausationID` at v5: the causer's
+  kind (command / timer / event / unknown) is stated explicitly instead of
+  implied by ID format. Zero value = no cause recorded (review P4). Kinds:
+  `CauseNone` (zero), `CauseCommand` (typed event.Causation source),
+  `CauseTimer`, `CauseEvent`, `CauseUnknown` (bare tracing chain — the kind
+  honestly "not discriminated", mirroring `id.ActorUnknown`).
+- **`CommonMetadata.Cause`** added; **`CommonMetadata.CausationID` is
+  Deprecated (removed in v5)** — the three AsRecord bridges populate both
+  fields in lockstep until the cut.
+- **Bridge mapping**: `event.AsRecord` resolves typed
+  `Metadata.Causation.CommandID` → `{CauseCommand, id}` first (strongest
+  signal), falling back to `Tracing.CausationID` → `{CauseUnknown, id}`;
+  `command.AsRecord` / `query.AsRecord` map the tracing chain to
+  `{CauseUnknown, id}` (their only causation source).
+
 ### Added — validated stream-ref population in the Record bridges — 2026-08-22
 
 - **`record.NewStreamRefOrZero`** — producer-side counterpart to the planned

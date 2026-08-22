@@ -179,6 +179,10 @@ func TestAsRecord_CausationID(t *testing.T) {
 		if rec.MetaData.CausationID != "" {
 			t.Errorf("CausationID = %q, want empty", rec.MetaData.CausationID)
 		}
+
+		if !rec.MetaData.Cause.IsZero() {
+			t.Errorf("Cause = %+v, want zero (no cause recorded)", rec.MetaData.Cause)
+		}
 	})
 }
 

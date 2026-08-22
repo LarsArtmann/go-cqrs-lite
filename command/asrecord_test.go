@@ -61,6 +61,12 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("CausationID: got %q, want %q", rec.MetaData.CausationID, causationID.String())
 	}
 
+	wantCause := record.Cause{Kind: record.CauseUnknown, ID: causationID.String()}
+	if rec.MetaData.Cause != wantCause {
+		t.Errorf("Cause: got %+v, want %+v (kind unknown: tracing does not discriminate)",
+			rec.MetaData.Cause, wantCause)
+	}
+
 	if rec.MetaData.ActorID != userID.String() {
 		t.Errorf("ActorID: got %q, want %q", rec.MetaData.ActorID, userID.String())
 	}
@@ -109,6 +115,10 @@ func TestAsRecord_ZeroMetadata(t *testing.T) {
 
 	if rec.MetaData.CausationID != "" {
 		t.Errorf("CausationID: got %q, want empty for zero metadata", rec.MetaData.CausationID)
+	}
+
+	if !rec.MetaData.Cause.IsZero() {
+		t.Errorf("Cause: got %+v, want zero for zero metadata", rec.MetaData.Cause)
 	}
 
 	if rec.MetaData.ActorID != "" {

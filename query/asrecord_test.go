@@ -61,6 +61,12 @@ func TestAsRecord_MapsStructuralFields(t *testing.T) {
 		t.Errorf("CausationID = %q, want %q", got.MetaData.CausationID, causationID)
 	}
 
+	wantCause := record.Cause{Kind: record.CauseUnknown, ID: causationID.String()}
+	if got.MetaData.Cause != wantCause {
+		t.Errorf("Cause = %+v, want %+v (kind unknown: tracing does not discriminate)",
+			got.MetaData.Cause, wantCause)
+	}
+
 	if got.MetaData.ActorID != userID.String() {
 		t.Errorf("ActorID = %q, want %q", got.MetaData.ActorID, userID)
 	}
@@ -108,7 +114,7 @@ func TestAsRecord_ZeroTracingYieldsEmptyStrings(t *testing.T) {
 	got := query.AsRecord(q)
 
 	if got.MetaData.CorrelationID != "" || got.MetaData.CausationID != "" ||
-		got.MetaData.ActorID != "" {
+		got.MetaData.ActorID != "" || !got.MetaData.Cause.IsZero() {
 		t.Errorf("zero tracing must map to empty strings, got %+v", got.MetaData)
 	}
 }
