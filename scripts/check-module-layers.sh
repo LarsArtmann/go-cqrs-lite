@@ -205,8 +205,12 @@ DEP_BUDGET[watermill]=9
 # the codec.TranscodeToJSON primitive — ADR-0052, deletes per-consumer dupes).
 DEP_BUDGET["transport/http"]=6
 DEP_BUDGET[prometheus]=5
-DEP_BUDGET["storage/pebble"]=10
-DEP_BUDGET["storage/bbolt"]=10
+# pebble/bbolt: +1 (11) for the direct record/v4 dep — the snapshot
+# encoding stamp (record.Encoding, 2026-08-22 T17/T18) promotes the Tier-0
+# primitive from indirect (via event) to direct. Internal primitive, not
+# external sprawl; re-check if a future dep wants the same slot.
+DEP_BUDGET["storage/pebble"]=11
+DEP_BUDGET["storage/bbolt"]=11
 DEP_BUDGET["storage/backuptest"]=3
 DEP_BUDGET["storage/turso"]=10
 DEP_BUDGET["storage/memory"]=8
