@@ -425,3 +425,59 @@ Sweep: `rg "record\.(Record|StreamRef|NewStreamRef)" metaengine/` → 98 files (
 - Populate new fields in `AsRecord` bridges; **do not touch `record_stamp.go` in v4.x** (its getters keep working; extend only if we choose to expose new stamps — defer that decision to v5).
 - Adopt `Validate()` in bridges per above (closes TODO_LIST item "Validate() call-site adoption sweep" in the same wave).
 - `enginetest/record_stamp.go` is the one cross-module file that pins Record's literal shape — extend it in T04 (Stream) and T08 (ID/Encoding) so engines prove the new fields flow.
+
+---
+
+## Appendix B — T01 Decision Memo: `record.StreamRef` at v5 (struct vs validating constructor)
+
+**Status: AWAITING OWNER DECISION (blocks T04, T01·d/e, T02·c). Written 2026-08-22 after T03+T14 research.**
+
+### B.1 The recorded decision (exact text)
+
+`record/record.go:100-104` (NOTE on `NewStreamRef`):
+
+> NOTE — v5 breaking change (ADR-0123 Phase 8): at v5 this constructor becomes NewStreamRef(streamType, entityID string) (StreamRef, error) and returns ErrInvalidStreamRef for an empty entityID at construction. Call [StreamRef.Validate] now to catch malformed refs before the cut; empty streamType stays legal. Not deprecated — the constructor survives v5.
+
+`TODO_LIST.md` §v5 Unification, item "Breaking `record.NewStreamRef` validation":
+
+> v4 kept the constructor non-breaking and added `StreamRef.Validate()` + `ErrInvalidStreamRef` (2026-08-16); `Split()` accepts the empty-streamType form that command/query asrecord produces. At v5, change to `NewStreamRef(streamType, entityID string) (StreamRef, error)` rejecting an empty entityID at construction (empty streamType stays legal) and migrate the call sites. Note: `id.NewStreamRef` is a separate, unrelated function.
+
+Note: ADR-0123 itself never names `NewStreamRef`; the decision was recorded in TODO_LIST Phase 8 + the record.go NOTE citing it. The v4 bridge (`Validate`, `ErrInvalidStreamRef`, empty-type `Split`) is already **shipped and tagged**.
+
+### B.2 The review's counter-proposal
+
+`docs/reviews/2026-08-22_core-data-model-review.html` roadmap Step 6: delete the string type; `record.Stream{Type, EntityID string}` struct + validating constructor becomes the identity primitive; `Record.StreamID StreamRef` + `Record.StreamType string` collapse into `Record.Stream`.
+
+### B.3 What the T03/T14 research adds (facts both options must absorb)
+
+1. **Three shapes have distinct, entrenched roles** — this is not one type used three ways:
+   - `id.StreamRef{Type StreamType, ID StreamID}` (struct, `:` key) — the **storage layer's** ref: pebble EventStore locks/reads, snapshot stores, commandlifecycle Recorder, `system/snapshot_adapter` all take it as the parameter type.
+   - `record.StreamRef` (string, `Type/ID`) — the **Record interchange** form: the three `AsRecord` bridges produce it; metaengine stamps `string(r.StreamID)` into query results.
+   - `(streamID, streamType)` pairs — the **decider public API** surface (T10's target).
+2. `record.NewStreamRef` has **exactly 3 production call sites** (the three AsRecord bridges) + 1 exported test harness (`enginetest/record_stamp.go:54`). Zero production `.Split()` callers. Zero production `.Validate()` callers.
+3. `record/` is zero-dep by design (ADR-0111) — a struct's fields would stay plain strings; branding them would import `id/` and break the tier invariant.
+4. The two string serializations (`:` vs `/`) of the same concept already coexist across layers; neither option unifies them by itself.
+
+### B.4 Option A — struct `record.Stream` (the review)
+
+| Buys | Costs |
+|---|---|
+| Separator-invalid states unrepresentable in memory | Does **not** reduce shape count: `id.StreamRef` remains (storage layer); `record.Stream{Type, EntityID string}` is a third struct with stringly fields — no type safety gain over a validated string |
+| Field access without parsing (irrelevant: zero production Split callers) | Every key/sort/stamp use pays `.String()` allocation on hot paths (journal keys, metaengine stamping — today `string(r.StreamID)` is free) |
+| Matches `id.StreamRef`'s shape conceptually | Contradicts a recorded decision whose v4 bridge already shipped + is documented in three status reports |
+| | The "one shape" endgame requires ALSO deleting `id.StreamRef` and re-plumbing pebble/snapshot/commandlifecycle/system signatures at v5 — a Phase 8 scope explosion |
+
+### B.5 Option B — recorded plan (string survives, validating constructor at v5)
+
+| Buys | Costs |
+|---|---|
+| Honors the shipped bridge; migration path already documented (3 call sites) | String type keeps parse tax at boundaries (Parse/Validate — already built) |
+| Zero-dep, zero-hot-path-cost; comparable/sortable/indexable as-is | Does not by itself collapse the three shapes (neither does A) |
+| Invalid construction impossible from v5 (empty entityID rejected at ctor) — delivers the review's actual safety goal | Externally sourced strings (DB reads, consumer input) still need runtime validation — but structs parsed from bad input need the same |
+| P1 convergence remains achievable: T04 validated population in bridges + T10 `Execute(ref)` convention + T22 trio-naming decision (incl. possible `id.StreamRef` deprecation) | The struct's in-memory separator guarantee is forgone (low value: 0 production Split callers) |
+
+### B.6 Recommendation
+
+**Option B — keep the recorded plan.** The review's underlying goals (validated construction, identity convergence) are fully deliverable without the struct: the v5 validating constructor delivers construction safety; T04/T10/T22 deliver convention convergence. Option A's structural elegance does not survive contact with the facts: it adds a third struct shape rather than removing one, taxes the hottest paths, and would require re-litigating the storage layer's ref plumbing to reach the "one shape" endgame. The review's Step 6 should be amended to Option B semantics (T02), with P1's resolution riding T04+T10+T22 instead of a type swap.
+
+**If the owner prefers A anyway:** T04 then implements `record.Stream{Type, EntityID string}` + `NewStream` validating constructor + `String()`; TODO_LIST Phase 8 gains the `id.StreamRef` endgame decision; T22 becomes mandatory before T04 ships.
