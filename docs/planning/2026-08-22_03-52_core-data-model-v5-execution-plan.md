@@ -1,0 +1,398 @@
+# Core Data Model → v5 Execution Plan (Pareto)
+
+**Date:** 2026-08-22 03:52 CEST
+**Trigger:** Follow-up to `docs/reviews/2026-08-22_core-data-model-review.html` (commit `11008dbc7`) and session status report `docs/status/2026-08-22_03-51_core-data-model-review-session.md` (`393c23b91`).
+**Customers:** (a) the library owner (v5 unification, ADR-0123), (b) module consumers (API stability, honest types), (c) future agent sessions (accurate reference docs).
+
+---
+
+## 1. Context — why this plan exists
+
+The data model review found 12 problems (2 critical, 4 high, 4 medium, 2 low) in the core type system. Root causes: a v4→v5 migration caught mid-stride, "zero-dep" misread as "stringly", presence encoded in zero values, and under-specified contracts. The review proposed a redesign (struct `Stream`, `Cause`, `Stamp`, `Actor` mirrors, `Record.ID/Encoding`).
+
+**Two corrections discovered during self-review (status report §d):**
+
+1. The review's roadmap Step 2 (`Command.Metadata()` interface growth) was labeled "zero consumer breakage" — **wrong**. Hand-rolled implementations of the `Command` interface in consumer code break; only embedders of `*BasicCommand` are safe. This is a LIBRARY — external implementors exist by design.
+2. The review's `record.Stream` struct proposal **contradicts the recorded ADR-0123 Phase 8 decision**: TODO_LIST.md §"v5 Unification (Phase 8)" and `record/record.go:100-104` record that at v5 `NewStreamRef(streamType, entityID string) (StreamRef, error)` becomes a **validating constructor on the string type** — the string type survives. The review proposed deleting the string type. The review never cited or argued against the recorded plan.
+
+**Verified during planning research (2026-08-22):**
+- TODO_LIST.md v5 section confirms: "Breaking `record.NewStreamRef` validation … change to `NewStreamRef(streamType, entityID string) (StreamRef, error)` rejecting an empty entityID at construction". v4 already shipped `StreamRef.Validate()` + `ErrInvalidStreamRef` as the bridge.
+- TODO_LIST has ZERO overlap with the review's new items (TimerID branding, `Cause`, `Stamp`, `Metadata()` interface, Type consolidation) — all are new work.
+- ADRs to read before executing: 0111 (Record extraction), 0114 (tombstone→domain events), 0123 (v5 unification), plus `docs/adr/2026-08-17_system-v4-review-proposals.md`.
+
+**Verschlimmbesserung guardrails (non-negotiable):**
+- Additive-first in v4.x; every deletion rides the v5 cut with its recorded deprecation wave.
+- Every code change: module tests → api-stability golden regen → `nix run .#verify-fast` (full `#verify` before tagging).
+- Interface changes to exported interfaces = breaking for consumers → decision gate, never "just add a method".
+- Codec/store-critical methods landing in tagged modules require the consumer-pin sweep in the same wave (AGENTS.md MarshalBinary lesson).
+- Never run integration suites concurrently with `#verify`.
+
+---
+
+## 2. Pareto Breakdown
+
+### The 1% that delivers 51%
+
+**Decision + reference integrity.** The published review is now the reference for all data-model work, and it contains a wrong breaking-change claim + an uncited contradiction with recorded direction. The ADR decision itself gates the entire record/* PR series (T04–T08). Fix the reference, make the decision, and half the roadmap unblocks without risk of wrong work.
+
+→ T01 (ADR decision gate), T02 (report corrections), T03 (de-dupe vs prior metaengine review).
+
+### The 4% that delivers 64% (1% + next 3%)
+
+**The additive `record/` base layer.** Four PRs (Stream, Cause, Stamp, Actor, Record.ID/Encoding) that every other fix composes on. All additive, zero consumer breakage, independently shippable. This is the foundation the v5 cut will later delete the old generation ON TOP of.
+
+→ T04, T05, T06, T07, T08.
+
+### The 20% that delivers 80% (4% + next 16%)
+
+**v4.x-safe surface completions + hygiene.** Interface contracts done right (capability interface now, growth at v5), uniform `Execute(ref)` signatures, branded scheduling IDs, Type consolidation, harvest into the living TODO_LIST, metaengine ripple sizing, verify-gate closure.
+
+→ T09, T10, T11, T12, T13, T14, T15.
+
+### The other 20% (→ 100%)
+
+**Polish, audits, and the long tail:** report polish, snapshot constructor + wire migration, deprecation census, tombstone v5 prep, extended review of storage/system/stack, naming review, upstream skill fixes, golden/pin sweep after code lands, memory update.
+
+→ T16–T25.
+
+---
+
+## 3. Level 1 Plan — 25 tasks, 30–100 min each
+
+Sorted within tiers by impact ÷ effort, customer value first. Effort: XS≤15, S≤30, M≤60, L≤100 min.
+
+### Tier 1% — Decision + Reference Integrity (unblocks everything)
+
+| ID | Task | Impact | Effort | Est | Depends | Customer value |
+|----|------|--------|--------|-----|---------|----------------|
+| T01 | ADR-0123 × review decision gate: memo (struct `record.Stream` vs recorded validating-constructor), owner decision, amend ADR-0123 or record counter-ADR | 🔥🔥🔥 | M | 60 | — | Prevents building the wrong foundation; recorded direction stays honest |
+| T02 | Correct published review: reclassify Step 2 as breaking, fix dual-Version proposal, add ADR-conflict callout | 🔥🔥🔥 | S | 45 | T01, T03 | Reference doc stops poisoning downstream work |
+| T03 | Read 2026-08-01 metaengine review; de-dupe + cross-link findings | 🔥🔥 | S | 30 | — | No split-brain between the two data-model reviews |
+
+### Tier 4% — Additive record/ Base (the foundation)
+
+| ID | Task | Impact | Effort | Est | Depends | Customer value |
+|----|------|--------|--------|-----|---------|----------------|
+| T04 | PR: `record.Stream` (per T01) + `Validate` + populate in all three `AsRecord` bridges | 🔥🔥🔥 | L | 90 | T01, T14 | Kills P1 root cause (three identity shapes → two, on the way to one) |
+| T05 | PR: `record.Cause{Kind,ID}` + `CommonMetadata.Cause` + event bridge (one causation home) | 🔥🔥🔥 | L | 90 | T04 | Kills P4 precedence rules |
+| T06 | PR: `record.Stamp{at,known}` + replace 3 zero-time timestamps | 🔥🔥 | M | 60 | T04 | Kills P7 ambiguity |
+| T07 | PR: structural `record.Actor{Kind,Raw}` mirror; bridges stop stringifying the union | 🔥🔥 | M | 60 | T04 | Kills P3 actor parse-tax |
+| T08 | PR: `Record.ID` + `Record.Encoding`; `AsRecord` stops dropping identity/codec | 🔥🔥🔥 | M | 60 | T04 | Kills P5; self-describing payloads survive the bridge |
+
+### Tier 20% — v4.x-Safe Surface Completions + Hygiene
+
+| ID | Task | Impact | Effort | Est | Depends | Customer value |
+|----|------|--------|--------|-----|---------|----------------|
+| T09 | Command/Query metadata access: implementor survey → capability interface now + v5 interface growth decision | 🔥🔥🔥 | L | 90 | — | Kills P6 duck-typing without breaking consumers |
+| T10 | PR: `Decider.Execute(ctx, ref, …)` additive variants; deprecate `(streamID, streamType)` pairs | 🔥🔥 | M | 60 | — | One identity convention across the hot path |
+| T11 | PR: brand `scheduling.TimerID` (`id.Of`) + `Timer.Actor id.ActorID` + `#check-arch` | 🔥🔥 | L | 90 | — | Kills P11; Tier-1→Tier-0 dep is legal |
+| T12 | PR: `record.Type` consolidation + per-module aliases; collapse triplicated ParseType/IsZero | 🔥 | M | 60 | T04 | Kills P12 drift risk |
+| T13 | HARVEST this plan into TODO_LIST.md (new section; no duplicates confirmed) | 🔥🔥 | S | 30 | — | Living source of truth gets the work |
+| T14 | Metaengine ripple sizing: `rg record.Record/StreamRef metaengine/` + enginetest/adttest goldens | 🔥🔥 | S | 30 | — | De-risks T04 before it ships |
+| T15 | Hygiene: `nix run .#verify-fast` (close gate gap on doc commits) + treefmt `.html` coverage check | 🔥 | S | 30 | — | CI `--fail-on-change` gate risk eliminated |
+
+### Tier Other-20% — Polish, Audits, Long Tail (→100%)
+
+| ID | Task | Impact | Effort | Est | Depends | Customer value |
+|----|------|--------|--------|-----|---------|----------------|
+| T16 | Report polish: anchor-integrity check, CSS template diff, related-reviews + next-skills sections | 🔥 | S | 30 | T02 | Report fully skill-compliant |
+| T17 | PR: `snapshot.NewSnapshot` constructor + codec stamp (envelope style, ADR-0044) | 🔥🔥 | L | 90 | — | Kills P10; snapshots become self-describing |
+| T18 | Snapshot wire-tag migration audit across pebble/bbolt/sql/memory stores | 🔥 | M | 60 | T17 | No silent on-disk breakage at v5 |
+| T19 | Deprecation census artifact: 36 Aggregate aliases + wire tags + stale error codes → v5 sweep checklist | 🔥 | M | 60 | — | P8 executed safely, nothing missed |
+| T20 | Tombstone v5 deletion prep: verify migration doc + `listing.StatusMiddleware` bridge coverage | 🔥 | S | 45 | — | P9 resolves by deletion, prepared |
+| T21 | Extended data-model review: storage/*, system/, stack/, watermill/, middleware/ | 🔥🔥 | L | 100 | T02 | Same rigor for the rest of the model |
+| T22 | Naming review of proposed vocabulary (Stream / StreamRef / StreamID trio) | 🔥 | S | 45 | T01 | No new naming smell while fixing old ones |
+| T23 | Upstream skill fixes: docs/reviews↔brainstorming divergence; read-prior-reports + copy-template steps | 💧 | S | 30 | — | Future sessions don't repeat this session's mistakes |
+| T24 | After T04–T12 land: api-stability golden regen + doc-check skill refs + consumer-pin sweep (GOWORK=off) | 🔥🔥🔥 | M | 60 | T04–T12 | MarshalBinary-class failures impossible |
+| T25 | AGENTS.md memory update: decision outcome + new data-model conventions | 🔥 | S | 30 | T01 | Future sessions start informed |
+
+**Totals:** 25 tasks, ≈ 21.7 h. Critical path: T03+T14 → T01 → T02 → T04 → T05 → T08 → T24.
+
+---
+
+## 4. Level 2 Breakdown — 93 subtasks, ≤12 min each
+
+Grouped by parent. IDs: `T##·a…`. Est = minutes.
+
+### T01 — ADR decision gate (5 × 12 = 60)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T01·a | Extract exact ADR-0123 Phase 8 text + all `record.NewStreamRef`/`Split` call sites | 12 |
+| T01·b | Write decision memo: Option A struct `record.Stream` vs Option B recorded validating-constructor; recommend A, list migration deltas both ways | 12 |
+| T01·c | OWNER CHECKPOINT — present memo, get decision (blocks T04) | 12 |
+| T01·d | Amend ADR-0123 Phase 8 (or add counter-ADR) recording outcome + rationale | 12 |
+| T01·e | Update review report roadmap section to match decided direction | 12 |
+
+### T02 — Report corrections (4 subtasks = 45)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T02·a | Reclassify roadmap Step 2: `Command.Metadata()` = breaking for hand-rolled impls; v5-or-capability path | 12 |
+| T02·b | Replace transitional dual-Version proposal with "keep int64 + validate; swap at v5" | 12 |
+| T02·c | Add ADR-0123-conflict callout in Decision Log (or "resolved by T01" note) | 12 |
+| T02·d | Re-validate HTML (div balance, anchors), commit | 9 |
+
+### T03 — De-dupe vs metaengine review (3 = 30)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T03·a | Read `2026-08-01_metaengine-data-model.html` end-to-end | 12 |
+| T03·b | List overlaps with P5; add cross-links in both files | 12 |
+| T03·c | Commit | 6 |
+
+### T04 — record.Stream PR (7 = 84)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T04·a | Define `record.Stream` + `Validate` + `IsZero` + table tests | 12 |
+| T04·b | Implement decided shape (struct fields or validating ctor per T01) | 12 |
+| T04·c | `event.AsRecord` populates Stream; test round-trip | 12 |
+| T04·d | `command.AsRecord` + `query.AsRecord` populate Stream; tests | 12 |
+| T04·e | Regen api-stability golden (`cmd/api-stability --update`) | 12 |
+| T04·f | `#verify-fast` + `cd record && GOWORK=off go test` | 12 |
+| T04·g | CHANGELOG `[Unreleased]` + skill references update + doc-check | 12 |
+
+### T05 — record.Cause PR (6 = 72)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T05·a | Define `CauseKind` iota + `Cause` + tests (zero value = none) | 12 |
+| T05·b | Add `CommonMetadata.Cause`; deprecate `CausationID string` field | 12 |
+| T05·c | Event bridge: `Causation.CommandID`/`Tracing.CausationID` → `Cause` mapping + tests | 12 |
+| T05·d | Command/query bridges: `Tracing.CausationID` → `Cause{CauseCommand,…}` | 12 |
+| T05·e | Golden regen + `#verify-fast` | 12 |
+| T05·f | CHANGELOG + doc-check | 12 |
+
+### T06 — record.Stamp PR (4 = 48)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T06·a | Define `Stamp{at,known}` + `NewStamp` + tests | 12 |
+| T06·b | Swap `ClientCreatedAt/ServerReceivedAt/ServerStoredAt` → `Created/Received/Stored Stamp` (deprecate old) | 12 |
+| T06·c | Bridges populate stamps; `AsRecord` sets `Received` when store-stamped | 12 |
+| T06·d | Golden + `#verify-fast` + CHANGELOG | 12 |
+
+### T07 — record.Actor mirror PR (4 = 48)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T07·a | Define `record.Actor{Kind,Raw}` + kind consts + tests | 12 |
+| T07·b | Swap `CommonMetadata.ActorID string` → `Actor` (deprecate old) | 12 |
+| T07·c | Bridges: `ActorString(tracing)` → structural actor; keep wire form only at serialization edge | 12 |
+| T07·d | Golden + `#verify-fast` + CHANGELOG | 12 |
+
+### T08 — Record.ID+Encoding PR (4 = 48)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T08·a | Add `Record.ID string` + `Record.Encoding uint8` fields | 12 |
+| T08·b | `event.AsRecord` fills ID + `evt.Encoding()`; test mixed JSON+CBOR survives | 12 |
+| T08·c | command/query `AsRecord` fill ID | 12 |
+| T08·d | Golden + `#verify-fast` + CHANGELOG | 12 |
+
+### T09 — Metadata access (5 = 72)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T09·a | Survey implementors: internal + examples, embedding vs hand-rolled | 12 |
+| T09·b | Mini-decision memo: capability interface (v4.x) vs direct growth (v5); record in ADR addendum | 12 |
+| T09·c | Implement `MetadataCarrier`-style capability + adopt in query/audit middleware | 12 |
+| T09·d | Deprecate the two inline duck-typed interfaces in `query/audit.go:86,114` | 12 |
+| T09·e | Tests + golden + `#verify-fast` | 12 |
+
+### T10 — Execute(ref) variants (4 = 48)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T10·a | Add `ExecuteRef`/`LoadRef(ctx, ref, …)`; pair forms delegate | 12 |
+| T10·b | Mark pair forms `Deprecated: removed in v5` | 12 |
+| T10·c | Migrate internal callers (scenario/, examples) to ref forms | 12 |
+| T10·d | Tests + golden + `#verify-fast` | 12 |
+
+### T11 — Timer branding (5 = 72)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T11·a | Add `TimerMarker` phantom + `TimerID = id.Of[TimerMarker]` in scheduling | 12 |
+| T11·b | `Timer.Actor string` → `id.ActorID` + JSON round-trip (PrefixedString wire form) | 12 |
+| T11·c | `go.mod` add `id/v4` dep; run `nix run .#check-arch` (Tier-1→Tier-0 legal) | 12 |
+| T11·d | Fix sqlstore/memory store signatures + tests | 12 |
+| T11·e | Golden + `#verify-fast` + CHANGELOG | 12 |
+
+### T12 — Type consolidation (4 = 48)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T12·a | Define `record.Type` + shared `ParseType`/`IsZero` (parametrized error) + tests | 12 |
+| T12·b | Alias `type Type = record.Type` in event/command/query | 12 |
+| T12·c | Deprecate local ParseType duplicates (keep thin wrappers) | 12 |
+| T12·d | Golden + `#verify-fast` | 12 |
+
+### T13 — Harvest (2 = 24)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T13·a | Add "Core Data Model v4.x/v5" section to TODO_LIST.md from this plan; status markers | 12 |
+| T13·b | Cross-check against existing sections for duplicates; commit | 12 |
+
+### T14 — Metaengine ripple (2 = 24)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T14·a | `rg -l "record\.(Record|StreamRef|NewStreamRef)" metaengine/ metaengine/enginetest/ metaengine/adttest/` + read hits | 12 |
+| T14·b | Write ripple summary (files, goldens, hazard level) into this plan's appendix | 12 |
+
+### T15 — Hygiene (3 = 30)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T15·a | Run `nix run .#verify-fast`; capture result in this plan | 12 |
+| T15·b | Check treefmt config for `.html` coverage; note CI-gate exposure | 12 |
+| T15·c | If gap: add formatter or `.gitattributes`/ignore; commit | 6 |
+
+### T16 — Report polish (3 = 30)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T16·a | Anchor-integrity script run (TOC ↔ section ids) | 12 |
+| T16·b | CSS diff vs kit template; reconcile drift | 12 |
+| T16·c | Add "Related reviews" + "Next skills" sections; commit | 6 |
+
+### T17 — Snapshot constructor (5 = 72)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T17·a | Design invariants (non-nil State, Version≥1, encoding stamp) + write as comment spec | 12 |
+| T17·b | Implement `NewSnapshot(ref, version, state, enc)` + `Validate` | 12 |
+| T17·c | Add encoding stamp field (envelope pattern, ADR-0044 style) | 12 |
+| T17·d | Stores compile + snapshot tests | 12 |
+| T17·e | Golden + `#verify-fast` + CHANGELOG | 12 |
+
+### T18 — Snapshot wire audit (3 = 36)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T18·a | Enumerate wire consumers: pebble/bbolt/sql/memory snapshot stores | 12 |
+| T18·b | Document tag-rename risk per backend; decision: keep old tags until v5 | 12 |
+| T18·c | Write migration note into TODO_LIST v5 section | 12 |
+
+### T19 — Deprecation census (3 = 60)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T19·a | `rg "Deprecated: use" id/ command/ event/ query/ listing/ snapshot/` → alias table | 12 |
+| T19·b | Wire-tag + error-code census (`aggregateId`, `nil_aggregate_id`, …) | 12 |
+| T19·c | Emit `docs/planning/v5-deprecation-sweep.md` checklist | 12 |
+
+### T20 — Tombstone prep (3 = 45)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T20·a | Verify `docs/migration/tombstone-to-domain-events.md` exists + is accurate | 12 |
+| T20·b | Check `listing.StatusMiddleware` + `OnTombstone` bridge tests coverage | 12 |
+| T20·c | List v5 deletion pre-reqs into TODO_LIST v5 section | 12 |
+
+### T21 — Extended review (4 = 100)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T21·a | Review storage/* type shapes (stores, dialects, migrations) | 25 |
+| T21·b | Review system/ + stack/ config/deployment types | 25 |
+| T21·c | Review watermill/ + middleware/ envelope/middleware types | 25 |
+| T21·d | Append findings appendix (new review file, cross-linked) | 25 |
+
+### T22 — Naming review (3 = 45)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T22·a | Run naming-smell pass on Stream/StreamRef/StreamID/Cause/Stamp vocabulary | 12 |
+| T22·b | Decide final trio naming (e.g. Stream vs StreamRef vs StreamID roles) | 12 |
+| T22·c | Record naming table in ADR addendum / plan appendix | 12 |
+
+### T23 — Upstream skill fixes (2 = 24)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T23·a | Fix `docs/reviews` ↔ `docs/brainstorming` divergence in data-model-review skill docs | 12 |
+| T23·b | Add "read prior reports in the series" + "copy the template, never transcribe" steps | 12 |
+
+### T24 — Post-landing sweep (3 = 60)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T24·a | api-stability golden regen + meta-tests (`TestEvery*`) | 12 |
+| T24·b | doc-check over SKILL.md + references + AGENTS.md | 12 |
+| T24·c | Consumer-pin sweep: bump `id/v4`/`record/v4` consumers, GOWORK=off build matrix | 12 |
+
+### T25 — Memory update (2 = 24)
+| ID | Subtask | Est |
+|----|---------|-----|
+| T25·a | AGENTS.md: record T01 outcome + new data-model conventions section | 12 |
+| T25·b | Commit | 12 |
+
+---
+
+## 5. Execution Graph
+
+```mermaid
+flowchart TD
+    subgraph P1["1% — Decision + Reference Integrity"]
+        T03["T03 de-dupe vs metaengine review"]
+        T14["T14 metaengine ripple sizing"]
+        T01["T01 ADR-0123 decision gate (OWNER)"]
+        T02["T02 report corrections"]
+        T03 --> T02
+        T14 --> T01
+        T01 --> T02
+    end
+
+    subgraph P4["4% — Additive record/ base"]
+        T04["T04 record.Stream"]
+        T05["T05 record.Cause"]
+        T06["T06 record.Stamp"]
+        T07["T07 record.Actor"]
+        T08["T08 Record.ID+Encoding"]
+        T04 --> T05 --> T06 --> T07 --> T08
+    end
+
+    subgraph P20["20% — v4.x surface completions"]
+        T09["T09 metadata access (capability)"]
+        T10["T10 Execute(ref)"]
+        T11["T11 TimerID branding"]
+        T12["T12 Type consolidation"]
+        T13["T13 harvest TODO_LIST"]
+        T15["T15 hygiene gates"]
+    end
+
+    subgraph R20["Other 20% — polish/audits/long tail"]
+        T16["T16 report polish"]
+        T17["T17 snapshot ctor"]
+        T18["T18 snapshot wire audit"]
+        T19["T19 deprecation census"]
+        T20["T20 tombstone prep"]
+        T21["T21 extended review"]
+        T22["T22 naming review"]
+        T23["T23 skill fixes"]
+        T24["T24 golden+pin sweep"]
+        T25["T25 AGENTS.md memory"]
+    end
+
+    T01 --> T04
+    T02 --> T04
+    T04 --> T12
+    T08 --> T24
+    T12 --> T24
+    T01 --> T22
+    T02 --> T16
+    T02 --> T21
+    T17 --> T18
+    T01 --> T25
+    T24 --> T25
+
+    classDef gate fill:#ffb347,stroke:#ffb347,color:#0e0e10
+    classDef foundation fill:#ff6b6b,stroke:#ff6b6b,color:#0e0e10
+    classDef surface fill:#6eb5ff,stroke:#6eb5ff,color:#0e0e10
+    classDef tail fill:#f4d35e,stroke:#f4d35e,color:#0e0e10
+    class T01,T02,T03,T14 gate
+    class T04,T05,T06,T07,T08 foundation
+    class T09,T10,T11,T12,T13,T15 surface
+    class T16,T17,T18,T19,T20,T21,T22,T23,T24,T25 tail
+```
+
+Legend: amber = decision/reference tier, red = foundation PRs, blue = surface completions, yellow = long tail. `T01` is the owner checkpoint — everything in the red tier waits on it.
+
+---
+
+## 6. Definition of Done (per tier)
+
+- **Tier 1%:** ADR-0123 amended (or counter-ADR recorded); report contains zero known-false claims; both reviews cross-linked.
+- **Tier 4%:** all five PRs merged with golden regen + `#verify-fast` green + CHANGELOG entries; old fields carry `Deprecated: removed in v5` markers.
+- **Tier 20%:** TODO_LIST carries the work; capability interface shipped with zero consumer breakage; `#check-arch` green with new scheduling dep.
+- **Other 20%:** census/audit docs exist; skill fixes pushed upstream; AGENTS.md reflects the decided model.
+
+## 7. Explicitly OUT of scope
+
+- Executing the v5 deletion wave itself (tracked in TODO_LIST §v5 Unification — this plan only prepares it).
+- Any change to published module tags; all PRs land in `[Unreleased]` until the v5 train.
+- Re-litigating declined decisions (TODO_LIST §Declined).
+
+---
+
+*Point-in-time plan. Living state belongs in TODO_LIST.md (T13 harvest). Annotate, never rewrite.*
