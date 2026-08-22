@@ -880,10 +880,31 @@ and is **never** duplicated here.
       StatusMiddleware→mark→OnTombstone/OnRebirth chain; deletion pre-reqs
       listed in the §v5 tombstone entry above)
       _(Effort: S)_
-- [ ] **Extended data-model review** — storage/*, system/, stack/,
+- [x] **Extended data-model review** — storage/*, system/, stack/,
       watermill/, middleware/ get the same rigor; findings appendix
-      cross-linked to the core review (plan T21).
+      cross-linked to the core review (plan T21). ✅ 2026-08-22
+      (`docs/reviews/2026-08-22_extended-data-model-review.md`: 15 findings
+      E1-E15 + capability matrix; verdict: no any-typed values anywhere,
+      the disease is cross-backend drift; pebble lying-doc fixed on the
+      spot). Follow-ups extracted below.
       _(Effort: L)_
+- [ ] **bbolt error-family parity** (review E3) — replace bare `fmt.Errorf`
+      in bbolt command/query marshal+reconstruct with errorfamily codes,
+      matching pebble's pattern.
+      _(Effort: S)_
+- [ ] **turso.Policy nil-map write guard** (review E9) — mutators panic on
+      zero-value Policy; guard writes like reads.
+      _(Effort: S)_
+- [ ] **system.ShutdownDependency name validation** (review E10) — validate
+      Before/After against DeploymentConfig.Engines at build; typo'd names
+      currently silent-no-op.
+      _(Effort: S)_
+- [ ] **v5 items from extended review** — E1 (event-envelope Encoding →
+      `record.Encoding`), E7 (watermill/middleware RetryConfig collision),
+      E8 (typed Message Kind enum), E11 (AdapterCore.Encode error return),
+      E13 (SQLTimerStore phantom param), E15 (middleware signature
+      unification) — fold into the v5 cut wave after the sweep doc.
+      _(Effort: M)_
 - [ ] **Stream/StreamRef/StreamID naming decision** — the trio is itself a
       naming smell; decide each shape's role before v5 (plan T22, after the
       owner's Option B decision).
