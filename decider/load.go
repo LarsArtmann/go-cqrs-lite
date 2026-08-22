@@ -106,7 +106,7 @@ func opError(
 	)
 }
 
-// LoadAtVersion reconstructs state from events up to and including maxVersion.
+// LoadAtVersionRef reconstructs state from events up to and including maxVersion.
 // Useful for time-travel queries: "what was the state at version N?".
 //
 // The stream is addressed by a single [id.StreamRef].
@@ -153,7 +153,7 @@ func (r *Repository[State]) LoadAtVersion(
 	return r.LoadAtVersionRef(ctx, id.NewStreamRef(streamType, streamID), maxVersion)
 }
 
-// LoadAtTime reconstructs state from events up to and including maxTime.
+// LoadAtTimeRef reconstructs state from events up to and including maxTime.
 // Useful for temporal queries: "what was the state at this point in time?".
 //
 // The stream is addressed by a single [id.StreamRef].

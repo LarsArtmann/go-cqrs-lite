@@ -3,7 +3,7 @@
 // A Decider[State] replaces a mutable entity with a pure fold: the
 // Apply function takes the current state and an event, returning the new state.
 // The decision logic (command → events) is supplied separately as a
-// [DecideFunc] to Repository.Execute — it is NOT a field on Decider[State].
+// [DecideFunc] to Repository.ExecuteRef — it is NOT a field on Decider[State].
 //
 // The Repository[State] handles the full lifecycle: load → apply → decide → save → publish.
 //
@@ -22,7 +22,7 @@
 //
 //	repo, _ := decider.NewRepository[UserState](store, bus, d)
 //
-//	err := repo.Execute(ctx, aggID, "User",
+//	err := repo.ExecuteRef(ctx, id.NewStreamRef("User", aggID),
 //	    func(state UserState, version event.Version) ([]event.Event, error) {
 //	        return event.NewEvents(aggID, "User", version,
 //	            []event.Type{"user.created"},
@@ -33,9 +33,10 @@
 //
 // # Time Travel
 //
-//	state, version, _ := repo.Load(ctx, aggID, "User")
-//	state, version, _ = repo.LoadAtVersion(ctx, aggID, "User", 3)
-//	state, version, _ = repo.LoadAtTime(ctx, aggID, "User", cutoff)
+//	userRef := id.NewStreamRef("User", aggID)
+//	state, version, _ := repo.LoadRef(ctx, userRef)
+//	state, version, _ = repo.LoadAtVersionRef(ctx, userRef, 3)
+//	state, version, _ = repo.LoadAtTimeRef(ctx, userRef, cutoff)
 //
 // # Schema Evolution (Upcasting)
 //

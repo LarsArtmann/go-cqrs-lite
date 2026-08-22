@@ -58,7 +58,7 @@ func NewTypedRepository[State, Cmd any](
 	return &TypedRepository[State, Cmd]{decider: d, inner: inner}, nil
 }
 
-// ExecuteCommand loads the stream, folds its history, calls the typed
+// ExecuteCommandRef loads the stream, folds its history, calls the typed
 // Decide function with the command, and persists any resulting events.
 //
 // The stream is addressed by a single [id.StreamRef].

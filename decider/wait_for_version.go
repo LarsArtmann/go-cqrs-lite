@@ -44,7 +44,7 @@ func WithPollInterval(d time.Duration) WaitOption {
 	return func(c *waitConfig) { c.pollInterval = d }
 }
 
-// WaitForVersion polls the event store until the target version is visible,
+// WaitForVersionRef polls the event store until the target version is visible,
 // then returns the events at or after that version. This implements the
 // read-your-writes consistency pattern for distributed setups where the
 // event store has read replicas or the write was performed by a different

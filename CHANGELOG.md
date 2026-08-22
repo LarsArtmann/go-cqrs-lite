@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — decider *Ref identity forms — 2026-08-22
+
+- **`decider.Repository.ExecuteRef`** / **`decider.Repository.LoadRef`** /
+  **`decider.Repository.LoadAtVersionRef`** /
+  **`decider.Repository.LoadAtTimeRef`** /
+  **`decider.Repository.WaitForVersionRef`** — the ref forms are the real
+  implementations; the stream is addressed by a single `id.StreamRef`.
+  Every internal helper (store load, singleflight key, state cache,
+  snapshot) was already `id.StreamRef`-keyed, so the ref forms reach them
+  without constructing a pair intermediate on the hot path.
+- **`decider.TypedRepository.ExecuteCommandRef`** /
+  **`decider.TypedRepository.LoadRef`** — the typed wrapper's twins.
+- The `(streamID, streamType)` pair forms (`decider.Repository.Execute`,
+  `decider.Repository.Load`, `decider.Repository.LoadAtVersion`,
+  `decider.Repository.LoadAtTime`, `decider.Repository.WaitForVersion`,
+  `decider.TypedRepository.ExecuteCommand`) are Deprecated (removed in v5)
+  one-line forwarders onto the ref forms. `TestRefForms_MatchPairForms`
+  pins the lockstep: pair and ref forms address the same stream and produce
+  identical outcomes. `system/register.go` migrated to `ExecuteRef` (the
+  only production internal pair-form caller).
+
 ### Added — metadata capability interfaces (Command/Query) — 2026-08-22
 
 - **`query.MetadataCarrier`** and **`query.PayloadCarrier`** — exported
