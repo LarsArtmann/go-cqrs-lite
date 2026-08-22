@@ -2082,7 +2082,10 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
           </p>
           <ol style="margin: 0.5rem 0 0 1.25rem; color: #ccc">
             <li>
-              <strong>Owner decision — stream identity (Decision 09, row 1).
+              <strong
+                >Owner decision — stream identity (Decision 09, row
+                1).</strong
+              >
               This review's struct <code>record.Stream</code> proposal
               contradicted the recorded ADR-0123 Phase 8 plan
               (<code>record/record.go:100-104</code> + TODO_LIST §v5
@@ -2101,7 +2104,7 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
               fields while taxing hot key paths.
             </li>
             <li>
-              <strong>Breaking-change correction (Roadmap Step 2).
+              <strong>Breaking-change correction (Roadmap Step 2).</strong>
               &ldquo;Zero consumer breakage&rdquo; for adding
               <code>Metadata()</code> to the exported interfaces was wrong:
               hand-rolled implementations break; only embedders inherit
@@ -2109,7 +2112,7 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
               interface growth is a v5-cut decision.
             </li>
             <li>
-              <strong>Dual-Version correction (Roadmap Step 1).
+              <strong>Dual-Version correction (Roadmap Step 1).</strong>
               The transitional &ldquo;uint64 alongside int64&rdquo; proposal
               violated this review's own anti-split-brain thesis. Corrected:
               keep <code>int64</code> + validate non-negative; swap at v5.
