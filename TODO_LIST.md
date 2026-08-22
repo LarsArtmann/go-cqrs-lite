@@ -721,6 +721,16 @@ and is **never** duplicated here.
       `listing/in_memory.go:155`). The 2026-08-10 attempt (`e406edcfb`) was
       reverted (`a6613ef0d`) before release; docs realigned 2026-08-16.
       Owner decision M20 (2026-08-11): full rename deferred to v5.
+      **T20 prep check (2026-08-22):** migration doc verified accurate
+      against shipped code (StatusMiddleware signature, Materialize
+      metadata trigger, metaengine Remove); bridge chain
+      StatusMiddleware→OnTombstone/OnRebirth now has test coverage
+      (`stack/materialize_tombstone_bridge_test.go` — previously ZERO
+      trigger coverage anywhere). Pre-reqs before deleting: land
+      type-driven status in `listing` (replaces the DetectTombstone call),
+      migrate `example/taskmanager` off `OnTombstone`, regen golden,
+      execute the tombstone section of
+      `docs/planning/v5-deprecation-sweep.md`.
       _(Effort: M)_
 - [ ] **Honest snapshot wire tags at v5 (T18 audit 2026-08-22)** — rename
       `snapshot.Snapshot` JSON tags (`aggregateId`/`aggregateType` →
