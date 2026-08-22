@@ -396,3 +396,32 @@ Legend: amber = decision/reference tier, red = foundation PRs, blue = surface co
 ---
 
 *Point-in-time plan. Living state belongs in TODO_LIST.md (T13 harvest). Annotate, never rewrite.*
+
+---
+
+## Appendix A — T14 Metaengine Ripple Sizing (2026-08-22)
+
+Sweep: `rg "record\.(Record|StreamRef|NewStreamRef)" metaengine/` → 98 files (89 test-only). Production files examined directly.
+
+### Verdict: v4.x additive changes (T04–T08) are LOW hazard in metaengine
+
+| Surface | Files | Effect of additive Record/CommonMetadata fields |
+|---|---|---|
+| `record.Record` literals | `store.go:373`, `runtime_backend.go:239,351`, `demote.go:318`, `enginetest/record_stamp.go:51` | **All keyed.** Zero positional literals anywhere in metaengine → adding fields compiles clean. |
+| Record-field stamp map | `metaengine/record_stamp.go` (`recordFieldGetters`) | Name-matched (`StreamID`, `StreamType`, `Version`, `CorrelationID`, `CausationID`, `ActorID`, `SchemaVersion`). New fields (`Stream`, `Cause`, `Received`, `Actor`, `ID`, `Encoding`) have no getters → safe no-op; stamps only appear if a getter is added. |
+| Field access | `record_fold.go`, `fold.go`, `types.go`, `auto_fold.go`, `auto_naming.go`, `infer_composite.go`, `replicator.go`, `override.go`, `query.go`, `projectionadapter/typed_decoder.go`, `projectionadapter/adapter.go` | Read existing fields only; none construct CommonMetadata positionally. |
+| Serialization | none | No production path JSON-serializes `record.Record` (watermill/middleware/projectionadapter checked) → new fields cannot leak onto wires. |
+| Snapshot goldens | none | No `go-snaps` usage in metaengine — the only golden that changes is the api-stability one (T04·e regen). |
+
+### v5-cut ripple (old fields deleted / constructor changes) — the REAL exposure
+
+1. `record_stamp.go`: 7 getters + `recordStamp` tests reference deleted fields directly — must be rewritten to the new model in the same v5 change (M-effort, contained to one file + `enginetest/record_stamp.go` harness + per-engine runners of `RunRecordStampTest`).
+2. `record.NewStreamRef` validating-constructor migration (if Option B stands): **exactly 3 production call sites** — `event/asrecord.go:64`, `command/asrecord.go:45`, `query/asrecord.go:48` — plus the exported test harness `metaengine/enginetest/record_stamp.go:54` and a handful of internal tests (`soak_record_test.go:84`, `adapter_record_test.go:107`, `record_fold_test.go:36,87`, `auto_naming_test.go:71,91,111`). Tiny blast radius.
+3. Zero production `.Split()` callers (verified by sweep + 2026-08-16 defect-sweep status §).
+4. Zero production `StreamRef.Validate()` callers today — the v4 bridge shipped unused internally; T04 should adopt it in the `AsRecord` bridges (validating what we populate) so it earns its keep.
+
+### Guidance extracted for T04–T08
+
+- Populate new fields in `AsRecord` bridges; **do not touch `record_stamp.go` in v4.x** (its getters keep working; extend only if we choose to expose new stamps — defer that decision to v5).
+- Adopt `Validate()` in bridges per above (closes TODO_LIST item "Validate() call-site adoption sweep" in the same wave).
+- `enginetest/record_stamp.go` is the one cross-module file that pins Record's literal shape — extend it in T04 (Stream) and T08 (ID/Encoding) so engines prove the new fields flow.
