@@ -430,7 +430,7 @@ Sweep: `rg "record\.(Record|StreamRef|NewStreamRef)" metaengine/` → 98 files (
 
 ## Appendix B — T01 Decision Memo: `record.StreamRef` at v5 (struct vs validating constructor)
 
-**Status: AWAITING OWNER DECISION (blocks T04, T01·d/e, T02·c). Written 2026-08-22 after T03+T14 research.**
+**Status: DECIDED 2026-08-22 (owner) — Option B, validating constructor stands.** The recorded plan is confirmed; T04 implements validated `StreamRef` population in the bridges (no struct type). Review Step 6 is amended by T02; P1 convergence rides T04+T10+T22. Memo retained below for provenance.
 
 ### B.1 The recorded decision (exact text)
 

@@ -695,6 +695,13 @@ and is **never** duplicated here.
       an empty entityID at construction (empty streamType stays legal) and
       migrate the call sites. Note: `id.NewStreamRef` is a separate,
       unrelated function.
+      **Owner-confirmed 2026-08-22** (decision memo:
+      `docs/planning/2026-08-22_03-52_core-data-model-v5-execution-plan.md`
+      Appendix B): the struct `record.Stream` counter-proposal from the
+      2026-08-22 core data-model review is REJECTED — the string type
+      survives; identity-shape convergence (P1) is delivered by validated
+      bridge population (T04) + `Execute(ref)` convention (T10) + the
+      Stream/StreamRef/StreamID naming decision (T22).
       _(Effort: M)_
 - [ ] **Delete `transport/http` + `transport/grpc` modules** (ADR-0127) —
       delivery is `watermill/` + go-sse + cqrs-htmx. `example/taskmanager` is

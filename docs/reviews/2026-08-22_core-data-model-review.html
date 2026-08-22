@@ -1780,11 +1780,26 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
             </thead>
             <tbody>
               <tr>
-                <td>Stream shape in record/</td>
-                <td>Struct <code>Stream{Type, EntityID}</code></td>
                 <td>
-                  Keep string composite — parsing at every boundary, malformed
-                  states legal, separator drift (":" vs "/" already happened).
+                  Stream shape in record/<br />
+                  <em style="color: #da6"
+                    >SUPERSEDED 2026-08-22 — see Amendments</em
+                  >
+                </td>
+                <td>
+                  <s>Struct <code>Stream{Type, EntityID}</code></s> → string
+                  <code>StreamRef</code> + validating constructor at v5
+                  (owner decision; ADR-0123 Phase 8 stands)
+                </td>
+                <td>
+                  Struct — rejected 2026-08-22: <code>id.StreamRef</code>
+                  already occupies the struct role in the storage layer, so a
+                  record-side struct adds a third shape with stringly fields
+                  (no safety gain), while taxing hot key paths with
+                  <code>.String()</code> allocations. Original rejection of
+                  the plain string (parse tax, malformed states) is addressed
+                  by the validating constructor + boundary
+                  <code>Parse</code>/<code>Validate</code>.
                 </td>
               </tr>
               <tr>
@@ -1831,11 +1846,19 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
                 </td>
               </tr>
               <tr>
-                <td>Command interface growth</td>
-                <td>Add <code>Metadata()</code> now, document in v4.x</td>
                 <td>
-                  Wait for v5 — every quarter of duck-typed workarounds
-                  compounds; both shipped implementations already conform.
+                  Command interface growth<br />
+                  <em style="color: #da6">corrected 2026-08-22</em>
+                </td>
+                <td>
+                  Capability interface in v4.x; grow interfaces at the v5 cut
+                </td>
+                <td>
+                  <s>Add <code>Metadata()</code> now, document in v4.x</s> —
+                  breaking for hand-rolled implementations (the original
+                  "zero breakage" framing was wrong; see Amendments).
+                  Duck-typed workarounds are replaced by the capability
+                  interface, not by interface growth.
                 </td>
               </tr>
               <tr>
@@ -1912,25 +1935,46 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
         <div class="migration-step">
           <div class="migration-num">1</div>
           <div class="migration-content">
-            <h4>Additive v4.x — grow Record, fill the new fields</h4>
+            <h4>
+              Additive v4.x — grow Record, fill the new fields
+              <em style="color: #da6">(amended 2026-08-22)</em>
+            </h4>
             <p>
-              Add <code>record.Stream</code>, <code>Cause</code>,
-              <code>Stamp</code>, <code>Actor</code>, and
-              <code>Record.ID/Encoding</code> (uint64 Version alongside int64
-              until v5). <code>AsRecord</code> starts populating them.
-              Zero consumer breakage; regen api-stability golden in the same
-              change.
+              Add <code>Cause</code>, <code>Stamp</code>, the structural
+              <code>Actor</code> mirror, and <code>Record.ID/Encoding</code>;
+              the three <code>AsRecord</code> bridges start populating a
+              <strong>validated</strong> <code>record.StreamRef</code> by
+              adopting the already-shipped <code>Validate()</code> bridge —
+              no new identity type (Decision 09 amendment). Record.Version
+              stays <code>int64</code> and gains non-negative validation; the
+              <code>uint64</code> swap rides the v5 cut — a transitional
+              dual Version field would be exactly the split-brain this review
+              condemns. Zero consumer breakage; regen api-stability golden in
+              the same change.
             </p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">2</div>
           <div class="migration-content">
-            <h4>Interface completion — Command.Metadata(), Query.Metadata()</h4>
+            <h4>
+              Interface completion — metadata access
+              <em style="color: #da6">(reclassified 2026-08-22)</em>
+            </h4>
             <p>
-              Both shipped implementations already conform; deprecate the
-              duck-typed paths in query/audit.go. Document the (rare) consumer
-              impact for exotic implementations in the v4.x release notes.
+              <strong
+                >Adding <code>Metadata()</code> to the exported
+                <code>Command</code>/<code>Query</code> interfaces is
+                breaking</strong
+              >
+              for every consumer with a hand-rolled implementation; only
+              embedders of <code>*BasicCommand</code> inherit it safely — and
+              this is a library, where external implementors exist by design.
+              (The original text called the impact "rare"; that was wrong.)
+              The v4.x path is an additive capability interface (e.g.
+              <code>MetadataCarrier</code>), adopted internally to replace
+              the duck-typed paths in <code>query/audit.go</code>; growing
+              the interfaces themselves is a v5-cut decision.
             </p>
           </div>
         </div>
@@ -1970,15 +2014,21 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
         <div class="migration-step">
           <div class="migration-num">6</div>
           <div class="migration-content">
-            <h4>The v5 cut — delete the old generation</h4>
+            <h4>
+              The v5 cut — delete the old generation
+              <em style="color: #da6">(amended 2026-08-22)</em>
+            </h4>
             <p>
-              Remove: <code>record.StreamRef</code> (string), 36 Aggregate
-              aliases, tombstone metadata machinery
+              Remove: 36 Aggregate aliases, tombstone metadata machinery
               (<code>TombstoneMark</code>, <code>DetectTombstone</code>,
               <code>MarkTombstone</code>/<code>MarkRebirth</code>,
               <code>*Causation</code> pointer), old snapshot JSON tags (with
-              on-disk migration), <code>int64</code> Record.Version. One
-              release, one coherent model, no shells.
+              on-disk migration); swap <code>Record.Version</code>
+              int64&nbsp;→&nbsp;uint64 and make
+              <code>record.NewStreamRef</code> a validating constructor —
+              both per ADR-0123 Phase 8, owner-confirmed 2026-08-22. The
+              string <code>record.StreamRef</code> type itself survives (see
+              Amendments). One release, one coherent model, no shells.
             </p>
           </div>
         </div>
