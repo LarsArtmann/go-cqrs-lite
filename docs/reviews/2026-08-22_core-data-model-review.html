@@ -2067,6 +2067,99 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
           </p>
         </div>
 
+        <!-- ================= AMENDMENTS ================= -->
+        <section
+          id="amendments"
+          style="border-top: 2px solid #da6; padding-top: 1.5rem; margin-top: 2rem"
+        >
+          <h2 style="color: #da6">Amendments (2026-08-22)</h2>
+          <p>
+            Post-publication corrections from the session self-review, the
+            metaengine-review de-dupe pass, and the owner decision. The
+            redesign chapters (05–08) are retained as originally written for
+            provenance; the deltas below are authoritative where they
+            conflict.
+          </p>
+          <ol style="margin: 0.5rem 0 0 1.25rem; color: #ccc">
+            <li>
+              <strong>Owner decision — stream identity (Decision 09, row 1).\n
+              This review's struct <code>record.Stream</code> proposal\n
+              contradicted the recorded ADR-0123 Phase 8 plan\n
+              (<code>record/record.go:100-104</code> + TODO_LIST §v5\n
+              Unification) without citing it — the session's worst process\n
+              failure. Decision memo + ripple research:\n
+              <code\n                >docs/planning/2026-08-22_03-52_core-data-model-v5-execution-plan.md</code\n              >\n
+              Appendix B. <strong>Outcome: Option B</strong> — the string\n
+              <code>record.StreamRef</code> survives v5; a validating\n
+              constructor delivers the construction safety this review\n
+              wanted; identity-shape convergence (P1) rides validated bridge\n
+              population + <code>Execute(ref)</code> adoption + the\n
+              Stream/StreamRef/StreamID naming decision instead of a type\n
+              swap. A record-side struct was rejected:\n
+              <code>id.StreamRef</code> already occupies the struct role in\n
+              the storage layer, so it would add a third shape with stringly\n
+              fields while taxing hot key paths.
+n            </li>
+            <li>
+              <strong>Breaking-change correction (Roadmap Step 2).\n
+              &ldquo;Zero consumer breakage&rdquo; for adding\n
+              <code>Metadata()</code> to the exported interfaces was wrong:\n
+              hand-rolled implementations break; only embedders inherit\n
+              safely. Corrected in place — capability interface in v4.x,\n
+              interface growth is a v5-cut decision.
+n            </li>
+            <li>
+              <strong>Dual-Version correction (Roadmap Step 1).\n
+              The transitional &ldquo;uint64 alongside int64&rdquo; proposal\n
+              violated this review's own anti-split-brain thesis. Corrected:\n
+              keep <code>int64</code> + validate non-negative; swap at v5.
+n            </li>
+            <li>
+              <strong>Version type.</strong> Where chapters 05–08 show\n
+              <code>Version uint64</code>, read &ldquo;uint64 at v5;\n
+              validated int64 in v4.x&rdquo; per the correction above.
+n            </li>
+          </ol>
+
+          <h3 style="color: #4a9; margin-top: 1.5rem">Related reviews</h3>
+          <ul style="margin: 0.5rem 0 0 1.25rem; color: #ccc">
+            <li>
+              <a href="2026-08-01_metaengine-data-model.html"
+                >2026-08-01 metaengine data-model review</a
+              >
+              — the sibling episode (metaengine internals: Fold sealed union,\n
+              Store collaborators, queryRuntime merge). De-dupe verdict:\n
+              <strong>zero overlapping findings</strong> — that review's\n
+              C1–L2 catalog addresses metaengine internals, this one the core\n
+              type system. Caution: its <code>P1–P12</code> label\n
+              <em>anti-pattern classes</em>; this review's label\n              <em>findings</em>
+n            </li>
+            <li>
+              <code>docs/reviews/2026-08-16_full-code-review-system.html</code
+              >
+              — system/ composition-root review (the layer this review\n              deliberately excluded; see T21 in the execution plan).
+n            </li>
+          </ul>
+
+          <h3 style="color: #4a9; margin-top: 1.5rem">Next skills</h3>
+          <ul style="margin: 0.5rem 0 0 1.25rem; color: #ccc">
+            <li>
+              <strong>naming-review</strong> — the Stream / StreamRef /\n
+              StreamID trio this review leaves in place is itself a naming\n
+              smell; a dedicated pass should decide the trio's roles before\n
+              the v5 cut (execution-plan T22).
+n            </li>
+            <li>
+              <strong>data-model-review (extended scope)</strong> —\n              storage/*, system/, stack/, watermill/, middleware/ get the same\n
+              rigor (T21).
+n            </li>
+            <li>
+              <strong>full-code-review</strong> — for cross-cutting concerns\n
+              beyond the type system once the model work lands.
+n            </li>
+          </ul>
+        </section>
+
         <footer class="footer">
           Generated 2026-08-22 · Scope: record/, id/, metadata/, event/,
           command/, query/, decider/, snapshot/, kv/, listing/, graph/,
