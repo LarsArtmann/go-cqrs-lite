@@ -739,6 +739,109 @@ and is **never** duplicated here.
 
 ---
 
+## Core Data Model v4.x/v5 (2026-08-22 review + plan)
+
+> Source: [core data-model review](docs/reviews/2026-08-22_core-data-model-review.html)
+> (12 findings) + [execution plan](docs/planning/2026-08-22_03-52_core-data-model-v5-execution-plan.md)
+> (25 tasks, subtask breakdown + ripple research in its appendices).
+> Owner decision 2026-08-22 (plan Appendix B): string `record.StreamRef`
+> SURVIVES v5 with a validating constructor; the review's struct
+> `record.Stream` proposal is rejected. Decision/reference tasks (T01–T03,
+> T14, T02) are DONE — not duplicated here. Metaengine ripple of the whole
+> series: LOW for v4.x additive (all keyed literals, no Record wire
+> serialization; plan Appendix A).
+>
+> Every PR below lands additive-first with `Deprecated: removed in v5`
+> markers on what it supersedes, api-stability golden regen + `#verify-fast`
+> + CHANGELOG `[Unreleased]` entry in the same change.
+
+- [ ] **`AsRecord` bridges populate a validated `record.StreamRef`** 🔥 —
+      adopt the shipped `Validate()` in all three bridges (event/command/
+      query); `event.AsRecord` stamps streamType, command/query keep the
+      empty-type form. Kills P1's interchange half; per owner decision there
+      is NO new identity type (plan T04).
+      _(Effort: M)_
+- [ ] **`record.Cause{Kind, ID}` + `CommonMetadata.Cause`** 🔥 — CauseKind
+      iota (none/command/timer/derivation), zero value = none; deprecate
+      `CausationID string`; event bridge maps `Causation.CommandID`/
+      `Tracing.CausationID`. Kills P4's two-causation-homes (plan T05).
+      _(Effort: M)_
+- [ ] **`Record.ID string` + `Record.Encoding uint8`** 🔥 — `event.AsRecord`
+      fills both so self-describing payloads survive the bridge (mixed
+      JSON+CBOR round-trip test); command/query fill ID. Kills P5 (plan T08).
+      _(Effort: M)_
+- [ ] **`record.Stamp{at, known}`** — replaces the three zero-time
+      timestamps (`ClientCreatedAt`/`ServerReceivedAt`/`ServerStoredAt` →
+      `Created`/`Received`/`Stored`); deprecate old fields. Kills P7 (plan
+      T06).
+      _(Effort: M)_
+- [ ] **Structural `record.Actor{Kind, Raw}` mirror** — bridges stop
+      stringifying the actor union; wire form stays only at the serialization
+      edge. Kills P3 parse-tax (plan T07).
+      _(Effort: M)_
+- [ ] **Metadata capability interface** 🔥 — additive `MetadataCarrier`-style
+      interface adopted by `query/audit` middleware; deprecate the two
+      duck-typed interfaces (`query/audit.go:86,114`). Growing the exported
+      `Command`/`Query` interfaces with `Metadata()` is BREAKING for
+      hand-rolled implementations — decided to ride the v5 cut (owner input
+      2026-08-22). Kills P6 (plan T09).
+      _(Effort: M)_
+- [ ] **`Decider.ExecuteRef`/`LoadRef` additive variants** — pair forms
+      delegate + get `Deprecated: removed in v5`; migrate internal callers
+      (scenario/, examples). One identity convention on the hot path (plan
+      T10).
+      _(Effort: M)_
+- [ ] **Brand `scheduling.TimerID` + `Timer.Actor id.ActorID`** —
+      `id.Of[TimerMarker]`; JSON wire form via PrefixedString round-trip; add
+      `id/v4` dep (Tier-1→Tier-0 legal) + `#check-arch`; consumer-pin sweep
+      in the same wave. Kills P11 (plan T11).
+      _(Effort: M)_
+- [ ] **`record.Type` consolidation** — define once, alias in event/command/
+      query; collapse triplicated ParseType/IsZero. Kills P12 drift (plan
+      T12, after the StreamRef bridge work).
+      _(Effort: M)_
+- [ ] **`snapshot.NewSnapshot` constructor + codec stamp** — envelope-style
+      encoding stamp (ADR-0044 pattern), `Validate`, invariants (non-nil
+      State, Version ≥ 1). Kills P10 (plan T17).
+      _(Effort: M)_
+- [ ] **Snapshot wire-tag migration audit** — pebble/bbolt/sql/memory
+      backends; decide keep-old-tags-until-v5; note into §v5 Unification
+      (plan T18, after the constructor).
+      _(Effort: S)_
+- [ ] **Deprecation census artifact** — exact 36-alias list + snapshot wire
+      tags + stale error codes → `docs/planning/v5-deprecation-sweep.md`
+      checklist feeding §v5 Unification (plan T19).
+      _(Effort: S)_
+- [ ] **Tombstone v5 deletion prep** — verify migration doc accuracy +
+      `listing.StatusMiddleware` bridge test coverage (plan T20).
+      _(Effort: S)_
+- [ ] **Extended data-model review** — storage/*, system/, stack/,
+      watermill/, middleware/ get the same rigor; findings appendix
+      cross-linked to the core review (plan T21).
+      _(Effort: L)_
+- [ ] **Stream/StreamRef/StreamID naming decision** — the trio is itself a
+      naming smell; decide each shape's role before v5 (plan T22, after the
+      owner's Option B decision).
+      _(Effort: S)_
+- [ ] **Post-landing sweep for this series** — api-stability meta-tests,
+      doc-check over skill refs, consumer-pin sweep for `record/v4` consumers
+      under GOWORK=off (plan T24; MarshalBinary lesson).
+      _(Effort: M)_
+- [ ] **AGENTS.md memory: data-model conventions** — record T01 outcome +
+      new conventions (validating-population pattern, capability-interface
+      rule) once the PRs land (plan T25).
+      _(Effort: S)_
+- [ ] **Report polish remnants** — programmatic TOC-anchor check + CSS
+      template-diff audit for the core review (Related reviews / Next skills
+      sections already added 2026-08-22) (plan T16).
+      _(Effort: S)_
+- [ ] **Upstream skill fixes** — `docs/reviews` ↔ `docs/brainstorming`
+      divergence in data-model-review skill docs; add "read prior reports" +
+      "copy template, never transcribe" steps (plan T23).
+      _(Effort: S)_
+
+---
+
 ## Declined / Rejected (do not re-litigate)
 
 > Full rationale in the linked ADRs/reviews.
