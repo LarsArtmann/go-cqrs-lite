@@ -855,9 +855,12 @@ and is **never** duplicated here.
       PERSIST the encoding stamp additively with roundtrip tests; SQL
       envelope stays authoritative)
       _(Effort: S)_
-- [ ] **Deprecation census artifact** — exact 36-alias list + snapshot wire
+- [x] **Deprecation census artifact** — exact 36-alias list + snapshot wire
       tags + stale error codes → `docs/planning/v5-deprecation-sweep.md`
-      checklist feeding §v5 Unification (plan T19).
+      checklist feeding §v5 Unification (plan T19). ✅ 2026-08-22 (artifact
+      emitted: 42 aggregate-vocabulary symbols across 6 modules + 5
+      record-bridge fields + tombstone API + wire-tag/error-code inventory
+      + execution rules)
       _(Effort: S)_
 - [ ] **Tombstone v5 deletion prep** — verify migration doc accuracy +
       `listing.StatusMiddleware` bridge test coverage (plan T20).
