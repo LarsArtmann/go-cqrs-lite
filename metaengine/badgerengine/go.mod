@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4
 
-go 1.26.5
+go 1.26.6
 
 replace (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../sqliteengine
@@ -29,7 +29,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.45.0 // indirect

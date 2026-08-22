@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1
@@ -19,7 +19,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect

@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/benchkit/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/dustin/go-humanize v1.0.1
@@ -84,7 +84,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
 	github.com/magiconair/properties v1.18.11 // indirect

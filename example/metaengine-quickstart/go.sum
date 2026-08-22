@@ -60,6 +60,8 @@ github.com/larsartmann/go-flightrecorder v0.2.0 h1:vCyd+jXA5SsJxTS7zaOvlzJiNPqy+
 github.com/larsartmann/go-flightrecorder v0.2.0/go.mod h1:KOAVyRuxUX0eeKPc3mjAwOKsenSS1SjBqnJ0KKPxyhA=
 github.com/larsartmann/go-sse v0.5.0 h1:6KC4fh/cDxNvaZE10ByT39y6ib65KH+nQIgw8sfVYRY=
 github.com/larsartmann/go-sse v0.5.0/go.mod h1:kj1Gv+cnHIWKeqL0hRvbzkyM96/ZHAfub4FpgFtehHg=
+github.com/larsartmann/go-sse v0.5.1 h1:WxTNZp+DfShA2yXPne4+Jp5sFKTDlng+VMOniCiFVu8=
+github.com/larsartmann/go-sse v0.5.1/go.mod h1:TJl45pMXjwZTdhGgyu6RZWmmXyr28XwpnNJ7rVyyUxU=
 github.com/maruel/natural v1.3.0 h1:VsmCsBmEyrR46RomtgHs5hbKADGRVtliHTyCOLFBpsg=
 github.com/maruel/natural v1.3.0/go.mod h1:v+Rfd79xlw1AgVBjbO0BEQmptqb5HvL/k9GRHB7ZKEg=
 github.com/mattn/go-isatty v0.0.24 h1:tGZZoVgT/KiqK1c8ocVLeDS8BSWMRd47J3Lbz7vsReI=

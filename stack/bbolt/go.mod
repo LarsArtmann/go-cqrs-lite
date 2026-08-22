@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0
@@ -37,7 +37,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect

@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/jackc/pgx/v5 v5.10.0
@@ -38,7 +38,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
 	github.com/magiconair/properties v1.18.11 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect

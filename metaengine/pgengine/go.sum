@@ -83,6 +83,8 @@ github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxm
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
 github.com/larsartmann/go-sse v0.5.0 h1:6KC4fh/cDxNvaZE10ByT39y6ib65KH+nQIgw8sfVYRY=
 github.com/larsartmann/go-sse v0.5.0/go.mod h1:kj1Gv+cnHIWKeqL0hRvbzkyM96/ZHAfub4FpgFtehHg=
+github.com/larsartmann/go-sse v0.5.1 h1:WxTNZp+DfShA2yXPne4+Jp5sFKTDlng+VMOniCiFVu8=
+github.com/larsartmann/go-sse v0.5.1/go.mod h1:TJl45pMXjwZTdhGgyu6RZWmmXyr28XwpnNJ7rVyyUxU=
 github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
 github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 h1:eveIIGn4BGM3qknO74omf6HYr30/exH+eVUTuAgwjZ0=

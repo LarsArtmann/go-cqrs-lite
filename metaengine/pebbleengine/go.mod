@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/cockroachdb/pebble v1.1.5
@@ -29,7 +29,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
