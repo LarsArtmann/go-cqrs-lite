@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-codec"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // Type is a type identifier for domain events.
