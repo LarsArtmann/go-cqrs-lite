@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — validated stream-ref population in the Record bridges — 2026-08-22
+
+- **`record.NewStreamRefOrZero`** — producer-side counterpart to the planned
+  v5 validating constructor (ADR-0123 Phase 8): returns the zero `StreamRef`
+  instead of a malformed one when the entity ID is empty, so adapters that
+  cannot return an error guarantee "a Record carries a well-formed stream
+  ref or none at all". Empty stream types remain legal (command/query
+  pattern).
+- **`event.AsRecord` / `command.AsRecord` / `query.AsRecord`** now populate
+  `Record.StreamID` via the validated constructor; invariant tests pin that
+  every populated ref passes `record.StreamRef.Validate` and round-trips
+  through `Split`. Closes the "Validate() call-site adoption" TODO for all
+  three bridges.
+
 ### Deprecated — v1 read-model tiers + stack presets marked ahead of the v5 cut — 2026-08-17
 
 ADR-0123 Phase 8 pre-cut wave: every API scheduled for deletion at v5 now

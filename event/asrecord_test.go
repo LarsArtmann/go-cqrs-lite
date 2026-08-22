@@ -229,7 +229,8 @@ func TestAsRecord_StreamRefInvariant(t *testing.T) {
 		t.Fatalf("populated StreamID must pass Validate, got %v (%q)", err, rec.StreamID)
 	}
 
-	if streamType, entityID := rec.StreamID.Split(); streamType != "User" || entityID != streamID.String() {
+	if streamType, entityID := rec.StreamID.Split(); streamType != "User" ||
+		entityID != streamID.String() {
 		t.Errorf(
 			"Split = (%q, %q), want (%q, %q)",
 			streamType, entityID, "User", streamID.String(),
