@@ -119,7 +119,7 @@ func RegisterCommand[Cmd command.Command, State any](
 			return fmt.Errorf("%w: stream type %q", ErrDeciderTypeMismatch, op.streamType)
 		}
 
-		return repo.Execute(ctx, op.streamID, op.streamType, op.decide)
+		return repo.ExecuteRef(ctx, id.NewStreamRef(op.streamType, op.streamID), op.decide)
 	})
 }
 

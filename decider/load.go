@@ -16,11 +16,8 @@ import (
 
 func (r *Repository[State]) loadFromStore(
 	ctx context.Context,
-	streamID id.StreamID,
-	streamType id.StreamType,
+	ref id.StreamRef,
 ) (State, event.Version, error) {
-	ref := id.NewStreamRef(streamType, streamID)
-
 	return r.loadByEvents(
 		func() ([]event.Event, error) {
 			if !r.loadCoalescing {
@@ -111,20 +108,19 @@ func opError(
 
 // LoadAtVersion reconstructs state from events up to and including maxVersion.
 // Useful for time-travel queries: "what was the state at version N?".
-func (r *Repository[State]) LoadAtVersion(
+//
+// The stream is addressed by a single [id.StreamRef].
+func (r *Repository[State]) LoadAtVersionRef(
 	ctx context.Context,
-	streamID id.StreamID,
-	streamType id.StreamType,
+	ref id.StreamRef,
 	maxVersion event.Version,
 ) (State, event.Version, error) {
-	ref := id.NewStreamRef(streamType, streamID)
-
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load_at_version",
 		cqrsotel.SpanKindInternal,
 		cqrsotel.WithAttributes(
-			cqrsotel.AttrString(cqrsotel.AttrStreamType, string(streamType)),
-			cqrsotel.AttrString(cqrsotel.AttrStreamID, streamID.String()),
+			cqrsotel.AttrString(cqrsotel.AttrStreamType, ref.Type.String()),
+			cqrsotel.AttrString(cqrsotel.AttrStreamID, ref.ID.String()),
 			cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, maxVersion.Int()),
 		),
 	)
@@ -143,22 +139,35 @@ func (r *Repository[State]) LoadAtVersion(
 	return state, ver, err
 }
 
-// LoadAtTime reconstructs state from events up to and including maxTime.
-// Useful for temporal queries: "what was the state at this point in time?".
-func (r *Repository[State]) LoadAtTime(
+// LoadAtVersion reconstructs state from events up to and including maxVersion.
+// Useful for time-travel queries: "what was the state at version N?".
+//
+// Deprecated: removed in v5. Use [Repository.LoadAtVersionRef] with
+// [id.NewStreamRef]; this pair form forwards to it unchanged.
+func (r *Repository[State]) LoadAtVersion(
 	ctx context.Context,
 	streamID id.StreamID,
 	streamType id.StreamType,
+	maxVersion event.Version,
+) (State, event.Version, error) {
+	return r.LoadAtVersionRef(ctx, id.NewStreamRef(streamType, streamID), maxVersion)
+}
+
+// LoadAtTime reconstructs state from events up to and including maxTime.
+// Useful for temporal queries: "what was the state at this point in time?".
+//
+// The stream is addressed by a single [id.StreamRef].
+func (r *Repository[State]) LoadAtTimeRef(
+	ctx context.Context,
+	ref id.StreamRef,
 	maxTime time.Time,
 ) (State, event.Version, error) {
-	ref := id.NewStreamRef(streamType, streamID)
-
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load_at_time",
 		cqrsotel.SpanKindInternal,
 		cqrsotel.WithAttributes(
-			cqrsotel.AttrString(cqrsotel.AttrStreamType, string(streamType)),
-			cqrsotel.AttrString(cqrsotel.AttrStreamID, streamID.String()),
+			cqrsotel.AttrString(cqrsotel.AttrStreamType, ref.Type.String()),
+			cqrsotel.AttrString(cqrsotel.AttrStreamID, ref.ID.String()),
 		),
 	)
 	defer span.End()
@@ -174,6 +183,20 @@ func (r *Repository[State]) LoadAtTime(
 	}
 
 	return state, ver, err
+}
+
+// LoadAtTime reconstructs state from events up to and including maxTime.
+// Useful for temporal queries: "what was the state at this point in time?".
+//
+// Deprecated: removed in v5. Use [Repository.LoadAtTimeRef] with
+// [id.NewStreamRef]; this pair form forwards to it unchanged.
+func (r *Repository[State]) LoadAtTime(
+	ctx context.Context,
+	streamID id.StreamID,
+	streamType id.StreamType,
+	maxTime time.Time,
+) (State, event.Version, error) {
+	return r.LoadAtTimeRef(ctx, id.NewStreamRef(streamType, streamID), maxTime)
 }
 
 func (r *Repository[State]) loadByEvents(
@@ -216,11 +239,8 @@ func (r *Repository[State]) shouldSnapshot(
 
 func (r *Repository[State]) loadFromSnapshot(
 	ctx context.Context,
-	streamID id.StreamID,
-	streamType id.StreamType,
+	ref id.StreamRef,
 ) (State, event.Version, error) {
-	ref := id.NewStreamRef(streamType, streamID)
-
 	snap, err := r.snapshotStore.Load(ctx, ref)
 	if err != nil {
 		if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
@@ -229,11 +249,11 @@ func (r *Repository[State]) loadFromSnapshot(
 			return zero, 0, opError(ref, "load snapshot: %w", err)
 		}
 
-		return r.loadFromStore(ctx, streamID, streamType)
+		return r.loadFromStore(ctx, ref)
 	}
 
 	if snap == nil {
-		return r.loadFromStore(ctx, streamID, streamType)
+		return r.loadFromStore(ctx, ref)
 	}
 
 	var state State
@@ -268,11 +288,8 @@ func (r *Repository[State]) loadFromSnapshot(
 // (the caller falls back to the full load path).
 func (r *Repository[State]) loadFromCache(
 	ctx context.Context,
-	streamID id.StreamID,
-	streamType id.StreamType,
+	ref id.StreamRef,
 ) (State, event.Version, bool) {
-	ref := id.NewStreamRef(streamType, streamID)
-
 	cachedState, cachedVersion, ok := r.stateCache.Get(ref)
 	if !ok {
 		var zero State

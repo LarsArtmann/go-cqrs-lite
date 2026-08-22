@@ -97,9 +97,12 @@ func (r *Repository[State]) snapshotConfigIncomplete() bool {
 // persist. Return an error to reject the command (no events will be saved).
 type DecideFunc[State any] func(state State, currentVersion event.Version) ([]event.Event, error)
 
-// Execute loads the stream's event history, folds it into state, calls
+// ExecuteRef loads the stream's event history, folds it into state, calls
 // decide, and if decide returns events, persists them to the store and
 // publishes them to the bus.
+//
+// The stream is addressed by a single [id.StreamRef] — the one identity
+// convention across the decider hot path. Build it via [id.NewStreamRef].
 //
 // The decide function receives the reconstructed state and the current version
 // (derived from the number of loaded events). Use currentVersion + 1, + 2,
@@ -110,28 +113,25 @@ type DecideFunc[State any] func(state State, currentVersion event.Version) ([]ev
 // published — the caller can retry publishing via the bus directly.
 //
 //nolint:nonamedreturns // execErr needed for deferred flight recorder trigger
-func (r *Repository[State]) Execute(
+func (r *Repository[State]) ExecuteRef(
 	ctx context.Context,
-	streamID id.StreamID,
-	streamType id.StreamType,
+	ref id.StreamRef,
 	decide DecideFunc[State],
 ) (execErr error) {
-	ref := id.NewStreamRef(streamType, streamID)
-
 	start := time.Now()
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.execute",
 		cqrsotel.SpanKindInternal,
-		cqrsotel.WithAttributes(cqrsotel.StreamAttrs(streamType, streamID)...),
+		cqrsotel.WithAttributes(cqrsotel.StreamAttrs(ref.Type, ref.ID)...),
 	)
 	defer span.End()
 
 	defer func() {
-		r.maybeCaptureFlightRecorder(ctx, ref, streamType, execErr, time.Since(start))
+		r.maybeCaptureFlightRecorder(ctx, ref, ref.Type, execErr, time.Since(start))
 	}()
 
-	state, currentVersion, err := r.Load(ctx, streamID, streamType)
+	state, currentVersion, err := r.LoadRef(ctx, ref)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
@@ -180,6 +180,29 @@ func (r *Repository[State]) Execute(
 	}
 
 	return nil
+}
+
+// Execute loads the stream's event history, folds it into state, calls
+// decide, and if decide returns events, persists them to the store and
+// publishes them to the bus.
+//
+// The decide function receives the reconstructed state and the current version
+// (derived from the number of loaded events). Use currentVersion + 1, + 2,
+// etc. when creating new events via event.NewEvent.
+//
+// If decide returns an error, no events are saved or published.
+// If store.Save succeeds but bus.Publish fails, events are persisted but not
+// published — the caller can retry publishing via the bus directly.
+//
+// Deprecated: removed in v5. Use [Repository.ExecuteRef] with
+// [id.NewStreamRef]; this pair form forwards to it unchanged.
+func (r *Repository[State]) Execute(
+	ctx context.Context,
+	streamID id.StreamID,
+	streamType id.StreamType,
+	decide DecideFunc[State],
+) error {
+	return r.ExecuteRef(ctx, id.NewStreamRef(streamType, streamID), decide)
 }
 
 // saveSnapshotAfterEvents folds new events onto state to get the final state,
@@ -268,17 +291,19 @@ func (r *Repository[State]) updateCacheAfterExecute(
 	r.stateCache.Put(ref, finalState, newVersion)
 }
 
-// Load reconstructs state from the stream's event history without any
+// LoadRef reconstructs state from the stream's event history without any
 // side effects. Useful for read-only state access or debugging.
-func (r *Repository[State]) Load(
+//
+// The stream is addressed by a single [id.StreamRef] — the one identity
+// convention across the decider hot path.
+func (r *Repository[State]) LoadRef(
 	ctx context.Context,
-	streamID id.StreamID,
-	streamType id.StreamType,
+	ref id.StreamRef,
 ) (State, event.Version, error) {
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load",
 		cqrsotel.SpanKindInternal,
-		cqrsotel.WithAttributes(cqrsotel.StreamAttrs(streamType, streamID)...),
+		cqrsotel.WithAttributes(cqrsotel.StreamAttrs(ref.Type, ref.ID)...),
 	)
 	defer span.End()
 
@@ -289,18 +314,18 @@ func (r *Repository[State]) Load(
 	)
 
 	if r.stateCache != nil {
-		state, ver, ok := r.loadFromCache(ctx, streamID, streamType)
+		state, ver, ok := r.loadFromCache(ctx, ref)
 		if ok {
-			r.recordRead(id.NewStreamRef(streamType, streamID), ver)
+			r.recordRead(ref, ver)
 
 			return state, ver, nil
 		}
 	}
 
 	if r.snapshotStore != nil && r.codec != nil {
-		state, ver, err = r.loadFromSnapshot(ctx, streamID, streamType)
+		state, ver, err = r.loadFromSnapshot(ctx, ref)
 	} else {
-		state, ver, err = r.loadFromStore(ctx, streamID, streamType)
+		state, ver, err = r.loadFromStore(ctx, ref)
 	}
 
 	if err != nil {
@@ -309,7 +334,6 @@ func (r *Repository[State]) Load(
 		return state, ver, err
 	}
 
-	ref := id.NewStreamRef(streamType, streamID)
 	r.recordRead(ref, ver)
 
 	if r.stateCache != nil {
@@ -317,4 +341,17 @@ func (r *Repository[State]) Load(
 	}
 
 	return state, ver, err
+}
+
+// Load reconstructs state from the stream's event history without any
+// side effects. Useful for read-only state access or debugging.
+//
+// Deprecated: removed in v5. Use [Repository.LoadRef] with
+// [id.NewStreamRef]; this pair form forwards to it unchanged.
+func (r *Repository[State]) Load(
+	ctx context.Context,
+	streamID id.StreamID,
+	streamType id.StreamType,
+) (State, event.Version, error) {
+	return r.LoadRef(ctx, id.NewStreamRef(streamType, streamID))
 }

@@ -56,10 +56,11 @@ func WithPollInterval(d time.Duration) WaitOption {
 //
 // Returns [ErrWaitTimeout] if the version does not become visible within the
 // timeout (default 2s). Use [WithWaitTimeout] to override.
-func (r *Repository[State]) WaitForVersion(
+//
+// The stream is addressed by a single [id.StreamRef].
+func (r *Repository[State]) WaitForVersionRef(
 	ctx context.Context,
-	streamID id.StreamID,
-	streamType id.StreamType,
+	ref id.StreamRef,
 	version event.Version,
 	opts ...WaitOption,
 ) ([]event.Event, error) {
@@ -72,14 +73,12 @@ func (r *Repository[State]) WaitForVersion(
 		opt(&cfg)
 	}
 
-	ref := id.NewStreamRef(streamType, streamID)
-
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.wait_for_version",
 		cqrsotel.SpanKindInternal,
 		cqrsotel.WithAttributes(
-			cqrsotel.AttrString(cqrsotel.AttrStreamType, string(streamType)),
-			cqrsotel.AttrString(cqrsotel.AttrStreamID, streamID.String()),
+			cqrsotel.AttrString(cqrsotel.AttrStreamType, ref.Type.String()),
+			cqrsotel.AttrString(cqrsotel.AttrStreamID, ref.ID.String()),
 			cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, version.Int()),
 		),
 	)
@@ -124,4 +123,20 @@ func (r *Repository[State]) WaitForVersion(
 			// Continue polling.
 		}
 	}
+}
+
+// WaitForVersion polls the event store until the target version is visible,
+// then returns the events at or after that version (read-your-writes
+// consistency for replicated stores).
+//
+// Deprecated: removed in v5. Use [Repository.WaitForVersionRef] with
+// [id.NewStreamRef]; this pair form forwards to it unchanged.
+func (r *Repository[State]) WaitForVersion(
+	ctx context.Context,
+	streamID id.StreamID,
+	streamType id.StreamType,
+	version event.Version,
+	opts ...WaitOption,
+) ([]event.Event, error) {
+	return r.WaitForVersionRef(ctx, id.NewStreamRef(streamType, streamID), version, opts...)
 }

@@ -60,25 +60,51 @@ func NewTypedRepository[State, Cmd any](
 
 // ExecuteCommand loads the stream, folds its history, calls the typed
 // Decide function with the command, and persists any resulting events.
-func (r *TypedRepository[State, Cmd]) ExecuteCommand(
+//
+// The stream is addressed by a single [id.StreamRef].
+func (r *TypedRepository[State, Cmd]) ExecuteCommandRef(
 	ctx context.Context,
-	streamID id.StreamID,
-	streamType id.StreamType,
+	ref id.StreamRef,
 	cmd Cmd,
 ) error {
-	return r.inner.Execute(
-		ctx, streamID, streamType,
+	return r.inner.ExecuteRef(
+		ctx, ref,
 		func(state State, _ event.Version) ([]event.Event, error) {
 			return r.decider.Decide(state, cmd)
 		},
 	)
 }
 
+// ExecuteCommand loads the stream, folds its history, calls the typed
+// Decide function with the command, and persists any resulting events.
+//
+// Deprecated: removed in v5. Use [TypedRepository.ExecuteCommandRef] with
+// [id.NewStreamRef]; this pair form forwards to it unchanged.
+func (r *TypedRepository[State, Cmd]) ExecuteCommand(
+	ctx context.Context,
+	streamID id.StreamID,
+	streamType id.StreamType,
+	cmd Cmd,
+) error {
+	return r.ExecuteCommandRef(ctx, id.NewStreamRef(streamType, streamID), cmd)
+}
+
+// LoadRef delegates to the underlying [Repository.LoadRef].
+func (r *TypedRepository[State, Cmd]) LoadRef(
+	ctx context.Context,
+	ref id.StreamRef,
+) (State, event.Version, error) {
+	return r.inner.LoadRef(ctx, ref)
+}
+
 // Load delegates to the underlying [Repository.Load].
+//
+// Deprecated: removed in v5. Use [TypedRepository.LoadRef] with
+// [id.NewStreamRef]; this pair form forwards to it unchanged.
 func (r *TypedRepository[State, Cmd]) Load(
 	ctx context.Context,
 	streamID id.StreamID,
 	streamType id.StreamType,
 ) (State, event.Version, error) {
-	return r.inner.Load(ctx, streamID, streamType)
+	return r.LoadRef(ctx, id.NewStreamRef(streamType, streamID))
 }
