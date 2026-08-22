@@ -872,8 +872,13 @@ and is **never** duplicated here.
       record-bridge fields + tombstone API + wire-tag/error-code inventory
       + execution rules)
       _(Effort: S)_
-- [ ] **Tombstone v5 deletion prep** — verify migration doc accuracy +
+- [x] **Tombstone v5 deletion prep** — verify migration doc accuracy +
       `listing.StatusMiddleware` bridge test coverage (plan T20).
+      ✅ 2026-08-22 (doc verified against shipped APIs; found + fixed a
+      REAL gap: OnTombstone/OnRebirth had zero trigger coverage anywhere —
+      added `stack/materialize_tombstone_bridge_test.go` pinning the full
+      StatusMiddleware→mark→OnTombstone/OnRebirth chain; deletion pre-reqs
+      listed in the §v5 tombstone entry above)
       _(Effort: S)_
 - [ ] **Extended data-model review** — storage/*, system/, stack/,
       watermill/, middleware/ get the same rigor; findings appendix
