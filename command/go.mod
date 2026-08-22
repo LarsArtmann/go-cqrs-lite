@@ -52,9 +52,5 @@ require (
 	golang.org/x/tools v0.48.0 // indirect
 )
 
-replace github.com/larsartmann/go-cqrs-lite/metadata/v4 => ../metadata
-
 // v4.7.0 pinned metadata/v4.4.0 while using metadata.Metadata (v4.5.0): unbuildable for consumers.
 retract v4.7.0
-
-replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record
