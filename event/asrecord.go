@@ -16,7 +16,11 @@ import (
 //
 // Field mapping:
 //
+//   - ID              ← evt.ID() — the event's instance identity, no longer
+//     dropped by the bridge (review P5)
 //   - Type             ← evt.Type()
+//   - Encoding        ← evt.Encoding() — the codec stamp ("json"/"cbor")
+//     survives the bridge, so mixed-codec streams stay self-describing
 //   - Payload          ← evt.Payload() (cloned, safe to modify)
 //   - StreamID         ← record.NewStreamRefOrZero(streamType, streamID)
 //     (zero when the event's stream ID is empty — no identity rather than a
@@ -81,7 +85,9 @@ func AsRecord(evt Event) record.Record {
 	streamType := string(evt.StreamType())
 
 	return record.Record{
+		ID:         evt.ID().String(),
 		Type:       string(evt.Type()),
+		Encoding:   string(evt.Encoding()),
 		Payload:    evt.Payload(),
 		StreamID:   record.NewStreamRefOrZero(streamType, evt.StreamID().String()),
 		StreamType: streamType,

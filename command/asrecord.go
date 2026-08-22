@@ -21,8 +21,11 @@ import (
 //
 // Field mapping:
 //
+//   - ID             ← cmd.ID() — the command's instance identity, no
+//     longer dropped by the bridge (review P5)
 //   - Type          ← cmd.Type()
 //   - Payload       ← nil (commands are typed structs, not blobs)
+//   - Encoding      ← "" (no payload to stamp)
 //   - StreamID      ← record.NewStreamRefOrZero("", cmd.StreamID().String())
 //     (zero when the command's stream ID is empty — no identity rather than
 //     a malformed identity; the empty stream type is legal by design)
@@ -54,6 +57,7 @@ func AsRecord(cmd *BasicCommand) record.Record {
 	}
 
 	return record.Record{
+		ID:         cmd.ID().String(),
 		Type:       string(cmd.Type()),
 		StreamID:   record.NewStreamRefOrZero("", cmd.StreamID().String()),
 		StreamType: "",

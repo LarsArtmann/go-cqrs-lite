@@ -112,6 +112,12 @@ type CommonMetadata struct {
 // difference: Events are facts (post-decision), Commands are intents
 // (pre-decision, may be rejected).
 type Record struct {
+	// ID is the record instance's unique identifier: the EventID for events,
+	// the CommandID for commands, the RequestID for queries. It survived the
+	// AsRecord bridges before this field existed — identity was dropped on
+	// the floor (review P5). Empty means the source carried no instance ID.
+	ID string
+
 	// Type is the domain event type ("user.created") or command type
 	// ("create_user"). This drives fold dispatch in projections and deciders.
 	Type string
@@ -120,6 +126,12 @@ type Record struct {
 	// the record carries its codec stamp so mixed JSON+CBOR streams decode
 	// correctly.
 	Payload []byte
+
+	// Encoding is the payload's codec stamp ("json", "cbor") in the same
+	// self-describing string form used by codec.Encoding and the ADR-0044
+	// envelope. Empty means the payload is absent or envelope-wrapped (the
+	// envelope carries its own stamp).
+	Encoding string
 
 	// StreamID identifies the stream this record belongs to, e.g. "User/01J...".
 	StreamID StreamRef

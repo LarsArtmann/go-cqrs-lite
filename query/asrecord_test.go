@@ -37,6 +37,16 @@ func TestAsRecord_MapsStructuralFields(t *testing.T) {
 		t.Errorf("Type = %q, want get_user", got.Type)
 	}
 
+	if got.ID != qWithMeta.ID().String() {
+		t.Errorf("ID = %q, want request ID %q (identity must survive the bridge)",
+			got.ID, qWithMeta.ID().String())
+	}
+
+	if got.Encoding != "" {
+		t.Errorf("Encoding = %q, want empty (envelope-wrapped payload carries its own stamp)",
+			got.Encoding)
+	}
+
 	if string(got.Payload) != `{"id":"42"}` {
 		t.Errorf("Payload = %q, want encoded query", got.Payload)
 	}

@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-codec"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
@@ -195,6 +197,67 @@ func TestAsRecord_CausationID(t *testing.T) {
 
 		if !rec.MetaData.Cause.IsZero() {
 			t.Errorf("Cause = %+v, want zero (no cause recorded)", rec.MetaData.Cause)
+		}
+	})
+}
+
+func TestAsRecord_IDAndEncoding(t *testing.T) {
+	t.Parallel()
+
+	newEvent := func(t *testing.T, opts ...Option) Event {
+		t.Helper()
+		evt, err := New(
+			"user.created", id.NewStreamID(), "User", Version(1),
+			UserCreated{Name: "Codec"}, opts...,
+		)
+		if err != nil {
+			t.Fatalf("New: %v", err)
+		}
+		return evt
+	}
+
+	t.Run("default codec stamps json or cbor per event encoding", func(t *testing.T) {
+		t.Parallel()
+
+		evt := newEvent(t)
+		rec := AsRecord(evt)
+
+		if rec.ID != evt.ID().String() {
+			t.Errorf("ID = %q, want event ID %q", rec.ID, evt.ID().String())
+		}
+
+		if rec.Encoding != string(evt.Encoding()) {
+			t.Errorf("Encoding = %q, want %q", rec.Encoding, evt.Encoding())
+		}
+
+		if rec.Encoding != "json" && rec.Encoding != "cbor" {
+			t.Errorf("Encoding = %q, want a known codec stamp", rec.Encoding)
+		}
+	})
+
+	t.Run("explicit CBOR event survives with its stamp", func(t *testing.T) {
+		t.Parallel()
+
+		evt := newEvent(t, WithCodec(codec.CBORCodec{}))
+		if evt.Encoding() != codec.EncodingCBOR {
+			t.Fatalf("test setup: event encoding = %q, want cbor", evt.Encoding())
+		}
+
+		if got := AsRecord(evt).Encoding; got != "cbor" {
+			t.Errorf("Encoding = %q, want %q (mixed streams stay self-describing)", got, "cbor")
+		}
+	})
+
+	t.Run("explicit JSON event survives with its stamp", func(t *testing.T) {
+		t.Parallel()
+
+		evt := newEvent(t, WithCodec(codec.JSONCodec{}))
+		if evt.Encoding() != codec.EncodingJSON {
+			t.Fatalf("test setup: event encoding = %q, want json", evt.Encoding())
+		}
+
+		if got := AsRecord(evt).Encoding; got != "json" {
+			t.Errorf("Encoding = %q, want %q", got, "json")
 		}
 	})
 }

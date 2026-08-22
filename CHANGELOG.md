@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — Record.ID + Record.Encoding: identity and codec stamp survive the bridges — 2026-08-22
+
+- **`record.Record.ID`** (`string`) — the record instance's unique
+  identifier: `EventID` for events, `CommandID` for commands, `RequestID`
+  for queries. The AsRecord bridges dropped this identity on the floor
+  before the field existed (review P5). All three bridges now fill it.
+- **`record.Record.Encoding`** (`string`) — the payload's codec stamp in the
+  self-describing form used by the go-codec `Encoding` type and the
+  ADR-0044 envelope ("json" / "cbor"). The event bridge fills it from the
+  event's encoding, so
+  mixed JSON+CBOR event streams stay self-describing through Record-aware
+  folds. Empty for commands (no payload) and queries (envelope-wrapped
+  payloads carry their own stamp). Deviation from the review sketch, which
+  proposed `uint8`: a numeric mapping would exist nowhere else in the
+  ecosystem and drift — the string form matches the codec layer exactly.
+
 ### Added — structural record.Actor (kind-discriminated producer) — 2026-08-22
 
 - **`record.Actor` + `record.ActorKind`** — the structural mirror of

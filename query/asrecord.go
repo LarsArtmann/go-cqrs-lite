@@ -22,8 +22,12 @@ import (
 //
 // Field mapping:
 //
+//   - ID              ← q.ID() — the query's instance identity, no longer
+//     dropped by the bridge (review P5)
 //   - Type            ← q.Type()
 //   - Payload         ← q.Payload() (cloned, safe to modify)
+//   - Encoding        ← "" (the payload is ADR-0044 envelope-wrapped — the
+//     envelope carries its own codec stamp)
 //   - StreamID        ← record.NewStreamRefOrZero("", q.ID().String())
 //     (zero when the query's ID is empty — no identity rather than a
 //     malformed identity; the empty stream type is legal by design)
@@ -60,6 +64,7 @@ func AsRecord(q *PersistedQuery) record.Record {
 	}
 
 	return record.Record{
+		ID:         q.ID().String(),
 		Type:       string(q.Type()),
 		Payload:    q.Payload(),
 		StreamID:   record.NewStreamRefOrZero("", q.ID().String()),

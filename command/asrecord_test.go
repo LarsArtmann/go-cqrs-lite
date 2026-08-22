@@ -40,6 +40,15 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("Type: got %q, want %q", rec.Type, "user.create")
 	}
 
+	if rec.ID != cmd.ID().String() {
+		t.Errorf("ID: got %q, want command ID %q (identity must survive the bridge)",
+			rec.ID, cmd.ID().String())
+	}
+
+	if rec.Encoding != "" {
+		t.Errorf("Encoding: got %q, want empty (commands have no payload to stamp)", rec.Encoding)
+	}
+
 	wantStreamID := record.NewStreamRef("", streamID.String())
 	if rec.StreamID != wantStreamID {
 		t.Errorf("StreamID: got %+v, want %+v", rec.StreamID, wantStreamID)
