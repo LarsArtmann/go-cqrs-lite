@@ -4,7 +4,7 @@ go 1.26.6
 
 require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0
 	github.com/onsi/gomega v1.42.1
 	go.etcd.io/bbolt v1.5.0
 )
@@ -24,7 +24,3 @@ require (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
-
-replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record
-
-replace github.com/larsartmann/go-cqrs-lite/id/v4 => ../../id

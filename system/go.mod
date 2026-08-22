@@ -7,12 +7,12 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0
 	github.com/knadh/koanf/providers/file v1.2.1
 	github.com/knadh/koanf/v2 v2.3.6
-	github.com/larsartmann/go-codec v0.1.0
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.6.0
+	github.com/larsartmann/go-codec v0.2.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.1.0
@@ -22,8 +22,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0
@@ -72,7 +72,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
@@ -128,5 +128,3 @@ replace github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 => ../metaeng
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../metaengine
 
 replace github.com/larsartmann/go-cqrs-lite/watermill/v4 => ../watermill
-
-replace github.com/larsartmann/go-cqrs-lite/decider/v4 => ../decider

@@ -5,10 +5,10 @@ go 1.26.6
 require (
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/larsartmann/go-codec v0.2.0
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.8.0
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/graph/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
@@ -16,12 +16,12 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0
@@ -72,9 +72,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-retry v0.3.1 // indirect
 	github.com/larsartmann/go-sse v0.5.1 // indirect
@@ -113,11 +113,5 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	pgregory.net/rapid v1.3.0 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/event/v4 => ../event
-
-// metadata/ids.go (BrandedString et al.) is unpublished; event's own replace
-// does not cascade, so integration standalone builds need this too.
-replace github.com/larsartmann/go-cqrs-lite/metadata/v4 => ../metadata
 
 replace github.com/larsartmann/go-cqrs-lite/middleware/v4 => ../middleware

@@ -5,7 +5,7 @@ go 1.26.6
 require (
 	github.com/duckdb/duckdb-go/v2 v2.10505.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0
 )
 
 require (

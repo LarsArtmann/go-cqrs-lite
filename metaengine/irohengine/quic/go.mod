@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	git.coopcloud.tech/decentral1se/iroh-go v0.0.0-20260731195909-77011195d3d6
@@ -14,9 +14,9 @@ require (
 require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/net v0.57.0 // indirect
