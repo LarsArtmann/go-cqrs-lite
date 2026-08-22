@@ -57,13 +57,30 @@ func (b *miniBus) UsePublish(...event.PublishMiddleware) error {
 	return nil
 }
 
-var settleDelay = func() time.Duration {
-	if raceEnabled {
-		return 500 * time.Millisecond
-	}
+// subscriberCount returns the number of registered handlers. Tests wait on
+// it instead of sleeping: publishing before the gRPC stream has subscribed
+// the handler onto the bus silently drops the events.
+func (b *miniBus) subscriberCount() int {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 
-	return 100 * time.Millisecond
-}()
+	return len(b.subs)
+}
+
+// waitTimeout bounds condition polling. Generous on purpose: under parallel
+// test load, stream establishment regularly exceeds 100ms.
+const waitTimeout = 2 * time.Second
+
+// waitFor polls cond until it holds or the deadline expires. On timeout the
+// caller's own assertion reports the failure with its full context.
+func waitFor(t *testing.T, cond func() bool) {
+	t.Helper()
+
+	deadline := time.Now().Add(waitTimeout)
+	for time.Now().Before(deadline) && !cond() {
+		time.Sleep(2 * time.Millisecond)
+	}
+}
 
 // eventTestEnv bundles the shared gRPC server, client, and subscriber state
 // used by the event pub/sub tests.
@@ -130,6 +147,26 @@ func (env *eventTestEnv) subscribe(filters ...string) {
 	})
 }
 
+// waitSubscribed blocks until the subscriber's gRPC stream has registered a
+// handler on the bus, so a subsequent Publish cannot race stream setup.
+func (env *eventTestEnv) waitSubscribed(t *testing.T) {
+	t.Helper()
+
+	waitFor(t, func() bool { return env.bus.subscriberCount() > 0 })
+}
+
+// waitReceived blocks until exactly n event types have been received.
+func (env *eventTestEnv) waitReceived(t *testing.T, n int) {
+	t.Helper()
+
+	waitFor(t, func() bool {
+		env.guard.Lock()
+		defer env.guard.Unlock()
+
+		return len(env.received) >= n
+	})
+}
+
 // stop cancels the context and waits for the subscriber goroutine to exit.
 func (env *eventTestEnv) stop() {
 	env.cancel()
@@ -141,8 +178,7 @@ func TestEventPubSub_RoundTrip(t *testing.T) {
 
 	env.subscribe()
 
-	// Wait for subscription to register, then publish.
-	time.Sleep(settleDelay)
+	env.waitSubscribed(t)
 
 	streamID := id.NewStreamID()
 
@@ -166,7 +202,7 @@ func TestEventPubSub_RoundTrip(t *testing.T) {
 		t.Fatalf("Publish: %v", err)
 	}
 
-	time.Sleep(settleDelay)
+	env.waitReceived(t, 2)
 	env.stop()
 
 	env.guard.Lock()
@@ -186,8 +222,7 @@ func TestEventPubSub_FilterByType(t *testing.T) {
 
 	env.subscribe("user.created")
 
-	// Wait for subscription to register, then publish.
-	time.Sleep(settleDelay)
+	env.waitSubscribed(t)
 
 	streamID := id.NewStreamID()
 
@@ -196,7 +231,7 @@ func TestEventPubSub_FilterByType(t *testing.T) {
 
 	_ = env.bus.Publish(env.ctx, evt1, evt2)
 
-	time.Sleep(settleDelay)
+	env.waitReceived(t, 1)
 	env.stop()
 
 	env.guard.Lock()
@@ -218,20 +253,19 @@ func TestEventPubSub_PreservesCBOREncoding(t *testing.T) {
 		Name string `json:"name"`
 	}
 
-	var (
-		gotEvt  event.Event
-		gotOnce sync.Once
-	)
+	var gotEvt event.Event
 
 	env.wg.Go(func() {
 		_ = env.client.Subscribe(env.ctx, func(_ context.Context, evt event.Event) error {
-			gotOnce.Do(func() { gotEvt = evt })
+			env.guard.Lock()
+			defer env.guard.Unlock()
+			gotEvt = evt
 
 			return nil
 		})
 	})
 
-	time.Sleep(settleDelay)
+	env.waitSubscribed(t)
 
 	streamID := id.NewStreamID()
 
@@ -252,15 +286,24 @@ func TestEventPubSub_PreservesCBOREncoding(t *testing.T) {
 		t.Fatalf("Publish: %v", err)
 	}
 
-	time.Sleep(settleDelay)
+	waitFor(t, func() bool {
+		env.guard.Lock()
+		defer env.guard.Unlock()
+
+		return gotEvt != nil
+	})
 	env.stop()
 
-	if gotEvt == nil {
+	env.guard.Lock()
+	received := gotEvt
+	env.guard.Unlock()
+
+	if received == nil {
 		t.Fatalf("no event received")
 	}
 
-	if gotEvt.Encoding() != codec.EncodingCBOR {
-		t.Fatalf("received encoding = %q, want cbor", gotEvt.Encoding())
+	if received.Encoding() != codec.EncodingCBOR {
+		t.Fatalf("received encoding = %q, want cbor", received.Encoding())
 	}
 
 	decoded, err := event.DecodePayloadAuto[userCreated](gotEvt)
