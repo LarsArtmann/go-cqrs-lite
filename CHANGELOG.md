@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Changed — record.Encoding is now a compact typed stamp — 2026-08-22
+
+- The **`record.Encoding`** field changed from a plain string
+  ("json"/"cbor"/"") to the new typed stamp with constants
+  **`record.EncodingUnknown`** / **`record.EncodingJSON`** /
+  **`record.EncodingCBOR`** — the zero value means absent, opaque, or
+  envelope-wrapped (owner decision 2026-08-22, closing the three-session
+  string-vs-compact window before the first record tag).
+- Added **`record.ParseEncoding`** (canonical codec name → stamp; unknown
+  names fail **`record.ErrUnknownEncoding`**) and `String()` mapping back,
+  so "json"/"cbor" round-trip. record stays zero-dep: the vocabulary lives
+  in record, bridges convert at their boundary.
+- `event.AsRecord` now stamps the compact form — codecs record does not
+  know stamp the unknown constant rather than guessing. command/query
+  bridges and zero-value Records carry the unknown constant. In-process
+  struct only: no stored wire format changed (the ADR-0044 envelope keeps
+  its own string stamp).
+
 ### Changed — record.Type consolidation (ADR-0111) — 2026-08-22
 
 - **`event.Type`**, **`command.Type`**, and **`query.Type`** are now type

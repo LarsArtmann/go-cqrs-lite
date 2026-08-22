@@ -25,7 +25,7 @@ import (
 //     longer dropped by the bridge (review P5)
 //   - Type          ← cmd.Type()
 //   - Payload       ← nil (commands are typed structs, not blobs)
-//   - Encoding      ← "" (no payload to stamp)
+//   - Encoding      ← EncodingUnknown (no payload to stamp)
 //   - StreamID      ← record.NewStreamRefOrZero("", cmd.StreamID().String())
 //     (zero when the command's stream ID is empty — no identity rather than
 //     a malformed identity; the empty stream type is legal by design)

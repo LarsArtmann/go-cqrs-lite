@@ -42,9 +42,11 @@ func TestAsRecord_MapsStructuralFields(t *testing.T) {
 			got.ID, qWithMeta.ID().String())
 	}
 
-	if got.Encoding != "" {
-		t.Errorf("Encoding = %q, want empty (envelope-wrapped payload carries its own stamp)",
-			got.Encoding)
+	if got.Encoding != record.EncodingUnknown {
+		t.Errorf(
+			"Encoding = %v, want EncodingUnknown (envelope-wrapped payload carries its own stamp)",
+			got.Encoding,
+		)
 	}
 
 	if string(got.Payload) != `{"id":"42"}` {

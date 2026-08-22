@@ -226,12 +226,12 @@ func TestAsRecord_IDAndEncoding(t *testing.T) {
 			t.Errorf("ID = %q, want event ID %q", rec.ID, evt.ID().String())
 		}
 
-		if rec.Encoding != string(evt.Encoding()) {
+		if rec.Encoding.String() != string(evt.Encoding()) {
 			t.Errorf("Encoding = %q, want %q", rec.Encoding, evt.Encoding())
 		}
 
-		if rec.Encoding != "json" && rec.Encoding != "cbor" {
-			t.Errorf("Encoding = %q, want a known codec stamp", rec.Encoding)
+		if rec.Encoding != record.EncodingJSON && rec.Encoding != record.EncodingCBOR {
+			t.Errorf("Encoding = %v, want a known codec stamp", rec.Encoding)
 		}
 	})
 
@@ -243,8 +243,12 @@ func TestAsRecord_IDAndEncoding(t *testing.T) {
 			t.Fatalf("test setup: event encoding = %q, want cbor", evt.Encoding())
 		}
 
-		if got := AsRecord(evt).Encoding; got != "cbor" {
-			t.Errorf("Encoding = %q, want %q (mixed streams stay self-describing)", got, "cbor")
+		if got := AsRecord(evt).Encoding; got != record.EncodingCBOR {
+			t.Errorf(
+				"Encoding = %v, want %v (mixed streams stay self-describing)",
+				got,
+				record.EncodingCBOR,
+			)
 		}
 	})
 
@@ -256,8 +260,8 @@ func TestAsRecord_IDAndEncoding(t *testing.T) {
 			t.Fatalf("test setup: event encoding = %q, want json", evt.Encoding())
 		}
 
-		if got := AsRecord(evt).Encoding; got != "json" {
-			t.Errorf("Encoding = %q, want %q", got, "json")
+		if got := AsRecord(evt).Encoding; got != record.EncodingJSON {
+			t.Errorf("Encoding = %v, want %v", got, record.EncodingJSON)
 		}
 	})
 }

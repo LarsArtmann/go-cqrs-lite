@@ -1,6 +1,8 @@
 package event
 
 import (
+	"github.com/larsartmann/go-codec"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
@@ -19,8 +21,10 @@ import (
 //   - ID              ← evt.ID() — the event's instance identity, no longer
 //     dropped by the bridge (review P5)
 //   - Type             ← evt.Type()
-//   - Encoding        ← evt.Encoding() — the codec stamp ("json"/"cbor")
-//     survives the bridge, so mixed-codec streams stay self-describing
+//   - Encoding        ← evt.Encoding() — the codec stamp survives the
+//     bridge in compact form (record.EncodingJSON/CBOR), so mixed-codec
+//     streams stay self-describing; codecs the record layer does not know
+//     stamp EncodingUnknown rather than guessing
 //   - Payload          ← evt.Payload() (cloned, safe to modify)
 //   - StreamID         ← record.NewStreamRefOrZero(streamType, streamID)
 //     (zero when the event's stream ID is empty — no identity rather than a
@@ -87,7 +91,7 @@ func AsRecord(evt Event) record.Record {
 	return record.Record{
 		ID:         evt.ID().String(),
 		Type:       string(evt.Type()),
-		Encoding:   string(evt.Encoding()),
+		Encoding:   recordEncoding(evt.Encoding()),
 		Payload:    evt.Payload(),
 		StreamID:   record.NewStreamRefOrZero(streamType, evt.StreamID().String()),
 		StreamType: streamType,
@@ -107,3 +111,15 @@ func AsRecord(evt Event) record.Record {
 
 // Compile-time: verify the branded ID types satisfy the constraint.
 var _ = metadata.BrandedString[id.CorrelationID]
+
+// recordEncoding maps the event's codec stamp onto the record's compact
+// Encoding. Codecs the record layer does not know stamp EncodingUnknown:
+// the payload is still carried, just not self-describing through the record.
+func recordEncoding(enc codec.Encoding) record.Encoding {
+	parsed, err := record.ParseEncoding(string(enc))
+	if err != nil {
+		return record.EncodingUnknown
+	}
+
+	return parsed
+}

@@ -45,8 +45,11 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 			rec.ID, cmd.ID().String())
 	}
 
-	if rec.Encoding != "" {
-		t.Errorf("Encoding: got %q, want empty (commands have no payload to stamp)", rec.Encoding)
+	if rec.Encoding != record.EncodingUnknown {
+		t.Errorf(
+			"Encoding: got %v, want EncodingUnknown (commands have no payload to stamp)",
+			rec.Encoding,
+		)
 	}
 
 	wantStreamID := record.NewStreamRef("", streamID.String())

@@ -2956,9 +2956,13 @@ record/const CauseEvent
 record/const CauseNone
 record/const CauseTimer
 record/const CauseUnknown
+record/const EncodingCBOR
+record/const EncodingJSON
+record/const EncodingUnknown
 record/func NewStamp
 record/func NewStreamRef
 record/func NewStreamRefOrZero
+record/func ParseEncoding
 record/func ParseType
 record/method IsZero
 record/method IsZero
@@ -2966,6 +2970,7 @@ record/method IsZero
 record/method IsZero
 record/method MarshalJSON
 record/method Split
+record/method String
 record/method String
 record/method String
 record/method String
@@ -2983,9 +2988,11 @@ record/struct Record
 record/struct Stamp
 record/type ActorKind
 record/type CauseKind
+record/type Encoding
 record/type StreamRef
 record/type Type
 record/var ErrInvalidStreamRef
+record/var ErrUnknownEncoding
 scenario/func Given
 scenario/func GivenProjection
 scenario/func GivenState

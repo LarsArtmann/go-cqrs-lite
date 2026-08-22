@@ -127,11 +127,11 @@ type Record struct {
 	// correctly.
 	Payload []byte
 
-	// Encoding is the payload's codec stamp ("json", "cbor") in the same
-	// self-describing string form used by codec.Encoding and the ADR-0044
-	// envelope. Empty means the payload is absent or envelope-wrapped (the
-	// envelope carries its own stamp).
-	Encoding string
+	// Encoding is the payload's codec stamp in compact form (see the
+	// Encoding type). The zero value (EncodingUnknown) means the payload is
+	// absent, opaque, or envelope-wrapped — the envelope carries its own
+	// stamp (ADR-0044).
+	Encoding Encoding
 
 	// StreamID identifies the stream this record belongs to, e.g. "User/01J...".
 	StreamID StreamRef
