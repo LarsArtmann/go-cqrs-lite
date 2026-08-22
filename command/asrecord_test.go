@@ -119,3 +119,24 @@ func TestAsRecord_ZeroMetadata(t *testing.T) {
 		t.Errorf("Type should still be set: got %q", rec.Type)
 	}
 }
+
+func TestAsRecord_StreamRefInvariant(t *testing.T) {
+	t.Parallel()
+
+	cmd, err := command.New("user.create", id.NewStreamID())
+	if err != nil {
+		t.Fatalf("command.New: %v", err)
+	}
+
+	rec := command.AsRecord(cmd)
+	if err := rec.StreamID.Validate(); err != nil {
+		t.Fatalf("populated StreamID must pass Validate, got %v (%q)", err, rec.StreamID)
+	}
+
+	if _, entityID := rec.StreamID.Split(); entityID != cmd.StreamID().String() {
+		t.Errorf(
+			"Split entityID = %q, want the command's stream ID %q",
+			entityID, cmd.StreamID().String(),
+		)
+	}
+}

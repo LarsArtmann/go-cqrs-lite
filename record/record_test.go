@@ -129,6 +129,43 @@ func TestStreamRef_ConstructSplitRoundTrip(t *testing.T) {
 	}
 }
 
+func TestNewStreamRefOrZero(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name       string
+		streamType string
+		entityID   string
+		want       record.StreamRef
+	}{
+		{"typed ref", "User", "01JTEST", "User/01JTEST"},
+		{"empty stream type is legal", "", "01JTEST", "/01JTEST"},
+		{"empty entity ID yields zero", "User", "", ""},
+		{"both empty yields zero", "", "", ""},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := record.NewStreamRefOrZero(tc.streamType, tc.entityID)
+			if got != tc.want {
+				t.Fatalf(
+					"NewStreamRefOrZero(%q, %q) = %q, want %q",
+					tc.streamType, tc.entityID, got, tc.want,
+				)
+			}
+
+			if got != "" && got.Validate() != nil {
+				t.Errorf(
+					"non-zero result %q must pass Validate, got %v",
+					got, got.Validate(),
+				)
+			}
+		})
+	}
+}
+
 func TestRecord_JSONRoundTrip(t *testing.T) {
 	t.Parallel()
 

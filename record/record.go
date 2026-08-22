@@ -106,6 +106,23 @@ func NewStreamRef(streamType, entityID string) StreamRef {
 	return StreamRef(streamType + "/" + entityID)
 }
 
+// NewStreamRefOrZero constructs a StreamRef, returning the zero StreamRef
+// when the result would be malformed (an empty entity ID — the only invalid
+// form, since an empty stream type is legal for command/query records).
+//
+// It is the producer-side counterpart to the v5 validating constructor
+// (ADR-0123 Phase 8): adapters that cannot return an error use it so a
+// Record either carries a well-formed StreamRef or none at all — never a
+// malformed ref that fails [StreamRef.Validate] far from its cause.
+func NewStreamRefOrZero(streamType, entityID string) StreamRef {
+	ref := NewStreamRef(streamType, entityID)
+	if ref.Validate() != nil {
+		return ""
+	}
+
+	return ref
+}
+
 // Validate returns an error if the StreamRef is malformed: either no '/'
 // separator, or the entity ID (component after the first '/') is empty.
 // A non-empty stream type is recommended but not required, since command

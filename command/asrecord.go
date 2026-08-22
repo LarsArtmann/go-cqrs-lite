@@ -23,7 +23,9 @@ import (
 //
 //   - Type          ← cmd.Type()
 //   - Payload       ← nil (commands are typed structs, not blobs)
-//   - StreamID      ← record.NewStreamRef("", cmd.StreamID().String())
+//   - StreamID      ← record.NewStreamRefOrZero("", cmd.StreamID().String())
+//     (zero when the command's stream ID is empty — no identity rather than
+//     a malformed identity; the empty stream type is legal by design)
 //   - StreamType    ← "" (commands do not carry a stream type)
 //   - Version       ← 0 (commands have no version)
 //   - CorrelationID ← cmd.Metadata().Tracing.CorrelationID
@@ -42,7 +44,7 @@ func AsRecord(cmd *BasicCommand) record.Record {
 
 	return record.Record{
 		Type:       string(cmd.Type()),
-		StreamID:   record.NewStreamRef("", cmd.StreamID().String()),
+		StreamID:   record.NewStreamRefOrZero("", cmd.StreamID().String()),
 		StreamType: "",
 		MetaData: record.CommonMetadata{
 			CorrelationID: metadata.BrandedString(tracing.CorrelationID),

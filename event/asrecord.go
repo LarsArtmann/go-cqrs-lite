@@ -18,7 +18,9 @@ import (
 //
 //   - Type             ← evt.Type()
 //   - Payload          ← evt.Payload() (cloned, safe to modify)
-//   - StreamID         ← record.NewStreamRef(streamType, streamID)
+//   - StreamID         ← record.NewStreamRefOrZero(streamType, streamID)
+//     (zero when the event's stream ID is empty — no identity rather than a
+//     malformed identity; the populated form always passes Validate)
 //   - StreamType       ← evt.StreamType()
 //   - Version          ← evt.Version()
 //   - CorrelationID    ← evt.Metadata().Tracing.CorrelationID
@@ -61,7 +63,7 @@ func AsRecord(evt Event) record.Record {
 	return record.Record{
 		Type:       string(evt.Type()),
 		Payload:    evt.Payload(),
-		StreamID:   record.NewStreamRef(streamType, evt.StreamID().String()),
+		StreamID:   record.NewStreamRefOrZero(streamType, evt.StreamID().String()),
 		StreamType: streamType,
 		Version:    int64(evt.Version()),
 		MetaData: record.CommonMetadata{

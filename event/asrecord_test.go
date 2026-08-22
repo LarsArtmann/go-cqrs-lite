@@ -214,3 +214,25 @@ func TestAsRecord_ZeroValueMetadata(t *testing.T) {
 type UserCreated struct {
 	Name string
 }
+
+func TestAsRecord_StreamRefInvariant(t *testing.T) {
+	t.Parallel()
+
+	streamID := id.NewStreamID()
+	evt, err := New("user.created", streamID, "User", Version(3), UserCreated{Name: "Alice"})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	rec := AsRecord(evt)
+	if err := rec.StreamID.Validate(); err != nil {
+		t.Fatalf("populated StreamID must pass Validate, got %v (%q)", err, rec.StreamID)
+	}
+
+	if streamType, entityID := rec.StreamID.Split(); streamType != "User" || entityID != streamID.String() {
+		t.Errorf(
+			"Split = (%q, %q), want (%q, %q)",
+			streamType, entityID, "User", streamID.String(),
+		)
+	}
+}

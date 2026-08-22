@@ -24,7 +24,9 @@ import (
 //
 //   - Type            ← q.Type()
 //   - Payload         ← q.Payload() (cloned, safe to modify)
-//   - StreamID        ← record.NewStreamRef("", q.ID().String())
+//   - StreamID        ← record.NewStreamRefOrZero("", q.ID().String())
+//     (zero when the query's ID is empty — no identity rather than a
+//     malformed identity; the empty stream type is legal by design)
 //   - StreamType      ← "" (queries do not carry a stream type)
 //   - Version         ← 0 (queries have no version)
 //   - CorrelationID   ← q.Metadata().Tracing.CorrelationID
@@ -45,7 +47,7 @@ func AsRecord(q *PersistedQuery) record.Record {
 	return record.Record{
 		Type:       string(q.Type()),
 		Payload:    q.Payload(),
-		StreamID:   record.NewStreamRef("", q.ID().String()),
+		StreamID:   record.NewStreamRefOrZero("", q.ID().String()),
 		StreamType: "",
 		MetaData: record.CommonMetadata{
 			CorrelationID:   metadata.BrandedString(tracing.CorrelationID),

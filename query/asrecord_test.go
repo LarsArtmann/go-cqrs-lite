@@ -121,3 +121,24 @@ func TestAsRecord_NilQuery(t *testing.T) {
 		t.Errorf("AsRecord(nil) = %+v, want zero Record", got)
 	}
 }
+
+func TestAsRecord_StreamRefInvariant(t *testing.T) {
+	t.Parallel()
+
+	q, err := query.NewPersistedQuery("get_user", []byte(`{"id":"42"}`))
+	if err != nil {
+		t.Fatalf("NewPersistedQuery: %v", err)
+	}
+
+	got := query.AsRecord(q)
+	if err := got.StreamID.Validate(); err != nil {
+		t.Fatalf("populated StreamID must pass Validate, got %v (%q)", err, got.StreamID)
+	}
+
+	if _, entityID := got.StreamID.Split(); entityID != q.ID().String() {
+		t.Errorf(
+			"Split entityID = %q, want the query's request ID %q",
+			entityID, q.ID().String(),
+		)
+	}
+}
