@@ -111,6 +111,7 @@ func (s *EventServer) handleEvent(_ context.Context, evt event.Event) error {
 // wait on it instead of sleeping: events published before the client's
 // stream is registered are silently dropped by the fan-out.
 func (s *EventServer) ClientCount() int {
+	//art-dupl:accept trivial RLock+len accessor; twin of transport/http subscriber count
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
