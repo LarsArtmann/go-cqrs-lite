@@ -53,11 +53,17 @@ func TestMemoryTimerStore_ScheduleIsIdempotent(t *testing.T) {
 
 	store.Schedule(
 		ctx,
-		scheduling.Timer[string]{ID: scheduling.MustParseTimerID("dup"), FireAt: time.Now().Add(-1 * time.Minute)},
+		scheduling.Timer[string]{
+			ID:     scheduling.MustParseTimerID("dup"),
+			FireAt: time.Now().Add(-1 * time.Minute),
+		},
 	)
 	store.Schedule(
 		ctx,
-		scheduling.Timer[string]{ID: scheduling.MustParseTimerID("dup"), FireAt: time.Now().Add(-1 * time.Minute)},
+		scheduling.Timer[string]{
+			ID:     scheduling.MustParseTimerID("dup"),
+			FireAt: time.Now().Add(-1 * time.Minute),
+		},
 	)
 
 	due, _ := store.Due(ctx, time.Now())
@@ -93,7 +99,10 @@ func TestMemoryTimerStore_MarkFired(t *testing.T) {
 
 	store.Schedule(
 		ctx,
-		scheduling.Timer[string]{ID: scheduling.MustParseTimerID("fire"), FireAt: time.Now().Add(-1 * time.Minute)},
+		scheduling.Timer[string]{
+			ID:     scheduling.MustParseTimerID("fire"),
+			FireAt: time.Now().Add(-1 * time.Minute),
+		},
 	)
 	store.MarkFired(ctx, scheduling.MustParseTimerID("fire"))
 

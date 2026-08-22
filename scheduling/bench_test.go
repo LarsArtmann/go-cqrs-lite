@@ -82,7 +82,10 @@ func BenchmarkScheduling_Cancel(b *testing.B) {
 		b.StartTimer()
 
 		for i := range b.N {
-			if err := store.Cancel(ctx, scheduling.MustParseTimerID(fmt.Sprintf("cancel-%d", i))); err != nil {
+			if err := store.Cancel(
+				ctx,
+				scheduling.MustParseTimerID(fmt.Sprintf("cancel-%d", i)),
+			); err != nil {
 				b.Fatal(err)
 			}
 		}

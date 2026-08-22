@@ -23,9 +23,13 @@ func TestRefForms_MatchPairForms(t *testing.T) {
 	sid := id.NewStreamID()
 	ref := id.NewStreamRef("Counter", sid)
 
-	if err := repo.ExecuteRef(ctx, ref, func(_ counterState, v event.Version) ([]event.Event, error) {
-		return []event.Event{makeCounterEvent("CounterIncremented", sid, v+1)}, nil
-	}); err != nil {
+	if err := repo.ExecuteRef(
+		ctx,
+		ref,
+		func(_ counterState, v event.Version) ([]event.Event, error) {
+			return []event.Event{makeCounterEvent("CounterIncremented", sid, v+1)}, nil
+		},
+	); err != nil {
 		t.Fatalf("ExecuteRef: %v", err)
 	}
 
@@ -59,9 +63,13 @@ func TestRefForms_LoadAtVersionAndTime(t *testing.T) {
 	ref := id.NewStreamRef("Counter", sid)
 
 	for range 3 {
-		err := repo.ExecuteRef(ctx, ref, func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeCounterEvent("CounterIncremented", sid, v+1)}, nil
-		})
+		err := repo.ExecuteRef(
+			ctx,
+			ref,
+			func(_ counterState, v event.Version) ([]event.Event, error) {
+				return []event.Event{makeCounterEvent("CounterIncremented", sid, v+1)}, nil
+			},
+		)
 		if err != nil {
 			t.Fatalf("ExecuteRef: %v", err)
 		}
@@ -78,7 +86,13 @@ func TestRefForms_LoadAtVersionAndTime(t *testing.T) {
 	}
 
 	if atVPair != atVRef || verPair != verRef {
-		t.Fatalf("LoadAtVersion pair/ref mismatch: (%v,%v) vs (%v,%v)", atVPair, verPair, atVRef, verRef)
+		t.Fatalf(
+			"LoadAtVersion pair/ref mismatch: (%v,%v) vs (%v,%v)",
+			atVPair,
+			verPair,
+			atVRef,
+			verRef,
+		)
 	}
 
 	future := time.Now().Add(time.Hour)

@@ -147,7 +147,11 @@ func TestSQLTimerStore_MarkFired(t *testing.T) {
 	ctx := context.Background()
 
 	if err := store.Schedule(ctx, scheduling.Timer[string]{
-		ID: scheduling.MustParseTimerID("fire"), FireAt: time.Now().Add(-1 * time.Minute), Payload: "x",
+		ID: scheduling.MustParseTimerID(
+			"fire",
+		),
+		FireAt:  time.Now().Add(-1 * time.Minute),
+		Payload: "x",
 	}); err != nil {
 		t.Fatalf("Schedule: %v", err)
 	}
@@ -169,7 +173,11 @@ func TestSQLTimerStore_Cancel(t *testing.T) {
 	ctx := context.Background()
 
 	if err := store.Schedule(ctx, scheduling.Timer[string]{
-		ID: scheduling.MustParseTimerID("cancel-me"), FireAt: time.Now().Add(-1 * time.Minute), Payload: "x",
+		ID: scheduling.MustParseTimerID(
+			"cancel-me",
+		),
+		FireAt:  time.Now().Add(-1 * time.Minute),
+		Payload: "x",
 	}); err != nil {
 		t.Fatalf("Schedule: %v", err)
 	}
@@ -221,7 +229,11 @@ func TestSQLTimerStore_StructPayload(t *testing.T) {
 	payload := cancelOrder{OrderID: "order-123", Reason: "timeout"}
 
 	if err := store.Schedule(ctx, scheduling.Timer[cancelOrder]{
-		ID: scheduling.MustParseTimerID("order-123-timeout"), FireAt: time.Now().Add(-1 * time.Minute), Payload: payload,
+		ID: scheduling.MustParseTimerID(
+			"order-123-timeout",
+		),
+		FireAt:  time.Now().Add(-1 * time.Minute),
+		Payload: payload,
 	}); err != nil {
 		t.Fatalf("Schedule: %v", err)
 	}
@@ -266,7 +278,11 @@ func TestSQLTimerStore_IntegrationWithScheduler(t *testing.T) {
 	ctx := context.Background()
 
 	if err := store.Schedule(ctx, scheduling.Timer[string]{
-		ID: scheduling.MustParseTimerID("sql-fired"), FireAt: time.Now().Add(-1 * time.Second), Payload: "run-me",
+		ID: scheduling.MustParseTimerID(
+			"sql-fired",
+		),
+		FireAt:  time.Now().Add(-1 * time.Second),
+		Payload: "run-me",
 	}); err != nil {
 		t.Fatalf("Schedule: %v", err)
 	}
