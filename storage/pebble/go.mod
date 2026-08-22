@@ -45,7 +45,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4 v4.0.0
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -82,3 +82,5 @@ require (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4 => ../backuptest
+
+replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../../snapshot

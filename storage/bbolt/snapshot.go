@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
 
@@ -65,6 +66,7 @@ func (s *SnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) error 
 			StreamID:   snap.StreamID,
 			Version:    snap.Version.Int(),
 			State:      snap.State,
+			Encoding:   snap.Encoding,
 			CreatedAt:  snap.CreatedAt.UnixNano(),
 		})
 		if err != nil {
@@ -140,6 +142,7 @@ func (s *SnapshotStore) loadSnapshot(
 			StreamID:   ss.StreamID,
 			Version:    event.Version(ss.Version),
 			State:      slices.Clone(ss.State),
+			Encoding:   ss.Encoding,
 			CreatedAt:  time.Unix(0, ss.CreatedAt).UTC(),
 		}
 
@@ -178,9 +181,10 @@ func snapshotKey(streamType id.StreamType, streamID id.StreamID) []byte {
 }
 
 type serializableSnapshot struct {
-	StreamType string      `json:"stream_type"`
-	StreamID   id.StreamID `json:"stream_id"`
-	Version    int         `json:"version"`
-	State      []byte      `json:"state"`
-	CreatedAt  int64       `json:"created_at"`
+	StreamType string          `json:"stream_type"`
+	StreamID   id.StreamID     `json:"stream_id"`
+	Version    int             `json:"version"`
+	State      []byte          `json:"state"`
+	Encoding   record.Encoding `json:"encoding,omitempty"`
+	CreatedAt  int64           `json:"created_at"`
 }

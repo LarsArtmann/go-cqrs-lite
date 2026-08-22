@@ -14,6 +14,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
 
@@ -255,11 +256,12 @@ func (s *SnapshotStore) loadRaw(key []byte) (*serializableSnapshot, bool, error)
 // serializableSnapshot is the CBOR envelope for stored snapshots.
 // Timestamps use UnixNano for deterministic, locale-independent ordering.
 type serializableSnapshot struct {
-	StreamID   id.StreamID `json:"aggregate_id"`
-	StreamType string      `json:"aggregate_type"`
-	Version    int         `json:"version"`
-	State      []byte      `json:"state"`
-	CreatedAt  int64       `json:"created_at"`
+	StreamID   id.StreamID     `json:"aggregate_id"`
+	StreamType string          `json:"aggregate_type"`
+	Version    int             `json:"version"`
+	State      []byte          `json:"state"`
+	Encoding   record.Encoding `json:"encoding,omitempty"`
+	CreatedAt  int64           `json:"created_at"`
 }
 
 func (s *serializableSnapshot) toSnapshot(ref id.StreamRef) *snapshot.Snapshot {
@@ -268,6 +270,7 @@ func (s *serializableSnapshot) toSnapshot(ref id.StreamRef) *snapshot.Snapshot {
 		StreamType: ref.Type,
 		Version:    event.Version(s.Version),
 		State:      s.State,
+		Encoding:   s.Encoding,
 		CreatedAt:  time.Unix(0, s.CreatedAt).UTC(),
 	}
 }
@@ -278,6 +281,7 @@ func serializeSnapshot(snap snapshot.Snapshot) ([]byte, error) {
 		StreamType: string(snap.StreamType),
 		Version:    snap.Version.Int(),
 		State:      snap.State,
+		Encoding:   snap.Encoding,
 		CreatedAt:  snap.CreatedAt.UnixNano(),
 	}
 
