@@ -29,10 +29,20 @@ type CommonMetadata struct {
 	// sagas that emit more commands — all share one CorrelationID.
 	CorrelationID string
 
-	// CausationID identifies what caused this record. For events emitted by a
-	// command, this is the command ID. For scheduled commands, the timer ID.
-	// For direct user actions, this is empty — the ActorID covers the "who".
+	// CausationID identifies what caused this record: a command ID, a timer
+	// ID, or whatever the tracing chain carried — the kind is implied by the
+	// ID format, never stated.
+	//
+	// Deprecated: removed in v5. Use Cause, which records the causer's kind
+	// explicitly instead of leaving it implied. The AsRecord bridges populate
+	// both fields until the v5 cut.
 	CausationID string
+
+	// Cause identifies what produced this record — a command, a timer, an
+	// event, or an ID-only tracing chain — with the kind stated explicitly.
+	// The zero value means no cause was recorded (direct user action; the
+	// Actor covers the "who").
+	Cause Cause
 
 	// ActorID identifies who or what produced this record: a user ID, a service
 	// name, a cron job identifier, or "system" for internal processes.

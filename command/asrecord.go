@@ -29,7 +29,10 @@ import (
 //   - StreamType    ← "" (commands do not carry a stream type)
 //   - Version       ← 0 (commands have no version)
 //   - CorrelationID ← cmd.Metadata().Tracing.CorrelationID
-//   - CausationID   ← cmd.Metadata().Tracing.CausationID
+//   - CausationID   ← cmd.Metadata().Tracing.CausationID (Deprecated: removed in v5)
+//   - Cause         ← {CauseUnknown, Tracing.CausationID} when set — the
+//     tracing chain does not discriminate the causer's kind, so the Cause
+//     states that honestly instead of guessing
 //   - ActorID       ← Tracing.ActorID ("kind:raw") when set, else Tracing.UserID
 //   - SchemaVersion ← 0 (commands have no schema version)
 //
@@ -42,6 +45,11 @@ func AsRecord(cmd *BasicCommand) record.Record {
 	md := cmd.Metadata()
 	tracing := md.Tracing
 
+	var cause record.Cause
+	if !tracing.CausationID.IsZero() {
+		cause = record.Cause{Kind: record.CauseUnknown, ID: tracing.CausationID.String()}
+	}
+
 	return record.Record{
 		Type:       string(cmd.Type()),
 		StreamID:   record.NewStreamRefOrZero("", cmd.StreamID().String()),
@@ -49,6 +57,7 @@ func AsRecord(cmd *BasicCommand) record.Record {
 		MetaData: record.CommonMetadata{
 			CorrelationID: metadata.BrandedString(tracing.CorrelationID),
 			CausationID:   metadata.BrandedString(tracing.CausationID),
+			Cause:         cause,
 			ActorID:       metadata.ActorString(tracing),
 		},
 	}

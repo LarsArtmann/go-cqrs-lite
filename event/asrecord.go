@@ -24,12 +24,23 @@ import (
 //   - StreamType       ← evt.StreamType()
 //   - Version          ← evt.Version()
 //   - CorrelationID    ← evt.Metadata().Tracing.CorrelationID
-//   - CausationID      ← see precedence rule below
+//   - CausationID      ← see precedence rule below (Deprecated: removed in v5)
+//   - Cause            ← see precedence rule below
 //   - ActorID          ← see precedence rule below
 //   - ClientCreatedAt  ← evt.OccurredAt() (best available creation timestamp)
 //   - ServerReceivedAt ← zero (unknown at the event layer; set by the store)
 //   - ServerStoredAt   ← zero (unknown at the event layer; set by the store)
 //   - SchemaVersion    ← evt.SchemaVersion()
+//
+// Cause precedence — the same resolution order as CausationID, but with the
+// causer's kind stated explicitly:
+//  1. If evt.Metadata().Causation is non-nil and Causation.CommandID is
+//     non-zero, Cause is {CauseCommand, commandID}. This is the strongest
+//     signal — the causation was typed at the source.
+//  2. Otherwise, when Tracing.CausationID is set, Cause is {CauseUnknown,
+//     causationID}: the ID survives, and the kind is honestly "unknown"
+//     because the tracing chain does not discriminate it.
+//  3. If neither is set, Cause is zero (no cause recorded).
 //
 // CausationID precedence: the Record's CausationID is resolved with the
 // following priority:
@@ -54,8 +65,12 @@ func AsRecord(evt Event) record.Record {
 	tracing := md.Tracing
 
 	causationID := metadata.BrandedString(tracing.CausationID)
+	cause := record.Cause{}
 	if md.Causation != nil && !md.Causation.CommandID.IsZero() {
 		causationID = md.Causation.CommandID.String()
+		cause = record.Cause{Kind: record.CauseCommand, ID: md.Causation.CommandID.String()}
+	} else if !tracing.CausationID.IsZero() {
+		cause = record.Cause{Kind: record.CauseUnknown, ID: tracing.CausationID.String()}
 	}
 
 	streamType := string(evt.StreamType())
@@ -69,6 +84,7 @@ func AsRecord(evt Event) record.Record {
 		MetaData: record.CommonMetadata{
 			CorrelationID:   metadata.BrandedString(tracing.CorrelationID),
 			CausationID:     causationID,
+			Cause:           cause,
 			ActorID:         metadata.ActorString(tracing),
 			ClientCreatedAt: evt.OccurredAt(),
 			SchemaVersion:   int(evt.SchemaVersion()),

@@ -126,6 +126,11 @@ func TestAsRecord_CausationID(t *testing.T) {
 			t.Errorf("CausationID = %q, want command ID %q",
 				rec.MetaData.CausationID, commandID.String())
 		}
+
+		wantCause := record.Cause{Kind: record.CauseCommand, ID: commandID.String()}
+		if rec.MetaData.Cause != wantCause {
+			t.Errorf("Cause = %+v, want %+v", rec.MetaData.Cause, wantCause)
+		}
 	})
 
 	t.Run("falls back to Tracing.CausationID when no typed Causation", func(t *testing.T) {
@@ -148,6 +153,12 @@ func TestAsRecord_CausationID(t *testing.T) {
 		if rec.MetaData.CausationID != causationID.String() {
 			t.Errorf("CausationID = %q, want tracing causation %q",
 				rec.MetaData.CausationID, causationID.String())
+		}
+
+		wantCause := record.Cause{Kind: record.CauseUnknown, ID: causationID.String()}
+		if rec.MetaData.Cause != wantCause {
+			t.Errorf("Cause = %+v, want %+v (kind unknown: tracing does not discriminate)",
+				rec.MetaData.Cause, wantCause)
 		}
 	})
 

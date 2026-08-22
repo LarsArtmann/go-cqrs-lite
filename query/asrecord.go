@@ -30,7 +30,10 @@ import (
 //   - StreamType      ← "" (queries do not carry a stream type)
 //   - Version         ← 0 (queries have no version)
 //   - CorrelationID   ← q.Metadata().Tracing.CorrelationID
-//   - CausationID     ← q.Metadata().Tracing.CausationID
+//   - CausationID     ← q.Metadata().Tracing.CausationID (Deprecated: removed in v5)
+//   - Cause           ← {CauseUnknown, Tracing.CausationID} when set — the
+//     tracing chain does not discriminate the causer's kind, so the Cause
+//     states that honestly instead of guessing
 //   - ActorID         ← Tracing.ActorID ("kind:raw") when set, else Tracing.UserID
 //   - ClientCreatedAt ← q.ReceivedAt()
 //   - SchemaVersion   ← 0 (queries have no schema version)
@@ -44,6 +47,11 @@ func AsRecord(q *PersistedQuery) record.Record {
 	md := q.Metadata()
 	tracing := md.Tracing
 
+	var cause record.Cause
+	if !tracing.CausationID.IsZero() {
+		cause = record.Cause{Kind: record.CauseUnknown, ID: tracing.CausationID.String()}
+	}
+
 	return record.Record{
 		Type:       string(q.Type()),
 		Payload:    q.Payload(),
@@ -52,6 +60,7 @@ func AsRecord(q *PersistedQuery) record.Record {
 		MetaData: record.CommonMetadata{
 			CorrelationID:   metadata.BrandedString(tracing.CorrelationID),
 			CausationID:     metadata.BrandedString(tracing.CausationID),
+			Cause:           cause,
 			ActorID:         metadata.ActorString(tracing),
 			ClientCreatedAt: q.ReceivedAt(),
 		},
