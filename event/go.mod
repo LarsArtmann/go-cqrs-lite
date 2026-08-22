@@ -56,3 +56,5 @@ require (
 replace github.com/larsartmann/go-cqrs-lite/schema/v4 => ../schema
 
 replace github.com/larsartmann/go-cqrs-lite/metadata/v4 => ../metadata
+
+replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record

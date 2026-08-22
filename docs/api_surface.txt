@@ -2942,6 +2942,7 @@ query/var ErrQueryNotFound
 query/var ErrStoreClosed
 query/var ErrTypeAssertion
 record/func NewStreamRef
+record/func NewStreamRefOrZero
 record/method Split
 record/method String
 record/method Validate
