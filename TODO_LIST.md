@@ -755,29 +755,37 @@ and is **never** duplicated here.
 > markers on what it supersedes, api-stability golden regen + `#verify-fast`
 > + CHANGELOG `[Unreleased]` entry in the same change.
 
-- [ ] **`AsRecord` bridges populate a validated `record.StreamRef`** 🔥 —
+- [x] **`AsRecord` bridges populate a validated `record.StreamRef`** 🔥 —
       adopt the shipped `Validate()` in all three bridges (event/command/
       query); `event.AsRecord` stamps streamType, command/query keep the
       empty-type form. Kills P1's interchange half; per owner decision there
-      is NO new identity type (plan T04).
+      is NO new identity type (plan T04). ✅ 2026-08-22 (T04, prior session)
       _(Effort: M)_
-- [ ] **`record.Cause{Kind, ID}` + `CommonMetadata.Cause`** 🔥 — CauseKind
+- [x] **`record.Cause{Kind, ID}` + `CommonMetadata.Cause`** 🔥 — CauseKind
       iota (none/command/timer/derivation), zero value = none; deprecate
       `CausationID string`; event bridge maps `Causation.CommandID`/
       `Tracing.CausationID`. Kills P4's two-causation-homes (plan T05).
+      ✅ 2026-08-22 (T05; shipped with a 5th kind `CauseUnknown` — the bare
+      tracing chain does not discriminate the causer's kind)
       _(Effort: M)_
-- [ ] **`Record.ID string` + `Record.Encoding uint8`** 🔥 — `event.AsRecord`
+- [x] **`Record.ID string` + `Record.Encoding string`** 🔥 — `event.AsRecord`
       fills both so self-describing payloads survive the bridge (mixed
       JSON+CBOR round-trip test); command/query fill ID. Kills P5 (plan T08).
+      ✅ 2026-08-22 (T08; `Encoding string` — the codec layer's self-describing
+      form per the ADR-0044 envelope — instead of the sketched `uint8`, which
+      would invent a parallel numeric mapping nothing else reads)
       _(Effort: M)_
-- [ ] **`record.Stamp{at, known}`** — replaces the three zero-time
+- [x] **`record.Stamp{at, known}`** — replaces the three zero-time
       timestamps (`ClientCreatedAt`/`ServerReceivedAt`/`ServerStoredAt` →
       `Created`/`Received`/`Stored`); deprecate old fields. Kills P7 (plan
-      T06).
+      T06). ✅ 2026-08-22 (T06; query bridge stamps `Received` — the honest
+      home for the server clock the old field parked in `ClientCreatedAt`)
       _(Effort: M)_
-- [ ] **Structural `record.Actor{Kind, Raw}` mirror** — bridges stop
+- [x] **Structural `record.Actor{Kind, Raw}` mirror** — bridges stop
       stringifying the actor union; wire form stays only at the serialization
-      edge. Kills P3 parse-tax (plan T07).
+      edge. Kills P3 parse-tax (plan T07). ✅ 2026-08-22 (T07, via
+      `metadata.RecordActor`; legacy `UserID` fallback upgraded to
+      `ActorUser`)
       _(Effort: M)_
 - [ ] **Metadata capability interface** 🔥 — additive `MetadataCarrier`-style
       interface adopted by `query/audit` middleware; deprecate the two
