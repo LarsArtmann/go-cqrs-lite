@@ -274,6 +274,11 @@ Grouped by parent. IDs: `T##·a…`. Est = minutes.
 | T20·c | List v5 deletion pre-reqs into TODO_LIST v5 section | 12 |
 
 ### T21 — Extended review (4 = 100)
+
+> **DONE 2026-08-22** — findings in
+> `docs/reviews/2026-08-22_extended-data-model-review.md` (15 findings,
+> capability matrix, follow-ups extracted into TODO_LIST).
+
 | ID | Subtask | Est |
 |----|---------|-----|
 | T21·a | Review storage/* type shapes (stores, dialects, migrations) | 25 |
