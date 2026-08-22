@@ -112,7 +112,9 @@ func TestIntegration_PostgresTimerStore_ScheduleAndDue(t *testing.T) {
 		t.Fatalf("expected 3 due timers, got %d", len(due))
 	}
 
-	if due[0].ID.String() != "pg-t1" || due[1].ID != "pg-t2" || due[2].ID != "pg-t3" {
+	if due[0].ID.String() != "pg-t1" ||
+		due[1].ID.String() != "pg-t2" ||
+		due[2].ID.String() != "pg-t3" {
 		t.Fatalf("ordering wrong: got %s,%s,%s", due[0].ID, due[1].ID, due[2].ID)
 	}
 }

@@ -82,7 +82,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-sse v0.5.1 // indirect
