@@ -905,9 +905,13 @@ and is **never** duplicated here.
       E13 (SQLTimerStore phantom param), E15 (middleware signature
       unification) — fold into the v5 cut wave after the sweep doc.
       _(Effort: M)_
-- [ ] **Stream/StreamRef/StreamID naming decision** — the trio is itself a
+- [x] **Stream/StreamRef/StreamID naming decision** — the trio is itself a
       naming smell; decide each shape's role before v5 (plan T22, after the
-      owner's Option B decision).
+      owner's Option B decision). ✅ 2026-08-22 (plan Appendix D: trio
+      KEEP with role table; real smell found = `record.StreamRef` string
+      vs `id.StreamRef` struct name collision + `/` vs `:` separator
+      divergence → v5 rename `record.StreamKey` added to the sweep doc;
+      ActorKind mirror re-confirmed as accepted zero-dep pattern)
       _(Effort: S)_
 - [ ] **Post-landing sweep for this series** — api-stability meta-tests,
       doc-check over skill refs, consumer-pin sweep for `record/v4` consumers

@@ -287,6 +287,9 @@ Grouped by parent. IDs: `T##·a…`. Est = minutes.
 | T21·d | Append findings appendix (new review file, cross-linked) | 25 |
 
 ### T22 — Naming review (3 = 45)
+
+> **DONE 2026-08-22** — decision recorded in Appendix D below.
+
 | ID | Subtask | Est |
 |----|---------|-----|
 | T22·a | Run naming-smell pass on Stream/StreamRef/StreamID/Cause/Stamp vocabulary | 12 |
@@ -520,3 +523,49 @@ Ship **A now**: `query.MetadataCarrier`, `query.PayloadCarrier`, `command.Metada
 Production duck-typing sites: exactly `query/audit.go:86,101,114` (this file only — middleware/, commandlifecycle/ use concrete or already-named provider types). `*BasicCommand` and `*BasicQuery` already implement `Metadata()`.
 
 > **Post-T09 note (2026-08-22):** the line refs above describe the pre-T09 layout. T09·d removed the inline duck-typed interfaces; `query/audit.go` now type-asserts the exported `query.MetadataCarrier`/`query.PayloadCarrier` capabilities (~lines 87/100/113).
+
+
+## Appendix D — T22 Naming Decision: Stream vocabulary (2026-08-22)
+
+**Owner context:** Appendix B already rejected `record.Stream` (the struct
+counter-proposal); this appendix fixes the NAMES of what remains.
+
+### D.1 Naming table (the decision)
+
+| Symbol | Kind | Role | Verdict |
+|---|---|---|---|
+| `id.StreamID` | branded string | the identity VALUE (ULID-backed, or string-backed for semantic IDs like TimerID) | **KEEP** |
+| `id.StreamType` | string | the discriminator ("User", "Task") | **KEEP** |
+| `id.StreamRef` | struct{Type, ID} | the structured pair for parameters/lookups; un-transposable | **KEEP** |
+| `record.StreamRef` | string `"Type/EntityID"` | the canonical string KEY (primary-key form on records) | **RENAME at v5 → `record.StreamKey`** — same name as the struct pair in a sibling package with a different meaning is the drift engine; see D.2 |
+| `id.StreamRef.StreamKey()` / `String()` | method | colon-form `"Type:ID"` | **v5: converge on ONE canonical separator** with the record key form (recommend `/`; record's Validate/Split already speak it). Until then the two forms are package-local |
+| `record.Cause` + `CauseKind` | struct + uint8 | explicit causer (kind + ID) | KEEP |
+| `record.Stamp` | struct | presence-explicit time (distinct from a bare `time.Time`: "not set" is representable) | KEEP |
+| `record.Actor` + `ActorKind`, `id.ActorID` + `id.ActorKind` | typed values | kind-discriminated actor at both layers | KEEP both `ActorKind` enums — intentional zero-dep structural mirror (art-dupl annotated, ADR-0111); conversion at the boundary is the documented pattern |
+
+### D.2 The two real smells found (both feed the v5 sweep)
+
+1. **`record.StreamRef` (string) vs `id.StreamRef` (struct)** — identical
+   exported name, sibling packages, different concepts AND different
+   canonical separators (`/` in record, `:` in id). Nothing today breaks
+   because consumers rarely import both positionally, but every new
+   contributor must rediscover the distinction. v5 rename of the record
+   form to `StreamKey` (with a deprecated alias for one major) removes the
+   collision; separator convergence is a wire-visible change and rides the
+   v5 migration guide.
+2. **`record.ActorKind` vs `id.ActorKind`** — same name, deliberately
+   mirrored values (Unknown/User/Bot/System/Service). ACCEPTED: record is
+   zero-dep by contract #21; the mirror is annotated and lockstep-tested.
+   Rule for v5: if the enumerations ever gain asymmetric members, the
+   mirror becomes a bug — extend both or neither.
+
+### D.3 What was checked and found clean
+
+- No bare `Stream` type exists anywhere (grep-verified) — the "trio" is
+  adjective-bearing (`StreamID`/`StreamType`/`StreamRef`), each name
+  stating its own role.
+- `Cause`/`Stamp`/`Actor` survive the anti-pattern checklist (no
+  Manager/Handler/Data/Info shapes; each name excludes wrong
+  implementations; domain-expert readable).
+- `scheduling.TimerID` (string-backed semantic ID) — KEEP per owner
+  confirmation 2026-08-22 (idempotency keys must not be ULID-minted).

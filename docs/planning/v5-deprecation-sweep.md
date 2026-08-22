@@ -81,6 +81,7 @@
 | `ParseType(s)` | query | `record.ParseType(s, ErrEmptyQueryType)` |
 | `Execute(ctx, id, type, ...)` | decider | `ExecuteRef(ctx, ref, ...)` |
 | `Load(ctx, id, type)` | decider | `LoadRef(ctx, ref)` |
+| `record.StreamRef` (string) | record | `record.StreamKey` — same name as the id.StreamRef struct pair is a collision (plan Appendix D.2); separator convergence `/` rides the v5 migration guide |
 
 ## 2. Record-bridge Deprecated fields (5) — `record/record.go`
 
