@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — record.Stamp: explicit timestamp presence — 2026-08-22
+
+- **`record.Stamp` + `record.NewStamp`** — a timestamp whose presence is
+  explicit: the zero Stamp means "not recorded"; a zero time.Time can no
+  longer masquerade as "stamped at epoch" (review P7). Unexported fields
+  (`at`, `known`) make an inconsistent state unconstructable; JSON is
+  lossless (`{"at":...}` / `null`, honored by both encoding/json v1 and v2).
+- **`CommonMetadata.Created` / `Received` / `Stored`** (`Stamp`) added;
+  **`ClientCreatedAt` / `ServerReceivedAt` / `ServerStoredAt` (`time.Time`)
+  are Deprecated (removed in v5)**.
+- **Bridge mapping**: `event.AsRecord` sets `Created` from
+  `evt.OccurredAt()` (Received/Stored stay unknown — the store stamps them);
+  `query.AsRecord` sets `Received` from `q.ReceivedAt()` — the honest home
+  for the server-receive clock the old field parked in `ClientCreatedAt`
+  (Created stays unknown: PersistedQuery carries no client clock). Commands
+  carry no timestamps.
+
 ### Added — explicit record.Cause (kind-discriminated causation) — 2026-08-22
 
 - **`record.Cause` + `record.CauseKind`** — the single causation home that

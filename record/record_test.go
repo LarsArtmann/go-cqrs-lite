@@ -244,7 +244,10 @@ func TestRecord_JSONRoundTrip(t *testing.T) {
 		t.Errorf("Received = %v, want %v", decoded.MetaData.Received, original.MetaData.Received)
 	}
 	if !decoded.MetaData.Stored.IsZero() || !original.MetaData.Stored.IsZero() {
-		t.Errorf("Stored round trip must keep the zero (unknown) stamp, got %v", decoded.MetaData.Stored)
+		t.Errorf(
+			"Stored round trip must keep the zero (unknown) stamp, got %v",
+			decoded.MetaData.Stored,
+		)
 	}
 }
 

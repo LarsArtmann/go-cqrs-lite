@@ -51,7 +51,7 @@ func TestStamp_JSONRoundTrip(t *testing.T) {
 	at := time.Date(2026, 8, 22, 5, 30, 1, 500, time.UTC)
 
 	cases := []struct {
-		name string
+		name  string
 		stamp record.Stamp
 	}{
 		{"known", record.NewStamp(at)},
@@ -62,35 +62,46 @@ func TestStamp_JSONRoundTrip(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			for _, marshal := range []struct {
-				name   string
-				marsh  func(v any) ([]byte, error)
-				unmar  func(data []byte, v any) error
-			}{
-				{"json v1", json.Marshal, json.Unmarshal},
-				{"json v2", jsonv2.Marshal, jsonv2.Unmarshal},
-			} {
-				data, err := marshal.marsh(tc.stamp)
-				if err != nil {
-					t.Fatalf("%s Marshal: %v", marshal.name, err)
-				}
-
-				var got record.Stamp
-				if err := marshal.unmar(data, &got); err != nil {
-					t.Fatalf("%s Unmarshal(%s): %v", marshal.name, data, err)
-				}
-
-				if got.IsZero() != tc.stamp.IsZero() {
-					t.Errorf("%s round trip changed presence: got IsZero=%v, want %v",
-						marshal.name, got.IsZero(), tc.stamp.IsZero())
-				}
-
-				if !got.IsZero() && !got.Time().Equal(tc.stamp.Time()) {
-					t.Errorf("%s round trip changed time: got %v, want %v",
-						marshal.name, got.Time(), tc.stamp.Time())
-				}
+			// encoding/json v1
+			data, err := json.Marshal(tc.stamp)
+			if err != nil {
+				t.Fatalf("v1 Marshal: %v", err)
 			}
+
+			var got record.Stamp
+			if err := json.Unmarshal(data, &got); err != nil {
+				t.Fatalf("v1 Unmarshal(%s): %v", data, err)
+			}
+
+			assertStampRoundTrip(t, "v1", got, tc.stamp)
+
+			// encoding/json v2 (goexperiment.jsonv2)
+			data2, err := jsonv2.Marshal(tc.stamp)
+			if err != nil {
+				t.Fatalf("v2 Marshal: %v", err)
+			}
+
+			var got2 record.Stamp
+			if err := jsonv2.Unmarshal(data2, &got2); err != nil {
+				t.Fatalf("v2 Unmarshal(%s): %v", data2, err)
+			}
+
+			assertStampRoundTrip(t, "v2", got2, tc.stamp)
 		})
+	}
+}
+
+func assertStampRoundTrip(t *testing.T, flavor string, got, want record.Stamp) {
+	t.Helper()
+
+	if got.IsZero() != want.IsZero() {
+		t.Errorf("%s round trip changed presence: got IsZero=%v, want %v",
+			flavor, got.IsZero(), want.IsZero())
+	}
+
+	if !got.IsZero() && !got.Time().Equal(want.Time()) {
+		t.Errorf("%s round trip changed time: got %v, want %v",
+			flavor, got.Time(), want.Time())
 	}
 }
 
