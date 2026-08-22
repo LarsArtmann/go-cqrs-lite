@@ -44,6 +44,7 @@ import (
 //
 // A nil command returns a zero-valued Record.
 func AsRecord(cmd *BasicCommand) record.Record {
+	//art-dupl:accept dep-isolated twin of query.AsRecord; lockstep Record population is by design
 	if cmd == nil {
 		return record.Record{}
 	}

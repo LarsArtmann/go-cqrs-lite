@@ -51,6 +51,7 @@ import (
 //
 // A nil query returns a zero-valued Record.
 func AsRecord(q *PersistedQuery) record.Record {
+	//art-dupl:accept dep-isolated twin of command.AsRecord; lockstep Record population is by design
 	if q == nil {
 		return record.Record{}
 	}

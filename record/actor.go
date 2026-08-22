@@ -11,7 +11,7 @@ type ActorKind uint8
 const (
 	// ActorUnknown is the zero value: the kind was not set. An Actor with
 	// this kind is considered zero.
-	ActorUnknown ActorKind = iota
+	ActorUnknown ActorKind = iota //art-dupl:accept zero-dep structural mirror of id.ActorKind (ADR-0111)
 
 	// ActorUser is a human user (authenticated via WebAuthn, OAuth2, etc.).
 	ActorUser
