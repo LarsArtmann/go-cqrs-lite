@@ -75,6 +75,15 @@ func TestAsRecord_MapsStructuralFields(t *testing.T) {
 		t.Errorf("ClientCreatedAt = %v, want %v", got.MetaData.ClientCreatedAt, receivedAt)
 	}
 
+	if got.MetaData.Received.IsZero() || !got.MetaData.Received.Time().Equal(receivedAt) {
+		t.Errorf("Received = %v, want known stamp at %v (server-receive clock)",
+			got.MetaData.Received, receivedAt)
+	}
+
+	if !got.MetaData.Created.IsZero() {
+		t.Error("Created must stay unknown for queries (no client clock on PersistedQuery)")
+	}
+
 	if got.MetaData.SchemaVersion != 0 {
 		t.Errorf("SchemaVersion = %d, want 0", got.MetaData.SchemaVersion)
 	}

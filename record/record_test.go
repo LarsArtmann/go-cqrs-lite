@@ -182,6 +182,8 @@ func TestRecord_JSONRoundTrip(t *testing.T) {
 			ClientCreatedAt:  time.Date(2026, 8, 6, 12, 0, 0, 0, time.UTC),
 			ServerReceivedAt: time.Date(2026, 8, 6, 12, 0, 1, 0, time.UTC),
 			ServerStoredAt:   time.Date(2026, 8, 6, 12, 0, 2, 0, time.UTC),
+			Created:          record.NewStamp(time.Date(2026, 8, 6, 12, 0, 0, 0, time.UTC)),
+			Received:         record.NewStamp(time.Date(2026, 8, 6, 12, 0, 1, 0, time.UTC)),
 			SchemaVersion:    2,
 		},
 	}
@@ -233,6 +235,17 @@ func TestRecord_JSONRoundTrip(t *testing.T) {
 			original.MetaData.ClientCreatedAt,
 		)
 	}
+	if !decoded.MetaData.Created.Time().Equal(original.MetaData.Created.Time()) ||
+		decoded.MetaData.Created.IsZero() != original.MetaData.Created.IsZero() {
+		t.Errorf("Created = %v, want %v", decoded.MetaData.Created, original.MetaData.Created)
+	}
+	if !decoded.MetaData.Received.Time().Equal(original.MetaData.Received.Time()) ||
+		decoded.MetaData.Received.IsZero() != original.MetaData.Received.IsZero() {
+		t.Errorf("Received = %v, want %v", decoded.MetaData.Received, original.MetaData.Received)
+	}
+	if !decoded.MetaData.Stored.IsZero() || !original.MetaData.Stored.IsZero() {
+		t.Errorf("Stored round trip must keep the zero (unknown) stamp, got %v", decoded.MetaData.Stored)
+	}
 }
 
 func TestCommonMetadata_ZeroValue(t *testing.T) {
@@ -247,6 +260,9 @@ func TestCommonMetadata_ZeroValue(t *testing.T) {
 	}
 	if !md.ClientCreatedAt.IsZero() {
 		t.Error("zero-value ClientCreatedAt should be zero time")
+	}
+	if !md.Created.IsZero() || !md.Received.IsZero() || !md.Stored.IsZero() {
+		t.Error("zero-value Stamps must be unknown (zero Stamp)")
 	}
 }
 

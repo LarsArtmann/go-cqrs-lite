@@ -51,16 +51,43 @@ type CommonMetadata struct {
 	// ClientCreatedAt is the client's clock at the moment of creation. This may
 	// lie (clock skew, offline tampering). Use for offline-first conflict
 	// resolution and UX ("you created this at...").
+	//
+	// Deprecated: removed in v5. Use Created, which distinguishes "not
+	// recorded" from the epoch via an explicit presence flag. The AsRecord
+	// bridges populate both fields until the v5 cut.
 	ClientCreatedAt time.Time
+
+	// Created is the client's clock at the moment of creation — the best
+	// available creation timestamp, which may lie (clock skew, offline
+	// tampering). Use for offline-first conflict resolution and UX ("you
+	// created this at..."). The zero Stamp means no client clock was recorded.
+	Created Stamp
 
 	// ServerReceivedAt is the server clock when the record arrived. Trustworthy
 	// for server-side ordering but not for client intent. Set before store.Save.
+	//
+	// Deprecated: removed in v5. Use Received, which distinguishes "not
+	// recorded" from the epoch via an explicit presence flag.
 	ServerReceivedAt time.Time
+
+	// Received is the server clock when the record arrived — trustworthy for
+	// server-side ordering but not for client intent. Stamped before
+	// store.Save. The zero Stamp means the record has not been received yet.
+	Received Stamp
 
 	// ServerStoredAt is the database's acknowledgment timestamp. This is what
 	// the DB told us, not necessarily what it did internally. Use for
 	// audit trails and eventual-consistency reconciliation.
+	//
+	// Deprecated: removed in v5. Use Stored, which distinguishes "not
+	// recorded" from the epoch via an explicit presence flag.
 	ServerStoredAt time.Time
+
+	// Stored is the database's acknowledgment timestamp — what the DB told
+	// us, not necessarily what it did internally. Use for audit trails and
+	// eventual-consistency reconciliation. The zero Stamp means the record has
+	// not been stored yet.
+	Stored Stamp
 
 	// SchemaVersion is the payload schema version. Set once at record creation
 	// and never changed. Enables upcasting: different versions of the same

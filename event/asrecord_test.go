@@ -97,6 +97,14 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("ClientCreatedAt = %v, want %v", rec.MetaData.ClientCreatedAt, occurredAt)
 	}
 
+	if rec.MetaData.Created.IsZero() || !rec.MetaData.Created.Time().Equal(occurredAt) {
+		t.Errorf("Created = %v, want known stamp at %v", rec.MetaData.Created, occurredAt)
+	}
+
+	if !rec.MetaData.Received.IsZero() || !rec.MetaData.Stored.IsZero() {
+		t.Error("Received/Stored must stay unknown at the event layer (store's job)")
+	}
+
 	if len(rec.Payload) == 0 {
 		t.Error("Payload is empty")
 	}

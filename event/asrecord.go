@@ -27,9 +27,12 @@ import (
 //   - CausationID      ← see precedence rule below (Deprecated: removed in v5)
 //   - Cause            ← see precedence rule below
 //   - ActorID          ← see precedence rule below
-//   - ClientCreatedAt  ← evt.OccurredAt() (best available creation timestamp)
-//   - ServerReceivedAt ← zero (unknown at the event layer; set by the store)
-//   - ServerStoredAt   ← zero (unknown at the event layer; set by the store)
+//   - ClientCreatedAt  ← evt.OccurredAt() (Deprecated: removed in v5 —
+//     populated in lockstep with Created until the cut)
+//   - Created          ← NewStamp(evt.OccurredAt()) — same source, explicit
+//     presence
+//   - Received/Stored  ← zero Stamps (unknown at the event layer; stamped by
+//     the store)
 //   - SchemaVersion    ← evt.SchemaVersion()
 //
 // Cause precedence — the same resolution order as CausationID, but with the
@@ -87,6 +90,7 @@ func AsRecord(evt Event) record.Record {
 			Cause:           cause,
 			ActorID:         metadata.ActorString(tracing),
 			ClientCreatedAt: evt.OccurredAt(),
+			Created:         record.NewStamp(evt.OccurredAt()),
 			SchemaVersion:   int(evt.SchemaVersion()),
 		},
 	}
