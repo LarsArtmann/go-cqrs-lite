@@ -22,6 +22,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 )
 
@@ -98,9 +99,12 @@ type timerEnvelope[P any] struct {
 // Schedule records a timer. If a timer with the same ID already exists, it is
 // a no-op (idempotent scheduling).
 func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) error {
+	// The envelope keeps the actor in its self-describing wire form
+	// ("kind:raw", "" when unset) — exactly the shape earlier versions
+	// persisted, so existing rows stay readable without migration.
 	envelope := timerEnvelope[P]{
 		Version: timerEnvelopeVersion,
-		Actor:   t.Actor,
+		Actor:   t.Actor.PrefixedString(),
 		Payload: t.Payload,
 	}
 
@@ -123,7 +127,7 @@ func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) 
 		return errorfamily.WrapInfrastructure(
 			err,
 			"scheduling.sqlstore.schedule",
-			"schedule timer "+t.ID,
+			"schedule timer "+t.ID.String(),
 		)
 	}
 
@@ -170,11 +174,29 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 			return nil, err
 		}
 
+		timerID, err := scheduling.ParseTimerID(id)
+		if err != nil {
+			return nil, errorfamily.WrapCorruption(
+				err,
+				"scheduling.sqlstore.parse_timer_id",
+				"parse timer ID "+id,
+			)
+		}
+
+		actor, err := id.ParseActorID(envelope.Actor)
+		if err != nil {
+			return nil, errorfamily.WrapCorruption(
+				err,
+				"scheduling.sqlstore.parse_actor",
+				"parse actor for timer "+id,
+			)
+		}
+
 		timers = append(timers, scheduling.Timer[P]{
-			ID:      id,
+			ID:      timerID,
 			FireAt:  fireAt,
 			Payload: envelope.Payload,
-			Actor:   envelope.Actor,
+			Actor:   actor,
 		})
 	}
 
@@ -191,12 +213,12 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 
 // MarkFired removes a timer after it has been dispatched.
 func (s *SQLTimerStore[P]) MarkFired(ctx context.Context, id scheduling.TimerID) error {
-	return s.deleteTimer(ctx, id, "mark_fired")
+	return s.deleteTimer(ctx, id.String(), "mark_fired")
 }
 
 // Cancel removes a timer before it fires.
 func (s *SQLTimerStore[P]) Cancel(ctx context.Context, id scheduling.TimerID) error {
-	return s.deleteTimer(ctx, id, "cancel")
+	return s.deleteTimer(ctx, id.String(), "cancel")
 }
 
 func (s *SQLTimerStore[P]) deleteTimer(ctx context.Context, id, op string) error {

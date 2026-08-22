@@ -19,11 +19,11 @@ func TestMemoryTimerStore_ScheduleAndDue(t *testing.T) {
 	now := time.Now()
 	store.Schedule(
 		ctx,
-		scheduling.Timer[string]{ID: "a", FireAt: now.Add(-1 * time.Minute), Payload: "early"},
+		scheduling.Timer[string]{ID: scheduling.MustParseTimerID("a"), FireAt: now.Add(-1 * time.Minute), Payload: "early"},
 	)
 	store.Schedule(
 		ctx,
-		scheduling.Timer[string]{ID: "b", FireAt: now.Add(1 * time.Hour), Payload: "late"},
+		scheduling.Timer[string]{ID: scheduling.MustParseTimerID("b"), FireAt: now.Add(1 * time.Hour), Payload: "late"},
 	)
 
 	due, err := store.Due(ctx, now)
@@ -33,7 +33,7 @@ func TestMemoryTimerStore_ScheduleAndDue(t *testing.T) {
 	if len(due) != 1 {
 		t.Fatalf("expected 1 due timer, got %d", len(due))
 	}
-	if due[0].ID != "a" {
+	if due[0].ID.String() != "a" {
 		t.Fatalf("expected 'a', got %q", due[0].ID)
 	}
 }
@@ -45,11 +45,11 @@ func TestMemoryTimerStore_ScheduleIsIdempotent(t *testing.T) {
 
 	store.Schedule(
 		ctx,
-		scheduling.Timer[string]{ID: "dup", FireAt: time.Now().Add(-1 * time.Minute)},
+		scheduling.Timer[string]{ID: scheduling.MustParseTimerID("dup"), FireAt: time.Now().Add(-1 * time.Minute)},
 	)
 	store.Schedule(
 		ctx,
-		scheduling.Timer[string]{ID: "dup", FireAt: time.Now().Add(-1 * time.Minute)},
+		scheduling.Timer[string]{ID: scheduling.MustParseTimerID("dup"), FireAt: time.Now().Add(-1 * time.Minute)},
 	)
 
 	due, _ := store.Due(ctx, time.Now())
@@ -65,9 +65,9 @@ func TestMemoryTimerStore_Cancel(t *testing.T) {
 
 	store.Schedule(
 		ctx,
-		scheduling.Timer[string]{ID: "cancel-me", FireAt: time.Now().Add(-1 * time.Minute)},
+		scheduling.Timer[string]{ID: scheduling.MustParseTimerID("cancel-me"), FireAt: time.Now().Add(-1 * time.Minute)},
 	)
-	store.Cancel(ctx, "cancel-me")
+	store.Cancel(ctx, scheduling.MustParseTimerID("cancel-me"))
 
 	due, _ := store.Due(ctx, time.Now())
 	if len(due) != 0 {
@@ -82,9 +82,9 @@ func TestMemoryTimerStore_MarkFired(t *testing.T) {
 
 	store.Schedule(
 		ctx,
-		scheduling.Timer[string]{ID: "fire", FireAt: time.Now().Add(-1 * time.Minute)},
+		scheduling.Timer[string]{ID: scheduling.MustParseTimerID("fire"), FireAt: time.Now().Add(-1 * time.Minute)},
 	)
-	store.MarkFired(ctx, "fire")
+	store.MarkFired(ctx, scheduling.MustParseTimerID("fire"))
 
 	due, _ := store.Due(ctx, time.Now())
 	if len(due) != 0 {
@@ -98,7 +98,7 @@ func TestScheduler_DispatchesDueTimers(t *testing.T) {
 	ctx := context.Background()
 
 	store.Schedule(ctx, scheduling.Timer[string]{
-		ID:      "task-1",
+		ID:      scheduling.MustParseTimerID("task-1"),
 		FireAt:  time.Now().Add(-1 * time.Second),
 		Payload: "run-me",
 	})
@@ -107,7 +107,7 @@ func TestScheduler_DispatchesDueTimers(t *testing.T) {
 	sched := scheduling.New(
 		store,
 		func(_ context.Context, timer scheduling.Timer[string]) error {
-			if timer.ID != "task-1" {
+			if timer.ID.String() != "task-1" {
 				t.Errorf("expected task-1, got %s", timer.ID)
 			}
 			dispatched.Add(1)
@@ -134,7 +134,7 @@ func TestScheduler_RetriesFailedDispatch(t *testing.T) {
 	ctx := context.Background()
 
 	store.Schedule(ctx, scheduling.Timer[string]{
-		ID:      "retry-me",
+		ID:      scheduling.MustParseTimerID("retry-me"),
 		FireAt:  time.Now().Add(-1 * time.Second),
 		Payload: "fail-then-succeed",
 	})
@@ -183,7 +183,7 @@ func TestScheduler_RetryDelayIsRespected(t *testing.T) {
 	ctx := context.Background()
 
 	store.Schedule(ctx, scheduling.Timer[string]{
-		ID:      "delay-test",
+		ID:      scheduling.MustParseTimerID("delay-test"),
 		FireAt:  time.Now().Add(-1 * time.Second),
 		Payload: "will-succeed-on-retry",
 	})
@@ -240,7 +240,7 @@ func TestScheduler_WithLoggerIsUsed(t *testing.T) {
 	ctx := context.Background()
 
 	store.Schedule(ctx, scheduling.Timer[string]{
-		ID:      "always-fails",
+		ID:      scheduling.MustParseTimerID("always-fails"),
 		FireAt:  time.Now().Add(-1 * time.Second),
 		Payload: "boom",
 	})
@@ -275,7 +275,7 @@ func TestScheduler_FailedTimerSurvivesForRetry(t *testing.T) {
 	ctx := context.Background()
 
 	store.Schedule(ctx, scheduling.Timer[string]{
-		ID:      "permanently-failing",
+		ID:      scheduling.MustParseTimerID("permanently-failing"),
 		FireAt:  time.Now().Add(-1 * time.Second),
 		Payload: "never-succeeds",
 	})

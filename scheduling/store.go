@@ -32,6 +32,17 @@ func ParseTimerID(s string) (TimerID, error) {
 	return cbid.NewID[TimerMarker](s), nil
 }
 
+// MustParseTimerID is [ParseTimerID] for compile-time-known timer names. It
+// panics on empty input — a programming error, not a runtime condition.
+func MustParseTimerID(s string) TimerID {
+	timerID, err := ParseTimerID(s)
+	if err != nil {
+		panic(err)
+	}
+
+	return timerID
+}
+
 // Timer represents a scheduled command to fire at a future time.
 //
 // The type parameter P is the payload type delivered to the dispatch callback —

@@ -27,7 +27,7 @@ func BenchmarkScheduling_ScheduleAndPoll(b *testing.B) {
 				timers := make([]scheduling.Timer[string], n)
 				for i := range n {
 					timers[i] = scheduling.Timer[string]{
-						ID:      fmt.Sprintf("timer-%d", i),
+						ID:      scheduling.MustParseTimerID(fmt.Sprintf("timer-%d", i)),
 						FireAt:  now.Add(time.Duration(i) * time.Microsecond),
 						Payload: "dispatch-me",
 					}
@@ -75,14 +75,14 @@ func BenchmarkScheduling_Cancel(b *testing.B) {
 		store := scheduling.NewMemoryTimerStore[string]()
 		for i := range b.N {
 			_ = store.Schedule(ctx, scheduling.Timer[string]{
-				ID:     fmt.Sprintf("cancel-%d", i),
+				ID:     scheduling.MustParseTimerID(fmt.Sprintf("cancel-%d", i)),
 				FireAt: now.Add(time.Hour),
 			})
 		}
 		b.StartTimer()
 
 		for i := range b.N {
-			if err := store.Cancel(ctx, fmt.Sprintf("cancel-%d", i)); err != nil {
+			if err := store.Cancel(ctx, scheduling.MustParseTimerID(fmt.Sprintf("cancel-%d", i))); err != nil {
 				b.Fatal(err)
 			}
 		}

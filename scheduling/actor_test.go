@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 )
 
@@ -20,7 +21,7 @@ func TestTimer_ActorDeliveredToDispatch(t *testing.T) {
 
 	store := scheduling.NewMemoryTimerStore[testPayload]()
 
-	var gotActor string
+	var gotActor id.ActorID
 
 	fired := make(chan struct{})
 
@@ -37,10 +38,10 @@ func TestTimer_ActorDeliveredToDispatch(t *testing.T) {
 	go sched.Start(ctx)
 
 	err := store.Schedule(ctx, scheduling.Timer[testPayload]{
-		ID:      "actor-dispatch",
+		ID:      scheduling.MustParseTimerID("actor-dispatch"),
 		FireAt:  time.Now().Add(10 * time.Millisecond),
 		Payload: testPayload{Action: "cancel"},
-		Actor:   "user:01HK1540X0841Y0A6BSX1VKR99",
+		Actor:   actorForTest(t, "user:01HK1540X0841Y0A6BSX1VKR99"),
 	})
 	if err != nil {
 		t.Fatalf("Schedule: %v", err)
@@ -52,8 +53,8 @@ func TestTimer_ActorDeliveredToDispatch(t *testing.T) {
 		t.Fatal("timed out waiting for timer dispatch")
 	}
 
-	if want := "user:01HK1540X0841Y0A6BSX1VKR99"; gotActor != want {
-		t.Errorf("dispatch actor = %q, want %q", gotActor, want)
+	if want := "user:01HK1540X0841Y0A6BSX1VKR99"; gotActor.PrefixedString() != want {
+		t.Errorf("dispatch actor = %q, want %q", gotActor.PrefixedString(), want)
 	}
 }
 
@@ -63,7 +64,9 @@ func TestTimer_ActorDeliveredToDispatch(t *testing.T) {
 func TestTimer_JSONOmitsZeroActor(t *testing.T) {
 	t.Parallel()
 
-	withoutActor, err := json.Marshal(scheduling.Timer[string]{ID: "t1", Payload: "p"})
+	withoutActor, err := json.Marshal(
+		scheduling.Timer[string]{ID: scheduling.MustParseTimerID("t1"), Payload: "p"},
+	)
 	if err != nil {
 		t.Fatalf("marshal without actor: %v", err)
 	}
@@ -74,9 +77,11 @@ func TestTimer_JSONOmitsZeroActor(t *testing.T) {
 		t.Errorf("zero-actor JSON = %s, want %s", got, want)
 	}
 
-	withActor, err := json.Marshal(
-		scheduling.Timer[string]{ID: "t1", Payload: "p", Actor: "system:scheduler"},
-	)
+	withActor, err := json.Marshal(scheduling.Timer[string]{
+		ID:      scheduling.MustParseTimerID("t1"),
+		Payload: "p",
+		Actor:   id.NewSystemActor("scheduler"),
+	})
 	if err != nil {
 		t.Fatalf("marshal with actor: %v", err)
 	}
@@ -87,12 +92,24 @@ func TestTimer_JSONOmitsZeroActor(t *testing.T) {
 		t.Fatalf("unmarshal with actor: %v", err)
 	}
 
-	if decoded.Actor != "system:scheduler" {
-		t.Errorf("actor lost through JSON round-trip: got %q", decoded.Actor)
+	if decoded.Actor.PrefixedString() != "system:scheduler" {
+		t.Errorf("actor lost through JSON round-trip: got %q", decoded.Actor.PrefixedString())
 	}
 }
 
 type testPayload struct {
 	Action string `json:"action"`
 	Amount int    `json:"amount"`
+}
+
+// actorForTest parses a "kind:raw" actor for test setup.
+func actorForTest(t *testing.T, s string) id.ActorID {
+	t.Helper()
+
+	actor, err := id.ParseActorID(s)
+	if err != nil {
+		t.Fatalf("parse actor %q: %v", s, err)
+	}
+
+	return actor
 }
