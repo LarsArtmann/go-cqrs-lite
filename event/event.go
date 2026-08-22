@@ -11,21 +11,16 @@ import (
 )
 
 // Type is a type identifier for domain events.
-type Type string
-
-// String returns the event type as a string.
-func (t Type) String() string { return string(t) }
-
-// IsZero reports whether the event type is empty.
-func (t Type) IsZero() bool { return t == "" }
+//
+// It is an alias of record.Type (ADR-0111): one definition shared with
+// command and query, so the per-module copies cannot drift.
+type Type = record.Type
 
 // ParseType validates and returns a Type. Returns an error if empty.
+//
+// Deprecated: removed in v5. Use record.ParseType(s, ErrEmptyEventType).
 func ParseType(s string) (Type, error) {
-	if s == "" {
-		return "", ErrEmptyEventType
-	}
-
-	return Type(s), nil
+	return record.ParseType(s, ErrEmptyEventType)
 }
 
 // NewTypeSet converts a slice of event types into a set for O(1) membership
