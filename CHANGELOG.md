@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — metadata capability interfaces (Command/Query) — 2026-08-22
+
+- **`query.MetadataCarrier`** and **`query.PayloadCarrier`** — exported
+  capability interfaces for queries that carry `Metadata` or expose raw
+  payload bytes. Middleware type-asserts to the named capability instead of
+  inline duck-typed interfaces; `query.AuditMiddleware` now asserts the
+  exported types (the two inline `metadatable` declarations and the inline
+  payload assertion in `audit.go` are gone). Hand-rolled `Query`
+  implementations opt in by adding a `Metadata()` method — no interface
+  growth, zero consumer breakage (review P6; capability-now vs
+  interface-growth-at-v5 comparison in the plan's Appendix C).
+- **`command.MetadataCarrier`** — the command-side twin. `*BasicCommand`
+  and `*BasicQuery` satisfy their carriers via compile-time asserts;
+  growing the core `Command`/`Query` interfaces rides the v5 cut.
+
 ### Added — Record.ID + Record.Encoding: identity and codec stamp survive the bridges — 2026-08-22
 
 - **`record.Record.ID`** (`string`) — the record instance's unique

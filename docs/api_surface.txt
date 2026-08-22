@@ -419,6 +419,7 @@ command/interface Command
 command/interface CommandJournal
 command/interface CommandSink
 command/interface CommandSource
+command/interface MetadataCarrier
 command/interface Publisher
 command/interface SeekableCommandJournal
 command/interface Store
@@ -2887,6 +2888,8 @@ query/func WithQueryMetadata
 query/func WithQueryReceivedAt
 query/func WithRequestID
 query/func WithUserID
+query/interface MetadataCarrier
+query/interface PayloadCarrier
 query/interface Query
 query/interface QueryJournal
 query/interface QuerySink
