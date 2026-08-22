@@ -964,3 +964,13 @@ and is **never** duplicated here.
 - **file-renamer circuitbreaker/dlq modules** — rejected; failsafe-go + the
   FAQ pointer cover it. See
   `docs/feedback/reviewed/2026-08-13_file-renamer_extract-circuitbreaker-and-dlq-review.md`.
+
+- [ ] **PG integration test isolation under explicit DSN** — the storage
+      pg_integration tests assume "each test gets its own fresh database"
+      (true with testcontainers when POSTGRES_TEST_DSN is unset), but
+      `nix run .#integration-pg` points every package at ONE shared
+      `cqrs_test` database: `TestPostgresEventStore_CRUD`'s global
+      `ReadAll` sees other packages' events ("expected 2 events, got 27",
+      pre-existing, reproduced twice 2026-08-22). Fix: create a per-test
+      (or per-package) database even under an explicit DSN.
+      _(Effort: S)_
