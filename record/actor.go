@@ -26,11 +26,16 @@ const (
 	ActorService
 )
 
+// unknownStr is the shared rendering for "kind/value not recorded".
+const unknownStr = "unknown"
+
 // String returns the lowercase kind name, used as the prefix in Actor.String
 // and matching the id.ActorID wire format ("user", "bot", "system",
 // "service").
 func (k ActorKind) String() string {
 	switch k {
+	case ActorUnknown:
+		return unknownStr
 	case ActorUser:
 		return "user"
 	case ActorBot:
@@ -40,7 +45,7 @@ func (k ActorKind) String() string {
 	case ActorService:
 		return "service"
 	default:
-		return "unknown"
+		return unknownStr
 	}
 }
 

@@ -36,7 +36,7 @@ func (s Stamp) Time() time.Time { return s.at }
 // "unknown" when not recorded.
 func (s Stamp) String() string {
 	if !s.known {
-		return "unknown"
+		return unknownStr
 	}
 
 	return s.at.Format(time.RFC3339Nano)
@@ -49,14 +49,20 @@ func (s Stamp) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 
-	return json.Marshal(stampWire{At: s.at})
+	data, err := json.Marshal(stampWire{At: s.at})
+	if err != nil {
+		return nil, fmt.Errorf("record.Stamp: marshal: %w", err)
+	}
+
+	return data, nil
 }
 
 // UnmarshalJSON decodes both marshaled forms: null (and {}) yield the zero
 // Stamp; {"at":...} yields a known stamp.
 func (s *Stamp) UnmarshalJSON(data []byte) error {
 	if bytes.Equal(bytes.TrimSpace(data), []byte("null")) {
-		*s = Stamp{}
+		*s = Stamp{at: time.Time{}, known: false}
+
 		return nil
 	}
 
@@ -66,11 +72,13 @@ func (s *Stamp) UnmarshalJSON(data []byte) error {
 	}
 
 	if wire.At.IsZero() {
-		*s = Stamp{}
+		*s = Stamp{at: time.Time{}, known: false}
+
 		return nil
 	}
 
 	*s = NewStamp(wire.At)
+
 	return nil
 }
 

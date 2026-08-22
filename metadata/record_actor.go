@@ -24,7 +24,7 @@ func RecordActor(tracing Tracing) record.Actor {
 		return record.Actor{Kind: record.ActorUser, Raw: tracing.UserID.String()}
 	}
 
-	return record.Actor{}
+	return record.Actor{Kind: record.ActorUnknown, Raw: ""}
 }
 
 // recordActorKind maps the id-layer actor kind onto its record-layer mirror.
@@ -32,6 +32,8 @@ func RecordActor(tracing Tracing) record.Actor {
 // keeps them aligned at the single conversion point.
 func recordActorKind(kind id.ActorKind) record.ActorKind {
 	switch kind {
+	case id.ActorUnknown:
+		return record.ActorUnknown
 	case id.ActorUser:
 		return record.ActorUser
 	case id.ActorBot:

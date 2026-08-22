@@ -32,6 +32,8 @@ const (
 // (e.g. "command", "timer").
 func (k CauseKind) String() string {
 	switch k {
+	case CauseNone:
+		return "none"
 	case CauseCommand:
 		return "command"
 	case CauseTimer:
@@ -39,7 +41,7 @@ func (k CauseKind) String() string {
 	case CauseEvent:
 		return "event"
 	case CauseUnknown:
-		return "unknown"
+		return unknownStr
 	default:
 		return "none"
 	}

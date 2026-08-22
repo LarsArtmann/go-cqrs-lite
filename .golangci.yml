@@ -471,10 +471,14 @@ linters:
       # ── record/ shared Record type ──────────────────────────────
       # time.Time fields use omitempty for backward-compatible JSON
       # (clients that don't set timestamps omit them). modernize
-      # suggests omitzero but that changes wire format.
+      # suggests omitzero but that changes wire format. Stamp uses the
+      # intentional mixed-receiver Marshal/Unmarshal pattern (value
+      # receiver to marshal, pointer receiver to decode — same as
+      # id.ActorID).
       - path: record/
         linters:
           - modernize
+          - recvcheck
 
       # ── metaengine engine register.go files ────────────────────
       # Engine modules use init() for driver registration (same pattern
