@@ -30,7 +30,7 @@ func marshalCommand(cmd *command.PersistedCommand) ([]byte, error) {
 		Metadata:   cmd.Metadata(),
 	}
 
-	data, err := marshalCBOR(sc)
+	data, err := marshalCBOR(sc) // art-dupl:accept mirror of event/query serialization — type-specific wire structs
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, "bbolt.serialize_command",
 			"marshal command")

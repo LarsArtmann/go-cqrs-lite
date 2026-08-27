@@ -26,7 +26,7 @@ func marshalQuery(q *query.PersistedQuery) ([]byte, error) {
 		Metadata:   q.Metadata(),
 	}
 
-	data, err := marshalCBOR(sq)
+	data, err := marshalCBOR(sq) // art-dupl:accept mirror of event/command serialization — type-specific wire structs
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, "bbolt.serialize_query",
 			"marshal query")

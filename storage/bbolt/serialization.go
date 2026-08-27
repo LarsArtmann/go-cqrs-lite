@@ -58,7 +58,7 @@ func serializeEvent(evt event.Event) ([]byte, error) {
 		Encoding:      string(evt.Encoding()),
 	}
 
-	data, err := marshalCBOR(s)
+	data, err := marshalCBOR(s) // art-dupl:accept mirror of command/query serialization — type-specific wire structs
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, "bbolt.serialize_event", "marshal event")
 	}
