@@ -78,6 +78,8 @@ func finalizeScan[T any](
 // familyOrInfrastructure preserves an already-classified inner family (a
 // Corruption from a decode failure must stay Corruption, not surface as
 // Infrastructure) and defaults only unclassified errors to Infrastructure.
+//
+//art-dupl:accept intentional cross-module duplicate — separate go.mod
 func familyOrInfrastructure(err error) errorfamily.Family {
 	if _, ok := errors.AsType[errorfamily.Classified](err); ok {
 		return errorfamily.Classify(err)
