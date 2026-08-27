@@ -115,23 +115,22 @@ deprecated `event.MarkTombstone`/`MarkRebirth`, or by
 `listing.StatusMiddleware` below). This is the pre-ADR-0114 path; use it only
 while migrating.
 
-### 4. listing — Stream Status via StatusMiddleware
+### 4. listing — Stream Status via StatusClassifier
 
-`listing` has no `WithDeleteTypes` reader option (never shipped). The event-type
-→ status bridge that DOES ship is `listing.StatusMiddleware`: install it on the
-publish bus and it marks tombstone/rebirth metadata on events **whose type
-matches your configured lists**. `ListWithStatus` then reports the status.
+The type-driven reader option ships as `listing.WithStatusClassifier`: pass
+the delete/rebirth event types once and `ListWithStatus` derives each
+stream's status from its LAST event's type — no metadata marking, no bus
+middleware.
 
 ```go
-reader := listing.NewInMemoryStreamReader(journal)
+reader := listing.NewInMemoryStreamReader(journal,
+    listing.WithStatusClassifier(listing.NewStatusClassifier(
+        []event.Type{"task.deleted", "task.archived"},  // delete types
+        []event.Type{"task.restored"},                  // rebirth types
+    )),
+)
 
-// Type-driven detection: one place to declare which event types mean delete/restore.
-bus.UsePublish(listing.StatusMiddleware(
-    []event.Type{"task.deleted", "task.archived"},  // delete types
-    []event.Type{"task.restored"},                  // rebirth types
-))
-
-// Streams whose last event is a delete type report Status = Tombstoned.
+// Streams whose last event is a delete type report Status = StatusTombstoned.
 page, err := reader.ListWithStatus(ctx, listing.ListOptions{
     Type:     "Task",
     Tombstone: listing.TombstoneExclude, // hide deleted (default)
@@ -140,6 +139,14 @@ page, err := reader.ListWithStatus(ctx, listing.ListOptions{
 })
 ```
 
+Without a classifier every stream reports `StatusUndetermined` — the same
+value the metadata bridge returned for unmarked streams — and
+`TombstoneExclude` keeps them visible, so configure the classifier before
+relying on status filtering.
+
+`listing.StatusMiddleware` (metadata marking on the publish bus) is
+Deprecated and removed in v5; it no longer affects reader status.
+
 ## API Mapping (old → what to do instead)
 
 | Old (Deprecated, still functional in v4)      | Migration path                                                    |
@@ -147,8 +154,8 @@ page, err := reader.ListWithStatus(ctx, listing.ListOptions{
 | `event.MarkTombstone(evt)`                    | Emit `"entity.deleted"` event directly                            |
 | `event.MarkRebirth(evt)`                      | Emit `"entity.restored"` event directly                           |
 | `event.DetectTombstone(events)`               | Check last event type: `events[len-1].Type() == "entity.deleted"` |
-| `event.TombstoneStatus` + `IsTombstoned()`    | Your own logic over event types (or `listing.StatusMiddleware`)   |
-| `listing.StatusMiddleware(deletes, rebirths)` | Keep — it IS the type-driven bridge today                         |
+| `event.TombstoneStatus` + `IsTombstoned()`    | `listing.Status` + `WithStatusClassifier` (type-driven)           |
+| `listing.StatusMiddleware(deletes, rebirths)` | `listing.NewStatusClassifier(deletes, rebirths)` + `WithStatusClassifier` |
 | `kv.TombstoneQuerier` / `QueryByTombstone`    | Unchanged — server-side SQL filtering                             |
 
 **There is no `DeletePolicy` rename.** The `listing.TombstonePolicy`

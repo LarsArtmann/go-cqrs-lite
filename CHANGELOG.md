@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Fixed — watermill catch-up is at-least-once; system accepts synthetic engine names — 2026-08-27
+
+- **`watermill.CatchUpSubscriber`** now advances the checkpoint only after
+  the consumer Acks a message — previously both replay and live phases
+  checkpointed at handoff, so a crash or Nack between delivery and
+  processing permanently skipped events (at-most-once). A Nack stops the
+  subscription with the checkpoint left behind the nacked event, so a
+  restart re-delivers it. The 1024-entry replay dedup ring (wrongly
+  invariant-bounded: the real overlap set is every event appended during
+  replay) is replaced by a last-replayed-ID watermark that suppresses live
+  duplicates of any replay length. Delivery is serialized per subscription
+  (forward, then wait for Ack/Nack).
+- **`system.New`** shutdown-dependency validation now checks edge names
+  against the POPULATED engine set including synthesized engines, so the
+  documented `{Before: "projections", After: "primary"}` /
+  `"default"` examples validate instead of failing with ErrUnknownEngine.
+  Empty Before/After names now return **`ErrShutdownDependencyInvalid`**
+  (was ErrUnknownEngine).
+
 ### Changed — listing status is type-driven (ADR-0114, v5 prep) — 2026-08-27
 
 - **`listing.Status`** (new type) + **`listing.StatusClassifier`** +

@@ -290,9 +290,11 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	}
 
 	// Wire shutdown dependencies from domain config. Validate edge names
-	// against the configured engines first: unknown names are otherwise
-	// silently dropped by the shutdown topological sort (E10).
-	if err := validateShutdownDependencies(domain.ShutdownDependencies, deployment); err != nil {
+	// against the POPULATED engine set (configured + synthesized "default"/
+	// "projections"): unknown names are otherwise silently dropped by the
+	// shutdown topological sort (E10), while config-only validation would
+	// reject the documented synthetic names (the E10 follow-up gap).
+	if err := validateShutdownDependencies(domain.ShutdownDependencies, sys.engines); err != nil {
 		return nil, err
 	}
 

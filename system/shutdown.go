@@ -27,21 +27,28 @@ type shutdownEdge struct {
 }
 
 // validateShutdownDependencies checks that every ShutdownDependency edge
-// references existing engines from DeploymentConfig.Engines. Without this
-// check, a typo'd engine name is silently dropped at Close() time (edges with
-// unknown names are skipped by the topological sort), making the declared
-// ordering constraint a silent no-op.
+// references an engine that actually exists on the System — configured
+// engines from DeploymentConfig.Engines PLUS synthesized ones ("default",
+// "projections"). Without this check, a typo'd engine name is silently
+// dropped at Close() time (edges with unknown names are skipped by the
+// topological sort), making the declared ordering constraint a silent
+// no-op.
 func validateShutdownDependencies(
 	deps []ShutdownDependency,
-	deployment DeploymentConfig,
+	engines []namedEngine,
 ) error {
+	known := make(map[string]struct{}, len(engines))
+	for _, ne := range engines {
+		known[ne.name] = struct{}{}
+	}
+
 	for _, dep := range deps {
 		if dep.Before == "" {
-			return fmt.Errorf("%w: shutdown dependency Before name is empty", ErrUnknownEngine)
+			return fmt.Errorf("%w: shutdown dependency Before name is empty", ErrShutdownDependencyInvalid)
 		}
 
 		if dep.After == "" {
-			return fmt.Errorf("%w: shutdown dependency After name is empty", ErrUnknownEngine)
+			return fmt.Errorf("%w: shutdown dependency After name is empty", ErrShutdownDependencyInvalid)
 		}
 
 		if dep.Before == dep.After {
@@ -51,16 +58,16 @@ func validateShutdownDependencies(
 			)
 		}
 
-		if _, ok := deployment.Engines[dep.Before]; !ok {
+		if _, ok := known[dep.Before]; !ok {
 			return fmt.Errorf(
-				"%w: shutdown dependency Before %q is not a configured engine",
+				"%w: shutdown dependency Before %q is not a configured or synthesized engine",
 				ErrUnknownEngine, dep.Before,
 			)
 		}
 
-		if _, ok := deployment.Engines[dep.After]; !ok {
+		if _, ok := known[dep.After]; !ok {
 			return fmt.Errorf(
-				"%w: shutdown dependency After %q is not a configured engine",
+				"%w: shutdown dependency After %q is not a configured or synthesized engine",
 				ErrUnknownEngine, dep.After,
 			)
 		}

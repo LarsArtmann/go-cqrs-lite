@@ -9,7 +9,6 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
@@ -27,17 +26,25 @@ type CheckpointStore = event.CheckpointStore
 // new events in real time (live). Watermill's built-in subscribers have no
 // replay capability — they only deliver live messages.
 //
-// The subscriber maintains a checkpoint per topic (projection name). After
-// each message is Acked, the checkpoint advances. On restart, replay resumes
-// from the last checkpoint.
+// The subscriber maintains a checkpoint per topic (projection name). The
+// checkpoint advances only after a message is ACKED by the consumer — never
+// on handoff — so a crash or Nack between delivery and processing replays the
+// event on restart (at-least-once). On restart, replay resumes from the last
+// checkpoint.
+//
+// Delivery is serialized per subscription: each message is forwarded, then
+// the subscriber waits for its Ack (or Nack) before delivering the next one.
+// A Nack stops the stream for that subscription (the checkpoint stays behind
+// the nacked event); the projection restarts from the checkpoint.
 //
 // Phase 1 (replay): Events are loaded from the journal via ReadFrom, converted
 // to Watermill messages, and sent to the output channel with ProcessingMode =
 // ModeReplay in the message metadata.
 //
-// Phase 2 (live handoff): The live subscriber is started. Events that were
-// already seen during replay (matched by EventID) are suppressed. All other
-// live events are forwarded to the output channel.
+// Phase 2 (live handoff): The live subscriber is started BEFORE replay (to
+// close the TOCTOU gap). Live events whose ID is at or below the last
+// replayed event ID (a monotonic-ULID watermark) were already covered by the
+// replay and are suppressed; all other live events are forwarded.
 //
 // Usage:
 //
@@ -59,10 +66,15 @@ type CatchUpSubscriber struct {
 }
 
 type catchUpSubscription struct {
-	topic     string
-	output    chan *message.Message
-	cancel    context.CancelFunc
-	replayIDs *dedup.Ring // bounded set of event IDs seen during replay
+	topic  string
+	output chan *message.Message
+	cancel context.CancelFunc
+	// replayWatermark is the event ID of the LAST event forwarded during
+	// replay. Monotonic ULIDs make string comparison equivalent to time
+	// order, so any live event at or below the watermark was already covered
+	// by the replay and is suppressed — unlike a bounded ring, the watermark
+	// covers arbitrarily long replays.
+	replayWatermark string
 }
 
 // NewCatchUpSubscriber creates a CatchUpSubscriber.
@@ -126,10 +138,9 @@ func (s *CatchUpSubscriber) Subscribe(
 	subCtx, cancel := context.WithCancel(ctx)
 
 	sub := &catchUpSubscription{
-		topic:     topic,
-		output:    output,
-		cancel:    cancel,
-		replayIDs: dedup.NewRing(catchUpDedupRingCapacity),
+		topic:  topic,
+		output: output,
+		cancel: cancel,
 	}
 
 	s.subs = append(s.subs, sub)
@@ -171,8 +182,9 @@ func (s *CatchUpSubscriber) runCatchUp(ctx context.Context, sub *catchUpSubscrip
 }
 
 // drainLive forwards messages from the live subscriber channel to the
-// output channel, skipping events already seen during replay (matched by
-// EventID via the replayIDs ring).
+// output channel, suppressing events at or below the replay watermark (they
+// were already delivered during replay) and advancing the checkpoint only
+// after the consumer Acks.
 func (s *CatchUpSubscriber) drainLive(
 	ctx context.Context,
 	sub *catchUpSubscription,
@@ -189,9 +201,10 @@ func (s *CatchUpSubscriber) drainLive(
 				return
 			}
 
-			// Dedup: skip events already seen during replay.
+			// Suppress live events already covered by the replay: their ID is
+			// at or below the last replayed ID (monotonic ULID ordering).
 			eventID := msg.Metadata.Get(metaEventID)
-			if eventID != "" && sub.replayIDs.Has(eventID) {
+			if eventID != "" && sub.replayWatermark != "" && eventID <= sub.replayWatermark {
 				msg.Ack()
 
 				continue
@@ -199,14 +212,8 @@ func (s *CatchUpSubscriber) drainLive(
 
 			select {
 			case sub.output <- msg:
-				// Save checkpoint for live events too.
-				if eventID != "" {
-					if evtID, parseErr := id.ParseEventID(eventID); parseErr == nil {
-						if saveErr := s.saveCheckpoint(ctx, sub.topic, evtID); saveErr != nil {
-							s.logger.Warn("catch-up: save checkpoint after live event",
-								"topic", sub.topic, "event_id", eventID, "error", saveErr)
-						}
-					}
+				if !s.awaitAck(ctx, msg, sub.topic, "live") {
+					return
 				}
 			case <-ctx.Done():
 				return
@@ -214,6 +221,41 @@ func (s *CatchUpSubscriber) drainLive(
 				return
 			}
 		}
+	}
+}
+
+// awaitAck blocks until the consumer Acks or Nacks msg. On Ack it advances
+// the checkpoint (best-effort); on Nack it reports false so the caller stops
+// the stream — the checkpoint stays behind the nacked event, so a restart
+// re-delivers it (at-least-once).
+func (s *CatchUpSubscriber) awaitAck(
+	ctx context.Context,
+	msg *message.Message,
+	topic, phase string,
+) bool {
+	select {
+	case <-msg.Acked():
+		eventID := msg.Metadata.Get(metaEventID)
+		if eventID != "" {
+			if evtID, parseErr := id.ParseEventID(eventID); parseErr == nil {
+				if saveErr := s.saveCheckpoint(ctx, topic, evtID); saveErr != nil {
+					s.logger.Warn("catch-up: save checkpoint after ack",
+						"topic", topic, "phase", phase, "event_id", eventID, "error", saveErr)
+				}
+			}
+		}
+
+		return true
+	case <-msg.Nacked():
+		s.logger.Warn("catch-up: consumer nacked message; stopping subscription",
+			"topic", topic, "phase", phase,
+			"event_id", msg.Metadata.Get(metaEventID))
+
+		return false
+	case <-ctx.Done():
+		return false
+	case <-s.closeCh:
+		return false
 	}
 }
 
@@ -253,10 +295,5 @@ func (s *CatchUpSubscriber) Close() error {
 }
 
 const metaProcessingMode = "processing_mode"
-
-// catchUpDedupRingCapacity bounds the replay→live dedup ring. 1024 entries ×
-// ~90 bytes = ~90KB. The output channel buffer is 256, so 1024 is a 4x safety
-// margin covering any events published during the replay window.
-const catchUpDedupRingCapacity = 1024
 
 var _ message.Subscriber = (*CatchUpSubscriber)(nil)

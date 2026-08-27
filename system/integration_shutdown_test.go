@@ -229,9 +229,39 @@ func TestIntegration_ShutdownDependency_EmptyName(t *testing.T) {
 	}
 
 	_, err := system.New(ctx, domain, deployment)
-	if !errors.Is(err, system.ErrUnknownEngine) {
-		t.Fatalf("expected ErrUnknownEngine for empty name, got: %v", err)
+	if !errors.Is(err, system.ErrShutdownDependencyInvalid) {
+		t.Fatalf("expected ErrShutdownDependencyInvalid for empty name, got: %v", err)
 	}
+}
+
+// TestIntegration_ShutdownDependency_SyntheticEngineNames verifies that edges
+// referencing SYNTHESIZED engines ("default", "projections") pass validation:
+// these names exist on the populated System even though they are not keys of
+// DeploymentConfig.Engines (the documented DomainConfig example uses them).
+func TestIntegration_ShutdownDependency_SyntheticEngineNames(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	domain := system.DomainConfig{
+		ShutdownDependencies: []system.ShutdownDependency{
+			{Before: "default", After: "primary"},
+		},
+	}
+
+	deployment := system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"primary": {Driver: "memory"},
+		},
+	}
+
+	sys, err := system.New(ctx, domain, deployment)
+	if err != nil {
+		t.Fatalf("expected synthetic engine names to validate, got: %v", err)
+	}
+
+	_ = sys.Close()
 }
 
 // TestIntegration_ShutdownDependency_SelfReference verifies that an edge

@@ -77,16 +77,17 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 			// the only channel that survives process boundaries in Watermill).
 			msg.Metadata.Set(metaProcessingMode, string(event.ModeReplay))
 
-			sub.replayIDs.Add(evt.ID().String())
-
 			select {
 			case sub.output <- msg:
-				// Save checkpoint after forwarding each replay event.
-				// Best-effort: log on error, don't block the stream.
-				if saveErr := s.saveCheckpoint(ctx, sub.topic, evt.ID()); saveErr != nil {
-					s.logger.Warn("catch-up: save checkpoint after replay event",
-						"topic", sub.topic, "event_id", evt.ID().String(), "error", saveErr)
+				// Checkpoint advances only on Ack: a crash or Nack between
+				// handoff and processing replays this event on restart
+				// (at-least-once).
+				if !s.awaitAck(ctx, msg, sub.topic, "replay") {
+					return errorfamily.NewOrchestration("watermill.catchup.replay_nacked",
+						"consumer nacked replay event; stopping catch-up for "+sub.topic)
 				}
+
+				sub.replayWatermark = evt.ID().String()
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-s.closeCh:
@@ -104,7 +105,7 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, totalReplayed))
-	span.SetAttributes(cqrsotel.AttrInt("cqrs.watermill.dedup_ring_size", sub.replayIDs.Len()))
+	span.SetAttributes(cqrsotel.AttrString("cqrs.watermill.replay_watermark", sub.replayWatermark))
 
 	s.logger.Info(
 		"catch-up replay",
