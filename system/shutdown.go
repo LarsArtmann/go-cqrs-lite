@@ -26,6 +26,49 @@ type shutdownEdge struct {
 	before, after string
 }
 
+// validateShutdownDependencies checks that every ShutdownDependency edge
+// references existing engines from DeploymentConfig.Engines. Without this
+// check, a typo'd engine name is silently dropped at Close() time (edges with
+// unknown names are skipped by the topological sort), making the declared
+// ordering constraint a silent no-op.
+func validateShutdownDependencies(
+	deps []ShutdownDependency,
+	deployment DeploymentConfig,
+) error {
+	for _, dep := range deps {
+		if dep.Before == "" {
+			return fmt.Errorf("%w: shutdown dependency Before name is empty", ErrUnknownEngine)
+		}
+
+		if dep.After == "" {
+			return fmt.Errorf("%w: shutdown dependency After name is empty", ErrUnknownEngine)
+		}
+
+		if dep.Before == dep.After {
+			return fmt.Errorf(
+				"%w: shutdown dependency %q references itself",
+				ErrShutdownDependencyInvalid, dep.Before,
+			)
+		}
+
+		if _, ok := deployment.Engines[dep.Before]; !ok {
+			return fmt.Errorf(
+				"%w: shutdown dependency Before %q is not a configured engine",
+				ErrUnknownEngine, dep.Before,
+			)
+		}
+
+		if _, ok := deployment.Engines[dep.After]; !ok {
+			return fmt.Errorf(
+				"%w: shutdown dependency After %q is not a configured engine",
+				ErrUnknownEngine, dep.After,
+			)
+		}
+	}
+
+	return nil
+}
+
 // orderedEngines returns engines sorted by shutdown dependencies. Engines not
 // in any dependency edge keep their creation order. Cycles fall back to
 // creation order for the affected engines.

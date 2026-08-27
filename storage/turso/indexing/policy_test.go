@@ -83,3 +83,37 @@ func TestPolicy_MarkSkipAutoCreate(t *testing.T) {
 		t.Error("expected audit_log to not skip auto-create")
 	}
 }
+
+func TestPolicy_ZeroValueMutators(t *testing.T) {
+	t.Parallel()
+
+	var p indexing.Policy
+
+	p.Exclude("audit_log")
+	p.MarkCritical("events")
+	p.MarkSkipAutoCreate("trace")
+
+	if !p.ShouldExclude("audit_log") {
+		t.Error("zero-value policy should lazy-init and exclude")
+	}
+	if !p.IsCritical("events") {
+		t.Error("zero-value policy should lazy-init and mark critical")
+	}
+	if !p.ShouldSkipAutoCreate("trace") {
+		t.Error("zero-value policy should lazy-init and skip auto-create")
+	}
+}
+
+func TestPolicy_NilMutators(t *testing.T) {
+	t.Parallel()
+
+	var p *indexing.Policy
+
+	p.Exclude("audit_log")
+	p.MarkCritical("events")
+	p.MarkSkipAutoCreate("trace")
+
+	if p.ShouldExclude("audit_log") {
+		t.Error("nil policy mutators should be no-ops")
+	}
+}

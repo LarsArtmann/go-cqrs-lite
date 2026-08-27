@@ -1,8 +1,9 @@
 package bbolt
 
 import (
-	"fmt"
 	"time"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -27,7 +28,8 @@ func marshalQuery(q *query.PersistedQuery) ([]byte, error) {
 
 	data, err := marshalCBOR(sq)
 	if err != nil {
-		return nil, fmt.Errorf("marshal query: %w", err)
+		return nil, errorfamily.WrapCorruption(err, "bbolt.serialize_query",
+			"marshal query")
 	}
 
 	return data, nil
@@ -49,7 +51,8 @@ func unmarshalQuery(data []byte) (*query.PersistedQuery, error) {
 		query.WithQueryMetadata(sq.Metadata),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("reconstruct query: %w", err)
+		return nil, errorfamily.WrapCorruption(err, "bbolt.reconstruct_query",
+			"reconstruct query")
 	}
 
 	return q, nil

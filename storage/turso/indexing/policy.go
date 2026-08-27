@@ -55,22 +55,50 @@ func (p *Policy) ShouldSkipAutoCreate(table string) bool {
 	return p.SkipAutoCreate[table]
 }
 
-// Exclude adds a table to the exclusion list.
+// Exclude adds a table to the exclusion list. A nil Policy or zero-value
+// Policy (uninitialized maps) is handled gracefully: nil receivers are a
+// no-op, and uninitialized maps are created on first write.
 func (p *Policy) Exclude(tables ...string) {
+	if p == nil {
+		return
+	}
+
+	if p.ExcludedTables == nil {
+		p.ExcludedTables = make(map[string]bool, len(tables))
+	}
+
 	for _, t := range tables {
 		p.ExcludedTables[t] = true
 	}
 }
 
-// MarkCritical adds tables to the critical list.
+// MarkCritical adds tables to the critical list. Nil receivers are a no-op;
+// uninitialized maps are created on first write.
 func (p *Policy) MarkCritical(tables ...string) {
+	if p == nil {
+		return
+	}
+
+	if p.CriticalTables == nil {
+		p.CriticalTables = make(map[string]bool, len(tables))
+	}
+
 	for _, t := range tables {
 		p.CriticalTables[t] = true
 	}
 }
 
-// MarkSkipAutoCreate adds tables to the skip-auto-create list.
+// MarkSkipAutoCreate adds tables to the skip-auto-create list. Nil
+// receivers are a no-op; uninitialized maps are created on first write.
 func (p *Policy) MarkSkipAutoCreate(tables ...string) {
+	if p == nil {
+		return
+	}
+
+	if p.SkipAutoCreate == nil {
+		p.SkipAutoCreate = make(map[string]bool, len(tables))
+	}
+
 	for _, t := range tables {
 		p.SkipAutoCreate[t] = true
 	}

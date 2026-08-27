@@ -1,0 +1,37 @@
+direction: down
+
+S0: "S0 Gate Baseline" {
+  tooltip: "build + vet + test + race + lint + dup-check + coverage + doc-check + api-stability"
+}
+S1: "S1 Smell Sweep" {
+  tooltip: "any-in-domain, panics, split-brain grep, TODO audit, error-family audit"
+}
+S2: "S2 Fix Prior-Review Debt" {
+  tooltip: "E3 bbolt error-family, E9 turso nil-map, E10 system shutdown name validation"
+}
+S3: "S3 Deep Tier 0-1" {
+  tooltip: "record id dedup kv dispatcher event command query metadata scheduling"
+}
+S4: "S4 Deep Tier 2-3" {
+  tooltip: "schema snapshot projection deriver commandlifecycle decider listing scenario projectionhost metaengine-core"
+}
+S5: "S5 Spot Tier 4-6" {
+  tooltip: "storage cores middleware signing encryption otel system stack watermill catalog example cmd"
+}
+S6: "S6 Verify Fixes" {
+  tooltip: "rebuild, re-test affected, goldens, lint, file-size gate"
+}
+S7: "S7 Report + TODO_LIST" {
+  tooltip: "HTML full-code-review report + harvest debt into TODO_LIST.md"
+}
+
+S0 -> S1: "gate state known"
+S1 -> S2: "findings triage"
+S1 -> S3
+S2 -> S6: "fixes need verify"
+S3 -> S4
+S3 -> S6
+S4 -> S5
+S4 -> S6
+S5 -> S6
+S6 -> S7: "green"

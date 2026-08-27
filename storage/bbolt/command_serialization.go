@@ -1,8 +1,9 @@
 package bbolt
 
 import (
-	"fmt"
 	"time"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -31,7 +32,8 @@ func marshalCommand(cmd *command.PersistedCommand) ([]byte, error) {
 
 	data, err := marshalCBOR(sc)
 	if err != nil {
-		return nil, fmt.Errorf("marshal command: %w", err)
+		return nil, errorfamily.WrapCorruption(err, "bbolt.serialize_command",
+			"marshal command")
 	}
 
 	return data, nil
@@ -56,7 +58,8 @@ func unmarshalCommand(data []byte) (*command.PersistedCommand, error) {
 		command.WithCommandMetadata(sc.Metadata),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("reconstruct command: %w", err)
+		return nil, errorfamily.WrapCorruption(err, "bbolt.reconstruct_command",
+			"reconstruct command")
 	}
 
 	return cmd, nil

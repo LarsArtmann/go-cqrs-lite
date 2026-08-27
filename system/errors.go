@@ -21,6 +21,7 @@ var (
 	ErrQueryResultMismatch    = errors.New("system: query result type mismatch")
 	ErrQueryTypeMismatch      = errors.New("system: query type mismatch")
 	ErrSeekableJournalMissing = errors.New("system: store does not implement event.SeekableJournal")
+	ErrShutdownDependencyInvalid = errors.New("system: invalid shutdown dependency")
 	ErrSystemStopped          = errors.New("system: already stopped")
 	ErrUnknownBusDriver       = errors.New("system: unknown bus driver")
 	ErrUnknownEngine          = errors.New("system: unknown engine")
