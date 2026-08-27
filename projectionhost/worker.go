@@ -23,6 +23,11 @@ import (
 // around the midpoint (delay = half + rand(0..half]).
 const jitterHalfDivisor = 2
 
+// maxBackoffShift caps the exponent in 1<<n growth: beyond 63 the shift
+// silently wraps to 0, collapsing the backoff to zero under unlimited-restart
+// or very high retry-threshold configs (hot crash loop).
+const maxBackoffShift = 30
+
 // worker is a single projection's event-processing goroutine.
 type worker struct {
 	name       string
@@ -196,7 +201,7 @@ func (w *worker) run(ctx context.Context) {
 		// exponential cap so concurrent crashing workers don't all restart at
 		// the same instant (thundering herd). math/rand/v2 is auto-seeded.
 		exp := min(
-			w.opts.backoffInitial*time.Duration(1<<uint(restartCount-1)),
+			w.opts.backoffInitial*time.Duration(1<<uint(min(restartCount-1, maxBackoffShift))),
 			w.opts.backoffMax,
 		)
 		backoff := time.Duration(
@@ -269,7 +274,7 @@ func (w *worker) applyWithRetry(ctx context.Context, evt event.Event) error {
 			// Gives the downstream a real recovery window between per-event
 			// retries. Reuses the same backoff params as the restart path.
 			exp := min(
-				w.opts.backoffInitial*time.Duration(1<<uint(attempt)),
+				w.opts.backoffInitial*time.Duration(1<<uint(min(attempt, maxBackoffShift))),
 				w.opts.backoffMax,
 			)
 			half := int64(exp) / jitterHalfDivisor

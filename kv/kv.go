@@ -16,6 +16,8 @@ type Store interface {
 type Reader interface {
 	// Get retrieves the value for the given key.
 	// Returns [ErrNotFound] if the key does not exist.
+	// The caller owns the returned slice: implementations must not alias
+	// internal storage.
 	Get(ctx context.Context, key []byte) ([]byte, error)
 
 	// Has reports whether a key exists without reading the value.
@@ -50,10 +52,14 @@ type Iterator interface {
 	// Returns false when exhausted or on error (check [Iterator.Error]).
 	Next() bool
 
-	// Key returns the current key. Only valid after [Iterator.Next] returns true.
+	// Key returns the current key. Only valid after [Iterator.Next] returns
+	// true, and only until the next call to [Iterator.Next]. Callers that
+	// need to retain a key must copy it.
 	Key() []byte
 
-	// Value returns the current value. Only valid after [Iterator.Next] returns true.
+	// Value returns the current value. Only valid after [Iterator.Next]
+	// returns true, and only until the next call to [Iterator.Next].
+	// Callers that need to retain a value must copy it.
 	Value() []byte
 
 	// Error returns any error encountered during iteration.

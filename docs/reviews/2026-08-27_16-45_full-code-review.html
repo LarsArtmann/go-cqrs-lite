@@ -1,0 +1,1306 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>go-cqrs-lite — Full Code Review (2026-08-27)</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>FULL CODE REVIEW</span>
+      <span>2026-08-27</span>
+      <span>CRUSH · GLM-5.3</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#coverage">Coverage &amp; Method</a>
+          <a href="#fixed">Fixed on the Spot</a>
+          <a href="#open">Open Findings</a>
+          <a href="#verdicts">Module Verdicts</a>
+          <a href="#strengths">Strengths</a>
+          <a href="#gates">Gates &amp; Verification</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Deep Full-Code Review</div>
+          <h1>go-cqrs-lite — Full Code Review</h1>
+          <p class="hero-subtitle">
+            82-module Go CQRS/event-sourcing library · Tier 0–3 deep review plus Tier 4–6
+            hotspots · 17 fixes landed inline, 9 follow-ups harvested to TODO_LIST.md.
+          </p>
+        </div>
+
+        <nav class="toc">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#summary">Summary</a></li>
+            <li><a href="#coverage">Coverage &amp; Method</a></li>
+            <li><a href="#fixed">Fixed on the Spot</a></li>
+            <li><a href="#open">Open Findings</a></li>
+            <li><a href="#verdicts">Module Verdicts</a></li>
+            <li><a href="#strengths">Strengths</a></li>
+            <li><a href="#gates">Gates &amp; Verification</a></li>
+          </ul>
+        </nav>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-value">82</div>
+            <div class="stat-label">Modules in scope</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">17</div>
+            <div class="stat-label">Fixes landed inline</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">7</div>
+            <div class="stat-label">Regression tests added</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">9</div>
+            <div class="stat-label">Follow-ups harvested</div>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card stat-bad">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Real bugs fixed</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Footguns defused</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Flake class killed</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Split brains found</div>
+          </div>
+        </div>
+
+        <div class="card card-solution">
+          <h4>Verdict</h4>
+          <p>
+            The library is in strong shape. Tier 0–3 code shows consistent discipline:
+            defensive cloning at every boundary, errorfamily classification everywhere,
+            validated constructors, and honest doc comments. The residual risk the review
+            targeted — behavioral and semantic drift that gates cannot see — produced
+            three real bugs (a silently-poisoned lifecycle counter, a zero-backoff hot
+            crash loop, a recurring TTL-test flake misdiagnosed twice) and four footguns,
+            all fixed on the spot with regression tests. No split brains, no type-safety
+            violations beyond documented <code>any</code> exception zones.
+          </p>
+        </div>
+
+        <h2 id="coverage"><span class="num">01</span>Coverage &amp; Method</h2>
+        <p>
+          Pareto-tiered per the plan artifact
+          (<code>docs/planning/2026-08-27_15-10_DEEP-FULL-CODE-REVIEW-PARETO.html</code>):
+          deep manual read of everything a consumer imports by default (Tier 0–3 cores),
+          spot review of Tier 4–6 hotspots, and repo-wide smell sweeps. The repo was
+          already heavily gated (CI verify, api-stability golden, dep budgets, coverage
+          drift, duplication baseline) and recently reviewed (system 2026-08-16/17,
+          data models 2026-08-22) — this review deliberately hunted what gates
+          <em>cannot</em> see: cancellation semantics, cache-poisoning paths, counter
+          recovery after failed writes, doc lies, and load-order contracts.
+        </p>
+        <div class="card card-warning">
+          <h4>Honest coverage statement</h4>
+          <p>
+            Every production file was read in: record, id, dedup, dispatcher, metadata,
+            event, command, query, scheduling, schema, snapshot, decider, kv, listing,
+            projection, deriver, scenario, commandlifecycle (+projections),
+            projectionhost, graph (core), storage/memory (LogStore core), and
+            middleware/retry. Tier 4–6 engines, stacks, transports, catalog and cmd/*
+            were spot-checked (1–3 files each) and covered by the sweep greps; the
+            engine modules are dep-isolated intentional clones by design (ADR-0126 /
+            art-dupl baselines) and rely on their own conformance harnesses
+            (enginetest/adttest). Not every one of the 2,375 files was opened — the
+            tiers above were chosen because every consumer imports them.
+          </p>
+        </div>
+
+        <h2 id="fixed"><span class="num">02</span>Fixed on the Spot</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Bug</span>
+          <h3>Recorder version cache poisoned forever after one failed append</h3>
+          <div class="where">commandlifecycle/recorder.go:172-180</div>
+          <p>
+            On any Save failure the in-memory version counter stayed incremented past
+            the unwritten position, so every subsequent lifecycle emit conflicted with
+            the real stream — in default best-effort mode the conflict is logged and
+            swallowed, meaning <strong>all further lifecycle events for that command
+            were silently dropped</strong> after a single transient store error or
+            concurrent writer.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Drop the cached version on Save error so the next emit re-seeds from the
+            store. Pinned by <code>TestRecorder_RecoversAfterFailedAppend</code>
+            (fail-first store wrapper; fails on the old code).
+          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Bug</span>
+          <h3>Backoff shift overflow collapses crash restarts to a hot loop</h3>
+          <div class="where">projectionhost/worker.go:201, 274-277</div>
+          <p>
+            <code>1&lt;&lt;uint(restartCount-1)</code> wraps to zero once the exponent
+            passes 63: under unlimited-restart configs (<code>maxRestarts = -1</code>)
+            a permanently failing projection degrades from exponential backoff to a
+            <strong>zero-delay crash loop</strong> after 64 crashes. The same latent
+            overflow sat in the per-event retry path for large <code>dlqThreshold</code>.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Cap the exponent at 30 (<code>maxBackoffShift</code>); 2^30 × initial
+            delay is far beyond any sane <code>backoffMax</code> cap, so behavior is
+            unchanged for realistic configs.
+          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Flake</span>
+          <h3>TTL property test flake, third recurrence — structurally cured</h3>
+          <div class="where">idempotency/sqlstore/property_test.go:147-198</div>
+          <p>
+            The "seen immediately after Record" assertion shared one key and a 50ms TTL
+            with the expiry assertion: under full-gate load the goroutine can be
+            descheduled past the TTL between Record and Seen. Margin bumps (10→50→100ms)
+            never killed the class. Bonus find while fixing: the assertions swallowed
+            Seen's error (<code>seen, _ :=</code>), so error paths asserted as
+            false negatives.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Visibility assertion moved to a derived key with a 1-hour TTL (timing-proof
+            by construction), errors propagated, expiry assertion keeps its wide margin.
+            3× -count runs green.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Footgun</span>
+          <h3>WaitForVersion panics on non-positive poll options</h3>
+          <div class="where">decider/wait_for_version.go:35-52, 90</div>
+          <p>
+            <code>WithPollInterval(0)</code> reached <code>time.NewTicker</code>, which
+            panics on non-positive intervals. Repo precedent
+            (<code>decider.NewStateCache</code>, <code>listing.ListBuilder.PageSize</code>)
+            is to clamp.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Both wait options clamp non-positive values to defaults; documented on the
+            option funcs; two regression tests.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Bug</span>
+          <h3>Flight-recorder snapshot dies with the request context</h3>
+          <div class="where">decider/flightrecorder.go:44-53</div>
+          <p>
+            The post-Execute snapshot goroutine inherited the request ctx, which is
+            typically cancelled exactly when error captures matter (client gave up).
+            go-flightrecorder's <code>snapshot()</code> checks
+            <code>ctx.Done()</code> first — the capture was silently discarded.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            <code>context.WithoutCancel</code> for the async snapshot (matching
+            projectionhost's existing deferred-flush pattern). Pinned by
+            <code>TestRepository_FlightRecorder_CaptureSurvivesCancelledContext</code>.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Footgun</span>
+          <h3>NewTypedRepository accepted nil Decide — panic time bomb</h3>
+          <div class="where">decider/typed_decider.go:42-51</div>
+          <p>
+            NewRepository validates Apply but nothing validated the typed Decide
+            function; nil surfaced as a typed-nil-call panic at the first dispatch,
+            far from the construction site.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Constructor rejects nil Decide with new sentinel
+            <code>decider.ErrNilDecide</code> (family Rejection); golden regenerated
+            (4274 exports); regression test added.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Bug</span>
+          <h3>kv.Cache.Set left a stale entry when the isolation copy failed</h3>
+          <div class="where">kv/cache.go:149-167</div>
+          <p>
+            Store-write-then-copy order: if the deep copy for cache isolation failed
+            after a successful store write, the cache kept the pre-Set value — the next
+            Get served stale data while the error suggested nothing was cached.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Invalidate the cached key on copy failure; the error still propagates.
+          </div>
+        </div>
+
+        <h3 style="margin-top:2.5rem">Earlier in this review (committed by daemon)</h3>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Severity</th><th>Module</th><th>Issue</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td><span class="severity severity-important">Important</span></td>
+                <td>system</td>
+                <td>ShutdownDependency edges with empty/unknown/self-referencing names silently dropped by the topological sort (E10)</td>
+                <td><span class="severity severity-nice">Fixed</span></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><span class="severity severity-important">Important</span></td>
+                <td>storage/bbolt</td>
+                <td>Command/query (de)serialization failures unclassified — now Corruption family with dot-codes (E3)</td>
+                <td><span class="severity severity-nice">Fixed</span></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><span class="severity severity-important">Important</span></td>
+                <td>storage/turso</td>
+                <td>Indexing-policy mutators panicked on zero-value/nil policies (E9)</td>
+                <td><span class="severity severity-nice">Fixed</span></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><span class="severity severity-nice">Nice</span></td>
+                <td>scheduling</td>
+                <td>MemoryTimerStore.Due leaked random map iteration order into dispatch order, violating its FireAt-ascending contract</td>
+                <td><span class="severity severity-nice">Fixed</span></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><span class="severity severity-nice">Nice</span></td>
+                <td>event / scheduling / snapshot</td>
+                <td>Doc lies corrected: ParseSource validation claims, WithRetryDelay "full jitter" (it is equal jitter), ReadPressure unbounded-growth documented + TODO</td>
+                <td><span class="severity severity-nice">Fixed</span></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td><span class="severity severity-nice">Nice</span></td>
+                <td>kv</td>
+                <td>WithTypedCodec doc claimed JSONCodec default; actual default is CBORCodec. Reader/Iterator ownership + lifetime contracts now documented</td>
+                <td><span class="severity severity-nice">Fixed</span></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td><span class="severity severity-nice">Nice</span></td>
+                <td>cmd/cqrs-lint</td>
+                <td>Version constant drifted (4.6.0 vs released v4.7.0 tag)</td>
+                <td><span class="severity severity-nice">Fixed</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="open"><span class="num">03</span>Open Findings (harvested to TODO_LIST.md)</h2>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">P3</span>
+          <h3>Unbounded maps in long-running paths</h3>
+          <div class="where">commandlifecycle/recorder.go · commandlifecycle/middleware.go · snapshot/read_pressure.go</div>
+          <p>
+            The Recorder's version cache, the standalone AttemptMiddleware tracker, and
+            ReadPressure's reads map all grow with distinct keys and are never evicted.
+            Individually small; together a slow leak in exactly the long-running
+            dispatch loops this library targets.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">P3</span>
+          <h3>projectionhost retries non-retryable error families</h3>
+          <div class="where">projectionhost/worker.go:233-291</div>
+          <p>
+            applyWithRetry retries handler errors dlqThreshold times regardless of
+            family — a Rejection or Corruption (permanent by definition in the
+            6-family taxonomy) still burns the full retry budget before DLQ.
+            middleware/retry.go already does this right via IsRetryable.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">P4</span>
+          <h3>Smaller harvests</h3>
+          <div class="where">see TODO_LIST.md → "Deep Full-Code Review (2026-08-27)"</div>
+          <p>
+            projectionhost Stop timeout leaves no re-drain path · command.New vs
+            query.New error-style drift · cqrs-lint version constant not bumped by
+            tag-release.sh · kv.Cache.Get miss-path double codec round-trip
+            (documented tradeoff) · listing cursor matches IDs across stream types ·
+            projectionhost Stop-timeout semantics.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>Observations (deliberate choices, no action)</h4>
+          <p>
+            Publish-failure paths (decider, listing, commandlifecycle) force
+            Infrastructure classification on downstream errors — defensible
+            ("the publish operation is infrastructure") but it can mask Transient
+            retryability; consistent across modules, so left alone. listing's
+            DetectTombstone(lastEvent) heuristic assumes no post-tombstone events —
+            true under decider discipline, and the ADR-0114 type-based bridge
+            replaces it at v5.
+          </p>
+        </div>
+
+        <h2 id="verdicts"><span class="num">04</span>Module Verdicts</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Module(s)</th><th>Tier</th><th>Depth</th><th>Verdict</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>record, id, dedup, dispatcher, metadata</td><td>0</td><td>Full</td><td>Exemplary — typed stamps, lock-free ULID, O(1) ring</td></tr>
+              <tr><td>event, command, query, scheduling, schema, snapshot</td><td>1–2</td><td>Full</td><td>Very strong; 3 doc/contract fixes</td></tr>
+              <tr><td>decider</td><td>3</td><td>Full</td><td>Strong; 3 fixes (clamp, WithoutCancel, ErrNilDecide); fold-checkpoint cache is a highlight</td></tr>
+              <tr><td>kv</td><td>0</td><td>Full</td><td>Strong; 3 fixes (docs ×2, stale-invalidate)</td></tr>
+              <tr><td>listing, projection, deriver, scenario</td><td>2–3</td><td>Full</td><td>Clean; no changes needed</td></tr>
+              <tr><td>commandlifecycle (+projections)</td><td>2–3</td><td>Full</td><td>Good design, 1 real bug fixed, 2 leaks harvested</td></tr>
+              <tr><td>projectionhost</td><td>3</td><td>Full</td><td>Solid crash-restart core; overflow fix + 3 harvests</td></tr>
+              <tr><td>graph</td><td>3</td><td>Core</td><td>Snapshot-tx reference impl clean (deprecated surface shrinks at v5)</td></tr>
+              <tr><td>storage/memory, storage/sql, middleware</td><td>4</td><td>Spot</td><td>LogStore generic core exemplary; retry classification-aware</td></tr>
+              <tr><td>engines, stacks, transports, catalog, cmd/*, example</td><td>4–6</td><td>Spot + sweeps</td><td>Gate-covered; intentional-clone baselines hold</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="strengths"><span class="num">05</span>Strengths</h2>
+        <div class="strengths">
+          <ul>
+            <li>Decider's state cache is a <strong>fold checkpoint</strong>, not a blind cache — every hit reconciles via LoadFromVersion, so stale entries self-heal and publish-failure paths cannot corrupt subsequent loads.</li>
+            <li><strong>LogStore[T, ID]</strong> (ADR-0126): one generic WAL core, divergent policies injected via config — the unification held up under review with zero copy-paste found.</li>
+            <li>Defensive cloning is universal at boundaries (kv Get/Set/iterator, event accessors, batch ops) — no aliasing escape hatches found in any tier read.</li>
+            <li>errorfamily discipline: zero bare <code>fmt.Errorf</code> without wrapping in production code; sentinel codes are dot-namespaced and honest.</li>
+            <li>Must* panic pattern is consistently documented ("use only for hardcoded constants"); no stray panics in library paths.</li>
+            <li>Sweeps came back clean: <code>slices.Backward</code> value-copy trap correctly avoided everywhere (indexed forms), no duplicate type declarations across modules, api golden + doc-check + changelog-symbols all honest.</li>
+          </ul>
+        </div>
+
+        <h2 id="gates"><span class="num">06</span>Gates &amp; Verification</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Gate</th><th>Result</th></tr></thead>
+            <tbody>
+              <tr><td>Full verify (run 2, post E3/E9/E10)</td><td>RED on 1: sqlstore TTL flake → structurally fixed</td></tr>
+              <tr><td>Full verify (final, post all fixes)</td><td id="verify-final">All phases GREEN (build, vet, tests, race, lint, doc-check over all 82 modules). Sole failure: api-stability golden stale — a concurrent session’s commit (53b6f609c, event streaming forwards) landed without its required golden regen; bookkeeping completed here (4278 exports) and the suite re-verified GREEN.</td></tr>
+              <tr><td>Race ×3, 9 touched modules</td><td>GREEN (decider 3 separate Ginkgo-compliant runs)</td></tr>
+              <tr><td>api-stability golden + meta-tests</td><td>GREEN (4274 exports, +1 ErrNilDecide)</td></tr>
+              <tr><td>doc-check (921 refs, 42 pkgs)</td><td>GREEN, zero warnings</td></tr>
+              <tr><td>changelog-symbols</td><td>GREEN (90 citations honest)</td></tr>
+              <tr><td>nix fmt</td><td>Applied — also reflowed 3 files the auto-commit daemon had committed unformatted</td></tr>
+              <tr><td>Smell sweeps (Backward / bare-Errorf / split-brain / panic)</td><td>Clean</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card card-solution">
+          <h4>Session honesty notes</h4>
+          <p>
+            One full verify run was wasted on the dead /mnt/buildcache mount (env
+            workaround now required for every go/nix command). The sqlstore flake was
+            misdiagnosed twice before the structural cure — the failing seed's exotic
+            key was a witness, not a cause. The auto-commit daemon committed two
+            formatting-off files that nix fmt later caught; daemon commits were
+            diff-audited against intended edits (all clean). Tier 4–6 coverage is
+            spot-level, stated above without inflation.
+          </p>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-08-27 &middot; All claims verified against source code
+          where noted &middot; Unfixed findings live in TODO_LIST.md, not here
+        </footer>
+      </main>
+    </div>
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

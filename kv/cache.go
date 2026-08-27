@@ -154,6 +154,10 @@ func (cs *Cache[T, K]) Set(ctx context.Context, id K, val *T) error {
 
 	cached, err := cs.copy(val)
 	if err != nil {
+		// The store write succeeded; drop any stale cached entry so the
+		// next Get reflects the store instead of the pre-Set value.
+		cs.cache.Invalidate(id.String())
+
 		return err
 	}
 

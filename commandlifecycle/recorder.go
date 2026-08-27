@@ -170,6 +170,11 @@ func (r *Recorder) emit(
 	}
 
 	if err := r.store.Save(ctx, ref, []event.Event{evt}, version-1); err != nil {
+		// Drop the cached version so the next emit re-seeds from the store.
+		// The in-memory counter is already past the failed write; keeping it
+		// would make every subsequent emit conflict with the real stream.
+		r.ResetVersion(ref.StreamKey())
+
 		return r.handleError(err, "append lifecycle event", eventType, cmd)
 	}
 

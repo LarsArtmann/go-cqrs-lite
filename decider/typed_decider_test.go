@@ -2,6 +2,7 @@ package decider_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -99,5 +100,22 @@ func TestTypedDecider_NilPublisher(t *testing.T) {
 
 	if len(events) != 1 {
 		t.Fatalf("expected 1 event persisted (pure-ES mode), got %d", len(events))
+	}
+}
+
+func TestTypedDecider_NilDecideRejected(t *testing.T) {
+	t.Parallel()
+
+	store := eventtest.NewFakeStore()
+
+	d := decider.TypedDecider[counterState, incrementCmd]{
+		Initial: counterState{Value: 0},
+		Decide:  nil,
+		Apply:   applyCounter,
+	}
+
+	_, err := decider.NewTypedRepository[counterState, incrementCmd](store, nil, d)
+	if !errors.Is(err, decider.ErrNilDecide) {
+		t.Fatalf("expected ErrNilDecide, got %v", err)
 	}
 }

@@ -38,13 +38,18 @@ type TypedRepository[State any, Cmd any] struct {
 }
 
 // NewTypedRepository creates a repository bound to a [TypedDecider].
-// The publisher may be nil for pure event-sourcing mode.
+// The publisher may be nil for pure event-sourcing mode. Returns
+// [ErrNilDecide] when the typed Decide function is nil.
 func NewTypedRepository[State, Cmd any](
 	store event.Store,
 	publisher event.Publisher,
 	d TypedDecider[State, Cmd],
 	opts ...RepositoryOption[State],
 ) (*TypedRepository[State, Cmd], error) {
+	if d.Decide == nil {
+		return nil, ErrNilDecide
+	}
+
 	legacyDecider := Decider[State]{
 		Initial: d.Initial,
 		Apply:   d.Apply,

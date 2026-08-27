@@ -340,8 +340,16 @@ func TestMemoryTimerStore_DueOrderedByFireAt(t *testing.T) {
 	// Schedule in scrambled order; IDs and FireAt values are intentionally
 	// independent so the sort must order by FireAt, not insertion order.
 	timers := []scheduling.Timer[string]{
-		{ID: scheduling.MustParseTimerID("c"), FireAt: now.Add(-10 * time.Minute), Payload: "second"},
-		{ID: scheduling.MustParseTimerID("a"), FireAt: now.Add(-30 * time.Minute), Payload: "first"},
+		{
+			ID:      scheduling.MustParseTimerID("c"),
+			FireAt:  now.Add(-10 * time.Minute),
+			Payload: "second",
+		},
+		{
+			ID:      scheduling.MustParseTimerID("a"),
+			FireAt:  now.Add(-30 * time.Minute),
+			Payload: "first",
+		},
 		{ID: scheduling.MustParseTimerID("b"), FireAt: now.Add(-10 * time.Minute), Payload: "tie"},
 	}
 

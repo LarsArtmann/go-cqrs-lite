@@ -60,7 +60,12 @@ func SaveSnapshot(
 	version event.Version,
 	state []byte,
 ) error {
-	snap, err := NewSnapshot(id.NewStreamRef(aggType, aggID), version, state, record.EncodingUnknown)
+	snap, err := NewSnapshot(
+		id.NewStreamRef(aggType, aggID),
+		version,
+		state,
+		record.EncodingUnknown,
+	)
 	if err != nil {
 		return errorfamily.Wrapf(
 			err,

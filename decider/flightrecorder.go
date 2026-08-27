@@ -41,9 +41,14 @@ func (r *Repository[State]) maybeCaptureFlightRecorder(
 		return
 	}
 
+	// The snapshot runs after Execute returns, so the request context may
+	// already be cancelled (especially on error paths where the client gave
+	// up). Detach cancellation but keep tracing values.
+	snapshotCtx := context.WithoutCancel(ctx)
+
 	go func() {
-		if snapErr := r.flightRecorder.Snapshot(ctx); snapErr != nil {
-			slog.WarnContext(ctx, "flight recorder snapshot failed in decider.Execute",
+		if snapErr := r.flightRecorder.Snapshot(snapshotCtx); snapErr != nil {
+			slog.WarnContext(snapshotCtx, "flight recorder snapshot failed in decider.Execute",
 				"ref", ref.String(), "error", snapErr)
 		}
 	}()

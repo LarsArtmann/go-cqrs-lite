@@ -19,7 +19,7 @@ var errNilTypedValue = errorfamily.NewRejection(
 type TypedOption[T any, K fmt.Stringer] func(*TypedStore[T, K])
 
 // WithTypedCodec sets the serialization codec used by [TypedStore.Set] and [TypedStore.Get].
-// Defaults to [codec.JSONCodec] when constructing a TypedStore directly.
+// Defaults to [codec.CBORCodec] when constructing a TypedStore directly.
 // When using [stack.ReadModel] or [stack.NewMaterialize], the Bundle's
 // [stack.Bundle.DefaultCodec] (CBORCodec by default) is used instead.
 //

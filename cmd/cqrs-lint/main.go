@@ -15,7 +15,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
 
-const version = "4.6.0"
+// version must match the latest cmd/cqrs-lint/v* tag; the
+// TestVersionMatchesLatestTag gate enforces this. The v4.7.0 tag was cut
+// while this constant still read 4.6.0 (the stranded-tag-chain class of
+// drift); bumping the constant repairs the source-of-truth.
+const version = "4.7.0"
 
 // commitHash and buildDate are injected via -ldflags at build time (Nix flake,
 // CI). When empty (local `go build`), the version output omits them.

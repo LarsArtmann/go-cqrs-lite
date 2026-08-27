@@ -90,6 +90,63 @@ func TestRepository_FlightRecorder_CapturesOnError(t *testing.T) {
 	}
 }
 
+func TestRepository_FlightRecorder_CaptureSurvivesCancelledContext(t *testing.T) {
+	deciderFRMu.Lock()
+	defer deciderFRMu.Unlock()
+
+	var buf deciderSafeBuf
+
+	recorder, _ := flightrecorder.New(
+		flightrecorder.WithMinAge(50*time.Millisecond),
+		flightrecorder.WithMaxBytes(1<<20),
+		flightrecorder.WithWriter(&buf),
+	)
+	if err := recorder.Start(); err != nil {
+		t.Fatalf("recorder Start: %v", err)
+	}
+	t.Cleanup(recorder.Stop)
+
+	store := eventtest.NewFakeStore()
+	bus := eventtest.NewFakeBus()
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{Value: 0},
+		Apply:   applyCounter,
+	}
+
+	repo, err := decider.NewRepository(
+		store, bus, d,
+		decider.WithFlightRecorder[counterState](recorder,
+			flightrecorder.OnError()),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	// Cancel the request context up front: the async snapshot must not
+	// inherit the cancellation (WithoutCancel), or the very error the
+	// recorder was configured to capture is lost.
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	streamID := id.NewStreamID()
+	execErr := repo.Execute(
+		ctx, streamID, "Counter",
+		func(_ counterState, _ event.Version) ([]event.Event, error) {
+			return nil, errors.New("command rejected")
+		},
+	)
+	if execErr == nil {
+		t.Fatal("expected Execute error")
+	}
+
+	time.Sleep(300 * time.Millisecond)
+
+	if buf.Len() == 0 {
+		t.Fatal("expected flight recorder snapshot despite cancelled request context")
+	}
+}
+
 func TestRepository_FlightRecorder_NoCaptureOnSuccess(t *testing.T) {
 	deciderFRMu.Lock()
 	defer deciderFRMu.Unlock()

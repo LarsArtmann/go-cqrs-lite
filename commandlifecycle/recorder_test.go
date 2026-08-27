@@ -541,3 +541,46 @@ func (closedSink) LoadToTimestamp(
 ) ([]event.Event, error) {
 	return nil, errors.New("sink closed")
 }
+
+// failFirstSaveStore delegates to a MemoryStore but fails the first Save.
+type failFirstSaveStore struct {
+	*memorystore.MemoryStore
+
+	failed bool
+}
+
+func (s *failFirstSaveStore) Save(
+	ctx context.Context,
+	ref id.StreamRef,
+	events []event.Event,
+	expectedVersion event.Version,
+) error {
+	if !s.failed {
+		s.failed = true
+
+		return errors.New("injected transient failure")
+	}
+
+	return s.MemoryStore.Save(ctx, ref, events, expectedVersion)
+}
+
+// TestRecorder_RecoversAfterFailedAppend pins the version-cache recovery: a
+// failed Save must drop the cached stream version so the next emit re-seeds
+// from the store instead of conflicting forever.
+func TestRecorder_RecoversAfterFailedAppend(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	inner := newMemoryStore(t)
+	store := &failFirstSaveStore{MemoryStore: inner}
+	recorder := commandlifecycle.NewRecorder(store, commandlifecycle.WithStrict())
+	cmd := newTestCommand(t)
+
+	g.Expect(recorder.RecordReceived(context.Background(), cmd)).NotTo(Succeed())
+	g.Expect(recorder.RecordReceived(context.Background(), cmd)).To(Succeed())
+
+	events := loadLifecycleEvents(t, inner, cmd)
+	g.Expect(events).To(HaveLen(1))
+	g.Expect(events[0].Version()).To(Equal(event.Version(1)))
+	g.Expect(string(events[0].Type())).To(Equal("command.received"))
+}

@@ -22,10 +22,12 @@ func TestWaitForVersion_ImmediateReturn(t *testing.T) {
 	executeCounter(t, repo, streamID, 1, 1, "CounterIncremented", 2)
 	executeCounter(t, repo, streamID, 2, 2, "CounterIncremented", 3)
 
-	// WaitForVersion(3) should return immediately — version is already visible.
+	// Non-positive poll options must fall back to the defaults instead of
+	// panicking inside time.NewTicker.
 	events, err := repo.WaitForVersion(
 		context.Background(), streamID, "Counter", 3,
-		decider.WithWaitTimeout(100*time.Millisecond),
+		decider.WithWaitTimeout(-time.Second),
+		decider.WithPollInterval(0),
 	)
 	if err != nil {
 		t.Fatalf("WaitForVersion: %v", err)
@@ -33,6 +35,22 @@ func TestWaitForVersion_ImmediateReturn(t *testing.T) {
 
 	if len(events) != 1 {
 		t.Fatalf("expected 1 event (from version 3), got %d", len(events))
+	}
+}
+
+func TestWaitForVersion_NonPositivePollIntervalTimesOut(t *testing.T) {
+	t.Parallel()
+
+	repo, _, _ := newTestRepo(t)
+	streamID := id.NewStreamID()
+
+	_, err := repo.WaitForVersion(
+		context.Background(), streamID, "Counter", 1,
+		decider.WithWaitTimeout(50*time.Millisecond),
+		decider.WithPollInterval(-time.Second),
+	)
+	if !errors.Is(err, decider.ErrWaitTimeout) {
+		t.Fatalf("expected ErrWaitTimeout (no panic, default interval), got %v", err)
 	}
 }
 

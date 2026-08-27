@@ -31,9 +31,9 @@ import (
 // been read since its last snapshot, and entries are removed only when a
 // snapshot fires. Read-heavy streams that are never written again leave
 // their (small) counter entries behind for the lifetime of the strategy.
-// TODO(review-2026-08-27): bound the counter map (e.g. LRU cap like
-// dedup.Ring) if long-lived processes with many one-shot streams observe
-// growth; eviction changes snapshot-trigger semantics and needs a design call.
+// Bounding the counter map (e.g. an LRU cap like dedup.Ring) is deferred:
+// eviction changes snapshot-trigger semantics and needs a design call
+// (tracked in TODO_LIST.md, deep full-code-review 2026-08-27).
 type ReadPressure struct {
 	threshold int
 	inner     SnapshotStrategy

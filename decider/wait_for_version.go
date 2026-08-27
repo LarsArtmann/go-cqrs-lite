@@ -33,15 +33,25 @@ const (
 )
 
 // WithWaitTimeout sets the maximum time [Repository.WaitForVersion] will poll
-// before returning [ErrWaitTimeout]. Default: 2s.
+// before returning [ErrWaitTimeout]. Default: 2s. Non-positive values fall
+// back to the default.
 func WithWaitTimeout(d time.Duration) WaitOption {
-	return func(c *waitConfig) { c.timeout = d }
+	return func(c *waitConfig) {
+		if d > 0 {
+			c.timeout = d
+		}
+	}
 }
 
-// WithPollInterval sets the interval between polls in [Repository.WaitForVersion].
-// Default: 10ms.
+// WithPollInterval sets the interval between polls in
+// [Repository.WaitForVersion]. Default: 10ms. Non-positive values fall back
+// to the default (time.NewTicker panics on non-positive intervals).
 func WithPollInterval(d time.Duration) WaitOption {
-	return func(c *waitConfig) { c.pollInterval = d }
+	return func(c *waitConfig) {
+		if d > 0 {
+			c.pollInterval = d
+		}
+	}
 }
 
 // WaitForVersionRef polls the event store until the target version is visible,

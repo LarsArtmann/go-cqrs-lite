@@ -27,6 +27,13 @@ var ErrNilApply = errorfamily.NewRejection(
 	"apply function is required",
 )
 
+// ErrNilDecide is returned by NewTypedRepository when the typed Decide
+// function is nil.
+var ErrNilDecide = errorfamily.NewRejection(
+	"decider.nil_decide",
+	"decide function is required",
+)
+
 // ErrLoadFailed is returned when loading events from the store fails.
 var ErrLoadFailed = errorfamily.NewTransient(
 	"decider.load_failed",

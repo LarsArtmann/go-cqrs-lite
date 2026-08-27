@@ -22,12 +22,18 @@ var propDBCounter atomic.Int64
 // ttlTestParams returns a (ttl, wait) pair with enough headroom to survive
 // scheduler jitter under -race without making the non-race path slow. Shared
 // by the TTL property test (and the build-tagged integration tests).
+//
+// The non-race margins were widened from 10ms/50ms after a full workspace
+// gate run (all modules in parallel, high ambient load) descheduled the test
+// goroutine for longer than the 10ms TTL between Record and the immediate
+// Seen check, legitimately expiring the key before first observation.
+// 50ms/250ms covers realistic gate-load jitter while keeping the test fast.
 func ttlTestParams() (time.Duration, time.Duration) {
 	if raceEnabled {
 		return 100 * time.Millisecond, 400 * time.Millisecond
 	}
 
-	return 10 * time.Millisecond, 50 * time.Millisecond
+	return 50 * time.Millisecond, 250 * time.Millisecond
 }
 
 func newTestStore(tb testing.TB) (*sqlstore.Store, *sql.DB) {
@@ -160,24 +166,40 @@ func TestProperty_SQLiteTTLExpiry(t *testing.T) {
 		defer store.Close()
 
 		key := rapid.String().Draw(rt, "key")
-		// Race-aware timing: -race inflates scheduling latency 5-10x, so the
-		// wait must clear the TTL by a wide margin (see race_on_test.go). The
-		// original fixed 50ms+100ms (and later 200ms+500ms) margins still
-		// flaked under heavy parallel load, leaving stale .fail seeds behind.
+		// Suffix guarantees visKey != key: equal drawn strings would make the
+		// 1-hour visibility row shadow the TTL row (Record is ON CONFLICT DO
+		// NOTHING, so the second write would be silently dropped).
+		visKey := key + "|cqrs-vis|"
+		// Expiry margins: see ttlTestParams. The visibility assertion uses a
+		// LONG TTL so it cannot be defeated by scheduler jitter descheduling
+		// the goroutine past the TTL between Record and Seen (the flake class
+		// that margin bumps alone never fully killed).
 		ttl, wait := ttlTestParams()
+
+		if err := store.Record(context.Background(), visKey, time.Hour); err != nil {
+			rt.Fatalf("Record visKey: %v", err)
+		}
+
+		seen, err := store.Seen(context.Background(), visKey)
+		if err != nil {
+			rt.Fatalf("Seen visKey: %v", err)
+		}
+
+		if !seen {
+			rt.Fatal("key should be seen immediately after Record")
+		}
 
 		if err := store.Record(context.Background(), key, ttl); err != nil {
 			rt.Fatalf("Record: %v", err)
 		}
 
-		seen, _ := store.Seen(context.Background(), key)
-		if !seen {
-			rt.Fatal("key should be seen immediately after Record")
-		}
-
 		time.Sleep(wait)
 
-		seen, _ = store.Seen(context.Background(), key)
+		seen, err = store.Seen(context.Background(), key)
+		if err != nil {
+			rt.Fatalf("Seen after expiry: %v", err)
+		}
+
 		if seen {
 			rt.Fatal("key should be unseen after TTL expiry")
 		}
