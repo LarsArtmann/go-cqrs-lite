@@ -3,6 +3,7 @@ package eventstore
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
@@ -47,7 +48,14 @@ func (s *SQLCheckpointStore) Load(
 	cp, err := sqlpkg.SharedCheckpointLoad(ctx, s.DB, projectionName, s.Dialect)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return event.Checkpoint{}, errorfamily.WrapInfrastructure(err,
+		// Preserve an already-classified inner family: a checkpoint row that
+		// fails to parse is Corruption (stored data), not Infrastructure.
+		family := errorfamily.Infrastructure
+		if _, ok := errors.AsType[errorfamily.Classified](err); ok {
+			family = errorfamily.Classify(err)
+		}
+
+		return event.Checkpoint{}, errorfamily.Wrap(err, family,
 			"storage.load_checkpoint",
 			"load checkpoint for projection "+projectionName)
 	}

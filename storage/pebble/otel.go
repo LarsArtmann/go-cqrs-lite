@@ -2,6 +2,7 @@ package pebble
 
 import (
 	"context"
+	"errors"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
@@ -86,12 +87,23 @@ func finalizeScan[T any](
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, errorfamily.WrapInfrastructure(err, code, msg)
+		return nil, errorfamily.Wrap(err, familyOrInfrastructure(err), code, msg)
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt(countAttr, len(itemsOut)))
 
 	return itemsOut, nil
+}
+
+// familyOrInfrastructure preserves an already-classified inner family (a
+// Corruption from a decode failure must stay Corruption, not surface as
+// Infrastructure) and defaults only unclassified errors to Infrastructure.
+func familyOrInfrastructure(err error) errorfamily.Family {
+	if _, ok := errors.AsType[errorfamily.Classified](err); ok {
+		return errorfamily.Classify(err)
+	}
+
+	return errorfamily.Infrastructure
 }
 
 // reportScanErr records err on span and returns it wrapped as Infrastructure.

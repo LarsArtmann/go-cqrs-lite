@@ -32,10 +32,14 @@ func (batch *pebbleBatch) Commit(_ context.Context) error {
 		return nil
 	}
 
-	batch.committed = true
-
-	return wrapInfraOrOK(batch.batch.Commit(batch.commitOpts), "pebble.batch.commit",
+	err := wrapInfraOrOK(batch.batch.Commit(batch.commitOpts), "pebble.batch.commit",
 		"commit batch")
+
+	// Mark committed only on success: a failed commit must still allow
+	// Close() to release the pebble batch (pooled buffers).
+	batch.committed = err == nil
+
+	return err
 }
 
 func (batch *pebbleBatch) Close() error {

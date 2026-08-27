@@ -94,6 +94,10 @@ func (s *EventStore) Save(
 
 		eventsBucket := tx.Bucket([]byte(bucketEvents))
 		journalBucket := tx.Bucket([]byte(bucketJournal))
+		if eventsBucket == nil || journalBucket == nil {
+			return errorfamily.NewInfrastructure("bbolt.bucket_missing",
+				"events/journal buckets missing; DB not initialized via NewBackend")
+		}
 
 		for i, evt := range events {
 			if err := validateEventOwnership(evt, ref); err != nil {
@@ -152,6 +156,10 @@ func (s *EventStore) AppendBatch(
 	err := s.writeTx(func(tx *bolt.Tx) error {
 		eventsBucket := tx.Bucket([]byte(bucketEvents))
 		journalBucket := tx.Bucket([]byte(bucketJournal))
+		if eventsBucket == nil || journalBucket == nil {
+			return errorfamily.NewInfrastructure("bbolt.bucket_missing",
+				"events/journal buckets missing; DB not initialized via NewBackend")
+		}
 
 		for _, evt := range events {
 			data, err := serializeEvent(evt)

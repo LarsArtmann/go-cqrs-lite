@@ -3,6 +3,7 @@ package bbolt
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"sync/atomic"
@@ -72,6 +73,10 @@ func (a *KVAdapter) Get(_ context.Context, key []byte) ([]byte, error) {
 		result = slices.Clone(val)
 		return nil
 	})
+
+	if errors.Is(err, kv.ErrNotFound) || errors.Is(err, kv.ErrClosed) {
+		return result, err
+	}
 
 	return result, wrapBucketErr(err, "bbolt.kv_get", "get key")
 }

@@ -95,7 +95,8 @@ func (s *SQLEventStore) Save(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return errorfamily.WrapInfrastructure(err, "storage.check_version",
+		// Preserve the Conflict family from checkVersion.
+		return errorfamily.Wrap(err, errorfamily.Classify(err), "storage.check_version",
 			fmt.Sprintf("check version for %s %s", streamType, streamID))
 	}
 
@@ -236,7 +237,9 @@ func (s *SQLEventStore) wrapInsertEventsErr(
 ) error {
 	cqrsotel.RecordError(span, err)
 
-	return errorfamily.WrapInfrastructure(err, "storage.insert_events",
+	// Preserve the inner family: duplicate-key inserts are classified
+	// Conflict deeper down and must surface as Conflict, not Infrastructure.
+	return errorfamily.Wrap(err, errorfamily.Classify(err), "storage.insert_events",
 		fmt.Sprintf("insert %d events for %s", len(events), ref))
 }
 

@@ -47,7 +47,13 @@ func IsDuplicateKeyError(err error) bool {
 	return strings.Contains(msg, "UNIQUE constraint failed") ||
 		strings.Contains(msg, "duplicate key value violates unique constraint") ||
 		strings.Contains(msg, "UNIQUE constraint violated") ||
-		strings.Contains(msg, "Duplicate entry") // MySQL Error 1062
+		strings.Contains(msg, "Duplicate entry") || // MySQL Error 1062
+		// DuckDB 1.x reports PRIMARY KEY violations as
+		// `Constraint Error: Duplicate key "id: ..." violates primary key
+		// constraint` — a distinct shape from its UNIQUE form. commands.id
+		// and queries.id are PRIMARY KEYs, so without this the Inserter
+		// duplicate hook never fires on DuckDB.
+		strings.Contains(msg, "violates primary key constraint")
 }
 
 // pgCodeError is an interface satisfied by pgconn.PgError and similar types

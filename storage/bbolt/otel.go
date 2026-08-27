@@ -2,6 +2,7 @@ package bbolt
 
 import (
 	"context"
+	"errors"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
@@ -67,14 +68,25 @@ func finalizeScan[T any](
 ) ([]T, error) {
 	if err != nil { //art-dupl:accept cross-module OTel error recording — separate go.mod
 		cqrsotel.RecordError(span, err)
-		return nil, errorfamily.WrapInfrastructure(err, code, msg)
+		return nil, errorfamily.Wrap(err, familyOrInfrastructure(err), code, msg)
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt(countAttr, len(itemsOut)))
 	return itemsOut, nil
 }
 
+// familyOrInfrastructure preserves an already-classified inner family (a
+// Corruption from a decode failure must stay Corruption, not surface as
+// Infrastructure) and defaults only unclassified errors to Infrastructure.
+func familyOrInfrastructure(err error) errorfamily.Family {
+	if _, ok := errors.AsType[errorfamily.Classified](err); ok {
+		return errorfamily.Classify(err)
+	}
+
+	return errorfamily.Infrastructure
+}
+
 func reportScanErr(span cqrsotel.Span, err error, code, msg string) error {
 	cqrsotel.RecordError(span, err)
-	return errorfamily.WrapInfrastructure(err, code, msg)
+	return errorfamily.Wrap(err, familyOrInfrastructure(err), code, msg)
 }

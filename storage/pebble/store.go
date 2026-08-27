@@ -157,7 +157,8 @@ func (a *EventStore) Save(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return errorfamily.WrapInfrastructure(err, "pebble.check_version",
+		// Preserve the Conflict family from checkVersion.
+		return errorfamily.Wrap(err, errorfamily.Classify(err), "pebble.check_version",
 			fmt.Sprintf("pebble check version for %s %s", ref.Type, ref.ID))
 	}
 
@@ -171,8 +172,11 @@ func (a *EventStore) Save(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return errorfamily.WrapInfrastructure(
+		// Preserve the inner family (Conflict from version checks,
+		// Corruption from encode failures) instead of forcing Infrastructure.
+		return errorfamily.Wrap(
 			err,
+			errorfamily.Classify(err),
 			"pebble.write_events",
 			fmt.Sprintf(
 				"pebble write %d events for %s %s",

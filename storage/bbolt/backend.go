@@ -2,7 +2,6 @@ package bbolt
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 	"time"
@@ -208,7 +207,8 @@ func (b *Backend) GracefulClose(ctx context.Context) error {
 func (b *Backend) DiskUsage() (uint64, error) {
 	st, err := os.Stat(b.db.Path())
 	if err != nil {
-		return 0, fmt.Errorf("stat bbolt file: %w", err)
+		return 0, errorfamily.WrapInfrastructure(err, "bbolt.disk_usage",
+			"stat bbolt file "+b.db.Path())
 	}
 
 	return uint64(st.Size()), nil
