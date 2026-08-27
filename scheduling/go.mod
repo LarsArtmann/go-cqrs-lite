@@ -5,7 +5,7 @@ go 1.26.6
 require (
 	github.com/larsartmann/go-branded-id v0.5.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.2.0
 )
 
 require (

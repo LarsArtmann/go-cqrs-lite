@@ -104,7 +104,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-flightrecorder v0.2.0
 )

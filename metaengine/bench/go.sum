@@ -132,8 +132,8 @@ github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 h1:cz9UT/X4sIPvPqIF8YNp4ngPc
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0/go.mod h1:SOk4O0UJPD3MZz/H1mctUdgLYGBhdFRB/1DmTa7HUQY=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0 h1:7bhIS1IjF8waY3WbhBG53es1/fLlunWx3rbI2y4+ZFg=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0/go.mod h1:JtyLB/TVaLDi5jydCst4x8ytMVvCqBFc9Nga4Yu4qi4=
-github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.0.0 h1:qyJ+7FkQpuWyBXWZPn4jWxv9OMfhQQTGdsu4mY+s4FI=
-github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.0.0/go.mod h1:FpKAVTg798umuDKxV1W4PWT90XPpy4+u9R3+Ojrx33M=
+github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.1.0 h1:ftDi81j5jiUbBuaFAAapZLOiXhdePoOh5V6ksGd+AZI=
+github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.1.0/go.mod h1:YAuSkgv9kvx3SYSHVuNKWtds97hadYMjU2LpmpJFn5g=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 h1:SvhtPWYWTtV48+fgAaIDrJGTWgmNG/1RxZoQQmNTvN0=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0/go.mod h1:TB0o6rv8eIdLqV9ZxdIsRNTNQuALt/d5/MFtPZp5AjQ=
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0 h1:QwJEMIav0UVqcoQHSGBPWQgZcO/rFjFl7akwuruIhTc=

@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.5.0
 )
 
 require (
@@ -49,13 +49,14 @@ require (
 	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
@@ -71,8 +72,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
-	github.com/testcontainers/testcontainers-go v0.44.0 // indirect
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
