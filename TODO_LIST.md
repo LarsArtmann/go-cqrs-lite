@@ -888,16 +888,21 @@ and is **never** duplicated here.
       the disease is cross-backend drift; pebble lying-doc fixed on the
       spot). Follow-ups extracted below.
       _(Effort: L)_
-- [ ] **bbolt error-family parity** (review E3) — replace bare `fmt.Errorf`
+- [x] **bbolt error-family parity** (review E3) — replace bare `fmt.Errorf`
       in bbolt command/query marshal+reconstruct with errorfamily codes,
-      matching pebble's pattern.
+      matching pebble's pattern. ✅ 2026-08-27 (deep full-code review;
+      `bbolt.serialize_command`/`reconstruct_command`/`serialize_query`/
+      `reconstruct_query` Corruption contexts)
       _(Effort: S)_
-- [ ] **turso.Policy nil-map write guard** (review E9) — mutators panic on
-      zero-value Policy; guard writes like reads.
+- [x] **turso.Policy nil-map write guard** (review E9) — mutators panic on
+      zero-value Policy; guard writes like reads. ✅ 2026-08-27 (nil-receiver
+      no-op + lazy map init, zero-value tests added)
       _(Effort: S)_
-- [ ] **system.ShutdownDependency name validation** (review E10) — validate
+- [x] **system.ShutdownDependency name validation** (review E10) — validate
       Before/After against DeploymentConfig.Engines at build; typo'd names
-      currently silent-no-op.
+      currently silent-no-op. ✅ 2026-08-27 (`validateShutdownDependencies` in
+      `system.New`, `ErrShutdownDependencyInvalid` sentinel, 3 integration
+      tests)
       _(Effort: S)_
 - [ ] **v5 items from extended review** — E1 (event-envelope Encoding →
       `record.Encoding`), E7 (watermill/middleware RetryConfig collision),
@@ -937,6 +942,254 @@ and is **never** duplicated here.
       truth; Step 5 gained both steps before writing — skill lives outside
       this repo, hence no repo commit)
       _(Effort: S)_
+
+### Deep Full-Code Review (2026-08-27) — follow-ups
+
+> 9 fixes landed inline (E3/E9/E10 + decider poll-clamp/WithoutCancel/
+> ErrNilDecide, scheduling Due ordering, kv stale-cache invalidate,
+> commandlifecycle version-cache recovery, projectionhost backoff cap).
+> Report: `docs/reviews/2026-08-27_full-code-review.html`.
+
+- [ ] **commandlifecycle Recorder unbounded versions map** — every command ID
+      seeds a `versions` entry that is never evicted (only manual
+      `ResetVersion`); long-running dispatch loops grow it forever. Bound it
+      (LRU/TTL) or re-seed per emit batch.
+      _(Effort: S)_
+- [ ] **commandlifecycle AttemptMiddleware standalone leak** — the attempt
+      tracker is only cleared by the OUTER middleware; standalone
+      `AttemptMiddleware` usage grows `attempts` forever.
+      _(Effort: S)_
+- [ ] **projectionhost applyWithRetry ignores error family** — Rejection/
+      Corruption (non-retryable) handler errors are still retried
+      `dlqThreshold` times before DLQ; skip straight to DLQ for
+      `!family.IsRetryable()`.
+      _(Effort: S)_
+- [ ] **projectionhost Stop timeout has no retry path** — after
+      `shutdownTimeout` fires, `stopped=true` makes later Stop calls no-op
+      while workers may still run; expose a force/re-drain path.
+      _(Effort: S)_
+- [ ] **snapshot.ReadPressure bounded tracking** — the `reads` map grows
+      with distinct stream refs (inline `TODO(review-2026-08-27)` in
+      `snapshot/read_pressure.go`); bounded LRU option.
+      _(Effort: S)_
+- [ ] **command/query constructor error-style drift** — `command.New` wraps
+      sentinel errors while `query.New` returns raw strings; unify before v5.
+      _(Effort: S)_
+- [ ] **cqrs-lint version constant automation** — `cmd/cqrs-lint/main.go`
+      `version` const drifted from the released tag (4.6.0 vs v4.7.0);
+      `scripts/tag-release.sh` should bump it in the same wave.
+      _(Effort: S)_
+- [ ] **kv.Cache.Get miss-path double round-trip** — miss path encodes+
+      decodes an extra copy for isolation (documented tradeoff); optional:
+      cache the store-fresh value directly and copy only on hit.
+      _(Effort: S)_
+- [ ] **listing cursor cross-type ambiguity** — `ListOptions.After` matches
+      ID strings across stream types when no Type filter is set; same ULID
+      under two types can skip/repeat entries. Document or key cursor by
+      (type, id).
+      _(Effort: S)_
+
+### Deep-Review Gap Wave (2026-08-27, second session) — follow-ups
+
+> Concurrent review wave (11 module clusters, agent-swept). 10 fixes landed
+> inline (DecorateStore streaming forwarding; Conflict/Corruption family
+> preservation across dispatcher/command/query/memory/pebble/eventstore;
+> scheduling WithMaxRetries clamp + corrupt-row skip; query pagination
+> divide-by-zero + audit detached-context; DuckDB PK duplicates; dedup nil
+> Add; event constructor-family passthrough + Orchestration alias; middleware
+> flight-recorder detached context; bbolt bucket/NotFound guards; pebble
+> batch leak). Unfixed findings below, priority-ordered.
+
+- [ ] **listing StatusMiddleware marks never reach the journal** 🔥 —
+      `MarkTombstone` returns a NEW event delivered to bus subscribers only;
+      the journal copy saved by the decider never carries the mark, so
+      `InMemoryStreamReader.rebuildCache` reads status `Undetermined` from
+      the journal: `TombstoneExclude` (default) INCLUDES deleted streams and
+      `TombstoneOnly` returns nothing. The migration-doc recipe
+      (`docs/migration/tombstone-to-domain-events.md:118-141`) cannot work
+      with the decider save-then-publish flow. Near-term: correct the doc +
+      add a type-driven reader option (`WithDeleteTypes`); the real fix is
+      the v5 type-based status (sweep items 18/19). Tests currently hide
+      this by pre-stamping metadata before Save.
+      _(Effort: M; doc part S)_
+- [ ] **metaengine Record context is shared mutable state across Stores** 🔥 —
+      `recHolder` lives on the Fold instance; `Store.Verify` builds a second
+      Store from the same declarations and replays into it, so concurrent
+      live `Apply` + Verify replay is a data race on `recHolder.rec` and can
+      cross-attribute Record context. Pass the Record through the invoke
+      closure as an argument instead of a shared cell.
+      _(Effort: M)_
+- [ ] **metaengine replay paths destroy Record context** 🔥 — `EventLog`
+      stores only (Type, Payload); `Backfill`, `DemoteEngine` catch-up, and
+      `Verify` replay with synthesized `record.Record{Type}`, so Record-aware
+      folds rebuilt via replay silently diverge from live-built ones (Verify
+      compares row counts only and cannot catch it). Add optional
+      `Record record.Record` to EventInput/log entries (additive).
+      _(Effort: M)_
+- [ ] **watermill CatchUpSubscriber checkpoints at handoff, not Ack** — the
+      doc says "after each message is Acked" but both replay and live phases
+      save the checkpoint right after `output <- msg`; a crash (or Nack)
+      between handoff and processing permanently skips events (at-most-once).
+      Also: the 1024-entry dedup ring is bounded by a wrong invariant (the
+      real overlap set is every event appended during replay, unbounded), so
+      duplicates can still slip through under load. Checkpoint on
+      `msg.Acked()`; replace the replay-side ring with a last-replayed-ID
+      watermark.
+      _(Effort: M)_
+- [ ] **watermill subscriber Close can panic (send on closed channel)** —
+      `Close()` closes `outputCh` while handler goroutines may be blocked
+      selecting on send; a send on a closed channel is always "ready". Never
+      close `outputCh`; signal via `closeCh` only. Also `Subscribe` twice
+      overwrites the handlers map entry (duplicate delivery on shared
+      output).
+      _(Effort: S)_
+- [ ] **system shutdown validation rejects the runtime's own synthetic
+      engines** — `validateShutdownDependencies` checks against
+      `deployment.Engines`, but the constructor auto-creates `"default"` /
+      `"projections"` engines that the runtime sort honors — the
+      `ShutdownDependencies` doc example (`Before: "projections"`) now fails
+      `New()` with ErrUnknownEngine. Validate against the populated engine
+      set; also classify empty names as ErrShutdownDependencyInvalid (not
+      ErrUnknownEngine).
+      _(Effort: S)_
+- [ ] **pebble command/query duplicate check is check-then-commit + fail
+      closed** — the existence check runs outside the write lock (concurrent
+      duplicate Save silently overwrites instead of Conflict) and treats ANY
+      Get error as "exists" (an Infrastructure read failure is reported as
+      `ErrDuplicateCommand`). Take the per-ID shard lock around check+commit;
+      return wrapped Infrastructure when the check itself fails.
+      _(Effort: M)_
+- [ ] **stream-not-found contract diverges across backends** — pebble/bbolt
+      `Load`/`LoadFromVersion` return `(nil, nil)` for missing streams while
+      memory/SQL (and the same stores' LoadToVersion) return
+      ErrStreamNotFound; `event.EventSource` godoc is silent. Pin the
+      contract on the interface, align backends (store-side change is
+      v5-marked). Same class: SeekableJournal dangling-cursor behavior
+      diverges (memory replays from start; SQL/pebble/bbolt return empty and
+      stall) — pick the SQL contract, document on the interface.
+      _(Effort: S doc / v5 align)_
+- [ ] **schema upcaster registry hazards** — (a) upcaster returning the same
+      pointer mutates the stored/shared event (README claims "original is
+      never mutated"); (b) `(nil, nil)` return panics; (c) the registry
+      force-stamps source+1 regardless of the returned version (a v1→v3
+      upcaster is relabeled and double-transformed); (d) duplicate
+      (type,version) registrations accepted with unstable sort; (e) doc
+      claims construction-time chain validation that does not exist.
+      Guard nil, use sort.SliceStable, verify version stamps post-upcast,
+      reject duplicates, fix or implement the claimed validation.
+      _(Effort: M)_
+- [ ] **snapshot.TypedStore.Save bypasses NewSnapshot** — bare struct literal:
+      no invariant validation (version 0 / zero refs persist; property test
+      generates version 0) and no CreatedAt stamp, unlike every other write
+      path. Route through the validating constructor.
+      _(Effort: S)_
+- [ ] **kv.Cache has no invalidation primitive + cache-aside race** —
+      `Backend()`/`Store()` hand out raw writers that bypass the cache, a
+      second Cache instance never invalidates, default TTL is 0 (unbounded
+      staleness), and a Get-miss can pin a stale value after a concurrent Set
+      (G1 read-old → G2 Set → G1 cache.Set(old)). Add `Invalidate`/
+      `InvalidateAll` (additive), document the single-writer assumption and
+      TTL recommendation. Also: `DeleteAll` with no configured prefix
+      deletes EVERY key in the backend — document the blast radius or gate
+      behind an explicit opt-in.
+      _(Effort: M)_
+- [ ] **catalog SchemaFromType silent-wrong schemas** — exported embedded
+      (anonymous) struct fields are skipped although encoding/json flattens
+      them onto the wire (generated docs/clients disagree with payloads;
+      enshrined by `TestFromType_SkipsAnonymousEmbeddedFields`); recursive
+      types (self-referential payloads) recurse to a stack overflow with no
+      in-progress guard. Recurse into exported anonymous fields honoring
+      their json tags; reserve a cache placeholder before recursing.
+      _(Effort: M; goldens change)_
+- [ ] **cqrs-lint C042 inspects the wrong argument** — the zero-expected-
+      version rule checks `call.Args[2]` but `event.Store.Save` is
+      `(ctx, ref, events, expectedVersion)` — the version is `Args[3]`; the
+      rule can never fire on the canonical API (and misses
+      `event.Version(0)` conversions).
+      _(Effort: S)_
+- [ ] **scenario DSL can pass vacuously** — `Given(...).When(cmd, decide)`
+      with no `Then*` compiles and passes with zero assertions;
+      `GivenProjection` without `ThenNoError`/`ThenError` swallows every
+      handler error. Register a `t.Cleanup` guard failing the test when no
+      terminal assertion ran. Also `scenario/doc.go`'s example signature is
+      stale (missing `t *testing.T`).
+      _(Effort: S)_
+- [ ] **projectionhost hardening set** — `ReplayDeadLetters` calls
+      `projection.Handle` outside `handleMu` (races a running worker);
+      `Reset` clears read-model state BEFORE the checkpoint (crash window
+      skips pre-checkpoint events; doc says checkpoint first);
+      `WithBatchSize` accepts <=0 (worker exits "caught up" processing
+      nothing); the documented Stop→Reset→Start recipe cannot work (Start
+      rejects after first start); `CheckStaleness` reports fresh for a dead
+      worker (lag==0 ambiguity); DLQ admits Transient/Infrastructure errors
+      (permanent silent gap until manual replay); one corrupt SQLite DLQ row
+      bricks List/ReplayDeadLetters.
+      _(Effort: M)_
+- [ ] **capability interfaces not adopted at three assertion sites** —
+      middleware/actor.go, commandlifecycle/recorder.go, and
+      watermill/command_protocol.go each re-declare a private
+      `Metadata() command.Metadata` interface although
+      `command.MetadataCarrier` exists exactly for this (ADR-0111 g).
+      Replace the private clones (non-breaking).
+      _(Effort: S)_
+- [ ] **transport deprecation is not machine-readable** — transport/http and
+      transport/grpc say "DEPRECATED" in prose but lack the Go-standard
+      `// Deprecated:` paragraph, so staticcheck SA1019 never flags
+      consumers; http's WebSocket section steers to grpc without noting it
+      is deprecated too.
+      _(Effort: XS)_
+- [ ] **deriver has no cycle guard** — `Then`'s doc blesses A→events→B→events
+      chains through the bus, but nothing bounds derivation cycles
+      (deterministic IDs key on the source event ID, which changes every
+      round). Opt-in depth guard via a hops counter in derived-command
+      metadata, or document the hazard on AsHandler.
+      _(Effort: S)_
+- [ ] **scheduling multi-instance + retry semantics undocumented** — no
+      claim/lease protocol: two Schedulers on one store double-fire every
+      timer (undocumented single-active-instance requirement);
+      dispatchWithRetry retries every family (Rejection retried 3× per poll
+      forever) and errors.Join keeps only the last attempt's error;
+      `MarkFired` deletes by ID with no epoch (a re-scheduled timer can be
+      deleted mid-flight). Document now; ClaimingTimerStore (SKIP LOCKED)
+      as additive follow-up.
+      _(Effort: S doc / L claim protocol)_
+- [ ] **metaengine routing/lifecycle follow-ups** — `Calibration` setters
+      race concurrent `Profile()` readers (documented Plan→Calibrate→Probe
+      ordering makes it likely); `CheckRouting`'s cache signature omits the
+      plan version (stale diagnostics after Replan) and live NsForRead;
+      reassignment is strict argmin so the hysteresis deadband only gates
+      suggestions (assignments flap under oscillation); engines over-
+      declaring `Supports` produce execution-time hard errors with no
+      plan-time diagnostic or routing penalty (CapabilityAudit renders a
+      banner but is not a rule); graph BFS fallback dedups nodes by
+      `fmt.Sprint` (int(1) collides with "1" on mixed-type nodes);
+      OnRecord folds returning Embedding/IndexedText/Point/MultiEntry/
+      Append receive an always-zero Record silently.
+      _(Effort: M-L, several independent)_
+- [ ] **eventtest fakes** — `LoadToVersion` returns a live sub-slice of the
+      store's backing array (in-place sort corrupts the fake);
+      `ReadAll`/`ReadFrom` return map-iteration order violating the
+      Journal's documented OccurredAt ordering; `FakeBus.Publish` reads
+      `publishChain` unlocked while `UsePublish` swaps it under mu.
+      _(Effort: S)_
+- [ ] **record.Stamp zero-time presence flip** — `NewStamp(time.Time{})` is
+      known but JSON-round-trips to unknown (wire `at` is a value, so the
+      zero time reads back as absent). Wire-compatible fix: make the wire
+      field `*time.Time` (nil → unknown). Undocumented edge today.
+      _(Effort: S)_
+- [ ] **dispatcher/metadata README lies** — dispatcher README claims `M` is
+      the message type (it is the middleware type), claims pre-computed
+      chains (code rebuilds per Dispatch), and lists nonexistent symbols
+      (`LifecycleMixin`, `CatalogDispatcher`, `Handlers()`); metadata README
+      drops ActorID from its Tracing snippet and calls command/query
+      Metadata "standalone structs" (they are aliases).
+      _(Effort: S)_
+- [ ] **id.ActorID vs record.Actor zero-semantics asymmetry** —
+      `id.ActorID{User, ""}.IsZero() == true` but
+      `record.Actor{ActorUser, ""}.IsZero() == false`; `record.Actor{User,""}.String()`
+      ("user:") re-parses to an id-side zero, dropping the kind. Documented
+      mirrors, asymmetric zeros — document both sides now, unify at v5.
+      _(Effort: S doc / v5 unify)_
 
 ---
 

@@ -6,6 +6,93 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Fixed — deep-review gap wave: streaming capability + error-family truth — 2026-08-27
+
+- **`event.DecorateStore`** now forwards **StreamingSource** and
+  **StreamingJournal** reads (LoadStream, LoadStreamFromVersion,
+  ReadStream, ReadStreamFrom) to the inner store, applying the source
+  transform per chunk; previously a streaming-capable store wrapped
+  through DecorateStore silently lost streaming reads — consumers fell
+  back to full-materialization Load/ReadAll, the exact OOM risk the
+  streaming interfaces exist to prevent, despite the wrapper's
+  preserve-all-interfaces claim (ADR-0126). Inner stores without the
+  capability return ErrInnerStoreNotStreaming rejections like the other
+  optional caps; the delegation is shared with DecorateJournal via one
+  helper so store and journal decorators cannot drift.
+- **`dispatcher.RegisterWithWrapping`**, **`command.TypedCommandStore`**
+  (Save/AppendBatch), and **`query.TypedQueryStore`** (SaveQuery) no
+  longer blanket-wrap inner errors as Infrastructure: duplicate handler /
+  duplicate command / duplicate query Conflicts keep their Conflict
+  family (matching bbolt), so family-aware retry policies and HTTP
+  mappers see 409-class instead of 503-class.
+- The memory, pebble, and SQL eventstore Save boundaries preserve the
+  optimistic-concurrency Conflict family; the pebble/bbolt scan helpers
+  and the SQL checkpoint load preserve Corruption (undecodable rows,
+  unparseable checkpoints) instead of flattening both to Infrastructure.
+- **`scheduling.WithMaxRetries`** clamps values below 1 to 1: a 0
+  previously meant zero dispatch attempts after which the timer was
+  marked fired — the deadline was permanently lost with no error and no
+  log.
+- The SQL timer store's Due skips undecodable (corrupt) timer rows and
+  returns the decodable timers alongside a joined Corruption error; the
+  Scheduler dispatches what decoded and re-reports the corruption each
+  poll. One rotten row previously blocked dispatch of every due timer
+  indefinitely.
+- **`query.NewPaginatedResult`** returns zero TotalPages for a zero-value
+  **`query.Pagination`** instead of panicking on integer division by
+  zero; the query audit middleware persists its record with a detached
+  context so a client disconnect between handler completion and save can
+  no longer silently drop exactly the auditable queries.
+- **`dedup.Ring`**'s Add is a no-op on a nil receiver, matching
+  Has/Len/Capacity nil-safety, so the documented nil-ring replay pattern
+  cannot panic on the Add side of a Has-then-Add boundary loop.
+- **`event.Single`**, **`event.NewEvents`**, and
+  **`event.DecodePayloads`** pass constructor/validation errors through
+  unchanged instead of re-wrapping them under a blanket family (the trio
+  previously classified the same constructor failure three different
+  ways); **`event.ExtractCustomBytes`** classifies damaged persisted
+  metadata as Corruption (was Infrastructure); the new
+  **`event.Orchestration`** compat alias completes the six-family block.
+- storage/bbolt: KVAdapter Get returns **`kv.ErrNotFound`** unwrapped
+  (previously Infrastructure-wrapped, so every miss landed in infra
+  metrics); Save/AppendBatch return the module-standard bucket-missing
+  Infrastructure error instead of panicking on an uninitialized database;
+  DiskUsage is family-classified. storage/pebble: a failed batch Commit
+  no longer leaks the pebble batch. storage/sql: IsDuplicateKeyError
+  recognizes DuckDB 1.x PRIMARY KEY violations — duplicate command/query
+  inserts on DuckDB now surface as Conflict and trigger the Inserter
+  duplicate hook (command idempotency was silently broken on that
+  backend).
+- The middleware flight-recorder snapshot runs on a detached context
+  (context.WithoutCancel), mirroring the decider-side fix: the request
+  context is typically cancelled exactly when error captures matter.
+
+### Fixed — decider/kv/commandlifecycle/projectionhost hardening — 2026-08-27
+
+- **`decider.WithWaitTimeout`** and **`decider.WithPollInterval`** now clamp
+  non-positive values to their defaults instead of reaching
+  `time.NewTicker`, which panics on non-positive intervals
+  (full-code-review).
+- The decider flight-recorder snapshot now runs on a detached context
+  (**`context.WithoutCancel`**): a cancelled request context no longer
+  discards the very error snapshot the recorder was configured to capture.
+- **`decider.NewTypedRepository`** rejects a nil typed Decide function up
+  front with the new **`decider.ErrNilDecide`** sentinel (family Rejection)
+  instead of panicking on the first dispatch.
+- **`scheduling.MemoryTimerStore`**'s `Due` now honors its documented
+  FireAt-ascending, ID-tiebreak ordering (it previously leaked random map
+  iteration order into dispatch order).
+- **`kv.Cache.Set`** invalidates the cached entry when the post-write
+  copy-for-isolation fails: the store write succeeded, so the next Get must
+  reflect the store instead of a stale pre-Set value.
+- **`commandlifecycle.Recorder`** drops its cached stream version after a
+  failed lifecycle append: the counter was already past the failed write, so
+  every subsequent emit previously conflicted with the real stream forever
+  (silently dropped lifecycle events in best-effort mode).
+- projectionhost backoff growth caps its exponent: beyond 63 crashes (or
+  retries) the `1<<n` shift wrapped to zero, collapsing the restart backoff
+  to a zero-delay hot crash loop under unlimited-restart configs.
+
 ### Added — shutdown-dependency validation + bbolt/turso hardening — 2026-08-27
 
 - **`system.New`** now validates **`system.ShutdownDependency`** edges at
