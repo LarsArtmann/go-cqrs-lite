@@ -173,3 +173,92 @@ func TestIntegration_ShutdownDependency_CycleFallback(t *testing.T) {
 		t.Fatalf("Close with cyclic dependency: %v", err)
 	}
 }
+
+// TestIntegration_ShutdownDependency_UnknownEngine verifies that a typo'd
+// engine name in a ShutdownDependency is rejected at construction instead of
+// silently dropped at Close() time (review E10).
+func TestIntegration_ShutdownDependency_UnknownEngine(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	domain := system.DomainConfig{
+		ShutdownDependencies: []system.ShutdownDependency{
+			{Before: "projections", After: "event-store"},
+		},
+	}
+
+	deployment := system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"alpha": {Driver: "memory"},
+			"beta":  {Driver: "memory"},
+		},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engine: "alpha"},
+		},
+	}
+
+	_, err := system.New(ctx, domain, deployment)
+	if !errors.Is(err, system.ErrUnknownEngine) {
+		t.Fatalf("expected ErrUnknownEngine for typo'd engine names, got: %v", err)
+	}
+}
+
+// TestIntegration_ShutdownDependency_EmptyName verifies that an empty Before
+// or After name is rejected at construction.
+func TestIntegration_ShutdownDependency_EmptyName(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	domain := system.DomainConfig{
+		ShutdownDependencies: []system.ShutdownDependency{
+			{Before: "", After: "alpha"},
+		},
+	}
+
+	deployment := system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"alpha": {Driver: "memory"},
+		},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engine: "alpha"},
+		},
+	}
+
+	_, err := system.New(ctx, domain, deployment)
+	if !errors.Is(err, system.ErrUnknownEngine) {
+		t.Fatalf("expected ErrUnknownEngine for empty name, got: %v", err)
+	}
+}
+
+// TestIntegration_ShutdownDependency_SelfReference verifies that an edge
+// referencing the same engine on both sides is rejected at construction.
+func TestIntegration_ShutdownDependency_SelfReference(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	domain := system.DomainConfig{
+		ShutdownDependencies: []system.ShutdownDependency{
+			{Before: "alpha", After: "alpha"},
+		},
+	}
+
+	deployment := system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"alpha": {Driver: "memory"},
+		},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engine: "alpha"},
+		},
+	}
+
+	_, err := system.New(ctx, domain, deployment)
+	if !errors.Is(err, system.ErrShutdownDependencyInvalid) {
+		t.Fatalf("expected ErrShutdownDependencyInvalid for self-reference, got: %v", err)
+	}
+}

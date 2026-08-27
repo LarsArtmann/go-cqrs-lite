@@ -4109,6 +4109,7 @@ system/var ErrNotStreamLogBackend
 system/var ErrQueryResultMismatch
 system/var ErrQueryTypeMismatch
 system/var ErrSeekableJournalMissing
+system/var ErrShutdownDependencyInvalid
 system/var ErrSystemStopped
 system/var ErrUnknownBusDriver
 system/var ErrUnknownEngine

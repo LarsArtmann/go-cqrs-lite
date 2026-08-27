@@ -289,7 +289,13 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		}
 	}
 
-	// Wire shutdown dependencies from domain config.
+	// Wire shutdown dependencies from domain config. Validate edge names
+	// against the configured engines first: unknown names are otherwise
+	// silently dropped by the shutdown topological sort (E10).
+	if err := validateShutdownDependencies(domain.ShutdownDependencies, deployment); err != nil {
+		return nil, err
+	}
+
 	for _, dep := range domain.ShutdownDependencies {
 		sys.shutdownDeps = append(sys.shutdownDeps, shutdownEdge{
 			before: dep.Before,

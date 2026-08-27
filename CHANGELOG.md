@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Added — shutdown-dependency validation + bbolt/turso hardening — 2026-08-27
+
+- **`system.New`** now validates **`system.ShutdownDependency`** edges at
+  construction: empty names, unknown engine names, and self-references are
+  rejected (family Rejection; **`system.ErrShutdownDependencyInvalid`** for
+  self-references, **`system.ErrUnknownEngine`** wraps empty/unknown names)
+  instead of being silently dropped by the shutdown topological sort at
+  Close() time (extended review E10).
+- bbolt persisted-command and persisted-query (de)serialization failures are
+  now classified Corruption via the error-family wrapper with
+  `bbolt.serialize_command` / `bbolt.reconstruct_command` /
+  `bbolt.serialize_query` / `bbolt.reconstruct_query` contexts, replacing
+  plain wrapped errors (extended review E3).
+- The Turso indexing-policy mutators (Exclude, MarkCritical,
+  MarkSkipAutoCreate) no longer panic on zero-value or nil policies: the
+  exclusion/criticality maps initialize lazily on first mutation and nil
+  receivers are a no-op (extended review E9).
+
 ### Added — snapshots are constructing-validated and self-describing (P10) — 2026-08-22
 
 - Added **`snapshot.NewSnapshot`** (ref, version, state, encoding): the
