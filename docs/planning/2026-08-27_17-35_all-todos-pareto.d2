@@ -1,0 +1,86 @@
+direction: right
+title: {
+  label: "ALL-TODOS Pareto — Consolidated Execution Plan v2"
+  near: top-center
+  shape: text
+  style: {
+    font-size: 26
+    bold: true
+  }
+}
+
+P0: Phase 0 — Unblock & Trust Floor (1% -> 51%) {
+  style: {fill: "#f4d35e"; stroke: "#0e0e10"}
+  P01: "P01 Land stranded tag-chain repairs" {style: {fill: "#ffffff"}}
+  P02: "P02 pebble+bbolt standalone RED" {style: {fill: "#ffffff"}}
+  P03: "P03 metaengine recHolder + replay ctx" {style: {fill: "#ffffff"}}
+  P04: "P04 watermill Ack-checkpoint + Close panic" {style: {fill: "#ffffff"}}
+  P05: "P05 listing doc+WithDeleteTypes; system synthetic engines" {style: {fill: "#ffffff"}}
+  P06: "P06 stale-pin sweep + verify-ci" {style: {fill: "#ffffff"}}
+  P01 -> P02 -> P06
+  P03 -> P05
+  P04 -> P05
+}
+
+G1: "[USER] P07 wave-4 + transport final tags" {
+  shape: diamond
+  style: {fill: "#fff3d6"; stroke: "#b45309"}
+}
+
+P1: Phase 1 — v5 Phase 8 Deletion Wave (4% -> 64%) {
+  style: {fill: "#ef8f8f"; stroke: "#0e0e10"}
+  P08: "P08 listing type-status + taskmanager" {style: {fill: "#ffffff"}}
+  P09: "P09 delete tombstone metadata API" {style: {fill: "#ffffff"}}
+  P10: "P10 delete transport/*" {style: {fill: "#ffffff"}}
+  P11: "P11 delete Materialize RunProj GraphProj" {style: {fill: "#ffffff"}}
+  P12: "P12 delete view + relational" {style: {fill: "#ffffff"}}
+  P13: "P13 delete stack/ entirely" {style: {fill: "#ffffff"}}
+  P14: "P14 v5 surface + E-items" {style: {fill: "#ffffff"}}
+  P15: "P15 snapshot wire tags" {style: {fill: "#ffffff"}}
+  P16: "P16 migration guide" {style: {fill: "#ffffff"}}
+  P08 -> P09 -> P11 -> P12 -> P13 -> P14 -> P15 -> P16
+}
+
+G2: "[USER] P17 cut v5.0.0" {
+  shape: diamond
+  style: {fill: "#fff3d6"; stroke: "#b45309"}
+}
+
+P2: Phase 2 — Correctness Long Tail (post-v5) {
+  style: {fill: "#c4b5fd"; stroke: "#0e0e10"}
+  P18: "P18 batch A storage/engines" {style: {fill: "#ffffff"}}
+  P19: "P19 batch B read path" {style: {fill: "#ffffff"}}
+  P20: "P20 batch C host/tooling" {style: {fill: "#ffffff"}}
+  P21: "P21 batch D semantics/docs + 9 review items" {style: {fill: "#ffffff"}}
+  P18 -> P19 -> P20 -> P21
+}
+
+P3: Phase 3 — Declare-Only DX {
+  style: {fill: "#7dd3fc"; stroke: "#0e0e10"}
+  P22: "P22 metaengine-gen + auto-route L3" {style: {fill: "#ffffff"}}
+  P23: "P23 command sourcing + lifecycle one-call" {style: {fill: "#ffffff"}}
+  P24: "P24 DomainConfig ceremony down" {style: {fill: "#ffffff"}}
+  P22 -> P23 -> P24
+}
+
+P4: Phase 4 — Ops & Trust {
+  style: {fill: "#6ee7b7"; stroke: "#0e0e10"}
+  P25: "P25 buses + Dgraph + query tree" {style: {fill: "#ffffff"}}
+  P26: "P26 native search/vector/spatial" {style: {fill: "#ffffff"}}
+  P27: "P27 flagship + docs + calibration CI" {style: {fill: "#ffffff"}}
+  P25 -> P26 -> P27
+}
+
+TAIL: "Long Tail -> 100% release polish · blocked [user/root/hw]" {
+  shape: parallelogram
+  style: {fill: "#374151"; font-color: "#e5e7eb"}
+}
+
+P0 -> G1: "tags fly"
+G1 -> P1
+G1.P10
+P1 -> G2
+G2 -> P2: "v5 cut"
+P2 -> P3
+P3 -> P4
+P4 -> TAIL
