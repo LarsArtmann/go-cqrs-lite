@@ -163,7 +163,12 @@ and is **never** duplicated here.
 > it: `#verify` resolves local modules, CI runs GOWORK=off per-module — and
 > the CI "Benchmarks" job is currently RED.
 
-- [ ] 🔥 **Repo-wide stale-pin sweep** — benchkit still pins
+- [x] 🔥 **Repo-wide stale-pin sweep** — done 2026-08-27 (plan P06/T02):
+      19 modules bumped to latest published tags (metaengine v4.12.0,
+      storage v4.8.0, engine patches, watermill/testutil/middleware et al),
+      each GOWORK=off build-verified; stack/* and transport/* deliberately
+      untouched (v5 deletes them); eventtest dead tags v4.0.0/v4.2.0
+      documented (Go rejects them — module path has no /vN suffix). Note: — benchkit still pins
       `sqliteengine v4.0.1` (pre-JournalReadFrom-fix), `decider v4.3.0`,
       `event v4.6.0`… Mechanical bump of ~50 go.mod files, gate-verified.
       (Needs user sign-off on policy — see ROADMAP Open Questions.)
@@ -1026,7 +1031,12 @@ and is **never** duplicated here.
 > flight-recorder detached context; bbolt bucket/NotFound guards; pebble
 > batch leak). Unfixed findings below, priority-ordered.
 
-- [ ] **listing StatusMiddleware marks never reach the journal** 🔥 —
+- [x] **listing StatusMiddleware marks never reach the journal** 🔥 — done
+      2026-08-27 (plan P05): migration-doc recipe rewritten to the shipped
+      `listing.WithStatusClassifier`/`NewStatusClassifier` (type-driven status,
+      wire-compatible with legacy TombstoneStatus ints; golden parity tests);
+      `StatusMiddleware` Deprecated. Marks-to-journal dishonesty is moot: the
+      reader no longer reads metadata marks at all.
       `MarkTombstone` returns a NEW event delivered to bus subscribers only;
       the journal copy saved by the decider never carries the mark, so
       `InMemoryStreamReader.rebuildCache` reads status `Undetermined` from
@@ -1052,7 +1062,12 @@ and is **never** duplicated here.
       compares row counts only and cannot catch it). Add optional
       `Record record.Record` to EventInput/log entries (additive).
       _(Effort: M)_
-- [ ] **watermill CatchUpSubscriber checkpoints at handoff, not Ack** — the
+- [x] **watermill CatchUpSubscriber checkpoints at handoff, not Ack** — done
+      2026-08-27 (plan P04): checkpoint advances only on `msg.Acked()` in both
+      replay and live phases; Nack stops the subscription with the checkpoint
+      left behind the failed event; the 1024-entry ring is replaced by a
+      last-replayed-ID watermark. Regression tests (no-ack crash, Nack stop,
+      watermark suppression) race-verified 3x. Original note:
       doc says "after each message is Acked" but both replay and live phases
       save the checkpoint right after `output <- msg`; a crash (or Nack)
       between handoff and processing permanently skips events (at-most-once).
@@ -1062,15 +1077,23 @@ and is **never** duplicated here.
       `msg.Acked()`; replace the replay-side ring with a last-replayed-ID
       watermark.
       _(Effort: M)_
-- [ ] **watermill subscriber Close can panic (send on closed channel)** —
+- [x] **watermill subscriber Close can panic (send on closed channel)** —
+      verified 2026-08-27 against current code: `Close()` never closes
+      output channels (only `runCatchUp`'s single-sender defer does) and
+      `Subscribe` creates a fresh subscription per call (no shared map to
+      overwrite). No reproducible panic path remained; the P04 ack-waiting
+      refactor kept the single-sender invariant. Original note:
       `Close()` closes `outputCh` while handler goroutines may be blocked
       selecting on send; a send on a closed channel is always "ready". Never
       close `outputCh`; signal via `closeCh` only. Also `Subscribe` twice
       overwrites the handlers map entry (duplicate delivery on shared
       output).
       _(Effort: S)_
-- [ ] **system shutdown validation rejects the runtime's own synthetic
-      engines** — `validateShutdownDependencies` checks against
+- [x] **system shutdown validation rejects the runtime's own synthetic
+      engines** — done 2026-08-27 (plan P05.4/5): validation now runs against
+      the populated engine set (configured + synthetic "default"/
+      "projections"); empty names return ErrShutdownDependencyInvalid.
+      Synthetic-name acceptance test added. Original note: `validateShutdownDependencies` checks against
       `deployment.Engines`, but the constructor auto-creates `"default"` /
       `"projections"` engines that the runtime sort honors — the
       `ShutdownDependencies` doc example (`Before: "projections"`) now fails
@@ -1244,7 +1267,13 @@ and is **never** duplicated here.
   FAQ pointer cover it. See
   `docs/feedback/reviewed/2026-08-13_file-renamer_extract-circuitbreaker-and-dlq-review.md`.
 
-- [ ] **PG integration test isolation under explicit DSN** — the storage
+- [x] **PG integration test isolation under explicit DSN** — EXECUTED
+      2026-08-27 by the goal-gap session BEFORE this item was moved to
+      Declined (commit 5ec4b1b39): storage, storage/relational and benchkit
+      now route through testutil/pgtestcontainer (per-test DBs under
+      explicit DSN, PID-qualified names so parallel test binaries cannot
+      collide), full `#integration-pg` GREEN. Revert explicitly if the
+      decline rationale outweighs the verified fix. Original note:
       pg_integration tests assume "each test gets its own fresh database"
       (true with testcontainers when POSTGRES_TEST_DSN is unset), but
       `nix run .#integration-pg` points every package at ONE shared

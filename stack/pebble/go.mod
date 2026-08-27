@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.0
 	github.com/larsartmann/go-error-family v0.10.0
 )
 
@@ -85,3 +85,5 @@ require (
 replace github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 => ../../storage/pebble
 
 replace github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4 => ../../storage/backuptest
+
+replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../../snapshot
