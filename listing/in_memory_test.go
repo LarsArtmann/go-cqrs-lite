@@ -18,7 +18,11 @@ func TestInMemoryStreamReader_List( //nolint:gocognit // table-driven test with 
 	store := memory.NewMemoryStore()
 	seedEvents(t, store)
 
-	reader := listing.NewInMemoryStreamReader(store)
+	reader := listing.NewInMemoryStreamReader(store,
+		listing.WithStatusClassifier(
+			listing.NewStatusClassifier([]event.Type{"user.deleted"}, nil),
+		),
+	)
 
 	t.Run("lists all active users", func(t *testing.T) {
 		t.Parallel()
@@ -180,7 +184,6 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 	deletedEvt, err := event.NewEvent(
 		"user.deleted", deletedID, "User",
 		event.Version(1), []byte(`{"reason":"gdpr"}`),
-		event.WithCustom(event.MetadataKeyTombstone, "true"),
 	)
 	if err != nil {
 		t.Fatal(err)

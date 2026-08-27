@@ -87,3 +87,6 @@ replaces to drop only if B6 exposes everything (verify per symbol).
 - [ ] B5 bump levels (patch vs minor) after CHANGELOG Added-check.
 - [ ] B7 transport final tags now vs after v5 code lands (must precede T08
       deletion regardless).
+- [ ] Dead tags `event/v4/eventtest/v4.0.0` + `v4.2.0`: module path has no
+      `/vN` suffix, so Go rejects them (`go mod download` proof, 2026-08-27).
+      Delete remotely or document-and-ignore; consumers stay on v0.3.0.

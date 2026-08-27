@@ -275,8 +275,8 @@ func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 		t.Fatalf("expected 1 tombstoned item, got %d", len(tombstonedPage.Items))
 	}
 
-	if tombstonedPage.Items[0].Status != event.TombstoneTombstoned {
-		t.Fatalf("expected TombstoneTombstoned, got %d", tombstonedPage.Items[0].Status)
+	if tombstonedPage.Items[0].Status != listing.StatusTombstoned {
+		t.Fatalf("expected StatusTombstoned, got %d", tombstonedPage.Items[0].Status)
 	}
 
 	allPage, err := reader.ListWithStatus(ctx, listing.ListOptions{

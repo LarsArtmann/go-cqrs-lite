@@ -5,17 +5,15 @@ package relational
 import (
 	"context"
 	"database/sql"
-	"os"
 	"testing"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/testcontainers/testcontainers-go"
-	pgtest "github.com/testcontainers/testcontainers-go/modules/postgres"
 
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	"github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4"
 )
 
 // pgDiscordSchema is the same as discordSchema but with PG-compatible
@@ -34,40 +32,16 @@ func pgDiscordSchema() RelationalSchema {
 	return s
 }
 
+// TestMain starts a shared Postgres server (external DSN via
+// POSTGRES_TEST_DSN, else a testcontainer) and gives every test its own
+// database — including under an explicit DSN, so packages sharing one CI
+// service container cannot contaminate each other.
+func TestMain(m *testing.M) { pgtestcontainer.TestMain(m) }
+
 func openPostgresDB(t *testing.T) *sql.DB {
 	t.Helper()
 
-	// Prefer external DSN (CI service container).
-	if dsn := os.Getenv("POSTGRES_TEST_DSN"); dsn != "" {
-		db, err := sql.Open("pgx", dsn)
-		if err != nil {
-			t.Fatalf("open pg: %v", err)
-		}
-		t.Cleanup(func() { _ = db.Close() })
-		return db
-	}
-
-	// Start a testcontainer for local development.
-	ctx := context.Background()
-
-	ctr, err := pgtest.Run(
-		ctx, "postgres:16-alpine",
-		pgtest.WithDatabase("test"),
-		pgtest.WithUsername("test"),
-		pgtest.WithPassword("test"),
-		pgtest.BasicWaitStrategies(),
-	)
-	if err != nil {
-		t.Skipf("postgres not available: %v", err)
-	}
-	t.Cleanup(func() { _ = testcontainers.TerminateContainer(ctr) })
-
-	dsn, err := ctr.ConnectionString(ctx, "sslmode=disable")
-	if err != nil {
-		t.Fatalf("connection string: %v", err)
-	}
-
-	db, err := sql.Open("pgx", dsn)
+	db, err := sql.Open("pgx", pgtestcontainer.DSN(t))
 	if err != nil {
 		t.Fatalf("open pg: %v", err)
 	}

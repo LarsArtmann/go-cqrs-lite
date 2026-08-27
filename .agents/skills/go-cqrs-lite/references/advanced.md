@@ -24,11 +24,14 @@
 deleted, _ := event.New("user.deleted", streamID, "User", version, UserDeleted{})
 store.Save(ctx, ref, []event.Event{deleted}, expectedVersion)
 
-// Detect: use listing/ to check stream status (install
-// listing.StatusMiddleware(deleteTypes, rebirthTypes) on the publish bus
-// for type-driven detection)
-page, _ := listingBuilder.ListWithStatus(ctx)
-// page.Items[i].Status → event.TombstoneActive | event.TombstoneTombstoned
+// Detect: use listing/ with a type-driven status classifier
+reader := listing.NewInMemoryStreamReader(journal,
+    listing.WithStatusClassifier(listing.NewStatusClassifier(
+        []event.Type{"user.deleted"}, nil,
+    )),
+)
+page, _ := reader.ListWithStatus(ctx, listing.ListOptions{})
+// page.Items[i].Status → listing.StatusActive | listing.StatusTombstoned
 
 // Rebirth: emit a new event after the deletion event
 // See example/taskmanager/ for the full tombstone + rebirth cycle

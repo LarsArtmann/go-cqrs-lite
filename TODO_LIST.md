@@ -96,6 +96,15 @@ and is **never** duplicated here.
       them); `transport/*` gets final deprecation-only v4.x tags — separate
       item below.
       _(Effort: L)_
+- [ ] [BLOCKED] 🔥 **Dead tags: `event/v4/eventtest/v4.0.0` + `v4.2.0`**
+      (found 2026-08-27, T02 pin sweep). The eventtest module path
+      (`.../event/v4/eventtest`) has no trailing `/vN`, so Go rejects v4.x
+      versions for it (`invalid version: module path must match major
+      version` — verified via `go mod download`). Consumers correctly stay
+      on v0.3.0 (latest usable). Remedy needs user action: delete the two
+      remote tags, or document-and-ignore; do NOT tag eventtest above v0.x
+      unless the module path gains a major-version suffix (breaking move).
+      _(Effort: XS)_
 - [ ] [BLOCKED] **go-codec F46: commit + tag the `UnwrapDecode` sniff** —
       the first-byte fast path (fallback 181ns/6 allocs → 1.6ns/0 allocs) sits
       UNCOMMITTED in `../go-codec` (no auto-commit daemon there); GOWORK=off

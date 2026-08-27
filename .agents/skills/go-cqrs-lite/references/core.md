@@ -170,10 +170,21 @@ store.Save(ctx, ref, []event.Event{deleted}, expectedVersion)
 ```
 
 Use `listing/` for tombstone-aware stream status read models: `ListWithStatus`
-returns `StreamStatus` with `event.TombstoneStatus`. For type-driven detection,
-install `listing.StatusMiddleware(deleteTypes, rebirthTypes)` on the publish
-bus (deprecated metadata machinery behind it; ADR-0114 full implementation
-pending).
+returns `StreamStatus` with `listing.Status`. Configure the reader with a
+type-driven classifier — deletion and restoration are plain domain events
+(ADR-0114):
+
+```go
+reader := listing.NewInMemoryStreamReader(journal,
+    listing.WithStatusClassifier(listing.NewStatusClassifier(
+        []event.Type{"user.deleted"},      // delete types → StatusTombstoned
+        []event.Type{"user.reactivated"},  // rebirth types → StatusActive
+    )),
+)
+```
+
+`listing.StatusMiddleware` (metadata marking) is Deprecated and is removed in
+v5 — the classifier replaces it.
 
 ### 3.2 Sink/Source split — use the right interface
 

@@ -6,6 +6,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — 2026-08-16
 
+### Changed — listing status is type-driven (ADR-0114, v5 prep) — 2026-08-27
+
+- **`listing.Status`** (new type) + **`listing.StatusClassifier`** +
+  **`listing.NewStatusClassifier`** + **`listing.WithStatusClassifier`**
+  reader option: stream status is now derived from the LAST event's type
+  (delete types → tombstoned, rebirth types → active) instead of mutable
+  tombstone metadata. Wire values match the legacy
+  `event.TombstoneStatus` ints (active=0, tombstoned=1, undetermined=2);
+  JSON output is unchanged (verified against the stream-status golden).
+- **`listing.StreamStatus.Status`** is now `listing.Status` (was
+  `event.TombstoneStatus`) — BREAKING for v5, the metadata tombstone API it
+  depended on is removed in v5.
+- **`listing.NewInMemoryStreamReader`** accepts variadic
+  `ReaderOption`s (backward-compatible call sites). Without a classifier
+  every stream reports `StatusUndetermined` — same value the metadata
+  bridge returned for unmarked streams.
+- **`listing.StatusMiddleware`** is Deprecated (removed in v5): readers no
+  longer consult metadata marks; pass the same event-type sets to
+  `NewStatusClassifier` instead.
+- **`storage`**: `SQLStreamReader` now surfaces `listing.Status` from the
+  existing `tombstone_status` column (same wire ints).
+
+### Fixed — Postgres integration tests share one database under explicit DSN — 2026-08-27
+
+- **`storage`**'s integration TestMain (and `storage/relational`'s
+  `openPostgresDB`) returned the shared `POSTGRES_TEST_DSN` database
+  directly when an explicit DSN was set, so every test — and every package
+  sharing the CI service container — wrote into ONE database
+  (cross-test/cross-package ghost rows, the `#integration-pg` contamination
+  class). Both now route through **`testutil/pgtestcontainer`**, which
+  provisions a per-test database even under an external DSN; storage's
+  local duplicate of the helper is deleted.
+- **`testutil/pgtestcontainer.AfterRun`** (added): registers a callback
+  that runs after `m.Run()` on every TestMain exit path, so packages can
+  keep post-run work such as `snaps.Clean(m)` while delegating TestMain to
+  the shared helper.
+
 ### Fixed — deep-review gap wave: streaming capability + error-family truth — 2026-08-27
 
 - **`event.DecorateStore`** now forwards **StreamingSource** and

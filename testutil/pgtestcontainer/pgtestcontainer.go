@@ -42,7 +42,16 @@ var (
 	adminDB      *sql.DB      //nolint:gochecknoglobals // test-framework cache
 	dbCounter    atomic.Int64 //nolint:gochecknoglobals // test-framework cache
 	dbCache      sync.Map     //nolint:gochecknoglobals // test-framework cache
+	afterRunFn   func(*testing.M) //nolint:gochecknoglobals // test-framework hook
 )
+
+// AfterRun registers fn to run after m.Run() on every TestMain exit path,
+// before process exit. At most one callback is kept (last registration wins).
+// Use it for post-run work such as snaps.Clean(m), which otherwise cannot
+// hook into TestMain because TestMain calls os.Exit itself.
+func AfterRun(fn func(*testing.M)) {
+	afterRunFn = fn
+}
 
 // TestMain starts a shared Postgres container for all integration tests in
 // the calling package. Each test gets its own fresh database for isolation.
@@ -64,17 +73,15 @@ func TestMain(m *testing.M) {
 		// Without this, all tests share one database and cross-test interference
 		// becomes a problem (especially under -race).
 		adminDB, _ = sql.Open("pgx", containerDSN)
-		code := m.Run()
+		finish(m, nil)
 
-		if adminDB != nil {
-			_ = adminDB.Close()
-		}
-
-		os.Exit(code)
+		return
 	}
 
 	if testing.Short() {
-		os.Exit(m.Run())
+		finish(m, nil)
+
+		return
 	}
 
 	ctx := context.Background()
@@ -87,26 +94,43 @@ func TestMain(m *testing.M) {
 		postgres.BasicWaitStrategies(),
 	)
 	if err != nil {
-		os.Exit(m.Run())
+		finish(m, nil)
+
+		return
 	}
 
 	dsn, err := ctr.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
 		_ = testcontainers.TerminateContainer(ctr)
+		finish(m, nil)
 
-		os.Exit(m.Run())
+		return
 	}
 
 	containerDSN = dsn
 	adminDB, _ = sql.Open("pgx", dsn)
 
+	finish(m, func() {
+		if adminDB != nil {
+			_ = adminDB.Close()
+		}
+
+		_ = testcontainers.TerminateContainer(ctr)
+	})
+}
+
+// finish runs the test binary, invokes the registered AfterRun callback (if
+// any), runs the optional cleanup, and exits with the test exit code.
+func finish(m *testing.M, cleanup func()) {
 	code := m.Run()
 
-	if adminDB != nil {
-		_ = adminDB.Close()
+	if afterRunFn != nil {
+		afterRunFn(m)
 	}
 
-	_ = testcontainers.TerminateContainer(ctr)
+	if cleanup != nil {
+		cleanup()
+	}
 
 	os.Exit(code)
 }
@@ -136,7 +160,7 @@ func DSN(tb testing.TB) string {
 		return dsnStr
 	}
 
-	dbName := fmt.Sprintf("test_%d", dbCounter.Add(1))
+	dbName := fmt.Sprintf("test_%d_%d", os.Getpid(), dbCounter.Add(1))
 	if _, err := adminDB.ExecContext(context.Background(),
 		fmt.Sprintf(`CREATE DATABASE "%s"`, dbName),
 	); err != nil {

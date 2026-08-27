@@ -16,7 +16,8 @@ import (
 // Caches the stream index and only rebuilds when the event count changes.
 // Suitable for testing, development, and single-process deployments.
 type InMemoryStreamReader struct {
-	journal event.Journal
+	journal   event.Journal
+	classifier StatusClassifier
 
 	mu     sync.RWMutex
 	cached []StreamStatus
@@ -25,9 +26,17 @@ type InMemoryStreamReader struct {
 var _ StreamReader = (*InMemoryStreamReader)(nil)
 
 // NewInMemoryStreamReader creates a reader that enumerates via Journal.ReadAll.
-func NewInMemoryStreamReader(journal event.Journal) *InMemoryStreamReader {
+// Status is derived from event types when WithStatusClassifier is provided;
+// otherwise every stream reports StatusUndetermined.
+func NewInMemoryStreamReader(journal event.Journal, opts ...ReaderOption) *InMemoryStreamReader {
+	cfg := readerConfig{} //nolint:exhaustruct // classifier zero value = unconfigured
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
 	return &InMemoryStreamReader{ //nolint:exhaustruct // mu and cached zero-initialized
-		journal: journal,
+		journal:   journal,
+		classifier: cfg.classifier,
 	}
 }
 
@@ -89,7 +98,7 @@ func (r *InMemoryStreamReader) rebuildCache(ctx context.Context) ([]StreamStatus
 		)
 	}
 
-	refs := buildRefs(all)
+	refs := buildRefs(all, r.classifier)
 
 	slices.SortFunc(refs, func(a, b StreamStatus) int {
 		if a.Ref.Type != b.Ref.Type {
@@ -114,7 +123,7 @@ func (r *InMemoryStreamReader) InvalidateCache() {
 	r.mu.Unlock()
 }
 
-func buildRefs(events []event.Event) []StreamStatus {
+func buildRefs(events []event.Event, classifier StatusClassifier) []StreamStatus {
 	type streamKey struct {
 		streamType id.StreamType
 		streamID   id.StreamID
@@ -152,7 +161,7 @@ func buildRefs(events []event.Event) []StreamStatus {
 	for _, b := range builders {
 		result = append(result, StreamStatus{
 			Ref:    b.ref,
-			Status: event.DetectTombstone([]event.Event{b.lastEvent}),
+			Status: classifier.ClassifyLast(b.lastEvent),
 		})
 	}
 

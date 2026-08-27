@@ -125,7 +125,7 @@ func TestStreamStatus_MarshalJSON(t *testing.T) {
 			EventCount:  3,
 			LastEventAt: ts,
 		},
-		Status: event.TombstoneActive,
+		Status: listing.StatusActive,
 	}
 
 	data, err := json.Marshal(status)

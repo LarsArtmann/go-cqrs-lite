@@ -22,10 +22,10 @@ type StreamListing struct {
 // Deprecated: use StreamListing.
 type AggregateListing = StreamListing
 
-// StreamStatus pairs a stream listing with its computed tombstone state.
+// StreamStatus pairs a stream listing with its computed status.
 type StreamStatus struct {
 	Ref    StreamListing
-	Status event.TombstoneStatus
+	Status Status
 }
 
 // Deprecated: use StreamStatus.

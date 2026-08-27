@@ -17,6 +17,12 @@ import (
 //	    []event.Type{"user.deleted", "order.cancelled"},   // tombstone types
 //	    []event.Type{"user.reactivated", "order.restored"}, // rebirth types
 //	))
+//
+// Deprecated: metadata tombstone marks are removed in v5 (ADR-0114).
+// Derive status from event types instead — pass the same type sets to
+// listing.NewStatusClassifier and configure the reader with
+// listing.WithStatusClassifier. The middleware no longer affects
+// InMemoryStreamReader status computation.
 func StatusMiddleware(deleteTypes, rebirthTypes []event.Type) event.PublishMiddleware {
 	deletes := event.NewTypeSet(deleteTypes)
 	rebirths := event.NewTypeSet(rebirthTypes)
