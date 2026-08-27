@@ -564,6 +564,7 @@ decider/var ErrIncompleteSnapshotConfig
 decider/var ErrLoadFailed
 decider/var ErrNilApply
 decider/var ErrNilBus
+decider/var ErrNilDecide
 decider/var ErrNilPublisher
 decider/var ErrNilStore
 decider/var ErrSaveFailed
@@ -711,6 +712,7 @@ event/const MetadataKeyRebirth
 event/const MetadataKeyTombstone
 event/const ModeLive
 event/const ModeReplay
+event/const Orchestration
 event/const Rejection
 event/const TombstoneActive
 event/const TombstoneTombstoned
@@ -857,6 +859,8 @@ event/method IsZero
 event/method Load
 event/method LoadBackwards
 event/method LoadFromVersion
+event/method LoadStream
+event/method LoadStreamFromVersion
 event/method LoadToTimestamp
 event/method LoadToVersion
 event/method MarshalCBOR
@@ -881,6 +885,8 @@ event/method ReadAll
 event/method ReadFrom
 event/method ReadFrom
 event/method ReadStream
+event/method ReadStream
+event/method ReadStreamFrom
 event/method ReadStreamFrom
 event/method Save
 event/method SaveMultiBatch

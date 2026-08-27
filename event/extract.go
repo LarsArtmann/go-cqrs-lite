@@ -23,7 +23,9 @@ func ExtractCustomBytes(evt Event, key MetadataKey) ([]byte, bool, error) {
 
 	decoded, err := DecodeBase64String(encoded)
 	if err != nil {
-		return nil, true, errorfamily.WrapInfrastructure(
+		// Damaged persisted metadata is Corruption in the stored data, not
+		// an Infrastructure failure (the system is fine; the data is not).
+		return nil, true, errorfamily.WrapCorruption(
 			err,
 			"event.decode_custom_bytes",
 			"decode base64 from custom metadata",
@@ -36,7 +38,9 @@ func ExtractCustomBytes(evt Event, key MetadataKey) ([]byte, bool, error) {
 // ExtractCustomBytesChecked is the nil-checked, error-wrapped variant of
 // ExtractCustomBytes. Returns (bytes, found, error):
 //   - evt == nil → returns (nil, false, nilEvtErr)
-//   - ExtractCustomBytes failure → returns (nil, false, WrapInfrastructure(err, wrapCode, wrapMsg))
+//   - ExtractCustomBytes failure → returns (nil, false, an error wrapped with
+//     the caller's code that preserves the inner family (Corruption for
+//     damaged stored metadata)
 //   - otherwise → forwards the underlying (decoded, found, nil) triple.
 //
 // Shared by encryption.ExtractCiphertext and signing.ExtractSignature so the
@@ -55,7 +59,7 @@ func ExtractCustomBytesChecked(
 
 	decoded, found, err := ExtractCustomBytes(evt, key)
 	if err != nil {
-		return nil, false, errorfamily.WrapInfrastructure(err, wrapCode, wrapMsg)
+		return nil, false, errorfamily.Wrap(err, errorfamily.Classify(err), wrapCode, wrapMsg)
 	}
 
 	return decoded, found, nil

@@ -2,8 +2,6 @@ package event
 
 import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Single creates a single event and returns it as a one-element slice.
@@ -28,7 +26,10 @@ func Single(
 ) ([]Event, error) {
 	evt, err := New(eventType, streamID, streamType, version, payload, opts...)
 	if err != nil {
-		return nil, errorfamily.WrapRejection(err, "event.single", "event.Single")
+		// New already classifies per failure mode (Rejection for invalid
+		// params, Corruption for marshal failures); re-wrapping as Rejection
+		// would reclassify genuine marshal Corruption.
+		return nil, err
 	}
 
 	return []Event{evt}, nil

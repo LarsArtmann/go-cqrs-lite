@@ -46,8 +46,11 @@ func NewFlightRecorder[M any](
 				return err
 			}
 
+			// WithoutCancel: the request ctx is typically cancelled the
+			// moment the handler returns — exactly the error/timeout cases
+			// the recorder exists to capture. (Mirrors the decider fix.)
 			go func() {
-				if snapErr := recorder.Snapshot(ctx); snapErr != nil && cfg.logger != nil {
+				if snapErr := recorder.Snapshot(context.WithoutCancel(ctx)); snapErr != nil && cfg.logger != nil {
 					cfg.logger.Error(
 						"flight recorder snapshot failed",
 						"kind", adapter.Kind,

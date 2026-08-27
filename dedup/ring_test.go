@@ -191,3 +191,18 @@ func itoa(n int) string {
 
 	return string(out)
 }
+
+// TestRing_NilAddIsNoOp pins nil-receiver Add safety: the documented
+// "nil *Ring when no replay occurred" pattern must not panic on the Add
+// side of a Has-then-Add boundary loop.
+func TestRing_NilAddIsNoOp(t *testing.T) {
+	t.Parallel()
+
+	var ring *dedup.Ring
+
+	ring.Add("event-001")
+
+	if ring.Has("event-001") {
+		t.Error("nil ring must stay empty after Add")
+	}
+}

@@ -20,6 +20,7 @@ const (
 	Transient      = errorfamily.Transient
 	Corruption     = errorfamily.Corruption
 	Infrastructure = errorfamily.Infrastructure
+	Orchestration  = errorfamily.Orchestration
 )
 
 // Event-domain sentinel errors. These are the only error values the event

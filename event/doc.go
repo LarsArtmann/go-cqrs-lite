@@ -28,8 +28,8 @@
 //
 // # Error Taxonomy
 //
-// Five families: Rejection, Conflict, Transient, Infrastructure, Corruption.
-// Use NewRejection, NewConflict, etc. for classified errors.
+// Six families: Rejection, Conflict, Transient, Infrastructure, Corruption,
+// Orchestration. Use NewRejection, NewConflict, etc. for classified errors.
 //
 // # Time Handling
 //

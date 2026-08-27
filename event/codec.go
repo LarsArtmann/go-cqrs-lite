@@ -1,6 +1,7 @@
 package event
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/larsartmann/go-codec"
@@ -119,11 +120,9 @@ func DecodePayloads[T any](events []Event, c codec.Codec) ([]T, error) {
 
 	for i, evt := range events {
 		if err := validateEncodingMatch(evt, c); err != nil {
-			return nil, errorfamily.WrapCorruption(
-				err,
-				"event.decode_payload_failed",
-				"decode payload ["+strconv.Itoa(i)+"] for event "+string(evt.Type()),
-			)
+			// validateEncodingMatch classifies as Rejection (codec/payload
+			// mismatch is a caller error, matching single-event DecodePayload).
+			return nil, fmt.Errorf("decode payload [%d] for event %s: %w", i, evt.Type(), err)
 		}
 
 		payload := payloadForDecode(evt)

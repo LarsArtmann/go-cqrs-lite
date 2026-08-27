@@ -45,8 +45,15 @@ func NewRing(capacity int) *Ring {
 }
 
 // Add inserts an ID into the ring. If the ring is full, the oldest ID is
-// evicted. Adding an ID that is already present is a no-op.
+// evicted. Adding an ID that is already present is a no-op. A nil receiver
+// is a no-op, matching Has/Len/Capacity nil-safety so the documented
+// "use a nil *Ring when no replay occurred" pattern cannot panic on the
+// Add side of a Has-then-Add boundary loop.
 func (r *Ring) Add(id string) {
+	if r == nil {
+		return
+	}
+
 	if _, ok := r.idx[id]; ok {
 		return
 	}

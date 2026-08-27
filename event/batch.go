@@ -1,6 +1,7 @@
 package event
 
 import (
+	"fmt"
 	"strconv"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -48,11 +49,10 @@ func NewEvents(
 			opts...,
 		)
 		if err != nil {
-			return nil, errorfamily.WrapCorruption(
-				err,
-				"event.create_failed",
-				"create event "+strconv.Itoa(i),
-			)
+			// New already classifies per failure mode (Rejection for invalid
+			// params, Corruption for marshal failures); re-wrapping as
+			// Corruption would reclassify caller-input Rejections.
+			return nil, fmt.Errorf("create event %d: %w", i, err)
 		}
 
 		events[i] = evt
