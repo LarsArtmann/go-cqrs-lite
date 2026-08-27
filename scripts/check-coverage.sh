@@ -19,7 +19,7 @@ cd "$(git rev-parse --show-toplevel)"
 # larger is real drift that should update AGENTS.md.
 TOLERANCE=2.0
 
-# Module → documented coverage (verified 2026-08-16). Keep in sync with AGENTS.md.
+# Module → documented coverage (verified 2026-08-27). Keep in sync with AGENTS.md.
 # Keys are plain module paths; codec was deleted (ADR-0128) and retry/
 # flightrecorder/idempotency shims never had coverage claims.
 # 2026-08-16: event 87.3→90.0, query 84.5→89.9 re-baselined UPWARD — the T9
@@ -34,7 +34,7 @@ declare -A EXPECTED=(
 	[id]=86.5
 	[metaengine]=83.3
 	[query]=89.9
-	[dispatcher]=81.5
+	[dispatcher]=87.7
 	[kv]=71.9
 )
 
