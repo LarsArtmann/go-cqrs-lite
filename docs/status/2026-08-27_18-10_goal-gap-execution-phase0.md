@@ -122,4 +122,9 @@ unchanged: only on request.*
 
 ## verify-ci result (appended after completion)
 
-<!--VERIFY_CI_RESULT-->
+**GREEN — `VERIFY_CI_EXIT=0`, all 76 modules** (third run; runs 1-2 exposed
+pre-existing stack/* pin rot + stale cqrs-lint version-pin goldens, both
+fixed in commit `9455f687a`: all ten stack modules re-pinned to latest
+published tags, stack/pebble gained the documented snapshot sibling replace,
+V003 dropped from both goldens because taskmanager's sqliteengine pin is no
+longer stale, V006 version list refreshed).
