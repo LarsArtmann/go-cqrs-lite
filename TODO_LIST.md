@@ -60,24 +60,42 @@ and is **never** duplicated here.
 > badger v4.0.2, watermill v4.5.0, mysql/bbolt/turso/iroh engines v4.0.0,
 > storage v4.7.0→retracted→v4.7.1) is LIVE on the proxy.
 
-- [ ] [BLOCKED] 🔥 **Tag the wave-4 module batch** — `event` (DecorateJournal),
-      `metadata` v4.5.1+ (BrandedString), `schema`, `metaengine` (capability
-      audit + iroh exports), `metaengine/irohengine`, `projectionhost`, and
-      `storage` v4.7.2 (SQLite `OpenSQLiteInMemory` shared-cache DSNs). Constraint: the
-      batch must tag event+metadata+schema before/with projectionhost (its
-      released go.mod needs them — the release flow strips the sibling
-      replaces). Via `scripts/tag-release.sh` from a clean tree.
-      _(Effort: M)_
-- [ ] [BLOCKED] 🔥 **Land the stranded tag-chain repair commits on master** —
-      cherry-pick `092b5e8a8` (command/query `retract` directives + metadata
-      v4.5.0 pins + hardened `tag-release.sh` standalone-build gate) and
-      `4907b6afc` (metaengine/bench pseudo-version tidy) from the tag worktree
-      (`git merge-base --is-ancestor` confirms both NOT on master, verified
-      2026-08-16). Master's `command`/`query` go.mod still pin `metadata/v4
-      v4.4.0` — any future tag cut from raw master re-breaks consumers (the
-      v4.7.0/v4.6.0 incident class). Regen the api-stability golden fresh on
-      master instead of cherry-picking `d25e8a959`.
-      _(Effort: S)_
+- [x] **Land the stranded tag-chain repair commits on master** — done
+      2026-08-22 wave: `092b5e8a8` was cherry-picked as `491379a2b` (on
+      master, verified 2026-08-27 via `git merge-base --is-ancestor`);
+      master's `command`/`query` go.mod pin `metadata/v4 v4.6.0` (the
+      v4.4.0 pin-rot risk is gone). `4907b6afc` is obsolete: master's
+      `metaengine/bench/go.mod` carries zero pseudo-versions (verified
+      2026-08-27).
+- [ ] [BLOCKED] 🔥 **Tag the pending v4 patch wave** (supersedes the stale
+      2026-08-16 wave-4 list — audited 2026-08-27, plan task T01): ALREADY
+      SHIPPED since that note: `event/v4.8.0` (DecorateJournal),
+      `metadata/v4.6.0` (BrandedString), `metaengine/v4.12.0` (capability
+      audit + iroh exports), `storage/v4.8.0` (OpenSQLiteInMemory shared-cache
+      DSNs) — all LIVE on the proxy. REMAINING (prod-code-changed since
+      latest tag, via `git diff <tag>..HEAD -- '*.go'`):
+      (a) hardening-fixes wave: `event`, `command`, `query`, `dedup`,
+      `dispatcher`, `middleware`, `scheduling`, `kv`, `commandlifecycle`
+      (+projections), `system`, `idempotency/kvstore`,
+      `idempotency/sqlstore`, `encryption`, `signing`;
+      (b) snapshot chain in dependency order: `snapshot` → `decider` →
+      `storage` → `storage/memory` → `storage/pebble` → `storage/bbolt`
+      (+ `storage/turso`, `storage/backuptest`);
+      (c) wave-4 leftovers: `schema`, `projectionhost`,
+      `metaengine/irohengine`;
+      (d) engine patches: `dgraphengine`, `duckdbengine`, `mysqlengine`,
+      `graphadapter`, `projectionadapter`, `tursoengine`,
+      `metaengine/irohengine/{loopback,quic}`.
+      Order constraints: event+metadata+schema before/with projectionhost
+      (released go.mod needs them — release flow strips sibling replaces);
+      snapshot before decider before storage before pebble/bbolt; per-module
+      cut→push interleave (GOPRIVATE resolves siblings via VCS fetch).
+      Via `scripts/tag-release.sh` from a clean tree; full module-order plan:
+      `docs/planning/2026-08-27_17-30_PENDING-TAG-WAVE-PLAN.md`.
+      Do NOT tag `stack/*`, `storage/view`, `storage/relational` (v5 deletes
+      them); `transport/*` gets final deprecation-only v4.x tags — separate
+      item below.
+      _(Effort: L)_
 - [ ] [BLOCKED] **go-codec F46: commit + tag the `UnwrapDecode` sniff** —
       the first-byte fast path (fallback 181ns/6 allocs → 1.6ns/0 allocs) sits
       UNCOMMITTED in `../go-codec` (no auto-commit daemon there); GOWORK=off
@@ -141,15 +159,14 @@ and is **never** duplicated here.
       `event v4.6.0`… Mechanical bump of ~50 go.mod files, gate-verified.
       (Needs user sign-off on policy — see ROADMAP Open Questions.)
       _(Effort: M)_
-- [ ] 🔥🔥 **storage/pebble + storage/bbolt standalone builds RED** (verified
-      2026-08-16 14:20, `GOWORK=off go build` fails): both pin
-      `event/v4 v4.6.0` but `serialization.go` calls
-      `event.ReconstructEventWithAdoptedPayload` (shipped after v4.6.0; needs
-      ≥ v4.7.0 + the unreleased adopt API or a local `../event` replace until
-      tagged). Same workspace-masking class as the command/v4.7.0 incident.
-      Fix: bump pins (or add sibling replaces) + add both to the GOWORK=off
-      standalone gate.
-      _(Effort: S)_
+- [x] 🔥🔥 **storage/pebble + storage/bbolt standalone builds RED** — fixed
+      2026-08-22 wave (pins bumped to `event/v4 v4.8.0`); re-verified GREEN
+      2026-08-27 17:35 (`GOWORK=off go build -tags "goexperiment.jsonv2" ./...`
+      EXIT=0 for both modules, clean tree).
+      The original 2026-08-16 note for the record: both pinned
+      `event/v4 v4.6.0` but `serialization.go` called
+      `event.ReconstructEventWithAdoptedPayload` (shipped after v4.6.0) —
+      same workspace-masking class as the command/v4.7.0 incident.
 - [ ] **`#verify-standalone` nix app (GOWORK=off per module) or explicit
       decision that CI owns that signal** — then CHECK CI after gates.
       Investigate how long the CI Benchmarks job has been red (`gh run list`)

@@ -1,0 +1,89 @@
+# Pending v4 Tag Wave — Module-Order Plan (T03 sign-off input)
+
+> **Date:** 2026-08-27 17:30 CEST · **Task:** T01/F01.4 of the
+> [goal-gap-closure Pareto plan](2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md) ·
+> **Status: NO TAGS CUT — awaits explicit user authorization.** This doc is the
+> proposed cut order for sign-off.
+> **Evidence:** per-module `git diff <latest-tag>..HEAD -- '*.go'` (prod files,
+> tests excluded), CHANGELOG `[Unreleased]`, `git tag -l`, GOWORK=off build
+> probes. All verified 2026-08-27.
+
+## 0. Hard prerequisites
+
+1. **Clean tree.** `scripts/tag-release.sh` must run from a clean tree. The
+   deep-review session's uncommitted files (decider/, kv/, commandlifecycle/,
+   system/, projectionhost/, snapshot/, AGENTS.md, cqrs-lint, idempotency/
+   sqlstore) must land first — several are IN this wave.
+2. **User authorization per module batch** (repo rule: never tag/push without
+   explicit instruction).
+3. **Pre-tag checklist per module** (`F03.1`): standalone
+   `GOWORK=off go test ./... -count=1` (incl. test subpackages), `#vulncheck`,
+   `#check-arch`, api-stability golden current.
+4. **Cut→push interleave:** with siblings unpublished, a dependent module's
+   tag-time tidy resolves siblings via direct VCS fetch (GOPRIVATE) — each tag
+   must be PUSHED before the next module that requires it is cut.
+
+## 1. Already shipped (stale TODO claims, do NOT retag)
+
+| Module | Tag | Covered claim |
+|---|---|---|
+| event | v4.8.0 (08-22) | DecorateJournal (ADR-0126) |
+| metadata | v4.6.0 (08-22) | BrandedString/ActorString |
+| metaengine | v4.12.0 (08-22) | capability audit + iroh exports |
+| storage | v4.8.0 (08-22) | OpenSQLiteInMemory shared-cache DSNs |
+| decider | v4.4.0 (08-22) | *Ref identity forms |
+
+Stranded-commit repair: `092b5e8a8` landed as cherry-pick `491379a2b`
+(verified on master); `4907b6afc` obsolete (bench go.mod has no
+pseudo-versions). Stranded-commit TODO item closed.
+
+## 2. Proposed cut order (7 batches, dependency-first)
+
+Versions are proposals; final call at cut time from CHANGELOG
+(Added ⇒ minor, Fixed-only ⇒ patch). "Replaces unlocked" = local sibling
+replaces that become droppable once the batch is pushed.
+
+| # | Batch | Modules (current → proposed) | Rationale / unlocks |
+|---|---|---|---|
+| B1 | core fixes | `event v4.8.0 → v4.9.0` (Orchestration alias + streaming/family fixes), `schema v4.3.0 → v4.3.1`, `dedup v4.2.0 → v4.2.1`, `dispatcher v4.3.0 → v4.3.1` | event first: nearly everything pins it. Unlocks encryption/signing replaces (event.ErrInnerStoreNot*, Rejecting* on-disk refs). |
+| B2 | command/query tier | `command v4.8.0 → v4.8.1`, `query v4.7.0 → v4.7.1`, `middleware v4.5.0 → v4.5.1`, `scheduling v4.3.0 → v4.3.1` (Due ordering, WithMaxRetries clamp) | Fixed-only patches; depend on published B1 pins. |
+| B3 | snapshot chain | `snapshot v4.3.0 → v4.4.0` (Encoding field, validated ctor), `decider v4.4.0 → v4.4.1` (clamp fixes), `storage v4.8.0 → v4.8.1` (error-family truth, DuckDB PK), `storage/memory v4.3.1`, `storage/pebble v4.3.0` (verify Added vs Fixed), `storage/bbolt v4.0.1`, `storage/turso v4.2.1`, `storage/backuptest v4.0.1` | Gap-wave ordering snapshot→decider→storage→pebble/bbolt. Drops the `decider => ../snapshot` replace. |
+| B4 | lifecycle + kv + idem | `kv v4.2.1` (Cache.Set invalidation), `commandlifecycle v4.0.1` (+`projections v4.0.1`) (Recorder version fix), `idempotency/kvstore v4.2.1`, `idempotency/sqlstore v4.2.1` (corrupt-row skip), `system v4.5.0 → v4.6.0` (shutdown-dependency validation, ErrShutdownDependencyInvalid) | system minor (new sentinel + validation). Drops `idempotency/kvstore => ../sqlstore`, `integration => ../middleware` replaces. |
+| B5 | crypto + host | `encryption v4.2.0 → v4.3.0`*, `signing v4.2.0 → v4.3.0`*, `projectionhost v4.3.0 → v4.3.1` (worker hardening) | *verify CHANGELOG Added entries since 08-16 for minor vs patch. Requires B1 event tags + replace-drop verify. |
+| B6 | engine patches | `dgraphengine v4.0.3`, `duckdbengine v4.0.2`, `mysqlengine v4.0.1`, `graphadapter v4.0.1`, `projectionadapter v4.4.1`, `tursoengine v4.0.1`, `metaengine/irohengine v4.0.1` (+`loopback v4.0.1`, `quic v4.0.1`) | Engines are dep-isolated; metaengine v4.12.0 already published. Drops engine `=> ../metaengine` replaces where symbols are now published. |
+| B7 | transport finals | `transport/http v4.2.1`, `transport/grpc v4.2.1` — deprecation notices only (ADR-0127); prerequisite of the v5 deletion (plan T08) | Last v4 tags these modules ever get. |
+
+## 3. Explicitly NOT tagged (v5 deletes them)
+
+`stack/*` (9 modules), `storage/view`, `storage/relational`,
+`graph.GraphProjection` surface, `example/*`, `integration/`, `benchkit`,
+`cmd/*` (tooling, tagged independently if ever), `metaengine/bench` (CGo,
+no changes needed), `scheduling/sqlstore` (never tagged, unpublished).
+
+## 4. Replace-drop sweep (after B1–B6 pushed)
+
+30 go.mod files carry local sibling replaces (2026-08-27 census). Drop rule:
+remove a replace iff its target module's published tag carries the symbols
+the module needs, then `go mod tidy` + GOWORK=off build re-verify. Known
+clusters: system ×6, cqrs-bench ×2, event ×1 (schema), engines ×14,
+examples ×8, integration ×1, idempotency ×1, decider ×1, commandlifecycle/
+projections ×1. Expect the irohengine/quic+loopback `=> ../../metaengine`
+replaces to drop only if B6 exposes everything (verify per symbol).
+
+## 5. Post-wave verification
+
+1. GOWORK=off build matrix over ALL swept modules (the 08-22 lesson:
+   published-consumer stranding).
+2. `nix run .#verify-ci` (mirror of CI per-module matrix).
+3. cqrs-lint taskmanager golden V006 version-set refresh (pins the version
+   set — same wave).
+4. api-stability meta-tests + changelog-symbols gate.
+5. Clean-room consumer build of `system/v4@v4.6.0`.
+
+## 6. User decision points
+
+- [ ] Authorize B1–B7 as proposed (or trim: minimum viable = B1+B3+B4 —
+      unblocks v5 deletion prereqs and the snapshot chain).
+- [ ] B5 bump levels (patch vs minor) after CHANGELOG Added-check.
+- [ ] B7 transport final tags now vs after v5 code lands (must precede T08
+      deletion regardless).
