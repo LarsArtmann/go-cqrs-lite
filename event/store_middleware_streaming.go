@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"fmt"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
@@ -55,19 +56,11 @@ func (s *decoratedStore) LoadStreamFromVersion(
 // ReadStream delegates to the inner store's StreamingJournal.ReadStream when
 // supported, applying the source transform per chunk of the returned iterator.
 func (s *decoratedStore) ReadStream(ctx context.Context) (EventIterator, error) {
-	streaming, ok := s.inner.(StreamingJournal)
-	if !ok {
-		return nil, errorfamily.Wrapf(ErrInnerStoreNotStreaming, errorfamily.Rejection,
-			"event.store_not_streaming",
-			"inner store %T does not implement StreamingJournal", s.inner)
-	}
-
-	iter, err := streaming.ReadStream(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.wrapIterator(iter), nil
+	return streamingIterator(s.inner, s.sourceT, "store", "", func(
+		streaming StreamingJournal,
+	) (EventIterator, error) {
+		return streaming.ReadStream(ctx)
+	})
 }
 
 // ReadStreamFrom delegates to the inner store's StreamingJournal.ReadStreamFrom
@@ -78,19 +71,40 @@ func (s *decoratedStore) ReadStreamFrom(
 	afterEventID id.EventID,
 	limit int,
 ) (EventIterator, error) {
-	streaming, ok := s.inner.(StreamingJournal)
+	return streamingIterator(s.inner, s.sourceT, "store",
+		fmt.Sprintf("limit=%d: ", limit), func(streaming StreamingJournal) (EventIterator, error) {
+			return streaming.ReadStreamFrom(ctx, afterEventID, limit)
+		})
+}
+
+// streamingIterator is the shared StreamingJournal delegation used by both
+// decoratedStore and decoratedJournal: it asserts the inner value implements
+// StreamingJournal, pulls the iterator via delegate, and applies the source
+// transform chunk-wise. A nil sourceT returns the inner iterator unchanged.
+// The noun ("store" or "journal") and msgPrefix parameterize the rejection.
+func streamingIterator(
+	inner any,
+	sourceT SourceTransform,
+	noun, msgPrefix string,
+	delegate func(StreamingJournal) (EventIterator, error),
+) (EventIterator, error) {
+	streaming, ok := inner.(StreamingJournal)
 	if !ok {
 		return nil, errorfamily.Wrapf(ErrInnerStoreNotStreaming, errorfamily.Rejection,
-			"event.store_not_streaming",
-			"limit=%d: inner store %T does not implement StreamingJournal", limit, s.inner)
+			"event."+noun+"_not_streaming",
+			msgPrefix+"inner "+noun+" %T does not implement StreamingJournal", inner)
 	}
 
-	iter, err := streaming.ReadStreamFrom(ctx, afterEventID, limit)
+	iter, err := delegate(streaming)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.wrapIterator(iter), nil
+	if sourceT == nil {
+		return iter, nil
+	}
+
+	return &transformingIterator{inner: iter, sourceT: sourceT}, nil
 }
 
 // wrapIterator applies the source transform chunk-wise. A nil sourceT

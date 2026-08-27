@@ -3,9 +3,8 @@ package event
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
-
-	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
@@ -90,19 +89,11 @@ func (j *decoratedJournal) ReadFrom(
 // ReadStream delegates to the inner journal's StreamingJournal.ReadStream
 // when supported, applying the transform per chunk.
 func (j *decoratedJournal) ReadStream(ctx context.Context) (EventIterator, error) {
-	streaming, ok := j.inner.(StreamingJournal)
-	if !ok {
-		return nil, errorfamily.Wrapf(ErrInnerStoreNotStreaming, errorfamily.Rejection,
-			"event.journal_not_streaming",
-			"inner journal %T does not implement StreamingJournal", j.inner)
-	}
-
-	iter, err := streaming.ReadStream(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &transformingIterator{inner: iter, sourceT: j.sourceT}, nil
+	return streamingIterator(j.inner, j.sourceT, "journal", "", func(
+		streaming StreamingJournal,
+	) (EventIterator, error) {
+		return streaming.ReadStream(ctx)
+	})
 }
 
 // ReadStreamFrom delegates to the inner journal's
@@ -113,19 +104,10 @@ func (j *decoratedJournal) ReadStreamFrom(
 	afterEventID id.EventID,
 	limit int,
 ) (EventIterator, error) {
-	streaming, ok := j.inner.(StreamingJournal)
-	if !ok {
-		return nil, errorfamily.Wrapf(ErrInnerStoreNotStreaming, errorfamily.Rejection,
-			"event.journal_not_streaming",
-			"limit=%d: inner journal %T does not implement StreamingJournal", limit, j.inner)
-	}
-
-	iter, err := streaming.ReadStreamFrom(ctx, afterEventID, limit)
-	if err != nil {
-		return nil, err
-	}
-
-	return &transformingIterator{inner: iter, sourceT: j.sourceT}, nil
+	return streamingIterator(j.inner, j.sourceT, "journal",
+		fmt.Sprintf("limit=%d: ", limit), func(streaming StreamingJournal) (EventIterator, error) {
+			return streaming.ReadStreamFrom(ctx, afterEventID, limit)
+		})
 }
 
 // Close closes the inner journal when it implements io.Closer.
