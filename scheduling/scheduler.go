@@ -56,8 +56,10 @@ func WithMaxRetries(n int) Option {
 }
 
 // WithRetryDelay sets the base delay between dispatch retry attempts.
-// The actual delay is randomized with full jitter (0 to retryDelay*2^attempt)
-// to avoid thundering-herd retries when many timers fire at once. Default: 100ms.
+// The actual delay uses equal jitter with exponential backoff: each attempt
+// waits between retryDelay*2^attempt/2 and retryDelay*2^attempt, so a
+// guaranteed minimum delay gives downstream services a recovery window while
+// the random component avoids thundering-herd retries. Default: 100ms.
 func WithRetryDelay(d time.Duration) Option {
 	return func(o *schedulerOptions) { o.retryDelay = d }
 }

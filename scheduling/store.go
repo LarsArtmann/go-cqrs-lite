@@ -1,7 +1,9 @@
 package scheduling
 
 import (
+	"cmp"
 	"context"
+	"slices"
 	"sync"
 	"time"
 
@@ -130,6 +132,16 @@ func (s *MemoryTimerStore[P]) Due(_ context.Context, now time.Time) ([]Timer[P],
 			due = append(due, t)
 		}
 	}
+
+	// Honor the TimerStore.Due contract: FireAt ascending. The ID tie-breaker
+	// keeps dispatch order deterministic across polls (map iteration is random).
+	slices.SortFunc(due, func(a, b Timer[P]) int {
+		if c := a.FireAt.Compare(b.FireAt); c != 0 {
+			return c
+		}
+
+		return cmp.Compare(a.ID.Get(), b.ID.Get())
+	})
 
 	return due, nil
 }

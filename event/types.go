@@ -26,7 +26,9 @@ var defaultClock Clock = func() time.Time { return time.Now().UTC() } //nolint:g
 type Source string
 
 // ParseSource validates and creates a Source from a string.
-// Returns an error if the source is empty or contains invalid characters.
+// Returns an error if the source is empty after trimming whitespace.
+// No character-set validation is applied: sources are free-form labels
+// (e.g., "api", "scheduler", "cli").
 func ParseSource(s string) (Source, error) {
 	original := s
 

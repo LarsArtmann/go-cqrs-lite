@@ -326,3 +326,44 @@ func TestScheduler_FailedTimerSurvivesForRetry(t *testing.T) {
 		)
 	}
 }
+
+// TestMemoryTimerStore_DueOrderedByFireAt pins the TimerStore.Due contract
+// (FireAt ascending, ID tie-breaker): map iteration order must not leak into
+// dispatch order.
+func TestMemoryTimerStore_DueOrderedByFireAt(t *testing.T) {
+	t.Parallel()
+	store := scheduling.NewMemoryTimerStore[string]()
+	ctx := context.Background()
+
+	now := time.Now()
+
+	// Schedule in scrambled order; IDs and FireAt values are intentionally
+	// independent so the sort must order by FireAt, not insertion order.
+	timers := []scheduling.Timer[string]{
+		{ID: scheduling.MustParseTimerID("c"), FireAt: now.Add(-10 * time.Minute), Payload: "second"},
+		{ID: scheduling.MustParseTimerID("a"), FireAt: now.Add(-30 * time.Minute), Payload: "first"},
+		{ID: scheduling.MustParseTimerID("b"), FireAt: now.Add(-10 * time.Minute), Payload: "tie"},
+	}
+
+	for _, timer := range timers {
+		if err := store.Schedule(ctx, timer); err != nil {
+			t.Fatalf("Schedule: %v", err)
+		}
+	}
+
+	due, err := store.Due(ctx, now)
+	if err != nil {
+		t.Fatalf("Due: %v", err)
+	}
+
+	if len(due) != 3 {
+		t.Fatalf("expected 3 due timers, got %d", len(due))
+	}
+
+	want := []string{"a", "b", "c"}
+	for i, id := range want {
+		if due[i].ID.String() != id {
+			t.Fatalf("due[%d]: expected %q, got %q", i, id, due[i].ID)
+		}
+	}
+}
