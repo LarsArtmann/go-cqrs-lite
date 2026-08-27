@@ -1,0 +1,80 @@
+direction: right
+title: {
+  label: "Goal-Gap Closure — metaengine/system End Goal"
+  near: top-center
+  shape: text
+  style: {
+    font-size: 28
+    bold: true
+    font-color: "#0e0e10"
+  }
+}
+north_star: {
+  label: "NORTH STAR\nDeveloper declares domain types · Operator deploys infrastructure\nsystem+metaengine derive everything else · warn, never block"
+  shape: text
+  style: {font-color: "#444444"; font-size: 15}
+}
+
+P0: Phase 0 — Unblock & Hygiene {
+  style: {fill: "#f4d35e"; stroke: "#0e0e10"}
+  T01: "T01 Verify release chain\n(tags, stranded commits, standalone builds)" {style: {fill: "#ffffff"}}
+  T02: "T02 Stale-pin sweep\n~50 go.mod + GOWORK=off verify" {style: {fill: "#ffffff"}}
+  T03: "T03 [USER] Wave-4 tags\n+ replace-drop sweep" {style: {fill: "#fff3d6"}}
+  T04: "T04 PG test isolation" {style: {fill: "#ffffff"}}
+  T01 -> T02 -> T03
+}
+
+P1: Phase 1 — v5 Deletion Wave · 1% → 51% {
+  style: {fill: "#ff6b6b"; stroke: "#0e0e10"}
+  T05: "T05 listing type-driven status" {style: {fill: "#ffffff"}}
+  T06: "T06 taskmanager off OnTombstone" {style: {fill: "#ffffff"}}
+  T07: "T07 delete tombstone API" {style: {fill: "#ffffff"}}
+  T08: "T08 delete transport/*" {style: {fill: "#ffffff"}}
+  T09: "T09 delete Materialize +\nRunProjections + GraphProjection" {style: {fill: "#ffffff"}}
+  T10: "T10 delete view + relational" {style: {fill: "#ffffff"}}
+  T11: "T11 delete stack/ entirely\nONE composition root" {style: {fill: "#ffe3e3"}}
+  T12: "T12 v5 surface sweep\nshells · StreamKey · NewStreamRef" {style: {fill: "#ffffff"}}
+  T13: "T13 extended-review v5 items" {style: {fill: "#ffffff"}}
+  T14: "T14 snapshot wire tags + SQL" {style: {fill: "#ffffff"}}
+  T15: "T15 v5 migration guide" {style: {fill: "#ffffff"}}
+  T16: "T16 [USER] CUT v5.0.0" {style: {fill: "#ffe3e3"; bold: true; font-size: 20}}
+  T05 -> T06 -> T07 -> T09 -> T10 -> T11 -> T12 -> T13 -> T14 -> T15 -> T16
+}
+
+P2: Phase 2 — Declare-Only DX · 4% → 64% {
+  style: {fill: "#6eb5ff"; stroke: "#0e0e10"}
+  T17: "T17 metaengine-gen codegen (L2)" {style: {fill: "#ffffff"}}
+  T18: "T18 planner auto-route (L3)\ndeclared query → inferred projection" {style: {fill: "#e3f0ff"}}
+  T19: "T19 command sourcing" {style: {fill: "#ffffff"}}
+  T20: "T20 lifecycle one-call" {style: {fill: "#ffffff"}}
+  T21: "T21 DomainConfig ceremony ↓" {style: {fill: "#ffffff"}}
+  T17 -> T18
+}
+
+P3: Phase 3 — Ops Completeness · 20% cluster {
+  style: {fill: "#ffb347"; stroke: "#0e0e10"}
+  T22: "T22 NATS + Redis buses" {style: {fill: "#ffffff"}}
+  T23: "T23 Dgraph parity\nSnapshot + StreamLog" {style: {fill: "#ffffff"}}
+  T24: "T24 query expression tree" {style: {fill: "#ffffff"}}
+}
+
+P4: Phase 4 — Trust & Evidence {
+  style: {fill: "#7ddf64"; stroke: "#0e0e10"}
+  T25: "T25 native search/vector/spatial\npg tsvector · PostGIS · DuckDB VSS" {style: {fill: "#ffffff"}}
+  T26: "T26 flagship taskmanager\non system/ + docs" {style: {fill: "#e8f8e4"}}
+  T27: "T27 calibration CI + Turso probe" {style: {fill: "#ffffff"}}
+}
+
+tail: Long Tail → 100% {
+  style: {fill: "#eeeeee"; stroke: "#0e0e10"}
+  FL: "GitHub Releases · retract doc · indirect deps\nlint-config audit · iroh edges · blocked[user/hw/root]" {style: {fill: "#ffffff"}}
+}
+
+north_star -> P0
+P0 -> P1: "shipping green"
+P1 -> P2: "v5 cut"
+P1 -> P3: "v5 cut"
+P2 -> P25
+P2 -> T26
+P3 -> P4: T22 -> T26
+P4 -> tail
