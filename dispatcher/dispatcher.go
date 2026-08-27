@@ -105,8 +105,9 @@ func (d *Dispatcher[H, M]) Register(t string, handler H, wrap func(M, H) H) erro
 // argument instead of repeating the one-line closure inline.
 func ApplyMiddleware[H any, M ~func(H) H](m M, h H) H { return m(h) }
 
-// RegisterWithWrapping calls [Register] and wraps any error as an
-// Infrastructure error with a module-specific code. Shared by
+// RegisterWithWrapping calls [Register] and wraps any error with a
+// module-specific code, preserving the error's family: a duplicate-handler
+// Conflict stays a Conflict instead of surfacing as Infrastructure. Shared by
 // command.Dispatcher.Register and query.Dispatcher.Register so the
 // register+wrap-error boilerplate is not duplicated across modules.
 //
@@ -121,8 +122,9 @@ func RegisterWithWrapping[H, M any](
 ) error {
 	err := d.Register(typeStr, handler, wrap)
 	if err != nil {
-		return errorfamily.WrapInfrastructure(
+		return errorfamily.Wrap(
 			err,
+			errorfamily.Classify(err),
 			module+".register_handler_failed",
 			"registering handler for "+module+" type "+typeStr,
 		)

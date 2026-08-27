@@ -22,14 +22,16 @@ type SourceTransform func([]Event) ([]Event, error)
 
 // DecorateStore wraps store with a write-side and/or read-side transform.
 // It is the single, central place that preserves ALL store interfaces:
-// Store, Journal, SeekableJournal, BackwardsSource, MultiSink, and io.Closer
-// are all forwarded to the inner store, with the transforms applied.
+// Store, Journal, SeekableJournal, BackwardsSource, MultiSink,
+// StreamingSource, StreamingJournal, and io.Closer are all forwarded to the
+// inner store, with the transforms applied.
 //
 // A nil sinkT or sourceT is a pass-through (no allocation, no wrapping).
 // When both transforms are nil, store is returned unchanged.
 //
 // The optional interfaces (Journal, SeekableJournal, BackwardsSource,
-// MultiSink) are implemented unconditionally: if the inner store does not
+// MultiSink, StreamingSource, StreamingJournal) are implemented
+// unconditionally: if the inner store does not
 // support one, calling that method returns the corresponding
 // ErrInnerStoreNot* rejection instead.
 //
@@ -60,6 +62,8 @@ var (
 	_ SeekableJournal = (*decoratedStore)(nil)
 	_ BackwardsSource = (*decoratedStore)(nil)
 	_ MultiSink       = (*decoratedStore)(nil)
+	_ StreamingSource = (*decoratedStore)(nil)
+	_ StreamingJournal = (*decoratedStore)(nil)
 	_ io.Closer       = (*decoratedStore)(nil)
 )
 

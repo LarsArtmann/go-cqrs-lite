@@ -4,6 +4,8 @@ import (
 	"errors"
 	"sync"
 	"testing"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 type testHandler func(string) string
@@ -209,6 +211,30 @@ func TestDispatcher_Register_Duplicate(t *testing.T) {
 
 	if !errors.Is(err, ErrHandlerAlreadyRegistered) {
 		t.Errorf("expected ErrHandlerAlreadyRegistered, got %v", err)
+	}
+}
+
+// TestRegisterWithWrapping_PreservesConflictFamily verifies that the shared
+// register helper does not reclassify a duplicate-handler Conflict as
+// Infrastructure: family-aware consumers (retry policies, HTTP mappers) must
+// still see Conflict.
+func TestRegisterWithWrapping_PreservesConflictFamily(t *testing.T) {
+	t.Parallel()
+
+	d := NewDispatcher[testHandler, testMiddleware]()
+	handler := func(s string) string { return s }
+
+	if err := RegisterWithWrapping(d, "test", "command", handler, testWrap); err != nil {
+		t.Fatalf("first RegisterWithWrapping() error = %v", err)
+	}
+
+	err := RegisterWithWrapping(d, "test", "command", handler, testWrap)
+	if !errors.Is(err, ErrHandlerAlreadyRegistered) {
+		t.Fatalf("expected ErrHandlerAlreadyRegistered, got %v", err)
+	}
+
+	if got := errorfamily.Classify(err); got != errorfamily.Conflict {
+		t.Errorf("duplicate registration family = %v, want Conflict", got)
 	}
 }
 
