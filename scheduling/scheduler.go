@@ -50,9 +50,18 @@ func WithPollInterval(d time.Duration) Option {
 }
 
 // WithMaxRetries sets the max retry count for failed dispatches.
-// Default: 3.
+// Default: 3. The count is total attempts per tick, not extra retries:
+// values below 1 are clamped to 1 so a timer is always dispatched at least
+// once before it is marked fired (a 0 would otherwise mark the timer fired
+// with zero dispatch attempts, permanently losing the deadline).
 func WithMaxRetries(n int) Option {
-	return func(o *schedulerOptions) { o.maxRetries = n }
+	return func(o *schedulerOptions) {
+		if n < 1 {
+			n = 1
+		}
+
+		o.maxRetries = n
+	}
 }
 
 // WithRetryDelay sets the base delay between dispatch retry attempts.
@@ -114,10 +123,13 @@ func (s *Scheduler[P]) tick(ctx context.Context) error {
 	now := time.Now()
 
 	due, err := s.store.Due(ctx, now)
-	if err != nil {
+	if err != nil && len(due) == 0 {
 		return fmt.Errorf("failed to query due timers: %w", err)
 	}
 
+	// A Due error with decodable timers alongside means stored-data
+	// corruption in OTHER rows: dispatch what decoded; the joined error is
+	// re-reported below so the corruption stays visible.
 	for _, timer := range due {
 		if err := s.dispatchWithRetry(ctx, timer); err != nil {
 			s.logger.Error(
@@ -136,6 +148,10 @@ func (s *Scheduler[P]) tick(ctx context.Context) error {
 				"error", err,
 			)
 		}
+	}
+
+	if err != nil {
+		return fmt.Errorf("due timers query reported corruption: %w", err)
 	}
 
 	return nil

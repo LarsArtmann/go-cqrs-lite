@@ -71,7 +71,14 @@ func (t *TypedQueryStore[P]) SaveQuery(ctx context.Context, q TypedQuery[P]) err
 
 	err = t.store.SaveQuery(ctx, persisted)
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "query.typed_store.save", "save typed query")
+		// Preserve the inner family: a duplicate-query Conflict must stay
+		// Conflict, not surface as Infrastructure.
+		return errorfamily.Wrap(
+			err,
+			errorfamily.Classify(err),
+			"query.typed_store.save",
+			"save typed query",
+		)
 	}
 
 	return nil

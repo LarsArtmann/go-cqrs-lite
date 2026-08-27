@@ -85,7 +85,14 @@ func (t *TypedCommandStore[P]) Save(
 
 	err = t.store.Save(ctx, ref, persisted)
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "command.typed_store.save", "save typed command")
+		// Preserve the inner family: a duplicate-command Conflict must stay
+		// Conflict, not surface as Infrastructure.
+		return errorfamily.Wrap(
+			err,
+			errorfamily.Classify(err),
+			"command.typed_store.save",
+			"save typed command",
+		)
 	}
 
 	return nil
@@ -131,8 +138,11 @@ func (t *TypedCommandStore[P]) AppendBatch(
 
 	err := t.store.AppendBatch(ctx, ref, persisted)
 	if err != nil {
-		return errorfamily.WrapInfrastructure(
+		// Preserve the inner family: an in-batch duplicate Conflict must
+		// stay Conflict, not surface as Infrastructure.
+		return errorfamily.Wrap(
 			err,
+			errorfamily.Classify(err),
 			"command.typed_store.append_batch",
 			"append typed commands",
 		)

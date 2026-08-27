@@ -57,9 +57,11 @@ type PaginatedResult[T any] struct {
 }
 
 // NewPaginatedResult creates a paginated result, computing TotalPages.
+// A zero PageSize (e.g. a zero-value Pagination) yields zero TotalPages
+// instead of panicking on division by zero.
 func NewPaginatedResult[T any](data []T, totalCount uint, p Pagination) PaginatedResult[T] {
 	var totalPages uint
-	if totalCount > 0 {
+	if totalCount > 0 && p.PageSize > 0 {
 		totalPages = (totalCount + p.PageSize - 1) / p.PageSize
 	}
 

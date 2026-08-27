@@ -64,7 +64,10 @@ func AuditMiddleware(sink QuerySink, level AuditLevel, logger *slog.Logger) Midd
 				return result, err
 			}
 
-			persistErr = sink.SaveQuery(ctx, persisted)
+			// The audit record must survive the request lifecycle: the
+			// client giving up (cancelled ctx) between handler completion
+			// and this save is exactly the query you most want audited.
+			persistErr = sink.SaveQuery(context.WithoutCancel(ctx), persisted)
 			if persistErr != nil {
 				logger.WarnContext(ctx, "query audit: save failed",
 					"query_type", q.Type(),

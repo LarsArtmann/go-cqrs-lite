@@ -17,6 +17,7 @@ import (
 	"database/sql"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"time"
 
@@ -136,6 +137,12 @@ func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) 
 
 // Due returns timers whose FireAt is at or before now, ordered by FireAt
 // ascending.
+// A row whose payload, timer ID, or actor cannot be decoded (stored-data
+// corruption) is skipped, not fatal: the decodable timers are returned
+// alongside a joined Corruption error describing every skipped row, so one
+// rotten row cannot block dispatch of every other due timer forever. The
+// corrupt timers stay in the table and are re-reported each poll until an
+// operator removes them.
 func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling.Timer[P], error) {
 	rows, err := s.db.QueryContext(ctx, s.q.due, s.formatTime(now))
 	if err != nil {
@@ -148,6 +155,8 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 	defer func() { _ = rows.Close() }()
 
 	var timers []scheduling.Timer[P]
+
+	var corrupt []error
 
 	for rows.Next() {
 		var rawID string
@@ -169,35 +178,14 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 			return nil, err
 		}
 
-		envelope, err := decodeTimerPayload[P](rawID, payload)
+		timer, err := decodeDueTimer[P](rawID, payload, fireAt)
 		if err != nil {
-			return nil, err
+			corrupt = append(corrupt, err)
+
+			continue
 		}
 
-		timerID, err := scheduling.ParseTimerID(rawID)
-		if err != nil {
-			return nil, errorfamily.WrapCorruption(
-				err,
-				"scheduling.sqlstore.parse_timer_id",
-				"parse timer ID "+rawID,
-			)
-		}
-
-		actor, err := id.ParseActorID(envelope.Actor)
-		if err != nil {
-			return nil, errorfamily.WrapCorruption(
-				err,
-				"scheduling.sqlstore.parse_actor",
-				"parse actor for timer "+rawID,
-			)
-		}
-
-		timers = append(timers, scheduling.Timer[P]{
-			ID:      timerID,
-			FireAt:  fireAt,
-			Payload: envelope.Payload,
-			Actor:   actor,
-		})
+		timers = append(timers, timer)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -208,7 +196,41 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 		)
 	}
 
-	return timers, nil
+	return timers, errors.Join(corrupt...)
+}
+
+// decodeDueTimer reconstructs one Timer from its stored row. A decode failure
+// is Corruption in the stored data, not a reason to drop the whole batch.
+func decodeDueTimer[P any](rawID string, payload []byte, fireAt time.Time) (scheduling.Timer[P], error) {
+	envelope, err := decodeTimerPayload[P](rawID, payload)
+	if err != nil {
+		return scheduling.Timer[P]{}, err
+	}
+
+	timerID, err := scheduling.ParseTimerID(rawID)
+	if err != nil {
+		return scheduling.Timer[P]{}, errorfamily.WrapCorruption(
+			err,
+			"scheduling.sqlstore.parse_timer_id",
+			"parse timer ID "+rawID,
+		)
+	}
+
+	actor, err := id.ParseActorID(envelope.Actor)
+	if err != nil {
+		return scheduling.Timer[P]{}, errorfamily.WrapCorruption(
+			err,
+			"scheduling.sqlstore.parse_actor",
+			"parse actor for timer "+rawID,
+		)
+	}
+
+	return scheduling.Timer[P]{
+		ID:      timerID,
+		FireAt:  fireAt,
+		Payload: envelope.Payload,
+		Actor:   actor,
+	}, nil
 }
 
 // MarkFired removes a timer after it has been dispatched.
