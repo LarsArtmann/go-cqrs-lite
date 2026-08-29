@@ -44,7 +44,10 @@ func newProbeStore(t *testing.T, eng metaengine.Engine) *metaengine.Store {
 }
 
 // waitForLiveRTT polls GetEngineStats until the engine reports a fresh live RTT
-// with at least one sample, or fails the test on timeout.
+// with at least one sample AND a measured read latency, or fails the test on
+// timeout. Both signals come from the async probe loop; polling until they are
+// BOTH visible makes the downstream assertions timing-proof by construction
+// (under load the read tracker can lag the RTT tracker by a probe cycle).
 func waitForLiveRTT(
 	t *testing.T,
 	ctx context.Context,
@@ -56,14 +59,15 @@ func waitForLiveRTT(
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
 		stats := store.GetEngineStats(ctx)
-		if len(stats) > 0 && stats[0].HasLiveRTT && stats[0].Samples > 0 {
+		if len(stats) > 0 && stats[0].HasLiveRTT && stats[0].Samples > 0 &&
+			stats[0].HasLiveRead && stats[0].MeasuredRead.EWMA > 0 {
 			return stats[0]
 		}
 
 		time.Sleep(50 * time.Millisecond)
 	}
 
-	t.Fatalf("no live RTT after %s; probe loop did not produce samples", timeout)
+	t.Fatalf("no live RTT/read measurement after %s; probe loop did not produce samples", timeout)
 
 	return metaengine.EngineStats{}
 }
