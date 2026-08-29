@@ -51,7 +51,7 @@ func (e *dgraphEngine) StreamAppend(
 	}
 
 	if _, err := e.doMutate(ctx, &api.Mutation{
-		SetJson:   data,
+		SetJson: data,
 	}); err != nil {
 		return fmt.Errorf("dgraphengine.StreamAppend: %w", err)
 	}

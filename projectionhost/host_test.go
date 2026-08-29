@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -17,7 +18,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/testutil/v4"
 
 	errorfamily "github.com/larsartmann/go-error-family"
-	"strings"
 )
 
 // --- Test fixtures ---

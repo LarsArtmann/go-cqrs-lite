@@ -97,6 +97,10 @@ func TestKeysetPositionQueryChecked_MatchesDeprecatedWrapper(t *testing.T) {
 
 	fromWrapper := sqlpkg.KeysetPositionQuery(sqlpkg.SQLiteDialect{}, columns, table, timestampCol)
 	if fromChecked != fromWrapper {
-		t.Errorf("checked and wrapper disagree:\nchecked:\n%s\nwrapper:\n%s", fromChecked, fromWrapper)
+		t.Errorf(
+			"checked and wrapper disagree:\nchecked:\n%s\nwrapper:\n%s",
+			fromChecked,
+			fromWrapper,
+		)
 	}
 }

@@ -235,7 +235,11 @@ func TestMariaDBApplyLayout_SortPathUsesGeneratedColumns(t *testing.T) {
 		}
 	}
 
-	if err := eng.(metaengine.LayoutPlanner).ApplyLayout(collection, nil, []string{"priority"}); err != nil {
+	if err := eng.(metaengine.LayoutPlanner).ApplyLayout(
+		collection,
+		nil,
+		[]string{"priority"},
+	); err != nil {
 		t.Fatalf("ApplyLayout: %v", err)
 	}
 
@@ -283,7 +287,12 @@ func TestMariaDBApplyLayout_SortPathUsesGeneratedColumns(t *testing.T) {
 	}
 
 	if len(pageVals) != len(want) {
-		t.Fatalf("paginated scan returned %d items, want %d: %v", len(pageVals), len(want), pageVals)
+		t.Fatalf(
+			"paginated scan returned %d items, want %d: %v",
+			len(pageVals),
+			len(want),
+			pageVals,
+		)
 	}
 
 	for i := range want {

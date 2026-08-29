@@ -108,7 +108,9 @@ func TestMiddleware_SharedTracker_StillReportsAccurateAttempts(t *testing.T) {
 
 	g.Expect(deadLettered).NotTo(BeNil())
 
-	payload, decodeErr := event.DecodePayloadAuto[commandlifecycle.DeadLetteredPayload](deadLettered)
+	payload, decodeErr := event.DecodePayloadAuto[commandlifecycle.DeadLetteredPayload](
+		deadLettered,
+	)
 	g.Expect(decodeErr).NotTo(HaveOccurred())
 	g.Expect(payload.Attempts).To(Equal(1),
 		"single dispatch must report attempts=1")

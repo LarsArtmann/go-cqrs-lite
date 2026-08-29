@@ -25,7 +25,10 @@ func TestHost_NonRetryableHandlerError_SkipsRetries(t *testing.T) {
 
 	const threshold = 3
 
-	proj := &failingProjection{name: "rejecting", err: errorfamily.NewRejection("test/rejected", "malformed payload")}
+	proj := &failingProjection{
+		name: "rejecting",
+		err:  errorfamily.NewRejection("test/rejected", "malformed payload"),
+	}
 
 	dlq := projectionhost.NewMemoryDeadLetterStore()
 	host, _ := projectionhost.New(
@@ -64,7 +67,11 @@ func TestHost_ForceStop_BoundsWorkerExit(t *testing.T) {
 	journal.append(makeEvent("blocked.created"))
 
 	proj := &blockingProjection{name: "blocked", release: make(chan struct{})}
-	host, _ := projectionhost.New(journal, cpStore, projectionhost.WithShutdownTimeout(50*time.Millisecond))
+	host, _ := projectionhost.New(
+		journal,
+		cpStore,
+		projectionhost.WithShutdownTimeout(50*time.Millisecond),
+	)
 	host.Register(proj)
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -76,8 +76,10 @@ func TestBoundedMap_DeleteHeavyWorkloadCompactsOrder(t *testing.T) {
 	m.put("survivor", 1)
 
 	if len(m.order) > compactStaleThreshold+2 {
-		t.Fatalf("order slice retained %d stale keys after delete-heavy workload (compaction failed)",
-			len(m.order))
+		t.Fatalf(
+			"order slice retained %d stale keys after delete-heavy workload (compaction failed)",
+			len(m.order),
+		)
 	}
 
 	if v, ok := m.get("survivor"); !ok || v != 1 {

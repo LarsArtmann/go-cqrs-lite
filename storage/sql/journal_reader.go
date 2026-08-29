@@ -180,7 +180,12 @@ func (r *JournalReader[T]) ReadFrom(ctx context.Context, afterID string, limit i
 		return []T{}, nil
 	}
 
-	query, err := KeysetPositionQueryChecked(r.Dialect, r.PositionColumns, r.Table, r.TimestampColumn)
+	query, err := KeysetPositionQueryChecked(
+		r.Dialect,
+		r.PositionColumns,
+		r.Table,
+		r.TimestampColumn,
+	)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 

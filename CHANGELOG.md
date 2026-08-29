@@ -40,7 +40,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   collection sizes, and ExplainPlan/Doctor WARN when an engine serves k-NN
   by full scan without size introspection. Memory and pg engines implement
   it; the pg implementation is SQL COUNT/DISTINCT — no payload transfer.
-- **`projectionhost.Transactional`-grade hardening set** (T19, all seven
+- **projectionhost hardening set** (T19, all seven
   findings): `ReplayDeadLetters` now holds the worker's `handleMu` (was racing
   a running worker's drain); `Reset` clears the checkpoint BEFORE the
   read-model reset (crash window can no longer strand pre-checkpoint events);

@@ -11,7 +11,6 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
-
 // --- T41: Transactional capability ---
 
 // TestRunInTx_CommitPersistsAllWrites verifies the happy path: every write
@@ -202,4 +201,3 @@ func TestDgraphEngine_MapScan_EmptyCollection(t *testing.T) {
 	g.Expect(result.Items).To(gomega.BeEmpty())
 	g.Expect(result.HasMore).To(gomega.BeFalse())
 }
-

@@ -273,36 +273,38 @@ func FuzzBuildWhereClauseChecked_MultiCondition(f *testing.F) {
 	// Out-of-range operator indices hit the rejection path.
 	f.Add("name", uint8(200), int64(1), "age", uint8(201), int64(1))
 
-	f.Fuzz(func(t *testing.T, col1 string, op1 uint8, val1 int64, col2 string, op2 uint8, val2 int64) {
-		if !utf8.ValidString(col1) || !utf8.ValidString(col2) {
-			t.Skip()
-		}
-
-		conditions := []kv.Condition{
-			{Column: col1, Op: fuzzOperators[int(op1)%len(fuzzOperators)], Value: val1},
-			{Column: col2, Op: fuzzOperators[int(op2)%len(fuzzOperators)], Value: val2},
-		}
-
-		clause, args, err := sqlpkg.BuildWhereClauseChecked(conditions, ph)
-		if err != nil {
-			if clause != "" {
-				t.Errorf("error case returned non-empty clause %q", clause)
+	f.Fuzz(
+		func(t *testing.T, col1 string, op1 uint8, val1 int64, col2 string, op2 uint8, val2 int64) {
+			if !utf8.ValidString(col1) || !utf8.ValidString(col2) {
+				t.Skip()
 			}
 
-			return
-		}
-
-		for _, cond := range conditions {
-			if !sqlpkg.ValidateIdentifier(cond.Column) {
-				t.Errorf("accepted hostile column %q (clause=%q)", cond.Column, clause)
+			conditions := []kv.Condition{
+				{Column: col1, Op: fuzzOperators[int(op1)%len(fuzzOperators)], Value: val1},
+				{Column: col2, Op: fuzzOperators[int(op2)%len(fuzzOperators)], Value: val2},
 			}
-		}
 
-		placeholders := strings.Count(clause, "?")
+			clause, args, err := sqlpkg.BuildWhereClauseChecked(conditions, ph)
+			if err != nil {
+				if clause != "" {
+					t.Errorf("error case returned non-empty clause %q", clause)
+				}
 
-		if placeholders != len(args) {
-			t.Errorf("placeholder/arg mismatch: %d placeholders vs %d args (clause=%q)",
-				placeholders, len(args), clause)
-		}
-	})
+				return
+			}
+
+			for _, cond := range conditions {
+				if !sqlpkg.ValidateIdentifier(cond.Column) {
+					t.Errorf("accepted hostile column %q (clause=%q)", cond.Column, clause)
+				}
+			}
+
+			placeholders := strings.Count(clause, "?")
+
+			if placeholders != len(args) {
+				t.Errorf("placeholder/arg mismatch: %d placeholders vs %d args (clause=%q)",
+					placeholders, len(args), clause)
+			}
+		},
+	)
 }

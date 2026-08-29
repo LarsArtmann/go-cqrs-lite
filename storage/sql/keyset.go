@@ -73,7 +73,10 @@ func ResolveCursorTimestamp(
 // SQLite (MULTI-INDEX OR plus a temp B-tree sort of the remaining tail per
 // batch), making batched journal drains O(N²): draining a 200k-event journal
 // in batches of 100 took ~63s with the self-JOIN vs 0.22s with this query.
-func KeysetPositionQueryChecked(dialect Dialect, columns, table, timestampColumn string) (string, error) {
+func KeysetPositionQueryChecked(
+	dialect Dialect,
+	columns, table, timestampColumn string,
+) (string, error) {
 	if err := ValidateJournalIdentifiers(table, timestampColumn); err != nil {
 		return "", err
 	}

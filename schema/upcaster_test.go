@@ -315,7 +315,13 @@ func TestUpcasterRegistry_MultiVersionJumpKeepsStampedVersion(t *testing.T) {
 
 	registry := newUpcasterRegistry()
 	registry.register(NewUpcaster("UserCreated", 1, func(evt event.Event) (event.Event, error) {
-		next, err := event.NewEvent("UserCreated", evt.StreamID(), "User", evt.Version(), []byte(`{"v3":true}`))
+		next, err := event.NewEvent(
+			"UserCreated",
+			evt.StreamID(),
+			"User",
+			evt.Version(),
+			[]byte(`{"v3":true}`),
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -333,7 +339,10 @@ func TestUpcasterRegistry_MultiVersionJumpKeepsStampedVersion(t *testing.T) {
 	}
 
 	if result.SchemaVersion() != 3 {
-		t.Fatalf("SchemaVersion = %d, want 3 (upcaster-stamped jump preserved)", result.SchemaVersion())
+		t.Fatalf(
+			"SchemaVersion = %d, want 3 (upcaster-stamped jump preserved)",
+			result.SchemaVersion(),
+		)
 	}
 }
 

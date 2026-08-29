@@ -81,6 +81,11 @@ func TestCommandStore_ConcurrentSaveSameID_ExactlyOneWins(t *testing.T) {
 	}
 
 	if conflicts != 7 || others != 0 {
-		t.Fatalf("expected 1 success + 7 conflicts + 0 other, got %d conflicts, %d other: %v", conflicts, others, results)
+		t.Fatalf(
+			"expected 1 success + 7 conflicts + 0 other, got %d conflicts, %d other: %v",
+			conflicts,
+			others,
+			results,
+		)
 	}
 }

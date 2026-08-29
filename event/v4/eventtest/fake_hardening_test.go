@@ -32,7 +32,10 @@ func TestFakeStore_LoadToVersion_ReturnsCopy(t *testing.T) {
 	}
 
 	if after[0].Version() != 1 {
-		t.Fatalf("in-place mutation of loaded events corrupted the fake: first version = %d", after[0].Version())
+		t.Fatalf(
+			"in-place mutation of loaded events corrupted the fake: first version = %d",
+			after[0].Version(),
+		)
 	}
 }
 
@@ -62,7 +65,10 @@ func TestFakeStore_ReadFrom_ReturnsCopy(t *testing.T) {
 	}
 
 	if after[0].Version() != 1 {
-		t.Fatalf("in-place mutation of ReadFrom result corrupted the fake: first version = %d", after[0].Version())
+		t.Fatalf(
+			"in-place mutation of ReadFrom result corrupted the fake: first version = %d",
+			after[0].Version(),
+		)
 	}
 }
 

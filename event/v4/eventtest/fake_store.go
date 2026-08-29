@@ -131,7 +131,9 @@ func (s *FakeStore) LoadToVersion(
 
 	// Clone: SliceToVersion returns a sub-slice aliasing the store's backing
 	// array; callers that sort or mutate in place would corrupt the fake.
-	return append([]event.Event{}, event.SliceToVersion(s.loadEventsHelper(ref), maxVersion)...), nil
+	return append(
+		[]event.Event{},
+		event.SliceToVersion(s.loadEventsHelper(ref), maxVersion)...), nil
 }
 
 func (s *FakeStore) LoadToTimestamp(

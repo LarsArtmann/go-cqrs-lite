@@ -51,7 +51,11 @@ func (failingStore) Load(_ context.Context, _ id.StreamRef) (*Snapshot, error) {
 	return nil, errStoreDown
 }
 
-func (failingStore) LoadAtVersion(_ context.Context, _ id.StreamRef, _ event.Version) (*Snapshot, error) {
+func (failingStore) LoadAtVersion(
+	_ context.Context,
+	_ id.StreamRef,
+	_ event.Version,
+) (*Snapshot, error) {
 	return nil, errStoreDown
 }
 

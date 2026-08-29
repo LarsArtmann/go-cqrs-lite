@@ -27,12 +27,12 @@ type DecideFunc[Cmd any, State any] func(state State, cmd Cmd) ([]event.Event, e
 
 // DeciderScenario is a fluent Given/When/Then builder for testing deciders.
 type DeciderScenario[Cmd any, State any] struct {
-	apply   func(State, event.Event) (State, error)
-	decide  DecideFunc[Cmd, State]
-	initial State
-	given   []event.Event
-	cmd     Cmd
-	t       *testing.T
+	apply    func(State, event.Event) (State, error)
+	decide   DecideFunc[Cmd, State]
+	initial  State
+	given    []event.Event
+	cmd      Cmd
+	t        *testing.T
 	asserted bool
 }
 
@@ -87,7 +87,7 @@ func (s *DeciderScenario[Cmd, State]) requireTerminalAssertion() {
 	s.t.Cleanup(func() {
 		if !s.asserted {
 			s.t.Errorf(
-				"scenario: no Then* assertion ran — this test passes vacuously; "+
+				"scenario: no Then* assertion ran — this test passes vacuously; " +
 					"end the chain with Then, ThenEvents, ThenError, or ThenState",
 			)
 		}

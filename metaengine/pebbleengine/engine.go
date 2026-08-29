@@ -1,13 +1,16 @@
 // Package pebbleengine implements a Pebble-backed metaengine Engine.
 //
 // Pebble provides a genuinely different cost profile from SQLite and Memory:
+//
 //   - Map/Set point lookups: O(1) LSM point read (faster than SQLite's O(logN) B-tree)
+//
 //   - Counter: O(1) increment, O(N) CounterGet (prefix scan — degraded)
+//
 //   - SortedMap scan: O(N) prefix scan + Go sort (degraded — no secondary indexes)
 //
-//   Graph: NOT supported — this engine has no graph dispatch. Graph workloads
-//   route to a graph-capable engine (dgraphengine, or graphadapter over any
-//   engine); the profile deliberately omits ADTGraph.
+//     Graph: NOT supported — this engine has no graph dispatch. Graph workloads
+//     route to a graph-capable engine (dgraphengine, or graphadapter over any
+//     engine); the profile deliberately omits ADTGraph.
 //
 // This module is a dep-isolated engine: it lives OUTSIDE the metaengine
 // module because it requires the cockroachdb/pebble dependency, keeping the

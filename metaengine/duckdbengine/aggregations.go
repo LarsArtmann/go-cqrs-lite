@@ -125,7 +125,14 @@ func appendDuckDBFilter(
 			f.Op == metaengine.FilterGt || f.Op == metaengine.FilterGe
 
 		if plan.Table != "" {
-			fmt.Fprintf(b, "%s%s %s $%d", connector, columnExpr(f.Column, plan), string(f.Op), *argIdx)
+			fmt.Fprintf(
+				b,
+				"%s%s %s $%d",
+				connector,
+				columnExpr(f.Column, plan),
+				string(f.Op),
+				*argIdx,
+			)
 			*args = append(*args, f.Value)
 		} else if isNumericOp {
 			fmt.Fprintf(b, "%sCAST(%s AS DOUBLE) %s $%d", connector,

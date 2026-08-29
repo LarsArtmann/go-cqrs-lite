@@ -87,7 +87,9 @@ func TestDoctor_VectorSectionCountsAndWarns(t *testing.T) {
 	store, err := metaengine.Plan(
 		[]metaengine.Engine{
 			memory,
-			&fakeVectorOnlyEngine{fakeEngine: &fakeEngine{profile: metaengine.EngineProfile{Name: "scanonly"}}},
+			&fakeVectorOnlyEngine{
+				fakeEngine: &fakeEngine{profile: metaengine.EngineProfile{Name: "scanonly"}},
+			},
 		},
 		findTaskQuery(),
 	)

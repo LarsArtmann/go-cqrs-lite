@@ -36,7 +36,11 @@ func TestVacuousGuard_childRunsVacuousScenarios(t *testing.T) {
 func TestVacuousGuard_FailsWithoutTerminalAssertion(t *testing.T) {
 	t.Parallel()
 
-	cmd := exec.Command(os.Args[0], "-test.run=^TestVacuousGuard_childRunsVacuousScenarios$", "-test.count=1")
+	cmd := exec.Command(
+		os.Args[0],
+		"-test.run=^TestVacuousGuard_childRunsVacuousScenarios$",
+		"-test.count=1",
+	)
 	cmd.Env = append(os.Environ(), vacuousChildEnv+"=1")
 
 	out, err := cmd.CombinedOutput()
