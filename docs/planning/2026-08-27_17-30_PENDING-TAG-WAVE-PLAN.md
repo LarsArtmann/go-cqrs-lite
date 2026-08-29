@@ -30,7 +30,10 @@
 > backuptest v4.1.0; duckdb/mysql/iroh engines → metaengine v4.12.0).
 > **§5 verification:** clean-room go get per batch ✓, clean-room system/v4.6.0
 > consumer build ✓, api-stability golden 4289 exports ✓, cqrs-lint suite ✓,
-> changelog-symbols ✓, verify-ci matrix (see session report for final state).
+> changelog-symbols ✓, verify-ci matrix ✓ (76 modules; two post-sweep pin
+> gaps caught and fixed: system → watermill v4.5.1 handler-independence,
+> system/integration → duckdbengine v4.1.0 driver registration — the sweep's
+> build-only check missed test-only and init-time symbol deps).
 > **Re-verified 2026-08-29:** the three post-plan code commits (5ec4b1b39
 > listing/pgtestcontainer, c9e464eda watermill/system, 9455f687a standalone-matrix
 > pin fixes) are folded into B2/B4/B5 below; the remaining post-plan commits are
