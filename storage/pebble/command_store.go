@@ -98,7 +98,20 @@ func (s *CommandStore) Save(
 
 	jKey := s.commandJournalKey(cmd.ID())
 
-	if s.commandExists(jKey) {
+	// Serialize duplicate-check + commit per key shard: two concurrent Saves
+	// of the same command ID must conflict, not silently overwrite.
+	locked := s.lockShards(jKey)
+	defer s.unlockShards(locked)
+
+	exists, err := s.commandExists(jKey)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return errorfamily.WrapInfrastructure(err, "pebble.duplicate_command_check",
+			fmt.Sprintf("duplicate check for command %s", cmd.ID()))
+	}
+
+	if exists {
 		return errorfamily.WrapConflict(command.ErrDuplicateCommand, "pebble.duplicate_command",
 			fmt.Sprintf("command %s already exists", cmd.ID()))
 	}
@@ -151,9 +164,19 @@ func (s *CommandStore) AppendBatch(
 	batch := s.db.NewBatch()
 	defer func() { _ = batch.Close() }()
 
+	// Lock all batch keys' shards up front (ordered) so the existence
+	// checks and the single commit are atomic against concurrent Saves.
+	jKeys := make([][]byte, len(cmds))
+	for i, cmd := range cmds {
+		jKeys[i] = s.commandJournalKey(cmd.ID())
+	}
+
+	locked := s.lockShards(jKeys...)
+	defer s.unlockShards(locked)
+
 	seen := make(map[id.CommandID]struct{}, len(cmds))
 
-	for _, cmd := range cmds {
+	for i, cmd := range cmds {
 		if _, dup := seen[cmd.ID()]; dup {
 			return errorfamily.WrapConflict(
 				command.ErrDuplicateCommand,
@@ -164,9 +187,17 @@ func (s *CommandStore) AppendBatch(
 
 		seen[cmd.ID()] = struct{}{}
 
-		jKey := s.commandJournalKey(cmd.ID())
+		jKey := jKeys[i]
 
-		if s.commandExists(jKey) {
+		exists, err := s.commandExists(jKey)
+		if err != nil {
+			cqrsotel.RecordError(span, err)
+
+			return errorfamily.WrapInfrastructure(err, "pebble.batch_dup_check",
+				fmt.Sprintf("duplicate check for command %s", cmd.ID()))
+		}
+
+		if exists {
 			return errorfamily.WrapConflict(
 				command.ErrDuplicateCommand,
 				"pebble.batch_existing_dup",
@@ -201,7 +232,7 @@ func (s *CommandStore) AppendBatch(
 	return nil
 }
 
-func (s *CommandStore) commandExists(journalKey []byte) bool {
+func (s *CommandStore) commandExists(journalKey []byte) (bool, error) {
 	return keyExists(s.db, journalKey)
 }
 

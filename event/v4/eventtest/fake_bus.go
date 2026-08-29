@@ -83,7 +83,13 @@ func (b *FakeBus) dispatch(ctx context.Context, events ...event.Event) error {
 }
 
 func (b *FakeBus) Publish(ctx context.Context, events ...event.Event) error {
-	return b.publishChain.Publish(ctx, events...)
+	// UsePublish swaps the chain under mu; copy the pointer under the same
+	// lock. The lock is released BEFORE dispatch, which re-acquires it.
+	b.mu.Lock()
+	chain := b.publishChain
+	b.mu.Unlock()
+
+	return chain.Publish(ctx, events...)
 }
 
 func (b *FakeBus) Subscribe(typ event.Type, handler event.Handler) error {

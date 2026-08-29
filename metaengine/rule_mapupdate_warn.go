@@ -2,12 +2,13 @@ package metaengine
 
 import "fmt"
 
-// mapUpdateReplicationRule warns when a Map ADT query with update folds is
-// routed to a replicated engine with non-zero lag. On replicated engines,
-// MapUpdate operations risk conflict (multi-leader concurrent writes to the
-// same key) or staleness (single-leader write bottleneck). The rule advises
-// using idempotent folds or a single-leader topology for update-heavy
-// Map collections.
+// mapUpdateReplicationRule warns when a Map ADT query with conflicting folds
+// (FoldUpdate, FoldMultiInsert, FoldAppend) is routed to a replicated engine
+// with non-zero lag. On replicated engines, read-modify-write and multi-entry
+// write operations risk conflict (multi-leader concurrent writes to the same
+// key) or staleness (single-leader write bottleneck). The rule advises using
+// idempotent folds or a single-leader topology for write-heavy Map
+// collections.
 //
 // This is advisory (WARN) — the planner still allows the assignment. Consumers
 // who know their fold is idempotent can safely ignore the warning.
@@ -26,14 +27,18 @@ func (r *mapUpdateReplicationRule) Apply(result *PlanResult, ctx PlanContext) er
 			continue
 		}
 
-		hasUpdate := false
+		hasConflictingFold := false
 		for _, f := range meta.QueryFolds() {
-			if f.Kind() == FoldUpdate {
-				hasUpdate = true
+			switch f.Kind() {
+			case FoldUpdate, FoldMultiInsert, FoldAppend:
+				hasConflictingFold = true
+			}
+
+			if hasConflictingFold {
 				break
 			}
 		}
-		if !hasUpdate {
+		if !hasConflictingFold {
 			continue
 		}
 

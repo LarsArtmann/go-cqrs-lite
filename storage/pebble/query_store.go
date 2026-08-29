@@ -88,7 +88,19 @@ func (s *QueryStore) SaveQuery(
 
 	key := s.queryKey(q.ID())
 
-	if s.queryExists(key) {
+	// Serialize duplicate-check + write per key shard (see CommandStore.Save).
+	locked := s.lockShards(key)
+	defer s.unlockShards(locked)
+
+	exists, err := s.queryExists(key)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return errorfamily.WrapInfrastructure(err, "pebble.duplicate_query_check",
+			fmt.Sprintf("duplicate check for query %s", q.ID()))
+	}
+
+	if exists {
 		return errorfamily.WrapConflict(query.ErrDuplicateQuery, "pebble.duplicate_query",
 			fmt.Sprintf("query %s already exists", q.ID()))
 	}
@@ -112,7 +124,7 @@ func (s *QueryStore) SaveQuery(
 	return nil
 }
 
-func (s *QueryStore) queryExists(key []byte) bool {
+func (s *QueryStore) queryExists(key []byte) (bool, error) {
 	return keyExists(s.db, key)
 }
 

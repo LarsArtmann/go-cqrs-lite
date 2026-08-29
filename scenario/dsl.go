@@ -33,6 +33,7 @@ type DeciderScenario[Cmd any, State any] struct {
 	given   []event.Event
 	cmd     Cmd
 	t       *testing.T
+	asserted bool
 }
 
 // Given creates a decider scenario with the given fold function and pre-existing events.
@@ -45,12 +46,15 @@ func Given[Cmd, State any](
 ) *DeciderScenario[Cmd, State] {
 	t.Helper()
 
-	return &DeciderScenario[Cmd, State]{ //nolint:exhaustruct // cmd+decide set by When()
+	s := &DeciderScenario[Cmd, State]{ //nolint:exhaustruct // cmd+decide set by When()
 		t:       t,
 		apply:   apply,
 		initial: initial,
 		given:   events,
 	}
+	s.requireTerminalAssertion()
+
+	return s
 }
 
 // GivenState is a convenience variant of [Given] for the common case where the
@@ -65,12 +69,29 @@ func GivenState[State any](
 ) *DeciderScenario[any, State] {
 	t.Helper()
 
-	return &DeciderScenario[any, State]{ //nolint:exhaustruct // cmd+decide set by When()
+	s := &DeciderScenario[any, State]{ //nolint:exhaustruct // cmd+decide set by When()
 		t:       t,
 		apply:   apply,
 		initial: initial,
 		given:   events,
 	}
+	s.requireTerminalAssertion()
+
+	return s
+}
+
+// requireTerminalAssertion registers a cleanup that fails the test if no Then*
+// method ever ran — a scenario without a terminal assertion would otherwise
+// pass vacuously while asserting nothing.
+func (s *DeciderScenario[Cmd, State]) requireTerminalAssertion() {
+	s.t.Cleanup(func() {
+		if !s.asserted {
+			s.t.Errorf(
+				"scenario: no Then* assertion ran — this test passes vacuously; "+
+					"end the chain with Then, ThenEvents, ThenError, or ThenState",
+			)
+		}
+	})
 }
 
 // When sets the command to execute against the folded state.
@@ -93,6 +114,8 @@ func (s *DeciderScenario[Cmd, State]) requireWhen(methodName string) {
 	if s.decide == nil {
 		s.t.Fatal("testing: call When() before " + methodName + "()")
 	}
+
+	s.asserted = true
 }
 
 // foldGiven folds the Given events into a fresh copy of the initial state.
@@ -229,9 +252,10 @@ func (s *DeciderScenario[Cmd, State]) ThenState(
 
 // ProjectionScenario tests that a projection handles events without error.
 type ProjectionScenario struct {
-	proj projection.Projection
-	t    *testing.T
-	errs []error
+	proj     projection.Projection
+	t        *testing.T
+	errs     []error
+	asserted bool
 }
 
 // GivenProjection creates a projection scenario and feeds it the given events.
@@ -242,6 +266,15 @@ func GivenProjection(
 ) *ProjectionScenario {
 	t.Helper()
 	scenario := &ProjectionScenario{proj: proj, t: t} //nolint:exhaustruct // errs populated below
+	t.Cleanup(func() {
+		if !scenario.asserted {
+			t.Errorf(
+				"scenario: no Then* assertion ran — this test passes vacuously and " +
+					"swallows every handler error; end the chain with " +
+					"ThenNoError, ThenError, or ThenQueryResult",
+			)
+		}
+	})
 
 	ctx := context.Background()
 	for _, evt := range events {
@@ -258,6 +291,7 @@ func GivenProjection(
 // ThenNoError asserts the projection handled all events without error.
 func (s *ProjectionScenario) ThenNoError() {
 	s.t.Helper()
+	s.asserted = true
 
 	if len(s.errs) > 0 {
 		for _, err := range s.errs {
@@ -271,6 +305,7 @@ func (s *ProjectionScenario) ThenNoError() {
 // ThenError asserts the projection returned at least one error.
 func (s *ProjectionScenario) ThenError() {
 	s.t.Helper()
+	s.asserted = true
 
 	if len(s.errs) == 0 {
 		s.t.Fatalf("projection %q: expected at least one error, got none", s.proj.Name())
@@ -295,6 +330,7 @@ func (s *ProjectionScenario) ThenQueryResult(
 	expected any,
 ) *ProjectionScenario {
 	s.t.Helper()
+	s.asserted = true
 
 	if len(s.errs) > 0 {
 		s.t.Fatalf(

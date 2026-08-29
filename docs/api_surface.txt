@@ -495,6 +495,7 @@ commandlifecycle/func NewRecorder
 commandlifecycle/func WithClock
 commandlifecycle/func WithLogger
 commandlifecycle/func WithStrict
+commandlifecycle/func WithVersionCacheCapacity
 commandlifecycle/method RecordCompleted
 commandlifecycle/method RecordDeadLettered
 commandlifecycle/method RecordFailed
@@ -577,13 +578,17 @@ dedup/method Capacity
 dedup/method Has
 dedup/method Len
 dedup/struct Ring
+deriver/const DefaultMaxDepth
 deriver/const SourceEventIDKey
 deriver/func Noop
+deriver/func WithMaxDepth
 deriver/method AsHandler
 deriver/method Filter
 deriver/method Idempotent
 deriver/method Then
 deriver/type Deriver
+deriver/type HandlerOption
+deriver/var ErrDepthExceeded
 deriver/var ErrNilDispatcher
 dispatcher/func ApplyMiddleware
 dispatcher/func NewDispatcher
@@ -1306,6 +1311,8 @@ kv/method Get
 kv/method Has
 kv/method Has
 kv/method Has
+kv/method Invalidate
+kv/method InvalidateAll
 kv/method Key
 kv/method NewIterator
 kv/method Next
@@ -2846,6 +2853,7 @@ projectionhost/method Count
 projectionhost/method Count
 projectionhost/method Delete
 projectionhost/method Delete
+projectionhost/method ForceStop
 projectionhost/method LagDuration
 projectionhost/method LagPerProjection
 projectionhost/method LastProcessedAt
@@ -3086,6 +3094,7 @@ schema/struct Validator
 schema/struct VersionedSeekableJournal
 schema/struct VersionedStore
 schema/type ValidatorOption
+schema/var ErrInvalidUpcastResult
 schema/var ErrNilJournal
 schema/var ErrNilStore
 schema/var ErrNilUpcaster
@@ -3153,6 +3162,7 @@ snapshot/func SaveSnapshot
 snapshot/func ShouldSnapshot
 snapshot/func ShouldSnapshotFor
 snapshot/func WithInnerStrategy
+snapshot/func WithReadTrackingLimit
 snapshot/interface AggregateAwareStrategy
 snapshot/interface ReadTracker
 snapshot/interface SnapshotSink
@@ -3729,6 +3739,7 @@ storage/sql/func StartStreamSpan
 storage/sql/func Tracer
 storage/sql/func UnmarshalEventMetadata
 storage/sql/func ValidateIdentifier
+storage/sql/func ValidateJournalIdentifiers
 storage/sql/func ValidateOperator
 storage/sql/interface Dialect
 storage/sql/interface Executor

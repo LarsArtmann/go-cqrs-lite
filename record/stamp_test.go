@@ -55,6 +55,7 @@ func TestStamp_JSONRoundTrip(t *testing.T) {
 		stamp record.Stamp
 	}{
 		{"known", record.NewStamp(at)},
+		{"known zero time", record.NewStamp(time.Time{})},
 		{"unknown", record.Stamp{}},
 	}
 
@@ -115,7 +116,9 @@ func TestStamp_UnmarshalForms(t *testing.T) {
 	}{
 		{"null", `null`, false},
 		{"empty object", `{}`, false},
+		{"null at", `{"at":null}`, false},
 		{"known at", `{"at":"2026-08-22T05:30:01Z"}`, true},
+		{"known zero at", `{"at":"0001-01-01T00:00:00Z"}`, true},
 	}
 
 	for _, tc := range cases {

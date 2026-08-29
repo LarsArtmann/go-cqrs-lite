@@ -75,6 +75,10 @@ func (r *JournalReader[T]) ReadAll(ctx context.Context) ([]T, error) {
 	ctx, span := cqrsotel.StartSpan(ctx, Tracer(), r.SpanNameAll, cqrsotel.SpanKindClient)
 	defer span.End()
 
+	if err := ValidateJournalIdentifiers(r.Table, r.TimestampColumn); err != nil {
+		return nil, err
+	}
+
 	query := `SELECT ` + r.AllColumns + `
 		FROM ` + r.Table + ` ORDER BY ` + r.TimestampColumn + ` ASC`
 
@@ -215,6 +219,10 @@ func (r *JournalReader[T]) ReadFrom(ctx context.Context, afterID string, limit i
 func (r *JournalReader[T]) LoadFromStart(ctx context.Context, limit int) ([]T, error) {
 	if limit <= 0 {
 		return r.ReadAll(ctx)
+	}
+
+	if err := ValidateJournalIdentifiers(r.Table, r.TimestampColumn); err != nil {
+		return nil, err
 	}
 
 	p1 := r.Dialect.Placeholder(1)

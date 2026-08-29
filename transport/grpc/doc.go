@@ -1,7 +1,4 @@
-// Package grpc is DEPRECATED (ADR-0127). Removal at v5. New projects must
-// not import this module.
-//
-// This package provided gRPC transport adapters for CQRS command and query
+// Package grpc provided gRPC transport adapters for CQRS command and query
 // dispatch, bridging remote gRPC clients to local [command.Dispatcher] and
 // [query.Dispatcher] instances. It had no internal consumers and duplicated
 // delivery concerns the library doctrine ("not a framework — no opinionated
@@ -31,4 +28,8 @@
 //	    grpc.WithTransportCredentials(insecure.NewCredentials()))
 //	cmdClient := cqrsgrpc.NewCommandClient(conn)
 //	err := cmdClient.Dispatch(ctx, command)
+//
+// Deprecated: This module is deprecated per ADR-0127 and will be removed in
+// v5. Use the watermill/ bridge for broker transport, or bridge your own
+// dispatcher over grpc-go directly. New projects must not import this module.
 package grpc

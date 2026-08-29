@@ -1,7 +1,4 @@
-// Package http is DEPRECATED (ADR-0127). Use go-sse or the watermill/ bridge.
-// Removal at v5. New projects must not import this module.
-//
-// This package provided HTTP transport adapters for CQRS event streams:
+// Package http provided HTTP transport adapters for CQRS event streams:
 // SSEBroker bridged an event.Bus to Server-Sent Events HTTP clients. The
 // library doctrine is "not a framework — no opinionated transport": generic
 // delivery mechanisms belong in dedicated libraries, and better ones now
@@ -42,7 +39,8 @@
 //	WebSocket adds bidirectional complexity, connection upgrade negotiation,
 //	and a completely different lifecycle model. Consumers who need
 //	bidirectional transport (command + event over one connection) should use
-//	transport/grpc, which already provides both CommandClient and QueryClient.
+//	transport/grpc (itself deprecated, removed in v5 — use the watermill/
+//	bridge instead), which provided both CommandClient and QueryClient.
 //
 // Compression: Not included (proxy-level concern)
 //
@@ -50,4 +48,8 @@
 //	proxy (Nginx, Cloudflare, ALB) which already compresses text/event-stream
 //	responses. Adding gzip in the library would double-compress when a proxy
 //	is present and add CPU overhead for each connection.
+//
+// Deprecated: This module is deprecated per ADR-0127 and will be removed in
+// v5. Use github.com/larsartmann/go-sse for SSE delivery or the watermill/
+// bridge for broker transport. New projects must not import this module.
 package http

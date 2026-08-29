@@ -33,6 +33,10 @@ func ResolveCursorTimestamp(
 	)
 	defer span.End()
 
+	if err := ValidateJournalIdentifiers(table, timestampColumn); err != nil {
+		return nil, false, err
+	}
+
 	query := fmt.Sprintf(
 		`SELECT %s FROM %s WHERE id = %s`,
 		timestampColumn, table, dialect.Placeholder(1),
@@ -70,6 +74,10 @@ func ResolveCursorTimestamp(
 // batch), making batched journal drains O(N²): draining a 200k-event journal
 // in batches of 100 took ~63s with the self-JOIN vs 0.22s with this query.
 func KeysetPositionQuery(dialect Dialect, columns, table, timestampColumn string) string {
+	if err := ValidateJournalIdentifiers(table, timestampColumn); err != nil {
+		return ""
+	}
+
 	p1, p2, p3 := dialect.Placeholder(1), dialect.Placeholder(2), dialect.Placeholder(3)
 
 	return fmt.Sprintf(

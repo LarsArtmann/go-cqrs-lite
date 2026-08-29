@@ -8,16 +8,17 @@ import (
 )
 
 // attemptTracker counts processing attempts per command to detect retries
-// and report accurate attempt counts in dead-lettered events.
+// and report accurate attempt counts in dead-lettered events. Bounded: under
+// extreme concurrency an evicted entry only makes the next attempt report 1.
 type attemptTracker struct {
 	mu       sync.Mutex
-	attempts map[string]int
+	attempts *boundedMap[int]
 }
 
 func newAttemptTracker() *attemptTracker {
 	return &attemptTracker{
 		mu:       sync.Mutex{},
-		attempts: make(map[string]int),
+		attempts: newBoundedMap[int](defaultCacheCapacity),
 	}
 }
 
@@ -25,23 +26,26 @@ func (t *attemptTracker) next(cmdID string) int {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	t.attempts[cmdID]++
+	v, _ := t.attempts.get(cmdID)
+	t.attempts.put(cmdID, v+1)
 
-	return t.attempts[cmdID]
+	return v + 1
 }
 
 func (t *attemptTracker) get(cmdID string) int {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	return t.attempts[cmdID]
+	v, _ := t.attempts.get(cmdID)
+
+	return v
 }
 
 func (t *attemptTracker) clear(cmdID string) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	delete(t.attempts, cmdID)
+	t.attempts.delete(cmdID)
 }
 
 // New returns a pair of middleware — outer and attempt — that together produce
@@ -127,6 +131,11 @@ func attemptMiddleware(recorder *Recorder, tracker *attemptTracker) command.Midd
 
 				return err
 			}
+
+			// Success is terminal for standalone use: without this, every
+			// processed command leaves an entry here forever (the paired
+			// outer middleware also clears, so this is idempotent there).
+			tracker.clear(cmd.ID().String())
 
 			return nil
 		}

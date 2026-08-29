@@ -251,3 +251,76 @@ func TestCache_TwoReadersGetDistinctValues(t *testing.T) {
 		t.Fatal("two concurrent readers received the same *T — shared pointer hazard")
 	}
 }
+
+func TestCache_InvalidateForcesReadThrough(t *testing.T) {
+	t.Parallel()
+
+	store := kv.NewMemStore()
+	t.Cleanup(func() { _ = store.Close() })
+
+	ts := kv.NewTypedStore[testUser, testID](store)
+	cache, err := kv.NewCache[testUser, testID](ts)
+	if err != nil {
+		t.Fatalf("NewCache: %v", err)
+	}
+	t.Cleanup(cache.Close)
+
+	ctx := context.Background()
+	id := testID("inv-1")
+
+	if err := cache.Set(ctx, id, &testUser{Name: "v1", Age: 1}); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	if err := ts.Set(ctx, id, &testUser{Name: "v2", Age: 2}); err != nil {
+		t.Fatalf("out-of-band Set: %v", err)
+	}
+
+	cache.Invalidate(id)
+
+	got, err := cache.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("Get after Invalidate: %v", err)
+	}
+
+	if got.Name != "v2" {
+		t.Fatalf("expected store-fresh v2 after Invalidate, got %q", got.Name)
+	}
+}
+
+func TestCache_InvalidateAll(t *testing.T) {
+	t.Parallel()
+
+	store := kv.NewMemStore()
+	t.Cleanup(func() { _ = store.Close() })
+
+	ts := kv.NewTypedStore[testUser, testID](store)
+	cache, err := kv.NewCache[testUser, testID](ts)
+	if err != nil {
+		t.Fatalf("NewCache: %v", err)
+	}
+	t.Cleanup(cache.Close)
+
+	ctx := context.Background()
+
+	for _, k := range []testID{"a", "b", "c"} {
+		if err := cache.Set(ctx, k, &testUser{Name: string(k), Age: 1}); err != nil {
+			t.Fatalf("Set(%s): %v", k, err)
+		}
+	}
+
+	cache.InvalidateAll()
+
+	if err := ts.Set(ctx, testID("a"), &testUser{Name: "fresh", Age: 9}); err != nil {
+		t.Fatalf("out-of-band Set: %v", err)
+	}
+
+	got, err := cache.Get(ctx, testID("a"))
+	if err != nil {
+		t.Fatalf("Get after InvalidateAll: %v", err)
+	}
+
+	if got.Name != "fresh" {
+		t.Fatalf("expected fresh after InvalidateAll, got %q", got.Name)
+	}
+}

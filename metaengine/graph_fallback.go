@@ -49,7 +49,7 @@ func graphNeighborsFallback(
 		return nil, nil
 	}
 
-	visited := map[string]bool{fmt.Sprint(node): true}
+	visited := map[string]bool{typedNodeKey(node): true}
 	frontier := []any{node}
 	var result []any
 
@@ -63,7 +63,7 @@ func graphNeighborsFallback(
 			}
 
 			for _, nb := range neighbors {
-				key := fmt.Sprint(nb)
+				key := typedNodeKey(nb)
 				if visited[key] {
 					continue
 				}
@@ -78,4 +78,10 @@ func graphNeighborsFallback(
 	}
 
 	return result, nil
+}
+
+// typedNodeKey builds a dedup key that includes the dynamic type, so
+// mixed-typed nodes never collide (int(1) and "1" are distinct nodes).
+func typedNodeKey(node any) string {
+	return fmt.Sprintf("%[1]T:%[1]v", node)
 }

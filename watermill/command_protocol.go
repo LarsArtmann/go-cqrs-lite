@@ -19,12 +19,6 @@ const (
 	metaActorID     = "actor_id"
 )
 
-// metadataProvider is the optional interface a command implements to expose
-// metadata for wire serialization. *command.BasicCommand satisfies this.
-type metadataProvider interface {
-	Metadata() command.Metadata
-}
-
 // CommandToMessage maps a go-cqrs-lite command to a Watermill message.
 // All command fields are preserved in message metadata; message payload is
 // empty (commands carry routing identity, not serialized domain data —
@@ -48,7 +42,7 @@ func CommandToMessage(cmd command.Command) *message.Message {
 	md.Set(metaCommandType, string(cmd.Type()))
 	md.Set(metaAggregateID, cmd.StreamID().String())
 
-	if mp, ok := cmd.(metadataProvider); ok {
+	if mp, ok := cmd.(command.MetadataCarrier); ok {
 		m := mp.Metadata()
 		writeTracing(md, m.Tracing)
 		writeCustomEntries(md, m.Custom)

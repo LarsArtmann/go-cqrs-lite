@@ -24,6 +24,7 @@ type Tracing struct {
     CausationID   id.CausationID   `json:"causationId"`
     UserID        id.UserID        `json:"userId"`
     RequestID     id.RequestID     `json:"requestId"`
+    ActorID       id.ActorID       `json:"actorId,omitzero"`
 }
 ```
 
@@ -36,7 +37,7 @@ When embedded anonymously in a struct, `encoding/json` promotes these fields to 
 
 ### CustomData[K]
 
-A reusable base for metadata types that carry tracing identifiers and a typed custom map. `command.Metadata` and `query.Metadata` were originally aliases for `CustomData` but are now standalone structs that embed `metadata.Tracing` directly. `CustomData[K]` remains available for external consumers who want the same pattern.
+A reusable base for metadata types that carry tracing identifiers and a typed custom map. `command.Metadata` and `query.Metadata` are ALIASES of `Metadata[MetadataKey]` (this module's generic metadata type), not standalone structs. `CustomData[K]` remains available for external consumers who want the same pattern.
 
 ```go
 type CustomData[K ~string] struct {
@@ -87,5 +88,5 @@ type MyStandaloneMetadata struct {
 ## Related Modules
 
 - [**event**](../event/README.md) — `event.Metadata` embeds `Tracing` and adds event-specific fields (Source, Tombstone, Causation)
-- [**command**](../command/README.md) — `command.Metadata` is a standalone struct with `Tracing` + `Custom` (not a `CustomData` alias)
-- [**query**](../query/README.md) — `query.Metadata` is a standalone struct with `Tracing` + `Custom` (not a `CustomData` alias)`
+- [**command**](../command/README.md) — `command.Metadata` is an alias of `metadata.Metadata[command.MetadataKey]`
+- [**query**](../query/README.md) — `query.Metadata` is an alias of `metadata.Metadata[query.MetadataKey]`

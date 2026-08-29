@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -274,5 +275,83 @@ func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 
 	if result.SchemaVersion() != 2 {
 		t.Errorf("SchemaVersion = %d, want 2 (auto-incremented from 1)", result.SchemaVersion())
+	}
+}
+
+func TestUpcasterRegistry_NilResultRejected(t *testing.T) {
+	t.Parallel()
+
+	registry := newUpcasterRegistry()
+	registry.register(NewUpcaster("UserCreated", 1, func(_ event.Event) (event.Event, error) {
+		return nil, nil
+	}))
+
+	_, evt := newTestEvent(t, 7, `{}`)
+
+	_, err := registry.upcast(evt)
+	if !errors.Is(err, ErrInvalidUpcastResult) {
+		t.Fatalf("expected ErrInvalidUpcastResult, got %v", err)
+	}
+}
+
+func TestUpcasterRegistry_IdentityResultRejected(t *testing.T) {
+	t.Parallel()
+
+	registry := newUpcasterRegistry()
+	registry.register(NewUpcaster("UserCreated", 1, func(evt event.Event) (event.Event, error) {
+		return evt, nil
+	}))
+
+	_, evt := newTestEvent(t, 7, `{}`)
+
+	_, err := registry.upcast(evt)
+	if !errors.Is(err, ErrInvalidUpcastResult) {
+		t.Fatalf("expected ErrInvalidUpcastResult for identity return, got %v", err)
+	}
+}
+
+func TestUpcasterRegistry_MultiVersionJumpKeepsStampedVersion(t *testing.T) {
+	t.Parallel()
+
+	registry := newUpcasterRegistry()
+	registry.register(NewUpcaster("UserCreated", 1, func(evt event.Event) (event.Event, error) {
+		next, err := event.NewEvent("UserCreated", evt.StreamID(), "User", evt.Version(), []byte(`{"v3":true}`))
+		if err != nil {
+			return nil, err
+		}
+
+		event.WithSchemaVersion(3)(next)
+
+		return next, nil
+	}))
+
+	_, evt := newTestEvent(t, 7, `{}`)
+
+	result, err := registry.upcast(evt)
+	if err != nil {
+		t.Fatalf("upcast: %v", err)
+	}
+
+	if result.SchemaVersion() != 3 {
+		t.Fatalf("SchemaVersion = %d, want 3 (upcaster-stamped jump preserved)", result.SchemaVersion())
+	}
+}
+
+func TestUpcasterRegistry_DuplicateRegistrationKeepsFirst(t *testing.T) {
+	t.Parallel()
+
+	registry := newUpcasterRegistry()
+	registry.register(newTestUpcaster("UserCreated", 1, `{"from":"first"}`))
+	registry.register(newTestUpcaster("UserCreated", 1, `{"from":"second"}`))
+
+	_, evt := newTestEvent(t, 7, `{}`)
+
+	result, err := registry.upcast(evt)
+	if err != nil {
+		t.Fatalf("upcast: %v", err)
+	}
+
+	if string(result.Payload()) != `{"from":"first"}` {
+		t.Fatalf("payload = %q, want first registration to win", string(result.Payload()))
 	}
 }

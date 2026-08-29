@@ -69,7 +69,29 @@ func TestC042_SaveWithZeroVersion(t *testing.T) {
 import "context"
 
 func saveEvent(ctx context.Context, store *Store) error {
-	return store.Save(ctx, ref, 0, events)
+	return store.Save(ctx, ref, events, 0)
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, correctness.NewC042Detector(ctx))
+	ruletest.AssertRule(t, findings, "C042", 1)
+}
+
+func TestC042_SaveWithVersionConversionZero(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"context"
+
+	"github.com/larsartmann/go-cqrs-lite/event"
+)
+
+func saveEvent(ctx context.Context, store *Store) error {
+	return store.Save(ctx, ref, events, event.Version(0))
 }
 `,
 	})
@@ -87,7 +109,29 @@ func TestC042_SaveWithNonZeroVersion(t *testing.T) {
 import "context"
 
 func saveEvent(ctx context.Context, store *Store) error {
-	return store.Save(ctx, ref, version, events)
+	return store.Save(ctx, ref, events, version)
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, correctness.NewC042Detector(ctx))
+	ruletest.AssertRule(t, findings, "C042", 0)
+}
+
+func TestC042_SaveWithNonZeroConversion(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"context"
+
+	"github.com/larsartmann/go-cqrs-lite/event"
+)
+
+func saveEvent(ctx context.Context, store *Store, v int) error {
+	return store.Save(ctx, ref, events, event.Version(v))
 }
 `,
 	})

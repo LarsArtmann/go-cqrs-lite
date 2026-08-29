@@ -2,6 +2,8 @@ package eventtest
 
 import (
 	"context"
+	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -127,7 +129,9 @@ func (s *FakeStore) LoadToVersion(
 		return fn(ref, maxVersion)
 	}
 
-	return event.SliceToVersion(s.loadEventsHelper(ref), maxVersion), nil
+	// Clone: SliceToVersion returns a sub-slice aliasing the store's backing
+	// array; callers that sort or mutate in place would corrupt the fake.
+	return append([]event.Event{}, event.SliceToVersion(s.loadEventsHelper(ref), maxVersion)...), nil
 }
 
 func (s *FakeStore) LoadToTimestamp(
@@ -150,11 +154,26 @@ func (s *FakeStore) ReadAll(_ context.Context) ([]event.Event, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	var all []event.Event
+	total := 0
+	for _, evts := range s.events {
+		total += len(evts)
+	}
+
+	all := make([]event.Event, 0, total)
 
 	for _, evts := range s.events {
 		all = append(all, evts...)
 	}
+
+	// Journal contract: readers observe events ordered by OccurredAt.
+	// Map iteration is randomized, so sort deterministically (ID tie-break).
+	slices.SortStableFunc(all, func(a, b event.Event) int {
+		if c := a.OccurredAt().Compare(b.OccurredAt()); c != 0 {
+			return c
+		}
+
+		return strings.Compare(a.ID().String(), b.ID().String())
+	})
 
 	return all, nil
 }
@@ -191,7 +210,9 @@ func (s *FakeStore) ReadFrom(
 		filtered = filtered[:limit]
 	}
 
-	return filtered, nil
+	// Clone: ReadAll buckets alias per-stream backing arrays; callers that
+	// sort or mutate in place would corrupt the fake.
+	return append([]event.Event{}, filtered...), nil
 }
 
 func (s *FakeStore) Close() error {

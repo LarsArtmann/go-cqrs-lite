@@ -27,7 +27,7 @@ and is **never** duplicated here.
       _(Effort: S)_ — source: status 2026-08-08_01-33
 - [ ] **Watcher hardening** — `watcherEntry` still `chan any` (metaengine/store.go:330); no watcher-notification latency bench; no `WithReificationFailureHook` callback.
       _(Effort: S/M)_ — sources: status 2026-08-02_21-19/22-17
-- [ ] **mapUpdateReplicationRule covers FoldUpdate only** — add FoldMultiInsert/FoldAppend.
+- [✓] **mapUpdateReplicationRule covers FoldUpdate only** — DONE 2026-08-29 (todo-execution session) — add FoldMultiInsert/FoldAppend.
       _(Effort: XS)_ — source: status 2026-08-03_08-26
 - [ ] **dgraphengine gaps** — no `Transactional`/RunInTx (+ ConcurrentTx tests); harness conformance tests (HealthCheck/Prober/TransactMeasurer/Calibratable); empty-collection MapScan test.
       _(Effort: M)_ — source: status 2026-08-11_19-14
@@ -41,12 +41,12 @@ and is **never** duplicated here.
       _(Effort: S)_ — source: status 2026-08-17_14-25
 - [ ] **mysqlengine sort-path layout integration** — `applyMariaDBLayout` writes sort-field generated columns that no query path reads; verify full suite against real MySQL 8.4.
       _(Effort: M)_ — source: status 2026-08-16_22-50
-- [ ] **metaengine README capability table** — missing GraphEdgeRemoval / UndirectedGraph / VectorFilterBackend rows.
+- [✓] **metaengine README capability table** — DONE 2026-08-29 (todo-execution session) — missing GraphEdgeRemoval / UndirectedGraph / VectorFilterBackend rows.
       _(Effort: XS)_ — source: status 2026-08-16_21-22
 
 **Storage / SQL**
 
-- [ ] **SQL-injection hardening tail** — `storage/sql` ORDER BY interpolates `TimestampColumn` (journal_reader.go:77,220) without `ValidateIdentifier`; extend fuzz to multi-condition ops; persist corpus; gosec + nightly fuzz CI.
+- [ ] **SQL-injection hardening tail** — PARTIAL 2026-08-29 (todo-execution session): `ValidateJournalIdentifiers` now guards Table + TimestampColumn interpolation in `JournalReader.ReadAll`/`LoadFromStart`, `ResolveCursorTimestamp`, and `KeysetPositionQuery` (fail-fast Infrastructure rejection). REMAINING: extend fuzz to multi-condition ops; persist corpus; gosec + nightly fuzz CI.
       _(Effort: S)_ — source: status 2026-08-16_14-54
 - [x] **`ScanSlice` pre-size** — DONE 2026-08-29 (plan V3 T06): optional capacity hint on `ScanSlice`; `JournalReader` threads its bounded limit (capped 4096) into the drain-path scans; benchmark added.
       _(Effort: XS)_ — sources: status 2026-08-16_03-10/07-12
@@ -449,38 +449,36 @@ and is **never** duplicated here.
 > commandlifecycle version-cache recovery, projectionhost backoff cap).
 > Report: `docs/reviews/2026-08-27_full-code-review.html`.
 
-- [ ] **commandlifecycle Recorder unbounded versions map** — every command ID
+- [✓] **commandlifecycle Recorder unbounded versions map** — DONE 2026-08-29 (todo-execution session) — every command ID
       seeds a `versions` entry that is never evicted (only manual
       `ResetVersion`); long-running dispatch loops grow it forever. Bound it
       (LRU/TTL) or re-seed per emit batch.
       _(Effort: S)_
-- [ ] **commandlifecycle AttemptMiddleware standalone leak** — the attempt
+- [✓] **commandlifecycle AttemptMiddleware standalone leak** — DONE 2026-08-29 (todo-execution session) — the attempt
       tracker is only cleared by the OUTER middleware; standalone
       `AttemptMiddleware` usage grows `attempts` forever.
       _(Effort: S)_
-- [ ] **projectionhost applyWithRetry ignores error family** — Rejection/
+- [✓] **projectionhost applyWithRetry ignores error family** — DONE 2026-08-29 (todo-execution session) — Rejection/
       Corruption (non-retryable) handler errors are still retried
       `dlqThreshold` times before DLQ; skip straight to DLQ for
       `!family.IsRetryable()`.
       _(Effort: S)_
-- [ ] **projectionhost Stop timeout has no retry path** — after
+- [✓] **projectionhost Stop timeout has no retry path** — DONE 2026-08-29 (todo-execution session) — after
       `shutdownTimeout` fires, `stopped=true` makes later Stop calls no-op
       while workers may still run; expose a force/re-drain path.
       _(Effort: S)_
-- [ ] **snapshot.ReadPressure bounded tracking** — the `reads` map grows
+- [✓] **snapshot.ReadPressure bounded tracking** — DONE 2026-08-29 (todo-execution session) — the `reads` map grows
       with distinct stream refs (inline `TODO(review-2026-08-27)` in
       `snapshot/read_pressure.go`); bounded LRU option.
       _(Effort: S)_
-- [ ] **command/query constructor error-style drift** — `command.New` wraps
+- [✓] **command/query constructor error-style drift** — DONE 2026-08-29 (todo-execution session) — `command.New` wraps
       sentinel errors while `query.New` returns raw strings; unify before v5.
       _(Effort: S)_
-- [ ] **cqrs-lint version constant automation** — `cmd/cqrs-lint/main.go`
+- [✓] **cqrs-lint version constant automation** — DONE 2026-08-29 (todo-execution session) — `cmd/cqrs-lint/main.go`
       `version` const drifted from the released tag (4.6.0 vs v4.7.0);
       `scripts/tag-release.sh` should bump it in the same wave.
       _(Effort: S)_
-- [ ] **kv.Cache.Get miss-path double round-trip** — miss path encodes+
-      decodes an extra copy for isolation (documented tradeoff); optional:
-      cache the store-fresh value directly and copy only on hit.
+- [✓] **kv.Cache.Get miss-path double round-trip** — DECLINED 2026-08-29 (todo-execution session): the suggested "cache the store-fresh value, copy only on hit" swap moves the same one encode+decode — under the copy-isolation contract the returned value must not alias the cached entry. A real reduction needs a raw-bytes TypedStore API (Get returning encoded bytes for a single decode copy); revisit if hot-path profiles demand it.
       _(Effort: S)_
 - [ ] **listing cursor cross-type ambiguity** — `ListOptions.After` matches
       ID strings across stream types when no Type filter is set; same ULID
@@ -512,7 +510,7 @@ and is **never** duplicated here.
       `Verify` replay now carry the original record instead of a synthesized
       `record.Record{Type}`.
       _(Effort: M)_
-- [ ] **pebble command/query duplicate check is check-then-commit + fail
+- [✓] **pebble command/query duplicate check is check-then-commit + fail (DONE 2026-08-29 (todo-execution session))
       closed** — the existence check runs outside the write lock (concurrent
       duplicate Save silently overwrites instead of Conflict) and treats ANY
       Get error as "exists" (an Infrastructure read failure is reported as
@@ -528,7 +526,7 @@ and is **never** duplicated here.
       diverges (memory replays from start; SQL/pebble/bbolt return empty and
       stall) — pick the SQL contract, document on the interface.
       _(Effort: S doc / v5 align)_
-- [ ] **schema upcaster registry hazards** — (a) upcaster returning the same
+- [✓] **schema upcaster registry hazards** — DONE 2026-08-29 (todo-execution session) — (a) upcaster returning the same
       pointer mutates the stored/shared event (README claims "original is
       never mutated"); (b) `(nil, nil)` return panics; (c) the registry
       force-stamps source+1 regardless of the returned version (a v1→v3
@@ -538,12 +536,12 @@ and is **never** duplicated here.
       Guard nil, use sort.SliceStable, verify version stamps post-upcast,
       reject duplicates, fix or implement the claimed validation.
       _(Effort: M)_
-- [ ] **snapshot.TypedStore.Save bypasses NewSnapshot** — bare struct literal:
+- [✓] **snapshot.TypedStore.Save bypasses NewSnapshot** — DONE 2026-08-29 (todo-execution session) — bare struct literal:
       no invariant validation (version 0 / zero refs persist; property test
       generates version 0) and no CreatedAt stamp, unlike every other write
       path. Route through the validating constructor.
       _(Effort: S)_
-- [ ] **kv.Cache has no invalidation primitive + cache-aside race** —
+- [✓] **kv.Cache has no invalidation primitive + cache-aside race** — DONE 2026-08-29 (todo-execution session) —
       `Backend()`/`Store()` hand out raw writers that bypass the cache, a
       second Cache instance never invalidates, default TTL is 0 (unbounded
       staleness), and a Get-miss can pin a stale value after a concurrent Set
@@ -561,13 +559,13 @@ and is **never** duplicated here.
       in-progress guard. Recurse into exported anonymous fields honoring
       their json tags; reserve a cache placeholder before recursing.
       _(Effort: M; goldens change)_
-- [ ] **cqrs-lint C042 inspects the wrong argument** — the zero-expected-
+- [✓] **cqrs-lint C042 inspects the wrong argument** — DONE 2026-08-29 (todo-execution session) — the zero-expected-
       version rule checks `call.Args[2]` but `event.Store.Save` is
       `(ctx, ref, events, expectedVersion)` — the version is `Args[3]`; the
       rule can never fire on the canonical API (and misses
       `event.Version(0)` conversions).
       _(Effort: S)_
-- [ ] **scenario DSL can pass vacuously** — `Given(...).When(cmd, decide)`
+- [✓] **scenario DSL can pass vacuously** — DONE 2026-08-29 (todo-execution session) — `Given(...).When(cmd, decide)`
       with no `Then*` compiles and passes with zero assertions;
       `GivenProjection` without `ThenNoError`/`ThenError` swallows every
       handler error. Register a `t.Cleanup` guard failing the test when no
@@ -585,20 +583,20 @@ and is **never** duplicated here.
       (permanent silent gap until manual replay); one corrupt SQLite DLQ row
       bricks List/ReplayDeadLetters.
       _(Effort: M)_
-- [ ] **capability interfaces not adopted at three assertion sites** —
+- [✓] **capability interfaces not adopted at three assertion sites** — DONE 2026-08-29 (todo-execution session) —
       middleware/actor.go, commandlifecycle/recorder.go, and
       watermill/command_protocol.go each re-declare a private
       `Metadata() command.Metadata` interface although
       `command.MetadataCarrier` exists exactly for this (ADR-0111 g).
       Replace the private clones (non-breaking).
       _(Effort: S)_
-- [ ] **transport deprecation is not machine-readable** — transport/http and
+- [✓] **transport deprecation is not machine-readable** — DONE 2026-08-29 (todo-execution session) — transport/http and
       transport/grpc say "DEPRECATED" in prose but lack the Go-standard
       `// Deprecated:` paragraph, so staticcheck SA1019 never flags
       consumers; http's WebSocket section steers to grpc without noting it
       is deprecated too.
       _(Effort: XS)_
-- [ ] **deriver has no cycle guard** — `Then`'s doc blesses A→events→B→events
+- [✓] **deriver has no cycle guard** — DONE 2026-08-29 (todo-execution session) — `Then`'s doc blesses A→events→B→events
       chains through the bus, but nothing bounds derivation cycles
       (deterministic IDs key on the source event ID, which changes every
       round). Opt-in depth guard via a hops counter in derived-command
@@ -626,18 +624,18 @@ and is **never** duplicated here.
       OnRecord folds returning Embedding/IndexedText/Point/MultiEntry/
       Append receive an always-zero Record silently.
       _(Effort: M-L, several independent)_
-- [ ] **eventtest fakes** — `LoadToVersion` returns a live sub-slice of the
+- [✓] **eventtest fakes** — DONE 2026-08-29 (todo-execution session) — `LoadToVersion` returns a live sub-slice of the
       store's backing array (in-place sort corrupts the fake);
       `ReadAll`/`ReadFrom` return map-iteration order violating the
       Journal's documented OccurredAt ordering; `FakeBus.Publish` reads
       `publishChain` unlocked while `UsePublish` swaps it under mu.
       _(Effort: S)_
-- [ ] **record.Stamp zero-time presence flip** — `NewStamp(time.Time{})` is
+- [✓] **record.Stamp zero-time presence flip** — DONE 2026-08-29 (todo-execution session) — `NewStamp(time.Time{})` is
       known but JSON-round-trips to unknown (wire `at` is a value, so the
       zero time reads back as absent). Wire-compatible fix: make the wire
       field `*time.Time` (nil → unknown). Undocumented edge today.
       _(Effort: S)_
-- [ ] **dispatcher/metadata README lies** — dispatcher README claims `M` is
+- [✓] **dispatcher/metadata README lies** — DONE 2026-08-29 (todo-execution session) — dispatcher README claims `M` is
       the message type (it is the middleware type), claims pre-computed
       chains (code rebuilds per Dispatch), and lists nonexistent symbols
       (`LifecycleMixin`, `CatalogDispatcher`, `Handlers()`); metadata README

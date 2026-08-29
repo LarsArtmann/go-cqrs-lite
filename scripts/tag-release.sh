@@ -232,6 +232,25 @@ if $dry_run; then
 	exit 0
 fi
 
+# --- Keep cmd/cqrs-lint's version constant in lockstep with its tag ---
+#
+# The lint CLI prints this constant as its version. Tagging cmd/cqrs-lint
+# without bumping the constant ships a binary that reports the PREVIOUS
+# version (drifted to 4.6.0 while v4.7.0 was live). Bump it in the same
+# temp commit that carries the stripped go.mod.
+if [ "$module" = "cmd/cqrs-lint" ]; then
+	const_file="cmd/cqrs-lint/main.go"
+	const_version="${version#v}"
+	if grep -q "const version = "${const_version}"" "$const_file"; then
+		echo "cmd/cqrs-lint version constant already ${const_version}"
+	else
+		pattern='const version = ".*"'
+		sed -i "s|${pattern}|const version = "${const_version}"|" "$const_file"
+		git add "$const_file"
+		echo "Bumped ${const_file} version constant to ${const_version}"
+	fi
+fi
+
 # --- Create temp commit + annotated tag ---
 git add "$gomod"
 if [ -f "${module}/go.sum" ]; then

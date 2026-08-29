@@ -73,8 +73,15 @@ type worker struct {
 	cpSinceSave  int
 	cpLastSave   time.Time
 
-	stop chan struct{}
-	done chan struct{}
+	stopOnce sync.Once
+	stop     chan struct{}
+	done     chan struct{}
+}
+
+// signalStop closes the stop channel exactly once, so a Stop→ForceStop→Stop
+// sequence cannot panic on double close.
+func (w *worker) signalStop() {
+	w.stopOnce.Do(func() { close(w.stop) })
 }
 
 func (w *worker) snapshot() WorkerState {
@@ -267,6 +274,13 @@ func (w *worker) applyWithRetry(ctx context.Context, evt event.Event) error {
 		w.recordMetric(func(m MetricsRecorder) {
 			m.EventErrored(w.name, string(evt.Type()))
 		})
+
+		// Rejection/Corruption-class handler errors will not succeed on
+		// retry — skip the backoff loop and let the caller DLQ immediately.
+		// Unclassified errors stay retryable (IsRetryable fails open).
+		if !errorfamily.IsRetryable(err) {
+			break
+		}
 
 		// Don't sleep after the final attempt — let the caller decide DLQ.
 		if attempt < w.opts.dlqThreshold-1 {

@@ -417,3 +417,72 @@ func TestDeriver_ChainedComposition(t *testing.T) {
 		t.Fatalf("expected 0 dispatched commands for filtered event, got %d", len(dispatched))
 	}
 }
+
+func TestDeriver_AsHandler_MaxDepthBreaksCycles(t *testing.T) {
+	t.Parallel()
+
+	const maxDepth = 3
+
+	dispatcher := cqrscommand.NewDispatcher()
+
+	// cycle: cmd.derived's handler synchronously re-enters the event handler,
+	// simulating an in-process derivation loop (command → events → deriver).
+	var eventHandler cqrsevent.Handler
+
+	_ = dispatcher.Register(
+		"cmd.derived",
+		cqrscommand.Handler(func(ctx context.Context, _ cqrscommand.Command) error {
+			return eventHandler(ctx, testEvent(t, "test.event"))
+		}),
+	)
+
+	d := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
+		cmd, _ := cqrscommand.New("cmd.derived", id.NewStreamID())
+
+		return []cqrscommand.Command{cmd}, nil
+	})
+
+	eventHandler = d.AsHandler(dispatcher, WithMaxDepth(maxDepth))
+
+	err := eventHandler(context.Background(), testEvent(t, "test.event"))
+	if !errors.Is(err, ErrDepthExceeded) {
+		t.Fatalf("expected ErrDepthExceeded, got %v", err)
+	}
+}
+
+func TestDeriver_AsHandler_NoGuardByDefault(t *testing.T) {
+	t.Parallel()
+
+	calls := 0
+
+	dispatcher := cqrscommand.NewDispatcher()
+
+	var eventHandler cqrsevent.Handler
+
+	_ = dispatcher.Register(
+		"cmd.derived",
+		cqrscommand.Handler(func(ctx context.Context, _ cqrscommand.Command) error {
+			calls++
+			if calls >= 5 {
+				return errManualStop
+			}
+
+			return eventHandler(ctx, testEvent(t, "test.event"))
+		}),
+	)
+
+	d := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
+		cmd, _ := cqrscommand.New("cmd.derived", id.NewStreamID())
+
+		return []cqrscommand.Command{cmd}, nil
+	})
+
+	eventHandler = d.AsHandler(dispatcher)
+
+	err := eventHandler(context.Background(), testEvent(t, "test.event"))
+	if !errors.Is(err, errManualStop) {
+		t.Fatalf("expected manual stop error, got %v", err)
+	}
+}
+
+var errManualStop = errors.New("stopped manually")

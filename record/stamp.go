@@ -43,13 +43,16 @@ func (s Stamp) String() string {
 }
 
 // MarshalJSON encodes a known stamp as {"at":"<RFC3339Nano>"} and an unknown
-// stamp as null, keeping the presence distinction lossless across JSON.
+// stamp as null, keeping the presence distinction lossless across JSON. A
+// known stamp carrying the zero time.Time stays KNOWN on the wire (a
+// non-null "at" value) so it cannot flip to unknown across a round-trip.
 func (s Stamp) MarshalJSON() ([]byte, error) {
 	if !s.known {
 		return []byte("null"), nil
 	}
 
-	data, err := json.Marshal(stampWire{At: s.at})
+	at := s.at
+	data, err := json.Marshal(stampWire{At: &at})
 	if err != nil {
 		return nil, fmt.Errorf("record.Stamp: marshal: %w", err)
 	}
@@ -57,8 +60,9 @@ func (s Stamp) MarshalJSON() ([]byte, error) {
 	return data, nil
 }
 
-// UnmarshalJSON decodes both marshaled forms: null (and {}) yield the zero
-// Stamp; {"at":...} yields a known stamp.
+// UnmarshalJSON decodes both marshaled forms: null yields the zero Stamp;
+// {"at":...} with a present (even zero) time yields a known stamp; a null or
+// absent "at" field yields the zero Stamp.
 func (s *Stamp) UnmarshalJSON(data []byte) error {
 	if bytes.Equal(bytes.TrimSpace(data), []byte("null")) {
 		*s = Stamp{at: time.Time{}, known: false}
@@ -71,18 +75,20 @@ func (s *Stamp) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("record.Stamp: %w", err)
 	}
 
-	if wire.At.IsZero() {
+	if wire.At == nil {
 		*s = Stamp{at: time.Time{}, known: false}
 
 		return nil
 	}
 
-	*s = NewStamp(wire.At)
+	*s = NewStamp(*wire.At)
 
 	return nil
 }
 
-// stampWire is the JSON shape of a known Stamp.
+// stampWire is the JSON shape of a known Stamp. At is a pointer so a known
+// zero time survives the round-trip as known (non-nil) while a null/absent
+// field decodes as unknown.
 type stampWire struct {
-	At time.Time `json:"at"`
+	At *time.Time `json:"at"`
 }

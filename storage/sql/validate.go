@@ -3,6 +3,8 @@ package sql
 import (
 	"regexp"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
@@ -37,4 +39,25 @@ func ValidateIdentifier(name string) bool {
 // operators. Unsupported operators are rejected before any SQL is built.
 func ValidateOperator(op kv.Operator) bool {
 	return isSupportedOperator(op)
+}
+
+// ValidateJournalIdentifiers validates the table and timestamp-column names
+// that JournalReader and the keyset helpers interpolate verbatim into SQL.
+// Exported so stores can fail fast at construction instead of at query time.
+func ValidateJournalIdentifiers(table, timestampColumn string) error {
+	if !ValidateIdentifier(table) {
+		return errorfamily.NewInfrastructure(
+			"sql.invalid_identifier",
+			"table name is not a bare SQL identifier: "+table,
+		)
+	}
+
+	if !ValidateIdentifier(timestampColumn) {
+		return errorfamily.NewInfrastructure(
+			"sql.invalid_identifier",
+			"timestamp column is not a bare SQL identifier: "+timestampColumn,
+		)
+	}
+
+	return nil
 }

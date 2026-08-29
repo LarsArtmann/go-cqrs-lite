@@ -1,6 +1,7 @@
 package snapshot
 
 import (
+	"container/list"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -30,15 +31,20 @@ import (
 // Memory model: the read counter map holds one entry per stream that has
 // been read since its last snapshot, and entries are removed only when a
 // snapshot fires. Read-heavy streams that are never written again leave
-// their (small) counter entries behind for the lifetime of the strategy.
-// Bounding the counter map (e.g. an LRU cap like dedup.Ring) is deferred:
-// eviction changes snapshot-trigger semantics and needs a design call
-// (tracked in TODO_LIST.md, deep full-code-review 2026-08-27).
+// their (small) counter entries behind. Use [WithReadTrackingLimit] to bound
+// the map LRU-style: when the limit is reached, the least-recently-read
+// stream's counter is dropped (it re-accumulates from zero, which can only
+// delay a snapshot trigger, never corrupt one).
 type ReadPressure struct {
 	threshold int
 	inner     SnapshotStrategy
 	mu        sync.Mutex
 	reads     map[string]int
+
+	// capacity <= 0 means unbounded (default). lru front = least recently read.
+	capacity int
+	lru      *list.List
+	lruElems map[string]*list.Element
 }
 
 var (
@@ -59,6 +65,15 @@ func WithInnerStrategy(inner SnapshotStrategy) ReadPressureOption {
 	}
 }
 
+// WithReadTrackingLimit bounds the read-counter map: when the limit is
+// reached, the least-recently-read stream's counter is evicted (it
+// re-accumulates from zero). Values <= 0 mean unbounded (default).
+func WithReadTrackingLimit(limit int) ReadPressureOption {
+	return func(rp *ReadPressure) {
+		rp.capacity = limit
+	}
+}
+
 // NewReadPressure creates a read-pressure-aware snapshot strategy.
 //
 // threshold is the minimum number of reads since the last snapshot before
@@ -68,9 +83,11 @@ func NewReadPressure(threshold int, opts ...ReadPressureOption) (*ReadPressure, 
 		return nil, ErrInvalidThreshold
 	}
 
-	strategy := &ReadPressure{ //nolint:exhaustruct // inner/mu are zero-valued
+	strategy := &ReadPressure{ //nolint:exhaustruct // inner is zero-valued
 		threshold: threshold,
 		reads:     make(map[string]int),
+		lru:       list.New(),
+		lruElems:  make(map[string]*list.Element),
 	}
 
 	for _, opt := range opts {
@@ -131,13 +148,24 @@ func (rp *ReadPressure) ShouldSnapshotFor(
 // RecordRead implements ReadTracker.
 //
 // Called by the Repository on every successful Load. Increments the read
-// counter for the given stream.
+// counter for the given stream, refreshing its LRU recency.
 func (rp *ReadPressure) RecordRead(ref id.StreamRef, _ event.Version) {
 	key := ref.String()
 
 	rp.mu.Lock()
+	defer rp.mu.Unlock()
+
+	if el, ok := rp.lruElems[key]; ok {
+		rp.lru.MoveToBack(el)
+	} else {
+		if rp.capacity > 0 && len(rp.reads) >= rp.capacity {
+			rp.evictOldest()
+		}
+
+		rp.lruElems[key] = rp.lru.PushBack(key)
+	}
+
 	rp.reads[key]++
-	rp.mu.Unlock()
 }
 
 // ReadCount returns the number of reads since the last snapshot for the
@@ -151,6 +179,24 @@ func (rp *ReadPressure) ReadCount(ref id.StreamRef) int {
 
 func (rp *ReadPressure) reset(ref id.StreamRef) {
 	rp.mu.Lock()
-	delete(rp.reads, ref.String())
-	rp.mu.Unlock()
+	defer rp.mu.Unlock()
+
+	key := ref.String()
+	delete(rp.reads, key)
+
+	if el, ok := rp.lruElems[key]; ok {
+		rp.lru.Remove(el)
+		delete(rp.lruElems, key)
+	}
+}
+
+func (rp *ReadPressure) evictOldest() {
+	front := rp.lru.Front()
+	if front == nil {
+		return
+	}
+
+	key := rp.lru.Remove(front).(string)
+	delete(rp.reads, key)
+	delete(rp.lruElems, key)
 }

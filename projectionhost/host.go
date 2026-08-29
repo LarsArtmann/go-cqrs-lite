@@ -174,7 +174,8 @@ func (h *Host) Start(ctx context.Context) error {
 }
 
 // Stop gracefully shuts down all workers, waiting for in-flight events to
-// complete. Safe to call multiple times.
+// complete (bounded by the configured shutdown timeout). Safe to call multiple
+// times. If the timeout fires and workers are stuck, use [Host.ForceStop].
 func (h *Host) Stop() error {
 	h.mu.Lock()
 	if !h.started || h.stopped {
@@ -191,10 +192,49 @@ func (h *Host) Stop() error {
 			w.setStatus(WorkerDraining)
 		}
 
-		close(w.stop)
+		w.signalStop()
 	}
 	h.mu.Unlock()
 
+	ctx, cancel := context.WithTimeout(context.Background(), h.opts.shutdownTimeout)
+	defer cancel()
+
+	return h.awaitWorkers(ctx)
+}
+
+// ForceStop hard-cancels every worker and waits for the goroutines to exit,
+// bounded by ctx. It does not give in-flight events a grace period. If ctx
+// expires before the workers exit, the stopped latch is released so a later
+// Stop/ForceStop can try again (worker stop channels close exactly once).
+func (h *Host) ForceStop(ctx context.Context) error {
+	h.mu.Lock()
+	if !h.started {
+		h.mu.Unlock()
+
+		return nil
+	}
+
+	h.stopped = true
+	h.cancel()
+
+	for _, w := range h.workers {
+		w.signalStop()
+	}
+	h.mu.Unlock()
+
+	err := h.awaitWorkers(ctx)
+	if err != nil {
+		h.mu.Lock()
+		h.stopped = false
+		h.mu.Unlock()
+	}
+
+	return err
+}
+
+// awaitWorkers blocks until every worker goroutine has exited or ctx expires.
+// On a full exit it flushes any staged live-phase checkpoints.
+func (h *Host) awaitWorkers(ctx context.Context) error {
 	done := make(chan struct{})
 
 	go func() {
@@ -212,12 +252,12 @@ func (h *Host) Stop() error {
 		}
 
 		return nil
-	case <-time.After(h.opts.shutdownTimeout):
+	case <-ctx.Done():
 		return errorfamily.NewInfrastructure(
 			"projectionhost.shutdown_timeout",
 			fmt.Sprintf(
-				"projectionhost: graceful shutdown timed out after %s",
-				h.opts.shutdownTimeout,
+				"projectionhost: shutdown timed out (%v); workers still draining",
+				ctx.Err(),
 			),
 		)
 	}

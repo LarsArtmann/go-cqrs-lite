@@ -78,9 +78,10 @@ func NewC041Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // C042: Save call with literal 0 as expectedVersion.
-// Detects store.Save(ctx, ref, 0, events) calls where expectedVersion is
-// the literal 0. While valid for new streams, passing 0 for existing
-// streams bypasses optimistic concurrency, risking lost updates.
+// Detects store.Save(ctx, ref, events, expectedVersion) calls where
+// expectedVersion is the literal 0 (bare or via event.Version(0)). While
+// valid for new streams, passing 0 for existing streams bypasses optimistic
+// concurrency, risking lost updates.
 //
 //nolint:ireturn // factory returns public interface
 func NewC042Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -109,16 +110,22 @@ func NewC042Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
+					// Canonical event.Store.Save signature: (ctx, ref, events, expectedVersion).
 					if len(call.Args) < 4 {
 						return true
 					}
 
-					versionArg, ok := call.Args[2].(*ast.BasicLit)
-					if !ok || versionArg.Kind != token.INT {
-						return true
+					versionArg := call.Args[3]
+
+					if conv, ok := versionArg.(*ast.CallExpr); ok && len(conv.Args) == 1 {
+						if convSel, ok := conv.Fun.(*ast.SelectorExpr); ok &&
+							convSel.Sel.Name == "Version" {
+							versionArg = conv.Args[0]
+						}
 					}
 
-					if versionArg.Value != "0" {
+					lit, ok := versionArg.(*ast.BasicLit)
+					if !ok || lit.Kind != token.INT || lit.Value != "0" {
 						return true
 					}
 

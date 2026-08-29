@@ -28,30 +28,30 @@ query.RegisterTyped(q, "user.get", typedHandler)
 
 ## API
 
-| Type                        | Description                                                                      |
-| --------------------------- | -------------------------------------------------------------------------------- |
-| `Dispatcher[H, M]`          | Generic handler + middleware dispatcher. `H` = handler type, `M` = message type. |
-| `LifecycleMixin`            | Embedded `Close()` support. Rejects operations after close with an error.        |
-| `CatalogDispatcher[KT, VT]` | Embeddable catalog introspection for documentation generation.                   |
+| Type                    | Description                                                                               |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| `Dispatcher[H, M]`      | Generic handler + middleware dispatcher. `H` = handler type, `M` = middleware type.       |
+| `Lifecycle`             | Embedded close/lifecycle support. Rejects operations after close with an error.           |
+| `handlerEntry[H, M]`    | Internal registry entry pairing a handler with its middleware-wrapped form.               |
 
 ### Methods (via embedding)
 
-| Method                    | Description                                           |
-| ------------------------- | ----------------------------------------------------- |
-| `Register(type, handler)` | Register a handler for a message type.                |
-| `Use(middleware...)`      | Append middleware to the chain.                       |
-| `Dispatch(ctx, msg)`      | Dispatch a message through the middleware chain.      |
-| `Close()`                 | Close the dispatcher. Subsequent ops return an error. |
-| `Handlers()`              | Returns registered handler types (for catalog/docs).  |
+| Method                                | Description                                                                  |
+| ------------------------------------- | ---------------------------------------------------------------------------- |
+| `Register(type, handler, wrap)`       | Bind a handler to a type; `wrap` folds middleware into the wrapped handler.  |
+| `Use(middleware...)`                  | Append middleware to the chain.                                              |
+| `Dispatch(type)`                      | Returns the middleware-wrapped handler for the type (or a rejection).        |
+| `Close()` / `IsClosed()`              | Close the dispatcher. Subsequent ops return an error.                        |
+| `CheckClosed(err)` / `WrapClose(...)` | Closed-guard helpers embedders call from their own public surface.           |
 
 ## Design
 
-- **Type parameters**: `Dispatcher[Handler, Command]` for commands, `Dispatcher[Handler, Query]` for queries. The generic avoids code duplication while keeping type safety.
-- **Middleware chain**: Pre-computed on `Use()`. Each `Dispatch` call walks the chain once — no per-call allocation for the middleware list.
-- **Lifecycle safety**: `LifecycleMixin.Close()` sets a flag. After close, `Dispatch` and `Register` return an error immediately.
+- **Type parameters**: `Dispatcher[Handler, CommandMiddleware]` for commands, `Dispatcher[Handler, QueryMiddleware]` for queries. The generic avoids code duplication while keeping type safety.
+- **Middleware wrapping**: middleware is folded into the handler at `Register` time via the caller-supplied `wrap` function, so `Use()` may be called in any order relative to `Register()`; `Dispatch(type)` then hands back the wrapped handler.
+- **Lifecycle safety**: `Lifecycle.Close()` sets a flag. After close, `Dispatch` and `Register` return an error immediately.
 
 ## Related Modules
 
 - [**command**](../command/README.md) — `command.Dispatcher` embeds `Dispatcher[Handler, Command]`
 - [**query**](../query/README.md) — `query.Dispatcher` embeds `Dispatcher[Handler, Query]`
-- [**catalog**](../catalog/README.md) — Uses `CatalogDispatcher` for introspection and doc generation
+- [**catalog**](../catalog/README.md) — Catalog introspection and doc generation

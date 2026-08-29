@@ -38,7 +38,9 @@ func genState() *rapid.Generator[testState] {
 
 func genVersion() *rapid.Generator[event.Version] {
 	return rapid.Custom(func(t *rapid.T) event.Version {
-		return event.Version(rapid.IntRange(0, 100000).Draw(t, "version"))
+		// Version 0 is invalid (Save rejects it via NewSnapshot), so the
+		// generator starts at 1 — the contract every write path enforces.
+		return event.Version(rapid.IntRange(1, 100000).Draw(t, "version"))
 	})
 }
 

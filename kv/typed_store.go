@@ -161,6 +161,11 @@ func (s *TypedStore[T, K]) Backend() Store { return s.backend }
 // implements [ViewResetter] and is used for projection resets — wiping a read
 // model before rebuilding it from the event journal.
 //
+// BLAST RADIUS: without WithTypedKeyPrefix the namespace is the whole
+// backend — DeleteAll deletes EVERY key in it, including other stores'
+// data sharing the backend. Configure a prefix, or gate the call behind an
+// explicit operator action.
+//
 // The operation iterates all keys and deletes them via a [Batch] when the
 // backend supports it (atomic), otherwise one-by-one.
 func (s *TypedStore[T, K]) DeleteAll(ctx context.Context) error {

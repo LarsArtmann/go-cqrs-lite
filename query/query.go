@@ -1,6 +1,8 @@
 package query
 
 import (
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"context"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -107,10 +109,16 @@ func (q *BasicQuery) ApplyOptions(opts ...Option) {
 	}
 }
 
-// New creates a new query with validation.
+// New creates a new query with validation. Error style mirrors
+// [command.New]: the sentinel is wrapped in a Rejection with a contextual
+// message, so errors.Is(err, ErrEmptyQueryType) keeps matching.
 func New(queryType Type, opts ...Option) (*BasicQuery, error) {
 	if queryType == "" {
-		return nil, ErrEmptyQueryType
+		return nil, errorfamily.WrapRejection(
+			ErrEmptyQueryType,
+			"query.empty_query_type",
+			"query type is required: got empty",
+		)
 	}
 
 	q := &BasicQuery{

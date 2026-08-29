@@ -49,7 +49,7 @@ always sees the latest schema version, regardless of what version was stored.
 
 - **Read-time transformation**: Stored data is never modified. Upcasting happens on every load, so old and new versions coexist seamlessly.
 - **Per-event-type**: Each upcaster targets a specific event type and source version. Multiple upcasters chain naturally (v1, then v2, then v3).
-- **Immutable events**: Upcasters return new `*ImmutableEvent` instances. The original event is never mutated.
+- **Immutable events**: Upcasters return new `*ImmutableEvent` instances. Returning nil or the input event is rejected (ErrInvalidUpcastResult) — the original event is never mutated. An upcaster that stamps a higher schema version (e.g. a v1→v3 jump) keeps it; otherwise source+1 is stamped. Duplicate (type, source version) registrations are ignored — first wins.
 - **Validator**: Optional payload validation via `RegisterType[T]()`. Checks JSON schema conformance at the boundary.
 
 ## Related Modules

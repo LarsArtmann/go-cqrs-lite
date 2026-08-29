@@ -35,14 +35,24 @@ func newUpcasterRegistryFrom(upcasters []Upcaster) *upcasterRegistry {
 	return reg
 }
 
+// register adds an upcaster. Duplicate (source type, source version)
+// registrations are ignored — the FIRST registration wins, keeping the
+// chain deterministic.
 func (r *upcasterRegistry) register(u Upcaster) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	eventType := u.SourceType()
+
+	for _, existing := range r.upcasters[eventType] {
+		if existing.SourceVersion() == u.SourceVersion() {
+			return
+		}
+	}
+
 	r.upcasters[eventType] = append(r.upcasters[eventType], u)
 
-	sort.Slice(r.upcasters[eventType], func(i, j int) bool {
+	sort.SliceStable(r.upcasters[eventType], func(i, j int) bool {
 		return r.upcasters[eventType][i].SourceVersion() < r.upcasters[eventType][j].SourceVersion()
 	})
 }
@@ -76,7 +86,23 @@ func (r *upcasterRegistry) upcast(evt event.Event) (event.Event, error) {
 			)
 		}
 
-		event.WithSchemaVersion(uc.SourceVersion().Increment())(next)
+		if next == nil || next == current {
+			return nil, errorfamily.WrapCorruption(
+				ErrInvalidUpcastResult,
+				"schema.invalid_upcast_result",
+				"upcast "+string(uc.SourceType())+" from schema version "+strconv.Itoa(
+					int(uc.SourceVersion()),
+				),
+			)
+		}
+
+		// Preserve an upcaster-stamped version (a v1→v3 jump keeps v3):
+		// only stamp source+1 when the result does not already advance past
+		// the source version (a fresh event defaults to schema version 1).
+		if next.SchemaVersion() <= uc.SourceVersion() {
+			event.WithSchemaVersion(uc.SourceVersion().Increment())(next)
+		}
+
 		current = next
 	}
 

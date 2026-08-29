@@ -540,6 +540,9 @@ interfaces for optimized read paths:
 | `MapUpdater`     | `MapUpdate`       | Atomic read-modify-write              |
 | `Transactional`  | `RunInTx`         | Cross-collection transactional writes |
 | `HealthChecker`  | `HealthCheck`     | Liveness/readiness probe (K8s-style)  |
+| `VectorFilterBackend` | `VectorSearchFiltered` | Metadata-filtered vector search (AND semantics) |
+| Graph edge removal | `HasGraphEdgeRemoval(eng)` | `GraphRemoveEdge` — required for EdgeRemoval folds |
+| Undirected graph | `HasUndirectedGraphSupport(eng)` | Traversal follows edges in BOTH directions |
 
 The SQLite engine implements all of these. The Memory engine implements
 `MapUpdater` but not the pushdown/raw interfaces (it returns decoded Go

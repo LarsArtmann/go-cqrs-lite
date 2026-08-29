@@ -18,6 +18,46 @@ var ErrNilDispatcher = errorfamily.NewRejection(
 	"deriver: dispatcher must not be nil",
 )
 
+// ErrDepthExceeded is returned when [Deriver.AsHandler] is configured with
+// [WithMaxDepth] and a synchronous derivation chain exceeds the bound.
+var ErrDepthExceeded = errorfamily.NewOrchestration(
+	"deriver.depth_exceeded",
+	"deriver: synchronous derivation depth exceeded",
+)
+
+// DefaultMaxDepth is the depth bound used by [WithMaxDepth] when called
+// without an explicit limit.
+const DefaultMaxDepth = 16
+
+type depthCtxKey struct{}
+
+// HandlerOption configures the handler produced by [Deriver.AsHandler].
+type HandlerOption func(*asHandlerConfig)
+
+type asHandlerConfig struct {
+	maxDepth int
+}
+
+// WithMaxDepth bounds synchronous derivation chains. Derived dispatches run
+// with a depth counter in their context; when a derived command's handler
+// synchronously emits an event that re-enters this handler, the counter
+// increments, and exceeding maxDepth fails with [ErrDepthExceeded] instead of
+// looping forever. Use [DefaultMaxDepth] for the standard bound.
+//
+// This guards the in-process path only (context flows through synchronous
+// dispatch). Fully asynchronous loops (events re-published through a broker)
+// are NOT caught here — break those cycles in the domain, or key idempotency
+// on something that does not change every round.
+func WithMaxDepth(depth int) HandlerOption {
+	return func(c *asHandlerConfig) {
+		if depth <= 0 {
+			depth = DefaultMaxDepth
+		}
+
+		c.maxDepth = depth
+	}
+}
+
 // Deriver transforms an event into zero or more derived commands.
 //
 // Contract:
@@ -78,25 +118,52 @@ const SourceEventIDKey cqrscommand.MetadataKey = "deriver.source_event_id"
 // derived commands via the given command.Dispatcher. Each command is dispatched
 // sequentially; the first dispatch error stops processing and propagates.
 //
+// Derivation cycles (A's commands produce events that re-trigger A) do not
+// self-terminate: deterministic command IDs key on the source event ID, which
+// changes every round. Pass [WithMaxDepth] to bound synchronous chains.
+//
 // For at-least-once delivery safety, chain [Deriver.Idempotent] before
 // AsHandler so that re-processing the same event yields the same command IDs:
 //
-//	myDeriver.Idempotent().AsHandler(dispatcher)
-func (d Deriver) AsHandler(dispatcher *cqrscommand.Dispatcher) cqrsevent.Handler {
+//	myDeriver.Idempotent().AsHandler(dispatcher, deriver.WithMaxDepth(deriver.DefaultMaxDepth))
+func (d Deriver) AsHandler(
+	dispatcher *cqrscommand.Dispatcher,
+	opts ...HandlerOption,
+) cqrsevent.Handler {
 	if dispatcher == nil {
 		return func(_ context.Context, _ cqrsevent.Event) error {
 			return ErrNilDispatcher
 		}
 	}
 
+	var cfg asHandlerConfig
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
 	return func(ctx context.Context, evt cqrsevent.Event) error {
+		depth := 0
+		if v, ok := ctx.Value(depthCtxKey{}).(int); ok {
+			depth = v
+		}
+
+		if cfg.maxDepth > 0 && depth >= cfg.maxDepth {
+			return fmt.Errorf("deriver depth %d exceeds %d: %w",
+				depth, cfg.maxDepth, ErrDepthExceeded)
+		}
+
 		cmds, err := d(ctx, evt)
 		if err != nil {
 			return fmt.Errorf("deriver for %s: %w", evt.Type(), err)
 		}
 
+		dispatchCtx := ctx
+		if cfg.maxDepth > 0 {
+			dispatchCtx = context.WithValue(ctx, depthCtxKey{}, depth+1)
+		}
+
 		for _, cmd := range cmds {
-			if err := dispatcher.Dispatch(ctx, cmd); err != nil {
+			if err := dispatcher.Dispatch(dispatchCtx, cmd); err != nil {
 				return fmt.Errorf("deriver dispatch %s (from %s): %w",
 					cmd.Type(), evt.Type(), err)
 			}

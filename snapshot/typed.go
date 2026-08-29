@@ -82,7 +82,11 @@ func NewTypedStore[State any](store SnapshotStore, c codec.Codec) *TypedStore[St
 	return &TypedStore[State]{store: store, codec: c}
 }
 
-// Save encodes snapshot.State and delegates to the underlying [SnapshotStore].
+// Save encodes snapshot.State, routes it through the validating
+// [NewSnapshot] constructor (version >= 1, non-empty ref/state, CreatedAt
+// stamp), and delegates to the underlying [SnapshotStore]. A caller-set
+// CreatedAt is preserved; otherwise the constructor stamps the current UTC
+// time.
 func (t *TypedStore[State]) Save(ctx context.Context, snapshot TypedSnapshot[State]) error {
 	encoded, err := codec.WrapEncode(snapshot.State, t.codec)
 	if err != nil {
@@ -90,15 +94,22 @@ func (t *TypedStore[State]) Save(ctx context.Context, snapshot TypedSnapshot[Sta
 			"encode state for %s v%d", snapshot.StreamID, snapshot.Version)
 	}
 
-	err = t.store.Save(ctx, Snapshot{
-		StreamID:   snapshot.StreamID,
-		StreamType: snapshot.StreamType,
-		Version:    snapshot.Version,
-		State:      encoded,
-		Encoding:   recordEncodingFrom(t.codec),
-		CreatedAt:  snapshot.CreatedAt,
-	})
+	ref := id.StreamRef{Type: snapshot.StreamType, ID: snapshot.StreamID}
+
+	snap, err := NewSnapshot(ref, snapshot.Version, encoded, recordEncodingFrom(t.codec))
 	if err != nil {
+		return err
+	}
+
+	if !snapshot.CreatedAt.IsZero() {
+		snap.CreatedAt = snapshot.CreatedAt
+
+		if err := snap.Validate(); err != nil {
+			return err
+		}
+	}
+
+	if err := t.store.Save(ctx, snap); err != nil {
 		return errorfamily.Wrapf(err, errorfamily.Infrastructure, "snapshot.save",
 			"save %s v%d", snapshot.StreamID, snapshot.Version)
 	}

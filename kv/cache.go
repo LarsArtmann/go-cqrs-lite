@@ -33,6 +33,14 @@ var (
 // costs roughly one decode; consumers with immutable values and hot read paths
 // that must avoid that cost should use the underlying [TypedStore] directly.
 //
+// CONSISTENCY MODEL: the cache assumes a SINGLE WRITER going through this
+// Cache instance. Writers that bypass it (Cache.Store(), Cache.Backend(),
+// another Cache over the same store, another process) leave stale entries
+// behind — the cache has no cross-instance invalidation. For such topologies
+// set [WithCacheTTL] to your acceptable staleness bound and use Invalidate /
+// InvalidateAll after out-of-band writes. The default TTL is 0 (unbounded
+// staleness), which is only sound under the single-writer assumption.
+//
 // The cache is safe for concurrent use (Otter is lock-free for reads).
 type Cache[T any, K fmt.Stringer] struct {
 	store *TypedStore[T, K]
@@ -190,6 +198,20 @@ func (cs *Cache[T, K]) Scan(ctx context.Context, prefix []byte) ([]*T, error) {
 
 // Backend returns the underlying [Store].
 func (cs *Cache[T, K]) Backend() Store { return cs.store.Backend() }
+
+// Invalidate drops the cached entry for id, forcing the next Get to read
+// through to the store. Call it after writing through a handle that bypasses
+// this Cache (see the consistency model on [Cache]).
+func (cs *Cache[T, K]) Invalidate(id K) {
+	cs.cache.Invalidate(id.String())
+}
+
+// InvalidateAll drops every cached entry. Call it after out-of-band writes
+// or projection resets touching this namespace (e.g. after TypedStore
+// DeleteAll) so subsequent Gets re-read the store.
+func (cs *Cache[T, K]) InvalidateAll() {
+	cs.cache.InvalidateAll()
+}
 
 // copy deep-clones val via the TypedStore's codec so cached entries are never
 // shared with callers. Types that cannot round-trip their codec already fail

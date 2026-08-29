@@ -139,20 +139,24 @@ func checkIteratorError(iter *pebble.Iterator) error {
 	return wrapInfraOrOK(iter.Error(), "pebble.iterator_error", "iterator error")
 }
 
-// keyExists reports whether the given key is present in the database. Returns
-// true for any non-ErrNotFound error — the caller treats unknown errors as
-// "key might exist, don't risk a duplicate write". Shared by CommandStore
-// and QueryStore for their idempotent Save paths.
-func keyExists(db *pebble.DB, key []byte) bool {
+// keyExists reports whether the given key is present in the database. A read
+// error other than ErrNotFound is returned to the caller (fail-open): an
+// Infrastructure read failure must NOT be misreported as a duplicate. Shared
+// by CommandStore and QueryStore for their idempotent Save paths.
+func keyExists(db *pebble.DB, key []byte) (bool, error) {
 	_, closer, err := db.Get(key)
 	if err == nil {
 		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = closer.Close()
 
-		return true
+		return true, nil
 	}
 
-	return !errors.Is(err, pebble.ErrNotFound)
+	if errors.Is(err, pebble.ErrNotFound) {
+		return false, nil
+	}
+
+	return false, err
 }
 
 // lastSegmentAfterByte returns the substring after the last occurrence of sep

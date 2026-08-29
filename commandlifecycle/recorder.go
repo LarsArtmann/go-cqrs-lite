@@ -35,8 +35,12 @@ type Recorder struct {
 	strict bool
 	clock  func() time.Time
 
-	mu       sync.Mutex
-	versions map[string]event.Version
+	versionCapacity int
+
+	mu sync.Mutex
+	// versions caches the next stream version per lifecycle stream. Bounded:
+	// evicting an entry only costs a re-seed Load from the store.
+	versions *boundedMap[event.Version]
 }
 
 // RecorderOption configures a [Recorder].
@@ -59,22 +63,32 @@ func WithClock(clock func() time.Time) RecorderOption {
 	return func(r *Recorder) { r.clock = clock }
 }
 
+// WithVersionCacheCapacity bounds the in-memory stream-version cache.
+// When more distinct lifecycle streams are touched than the capacity, the
+// oldest-inserted entry is evicted and the next emit for it re-seeds from the
+// store (one extra Load). Values <= 0 make the cache unbounded. The default
+// is 1024.
+func WithVersionCacheCapacity(capacity int) RecorderOption {
+	return func(r *Recorder) { r.versionCapacity = capacity }
+}
+
 // NewRecorder creates a Recorder that appends lifecycle events to store.
 // The store must implement both [event.EventSink] and [event.EventSource]
 // (i.e. [event.Store]) so the Recorder can derive stream versions from the
 // existing event log and survive process restarts.
 func NewRecorder(store event.Store, opts ...RecorderOption) *Recorder {
 	r := &Recorder{
-		store:    store,
-		logger:   slog.Default(),
-		strict:   false,
-		clock:    time.Now,
-		mu:       sync.Mutex{},
-		versions: make(map[string]event.Version),
+		store:           store,
+		logger:          slog.Default(),
+		strict:          false,
+		clock:           time.Now,
+		versionCapacity: defaultCacheCapacity,
+		mu:              sync.Mutex{},
 	}
 	for _, opt := range opts {
 		opt(r)
 	}
+	r.versions = newBoundedMap[event.Version](r.versionCapacity)
 
 	return r
 }
@@ -181,19 +195,13 @@ func (r *Recorder) emit(
 	return nil
 }
 
-// metadataProvider is the optional interface a command implements to expose
-// its metadata. *command.BasicCommand satisfies this.
-type metadataProvider interface {
-	Metadata() command.Metadata
-}
-
 // commandTracing returns an option propagating the command's tracing
 // identifiers (CorrelationID, CausationID, UserID, RequestID, ActorID) onto
 // the lifecycle event, so audit trails answer "who triggered the command
 // that failed?". Commands that do not expose metadata are recorded without
 // tracing; zero identifiers do not overwrite anything (Merge semantics).
 func commandTracing(cmd command.Command) event.Option {
-	provider, ok := cmd.(metadataProvider)
+	provider, ok := cmd.(command.MetadataCarrier)
 	if !ok {
 		return func(*event.ImmutableEvent) {}
 	}
@@ -217,18 +225,20 @@ func (r *Recorder) nextVersion(
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if _, ok := r.versions[streamKey]; !ok {
-		seed, err := r.seedVersion(ctx, ref)
-		if err != nil {
-			return 0, err
-		}
+	if v, ok := r.versions.get(streamKey); ok {
+		r.versions.put(streamKey, v+1)
 
-		r.versions[streamKey] = seed
+		return v + 1, nil
 	}
 
-	r.versions[streamKey]++
+	seed, err := r.seedVersion(ctx, ref)
+	if err != nil {
+		return 0, err
+	}
 
-	return r.versions[streamKey], nil
+	r.versions.put(streamKey, seed+1)
+
+	return seed + 1, nil
 }
 
 func (r *Recorder) seedVersion(ctx context.Context, ref id.StreamRef) (event.Version, error) {
@@ -251,7 +261,7 @@ func (r *Recorder) ResetVersion(streamKey string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	delete(r.versions, streamKey)
+	r.versions.delete(streamKey)
 }
 
 func (r *Recorder) now() time.Time {
