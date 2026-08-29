@@ -44,11 +44,17 @@ func validateShutdownDependencies(
 
 	for _, dep := range deps {
 		if dep.Before == "" {
-			return fmt.Errorf("%w: shutdown dependency Before name is empty", ErrShutdownDependencyInvalid)
+			return fmt.Errorf(
+				"%w: shutdown dependency Before name is empty",
+				ErrShutdownDependencyInvalid,
+			)
 		}
 
 		if dep.After == "" {
-			return fmt.Errorf("%w: shutdown dependency After name is empty", ErrShutdownDependencyInvalid)
+			return fmt.Errorf(
+				"%w: shutdown dependency After name is empty",
+				ErrShutdownDependencyInvalid,
+			)
 		}
 
 		if dep.Before == dep.After {

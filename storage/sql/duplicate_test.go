@@ -61,8 +61,16 @@ func TestIsDuplicateKeyError(t *testing.T) {
 			errors.New(`Constraint Error: Duplicate key "id: 42" violates primary key constraint`),
 			true,
 		},
-		{"duckdb primary key wrapped", fmt.Errorf("save command: %w",
-			errors.New(`Constraint Error: Duplicate key "commands.id: x" violates primary key constraint`)), true},
+		{
+			"duckdb primary key wrapped",
+			fmt.Errorf(
+				"save command: %w",
+				errors.New(
+					`Constraint Error: Duplicate key "commands.id: x" violates primary key constraint`,
+				),
+			),
+			true,
+		},
 	}
 
 	for _, tc := range tests {

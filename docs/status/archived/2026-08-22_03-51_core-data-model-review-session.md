@@ -73,6 +73,7 @@
 ## f) Up to 50 things to do next (prioritized; report fixes first)
 
 **Fix the shipped report (fast, high value):**
+
 1. Reclassify Step 2 (`Command.Metadata()`) as v5-or-embedding-analysis; correct the "zero breakage" claim.
 2. Add an explicit "conflict with recorded v5 plan" callout for `record.StreamRef` (ADR-0123 Phase 8) — argue struct-vs-validating-constructor openly.
 3. Replace the transitional dual-Version field proposal with "keep int64 + validate non-negative; swap at v5."
@@ -118,4 +119,4 @@
 
 ---
 
-*Point-in-time snapshot. Written per explicit `.md` request (overrides the status-report skill's HTML default). WAITING FOR INSTRUCTIONS.*
+_Point-in-time snapshot. Written per explicit `.md` request (overrides the status-report skill's HTML default). WAITING FOR INSTRUCTIONS._

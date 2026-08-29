@@ -78,7 +78,10 @@ func TestScheduler_MaxRetriesZeroStillDispatchesOnce(t *testing.T) {
 	cancel()
 
 	if attempts.Load() < 1 {
-		t.Fatalf("WithMaxRetries(0) dispatched %d times, want >= 1 (deadline must not be lost)", attempts.Load())
+		t.Fatalf(
+			"WithMaxRetries(0) dispatched %d times, want >= 1 (deadline must not be lost)",
+			attempts.Load(),
+		)
 	}
 }
 
@@ -118,6 +121,8 @@ func TestScheduler_DispatchesDespiteCorruptRows(t *testing.T) {
 	cancel()
 
 	if attempts.Load() < 1 {
-		t.Fatal("healthy timer was not dispatched despite being decodable; corrupt row blocked dispatch")
+		t.Fatal(
+			"healthy timer was not dispatched despite being decodable; corrupt row blocked dispatch",
+		)
 	}
 }

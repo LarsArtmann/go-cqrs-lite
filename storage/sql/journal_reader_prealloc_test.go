@@ -26,7 +26,9 @@ func newBenchJournalReader(b *testing.B, rows int) *benchJournalReader {
 	}
 	b.Cleanup(func() { _ = db.Close() })
 
-	if _, err := db.Exec(`CREATE TABLE bench_events (id TEXT NOT NULL, ts TEXT NOT NULL)`); err != nil {
+	if _, err := db.Exec(
+		`CREATE TABLE bench_events (id TEXT NOT NULL, ts TEXT NOT NULL)`,
+	); err != nil {
 		b.Fatalf("create table: %v", err)
 	}
 

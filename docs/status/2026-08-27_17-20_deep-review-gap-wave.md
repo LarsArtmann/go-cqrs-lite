@@ -91,6 +91,6 @@ non-overlapping complement to a concurrent review session.
    fix (S), metaengine recHolder mutex (S), system synthetic-engine
    validation gap (S).
 
-*Reported 2026-08-27 17:20 from HEAD `e67f8ddb6`; master ahead of origin by
+_Reported 2026-08-27 17:20 from HEAD `e67f8ddb6`; master ahead of origin by
 this session's commits (push policy unchanged: only on request). Tree
-carries the concurrent session's uncommitted files — untouched.*
+carries the concurrent session's uncommitted files — untouched._

@@ -30,7 +30,7 @@ import (
 //
 // Engine-specific effects the JSON model cannot see ARE captured: bbolt stores
 // every multimap child under its own seq-suffixed key
-// (mm\x00col\x00key\x00<20-digit-seq>, ~41 bytes) inside B+Tree pages; Pebble
+// (mm\x00col\x00key\x00<20-digit-seq>, 43-46 bytes measured) inside B+Tree pages; Pebble
 // compresses SSTable blocks (repeated field names inside one embed blob
 // compress better than many small child values spread across keys).
 //

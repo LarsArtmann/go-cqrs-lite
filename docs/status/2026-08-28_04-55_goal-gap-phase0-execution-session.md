@@ -158,6 +158,7 @@
 ## f) NEXT — up to 50 (Pareto-ordered; [user]-blocked marked)
 
 **Trust floor & gates (this session's own debt):**
+
 1. Run full exclusive `#verify` (lint + coverage + doc legs I never ran) — first
    action next session.
 2. `nix run .#check-duplication` — my new code (status.go, helper migrations)
@@ -172,19 +173,19 @@
 7. Failing race test: concurrent live Apply + Verify replay on one Fold.
 8. Thread Record through invoke closures (delete recHolder cell) per design note.
 9. Optional `Record` on EventInput/log entries; thread through
-   Backfill/Demote/Verify.
+Backfill/Demote/Verify.
 10. Annotate the two metaengine TODO items with the design note (forgotten).
 
 **Release chain ([user] gates):**
 11. [user] Keep-or-revert the declined PG-isolation fix (Question 1).
 12. [user] P07 tag wave sign-off (7 batches; or minimum B1+B3+B4).
 13. [user] Decide: pre-v5 patch tags for listing + pgtestcontainer (drops my 5
-    new sibling replaces) — currently they'd ship only at v5.
+new sibling replaces) — currently they'd ship only at v5.
 14. [user] eventtest dead-tag deletion (v4.0.0/v4.2.0).
 15. Refresh tag-plan §4 replace census (now ~35 with my additions).
 16. [user] go-codec F46 commit+tag; alloc-pin updates.
 17. [user] GH Actions billing; macOS PG verification [hardware];
-    mysql-nspawn [root]; iroh P99 ratify [user].
+mysql-nspawn [root]; iroh P99 ratify [user].
 18. GitHub Releases for the 08-16/18/21/27 waves.
 19. Retract-and-republish pattern doc in CONTRIBUTING.
 20. Indirect-dep consolidation after tags.
@@ -205,19 +206,19 @@
 31. Flake apps self-export /tmp cache fallback (see §e.3).
 32. AGENTS.md gotcha: cross-binary DB naming lesson (see §e.4).
 33. Benchmark serialized catch-up delivery; add ack-window pipelining if the
-    number is bad (see §e.9).
+number is bad (see §e.9).
 34. Watermark ULD-ordering assumption vs cross-process skew — document or
-    property-test (see §e.10-adjacent).
+property-test (see §e.10-adjacent).
 35. cqrs-lint version-const automation in tag-release.sh (nearly bit again).
 
 **Correctness long tail (post-v5, from v2 plan):**
 36. P18 storage/engines batch (pebble dup-check lock, stream-not-found contract,
-    upcaster hardening, TypedStore.Save via NewSnapshot).
+upcaster hardening, TypedStore.Save via NewSnapshot).
 37. P19 read-path batch (kv Invalidate, catalog recursion, eventtest fakes,
-    Stamp wire).
+Stamp wire).
 38. P20 host/tooling batch (projectionhost hardening set, C042, scenario guard).
 39. P21 semantics/docs batch (deriver cycles, scheduling epochs, metaengine
-    routing follow-ups, my nine).
+routing follow-ups, my nine).
 40. P22 metaengine-gen codegen + planner auto-route.
 41. P23 command sourcing + lifecycle one-call.
 42. P24 DomainConfig ceremony reduction.
@@ -228,7 +229,7 @@
 47. Listing cursor (type,id) keying (P21.11 tail; noticed again in review).
 48. `#verify-standalone` explicit decision record (§b).
 49. Fix status-report placeholder pattern: never commit `<!--PENDING-->` docs —
-    write after the gate returns.
+write after the gate returns.
 50. Session-log lesson into memory: enumerate gates run, never "all green".
 
 ## g) QUESTIONS (cannot figure out myself)
@@ -247,6 +248,7 @@
    or do you want the benchmark (+ optional ack-window) before the tag wave?
 
 ---
-*Point-in-time snapshot at HEAD `5cf28453c`; tree clean; no commits since
+
+_Point-in-time snapshot at HEAD `5cf28453c`; tree clean; no commits since
 session close. Living state: TODO_LIST.md (7 items ticked this session,
-evidence inline).*
+evidence inline)._

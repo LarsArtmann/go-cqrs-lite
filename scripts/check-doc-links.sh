@@ -48,12 +48,12 @@ for f in "${files[@]}"; do
 		[ -n "$target" ] || continue
 
 		case "$target" in
-			http://* | https://* | mailto:* | data:* | \#*) continue ;;
-			*\ *) continue ;;  # prose noise: brackets with spaces are not links
+		http://* | https://* | mailto:* | data:* | \#*) continue ;;
+		*\ *) continue ;; # prose noise: brackets with spaces are not links
 		esac
 
 		case "$target" in
-			*.go:[0-9]*) continue ;;  # source line references, not file links
+		*.go:[0-9]*) continue ;; # source line references, not file links
 		esac
 
 		path="${target%%#*}"

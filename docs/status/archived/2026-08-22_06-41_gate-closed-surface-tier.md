@@ -7,7 +7,7 @@
 ## a) Fully done (verified end-to-end)
 
 1. **Pending foundation gate: CLOSED GREEN.** `nix run .#verify-fast` exit 0 on `a51903531` — build + vet + test + race + lint + doc-check + arch + duplication, all green. This was the single most important open verification from the last report. Getting there took four gate runs because the gate exposed three latent defects (d1–d3); every fix was root-caused, not retried-blind.
-2. **Latent defect fix 1 — scheduling retry-delay test race** (`4a72cf2e1`). `waitFor` gated on `attempts >= 2`, but attempt 2 increments the counter *before* storing its timestamp — the test could read a zero `secondAt` and compute a bogus −56-year elapsed. Now gates on the timestamp itself. (HEAD commit of last session was already this fix; this session verified it via the gate.)
+2. **Latent defect fix 1 — scheduling retry-delay test race** (`4a72cf2e1`). `waitFor` gated on `attempts >= 2`, but attempt 2 increments the counter _before_ storing its timestamp — the test could read a zero `secondAt` and compute a bogus −56-year elapsed. Now gates on the timestamp itself. (HEAD commit of last session was already this fix; this session verified it via the gate.)
 3. **Latent defect fix 2 — foundation-tier clone annotations** (`f18591491`). The tier introduced 2 art-dupl clone groups, both intentional: the command/query `AsRecord` lockstep twins (dep isolation) and the zero-dep `record.ActorKind` mirror of `id.ActorKind` (ADR-0111). Annotated with `//art-dupl:accept` directives — 0 new groups, baseline untouched.
 4. **Latent defect fix 3 — transport/grpc pub/sub races** (`54ea9eccc`, `a51903531`). The three event pub/sub tests slept fixed delays around publish; under load the gRPC stream setup outlived the sleep and the fan-out silently dropped events. Exposed `EventServer.ClientCount` as the readiness observable; tests now poll for stream registration and delivery instead of sleeping. Also 5×-race green (was deterministically red under `-race` mid-fix), faster (1.1s vs 10s), and the orphaned `raceEnabled` consts are deleted.
 5. **TODO_LIST harvest ticks** (`08e7820e3`). All five foundation-tier boxes in "Core Data Model v4.x/v5" ticked with dated annotations; the `Record.Encoding` box text corrected from the sketched `uint8` to the shipped `string` with the rationale.
@@ -24,11 +24,11 @@
 
 ## d) What I totally fucked up (honest log)
 
-1. **Designed the grpc readiness signal before reading the implementation.** My first fix gated publish on `miniBus.subscriberCount() > 0` — but the bus is subscribed *eagerly* at `RegisterEventService`; the count was ≥1 from startup and the "wait" was a no-op. All three tests went deterministically red under `-race`. Correct signal (`EventServer` client registry) required reading `event_server.go` — which I should have done *before* designing. Cost: one failed 5×-race cycle.
+1. **Designed the grpc readiness signal before reading the implementation.** My first fix gated publish on `miniBus.subscriberCount() > 0` — but the bus is subscribed _eagerly_ at `RegisterEventService`; the count was ≥1 from startup and the "wait" was a no-op. All three tests went deterministically red under `-race`. Correct signal (`EventServer` client registry) required reading `event_server.go` — which I should have done _before_ designing. Cost: one failed 5×-race cycle.
 2. **First capability-test draft was garbage.** Called unexported `requestIDOf` from the external test package and hand-rolled an inline `Tracing` struct literal with invented tags. Rewrote after checking `metadata.Metadata`'s real shape. Cause: wrote the test from memory instead of from the type definitions.
-3. **Ran `nix fmt` without the env block** — its gci formatter shelled `go env` against the corrupted `/mnt/buildcache` and the whole run died after 2m12s. The env block is mandatory for *any* tooling that touches go, not just go/nix gates.
+3. **Ran `nix fmt` without the env block** — its gci formatter shelled `go env` against the corrupted `/mnt/buildcache` and the whole run died after 2m12s. The env block is mandatory for _any_ tooling that touches go, not just go/nix gates.
 4. **Session restart wiped /tmp** (48G tmpfs → 98M used): both go caches and the in-flight gate log died with it; gate 3 re-ran from cold caches (~15 min of re-downloads). /tmp is volatile — anything valuable there must be consumed promptly.
-5. **Slow gate loop:** four exclusive gate runs (~10–15 min each) where two failures (dupl groups) were catchable in seconds by running `nix run .#check-duplication` standalone *before* the full gate. Same for changelog-symbols and lint-config. The fast standalone gates should front-load the expensive one.
+5. **Slow gate loop:** four exclusive gate runs (~10–15 min each) where two failures (dupl groups) were catchable in seconds by running `nix run .#check-duplication` standalone _before_ the full gate. Same for changelog-symbols and lint-config. The fast standalone gates should front-load the expensive one.
 6. **Uncommitted work while the daemon runs** — the daemon split T09 (took my audit.go/capability changes as `0c37212ff` before my golden/CHANGELOG was ready) and committed T10's production files (`ed2aa7455`) while the test file was still being written. Both splits were verified on inspection, but the lesson repeats: commit per-module-green, immediately, not at task boundaries.
 
 ## e) What I can do better
@@ -75,6 +75,6 @@
 
 ---
 
-*State at pause: HEAD `ed2aa7455` + 3 uncommitted files (`.golangci.yml`, `decider/doc.go`, `decider/ref_forms_test.go` — T10 verification incomplete, test never run). Gate green on `a51903531`; T09+T10 not yet gate-verified. Plan progress: T01–T09 done, T10 ~90%. No push performed.*
+_State at pause: HEAD `ed2aa7455` + 3 uncommitted files (`.golangci.yml`, `decider/doc.go`, `decider/ref_forms_test.go` — T10 verification incomplete, test never run). Gate green on `a51903531`; T09+T10 not yet gate-verified. Plan progress: T01–T09 done, T10 ~90%. No push performed._
 
 ---

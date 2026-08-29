@@ -18,18 +18,18 @@ Engines without a meaningful knob must reject an EXPLICIT tier request loudly
 
 ### Mapping table (verified against engine code, 2026-08-29)
 
-| Engine  | strict                                | normal                                  | relaxed                                        |
-| ------- | ------------------------------------- | --------------------------------------- | ---------------------------------------------- |
-| SQLite  | `PRAGMA synchronous=FULL`             | `PRAGMA synchronous=NORMAL`             | `PRAGMA synchronous=OFF`                       |
-| Turso   | (inherits SQLite mapping over libSQL) | (inherits SQLite)                       | (inherits SQLite)                              |
-| Postgres| `synchronous_commit=on` (via DSN)     | `synchronous_commit=off` (via DSN)      | `synchronous_commit=off` (via DSN)             |
-| Pebble  | engine defaults (`pebble.Sync`)       | `WithAsyncWrites()` (WAL, no fsync)     | `WithAsyncWrites()` + `WithDisableWAL()`       |
-| bbolt   | engine defaults (`db.Update` fsync)   | engine defaults (same as strict)        | `WithNoSync()` (`NoSync` + `NoFreelistSync`)   |
-| Badger  | engine defaults (sync writes)         | `WithAsyncWrites()`                     | `WithAsyncWrites()` (same as normal)           |
-| MySQL   | rejected (`RejectDurabilityTier`)     | rejected                                | rejected                                       |
-| DuckDB  | rejected                              | rejected                                | rejected                                       |
-| Dgraph  | rejected                              | rejected                                | rejected                                       |
-| Memory  | rejected                              | rejected                                | rejected                                       |
+| Engine   | strict                                | normal                              | relaxed                                      |
+| -------- | ------------------------------------- | ----------------------------------- | -------------------------------------------- |
+| SQLite   | `PRAGMA synchronous=FULL`             | `PRAGMA synchronous=NORMAL`         | `PRAGMA synchronous=OFF`                     |
+| Turso    | (inherits SQLite mapping over libSQL) | (inherits SQLite)                   | (inherits SQLite)                            |
+| Postgres | `synchronous_commit=on` (via DSN)     | `synchronous_commit=off` (via DSN)  | `synchronous_commit=off` (via DSN)           |
+| Pebble   | engine defaults (`pebble.Sync`)       | `WithAsyncWrites()` (WAL, no fsync) | `WithAsyncWrites()` + `WithDisableWAL()`     |
+| bbolt    | engine defaults (`db.Update` fsync)   | engine defaults (same as strict)    | `WithNoSync()` (`NoSync` + `NoFreelistSync`) |
+| Badger   | engine defaults (sync writes)         | `WithAsyncWrites()`                 | `WithAsyncWrites()` (same as normal)         |
+| MySQL    | rejected (`RejectDurabilityTier`)     | rejected                            | rejected                                     |
+| DuckDB   | rejected                              | rejected                            | rejected                                     |
+| Dgraph   | rejected                              | rejected                            | rejected                                     |
+| Memory   | rejected                              | rejected                            | rejected                                     |
 
 Notes per engine:
 
@@ -49,9 +49,10 @@ Notes per engine:
 
 An engine must FAIL construction when the operator names a durability tier AND
 also sets the engine's native knob themselves (operator `PRAGMA synchronous`
-+ tier, or an existing `synchronous_commit` in the DSN + tier). Two sources of
-truth for one durability knob is a configuration error, not a
-last-writer-wins race.
+
+- tier, or an existing `synchronous_commit` in the DSN + tier). Two sources of
+  truth for one durability knob is a configuration error, not a
+  last-writer-wins race.
 
 ### Defaults
 

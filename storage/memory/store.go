@@ -61,7 +61,12 @@ func (s *MemoryStore) Save(
 		err := event.CheckVersionConflict(s.StreamLenLocked(key), expectedVersion)
 		if err != nil {
 			// Preserve the Conflict family from CheckVersionConflict.
-			return errorfamily.Wrap(err, errorfamily.Classify(err), "memory.save_failed", "memory store save")
+			return errorfamily.Wrap(
+				err,
+				errorfamily.Classify(err),
+				"memory.save_failed",
+				"memory store save",
+			)
 		}
 
 		s.AppendLocked(key, events)

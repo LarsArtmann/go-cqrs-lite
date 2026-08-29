@@ -74,10 +74,10 @@
 
 ## g) Questions (max 3)
 
-1. **T09 memo placement (g1, still open from last session):** my reading of your "Table view comparison" answer is *add a comparison table (capability-interface now vs v5 interface growth) to the T09 decision memo*. Proceed with the capability interfaces now and put the table in the plan's Appendix C? (The interface-grows-at-v5 half is already recorded as decided in TODO_LIST.)
+1. **T09 memo placement (g1, still open from last session):** my reading of your "Table view comparison" answer is _add a comparison table (capability-interface now vs v5 interface growth) to the T09 decision memo_. Proceed with the capability interfaces now and put the table in the plan's Appendix C? (The interface-grows-at-v5 half is already recorded as decided in TODO_LIST.)
 2. **T10 ref type:** the plan says `Decider.ExecuteRef/LoadRef(ctx, ref, …)` but never names `ref`. Both shapes are entrenched: `record.StreamRef` (validated string — the Record-interchange convention this whole tier just built) vs `id.StreamRef` (struct — the storage-layer convention: pebble/snapshot/commandlifecycle/system take it as parameter type). Which one becomes the decider hot-path identity?
 3. **T08 Encoding type veto check:** I shipped `Record.Encoding string` (codec layer's self-describing form, matches the ADR-0044 envelope) instead of the review's sketched `uint8`. Rationale: no numeric mapping exists anywhere in the ecosystem; a parallel one would drift. Confirm or veto — veto means a mechanical type swap before any tag is cut.
 
 ---
 
-*State at pause: tree clean, HEAD `e361f4091`, foundation tier (T04–T08) fully shipped and committed, final tier gate re-run pending (f1). No push performed. Plan progress: 10 of 25 tasks complete (T01–T08, T13–T15), T09 researched.*
+_State at pause: tree clean, HEAD `e361f4091`, foundation tier (T04–T08) fully shipped and committed, final tier gate re-run pending (f1). No push performed. Plan progress: 10 of 25 tasks complete (T01–T08, T13–T15), T09 researched._

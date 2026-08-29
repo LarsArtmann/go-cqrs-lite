@@ -201,7 +201,11 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 
 // decodeDueTimer reconstructs one Timer from its stored row. A decode failure
 // is Corruption in the stored data, not a reason to drop the whole batch.
-func decodeDueTimer[P any](rawID string, payload []byte, fireAt time.Time) (scheduling.Timer[P], error) {
+func decodeDueTimer[P any](
+	rawID string,
+	payload []byte,
+	fireAt time.Time,
+) (scheduling.Timer[P], error) {
 	envelope, err := decodeTimerPayload[P](rawID, payload)
 	if err != nil {
 		return scheduling.Timer[P]{}, err

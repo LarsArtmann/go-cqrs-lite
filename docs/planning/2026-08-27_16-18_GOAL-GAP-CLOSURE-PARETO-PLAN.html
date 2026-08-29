@@ -825,7 +825,7 @@
       }
     </style>
   </head>
-<body>
+  <body>
     <div class="top-bar">
       <span>GOAL-GAP PARETO PLAN</span>
       <span>2026-08-27 16:18 CEST</span>
@@ -858,289 +858,2045 @@
           <div class="hero-badge">Pareto Execution Plan</div>
           <h1>Closing the Distance to the End Goal</h1>
           <p class="hero-subtitle">
-            From “two stacks and hand-written folds” to “developer declares, operator deploys,
-            system derives” — ranked by goal-distance closed per hour of work.
+            From “two stacks and hand-written folds” to “developer declares,
+            operator deploys, system derives” — ranked by goal-distance closed
+            per hour of work.
           </p>
         </div>
 
         <h2 id="summary"><span class="num">00</span>Summary</h2>
         <div class="stat-grid">
-          <div class="stat-card"><div class="stat-value">27</div><div class="stat-label">Medium tasks (30–100 min)</div></div>
-          <div class="stat-card"><div class="stat-value">141</div><div class="stat-label">Fine tasks (≤12 min)</div></div>
-          <div class="stat-card stat-bad"><div class="stat-value">51%</div><div class="stat-label">Goal from the 1% tier (v5 cut)</div></div>
-          <div class="stat-card stat-warn"><div class="stat-value">5</div><div class="stat-label">User-blocked items (tags/billing)</div></div>
-          <div class="stat-card stat-good"><div class="stat-value">0</div><div class="stat-label">New architecture invented</div></div>
+          <div class="stat-card">
+            <div class="stat-value">27</div>
+            <div class="stat-label">Medium tasks (30–100 min)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">141</div>
+            <div class="stat-label">Fine tasks (≤12 min)</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">51%</div>
+            <div class="stat-label">Goal from the 1% tier (v5 cut)</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">5</div>
+            <div class="stat-label">User-blocked items (tags/billing)</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">New architecture invented</div>
+          </div>
         </div>
         <div class="callout callout-solution">
-          <strong>The one-sentence verdict:</strong> the furthest gap is the developer-side promise
-          (“declare ONLY Commands + Events + Queries”), but the <em>most leveraged</em> move is
-          executing v5 Phase 8 — the deletion wave that removes the split brain. All decisions are
-          already made (ADRs 0114/0123/0126/0127); only execution remains.
+          <strong>The one-sentence verdict:</strong> the furthest gap is the
+          developer-side promise (“declare ONLY Commands + Events + Queries”),
+          but the <em>most leveraged</em> move is executing v5 Phase 8 — the
+          deletion wave that removes the split brain. All decisions are already
+          made (ADRs 0114/0123/0126/0127); only execution remains.
         </div>
 
         <h2 id="goal"><span class="num">01</span>The Goal</h2>
         <div class="card card-solution">
-          The developer declares ONLY Commands + Events + Queries and their relationships. The
-          operator decides infrastructure at DEPLOYMENT time via <code>DeploymentConfig</code>.
-          <code>system.System</code> (single composition root) + <code>metaengine</code> (cost-based
-          ES-native planner) derive everything else: projections, layouts, routing, indexes. Every
-          engine serves every query — the planner warns, never blocks. App code never imports a
-          storage backend. One composition root, one read-model API, zero storage-layer thinking.
+          The developer declares ONLY Commands + Events + Queries and their
+          relationships. The operator decides infrastructure at DEPLOYMENT time
+          via <code>DeploymentConfig</code>. <code>system.System</code> (single
+          composition root) + <code>metaengine</code> (cost-based ES-native
+          planner) derive everything else: projections, layouts, routing,
+          indexes. Every engine serves every query — the planner warns, never
+          blocks. App code never imports a storage backend. One composition
+          root, one read-model API, zero storage-layer thinking.
         </div>
 
-        <h2 id="distance"><span class="num">02</span>Verified Distance (2026-08-27)</h2>
-        <div class="table-wrap"><table>
-          <thead><tr><th>#</th><th>Gap</th><th>Verified status</th><th>Distance</th></tr></thead>
-          <tbody>
-            <tr><td>D1</td><td>Split brain still shipped (stack/, v1 tiers, transport/*)</td><td>Deprecation markers shipped 2026-08-17; Phase 8 deletions NOT executed</td><td><span class="badge badge-critical">FAR — pure execution</span></td></tr>
-            <tr><td>D2</td><td>Release hygiene (wave-4 tags, replaces, pins, CI billing)</td><td>system/v4.5.0 landed 08-18; wave-4 outstanding; billing [user]</td><td><span class="badge badge-high">MEDIUM</span></td></tr>
-            <tr><td>D3</td><td>Declare-only DX (Layers 2–3, command sourcing, ceremony)</td><td>Layer 1 only; metaengine-gen, auto-route, WithCommandLifecycle unbuilt</td><td><span class="badge badge-critical">FARTHEST conceptually</span></td></tr>
-            <tr><td>D4</td><td>Ops/engine completeness (buses, Dgraph, query tree, native ADTs)</td><td>Engines healthiest layer; 6 named gaps open</td><td><span class="badge badge-medium">MEDIUM</span></td></tr>
-            <tr><td>D5</td><td>Trust &amp; evidence (migration guide, flagship, docs, PG isolation)</td><td>Guide unwritten (L); no flagship on system/ yet</td><td><span class="badge badge-medium">MEDIUM</span></td></tr>
-          </tbody>
-        </table></div>
-        <p style="color:var(--text-muted);font-size:13px">Corrections vs the morning analysis: the system/ honesty cluster (Count-by-name, named buses, role wiring, config honesty, durability) was fixed 2026-08-18 with system/v4.5.0 shipped; bbolt E3 + turso E9 + system E10 were fixed by the concurrent deep-review session today.</p>
+        <h2 id="distance">
+          <span class="num">02</span>Verified Distance (2026-08-27)
+        </h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Gap</th>
+                <th>Verified status</th>
+                <th>Distance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>D1</td>
+                <td>
+                  Split brain still shipped (stack/, v1 tiers, transport/*)
+                </td>
+                <td>
+                  Deprecation markers shipped 2026-08-17; Phase 8 deletions NOT
+                  executed
+                </td>
+                <td>
+                  <span class="badge badge-critical">FAR — pure execution</span>
+                </td>
+              </tr>
+              <tr>
+                <td>D2</td>
+                <td>
+                  Release hygiene (wave-4 tags, replaces, pins, CI billing)
+                </td>
+                <td>
+                  system/v4.5.0 landed 08-18; wave-4 outstanding; billing [user]
+                </td>
+                <td><span class="badge badge-high">MEDIUM</span></td>
+              </tr>
+              <tr>
+                <td>D3</td>
+                <td>
+                  Declare-only DX (Layers 2–3, command sourcing, ceremony)
+                </td>
+                <td>
+                  Layer 1 only; metaengine-gen, auto-route, WithCommandLifecycle
+                  unbuilt
+                </td>
+                <td>
+                  <span class="badge badge-critical"
+                    >FARTHEST conceptually</span
+                  >
+                </td>
+              </tr>
+              <tr>
+                <td>D4</td>
+                <td>
+                  Ops/engine completeness (buses, Dgraph, query tree, native
+                  ADTs)
+                </td>
+                <td>Engines healthiest layer; 6 named gaps open</td>
+                <td><span class="badge badge-medium">MEDIUM</span></td>
+              </tr>
+              <tr>
+                <td>D5</td>
+                <td>
+                  Trust &amp; evidence (migration guide, flagship, docs, PG
+                  isolation)
+                </td>
+                <td>Guide unwritten (L); no flagship on system/ yet</td>
+                <td><span class="badge badge-medium">MEDIUM</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px">
+          Corrections vs the morning analysis: the system/ honesty cluster
+          (Count-by-name, named buses, role wiring, config honesty, durability)
+          was fixed 2026-08-18 with system/v4.5.0 shipped; bbolt E3 + turso E9 +
+          system E10 were fixed by the concurrent deep-review session today.
+        </p>
 
         <h2 id="pareto"><span class="num">03</span>Pareto Tiers</h2>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Tier</th><th>Effort</th><th>Goal closed</th><th>What</th></tr></thead>
-          <tbody>
-            <tr><td><span class="badge badge-critical">1% → 51%</span></td><td>~3 focused days (12 deletion tasks)</td><td><strong>51%</strong></td><td>Execute v5 Phase 8: delete the v1 world, write migration guide, cut v5.0.0</td></tr>
-            <tr><td><span class="badge badge-high">4% → 64%</span></td><td>~2 weeks (5 tracks)</td><td>+13%</td><td>Declare-only DX: metaengine-gen codegen, planner auto-route, command sourcing, lifecycle one-call, ceremony ↓</td></tr>
-            <tr><td><span class="badge badge-medium">20% → 80%</span></td><td>~3–4 weeks (6 tracks)</td><td>+16%</td><td>Ops completeness + trust: buses, Dgraph, query tree, native ADTs, flagship, calibration CI</td></tr>
-            <tr><td><span class="badge badge-low">other 80% → 100%</span></td><td>long tail</td><td>+20%</td><td>Release polish, lint-config audit, iroh edges, blocked[user/hw/root] items</td></tr>
-          </tbody>
-        </table></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tier</th>
+                <th>Effort</th>
+                <th>Goal closed</th>
+                <th>What</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-critical">1% → 51%</span></td>
+                <td>~3 focused days (12 deletion tasks)</td>
+                <td><strong>51%</strong></td>
+                <td>
+                  Execute v5 Phase 8: delete the v1 world, write migration
+                  guide, cut v5.0.0
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">4% → 64%</span></td>
+                <td>~2 weeks (5 tracks)</td>
+                <td>+13%</td>
+                <td>
+                  Declare-only DX: metaengine-gen codegen, planner auto-route,
+                  command sourcing, lifecycle one-call, ceremony ↓
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">20% → 80%</span></td>
+                <td>~3–4 weeks (6 tracks)</td>
+                <td>+16%</td>
+                <td>
+                  Ops completeness + trust: buses, Dgraph, query tree, native
+                  ADTs, flagship, calibration CI
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-low">other 80% → 100%</span></td>
+                <td>long tail</td>
+                <td>+20%</td>
+                <td>
+                  Release polish, lint-config audit, iroh edges,
+                  blocked[user/hw/root] items
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-        <h2 id="medium"><span class="num">04</span>Medium Plan — 27 tasks (30–100 min)</h2>
-        <div class="table-wrap"><table>
-          <thead><tr><th>ID</th><th>Task</th><th>Phase</th><th>Tier</th><th>Min</th><th>Value</th></tr></thead>
-          <tbody>
-            <tr><td>T01</td><td>Verify release-chain state (wave-4 tags, stranded commits, standalone builds)</td><td>0</td><td><span class="badge badge-high">prep</span></td><td>60</td><td>unblocks T03</td></tr>
-            <tr><td>T02</td><td>Repo-wide stale-pin sweep (~50 go.mod) + GOWORK=off verify</td><td>0</td><td><span class="badge badge-high">prep</span></td><td>100</td><td>kills pin-rot class</td></tr>
-            <tr><td>T03</td><td><strong>[USER]</strong> Cut wave-4 tags + transport final v4.x + replace-drop sweep</td><td>0</td><td><span class="badge badge-critical">1%</span></td><td>100</td><td>ecosystem unblocked</td></tr>
-            <tr><td>T04</td><td>PG integration isolation (per-test DB under explicit DSN)</td><td>0</td><td><span class="badge badge-low">tail</span></td><td>30</td><td>test honesty</td></tr>
-            <tr><td>T05</td><td>listing: type-driven status (replace DetectTombstone)</td><td>1</td><td><span class="badge badge-critical">1%</span></td><td>100</td><td>ADR-0114 prereq</td></tr>
-            <tr><td>T06</td><td>taskmanager off OnTombstone/OnRebirth + golden regen</td><td>1</td><td><span class="badge badge-critical">1%</span></td><td>60</td><td>flagship leads migration</td></tr>
-            <tr><td>T07</td><td>Delete tombstone metadata API (event.* + triggers)</td><td>1</td><td><span class="badge badge-critical">1%</span></td><td>60</td><td>ADR-0114 done</td></tr>
-            <tr><td>T08</td><td>Delete transport/http + transport/grpc (workspace/flake/golden)</td><td>1</td><td><span class="badge badge-critical">1%</span></td><td>60</td><td>ADR-0127 done</td></tr>
-            <tr><td>T09</td><td>Delete stack.Materialize + RunProjections + graph.GraphProjection</td><td>1</td><td><span class="badge badge-critical">1%</span></td><td>60</td><td>one runner</td></tr>
-            <tr><td>T10</td><td>Delete storage/view + storage/relational</td><td>1</td><td><span class="badge badge-critical">1%</span></td><td>100</td><td>one read API</td></tr>
-            <tr><td>T11</td><td>Delete stack/ entirely (Bundle + 8 presets + bench refs)</td><td>1</td><td><span class="badge badge-critical">1%</span></td><td>100</td><td><strong>one composition root</strong></td></tr>
-            <tr><td>T12</td><td>v5 surface sweep: compat shells, BuildWhereClause, StreamKey rename, breaking NewStreamRef, dead config fields</td><td>1</td><td><span class="badge badge-critical">1%</span></td><td>100</td><td>honest surface</td></tr>
-            <tr><td>T13</td><td>Extended-review v5 items (E1, E7, E8, E11, E13, E15)</td><td>1</td><td><span class="badge badge-critical">1%</span></td><td>100</td><td>model debt cleared</td></tr>
-            <tr><td>T14</td><td>Snapshot honest wire tags + SQL migrations + integration-pg</td><td>1</td><td><span class="badge badge-critical">1%</span></td><td>100</td><td>naming consistency</td></tr>
-            <tr><td>T15</td><td>Write v5 migration guide (before/after per tier)</td><td>1</td><td><span class="badge badge-critical">1%</span></td><td>100</td><td>consumer trust</td></tr>
-            <tr><td>T16</td><td><strong>[USER]</strong> Cut v5.0.0 (golden, CHANGELOG, README/SKILL, full verify)</td><td>1</td><td><span class="badge badge-critical">1%</span></td><td>100</td><td><strong>GOAL MILESTONE</strong></td></tr>
-            <tr><td>T17</td><td>metaengine-gen Layer 2 codegen (AST → typed Store methods + folds)</td><td>2</td><td><span class="badge badge-high">4%</span></td><td>100</td><td>no hand folds (80% case)</td></tr>
-            <tr><td>T18</td><td>Planner auto-route Layer 3 (declared query → inferred projection, default)</td><td>2</td><td><span class="badge badge-high">4%</span></td><td>100</td><td>zero storage thinking</td></tr>
-            <tr><td>T19</td><td>Command sourcing (CommandAwareFold + journal replay)</td><td>2</td><td><span class="badge badge-high">4%</span></td><td>100</td><td>audit + what-if replay</td></tr>
-            <tr><td>T20</td><td>system.WithCommandLifecycle one-call + retry integration</td><td>2</td><td><span class="badge badge-high">4%</span></td><td>60</td><td>ADR-0117 completed</td></tr>
-            <tr><td>T21</td><td>DomainConfig ceremony reduction (~50 → ~15 line quickstart)</td><td>2</td><td><span class="badge badge-high">4%</span></td><td>100</td><td>flagship DX</td></tr>
-            <tr><td>T22</td><td>NATS + Redis bus driver registration + integration tests</td><td>3</td><td><span class="badge badge-medium">20%</span></td><td>100</td><td>multi-process real</td></tr>
-            <tr><td>T23</td><td>Dgraph parity (SnapshotBackend + StreamLogBackend)</td><td>3</td><td><span class="badge badge-medium">20%</span></td><td>100</td><td>graph first-class</td></tr>
-            <tr><td>T24</td><td>Structured query expression tree (Or/And/Gt)</td><td>3</td><td><span class="badge badge-medium">20%</span></td><td>100</td><td>typed filters</td></tr>
-            <tr><td>T25</td><td>Native search/vector/spatial (pg tsvector, PostGIS, DuckDB VSS)</td><td>3</td><td><span class="badge badge-medium">20%</span></td><td>100</td><td>no Memory-only asterisks</td></tr>
-            <tr><td>T26</td><td>Flagship: taskmanager on system/ + SKILL/README refresh</td><td>4</td><td><span class="badge badge-medium">20%</span></td><td>100</td><td>proof the promise holds</td></tr>
-            <tr><td>T27</td><td>Calibration regression CI + Turso CTE-probe test</td><td>4</td><td><span class="badge badge-low">20%</span></td><td>60</td><td>cost model honest</td></tr>
-          </tbody>
-        </table></div>
+        <h2 id="medium">
+          <span class="num">04</span>Medium Plan — 27 tasks (30–100 min)
+        </h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Task</th>
+                <th>Phase</th>
+                <th>Tier</th>
+                <th>Min</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>T01</td>
+                <td>
+                  Verify release-chain state (wave-4 tags, stranded commits,
+                  standalone builds)
+                </td>
+                <td>0</td>
+                <td><span class="badge badge-high">prep</span></td>
+                <td>60</td>
+                <td>unblocks T03</td>
+              </tr>
+              <tr>
+                <td>T02</td>
+                <td>
+                  Repo-wide stale-pin sweep (~50 go.mod) + GOWORK=off verify
+                </td>
+                <td>0</td>
+                <td><span class="badge badge-high">prep</span></td>
+                <td>100</td>
+                <td>kills pin-rot class</td>
+              </tr>
+              <tr>
+                <td>T03</td>
+                <td>
+                  <strong>[USER]</strong> Cut wave-4 tags + transport final v4.x
+                  + replace-drop sweep
+                </td>
+                <td>0</td>
+                <td><span class="badge badge-critical">1%</span></td>
+                <td>100</td>
+                <td>ecosystem unblocked</td>
+              </tr>
+              <tr>
+                <td>T04</td>
+                <td>
+                  PG integration isolation (per-test DB under explicit DSN)
+                </td>
+                <td>0</td>
+                <td><span class="badge badge-low">tail</span></td>
+                <td>30</td>
+                <td>test honesty</td>
+              </tr>
+              <tr>
+                <td>T05</td>
+                <td>listing: type-driven status (replace DetectTombstone)</td>
+                <td>1</td>
+                <td><span class="badge badge-critical">1%</span></td>
+                <td>100</td>
+                <td>ADR-0114 prereq</td>
+              </tr>
+              <tr>
+                <td>T06</td>
+                <td>taskmanager off OnTombstone/OnRebirth + golden regen</td>
+                <td>1</td>
+                <td><span class="badge badge-critical">1%</span></td>
+                <td>60</td>
+                <td>flagship leads migration</td>
+              </tr>
+              <tr>
+                <td>T07</td>
+                <td>Delete tombstone metadata API (event.* + triggers)</td>
+                <td>1</td>
+                <td><span class="badge badge-critical">1%</span></td>
+                <td>60</td>
+                <td>ADR-0114 done</td>
+              </tr>
+              <tr>
+                <td>T08</td>
+                <td>
+                  Delete transport/http + transport/grpc
+                  (workspace/flake/golden)
+                </td>
+                <td>1</td>
+                <td><span class="badge badge-critical">1%</span></td>
+                <td>60</td>
+                <td>ADR-0127 done</td>
+              </tr>
+              <tr>
+                <td>T09</td>
+                <td>
+                  Delete stack.Materialize + RunProjections +
+                  graph.GraphProjection
+                </td>
+                <td>1</td>
+                <td><span class="badge badge-critical">1%</span></td>
+                <td>60</td>
+                <td>one runner</td>
+              </tr>
+              <tr>
+                <td>T10</td>
+                <td>Delete storage/view + storage/relational</td>
+                <td>1</td>
+                <td><span class="badge badge-critical">1%</span></td>
+                <td>100</td>
+                <td>one read API</td>
+              </tr>
+              <tr>
+                <td>T11</td>
+                <td>
+                  Delete stack/ entirely (Bundle + 8 presets + bench refs)
+                </td>
+                <td>1</td>
+                <td><span class="badge badge-critical">1%</span></td>
+                <td>100</td>
+                <td><strong>one composition root</strong></td>
+              </tr>
+              <tr>
+                <td>T12</td>
+                <td>
+                  v5 surface sweep: compat shells, BuildWhereClause, StreamKey
+                  rename, breaking NewStreamRef, dead config fields
+                </td>
+                <td>1</td>
+                <td><span class="badge badge-critical">1%</span></td>
+                <td>100</td>
+                <td>honest surface</td>
+              </tr>
+              <tr>
+                <td>T13</td>
+                <td>Extended-review v5 items (E1, E7, E8, E11, E13, E15)</td>
+                <td>1</td>
+                <td><span class="badge badge-critical">1%</span></td>
+                <td>100</td>
+                <td>model debt cleared</td>
+              </tr>
+              <tr>
+                <td>T14</td>
+                <td>
+                  Snapshot honest wire tags + SQL migrations + integration-pg
+                </td>
+                <td>1</td>
+                <td><span class="badge badge-critical">1%</span></td>
+                <td>100</td>
+                <td>naming consistency</td>
+              </tr>
+              <tr>
+                <td>T15</td>
+                <td>Write v5 migration guide (before/after per tier)</td>
+                <td>1</td>
+                <td><span class="badge badge-critical">1%</span></td>
+                <td>100</td>
+                <td>consumer trust</td>
+              </tr>
+              <tr>
+                <td>T16</td>
+                <td>
+                  <strong>[USER]</strong> Cut v5.0.0 (golden, CHANGELOG,
+                  README/SKILL, full verify)
+                </td>
+                <td>1</td>
+                <td><span class="badge badge-critical">1%</span></td>
+                <td>100</td>
+                <td><strong>GOAL MILESTONE</strong></td>
+              </tr>
+              <tr>
+                <td>T17</td>
+                <td>
+                  metaengine-gen Layer 2 codegen (AST → typed Store methods +
+                  folds)
+                </td>
+                <td>2</td>
+                <td><span class="badge badge-high">4%</span></td>
+                <td>100</td>
+                <td>no hand folds (80% case)</td>
+              </tr>
+              <tr>
+                <td>T18</td>
+                <td>
+                  Planner auto-route Layer 3 (declared query → inferred
+                  projection, default)
+                </td>
+                <td>2</td>
+                <td><span class="badge badge-high">4%</span></td>
+                <td>100</td>
+                <td>zero storage thinking</td>
+              </tr>
+              <tr>
+                <td>T19</td>
+                <td>Command sourcing (CommandAwareFold + journal replay)</td>
+                <td>2</td>
+                <td><span class="badge badge-high">4%</span></td>
+                <td>100</td>
+                <td>audit + what-if replay</td>
+              </tr>
+              <tr>
+                <td>T20</td>
+                <td>
+                  system.WithCommandLifecycle one-call + retry integration
+                </td>
+                <td>2</td>
+                <td><span class="badge badge-high">4%</span></td>
+                <td>60</td>
+                <td>ADR-0117 completed</td>
+              </tr>
+              <tr>
+                <td>T21</td>
+                <td>
+                  DomainConfig ceremony reduction (~50 → ~15 line quickstart)
+                </td>
+                <td>2</td>
+                <td><span class="badge badge-high">4%</span></td>
+                <td>100</td>
+                <td>flagship DX</td>
+              </tr>
+              <tr>
+                <td>T22</td>
+                <td>
+                  NATS + Redis bus driver registration + integration tests
+                </td>
+                <td>3</td>
+                <td><span class="badge badge-medium">20%</span></td>
+                <td>100</td>
+                <td>multi-process real</td>
+              </tr>
+              <tr>
+                <td>T23</td>
+                <td>Dgraph parity (SnapshotBackend + StreamLogBackend)</td>
+                <td>3</td>
+                <td><span class="badge badge-medium">20%</span></td>
+                <td>100</td>
+                <td>graph first-class</td>
+              </tr>
+              <tr>
+                <td>T24</td>
+                <td>Structured query expression tree (Or/And/Gt)</td>
+                <td>3</td>
+                <td><span class="badge badge-medium">20%</span></td>
+                <td>100</td>
+                <td>typed filters</td>
+              </tr>
+              <tr>
+                <td>T25</td>
+                <td>
+                  Native search/vector/spatial (pg tsvector, PostGIS, DuckDB
+                  VSS)
+                </td>
+                <td>3</td>
+                <td><span class="badge badge-medium">20%</span></td>
+                <td>100</td>
+                <td>no Memory-only asterisks</td>
+              </tr>
+              <tr>
+                <td>T26</td>
+                <td>Flagship: taskmanager on system/ + SKILL/README refresh</td>
+                <td>4</td>
+                <td><span class="badge badge-medium">20%</span></td>
+                <td>100</td>
+                <td>proof the promise holds</td>
+              </tr>
+              <tr>
+                <td>T27</td>
+                <td>Calibration regression CI + Turso CTE-probe test</td>
+                <td>4</td>
+                <td><span class="badge badge-low">20%</span></td>
+                <td>60</td>
+                <td>cost model honest</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-        <h2 id="fine"><span class="num">05</span>Fine Plan — 141 tasks (≤12 min each)</h2>
-        <p style="color:var(--text-muted);font-size:13px">Full decomposition lives in the canonical
-        <code>docs/planning/2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md</code> §4
-        (F01.1–F27.4 = 122 tasks + FL.1–FL.12 long tail). Phase distribution:</p>
+        <h2 id="fine">
+          <span class="num">05</span>Fine Plan — 141 tasks (≤12 min each)
+        </h2>
+        <p style="color: var(--text-muted); font-size: 13px">
+          Full decomposition lives in the canonical
+          <code
+            >docs/planning/2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md</code
+          >
+          §4 (F01.1–F27.4 = 122 tasks + FL.1–FL.12 long tail). Phase
+          distribution:
+        </p>
         <div class="stat-grid">
-          <div class="stat-card"><div class="stat-value">17</div><div class="stat-label">Phase 0 — Unblock (F01–F04)</div></div>
-          <div class="stat-card stat-bad"><div class="stat-value">45</div><div class="stat-label">Phase 1 — v5 deletion wave (F05–F16)</div></div>
-          <div class="stat-card"><div class="stat-value">25</div><div class="stat-label">Phase 2 — Declare-only DX (F17–F21)</div></div>
-          <div class="stat-card"><div class="stat-value">15</div><div class="stat-label">Phase 3 — Ops (F22–F24)</div></div>
-          <div class="stat-card stat-good"><div class="stat-value">19</div><div class="stat-label">Phase 4 — Trust (F25–F27) + tail (FL)</div></div>
+          <div class="stat-card">
+            <div class="stat-value">17</div>
+            <div class="stat-label">Phase 0 — Unblock (F01–F04)</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">45</div>
+            <div class="stat-label">Phase 1 — v5 deletion wave (F05–F16)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">25</div>
+            <div class="stat-label">Phase 2 — Declare-only DX (F17–F21)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">15</div>
+            <div class="stat-label">Phase 3 — Ops (F22–F24)</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">19</div>
+            <div class="stat-label">Phase 4 — Trust (F25–F27) + tail (FL)</div>
+          </div>
         </div>
 
         <h2 id="graph"><span class="num">06</span>Execution Graph</h2>
-        <div class="graph-frame" style="border:1px solid var(--border);padding:8px;overflow-x:auto">
-<?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.8.1-HEAD" preserveAspectRatio="xMinYMin meet" viewBox="0 0 8468 1404"><svg class="d2-3056350319 d2-svg" width="8468" height="1404" viewBox="-101 -142 8468 1404"><rect x="-101.000000" y="-142.000000" width="8468.000000" height="1404.000000" rx="0.000000" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
-.d2-3056350319 .text {
-	font-family: "d2-3056350319-font-regular";
-}
-@font-face {
-	font-family: d2-3056350319-font-regular;
-	src: url("data:application/font-woff;base64,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");
-}
-.d2-3056350319 .text-bold {
-	font-family: "d2-3056350319-font-bold";
-}
-@font-face {
-	font-family: d2-3056350319-font-bold;
-	src: url("data:application/font-woff;base64,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");
-}
-.d2-3056350319 .text-italic {
-	font-family: "d2-3056350319-font-italic";
-}
-@font-face {
-	font-family: d2-3056350319-font-italic;
-	src: url("data:application/font-woff;base64,d09GRgABAAAAABmwAAoAAAAAJoQAARhRAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAAA9AAAAGAAAABgW1SVeGNtYXAAAAFUAAAA+wAAAWoqxy5NZ2x5ZgAAAlAAABHLAAAZPFNoXhZoZWFkAAAUHAAAADYAAAA2G7Ur2mhoZWEAABRUAAAAJAAAACQLeAj5aG10eAAAFHgAAAEjAAABVJpnB/lsb2NhAAAVnAAAAKwAAACsHkclSm1heHAAABZIAAAAIAAAACAAbQD2bmFtZQAAFmgAAAMmAAAIMgntVzNwb3N0AAAZkAAAACAAAAAg/8YAMgADAeEBkAAFAAACigJY//EASwKKAlgARAFeADIBIwAAAgsFAwMEAwkCBCAAAHcAAAADAAAAAAAAAABBREJPAAEAIP//Au7/BgAAA9gBESAAAZMAAAAAAeYClAAAACAAA3icjNBJUhNhGMfhp02cO0ZjNBqnjnGI2mqcjZpIgBBCgDVVFFRxDRYcgCUcJgsWwAU4AgU7OMVHVVcfgHf9LP7vD5GCCLFitI5UoiiWeO2Nd9774KNPPuvoGRhZsWrNpi2TpNrYDYFctzKdZrqtq29onOmNXO+EEE41xeqeea6irKagFA7DQdgP5+EsTMJR2D5Jj/eyXZe/yLyvps0YGun5r2vON9/98NMvv3X88dc/C8auKCi66prrbrjplttiJXeU3XVPxX1VDzxUM2vgkcfqnnia7X4h0fBS06vs87daeas0r9X2xaK+KUuWuQAAAP//AQAA//8yRTBFAHicfFh5cBvXeX/fWxDLAwQJLg4CwkFggV0SJ4EFsABBAARBghfA+7LES5J1UKItWjZlOZIdx0odWY0V2ONcrhO7sZsm4xwaOZnJ4TiH0lhRrLRpnTanW8e2nNjNxNGwjpMRF53dBUlQneafxQ5233vf93u/3+/73qIq5EQI344fQwSqQQ2oCekQ4ig7QXA8TxsIjmVpkuRZiiKdD8DlBx5XZHe/0frUn702Rd8HPj/030vP4sc2VuD++fe/X9hz9sCBmbffFtzw728jhBAu/Qgh+CkuohqkQYgiOZZhWFqpBOAomqXJ1zou1SpqFQoTJ7wEt+7OjzX9dhnuWV0NH4nFDwljuLixevUqQgSiEcItuIg0yCTecxQX0uu0SiVJ6qVfmuBC0UiYobdv6DNfXlzxZJ3A5fpOD3csLOzuHdxz9PjC7YWBu3BxsM/b461WqDKxgXkvnOjjfaGNt3rzoaQYN6B4aR378BPIhlCVg2Ei4RTmQnoDyTC0Q411Wr2eC0V5g1IJjqHD0fbd9+ZjY81RKsp0LHY7HYOJ1mwL7ZxXZU8OFx67u493t7WwyVtPdibmIy27QjafiI2UU1TChqrIiGa5UHQzg/c99PDUk8emp6dOZw/tj+Lih+65+ysHuiY/tnd+WY5TnKMRF1GdtGekneRImrST9Bk4Ui+85v6j+g8cMGpczPy0+93ucl4J/ARySHn9P2nxNM8RSiV4T9zbvucDY4kxI0/xral9vU46n3bGKdfZ+h/HnQuqR04OP3Z3biu5joVoc+NXu4TXra6t2JY3Y+MIO8URNGUn6DPDMWiNFc4Mp4WfpXBReBt0G6sQEy7LY9A6LiJCHkOfGT4jkmBrvhlcRCr5GQccSdEESdJnhjMEDMy++9Gx+x7y4aLwPPTcEFZg34O/2hwHj+IiqirHIQ44Adp6XNy42F2e93lcREbpOWXgeCnSaJSnSYImRL6SBH1mPq5X5C7NnxnK15hUipHvepN6hVJdPYiLwqfPnoV9G6tw3HvE86jwDMw96l32CufLcx/ExfIOUwYuGpVm35p1+GNuhVJd2zt0pvCYR6FsqM3hojD3UPA2DuY2VuHph7kjIeFJiS+dpXW8gJ9Ajailcvf0Oq0as6EUFjkj7yLYbl/zT6/lBg+E/dN3ZSMzKcfgsHgdUH389FBxrbfn1MTQI2u92c59a/G9a4l9ax1LJ7Y46ZP2TFvJSZqgtmX19bnjgx+YXA5nFg8cyfcfwMXB6dFDQeE96BsdiXOoHOuCFGsD8iLk2hGcwcGwzI7gyU01AV0R6p8m7jFOzJTT8Azf1q2ZCjfsqq+yRxL7T3TIUe878R/5UeojR8s59X/4+IDS41EQybpyLiwuonqk385FpMyObL4yd8ftE3dOrBzne/Yv3DrUv4SLuYk9t2uE10AvvAVT47loQNaaqrQOAn4CuRESc+ClqCNhhpXSiUa3lKRUimkaZGd6M7vaGrdM8Z1jPlfenYjMJRJLNs6Y87silqAzHwgnDqo6OjyeUE/MGdL7TQN8aDwUbvVb22ztu5iA3mfu4zv2hBGgeYRwBBcRKWZD83aSJj679kI9/Kj+22u4kM1uPCfHOVJalzinL7NEYpwYkggyJSnbeutRpWJweKimqze2WzeWHzc/oFo+qAsYYVV4yOfIFeaOwqPC0fP3iPONI4QzEo6IIzhKry+zGB5OjOyqqiYUxojpq5PC53FReCxyWzRyLAwrkmQRoEWECC8uIrusPaWSlMdSeq2uPAtNhKO8pIbFmtFaglAoDO36Z/pqQKH1aM8XhOv7SQwKtV3zHC4KHw+vRCIrYVgWPh4+Go0eDcPyxio84hxh2TwrHBPXLP0KIeyQ9UxTBGcoB8xzBEWX6w9JOm+sTMZIVTWhcTScHP/92mQn2VhNUC7N/TAJnV/Se03NQf2zwgvCxa8ZOZOJN35F4jVbWof34DrSiuwybDsox3MELWbBiv65ZafPdeW9gwscm9QoqNTedLWCnm1iRpxeXcjszEZsQdWeqdw9c1yrPSmY+l2BLn/g54zDPTAfSidlHdlK6/AOvox0YpUWWUeTNMWRIooSnyuUL9XCt9ikhtCmzxdYPXZO+qTlI85sxNre5hij/VpO1WpP4ssvLFk8u6fFpbvcA/NcKul2vck4ECBXaR0uwnVk3pHdNqvLVe9nI7d6C3sj3k69j2Is7dPReEdLVO8wFVQH53vunAo4jO0GXc9qtjtn0oS0LrSJHWYrctnG7q+D19FENDKFYhm9YdfN6LEtiy9sxG6GD0u5fBuuIxNyVa4nuYBduVXBCU4qt2KGr08v+4bm2vmMVVUlfL+mJeu2xA1Wy9gnS5hoaqMjC6oje3tXx73+0ZCZU6dHXUYNp7OBq6653hy0TSFAHoTgYfwyMkgaTeNKVyDF4kx4ptJ1mcaG4aTJ3bSrdpfG3lat2afaPwWfi1eNDU7U1/FkbcgzkRJmRcyg5ITrcB3ZkL/SdXheqaR3sk+pJHag92xwmnaae1tTg2ojMxlIjnoG5oJMSkNQ6YPUnXF6zOHRB810hrMGfsVYIgZHvusw452eyt51S0jkI7F4EOwe978wjrbcbHsiIevZhhD8DF8u18ptHpJSwYyExTQJ2/lCe6OibdybilSn8p0KRb+539+LL7+dpAOZmM0pXAGvtrl+yO0XPlcqiXOiv+CLmEEjCCElGu1HCJVKpQ+WWPQn6f8x+f/e7Rh+jy9v9QGU2AewJGk7X1jCf5793trw/KoJXxYsAD8S3vj98VMIkLe0jv6CL6MmEcVIWLZBnbZMgdsyylOFewE0hJKEWr0qrTHioxuPkDVEE+CEQrG1Ln4Lrov+L64pp24oA6DcgUAlGHvTpIKZYDqCVYFZVzKqUKQKSYWiT9fv7RWxyen7Pb1wbcAZ5Fu9XCamsWor8dm+28YfrqPmyhhuhl9csW3cvwN9aYWbwd/SJfwSrqMGZKnUiWwucisqi//lkQXv4EJoZNE7tOD2jXHRkHhRHd7Te+eUX752da/2dPdlV3u6c1L//26Jg3fguqx5siJiNaYlNyOpHf5Vey6tJFxTfkn6IaaTwk22f6j0r6v4uS6bryx82+EnAcoGxvzWZd/Mh5M8WlqziheN5Sat7FQK2O1W7Jr1V3r1uScrjebqk3czgS2r3igA7DRqeV9Ow3XUWLEvBpLZ3I86hSXvM+p2NZqceVsSrs17kzU91emEcBVB6UZpHe6F64i9ua+4ua0Quwq5qXg6OG9sN3Qx7mRbzB/3Dnj9g2Y/xdmZYLQlFW4fV4VbGVurnzaxNlOqzZNxOa2tWpPPZmWaHJ1eX49LjLmztA6zeGXL66O86Fic5FIVXv/1rrAC4n11eWdm1ynVvXHC7FCb6jSNAVXa12Cqh6Z41YMPpoS3mpqs1toqnmwQ546V1uEPcE30CcN2D1JWHFW2+2e31NBv6fP25sUC2Tqp6uY1NgqiwsuUUaQpzAqmQZqTNZhACF6Fa/+3F3mgL+9UKBUKjZP6SEHYgGvCm/QQ7RxwglEwyWNzCOEX4ZrUi1SO3b4jaKLcHxDLdL4RABQNuxrvH9JgsQMxNb6//9eLaulfS8MJuCb8xtHjcPQ4wFpxZ4Jaut/p7KeFdxGUXkYI/lXGgabYil6ENGz3It5f7Bl2V6tJRUNLw9TE5f0j3mpNraLRQS0Afn1Fz+q0bbqV//njcb1fr/ca7hR7nO+VAvAaXEMmhEiJM1JR2IGIGitrW9TGpiZXxtg0kWfETk3javpwXviNMdH/E5KM1yRDNLwp/MFeoOm8AzQbfwwUvBJWpXcRgi/BNVSDEM2D2GwCR9ZWQ/bX9ZCsFr4lqLxwOuUT/iYlvk+ghtI67sFPoDoUREmEKK1hU9WEtP1RfpPL0qldL/omz4l3BpJhlUpWphsj3r9Rx6TZZpOnIzi4J5D3NLUP+6PR6KRfl3G1JU05W76dD7QkU+6lj8T9dG8L223wZ+C/GK/BH6MN9qGNn0/koqMpUyIamwkm/VwhZQnvb/Xc2tF9KuzVpLQRB/u0P2Y2eg7ztgHRL9yldfgxPoc0IjMMDuavHKwuh/pc7oGlSCjnbBtYDLLZsMXrl66q2P7ULX9/uq9jf2r3U6dyyZ47zvZkZ3rvONvTPYNA3Ce4H98nnYV5sXuP8hzBkab6v126o3aKT9z1gKoLXgmpHBvf69rE//v4nDiO5lNE2SDZLfMk7WRt9dL5hQAXack4WO9M+/ise/z0BGhV/rFT+27xezvttnam7ZaeyMLSan+3OOefSuvwQ3wOtd7kMzS/5fIku1nNdLLRfDNzwMoZBoM9M5MHVCN72BBnyVrYifnRmaHBSCK5rMr4Wh3hoTjX3dGWtLqjZgOXHu1OzukUmv5Q8pagiK9oCFfxfahWPFPaad7Og5g77eL4qNz5w1A/LfyuBhYmRydUE0LpnxhlE6nQtmovhOFxYTWV+pYlYzeHm2UdI7Fe4fvEU/B2HlsJUHaSJreY9nxmwRLSZ2Lufm86bPO22EfBU/+7sMZt7F/M3q5K+9rsYXeBS3U2akzg636+WjU1kT+WlOoIV1qHt/E5+QzLaytXUWoNO74KiQVye9FTiRDTSXMh44gTlqOjHt/obV2RXm3Y0RmaSavtk/a+KX7xSu9UYLCVzzgCdYbfxPam9z19d3ewpa0je2qScc4Op46IPEDLCOEqfJ/U66Qwb+ftpBqTJy2Dx8aEK2o4X7v/RNZw8sUvjnaH5p//wW2SFu2ldfgFPodsyIPim4yORvnIVj2Rd9iKxWCpzaR0Wj0hZyiKUKfVv+KfiXl6WLM1PBNqG/DneG2ruXOvxdUZc3tzKauzq7Uty4a6B1TOgVhwMKJRmBMsX3C3ZEJd0zZFfVvM0THhgwPNg6FAOBEJJYRvWGKtLq5NZx6K8eXzTWNpHV7cxJiSTSAaLrcc1KazRTfb3c3o1fjhcKh5lIZEyNXpbAz3asMtqdB0ut4+Yc9N8QsJfkREHb4o46sSsRZs7XYR3nEXPTucXu7i96X3PnN3t8wpQ2kdnUUroj7leiVvZU5vZM36ZpfKrDd5LXqjV9TRq6U5VEQrYq0XFcnTFQO0dYE4ifVW2mIy737G39TpNOmNrNM6sLr5ve4VqAUjIhASiwCt+mX9K5u9NY1exa+AQX5mJ+k6fKHu1WhU7IXRCKjQd+CDmERJFINm6f1MaRRm8C9FfRnKW2xQSh/xDO9rtvOHB31HVmq06gtdT4+v/fCb88YHhf/8tP/gEiPm8HJpFL1VHstGm6RN52XJg+/I0ZqmhpA4xQXTg2D/VODgIkN1fWZ87co3xHWrS4dhHn8fkQgZKLFZ4MjqL3yevOOTq3WfIOZ8NwSfXEP+uXQYGPk9UvI8jgjWHvu71epnv/AJH4F9N56R3/taaQk+g38g5k0CB/1wMSYUniIO3nhcxuVe+Cx8Cv8QqRGiWJ7lDbyB5A2kgWQvtPTONu03eqsPkYeY1jBctMwGW+1HFEfVHttew2yphJKldfwOfgqxaBz5QY1YNAG7EUIkGocLSJ6/HR2CK9gt7j0foSNchNNxOlr3ype+3PnlC4dejF+6FH9R3IN2dAmuwE8wgybREaREk+ij5fEfgpewWqyVfITnIywbqdK1v3T69EvwxIe6R4KK9tHMP3bIa/lAAZfgUfF8CA4/3jJ1K978npzf5WcZrZ7WeIxpm3zvbPQY06AwOUyWFnPALf/6xaMm0pbewSlcJa5dxfL2iJ3lQQcx9pLQBd+5xIKy0f3d9HfdwntV8vrW0huYww3S+8AbNJyGNwAwwnvl13aBkr0E3xG6LrHCX+S+Fl2Fa5vfY217C/vgmtRQAerDQ+givijiRlVI4CRlpQ1aC42HDHqjvVlvbEEgneV+DNdEvpHbp1ipJwwaaI2xVttottceKxxTZ39eWxNXkkEPdm78Ojct1o/SOnTBo6hBjObm80lldT7XkWkO9HjEa5Y1e62NLS7pqprJBOYK/pmMf77gD7lSA05/p3yV+OcrrUMvfmqTf/8Gr4cFswp/YWOyzA/wwxU4JD6nInZdOzwO/ngcIfS/AAAA//8BAAD//3TpU3AAAAEAAAABGFEel/bZXw889QABA+gAAAAA2F2gzAAAAADdZi83/r3+3QgdA8kAAgADAAIAAAAAAAAAAQAAA9j+7wAACED+vf28CB0D6ADC/9EAAAAAAAAAAAAAAFV4nEyOP0ubURyFn/N7l0JbEmjhbTP0Um7+QNPQQpcG4+BgsggxEtzESVAEJxcHNz+Bbn4HJxfHqIsg6JIxw80HMEiQRCTkSoKDw+HA4Tzw2D55bkDTeGsNvBWp2ipeY7ytULU9PBO8/cHrDm+XeNvF2wE1K751Ga8XPmnKhm3T1CNr9sSmBrFn3ynZN5zOKVhKSX0KylG2L8g+4njAMYhH6uF45nficPYZZwklS+Noxmsdp+M40TI1y/JfHRbsmrrOYledeKXTOLI6GQV+KZBTiCOFOFaYbyjwT4EdBX4qkGVIyjD2VcYnwjOkKc+SCrGrPB+Uj/dqxwudcJikLCrw910q1uKrtfgxd4fG3H+LDO1YmX1eAQAA//8BAAD//74BVq0AAAAALgAuAFIAigC8AN4A9gEsAUYBVAFwAYABrgHUAgYCKgJsApQC1ALoAxADLgNoA5YDzgQGBDQEbASmBM4FFgVABUwFWAVyBZQF1gYABi4GaAaiBsAG/AcqB1YHdAeuB9oICggiCIAIsgjKCPQJMAlYCYwJzgnoCj4KggqYCrYKxArSCtwK+gsYCywLQAtQC24LgAuUC6ALtgveC/YMDgwcDDIMUAyADJAMngABAAAAVQCMAAwAZgAHAAEAAAAAAAAAAAAAAAAABAADeJyclNtOG1cUhj8H2216uqhQRG7QvkylZEyjECXhypSgjIpw6nF6kKpKgz0+iPHMyDOYkifodd+ib5GrPkafoup1tX8vgx1FQSAE/Hv2OvxrrX9tYJP/2KBWvwv83ZwbrrHd/NnwHb5oHhneYL/5meE6Dxv/GG4waLw13ORBo2v4E97V/zT8KU/qvxm+y1b90PDnPK5vGv5yw/Gv4a94wrsFrsEz/jBcY4vC8B02+dXwBvewmLU699gx3OBrtg032QZ6TKhImZAxwjFkwogzZiSURCTMmDAkYYAjpE1Kpa8ZsZBj9MGvMREVM2JFHFPhSIlIiSkZW8S38sp5rYxDnWZ216ZiTMyJPE6JyXDkjMjJSDhVnIqKghe0aFHSF9+CipKAkgkpATkzRrTocMgRPcZMKHEcKpJnFpEzpOKcWPmdWfjO9EnIKI3VGRkD8XTil8g75AhHh0K2q5GP1iI8xPGjvD23XLbfEujXrTBbz7tkEzNXP1N1JdXNuSY41q3P2+YH4YoXuFv1Z53J9T0a6H+lyCecaf4DTSoTkwzntmgTSUGRu49jX+eQSB35iZAer+jwhp7Obbp0aXNMj5CX8u3QxfEdHY45kEcovLg7lGKO+QXH94Sy8bET689iYgm/U5i6S3GcqY4phXrumQeqNVGFN5+w36F8TR2lfPraI2/pNL9MexYzMlUUYjhVL5faKK1/A1PEVLX42V7d+22Y2+4tt/iCXDvs1brg5Ce3YHTdVIP3NHOun4CYATknsuiTM6VFxYV4vybmjBTHgbr3SltS0b708XkupJKEqRiEZIozo9Df2HQTGff+mu6dvSUD+Xump5dV3SaLU6+uZvRG3VveRdblZGUCLZtqvqKmvrhmpv1EO7XKP5Jvqdct5xGh4i52+0OvwA7P2WWPsbL0dTO/vPOvhLfYUwdOSWQ1lKZ9DY8J2CXgKbvs8pyn7/VyycYZH7fGZzV/mwP26bB3bTUL2w77vFyL9vHMf4ntjupxPLo8Pbv1NB/cQLXfaN+u3s2uJuenMbdoV9txTMzUc3FbqzW5+wT/AwAA//8BAAD//3KhUUAAAAADAAD/9QAA/84AMgAAAAAAAAAAAAAAAAAAAAAAAAAA");
-}]]></style><style type="text/css"><![CDATA[.shape {
-  shape-rendering: geometricPrecision;
-  stroke-linejoin: round;
-}
-.connection {
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.blend {
-  mix-blend-mode: multiply;
-  opacity: 0.5;
-}
+        <div
+          class="graph-frame"
+          style="
+            border: 1px solid var(--border);
+            padding: 8px;
+            overflow-x: auto;
+          "
+        >
+          <?xml version="1.0" encoding="utf-8"?><svg
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            data-d2-version="v0.8.1-HEAD"
+            preserveAspectRatio="xMinYMin meet"
+            viewBox="0 0 8468 1404"
+          >
+            <svg
+              class="d2-3056350319 d2-svg"
+              width="8468"
+              height="1404"
+              viewBox="-101 -142 8468 1404"
+            >
+              <rect
+                x="-101.000000"
+                y="-142.000000"
+                width="8468.000000"
+                height="1404.000000"
+                rx="0.000000"
+                fill="#FFFFFF"
+                class="fill-N7"
+                stroke-width="0"
+              />
+              <style type="text/css">
+                <![CDATA[
+                .d2-3056350319 .text {
+                	font-family: "d2-3056350319-font-regular";
+                }
+                @font-face {
+                	font-family: d2-3056350319-font-regular;
+                	src: url("data:application/font-woff;base64,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");
+                }
+                .d2-3056350319 .text-bold {
+                	font-family: "d2-3056350319-font-bold";
+                }
+                @font-face {
+                	font-family: d2-3056350319-font-bold;
+                	src: url("data:application/font-woff;base64,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");
+                }
+                .d2-3056350319 .text-italic {
+                	font-family: "d2-3056350319-font-italic";
+                }
+                @font-face {
+                	font-family: d2-3056350319-font-italic;
+                	src: url("data:application/font-woff;base64,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");
+                }]]>
+              </style>
+              <style type="text/css">
+                <![CDATA[.shape {
+                  shape-rendering: geometricPrecision;
+                  stroke-linejoin: round;
+                }
+                .connection {
+                  stroke-linecap: round;
+                  stroke-linejoin: round;
+                }
+                .blend {
+                  mix-blend-mode: multiply;
+                  opacity: 0.5;
+                }
 
-		.d2-3056350319 .fill-N1{fill:#0A0F25;}
-		.d2-3056350319 .fill-N2{fill:#676C7E;}
-		.d2-3056350319 .fill-N3{fill:#9499AB;}
-		.d2-3056350319 .fill-N4{fill:#CFD2DD;}
-		.d2-3056350319 .fill-N5{fill:#DEE1EB;}
-		.d2-3056350319 .fill-N6{fill:#EEF1F8;}
-		.d2-3056350319 .fill-N7{fill:#FFFFFF;}
-		.d2-3056350319 .fill-B1{fill:#0D32B2;}
-		.d2-3056350319 .fill-B2{fill:#0D32B2;}
-		.d2-3056350319 .fill-B3{fill:#E3E9FD;}
-		.d2-3056350319 .fill-B4{fill:#E3E9FD;}
-		.d2-3056350319 .fill-B5{fill:#EDF0FD;}
-		.d2-3056350319 .fill-B6{fill:#F7F8FE;}
-		.d2-3056350319 .fill-AA2{fill:#4A6FF3;}
-		.d2-3056350319 .fill-AA4{fill:#EDF0FD;}
-		.d2-3056350319 .fill-AA5{fill:#F7F8FE;}
-		.d2-3056350319 .fill-AB4{fill:#EDF0FD;}
-		.d2-3056350319 .fill-AB5{fill:#F7F8FE;}
-		.d2-3056350319 .stroke-N1{stroke:#0A0F25;}
-		.d2-3056350319 .stroke-N2{stroke:#676C7E;}
-		.d2-3056350319 .stroke-N3{stroke:#9499AB;}
-		.d2-3056350319 .stroke-N4{stroke:#CFD2DD;}
-		.d2-3056350319 .stroke-N5{stroke:#DEE1EB;}
-		.d2-3056350319 .stroke-N6{stroke:#EEF1F8;}
-		.d2-3056350319 .stroke-N7{stroke:#FFFFFF;}
-		.d2-3056350319 .stroke-B1{stroke:#0D32B2;}
-		.d2-3056350319 .stroke-B2{stroke:#0D32B2;}
-		.d2-3056350319 .stroke-B3{stroke:#E3E9FD;}
-		.d2-3056350319 .stroke-B4{stroke:#E3E9FD;}
-		.d2-3056350319 .stroke-B5{stroke:#EDF0FD;}
-		.d2-3056350319 .stroke-B6{stroke:#F7F8FE;}
-		.d2-3056350319 .stroke-AA2{stroke:#4A6FF3;}
-		.d2-3056350319 .stroke-AA4{stroke:#EDF0FD;}
-		.d2-3056350319 .stroke-AA5{stroke:#F7F8FE;}
-		.d2-3056350319 .stroke-AB4{stroke:#EDF0FD;}
-		.d2-3056350319 .stroke-AB5{stroke:#F7F8FE;}
-		.d2-3056350319 .background-color-N1{background-color:#0A0F25;}
-		.d2-3056350319 .background-color-N2{background-color:#676C7E;}
-		.d2-3056350319 .background-color-N3{background-color:#9499AB;}
-		.d2-3056350319 .background-color-N4{background-color:#CFD2DD;}
-		.d2-3056350319 .background-color-N5{background-color:#DEE1EB;}
-		.d2-3056350319 .background-color-N6{background-color:#EEF1F8;}
-		.d2-3056350319 .background-color-N7{background-color:#FFFFFF;}
-		.d2-3056350319 .background-color-B1{background-color:#0D32B2;}
-		.d2-3056350319 .background-color-B2{background-color:#0D32B2;}
-		.d2-3056350319 .background-color-B3{background-color:#E3E9FD;}
-		.d2-3056350319 .background-color-B4{background-color:#E3E9FD;}
-		.d2-3056350319 .background-color-B5{background-color:#EDF0FD;}
-		.d2-3056350319 .background-color-B6{background-color:#F7F8FE;}
-		.d2-3056350319 .background-color-AA2{background-color:#4A6FF3;}
-		.d2-3056350319 .background-color-AA4{background-color:#EDF0FD;}
-		.d2-3056350319 .background-color-AA5{background-color:#F7F8FE;}
-		.d2-3056350319 .background-color-AB4{background-color:#EDF0FD;}
-		.d2-3056350319 .background-color-AB5{background-color:#F7F8FE;}
-		.d2-3056350319 .color-N1{color:#0A0F25;}
-		.d2-3056350319 .color-N2{color:#676C7E;}
-		.d2-3056350319 .color-N3{color:#9499AB;}
-		.d2-3056350319 .color-N4{color:#CFD2DD;}
-		.d2-3056350319 .color-N5{color:#DEE1EB;}
-		.d2-3056350319 .color-N6{color:#EEF1F8;}
-		.d2-3056350319 .color-N7{color:#FFFFFF;}
-		.d2-3056350319 .color-B1{color:#0D32B2;}
-		.d2-3056350319 .color-B2{color:#0D32B2;}
-		.d2-3056350319 .color-B3{color:#E3E9FD;}
-		.d2-3056350319 .color-B4{color:#E3E9FD;}
-		.d2-3056350319 .color-B5{color:#EDF0FD;}
-		.d2-3056350319 .color-B6{color:#F7F8FE;}
-		.d2-3056350319 .color-AA2{color:#4A6FF3;}
-		.d2-3056350319 .color-AA4{color:#EDF0FD;}
-		.d2-3056350319 .color-AA5{color:#F7F8FE;}
-		.d2-3056350319 .color-AB4{color:#EDF0FD;}
-		.d2-3056350319 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-3056350319);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-3056350319);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-3056350319);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-3056350319);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-3056350319);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-3056350319);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-3056350319);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]></style><g class="dGl0bGU="><g class="shape" ></g><text x="4133.000000" y="-13.000000" fill="#0e0e10" class="text-bold" style="text-anchor:middle;font-size:28px">Goal-Gap Closure — metaengine/system End Goal</text></g><g class="bm9ydGhfc3Rhcg=="><g class="shape" ></g><text x="208.500000" y="594.000000" fill="#444444" class="text" style="text-anchor:middle;font-size:15px"><tspan x="208.500000" dy="0.000000">NORTH STAR</tspan><tspan x="208.500000" dy="16.333333">Developer declares domain types · Operator deploys infrastructure</tspan><tspan x="208.500000" dy="16.333333">system+metaengine derive everything else · warn, never block</tspan></text></g><g class="UDA="><g class="shape" ><rect x="596.000000" y="533.000000" width="1188.000000" height="268.000000" stroke="#0e0e10" fill="#f4d35e" style="stroke-width:2;" /></g><text x="1190.000000" y="520.000000" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Phase 0 — Unblock &amp; Hygiene</text></g><g class="UDE="><g class="shape" ><rect x="2101.000000" y="250.000000" width="4222.000000" height="491.000000" stroke="#0e0e10" fill="#ff6b6b" style="stroke-width:2;" /></g><text x="4212.000000" y="237.000000" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Phase 1 — v5 Deletion Wave · 1% → 51%</text></g><g class="UDI="><g class="shape" ><rect x="6581.000000" y="611.000000" width="991.000000" height="550.000000" stroke="#0e0e10" fill="#6eb5ff" style="stroke-width:2;" /></g><text x="7076.500000" y="598.000000" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Phase 2 — Declare-Only DX · 4% → 64%</text></g><g class="UDM="><g class="shape" ><rect x="6609.000000" y="118.000000" width="288.000000" height="394.000000" stroke="#0e0e10" fill="#ffb347" style="stroke-width:2;" /></g><text x="6753.000000" y="105.000000" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Phase 3 — Ops Completeness · 20% cluster</text></g><g class="UDQ="><g class="shape" ><rect x="7216.000000" y="56.000000" width="348.000000" height="410.000000" stroke="#0e0e10" fill="#7ddf64" style="stroke-width:2;" /></g><text x="7390.000000" y="43.000000" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Phase 4 — Trust &amp; Evidence</text></g><g class="dGFpbA=="><g class="shape" ><rect x="7790.000000" y="198.000000" width="476.000000" height="142.000000" stroke="#0e0e10" fill="#eeeeee" style="stroke-width:2;" /></g><text x="8028.000000" y="185.000000" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Long Tail → 100%</text></g><g class="UDI1"><g class="shape" ><rect x="7993.000000" y="616.000000" width="70.000000" height="66.000000" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="8028.000000" y="654.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">P25</text></g><g class="VDI2"><g class="shape" ><rect x="7992.000000" y="898.000000" width="71.000000" height="66.000000" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="8027.500000" y="936.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T26</text></g><g class="UDAuVDAx"><g class="shape" ><rect x="626.000000" y="563.000000" width="357.000000" height="82.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="804.500000" y="601.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="804.500000" dy="0.000000">T01 Verify release chain</tspan><tspan x="804.500000" dy="18.500000">(tags, stranded commits, standalone builds)</tspan></text></g><g class="UDAuVDAy"><g class="shape" ><rect x="1122.000000" y="563.000000" width="281.000000" height="82.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="1262.500000" y="601.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1262.500000" dy="0.000000">T02 Stale-pin sweep</tspan><tspan x="1262.500000" dy="18.500000">~50 go.mod + GOWORK=off verify</tspan></text></g><g class="UDAuVDAz"><g class="shape" ><rect x="1542.000000" y="563.000000" width="212.000000" height="82.000000" stroke="#0D32B2" fill="#fff3d6" class=" stroke-B1" style="stroke-width:2;" /></g><text x="1648.000000" y="601.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1648.000000" dy="0.000000">T03 [USER] Wave-4 tags</tspan><tspan x="1648.000000" dy="18.500000">+ replace-drop sweep</tspan></text></g><g class="UDAuVDA0"><g class="shape" ><rect x="1553.000000" y="705.000000" width="190.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="1648.000000" y="743.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T04 PG test isolation</text></g><g class="UDEuVDA1"><g class="shape" ><rect x="2131.000000" y="525.000000" width="252.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="2257.000000" y="563.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T05 listing type-driven status</text></g><g class="UDEuVDA2"><g class="shape" ><rect x="2522.000000" y="525.000000" width="294.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="2669.000000" y="563.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T06 taskmanager off OnTombstone</text></g><g class="UDEuVDA3"><g class="shape" ><rect x="2955.000000" y="525.000000" width="226.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="3068.000000" y="563.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T07 delete tombstone API</text></g><g class="UDEuVDA4"><g class="shape" ><rect x="6071.000000" y="280.000000" width="203.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="6172.500000" y="318.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T08 delete transport/*</text></g><g class="UDEuVDA5"><g class="shape" ><rect x="3320.000000" y="517.000000" width="286.000000" height="82.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="3463.000000" y="555.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="3463.000000" dy="0.000000">T09 delete Materialize +</tspan><tspan x="3463.000000" dy="18.500000">RunProjections + GraphProjection</tspan></text></g><g class="UDEuVDEw"><g class="shape" ><rect x="3745.000000" y="525.000000" width="240.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="3865.000000" y="563.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T10 delete view + relational</text></g><g class="UDEuVDEx"><g class="shape" ><rect x="4124.000000" y="517.000000" width="225.000000" height="82.000000" stroke="#0D32B2" fill="#ffe3e3" class=" stroke-B1" style="stroke-width:2;" /></g><text x="4236.500000" y="555.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="4236.500000" dy="0.000000">T11 delete stack/ entirely</tspan><tspan x="4236.500000" dy="18.500000">ONE composition root</tspan></text></g><g class="UDEuVDEy"><g class="shape" ><rect x="4488.000000" y="517.000000" width="294.000000" height="82.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="4635.000000" y="555.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="4635.000000" dy="0.000000">T12 v5 surface sweep</tspan><tspan x="4635.000000" dy="18.500000">shells · StreamKey · NewStreamRef</tspan></text></g><g class="UDEuVDEz"><g class="shape" ><rect x="4921.000000" y="525.000000" width="257.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="5049.500000" y="563.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T13 extended-review v5 items</text></g><g class="UDEuVDE0"><g class="shape" ><rect x="5317.000000" y="525.000000" width="250.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="5442.000000" y="563.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T14 snapshot wire tags + SQL</text></g><g class="UDEuVDE1"><g class="shape" ><rect x="5706.000000" y="525.000000" width="207.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="5809.500000" y="563.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T15 v5 migration guide</text></g><g class="UDEuVDE2"><g class="shape" ><rect x="6052.000000" y="522.000000" width="241.000000" height="71.000000" stroke="#0D32B2" fill="#ffe3e3" class=" stroke-B1" style="stroke-width:2;" /></g><text x="6172.500000" y="564.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:20px">T16 [USER] CUT v5.0.0</text></g><g class="UDIuVDE3"><g class="shape" ><rect x="6611.000000" y="679.000000" width="284.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="6753.000000" y="717.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T17 metaengine-gen codegen (L2)</text></g><g class="UDIuVDE4"><g class="shape" ><rect x="7239.000000" y="671.000000" width="303.000000" height="82.000000" stroke="#0D32B2" fill="#e3f0ff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="7390.500000" y="709.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="7390.500000" dy="0.000000">T18 planner auto-route (L3)</tspan><tspan x="7390.500000" dy="18.500000">declared query → inferred projection</tspan></text></g><g class="UDIuVDE5"><g class="shape" ><rect x="7285.000000" y="813.000000" width="210.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="7390.000000" y="851.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T19 command sourcing</text></g><g class="UDIuVDIw"><g class="shape" ><rect x="7293.000000" y="939.000000" width="194.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="7390.000000" y="977.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T20 lifecycle one-call</text></g><g class="UDIuVDIx"><g class="shape" ><rect x="7259.000000" y="1065.000000" width="262.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="7390.000000" y="1103.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T21 DomainConfig ceremony ↓</text></g><g class="UDMuVDIy"><g class="shape" ><rect x="6648.000000" y="148.000000" width="210.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="6753.000000" y="186.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T22 NATS + Redis buses</text></g><g class="UDMuVDIz"><g class="shape" ><rect x="6650.000000" y="274.000000" width="205.000000" height="82.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="6752.500000" y="312.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="6752.500000" dy="0.000000">T23 Dgraph parity</tspan><tspan x="6752.500000" dy="18.500000">Snapshot + StreamLog</tspan></text></g><g class="UDMuVDI0"><g class="shape" ><rect x="6639.000000" y="416.000000" width="228.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="6753.000000" y="454.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T24 query expression tree</text></g><g class="UDQuVDI1"><g class="shape" ><rect x="7246.000000" y="86.000000" width="288.000000" height="82.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="7390.000000" y="124.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="7390.000000" dy="0.000000">T25 native search/vector/spatial</tspan><tspan x="7390.000000" dy="18.500000">pg tsvector · PostGIS · DuckDB VSS</tspan></text></g><g class="UDQuVDI2"><g class="shape" ><rect x="7276.000000" y="228.000000" width="229.000000" height="82.000000" stroke="#0D32B2" fill="#e8f8e4" class=" stroke-B1" style="stroke-width:2;" /></g><text x="7390.500000" y="266.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="7390.500000" dy="0.000000">T26 flagship taskmanager</tspan><tspan x="7390.500000" dy="18.500000">on system/ + docs</tspan></text></g><g class="UDQuVDI3"><g class="shape" ><rect x="7256.000000" y="370.000000" width="269.000000" height="66.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="7390.500000" y="408.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T27 calibration CI + Turso probe</text></g><g class="dGFpbC5GTA=="><g class="shape" ><rect x="7820.000000" y="228.000000" width="416.000000" height="82.000000" stroke="#0D32B2" fill="#ffffff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="8028.000000" y="266.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="8028.000000" dy="0.000000">GitHub Releases · retract doc · indirect deps</tspan><tspan x="8028.000000" dy="18.500000">lint-config audit · iroh edges · blocked[user/hw/root]</tspan></text></g><g class="UDAuKFQwMSAtJmd0OyBUMDIpWzBd"><marker id="mk-d2-3056350319-3488378134" markerWidth="10.000000" markerHeight="12.000000" refX="7.000000" refY="6.000000" viewBox="0.000000 0.000000 10.000000 12.000000" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000" fill="#0D32B2" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 985.500000 603.500000 C 1038.300049 603.500000 1065.900024 603.500000 1117.500000 603.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="UDAuKFQwMiAtJmd0OyBUMDMpWzBd"><path d="M 1405.500000 603.500000 C 1458.300049 603.500000 1485.900024 603.500000 1537.500000 603.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="UDEuKFQwNSAtJmd0OyBUMDYpWzBd"><path d="M 2385.500000 557.500000 C 2438.300049 557.500000 2465.899902 557.500000 2517.500000 557.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="UDEuKFQwNiAtJmd0OyBUMDcpWzBd"><path d="M 2818.500000 557.500000 C 2871.300049 557.500000 2898.899902 557.500000 2950.500000 557.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="UDEuKFQwNyAtJmd0OyBUMDkpWzBd"><path d="M 3183.500000 557.500000 C 3236.300049 557.500000 3263.899902 557.500000 3315.500000 557.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="UDEuKFQwOSAtJmd0OyBUMTApWzBd"><path d="M 3608.500000 557.500000 C 3661.300049 557.500000 3688.899902 557.500000 3740.500000 557.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="UDEuKFQxMCAtJmd0OyBUMTEpWzBd"><path d="M 3987.500000 557.500000 C 4040.300049 557.500000 4067.899902 557.500000 4119.500000 557.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="UDEuKFQxMSAtJmd0OyBUMTIpWzBd"><path d="M 4351.500000 557.500000 C 4404.299805 557.500000 4431.899902 557.500000 4483.500000 557.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="UDEuKFQxMiAtJmd0OyBUMTMpWzBd"><path d="M 4784.500000 557.500000 C 4837.299805 557.500000 4864.899902 557.500000 4916.500000 557.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="UDEuKFQxMyAtJmd0OyBUMTQpWzBd"><path d="M 5180.500000 557.500000 C 5233.299805 557.500000 5260.899902 557.500000 5312.500000 557.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="UDEuKFQxNCAtJmd0OyBUMTUpWzBd"><path d="M 5569.500000 557.500000 C 5622.299805 557.500000 5649.899902 557.500000 5701.500000 557.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="UDEuKFQxNSAtJmd0OyBUMTYpWzBd"><path d="M 5915.500000 557.500000 C 5968.299805 557.500000 5995.899902 557.500000 6047.500000 557.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="UDIuKFQxNyAtJmd0OyBUMTgpWzBd"><path d="M 6897.500000 711.500000 C 6950.299805 711.500000 6984.500000 711.500000 7015.250000 711.500000 C 7046.000000 711.500000 7182.899902 711.500000 7234.500000 711.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="KG5vcnRoX3N0YXIgLSZndDsgUDApWzBd"><path d="M 418.500000 603.500000 C 472.500000 603.500000 508.500000 603.500000 592.500000 603.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="KFAwIC0mZ3Q7IFAxKVswXQ=="><path d="M 1786.000000 603.500000 C 1910.400024 603.500000 1973.800049 603.500000 2097.000000 603.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /><text x="1942.500000" y="609.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">shipping green</text></g><g class="KFAxIC0mZ3Q7IFAyKVswXQ=="><path d="M 6324.500000 711.500000 C 6425.700195 711.500000 6477.500000 711.500000 6577.500000 711.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /><text x="6452.000000" y="717.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">v5 cut</text></g><g class="KFAxIC0mZ3Q7IFAzKVswXQ=="><path d="M 6324.500000 361.000000 C 6425.700195 361.000000 6483.100098 361.000000 6605.500000 361.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /><text x="6466.000000" y="367.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">v5 cut</text></g><g class="KFAyIC0mZ3Q7IFAyNSlbMF0="><path d="M 7573.500000 648.500000 C 7658.700195 648.500000 7798.500000 648.500000 7988.500000 648.500000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="KFAyIC0mZ3Q7IFQyNilbMF0="><path d="M 7573.500000 931.000000 C 7658.700195 931.000000 7798.399902 931.000000 7988.000000 931.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><g class="KFAzIC0mZ3Q7IFA0KVswXQ=="><path d="M 6898.500000 315.000000 C 7032.500000 315.000000 7096.500000 315.000000 7212.500000 315.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /><text x="7057.000000" y="321.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">T22 -&gt; T26</text></g><g class="KFA0IC0mZ3Q7IHRhaWwpWzBd"><path d="M 7565.500000 269.000000 C 7657.100098 269.000000 7702.500000 269.000000 7786.500000 269.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3056350319-3488378134)" mask="url(#d2-3056350319)" /></g><mask id="d2-3056350319" maskUnits="userSpaceOnUse" x="-101" y="-142" width="8468" height="1404">
-<rect x="-101" y="-142" width="8468" height="1404" fill="white"></rect>
-<rect x="1891.000000" y="593.000000" width="103" height="21" fill="black"></rect>
-<rect x="6430.000000" y="701.000000" width="44" height="21" fill="black"></rect>
-<rect x="6444.000000" y="351.000000" width="44" height="21" fill="black"></rect>
-<rect x="7022.000000" y="305.000000" width="70" height="21" fill="black"></rect>
-</mask></svg></svg>
+                		.d2-3056350319 .fill-N1{fill:#0A0F25;}
+                		.d2-3056350319 .fill-N2{fill:#676C7E;}
+                		.d2-3056350319 .fill-N3{fill:#9499AB;}
+                		.d2-3056350319 .fill-N4{fill:#CFD2DD;}
+                		.d2-3056350319 .fill-N5{fill:#DEE1EB;}
+                		.d2-3056350319 .fill-N6{fill:#EEF1F8;}
+                		.d2-3056350319 .fill-N7{fill:#FFFFFF;}
+                		.d2-3056350319 .fill-B1{fill:#0D32B2;}
+                		.d2-3056350319 .fill-B2{fill:#0D32B2;}
+                		.d2-3056350319 .fill-B3{fill:#E3E9FD;}
+                		.d2-3056350319 .fill-B4{fill:#E3E9FD;}
+                		.d2-3056350319 .fill-B5{fill:#EDF0FD;}
+                		.d2-3056350319 .fill-B6{fill:#F7F8FE;}
+                		.d2-3056350319 .fill-AA2{fill:#4A6FF3;}
+                		.d2-3056350319 .fill-AA4{fill:#EDF0FD;}
+                		.d2-3056350319 .fill-AA5{fill:#F7F8FE;}
+                		.d2-3056350319 .fill-AB4{fill:#EDF0FD;}
+                		.d2-3056350319 .fill-AB5{fill:#F7F8FE;}
+                		.d2-3056350319 .stroke-N1{stroke:#0A0F25;}
+                		.d2-3056350319 .stroke-N2{stroke:#676C7E;}
+                		.d2-3056350319 .stroke-N3{stroke:#9499AB;}
+                		.d2-3056350319 .stroke-N4{stroke:#CFD2DD;}
+                		.d2-3056350319 .stroke-N5{stroke:#DEE1EB;}
+                		.d2-3056350319 .stroke-N6{stroke:#EEF1F8;}
+                		.d2-3056350319 .stroke-N7{stroke:#FFFFFF;}
+                		.d2-3056350319 .stroke-B1{stroke:#0D32B2;}
+                		.d2-3056350319 .stroke-B2{stroke:#0D32B2;}
+                		.d2-3056350319 .stroke-B3{stroke:#E3E9FD;}
+                		.d2-3056350319 .stroke-B4{stroke:#E3E9FD;}
+                		.d2-3056350319 .stroke-B5{stroke:#EDF0FD;}
+                		.d2-3056350319 .stroke-B6{stroke:#F7F8FE;}
+                		.d2-3056350319 .stroke-AA2{stroke:#4A6FF3;}
+                		.d2-3056350319 .stroke-AA4{stroke:#EDF0FD;}
+                		.d2-3056350319 .stroke-AA5{stroke:#F7F8FE;}
+                		.d2-3056350319 .stroke-AB4{stroke:#EDF0FD;}
+                		.d2-3056350319 .stroke-AB5{stroke:#F7F8FE;}
+                		.d2-3056350319 .background-color-N1{background-color:#0A0F25;}
+                		.d2-3056350319 .background-color-N2{background-color:#676C7E;}
+                		.d2-3056350319 .background-color-N3{background-color:#9499AB;}
+                		.d2-3056350319 .background-color-N4{background-color:#CFD2DD;}
+                		.d2-3056350319 .background-color-N5{background-color:#DEE1EB;}
+                		.d2-3056350319 .background-color-N6{background-color:#EEF1F8;}
+                		.d2-3056350319 .background-color-N7{background-color:#FFFFFF;}
+                		.d2-3056350319 .background-color-B1{background-color:#0D32B2;}
+                		.d2-3056350319 .background-color-B2{background-color:#0D32B2;}
+                		.d2-3056350319 .background-color-B3{background-color:#E3E9FD;}
+                		.d2-3056350319 .background-color-B4{background-color:#E3E9FD;}
+                		.d2-3056350319 .background-color-B5{background-color:#EDF0FD;}
+                		.d2-3056350319 .background-color-B6{background-color:#F7F8FE;}
+                		.d2-3056350319 .background-color-AA2{background-color:#4A6FF3;}
+                		.d2-3056350319 .background-color-AA4{background-color:#EDF0FD;}
+                		.d2-3056350319 .background-color-AA5{background-color:#F7F8FE;}
+                		.d2-3056350319 .background-color-AB4{background-color:#EDF0FD;}
+                		.d2-3056350319 .background-color-AB5{background-color:#F7F8FE;}
+                		.d2-3056350319 .color-N1{color:#0A0F25;}
+                		.d2-3056350319 .color-N2{color:#676C7E;}
+                		.d2-3056350319 .color-N3{color:#9499AB;}
+                		.d2-3056350319 .color-N4{color:#CFD2DD;}
+                		.d2-3056350319 .color-N5{color:#DEE1EB;}
+                		.d2-3056350319 .color-N6{color:#EEF1F8;}
+                		.d2-3056350319 .color-N7{color:#FFFFFF;}
+                		.d2-3056350319 .color-B1{color:#0D32B2;}
+                		.d2-3056350319 .color-B2{color:#0D32B2;}
+                		.d2-3056350319 .color-B3{color:#E3E9FD;}
+                		.d2-3056350319 .color-B4{color:#E3E9FD;}
+                		.d2-3056350319 .color-B5{color:#EDF0FD;}
+                		.d2-3056350319 .color-B6{color:#F7F8FE;}
+                		.d2-3056350319 .color-AA2{color:#4A6FF3;}
+                		.d2-3056350319 .color-AA4{color:#EDF0FD;}
+                		.d2-3056350319 .color-AA5{color:#F7F8FE;}
+                		.d2-3056350319 .color-AB4{color:#EDF0FD;}
+                		.d2-3056350319 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-3056350319);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-3056350319);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-3056350319);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-3056350319);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-3056350319);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-3056350319);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-3056350319);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-3056350319);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]>
+              </style>
+              <g class="dGl0bGU=">
+                <g class="shape"></g>
+                <text
+                  x="4133.000000"
+                  y="-13.000000"
+                  fill="#0e0e10"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  Goal-Gap Closure — metaengine/system End Goal
+                </text>
+              </g>
+              <g class="bm9ydGhfc3Rhcg==">
+                <g class="shape"></g>
+                <text
+                  x="208.500000"
+                  y="594.000000"
+                  fill="#444444"
+                  class="text"
+                  style="text-anchor: middle; font-size: 15px"
+                >
+                  <tspan x="208.500000" dy="0.000000">NORTH STAR</tspan>
+                  <tspan x="208.500000" dy="16.333333">
+                    Developer declares domain types · Operator deploys
+                    infrastructure
+                  </tspan>
+                  <tspan x="208.500000" dy="16.333333">
+                    system+metaengine derive everything else · warn, never block
+                  </tspan>
+                </text>
+              </g>
+              <g class="UDA=">
+                <g class="shape">
+                  <rect
+                    x="596.000000"
+                    y="533.000000"
+                    width="1188.000000"
+                    height="268.000000"
+                    stroke="#0e0e10"
+                    fill="#f4d35e"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1190.000000"
+                  y="520.000000"
+                  fill="#0A0F25"
+                  class="text fill-N1"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  Phase 0 — Unblock &amp; Hygiene
+                </text>
+              </g>
+              <g class="UDE=">
+                <g class="shape">
+                  <rect
+                    x="2101.000000"
+                    y="250.000000"
+                    width="4222.000000"
+                    height="491.000000"
+                    stroke="#0e0e10"
+                    fill="#ff6b6b"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="4212.000000"
+                  y="237.000000"
+                  fill="#0A0F25"
+                  class="text fill-N1"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  Phase 1 — v5 Deletion Wave · 1% → 51%
+                </text>
+              </g>
+              <g class="UDI=">
+                <g class="shape">
+                  <rect
+                    x="6581.000000"
+                    y="611.000000"
+                    width="991.000000"
+                    height="550.000000"
+                    stroke="#0e0e10"
+                    fill="#6eb5ff"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="7076.500000"
+                  y="598.000000"
+                  fill="#0A0F25"
+                  class="text fill-N1"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  Phase 2 — Declare-Only DX · 4% → 64%
+                </text>
+              </g>
+              <g class="UDM=">
+                <g class="shape">
+                  <rect
+                    x="6609.000000"
+                    y="118.000000"
+                    width="288.000000"
+                    height="394.000000"
+                    stroke="#0e0e10"
+                    fill="#ffb347"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="6753.000000"
+                  y="105.000000"
+                  fill="#0A0F25"
+                  class="text fill-N1"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  Phase 3 — Ops Completeness · 20% cluster
+                </text>
+              </g>
+              <g class="UDQ=">
+                <g class="shape">
+                  <rect
+                    x="7216.000000"
+                    y="56.000000"
+                    width="348.000000"
+                    height="410.000000"
+                    stroke="#0e0e10"
+                    fill="#7ddf64"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="7390.000000"
+                  y="43.000000"
+                  fill="#0A0F25"
+                  class="text fill-N1"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  Phase 4 — Trust &amp; Evidence
+                </text>
+              </g>
+              <g class="dGFpbA==">
+                <g class="shape">
+                  <rect
+                    x="7790.000000"
+                    y="198.000000"
+                    width="476.000000"
+                    height="142.000000"
+                    stroke="#0e0e10"
+                    fill="#eeeeee"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="8028.000000"
+                  y="185.000000"
+                  fill="#0A0F25"
+                  class="text fill-N1"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  Long Tail → 100%
+                </text>
+              </g>
+              <g class="UDI1">
+                <g class="shape">
+                  <rect
+                    x="7993.000000"
+                    y="616.000000"
+                    width="70.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#F7F8FE"
+                    class="stroke-B1 fill-B6"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="8028.000000"
+                  y="654.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  P25
+                </text>
+              </g>
+              <g class="VDI2">
+                <g class="shape">
+                  <rect
+                    x="7992.000000"
+                    y="898.000000"
+                    width="71.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#F7F8FE"
+                    class="stroke-B1 fill-B6"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="8027.500000"
+                  y="936.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T26
+                </text>
+              </g>
+              <g class="UDAuVDAx">
+                <g class="shape">
+                  <rect
+                    x="626.000000"
+                    y="563.000000"
+                    width="357.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="804.500000"
+                  y="601.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="804.500000" dy="0.000000">
+                    T01 Verify release chain
+                  </tspan>
+                  <tspan x="804.500000" dy="18.500000">
+                    (tags, stranded commits, standalone builds)
+                  </tspan>
+                </text>
+              </g>
+              <g class="UDAuVDAy">
+                <g class="shape">
+                  <rect
+                    x="1122.000000"
+                    y="563.000000"
+                    width="281.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1262.500000"
+                  y="601.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="1262.500000" dy="0.000000">
+                    T02 Stale-pin sweep
+                  </tspan>
+                  <tspan x="1262.500000" dy="18.500000">
+                    ~50 go.mod + GOWORK=off verify
+                  </tspan>
+                </text>
+              </g>
+              <g class="UDAuVDAz">
+                <g class="shape">
+                  <rect
+                    x="1542.000000"
+                    y="563.000000"
+                    width="212.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#fff3d6"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1648.000000"
+                  y="601.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="1648.000000" dy="0.000000">
+                    T03 [USER] Wave-4 tags
+                  </tspan>
+                  <tspan x="1648.000000" dy="18.500000">
+                    + replace-drop sweep
+                  </tspan>
+                </text>
+              </g>
+              <g class="UDAuVDA0">
+                <g class="shape">
+                  <rect
+                    x="1553.000000"
+                    y="705.000000"
+                    width="190.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1648.000000"
+                  y="743.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T04 PG test isolation
+                </text>
+              </g>
+              <g class="UDEuVDA1">
+                <g class="shape">
+                  <rect
+                    x="2131.000000"
+                    y="525.000000"
+                    width="252.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="2257.000000"
+                  y="563.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T05 listing type-driven status
+                </text>
+              </g>
+              <g class="UDEuVDA2">
+                <g class="shape">
+                  <rect
+                    x="2522.000000"
+                    y="525.000000"
+                    width="294.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="2669.000000"
+                  y="563.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T06 taskmanager off OnTombstone
+                </text>
+              </g>
+              <g class="UDEuVDA3">
+                <g class="shape">
+                  <rect
+                    x="2955.000000"
+                    y="525.000000"
+                    width="226.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="3068.000000"
+                  y="563.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T07 delete tombstone API
+                </text>
+              </g>
+              <g class="UDEuVDA4">
+                <g class="shape">
+                  <rect
+                    x="6071.000000"
+                    y="280.000000"
+                    width="203.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="6172.500000"
+                  y="318.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T08 delete transport/*
+                </text>
+              </g>
+              <g class="UDEuVDA5">
+                <g class="shape">
+                  <rect
+                    x="3320.000000"
+                    y="517.000000"
+                    width="286.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="3463.000000"
+                  y="555.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="3463.000000" dy="0.000000">
+                    T09 delete Materialize +
+                  </tspan>
+                  <tspan x="3463.000000" dy="18.500000">
+                    RunProjections + GraphProjection
+                  </tspan>
+                </text>
+              </g>
+              <g class="UDEuVDEw">
+                <g class="shape">
+                  <rect
+                    x="3745.000000"
+                    y="525.000000"
+                    width="240.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="3865.000000"
+                  y="563.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T10 delete view + relational
+                </text>
+              </g>
+              <g class="UDEuVDEx">
+                <g class="shape">
+                  <rect
+                    x="4124.000000"
+                    y="517.000000"
+                    width="225.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#ffe3e3"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="4236.500000"
+                  y="555.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="4236.500000" dy="0.000000">
+                    T11 delete stack/ entirely
+                  </tspan>
+                  <tspan x="4236.500000" dy="18.500000">
+                    ONE composition root
+                  </tspan>
+                </text>
+              </g>
+              <g class="UDEuVDEy">
+                <g class="shape">
+                  <rect
+                    x="4488.000000"
+                    y="517.000000"
+                    width="294.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="4635.000000"
+                  y="555.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="4635.000000" dy="0.000000">
+                    T12 v5 surface sweep
+                  </tspan>
+                  <tspan x="4635.000000" dy="18.500000">
+                    shells · StreamKey · NewStreamRef
+                  </tspan>
+                </text>
+              </g>
+              <g class="UDEuVDEz">
+                <g class="shape">
+                  <rect
+                    x="4921.000000"
+                    y="525.000000"
+                    width="257.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="5049.500000"
+                  y="563.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T13 extended-review v5 items
+                </text>
+              </g>
+              <g class="UDEuVDE0">
+                <g class="shape">
+                  <rect
+                    x="5317.000000"
+                    y="525.000000"
+                    width="250.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="5442.000000"
+                  y="563.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T14 snapshot wire tags + SQL
+                </text>
+              </g>
+              <g class="UDEuVDE1">
+                <g class="shape">
+                  <rect
+                    x="5706.000000"
+                    y="525.000000"
+                    width="207.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="5809.500000"
+                  y="563.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T15 v5 migration guide
+                </text>
+              </g>
+              <g class="UDEuVDE2">
+                <g class="shape">
+                  <rect
+                    x="6052.000000"
+                    y="522.000000"
+                    width="241.000000"
+                    height="71.000000"
+                    stroke="#0D32B2"
+                    fill="#ffe3e3"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="6172.500000"
+                  y="564.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 20px"
+                >
+                  T16 [USER] CUT v5.0.0
+                </text>
+              </g>
+              <g class="UDIuVDE3">
+                <g class="shape">
+                  <rect
+                    x="6611.000000"
+                    y="679.000000"
+                    width="284.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="6753.000000"
+                  y="717.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T17 metaengine-gen codegen (L2)
+                </text>
+              </g>
+              <g class="UDIuVDE4">
+                <g class="shape">
+                  <rect
+                    x="7239.000000"
+                    y="671.000000"
+                    width="303.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#e3f0ff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="7390.500000"
+                  y="709.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="7390.500000" dy="0.000000">
+                    T18 planner auto-route (L3)
+                  </tspan>
+                  <tspan x="7390.500000" dy="18.500000">
+                    declared query → inferred projection
+                  </tspan>
+                </text>
+              </g>
+              <g class="UDIuVDE5">
+                <g class="shape">
+                  <rect
+                    x="7285.000000"
+                    y="813.000000"
+                    width="210.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="7390.000000"
+                  y="851.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T19 command sourcing
+                </text>
+              </g>
+              <g class="UDIuVDIw">
+                <g class="shape">
+                  <rect
+                    x="7293.000000"
+                    y="939.000000"
+                    width="194.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="7390.000000"
+                  y="977.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T20 lifecycle one-call
+                </text>
+              </g>
+              <g class="UDIuVDIx">
+                <g class="shape">
+                  <rect
+                    x="7259.000000"
+                    y="1065.000000"
+                    width="262.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="7390.000000"
+                  y="1103.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T21 DomainConfig ceremony ↓
+                </text>
+              </g>
+              <g class="UDMuVDIy">
+                <g class="shape">
+                  <rect
+                    x="6648.000000"
+                    y="148.000000"
+                    width="210.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="6753.000000"
+                  y="186.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T22 NATS + Redis buses
+                </text>
+              </g>
+              <g class="UDMuVDIz">
+                <g class="shape">
+                  <rect
+                    x="6650.000000"
+                    y="274.000000"
+                    width="205.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="6752.500000"
+                  y="312.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="6752.500000" dy="0.000000">T23 Dgraph parity</tspan>
+                  <tspan x="6752.500000" dy="18.500000">
+                    Snapshot + StreamLog
+                  </tspan>
+                </text>
+              </g>
+              <g class="UDMuVDI0">
+                <g class="shape">
+                  <rect
+                    x="6639.000000"
+                    y="416.000000"
+                    width="228.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="6753.000000"
+                  y="454.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T24 query expression tree
+                </text>
+              </g>
+              <g class="UDQuVDI1">
+                <g class="shape">
+                  <rect
+                    x="7246.000000"
+                    y="86.000000"
+                    width="288.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="7390.000000"
+                  y="124.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="7390.000000" dy="0.000000">
+                    T25 native search/vector/spatial
+                  </tspan>
+                  <tspan x="7390.000000" dy="18.500000">
+                    pg tsvector · PostGIS · DuckDB VSS
+                  </tspan>
+                </text>
+              </g>
+              <g class="UDQuVDI2">
+                <g class="shape">
+                  <rect
+                    x="7276.000000"
+                    y="228.000000"
+                    width="229.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#e8f8e4"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="7390.500000"
+                  y="266.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="7390.500000" dy="0.000000">
+                    T26 flagship taskmanager
+                  </tspan>
+                  <tspan x="7390.500000" dy="18.500000">
+                    on system/ + docs
+                  </tspan>
+                </text>
+              </g>
+              <g class="UDQuVDI3">
+                <g class="shape">
+                  <rect
+                    x="7256.000000"
+                    y="370.000000"
+                    width="269.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="7390.500000"
+                  y="408.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T27 calibration CI + Turso probe
+                </text>
+              </g>
+              <g class="dGFpbC5GTA==">
+                <g class="shape">
+                  <rect
+                    x="7820.000000"
+                    y="228.000000"
+                    width="416.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#ffffff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="8028.000000"
+                  y="266.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="8028.000000" dy="0.000000">
+                    GitHub Releases · retract doc · indirect deps
+                  </tspan>
+                  <tspan x="8028.000000" dy="18.500000">
+                    lint-config audit · iroh edges · blocked[user/hw/root]
+                  </tspan>
+                </text>
+              </g>
+              <g class="UDAuKFQwMSAtJmd0OyBUMDIpWzBd">
+                <marker
+                  id="mk-d2-3056350319-3488378134"
+                  markerWidth="10.000000"
+                  markerHeight="12.000000"
+                  refX="7.000000"
+                  refY="6.000000"
+                  viewBox="0.000000 0.000000 10.000000 12.000000"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <polygon
+                    points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000"
+                    fill="#0D32B2"
+                    class="connection fill-B1"
+                    stroke-width="2"
+                  />
+                </marker>
+                <path
+                  d="M 985.500000 603.500000 C 1038.300049 603.500000 1065.900024 603.500000 1117.500000 603.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="UDAuKFQwMiAtJmd0OyBUMDMpWzBd">
+                <path
+                  d="M 1405.500000 603.500000 C 1458.300049 603.500000 1485.900024 603.500000 1537.500000 603.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="UDEuKFQwNSAtJmd0OyBUMDYpWzBd">
+                <path
+                  d="M 2385.500000 557.500000 C 2438.300049 557.500000 2465.899902 557.500000 2517.500000 557.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="UDEuKFQwNiAtJmd0OyBUMDcpWzBd">
+                <path
+                  d="M 2818.500000 557.500000 C 2871.300049 557.500000 2898.899902 557.500000 2950.500000 557.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="UDEuKFQwNyAtJmd0OyBUMDkpWzBd">
+                <path
+                  d="M 3183.500000 557.500000 C 3236.300049 557.500000 3263.899902 557.500000 3315.500000 557.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="UDEuKFQwOSAtJmd0OyBUMTApWzBd">
+                <path
+                  d="M 3608.500000 557.500000 C 3661.300049 557.500000 3688.899902 557.500000 3740.500000 557.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="UDEuKFQxMCAtJmd0OyBUMTEpWzBd">
+                <path
+                  d="M 3987.500000 557.500000 C 4040.300049 557.500000 4067.899902 557.500000 4119.500000 557.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="UDEuKFQxMSAtJmd0OyBUMTIpWzBd">
+                <path
+                  d="M 4351.500000 557.500000 C 4404.299805 557.500000 4431.899902 557.500000 4483.500000 557.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="UDEuKFQxMiAtJmd0OyBUMTMpWzBd">
+                <path
+                  d="M 4784.500000 557.500000 C 4837.299805 557.500000 4864.899902 557.500000 4916.500000 557.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="UDEuKFQxMyAtJmd0OyBUMTQpWzBd">
+                <path
+                  d="M 5180.500000 557.500000 C 5233.299805 557.500000 5260.899902 557.500000 5312.500000 557.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="UDEuKFQxNCAtJmd0OyBUMTUpWzBd">
+                <path
+                  d="M 5569.500000 557.500000 C 5622.299805 557.500000 5649.899902 557.500000 5701.500000 557.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="UDEuKFQxNSAtJmd0OyBUMTYpWzBd">
+                <path
+                  d="M 5915.500000 557.500000 C 5968.299805 557.500000 5995.899902 557.500000 6047.500000 557.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="UDIuKFQxNyAtJmd0OyBUMTgpWzBd">
+                <path
+                  d="M 6897.500000 711.500000 C 6950.299805 711.500000 6984.500000 711.500000 7015.250000 711.500000 C 7046.000000 711.500000 7182.899902 711.500000 7234.500000 711.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="KG5vcnRoX3N0YXIgLSZndDsgUDApWzBd">
+                <path
+                  d="M 418.500000 603.500000 C 472.500000 603.500000 508.500000 603.500000 592.500000 603.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="KFAwIC0mZ3Q7IFAxKVswXQ==">
+                <path
+                  d="M 1786.000000 603.500000 C 1910.400024 603.500000 1973.800049 603.500000 2097.000000 603.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+                <text
+                  x="1942.500000"
+                  y="609.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  shipping green
+                </text>
+              </g>
+              <g class="KFAxIC0mZ3Q7IFAyKVswXQ==">
+                <path
+                  d="M 6324.500000 711.500000 C 6425.700195 711.500000 6477.500000 711.500000 6577.500000 711.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+                <text
+                  x="6452.000000"
+                  y="717.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  v5 cut
+                </text>
+              </g>
+              <g class="KFAxIC0mZ3Q7IFAzKVswXQ==">
+                <path
+                  d="M 6324.500000 361.000000 C 6425.700195 361.000000 6483.100098 361.000000 6605.500000 361.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+                <text
+                  x="6466.000000"
+                  y="367.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  v5 cut
+                </text>
+              </g>
+              <g class="KFAyIC0mZ3Q7IFAyNSlbMF0=">
+                <path
+                  d="M 7573.500000 648.500000 C 7658.700195 648.500000 7798.500000 648.500000 7988.500000 648.500000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="KFAyIC0mZ3Q7IFQyNilbMF0=">
+                <path
+                  d="M 7573.500000 931.000000 C 7658.700195 931.000000 7798.399902 931.000000 7988.000000 931.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <g class="KFAzIC0mZ3Q7IFA0KVswXQ==">
+                <path
+                  d="M 6898.500000 315.000000 C 7032.500000 315.000000 7096.500000 315.000000 7212.500000 315.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+                <text
+                  x="7057.000000"
+                  y="321.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T22 -&gt; T26
+                </text>
+              </g>
+              <g class="KFA0IC0mZ3Q7IHRhaWwpWzBd">
+                <path
+                  d="M 7565.500000 269.000000 C 7657.100098 269.000000 7702.500000 269.000000 7786.500000 269.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3056350319-3488378134)"
+                  mask="url(#d2-3056350319)"
+                />
+              </g>
+              <mask
+                id="d2-3056350319"
+                maskUnits="userSpaceOnUse"
+                x="-101"
+                y="-142"
+                width="8468"
+                height="1404"
+              >
+                <rect
+                  x="-101"
+                  y="-142"
+                  width="8468"
+                  height="1404"
+                  fill="white"
+                ></rect>
+                <rect
+                  x="1891.000000"
+                  y="593.000000"
+                  width="103"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="6430.000000"
+                  y="701.000000"
+                  width="44"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="6444.000000"
+                  y="351.000000"
+                  width="44"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="7022.000000"
+                  y="305.000000"
+                  width="70"
+                  height="21"
+                  fill="black"
+                ></rect>
+              </mask>
+            </svg>
+          </svg>
         </div>
 
-        <h2 id="tail"><span class="num">07</span>Long Tail Register (other 80%)</h2>
-        <div class="table-wrap"><table>
-          <thead><tr><th>ID</th><th>Item</th><th>Status</th></tr></thead>
-          <tbody>
-            <tr><td>FL.1</td><td>GitHub Releases for 2026-08-16/18/21 tag waves</td><td>needs gh auth check</td></tr>
-            <tr><td>FL.2</td><td>Retract-and-republish pattern doc (CONTRIBUTING.md)</td><td>open</td></tr>
-            <tr><td>FL.3</td><td>Consolidate ~49 consumer indirect dep refs</td><td>after tags</td></tr>
-            <tr><td>FL.4</td><td>.golangci.yml exclusion audit (system 20 · cqrs-lint 17 · metaengine 24 linters)</td><td>open</td></tr>
-            <tr><td>FL.5–6</td><td>iroh graph WriteOp convergence (edges replicate cross-peer)</td><td>spike + impl</td></tr>
-            <tr><td>FL.7</td><td>macOS ephemeral-PG hardware verification</td><td><span class="badge badge-low">blocked: hardware</span></td></tr>
-            <tr><td>FL.8</td><td>GitHub Actions billing</td><td><span class="badge badge-critical">blocked: user</span></td></tr>
-            <tr><td>FL.9</td><td>integration-mysql-nspawn full app run</td><td><span class="badge badge-medium">blocked: root</span></td></tr>
-            <tr><td>FL.10</td><td>go-codec F46 tag (UnwrapDecode sniff + alloc pins)</td><td><span class="badge badge-critical">blocked: user repo</span></td></tr>
-            <tr><td>FL.11</td><td>Ratify iroh P99 bound 50→150ms</td><td><span class="badge badge-medium">blocked: user decision</span></td></tr>
-            <tr><td>FL.12</td><td>Fold pre-tag checklist into tag-release.sh</td><td>open</td></tr>
-          </tbody>
-        </table></div>
+        <h2 id="tail">
+          <span class="num">07</span>Long Tail Register (other 80%)
+        </h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Item</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>FL.1</td>
+                <td>GitHub Releases for 2026-08-16/18/21 tag waves</td>
+                <td>needs gh auth check</td>
+              </tr>
+              <tr>
+                <td>FL.2</td>
+                <td>Retract-and-republish pattern doc (CONTRIBUTING.md)</td>
+                <td>open</td>
+              </tr>
+              <tr>
+                <td>FL.3</td>
+                <td>Consolidate ~49 consumer indirect dep refs</td>
+                <td>after tags</td>
+              </tr>
+              <tr>
+                <td>FL.4</td>
+                <td>
+                  .golangci.yml exclusion audit (system 20 · cqrs-lint 17 ·
+                  metaengine 24 linters)
+                </td>
+                <td>open</td>
+              </tr>
+              <tr>
+                <td>FL.5–6</td>
+                <td>
+                  iroh graph WriteOp convergence (edges replicate cross-peer)
+                </td>
+                <td>spike + impl</td>
+              </tr>
+              <tr>
+                <td>FL.7</td>
+                <td>macOS ephemeral-PG hardware verification</td>
+                <td><span class="badge badge-low">blocked: hardware</span></td>
+              </tr>
+              <tr>
+                <td>FL.8</td>
+                <td>GitHub Actions billing</td>
+                <td><span class="badge badge-critical">blocked: user</span></td>
+              </tr>
+              <tr>
+                <td>FL.9</td>
+                <td>integration-mysql-nspawn full app run</td>
+                <td><span class="badge badge-medium">blocked: root</span></td>
+              </tr>
+              <tr>
+                <td>FL.10</td>
+                <td>go-codec F46 tag (UnwrapDecode sniff + alloc pins)</td>
+                <td>
+                  <span class="badge badge-critical">blocked: user repo</span>
+                </td>
+              </tr>
+              <tr>
+                <td>FL.11</td>
+                <td>Ratify iroh P99 bound 50→150ms</td>
+                <td>
+                  <span class="badge badge-medium">blocked: user decision</span>
+                </td>
+              </tr>
+              <tr>
+                <td>FL.12</td>
+                <td>Fold pre-tag checklist into tag-release.sh</td>
+                <td>open</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
         <h2 id="risks"><span class="num">08</span>Risks &amp; Guardrails</h2>
         <div class="issue issue-critical">
           <span class="severity severity-critical">Concurrent session</span>
-          <p>A deep-full-code-review session is mid-flight and owns <code>cmd/cqrs-lint/main.go</code> +
-          <code>idempotency/sqlstore/*</code> in the working tree. Sequence Phase 0/1 after its
-          closeout or coordinate — never commit or revert its dirty files.</p>
-          <div class="where">docs/status/2026-08-27_16-09_deep-full-code-review-midflight.md</div>
+          <p>
+            A deep-full-code-review session is mid-flight and owns
+            <code>cmd/cqrs-lint/main.go</code> +
+            <code>idempotency/sqlstore/*</code> in the working tree. Sequence
+            Phase 0/1 after its closeout or coordinate — never commit or revert
+            its dirty files.
+          </p>
+          <div class="where">
+            docs/status/2026-08-27_16-09_deep-full-code-review-midflight.md
+          </div>
         </div>
         <div class="issue issue-important">
           <span class="severity severity-important">Deletion order</span>
-          <p>listing (T05) → tombstone API (T07); taskmanager (T06) → Materialize (T09);
-          view/relational (T10) → stack/ (T11); everything before the cut (T16). Each deletion:
-          build + module GOWORK=off + golden regen + CHANGELOG in the SAME task.</p>
+          <p>
+            listing (T05) → tombstone API (T07); taskmanager (T06) → Materialize
+            (T09); view/relational (T10) → stack/ (T11); everything before the
+            cut (T16). Each deletion: build + module GOWORK=off + golden regen +
+            CHANGELOG in the SAME task.
+          </p>
         </div>
         <div class="issue issue-important">
-          <span class="severity severity-important">Tags are user-authorized</span>
-          <p>T03, F16.6, FL.8/10/11 marked [USER]. Never tag/push modules without explicit
-          instruction. Local #verify runs exclusively (no concurrent integration suites).</p>
+          <span class="severity severity-important"
+            >Tags are user-authorized</span
+          >
+          <p>
+            T03, F16.6, FL.8/10/11 marked [USER]. Never tag/push modules without
+            explicit instruction. Local #verify runs exclusively (no concurrent
+            integration suites).
+          </p>
         </div>
         <div class="issue issue-nice">
-          <span class="severity severity-nice">Verschlimmbesser-Protection</span>
-          <p>This plan DELETES more than it adds — every deletion is decisioned by accepted ADRs
-          (0114/0123/0126/0127). Phase 2 is the only new surface, each track backed by an accepted
-          ADR (0116/0112/0117). The Declined list (TODO_LIST) is respected: no verify-parallel CI,
-          no Redis adapter (T22 is the sanctioned bus), no composite keys, no WaitReady.</p>
+          <span class="severity severity-nice"
+            >Verschlimmbesser-Protection</span
+          >
+          <p>
+            This plan DELETES more than it adds — every deletion is decisioned
+            by accepted ADRs (0114/0123/0126/0127). Phase 2 is the only new
+            surface, each track backed by an accepted ADR (0116/0112/0117). The
+            Declined list (TODO_LIST) is respected: no verify-parallel CI, no
+            Redis adapter (T22 is the sanctioned bus), no composite keys, no
+            WaitReady.
+          </p>
         </div>
 
-        <footer style="margin-top:48px;padding-top:16px;border-top:1px solid var(--border);color:var(--text-faint);font-size:12px">
-          Point-in-time snapshot 2026-08-27 16:18 · Living state: TODO_LIST.md · Canonical detail:
-          2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md · Harvest via docs-health after approval
+        <footer
+          style="
+            margin-top: 48px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            color: var(--text-faint);
+            font-size: 12px;
+          "
+        >
+          Point-in-time snapshot 2026-08-27 16:18 · Living state: TODO_LIST.md ·
+          Canonical detail: 2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md ·
+          Harvest via docs-health after approval
         </footer>
       </main>
     </div>
     <script>
       (function () {
-        var nav = document.querySelector('[data-nav]');
-        if (!nav || !('IntersectionObserver' in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav || !("IntersectionObserver" in window)) return;
         var links = nav.querySelectorAll('a[href^="#"]');
         var map = {};
-        links.forEach(function (l) { map[l.getAttribute('href').slice(1)] = l; });
-        var obs = new IntersectionObserver(function (entries) {
-          entries.forEach(function (e) {
-            if (e.isIntersecting) {
-              links.forEach(function (l) { l.style.color = ''; });
-              var l = map[e.target.id];
-              if (l) l.style.color = 'var(--accent)';
-            }
-          });
-        }, { rootMargin: '-40% 0px -55% 0px' });
+        links.forEach(function (l) {
+          map[l.getAttribute("href").slice(1)] = l;
+        });
+        var obs = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (e) {
+              if (e.isIntersecting) {
+                links.forEach(function (l) {
+                  l.style.color = "";
+                });
+                var l = map[e.target.id];
+                if (l) l.style.color = "var(--accent)";
+              }
+            });
+          },
+          { rootMargin: "-40% 0px -55% 0px" },
+        );
         Object.keys(map).forEach(function (id) {
           var el = document.getElementById(id);
           if (el) obs.observe(el);

@@ -94,7 +94,9 @@ func TestStatusClassifier_ClassifyLast(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if got := (listing.StatusClassifier{}).ClassifyLast(evt); got != listing.StatusUndetermined {
+		if got := (listing.StatusClassifier{}).ClassifyLast(
+			evt,
+		); got != listing.StatusUndetermined {
 			t.Errorf("zero classifier = %v, want StatusUndetermined", got)
 		}
 	})
@@ -170,7 +172,10 @@ func TestStatusClassifier_ParityWithMetadataTombstones(t *testing.T) {
 			if int(legacy) != int(tc.want) {
 				t.Errorf(
 					"legacy metadata status = %v (%d), type-driven = %v (%d): wire values must match",
-					legacy, int(legacy), tc.want, int(tc.want),
+					legacy,
+					int(legacy),
+					tc.want,
+					int(tc.want),
 				)
 			}
 		})

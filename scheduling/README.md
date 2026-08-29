@@ -51,12 +51,12 @@ func main() {
 
 ### Core Types
 
-| Symbol            | Kind      | Description                                                      |
-| ----------------- | --------- | ---------------------------------------------------------------- |
-| `Timer[P]`        | Struct    | A scheduled timer: `ID`, `FireAt`, `Payload P`. Generic payload. |
+| Symbol            | Kind      | Description                                                                                                                       |
+| ----------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `Timer[P]`        | Struct    | A scheduled timer: `ID`, `FireAt`, `Payload P`. Generic payload.                                                                  |
 | `TimerID`         | Type      | Branded type over `string` (the `id.StreamID` pattern). Construct via `MustParseTimerID`/`ParseTimerID`. Wire form: plain string. |
-| `TimerStore[P]`   | Interface | `Schedule`, `Due`, `MarkFired`, `Cancel`. Persistence boundary.  |
-| `DispatchFunc[P]` | Type      | `func(ctx, Timer[P]) error`. Called when a timer fires.          |
+| `TimerStore[P]`   | Interface | `Schedule`, `Due`, `MarkFired`, `Cancel`. Persistence boundary.                                                                   |
+| `DispatchFunc[P]` | Type      | `func(ctx, Timer[P]) error`. Called when a timer fires.                                                                           |
 
 ### Scheduler
 

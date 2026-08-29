@@ -59,7 +59,7 @@ behaviour during the Datastar adoption work.
 
 ## 2. What worked well
 
-1. **noop-first economics.** The decision to adopt was made *before* having an
+1. **noop-first economics.** The decision to adopt was made _before_ having an
    endpoint to ship spans to — possible only because unobserved spans are free.
    Consumers with "OTLP someday" roadmaps (most small services) get the
    instrumentation now and the observability later, with no re-instrumentation.

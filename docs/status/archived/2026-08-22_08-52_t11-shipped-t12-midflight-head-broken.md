@@ -6,17 +6,17 @@
 
 ## a) Fully done (verified end-to-end)
 
-1. **T10 — decider *Ref forms: DONE and gate-verified.** `ref_forms_test.go` ran green on first execution (`-race`). Fixed 8 lint findings (4 godoclint: Ref-form docs still opened with the pair-form name; 4 nolintlint: the `//nolint:staticcheck` directives were redundant — the SA1019 `removed in v5` window already covers `decider/` test files). Golden +7 exports. CHANGELOG entry (61 honest citations). Committed as `51194f811` (8 files).
+1. *_T10 — decider _Ref forms: DONE and gate-verified.__ `ref_forms_test.go` ran green on first execution (`-race`). Fixed 8 lint findings (4 godoclint: Ref-form docs still opened with the pair-form name; 4 nolintlint: the `//nolint:staticcheck` directives were redundant — the SA1019 `removed in v5` window already covers `decider/` test files). Golden +7 exports. CHANGELOG entry (61 honest citations). Committed as `51194f811` (8 files).
 2. **Gate caught a daemon-shipped compile break — root-caused and fixed.** The first `#verify-fast` went RED on `nix run .#build`: `system/register.go:122: undefined: id` — the daemon's `ed2aa7455` (last session's T10 production code) used `id.NewStreamRef` without importing `id/v4`. Fixed the import; standalone system build then failed differently (`repo.ExecuteRef undefined` — published decider v4.3.0 lacks it), fixed with the documented relative-sibling `replace decider/v4 => ../decider` until the next decider tag. System tests green standalone. The daemon committed the fix as `8c0f48ab0` before I could.
 3. **Exclusive `#verify-fast` GREEN (exit 0)** on the T09+T10+fix state — build/vet/test/race/lint/doc-check/arch/duplication/api-stability all passing. This closed the gate debt identified in the last report.
 4. **TODO_LIST T09/T10 boxes ticked** with dated gate-green annotations (`f95441eaa`).
-5. **T11 — scheduling timer branding: SHIPPED** (`82517580d`, 16 files). 
-   - `scheduling.TimerMarker` + string-backed `TimerID` (`cbid.ID[TimerMarker, string]`, the documented `id.StreamID` pattern) — **deviation from the plan's `id.Of[TimerMarker]`** (ULID-backed): timer IDs are semantic idempotency keys; ULID backing breaks every idempotent schedule/cancel. 
-   - `ParseTimerID` / `MustParseTimerID` / `ErrEmptyTimerID`. 
-   - `Timer.Actor string` → `id.ActorID` — wire-identical (zero→`""`/omitted, non-zero→`"kind:raw"`), pinned by JSON tests. 
-   - `scheduling/sqlstore`: envelope `Actor` stays a plain string with boundary conversion (`.PrefixedString()` out, `ParseActorID` in — tolerant of legacy empty); `Due` scans raw string IDs and parses; `MarkFired`/`Cancel` pass `id.String()`. All tests (incl. legacy-row decode, property, restart) green. 
-   - `storage/timer_store.go` (the re-export twin): all string concats → `.String()`; tests converted; full storage suite green. 
-   - go.mod: `id/v4` promoted indirect→direct and bumped v4.2.0→v4.5.0 (v4.2.0 predates ActorID) in scheduling; `replace scheduling => ../scheduling` added to storage. `#check-arch` green after raising `DEP_BUDGET[scheduling]` 0→2 (Tier 1→Tier 0, plan-sanctioned). 
+5. **T11 — scheduling timer branding: SHIPPED** (`82517580d`, 16 files).
+   - `scheduling.TimerMarker` + string-backed `TimerID` (`cbid.ID[TimerMarker, string]`, the documented `id.StreamID` pattern) — **deviation from the plan's `id.Of[TimerMarker]`** (ULID-backed): timer IDs are semantic idempotency keys; ULID backing breaks every idempotent schedule/cancel.
+   - `ParseTimerID` / `MustParseTimerID` / `ErrEmptyTimerID`.
+   - `Timer.Actor string` → `id.ActorID` — wire-identical (zero→`""`/omitted, non-zero→`"kind:raw"`), pinned by JSON tests.
+   - `scheduling/sqlstore`: envelope `Actor` stays a plain string with boundary conversion (`.PrefixedString()` out, `ParseActorID` in — tolerant of legacy empty); `Due` scans raw string IDs and parses; `MarkFired`/`Cancel` pass `id.String()`. All tests (incl. legacy-row decode, property, restart) green.
+   - `storage/timer_store.go` (the re-export twin): all string concats → `.String()`; tests converted; full storage suite green.
+   - go.mod: `id/v4` promoted indirect→direct and bumped v4.2.0→v4.5.0 (v4.2.0 predates ActorID) in scheduling; `replace scheduling => ../scheduling` added to storage. `#check-arch` green after raising `DEP_BUDGET[scheduling]` 0→2 (Tier 1→Tier 0, plan-sanctioned).
    - Both modules lint-clean (after golines/gofumpt fixes) and race-green. Golden +4 exports. CHANGELOG entry, changelog-symbols gate green.
 
 ## b) Partially done
@@ -30,7 +30,7 @@
 
 ## d) What I totally fucked up (honest log)
 
-1. **THE BIG ONE: left a half-edited file on disk while the daemon runs.** I replaced event.go's Type block with `record.`-referencing code and went to check imports — instead of adding the import in the same atomic edit. The daemon committed the broken intermediate as `485fc9251`. HEAD does not compile in event/. This violates the repo's own "NEVER commit code that doesn't compile" law and repeats lesson d6 from last session in a worse form: not just split work, but *shipped broken work*. The multi-part edit (type.go+test+event.go) should have been one edit+build+commit cycle per module.
+1. **THE BIG ONE: left a half-edited file on disk while the daemon runs.** I replaced event.go's Type block with `record.`-referencing code and went to check imports — instead of adding the import in the same atomic edit. The daemon committed the broken intermediate as `485fc9251`. HEAD does not compile in event/. This violates the repo's own "NEVER commit code that doesn't compile" law and repeats lesson d6 from last session in a worse form: not just split work, but _shipped broken work_. The multi-part edit (type.go+test+event.go) should have been one edit+build+commit cycle per module.
 2. **Four incremental vet-fix cycles on sqlstore tests.** My grep sweep for string literals missed comparison forms (`.ID != "x"`), table-driven `tc.id`, and differently-indented literals — each `go vet` found one more. Should have converted ALL forms by grepping for `ID` per file, or simply run vet→fix-loop consciously as one batch instead of believing each sed was the last.
 3. **Hit the documented exit-codes-after-pipes lie AGAIN, live, in this session's final check** — `go build ... 2>&1 | head -5; echo BUILD=$?` printed `BUILD=0` while `undefined: record` errors sat in the output above it. The env keeps teaching the same lesson; capture gates redirect-to-file or use `grep -c` on the log, never a post-pipe `$?`.
 4. **Changelog gate failed once on prose**: writing `cbid.ID[TimerMarker, string]` in the entry body made the symbol gate parse `cbid.ID` as a cited export ("FICTION"). Rephrased to "string-backed, the documented id.StreamID pattern". Symbol-shaped identifiers must not appear in Unreleased prose.
@@ -80,6 +80,6 @@
 
 ---
 
-*State at pause: HEAD `485fc9251` — **event/ does not compile** (daemon-committed mid-edit; fix is a one-line import, f1). T01–T11 done, T12 ~30%. Gate green on the T09/T10 state only; T11 pending gate coverage with T12. No push performed.*
+_State at pause: HEAD `485fc9251` — **event/ does not compile** (daemon-committed mid-edit; fix is a one-line import, f1). T01–T11 done, T12 ~30%. Gate green on the T09/T10 state only; T11 pending gate coverage with T12. No push performed._
 
 ---

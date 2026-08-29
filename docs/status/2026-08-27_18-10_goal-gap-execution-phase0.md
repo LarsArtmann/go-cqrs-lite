@@ -29,7 +29,7 @@
    stack/* and transport/* deliberately skipped (v5 deletes them).
    Discovered: `event/v4/eventtest/v4.0.0` + `v4.2.0` are DEAD tags (module
    path lacks /vN suffix; `go mod download` rejects them) — recorded in TODO
-   + tag plan §6.
+   - tag plan §6.
 3. **T04 — PG integration isolation (commit `5ec4b1b39`)**: storage,
    storage/relational, and benchkit migrated onto the shared
    `testutil/pgtestcontainer` helper (deleting local copies that shared ONE
@@ -114,9 +114,9 @@
    prerequisites are already done (this session).
 4. Harvest note: 7 TODO items ticked with evidence this session.
 
-*Reported 2026-08-27 ~18:10 from HEAD `c9e464eda` (verify-ci result pending
+_Reported 2026-08-27 ~18:10 from HEAD `c9e464eda` (verify-ci result pending
 below). Master ahead of origin by this session's commits — push policy
-unchanged: only on request.*
+unchanged: only on request._
 
 ---
 

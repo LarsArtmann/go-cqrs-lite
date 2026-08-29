@@ -20,6 +20,7 @@ and is **never** duplicated here.
 > Source reports now live under `docs/status/archived/`.
 
 **Metaengine**
+
 - [ ] **pgEngine/mysqlEngine `LayoutPlanApplier` + planned-layout schema evolution** — planned-table paths silently mis-type columns via name heuristics; result-type changes (new fields) are dropped, no ALTER TABLE ADD COLUMN. SQLite/DuckDB appliers exist.
       _(Effort: M)_ — sources: status 2026-08-02_21-18/22-17
 - [ ] **DuckDB counter SQL pushdown** — `CounterGet` loads all rows into a Go map, `CounterIncrement` iterates deltas one-by-one; use SQL COUNT + batch INSERT. Unify `appendDuckDBFilter` vs `writeWhereOrAnd`.
@@ -42,6 +43,7 @@ and is **never** duplicated here.
       _(Effort: XS)_ — source: status 2026-08-16_21-22
 
 **Storage / SQL**
+
 - [ ] **SQL-injection hardening tail** — `storage/sql` ORDER BY interpolates `TimestampColumn` (journal_reader.go:77,220) without `ValidateIdentifier`; extend fuzz to multi-condition ops; persist corpus; gosec + nightly fuzz CI.
       _(Effort: S)_ — source: status 2026-08-16_14-54
 - [x] **`ScanSlice` pre-size** — DONE 2026-08-29 (plan V3 T06): optional capacity hint on `ScanSlice`; `JournalReader` threads its bounded limit (capped 4096) into the drain-path scans; benchmark added.
@@ -56,6 +58,7 @@ and is **never** duplicated here.
       _(Effort: S)_ — source: status 2026-08-08_01-39
 
 **Docs / tooling**
+
 - [ ] **Engine READMEs** — mysql/sqlite/turso/badger engines have none; pebble engine.go:7 stale "Graph: O(N^d) BFS" comment; pgengine meta_vector + mysqlengine LayoutPlanner rows missing.
       _(Effort: S)_ — sources: status 2026-08-16_18-09/22-50
 - [ ] **CHANGELOG unreleased-block fold** — `[Unreleased — earlier 2026-08-16 work]` (CHANGELOG.md:1451) still separate from the top block.
@@ -78,7 +81,12 @@ and is **never** duplicated here.
       _(Effort: S)_ — source: status 2026-08-16_18-06
 - [ ] **Consumer asks (feedback)** — first-class snapshot encryption (encrypted snapshot store + rotation; only codec-composition workaround today, encryption/codec.go:30); `retry.DoWithValue[T]` in external go-retry; OTel exporter-lifecycle/shutdown-flush doc example.
       _(Effort: S each)_ — sources: feedback 2026-07-17/2026-08-21
-- [ ] **Design questions** — ULID sharded entropy (global Monotonic reader serializes process-wide); Pebble calibration basis (flush-only vs post-Compact ratio); command.Bus/MemoryBus removal evaluation (v5 candidate, command/bus.go).
+- [x] **Design questions** — RESOLVED 2026-08-29 (plan V3 T40):
+      (1) ULID entropy: already implemented as the lock-free epoch design —
+      documented as accepted in ADR-0131 (id/entropy.go);
+      (2) Pebble calibration basis: post-Flush/pre-Compact chosen and
+      documented in ADR-0132 (bench comment figure also corrected to 43–46);
+      (3) command.Bus/MemoryBus removal: DECLINED — see Declined section.
       _(Effort: S)_ — sources: status 2026-08-16_17-39/14-44, 2026-08-03_20-30
 - [ ] **Env**: /mnt/buildcache re-broken 2026-08-29 (golangci cache mkdir fails) — /tmp cache redirects required again until repaired.
       _(Effort: XS, environment)_
@@ -258,6 +266,7 @@ and is **never** duplicated here.
       _(Effort: M)_ — 2026-08-16: static review done (portability note added
       to the script header; no Linux-isms found, /dev/kvm check
       uname-guarded); hardware verification on a real Mac remains open.
+
 ---
 
 ---
@@ -274,6 +283,7 @@ and is **never** duplicated here.
       increased"; broken since ~2026-07-17. Local `nix run .#verify` remains
       the authoritative gate until billing is restored. _(Effort: S, user
       action: Billing & plans settings)_
+
 ---
 
 ## v5 Unification (Phase 8: Deletion + Cut)
@@ -411,7 +421,8 @@ and is **never** duplicated here.
 >
 > Every PR below lands additive-first with `Deprecated: removed in v5`
 > markers on what it supersedes, api-stability golden regen + `#verify-fast`
-> + CHANGELOG `[Unreleased]` entry in the same change.
+>
+> - CHANGELOG `[Unreleased]` entry in the same change.
 
 - [ ] **v5 items from extended review** — E1 (event-envelope Encoding →
       `record.Encoding`), E7 (watermill/middleware RetryConfig collision),
@@ -427,6 +438,7 @@ and is **never** duplicated here.
       new conventions (validating-population pattern, capability-interface
       rule) once the PRs land (plan T25).
       _(Effort: S)_
+
 ### Deep Full-Code Review (2026-08-27) — follow-ups
 
 > 9 fixes landed inline (E3/E9/E10 + decider poll-clamp/WithoutCancel/
@@ -639,6 +651,14 @@ and is **never** duplicated here.
 ---
 
 ## Declined / Rejected (do not re-litigate)
+
+- **command.Bus / MemoryBus removal (v5 candidate)** — DECLINED 2026-08-29
+  (plan V3 T40): the in-process bus is 47 lines, is the delivery mechanism
+  for the documented saga/example flows, and complements rather than
+  competes with `watermill/` (brokers for multi-process topologies).
+  Removing it would break examples and the saga pattern for zero
+  simplification. Re-evaluate only if the saga pattern moves to a dedicated
+  orchestration module.
 
 > Full rationale in the linked ADRs/reviews.
 

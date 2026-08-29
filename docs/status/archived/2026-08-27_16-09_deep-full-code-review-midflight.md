@@ -15,22 +15,25 @@ uncommitted (auto-commit daemon already took the rest).
 ## a) FULLY DONE ✅
 
 ### Orientation (S0 prep)
+
 - Repo stats: **2,375 Go files / 382,322 lines / 82 modules**; load average noted elevated (6.7).
 - Read prior reviews (system 2026-08-16, core+extended data-model 2026-08-22), TODO_LIST open
   items (42 open), recent history. Confirmed tree clean at start.
-- Established that the *un-reviewed surface* is: decider internals, Tier 2–3 utilities,
+- Established that the _un-reviewed surface_ is: decider internals, Tier 2–3 utilities,
   Tier 4 storage cores, metaengine core, tooling/examples.
 
 ### Pareto plan artifact (S0)
+
 - `docs/planning/2026-08-27_15-10_deep-full-code-review.d2` + rendered SVG.
 - `docs/planning/2026-08-27_15-10_DEEP-FULL-CODE-REVIEW-PARETO.html` — self-contained,
   template-derived (fixed my own duplicated `</head>` seam bug during assembly), 19-task
   table, D2 graph inlined, risks section.
 
 ### Gate baseline (S0) — **2 real failures found AND fixed**
-| Failure | Root cause | Fix |
-|---|---|---|
-| `cmd/cqrs-lint` `TestVersionMatchesLatestTag` RED | v4.7.0 tag (2026-08-21) was cut while `const version` still read `4.6.0` — the stranded-tag-chain drift class | Bumped constant to `4.7.0` + explanatory comment; test PASS again |
+
+| Failure                                                           | Root cause                                                                                                                                                                                        | Fix                                                                                                                   |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `cmd/cqrs-lint` `TestVersionMatchesLatestTag` RED                 | v4.7.0 tag (2026-08-21) was cut while `const version` still read `4.6.0` — the stranded-tag-chain drift class                                                                                     | Bumped constant to `4.7.0` + explanatory comment; test PASS again                                                     |
 | `idempotency/sqlstore` `TestProperty_SQLiteTTLExpiry` rapid-flake | non-race TTL margin 10ms too tight under full-gate parallel load — goroutine descheduled past expiry between `Record` and immediate `Seen` (legit expiry, not a logic bug; 3× green in isolation) | Widened non-race margins 10ms/50ms → 50ms/250ms with rationale comment; trashed the unreproducible stale `.fail` seed |
 
 Environment note: `/mnt/buildcache` is a **dead automount** (`no such device`) — session env
@@ -40,6 +43,7 @@ GOPATH=/tmp/gopath-verify GOLANGCI_LINT_CACHE=/tmp/golangci-lint-cache). The LSP
 golangci-lint errors seen all session are this, not code.
 
 ### Prior-review debt fixed (S2–S4) — all three verified, tests green
+
 1. **E3 — bbolt error-family parity**: `command_serialization.go`/`query_serialization.go`
    bare `fmt.Errorf` → `errorfamily.WrapCorruption` with codes
    (`bbolt.serialize_command`, `bbolt.reconstruct_command`, `bbolt.serialize_query`,
@@ -54,6 +58,7 @@ golangci-lint errors seen all session are this, not code.
    the golden-same-edit contract.
 
 ### Tier 0–1 deep review (S5–S8) — every file read, verdicts:
+
 - **record/** — exemplary. Noted accepted edge: `NewStamp(time.Time{})` yields a known stamp
   that JSON round-trips to unknown (documented epoch-vs-unknown tradeoff; no production use).
 - **id/** — exemplary. Lock-free monotonic ULID entropy is genuinely excellent (documented
@@ -77,6 +82,7 @@ golangci-lint errors seen all session are this, not code.
   than a silent semantic change.
 
 ### Smell sweeps (partial S1)
+
 - **Panic audit**: every non-test `panic(` is a documented `Must*` constructor or
   composition-time guard — zero-panic discipline holds (the 2026-06 program worked).
 - **TODO/FIXME audit**: production code is essentially clean (only rule-doc mentions in
@@ -139,7 +145,7 @@ golangci-lint errors seen all session are this, not code.
 
 1. **Env check before gates**: `df /mnt/buildcache` / `env | grep GO` should be step 0; the
    dead mount silently poisons every gate and the LSP.
-2. **Race-verify discipline**: run `-race -count=3` on touched modules *before* the daemon
+2. **Race-verify discipline**: run `-race -count=3` on touched modules _before_ the daemon
    can commit them — the daemon makes "verify later" a lie.
 3. **Review-completeness tracking**: a per-module checklist file would have prevented the
    kv/ miss.
@@ -153,6 +159,7 @@ golangci-lint errors seen all session are this, not code.
 ## f) NEXT — up to 50 items (Pareto-ordered)
 
 **Verify-first (do before any more edits):**
+
 1. Re-run full `nix run .#verify` with /tmp caches → GREEN (both fixes proven).
 2. `scheduling`, `sqlstore`, `system`, `bbolt`, `turso`: `go test -count=3 -race` each.
 3. `nix fmt` check on all touched files.
@@ -169,7 +176,7 @@ golangci-lint errors seen all session are this, not code.
 12. commandlifecycle/ + projections (ADR-0117: DLQ, retry, failure log).
 13. projectionhost/ — crash-restart, DLQ, checkpoint (6.5K lines, high value).
 14. metaengine core: planner, calibration, routing, latency model, fold, adttest/enginetest
-    contracts (skip engines — dep-isolated by design).
+contracts (skip engines — dep-isolated by design).
 
 **Tier 4–6 spot review:**
 15. storage/memory LogStore generic core (ADR-0126 shared mechanics — every backend inherits).
@@ -195,13 +202,13 @@ golangci-lint errors seen all session are this, not code.
 
 **Report + harvest:**
 33. Write `docs/reviews/2026-08-27_16-09_full-code-review.html` (stat cards, badge tables,
-    per-module verdicts, all findings with file:line).
+per-module verdicts, all findings with file:line).
 34. TODO_LIST: tick E3/E9/E10; add ReadPressure bound, command/query error-style drift,
-    Stamp zero-time round-trip, cqrs-lint version-bump automation.
+Stamp zero-time round-trip, cqrs-lint version-bump automation.
 35. CHANGELOG [Unreleased] entries for the 9 fixes (symbols must match golden).
 36. Update AGENTS.md: dead /mnt/buildcache still true on 2026-08-27; env-redirect step 0.
 37. Skill refs (`.agents/skills/go-cqrs-lite/references/*.md`) — check if E10's new sentinel
-    or scheduling ordering needs doc updates; run doc-check.
+or scheduling ordering needs doc updates; run doc-check.
 38. Quiet-window calibration bench (TODO_LIST already tracks) — needed for honest numbers.
 
 **Known-open items I noticed but did not touch (already in TODO_LIST):**
@@ -209,7 +216,7 @@ golangci-lint errors seen all session are this, not code.
 40. PG integration test isolation under explicit DSN (tracked).
 41. GitHub Actions billing blocked on user (tracked).
 42. wave-4 tag batch blocked on user authorization (my E-fixes + ordering fix are candidates
-    to ride that wave).
+to ride that wave).
 43. `.golangci.yml` system/ exclusion audit (tracked).
 44. macOS verification of ephemeral PG (tracked).
 45. v5 deprecation sweep census (tracked; my findings feed it).
@@ -237,4 +244,4 @@ golangci-lint errors seen all session are this, not code.
 
 ---
 
-*Point-in-time snapshot. Unfixed findings live in TODO_LIST.md after harvest, not here.*
+_Point-in-time snapshot. Unfixed findings live in TODO_LIST.md after harvest, not here._

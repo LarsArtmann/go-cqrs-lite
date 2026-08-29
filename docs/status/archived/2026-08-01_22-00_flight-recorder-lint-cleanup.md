@@ -8,23 +8,23 @@
 
 ## a) FULLY DONE
 
-| #  | Item                                                                                                                                                              | Verification                          |
-| -- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| 1  | **Renamed `captureLocked`/`captureToFileLocked`** → `capture`/`captureToFile`                                                                                     | Build + tests pass ✓                  |
-| 2  | **Split `stack/options.go`** (354→334 lines) — moved `WithDiskSize` + `DiskSize()` to `accessors.go`                                                              | Build + stack tests pass ✓            |
-| 3  | **Updated `flightrecorder/README.md`** — `Close()` instead of `Stop()`, `ErrAlreadyEnabled`, `SnapshotToFile(ctx, path)`, lifecycle table, snapshot methods table | Content verified ✓                    |
-| 4  | **Fixed struct field alignment** — gofumpt aligned `flightRecorder`/`flightRecorderTrigger` in decider + projectionhost                                           | `nix fmt` clean ✓                     |
-| 5  | **Ran `gofumpt -w` + `goimports -w`** on all modified files                                                                                                       | No diff after formatting ✓            |
-| 6  | **Ran `nix fmt`** twice (whole repo) — 11 files changed first run, 2 second run, 0 third                                                                          | Clean ✓                               |
-| 7  | **Ran `nix run .#verify`** — found 1 race condition in my code + ~~pre-existing metaengine failures~~ **CORRECTION (2026-08-29):** fixed same night in the 22-39 session; verify GREEN.                                                                 | Race fixed, verify re-run ✓           |
-| 8  | **Fixed projectionhost race condition** — moved `captureFlightRecorder` before `setStatus(WorkerFailed)` so snapshot completes before test observes status        | Stable across 10× `-count=10 -race` ✓ |
-| 9  | **Fixed all lint issues in flightrecorder** (10→0) — sentinel errors for err113, wrapped `os.Create` for wrapcheck, gosec nolint                                  | `nix run .#lint`: 0 issues ✓          |
-| 10 | **Fixed all lint issues in decider** (2→0) — moved `//nolint:nonamedreturns` to directive position above func                                                     | `nix run .#lint`: 0 issues ✓          |
-| 11 | **Fixed all lint issues in projectionhost** (3→0) — passed `ctx` parameter (contextcheck), renamed `fr`→`recorder` (varnamelen), exhaustruct nolint               | `nix run .#lint`: 0 issues ✓          |
-| 12 | **Fixed all lint issues in middleware** (1→0) — inline nolint for named return                                                                                    | `nix run .#lint`: 0 issues ✓          |
-| 13 | **Regenerated API surface golden** (3122→3161 exports — metaengine exported new symbols from pre-existing changes)                                                | `api-stability`: 3161 OK ✓            |
-| 14 | **All flight recorder tests pass** with `-race` across flightrecorder, decider, projectionhost, middleware, stack                                                 | Full test run ✓                       |
-| 15 | **Coverage maintained at 91.7%**                                                                                                                                  | `go test -cover` ✓                    |
+| #  | Item                                                                                                                                                                                    | Verification                          |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| 1  | **Renamed `captureLocked`/`captureToFileLocked`** → `capture`/`captureToFile`                                                                                                           | Build + tests pass ✓                  |
+| 2  | **Split `stack/options.go`** (354→334 lines) — moved `WithDiskSize` + `DiskSize()` to `accessors.go`                                                                                    | Build + stack tests pass ✓            |
+| 3  | **Updated `flightrecorder/README.md`** — `Close()` instead of `Stop()`, `ErrAlreadyEnabled`, `SnapshotToFile(ctx, path)`, lifecycle table, snapshot methods table                       | Content verified ✓                    |
+| 4  | **Fixed struct field alignment** — gofumpt aligned `flightRecorder`/`flightRecorderTrigger` in decider + projectionhost                                                                 | `nix fmt` clean ✓                     |
+| 5  | **Ran `gofumpt -w` + `goimports -w`** on all modified files                                                                                                                             | No diff after formatting ✓            |
+| 6  | **Ran `nix fmt`** twice (whole repo) — 11 files changed first run, 2 second run, 0 third                                                                                                | Clean ✓                               |
+| 7  | **Ran `nix run .#verify`** — found 1 race condition in my code + ~~pre-existing metaengine failures~~ **CORRECTION (2026-08-29):** fixed same night in the 22-39 session; verify GREEN. | Race fixed, verify re-run ✓           |
+| 8  | **Fixed projectionhost race condition** — moved `captureFlightRecorder` before `setStatus(WorkerFailed)` so snapshot completes before test observes status                              | Stable across 10× `-count=10 -race` ✓ |
+| 9  | **Fixed all lint issues in flightrecorder** (10→0) — sentinel errors for err113, wrapped `os.Create` for wrapcheck, gosec nolint                                                        | `nix run .#lint`: 0 issues ✓          |
+| 10 | **Fixed all lint issues in decider** (2→0) — moved `//nolint:nonamedreturns` to directive position above func                                                                           | `nix run .#lint`: 0 issues ✓          |
+| 11 | **Fixed all lint issues in projectionhost** (3→0) — passed `ctx` parameter (contextcheck), renamed `fr`→`recorder` (varnamelen), exhaustruct nolint                                     | `nix run .#lint`: 0 issues ✓          |
+| 12 | **Fixed all lint issues in middleware** (1→0) — inline nolint for named return                                                                                                          | `nix run .#lint`: 0 issues ✓          |
+| 13 | **Regenerated API surface golden** (3122→3161 exports — metaengine exported new symbols from pre-existing changes)                                                                      | `api-stability`: 3161 OK ✓            |
+| 14 | **All flight recorder tests pass** with `-race` across flightrecorder, decider, projectionhost, middleware, stack                                                                       | Full test run ✓                       |
+| 15 | **Coverage maintained at 91.7%**                                                                                                                                                        | `go test -cover` ✓                    |
 
 ---
 

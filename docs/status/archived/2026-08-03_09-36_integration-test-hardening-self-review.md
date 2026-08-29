@@ -81,15 +81,15 @@
 
 ### Critical (blocking trust)
 
-| # | Task                                                                                               | Effort |
-| - | -------------------------------------------------------------------------------------------------- | ------ |
-| 1 | Investigate and clean up uncommitted working tree — decide which daemon changes to keep vs discard | 10min  |
-| 2 | Run `nix run .#integration-all` to verify the aggregator app works                                 | 5min   |
-| 3 | Run `nix run .#verify-integration` to verify the composite gate works                              | 5min   |
-| 4 | Fix ~~gocyclo warning~~ **CORRECTION (2026-08-29):** fixed same day via executePointLookup/executeMembership extraction. on `executeQueryInner` (complexity 31)                                         | 10min  |
-| 5 | Add `**/testdata/rapid/*.fail` to `.gitignore`                                                     | 2min   |
-| 6 | Push 29 commits to `origin/master` (requires user approval)                                        | 1min   |
-| 7 | Investigate which storage integration tests fail under ephemeral PG                                | 15min  |
+| # | Task                                                                                                                                                            | Effort |
+| - | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1 | Investigate and clean up uncommitted working tree — decide which daemon changes to keep vs discard                                                              | 10min  |
+| 2 | Run `nix run .#integration-all` to verify the aggregator app works                                                                                              | 5min   |
+| 3 | Run `nix run .#verify-integration` to verify the composite gate works                                                                                           | 5min   |
+| 4 | Fix ~~gocyclo warning~~ **CORRECTION (2026-08-29):** fixed same day via executePointLookup/executeMembership extraction. on `executeQueryInner` (complexity 31) | 10min  |
+| 5 | Add `**/testdata/rapid/*.fail` to `.gitignore`                                                                                                                  | 2min   |
+| 6 | Push 29 commits to `origin/master` (requires user approval)                                                                                                     | 1min   |
+| 7 | Investigate which storage integration tests fail under ephemeral PG                                                                                             | 15min  |
 
 ### High value
 

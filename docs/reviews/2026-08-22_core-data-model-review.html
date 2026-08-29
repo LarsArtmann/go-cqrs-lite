@@ -268,15 +268,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
 
       .issue {
@@ -288,15 +300,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue h3 {
         margin-bottom: 0.3rem;
@@ -832,13 +856,13 @@
         <!-- ================= CURRENT STATE ================= -->
         <h2 id="current-state"><span class="num">01</span>Current State</h2>
         <p>
-          Scope: the <strong>core data model</strong> — the types every
-          consumer imports and every module builds on.
-          <code>id/</code>, <code>record/</code>, <code>metadata/</code>,
-          <code>event/</code>, <code>command/</code>, <code>query/</code>,
-          <code>decider/</code>, <code>snapshot/</code>, <code>kv/</code>,
-          <code>listing/</code>, <code>graph/</code>,
-          <code>scheduling/</code>. Roughly 45 types were read in full.
+          Scope: the <strong>core data model</strong> — the types every consumer
+          imports and every module builds on. <code>id/</code>,
+          <code>record/</code>, <code>metadata/</code>, <code>event/</code>,
+          <code>command/</code>, <code>query/</code>, <code>decider/</code>,
+          <code>snapshot/</code>, <code>kv/</code>, <code>listing/</code>,
+          <code>graph/</code>, <code>scheduling/</code>. Roughly 45 types were
+          read in full.
         </p>
 
         <div class="stat-grid">
@@ -870,21 +894,42 @@
 
         <p>The model graph, as it exists today:</p>
 
-        <div class="dep-tree"><span class="dim">Tier 0 —</span>  id/        StreamID · StreamType · StreamRef<span class="unwanted">{}struct</span> · ActorID · Of[T]
-<span class="dim">Tier 0 —</span>  record/    Record · CommonMetadata · StreamRef<span class="unwanted">"Type/ID" string</span>
-<span class="dim">Tier 1 —</span>  metadata/  Tracing · Metadata[K]
-<span class="dim">Tier 1 —</span>  event/     ImmutableEvent · Metadata<span class="unwanted">own struct</span> · Version · Tombstone* · Causation*
-<span class="dim">Tier 1 —</span>  command/   Command · BasicCommand · PersistedCommand · StreamRef<span class="dim">=id.StreamRef</span>
-<span class="dim">Tier 1 —</span>  query/     Query · PersistedQuery · Pagination · PaginatedResult[T]
-<span class="dim">Tier 1 —</span>  scheduling/ Timer[P] · TimerID<span class="unwanted">=string</span>
-<span class="dim">Tier 2 —</span>  snapshot/  Snapshot<span class="unwanted">public fields · old wire tags</span>
-<span class="dim">Tier 0 —</span>  kv/        Store · Reader · Writer · Batch · Iterator
-<span class="dim">Tier 3 —</span>  listing/   StreamListing · Page[T] · TombstonePolicy
-<span class="dim">Tier 3 —</span>  graph/     NodeRef · EdgeRef · GraphSink · GraphDriver
-<span class="dim">Tier 3 —</span>  decider/   Decider[State] · Repository[State]
+        <div class="dep-tree">
+          <span class="dim">Tier 0 —</span> id/ StreamID · StreamType ·
+          StreamRef<span class="unwanted">{}struct</span> · ActorID · Of[T]
+          <span class="dim">Tier 0 —</span> record/ Record · CommonMetadata ·
+          StreamRef<span class="unwanted">"Type/ID" string</span>
+          <span class="dim">Tier 1 —</span> metadata/ Tracing · Metadata[K]
+          <span class="dim">Tier 1 —</span> event/ ImmutableEvent ·
+          Metadata<span class="unwanted">own struct</span> · Version ·
+          Tombstone* · Causation* <span class="dim">Tier 1 —</span> command/
+          Command · BasicCommand · PersistedCommand · StreamRef<span class="dim"
+            >=id.StreamRef</span
+          >
+          <span class="dim">Tier 1 —</span> query/ Query · PersistedQuery ·
+          Pagination · PaginatedResult[T]
+          <span class="dim">Tier 1 —</span> scheduling/ Timer[P] · TimerID<span
+            class="unwanted"
+            >=string</span
+          >
+          <span class="dim">Tier 2 —</span> snapshot/ Snapshot<span
+            class="unwanted"
+            >public fields · old wire tags</span
+          >
+          <span class="dim">Tier 0 —</span> kv/ Store · Reader · Writer · Batch
+          · Iterator <span class="dim">Tier 3 —</span> listing/ StreamListing ·
+          Page[T] · TombstonePolicy <span class="dim">Tier 3 —</span> graph/
+          NodeRef · EdgeRef · GraphSink · GraphDriver
+          <span class="dim">Tier 3 —</span> decider/ Decider[State] ·
+          Repository[State]
 
-<span class="dim">Bridges:</span>  event/command/query .AsRecord()  →  record.Record
-<span class="unwanted">3 stream-identity shapes · 3 metadata hierarchies · 2 causation homes</span></div>
+          <span class="dim">Bridges:</span> event/command/query .AsRecord() →
+          record.Record
+          <span class="unwanted"
+            >3 stream-identity shapes · 3 metadata hierarchies · 2 causation
+            homes</span
+          >
+        </div>
 
         <!-- ================= STRENGTHS ================= -->
         <h2 id="strengths"><span class="num">02</span>Strengths</h2>
@@ -899,10 +944,10 @@
               <strong>id.ActorID — a model branded type</strong>
               <span
                 >Unexported fields, kind-discriminated constructors
-                (<code>NewUserActor</code>, <code>NewSystemActor</code>&hellip;),
-                parse round-trip, self-describing wire format. Exactly the
-                struct-wrapper pattern the rest of the model should
-                follow.</span
+                (<code>NewUserActor</code>,
+                <code>NewSystemActor</code>&hellip;), parse round-trip,
+                self-describing wire format. Exactly the struct-wrapper pattern
+                the rest of the model should follow.</span
               >
             </div>
           </div>
@@ -945,8 +990,8 @@
             <div class="text">
               <strong>query.Pagination &amp; listing.Page[T]</strong>
               <span
-                ><code>uint</code> fields make negative pages
-                unrepresentable; cursor-based <code>Page[T]</code> with
+                ><code>uint</code> fields make negative pages unrepresentable;
+                cursor-based <code>Page[T]</code> with
                 <code>HasMore</code> honestly avoids stale
                 <code>TotalCount</code> on append-only logs.</span
               >
@@ -958,9 +1003,9 @@
               <strong>Capability-segregated stores</strong>
               <span
                 >Sink/Source/Journal/SeekableJournal/StreamingJournal split
-                means stores implement only what they can honestly provide —
-                the middleware discovers capabilities via type assertion
-                (ADR-0126), never via dropped interfaces.</span
+                means stores implement only what they can honestly provide — the
+                middleware discovers capabilities via type assertion (ADR-0126),
+                never via dropped interfaces.</span
               >
             </div>
           </div>
@@ -1019,9 +1064,7 @@
               <tr>
                 <td>P6</td>
                 <td><span class="badge badge-high">High</span></td>
-                <td>
-                  Under-powered interfaces force duck-typed workarounds
-                </td>
+                <td>Under-powered interfaces force duck-typed workarounds</td>
                 <td>command/, query/</td>
               </tr>
               <tr>
@@ -1075,14 +1118,14 @@
             The same concept — <em>which stream does this belong to</em> — has
             three shapes: <code>id.StreamRef</code> (struct
             <code>{Type, ID}</code>, <code>":"</code> separator),
-            <code>record.StreamRef</code> (string
-            <code>"Type/EntityID"</code>, <code>"/"</code> separator), and
-            unbundled <code>(streamID, streamType)</code> parameter pairs
+            <code>record.StreamRef</code> (string <code>"Type/EntityID"</code>,
+            <code>"/"</code> separator), and unbundled
+            <code>(streamID, streamType)</code> parameter pairs
             (<code>event.New</code>, <code>Decider.Execute</code>,
             <code>BasicCommand</code> carries only the ID). Same name, two
             types, two separators. Every <code>AsRecord</code> adapter
-            re-marshals between them; every consumer must learn which
-            convention each API speaks.
+            re-marshals between them; every consumer must learn which convention
+            each API speaks.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
@@ -1108,10 +1151,10 @@
             IPAddress + UserAgent + <code>*TombstoneMark</code> +
             <code>*Causation</code> + Custom), and
             <code>record.CommonMetadata</code> (plain strings). Conversion
-            helpers (<code>BrandedString</code>, <code>ActorString</code>)
-            with documented <em>precedence rules</em> compensate at runtime for
-            what the types cannot express. Runtime precedence rules are the
-            smell: two fields claiming one concept.
+            helpers (<code>BrandedString</code>, <code>ActorString</code>) with
+            documented <em>precedence rules</em> compensate at runtime for what
+            the types cannot express. Runtime precedence rules are the smell:
+            two fields claiming one concept.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
@@ -1124,28 +1167,33 @@
         <div class="issue issue-important">
           <span class="severity severity-important">High · P3</span>
           <h3>record.CommonMetadata is stringly-typed</h3>
-          <div class="where">record/record.go:26-59 · scheduling/store.go:46</div>
+          <div class="where">
+            record/record.go:26-59 · scheduling/store.go:46
+          </div>
           <p>
             <code>CorrelationID string</code>, <code>CausationID string</code>,
             <code>ActorID string</code> — while <code>metadata.Tracing</code>
             brands the same concepts. The zero-dependency constraint on
             <code>record/</code> forced the downgrade, and
-            <code>ActorString</code> then smuggles the discriminated actor
-            union through a <code>"kind:raw"</code> string. Every consumer
-            pays a parse tax to recover type information the sender already
-            had. <code>scheduling.Timer.Actor</code> repeats the same escape.
+            <code>ActorString</code> then smuggles the discriminated actor union
+            through a <code>"kind:raw"</code> string. Every consumer pays a
+            parse tax to recover type information the sender already had.
+            <code>scheduling.Timer.Actor</code> repeats the same escape.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Zero-dep does not mean stringly: structural branded mirrors
-            (<code>record.Actor{Kind, Raw}</code>) keep the dep count at zero
-            while making the union explicit at the type level.
+            Zero-dep does not mean stringly: structural branded mirrors (<code
+              >record.Actor{Kind, Raw}</code
+            >) keep the dep count at zero while making the union explicit at the
+            type level.
           </div>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">High · P4</span>
-          <h3>Optional state as pointers &amp; zero values; two causation homes</h3>
+          <h3>
+            Optional state as pointers &amp; zero values; two causation homes
+          </h3>
           <div class="where">
             event/metadata.go:15-16 · event/causality.go:13 ·
             metadata/metadata.go:17-18
@@ -1157,8 +1205,8 @@
             <code>Tracing.CausationID</code> and
             <code>Metadata.Causation.CommandID</code> —
             <code>event.AsRecord</code> arbitrates between them with a
-            documented 3-step precedence rule. Presence-as-nil plus
-            duplicate homes means every reader must know the arbitration.
+            documented 3-step precedence rule. Presence-as-nil plus duplicate
+            homes means every reader must know the arbitration.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
@@ -1179,18 +1227,18 @@
             <code>AsRecord</code> silently discards
             <code>EventID</code>/<code>CommandID</code>. It has no encoding
             field either, so the library's flagship self-describing-payload
-            property (<code>evt.Encoding()</code>) is lost crossing the
-            bridge. <code>Record.Version int64</code> vs
+            property (<code>evt.Encoding()</code>) is lost crossing the bridge.
+            <code>Record.Version int64</code> vs
             <code>event.Version uint64</code> makes negative positions
-            representable in the base type. And the stream type is stored
-            twice: embedded inside the <code>StreamRef</code> string
-            <em>and</em> in the <code>StreamType</code> field.
+            representable in the base type. And the stream type is stored twice:
+            embedded inside the <code>StreamRef</code> string <em>and</em> in
+            the <code>StreamType</code> field.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            <code>Record</code> gains <code>ID</code> and
-            <code>Encoding</code>, uses <code>uint64</code> for version, and
-            holds one <code>Stream{Type, EntityID}</code> struct.
+            <code>Record</code> gains <code>ID</code> and <code>Encoding</code>,
+            uses <code>uint64</code> for version, and holds one
+            <code>Stream{Type, EntityID}</code> struct.
           </div>
         </div>
 
@@ -1198,25 +1246,26 @@
           <span class="severity severity-important">High · P6</span>
           <h3>Under-powered interfaces force duck-typed workarounds</h3>
           <div class="where">
-            command/command.go:34-38 · query/query.go:30-32 · query/audit.go:86,114
+            command/command.go:34-38 · query/query.go:30-32 ·
+            query/audit.go:86,114
           </div>
           <p>
-            <code>command.Command</code> exposes
-            <code>Type/StreamID/ID</code> — but both implementations also have
-            <code>Metadata()</code>, which the interface omits. Code holding a
-            <code>Command</code> cannot read metadata without a type
-            assertion; <code>query/audit.go</code> already declares two inline
+            <code>command.Command</code> exposes <code>Type/StreamID/ID</code> —
+            but both implementations also have <code>Metadata()</code>, which
+            the interface omits. Code holding a <code>Command</code> cannot read
+            metadata without a type assertion;
+            <code>query/audit.go</code> already declares two inline
             <code>type metadatable interface{...}</code> duck types to
-            compensate. <code>Decider.Execute(ctx, streamID, streamType,
-            decide)</code> takes the identity pair while
-            <code>Store.Save</code> takes a ref — two conventions for one
-            concept, in the same call chain.
+            compensate.
+            <code>Decider.Execute(ctx, streamID, streamType, decide)</code>
+            takes the identity pair while <code>Store.Save</code> takes a ref —
+            two conventions for one concept, in the same call chain.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
             Grow <code>Command</code>/<code>Query</code> with the
-            <code>Metadata()</code> accessor both implementations already
-            carry; <code>Execute</code> takes <code>id.StreamRef</code>.
+            <code>Metadata()</code> accessor both implementations already carry;
+            <code>Execute</code> takes <code>id.StreamRef</code>.
           </div>
         </div>
 
@@ -1242,7 +1291,9 @@
 
         <div class="issue issue-nice">
           <span class="severity severity-important">Medium · P8</span>
-          <h3>Aggregate-era vocabulary survives in aliases &amp; wire formats</h3>
+          <h3>
+            Aggregate-era vocabulary survives in aliases &amp; wire formats
+          </h3>
           <div class="where">
             36 deprecated aliases across id/, command/, event/, query/,
             listing/, snapshot/ · snapshot/store.go:12-13
@@ -1258,8 +1309,8 @@
           </p>
           <div class="callout callout-warning">
             <strong>Watch out</strong>
-            Wire tags and error codes are consumer-visible contracts — they
-            need a migration plan, not a search-and-replace.
+            Wire tags and error codes are consumer-visible contracts — they need
+            a migration plan, not a search-and-replace.
           </div>
         </div>
 
@@ -1273,8 +1324,7 @@
             <code>Undetermined</code>. Inside a mark, only
             <code>Tombstoned</code> and <code>Active</code> (rebirth) are
             meaningful: an illegal state is representable. The whole path is
-            deprecated (ADR-0114), which makes this a
-            fix-by-deletion.
+            deprecated (ADR-0114), which makes this a fix-by-deletion.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
@@ -1290,11 +1340,12 @@
           <p>
             Public mutable fields, no constructor, no invariant enforcement
             (<code>State</code> may be nil, <code>Version</code> may be 0) —
-            inconsistent with <code>ImmutableEvent</code>'s discipline one
-            tier up. JSON tags name fields the struct no longer has
-            (<code>"aggregateId"</code> for <code>StreamID</code>). Snapshot
-            payloads are also not self-describing: no codec stamp, unlike
-            events.
+            inconsistent with <code>ImmutableEvent</code>'s discipline one tier
+            up. JSON tags name fields the struct no longer has (<code
+              >"aggregateId"</code
+            >
+            for <code>StreamID</code>). Snapshot payloads are also not
+            self-describing: no codec stamp, unlike events.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
@@ -1308,8 +1359,8 @@
           <h3>TimerID unbranded; Timer.Actor is a wire-format string</h3>
           <div class="where">scheduling/store.go:10, 46</div>
           <p>
-            <code>type TimerID = string</code> in a module whose sibling IDs
-            are all branded; <code>Timer.Actor string</code> carries the
+            <code>type TimerID = string</code> in a module whose sibling IDs are
+            all branded; <code>Timer.Actor string</code> carries the
             <code>"kind:raw"</code> wire format as its in-memory type,
             documented as a zero-dep choice. But <code>scheduling/</code> is
             Tier 1 — depending on Tier 0 <code>id/</code> is legal by the
@@ -1317,8 +1368,8 @@
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            <code>id.Of[TimerMarker]</code> and <code>id.ActorID</code>; pay
-            the one dependency the layer rules already permit.
+            <code>id.Of[TimerMarker]</code> and <code>id.ActorID</code>; pay the
+            one dependency the layer rules already permit.
           </div>
         </div>
 
@@ -1330,9 +1381,9 @@
             query/query.go:11-26
           </div>
           <p>
-            Three byte-for-byte-parallel <code>Type string</code>
-            definitions. Module isolation is deliberate — but all three
-            modules already depend on <code>record/</code>, so a shared
+            Three byte-for-byte-parallel <code>Type string</code> definitions.
+            Module isolation is deliberate — but all three modules already
+            depend on <code>record/</code>, so a shared
             <code>record.Type</code> (aliased per module) costs zero new
             dependencies and removes the triplication.
           </p>
@@ -1344,7 +1395,9 @@
         </div>
 
         <!-- ================= REFLECTION ================= -->
-        <h2 id="reflection"><span class="num">04</span>Reflection — Root Causes</h2>
+        <h2 id="reflection">
+          <span class="num">04</span>Reflection — Root Causes
+        </h2>
         <p>
           Twelve findings, but they are not twelve independent problems.
           Everything above reduces to <strong>four systemic causes</strong>.
@@ -1356,28 +1409,28 @@
               ADR-0111 (<code>Record</code>) and ADR-0114/0123 (v5) began a
               generational shift, but v4 must keep the old world compiling.
               Result: two generations of <em>every</em> core concept coexist,
-              with adapters — not types — holding them together. Causes P1,
-              P2, P8.
+              with adapters — not types — holding them together. Causes P1, P2,
+              P8.
             </p>
           </div>
           <div class="card card-problem">
             <h4>2 · Zero-dep interpreted as stringly</h4>
             <p>
-              <code>record/</code> and <code>scheduling/</code> refuse to
-              import <code>id/</code>, so branded types downgrade to strings
-              and parallel identity shapes get invented. Zero deps is a fine
-              goal; throwing away type structure to reach it is not. Causes
-              P3, P11, half of P1.
+              <code>record/</code> and <code>scheduling/</code> refuse to import
+              <code>id/</code>, so branded types downgrade to strings and
+              parallel identity shapes get invented. Zero deps is a fine goal;
+              throwing away type structure to reach it is not. Causes P3, P11,
+              half of P1.
             </p>
           </div>
           <div class="card card-problem">
             <h4>3 · Presence encoded implicitly</h4>
             <p>
               Nil pointers (<code>*TombstoneMark</code>), zero
-              <code>time.Time</code>, zero <code>CausationID</code> —
-              "not yet" and "absent" and "unknown" all collapse into zero
-              values, then runtime precedence rules decide what the zero
-              meant. Causes P4, P7, P9.
+              <code>time.Time</code>, zero <code>CausationID</code> — "not yet"
+              and "absent" and "unknown" all collapse into zero values, then
+              runtime precedence rules decide what the zero meant. Causes P4,
+              P7, P9.
             </p>
           </div>
           <div class="card card-problem">
@@ -1385,8 +1438,8 @@
             <p>
               Interfaces and base structs that omit what every implementation
               actually has (<code>Metadata()</code>), drop what every sender
-              provided (<code>ID</code>, <code>Encoding</code>), or accept
-              what no caller should send (negative <code>int64</code>
+              provided (<code>ID</code>, <code>Encoding</code>), or accept what
+              no caller should send (negative <code>int64</code>
               versions). Causes P5, P6, P10, P12.
             </p>
           </div>
@@ -1413,8 +1466,8 @@
         <ul>
           <li>
             <strong>I1 — Stream integrity:</strong> every record belongs to
-            exactly one stream; a stream is (Type, EntityID), both non-empty
-            for events.
+            exactly one stream; a stream is (Type, EntityID), both non-empty for
+            events.
           </li>
           <li>
             <strong>I2 — Version monotonicity:</strong> versions are 1..N
@@ -1449,8 +1502,8 @@
           </p>
           <ol>
             <li>
-              <strong>One stream shape.</strong> Asking for a stream's type is
-              a field access, never a parse; there is exactly one
+              <strong>One stream shape.</strong> Asking for a stream's type is a
+              field access, never a parse; there is exactly one
               <code>StreamRef</code> in the runtime and one
               <code>Stream</code> in the base layer.
             </li>
@@ -1459,9 +1512,9 @@
               Actor has one home. No precedence rules anywhere.
             </li>
             <li>
-              <strong>Identity never drops.</strong> Every Record knows its
-              ID, its encoding, and its stream — from creation through
-              persistence to projection.
+              <strong>Identity never drops.</strong> Every Record knows its ID,
+              its encoding, and its stream — from creation through persistence
+              to projection.
             </li>
             <li>
               <strong>Invalid states unrepresentable.</strong> Negative
@@ -1475,8 +1528,7 @@
             </li>
             <li>
               <strong>Honest vocabulary.</strong> Aggregate-era names exist
-              nowhere — not in types, not in wire formats, not in error
-              codes.
+              nowhere — not in types, not in wire formats, not in error codes.
             </li>
           </ol>
         </div>
@@ -1485,8 +1537,8 @@
         <h2 id="model"><span class="num">06</span>The Go Data Model</h2>
         <p>
           The redesigned base layer. <code>record/</code> stays zero-dep —
-          structure replaces stringliness. Everything is additive until the
-          v5 cut.
+          structure replaces stringliness. Everything is additive until the v5
+          cut.
         </p>
 
         <pre><code><span class="tok-comment">// record/ — Tier 0, zero dependencies. One home per concept.</span>
@@ -1598,7 +1650,9 @@
 <span class="tok-keyword">type</span> <span class="tok-type">Type</span> = record.<span class="tok-type">Type</span> <span class="tok-comment">// in event/, command/, query/</span></code></pre>
 
         <!-- ================= COMPOSITION ================= -->
-        <h2 id="composition"><span class="num">07</span>Composition in Action</h2>
+        <h2 id="composition">
+          <span class="num">07</span>Composition in Action
+        </h2>
 
         <h3>Stream identity: parse-vs-access</h3>
         <div class="compare-header">
@@ -1718,22 +1772,22 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
           <ul>
             <li>
               <code>Version uint64</code> — negative versions do not compile.
-              The <code>int64</code> in today's <code>Record</code> accepts
-              them silently.
+              The <code>int64</code> in today's <code>Record</code> accepts them
+              silently.
             </li>
             <li>
               <code>Stream</code> struct — a stream without a type or entity
-              cannot hide inside a malformed string; empty fields are visible
-              at a glance and checkable by one
-              <code>Validate()</code> with no parsing.
+              cannot hide inside a malformed string; empty fields are visible at
+              a glance and checkable by one <code>Validate()</code> with no
+              parsing.
             </li>
             <li>
               <code>Cause</code> value — "command-caused" and "no cause" are
               distinct values, not two nil-checks in a precedence chain.
             </li>
             <li>
-              <code>Command.Metadata()</code> in the interface — metadata
-              access cannot fail; there is no assertion to forget.
+              <code>Command.Metadata()</code> in the interface — metadata access
+              cannot fail; there is no assertion to forget.
             </li>
           </ul>
         </div>
@@ -1742,9 +1796,9 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
           <h4>Constructor-enforced invariants</h4>
           <ul>
             <li>
-              <code>Stamp</code>: only <code>NewStamp(t)</code> produces a
-              known stamp — the zero value reads as
-              <code>known=false</code>, never as epoch.
+              <code>Stamp</code>: only <code>NewStamp(t)</code> produces a known
+              stamp — the zero value reads as <code>known=false</code>, never as
+              epoch.
             </li>
             <li>
               <code>NewSnapshot(ref, version, state, encoding)</code> rejects
@@ -1761,9 +1815,9 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
         <div class="card card-warning">
           <h4>What deliberately stays runtime-checked</h4>
           <p>
-            <code>record/</code> is structural by design — its fields are
-            plain strings so any layer can hold Record data without importing
-            the domain. The validation lives one layer up:
+            <code>record/</code> is structural by design — its fields are plain
+            strings so any layer can hold Record data without importing the
+            domain. The validation lives one layer up:
             <code>Validate()</code> on Record checks I1/I2 before persistence.
             The type system narrows the invalid space; constructors close the
             rest.
@@ -1791,17 +1845,17 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
                 </td>
                 <td>
                   <s>Struct <code>Stream{Type, EntityID}</code></s> → string
-                  <code>StreamRef</code> + validating constructor at v5
-                  (owner decision; ADR-0123 Phase 8 stands)
+                  <code>StreamRef</code> + validating constructor at v5 (owner
+                  decision; ADR-0123 Phase 8 stands)
                 </td>
                 <td>
                   Struct — rejected 2026-08-22: <code>id.StreamRef</code>
                   already occupies the struct role in the storage layer, so a
-                  record-side struct adds a third shape with stringly fields
-                  (no safety gain), while taxing hot key paths with
-                  <code>.String()</code> allocations. Original rejection of
-                  the plain string (parse tax, malformed states) is addressed
-                  by the validating constructor + boundary
+                  record-side struct adds a third shape with stringly fields (no
+                  safety gain), while taxing hot key paths with
+                  <code>.String()</code> allocations. Original rejection of the
+                  plain string (parse tax, malformed states) is addressed by the
+                  validating constructor + boundary
                   <code>Parse</code>/<code>Validate</code>.
                 </td>
               </tr>
@@ -1809,8 +1863,8 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
                 <td>Cause modeling</td>
                 <td>iota enum + struct (same fields per variant)</td>
                 <td>
-                  Interface-based union — variants differ only in kind; a
-                  union adds ceremony without adding safety here.
+                  Interface-based union — variants differ only in kind; a union
+                  adds ceremony without adding safety here.
                 </td>
               </tr>
               <tr>
@@ -1818,8 +1872,8 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
                 <td><code>Stamp{at, known}</code> value type</td>
                 <td>
                   <code>*time.Time</code> — pointer-as-optional (the exact P2
-                  anti-pattern); zero <code>time.Time</code> — conflates
-                  unknown with epoch.
+                  anti-pattern); zero <code>time.Time</code> — conflates unknown
+                  with epoch.
                 </td>
               </tr>
               <tr>
@@ -1827,8 +1881,8 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
                 <td>Structural <code>Actor{Kind, Raw}</code> mirror</td>
                 <td>
                   Import <code>id.ActorID</code> — breaks record's zero-dep
-                  Tier-0 contract; plain string — loses the union (status
-                  quo being fixed).
+                  Tier-0 contract; plain string — loses the union (status quo
+                  being fixed).
                 </td>
               </tr>
               <tr>
@@ -1844,8 +1898,8 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
                 <td>Add <code>id/</code> (Tier 1 → Tier 0, legal)</td>
                 <td>
                   Stay zero-dep with stringly <code>TimerID</code>/
-                  <code>Actor</code> — the layer rules exist precisely to
-                  permit this dependency.
+                  <code>Actor</code> — the layer rules exist precisely to permit
+                  this dependency.
                 </td>
               </tr>
               <tr>
@@ -1858,18 +1912,18 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
                 </td>
                 <td>
                   <s>Add <code>Metadata()</code> now, document in v4.x</s> —
-                  breaking for hand-rolled implementations (the original
-                  "zero breakage" framing was wrong; see Amendments).
-                  Duck-typed workarounds are replaced by the capability
-                  interface, not by interface growth.
+                  breaking for hand-rolled implementations (the original "zero
+                  breakage" framing was wrong; see Amendments). Duck-typed
+                  workarounds are replaced by the capability interface, not by
+                  interface growth.
                 </td>
               </tr>
               <tr>
                 <td>Tombstone machinery</td>
                 <td>Delete at v5 (ADR-0114), no redesign</td>
                 <td>
-                  Two-value mark enum for the interim — polishing a path
-                  already scheduled for deletion.
+                  Two-value mark enum for the interim — polishing a path already
+                  scheduled for deletion.
                 </td>
               </tr>
             </tbody>
@@ -1878,14 +1932,17 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
 
         <!-- ================= ANTI-PATTERNS ================= -->
         <h2 id="anti-patterns"><span class="num">10</span>Anti-Patterns</h2>
-        <p>Traps to avoid while adopting the new model — each one bit this codebase:</p>
+        <p>
+          Traps to avoid while adopting the new model — each one bit this
+          codebase:
+        </p>
         <div class="grid-2">
           <div class="card card-problem">
             <h4>Never hand-roll a second identity shape</h4>
             <p>
-              Every "convenience" local StreamRef fork eventually grows its
-              own separator, its own parser, its own bugs. This repo's three
-              shapes are the cautionary tale.
+              Every "convenience" local StreamRef fork eventually grows its own
+              separator, its own parser, its own bugs. This repo's three shapes
+              are the cautionary tale.
             </p>
           </div>
           <div class="card card-problem">
@@ -1906,24 +1963,24 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
           <div class="card card-problem">
             <h4>Never keep deprecated shells past the major</h4>
             <p>
-              36 Aggregate-era aliases still live because each minor kept
-              them "one more release." The v5 cut must be ruthless or the
-              vocabulary debt compounds forever.
+              36 Aggregate-era aliases still live because each minor kept them
+              "one more release." The v5 cut must be ruthless or the vocabulary
+              debt compounds forever.
             </p>
           </div>
           <div class="card card-problem">
             <h4>Never confuse zero-dep with stringly</h4>
             <p>
-              "This module can't import that one" constrains dependencies,
-              not type structure. Structs, enums, and value objects are free.
+              "This module can't import that one" constrains dependencies, not
+              type structure. Structs, enums, and value objects are free.
             </p>
           </div>
           <div class="card card-problem">
             <h4>Never drop fields in bridge types</h4>
             <p>
-              A bridge that loses ID, encoding, or timestamps doesn't
-              simplify — it silently narrows what the far side can do.
-              AsRecord dropping both is this review's P5.
+              A bridge that loses ID, encoding, or timestamps doesn't simplify —
+              it silently narrows what the far side can do. AsRecord dropping
+              both is this review's P5.
             </p>
           </div>
         </div>
@@ -1947,11 +2004,11 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
               <code>Actor</code> mirror, and <code>Record.ID/Encoding</code>;
               the three <code>AsRecord</code> bridges start populating a
               <strong>validated</strong> <code>record.StreamRef</code> by
-              adopting the already-shipped <code>Validate()</code> bridge —
-              no new identity type (Decision 09 amendment). Record.Version
-              stays <code>int64</code> and gains non-negative validation; the
-              <code>uint64</code> swap rides the v5 cut — a transitional
-              dual Version field would be exactly the split-brain this review
+              adopting the already-shipped <code>Validate()</code> bridge — no
+              new identity type (Decision 09 amendment). Record.Version stays
+              <code>int64</code> and gains non-negative validation; the
+              <code>uint64</code> swap rides the v5 cut — a transitional dual
+              Version field would be exactly the split-brain this review
               condemns. Zero consumer breakage; regen api-stability golden in
               the same change.
             </p>
@@ -1973,11 +2030,11 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
               for every consumer with a hand-rolled implementation; only
               embedders of <code>*BasicCommand</code> inherit it safely — and
               this is a library, where external implementors exist by design.
-              (The original text called the impact "rare"; that was wrong.)
-              The v4.x path is an additive capability interface (e.g.
-              <code>MetadataCarrier</code>), adopted internally to replace
-              the duck-typed paths in <code>query/audit.go</code>; growing
-              the interfaces themselves is a v5-cut decision.
+              (The original text called the impact "rare"; that was wrong.) The
+              v4.x path is an additive capability interface (e.g.
+              <code>MetadataCarrier</code>), adopted internally to replace the
+              duck-typed paths in <code>query/audit.go</code>; growing the
+              interfaces themselves is a v5-cut decision.
             </p>
           </div>
         </div>
@@ -1986,9 +2043,8 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
           <div class="migration-content">
             <h4>Unify signatures — Decider.Execute/Load take id.StreamRef</h4>
             <p>
-              Add ref-based variants; deprecate the (streamID, streamType)
-              pair forms. Internals migrate immediately; consumers at their
-              own pace.
+              Add ref-based variants; deprecate the (streamID, streamType) pair
+              forms. Internals migrate immediately; consumers at their own pace.
             </p>
           </div>
         </div>
@@ -1997,10 +2053,10 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
           <div class="migration-content">
             <h4>scheduling brands its IDs</h4>
             <p>
-              <code>TimerID = id.Of[TimerMarker]</code>, <code>Timer.Actor
-              id.ActorID</code>. One new Tier-0 dependency, explicitly legal
-              by the layer rules. Sweep consumer pins in the same wave (the
-              MarshalBinary lesson).
+              <code>TimerID = id.Of[TimerMarker]</code>,
+              <code>Timer.Actor id.ActorID</code>. One new Tier-0 dependency,
+              explicitly legal by the layer rules. Sweep consumer pins in the
+              same wave (the MarshalBinary lesson).
             </p>
           </div>
         </div>
@@ -2028,9 +2084,9 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
               <code>*Causation</code> pointer), old snapshot JSON tags (with
               on-disk migration); swap <code>Record.Version</code>
               int64&nbsp;→&nbsp;uint64 and make
-              <code>record.NewStreamRef</code> a validating constructor —
-              both per ADR-0123 Phase 8, owner-confirmed 2026-08-22. The
-              string <code>record.StreamRef</code> type itself survives (see
+              <code>record.NewStreamRef</code> a validating constructor — both
+              per ADR-0123 Phase 8, owner-confirmed 2026-08-22. The string
+              <code>record.StreamRef</code> type itself survives (see
               Amendments). One release, one coherent model, no shells.
             </p>
           </div>
@@ -2058,9 +2114,9 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
             the best of them. It has a <strong>generational</strong> problem:
             the v4 model is mid-flight between two architectures, and the
             adapters bridging them accumulate the stringly types, precedence
-            rules, and duplicated vocabulary that this catalog documents.
-            Close the migration, and twelve findings collapse into the four
-            strong types this report designs.
+            rules, and duplicated vocabulary that this catalog documents. Close
+            the migration, and twelve findings collapse into the four strong
+            types this report designs.
           </p>
           <p style="margin-bottom: 0">
             <em>
@@ -2073,46 +2129,51 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
         <!-- ================= AMENDMENTS ================= -->
         <section
           id="amendments"
-          style="border-top: 2px solid #da6; padding-top: 1.5rem; margin-top: 2rem"
+          style="
+            border-top: 2px solid #da6;
+            padding-top: 1.5rem;
+            margin-top: 2rem;
+          "
         >
           <h2 style="color: #da6">Amendments (2026-08-22)</h2>
           <p>
             Post-publication corrections from the session self-review, the
-            metaengine-review de-dupe pass, and the owner decision. The
-            redesign chapters (05–08) are retained as originally written for
-            provenance; the deltas below are authoritative where they
-            conflict.
+            metaengine-review de-dupe pass, and the owner decision. The redesign
+            chapters (05–08) are retained as originally written for provenance;
+            the deltas below are authoritative where they conflict.
           </p>
           <ol style="margin: 0.5rem 0 0 1.25rem; color: #ccc">
             <li>
               <strong
-                >Owner decision — stream identity (Decision 09, row
-                1).</strong
+                >Owner decision — stream identity (Decision 09, row 1).</strong
               >
               This review's struct <code>record.Stream</code> proposal
-              contradicted the recorded ADR-0123 Phase 8 plan
-              (<code>record/record.go:100-104</code> + TODO_LIST §v5
-              Unification) without citing it — the session's worst process
-              failure. Decision memo + ripple research:
-              <code>docs/planning/2026-08-22_03-52_core-data-model-v5-execution-plan.md</code>
+              contradicted the recorded ADR-0123 Phase 8 plan (<code
+                >record/record.go:100-104</code
+              >
+              + TODO_LIST §v5 Unification) without citing it — the session's
+              worst process failure. Decision memo + ripple research:
+              <code
+                >docs/planning/2026-08-22_03-52_core-data-model-v5-execution-plan.md</code
+              >
               Appendix B. <strong>Outcome: Option B</strong> — the string
               <code>record.StreamRef</code> survives v5; a validating
-              constructor delivers the construction safety this review
-              wanted; identity-shape convergence (P1) rides validated bridge
-              population + <code>Execute(ref)</code> adoption + the
-              Stream/StreamRef/StreamID naming decision instead of a type
-              swap. A record-side struct was rejected:
-              <code>id.StreamRef</code> already occupies the struct role in
-              the storage layer, so it would add a third shape with stringly
-              fields while taxing hot key paths.
+              constructor delivers the construction safety this review wanted;
+              identity-shape convergence (P1) rides validated bridge population
+              + <code>Execute(ref)</code> adoption + the
+              Stream/StreamRef/StreamID naming decision instead of a type swap.
+              A record-side struct was rejected:
+              <code>id.StreamRef</code> already occupies the struct role in the
+              storage layer, so it would add a third shape with stringly fields
+              while taxing hot key paths.
             </li>
             <li>
               <strong>Breaking-change correction (Roadmap Step 2).</strong>
               &ldquo;Zero consumer breakage&rdquo; for adding
               <code>Metadata()</code> to the exported interfaces was wrong:
-              hand-rolled implementations break; only embedders inherit
-              safely. Corrected in place — capability interface in v4.x,
-              interface growth is a v5-cut decision.
+              hand-rolled implementations break; only embedders inherit safely.
+              Corrected in place — capability interface in v4.x, interface
+              growth is a v5-cut decision.
             </li>
             <li>
               <strong>Dual-Version correction (Roadmap Step 1).</strong>
@@ -2122,8 +2183,8 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
             </li>
             <li>
               <strong>Version type.</strong> Where chapters 05–08 show
-              <code>Version uint64</code>, read &ldquo;uint64 at v5;
-              validated int64 in v4.x&rdquo; per the correction above.
+              <code>Version uint64</code>, read &ldquo;uint64 at v5; validated
+              int64 in v4.x&rdquo; per the correction above.
             </li>
           </ol>
 
@@ -2135,29 +2196,30 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
               >
               — the sibling episode (metaengine internals: Fold sealed union,
               Store collaborators, queryRuntime merge). De-dupe verdict:
-              <strong>zero overlapping findings</strong> — that review's
-              C1–L2 catalog addresses metaengine internals, this one the core
-              type system. Caution: its <code>P1–P12</code> label
-              <em>anti-pattern classes</em>; this review's label              <em>findings</em>
+              <strong>zero overlapping findings</strong> — that review's C1–L2
+              catalog addresses metaengine internals, this one the core type
+              system. Caution: its <code>P1–P12</code> label
+              <em>anti-pattern classes</em>; this review's label
+              <em>findings</em>
             </li>
             <li>
               <code>docs/reviews/2026-08-16_full-code-review-system.html</code>
-              >
-              — system/ composition-root review (the layer this review              deliberately excluded; see T21 in the execution plan).
+              > — system/ composition-root review (the layer this review
+              deliberately excluded; see T21 in the execution plan).
             </li>
           </ul>
 
           <h3 style="color: #4a9; margin-top: 1.5rem">Next skills</h3>
           <ul style="margin: 0.5rem 0 0 1.25rem; color: #ccc">
             <li>
-              <strong>naming-review</strong> — the Stream / StreamRef /
-              StreamID trio this review leaves in place is itself a naming
-              smell; a dedicated pass should decide the trio's roles before
-              the v5 cut (execution-plan T22).
+              <strong>naming-review</strong> — the Stream / StreamRef / StreamID
+              trio this review leaves in place is itself a naming smell; a
+              dedicated pass should decide the trio's roles before the v5 cut
+              (execution-plan T22).
             </li>
             <li>
-              <strong>data-model-review (extended scope)</strong> —              storage/*, system/, stack/, watermill/, middleware/ get the same
-              rigor (T21).
+              <strong>data-model-review (extended scope)</strong> — storage/*,
+              system/, stack/, watermill/, middleware/ get the same rigor (T21).
             </li>
             <li>
               <strong>full-code-review</strong> — for cross-cutting concerns
@@ -2171,15 +2233,16 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
           command/, query/, decider/, snapshot/, kv/, listing/, graph/,
           scheduling/ · Every finding verified against source at review time
         </footer>
-      
+
         <!-- ================= RELATED REVIEWS ================= -->
         <section id="related" style="margin-top: 2rem">
           <h2>Related Reviews</h2>
           <p>
             This report is one document in a review series. Its findings are
             executed by the plan
-            <code>docs/planning/2026-08-22_03-52_core-data-model-v5-execution-plan.md</code>;
-            the storage/system/stack/watermill/middleware surface got the
+            <code
+              >docs/planning/2026-08-22_03-52_core-data-model-v5-execution-plan.md</code
+            >; the storage/system/stack/watermill/middleware surface got the
             same rigor in the companion review
             <code>docs/reviews/2026-08-22_extended-data-model-review.md</code>
             (15 findings E1&#8211;E15, capability matrix).
@@ -2196,8 +2259,8 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
             </li>
             <li>
               <code>docs/reviews/2026-08-01_metaengine-data-model.html</code>
-              &#8212; metaengine model review (the strategic layer&#8217;s
-              own cleanup)
+              &#8212; metaengine model review (the strategic layer&#8217;s own
+              cleanup)
             </li>
             <li>
               <code>docs/reviews/2026-08-14_14-25_brutal-self-review.html</code>
@@ -2216,8 +2279,8 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
               <code>record.StreamKey</code> rename queued for v5)
             </li>
             <li>
-              <strong>docs-health</strong> &#8212; keep TODO_LIST, FEATURES,
-              and the v5 deprecation sweep honest as the tail executes
+              <strong>docs-health</strong> &#8212; keep TODO_LIST, FEATURES, and
+              the v5 deprecation sweep honest as the tail executes
             </li>
             <li>
               <strong>data-model-review</strong> (re-run after the v5 cut)
@@ -2225,7 +2288,7 @@ cause <span class="tok-punct">:=</span> record.<span class="tok-type">Cause</spa
             </li>
           </ul>
         </section>
-</main>
+      </main>
     </div>
 
     <script>

@@ -16,11 +16,13 @@ The data model review found 12 problems (2 critical, 4 high, 4 medium, 2 low) in
 2. The review's `record.Stream` struct proposal **contradicts the recorded ADR-0123 Phase 8 decision**: TODO_LIST.md §"v5 Unification (Phase 8)" and `record/record.go:100-104` record that at v5 `NewStreamRef(streamType, entityID string) (StreamRef, error)` becomes a **validating constructor on the string type** — the string type survives. The review proposed deleting the string type. The review never cited or argued against the recorded plan.
 
 **Verified during planning research (2026-08-22):**
+
 - TODO_LIST.md v5 section confirms: "Breaking `record.NewStreamRef` validation … change to `NewStreamRef(streamType, entityID string) (StreamRef, error)` rejecting an empty entityID at construction". v4 already shipped `StreamRef.Validate()` + `ErrInvalidStreamRef` as the bridge.
 - TODO_LIST has ZERO overlap with the review's new items (TimerID branding, `Cause`, `Stamp`, `Metadata()` interface, Type consolidation) — all are new work.
 - ADRs to read before executing: 0111 (Record extraction), 0114 (tombstone→domain events), 0123 (v5 unification), plus `docs/adr/2026-08-17_system-v4-review-proposals.md`.
 
 **Verschlimmbesserung guardrails (non-negotiable):**
+
 - Additive-first in v4.x; every deletion rides the v5 cut with its recorded deprecation wave.
 - Every code change: module tests → api-stability golden regen → `nix run .#verify-fast` (full `#verify` before tagging).
 - Interface changes to exported interfaces = breaking for consumers → decision gate, never "just add a method".
@@ -63,48 +65,48 @@ Sorted within tiers by impact ÷ effort, customer value first. Effort: XS≤15, 
 
 ### Tier 1% — Decision + Reference Integrity (unblocks everything)
 
-| ID | Task | Impact | Effort | Est | Depends | Customer value |
-|----|------|--------|--------|-----|---------|----------------|
-| T01 | ADR-0123 × review decision gate: memo (struct `record.Stream` vs recorded validating-constructor), owner decision, amend ADR-0123 or record counter-ADR | 🔥🔥🔥 | M | 60 | — | Prevents building the wrong foundation; recorded direction stays honest |
-| T02 | Correct published review: reclassify Step 2 as breaking, fix dual-Version proposal, add ADR-conflict callout | 🔥🔥🔥 | S | 45 | T01, T03 | Reference doc stops poisoning downstream work |
-| T03 | Read 2026-08-01 metaengine review; de-dupe + cross-link findings | 🔥🔥 | S | 30 | — | No split-brain between the two data-model reviews |
+| ID  | Task                                                                                                                                                    | Impact | Effort | Est | Depends  | Customer value                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | --- | -------- | ----------------------------------------------------------------------- |
+| T01 | ADR-0123 × review decision gate: memo (struct `record.Stream` vs recorded validating-constructor), owner decision, amend ADR-0123 or record counter-ADR | 🔥🔥🔥 | M      | 60  | —        | Prevents building the wrong foundation; recorded direction stays honest |
+| T02 | Correct published review: reclassify Step 2 as breaking, fix dual-Version proposal, add ADR-conflict callout                                            | 🔥🔥🔥 | S      | 45  | T01, T03 | Reference doc stops poisoning downstream work                           |
+| T03 | Read 2026-08-01 metaengine review; de-dupe + cross-link findings                                                                                        | 🔥🔥   | S      | 30  | —        | No split-brain between the two data-model reviews                       |
 
 ### Tier 4% — Additive record/ Base (the foundation)
 
-| ID | Task | Impact | Effort | Est | Depends | Customer value |
-|----|------|--------|--------|-----|---------|----------------|
-| T04 | PR: `record.Stream` (per T01) + `Validate` + populate in all three `AsRecord` bridges | 🔥🔥🔥 | L | 90 | T01, T14 | Kills P1 root cause (three identity shapes → two, on the way to one) |
-| T05 | PR: `record.Cause{Kind,ID}` + `CommonMetadata.Cause` + event bridge (one causation home) | 🔥🔥🔥 | L | 90 | T04 | Kills P4 precedence rules |
-| T06 | PR: `record.Stamp{at,known}` + replace 3 zero-time timestamps | 🔥🔥 | M | 60 | T04 | Kills P7 ambiguity |
-| T07 | PR: structural `record.Actor{Kind,Raw}` mirror; bridges stop stringifying the union | 🔥🔥 | M | 60 | T04 | Kills P3 actor parse-tax |
-| T08 | PR: `Record.ID` + `Record.Encoding`; `AsRecord` stops dropping identity/codec | 🔥🔥🔥 | M | 60 | T04 | Kills P5; self-describing payloads survive the bridge |
+| ID  | Task                                                                                     | Impact | Effort | Est | Depends  | Customer value                                                       |
+| --- | ---------------------------------------------------------------------------------------- | ------ | ------ | --- | -------- | -------------------------------------------------------------------- |
+| T04 | PR: `record.Stream` (per T01) + `Validate` + populate in all three `AsRecord` bridges    | 🔥🔥🔥 | L      | 90  | T01, T14 | Kills P1 root cause (three identity shapes → two, on the way to one) |
+| T05 | PR: `record.Cause{Kind,ID}` + `CommonMetadata.Cause` + event bridge (one causation home) | 🔥🔥🔥 | L      | 90  | T04      | Kills P4 precedence rules                                            |
+| T06 | PR: `record.Stamp{at,known}` + replace 3 zero-time timestamps                            | 🔥🔥   | M      | 60  | T04      | Kills P7 ambiguity                                                   |
+| T07 | PR: structural `record.Actor{Kind,Raw}` mirror; bridges stop stringifying the union      | 🔥🔥   | M      | 60  | T04      | Kills P3 actor parse-tax                                             |
+| T08 | PR: `Record.ID` + `Record.Encoding`; `AsRecord` stops dropping identity/codec            | 🔥🔥🔥 | M      | 60  | T04      | Kills P5; self-describing payloads survive the bridge                |
 
 ### Tier 20% — v4.x-Safe Surface Completions + Hygiene
 
-| ID | Task | Impact | Effort | Est | Depends | Customer value |
-|----|------|--------|--------|-----|---------|----------------|
-| T09 | Command/Query metadata access: implementor survey → capability interface now + v5 interface growth decision | 🔥🔥🔥 | L | 90 | — | Kills P6 duck-typing without breaking consumers |
-| T10 | PR: `Decider.Execute(ctx, ref, …)` additive variants; deprecate `(streamID, streamType)` pairs | 🔥🔥 | M | 60 | — | One identity convention across the hot path |
-| T11 | PR: brand `scheduling.TimerID` (`id.Of`) + `Timer.Actor id.ActorID` + `#check-arch` | 🔥🔥 | L | 90 | — | Kills P11; Tier-1→Tier-0 dep is legal |
-| T12 | PR: `record.Type` consolidation + per-module aliases; collapse triplicated ParseType/IsZero | 🔥 | M | 60 | T04 | Kills P12 drift risk |
-| T13 | HARVEST this plan into TODO_LIST.md (new section; no duplicates confirmed) | 🔥🔥 | S | 30 | — | Living source of truth gets the work |
-| T14 | Metaengine ripple sizing: `rg record.Record/StreamRef metaengine/` + enginetest/adttest goldens | 🔥🔥 | S | 30 | — | De-risks T04 before it ships |
-| T15 | Hygiene: `nix run .#verify-fast` (close gate gap on doc commits) + treefmt `.html` coverage check | 🔥 | S | 30 | — | CI `--fail-on-change` gate risk eliminated |
+| ID  | Task                                                                                                        | Impact | Effort | Est | Depends | Customer value                                  |
+| --- | ----------------------------------------------------------------------------------------------------------- | ------ | ------ | --- | ------- | ----------------------------------------------- |
+| T09 | Command/Query metadata access: implementor survey → capability interface now + v5 interface growth decision | 🔥🔥🔥 | L      | 90  | —       | Kills P6 duck-typing without breaking consumers |
+| T10 | PR: `Decider.Execute(ctx, ref, …)` additive variants; deprecate `(streamID, streamType)` pairs              | 🔥🔥   | M      | 60  | —       | One identity convention across the hot path     |
+| T11 | PR: brand `scheduling.TimerID` (`id.Of`) + `Timer.Actor id.ActorID` + `#check-arch`                         | 🔥🔥   | L      | 90  | —       | Kills P11; Tier-1→Tier-0 dep is legal           |
+| T12 | PR: `record.Type` consolidation + per-module aliases; collapse triplicated ParseType/IsZero                 | 🔥     | M      | 60  | T04     | Kills P12 drift risk                            |
+| T13 | HARVEST this plan into TODO_LIST.md (new section; no duplicates confirmed)                                  | 🔥🔥   | S      | 30  | —       | Living source of truth gets the work            |
+| T14 | Metaengine ripple sizing: `rg record.Record/StreamRef metaengine/` + enginetest/adttest goldens             | 🔥🔥   | S      | 30  | —       | De-risks T04 before it ships                    |
+| T15 | Hygiene: `nix run .#verify-fast` (close gate gap on doc commits) + treefmt `.html` coverage check           | 🔥     | S      | 30  | —       | CI `--fail-on-change` gate risk eliminated      |
 
 ### Tier Other-20% — Polish, Audits, Long Tail (→100%)
 
-| ID | Task | Impact | Effort | Est | Depends | Customer value |
-|----|------|--------|--------|-----|---------|----------------|
-| T16 | Report polish: anchor-integrity check, CSS template diff, related-reviews + next-skills sections | 🔥 | S | 30 | T02 | Report fully skill-compliant |
-| T17 | PR: `snapshot.NewSnapshot` constructor + codec stamp (envelope style, ADR-0044) | 🔥🔥 | L | 90 | — | Kills P10; snapshots become self-describing |
-| T18 | Snapshot wire-tag migration audit across pebble/bbolt/sql/memory stores | 🔥 | M | 60 | T17 | No silent on-disk breakage at v5 |
-| T19 | Deprecation census artifact: 36 Aggregate aliases + wire tags + stale error codes → v5 sweep checklist | 🔥 | M | 60 | — | P8 executed safely, nothing missed |
-| T20 | Tombstone v5 deletion prep: verify migration doc + `listing.StatusMiddleware` bridge coverage | 🔥 | S | 45 | — | P9 resolves by deletion, prepared |
-| T21 | Extended data-model review: storage/*, system/, stack/, watermill/, middleware/ | 🔥🔥 | L | 100 | T02 | Same rigor for the rest of the model |
-| T22 | Naming review of proposed vocabulary (Stream / StreamRef / StreamID trio) | 🔥 | S | 45 | T01 | No new naming smell while fixing old ones |
-| T23 | Upstream skill fixes: docs/reviews↔brainstorming divergence; read-prior-reports + copy-template steps | 💧 | S | 30 | — | Future sessions don't repeat this session's mistakes |
-| T24 | After T04–T12 land: api-stability golden regen + doc-check skill refs + consumer-pin sweep (GOWORK=off) | 🔥🔥🔥 | M | 60 | T04–T12 | MarshalBinary-class failures impossible |
-| T25 | AGENTS.md memory update: decision outcome + new data-model conventions | 🔥 | S | 30 | T01 | Future sessions start informed |
+| ID  | Task                                                                                                    | Impact | Effort | Est | Depends | Customer value                                       |
+| --- | ------------------------------------------------------------------------------------------------------- | ------ | ------ | --- | ------- | ---------------------------------------------------- |
+| T16 | Report polish: anchor-integrity check, CSS template diff, related-reviews + next-skills sections        | 🔥     | S      | 30  | T02     | Report fully skill-compliant                         |
+| T17 | PR: `snapshot.NewSnapshot` constructor + codec stamp (envelope style, ADR-0044)                         | 🔥🔥   | L      | 90  | —       | Kills P10; snapshots become self-describing          |
+| T18 | Snapshot wire-tag migration audit across pebble/bbolt/sql/memory stores                                 | 🔥     | M      | 60  | T17     | No silent on-disk breakage at v5                     |
+| T19 | Deprecation census artifact: 36 Aggregate aliases + wire tags + stale error codes → v5 sweep checklist  | 🔥     | M      | 60  | —       | P8 executed safely, nothing missed                   |
+| T20 | Tombstone v5 deletion prep: verify migration doc + `listing.StatusMiddleware` bridge coverage           | 🔥     | S      | 45  | —       | P9 resolves by deletion, prepared                    |
+| T21 | Extended data-model review: storage/*, system/, stack/, watermill/, middleware/                         | 🔥🔥   | L      | 100 | T02     | Same rigor for the rest of the model                 |
+| T22 | Naming review of proposed vocabulary (Stream / StreamRef / StreamID trio)                               | 🔥     | S      | 45  | T01     | No new naming smell while fixing old ones            |
+| T23 | Upstream skill fixes: docs/reviews↔brainstorming divergence; read-prior-reports + copy-template steps   | 💧     | S      | 30  | —       | Future sessions don't repeat this session's mistakes |
+| T24 | After T04–T12 land: api-stability golden regen + doc-check skill refs + consumer-pin sweep (GOWORK=off) | 🔥🔥🔥 | M      | 60  | T04–T12 | MarshalBinary-class failures impossible              |
+| T25 | AGENTS.md memory update: decision outcome + new data-model conventions                                  | 🔥     | S      | 30  | T01     | Future sessions start informed                       |
 
 **Totals:** 25 tasks, ≈ 21.7 h. Critical path: T03+T14 → T01 → T02 → T04 → T05 → T08 → T24.
 
@@ -115,163 +117,183 @@ Sorted within tiers by impact ÷ effort, customer value first. Effort: XS≤15, 
 Grouped by parent. IDs: `T##·a…`. Est = minutes.
 
 ### T01 — ADR decision gate (5 × 12 = 60)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T01·a | Extract exact ADR-0123 Phase 8 text + all `record.NewStreamRef`/`Split` call sites | 12 |
-| T01·b | Write decision memo: Option A struct `record.Stream` vs Option B recorded validating-constructor; recommend A, list migration deltas both ways | 12 |
-| T01·c | OWNER CHECKPOINT — present memo, get decision (blocks T04) | 12 |
-| T01·d | Amend ADR-0123 Phase 8 (or add counter-ADR) recording outcome + rationale | 12 |
-| T01·e | Update review report roadmap section to match decided direction | 12 |
+
+| ID    | Subtask                                                                                                                                        | Est |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| T01·a | Extract exact ADR-0123 Phase 8 text + all `record.NewStreamRef`/`Split` call sites                                                             | 12  |
+| T01·b | Write decision memo: Option A struct `record.Stream` vs Option B recorded validating-constructor; recommend A, list migration deltas both ways | 12  |
+| T01·c | OWNER CHECKPOINT — present memo, get decision (blocks T04)                                                                                     | 12  |
+| T01·d | Amend ADR-0123 Phase 8 (or add counter-ADR) recording outcome + rationale                                                                      | 12  |
+| T01·e | Update review report roadmap section to match decided direction                                                                                | 12  |
 
 ### T02 — Report corrections (4 subtasks = 45)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T02·a | Reclassify roadmap Step 2: `Command.Metadata()` = breaking for hand-rolled impls; v5-or-capability path | 12 |
-| T02·b | Replace transitional dual-Version proposal with "keep int64 + validate; swap at v5" | 12 |
-| T02·c | Add ADR-0123-conflict callout in Decision Log (or "resolved by T01" note) | 12 |
-| T02·d | Re-validate HTML (div balance, anchors), commit | 9 |
+
+| ID    | Subtask                                                                                                 | Est |
+| ----- | ------------------------------------------------------------------------------------------------------- | --- |
+| T02·a | Reclassify roadmap Step 2: `Command.Metadata()` = breaking for hand-rolled impls; v5-or-capability path | 12  |
+| T02·b | Replace transitional dual-Version proposal with "keep int64 + validate; swap at v5"                     | 12  |
+| T02·c | Add ADR-0123-conflict callout in Decision Log (or "resolved by T01" note)                               | 12  |
+| T02·d | Re-validate HTML (div balance, anchors), commit                                                         | 9   |
 
 ### T03 — De-dupe vs metaengine review (3 = 30)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T03·a | Read `2026-08-01_metaengine-data-model.html` end-to-end | 12 |
-| T03·b | List overlaps with P5; add cross-links in both files | 12 |
-| T03·c | Commit | 6 |
+
+| ID    | Subtask                                                 | Est |
+| ----- | ------------------------------------------------------- | --- |
+| T03·a | Read `2026-08-01_metaengine-data-model.html` end-to-end | 12  |
+| T03·b | List overlaps with P5; add cross-links in both files    | 12  |
+| T03·c | Commit                                                  | 6   |
 
 ### T04 — record.Stream PR (7 = 84)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T04·a | Define `record.Stream` + `Validate` + `IsZero` + table tests | 12 |
-| T04·b | Implement decided shape (struct fields or validating ctor per T01) | 12 |
-| T04·c | `event.AsRecord` populates Stream; test round-trip | 12 |
-| T04·d | `command.AsRecord` + `query.AsRecord` populate Stream; tests | 12 |
-| T04·e | Regen api-stability golden (`cmd/api-stability --update`) | 12 |
-| T04·f | `#verify-fast` + `cd record && GOWORK=off go test` | 12 |
-| T04·g | CHANGELOG `[Unreleased]` + skill references update + doc-check | 12 |
+
+| ID    | Subtask                                                            | Est |
+| ----- | ------------------------------------------------------------------ | --- |
+| T04·a | Define `record.Stream` + `Validate` + `IsZero` + table tests       | 12  |
+| T04·b | Implement decided shape (struct fields or validating ctor per T01) | 12  |
+| T04·c | `event.AsRecord` populates Stream; test round-trip                 | 12  |
+| T04·d | `command.AsRecord` + `query.AsRecord` populate Stream; tests       | 12  |
+| T04·e | Regen api-stability golden (`cmd/api-stability --update`)          | 12  |
+| T04·f | `#verify-fast` + `cd record && GOWORK=off go test`                 | 12  |
+| T04·g | CHANGELOG `[Unreleased]` + skill references update + doc-check     | 12  |
 
 ### T05 — record.Cause PR (6 = 72)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T05·a | Define `CauseKind` iota + `Cause` + tests (zero value = none) | 12 |
-| T05·b | Add `CommonMetadata.Cause`; deprecate `CausationID string` field | 12 |
-| T05·c | Event bridge: `Causation.CommandID`/`Tracing.CausationID` → `Cause` mapping + tests | 12 |
-| T05·d | Command/query bridges: `Tracing.CausationID` → `Cause{CauseCommand,…}` | 12 |
-| T05·e | Golden regen + `#verify-fast` | 12 |
-| T05·f | CHANGELOG + doc-check | 12 |
+
+| ID    | Subtask                                                                             | Est |
+| ----- | ----------------------------------------------------------------------------------- | --- |
+| T05·a | Define `CauseKind` iota + `Cause` + tests (zero value = none)                       | 12  |
+| T05·b | Add `CommonMetadata.Cause`; deprecate `CausationID string` field                    | 12  |
+| T05·c | Event bridge: `Causation.CommandID`/`Tracing.CausationID` → `Cause` mapping + tests | 12  |
+| T05·d | Command/query bridges: `Tracing.CausationID` → `Cause{CauseCommand,…}`              | 12  |
+| T05·e | Golden regen + `#verify-fast`                                                       | 12  |
+| T05·f | CHANGELOG + doc-check                                                               | 12  |
 
 ### T06 — record.Stamp PR (4 = 48)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T06·a | Define `Stamp{at,known}` + `NewStamp` + tests | 12 |
-| T06·b | Swap `ClientCreatedAt/ServerReceivedAt/ServerStoredAt` → `Created/Received/Stored Stamp` (deprecate old) | 12 |
-| T06·c | Bridges populate stamps; `AsRecord` sets `Received` when store-stamped | 12 |
-| T06·d | Golden + `#verify-fast` + CHANGELOG | 12 |
+
+| ID    | Subtask                                                                                                  | Est |
+| ----- | -------------------------------------------------------------------------------------------------------- | --- |
+| T06·a | Define `Stamp{at,known}` + `NewStamp` + tests                                                            | 12  |
+| T06·b | Swap `ClientCreatedAt/ServerReceivedAt/ServerStoredAt` → `Created/Received/Stored Stamp` (deprecate old) | 12  |
+| T06·c | Bridges populate stamps; `AsRecord` sets `Received` when store-stamped                                   | 12  |
+| T06·d | Golden + `#verify-fast` + CHANGELOG                                                                      | 12  |
 
 ### T07 — record.Actor mirror PR (4 = 48)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T07·a | Define `record.Actor{Kind,Raw}` + kind consts + tests | 12 |
-| T07·b | Swap `CommonMetadata.ActorID string` → `Actor` (deprecate old) | 12 |
-| T07·c | Bridges: `ActorString(tracing)` → structural actor; keep wire form only at serialization edge | 12 |
-| T07·d | Golden + `#verify-fast` + CHANGELOG | 12 |
+
+| ID    | Subtask                                                                                       | Est |
+| ----- | --------------------------------------------------------------------------------------------- | --- |
+| T07·a | Define `record.Actor{Kind,Raw}` + kind consts + tests                                         | 12  |
+| T07·b | Swap `CommonMetadata.ActorID string` → `Actor` (deprecate old)                                | 12  |
+| T07·c | Bridges: `ActorString(tracing)` → structural actor; keep wire form only at serialization edge | 12  |
+| T07·d | Golden + `#verify-fast` + CHANGELOG                                                           | 12  |
 
 ### T08 — Record.ID+Encoding PR (4 = 48)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T08·a | Add `Record.ID string` + `Record.Encoding uint8` fields | 12 |
-| T08·b | `event.AsRecord` fills ID + `evt.Encoding()`; test mixed JSON+CBOR survives | 12 |
-| T08·c | command/query `AsRecord` fill ID | 12 |
-| T08·d | Golden + `#verify-fast` + CHANGELOG | 12 |
+
+| ID    | Subtask                                                                     | Est |
+| ----- | --------------------------------------------------------------------------- | --- |
+| T08·a | Add `Record.ID string` + `Record.Encoding uint8` fields                     | 12  |
+| T08·b | `event.AsRecord` fills ID + `evt.Encoding()`; test mixed JSON+CBOR survives | 12  |
+| T08·c | command/query `AsRecord` fill ID                                            | 12  |
+| T08·d | Golden + `#verify-fast` + CHANGELOG                                         | 12  |
 
 ### T09 — Metadata access (5 = 72)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T09·a | Survey implementors: internal + examples, embedding vs hand-rolled | 12 |
-| T09·b | Mini-decision memo: capability interface (v4.x) vs direct growth (v5); record in ADR addendum | 12 |
-| T09·c | Implement `MetadataCarrier`-style capability + adopt in query/audit middleware | 12 |
-| T09·d | Deprecate the two inline duck-typed interfaces in `query/audit.go:86,114` | 12 |
-| T09·e | Tests + golden + `#verify-fast` | 12 |
+
+| ID    | Subtask                                                                                       | Est |
+| ----- | --------------------------------------------------------------------------------------------- | --- |
+| T09·a | Survey implementors: internal + examples, embedding vs hand-rolled                            | 12  |
+| T09·b | Mini-decision memo: capability interface (v4.x) vs direct growth (v5); record in ADR addendum | 12  |
+| T09·c | Implement `MetadataCarrier`-style capability + adopt in query/audit middleware                | 12  |
+| T09·d | Deprecate the two inline duck-typed interfaces in `query/audit.go:86,114`                     | 12  |
+| T09·e | Tests + golden + `#verify-fast`                                                               | 12  |
 
 ### T10 — Execute(ref) variants (4 = 48)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T10·a | Add `ExecuteRef`/`LoadRef(ctx, ref, …)`; pair forms delegate | 12 |
-| T10·b | Mark pair forms `Deprecated: removed in v5` | 12 |
-| T10·c | Migrate internal callers (scenario/, examples) to ref forms | 12 |
-| T10·d | Tests + golden + `#verify-fast` | 12 |
+
+| ID    | Subtask                                                      | Est |
+| ----- | ------------------------------------------------------------ | --- |
+| T10·a | Add `ExecuteRef`/`LoadRef(ctx, ref, …)`; pair forms delegate | 12  |
+| T10·b | Mark pair forms `Deprecated: removed in v5`                  | 12  |
+| T10·c | Migrate internal callers (scenario/, examples) to ref forms  | 12  |
+| T10·d | Tests + golden + `#verify-fast`                              | 12  |
 
 ### T11 — Timer branding (5 = 72)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T11·a | Add `TimerMarker` phantom + `TimerID = id.Of[TimerMarker]` in scheduling | 12 |
-| T11·b | `Timer.Actor string` → `id.ActorID` + JSON round-trip (PrefixedString wire form) | 12 |
-| T11·c | `go.mod` add `id/v4` dep; run `nix run .#check-arch` (Tier-1→Tier-0 legal) | 12 |
-| T11·d | Fix sqlstore/memory store signatures + tests | 12 |
-| T11·e | Golden + `#verify-fast` + CHANGELOG | 12 |
+
+| ID    | Subtask                                                                          | Est |
+| ----- | -------------------------------------------------------------------------------- | --- |
+| T11·a | Add `TimerMarker` phantom + `TimerID = id.Of[TimerMarker]` in scheduling         | 12  |
+| T11·b | `Timer.Actor string` → `id.ActorID` + JSON round-trip (PrefixedString wire form) | 12  |
+| T11·c | `go.mod` add `id/v4` dep; run `nix run .#check-arch` (Tier-1→Tier-0 legal)       | 12  |
+| T11·d | Fix sqlstore/memory store signatures + tests                                     | 12  |
+| T11·e | Golden + `#verify-fast` + CHANGELOG                                              | 12  |
 
 ### T12 — Type consolidation (4 = 48)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T12·a | Define `record.Type` + shared `ParseType`/`IsZero` (parametrized error) + tests | 12 |
-| T12·b | Alias `type Type = record.Type` in event/command/query | 12 |
-| T12·c | Deprecate local ParseType duplicates (keep thin wrappers) | 12 |
-| T12·d | Golden + `#verify-fast` | 12 |
+
+| ID    | Subtask                                                                         | Est |
+| ----- | ------------------------------------------------------------------------------- | --- |
+| T12·a | Define `record.Type` + shared `ParseType`/`IsZero` (parametrized error) + tests | 12  |
+| T12·b | Alias `type Type = record.Type` in event/command/query                          | 12  |
+| T12·c | Deprecate local ParseType duplicates (keep thin wrappers)                       | 12  |
+| T12·d | Golden + `#verify-fast`                                                         | 12  |
 
 ### T13 — Harvest (2 = 24)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T13·a | Add "Core Data Model v4.x/v5" section to TODO_LIST.md from this plan; status markers | 12 |
-| T13·b | Cross-check against existing sections for duplicates; commit | 12 |
+
+| ID    | Subtask                                                                              | Est |
+| ----- | ------------------------------------------------------------------------------------ | --- |
+| T13·a | Add "Core Data Model v4.x/v5" section to TODO_LIST.md from this plan; status markers | 12  |
+| T13·b | Cross-check against existing sections for duplicates; commit                         | 12  |
 
 ### T14 — Metaengine ripple (2 = 24)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T14·a | `rg -l "record\.(Record|StreamRef|NewStreamRef)" metaengine/ metaengine/enginetest/ metaengine/adttest/` + read hits | 12 |
-| T14·b | Write ripple summary (files, goldens, hazard level) into this plan's appendix | 12 |
+
+| ID    | Subtask                                                                       | Est       |
+| ----- | ----------------------------------------------------------------------------- | --------- |
+| T14·a | `rg -l "record\.(Record                                                       | StreamRef |
+| T14·b | Write ripple summary (files, goldens, hazard level) into this plan's appendix | 12        |
 
 ### T15 — Hygiene (3 = 30)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T15·a | Run `nix run .#verify-fast`; capture result in this plan | 12 |
-| T15·b | Check treefmt config for `.html` coverage; note CI-gate exposure | 12 |
-| T15·c | If gap: add formatter or `.gitattributes`/ignore; commit | 6 |
+
+| ID    | Subtask                                                          | Est |
+| ----- | ---------------------------------------------------------------- | --- |
+| T15·a | Run `nix run .#verify-fast`; capture result in this plan         | 12  |
+| T15·b | Check treefmt config for `.html` coverage; note CI-gate exposure | 12  |
+| T15·c | If gap: add formatter or `.gitattributes`/ignore; commit         | 6   |
 
 ### T16 — Report polish (3 = 30)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T16·a | Anchor-integrity script run (TOC ↔ section ids) | 12 |
-| T16·b | CSS diff vs kit template; reconcile drift | 12 |
-| T16·c | Add "Related reviews" + "Next skills" sections; commit | 6 |
+
+| ID    | Subtask                                                | Est |
+| ----- | ------------------------------------------------------ | --- |
+| T16·a | Anchor-integrity script run (TOC ↔ section ids)        | 12  |
+| T16·b | CSS diff vs kit template; reconcile drift              | 12  |
+| T16·c | Add "Related reviews" + "Next skills" sections; commit | 6   |
 
 ### T17 — Snapshot constructor (5 = 72)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T17·a | Design invariants (non-nil State, Version≥1, encoding stamp) + write as comment spec | 12 |
-| T17·b | Implement `NewSnapshot(ref, version, state, enc)` + `Validate` | 12 |
-| T17·c | Add encoding stamp field (envelope pattern, ADR-0044 style) | 12 |
-| T17·d | Stores compile + snapshot tests | 12 |
-| T17·e | Golden + `#verify-fast` + CHANGELOG | 12 |
+
+| ID    | Subtask                                                                              | Est |
+| ----- | ------------------------------------------------------------------------------------ | --- |
+| T17·a | Design invariants (non-nil State, Version≥1, encoding stamp) + write as comment spec | 12  |
+| T17·b | Implement `NewSnapshot(ref, version, state, enc)` + `Validate`                       | 12  |
+| T17·c | Add encoding stamp field (envelope pattern, ADR-0044 style)                          | 12  |
+| T17·d | Stores compile + snapshot tests                                                      | 12  |
+| T17·e | Golden + `#verify-fast` + CHANGELOG                                                  | 12  |
 
 ### T18 — Snapshot wire audit (3 = 36)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T18·a | Enumerate wire consumers: pebble/bbolt/sql/memory snapshot stores | 12 |
-| T18·b | Document tag-rename risk per backend; decision: keep old tags until v5 | 12 |
-| T18·c | Write migration note into TODO_LIST v5 section | 12 |
+
+| ID    | Subtask                                                                | Est |
+| ----- | ---------------------------------------------------------------------- | --- |
+| T18·a | Enumerate wire consumers: pebble/bbolt/sql/memory snapshot stores      | 12  |
+| T18·b | Document tag-rename risk per backend; decision: keep old tags until v5 | 12  |
+| T18·c | Write migration note into TODO_LIST v5 section                         | 12  |
 
 ### T19 — Deprecation census (3 = 60)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T19·a | `rg "Deprecated: use" id/ command/ event/ query/ listing/ snapshot/` → alias table | 12 |
-| T19·b | Wire-tag + error-code census (`aggregateId`, `nil_aggregate_id`, …) | 12 |
-| T19·c | Emit `docs/planning/v5-deprecation-sweep.md` checklist | 12 |
+
+| ID    | Subtask                                                                            | Est |
+| ----- | ---------------------------------------------------------------------------------- | --- |
+| T19·a | `rg "Deprecated: use" id/ command/ event/ query/ listing/ snapshot/` → alias table | 12  |
+| T19·b | Wire-tag + error-code census (`aggregateId`, `nil_aggregate_id`, …)                | 12  |
+| T19·c | Emit `docs/planning/v5-deprecation-sweep.md` checklist                             | 12  |
 
 ### T20 — Tombstone prep (3 = 45)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T20·a | Verify `docs/migration/tombstone-to-domain-events.md` exists + is accurate | 12 |
-| T20·b | Check `listing.StatusMiddleware` + `OnTombstone` bridge tests coverage | 12 |
-| T20·c | List v5 deletion pre-reqs into TODO_LIST v5 section | 12 |
+
+| ID    | Subtask                                                                    | Est |
+| ----- | -------------------------------------------------------------------------- | --- |
+| T20·a | Verify `docs/migration/tombstone-to-domain-events.md` exists + is accurate | 12  |
+| T20·b | Check `listing.StatusMiddleware` + `OnTombstone` bridge tests coverage     | 12  |
+| T20·c | List v5 deletion pre-reqs into TODO_LIST v5 section                        | 12  |
 
 ### T21 — Extended review (4 = 100)
 
@@ -279,41 +301,44 @@ Grouped by parent. IDs: `T##·a…`. Est = minutes.
 > `docs/reviews/2026-08-22_extended-data-model-review.md` (15 findings,
 > capability matrix, follow-ups extracted into TODO_LIST).
 
-| ID | Subtask | Est |
-|----|---------|-----|
-| T21·a | Review storage/* type shapes (stores, dialects, migrations) | 25 |
-| T21·b | Review system/ + stack/ config/deployment types | 25 |
-| T21·c | Review watermill/ + middleware/ envelope/middleware types | 25 |
-| T21·d | Append findings appendix (new review file, cross-linked) | 25 |
+| ID    | Subtask                                                     | Est |
+| ----- | ----------------------------------------------------------- | --- |
+| T21·a | Review storage/* type shapes (stores, dialects, migrations) | 25  |
+| T21·b | Review system/ + stack/ config/deployment types             | 25  |
+| T21·c | Review watermill/ + middleware/ envelope/middleware types   | 25  |
+| T21·d | Append findings appendix (new review file, cross-linked)    | 25  |
 
 ### T22 — Naming review (3 = 45)
 
 > **DONE 2026-08-22** — decision recorded in Appendix D below.
 
-| ID | Subtask | Est |
-|----|---------|-----|
-| T22·a | Run naming-smell pass on Stream/StreamRef/StreamID/Cause/Stamp vocabulary | 12 |
-| T22·b | Decide final trio naming (e.g. Stream vs StreamRef vs StreamID roles) | 12 |
-| T22·c | Record naming table in ADR addendum / plan appendix | 12 |
+| ID    | Subtask                                                                   | Est |
+| ----- | ------------------------------------------------------------------------- | --- |
+| T22·a | Run naming-smell pass on Stream/StreamRef/StreamID/Cause/Stamp vocabulary | 12  |
+| T22·b | Decide final trio naming (e.g. Stream vs StreamRef vs StreamID roles)     | 12  |
+| T22·c | Record naming table in ADR addendum / plan appendix                       | 12  |
 
 ### T23 — Upstream skill fixes (2 = 24)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T23·a | Fix `docs/reviews` ↔ `docs/brainstorming` divergence in data-model-review skill docs | 12 |
-| T23·b | Add "read prior reports in the series" + "copy the template, never transcribe" steps | 12 |
+
+| ID    | Subtask                                                                              | Est |
+| ----- | ------------------------------------------------------------------------------------ | --- |
+| T23·a | Fix `docs/reviews` ↔ `docs/brainstorming` divergence in data-model-review skill docs | 12  |
+| T23·b | Add "read prior reports in the series" + "copy the template, never transcribe" steps | 12  |
 
 ### T24 — Post-landing sweep (3 = 60)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T24·a | api-stability golden regen + meta-tests (`TestEvery*`) | 12 |
-| T24·b | doc-check over SKILL.md + references + AGENTS.md | 12 |
-| T24·c | Consumer-pin sweep: bump `id/v4`/`record/v4` consumers, GOWORK=off build matrix | 12 |
+
+| ID    | Subtask                                                                         | Est |
+| ----- | ------------------------------------------------------------------------------- | --- |
+| T24·a | api-stability golden regen + meta-tests (`TestEvery*`)                          | 12  |
+| T24·b | doc-check over SKILL.md + references + AGENTS.md                                | 12  |
+| T24·c | Consumer-pin sweep: bump `id/v4`/`record/v4` consumers, GOWORK=off build matrix | 12  |
 
 ### T25 — Memory update (2 = 24)
-| ID | Subtask | Est |
-|----|---------|-----|
-| T25·a | AGENTS.md: record T01 outcome + new data-model conventions section | 12 |
-| T25·b | Commit | 12 |
+
+| ID    | Subtask                                                            | Est |
+| ----- | ------------------------------------------------------------------ | --- |
+| T25·a | AGENTS.md: record T01 outcome + new data-model conventions section | 12  |
+| T25·b | Commit                                                             | 12  |
 
 ---
 
@@ -403,7 +428,7 @@ Legend: amber = decision/reference tier, red = foundation PRs, blue = surface co
 
 ---
 
-*Point-in-time plan. Living state belongs in TODO_LIST.md (T13 harvest). Annotate, never rewrite.*
+_Point-in-time plan. Living state belongs in TODO_LIST.md (T13 harvest). Annotate, never rewrite._
 
 ---
 
@@ -413,13 +438,13 @@ Sweep: `rg "record\.(Record|StreamRef|NewStreamRef)" metaengine/` → 98 files (
 
 ### Verdict: v4.x additive changes (T04–T08) are LOW hazard in metaengine
 
-| Surface | Files | Effect of additive Record/CommonMetadata fields |
-|---|---|---|
-| `record.Record` literals | `store.go:373`, `runtime_backend.go:239,351`, `demote.go:318`, `enginetest/record_stamp.go:51` | **All keyed.** Zero positional literals anywhere in metaengine → adding fields compiles clean. |
-| Record-field stamp map | `metaengine/record_stamp.go` (`recordFieldGetters`) | Name-matched (`StreamID`, `StreamType`, `Version`, `CorrelationID`, `CausationID`, `ActorID`, `SchemaVersion`). New fields (`Stream`, `Cause`, `Received`, `Actor`, `ID`, `Encoding`) have no getters → safe no-op; stamps only appear if a getter is added. |
-| Field access | `record_fold.go`, `fold.go`, `types.go`, `auto_fold.go`, `auto_naming.go`, `infer_composite.go`, `replicator.go`, `override.go`, `query.go`, `projectionadapter/typed_decoder.go`, `projectionadapter/adapter.go` | Read existing fields only; none construct CommonMetadata positionally. |
-| Serialization | none | No production path JSON-serializes `record.Record` (watermill/middleware/projectionadapter checked) → new fields cannot leak onto wires. |
-| Snapshot goldens | none | No `go-snaps` usage in metaengine — the only golden that changes is the api-stability one (T04·e regen). |
+| Surface                  | Files                                                                                                                                                                                                             | Effect of additive Record/CommonMetadata fields                                                                                                                                                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `record.Record` literals | `store.go:373`, `runtime_backend.go:239,351`, `demote.go:318`, `enginetest/record_stamp.go:51`                                                                                                                    | **All keyed.** Zero positional literals anywhere in metaengine → adding fields compiles clean.                                                                                                                                                               |
+| Record-field stamp map   | `metaengine/record_stamp.go` (`recordFieldGetters`)                                                                                                                                                               | Name-matched (`StreamID`, `StreamType`, `Version`, `CorrelationID`, `CausationID`, `ActorID`, `SchemaVersion`). New fields (`Stream`, `Cause`, `Received`, `Actor`, `ID`, `Encoding`) have no getters → safe no-op; stamps only appear if a getter is added. |
+| Field access             | `record_fold.go`, `fold.go`, `types.go`, `auto_fold.go`, `auto_naming.go`, `infer_composite.go`, `replicator.go`, `override.go`, `query.go`, `projectionadapter/typed_decoder.go`, `projectionadapter/adapter.go` | Read existing fields only; none construct CommonMetadata positionally.                                                                                                                                                                                       |
+| Serialization            | none                                                                                                                                                                                                              | No production path JSON-serializes `record.Record` (watermill/middleware/projectionadapter checked) → new fields cannot leak onto wires.                                                                                                                     |
+| Snapshot goldens         | none                                                                                                                                                                                                              | No `go-snaps` usage in metaengine — the only golden that changes is the api-stability one (T04·e regen).                                                                                                                                                     |
 
 ### v5-cut ripple (old fields deleted / constructor changes) — the REAL exposure
 
@@ -468,27 +493,28 @@ Note: ADR-0123 itself never names `NewStreamRef`; the decision was recorded in T
 
 ### B.4 Option A — struct `record.Stream` (the review)
 
-| Buys | Costs |
-|---|---|
-| Separator-invalid states unrepresentable in memory | Does **not** reduce shape count: `id.StreamRef` remains (storage layer); `record.Stream{Type, EntityID string}` is a third struct with stringly fields — no type safety gain over a validated string |
-| Field access without parsing (irrelevant: zero production Split callers) | Every key/sort/stamp use pays `.String()` allocation on hot paths (journal keys, metaengine stamping — today `string(r.StreamID)` is free) |
-| Matches `id.StreamRef`'s shape conceptually | Contradicts a recorded decision whose v4 bridge already shipped + is documented in three status reports |
-| | The "one shape" endgame requires ALSO deleting `id.StreamRef` and re-plumbing pebble/snapshot/commandlifecycle/system signatures at v5 — a Phase 8 scope explosion |
+| Buys                                                                     | Costs                                                                                                                                                                                                |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Separator-invalid states unrepresentable in memory                       | Does **not** reduce shape count: `id.StreamRef` remains (storage layer); `record.Stream{Type, EntityID string}` is a third struct with stringly fields — no type safety gain over a validated string |
+| Field access without parsing (irrelevant: zero production Split callers) | Every key/sort/stamp use pays `.String()` allocation on hot paths (journal keys, metaengine stamping — today `string(r.StreamID)` is free)                                                           |
+| Matches `id.StreamRef`'s shape conceptually                              | Contradicts a recorded decision whose v4 bridge already shipped + is documented in three status reports                                                                                              |
+|                                                                          | The "one shape" endgame requires ALSO deleting `id.StreamRef` and re-plumbing pebble/snapshot/commandlifecycle/system signatures at v5 — a Phase 8 scope explosion                                   |
 
 ### B.5 Option B — recorded plan (string survives, validating constructor at v5)
 
-| Buys | Costs |
-|---|---|
-| Honors the shipped bridge; migration path already documented (3 call sites) | String type keeps parse tax at boundaries (Parse/Validate — already built) |
-| Zero-dep, zero-hot-path-cost; comparable/sortable/indexable as-is | Does not by itself collapse the three shapes (neither does A) |
-| Invalid construction impossible from v5 (empty entityID rejected at ctor) — delivers the review's actual safety goal | Externally sourced strings (DB reads, consumer input) still need runtime validation — but structs parsed from bad input need the same |
-| P1 convergence remains achievable: T04 validated population in bridges + T10 `Execute(ref)` convention + T22 trio-naming decision (incl. possible `id.StreamRef` deprecation) | The struct's in-memory separator guarantee is forgone (low value: 0 production Split callers) |
+| Buys                                                                                                                                                                          | Costs                                                                                                                                 |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Honors the shipped bridge; migration path already documented (3 call sites)                                                                                                   | String type keeps parse tax at boundaries (Parse/Validate — already built)                                                            |
+| Zero-dep, zero-hot-path-cost; comparable/sortable/indexable as-is                                                                                                             | Does not by itself collapse the three shapes (neither does A)                                                                         |
+| Invalid construction impossible from v5 (empty entityID rejected at ctor) — delivers the review's actual safety goal                                                          | Externally sourced strings (DB reads, consumer input) still need runtime validation — but structs parsed from bad input need the same |
+| P1 convergence remains achievable: T04 validated population in bridges + T10 `Execute(ref)` convention + T22 trio-naming decision (incl. possible `id.StreamRef` deprecation) | The struct's in-memory separator guarantee is forgone (low value: 0 production Split callers)                                         |
 
 ### B.6 Recommendation
 
 **Option B — keep the recorded plan.** The review's underlying goals (validated construction, identity convergence) are fully deliverable without the struct: the v5 validating constructor delivers construction safety; T04/T10/T22 deliver convention convergence. Option A's structural elegance does not survive contact with the facts: it adds a third struct shape rather than removing one, taxes the hottest paths, and would require re-litigating the storage layer's ref plumbing to reach the "one shape" endgame. The review's Step 6 should be amended to Option B semantics (T02), with P1's resolution riding T04+T10+T22 instead of a type swap.
 
 **If the owner prefers A anyway:** T04 then implements `record.Stream{Type, EntityID string}` + `NewStream` validating constructor + `String()`; TODO_LIST Phase 8 gains the `id.StreamRef` endgame decision; T22 becomes mandatory before T04 ships.
+
 ## Appendix C — T09 Decision Memo: Metadata Access on Command/Query (capability interface now vs interface growth at v5)
 
 **Status: DECIDED 2026-08-22 (owner, "Table view comparison") — capability interface ships in v4.x; growing the core `Command`/`Query` interfaces rides the v5 cut.** Recorded in TODO_LIST §Core Data Model. This memo is the comparison table backing that decision.
@@ -503,16 +529,16 @@ This is a LIBRARY. Consumers hand-roll `Command`/`Query` implementations by desi
 
 ### C.3 Comparison
 
-| Axis | A. Capability interface (v4.x) | B. Grow core interfaces (v5) |
-|---|---|---|
-| Consumer breakage in v4.x | **None** — purely additive export | Breaks every hand-rolled Command/Query impl |
-| Hand-rolled impls can opt in | Yes — add `Metadata()` method | Forced — no method, no compile |
-| Discoverability | Capability type is exported and documented (`MetadataCarrier`) | Method is part of the core contract |
-| Middleware code | Type-asserts to the named capability (no inline duck types) | Direct method call |
-| Static enforcement for embedders | Compile-time `var _ MetadataCarrier = (*BasicQuery)(nil)` | Same via interface satisfaction |
-| Cost for non-carriers | Assertion fails, falls back — same as today | N/A |
-| Semantic clarity | "may carry" — capability is optional by design | "must carry" — every query owes metadata |
-| When | Ships now (T09) | v5 cut, together with the rest of the interface redesign |
+| Axis                             | A. Capability interface (v4.x)                                 | B. Grow core interfaces (v5)                             |
+| -------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------- |
+| Consumer breakage in v4.x        | **None** — purely additive export                              | Breaks every hand-rolled Command/Query impl              |
+| Hand-rolled impls can opt in     | Yes — add `Metadata()` method                                  | Forced — no method, no compile                           |
+| Discoverability                  | Capability type is exported and documented (`MetadataCarrier`) | Method is part of the core contract                      |
+| Middleware code                  | Type-asserts to the named capability (no inline duck types)    | Direct method call                                       |
+| Static enforcement for embedders | Compile-time `var _ MetadataCarrier = (*BasicQuery)(nil)`      | Same via interface satisfaction                          |
+| Cost for non-carriers            | Assertion fails, falls back — same as today                    | N/A                                                      |
+| Semantic clarity                 | "may carry" — capability is optional by design                 | "must carry" — every query owes metadata                 |
+| When                             | Ships now (T09)                                                | v5 cut, together with the rest of the interface redesign |
 
 ### C.4 Decision and shape
 
@@ -524,7 +550,6 @@ Production duck-typing sites: exactly `query/audit.go:86,101,114` (this file onl
 
 > **Post-T09 note (2026-08-22):** the line refs above describe the pre-T09 layout. T09·d removed the inline duck-typed interfaces; `query/audit.go` now type-asserts the exported `query.MetadataCarrier`/`query.PayloadCarrier` capabilities (~lines 87/100/113).
 
-
 ## Appendix D — T22 Naming Decision: Stream vocabulary (2026-08-22)
 
 **Owner context:** Appendix B already rejected `record.Stream` (the struct
@@ -532,16 +557,16 @@ counter-proposal); this appendix fixes the NAMES of what remains.
 
 ### D.1 Naming table (the decision)
 
-| Symbol | Kind | Role | Verdict |
-|---|---|---|---|
-| `id.StreamID` | branded string | the identity VALUE (ULID-backed, or string-backed for semantic IDs like TimerID) | **KEEP** |
-| `id.StreamType` | string | the discriminator ("User", "Task") | **KEEP** |
-| `id.StreamRef` | struct{Type, ID} | the structured pair for parameters/lookups; un-transposable | **KEEP** |
-| `record.StreamRef` | string `"Type/EntityID"` | the canonical string KEY (primary-key form on records) | **RENAME at v5 → `record.StreamKey`** — same name as the struct pair in a sibling package with a different meaning is the drift engine; see D.2 |
-| `id.StreamRef.StreamKey()` / `String()` | method | colon-form `"Type:ID"` | **v5: converge on ONE canonical separator** with the record key form (recommend `/`; record's Validate/Split already speak it). Until then the two forms are package-local |
-| `record.Cause` + `CauseKind` | struct + uint8 | explicit causer (kind + ID) | KEEP |
-| `record.Stamp` | struct | presence-explicit time (distinct from a bare `time.Time`: "not set" is representable) | KEEP |
-| `record.Actor` + `ActorKind`, `id.ActorID` + `id.ActorKind` | typed values | kind-discriminated actor at both layers | KEEP both `ActorKind` enums — intentional zero-dep structural mirror (art-dupl annotated, ADR-0111); conversion at the boundary is the documented pattern |
+| Symbol                                                      | Kind                     | Role                                                                                  | Verdict                                                                                                                                                                    |
+| ----------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id.StreamID`                                               | branded string           | the identity VALUE (ULID-backed, or string-backed for semantic IDs like TimerID)      | **KEEP**                                                                                                                                                                   |
+| `id.StreamType`                                             | string                   | the discriminator ("User", "Task")                                                    | **KEEP**                                                                                                                                                                   |
+| `id.StreamRef`                                              | struct{Type, ID}         | the structured pair for parameters/lookups; un-transposable                           | **KEEP**                                                                                                                                                                   |
+| `record.StreamRef`                                          | string `"Type/EntityID"` | the canonical string KEY (primary-key form on records)                                | **RENAME at v5 → `record.StreamKey`** — same name as the struct pair in a sibling package with a different meaning is the drift engine; see D.2                            |
+| `id.StreamRef.StreamKey()` / `String()`                     | method                   | colon-form `"Type:ID"`                                                                | **v5: converge on ONE canonical separator** with the record key form (recommend `/`; record's Validate/Split already speak it). Until then the two forms are package-local |
+| `record.Cause` + `CauseKind`                                | struct + uint8           | explicit causer (kind + ID)                                                           | KEEP                                                                                                                                                                       |
+| `record.Stamp`                                              | struct                   | presence-explicit time (distinct from a bare `time.Time`: "not set" is representable) | KEEP                                                                                                                                                                       |
+| `record.Actor` + `ActorKind`, `id.ActorID` + `id.ActorKind` | typed values             | kind-discriminated actor at both layers                                               | KEEP both `ActorKind` enums — intentional zero-dep structural mirror (art-dupl annotated, ADR-0111); conversion at the boundary is the documented pattern                  |
 
 ### D.2 The two real smells found (both feed the v5 sweep)
 

@@ -67,6 +67,7 @@ from 2026-08-27 15:10** (`docs/planning/2026-08-27_15-10_DEEP-FULL-CODE-REVIEW-P
 ## f) NEXT — up to 50 things, priority-ordered
 
 **Blocking/unblocking (do first):**
+
 1. Decide ownership of the 4 uncommitted working-tree files (E3+E9 work) — verify + commit or discard (g1).
 2. Read the 2026-08-27 15:10 DEEP-FULL-CODE-REVIEW-PARETO artifact — it likely re-prioritizes everything below (g3).
 3. Push the 18 local commits (owner call — g2).
@@ -133,4 +134,4 @@ from 2026-08-27 15:10** (`docs/planning/2026-08-27_15-10_DEEP-FULL-CODE-REVIEW-P
 
 ---
 
-*Reported 2026-08-27 15:17 from repo state HEAD `9685a9810`, tree NOT clean (4 foreign modified files + 3 untracked planning artifacts), master 18 ahead of origin. No files were modified in the making of this report. WAITING FOR INSTRUCTIONS.*
+_Reported 2026-08-27 15:17 from repo state HEAD `9685a9810`, tree NOT clean (4 foreign modified files + 3 untracked planning artifacts), master 18 ahead of origin. No files were modified in the making of this report. WAITING FOR INSTRUCTIONS._

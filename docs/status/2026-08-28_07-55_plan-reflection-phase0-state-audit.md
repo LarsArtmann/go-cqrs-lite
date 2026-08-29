@@ -100,6 +100,7 @@
 ## f) NEXT — Pareto-ordered; [user]-blocked marked
 
 **Verification floor (kills this session's own debt):**
+
 1. `git tag -l` + `merge-base` audit of the release-chain claims (d1).
 2. Read `2026-08-27_17-30_PENDING-TAG-WAVE-PLAN.md` end-to-end (d6).
 3. Itemize the 7 ticked TODOs against the 65 remaining (d3).
@@ -113,9 +114,9 @@
 9. Regression tests: CatchUp Close-while-blocked + double-Subscribe.
 10. P03.1 failing race test (concurrent live Apply + Verify replay, one Fold).
 11. P03.2 thread Record through invoke closures; delete recHolder cell
-    (dispatch: `runtime_backend.go:304`, `replicator.go:165`).
+(dispatch: `runtime_backend.go:304`, `replicator.go:165`).
 12. P03.3–P03.5 optional Record on EventInput/log entries; Backfill/Demote/Verify
-    threading; Record-aware fold comparison; race green ×3.
+threading; Record-aware fold comparison; race green ×3.
 13. P03.6 golden + CHANGELOG + commit.
 14. Annotate the two metaengine TODO items with the P03 design note.
 15. `#verify-standalone` decision: build the app or record "CI owns the signal".
@@ -123,7 +124,7 @@
 **[user] gates on the critical path:**
 16. [user] Q1: PG-isolation keep-or-revert.
 17. [user] Q2: P07 tag-wave scope (B1–B7 vs B1+B3+B4) + pre-v5 patch tags for
-    listing/pgtestcontainer.
+listing/pgtestcontainer.
 18. [user] Q3: benchmark serialized catch-up before tag wave, or accept.
 19. [user] eventtest dead-tag deletion (v4.0.0/v4.2.0).
 20. [user] go-codec F46 commit+tag; alloc-pin updates.
@@ -142,11 +143,11 @@
 
 **Phase 2 — correctness batches (post-v5):**
 31. P18 storage/engines (pebble dup-check lock, stream-not-found contract,
-    upcaster hardening, TypedStore.Save via NewSnapshot).
+upcaster hardening, TypedStore.Save via NewSnapshot).
 32. P19 read path (kv Invalidate, catalog recursion, eventtest fakes, Stamp wire).
 33. P20 host/tooling (projectionhost hardening, C042, scenario guard).
 34. P21 semantics/docs (deriver cycles, scheduling epochs, metaengine routing,
-    the nine review follow-ups).
+the nine review follow-ups).
 
 **Phase 3/4 + long tail:**
 35. P22 metaengine-gen + planner auto-route.
@@ -179,5 +180,6 @@
    as-is?
 
 ---
-*Point-in-time snapshot at `6630ae9d7`, 2026-08-28 07:55 CEST. This session
-changed no files. Living state: TODO_LIST.md. Awaiting instructions.*
+
+_Point-in-time snapshot at `6630ae9d7`, 2026-08-28 07:55 CEST. This session
+changed no files. Living state: TODO_LIST.md. Awaiting instructions._

@@ -57,14 +57,14 @@ type decoratedStore struct {
 }
 
 var (
-	_ Store           = (*decoratedStore)(nil)
-	_ Journal         = (*decoratedStore)(nil)
-	_ SeekableJournal = (*decoratedStore)(nil)
-	_ BackwardsSource = (*decoratedStore)(nil)
-	_ MultiSink       = (*decoratedStore)(nil)
-	_ StreamingSource = (*decoratedStore)(nil)
+	_ Store            = (*decoratedStore)(nil)
+	_ Journal          = (*decoratedStore)(nil)
+	_ SeekableJournal  = (*decoratedStore)(nil)
+	_ BackwardsSource  = (*decoratedStore)(nil)
+	_ MultiSink        = (*decoratedStore)(nil)
+	_ StreamingSource  = (*decoratedStore)(nil)
 	_ StreamingJournal = (*decoratedStore)(nil)
-	_ io.Closer       = (*decoratedStore)(nil)
+	_ io.Closer        = (*decoratedStore)(nil)
 )
 
 // applySink runs the sink transform (pass-through when nil).

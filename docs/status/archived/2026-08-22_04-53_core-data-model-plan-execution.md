@@ -186,8 +186,8 @@ fixes), T24 (post-landing sweep — only the golden-regen part is done), T25
 1. **T09 direction (metadata access).** My checkpoint question asked whether
    external consumers hand-roll `Command`/`Query` implementations or embed
    `*BasicCommand`; your answer was "Table view comparison". I read that as:
-   *show me a comparison table of the options in the T09 memo before
-   deciding* — and since the capability interface is safe under every
+   _show me a comparison table of the options in the T09 memo before
+   deciding_ — and since the capability interface is safe under every
    answer, I planned to proceed with it while the table rides the memo.
    Confirm that reading, or pick directly (capability interface / grow
    interface in v4.x / defer to v5).
@@ -204,7 +204,7 @@ fixes), T24 (post-landing sweep — only the golden-regen part is done), T25
 
 ---
 
-*Point-in-time snapshot. Session paused mid-plan: decision tier + reference
+_Point-in-time snapshot. Session paused mid-plan: decision tier + reference
 tier DONE (T01–T03, T13, T14, T15·b/c), foundation tier started (T04 code
 green, commit hygiene messy), surface + long-tail tiers untouched. WAITING
-FOR INSTRUCTIONS.*
+FOR INSTRUCTIONS._

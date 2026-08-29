@@ -42,14 +42,14 @@ These are foundational building blocks. Some depend on each other (e.g.
 `kv/` → external `go-codec`, `metaengine/` → `dedup/` + `record/`) but never
 on higher tiers.
 
-| Module            | Purpose                                                                      |
-| ----------------- | ---------------------------------------------------------------------------- |
-| `id/`             | Branded IDs: `id.Of[T]`, `AggregateID`, `StreamID`, etc.                     |
-| `dispatcher/`     | Generic `Dispatcher[H, M]` with lifecycle mixin                              |
-| `kv/`             | KV store: `Store`, `MemStore`, `TypedStore[T,K]`                             |
-| `dedup/`          | Bounded dedup ring buffer                                                    |
-| `record/`         | Shared Record + CommonMetadata types (structural base for events + commands) |
-| `metaengine/`     | Cost-based storage planner (the strategic future of this project)            |
+| Module        | Purpose                                                                      |
+| ------------- | ---------------------------------------------------------------------------- |
+| `id/`         | Branded IDs: `id.Of[T]`, `AggregateID`, `StreamID`, etc.                     |
+| `dispatcher/` | Generic `Dispatcher[H, M]` with lifecycle mixin                              |
+| `kv/`         | KV store: `Store`, `MemStore`, `TypedStore[T,K]`                             |
+| `dedup/`      | Bounded dedup ring buffer                                                    |
+| `record/`     | Shared Record + CommonMetadata types (structural base for events + commands) |
+| `metaengine/` | Cost-based storage planner (the strategic future of this project)            |
 
 > **`metaengine/` is Tier 3 in the ADR-0046 model, with a Tier-0-style core**
 > (ADR-0062 amendment): its PLANNER core depends only on Tier-0 primitives

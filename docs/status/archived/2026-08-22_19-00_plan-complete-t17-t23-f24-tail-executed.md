@@ -54,4 +54,4 @@
 
 ---
 
-*State at pause: HEAD `043467885`, working tree clean, all 25 plan tasks done (T01–T25), master pushed through `5d3ce030d` (later commits local), 8+0 tags on origin, final `#verify-fast` result recorded in the conversation. Plan artifacts: sweep doc, extended review, Appendix D naming table, bridge test, encoding stamp persisted end-to-end.*
+_State at pause: HEAD `043467885`, working tree clean, all 25 plan tasks done (T01–T25), master pushed through `5d3ce030d` (later commits local), 8+0 tags on origin, final `#verify-fast` result recorded in the conversation. Plan artifacts: sweep doc, extended review, Appendix D naming table, bridge test, encoding stamp persisted end-to-end._

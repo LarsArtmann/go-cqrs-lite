@@ -211,6 +211,6 @@ annotated), #3 coverage (MY dispatcher improvement — golden updated),
 #4 their fresh landing. Three of four REDs were foreign-tree; each was
 either fixed by me or attributed.
 
-*Reported 2026-08-27 17:35 from HEAD `efb2e6fea`. Tree: 20 uncommitted
+_Reported 2026-08-27 17:35 from HEAD `efb2e6fea`. Tree: 20 uncommitted
 foreign files (other session) + 2 untracked foreign docs; my slice fully
-committed. No push performed.*
+committed. No push performed._

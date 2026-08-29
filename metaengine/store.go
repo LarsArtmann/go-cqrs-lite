@@ -522,7 +522,13 @@ func (s *Store) InTransaction(ctx context.Context, fn func(context.Context) erro
 	return fn(ctx)
 }
 
-func (s *Store) applyFold(ctx context.Context, q queryMeta, fold Fold, rec record.Record, payload any) (err error) {
+func (s *Store) applyFold(
+	ctx context.Context,
+	q queryMeta,
+	fold Fold,
+	rec record.Record,
+	payload any,
+) (err error) {
 	start := time.Now()
 
 	// Wrap errors with structured context for debugging. Registered first so

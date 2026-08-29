@@ -12,86 +12,86 @@
 
 ### id (12) — `id/aggregate_id.go`, `id/aggregate_type.go`
 
-| Deprecated symbol | Replacement |
-|---|---|
-| `AggregateMarker` | `StreamMarker` |
-| `AggregateID` | `StreamID` |
-| `NewAggregateID()` | `NewStreamID()` |
-| `ParseAggregateID(s)` | `ParseStreamID(s)` |
-| `ParseAggregateIDStrict(s)` | `ParseStreamIDStrict(s)` |
-| `IsAggregateIDULID(id)` | `IsStreamIDULID(id)` |
-| `AggregateTimestamp(id)` | `StreamTimestamp(id)` |
+| Deprecated symbol                | Replacement                   |
+| -------------------------------- | ----------------------------- |
+| `AggregateMarker`                | `StreamMarker`                |
+| `AggregateID`                    | `StreamID`                    |
+| `NewAggregateID()`               | `NewStreamID()`               |
+| `ParseAggregateID(s)`            | `ParseStreamID(s)`            |
+| `ParseAggregateIDStrict(s)`      | `ParseStreamIDStrict(s)`      |
+| `IsAggregateIDULID(id)`          | `IsStreamIDULID(id)`          |
+| `AggregateTimestamp(id)`         | `StreamTimestamp(id)`         |
 | `DeriveAggregateID(ns, keys...)` | `DeriveStreamID(ns, keys...)` |
-| `AggregateType` | `StreamType` |
-| `ParseAggregateType(s)` | `ParseStreamType(s)` |
-| `AggregateRef` | `StreamRef` |
-| `ErrEmptyAggregateType` | `ErrEmptyStreamType` |
+| `AggregateType`                  | `StreamType`                  |
+| `ParseAggregateType(s)`          | `ParseStreamType(s)`          |
+| `AggregateRef`                   | `StreamRef`                   |
+| `ErrEmptyAggregateType`          | `ErrEmptyStreamType`          |
 
 ### event (8) — `v3_compat_aliases.go`, `event.go`, `errors.go`
 
-| Deprecated symbol | Replacement |
-|---|---|
-| `event.AggregateType` | `id.StreamType` (via `event.StreamType`) |
-| `event.AggregateID` | `id.StreamID` (via `event.StreamID`) |
-| `event.AggregateRef` | `id.StreamRef` (via `event.StreamRef`) |
-| `(*ImmutableEvent).AggregateID()` | `StreamID()` |
-| `(*ImmutableEvent).AggregateType()` | `StreamType()` |
-| `ErrNilAggregateID` | `ErrNilStreamID` |
-| `ErrEmptyAggregateType` | `ErrEmptyStreamType` |
-| `ErrAggregateNotFound` | `ErrStreamNotFound` |
+| Deprecated symbol                   | Replacement                              |
+| ----------------------------------- | ---------------------------------------- |
+| `event.AggregateType`               | `id.StreamType` (via `event.StreamType`) |
+| `event.AggregateID`                 | `id.StreamID` (via `event.StreamID`)     |
+| `event.AggregateRef`                | `id.StreamRef` (via `event.StreamRef`)   |
+| `(*ImmutableEvent).AggregateID()`   | `StreamID()`                             |
+| `(*ImmutableEvent).AggregateType()` | `StreamType()`                           |
+| `ErrNilAggregateID`                 | `ErrNilStreamID`                         |
+| `ErrEmptyAggregateType`             | `ErrEmptyStreamType`                     |
+| `ErrAggregateNotFound`              | `ErrStreamNotFound`                      |
 
 ### command (6) — `aggregate_ref.go`, `errors.go`
 
-| Deprecated symbol | Replacement |
-|---|---|
-| `command.AggregateType` | `command.StreamType` |
-| `command.AggregateRef` | `command.StreamRef` |
-| `ParseAggregateType(s)` | `command.ParseStreamType(s)` |
+| Deprecated symbol        | Replacement                   |
+| ------------------------ | ----------------------------- |
+| `command.AggregateType`  | `command.StreamType`          |
+| `command.AggregateRef`   | `command.StreamRef`           |
+| `ParseAggregateType(s)`  | `command.ParseStreamType(s)`  |
 | `NewAggregateRef(t, id)` | `command.NewStreamRef(t, id)` |
-| `ErrNilAggregateID` | `ErrNilStreamID` |
-| `ErrEmptyAggregateType` | `ErrEmptyStreamType` |
+| `ErrNilAggregateID`      | `ErrNilStreamID`              |
+| `ErrEmptyAggregateType`  | `ErrEmptyStreamType`          |
 
 ### query (2) — `errors.go`
 
-| Deprecated symbol | Replacement |
-|---|---|
-| `ErrNilAggregateID` | `ErrNilStreamID` |
+| Deprecated symbol       | Replacement          |
+| ----------------------- | -------------------- |
+| `ErrNilAggregateID`     | `ErrNilStreamID`     |
 | `ErrEmptyAggregateType` | `ErrEmptyStreamType` |
 
 ### listing (5) — `aggregate_reader.go`, `types.go`, `in_memory.go`
 
-| Deprecated symbol | Replacement |
-|---|---|
-| `AggregateReader` | `StreamReader` |
-| `AggregateListing` | `StreamListing` |
-| `AggregateStatus` | `StreamStatus` |
-| `InMemoryAggregateReader` | `InMemoryStreamReader` |
+| Deprecated symbol               | Replacement                  |
+| ------------------------------- | ---------------------------- |
+| `AggregateReader`               | `StreamReader`               |
+| `AggregateListing`              | `StreamListing`              |
+| `AggregateStatus`               | `StreamStatus`               |
+| `InMemoryAggregateReader`       | `InMemoryStreamReader`       |
 | `NewInMemoryAggregateReader(j)` | `NewInMemoryStreamReader(j)` |
 
 ### misc (9) — singles across modules
 
-| Deprecated symbol | Module | Replacement |
-|---|---|---|
-| `StreamRef` alias + `NewStreamRef` | command | use `id.StreamRef` / `id.NewStreamRef` |
-| `EnsureCustom()` | metadata | `WithCustom` (immutability contract) |
-| `CustomData[K]` | metadata | `Metadata[K]` |
-| `SaveSnapshot(...)` | snapshot | `NewSnapshot` + `SnapshotSink.Save` (encoding stamp) |
-| `ParseType(s)` | event | `record.ParseType(s, ErrEmptyEventType)` |
-| `ParseType(s)` | command | `record.ParseType(s, ErrEmptyCommandType)` |
-| `ParseType(s)` | query | `record.ParseType(s, ErrEmptyQueryType)` |
-| `Execute(ctx, id, type, ...)` | decider | `ExecuteRef(ctx, ref, ...)` |
-| `Load(ctx, id, type)` | decider | `LoadRef(ctx, ref)` |
-| `record.StreamRef` (string) | record | `record.StreamKey` — same name as the id.StreamRef struct pair is a collision (plan Appendix D.2); separator convergence `/` rides the v5 migration guide |
+| Deprecated symbol                  | Module   | Replacement                                                                                                                                               |
+| ---------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `StreamRef` alias + `NewStreamRef` | command  | use `id.StreamRef` / `id.NewStreamRef`                                                                                                                    |
+| `EnsureCustom()`                   | metadata | `WithCustom` (immutability contract)                                                                                                                      |
+| `CustomData[K]`                    | metadata | `Metadata[K]`                                                                                                                                             |
+| `SaveSnapshot(...)`                | snapshot | `NewSnapshot` + `SnapshotSink.Save` (encoding stamp)                                                                                                      |
+| `ParseType(s)`                     | event    | `record.ParseType(s, ErrEmptyEventType)`                                                                                                                  |
+| `ParseType(s)`                     | command  | `record.ParseType(s, ErrEmptyCommandType)`                                                                                                                |
+| `ParseType(s)`                     | query    | `record.ParseType(s, ErrEmptyQueryType)`                                                                                                                  |
+| `Execute(ctx, id, type, ...)`      | decider  | `ExecuteRef(ctx, ref, ...)`                                                                                                                               |
+| `Load(ctx, id, type)`              | decider  | `LoadRef(ctx, ref)`                                                                                                                                       |
+| `record.StreamRef` (string)        | record   | `record.StreamKey` — same name as the id.StreamRef struct pair is a collision (plan Appendix D.2); separator convergence `/` rides the v5 migration guide |
 
 ## 2. Record-bridge Deprecated fields (5) — `record/record.go`
 
-| Deprecated field | Replacement | Note |
-|---|---|---|
-| `CausationID` | `Cause` | kind implied vs explicit |
-| `ActorID` | `Actor` | no kind:raw parse tax |
-| `ClientCreatedAt` | `Created` | presence-explicit Stamp |
-| `ServerReceivedAt` | `Received` | presence-explicit Stamp |
-| `StoredAt` | `Stored` | presence-explicit Stamp |
+| Deprecated field   | Replacement | Note                     |
+| ------------------ | ----------- | ------------------------ |
+| `CausationID`      | `Cause`     | kind implied vs explicit |
+| `ActorID`          | `Actor`     | no kind:raw parse tax    |
+| `ClientCreatedAt`  | `Created`   | presence-explicit Stamp  |
+| `ServerReceivedAt` | `Received`  | presence-explicit Stamp  |
+| `StoredAt`         | `Stored`    | presence-explicit Stamp  |
 
 Bridges (`event/asrecord.go`, `command/asrecord.go`, `query/asrecord.go`)
 populate both forms in lockstep until the cut.
@@ -108,6 +108,7 @@ paths (see TODO_LIST §v5 "Delete deprecated tombstone metadata API"):
 ## 4. Wire tags + error codes carrying aggregate vocabulary
 
 **On-disk / wire tags (rename = migration, see T18 audit in TODO_LIST §v5):**
+
 - `snapshot.Snapshot` JSON tags `aggregateId`/`aggregateType`
 - pebble `serializableSnapshot` CBOR tags `aggregate_id`/`aggregate_type`
 - bbolt `command_serialization.go` CBOR tags `aggregate_id`/`aggregate_type`
@@ -120,6 +121,7 @@ paths (see TODO_LIST §v5 "Delete deprecated tombstone metadata API"):
 
 **Stale error-code strings (family codes, not symbols — renaming them is a
 consumer-visible observability change; batch at v5 with a changelog note):**
+
 - `event.nil_aggregate_id`, `event.empty_aggregate_type`,
   `event.aggregate_not_found`
 - `command.nil_aggregate_id`, `command.empty_aggregate_type`

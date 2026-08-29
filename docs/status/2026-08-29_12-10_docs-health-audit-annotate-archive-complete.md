@@ -213,6 +213,7 @@ archive; link repair; gates.
 ## f) UP TO 50 THINGS WE SHOULD GET DONE NEXT
 
 **Verification floor (this audit's own debt)**
+
 1. Full exclusive `nix run .#verify` (nothing heavy running) — the release
    checkpoint claim still cites 08-16.
 2. `nix run .#check-duplication` + `#check-arch` after the doc churn.
@@ -223,21 +224,23 @@ archive; link repair; gates.
 
 **Unblock (user-gated)**
 5. [user] Sign off tag-wave batches B2–B7 (32 tags; plan:
-   docs/planning/2026-08-27_17-30_PENDING-TAG-WAVE-PLAN.md).
+docs/planning/2026-08-27_17-30_PENDING-TAG-WAVE-PLAN.md).
 6. [user] Delete or document eventtest dead tags v4.0.0/v4.2.0.
 7. [user] go-codec F46: commit + tag the UnwrapDecode sniff (+ alloc-pin
-   updates in the same change).
+updates in the same change).
 8. [user] Ratify iroh P99 150ms judgment call.
 9. [user] Fix GitHub Actions billing (paid jobs RED since ~07-17).
 10. [user] PG-isolation keep-or-revert ratification (landed 08-27, declined
-    earlier same day).
+earlier same day).
 
 **Correctness harvest (verified still-true code gaps)**
 11. pgEngine + mysqlEngine `LayoutPlanApplier` + planned-layout ALTER TABLE.
 12. DuckDB CounterGet/CounterIncrement SQL pushdown + filter-builder unify.
 13. `metaJSON, _ :=` silent discards (system adapter serial ×2).
 14. SQL-injection tail: ORDER BY TimestampColumn interpolation + fuzz corpus
-    + gosec/nightly-fuzz CI.
+
+- gosec/nightly-fuzz CI.
+
 15. metaengine watcher: generic `watcherEntry`, latency bench,
     WithReificationFailureHook.
 16. mapUpdateReplicationRule: FoldMultiInsert/FoldAppend coverage.
@@ -257,15 +260,17 @@ archive; link repair; gates.
 **Docs/skills debt**
 27. Fold `[Unreleased — earlier 2026-08-16 work]` into the top Unreleased.
 28. v5-doc coverage set: faq.md deprecation notes, README SQLViewStore bullet
-    (done), AGENTS Codec-Defaults v5 note, method-level `Deprecated:` decision,
-    durability-tier re-home for storage/pebble (BLOCKS stack deletion),
-    stack/bench decision.
+(done), AGENTS Codec-Defaults v5 note, method-level `Deprecated:` decision,
+durability-tier re-home for storage/pebble (BLOCKS stack deletion),
+stack/bench decision.
 29. Fix the "~41-byte" figure → 43–46 in 4 documents.
 30. AGENTS gotchas: pebble Close() no memtable flush; bbolt mmap quantization;
-    MySQL-VM trio.
+MySQL-VM trio.
 31. SEVEN-TIER-MODEL.md:56 "Tier 0" vs enforcement Tier 3 reconciliation.
 32. Engine READMEs (mysql/sqlite/turso/badger) + pebble engine.go:7 comment
-    + capability-table rows.
+
+- capability-table rows.
+
 33. BENCHMARKS.md durability PENDING cell + modules.md bboltengine row.
 34. CONTRIBUTING: pin-bump-before-tag recipe + GOPRIVATE verify commands;
     durability-tier ADR; Introspection/Doctor durability surfacing.
@@ -308,7 +313,6 @@ archive; link repair; gates.
 *Point-in-time snapshot at `767545365`, 2026-08-29 12:10 CEST. Session changed
 docs only: 11 M / 1034 R / 26 RM uncommitted. Living state: TODO_LIST.md
 (94 open items, 0 done). Awaiting instructions.*
-
 ---
 
 ## ADDENDUM (2026-08-29 ~12:40 CEST) — T04 archive spot-verify (plan V3)

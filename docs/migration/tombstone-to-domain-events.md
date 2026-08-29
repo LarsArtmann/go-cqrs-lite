@@ -149,14 +149,14 @@ Deprecated and removed in v5; it no longer affects reader status.
 
 ## API Mapping (old → what to do instead)
 
-| Old (Deprecated, still functional in v4)      | Migration path                                                    |
-| --------------------------------------------- | ----------------------------------------------------------------- |
-| `event.MarkTombstone(evt)`                    | Emit `"entity.deleted"` event directly                            |
-| `event.MarkRebirth(evt)`                      | Emit `"entity.restored"` event directly                           |
-| `event.DetectTombstone(events)`               | Check last event type: `events[len-1].Type() == "entity.deleted"` |
-| `event.TombstoneStatus` + `IsTombstoned()`    | `listing.Status` + `WithStatusClassifier` (type-driven)           |
+| Old (Deprecated, still functional in v4)      | Migration path                                                            |
+| --------------------------------------------- | ------------------------------------------------------------------------- |
+| `event.MarkTombstone(evt)`                    | Emit `"entity.deleted"` event directly                                    |
+| `event.MarkRebirth(evt)`                      | Emit `"entity.restored"` event directly                                   |
+| `event.DetectTombstone(events)`               | Check last event type: `events[len-1].Type() == "entity.deleted"`         |
+| `event.TombstoneStatus` + `IsTombstoned()`    | `listing.Status` + `WithStatusClassifier` (type-driven)                   |
 | `listing.StatusMiddleware(deletes, rebirths)` | `listing.NewStatusClassifier(deletes, rebirths)` + `WithStatusClassifier` |
-| `kv.TombstoneQuerier` / `QueryByTombstone`    | Unchanged — server-side SQL filtering                             |
+| `kv.TombstoneQuerier` / `QueryByTombstone`    | Unchanged — server-side SQL filtering                                     |
 
 **There is no `DeletePolicy` rename.** The `listing.TombstonePolicy`
 (`TombstoneExclude`/`TombstoneInclude`/`TombstoneOnly`) and

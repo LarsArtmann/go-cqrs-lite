@@ -41,13 +41,13 @@
 
 ## 1. Already shipped (stale TODO claims, do NOT retag)
 
-| Module | Tag | Covered claim |
-|---|---|---|
-| event | v4.8.0 (08-22) | DecorateJournal (ADR-0126) |
-| metadata | v4.6.0 (08-22) | BrandedString/ActorString |
-| metaengine | v4.12.0 (08-22) | capability audit + iroh exports |
-| storage | v4.8.0 (08-22) | OpenSQLiteInMemory shared-cache DSNs |
-| decider | v4.4.0 (08-22) | *Ref identity forms |
+| Module     | Tag             | Covered claim                        |
+| ---------- | --------------- | ------------------------------------ |
+| event      | v4.8.0 (08-22)  | DecorateJournal (ADR-0126)           |
+| metadata   | v4.6.0 (08-22)  | BrandedString/ActorString            |
+| metaengine | v4.12.0 (08-22) | capability audit + iroh exports      |
+| storage    | v4.8.0 (08-22)  | OpenSQLiteInMemory shared-cache DSNs |
+| decider    | v4.4.0 (08-22)  | *Ref identity forms                  |
 
 Stranded-commit repair: `092b5e8a8` landed as cherry-pick `491379a2b`
 (verified on master); `4907b6afc` obsolete (bench go.mod has no
@@ -59,15 +59,15 @@ Versions are proposals; final call at cut time from CHANGELOG
 (Added ⇒ minor, Fixed-only ⇒ patch). "Replaces unlocked" = local sibling
 replaces that become droppable once the batch is pushed.
 
-| # | Batch | Modules (current → proposed) | Rationale / unlocks |
-|---|---|---|---|
-| B1 | core fixes | `event v4.8.0 → v4.9.0` (Orchestration alias + streaming/family fixes), `schema v4.3.0 → v4.3.1`, `dedup v4.2.0 → v4.2.1`, `dispatcher v4.3.0 → v4.3.1` | event first: nearly everything pins it. Unlocks encryption/signing replaces (event.ErrInnerStoreNot*, Rejecting* on-disk refs). |
+| #  | Batch                        | Modules (current → proposed)                                                                                                                                                                                                                                                                                                                                | Rationale / unlocks                                                                                                                                             |
+| -- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| B1 | core fixes                   | `event v4.8.0 → v4.9.0` (Orchestration alias + streaming/family fixes), `schema v4.3.0 → v4.3.1`, `dedup v4.2.0 → v4.2.1`, `dispatcher v4.3.0 → v4.3.1`                                                                                                                                                                                                     | event first: nearly everything pins it. Unlocks encryption/signing replaces (event.ErrInnerStoreNot*, Rejecting* on-disk refs).                                 |
 | B2 | command/query tier + listing | `command v4.8.0 → v4.8.1`, `query v4.7.0 → v4.7.1`, `middleware v4.5.0 → v4.5.1`, `scheduling v4.3.0 → v4.3.1` (Due ordering, WithMaxRetries clamp), `listing v4.2.0 → v4.3.0` (Status/StatusClassifier feat, StatusMiddleware deprecated — 5ec4b1b39), `testutil/pgtestcontainer v4.0.0 → v4.1.0` (AfterRun; B3 storage standalone test builds resolve it) | listing is a MINOR (new API); rest Fixed-only patches; depend on published B1 pins. listing MUST precede B3 storage (its SQL reader surfaces `listing.Status`). |
-| B3 | snapshot chain | `snapshot v4.3.0 → v4.4.0` (Encoding field, validated ctor), `decider v4.4.0 → v4.4.1` (clamp fixes), `storage v4.8.0 → v4.8.1` (error-family truth, DuckDB PK), `storage/memory v4.3.1`, `storage/pebble v4.3.0` (verify Added vs Fixed), `storage/bbolt v4.0.1`, `storage/turso v4.2.1`, `storage/backuptest v4.0.1` | Gap-wave ordering snapshot→decider→storage→pebble/bbolt. Drops the `decider => ../snapshot` replace. |
-| B4 | lifecycle + kv + idem | `kv v4.2.1` (Cache.Set invalidation), `commandlifecycle v4.0.1` (+`projections v4.0.1`) (Recorder version fix), `idempotency/kvstore v4.2.1`, `idempotency/sqlstore v4.2.1` (corrupt-row skip), `system v4.5.0 → v4.6.0` (shutdown-dependency validation + synthetic engine names + ErrShutdownDependencyInvalid — 96ecbf1f2, 3358d3794, c9e464eda) | system minor (new sentinel + validation). Drops `idempotency/kvstore => ../sqlstore`, `integration => ../middleware` replaces. |
-| B5 | crypto + host + watermill | `encryption v4.2.0 → v4.3.0`*, `signing v4.2.0 → v4.3.0`*, `projectionhost v4.3.0 → v4.3.1` (worker hardening), `watermill v4.5.0 → v4.5.1` (at-least-once catch-up checkpoints — c9e464eda) | *verify CHANGELOG Added entries since 08-16 for minor vs patch. Requires B1 event tags + replace-drop verify. |
-| B6 | engine patches | `dgraphengine v4.0.3`, `duckdbengine v4.0.2`, `mysqlengine v4.0.1`, `graphadapter v4.0.1`, `projectionadapter v4.4.1`, `tursoengine v4.0.1`, `metaengine/irohengine v4.0.1` (+`loopback v4.0.1`, `quic v4.0.1`) | Engines are dep-isolated; metaengine v4.12.0 already published. Drops engine `=> ../metaengine` replaces where symbols are now published. |
-| B7 | transport finals | `transport/http v4.2.1`, `transport/grpc v4.2.1` — deprecation notices only (ADR-0127); prerequisite of the v5 deletion (plan T08) | Last v4 tags these modules ever get. |
+| B3 | snapshot chain               | `snapshot v4.3.0 → v4.4.0` (Encoding field, validated ctor), `decider v4.4.0 → v4.4.1` (clamp fixes), `storage v4.8.0 → v4.8.1` (error-family truth, DuckDB PK), `storage/memory v4.3.1`, `storage/pebble v4.3.0` (verify Added vs Fixed), `storage/bbolt v4.0.1`, `storage/turso v4.2.1`, `storage/backuptest v4.0.1`                                      | Gap-wave ordering snapshot→decider→storage→pebble/bbolt. Drops the `decider => ../snapshot` replace.                                                            |
+| B4 | lifecycle + kv + idem        | `kv v4.2.1` (Cache.Set invalidation), `commandlifecycle v4.0.1` (+`projections v4.0.1`) (Recorder version fix), `idempotency/kvstore v4.2.1`, `idempotency/sqlstore v4.2.1` (corrupt-row skip), `system v4.5.0 → v4.6.0` (shutdown-dependency validation + synthetic engine names + ErrShutdownDependencyInvalid — 96ecbf1f2, 3358d3794, c9e464eda)         | system minor (new sentinel + validation). Drops `idempotency/kvstore => ../sqlstore`, `integration => ../middleware` replaces.                                  |
+| B5 | crypto + host + watermill    | `encryption v4.2.0 → v4.3.0` _, `signing v4.2.0 → v4.3.0`_, `projectionhost v4.3.0 → v4.3.1` (worker hardening), `watermill v4.5.0 → v4.5.1` (at-least-once catch-up checkpoints — c9e464eda)                                                                                                                                                               | *verify CHANGELOG Added entries since 08-16 for minor vs patch. Requires B1 event tags + replace-drop verify.                                                   |
+| B6 | engine patches               | `dgraphengine v4.0.3`, `duckdbengine v4.0.2`, `mysqlengine v4.0.1`, `graphadapter v4.0.1`, `projectionadapter v4.4.1`, `tursoengine v4.0.1`, `metaengine/irohengine v4.0.1` (+`loopback v4.0.1`, `quic v4.0.1`)                                                                                                                                             | Engines are dep-isolated; metaengine v4.12.0 already published. Drops engine `=> ../metaengine` replaces where symbols are now published.                       |
+| B7 | transport finals             | `transport/http v4.2.1`, `transport/grpc v4.2.1` — deprecation notices only (ADR-0127); prerequisite of the v5 deletion (plan T08)                                                                                                                                                                                                                          | Last v4 tags these modules ever get.                                                                                                                            |
 
 **Total: 36 tags across 7 batches** (B1 4, B2 6, B3 8, B4 6, B5 4, B6 7+3 sub-modules, B7 2).
 

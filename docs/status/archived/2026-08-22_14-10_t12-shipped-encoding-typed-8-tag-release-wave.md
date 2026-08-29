@@ -61,4 +61,4 @@
 
 ---
 
-*State at pause: HEAD `137d23160`, working tree clean, `#verify-fast` GREEN on the final state, GOWORK=off build matrix green for all 66 swept modules, 8 new tags on origin. T01–T12 + T24 + T25 of 25 done; T16–T23 remain. No branch push performed.*
+_State at pause: HEAD `137d23160`, working tree clean, `#verify-fast` GREEN on the final state, GOWORK=off build matrix green for all 66 swept modules, 8 new tags on origin. T01–T12 + T24 + T25 of 25 done; T16–T23 remain. No branch push performed._
