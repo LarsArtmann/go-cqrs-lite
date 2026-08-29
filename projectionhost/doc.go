@@ -3,9 +3,12 @@
 // A Host reads events from a [event.SeekableJournal], applies them to registered
 // [projection.Projection] handlers, tracks per-projection checkpoints via
 // [event.CheckpointStore], and handles failures with automatic restart and
-// exponential backoff. Poison messages that exceed a configurable retry
-// threshold are captured to a [DeadLetterStore] and the checkpoint advances,
-// preventing a single bad event from blocking the entire stream.
+// exponential backoff. Non-retryable poison (Rejection/Corruption families)
+// that exhausts the retry threshold is captured to a [DeadLetterStore] and
+// the checkpoint advances, so one bad event cannot block the stream.
+// Retryable failures (Transient/Infrastructure) never quarantine: the worker
+// restarts and re-reads the event, and if the restart budget is exhausted it
+// fails loudly as [WorkerFailed] instead of silently skipping the event.
 //
 // This is the "last loop every consumer rewrites" — per-projection goroutines,
 // crash auto-restart, health/liveness exposure, and graceful drain on shutdown —
@@ -52,8 +55,11 @@
 //
 // [Host.Reset] drops the checkpoint for a named projection and, if the
 // projection implements [Resettable], calls its Reset method to clear
-// read-model state. After Reset, the next Start replays all events from the
-// beginning of the journal.
+// read-model state. The checkpoint is cleared BEFORE the projection resets:
+// a crash between the two steps replays from zero on top of stale read-model
+// state (which idempotent handlers absorb), while the reverse order could
+// silently skip pre-checkpoint events forever. After Reset, the next Start
+// replays all events from the beginning of the journal.
 //
 //	type UserProjection struct { /* ... */ }
 //	func (p *UserProjection) Reset(ctx context.Context) error {

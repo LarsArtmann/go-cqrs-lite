@@ -16,7 +16,8 @@ handling into a single embeddable component:
 - **Per-projection goroutines** — each projection runs independently
 - **Crash auto-restart** with exponential backoff
 - **Checkpoint persistence** — survives restarts, no event loss
-- **Dead-letter queue** — poison messages captured, checkpoint advances
+- **Dead-letter queue** — non-retryable poison captured, checkpoint advances;
+  retryable failures restart and fail loudly when the restart budget is spent
 - **Health/liveness** — `Status()` reports per-worker state with lag
 - **Per-projection lag** — `LagPerProjection()` for dashboards
 - **Graceful drain** — `Stop()` waits for in-flight events
@@ -81,8 +82,15 @@ Rebuild a projection from scratch after fixing a handler bug:
 host.Stop()
 // Drop checkpoint + call Resettable.Reset + optionally purge DLQ:
 host.Reset(ctx, "users", projectionhost.WithPurgeDeadLetters())
-host.Start(ctx) // replays from zero
+host.Start(ctx) // replays from zero — same host, fresh workers
 ```
+
+Reset clears the checkpoint BEFORE the projection resets, so a crash
+mid-reset can only cause idempotent re-projection, never skipped events.
+Stop→Start on the same host rebuilds the workers (their `Status()` counters
+reset); `ForceStop(ctx)` bypasses the graceful drain when a handler hangs.
+`CheckStaleness(d)` returns a Transient error when lag exceeds `d` or a
+worker has failed — use it as a read-time freshness guard.
 
 ## Design
 

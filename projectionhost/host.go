@@ -139,9 +139,13 @@ func newWorker(
 // (ReadFrom returns zero events), then exits. Workers auto-restart on crash
 // with exponential backoff up to maxRestarts.
 //
-// For continuous live tailing, pair this host with watermill.CatchUpSubscriber
-// or poll periodically by re-calling Start on a fresh Host. This host is a
-// batch-drainer with crash-restart semantics, not a live stream consumer.
+// After Stop, Start can be called again on the SAME host: the previous
+// workers are permanently drained, so fresh workers are built for the same
+// projections (their Processed/Errors/Restarts counters reset — see
+// WorkerState). For continuous live tailing, pair this host with
+// watermill.CatchUpSubscriber or poll periodically by calling Start again.
+// This host is a batch-drainer with crash-restart semantics, not a live
+// stream consumer.
 //
 // Returns an error if already started.
 func (h *Host) Start(ctx context.Context) error {

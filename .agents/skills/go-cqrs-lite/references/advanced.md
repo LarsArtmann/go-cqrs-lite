@@ -254,12 +254,18 @@ Understanding the lifecycle prevents common integration mistakes:
 4. **Live transition** → when the journal catch-up completes, the host transitions
    to the subscriber (if `WithSubscriber` was configured). Event-ID dedup prevents
    double-processing at the replay→live boundary.
-5. **Error handling** → on `Handle` error, the worker enters exponential backoff
-   (`WithBackoff`) with jitter. After `WithMaxRestarts` consecutive failures, the
-   event goes to the dead-letter store (`WithDeadLetterStore`) and the worker
-   advances to the next event.
-6. **Poison messages** → events that exhaust the restart budget are moved to DLQ.
-   Use `host.ReplayDeadLetters(ctx, projectionName)` to retry after fixing the handler.
+5. **Error handling (family-gated)** → on `Handle` error the error family decides:
+   Rejection/Corruption (non-retryable poison) exhausts `WithMaxRestarts` retries,
+   then the event goes to the dead-letter store (`WithDeadLetterStore`) and the
+   worker advances to the next event. Transient/Infrastructure (retryable) failures
+   never quarantine — the worker enters exponential backoff (`WithBackoff`) and
+   re-reads the same event; when the restart budget is exhausted the worker lands
+   loudly in `failed` state (`WithOnFailed` fires, `CheckStaleness` reports stale).
+6. **Poison messages** → only non-retryable events land in the DLQ. Use
+   `host.ReplayDeadLetters(ctx, projectionName)` to retry after fixing the handler.
+7. **Stop → Start rebuild** → `Start` after `Stop` works on the SAME host: fresh
+   workers are built and `Status()` counters reset. `ForceStop(ctx)` bypasses the
+   graceful drain when a handler hangs.
 
 #### SQL-backed dead-letter store (survives restarts)
 
