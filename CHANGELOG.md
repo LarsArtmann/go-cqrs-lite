@@ -9,6 +9,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > Rolling unreleased window. The `[Unreleased — earlier 2026-08-16 work]`
 > block further down is part of this same unreleased set (fold pending).
 
+### Changed — system adapters: defensive metadata marshal + roundtrip pins — 2026-08-29
+
+- **`system` command/query adapters** no longer discard the metadata marshal
+  error in their serialization envelope encoders: on a failed marshal the
+  envelope persists a nil Metadata field (decodes to zero-value metadata)
+  instead of potentially partial JSON, mirroring the event adapter. Metadata
+  envelopes are now marshaled deterministically. With today's string-typed
+  metadata fields the error path is unreachable — this is hardening for
+  richer future values plus two new roundtrip tests pinning tracing+custom
+  metadata through the encode/decode path (previously untested).
+
 ### Changed — bbolt/pebble resolve published backuptest standalone — 2026-08-29
 
 - **`storage/bbolt`** and **`storage/pebble`** dropped their

@@ -23,7 +23,16 @@ type serializedCommand struct {
 }
 
 func (a *CommandAdapter) encodeCommand(cmd *command.PersistedCommand) string {
-	metaJSON, _ := json.Marshal(cmd.Metadata())
+	// encodeCommand cannot propagate errors: AdapterCore.Encode is `func(T) string`
+	// by design (ADR-0126 core constraint). On a failed metadata marshal the
+	// envelope persists a nil Metadata field (decodes to zero-value metadata)
+	// instead of partial JSON. Today's fields are all marshal-safe (typed
+	// string IDs, map[K]string custom data); the guard keeps that guarantee
+	// if richer values ever land.
+	metaJSON, metaErr := json.Marshal(cmd.Metadata(), json.Deterministic(true))
+	if metaErr != nil {
+		metaJSON = nil
+	}
 
 	env := serializedCommand{
 		ID:         cmd.ID().String(),

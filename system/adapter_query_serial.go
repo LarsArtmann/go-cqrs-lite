@@ -21,7 +21,16 @@ type serializedQuery struct {
 }
 
 func (a *QueryAdapter) encodeQuery(q *query.PersistedQuery) string {
-	metaJSON, _ := json.Marshal(q.Metadata())
+	// encodeQuery cannot propagate errors: AdapterCore.Encode is `func(T) string`
+	// by design (ADR-0126 core constraint). On a failed metadata marshal the
+	// envelope persists a nil Metadata field (decodes to zero-value metadata)
+	// instead of partial JSON. Today's fields are all marshal-safe (typed
+	// string IDs, map[K]string custom data); the guard keeps that guarantee
+	// if richer values ever land.
+	metaJSON, metaErr := json.Marshal(q.Metadata(), json.Deterministic(true))
+	if metaErr != nil {
+		metaJSON = nil
+	}
 
 	env := serializedQuery{
 		ID:         q.ID().String(),
