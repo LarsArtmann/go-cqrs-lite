@@ -38,6 +38,14 @@ require (
 
 require github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
 
+// Unpublished-symbol siblings: the snapshot-encryption compose test uses
+// SnapshotStateCodec/RotatingSnapshotStateCodec and NewTransformedStore, which
+// exist only in the local sibling checkouts until the next tag wave. The
+// tag-release script strips these replaces at cut time.
+replace github.com/larsartmann/go-cqrs-lite/encryption/v4 => ../encryption
+
+replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../snapshot
+
 require (
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
