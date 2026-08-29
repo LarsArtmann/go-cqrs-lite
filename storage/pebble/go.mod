@@ -46,7 +46,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4 v4.1.0
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -80,5 +80,3 @@ require (
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4 => ../backuptest

@@ -9,6 +9,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > Rolling unreleased window. The `[Unreleased — earlier 2026-08-16 work]`
 > block further down is part of this same unreleased set (fold pending).
 
+### Changed — bbolt/pebble resolve published backuptest standalone — 2026-08-29
+
+- **`storage/bbolt`** and **`storage/pebble`** dropped their
+  `replace storage/backuptest/v4 => ../backuptest` directives and pin the
+  published **`storage/backuptest/v4.1.0`** (the v4.0.0 tag predates the
+  module's go.mod and was unusable from the proxy — v4.1.0, cut with the
+  B3 wave, is the first fetchable tag). Standalone `GOWORK=off` builds and
+  tests for both modules are green against the published module.
+
 ### Fixed — watermill catch-up is at-least-once; system accepts synthetic engine names — 2026-08-27
 
 - **`watermill.CatchUpSubscriber`** now advances the checkpoint only after
