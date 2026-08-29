@@ -33,6 +33,8 @@ and is **never** duplicated here.
       _(Effort: M)_ — source: status 2026-08-11_19-14
 - [ ] **irohengine `HealthChecker`** — only engine without one; implement or delegate to local engine.
       _(Effort: S)_ — source: status 2026-08-08_02-24
+- [ ] **Engine per-pattern `ReadCosts` calibration** — badger/bbolt/pebble still carry only the legacy scalar `NsPerRead` prior (suppressed by a narrow SA1019 exclusion since 2026-08-29); pg/mysql/dgraph/duckdb set all four ReadCosts fields from calibration benches. Run the per-engine calibration benches in a quiet window (AGENTS: load skews numbers) and migrate the remaining three; then delete the exclusion.
+      _(Effort: M)_ — source: lint-gate repair 2026-08-29 (436a9c9cb)
 - [ ] **iroh QUIC test hardening** — `normalizeAny` table tests; dedup.Ring >10K eviction regression; pooled eviction error-injection + 1K-op stress test; loopback/quic framing-constant dedup; `WithStreamPooling` in quic/README options table.
       _(Effort: S)_ — sources: status 2026-08-08_03-20/21-45
 - [ ] **`VectorCount` optional capability + Doctor/EXPLAIN WARN** for full-scan vector collections.
@@ -76,9 +78,9 @@ and is **never** duplicated here.
 - [ ] **Release docs** — CONTRIBUTING Release Process lacks the pin-bump-before-tag recipe + GOPRIVATE verification commands; durability-tier-mapping ADR never written; Introspection/Doctor don't surface effective durability tiers.
       _(Effort: S)_ — source: status 2026-08-18_20-39
 - [ ] **catalog/docserver follow-ups** — GET test for /docs/static/docs-ui.css; go-snaps dep-budget decision; cId-value-change CHANGELOG note; README deps table; templ codegen-drift gate decision; CSP nonce for SPA scripts; EventCatalog CLI real-render validation.
-      _(Effort: S)_ — source: status 2026-08-16_20-38
+      _(Effort: S)_ — source: status 2026-08-16_20-38 — **IN PROGRESS 2026-08-29 ~15:35 (second execution session, plan V3 T36; parallel triage-plan T34 = same work, do not duplicate)**
 - [ ] **benchmark-regression gate hardening** — fixture test pinning `--save`+compare; re-tune 25% threshold after first live CI run; baseline-regen runbook in BENCHMARKS.md; actionlint in devShell; `verify --module` scoped mode.
-      _(Effort: S)_ — source: status 2026-08-16_18-06
+      _(Effort: S)_ — source: status 2026-08-16_18-06 — **IN PROGRESS 2026-08-29 ~15:35 (second execution session, plan V3 T37; parallel triage-plan T33 = same work, do not duplicate)**
 - [ ] **Consumer asks (feedback)** — first-class snapshot encryption (encrypted snapshot store + rotation; only codec-composition workaround today, encryption/codec.go:30); `retry.DoWithValue[T]` in external go-retry; OTel exporter-lifecycle/shutdown-flush doc example.
       _(Effort: S each)_ — sources: feedback 2026-07-17/2026-08-21
 - [x] **Design questions** — RESOLVED 2026-08-29 (plan V3 T40):
