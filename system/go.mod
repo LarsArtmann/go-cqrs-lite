@@ -27,7 +27,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.1
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/onsi/gomega v1.42.1
 	modernc.org/sqlite v1.56.0

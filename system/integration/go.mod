@@ -8,9 +8,11 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.0.1
+	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.5.0
 )
+
+require github.com/sirupsen/logrus v1.10.0 // indirect
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.2 // indirect
