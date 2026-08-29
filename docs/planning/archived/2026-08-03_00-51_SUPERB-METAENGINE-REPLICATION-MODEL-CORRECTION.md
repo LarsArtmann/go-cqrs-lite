@@ -1,7 +1,7 @@
 # SUPERB: Metaengine Distributed Engine Foundation — Replication Model, Universal ADTs, and the Path to Iroh
 
 > **Date:** 2026-08-03 00:51 (rewritten for superbness)
-> **Status:** Phase 1 (correction) + Phase 2 (hardening) DONE. Phase 3 (universal ADT) design doc DONE, implementation NOT STARTED. Phase 4 (Iroh) NOT STARTED.
+> **Status:** Phase 1 (correction) + Phase 2 (hardening) DONE. ~~Phase 3 (universal ADT) design doc DONE, implementation NOT STARTED. Phase 4 (Iroh) NOT STARTED.~~ **CORRECTION (2026-08-29):** Phase 3 shipped (ADR-0094); Iroh evaluated (ADR-0096) + metaengine/irohengine shipped.
 > **Owner:** Lars
 > **Related docs:**
 >

@@ -70,7 +70,7 @@ I fixed 5 lint issues (3 err113 in metaengine, 2 wrapcheck in register_query.go,
 
 ### LayoutPlanApplier adoption
 
-Only `duckdbEngine` implements `LayoutPlanApplier`. The `sqliteEngine` and `pgEngine` still only implement `LayoutPlanner`. When `WithColumnarLayout` is used with those engines, the dispatch falls back to `LayoutPlanner.ApplyLayout` with `plan.ColumnNames()` as the field list — but the reflection-derived column types are silently discarded, and the name-heuristic type inference kicks in (e.g. "price" → INTEGER, which truncates floats). This is a **silent type degradation** on non-DuckDB engines.
+~~Only `duckdbEngine` implements `LayoutPlanApplier`.~~ **CORRECTION (2026-08-29):** sqliteEngine too since 2026-08-08; pg/mysql still fall back to name heuristics (tracked TODO_LIST 2026-08-29). The `sqliteEngine` and `pgEngine` still only implement `LayoutPlanner`. When `WithColumnarLayout` is used with those engines, the dispatch falls back to `LayoutPlanner.ApplyLayout` with `plan.ColumnNames()` as the field list — but the reflection-derived column types are silently discarded, and the name-heuristic type inference kicks in (e.g. "price" → INTEGER, which truncates floats). This is a **silent type degradation** on non-DuckDB engines.
 
 ---
 

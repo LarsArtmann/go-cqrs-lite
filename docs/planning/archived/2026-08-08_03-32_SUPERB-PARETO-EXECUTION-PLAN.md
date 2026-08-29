@@ -1,7 +1,7 @@
 # SUPERB Execution Plan — Post-Docs-Health Pareto Breakdown
 
 **Created:** 2026-08-08 03:32 CEST
-**Status:** Planning complete, awaiting execution
+~~**Status:** Planning complete, awaiting execution~~ **CORRECTION (2026-08-29):** executed 2026-08-08 (command/v4.4.0, storage/memory/v4.3.0, system/v4.1.0, DeferClose); superseded by the 12-13 plan.
 **Input:** TODO_LIST.md (79 open items) + status report
 `docs/status/2026-08-08_03-29_docs-health-living-docs-rebuild-status.md`
 

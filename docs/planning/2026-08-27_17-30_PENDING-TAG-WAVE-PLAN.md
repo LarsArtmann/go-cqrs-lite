@@ -2,7 +2,7 @@
 
 > **Date:** 2026-08-27 17:30 CEST · **Task:** T01/F01.4 of the
 > [goal-gap-closure Pareto plan](2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md) ·
-> **Status: STAGED EXECUTION — B1 CUT 2026-08-29.** Sign-off (2026-08-29):
+> **Status: STAGED EXECUTION — ~~B1~~ **CORRECTION (2026-08-29):** note: B1 was CUT 2026-08-29 (event/v4.9.0, schema/v4.3.1, dedup/v4.2.1, dispatcher/v4.3.1 — CHANGELOG); B2-B7 remain pending user sign-off. CUT 2026-08-29.** Sign-off (2026-08-29):
 > staged (B1 first, report before B2), B7 transport finals INCLUDED, dead
 > eventtest tags DELETED (remote+local, verified gone). B1 cut: event/v4.9.0,
 > schema/v4.3.1, dedup/v4.2.1, dispatcher/v4.3.1 — pre-tag gates green

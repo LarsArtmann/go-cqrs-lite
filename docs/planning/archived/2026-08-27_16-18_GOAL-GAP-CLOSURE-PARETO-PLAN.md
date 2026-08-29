@@ -1,4 +1,4 @@
-# GOAL-GAP-CLOSURE PARETO PLAN — Closing the Distance to the metaengine/system End Goal
+~~# GOAL-GAP-CLOSURE PARETO PLAN~~ **CORRECTION (2026-08-29):** Superseded by docs/planning/2026-08-27_17-35_ALL-TODOS-PARETO-PLAN.md (2026-08-27). — Closing the Distance to the metaengine/system End Goal
 
 > **Date:** 2026-08-27 16:18 CEST · **Session:** "Research my end goal with metaengine/ and system/ → where are we furthest → make a plan"
 > **Companion artifacts:** `2026-08-27_16-18_goal-gap-closure.d2` + `.svg` (execution graph) · `2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.html` (styled report)

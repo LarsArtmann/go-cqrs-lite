@@ -76,7 +76,7 @@ This handles `MultiGet` (which returns `[]any`, not `ScanResult`). It works, but
 
 2. **Shared scan test harness** — The ScanBackend test pattern (filter, sort, limit, cursor) is still duplicated between pgengine, duckdbengine, and pebbleengine. A shared `scantest` package (like `adttest`) would eliminate duplication and enforce cross-engine parity for the new `ScanResult` contract.
 
-3. **Tagging** — Neither `metaengine/pgengine/v4.0.0` nor `metaengine/duckdbengine/v4.0.0` have been tagged. The interface change is untagged.
+3. **Tagging** — ~~Neither `metaengine/pgengine/v4.0.0` nor `metaengine/duckdbengine/v4.0.0` have been tagged~~ **CORRECTION (2026-08-29):** both tagged 2026-08-03.. The interface change is untagged.
 
 ---
 

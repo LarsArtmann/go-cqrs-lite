@@ -169,4 +169,4 @@ When a consumer writes `WithColumnarLayout()` but the assigned engine is SQLite/
 
 REAL→DOUBLE fix shipped (`sqlTypeOf`: float64→DOUBLE, float32→REAL). Decorative `[R any]` generic removed. Reserved-name collision fix (fields named `key`/`value` skipped). `TestDuckDBEngine_ColumnarDoublePrecision` added. ADR-0092 written + indexed. AGENTS.md + TODO_LIST.md updated. Verify GREEN (80+ modules).
 
-**Still open:** SQLite/Postgres `LayoutPlanApplier`; schema evolution (`ALTER TABLE`); DuckDB layout benchmark; `adttest.RunMatrix` coverage. Captured in TODO_LIST.md.
+~~**Still open:** SQLite/Postgres `LayoutPlanApplier`; schema evolution (`ALTER TABLE`)~~ **CORRECTION (2026-08-29):** SQLite applier done 2026-08-08; benchmark done 08-07; pg/mysql applier + schema evolution remain (tracked TODO_LIST 2026-08-29).; DuckDB layout benchmark; `adttest.RunMatrix` coverage. Captured in TODO_LIST.md.

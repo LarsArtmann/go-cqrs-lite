@@ -11,7 +11,7 @@
 
 This session closed the **verification gap** — the most critical quality debt from the prior plan. Postgres engine tests had NEVER run against a real database; now they do, via testcontainers-go with per-test isolation. DuckDB and Postgres ScanBackends are verified against real databases. A property-based test (100 iterations via rapid) proves VersionedStorage correctness. A full Plan→Apply→ExecuteAsOf integration test caught and fixed a real bug (MapUpdate was not recording versions). The auto-commit daemon concurrently added PushdownScan + LayoutPlanner + adttest matrix to both engines, which this session also debugged and lint-fixed.
 
-**`nix run .#verify`: ✅ ALL CHECKS PASSED** (build + vet + test + race + lint 0 issues + doc-check 1169 refs + API surface 3086 exports)
+~~**`nix run .#verify`: ✅ ALL CHECKS PASSED**~~ **CORRECTION (2026-08-29):** premature (ADR-index break); genuine GREEN from 2026-08-01_03-41. (build + vet + test + race + lint 0 issues + doc-check 1169 refs + API surface 3086 exports)
 
 ---
 

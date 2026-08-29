@@ -13,7 +13,7 @@ The **intended** refactor is complete and verified: two methods relocated, impor
 | Refactor correctness            | ✅ Methods moved, behavior identical                                       |
 | Build / vet / test              | ✅ All pass                                                                |
 | Formatting                      | ✅ gofumpt + goimports clean                                               |
-| **CI file-size gate**           | ❌ **`sse.go` = 369 lines (>350). Would FAIL `nix run .#check-file-size`** |
+| **CI file-size gate**           | ❌ **~~`sse.go` = 369 lines (>350)~~ **CORRECTION (2026-08-29):** resolved — SSE plumbing later extracted; sse.go under the 350-line limit today.. Would FAIL `nix run .#check-file-size`** |
 | Rigor / verification discipline | ⚠️ I claimed "Done" without running the project's own size gate             |
 
 ---

@@ -375,5 +375,5 @@ The gaps identified in sections a-g above have been addressed in a continuation 
 - Build failure: `stack/postgres` references `storage.PostgresBus*` types that were removed by the daemon's module extraction work — code fix needed, not a docs issue
 - `nix run .#verify` build check FAILS (daemon-introduced); ADR index now passes
 - `cqrs-lint init` SHOWSTOPPER (`"exclude": []` config bug) — code fix needed
-- `cmd/cqrs-lint/v4.4.0` tag does not exist — release needed for post-v4.3.0 fixes
+- ~~`cmd/cqrs-lint/v4.4.0` tag does not exist~~ **CORRECTION (2026-08-29):** superseded — cqrs-lint shipped far past v4.4.0 in later tag waves. — release needed for post-v4.3.0 fixes
 - CalibrateEngine external engines (Pebble/DuckDB/Postgres) still silently discard calibration

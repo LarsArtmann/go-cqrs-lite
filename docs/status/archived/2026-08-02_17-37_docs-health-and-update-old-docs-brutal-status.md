@@ -76,7 +76,7 @@
 
 ### update-old-docs: only 5 of ~44 files annotated
 
-**39 of 44 status reports were NOT annotated.** The update-old-docs skill
+~~**39 of 44 status reports were NOT annotated.**~~ **CORRECTION (2026-08-29):** annotated in the 2026-08-03_20-46 pass and later waves. The update-old-docs skill
 requires reading every file and making per-file ANNOTATE/SKIP/ARCHIVE/LEAVE
 ALONE decisions. I delegated the reading to 3 sub-agents (good), but then
 only annotated 5 planning docs. The 39 unannotated status reports fall into

@@ -19,7 +19,7 @@
    `metaengine/execute.go` + `register_query.go:54`), engine factories
    (all take DSN only; only sqliteengine consumes `Pragmas`),
    stack/durability.go translation tables, README YAML examples, TODO_LIST.
-2. **Ops: /mnt/buildcache is REPAIRED** — 64% used, writable (probe mkdir
+2. ~~**Ops: /mnt/buildcache is REPAIRED** — 64% used, writable~~ **CORRECTION (2026-08-29):** re-broken again by 2026-08-29 (mkdir: no such device); /tmp redirects required. (probe mkdir
    OK). The "Host buildcache repair" TODO can be ticked; the $HOME//tmp
    cache workaround in AGENTS.md can be retired. Verified 2026-08-18.
 3. **P1-2 Count-by-name dispatch — metaengine side DONE**

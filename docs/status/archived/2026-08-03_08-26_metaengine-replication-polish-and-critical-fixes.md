@@ -21,7 +21,7 @@
 
 4. **Race detector clean** — `go test -race ./metaengine/... -count=1` passed (73s, 161 Ginkgo specs + all Go tests).
 
-5. **`metaengine/v4.4.0` tagged** — Annotated tag created via `tag-release.sh`. Covers Universal ADT work (T5-T13).
+5. ~~**`metaengine/v4.4.0` tagged**~~ **CORRECTION (2026-08-29):** v4.4.0 re-cut as c45b39c8 (09-35); long superseded by metaengine/v4.12.0. — Annotated tag created via `tag-release.sh`. Covers Universal ADT work (T5-T13).
 
 ### T14-T18: Replication Polish (implemented, tested, verified)
 

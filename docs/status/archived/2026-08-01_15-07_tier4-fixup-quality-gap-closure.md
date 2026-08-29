@@ -11,7 +11,7 @@
 
 This session was a fix-up pass: the prior session shipped 9 features but left 8 quality gaps (overclaimed status, zero PG tests, missing adttest coverage, dead temporal path, stale flake.nix, missing docs). This session closed ALL 8 gaps plus discovered and fixed additional issues (duplicate ADR numbers, 64 lint failures, doc-check broken references). The full `nix run .#verify` gate now passes GREEN — the first session to achieve this after the Tier 4 expansion.
 
-**`nix run .#verify`: ✅ ALL CHECKS PASSED** (build + vet + test + race + lint + doc-check + API surface)
+~~**`nix run .#verify`: ✅ ALL CHECKS PASSED**~~ **CORRECTION (2026-08-29):** premature — ADR-index break; genuine GREEN from 2026-08-01_03-41 onward. (build + vet + test + race + lint + doc-check + API surface)
 
 ---
 

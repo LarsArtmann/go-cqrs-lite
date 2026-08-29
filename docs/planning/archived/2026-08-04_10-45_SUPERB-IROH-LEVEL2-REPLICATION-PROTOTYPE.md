@@ -1,6 +1,6 @@
 # Iroh Distributed Engine — Level 2 Replication Wrapper Prototype
 
-> **Status:** PLANNING — Ready for execution
+> ~~**Status:** PLANNING — Ready for execution~~ **CORRECTION (2026-08-29):** executed — metaengine/irohengine.Replicated shipped; superseded by quic/ + loopback/ transports.
 > **Date:** 2026-08-04
 > **Related:** [ADR-0096](../adr/0096-iroh-distributed-engine-bridge-evaluation.md), [Design Doc](meta-engine-eventual-consistency-and-iroh.md)
 

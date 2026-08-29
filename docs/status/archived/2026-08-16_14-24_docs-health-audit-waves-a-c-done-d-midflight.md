@@ -67,7 +67,7 @@ report appeared at 14:09).
      singleflight leader-ctx, both already TODO_LIST-tracked). Tables got skill
      -sanctioned Status columns.
 6. **Live defect discovered + harvested** (the audit doing its job): **storage
-   /pebble and storage/bbolt standalone builds are RED** — both pin
+   /pebble and storage/bbolt ~~standalone builds are RED~~ **CORRECTION (2026-08-29):** fixed — both pin event/v4.8.0 (08-16/18 tag chain).** — both pin
    `event/v4 v4.6.0` but `serialization.go` calls
    `event.ReconstructEventWithAdoptedPayload` (intro `5b8a9a615`, verified NOT
    in `event/v4.7.0` — unpublished). `GOWORK=off go build` fails with

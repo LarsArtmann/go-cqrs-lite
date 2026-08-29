@@ -13,60 +13,90 @@ and is **never** duplicated here.
 
 ---
 
-## Performance — 2026-08-16 audit backlog 🔥
+## Harvested from docs-health audit (2026-08-29)
 
-> From the RAM/cache-line + IO audit session
-> ([status](status/2026-08-16_03-10_perf-audit-cache-line-sql-batching-deserialize-wins.md),
-> [Pareto plan](planning/2026-08-16_03-18_PERF-PARETO-SAFETY-FIRST-EXECUTION.md)).
-> Shipped: workloadMeter cache-line pad (−46..51% contended ops), dialect-aware SQL
-> batching (99→3276 rows on PG/MySQL/DuckDB; PG integration GREEN), pebble+bbolt
-> deserialize JSON round-trip elimination (−46% ns / −53% allocs) — commits
-> `cdc525fd5` + `a298ea388`. Wave 3 closed 2026-08-16 (measured numbers in
-> [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md)).
+> Verified still-true gaps surfaced while annotating and archiving ~450
+> 2026-08 reports. Every item was re-verified against code on 2026-08-29.
+> Source reports now live under `docs/status/archived/`.
 
-- [x] **Durability tier→per-write-sync mapping** (storage/pebble
-      hardcodes `pebble.Sync`; metaengine engines no NoSync path) — DONE
-      2026-08-17 (Option A "align all layers"): `stack/pebble` maps
-      Strict→sync, Normal→async WAL, Relaxed→DisableWAL+async (also fixes
-      Relaxed forcing a memtable flush per write); new options
-      `pebble.WithBackendAsyncWrites`, `pebbleengine.WithAsyncWrites`,
-      `bboltengine.WithNoSync`; bbolt Normal≡Strict documented exception
-      (no WAL); doc split brain fixed in `stack/durability.go`. Tier→options
-      mapping tests + engine smoke tests green; throughput bench added
-      (`BenchmarkEventAppendSync/Async`) — honest numbers PENDING a quiet
-      window (see [BENCHMARKS.md](docs/BENCHMARKS.md): device queue
-      saturated at load 3–4, sync≈async≈2.5 ms).
-      _(Effort: M)_
-- [x] **Benchstat baselines for the 3 new false-sharing control benches**
-      (multiSeqCounter padded/unpadded, WorkerCounters, SSEReplaySeq) —
-      committed 2026-08-17: [`benchmarks/2026-08-17_falsesharing-*.txt`](benchmarks/),
-      benchstat tables + re-run commands in the
-      [evidence doc](docs/benchmarks/2026-08-16_false-sharing-contention.md);
-      SSEReplaySeq tie-breaker confirmed NO-PAD (padded +8% slower @16, tied @32).
-      Not CI-gated (relative-comparison benches, see evidence doc rationale).
-      _(Effort: XS)_
+**Metaengine**
+- [ ] **pgEngine/mysqlEngine `LayoutPlanApplier` + planned-layout schema evolution** — planned-table paths silently mis-type columns via name heuristics; result-type changes (new fields) are dropped, no ALTER TABLE ADD COLUMN. SQLite/DuckDB appliers exist.
+      _(Effort: M)_ — sources: status 2026-08-02_21-18/22-17
+- [ ] **DuckDB counter SQL pushdown** — `CounterGet` loads all rows into a Go map, `CounterIncrement` iterates deltas one-by-one; use SQL COUNT + batch INSERT. Unify `appendDuckDBFilter` vs `writeWhereOrAnd`.
+      _(Effort: S)_ — source: status 2026-08-08_01-33
+- [ ] **Watcher hardening** — `watcherEntry` still `chan any` (metaengine/store.go:330); no watcher-notification latency bench; no `WithReificationFailureHook` callback.
+      _(Effort: S/M)_ — sources: status 2026-08-02_21-19/22-17
+- [ ] **mapUpdateReplicationRule covers FoldUpdate only** — add FoldMultiInsert/FoldAppend.
+      _(Effort: XS)_ — source: status 2026-08-03_08-26
+- [ ] **dgraphengine gaps** — no `Transactional`/RunInTx (+ ConcurrentTx tests); harness conformance tests (HealthCheck/Prober/TransactMeasurer/Calibratable); empty-collection MapScan test.
+      _(Effort: M)_ — source: status 2026-08-11_19-14
+- [ ] **irohengine `HealthChecker`** — only engine without one; implement or delegate to local engine.
+      _(Effort: S)_ — source: status 2026-08-08_02-24
+- [ ] **iroh QUIC test hardening** — `normalizeAny` table tests; dedup.Ring >10K eviction regression; pooled eviction error-injection + 1K-op stress test; loopback/quic framing-constant dedup; `WithStreamPooling` in quic/README options table.
+      _(Effort: S)_ — sources: status 2026-08-08_03-20/21-45
+- [ ] **`VectorCount` optional capability + Doctor/EXPLAIN WARN** for full-scan vector collections.
+      _(Effort: S)_ — source: status 2026-08-17_14-25
+- [ ] **mysqlengine sort-path layout integration** — `applyMariaDBLayout` writes sort-field generated columns that no query path reads; verify full suite against real MySQL 8.4.
+      _(Effort: M)_ — source: status 2026-08-16_22-50
+- [ ] **metaengine README capability table** — missing GraphEdgeRemoval / UndirectedGraph / VectorFilterBackend rows.
+      _(Effort: XS)_ — source: status 2026-08-16_21-22
+
+**Storage / SQL**
+- [ ] **SQL-injection hardening tail** — `storage/sql` ORDER BY interpolates `TimestampColumn` (journal_reader.go:77,220) without `ValidateIdentifier`; extend fuzz to multi-condition ops; persist corpus; gosec + nightly fuzz CI.
+      _(Effort: S)_ — source: status 2026-08-16_14-54
+- [ ] **`ScanSlice` pre-size** — hardcodes cap 64 (storage/sql/reconstruction.go:48); add `RowCount()` pre-size for large reads.
+      _(Effort: XS)_ — sources: status 2026-08-16_03-10/07-12
+- [ ] **system Command/QueryAdapter `metaJSON, _ :=`** — silent marshal-error discards (system/adapter_command_serial.go:26, adapter_query_serial.go:24).
+      _(Effort: XS)_ — source: status 2026-08-16_17-38
+- [ ] **storage/relational one-tx-per-event** projection writes.
+      _(Effort: M)_ — source: status 2026-08-16_03-10
+- [ ] **backuptest tag + replace drop** — bbolt/pebble go.mod require `storage/backuptest/v4 v4.0.0` + sibling replace; tag a patch, drop the replaces.
+      _(Effort: XS)_ — source: status 2026-08-16_19-52
+- [ ] **Test-suite consolidation tail** — storage/sql command/query stores onto `commandtest`/`querytest.RunStoreSuite`; `querytest` self-test; LoadToTimestamp subtest in the shared suite.
+      _(Effort: S)_ — source: status 2026-08-08_01-39
+
+**Docs / tooling**
+- [ ] **Engine READMEs** — mysql/sqlite/turso/badger engines have none; pebble engine.go:7 stale "Graph: O(N^d) BFS" comment; pgengine meta_vector + mysqlengine LayoutPlanner rows missing.
+      _(Effort: S)_ — sources: status 2026-08-16_18-09/22-50
+- [ ] **CHANGELOG unreleased-block fold** — `[Unreleased — earlier 2026-08-16 work]` (CHANGELOG.md:1451) still separate from the top block.
+      _(Effort: S)_ — source: status 2026-08-16_19-01
+- [ ] **v5 doc coverage** — faq.md has zero deprecation/v5 notes; README "SQL-backed read models" bullet sells SQLViewStore un-caveated (line 132); AGENTS Codec Defaults table lacks a v5 note; method-level `Deprecated:` marker decision unrecorded; **durability-tier re-home for storage/pebble** (imports `stack.DurabilityTier` — blocks P13 stack deletion); stack/bench deprecation decision.
+      _(Effort: M)_ — sources: status 2026-08-18_13-59, 2026-08-17_16-27
+- [ ] **Fix "~41-byte" figure** — measured 43-46 bytes; wrong in CHANGELOG (~:1483), docs/adr/0124:313, METAENGINE-LAYOUT-PLANNING-MODEL.md:60 (+ archived status 14-09:127).
+      _(Effort: XS)_ — source: status 2026-08-16_14-44
+- [ ] **AGENTS.md gotchas missing** — pebble Close() does not flush memtables; bbolt mmap file-size quantization; MySQL-VM trio (port-33070 probe via server client, GOWORK=off-tag default path, VM single-database isolation).
+      _(Effort: S)_ — sources: status 2026-08-16_14-44/04-00
+- [ ] **SEVEN-TIER-MODEL.md reconciliation** — line 56 still says metaengine "Tier 0 by design (ADR-0062)"; enforcement + ADR-0046 amendment say Tier 3.
+      _(Effort: XS)_ — source: status 2026-08-08_08-23
+- [ ] **BENCHMARKS.md + skill refs** — durability bench cell still "measurement PENDING quiet window"; modules.md missing bboltengine row.
+      _(Effort: S)_ — source: status 2026-08-17_15-17
+- [ ] **Release docs** — CONTRIBUTING Release Process lacks the pin-bump-before-tag recipe + GOPRIVATE verification commands; durability-tier-mapping ADR never written; Introspection/Doctor don't surface effective durability tiers.
+      _(Effort: S)_ — source: status 2026-08-18_20-39
+- [ ] **catalog/docserver follow-ups** — GET test for /docs/static/docs-ui.css; go-snaps dep-budget decision; cId-value-change CHANGELOG note; README deps table; templ codegen-drift gate decision; CSP nonce for SPA scripts; EventCatalog CLI real-render validation.
+      _(Effort: S)_ — source: status 2026-08-16_20-38
+- [ ] **benchmark-regression gate hardening** — fixture test pinning `--save`+compare; re-tune 25% threshold after first live CI run; baseline-regen runbook in BENCHMARKS.md; actionlint in devShell; `verify --module` scoped mode.
+      _(Effort: S)_ — source: status 2026-08-16_18-06
+- [ ] **Consumer asks (feedback)** — first-class snapshot encryption (encrypted snapshot store + rotation; only codec-composition workaround today, encryption/codec.go:30); `retry.DoWithValue[T]` in external go-retry; OTel exporter-lifecycle/shutdown-flush doc example.
+      _(Effort: S each)_ — sources: feedback 2026-07-17/2026-08-21
+- [ ] **Design questions** — ULID sharded entropy (global Monotonic reader serializes process-wide); Pebble calibration basis (flush-only vs post-Compact ratio); command.Bus/MemoryBus removal evaluation (v5 candidate, command/bus.go).
+      _(Effort: S)_ — sources: status 2026-08-16_17-39/14-44, 2026-08-03_20-30
+- [ ] **Env**: /mnt/buildcache re-broken 2026-08-29 (golangci cache mkdir fails) — /tmp cache redirects required again until repaired.
+      _(Effort: XS, environment)_
 
 ---
 
 ## Release / Tagging 🔥
 
 > Blocked on user authorization (never tag/push without explicit instruction).
-> Latest full-gate GREEN: 2026-08-16 13:15 (`#verify` run #4 EXIT=0, 591-line log,
-> build+vet+test+race+lint 76/76, doc-check, api-surface; `#check-coverage` and
-> `#check-duplication` also EXIT=0) — this is the release checkpoint. The
+> **2026-08-29: tag-wave batch B1 was CUT** (event/v4.9.0, schema/v4.3.1,
+> dedup/v4.2.1, dispatcher/v4.3.1 — CHANGELOG); B2-B7 still need your sign-off
+> ([plan](docs/planning/2026-08-27_17-30_PENDING-TAG-WAVE-PLAN.md)). The
 > 2026-08-16 chain (id v4.5.0, record v4.3.0, metadata v4.5.0, schema v4.3.0,
 > event v4.7.0, query v4.6.0→retracted→v4.6.1, command v4.7.0→retracted→v4.7.1,
 > middleware v4.5.0, metaengine v4.11.0, sqlite/pebble/pg engines v4.1.0,
 > badger v4.0.2, watermill v4.5.0, mysql/bbolt/turso/iroh engines v4.0.0,
 > storage v4.7.0→retracted→v4.7.1) is LIVE on the proxy.
 
-- [x] **Land the stranded tag-chain repair commits on master** — done
-      2026-08-22 wave: `092b5e8a8` was cherry-picked as `491379a2b` (on
-      master, verified 2026-08-27 via `git merge-base --is-ancestor`);
-      master's `command`/`query` go.mod pin `metadata/v4 v4.6.0` (the
-      v4.4.0 pin-rot risk is gone). `4907b6afc` is obsolete: master's
-      `metaengine/bench/go.mod` carries zero pseudo-versions (verified
-      2026-08-27).
 - [ ] [BLOCKED] 🔥 **Tag the pending v4 patch wave** (supersedes the stale
       2026-08-16 wave-4 list — audited 2026-08-27, plan task T01): ALREADY
       SHIPPED since that note: `event/v4.8.0` (DecorateJournal),
@@ -163,24 +193,6 @@ and is **never** duplicated here.
 > it: `#verify` resolves local modules, CI runs GOWORK=off per-module — and
 > the CI "Benchmarks" job is currently RED.
 
-- [x] 🔥 **Repo-wide stale-pin sweep** — done 2026-08-27 (plan P06/T02):
-      19 modules bumped to latest published tags (metaengine v4.12.0,
-      storage v4.8.0, engine patches, watermill/testutil/middleware et al),
-      each GOWORK=off build-verified; stack/* and transport/* deliberately
-      untouched (v5 deletes them); eventtest dead tags v4.0.0/v4.2.0
-      documented (Go rejects them — module path has no /vN suffix). Note: — benchkit still pins
-      `sqliteengine v4.0.1` (pre-JournalReadFrom-fix), `decider v4.3.0`,
-      `event v4.6.0`… Mechanical bump of ~50 go.mod files, gate-verified.
-      (Needs user sign-off on policy — see ROADMAP Open Questions.)
-      _(Effort: M)_
-- [x] 🔥🔥 **storage/pebble + storage/bbolt standalone builds RED** — fixed
-      2026-08-22 wave (pins bumped to `event/v4 v4.8.0`); re-verified GREEN
-      2026-08-27 17:35 (`GOWORK=off go build -tags "goexperiment.jsonv2" ./...`
-      EXIT=0 for both modules, clean tree).
-      The original 2026-08-16 note for the record: both pinned
-      `event/v4 v4.6.0` but `serialization.go` called
-      `event.ReconstructEventWithAdoptedPayload` (shipped after v4.6.0) —
-      same workspace-masking class as the command/v4.7.0 incident.
 - [ ] **`#verify-standalone` nix app (GOWORK=off per module) or explicit
       decision that CI owns that signal** — then CHECK CI after gates.
       Investigate how long the CI Benchmarks job has been red (`gh run list`)
@@ -202,142 +214,12 @@ and is **never** duplicated here.
 > SQLite recursive CTE shipped 2026-08-15 — see CHANGELOG.
 >
 > Follow-ups below harvested from
-> `docs/status/2026-08-15_22-04_metaengine-followup-closeout.md` §f.
+> `docs/status/archived/2026-08-15_22-04_metaengine-followup-closeout.md` §f.
 
 - [ ] **Turso explicit CTE-probe test** — the sqliteengine probe covers
       local drivers; add a tursoengine test confirming it holds over the
       remote protocol.
       _(Effort: S)_
-- [x] **Badger engine vector + graph parity audit** — has neither; audit
-      against the pebble/bbolt precedent and either implement or document
-      the gap.
-      _(Effort: S)_ — done 2026-08-16: `badgerengine/vector.go` + `graph.go`
-      implement both ADTs at pebble/bbolt parity (filtered k-NN included);
-      suite green.
-- [x] 🔥 **Vector payload binary encoding (spike Phase 0)** — replace the
-      JSON vector payload with fixed-width little-endian float32 bytes on
-      the brute-force engines (memory ceiling ~90ns/vector vs pebble
-      ~17µs today; decode is ~190x of the cost). Format marker must keep
-      old JSON rows readable (self-describing envelope precedent). This is
-      the unconditional 80/20 from
-      [`docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md`](docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md)
-      §4 Option A / §5 Phase 0; int8 quantization (Phase 1) only if p99 is
-      still above budget afterwards.
-      _(Effort: M)_ — done 2026-08-17: `metaengine.EncodeVectorBinary` /
-      `DecodeVectorBinary` / `DecodeVectorAuto` (`'b'` marker + uint32 LE
-      dim + LE float32s); pebble/bbolt/badger write binary and read via the
-      sniffing decoder so legacy JSON rows keep working in place
-      (mixed-format collections pinned by per-engine tests). Measured
-      ~31-35x VectorSearch win (pebble 10K: 172.2ms → 5.63ms/query;
-      ~460-560ns/vector vs the ~85-95ns in-RAM ceiling). pgengine stays
-      JSON (JSONB column — needs a BYTEA DDL migration; deliberate scope
-      cut, noted in the spike doc §4). Phase 1 (int8) remains deferred
-      until p99 is above budget. Follow-up benches (same day) cover all
-      three LSM engines (pebble 457µs/5.23ms, bbolt 426µs/5.79ms, badger
-      647µs/5.85ms at 1K/10K), filtered k-NN (1034µs @1K pebble), and a
-      codec micro-bench (196ns binary vs 8.5µs JSON decode @D=128) — spike
-      doc §2.
-- [x] **Vector search at scale** — quantization/HNSW spike for LSM engines
-      when collections exceed ~100K vectors (brute-force scan is O(N)).
-      _(Effort: L)_ — done 2026-08-16: spike complete with measured
-      baselines (memory ~90ns/vector vs pebble ~17µs — the 190x gap is JSON
-      decode, not the scan); phased plan (binary float32 → int8 quantization
-      → optional HNSW with filter fallback) in
-      [`docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md`](docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md).
-      Implementation of the phases is NOT done — Phase 0 (binary encoding)
-      is the follow-up.
-- [x] **`VectorResult` filtered k-NN** — metadata-filtered vector search
-      (filter + top-k in one query); API currently returns bare top-k.
-      _(Effort: M)_ — done 2026-08-16: `VectorSearchFiltered` +
-      `VectorFilter`/`VectorFilterBackend` natively on memory, badger, pebble,
-      bbolt, iroh (passthrough); the generic Store path falls back to
-      filter-then-rank for any engine without the capability, so filtered
-      k-NN works everywhere vectors work. Filters ride
-      `Embedding.Metadata` and upsert clears stale metadata; adttest
-      `VectorFiltered` scenario pins cross-engine parity.
-- [x] **`GraphRemoveEdge`** — the edges table exists but nothing removes
-      edges; tombstone events should drive edge removal (ADR-0114 style).
-      _(Effort: M)_ — done 2026-08-16: `GraphRemoveEdge` + `HasGraphEdgeRemoval`
-      on memory, badger, sqlite, pg, mysql, dgraph (symmetric both-direction
-      delete), graphadapter, iroh (passthrough); `FoldEdgeRemove` folds
-      removals into the store; adttest `GraphRemove` scenario. (pebble/bbolt
-      have no graph ADT at all — unchanged.)
-- [x] **Graph directed-vs-undirected option** — `GraphNeighbors` is
-      directed-only today.
-      _(Effort: S)_ — done 2026-08-16: `GraphNeighborsUndirected` +
-      `HasUndirectedGraphSupport` on memory, badger, sqlite (recursive CTE
-      both directions), pg, mysql (derived-table seed + OR-join recursive
-      arm — the 4-arm form is illegal in both), dgraph (alias of directed:
-      storage is symmetric), iroh (passthrough); graphadapter deliberately
-      does NOT implement it (documented gap). (pebble/bbolt: no graph ADT.)
-- [x] **mysqlengine upsert semantics audit** — confirm `MapSet` uses
-      `INSERT ... ON DUPLICATE KEY UPDATE` consistently with pg's
-      `ON CONFLICT` (atomicity + affected-rows parity).
-      _(Effort: S)_ — done 2026-08-16: parity confirmed for `MapSet`,
-      `CounterIncrement`, `GraphAddEdge` (single-statement atomic upserts;
-      affected-rows difference unobservable); caveats documented in
-      `mysqlengine/backends.go` (any-unique-key trigger widening, VALUES()
-      deprecation note).
-- [x] **MariaDB functional-index alternative** — generated columns + plain
-      index instead of the current `ApplyLayout` no-op.
-      _(Effort: M)_ — done 2026-08-16: `applyMariaDBLayout` adds a VIRTUAL
-      TEXT generated column (no truncation, no table rebuild) + composite
-      `(collection, gc(N))` prefix index per field; `filterExpr` rewrites
-      pushdown filters to the column (MariaDB does NOT substitute generated
-      columns into JSON expressions — verified 11.4); EXPLAIN-verified
-      `ref` access; integration test `TestMariaDBApplyLayout_GeneratedColumnFilter`.
-- [x] **enginetest per-run collection suffixes** — shared-server engines
-      accumulate state under `-count>1` (documented constraint that bit the
-      race runs); per-run suffixes in the helpers would remove the class.
-      _(Effort: M)_ — done 2026-08-16: `enginetest.ScopedCollection` at all
-      helper chokepoints + adttest `Scenarios()` run-suffix (per-RUN token,
-      keeping cross-engine parity comparable within a run); mysqlengine
-      verified GREEN `-count=3` against a shared MariaDB; twin fix in
-      `stack/mysql` (DROP before CREATE for derived multidb databases).
-- [x] **adttest: graph depth>2 + cycle scenarios in `RunMatrix`** — current
-      matrix is depth-limited; the CTE/iterative divergence only shows at
-      depth>2 with cycles/diamonds.
-      _(Effort: S)_ — done 2026-08-16: `GraphDepth3Diamond`, `GraphCycle`,
-      `GraphDepthBound` scenarios; parity GREEN incl. pg CTE path.
-- [x] **adttest: Vector scenario on pgengine** — parity check for the
-      degraded scan path against the in-memory index.
-      _(Effort: S)_ — done 2026-08-16: pgengine gained a real degraded
-      `VectorBackend` (was declared but unimplemented — queries would have
-      failed); `meta_vector` DDL + shared `metaengine` distance helpers;
-      GREEN against real Postgres.
-- [x] **Convergence suite order-tolerance audit** — `sameLogTail` was the
-      only order-asserting helper (fixed 2026-08-15); sweep the remaining
-      `waitFor*` helpers for hidden order assumptions.
-      _(Effort: S)_ — done 2026-08-16: all helpers order-safe; one stale
-      contradictory doc paragraph on `sameLogTail` removed.
-- [x] **quic pooled-stream ordering guarantee** — default `sendOp` uses one
-      stream per op (no cross-op order); verify + document that pooled mode
-      (`sendOpPooled`, one stream per peer) DOES order ops.
-      _(Effort: S)_ — done 2026-08-16: per-peer FIFO verified (sender mutex
-      serialization + sequential receiver loop + QUIC stream ordering);
-      documented in `options.go`, `transport.go`, `pool.go`.
-- [x] **Bench: CTE vs iterative BFS crossover** — at which depth does the
-      MySQL CTE beat the iterative fallback? Feeds the planner's cost model.
-      _(Effort: S)_ — done 2026-08-16: `graph_bench_test.go`; crossover at
-      depth 2-3 (iterative wins depth 1 by 2-4x, CTE wins ≥3 up to 6x,
-      size-independent 1k-100k, same shape MariaDB 11.4 + MySQL 8.4);
-      table in `METAENGINE-LIVE-LATENCY-MODEL.md` §9. Follow-up item below.
-- [x] **Bench: MariaDB dual-key sort cost** — measure the
-      `CAST(... AS DECIMAL)` overhead vs MySQL's single JSON key.
-      _(Effort: S)_ — done 2026-08-16: `sort_bench_test.go`; dual-key costs
-      +26% vs single-expression on both servers; MySQL JSON-typed arrow
-      form is 2.5x faster than MariaDB's dual-key (19 vs 47ms / 50k rows);
-      table in `METAENGINE-LIVE-LATENCY-MODEL.md` §9.
-- [x] **mysqlengine: depth-1 graph short-circuit** — measured 2-4x win
-      (bench table in `METAENGINE-LIVE-LATENCY-MODEL.md` §9): route
-      `GraphNeighbors(depth==1)` to the direct adjacency query (+ `AND
-      to_node <> ?` to preserve start-node exclusion) instead of the
-      recursive CTE.
-      _(Effort: XS)_ — done 2026-08-17: directed + undirected depth-1 both
-      short-circuit ahead of the CTE/iterative switch (the recursive arm
-      contributes zero rows at depth 1, so the CTE seed alone is provably
-      equivalent); per-engine CTE-parity tests against MariaDB 11.4;
-      single-query drain consolidated into `queryGraphRows`.
 - [ ] [BLOCKED] **Run `nix run .#integration-mysql-nspawn`** (needs root) — real-env
       verification incl. `stack/mysql`; live verification so far used docker
       probes only. Partially covered 2026-08-16: userspace MariaDB 11.4
@@ -362,244 +244,17 @@ and is **never** duplicated here.
 
 ---
 
-## WithActor Hardening
-
-> `event/command/query.WithActor` + `Tracing.ActorID` shipped and released
-> (metadata/v4.4.0, event/v4.6.0, command/v4.6.0, query/v4.5.0 — 2026-08-13).
-> id/v4.4.0 contains `actor_id.go` (verified in tag).
-
-- [x] **Test-coverage gaps** — golden JSON for full `event.Event`/`command.
-      BasicCommand` with ActorID; watermill wire-format preservation; CBOR
-      roundtrip (events default to CBOR); SQL `MarshalMetadata` scan path;
-      pebble/bbolt encode/decode; e2e decider (command→events) and projection
-      (events→read) propagation; `TestQuery_AllMetadata`; json/v1 fallback
-      `omitempty` behavior.
-      _(Effort: M)_ — done 2026-08-17: most lanes were already shipped by the
-      actor wave (`1153c7d11`/`842741cab`) and re-verified green (watermill
-      round-trips, `TestMarshalMetadata_ActorRoundtrip`, `TestStoreMetadataRoundtrip`
-      in pebble+bbolt, `integration.TestActorPropagationEndToEnd`,
-      `TestQuery_AllMetadata`, `TestTracing_JSONv1Fallback`). Newly added:
-      `event/golden_metadata_test.go` + `command/golden_metadata_test.go`
-      (golden JSON + store-load round-trip) and
-      `event/metadata_cbor_test.go`. The CBOR lane FOUND A REAL DEFECT: every
-      module pinned `id/v4 v4.4.0`, which lacks `ActorID.MarshalBinary`
-      (first tagged in `id/v4.5.0`) — GOWORK=off/published consumers silently
-      lost the actor in CBOR. Fixed by bumping all 59 pins to v4.5.0 (see
-      CHANGELOG Fixed entry).
-- [x] **Ecosystem propagation checks** — scenario DSL actor support;
-      `scheduling/`, `deriver/`, `commandlifecycle/` ActorID propagation;
-      ActorID-from-context middleware; `id.ActorID.Validate()`.
-      _(Effort: M)_ — done 2026-08-17: scenario (`TestGiven_When_ThenEvents_ActorMetadata`),
-      deriver (`TestDeriver_Idempotent_PreservesActor`), commandlifecycle
-      (`commandTracing` recorder), middleware (`middleware.CommandActorContext`),
-      and `id.ActorID.Validate` were already shipped — verified green. The one
-      genuine gap was `scheduling/`: `Timer[P].Actor` added (plain string in
-      the "kind:raw" wire format — zero-dep module, `record.CommonMetadata`
-      precedent) + versioned payload envelope in `scheduling/sqlstore` with
-      legacy bare-payload fallback, so timer-initiated commands can carry the
-      originating actor durably (see CHANGELOG Added entry).
-
 ---
 
 ## Code Quality / Infrastructure
 
-- [x] **CHANGELOG honesty gate** — lint that every `pkg.Symbol` identifier
-      cited in CHANGELOG Added/Changed entries exists in the api-stability
-      golden. Kills the reverted-work fiction class mechanically (the
-      2026-08-10/11 tombstone entries described `e406edcfb`, which was
-      reverted by `a6613ef0d` before any tag — CHANGELOG never recorded the
-      reversion; corrected 2026-08-16).
-      _(Effort: S)_ — done 2026-08-16: `scripts/check-changelog-symbols.sh`
-      (CI + nix-less grep gate) scopes `[Unreleased]` Added/Changed headings
-      (inclusive), resolves `alias.Symbol` against golden last-segment,
-      module-root prefix, and repo source-dir fallback (subpackage citations
-      like `enginetest.X`); caught two inaccuracies in this session's own
-      CHANGELOG fold on first run.
-- [x] **api-stability: fail loudly on parse-skip** — the checker prints `skip
-      <module>:` and proceeds when a file is unparseable, so a corrupted
-      module looks identical to a legitimately-removed one in the golden
-      (a silently-shrinking golden is the corruption tell, 07:12 report §e.2).
-      Cheapest corruption tripwire available.
-      _(Effort: XS)_ — done 2026-08-16: unparseable modules now return a hard
-      error instead of `skip <module>:` + continue.
-- [x] **BuildFlow pre-commit: `gofmt -l` syntax gate on staged `.go` files** —
-      concurrent-session mid-write corruption entered the index twice on
-      2026-08-16 (`func (w *workor)`, `fojection.`); a 1s syntax check on
-      staged files blocks the class.
-      _(Effort: XS)_ — done 2026-08-16: `scripts/check-staged-go.sh` (gofmt
-      `-e -l`, `|| true` so gofmt's exit-2 on parse errors feeds the message
-      check instead of tripping `set -e`), wired into the installed hook,
-      `scripts/install-hooks.sh` (canonical restorer of BOTH post-BuildFlow
-      gates), and `scripts/pre-commit.sh`. Negative test: staged corrupt file
-      → precise parse errors, exit 1.
-- [x] **Pre-gate load-sweep script** — run timing-assertion tests
-      (`-run 'Latency|Timer|Deadline'`) under a CPU soaker before `#verify`;
-      the 12:39 session burned two full gate cycles (~20 min each)
-      discovering load-sensitive flakes one at a time.
-      _(Effort: S)_ — done 2026-08-16: `scripts/load-sweep.sh` + `nix run
-      .#load-sweep` (nproc-1 soakers, 8 timing-test modules, per-module
-      GOWORK=off, logs to /tmp/load-sweep-*.log).
-- [x] **Guard against local-path `replace` directives** — cqrs-lint rule,
-      buildflow check, or both: reject `replace … => /home/…` (broke CI
-      Release on every push until `ceb88738b`; dev-against-siblings belongs
-      in `go.work` `use`, never in a published go.mod). Approach is a user
-      question (11:00 report §g Q2).
-      _(Effort: S)_ — done 2026-08-16 (approach decided: extend the existing
-      CI-wired script, cheapest complete enforcement; cqrs-lint rule would be
-      duplicate machinery): `check-replace-directives.sh` now rejects
-      absolute-path targets outright; relative sibling replaces stay the
-      documented convention (stripped by `tag-release.sh` at cut time).
-- [x] **Clean up registered git worktrees** — `/tmp/cqrs-tagwt` (tag chain,
-      commits `092b5e8a8`/`4907b6afc` stranded there), `/home/lars/projects/
-      wt-head`, `/tmp/gcl-verify`, `go-cqrs-lite-pin` still registered.
-      After the stranded-commit cherry-pick lands.
-      _(Effort: XS)_ — done 2026-08-16: the valuable stranded commit
-      `092b5e8a8` (metadata/v4.5.0 pin fix + retracts + tag-release.sh
-      GOWORK=off-build gate) was cherry-picked to master as `491379a2b` and
-      verified with standalone GOWORK=off builds of command+query;
-      `4907b6afc` was obsolete (bboltengine v4.0.0 pin already on master);
-      all four worktrees removed (pin's dirty docs were a dubious
-      `npx`→`pnpm dlx` sweep over archive files — discarded deliberately).
-- [x] **Infrastructure polish (nix apps + shared helpers)** — add
-      `#check-lint-config`, `#verify-ci` (mirror GH Actions GOWORK=off
-      per-module), wire `#sweep` to pre-commit/cron, consolidate engine
-      `register.go` boilerplate (7 modules), add missing devShell tools
-      (dprint, go-licenses, vulnix — their absence forces `--no-verify`).
-      _(Effort: M)_ — done 2026-08-16: `#check-lint-config` (golangci config
-      verify + depguard), `#verify-ci`, `#load-sweep`, `#integration-redis`
-      apps added (flake eval verified); devShell already had dprint/
-      go-licenses/vulnix (stale premise); `register.go` "consolidation" = 8
-      files standardized with `//art-dupl:accept` directives — Go REQUIRES a
-      per-package `init()` for driver self-registration (database/sql
-      pattern), so cross-module dedup is impossible by design (documented in
-      AGENTS.md #19); `#sweep` stays manual/cron (not in pre-commit — its
-      5-minute lint pass would dwarf every other gate).
-      cron line: `0 * * * * cd <repo> && nix run .#sweep`
-- [x] **Fix `nix fmt` vs golangci-gci import-grouping conflict at the tooling
-      level** — the class re-broke 95+ files once; it WILL recur on every
-      future import addition. Make the treefmt formatter config aware of gci
-      section rules (or vice versa).
-      _(Effort: S)_ — done 2026-08-16 ("vice versa"): gci REMOVED from
-      `.golangci.yml` formatters — treefmt goimports `-local` owns the
-      3-group layout, CI's `nix fmt --fail-on-change` enforces it
-      mechanically; one tool owns grouping, the formatter. treefmt-nix has
-      no gci program at the pinned rev, and golangci-as-treefmt-formatter
-      would type-check on every `nix fmt`.
-- [x] **Enforce the heap-measurement contract mechanically** — tests calling
-      `runtime.ReadMemStats` must never `t.Parallel()` (13 files fixed
-      2026-08-14; repo-wide audit came back clean, but nothing prevents
-      reintroduction). cqrs-lint rule or check-script grep.
-      _(Effort: S)_ — done 2026-08-16: `scripts/check-heap-parallel.sh`
-      (same-file grep tripwire, CI-wired); cross-file callers of soak runners
-      remain a review concern (documented in-script).
-- [x] **Audit benchkit's remaining wall-clock assertions** —
-      `raceEnabled` branch at `benchkit_test.go:821` may share the
-      load-sensitivity mis-model already fixed for `DurationAborts`/
-      `CancelledContext` (flat 30s).
-      _(Effort: S)_ — done 2026-08-16: confirmed the mis-model (5s non-race
-      ceiling under parallel load); aligned `TestRun_SQLite_DurationAborts`
-      to the flat-30s hang-detection model; verified 3x under `-race`
-      (22s, green).
-- [x] **Wire broker tests into CI** — `TestRedisStreamRoundtrip` passes only
-      via manual `ephemeral-redis.sh`; add a `#integration-redis` nix app
-      (mirrors `#integration-pg`). Then extend to broker edges the gochannel
-      tests can't catch: redelivery duplicates, consumer-group rebalance,
-      message size limits.
-      _(Effort: M)_ — done 2026-08-16: `#integration-redis` app + CI
-      `redis-integration` job; `ephemeral-redis.sh` default command now runs
-      the watermill suite; new `watermill/broker_edge_redis_test.go` covers
-      Nack redelivery (NackResendSleep), consumer-group exactly-once across
-      two subscribers (20 msgs, no dupes/losses), and 2 MiB payload
-      integrity — all green against a real ephemeral broker.
-- [x] **Doc-check 0-warning CI tripwire** — warnings are at 0 since
-      2026-08-15; add a regression guard so warning spam can't creep back.
-      _(Effort: XS)_ — done 2026-08-16: doc-check now collects warnings
-      (unreadable dirs, empty exports, unparseable files) and FAILS on any;
-      the zero-references case (silent no-op verification) is an error too.
-      Full verify file set passes with 0 warnings (1139 refs).
-- [x] **Skill docs: capability diagnostics recipe** — `recipes.md` section on
-      `CapabilityAudit`/Doctor's `--- Capability ---` section
-      (consumer-facing declared-vs-implemented diagnostics), and a
-      `modules.md` metaengine row note. Shipped 2026-08-16, undocumented.
-      _(Effort: XS)_ — done 2026-08-16: recipes §2.12 (CapabilityAudit +
-      Doctor snippet + RunCapabilityConformance gate) + modules.md metaengine
-      row note; doc-check green (1139 refs).
-- [x] **Duplication-baseline hygiene** — add `//art-dupl:accept` directives
-      at the 9 intentional clone sites; dirty-tree guard for baseline
-      re-pins; re-pin at next clean tree (current pin includes in-flight
-      foreign code).
-      _(Effort: S)_ 2026-08-16: wave-4 triage added 3 more directives
-      (2 false-sharing bench mirrors, 1 cross-module test read-file idiom)
-      and consolidated 2 groups (metaengine `enginesSnapshot`, event
-      `seekableReadFrom`) — gate green, baseline untouched (annotations
-      suppress live). The 9 legacy sites + dirty-tree guard remain.
-      2026-08-16 (infra wave): dirty-tree guard DONE (`#check-duplication`
-      refuses uncommitted baseline changes); 8 `register.go` driver files
-      annotated (`//art-dupl:accept`).
-      2026-08-16 (closeout): concurrent session finished (engine-correctness
-      wave committed `d7e583c82`), so the 12 flagged groups in its files were
-      annotated by this session: cross-engine dialect twins (mysql/sqlite
-      graph_undirected dispatch + row scanners, pebble/pg vector prologues,
-      badger/sqlite marshal-with-fallback helpers), same-file twins
-      (memory_graph RLock+BFS prologues, badger directed/undirected guards,
-      metaengine reflect extractors), and quickstart demo setup. Iterative —
-      suppressing the visible 5 exposed 7 masked groups (art-dupl reports
-      one group per region pair; always re-run to 0). Gate green with
-      baseline untouched; re-pin DROPPED (live annotations are the
-      documented preference — a deleted annotation re-flags its group,
-      forcing re-justification). Directive placement gotcha: it must sit
-      directly on/above the region start, not above the following func's
-      doc comment.
-- [x] **check-coverage.sh hardening** — meta-test asserting every EXPECTED
-      key resolves to a real module dir (codec-dangle class); make
-      `--update` auto-stamp the "verified" date.
-      _(Effort: S)_ — done 2026-08-16: dangling EXPECTED keys fail fast with
-      a precise message; `--update` rewrites the header's `(verified …)`
-      date via sed. Gate green (all 11 modules within ±2%).
-- [x] **duckdbengine suite split** — 76-91s observed under the (now 8m)
-      ceiling; worth splitting the soak into its own budget.
-      _(Effort: S)_ — done 2026-08-16: the soak's comment CLAIMED `-short`
-      skip but the code never checked it (doc-vs-code split brain —
-      `#verify-fast` was running the 80-100s soak); `testing.Short()` gate
-      added, verified skipping under `-short`. Full `#test`/
-      `#test-all-backends` still cover it.
 - [ ] **macOS verification of ephemeral PG** — `scripts/ephemeral-pg.sh` claims
       cross-platform but was never tested on Darwin. (Last open item of the
       19-item Code Quality / Infrastructure section — 18/19 done.)
       _(Effort: M)_ — 2026-08-16: static review done (portability note added
       to the script header; no Linux-isms found, /dev/kvm check
       uname-guarded); hardware verification on a real Mac remains open.
-- [x] **Delete junk from repo root** — `t/`, `result/` (16MB root-owned),
-      `reports/coverage.out` (empty), `reports/jscpd-report.json`; drop the
-      orphaned `stash@{0}` (WIP @ `e87be3143`, pre-recovery leftovers).
-      _(Effort: XS)_ — done 2026-08-16: all three dirs trashed (root-owned
-      `result/` moved via parent-dir rename), stash dropped (dropped-hash
-      `cfca37601` recoverable from reflog-era output if ever needed).
-- [x] **Per-module CHANGELOGs** — 6 of ~82 modules have one. Decide policy
-      (root CHANGELOG only vs per-module) and either write them or document
-      the decision.
-      _(Effort: L)_ — done 2026-08-16 (decision: ROOT ONLY): survey found 4
-      (not 6) module files, all orphaned (nothing read them) and stale —
-      three described already-tagged work as `[Unreleased]`. Unmirrored
-      content folded into the root CHANGELOG (the honesty gate caught two
-      inaccurate symbol citations during the fold), files deleted, policy
-      + enforcement documented in CONTRIBUTING.md and AGENTS.md #20.
-
 ---
-
-## Correctness Defect Sweep (brutal-review backlog)
-
-> From `docs/reviews/2026-08-14_14-25_brutal-self-review.md`. All other
-> verified findings shipped 2026-08-15/16 — see CHANGELOG. These remain:
-
-- [x] **Correctness-sweep leftovers** — `kv.Cache` shared `*T`;
-      TypedQueryStore hardcoded JSON decode (`query/typed.go`); ghost
-      `event.ErrBinaryNotFound` (document or delete).
-      _(Effort: M)_ — done 2026-08-16: kv.Cache copy-isolates values (Get
-      returns a deep copy, Set caches a private copy); all four blind stores
-      decode non-envelope data via the configured codec + JSON↔CBOR
-      cross-retry (ADR-0050 addendum); ErrBinaryNotFound deleted (orphan of
-      the removed event/blob.go helpers).
 
 ---
 
@@ -609,74 +264,12 @@ and is **never** duplicated here.
 > the actionable P2/P3 findings are FIXED (commits a211ebcb2, 449e0e5a7,
 > 42dfab5b0 — shipped with regression tests). These remain, routed:
 
-- [x] **Count-by-name dispatch (P1-2)** — DONE 2026-08-18: metaengine
-      `ExecuteQueryByName`/`ExecuteTypedByName` (unknown name →
-      `ErrNoQueryForName`); `GetCount` dispatches by counter name; regression
-      test covers two counters. Type dispatch kept, shadowing documented.
-      Proposal: docs/adr/2026-08-17_system-v4-review-proposals.md.
-      _(Effort: M, impact: correctness for multi-counter domains)_
-- [x] **Named-bus API** — DONE 2026-08-18: `MultiBus.AddNamedPublisher`/
-      `PublisherByName`/`Names` + `System.PublisherFor(target)` bind fan-out
-      buses by their YAML `publish:` target; closers named
-      `fanout-bus-<target>`. _(Effort: M)_
-- [x] **Role wiring** — DONE 2026-08-18: dedicated RoleCommands/RoleQueries/
-      RoleSnapshots instances bind stores from their own engines
-      (`System.CommandStore`/`QueryStore` accessors); one engine may serve
-      multiple roles; duplicates → `ErrDuplicateInstanceRole`; missing
-      SnapshotBackend → `ErrNotSnapshotBackend`. _(Effort: M)_
-- [x] **Reserved-config honesty** — DONE 2026-08-18: Mode documented
-      introspection-only (README `mode: sync` example removed), Subscribe +
-      CacheConfig.Engine documented reserved/not-read (removal at v5),
-      Collections documented introspection-only, `Evolve(Internal())`
-      documented recorded-but-not-enforced. _(Effort: S per field)_
-- [x] **Durability wiring** — DONE 2026-08-18: `DriverConfig.Durability` +
-      tier constants + `ValidateDurabilityTier`/`RejectDurabilityTier` in
-      metaengine; sqlite maps tier → `PRAGMA synchronous` (conflicting
-      operator pragma errors); memory rejects strict; system resolves
-      per-engine tiers (conflict → `ErrDurabilityConflict`) and no longer
-      silently defaults instances to "normal". _(Effort: M)_
-- [x] **Durability breadth** — DONE 2026-08-18: pebble (WAL/sync/async/
-      DisableWAL via `WithAsyncWrites`/`WithDisableWAL`), postgres
-      (`synchronous_commit` DSN runtime param, conflict = config error),
-      bbolt (normal aliases strict — no middle tier; relaxed = `WithNoSync`),
-      badger (async floor via new `Option`/`WithAsyncWrites`) all map
-      explicit tiers now; dgraph/duckdb/mysql/turso still reject.
-      `BusConfig.Mode` endgame DECIDED: remove at v5, never implement.
-      _(Effort: M)_
-- [x] **EventAdapter backend contract doc** — DONE 2026-08-18:
-      `system/doc.go` documents Atomic (all shipped engines) vs
-      Transactional vs racy fallback for Save. _(Effort: S)_
-- [x] **Release coordination: system/v4.5.0** — DONE 2026-08-18: all 7 tags
-      cut, pushed, and VCS-verified (metaengine/v4.12.0, sqliteengine/v4.2.0,
-      pebbleengine/v4.2.0, badgerengine/v4.1.0, bboltengine/v4.1.0,
-      pgengine/v4.2.0, system/v4.5.0). Zero contingency tags were needed:
-      record/v4.2.0, id/v4.5.0, watermill/v4.4.0 all satisfied the stripped
-      standalone builds (the §g question dissolved). Post-wave: clean-room
-      consumer build of system/v4@v4.5.0 GREEN; 10 stale-pin consumer modules
-      standalone-build GREEN (no sweep needed); vulncheck + changelog-symbol
-      gate + api-stability meta-tests GREEN. Also unblocked en route: reverted
-      a gci/depguard .golangci.yml regression and trimmed AGENTS.md 399 → 369
-      (BuildFlow ≤377 gate). GitHub Releases skipped (repo convention: one
-      legacy entry only). _(Effort: M)_
 - [ ] **Fix GitHub Actions billing** — BLOCKED on user (2026-08-18): every
       paid CI job (Release, Benchmarks, ci.yml) fails in 3-7s with "recent
       account payments have failed or your spending limit needs to be
       increased"; broken since ~2026-07-17. Local `nix run .#verify` remains
       the authoritative gate until billing is restored. _(Effort: S, user
       action: Billing & plans settings)_
-- [x] **stack.Bundle cross-check** — VERIFIED 2026-08-17 (proposal §8,
-      read-only): Bundle has no ack/WARN machinery at all (no CheckSafety
-      equivalent) — nothing shares the fixed scream-store bugs, nothing to
-      port. _(Effort: S, impact: correctness on the still-shipped stack path)_
-- [x] **system/ coverage 74.4%** — DONE 2026-08-18: raised to 79.4% —
-      CachedEventStore passthroughs/stats/capability fallbacks,
-      CommandAdapter batch + time-filtered loads + journal reads,
-      EvolveKey/Internal options, and the reifyTo JSON branch (sqlite
-      explicit-fold test). _(Effort: M)_
-- [x] **Host buildcache repair** — DONE 2026-08-18: /mnt/buildcache
-      repaired (64% used, writable); the /tmp cache env workaround can be
-      retired.
-
 ---
 
 ## v5 Unification (Phase 8: Deletion + Cut)
@@ -816,139 +409,12 @@ and is **never** duplicated here.
 > markers on what it supersedes, api-stability golden regen + `#verify-fast`
 > + CHANGELOG `[Unreleased]` entry in the same change.
 
-- [x] **`AsRecord` bridges populate a validated `record.StreamRef`** 🔥 —
-      adopt the shipped `Validate()` in all three bridges (event/command/
-      query); `event.AsRecord` stamps streamType, command/query keep the
-      empty-type form. Kills P1's interchange half; per owner decision there
-      is NO new identity type (plan T04). ✅ 2026-08-22 (T04, prior session)
-      _(Effort: M)_
-- [x] **`record.Cause{Kind, ID}` + `CommonMetadata.Cause`** 🔥 — CauseKind
-      iota (none/command/timer/derivation), zero value = none; deprecate
-      `CausationID string`; event bridge maps `Causation.CommandID`/
-      `Tracing.CausationID`. Kills P4's two-causation-homes (plan T05).
-      ✅ 2026-08-22 (T05; shipped with a 5th kind `CauseUnknown` — the bare
-      tracing chain does not discriminate the causer's kind)
-      _(Effort: M)_
-- [x] **`Record.ID string` + `Record.Encoding string`** 🔥 — `event.AsRecord`
-      fills both so self-describing payloads survive the bridge (mixed
-      JSON+CBOR round-trip test); command/query fill ID. Kills P5 (plan T08).
-      ✅ 2026-08-22 (T08; `Encoding string` — the codec layer's self-describing
-      form per the ADR-0044 envelope — instead of the sketched `uint8`, which
-      would invent a parallel numeric mapping nothing else reads)
-      _(Effort: M)_
-- [x] **`record.Stamp{at, known}`** — replaces the three zero-time
-      timestamps (`ClientCreatedAt`/`ServerReceivedAt`/`ServerStoredAt` →
-      `Created`/`Received`/`Stored`); deprecate old fields. Kills P7 (plan
-      T06). ✅ 2026-08-22 (T06; query bridge stamps `Received` — the honest
-      home for the server clock the old field parked in `ClientCreatedAt`)
-      _(Effort: M)_
-- [x] **Structural `record.Actor{Kind, Raw}` mirror** — bridges stop
-      stringifying the actor union; wire form stays only at the serialization
-      edge. Kills P3 parse-tax (plan T07). ✅ 2026-08-22 (T07, via
-      `metadata.RecordActor`; legacy `UserID` fallback upgraded to
-      `ActorUser`)
-      _(Effort: M)_
-- [x] **Metadata capability interface** 🔥 — additive `MetadataCarrier`-style
-      interface adopted by `query/audit` middleware; deprecate the two
-      duck-typed interfaces (`query/audit.go:86,114`). Growing the exported
-      `Command`/`Query` interfaces with `Metadata()` is BREAKING for
-      hand-rolled implementations — decided to ride the v5 cut (owner input
-      2026-08-22). Kills P6 (plan T09). ✅ 2026-08-22 (T09: `query.MetadataCarrier`
-      + `query.PayloadCarrier` + `command.MetadataCarrier` shipped; audit.go
-      migrated; Appendix C comparison memo; gate green `8c0f48ab0`)
-      _(Effort: M)_
-- [x] **`Decider.ExecuteRef`/`LoadRef` additive variants** — pair forms
-      delegate + get `Deprecated: removed in v5`; migrate internal callers
-      (scenario/, examples). One identity convention on the hot path (plan
-      T10). ✅ 2026-08-22 (T10: ref forms are the real impls on `id.StreamRef`;
-      `system/register.go` migrated — the only production pair-form caller;
-      lockstep tests `decider/ref_forms_test.go`; gate green `8c0f48ab0`)
-      _(Effort: M)_
-- [x] **Brand `scheduling.TimerID` + `Timer.Actor id.ActorID`** —
-      `id.Of[TimerMarker]`; JSON wire form via PrefixedString round-trip; add
-      `id/v4` dep (Tier-1→Tier-0 legal) + `#check-arch`; consumer-pin sweep
-      in the same wave. Kills P11 (plan T11). ✅ 2026-08-22 (T11 shipped
-      `82517580d`: string-backed branded TimerID — DEVIATION from the
-      `id.Of[TimerMarker]` sketch, timer IDs are semantic idempotency keys;
-      Actor→`id.ActorID` wire-identical; SQL envelope actor stays a string
-      column with boundary conversion; dep budget 0→2; gate green with T12)
-      _(Effort: M)_
-- [x] **`record.Type` consolidation** — define once, alias in event/command/
-      query; collapse triplicated ParseType/IsZero. Kills P12 drift (plan
-      T12, after the StreamRef bridge work). ✅ 2026-08-22 (T12: `record.Type`
-      + parametrized `record.ParseType(s, emptyErr)`; event/command/query
-      `Type` are aliases with deprecated sentinel-preserving wrappers;
-      compile-time alias lockstep tests; golden regen; exclusive gate green
-      `f518d24a0`)
-      _(Effort: M)_
-- [x] **`snapshot.NewSnapshot` constructor + codec stamp** — envelope-style
-      encoding stamp (ADR-0044 pattern), `Validate`, invariants (non-nil
-      State, Version ≥ 1). Kills P10 (plan T17). ✅ 2026-08-22 (validating
-      ctor + `Validate`/`Ref`/`ErrInvalidSnapshot` + `Encoding record.Encoding`
-      stamp on Snapshot; TypedStore + decider stamp on save; `SaveSnapshot`
-      deprecated; per-module test+lint green, golden +4, arch exception
-      snapshot→storage/memory test-only)
-      _(Effort: M)_
-- [x] **Snapshot wire-tag migration audit** — pebble/bbolt/sql/memory
-      backends; decide keep-old-tags-until-v5; note into §v5 Unification
-      (plan T18, after the constructor). ✅ 2026-08-22 (audit table in §v5
-      Unification above; keep-old-tags decision recorded; pebble+bbolt now
-      PERSIST the encoding stamp additively with roundtrip tests; SQL
-      envelope stays authoritative)
-      _(Effort: S)_
-- [x] **Deprecation census artifact** — exact 36-alias list + snapshot wire
-      tags + stale error codes → `docs/planning/v5-deprecation-sweep.md`
-      checklist feeding §v5 Unification (plan T19). ✅ 2026-08-22 (artifact
-      emitted: 42 aggregate-vocabulary symbols across 6 modules + 5
-      record-bridge fields + tombstone API + wire-tag/error-code inventory
-      + execution rules)
-      _(Effort: S)_
-- [x] **Tombstone v5 deletion prep** — verify migration doc accuracy +
-      `listing.StatusMiddleware` bridge test coverage (plan T20).
-      ✅ 2026-08-22 (doc verified against shipped APIs; found + fixed a
-      REAL gap: OnTombstone/OnRebirth had zero trigger coverage anywhere —
-      added `stack/materialize_tombstone_bridge_test.go` pinning the full
-      StatusMiddleware→mark→OnTombstone/OnRebirth chain; deletion pre-reqs
-      listed in the §v5 tombstone entry above)
-      _(Effort: S)_
-- [x] **Extended data-model review** — storage/*, system/, stack/,
-      watermill/, middleware/ get the same rigor; findings appendix
-      cross-linked to the core review (plan T21). ✅ 2026-08-22
-      (`docs/reviews/2026-08-22_extended-data-model-review.md`: 15 findings
-      E1-E15 + capability matrix; verdict: no any-typed values anywhere,
-      the disease is cross-backend drift; pebble lying-doc fixed on the
-      spot). Follow-ups extracted below.
-      _(Effort: L)_
-- [x] **bbolt error-family parity** (review E3) — replace bare `fmt.Errorf`
-      in bbolt command/query marshal+reconstruct with errorfamily codes,
-      matching pebble's pattern. ✅ 2026-08-27 (deep full-code review;
-      `bbolt.serialize_command`/`reconstruct_command`/`serialize_query`/
-      `reconstruct_query` Corruption contexts)
-      _(Effort: S)_
-- [x] **turso.Policy nil-map write guard** (review E9) — mutators panic on
-      zero-value Policy; guard writes like reads. ✅ 2026-08-27 (nil-receiver
-      no-op + lazy map init, zero-value tests added)
-      _(Effort: S)_
-- [x] **system.ShutdownDependency name validation** (review E10) — validate
-      Before/After against DeploymentConfig.Engines at build; typo'd names
-      currently silent-no-op. ✅ 2026-08-27 (`validateShutdownDependencies` in
-      `system.New`, `ErrShutdownDependencyInvalid` sentinel, 3 integration
-      tests)
-      _(Effort: S)_
 - [ ] **v5 items from extended review** — E1 (event-envelope Encoding →
       `record.Encoding`), E7 (watermill/middleware RetryConfig collision),
       E8 (typed Message Kind enum), E11 (AdapterCore.Encode error return),
       E13 (SQLTimerStore phantom param), E15 (middleware signature
       unification) — fold into the v5 cut wave after the sweep doc.
       _(Effort: M)_
-- [x] **Stream/StreamRef/StreamID naming decision** — the trio is itself a
-      naming smell; decide each shape's role before v5 (plan T22, after the
-      owner's Option B decision). ✅ 2026-08-22 (plan Appendix D: trio
-      KEEP with role table; real smell found = `record.StreamRef` string
-      vs `id.StreamRef` struct name collision + `/` vs `:` separator
-      divergence → v5 rename `record.StreamKey` added to the sweep doc;
-      ActorKind mirror re-confirmed as accepted zero-dep pattern)
-      _(Effort: S)_
 - [ ] **Post-landing sweep for this series** — api-stability meta-tests,
       doc-check over skill refs, consumer-pin sweep for `record/v4` consumers
       under GOWORK=off (plan T24; MarshalBinary lesson).
@@ -957,23 +423,6 @@ and is **never** duplicated here.
       new conventions (validating-population pattern, capability-interface
       rule) once the PRs land (plan T25).
       _(Effort: S)_
-- [x] **Report polish remnants** — programmatic TOC-anchor check + CSS
-      template-diff audit for the core review (Related reviews / Next skills
-      sections already added 2026-08-22) (plan T16). ✅ 2026-08-22 (anchor
-      check: 0 broken after adding Amendments to the TOC + Related
-      Reviews/Next Skills sections with cross-links to the extended review;
-      CSS diff vs kit template: zero token drift — report is a clean subset
-      + 2 report-specific additions)
-      _(Effort: S)_
-- [x] **Upstream skill fixes** — `docs/reviews` ↔ `docs/brainstorming`
-      divergence in data-model-review skill docs; add "read prior reports" +
-      "copy template, never transcribe" steps (plan T23).
-      ✅ 2026-08-22 (`~/.config/crush/skills/data-model-review/`:
-      output-guide.md now says `docs/reviews/` matching SKILL.md + repo
-      truth; Step 5 gained both steps before writing — skill lives outside
-      this repo, hence no repo commit)
-      _(Effort: S)_
-
 ### Deep Full-Code Review (2026-08-27) — follow-ups
 
 > 9 fixes landed inline (E3/E9/E10 + decider poll-clamp/WithoutCancel/
@@ -1031,23 +480,6 @@ and is **never** duplicated here.
 > flight-recorder detached context; bbolt bucket/NotFound guards; pebble
 > batch leak). Unfixed findings below, priority-ordered.
 
-- [x] **listing StatusMiddleware marks never reach the journal** 🔥 — done
-      2026-08-27 (plan P05): migration-doc recipe rewritten to the shipped
-      `listing.WithStatusClassifier`/`NewStatusClassifier` (type-driven status,
-      wire-compatible with legacy TombstoneStatus ints; golden parity tests);
-      `StatusMiddleware` Deprecated. Marks-to-journal dishonesty is moot: the
-      reader no longer reads metadata marks at all.
-      `MarkTombstone` returns a NEW event delivered to bus subscribers only;
-      the journal copy saved by the decider never carries the mark, so
-      `InMemoryStreamReader.rebuildCache` reads status `Undetermined` from
-      the journal: `TombstoneExclude` (default) INCLUDES deleted streams and
-      `TombstoneOnly` returns nothing. The migration-doc recipe
-      (`docs/migration/tombstone-to-domain-events.md:118-141`) cannot work
-      with the decider save-then-publish flow. Near-term: correct the doc +
-      add a type-driven reader option (`WithDeleteTypes`); the real fix is
-      the v5 type-based status (sweep items 18/19). Tests currently hide
-      this by pre-stamping metadata before Save.
-      _(Effort: M; doc part S)_
 - [ ] **metaengine Record context is shared mutable state across Stores** 🔥 —
       `recHolder` lives on the Fold instance; `Store.Verify` builds a second
       Store from the same declarations and replays into it, so concurrent
@@ -1062,45 +494,6 @@ and is **never** duplicated here.
       compares row counts only and cannot catch it). Add optional
       `Record record.Record` to EventInput/log entries (additive).
       _(Effort: M)_
-- [x] **watermill CatchUpSubscriber checkpoints at handoff, not Ack** — done
-      2026-08-27 (plan P04): checkpoint advances only on `msg.Acked()` in both
-      replay and live phases; Nack stops the subscription with the checkpoint
-      left behind the failed event; the 1024-entry ring is replaced by a
-      last-replayed-ID watermark. Regression tests (no-ack crash, Nack stop,
-      watermark suppression) race-verified 3x. Original note:
-      doc says "after each message is Acked" but both replay and live phases
-      save the checkpoint right after `output <- msg`; a crash (or Nack)
-      between handoff and processing permanently skips events (at-most-once).
-      Also: the 1024-entry dedup ring is bounded by a wrong invariant (the
-      real overlap set is every event appended during replay, unbounded), so
-      duplicates can still slip through under load. Checkpoint on
-      `msg.Acked()`; replace the replay-side ring with a last-replayed-ID
-      watermark.
-      _(Effort: M)_
-- [x] **watermill subscriber Close can panic (send on closed channel)** —
-      verified 2026-08-27 against current code: `Close()` never closes
-      output channels (only `runCatchUp`'s single-sender defer does) and
-      `Subscribe` creates a fresh subscription per call (no shared map to
-      overwrite). No reproducible panic path remained; the P04 ack-waiting
-      refactor kept the single-sender invariant. Original note:
-      `Close()` closes `outputCh` while handler goroutines may be blocked
-      selecting on send; a send on a closed channel is always "ready". Never
-      close `outputCh`; signal via `closeCh` only. Also `Subscribe` twice
-      overwrites the handlers map entry (duplicate delivery on shared
-      output).
-      _(Effort: S)_
-- [x] **system shutdown validation rejects the runtime's own synthetic
-      engines** — done 2026-08-27 (plan P05.4/5): validation now runs against
-      the populated engine set (configured + synthetic "default"/
-      "projections"); empty names return ErrShutdownDependencyInvalid.
-      Synthetic-name acceptance test added. Original note: `validateShutdownDependencies` checks against
-      `deployment.Engines`, but the constructor auto-creates `"default"` /
-      `"projections"` engines that the runtime sort honors — the
-      `ShutdownDependencies` doc example (`Before: "projections"`) now fails
-      `New()` with ErrUnknownEngine. Validate against the populated engine
-      set; also classify empty names as ErrShutdownDependencyInvalid (not
-      ErrUnknownEngine).
-      _(Effort: S)_
 - [ ] **pebble command/query duplicate check is check-then-commit + fail
       closed** — the existence check runs outside the write lock (concurrent
       duplicate Save silently overwrites instead of Conflict) and treats ANY
@@ -1266,19 +659,3 @@ and is **never** duplicated here.
 - **file-renamer circuitbreaker/dlq modules** — rejected; failsafe-go + the
   FAQ pointer cover it. See
   `docs/feedback/reviewed/2026-08-13_file-renamer_extract-circuitbreaker-and-dlq-review.md`.
-
-- [x] **PG integration test isolation under explicit DSN** — EXECUTED
-      2026-08-27 by the goal-gap session BEFORE this item was moved to
-      Declined (commit 5ec4b1b39): storage, storage/relational and benchkit
-      now route through testutil/pgtestcontainer (per-test DBs under
-      explicit DSN, PID-qualified names so parallel test binaries cannot
-      collide), full `#integration-pg` GREEN. Revert explicitly if the
-      decline rationale outweighs the verified fix. Original note:
-      pg_integration tests assume "each test gets its own fresh database"
-      (true with testcontainers when POSTGRES_TEST_DSN is unset), but
-      `nix run .#integration-pg` points every package at ONE shared
-      `cqrs_test` database: `TestPostgresEventStore_CRUD`'s global
-      `ReadAll` sees other packages' events ("expected 2 events, got 27",
-      pre-existing, reproduced twice 2026-08-22). Fix: create a per-test
-      (or per-package) database even under an explicit DSN.
-      _(Effort: S)_

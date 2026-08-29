@@ -1,7 +1,7 @@
 # cqrs-lint False-Positive Elimination Plan
 
 **Date:** 2026-08-08
-**Status:** PLANNING — awaiting execution
+~~**Status:** PLANNING — awaiting execution~~ **CORRECTION (2026-08-29):** executed 2026-08-08_10-27 (FP rate 30.5% → ~7.3%).
 **Prerequisite:** [False-Positive Validation Report](../status/2026-08-08_cqrs-lint-false-positive-validation.md)
 **Goal:** Reduce false-positive rate from 30.5% → <5% without losing true positives
 

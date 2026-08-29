@@ -1,7 +1,7 @@
 # Metaengine Implementation Plan: From Design Document to Working System
 
 > **Date:** 2026-08-04 10:42
-> **Status:** PLANNING — ready for implementation
+> ~~**Status:** PLANNING — ready for implementation~~ **CORRECTION (2026-08-29):** executed — system/ shipped (v4.0.0→v4.5.0); see CHANGELOG.
 > **Design doc:** [`docs/planning/metaengine-redesign.md`](metaengine-redesign.md) (1987 lines, 12 decisions, 0 open questions)
 > **Goal:** Transform go-cqrs-lite from `stack.Bundle` (capability bag) to `system.System` (deployer-driven, multi-instance metaengine architecture)
 

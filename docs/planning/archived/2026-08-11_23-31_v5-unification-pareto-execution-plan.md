@@ -95,7 +95,7 @@ the next biggest jump in production trust.
 | **P9**  | Update `METAENGINE-LAYOUT-PLANNING-MODEL.md` (design doc contradicts data)     | S      |
 | **P10** | Add calibration-correction addendum to ADR-0124                                | S      |
 | **P11** | Refactor `layout_observability.go` to use shared `resolvePriority`             | S      |
-| **P12** | Fix Dgraph `JournalReadFrom` seq offset mismatch                               | S      |
+| **P12** | ~~Fix Dgraph `JournalReadFrom` seq offset~~ **CORRECTION (2026-08-29):** fixed 2026-08-15 (CHANGELOG). mismatch                               | S      |
 | **P13** | Calibrate DuckDB (Columnar) — exact tie is fragile                             | M      |
 | **P14** | Calibrate SQLite/Postgres/MySQL (Row) layout                                   | M      |
 | **P15** | Converge `ReplanLayout` into `Store.Replan`                                    | M      |

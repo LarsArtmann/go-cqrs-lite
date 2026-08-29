@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased] — 2026-08-16
+## [Unreleased]
+
+> Rolling unreleased window. The `[Unreleased — earlier 2026-08-16 work]`
+> block further down is part of this same unreleased set (fold pending).
 
 ### Fixed — watermill catch-up is at-least-once; system accepts synthetic engine names — 2026-08-27
 
@@ -25,25 +28,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   Empty Before/After names now return **`ErrShutdownDependencyInvalid`**
   (was ErrUnknownEngine).
 
-### Changed — listing status is type-driven (ADR-0114, v5 prep) — 2026-08-27
+### Changed — storage stream reader surfaces type-driven status (with listing/v4.3.0) — 2026-08-27
 
-- **`listing.Status`** (new type) + **`listing.StatusClassifier`** +
-  **`listing.NewStatusClassifier`** + **`listing.WithStatusClassifier`**
-  reader option: stream status is now derived from the LAST event's type
-  (delete types → tombstoned, rebirth types → active) instead of mutable
-  tombstone metadata. Wire values match the legacy
-  `event.TombstoneStatus` ints (active=0, tombstoned=1, undetermined=2);
-  JSON output is unchanged (verified against the stream-status golden).
-- **`listing.StreamStatus.Status`** is now `listing.Status` (was
-  `event.TombstoneStatus`) — BREAKING for v5, the metadata tombstone API it
-  depended on is removed in v5.
-- **`listing.NewInMemoryStreamReader`** accepts variadic
-  `ReaderOption`s (backward-compatible call sites). Without a classifier
-  every stream reports `StatusUndetermined` — same value the metadata
-  bridge returned for unmarked streams.
-- **`listing.StatusMiddleware`** is Deprecated (removed in v5): readers no
-  longer consult metadata marks; pass the same event-type sets to
-  `NewStatusClassifier` instead.
 - **`storage`**: `SQLStreamReader` now surfaces `listing.Status` from the
   existing `tombstone_status` column (same wire ints).
 
@@ -57,31 +43,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   class). Both now route through **`testutil/pgtestcontainer`**, which
   provisions a per-test database even under an external DSN; storage's
   local duplicate of the helper is deleted.
-- **`testutil/pgtestcontainer.AfterRun`** (added): registers a callback
-  that runs after `m.Run()` on every TestMain exit path, so packages can
-  keep post-run work such as `snaps.Clean(m)` while delegating TestMain to
-  the shared helper.
 
 ### Fixed — deep-review gap wave: error-family truth at store boundaries — 2026-08-27
 
-- **`command.TypedCommandStore`** (Save/AppendBatch) and
-  **`query.TypedQueryStore`** (SaveQuery) no longer blanket-wrap inner
-  errors as Infrastructure: duplicate command / duplicate query Conflicts
-  keep their Conflict family (matching bbolt), so family-aware retry
-  policies and HTTP mappers see 409-class instead of 503-class.
 - The memory, pebble, and SQL eventstore Save boundaries preserve the
   optimistic-concurrency Conflict family; the pebble/bbolt scan helpers
   and the SQL checkpoint load preserve Corruption (undecodable rows,
   unparseable checkpoints) instead of flattening both to Infrastructure.
-- **`scheduling.WithMaxRetries`** clamps values below 1 to 1: a 0
-  previously meant zero dispatch attempts after which the timer was
-  marked fired — the deadline was permanently lost with no error and no
-  log.
-- The SQL timer store's Due skips undecodable (corrupt) timer rows and
-  returns the decodable timers alongside a joined Corruption error; the
-  Scheduler dispatches what decoded and re-reports the corruption each
-  poll. One rotten row previously blocked dispatch of every due timer
-  indefinitely.
 - **`query.NewPaginatedResult`** returns zero TotalPages for a zero-value
   **`query.Pagination`** instead of panicking on integer division by
   zero; the query audit middleware persists its record with a detached
@@ -113,9 +81,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`decider.NewTypedRepository`** rejects a nil typed Decide function up
   front with the new **`decider.ErrNilDecide`** sentinel (family Rejection)
   instead of panicking on the first dispatch.
-- **`scheduling.MemoryTimerStore`**'s `Due` now honors its documented
-  FireAt-ascending, ID-tiebreak ordering (it previously leaked random map
-  iteration order into dispatch order).
 - **`kv.Cache.Set`** invalidates the cached entry when the post-write
   copy-for-isolation fails: the store write succeeded, so the next Get must
   reflect the store instead of a stale pre-Set value.
@@ -729,7 +694,7 @@ forbidden — see CONTRIBUTING.md → Release Process.
   metaengine root (incl. 10M soak), sqlite, badger, pebble, bbolt, duckdb
   (CGo), turso, projectionadapter (after fixing its standalone replace rot),
   PG (ephemeral nixpkgs), Dgraph (`#ephemeral-dgraph`). Evidence:
-  `docs/status/2026-08-16_19-52_maintenance-sweep-status.md`.
+  `docs/status/archived/docs/status/2026-08-16_19-52_maintenance-sweep-status.md`.
 - **`#verify` timeout headroom**: convergence-suite `pollTimeout` 15s→30s
   (passing runs still exit early); per-package Test 8m→10m, Race 8m→12m
   (`#verify-fast` Race 8m→10m). Convergence suite re-run green after the
@@ -940,7 +905,7 @@ forbidden — see CONTRIBUTING.md → Release Process.
 
 > The CI regression job previously ran `benchstat … || true` — it could never
 > fail, so every benchmark in the repo was unenforced. Plan:
-> `docs/planning/2026-08-16_15-09_one-bench-system-consolidation.md`.
+> `docs/planning/archived/2026-08-16_15-09_one-bench-system-consolidation.md`.
 
 - **CI regression gate** (`benchmarks.yml` → `regression`) now compares the
   **median ns/op per benchmark** of the focused gate set
@@ -990,6 +955,63 @@ forbidden — see CONTRIBUTING.md → Release Process.
 - The new badgerengine/bboltengine `StreamLog` tail similarity is annotated
   `//art-dupl:accept` (dep-isolated engines implementing the same contract)
   rather than re-pinning the art-dupl baseline.
+
+## [command/v4.8.1, query/v4.7.1, middleware/v4.5.1, scheduling/v4.3.1, listing/v4.3.0, testutil/pgtestcontainer/v4.1.0] — 2026-08-29
+
+### Changed — listing status is type-driven (ADR-0114, v5 prep)
+
+- **`listing.Status`** (new type) + **`listing.StatusClassifier`** +
+  **`listing.NewStatusClassifier`** + **`listing.WithStatusClassifier`**
+  reader option: stream status is now derived from the LAST event's type
+  (delete types → tombstoned, rebirth types → active) instead of mutable
+  tombstone metadata. Wire values match the legacy
+  `event.TombstoneStatus` ints (active=0, tombstoned=1, undetermined=2);
+  JSON output is unchanged (verified against the stream-status golden).
+- **`listing.StreamStatus.Status`** is now `listing.Status` (was
+  `event.TombstoneStatus`) — BREAKING for v5, the metadata tombstone API it
+  depended on is removed in v5.
+- **`listing.NewInMemoryStreamReader`** accepts variadic
+  `ReaderOption`s (backward-compatible call sites). Without a classifier
+  every stream reports `StatusUndetermined` — same value the metadata
+  bridge returned for unmarked streams.
+- **`listing.StatusMiddleware`** is Deprecated (removed in v5): readers no
+  longer consult metadata marks; pass the same event-type sets to
+  `NewStatusClassifier` instead.
+
+### Added — per-test Postgres isolation
+
+- **`testutil/pgtestcontainer.AfterRun`** (added): registers a callback
+  that runs after `m.Run()` on every TestMain exit path, so packages can
+  keep post-run work such as `snaps.Clean(m)` while delegating TestMain to
+  the shared helper.
+
+### Fixed
+
+- **`command.TypedCommandStore`** (Save/AppendBatch) and
+  **`query.TypedQueryStore`** (SaveQuery) no longer blanket-wrap inner
+  errors as Infrastructure: duplicate command / duplicate query Conflicts
+  keep their Conflict family (matching bbolt), so family-aware retry
+  policies and HTTP mappers see 409-class instead of 503-class.
+- **`scheduling.WithMaxRetries`** clamps values below 1 to 1: a 0
+  previously meant zero dispatch attempts after which the timer was
+  marked fired — the deadline was permanently lost with no error and no
+  log.
+- The SQL timer store's Due skips undecodable (corrupt) timer rows and
+  returns the decodable timers alongside a joined Corruption error; the
+  Scheduler dispatches what decoded and re-reports the corruption each
+  poll. One rotten row previously blocked dispatch of every due timer
+  indefinitely.
+- **`scheduling.MemoryTimerStore`**'s `Due` now honors its documented
+  FireAt-ascending, ID-tiebreak ordering (it previously leaked random map
+  iteration order into dispatch order).
+- **`query.NewPaginatedResult`** returns zero TotalPages for a zero-value
+  **`query.Pagination`** instead of panicking on integer division by
+  zero; the query audit middleware persists its record with a detached
+  context so a client disconnect between handler completion and save can
+  no longer silently drop exactly the auditable queries.
+- The middleware flight-recorder snapshot runs on a detached context
+  (context.WithoutCancel), mirroring the decider-side fix: the request
+  context is typically cancelled exactly when error captures matter.
 
 ## [event/v4.9.0, schema/v4.3.1, dedup/v4.2.1, dispatcher/v4.3.1] — 2026-08-29
 
@@ -1965,7 +1987,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > layers with zero external API breaks. Deprecated shells stay for external
 > consumers; internal code uses the canonical forms. See
 > [ADR-0126](docs/adr/0126-metadata-generic-store-transforms-wal-unification.md)
-> and `docs/status/2026-08-14_14-59_WAL-UNIFICATION-EXECUTION-SNAPSHOT.md`.
+> and `docs/status/archived/docs/status/2026-08-14_14-59_WAL-UNIFICATION-EXECUTION-SNAPSHOT.md`.
 
 - **`metadata.Metadata[K ~string]`** is the canonical typed metadata;
   `command.Metadata` / `query.Metadata` are now aliases of it (their duplicated
@@ -2006,7 +2028,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > every replan is attributed to a trigger in a bounded audit trail. Also fixes a
 > silent bug in `pgtestcontainer` DSN isolation.
 >
-> See `docs/status/2026-08-11_21-22_metaengine-layout-convergence-audit-trail-and-dsn-hardening.md`.
+> See `docs/status/archived/docs/status/2026-08-11_21-22_metaengine-layout-convergence-audit-trail-and-dsn-hardening.md`.
 
 - **`metaengine/layout_matrix_test.go`** (NEW, 133 lines): 16-combination
   regression test iterating all cells (KV/LSM/Row/Columnar ×
@@ -2057,8 +2079,8 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > Consumer-feedback-driven (browser-history). Four detector/UX improvements +
 > two output-format upgrades + a color-consistency regression fix.
 >
-> See `docs/status/2026-08-11_15-58_cqrs-lint-feedback-strict-globs-audit-suppressions.md`
-> and `docs/status/2026-08-11_15-59_cqrs-lint-go-output-superb-upgrade-self-review.md`.
+> See `docs/status/archived/docs/status/2026-08-11_15-58_cqrs-lint-feedback-strict-globs-audit-suppressions.md`
+> and `docs/status/archived/docs/status/2026-08-11_15-59_cqrs-lint-go-output-superb-upgrade-self-review.md`.
 
 - **`--strict` hard-fail on load errors** (`run.go`): `isStrictMode()` helper;
   broken packages no longer silently skipped with a "Clean!" result. INCOMPLETE
@@ -2154,7 +2176,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > coverage. All builds and tests pass across 6 engine modules. `nix run .#verify`
 > NOT yet run — lint, doc-check, duplication, arch not verified.
 >
-> See `docs/status/2026-08-11_20-17_metaengine-adt-coverage-degraded-rule-test-parity.md`.
+> See `docs/status/archived/docs/status/2026-08-11_20-17_metaengine-adt-coverage-degraded-rule-test-parity.md`.
 
 - **`metaengine/dgraphengine/stream_log.go`** (NEW): `StreamLogBackend` (5
   methods) + `AtomicAppender` on Dgraph via append-ordered nodes with
@@ -2215,7 +2237,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > against its own engine family with 60-second on-disk benchmarks. All 5 tests
 > pass; every operator priority lever is decisive again.
 >
-> See `docs/status/2026-08-11_19-49_layout-calibration-verify-green-and-session-honest-review.md`.
+> See `docs/status/archived/docs/status/2026-08-11_19-49_layout-calibration-verify-green-and-session-honest-review.md`.
 
 - **`metaengine/layout_scoring.go`** (FIX): Split KV/LSM scoring. KV Normalize
   recalibrated to `1.8/0.48/0.63` (from memory calibration — 2.2× read, 2.1×
@@ -2312,7 +2334,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 
 > Unblocks `verify-fast` for all future sessions. Three fixes that were
 > pre-existing blockers discovered during the docs-health Pareto plan execution.
-> See `docs/status/2026-08-11_17-32_docs-health-execution-and-go-output-audit-fix.md`.
+> See `docs/status/archived/docs/status/2026-08-11_17-32_docs-health-execution-and-go-output-audit-fix.md`.
 
 - **`cmd/cqrs-lint/pkg/analyzer/module_catalog_test.go`** (FIX): Added
   `system/integration` to `excludedModules` map — the CGo-isolated test
@@ -2343,7 +2365,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 ### Added — ADR-0117 command lifecycle follow-ups: version tracking fix, processing-time projection, system wiring — 2026-08-11
 
 > Implements 7 of 9 follow-up items from the ADR-0117 command lifecycle status
-> report. See `docs/status/2026-08-11_15-57_adr-0117-follow-ups.md`.
+> report. See `docs/status/archived/docs/status/2026-08-11_15-57_adr-0117-follow-ups.md`.
 
 - **`commandlifecycle/recorder.go`** (FIX): Recorder version tracking rewritten
   from fragile in-memory counter to lazy-hydrate from `EventSource` + `Save()`
@@ -2385,7 +2407,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > Three maintenance tasks from TODO_LIST.md: pebbleengine calibration gap,
 > bboltengine test parity gaps, and CGo dependency isolation for the system
 > module. See
-> `docs/status/2026-08-11_09-03_pebble-calibration-bbolt-parity-duckdb-cgo-isolation.md`.
+> `docs/status/archived/docs/status/2026-08-11_09-03_pebble-calibration-bbolt-parity-duckdb-cgo-isolation.md`.
 
 - **`metaengine/pebbleengine/calibration_bench_test.go`** (ADD): Added
   `BenchmarkCalibration_PebbleCounterIncrement` — pebble now has Set + Get +
@@ -2551,7 +2573,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > generation, explicit folds, engine routing).
 >
 > See `docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md` for the full design
-> and `docs/status/2026-08-11_07-23_layout-planning-implementation-comprehensive-status.md`
+> and `docs/status/archived/docs/status/2026-08-11_07-23_layout-planning-implementation-comprehensive-status.md`
 > for implementation status.
 
 - **`metaengine/priority.go`** (NEW, 138 lines): `Priority` enum
@@ -2643,7 +2665,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > received, failed, retried, dead-lettered, completed — is tracked via events
 > appended to per-command lifecycle streams. Dead-letter queues, retry counts,
 > and failure logs emerge as metaengine projections over these event streams.
-> See `docs/status/2026-08-11_07-07_adr-0117-command-lifecycle.md`.
+> See `docs/status/archived/docs/status/2026-08-11_07-07_adr-0117-command-lifecycle.md`.
 
 - **`commandlifecycle/`** (**NEW MODULE**, Tier 2): Lifecycle event vocabulary
   (`command.received/failed/retried/dead-lettered/completed`), typed payloads,
@@ -2751,7 +2773,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > bboltengine, pebbleengine, sqliteengine, duckdbengine, mysqlengine) —
 > all fixed in the same session. See entry above.
 > See
-> `docs/status/2026-08-11_05-53_pg-probeengine-integration-test-calibration-embedding-fix.md`.
+> `docs/status/archived/docs/status/2026-08-11_05-53_pg-probeengine-integration-test-calibration-embedding-fix.md`.
 
 - **`metaengine/pgengine/engine.go`** (**BUGFIX**): `pgEngine` now embeds
   `metaengine.Calibration` instead of a named `cal` field. Removed the
@@ -2777,7 +2799,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > Four test files (352 lines) added to `metaengine/bboltengine/` to match
 > pebbleengine/badgerengine coverage. All 7 tests + 3 benchmarks pass with
 > `-race`; `go vet` clean. Full lint gate (`nix run .#lint`) and `nix fmt` not
-> yet run. See `docs/status/2026-08-11_05-28_bboltengine-source-of-truth-tests.md`.
+> yet run. See `docs/status/archived/docs/status/2026-08-11_05-28_bboltengine-source-of-truth-tests.md`.
 
 - **`metaengine/bboltengine/persistence_test.go`**: 3 tests verifying volatile vs
   persistent `EngineProfile` for `NewBboltEngine("")`, `NewBboltEngine(dir)`, and
@@ -2804,7 +2826,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > .#verify` NOT YET RUN — `nix fmt`, lint, arch, dedup, coverage, and race
 > gates pending. `query.go` at 417 lines exceeds the 350-line CI limit (split
 > needed). See
-> `docs/status/2026-08-11_05-09_fold-inference-adr0116-layer1-status.md`.
+> `docs/status/archived/docs/status/2026-08-11_05-09_fold-inference-adr0116-layer1-status.md`.
 
 - **`metaengine.Infer(samples...)`** (**NEW**): planner-time fold inference.
   Pass event samples (`UserCreated{}`, `UserDeleted{}`) instead of explicit
@@ -2831,7 +2853,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 
 > `nix run .#verify` passes end-to-end (build, vet, test, race, lint, arch,
 > dedup, coverage, api-stability, doc-check). 147 lint issues resolved to 0.
-> Status: `docs/status/2026-08-11_04-04_verify-green-and-lint-cleanup.md`.
+> Status: `docs/status/archived/docs/status/2026-08-11_04-04_verify-green-and-lint-cleanup.md`.
 
 - **`storage/pebble` + `storage/bbolt` metadata roundtrip** (**BUGFIX**):
   `id.ActorID` has unexported fields (`kind`, `raw`) implementing
@@ -2916,7 +2938,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > the runtime measures true RTT via `ProbeEngine` and feeds it live into
 > `Profile()`. The planner sees fresh numbers on every re-plan. Design:
 > `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md` (P1+P2+P3+UX complete).
-> Status: `docs/status/2026-08-11_04-04_live-latency-phase2-complete.md`.
+> Status: `docs/status/archived/docs/status/2026-08-11_04-04_live-latency-phase2-complete.md`.
 
 - **`metaengine.LatencyTracker`** — sliding-window (512 samples) latency
   collector with incremental EWMA + P50/P95/P99/Max/Mean. `Record()` is O(1);
@@ -2976,7 +2998,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 ### ⚠ Breaking — Live Cost Measurement Phase 3 — 2026-08-11
 
 > Two API signatures changed. Existing consumers must update call sites.
-> Migration guide below. Status: `docs/status/2026-08-11_05-08_live-latency-phase3-improvement-backlog.md`.
+> Migration guide below. Status: `docs/status/archived/docs/status/2026-08-11_05-08_live-latency-phase3-improvement-backlog.md`.
 
 - **`metaengine.ProbeEngine` return type changed** from `func()` to
   `*ProbeHandle`. The handle exposes `Stop()` (replaces calling the function
@@ -3065,7 +3087,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > `RequiresNetwork` + RTT prior. PG implements `TransactMeasurer`. Iroh migrated
 > to core `LatencyTracker`, eliminating duplicate percentile machinery.
 > `nix run .#verify` GREEN (2026-08-11).
-> Status: `docs/status/2026-08-11_04-04_live-latency-phase2-complete.md`.
+> Status: `docs/status/archived/docs/status/2026-08-11_04-04_live-latency-phase2-complete.md`.
 
 - **`metaengine.Store.Replan(ctx)`** — in-place re-plan for a long-lived Store.
   Re-reads `engine.Profile()` (reflects live tracker EWMA), re-assigns engines,
@@ -3340,7 +3362,7 @@ files. All fixed to unblock `verify-fast`:
 
 > **All 82 workspace modules pass `go test -tags "goexperiment.jsonv2"`.** Zero
 > failures. Every "Known issue" from sessions 1-2 is resolved.
-> See `docs/status/2026-08-10_19-06_record-consolidation-fallout-fix-session3.md`.
+> See `docs/status/archived/docs/status/2026-08-10_19-06_record-consolidation-fallout-fix-session3.md`.
 
 - **Memory engine graph ADT support restored**: added `GraphAddEdge` and
   `GraphNeighbors` methods to `memoryEngine` (new file `memory_graph.go`).
@@ -3942,7 +3964,7 @@ adoption), built on go-finding + cmdguard. Key capabilities:
   placeholder, and first arg is collection name (was: non-empty SQL only).
   `TestPostgres_DistinctValues` now verifies actual values `"open"` and
   `"closed"` are returned with correct types (was: count==2 only).
-  _(Source: `docs/status/2026-08-08_10-36_metaengine-aggregate-test-coverage-fill.md`)_
+  _(Source: `docs/status/archived/docs/status/2026-08-08_10-36_metaengine-aggregate-test-coverage-fill.md`)_
 
 #### CBOR encoding bugfix — event.New WithEncoding respect + Watermill fixes
 

@@ -111,7 +111,7 @@ nix run .#integration-mysql-vm                       # MySQL tests
 
 ## References
 
-- [Status report: Nix integration test infrastructure](../status/2026-08-03_04-19_nix-integration-test-infrastructure.md)
-- [Execution plan](../planning/2026-08-03_04-24_nix-integration-test-execution-plan.md)
-- [Session 2 status](../status/2026-08-03_08-27_nix-integration-test-session2.md)
+- [Status report: Nix integration test infrastructure](../status/archived/2026-08-03_04-19_nix-integration-test-infrastructure.md)
+- [Execution plan](../planning/archived/2026-08-03_04-24_nix-integration-test-execution-plan.md)
+- [Session 2 status](../status/archived/2026-08-03_08-27_nix-integration-test-session2.md)
 - NixOS test driver: `nix build .#checks.x86_64-linux.postgres-vm.driver`

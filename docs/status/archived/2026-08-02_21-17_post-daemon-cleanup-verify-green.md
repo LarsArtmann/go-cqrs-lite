@@ -265,7 +265,7 @@ daemon-shipped architectural changes, or is that revisionist history?**
 | Honesty           | **9/10**  | This report names every gap.                                          |
 
 **Overall: 6/10.** The verify gate is GREEN and everything is pushed.
-But I lost control of my commits, didn't verify daemon work, and didn't
+But I ~~lost control of my commits~~ **CORRECTION (2026-08-29):** docs synced by 22-25 + the 2026-08-03 docs-health passes., didn't verify daemon work, and didn't
 sync the docs. The next session should verify daemon-shipped items
 against code and update FEATURES/ROADMAP/CHANGELOG.
 

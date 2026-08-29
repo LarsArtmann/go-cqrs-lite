@@ -5,6 +5,13 @@
 Each file captures the project status at a specific timestamp. They are
 preserved for audit trail and progress tracking.
 
+**Fully-resolved reports live in [`archived/`](archived/)** (consolidated
+2026-08-29 from the older `archive/` + `archived/` split). A report is moved
+there once every item it raised is verified resolved, tracked in
+[TODO_LIST.md](../../TODO_LIST.md), or superseded — the 2026-08-29 docs-health
+audit classified and annotated ~450 August reports and archived ~380 of them,
+with 28 stale claims corrected inline.
+
 ## What this means
 
 - **Claims of "broken" or "failing" may be resolved.** The codebase evolves

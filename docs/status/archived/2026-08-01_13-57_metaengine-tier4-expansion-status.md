@@ -12,7 +12,7 @@ This session implemented the bulk of Tier 4 expansion: 3 new ADTs (Vector, Searc
 
 **UPDATE (fix-up session):** All quality gaps identified in this report have been resolved. `nix run .#verify` now passes GREEN — build, vet, test, race, lint (0 issues), doc-check (1169 refs valid), API surface. The Postgres engine has 5 skip-when-unavailable tests. The adttest harness covers all 10 ADTs. VersionedStorage is implemented on the Memory engine with tests. Block suppression stale detection is wired. ADRs are renumbered (0083-0088) and indexed. flake.nix includes the new modules. AGENTS.md module count is correct (63). Migration guide and SKILL.md recipes are written. The plan doc status is accurate.
 
-**`nix run .#verify`: ✅ ALL CHECKS PASSED**
+~~**`nix run .#verify`: ✅ ALL CHECKS PASSED**~~ **CORRECTION (2026-08-29):** gate was never run that session (own §D2); first genuine GREEN was 2026-08-01_03-41.
 
 ---
 

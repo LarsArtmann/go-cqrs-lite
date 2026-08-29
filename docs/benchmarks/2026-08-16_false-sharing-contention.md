@@ -1,7 +1,7 @@
 # False-Sharing Contention Baseline — 2026-08-16
 
 > F47-F49 measure-then-pad campaign from the perf Pareto plan
-> (`docs/planning/2026-08-16_03-18_PERF-PARETO-SAFETY-FIRST-EXECUTION.md`).
+> (`docs/planning/archived/2026-08-16_03-18_PERF-PARETO-SAFETY-FIRST-EXECUTION.md`).
 > Protocol: bench adjacent (production) layout against a padded mirror at
 > `-cpu 16,32`, `count=10`; pad ONLY if the padded variant wins by more than
 > 10%. Decisions recorded either way.

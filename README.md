@@ -5,7 +5,7 @@
 
 **CQRS and Event Sourcing for Go — without the framework tax.**
 
-A composable library of 68 independent modules. Import exactly what you need: nothing is forced on you — no transport, no broker, no database driver. Wire your own stack, or grab a zero-config preset.
+A composable library of 82 independently-versioned modules. Import exactly what you need: nothing is forced on you — no transport, no broker, no database driver. Wire your own stack, or grab a zero-config preset.
 
 > Using this library with an AI assistant? [`SKILL.md`](SKILL.md) is the single-source guide — module decision matrix, copy-paste recipes, and conventions.
 
@@ -99,7 +99,7 @@ bundle, err := sqlite.New("app.db")
 defer bundle.Close()
 ```
 
-Five presets cover every deployment shape:
+Seven presets cover every deployment shape (all deprecated in v5 — `system.System` becomes the one composition root, see the heads-up below):
 
 | Preset           | When to use                                       |
 | ---------------- | ------------------------------------------------- |
@@ -129,7 +129,7 @@ Most Go CQRS libraries are **frameworks** — they own your transport, your brok
 
 - **Event Sourcing is first-class** — immutable events, branded IDs, optimistic concurrency, time-travel queries, and schema evolution via upcasters. Not an afterthought bolted onto a CRUD layer.
 - **Library, not framework** — no transport, broker, or driver is forced on you. Use standard `net/http`, gRPC, Watermill, NATS — your choice. The `stack/` presets wire sensible defaults when you want zero-config.
-- **SQL-backed read models** — `SQLViewStore` gives each projection its own table with real, queryable columns: server-side `WHERE`, `ORDER BY`, pagination, indexes, and `COUNT`. Opaque KV-blob read models cannot do this.
+- **SQL-backed read models** — `SQLViewStore` gives each projection its own table with real, queryable columns: server-side `WHERE`, `ORDER BY`, pagination, indexes, and `COUNT`. Opaque KV-blob read models cannot do this. (Deprecated in v5 — metaengine auto-projection replaces it.)
 - **Multi-module isolation** — each module has its own `go.mod` with minimal deps. Import `event` alone (3 dependencies) or the full `stack/sqlite` preset. Your dependency tree stays clean.
 - **Production primitives, not stubs** — event signing (HMAC-SHA256, Ed25519, multisig), payload encryption (XChaCha20-Poly1305, AES-256-GCM, key rotation), OTel tracing and metrics, and a Prometheus bridge.
 - **Honest error taxonomy** — a 6-family classification (Rejection / Conflict / Transient / Infrastructure / Orchestration / Corruption) with sentinel errors and `%w` wrapping. No panics in production paths.

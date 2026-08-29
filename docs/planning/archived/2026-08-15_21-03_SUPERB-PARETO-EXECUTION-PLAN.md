@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-15 21:03 CEST
 **Author:** docs-health/pareto-planning session (post-annotation-pass)
-**Status:** PLAN — awaiting execution; decision gates G1–G6 need the user
+~~**Status:** PLAN — awaiting execution; decision gates G1–G6 need the user~~ **CORRECTION (2026-08-29):** executed 2026-08-16..18 (tag chain, correctness sweep, v5 pre-cut markers); transport finals + GH Releases remain (BLOCKED).
 **Sources:** `TODO_LIST.md` (45 open items, 2026-08-15 state), `docs/status/2026-08-15_19-50_layout-roles-implementation-session.md` (engine session, 50 follow-ups, in flight), `ROADMAP.md` Open Questions #1–6, `docs/reviews/2026-08-14_14-25_brutal-self-review.md` (resolved verdicts), `gh run list` (CI Benchmarks RED ×3).
 
 ---
