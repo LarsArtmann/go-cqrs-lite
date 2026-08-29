@@ -37,3 +37,10 @@ go test ./... -count=1            # Test health
 go vet ./...                      # Static analysis
 find . -name "*.go" -not -name "*_test.go" -exec wc -l {} + | sort -rn | head  # Largest files
 ```
+
+## Link hygiene
+
+Relative markdown links across living docs are checked by
+[`scripts/check-doc-links.sh`](../../scripts/check-doc-links.sh) (resolves
+symlinked docs like `SKILL.md`, skips fenced code and archived history).
+Run it after any doc move; CI-truth for doc references remains `cmd/doc-check`.

@@ -1,7 +1,7 @@
 # Pending v4 Tag Wave — Module-Order Plan (T03 sign-off input)
 
 > **Date:** 2026-08-27 17:30 CEST · **Task:** T01/F01.4 of the
-> [goal-gap-closure Pareto plan](2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md) ·
+> [goal-gap-closure Pareto plan](archived/2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md) ·
 > **Status: STAGED EXECUTION — B1+B2+B3 CUT 2026-08-29.** Sign-off (2026-08-29):
 > staged, B7 transport finals INCLUDED, dead eventtest tags DELETED.
 > B1: event/v4.9.0, schema/v4.3.1, dedup/v4.2.1, dispatcher/v4.3.1.

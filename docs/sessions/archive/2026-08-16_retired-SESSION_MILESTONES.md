@@ -62,7 +62,7 @@ Interfaces now return branded types instead of primitives:
 
 ## Session History
 
-> Detailed per-session change logs have been extracted to [`docs/sessions/SESSION_HISTORY.md`](docs/sessions/SESSION_HISTORY.md) for brevity. This section previously covered Sessions 20–86.
+> Detailed per-session change logs have been extracted to [`docs/sessions/SESSION_HISTORY.md`](2026-08-16_retired-SESSION_HISTORY.md) for brevity. This section previously covered Sessions 20–86.
 
 Key milestones:
 

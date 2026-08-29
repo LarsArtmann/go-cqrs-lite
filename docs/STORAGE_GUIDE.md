@@ -10,7 +10,7 @@ go-cqrs-lite separates **consumer code** (engine-agnostic) from **deployer choic
 > `stack.WithDurability(tier)` — see [Durability Vocabulary](BACKEND_TRADEOFFS.md#durability-vocabulary).
 
 For the full deployer-first architecture, see
-[`docs/research/2026-06-23_DEPLOYER_FIRST_ARCHITECTURE_AUDIT.md`](research/2026-06-23_DEPLOYER_FIRST_ARCHITECTURE_AUDIT.md).
+[`docs/research/2026-06-23_DEPLOYER_FIRST_ARCHITECTURE_AUDIT.md`](research/archive/2026-06-23_DEPLOYER_FIRST_ARCHITECTURE_AUDIT.md).
 
 ---
 
@@ -213,7 +213,7 @@ _ = storage.SQLiteEnableForeignKeys(ctx, db)  // PRAGMA foreign_keys=ON
 
 ## See also
 
-- [Deployer-first architecture audit](research/2026-06-23_DEPLOYER_FIRST_ARCHITECTURE_AUDIT.md)
+- [Deployer-first architecture audit](research/archive/2026-06-23_DEPLOYER_FIRST_ARCHITECTURE_AUDIT.md)
 - [Storage environment mapping](research/storage-environment-mapping.md)
 - [Storage first-principles analysis](research/storage-first-principles-analysis.md)
 - [Database architecture taxonomy](research/database-architecture-taxonomy.md)

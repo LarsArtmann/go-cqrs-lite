@@ -115,7 +115,7 @@ b, _ := sqlite.New("primary.db",
 )
 ```
 
-See [`docs/MIGRATION_TO_STACK.md`](docs/MIGRATION_TO_STACK.md) for how to
+See [`docs/MIGRATION_TO_STACK.md`](../../../../docs/MIGRATION_TO_STACK.md) for how to
 replace hand-wired infrastructure with presets.
 
 Read-model cache decorator:
@@ -160,7 +160,7 @@ viewStore, _ := storage.NewSQLiteViewStore[TodoView, TodoID](db, mapper)
 CI test harnesses. **When NOT to use:** multi-process or distributed setups that
 need separate connection pools or cross-process pub/sub.
 
-See [`docs/PRESETS.md`](docs/PRESETS.md) and [`docs/INFRASTRUCTURE_RECOMMENDATIONS.md`](docs/INFRASTRUCTURE_RECOMMENDATIONS.md) for full documentation.
+See [`docs/PRESETS.md`](../../../../docs/PRESETS.md) and [`docs/INFRASTRUCTURE_RECOMMENDATIONS.md`](../../../../docs/INFRASTRUCTURE_RECOMMENDATIONS.md) for full documentation.
 
 #### Bundle.Debug() — verify your wiring
 

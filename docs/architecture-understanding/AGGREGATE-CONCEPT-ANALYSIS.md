@@ -482,7 +482,7 @@ Whether that's the right long-term call is a legitimate open question — one th
 - [Aggregateless ES Deep Dive](../research/archive/2026-05-01_AGGREGATELESS_EVENT_SOURCING_DEEP_DIVE.md)
 - [Hybrid Architecture Proposal](../research/archive/2026-05-01_HYBRID_ARCHITECTURE_BEST_OF_BOTH_WORLDS.md)
 - [CQRS Event Sourcing Innovations](../research/archive/2026-05-01_CQRS_EVENT_SOURCING_INNOVATIONS.md)
-- [Aggregate ID Design Review](../planning/archive/2026-05-25_AGGREGATE_ID_DESIGN_REVIEW.md)
+- [Aggregate ID Design Review](../planning/archived/2026-05-25_AGGREGATE_ID_DESIGN_REVIEW.md)
 - [ADR-0058: Rename Aggregate* to Stream*](../adr/0058-rename-aggregate-to-stream.md)
 - `id/stream_type.go` — `StreamType`, `StreamRef`, `StreamKey()` (formerly `AggregateRef`)
 - `id/stream_id.go` — `StreamID`, `StreamMarker`, constructors (formerly `AggregateID`)

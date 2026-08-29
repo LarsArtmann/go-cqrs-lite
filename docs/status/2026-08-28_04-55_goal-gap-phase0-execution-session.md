@@ -2,7 +2,7 @@
 
 > **Reported:** 2026-08-28 04:55 CEST (session ran 2026-08-27 17:29–~18:20)
 > **Session type:** "Execute one step, verify, repeat until done" — execution of the
-> [16:18 goal-gap-closure plan](../planning/2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md),
+> [16:18 goal-gap-closure plan](../planning/archived/2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md),
 > which was **superseded mid-session** by the
 > [17:35 ALL-TODOS v2 plan](../planning/2026-08-27_17-35_ALL-TODOS-PARETO-PLAN.md)
 > (commit `08af6b225`) — I read the supersession only at ~17:57, after T04/T05 edits.

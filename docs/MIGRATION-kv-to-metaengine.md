@@ -152,7 +152,7 @@ store, _ := metaengine.Plan(
 
 ## See Also
 
-- [Metaengine design docs](../planning/meta-engine-design.md)
-- [ADR-0061: SQLite metaengine engine](../adr/0061-metaengine-sqlite-engine.md)
-- [ADR-0085: New ADTs (Vector/Search/Spatial)](../adr/0085-metaengine-new-adts.md)
-- [SKILL.md recipes](../../.agents/skills/go-cqrs-lite/references/recipes.md)
+- [Metaengine design docs](planning/meta-engine-design.md)
+- [ADR-0061: SQLite metaengine engine](adr/0061-metaengine-sqlite-engine.md)
+- [ADR-0085: New ADTs (Vector/Search/Spatial)](adr/0085-metaengine-new-adts.md)
+- [SKILL.md recipes](../.agents/skills/go-cqrs-lite/references/recipes.md)

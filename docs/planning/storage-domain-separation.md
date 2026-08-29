@@ -5,10 +5,10 @@
 > decides where data lives and what engines serve it. The library matches them.
 
 **Status:** Proposed (2026-07-23)
-**Related:** [FOUR-TIER-MODEL.md](architecture-understanding/FOUR-TIER-MODEL.md),
-[STORAGE_GUIDE.md](STORAGE_GUIDE.md), [INFRASTRUCTURE_RECOMMENDATIONS.md](INFRASTRUCTURE_RECOMMENDATIONS.md),
-[projection-tiers.md](projection-tiers.md), [ADR-0033](adr/0033-multi-db-split.md),
-[ADR-0046](adr/0046-seven-tier-model.md)
+**Related:** [FOUR-TIER-MODEL.md](../architecture-understanding/SEVEN-TIER-MODEL.md),
+[STORAGE_GUIDE.md](../STORAGE_GUIDE.md), [INFRASTRUCTURE_RECOMMENDATIONS.md](../INFRASTRUCTURE_RECOMMENDATIONS.md),
+[projection-tiers.md](../projection-tiers.md), [ADR-0033](../adr/0033-multi-db-split.md),
+[ADR-0046](../adr/0046-seven-tier-model.md)
 
 ---
 

@@ -519,9 +519,9 @@ If a second KV backend (BadgerDB, bbolt) is ever added, this research provides t
 
 ### References
 
-- [KV Module Agent Plan (Descoped)](../planning/2026-06-15_07-33_KV_MODULE_AGENT_PLAN.md)
+- [KV Module Agent Plan (Descoped)](../planning/archived/2026-06-15_07-33_KV_MODULE_AGENT_PLAN.md)
 - [ADR-0009: Pebble Module Scope](../adr/0009-pebble-scope-event-store-only.md)
-- [Comprehensive Remaining Work](../planning/2026-06-16_22-30_COMPREHENSIVE_REMAINING_WORK.md)
+- [Comprehensive Remaining Work](../planning/archived/2026-06-16_22-30_COMPREHENSIVE_REMAINING_WORK.md)
 
 ---
 

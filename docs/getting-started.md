@@ -144,11 +144,11 @@ Query   → Dispatcher → Handler            Projection
 | schema         | `.../schema/v4`         | Schema evolution (upcasters, versioned stores)                |
 | signing        | `.../signing/v4`        | Event signing/verification (HMAC, Ed25519)                    |
 
-For the full list of 49 modules, see [AGENTS.md](AGENTS.md).
+For the full list of 49 modules, see [AGENTS.md](../AGENTS.md).
 
 ## Next Steps
 
-- **[SKILL.md](SKILL.md)** — The AI consumer guide: module decision matrix, composition recipes, conventions, anti-patterns. This is the single best starting point.
+- **[SKILL.md](../SKILL.md)** — The AI consumer guide: module decision matrix, composition recipes, conventions, anti-patterns. This is the single best starting point.
 - See `example/getting-started/` for a minimal 80-line example showing the core pipeline
 - See `example/taskmanager/` for a flagship full HTTP service: event sourcing, CQRS, projections, middleware, OTel, signing
 - Browse `docs/adr/` for 54 architectural decisions

@@ -32,7 +32,7 @@
 > L1.42 (C033), L1.18 (config inheritance), L1.21 (SARIF metadata),
 > L1.29 (event-type typo), L1.32 (domain error classification), L1.33
 > (goroutine leak), and L1.35 (PII detection) are also done. **~8 items remain
-> open** — see [TODO_LIST.md](../../../TODO_LIST.md) for the current shortlist.
+> open** — see [TODO_LIST.md](../../TODO_LIST.md) for the current shortlist.
 > Top open: L1.5 (domain severity),
 > L1.47–L1.51 (new categories DOC/OBS/RES/DI).
 

@@ -54,4 +54,4 @@ Batch: Set, Delete, Commit, Close
 
 - [KV Store Abstraction Research](../research/kv-store-abstraction-research.md)
 - [ADR-0009: Pebble Module Scope](0009-pebble-scope-event-store-only.md)
-- [KV Module Agent Plan](../planning/2026-06-15_07-33_KV_MODULE_AGENT_PLAN.md)
+- [KV Module Agent Plan](../planning/archived/2026-06-15_07-33_KV_MODULE_AGENT_PLAN.md)

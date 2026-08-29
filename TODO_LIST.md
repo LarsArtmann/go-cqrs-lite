@@ -44,13 +44,13 @@ and is **never** duplicated here.
 **Storage / SQL**
 - [ ] **SQL-injection hardening tail** — `storage/sql` ORDER BY interpolates `TimestampColumn` (journal_reader.go:77,220) without `ValidateIdentifier`; extend fuzz to multi-condition ops; persist corpus; gosec + nightly fuzz CI.
       _(Effort: S)_ — source: status 2026-08-16_14-54
-- [ ] **`ScanSlice` pre-size** — hardcodes cap 64 (storage/sql/reconstruction.go:48); add `RowCount()` pre-size for large reads.
+- [x] **`ScanSlice` pre-size** — DONE 2026-08-29 (plan V3 T06): optional capacity hint on `ScanSlice`; `JournalReader` threads its bounded limit (capped 4096) into the drain-path scans; benchmark added.
       _(Effort: XS)_ — sources: status 2026-08-16_03-10/07-12
-- [ ] **system Command/QueryAdapter `metaJSON, _ :=`** — silent marshal-error discards (system/adapter_command_serial.go:26, adapter_query_serial.go:24).
+- [x] **system Command/QueryAdapter `metaJSON, _ :=`** — DONE 2026-08-29 (plan V3 T05): defensive nil-on-failure + deterministic marshal mirroring the event adapter; note: today's string-typed metadata makes the error path unreachable, so the honest fix is hardening + the first metadata roundtrip tests.
       _(Effort: XS)_ — source: status 2026-08-16_17-38
 - [ ] **storage/relational one-tx-per-event** projection writes.
       _(Effort: M)_ — source: status 2026-08-16_03-10
-- [ ] **backuptest tag + replace drop** — bbolt/pebble go.mod require `storage/backuptest/v4 v4.0.0` + sibling replace; tag a patch, drop the replaces.
+- [x] **backuptest tag + replace drop** — DONE 2026-08-29: `storage/backuptest/v4.1.0` cut with wave B3 (fetchable tag); bbolt/pebble pins bumped + sibling replaces dropped (plan V3 T07).
       _(Effort: XS)_ — source: status 2026-08-16_19-52
 - [ ] **Test-suite consolidation tail** — storage/sql command/query stores onto `commandtest`/`querytest.RunStoreSuite`; `querytest` self-test; LoadToTimestamp subtest in the shared suite.
       _(Effort: S)_ — source: status 2026-08-08_01-39
@@ -88,8 +88,12 @@ and is **never** duplicated here.
 ## Release / Tagging 🔥
 
 > Blocked on user authorization (never tag/push without explicit instruction).
-> **2026-08-29: tag-wave batch B1 was CUT** (event/v4.9.0, schema/v4.3.1,
-> dedup/v4.2.1, dispatcher/v4.3.1 — CHANGELOG); B2-B7 still need your sign-off
+> **2026-08-29 13:18: full `nix run .#verify` GREEN (plan V3 T02)** — build +
+> vet + test + race + lint 76/76 + check-arch + depguard + doc-check (1154
+> refs) at commit `50a9a212d`; this replaces the 2026-08-16 release-checkpoint
+> claim. **B1+B2+B3 CUT 2026-08-29** (18 tags incl. snapshot/v4.4.0,
+> listing/v4.3.0, storage chain, backuptest/v4.1.0 — see CHANGELOG); B4–B7
+> still need your sign-off
 > ([plan](docs/planning/2026-08-27_17-30_PENDING-TAG-WAVE-PLAN.md)). The
 > 2026-08-16 chain (id v4.5.0, record v4.3.0, metadata v4.5.0, schema v4.3.0,
 > event v4.7.0, query v4.6.0→retracted→v4.6.1, command v4.7.0→retracted→v4.7.1,

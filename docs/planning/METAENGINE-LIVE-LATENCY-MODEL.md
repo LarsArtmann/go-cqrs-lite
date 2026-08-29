@@ -536,7 +536,7 @@ Findings:
 
 - [ADR-0093 — Metaengine Replication Model](../adr/0093-metaengine-replication-model.md) — defines
   NetworkRTT, explicitly defers auto-calibration
-- [Read Costs per Operation Variance](../planning/2026-08-04_07-00_READ-COSTS-PER-OPERATION-VARIANCE.md) —
+- [Read Costs per Operation Variance](archived/2026-08-04_07-00_READ-COSTS-PER-OPERATION-VARIANCE.md) —
   fixes ReadCosts, marks them "compile-time, do not evolve at runtime… acceptable for now"
 - [irohengine/latency.go](../../metaengine/irohengine/latency.go) — live `LatencyCollector`
   (window + stats), the seed of this design

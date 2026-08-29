@@ -3,7 +3,7 @@
 > **Session:** "Execute the goal-gap-closure Pareto plan" (user approval turn:
 > "Break down into actionable steps... repeat until done").
 > **Plan of record at session start:**
-> [`2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md`](../planning/2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md).
+> [`2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md`](../planning/archived/2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md).
 > **Mid-session supersession:** the 17:35 ALL-TODOS v2 plan
 > ([`2026-08-27_17-35_ALL-TODOS-PARETO-PLAN.md`](../planning/2026-08-27_17-35_ALL-TODOS-PARETO-PLAN.md),
 > commit `08af6b225`) folded in the two review follow-up waves. Execution

@@ -4,7 +4,7 @@
 > **Status:** Design exploration — NOT STARTED (implementation deferred)
 > **Related:**
 >
-> - Replication model: [`2026-08-03_00-51_SUPERB-METAENGINE-REPLICATION-MODEL-CORRECTION.md`](2026-08-03_00-51_SUPERB-METAENGINE-REPLICATION-MODEL-CORRECTION.md)
+> - Replication model: [`2026-08-03_00-51_SUPERB-METAENGINE-REPLICATION-MODEL-CORRECTION.md`](archived/2026-08-03_00-51_SUPERB-METAENGINE-REPLICATION-MODEL-CORRECTION.md)
 > - Canonical design: [`meta-engine-design.md`](meta-engine-design.md)
 > - Eventual consistency + Iroh: [`meta-engine-eventual-consistency-and-iroh.md`](meta-engine-eventual-consistency-and-iroh.md)
 

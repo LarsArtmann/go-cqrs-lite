@@ -1218,7 +1218,7 @@ DESCRIBE SELECT * FROM read_parquet('journal/segments/seg_000001.parquet');
 
 ## 9. Cross-Project Validation (monitor365)
 
-> **Source:** [`monitor365/docs/research/agent-architecture-redesign.md`](../../../monitor365/docs/research/agent-architecture-redesign.md) — a Rust-based monitoring system with an event-sourced server architecture. Independently reached the same storage conclusions as this document.
+> **Source:** `monitor365/docs/research/agent-architecture-redesign.md` (external repository, not in this checkout) — a Rust-based monitoring system with an event-sourced server architecture. Independently reached the same storage conclusions as this document.
 
 ### 9.1 Validations (existing decisions confirmed right)
 

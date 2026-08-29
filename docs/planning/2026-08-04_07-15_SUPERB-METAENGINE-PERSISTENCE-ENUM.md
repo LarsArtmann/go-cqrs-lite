@@ -5,7 +5,7 @@
 > Implemented: 2026-08-04 07:42
 > Gaps closed: 2026-08-04 10:15 (durabilityRule cost delta, engine tests, README/AGENTS/SKILL docs, lint+verify GREEN)
 >
-> **Status report:** [`docs/status/2026-08-04_07-45_METAENGINE-PERSISTENCE-ENUM-IMPLEMENTED.md`](../status/2026-08-04_07-45_METAENGINE-PERSISTENCE-ENUM-IMPLEMENTED.md)
+> **Status report:** [`docs/status/2026-08-04_07-45_METAENGINE-PERSISTENCE-ENUM-IMPLEMENTED.md`](../status/archived/2026-08-04_07-45_METAENGINE-PERSISTENCE-ENUM-IMPLEMENTED.md)
 
 ---
 
