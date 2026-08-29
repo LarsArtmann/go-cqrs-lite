@@ -90,8 +90,8 @@ type messageFM struct {
 	Channels   []string          `yaml:"channels,omitempty,flow"`
 	Schemas    []schemaPointerFM `yaml:"schemas,omitempty"`
 	Changelog  []changeFM        `yaml:"changelog,omitempty"`
-	Producers  []pointer         `yaml:"producers,omitempty"`
-	Consumers  []pointer         `yaml:"consumers,omitempty"`
+	Producers  []string          `yaml:"producers,omitempty"`
+	Consumers  []string          `yaml:"consumers,omitempty"`
 	Operation  *operationFM      `yaml:"operation,omitempty"`
 	Responses  []responseFM      `yaml:"responses,omitempty"`
 	Badges     []badgeFM         `yaml:"badges,omitempty"`

@@ -12,6 +12,7 @@ import (
 func (e *Exporter) writeMessage(
 	kind string,
 	msg catalog.Message,
+	serviceVersions map[catalog.ServiceID]catalog.Version,
 ) error {
 	messageID := catalog.Key(msg)
 	dir := filepath.Join(e.outputDir, kind, string(messageID))
@@ -32,8 +33,8 @@ func (e *Exporter) writeMessage(
 		Channels:   stringIDsToStrings(msg.Channels),
 		Schemas:    toSchemas(msg.Schemas),
 		Changelog:  toChangelog(msg.Changelog),
-		Producers:  toPointers(msg.Producers),
-		Consumers:  toPointers(msg.Consumers),
+		Producers:  toServiceRefs(msg.Producers, serviceVersions),
+		Consumers:  toServiceRefs(msg.Consumers, serviceVersions),
 		Operation:  toOperation(msg.Operation),
 		Responses:  toResponses(msg.Responses),
 		Badges:     toBadges(msg.Badges),

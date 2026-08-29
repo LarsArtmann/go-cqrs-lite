@@ -218,6 +218,7 @@ func (e *Exporter) writeAllMessages(cat *catalog.Catalog) error {
 	}
 
 	written := make(map[string]struct{})
+	serviceVersions := serviceVersionsOf(cat)
 
 	for _, group := range []kindMessages{
 		{kind: "commands", messages: commandsOf(cat)},
@@ -231,7 +232,7 @@ func (e *Exporter) writeAllMessages(cat *catalog.Catalog) error {
 			}
 			written[key] = struct{}{}
 
-			err := e.writeMessage(group.kind, msg)
+			err := e.writeMessage(group.kind, msg, serviceVersions)
 			if err != nil {
 				return errorfamily.Newf(
 					errorfamily.Infrastructure,
@@ -273,6 +274,17 @@ func queriesOf(cat *catalog.Catalog) []catalog.Message {
 	}
 
 	return out
+}
+
+// serviceVersionsOf maps each service ID to its declared version so message
+// frontmatter can emit EventCatalog reference strings ("<id>-<version>").
+func serviceVersionsOf(cat *catalog.Catalog) map[catalog.ServiceID]catalog.Version {
+	versions := make(map[catalog.ServiceID]catalog.Version, len(cat.Services))
+	for _, svc := range cat.Services {
+		versions[svc.ID] = svc.Version
+	}
+
+	return versions
 }
 
 func (e *Exporter) writeService(svc catalog.Service) error {

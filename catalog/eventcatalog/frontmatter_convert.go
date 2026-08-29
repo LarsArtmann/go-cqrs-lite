@@ -21,6 +21,35 @@ func toPointers[S ~string](ids []S) []pointer {
 	return out
 }
 
+// toServiceRefs renders service references for message frontmatter.
+// EventCatalog's message schema declares producers/consumers as plain string
+// references into the services collection, whose generated entry IDs are
+// "<serviceID>-<serviceVersion>" — a bare service ID would not resolve, and
+// the previous {id: ...} object form failed schema validation outright.
+// Unknown services fall back to the bare ID (the reference stays resolvable
+// once a service with that ID exists).
+func toServiceRefs(
+	ids []catalog.ServiceID,
+	versions map[catalog.ServiceID]catalog.Version,
+) []string {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	out := make([]string, len(ids))
+	for i, id := range ids {
+		if v, ok := versions[id]; ok && v != "" {
+			out[i] = string(id) + "-" + string(v)
+
+			continue
+		}
+
+		out[i] = string(id)
+	}
+
+	return out
+}
+
 func toRefs(refs []catalog.Ref) []pointer {
 	if len(refs) == 0 {
 		return nil

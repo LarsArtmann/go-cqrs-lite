@@ -77,8 +77,8 @@ and is **never** duplicated here.
       _(Effort: S)_ — source: status 2026-08-17_15-17
 - [ ] **Release docs** — CONTRIBUTING Release Process lacks the pin-bump-before-tag recipe + GOPRIVATE verification commands; durability-tier-mapping ADR never written; Introspection/Doctor don't surface effective durability tiers.
       _(Effort: S)_ — source: status 2026-08-18_20-39
-- [ ] **catalog/docserver follow-ups** — GET test for /docs/static/docs-ui.css; go-snaps dep-budget decision; cId-value-change CHANGELOG note; README deps table; templ codegen-drift gate decision; CSP nonce for SPA scripts; EventCatalog CLI real-render validation.
-      _(Effort: S)_ — source: status 2026-08-16_20-38 — **IN PROGRESS 2026-08-29 ~15:35 (second execution session, plan V3 T36; parallel triage-plan T34 = same work, do not duplicate)**
+- [x] **catalog/docserver follow-ups** — DONE 2026-08-29 (plan V3 T36): docs-ui.css GET test added; go-snaps decision = stays counted in catalog's production dep budget (documented in check-module-layers.sh); cId-value-change CHANGELOG note written; README deps table added; templ drift gate shipped as `nix run .#check-templ`; CSP nonce support landed (Config.EnableCSP, per-request nonces on every script); EventCatalog CLI real-render validation executed against @eventcatalog/core ^4.6.3 — it caught a real exporter bug (producers/consumers now emit versioned reference strings).
+      _(Effort: S)_ — source: status 2026-08-16_20-38
 - [ ] **benchmark-regression gate hardening** — fixture test pinning `--save`+compare; re-tune 25% threshold after first live CI run; baseline-regen runbook in BENCHMARKS.md; actionlint in devShell; `verify --module` scoped mode.
       _(Effort: S)_ — source: status 2026-08-16_18-06 — **IN PROGRESS 2026-08-29 ~15:35 (second execution session, plan V3 T37; parallel triage-plan T33 = same work, do not duplicate)**
 - [ ] **Consumer asks (feedback)** — first-class snapshot encryption (encrypted snapshot store + rotation; only codec-composition workaround today, encryption/codec.go:30); `retry.DoWithValue[T]` in external go-retry; OTel exporter-lifecycle/shutdown-flush doc example.

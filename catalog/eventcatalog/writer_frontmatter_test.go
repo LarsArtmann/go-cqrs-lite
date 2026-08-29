@@ -43,8 +43,8 @@ func TestRenderMDX_MessageFullFields(t *testing.T) {
 		Owners:     msg.Owners,
 		Labels:     msg.Labels,
 		Changelog:  toChangelog(msg.Changelog),
-		Producers:  toPointers(msg.Producers),
-		Consumers:  toPointers(msg.Consumers),
+		Producers:  toServiceRefs(msg.Producers, nil),
+		Consumers:  toServiceRefs(msg.Consumers, nil),
 		Operation:  toOperation(msg.Operation),
 		Badges:     toBadges(msg.Badges),
 		Repository: toRepository(msg.Repository),
@@ -63,10 +63,10 @@ func TestRenderMDX_MessageFullFields(t *testing.T) {
 	frontmatterAssertContains(t, out, "version: 1.0.0")
 	frontmatterAssertContains(t, out, "summary: Creates a new order")
 	frontmatterAssertContains(t, out, "producers:")
-	frontmatterAssertContains(t, out, "id: order-svc")
+	frontmatterAssertContains(t, out, "- order-svc")
 	frontmatterAssertContains(t, out, "consumers:")
-	frontmatterAssertContains(t, out, "id: payment-svc")
-	frontmatterAssertContains(t, out, "id: inventory-svc")
+	frontmatterAssertContains(t, out, "- payment-svc")
+	frontmatterAssertContains(t, out, "- inventory-svc")
 	frontmatterAssertContains(t, out, "operation:")
 	frontmatterAssertContains(t, out, "method: POST")
 	frontmatterAssertContains(t, out, "path: /orders")

@@ -10,6 +10,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > inside a dated `[tags]` section is unreleased (the 2026-08-16-era block was
 > folded into this window on 2026-08-29).
 
+### Fixed — EventCatalog exporter emits valid producer/consumer references — 2026-08-29
+
+- **`catalog/eventcatalog`** wrote message `producers`/`consumers` as
+  `{id: ...}` objects, which the pinned **`@eventcatalog/core` ^4.6.3**
+  rejects outright (`InvalidContentEntryDataError`: the field is a plain
+  string reference into the services collection). Worse, a bare service ID
+  also fails to resolve: EventCatalog generates service entry IDs as
+  `<serviceID>-<serviceVersion>`. The exporter now emits
+  `<serviceID>-<serviceVersion>` reference strings (falling back to the
+  bare ID for unknown services). Verified end-to-end: an exported catalog
+  now builds cleanly with the real EventCatalog CLI (`npx eventcatalog
+  build`, zero schema or reference warnings) — previously it did not build
+  at all. The existing structure-level integration test could not catch
+  this; the real-render validation step that did is part of the docserver
+  follow-ups below.
+
 ### Added — docserver CSP support, templ drift gate, EventCatalog cId semantics — 2026-08-29
 
 - **`catalog/docserver`** can now serve its pages under a strict

@@ -434,7 +434,9 @@ func TestExporter_Export_MessageWithProducersConsumers(t *testing.T) {
 
 	content := string(data)
 	assertContains(t, content, "producers:")
-	assertContains(t, content, "id: order-svc")
+	// Producers reference the services collection entry ID "<id>-<version>"
+	// — a bare service ID does not resolve in EventCatalog 4.x.
+	assertContains(t, content, "- order-svc-1.0.0")
 }
 
 func TestExporter_Export_FullIntegration(t *testing.T) {
