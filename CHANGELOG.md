@@ -28,59 +28,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   Empty Before/After names now return **`ErrShutdownDependencyInvalid`**
   (was ErrUnknownEngine).
 
-### Changed — storage stream reader surfaces type-driven status (with listing/v4.3.0) — 2026-08-27
+### Fixed — kv/commandlifecycle/projectionhost hardening — 2026-08-27
 
-- **`storage`**: `SQLStreamReader` now surfaces `listing.Status` from the
-  existing `tombstone_status` column (same wire ints).
-
-### Fixed — Postgres integration tests share one database under explicit DSN — 2026-08-27
-
-- **`storage`**'s integration TestMain (and `storage/relational`'s
-  `openPostgresDB`) returned the shared `POSTGRES_TEST_DSN` database
-  directly when an explicit DSN was set, so every test — and every package
-  sharing the CI service container — wrote into ONE database
-  (cross-test/cross-package ghost rows, the `#integration-pg` contamination
-  class). Both now route through **`testutil/pgtestcontainer`**, which
-  provisions a per-test database even under an external DSN; storage's
-  local duplicate of the helper is deleted.
-
-### Fixed — deep-review gap wave: error-family truth at store boundaries — 2026-08-27
-
-- The memory, pebble, and SQL eventstore Save boundaries preserve the
-  optimistic-concurrency Conflict family; the pebble/bbolt scan helpers
-  and the SQL checkpoint load preserve Corruption (undecodable rows,
-  unparseable checkpoints) instead of flattening both to Infrastructure.
-- **`query.NewPaginatedResult`** returns zero TotalPages for a zero-value
-  **`query.Pagination`** instead of panicking on integer division by
-  zero; the query audit middleware persists its record with a detached
-  context so a client disconnect between handler completion and save can
-  no longer silently drop exactly the auditable queries.
-- storage/bbolt: KVAdapter Get returns **`kv.ErrNotFound`** unwrapped
-  (previously Infrastructure-wrapped, so every miss landed in infra
-  metrics); Save/AppendBatch return the module-standard bucket-missing
-  Infrastructure error instead of panicking on an uninitialized database;
-  DiskUsage is family-classified. storage/pebble: a failed batch Commit
-  no longer leaks the pebble batch. storage/sql: IsDuplicateKeyError
-  recognizes DuckDB 1.x PRIMARY KEY violations — duplicate command/query
-  inserts on DuckDB now surface as Conflict and trigger the Inserter
-  duplicate hook (command idempotency was silently broken on that
-  backend).
-- The middleware flight-recorder snapshot runs on a detached context
-  (context.WithoutCancel), mirroring the decider-side fix: the request
-  context is typically cancelled exactly when error captures matter.
-
-### Fixed — decider/kv/commandlifecycle/projectionhost hardening — 2026-08-27
-
-- **`decider.WithWaitTimeout`** and **`decider.WithPollInterval`** now clamp
-  non-positive values to their defaults instead of reaching
-  `time.NewTicker`, which panics on non-positive intervals
-  (full-code-review).
-- The decider flight-recorder snapshot now runs on a detached context
-  (**`context.WithoutCancel`**): a cancelled request context no longer
-  discards the very error snapshot the recorder was configured to capture.
-- **`decider.NewTypedRepository`** rejects a nil typed Decide function up
-  front with the new **`decider.ErrNilDecide`** sentinel (family Rejection)
-  instead of panicking on the first dispatch.
 - **`kv.Cache.Set`** invalidates the cached entry when the post-write
   copy-for-isolation fails: the store write succeeded, so the next Get must
   reflect the store instead of a stale pre-Set value.
@@ -92,7 +41,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   retries) the `1<<n` shift wrapped to zero, collapsing the restart backoff
   to a zero-delay hot crash loop under unlimited-restart configs.
 
-### Added — shutdown-dependency validation + bbolt/turso hardening — 2026-08-27
+### Added — system shutdown-dependency validation — 2026-08-27
 
 - **`system.New`** now validates **`system.ShutdownDependency`** edges at
   construction: empty names, unknown engine names, and self-references are
@@ -100,41 +49,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   self-references, **`system.ErrUnknownEngine`** wraps empty/unknown names)
   instead of being silently dropped by the shutdown topological sort at
   Close() time (extended review E10).
-- bbolt persisted-command and persisted-query (de)serialization failures are
-  now classified Corruption via the error-family wrapper with
-  `bbolt.serialize_command` / `bbolt.reconstruct_command` /
-  `bbolt.serialize_query` / `bbolt.reconstruct_query` contexts, replacing
-  plain wrapped errors (extended review E3).
-- The Turso indexing-policy mutators (Exclude, MarkCritical,
-  MarkSkipAutoCreate) no longer panic on zero-value or nil policies: the
-  exclusion/criticality maps initialize lazily on first mutation and nil
-  receivers are a no-op (extended review E9).
-
-### Added — snapshots are constructing-validated and self-describing (P10) — 2026-08-22
-
-- Added **`snapshot.NewSnapshot`** (ref, version, state, encoding): the
-  validating constructor for **`snapshot.Snapshot`**. It rejects a zero
-  stream ref, `version < 1`, and empty state (family Rejection, codes
-  `snapshot.invalid_ref` / `snapshot.zero_version` /
-  `snapshot.nil_state`), stamps `CreatedAt` in UTC, and defensively clones
-  the state bytes.
-- Added **`snapshot.Snapshot.Validate`** (same invariants, for values built
-  by other means), **`snapshot.Snapshot.Ref`** (pair-form identity), and
-  the **`snapshot.ErrInvalidSnapshot`** sentinel.
-- **`snapshot.Snapshot`** gained an **`Encoding`** field typed
-  **`record.Encoding`** (envelope pattern, ADR-0044 style): snapshots saved
-  through **`snapshot.TypedStore`** or the decider repository now carry the
-  codec stamp, making the struct self-describing. Legacy snapshots read as
-  the unknown constant; decode stays envelope-authoritative, so no stored
-  wire format changed.
-- **`snapshot.SaveSnapshot`** is Deprecated (removed in v5): it cannot know
-  the codec, so it stamps the unknown constant. The decider repository now
-  saves via the constructor with its real codec stamp.
-- The Pebble and bbolt snapshot stores persist the new stamp: their
-  CBOR wire structs gained an additive `encoding` field (old rows decode
-  as the unknown constant; roundtrip tests pin it). The SQL snapshot
-  schema has no encoding column — the ADR-0044 envelope inside State
-  remains authoritative there (see TODO_LIST §v5 Unification audit).
 
 ### Deprecated — v1 read-model tiers + stack presets marked ahead of the v5 cut — 2026-08-17
 
@@ -177,39 +91,8 @@ every other deprecation in the repo stays loud. The already-deprecated
 ADR-0126 shells, `storage/sql.BuildWhereClause`, and the ADR-0127 transport
 modules predate this wave and are unchanged.
 
-### Changed — Durability tiers now de-escalate per-write sync on Pebble — 2026-08-17
+### Added — engine async-write options — 2026-08-17
 
-- **`stack/pebble` Normal tier maps to async WAL writes** (behavior change,
-  minor version): the preset now translates `stack.DurabilityNormal` (its
-  default) to async writes — WAL entries land in the page cache without a
-  per-write fsync (safe against app crash; a kernel/power crash may lose the
-  most recent writes) — instead of fsync-per-write. Every other backend
-  already de-escalated at Normal (SQLite `synchronous=NORMAL`, Postgres
-  `synchronous_commit=off`); Pebble was the outlier, and `stack/durability.go`
-  had documented this exact behavior all along while `stack/pebble/preset.go`
-  claimed "Normal → same as Strict" — the doc split brain is fixed, both now
-  tell the truth. Strict is unchanged (fsync per write) and remains what
-  write-critical consumers should opt into explicitly.
-- **`stack/pebble` Relaxed tier no longer forces a memtable flush per write** —
-  latent bug fixed as a side effect: Relaxed set `DisableWAL=true` but stores
-  still wrote with synchronous writes, which with the WAL disabled degrades to
-  a memtable flush per write — the slowest path Pebble has, in the tier that
-  exists for speed. Relaxed now also writes async (memtable only, data loss
-  on crash — as documented).
-- **bbolt is the documented exception**: it has no WAL, so its only async knob
-  (`NoSync`) skips the commit fsync entirely — a weaker guarantee than every
-  other backend's Normal and one bbolt upstream calls dangerous. bbolt
-  Normal therefore ≡ Strict (sync-on-commit), the exception is recorded in
-  `stack/durability.go`'s tier table, and the bbolt preset keeps defaulting
-  to Strict so the default tier name matches the actual guarantee.
-
-### Added — Backend + engine async-write options — 2026-08-17
-
-- **`pebble.WithBackendAsyncWrites`** (`storage/pebble`, with the new
-  `pebble.BackendOption` type) — constructs every Backend store (events,
-  commands, queries, snapshots, checkpoints, and the shared read-model KV
-  store) with async writes in one call; the per-store
-  `pebble.WithAsyncWrites` family unchanged. Default Backend behavior is
   unchanged (sync writes; the shared read-model KV store keeps its historical
   synchronous mode). What the `stack/pebble` tier mapping drives internally.
 - **`pebbleengine.WithAsyncWrites`** (`metaengine/pebbleengine`, with the new
@@ -223,43 +106,6 @@ modules predate this wave and are unchanged.
   writes" because bbolt has no WAL: skipping the commit fsync is NOT
   app-crash-safe the way Pebble's async WAL is, and the name must not imply
   that equivalence. Default unchanged.
-- **`BenchmarkEventAppendSync`/`BenchmarkEventAppendAsync`**
-  (`storage/pebble/durability_bench_test.go`) — disk-backed append-throughput
-  comparison for the two tiers (writes under
-  `$HOME/.cache/pebble-durability-bench`, override
-  `PEBBLE_DURABILITY_BENCH_DIR`; skips when unavailable — tmpfs would erase
-  the fsync cost being measured). First measurement attempt (2026-08-17) was
-  inconclusive: ambient load 3–4 on a 96%-full btrfs had raw async `Set` at
-  ~2.5 ms/op (device queue saturated) — recorded as PENDING a quiet window
-  in `docs/BENCHMARKS.md`.
-
-### Added — WithActor hardening: scheduling actor propagation + coverage gates — 2026-08-17
-
-- **`scheduling.Timer.Actor`** — timer-initiated commands can now carry the
-  audit-trail actor through the timer lifecycle: `Timer[P]` gains an `Actor`
-  field holding the self-describing "kind:raw" ActorID wire format (e.g.
-  `"user:01JXYZ..."`, `"system:scheduler"`), delivered to the `DispatchFunc`
-  so dispatchers stamp `command.WithActor(id.ParseActorID(t.Actor))`. Plain
-  string (not `id.ActorID`) by design: scheduling is a
-  zero-production-dependency module, mirroring `record.CommonMetadata.ActorID`.
-  The SQL timer store now writes a versioned payload envelope
-  (`{"v":1,"actor":"...","payload":<P>}`, ADR-0044 pattern) so the actor
-  survives SQL persistence; legacy bare-payload rows (including non-object
-  payloads) still decode with an empty actor. Zero value = unspecified
-  (dispatcher decides attribution).
-- **WithActor coverage gates** — `TestMetadata_CBORRoundtrip_PreservesActor`
-  (event) locks ActorID through the CBOR binary codec; golden JSON snapshots
-  for full event metadata (`event/testdata/golden/event-metadata-actor.json`)
-  and full command metadata (`command/testdata/golden/command-metadata-actor.snap`)
-  pin the persisted JSON shapes incl. `actorId`; each golden doubles as a
-  round-trip test through the store load path
-  (`event.UnmarshalMetadataJSON` / `command.Metadata` scan).
-- **Verified already-shipped coverage** — watermill wire-format round-trips,
-  SQL `MarshalMetadata` scan, pebble/bbolt store metadata round-trip, the
-  e2e decider+projection propagation test, `TestQuery_AllMetadata`, json/v1
-  `omitzero` fallback, scenario DSL actor support, deriver/commandlifecycle
-  propagation, `middleware.CommandActorContext`, and `id.ActorID.Validate`
-  all re-run green after this wave.
 
 ### Fixed — stale id/v4.4.0 pins silently dropped ActorID in CBOR — 2026-08-17
 
@@ -956,6 +802,149 @@ forbidden — see CONTRIBUTING.md → Release Process.
   `//art-dupl:accept` (dep-isolated engines implementing the same contract)
   rather than re-pinning the art-dupl baseline.
 
+## [snapshot/v4.4.0, decider/v4.5.0, storage/v4.8.1, storage/memory/v4.4.0, storage/pebble/v4.3.0, storage/bbolt/v4.1.0, storage/turso/v4.3.0, storage/backuptest/v4.1.0] — 2026-08-29
+
+### Added — snapshots are constructing-validated and self-describing (P10) — 2026-08-22
+
+- Added **`snapshot.NewSnapshot`** (ref, version, state, encoding): the
+  validating constructor for **`snapshot.Snapshot`**. It rejects a zero
+  stream ref, `version < 1`, and empty state (family Rejection, codes
+  `snapshot.invalid_ref` / `snapshot.zero_version` /
+  `snapshot.nil_state`), stamps `CreatedAt` in UTC, and defensively clones
+  the state bytes.
+- Added **`snapshot.Snapshot.Validate`** (same invariants, for values built
+  by other means), **`snapshot.Snapshot.Ref`** (pair-form identity), and
+  the **`snapshot.ErrInvalidSnapshot`** sentinel.
+- **`snapshot.Snapshot`** gained an **`Encoding`** field typed
+  **`record.Encoding`** (envelope pattern, ADR-0044 style): snapshots saved
+  through **`snapshot.TypedStore`** or the decider repository now carry the
+  codec stamp, making the struct self-describing. Legacy snapshots read as
+  the unknown constant; decode stays envelope-authoritative, so no stored
+  wire format changed.
+- **`snapshot.SaveSnapshot`** is Deprecated (removed in v5): it cannot know
+  the codec, so it stamps the unknown constant. The decider repository now
+  saves via the constructor with its real codec stamp.
+- The Pebble and bbolt snapshot stores persist the new stamp: their
+  CBOR wire structs gained an additive `encoding` field (old rows decode
+  as the unknown constant; roundtrip tests pin it). The SQL snapshot
+  schema has no encoding column — the ADR-0044 envelope inside State
+  remains authoritative there (see TODO_LIST §v5 Unification audit).
+
+### Changed — Durability tiers now de-escalate per-write sync on Pebble — 2026-08-17
+
+- **`stack/pebble` Normal tier maps to async WAL writes** (behavior change,
+  minor version): the preset now translates `stack.DurabilityNormal` (its
+  default) to async writes — WAL entries land in the page cache without a
+  per-write fsync (safe against app crash; a kernel/power crash may lose the
+  most recent writes) — instead of fsync-per-write. Every other backend
+  already de-escalated at Normal (SQLite `synchronous=NORMAL`, Postgres
+  `synchronous_commit=off`); Pebble was the outlier, and `stack/durability.go`
+  had documented this exact behavior all along while `stack/pebble/preset.go`
+  claimed "Normal → same as Strict" — the doc split brain is fixed, both now
+  tell the truth. Strict is unchanged (fsync per write) and remains what
+  write-critical consumers should opt into explicitly.
+- **`stack/pebble` Relaxed tier no longer forces a memtable flush per write** —
+  latent bug fixed as a side effect: Relaxed set `DisableWAL=true` but stores
+  still wrote with synchronous writes, which with the WAL disabled degrades to
+  a memtable flush per write — the slowest path Pebble has, in the tier that
+  exists for speed. Relaxed now also writes async (memtable only, data loss
+  on crash — as documented).
+- **bbolt is the documented exception**: it has no WAL, so its only async knob
+  (`NoSync`) skips the commit fsync entirely — a weaker guarantee than every
+  other backend's Normal and one bbolt upstream calls dangerous. bbolt
+  Normal therefore ≡ Strict (sync-on-commit), the exception is recorded in
+  `stack/durability.go`'s tier table, and the bbolt preset keeps defaulting
+  to Strict so the default tier name matches the actual guarantee.
+
+### Added — storage/pebble Backend async writes — 2026-08-17
+
+### Added — Backend + engine async-write options — 2026-08-17
+
+- **`pebble.WithBackendAsyncWrites`** (`storage/pebble`, with the new
+  `pebble.BackendOption` type) — constructs every Backend store (events,
+  commands, queries, snapshots, checkpoints, and the shared read-model KV
+  store) with async writes in one call; the per-store
+  `pebble.WithAsyncWrites` family unchanged. Default Backend behavior is
+
+- **`BenchmarkEventAppendSync`/`BenchmarkEventAppendAsync`**
+  (`storage/pebble/durability_bench_test.go`) — disk-backed append-throughput
+  comparison for the two tiers (writes under
+  `$HOME/.cache/pebble-durability-bench`, override
+  `PEBBLE_DURABILITY_BENCH_DIR`; skips when unavailable — tmpfs would erase
+  the fsync cost being measured). First measurement attempt (2026-08-17) was
+  inconclusive: ambient load 3–4 on a 96%-full btrfs had raw async `Set` at
+
+### Fixed
+
+- **`decider.WithWaitTimeout`** and **`decider.WithPollInterval`** now clamp
+  non-positive values to their defaults instead of reaching
+  `time.NewTicker`, which panics on non-positive intervals
+  (full-code-review).
+- The decider flight-recorder snapshot now runs on a detached context
+  (**`context.WithoutCancel`**): a cancelled request context no longer
+  discards the very error snapshot the recorder was configured to capture.
+- **`decider.NewTypedRepository`** rejects a nil typed Decide function up
+  front with the new **`decider.ErrNilDecide`** sentinel (family Rejection)
+  instead of panicking on the first dispatch.
+- bbolt persisted-command and persisted-query (de)serialization failures are
+  now classified Corruption via the error-family wrapper with
+  `bbolt.serialize_command` / `bbolt.reconstruct_command` /
+  `bbolt.serialize_query` / `bbolt.reconstruct_query` contexts, replacing
+  plain wrapped errors (extended review E3).
+- The Turso indexing-policy mutators (Exclude, MarkCritical,
+  MarkSkipAutoCreate) no longer panic on zero-value or nil policies: the
+  exclusion/criticality maps initialize lazily on first mutation and nil
+  receivers are a no-op (extended review E9).
+
+### Changed — storage stream reader surfaces type-driven status (with listing/v4.3.0) — 2026-08-27
+
+- **`storage`**: `SQLStreamReader` now surfaces `listing.Status` from the
+  existing `tombstone_status` column (same wire ints).
+
+### Fixed — Postgres integration tests share one database under explicit DSN — 2026-08-27
+
+- **`storage`**'s integration TestMain (and `storage/relational`'s
+  `openPostgresDB`) returned the shared `POSTGRES_TEST_DSN` database
+  directly when an explicit DSN was set, so every test — and every package
+  sharing the CI service container — wrote into ONE database
+  (cross-test/cross-package ghost rows, the `#integration-pg` contamination
+  class). Both now route through **`testutil/pgtestcontainer`**, which
+  provisions a per-test database even under an external DSN; storage's
+  local duplicate of the helper is deleted.
+
+### Fixed — deep-review gap wave: error-family truth at store boundaries — 2026-08-27
+
+- The memory, pebble, and SQL eventstore Save boundaries preserve the
+  optimistic-concurrency Conflict family; the pebble/bbolt scan helpers
+  and the SQL checkpoint load preserve Corruption (undecodable rows,
+  unparseable checkpoints) instead of flattening both to Infrastructure.
+- **`query.NewPaginatedResult`** returns zero TotalPages for a zero-value
+  **`query.Pagination`** instead of panicking on integer division by
+  zero; the query audit middleware persists its record with a detached
+  context so a client disconnect between handler completion and save can
+  no longer silently drop exactly the auditable queries.
+- storage/bbolt: KVAdapter Get returns **`kv.ErrNotFound`** unwrapped
+  (previously Infrastructure-wrapped, so every miss landed in infra
+  metrics); Save/AppendBatch return the module-standard bucket-missing
+  Infrastructure error instead of panicking on an uninitialized database;
+  DiskUsage is family-classified. storage/pebble: a failed batch Commit
+  no longer leaks the pebble batch. storage/sql: IsDuplicateKeyError
+  recognizes DuckDB 1.x PRIMARY KEY violations — duplicate command/query
+  inserts on DuckDB now surface as Conflict and trigger the Inserter
+  duplicate hook (command idempotency was silently broken on that
+  backend).
+### Added — memory WAL core + backup suite — 2026-08-29
+
+- **`storage/memory`** re-based its store family onto the shared generic
+  **`storage/memory.LogStore[T, ID]`** core (ADR-0126 WAL unification):
+  duplicate/missing-position policy and stream-scoping behavior now live in
+  **`storage/memory.LogStoreConfig`** config funcs instead of forked
+  per-store copies; adds **`storage/memory.ErrNoStreamScoping`**.
+- **`storage/backuptest.RunIncrementalCheckpoints`** (alongside the
+  **`storage/backuptest.Backend`** / **`storage/backuptest.Factory`**
+  seams): incremental checkpoint lifecycle coverage shared by the bbolt and
+  pebble backend test suites.
+
 ## [command/v4.8.1, query/v4.7.1, middleware/v4.5.1, scheduling/v4.3.1, listing/v4.3.0, testutil/pgtestcontainer/v4.1.0] — 2026-08-29
 
 ### Changed — listing status is type-driven (ADR-0114, v5 prep)
@@ -1054,6 +1043,35 @@ forbidden — see CONTRIBUTING.md → Release Process.
   (`errorfamily.Orchestration` re-exported under the legacy name).
 
 ## [record/v4.4.0, metadata/v4.6.0, event/v4.8.0, command/v4.8.0, query/v4.7.0, scheduling/v4.3.0, decider/v4.4.0, storage/v4.8.0] — 2026-08-22
+
+### Added — WithActor hardening: scheduling actor propagation + coverage gates — 2026-08-17
+
+- **`scheduling.Timer.Actor`** — timer-initiated commands can now carry the
+  audit-trail actor through the timer lifecycle: `Timer[P]` gains an `Actor`
+  field holding the self-describing "kind:raw" ActorID wire format (e.g.
+  `"user:01JXYZ..."`, `"system:scheduler"`), delivered to the `DispatchFunc`
+  so dispatchers stamp `command.WithActor(id.ParseActorID(t.Actor))`. Plain
+  string (not `id.ActorID`) by design: scheduling is a
+  zero-production-dependency module, mirroring `record.CommonMetadata.ActorID`.
+  The SQL timer store now writes a versioned payload envelope
+  (`{"v":1,"actor":"...","payload":<P>}`, ADR-0044 pattern) so the actor
+  survives SQL persistence; legacy bare-payload rows (including non-object
+  payloads) still decode with an empty actor. Zero value = unspecified
+  (dispatcher decides attribution).
+- **WithActor coverage gates** — `TestMetadata_CBORRoundtrip_PreservesActor`
+  (event) locks ActorID through the CBOR binary codec; golden JSON snapshots
+  for full event metadata (`event/testdata/golden/event-metadata-actor.json`)
+  and full command metadata (`command/testdata/golden/command-metadata-actor.snap`)
+  pin the persisted JSON shapes incl. `actorId`; each golden doubles as a
+  round-trip test through the store load path
+  (`event.UnmarshalMetadataJSON` / `command.Metadata` scan).
+- **Verified already-shipped coverage** — watermill wire-format round-trips,
+  SQL `MarshalMetadata` scan, pebble/bbolt store metadata round-trip, the
+  e2e decider+projection propagation test, `TestQuery_AllMetadata`, json/v1
+  `omitzero` fallback, scenario DSL actor support, deriver/commandlifecycle
+  propagation, `middleware.CommandActorContext`, and `id.ActorID.Validate`
+  all re-run green after this wave.
+
 
 ### Changed — record.Encoding is now a compact typed stamp — 2026-08-22
 
