@@ -4,7 +4,7 @@ go 1.26.6
 
 require (
 	github.com/go-sql-driver/mysql v1.10.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0
 	github.com/onsi/gomega v1.42.1
 )
 
@@ -22,5 +22,3 @@ require (
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
