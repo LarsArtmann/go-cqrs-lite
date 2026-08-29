@@ -13,8 +13,8 @@ import (
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
-func (s *SQLEventStore) scanEvents(rows *sql.Rows) ([]event.Event, error) {
-	return sqlpkg.ScanSlice(rows, s.scanEvent)
+func (s *SQLEventStore) scanEvents(rows *sql.Rows, capacityHint int) ([]event.Event, error) {
+	return sqlpkg.ScanSlice(rows, s.scanEvent, capacityHint)
 }
 
 func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {

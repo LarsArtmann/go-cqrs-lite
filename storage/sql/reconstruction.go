@@ -43,9 +43,16 @@ func AppendLimit(query string, args []any, limit int, placeholder string) (strin
 	return query, args
 }
 
-// ScanSlice is a generic helper that deduplicates event scanning.
-func ScanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error) {
-	result := make([]T, 0, 64)
+// ScanSlice is a generic helper that deduplicates event scanning. The optional
+// capacity argument is a pre-size hint (a known LIMIT or bound on the result);
+// without it the slice starts at 64 and grows by append's doubling.
+func ScanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error), capacity ...int) ([]T, error) {
+	capHint := 64
+	if len(capacity) > 0 && capacity[0] > capHint {
+		capHint = capacity[0]
+	}
+
+	result := make([]T, 0, capHint)
 
 	for rows.Next() {
 		item, err := fn(rows)

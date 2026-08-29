@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -82,7 +83,9 @@ func (s *SQLCommandStore) loadWithSpan(
 	p sqlpkg.LoadParams,
 ) ([]*command.PersistedCommand, error) {
 	cfg := commandQueryConfig
-	cfg.ScanRows = s.scanCommands
+	cfg.ScanRows = func(rows *sql.Rows) ([]*command.PersistedCommand, error) {
+		return s.scanCommands(rows, 0)
+	}
 	return sqlpkg.LoadWithSpan(ctx, s.DB, s.Dialect, s.checkClosed, cfg, p,
 		string(ref.Type), ref.ID)
 }

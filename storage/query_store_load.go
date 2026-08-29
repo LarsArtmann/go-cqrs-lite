@@ -44,7 +44,7 @@ func (s *SQLQueryStore) LoadQueries(
 	}
 	defer sqlpkg.CloseRows(rows)
 
-	queries, scanErr := s.scanQueries(rows)
+	queries, scanErr := s.scanQueries(rows, 0)
 	if scanErr != nil {
 		cqrsotel.RecordError(span, scanErr)
 	}

@@ -9,6 +9,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > Rolling unreleased window. The `[Unreleased — earlier 2026-08-16 work]`
 > block further down is part of this same unreleased set (fold pending).
 
+### Changed — journal drains pre-size scan slices from their limit — 2026-08-29
+
+- **`storage/sql.ScanSlice`** accepts an optional capacity hint, and
+  **`storage/sql.JournalReader`** now passes its bounded `limit` down to the
+  scan functions (capped at 4096) so limit-bounded journal drains
+  (`ReadFrom`/`LoadFromStart` — the CatchUpSubscriber drain path) allocate
+  the result slice once instead of re-growing from 64. Unbounded reads keep
+  the default growth. Benchmark added
+  (`storage/sql/journal_reader_prealloc_test.go`); the three SQL stores'
+  stream-load paths are unchanged in behavior.
+
 ### Changed — system adapters: defensive metadata marshal + roundtrip pins — 2026-08-29
 
 - **`system` command/query adapters** no longer discard the metadata marshal

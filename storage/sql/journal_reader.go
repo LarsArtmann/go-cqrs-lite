@@ -59,8 +59,10 @@ type JournalReader[T any] struct {
 	// ("received_at" for commands/queries, "occurred_at" for events).
 	TimestampColumn string
 
-	// Scan converts SQL rows into a slice of T. Caller closes the rows.
-	Scan func(*sql.Rows) ([]T, error)
+	// Scan converts SQL rows into a slice of T. Caller closes the rows. The
+	// second argument is a capacity pre-size hint for the result slice (0 =
+	// unknown size); ReadFrom/LoadFromStart pass their limit when bounded.
+	Scan func(*sql.Rows, int) ([]T, error)
 }
 
 // ReadAll returns every row in the journal ordered by the entity's timestamp column.
@@ -88,7 +90,7 @@ func (r *JournalReader[T]) ReadAll(ctx context.Context) ([]T, error) {
 	}
 	defer CloseRows(rows)
 
-	items, scanErr := r.Scan(rows)
+	items, scanErr := r.Scan(rows, 0)
 	if scanErr != nil {
 		cqrsotel.RecordError(span, scanErr)
 
@@ -187,7 +189,7 @@ func (r *JournalReader[T]) ReadFrom(ctx context.Context, afterID string, limit i
 	}
 	defer CloseRows(rows)
 
-	items, scanErr := r.Scan(rows)
+	items, scanErr := r.Scan(rows, scanCapacity(limit))
 	if scanErr != nil {
 		cqrsotel.RecordError(span, scanErr)
 
@@ -226,7 +228,7 @@ func (r *JournalReader[T]) LoadFromStart(ctx context.Context, limit int) ([]T, e
 	}
 	defer CloseRows(rows)
 
-	items, scanErr := r.Scan(rows)
+	items, scanErr := r.Scan(rows, scanCapacity(limit))
 	if scanErr != nil {
 		return nil, errorfamily.WrapInfrastructure(scanErr, r.ErrCodeScan,
 			fmt.Sprintf("scan %s from start (limit=%d)", r.EntityNounPlural, limit))
@@ -238,4 +240,20 @@ func (r *JournalReader[T]) LoadFromStart(ctx context.Context, limit int) ([]T, e
 	}
 
 	return items, nil
+}
+
+// maxScanPrealloc caps the capacity pre-size hint: an absurd limit (or an
+// unbounded read) falls back to append's growth instead of allocating a huge
+// upfront slice.
+const maxScanPrealloc = 4096
+
+// scanCapacity converts a positive row limit into a slice pre-size hint for
+// ScanSlice. Returns 0 (= unknown size, default growth) for unbounded or
+// oversized limits.
+func scanCapacity(limit int) int {
+	if limit <= 0 || limit > maxScanPrealloc {
+		return 0
+	}
+
+	return limit
 }

@@ -12,8 +12,8 @@ import (
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
-func (s *SQLCommandStore) scanCommands(rows *sql.Rows) ([]*command.PersistedCommand, error) {
-	return sqlpkg.ScanSlice(rows, s.scanCommand)
+func (s *SQLCommandStore) scanCommands(rows *sql.Rows, capacityHint int) ([]*command.PersistedCommand, error) {
+	return sqlpkg.ScanSlice(rows, s.scanCommand, capacityHint)
 }
 
 func (s *SQLCommandStore) scanCommand(rows *sql.Rows) (*command.PersistedCommand, error) {

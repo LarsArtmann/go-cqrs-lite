@@ -2,6 +2,7 @@ package eventstore
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -33,7 +34,9 @@ func (s *SQLEventStore) loadWithSpan(
 	p sqlpkg.LoadParams,
 ) ([]event.Event, error) {
 	cfg := eventQueryConfig
-	cfg.ScanRows = s.scanEvents
+	cfg.ScanRows = func(rows *sql.Rows) ([]event.Event, error) {
+		return s.scanEvents(rows, 0)
+	}
 	return sqlpkg.LoadWithSpan(ctx, s.DB, s.Dialect, s.checkClosed, cfg, p,
 		string(ref.Type), ref.ID)
 }
