@@ -6,8 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-> Rolling unreleased window. The `[Unreleased — earlier 2026-08-16 work]`
-> block further down is part of this same unreleased set (fold pending).
+> Rolling unreleased window: everything below the `---` divider that is not
+> inside a dated `[tags]` section is unreleased (the 2026-08-16-era block was
+> folded into this window on 2026-08-29).
 
 ### Fixed — metaengine record context is no longer shared mutable state across Stores — 2026-08-29
 
@@ -770,9 +771,9 @@ forbidden — see CONTRIBUTING.md → Release Process.
 
 > The 2026-08-10/11 sections below — "Fixed — ADR-0114 tombstone migration
 > unblock", "Added — ADR-0114 tombstone migration APIs", "Changed —
-> TombstonePolicy → DeletePolicy rename (ADR-0114 cleanup)", the
-> `listing.Status` / `listing.WithDeleteTypes` / `listing.Option` "Added"
-> bullets, and the `storage/sql_aggregate_reader.go` / `stack/materialize.go`
+> TombstonePolicy → DeletePolicy rename (ADR-0114 cleanup)", the listing
+> status/delete-types/option "Added" bullets, and the
+> `storage/sql_aggregate_reader.go` / `stack/materialize.go`
 > rework bullets — described real commits (`e406edcfb`, 2026-08-10) that were
 > **reverted on 2026-08-12 by `a6613ef0d` ("snapshot concurrent agent refactor
 > state") before any module tag was cut**. No published module version ever
@@ -782,8 +783,9 @@ forbidden — see CONTRIBUTING.md → Release Process.
 - `listing.TombstonePolicy` with `TombstoneExclude`/`TombstoneInclude`/
   `TombstoneOnly`; `ListOptions.Tombstone`; builder methods
   `IncludeDeleted()`/`OnlyDeleted()`; `StreamStatus.Status` is
-  `event.TombstoneStatus`. `listing.DeletePolicy`, `listing.Status`,
-  and `listing.WithDeleteTypes` do **not** exist.
+  `event.TombstoneStatus`. No `DeletePolicy`-named type, no separate status
+  type, and no delete-types option exist on `listing` — the tombstone spelling
+  is canonical.
 - `stack.TombstonePolicy` with `IncludeTombstoned`/`ExcludeTombstoned`/
   `OnlyTombstoned`; `stack.FilterTombstoned`; `Materialize.OnTombstone` /
   `OnRebirth` are **metadata-triggered** (`event.TombstoneMark`).
@@ -853,702 +855,6 @@ forbidden — see CONTRIBUTING.md → Release Process.
   `//art-dupl:accept` (dep-isolated engines implementing the same contract)
   rather than re-pinning the art-dupl baseline.
 
-## [snapshot/v4.4.0, decider/v4.5.0, storage/v4.8.1, storage/memory/v4.4.0, storage/pebble/v4.3.0, storage/bbolt/v4.1.0, storage/turso/v4.3.0, storage/backuptest/v4.1.0] — 2026-08-29
-
-### Added — snapshots are constructing-validated and self-describing (P10) — 2026-08-22
-
-- Added **`snapshot.NewSnapshot`** (ref, version, state, encoding): the
-  validating constructor for **`snapshot.Snapshot`**. It rejects a zero
-  stream ref, `version < 1`, and empty state (family Rejection, codes
-  `snapshot.invalid_ref` / `snapshot.zero_version` /
-  `snapshot.nil_state`), stamps `CreatedAt` in UTC, and defensively clones
-  the state bytes.
-- Added **`snapshot.Snapshot.Validate`** (same invariants, for values built
-  by other means), **`snapshot.Snapshot.Ref`** (pair-form identity), and
-  the **`snapshot.ErrInvalidSnapshot`** sentinel.
-- **`snapshot.Snapshot`** gained an **`Encoding`** field typed
-  **`record.Encoding`** (envelope pattern, ADR-0044 style): snapshots saved
-  through **`snapshot.TypedStore`** or the decider repository now carry the
-  codec stamp, making the struct self-describing. Legacy snapshots read as
-  the unknown constant; decode stays envelope-authoritative, so no stored
-  wire format changed.
-- **`snapshot.SaveSnapshot`** is Deprecated (removed in v5): it cannot know
-  the codec, so it stamps the unknown constant. The decider repository now
-  saves via the constructor with its real codec stamp.
-- The Pebble and bbolt snapshot stores persist the new stamp: their
-  CBOR wire structs gained an additive `encoding` field (old rows decode
-  as the unknown constant; roundtrip tests pin it). The SQL snapshot
-  schema has no encoding column — the ADR-0044 envelope inside State
-  remains authoritative there (see TODO_LIST §v5 Unification audit).
-
-### Changed — Durability tiers now de-escalate per-write sync on Pebble — 2026-08-17
-
-- **`stack/pebble` Normal tier maps to async WAL writes** (behavior change,
-  minor version): the preset now translates `stack.DurabilityNormal` (its
-  default) to async writes — WAL entries land in the page cache without a
-  per-write fsync (safe against app crash; a kernel/power crash may lose the
-  most recent writes) — instead of fsync-per-write. Every other backend
-  already de-escalated at Normal (SQLite `synchronous=NORMAL`, Postgres
-  `synchronous_commit=off`); Pebble was the outlier, and `stack/durability.go`
-  had documented this exact behavior all along while `stack/pebble/preset.go`
-  claimed "Normal → same as Strict" — the doc split brain is fixed, both now
-  tell the truth. Strict is unchanged (fsync per write) and remains what
-  write-critical consumers should opt into explicitly.
-- **`stack/pebble` Relaxed tier no longer forces a memtable flush per write** —
-  latent bug fixed as a side effect: Relaxed set `DisableWAL=true` but stores
-  still wrote with synchronous writes, which with the WAL disabled degrades to
-  a memtable flush per write — the slowest path Pebble has, in the tier that
-  exists for speed. Relaxed now also writes async (memtable only, data loss
-  on crash — as documented).
-- **bbolt is the documented exception**: it has no WAL, so its only async knob
-  (`NoSync`) skips the commit fsync entirely — a weaker guarantee than every
-  other backend's Normal and one bbolt upstream calls dangerous. bbolt
-  Normal therefore ≡ Strict (sync-on-commit), the exception is recorded in
-  `stack/durability.go`'s tier table, and the bbolt preset keeps defaulting
-  to Strict so the default tier name matches the actual guarantee.
-
-### Added — storage/pebble Backend async writes — 2026-08-17
-
-### Added — Backend + engine async-write options — 2026-08-17
-
-- **`pebble.WithBackendAsyncWrites`** (`storage/pebble`, with the new
-  `pebble.BackendOption` type) — constructs every Backend store (events,
-  commands, queries, snapshots, checkpoints, and the shared read-model KV
-  store) with async writes in one call; the per-store
-  `pebble.WithAsyncWrites` family unchanged. Default Backend behavior is
-
-- **`BenchmarkEventAppendSync`/`BenchmarkEventAppendAsync`**
-  (`storage/pebble/durability_bench_test.go`) — disk-backed append-throughput
-  comparison for the two tiers (writes under
-  `$HOME/.cache/pebble-durability-bench`, override
-  `PEBBLE_DURABILITY_BENCH_DIR`; skips when unavailable — tmpfs would erase
-  the fsync cost being measured). First measurement attempt (2026-08-17) was
-  inconclusive: ambient load 3–4 on a 96%-full btrfs had raw async `Set` at
-
-### Fixed
-
-- **`decider.WithWaitTimeout`** and **`decider.WithPollInterval`** now clamp
-  non-positive values to their defaults instead of reaching
-  `time.NewTicker`, which panics on non-positive intervals
-  (full-code-review).
-- The decider flight-recorder snapshot now runs on a detached context
-  (**`context.WithoutCancel`**): a cancelled request context no longer
-  discards the very error snapshot the recorder was configured to capture.
-- **`decider.NewTypedRepository`** rejects a nil typed Decide function up
-  front with the new **`decider.ErrNilDecide`** sentinel (family Rejection)
-  instead of panicking on the first dispatch.
-- bbolt persisted-command and persisted-query (de)serialization failures are
-  now classified Corruption via the error-family wrapper with
-  `bbolt.serialize_command` / `bbolt.reconstruct_command` /
-  `bbolt.serialize_query` / `bbolt.reconstruct_query` contexts, replacing
-  plain wrapped errors (extended review E3).
-- The Turso indexing-policy mutators (Exclude, MarkCritical,
-  MarkSkipAutoCreate) no longer panic on zero-value or nil policies: the
-  exclusion/criticality maps initialize lazily on first mutation and nil
-  receivers are a no-op (extended review E9).
-
-### Changed — storage stream reader surfaces type-driven status (with listing/v4.3.0) — 2026-08-27
-
-- **`storage`**: `SQLStreamReader` now surfaces `listing.Status` from the
-  existing `tombstone_status` column (same wire ints).
-
-### Fixed — Postgres integration tests share one database under explicit DSN — 2026-08-27
-
-- **`storage`**'s integration TestMain (and `storage/relational`'s
-  `openPostgresDB`) returned the shared `POSTGRES_TEST_DSN` database
-  directly when an explicit DSN was set, so every test — and every package
-  sharing the CI service container — wrote into ONE database
-  (cross-test/cross-package ghost rows, the `#integration-pg` contamination
-  class). Both now route through **`testutil/pgtestcontainer`**, which
-  provisions a per-test database even under an external DSN; storage's
-  local duplicate of the helper is deleted.
-
-### Fixed — deep-review gap wave: error-family truth at store boundaries — 2026-08-27
-
-- The memory, pebble, and SQL eventstore Save boundaries preserve the
-  optimistic-concurrency Conflict family; the pebble/bbolt scan helpers
-  and the SQL checkpoint load preserve Corruption (undecodable rows,
-  unparseable checkpoints) instead of flattening both to Infrastructure.
-- **`query.NewPaginatedResult`** returns zero TotalPages for a zero-value
-  **`query.Pagination`** instead of panicking on integer division by
-  zero; the query audit middleware persists its record with a detached
-  context so a client disconnect between handler completion and save can
-  no longer silently drop exactly the auditable queries.
-- storage/bbolt: KVAdapter Get returns **`kv.ErrNotFound`** unwrapped
-  (previously Infrastructure-wrapped, so every miss landed in infra
-  metrics); Save/AppendBatch return the module-standard bucket-missing
-  Infrastructure error instead of panicking on an uninitialized database;
-  DiskUsage is family-classified. storage/pebble: a failed batch Commit
-  no longer leaks the pebble batch. storage/sql: IsDuplicateKeyError
-  recognizes DuckDB 1.x PRIMARY KEY violations — duplicate command/query
-  inserts on DuckDB now surface as Conflict and trigger the Inserter
-  duplicate hook (command idempotency was silently broken on that
-  backend).
-### Added — memory WAL core + backup suite — 2026-08-29
-
-- **`storage/memory`** re-based its store family onto the shared generic
-  **`storage/memory.LogStore[T, ID]`** core (ADR-0126 WAL unification):
-  duplicate/missing-position policy and stream-scoping behavior now live in
-  **`storage/memory.LogStoreConfig`** config funcs instead of forked
-  per-store copies; adds **`storage/memory.ErrNoStreamScoping`**.
-- **`storage/backuptest.RunIncrementalCheckpoints`** (alongside the
-  **`storage/backuptest.Backend`** / **`storage/backuptest.Factory`**
-  seams): incremental checkpoint lifecycle coverage shared by the bbolt and
-  pebble backend test suites.
-
-## [command/v4.8.1, query/v4.7.1, middleware/v4.5.1, scheduling/v4.3.1, listing/v4.3.0, testutil/pgtestcontainer/v4.1.0] — 2026-08-29
-
-### Changed — listing status is type-driven (ADR-0114, v5 prep)
-
-- **`listing.Status`** (new type) + **`listing.StatusClassifier`** +
-  **`listing.NewStatusClassifier`** + **`listing.WithStatusClassifier`**
-  reader option: stream status is now derived from the LAST event's type
-  (delete types → tombstoned, rebirth types → active) instead of mutable
-  tombstone metadata. Wire values match the legacy
-  `event.TombstoneStatus` ints (active=0, tombstoned=1, undetermined=2);
-  JSON output is unchanged (verified against the stream-status golden).
-- **`listing.StreamStatus.Status`** is now `listing.Status` (was
-  `event.TombstoneStatus`) — BREAKING for v5, the metadata tombstone API it
-  depended on is removed in v5.
-- **`listing.NewInMemoryStreamReader`** accepts variadic
-  `ReaderOption`s (backward-compatible call sites). Without a classifier
-  every stream reports `StatusUndetermined` — same value the metadata
-  bridge returned for unmarked streams.
-- **`listing.StatusMiddleware`** is Deprecated (removed in v5): readers no
-  longer consult metadata marks; pass the same event-type sets to
-  `NewStatusClassifier` instead.
-
-### Added — per-test Postgres isolation
-
-- **`testutil/pgtestcontainer.AfterRun`** (added): registers a callback
-  that runs after `m.Run()` on every TestMain exit path, so packages can
-  keep post-run work such as `snaps.Clean(m)` while delegating TestMain to
-  the shared helper.
-
-### Fixed
-
-- **`command.TypedCommandStore`** (Save/AppendBatch) and
-  **`query.TypedQueryStore`** (SaveQuery) no longer blanket-wrap inner
-  errors as Infrastructure: duplicate command / duplicate query Conflicts
-  keep their Conflict family (matching bbolt), so family-aware retry
-  policies and HTTP mappers see 409-class instead of 503-class.
-- **`scheduling.WithMaxRetries`** clamps values below 1 to 1: a 0
-  previously meant zero dispatch attempts after which the timer was
-  marked fired — the deadline was permanently lost with no error and no
-  log.
-- The SQL timer store's Due skips undecodable (corrupt) timer rows and
-  returns the decodable timers alongside a joined Corruption error; the
-  Scheduler dispatches what decoded and re-reports the corruption each
-  poll. One rotten row previously blocked dispatch of every due timer
-  indefinitely.
-- **`scheduling.MemoryTimerStore`**'s `Due` now honors its documented
-  FireAt-ascending, ID-tiebreak ordering (it previously leaked random map
-  iteration order into dispatch order).
-- **`query.NewPaginatedResult`** returns zero TotalPages for a zero-value
-  **`query.Pagination`** instead of panicking on integer division by
-  zero; the query audit middleware persists its record with a detached
-  context so a client disconnect between handler completion and save can
-  no longer silently drop exactly the auditable queries.
-- The middleware flight-recorder snapshot runs on a detached context
-  (context.WithoutCancel), mirroring the decider-side fix: the request
-  context is typically cancelled exactly when error captures matter.
-
-## [event/v4.9.0, schema/v4.3.1, dedup/v4.2.1, dispatcher/v4.3.1] — 2026-08-29
-
-### Fixed
-
-- **`event.DecorateStore`** now forwards **StreamingSource** and
-  **StreamingJournal** reads (LoadStream, LoadStreamFromVersion,
-  ReadStream, ReadStreamFrom) to the inner store, applying the source
-  transform per chunk; previously a streaming-capable store wrapped
-  through DecorateStore silently lost streaming reads — consumers fell
-  back to full-materialization Load/ReadAll, the exact OOM risk the
-  streaming interfaces exist to prevent, despite the wrapper's
-  preserve-all-interfaces claim (ADR-0126). Inner stores without the
-  capability return ErrInnerStoreNotStreaming rejections like the other
-  optional caps; the delegation is shared with DecorateJournal via one
-  helper so store and journal decorators cannot drift.
-- **`event.Single`**, **`event.NewEvents`**, and
-  **`event.DecodePayloads`** pass constructor/validation errors through
-  unchanged instead of re-wrapping them under a blanket family (the trio
-  previously classified the same constructor failure three different
-  ways); **`event.ExtractCustomBytes`** classifies damaged persisted
-  metadata as Corruption (was Infrastructure).
-- **`dispatcher.RegisterWithWrapping`** no longer blanket-wraps inner
-  errors as Infrastructure: duplicate-handler Conflicts keep their
-  Conflict family (matching bbolt), so family-aware retry policies and
-  HTTP mappers see 409-class instead of 503-class.
-- **`dedup.Ring`**'s Add is a no-op on a nil receiver, matching
-  Has/Len/Capacity nil-safety, so the documented nil-ring replay pattern
-  cannot panic on the Add side of a Has-then-Add boundary loop.
-- **`schema.VersionedSeekableJournal`** is now a deprecated shell
-  embedding `event.DecorateJournal(raw, UpcastSourceTransform(...))`
-  (ADR-0126): existing call sites keep compiling AND gain forwarded
-  StreamingJournal reads (ReadStream, ReadStreamFrom) with upcasting
-  applied — the hand-written wrapper silently dropped them. New code
-  should use the transform directly.
-
-### Added
-
-- **`event.Orchestration`** compat alias completes the six-family block
-  (`errorfamily.Orchestration` re-exported under the legacy name).
-
-## [record/v4.4.0, metadata/v4.6.0, event/v4.8.0, command/v4.8.0, query/v4.7.0, scheduling/v4.3.0, decider/v4.4.0, storage/v4.8.0] — 2026-08-22
-
-### Added — WithActor hardening: scheduling actor propagation + coverage gates — 2026-08-17
-
-- **`scheduling.Timer.Actor`** — timer-initiated commands can now carry the
-  audit-trail actor through the timer lifecycle: `Timer[P]` gains an `Actor`
-  field holding the self-describing "kind:raw" ActorID wire format (e.g.
-  `"user:01JXYZ..."`, `"system:scheduler"`), delivered to the `DispatchFunc`
-  so dispatchers stamp `command.WithActor(id.ParseActorID(t.Actor))`. Plain
-  string (not `id.ActorID`) by design: scheduling is a
-  zero-production-dependency module, mirroring `record.CommonMetadata.ActorID`.
-  The SQL timer store now writes a versioned payload envelope
-  (`{"v":1,"actor":"...","payload":<P>}`, ADR-0044 pattern) so the actor
-  survives SQL persistence; legacy bare-payload rows (including non-object
-  payloads) still decode with an empty actor. Zero value = unspecified
-  (dispatcher decides attribution).
-- **WithActor coverage gates** — `TestMetadata_CBORRoundtrip_PreservesActor`
-  (event) locks ActorID through the CBOR binary codec; golden JSON snapshots
-  for full event metadata (`event/testdata/golden/event-metadata-actor.json`)
-  and full command metadata (`command/testdata/golden/command-metadata-actor.snap`)
-  pin the persisted JSON shapes incl. `actorId`; each golden doubles as a
-  round-trip test through the store load path
-  (`event.UnmarshalMetadataJSON` / `command.Metadata` scan).
-- **Verified already-shipped coverage** — watermill wire-format round-trips,
-  SQL `MarshalMetadata` scan, pebble/bbolt store metadata round-trip, the
-  e2e decider+projection propagation test, `TestQuery_AllMetadata`, json/v1
-  `omitzero` fallback, scenario DSL actor support, deriver/commandlifecycle
-  propagation, `middleware.CommandActorContext`, and `id.ActorID.Validate`
-  all re-run green after this wave.
-
-
-### Changed — record.Encoding is now a compact typed stamp — 2026-08-22
-
-- The **`record.Encoding`** field changed from a plain string
-  ("json"/"cbor"/"") to the new typed stamp with constants
-  **`record.EncodingUnknown`** / **`record.EncodingJSON`** /
-  **`record.EncodingCBOR`** — the zero value means absent, opaque, or
-  envelope-wrapped (owner decision 2026-08-22, closing the three-session
-  string-vs-compact window before the first record tag).
-- Added **`record.ParseEncoding`** (canonical codec name → stamp; unknown
-  names fail **`record.ErrUnknownEncoding`**) and `String()` mapping back,
-  so "json"/"cbor" round-trip. record stays zero-dep: the vocabulary lives
-  in record, bridges convert at their boundary.
-- `event.AsRecord` now stamps the compact form — codecs record does not
-  know stamp the unknown constant rather than guessing. command/query
-  bridges and zero-value Records carry the unknown constant. In-process
-  struct only: no stored wire format changed (the ADR-0044 envelope keeps
-  its own string stamp).
-
-### Changed — record.Type consolidation (ADR-0111) — 2026-08-22
-
-- **`event.Type`**, **`command.Type`**, and **`query.Type`** are now type
-  aliases of **`record.Type`** — one canonical definition shared by all three
-  domain-message kinds, so the triplicated per-module copies cannot drift.
-  Behavior unchanged: same underlying string, same String/IsZero method set
-  (inherited from the shared definition), same JSON and wire form. A
-  cross-type comparison test in each module pins the alias at compile time —
-  reverting to a standalone defined type fails the build.
-- The per-module Type methods (the module-local String and IsZero on the old
-  standalone types) are gone, superseded by the shared definition.
-- **`event.ParseType`**, **`command.ParseType`**, and **`query.ParseType`** are
-  Deprecated (removed in v5) one-line forwarders onto the canonical
-  `record.ParseType`. Each wrapper still returns its module's own empty-type
-  sentinel (ErrEmptyEventType, ErrEmptyCommandType, ErrEmptyQueryType), so
-  existing error handling is unchanged.
-- Added **`record.Type`** (with String/IsZero) and **`record.ParseType`** — the
-  parametrized validator taking the caller's empty-value sentinel, so each
-  module keeps its error identity while sharing one implementation.
-
-### Changed — scheduling: branded timer identity + typed actor — 2026-08-22
-
-- **`scheduling.TimerMarker`** + **`scheduling.TimerID`** — timer identity is
-  now a branded type (string-backed, the documented `id.StreamID` pattern)
-  instead of a bare `string` alias.
-  String-backed on purpose: timer IDs are semantic idempotency keys
-  ("cancel-order-...", "delay-test") that callers choose for stable
-  re-scheduling and cancellation; ULID backing would break every idempotent
-  scheduling flow. Deviation from the original plan sketch (`id.Of[TimerMarker]`,
-  ULID-backed) for exactly this reason. Wire form unchanged: IDs still
-  serialize as plain strings (SQL columns and JSON both unchanged).
-  NOTE: source-level breaking for callers that assigned raw strings to
-  Timer.ID — construct via `scheduling.ParseTimerID`.
-- **`scheduling.ParseTimerID`** / **`scheduling.MustParseTimerID`** /
-  **`scheduling.ErrEmptyTimerID`** — semantic-name constructors; the Must
-  form is for compile-time-known names.
-- **Timer.Actor** is now `id.ActorID` instead of `string` — the typed
-  attribution the doc comment previously told callers to round-trip by hand
-  via ParseActorID. Wire-compatible: zero marshals ""/omitted, non-zero
-  marshals the same self-describing "kind:raw" string; SQL stores keep the
-  envelope actor column a plain string and convert at the boundary, so
-  existing rows (including legacy bare-payload rows) decode unchanged.
-  `scheduling` gains `id/v4` + `go-branded-id` as direct production deps
-  (Tier 1 → Tier 0, budget raised 0→2; `#check-arch` green).
-
-### Added — decider *Ref identity forms — 2026-08-22
-
-- **`decider.Repository.ExecuteRef`** / **`decider.Repository.LoadRef`** /
-  **`decider.Repository.LoadAtVersionRef`** /
-  **`decider.Repository.LoadAtTimeRef`** /
-  **`decider.Repository.WaitForVersionRef`** — the ref forms are the real
-  implementations; the stream is addressed by a single `id.StreamRef`.
-  Every internal helper (store load, singleflight key, state cache,
-  snapshot) was already `id.StreamRef`-keyed, so the ref forms reach them
-  without constructing a pair intermediate on the hot path.
-- **`decider.TypedRepository.ExecuteCommandRef`** /
-  **`decider.TypedRepository.LoadRef`** — the typed wrapper's twins.
-- The `(streamID, streamType)` pair forms (`decider.Repository.Execute`,
-  `decider.Repository.Load`, `decider.Repository.LoadAtVersion`,
-  `decider.Repository.LoadAtTime`, `decider.Repository.WaitForVersion`,
-  `decider.TypedRepository.ExecuteCommand`) are Deprecated (removed in v5)
-  one-line forwarders onto the ref forms. `TestRefForms_MatchPairForms`
-  pins the lockstep: pair and ref forms address the same stream and produce
-  identical outcomes. `system/register.go` migrated to `ExecuteRef` (the
-  only production internal pair-form caller).
-
-### Added — metadata capability interfaces (Command/Query) — 2026-08-22
-
-- **`query.MetadataCarrier`** and **`query.PayloadCarrier`** — exported
-  capability interfaces for queries that carry `Metadata` or expose raw
-  payload bytes. Middleware type-asserts to the named capability instead of
-  inline duck-typed interfaces; `query.AuditMiddleware` now asserts the
-  exported types (the two inline `metadatable` declarations and the inline
-  payload assertion in `audit.go` are gone). Hand-rolled `Query`
-  implementations opt in by adding a `Metadata()` method — no interface
-  growth, zero consumer breakage (review P6; capability-now vs
-  interface-growth-at-v5 comparison in the plan's Appendix C).
-- **`command.MetadataCarrier`** — the command-side twin. `*BasicCommand`
-  and `*BasicQuery` satisfy their carriers via compile-time asserts;
-  growing the core `Command`/`Query` interfaces rides the v5 cut.
-
-### Added — Record.ID + Record.Encoding: identity and codec stamp survive the bridges — 2026-08-22
-
-- **`record.Record.ID`** (`string`) — the record instance's unique
-  identifier: `EventID` for events, `CommandID` for commands, `RequestID`
-  for queries. The AsRecord bridges dropped this identity on the floor
-  before the field existed (review P5). All three bridges now fill it.
-- **`record.Record.Encoding`** (`string`) — the payload's codec stamp in the
-  self-describing form used by the go-codec `Encoding` type and the
-  ADR-0044 envelope ("json" / "cbor"). The event bridge fills it from the
-  event's encoding, so
-  mixed JSON+CBOR event streams stay self-describing through Record-aware
-  folds. Empty for commands (no payload) and queries (envelope-wrapped
-  payloads carry their own stamp). Deviation from the review sketch, which
-  proposed `uint8`: a numeric mapping would exist nowhere else in the
-  ecosystem and drift — the string form matches the codec layer exactly.
-
-### Added — structural record.Actor (kind-discriminated producer) — 2026-08-22
-
-- **`record.Actor` + `record.ActorKind`** — the structural mirror of
-  `id.ActorID`: the kind-discriminated producer of a record (user / bot /
-  system / service) explicit at the type level, instead of smuggled through
-  the "kind:raw" stringly `ActorID` field every consumer had to parse
-  (review P3). `record/` stays zero-dep (ADR-0111) — the union is restated,
-  and `Actor.String()` emits the identical wire form as
-  `id.ActorID.PrefixedString`.
-- **`metadata.RecordActor`** — resolves a `Tracing` into the structural
-  actor: kind-discriminated `ActorID` wins; the legacy `UserID` fallback is
-  upgraded to `ActorUser` (a user ID is by definition a human user — the
-  kind it always implicitly had). Structural counterpart of `ActorString`.
-- **`CommonMetadata.Actor`** added; **`CommonMetadata.ActorID` (`string`)
-  is Deprecated (removed in v5)** — all three AsRecord bridges populate
-  both via `metadata.RecordActor` until the cut. `metadata` gains a
-  `record/v4` dependency (Tier 0 → Tier 0, `#check-arch` clean).
-
-### Added — record.Stamp: explicit timestamp presence — 2026-08-22
-
-- **`record.Stamp` + `record.NewStamp`** — a timestamp whose presence is
-  explicit: the zero Stamp means "not recorded"; a zero time.Time can no
-  longer masquerade as "stamped at epoch" (review P7). Unexported fields
-  (`at`, `known`) make an inconsistent state unconstructable; JSON is
-  lossless (`{"at":...}` / `null`, honored by both encoding/json v1 and v2).
-- **`CommonMetadata.Created` / `Received` / `Stored`** (`Stamp`) added;
-  **`ClientCreatedAt` / `ServerReceivedAt` / `ServerStoredAt` (`time.Time`)
-  are Deprecated (removed in v5)**.
-- **Bridge mapping**: `event.AsRecord` sets `Created` from the event's
-  `OccurredAt` (Received/Stored stay unknown — the store stamps them);
-  `query.AsRecord` sets `Received` from `PersistedQuery.ReceivedAt` — the
-  honest home for the server-receive clock the old field parked in
-  `ClientCreatedAt` (Created stays unknown: PersistedQuery carries no client
-  clock). Commands carry no timestamps.
-
-### Added — explicit record.Cause (kind-discriminated causation) — 2026-08-22
-
-- **`record.Cause` + `record.CauseKind`** — the single causation home that
-  replaces the stringly `CommonMetadata.CausationID` at v5: the causer's
-  kind (command / timer / event / unknown) is stated explicitly instead of
-  implied by ID format. Zero value = no cause recorded (review P4). Kinds:
-  `CauseNone` (zero), `CauseCommand` (typed event.Causation source),
-  `CauseTimer`, `CauseEvent`, `CauseUnknown` (bare tracing chain — the kind
-  honestly "not discriminated", mirroring `id.ActorUnknown`).
-- **`CommonMetadata.Cause`** added; **`CommonMetadata.CausationID` is
-  Deprecated (removed in v5)** — the three AsRecord bridges populate both
-  fields in lockstep until the cut.
-- **Bridge mapping**: `event.AsRecord` resolves typed
-  `Metadata.Causation.CommandID` → `{CauseCommand, id}` first (strongest
-  signal), falling back to `Tracing.CausationID` → `{CauseUnknown, id}`;
-  `command.AsRecord` / `query.AsRecord` map the tracing chain to
-  `{CauseUnknown, id}` (their only causation source).
-
-### Added — validated stream-ref population in the Record bridges — 2026-08-22
-
-- **`record.NewStreamRefOrZero`** — producer-side counterpart to the planned
-  v5 validating constructor (ADR-0123 Phase 8): returns the zero `StreamRef`
-  instead of a malformed one when the entity ID is empty, so adapters that
-  cannot return an error guarantee "a Record carries a well-formed stream
-  ref or none at all". Empty stream types remain legal (command/query
-  pattern).
-- **`event.AsRecord` / `command.AsRecord` / `query.AsRecord`** now populate
-  `Record.StreamID` via the validated constructor; invariant tests pin that
-  every populated ref passes `record.StreamRef.Validate` and round-trips
-  through `Split`. Closes the "Validate() call-site adoption" TODO for all
-  three bridges.
-
-## [metaengine/v4.12.0, sqliteengine/v4.2.0, pebbleengine/v4.2.0, badgerengine/v4.1.0, bboltengine/v4.1.0, pgengine/v4.2.0] — 2026-08-18
-
-Executing the routed follow-ups from
-`docs/reviews/2026-08-16_full-code-review-system.html` (proposals in
-`docs/adr/2026-08-17_system-v4-review-proposals.md`).
-
-### Added
-
-- **`metaengine`** — named query dispatch alongside type dispatch:
-  `metaengine.ExecuteQueryByName` and `metaengine.ExecuteTypedByName`
-  execute a declared query by name; unknown names fail with
-  `metaengine.ErrNoQueryForName`. Type dispatch (ExecuteCtx/ExecuteTyped)
-  resolves to the most recently registered query and therefore cannot
-  address two queries sharing one input type — which is exactly what a
-  second `system.Count` declaration does (all counters share
-  `system.CountInput`).
-- **`metaengine`** — durability tiers at the driver boundary:
-  `metaengine.DurabilityTier` (strict/normal/relaxed) travels on
-  `metaengine.DriverConfig`; `metaengine.ValidateDurabilityTier` and
-  `metaengine.RejectDurabilityTier` implement the fail-loudly contract
-  (invalid tiers fail with `metaengine.ErrUnsupportedDurability`). The
-  sqlite driver maps tiers to `PRAGMA synchronous` (FULL/NORMAL/OFF) and
-  errors when the operator also sets `synchronous` themselves; the memory
-  driver rejects strict (in-process storage cannot fsync); every other
-  driver (dgraph, duckdb, mysql, turso) rejects explicit tiers until it
-  implements real mappings.
-- **`metaengine/*engine`** — durability breadth: the pebble, postgres,
-  bbolt, and badger drivers map explicit tiers instead of rejecting them.
-  Pebble: strict = WAL + sync writes, normal = WAL + async writes
-  (`pebbleengine.WithAsyncWrites`), relaxed = DisableWAL + async writes
-  (`pebbleengine.WithDisableWAL`). Postgres: strict =
-  `synchronous_commit=on`, normal/relaxed = `off`, applied as a DSN runtime
-  parameter so every pooled connection inherits it — a DSN that already
-  sets `synchronous_commit` plus a tier is a configuration error. bbolt:
-  strict/normal = sync-on-commit (normal is an accepted alias — bbolt has
-  no WAL and therefore no app-crash-safe middle tier), relaxed = NoSync
-  (`bboltengine.WithNoSync`). Badger: strict = sync writes, normal/relaxed
-  = async writes (`badgerengine.WithAsyncWrites`) — async is badger's
-  floor because the value log is always written and replayed on open.
-
-## [system/v4.5.0] — 2026-08-18
-
-### Added
-
-- **`system`** — the second `system.Count` declaration no longer silently
-  shadows the first: GetCount dispatches by counter name.
-- **`system`** — dedicated role instances are wired: RoleCommands,
-  RoleQueries, and RoleSnapshots instances bind their stores from their own
-  engines (`system.CommandStore`, `system.QueryStore`), one engine may
-  serve multiple roles (collections are namespaced), duplicate roles fail
-  with `system.ErrDuplicateInstanceRole`, and a snapshots instance on an
-  engine without SnapshotBackend fails with `system.ErrNotSnapshotBackend`.
-- **`system`** — fan-out buses are bound by name, not position:
-  `system.AddNamedPublisher`, `system.PublisherByName`, `MultiBus.Names`,
-  and `system.PublisherFor` resolve buses by their YAML `publish:` target.
-- **`system`** — instance durability tiers now reach engine construction:
-  all instances sharing an engine must agree (a conflict fails with
-  `system.ErrDurabilityConflict`); an unset tier means engine defaults —
-  the config loader's silent "normal" defaulting was removed because it
-  would now push an explicit tier onto every engine.
-
-### Changed
-
-- **`system`** — every parsed-but-unread config field now says so:
-  `BusConfig.Mode` is documented introspection-only (publish is always
-  synchronous on the gochannel bus; the README's `mode: sync` example was
-  removed), `InstanceConfig.Subscribe` and `CacheConfig.Engine` are
-  documented reserved/not read (removal at v5), and
-  `InstanceConfig.Collections` is documented introspection-only. The
-  `system.Internal` evolution marker is documented as recorded but not yet
-  enforced. DECIDED 2026-08-18: `BusConfig.Mode` will be REMOVED at v5 —
-  it never gains sync/async publish semantics.
-- **`system`** — EventAdapter Save atomicity is now a documented contract
-  (`system/doc.go`): engines implementing `metaengine.AtomicAppender` (all
-  shipped engines) get all-or-nothing saves; Transactional engines get
-  transactional saves; engines with neither get a racy check-then-append
-  fallback that exists only so minimal third-party engines function.
-
-## [storage/v4.7.1] — 2026-08-16
-
-> Module-only patch release of `storage/v4`. Retracts the broken `v4.7.0`
-> (which did not compile: `sql/keyset.go:43` assigned an undeclared `err`)
-> and ships the one-line fix so `go get` resolves to a working version.
-
-- **Retracted `v4.7.0`** via a `retract` directive in `storage/go.mod`.
-  `go get` now skips the broken version by default; an explicit `@v4.7.0`
-  still resolves but warns. The version is permanent on `proxy.golang.org`
-  (immutable), so the retraction is advisory deprecation, not deletion.
-- **Fixed** `sql/keyset.go:43`: `err =` → `err :=`. The undeclared-variable
-  assignment made the whole `storage/v4` module fail to compile. This is
-  the only code change in this release.
-
-## [storage/v4.7.0] — 2026-08-16
-
-> Module-only release of the `storage/v4` module (sql, eventstore, view,
-> memory, bbolt, pebble trees). Cuts the wave-3 storage work + the journal
-> keyset-pagination fix so downstream consumers (browser-history et al.) can
-> pick up the O(N²) drain fix without waiting for the next full release.
-
-- Journal `ReadFrom`/`ReadStreamFrom` keyset pagination — full drains drop
-  from O(N²) to index-driven range scans (~285x on a 200k-event SQLite
-  journal; production browser-history restarts ~4.5 min → seconds).
-- Dialect-aware, packet-safe SQL batch INSERT chunking
-  (`sql.MaxParametersForDialect`, `sql.MaxStatementBytes`,
-  `sql.RowsWithinByteCap`); `view.BatchSet` INSERT…SELECT UNION ALL shuttle.
-- Pebble/bbolt deserialize fast path via `event.ReconstructEventWithMetadata`.
-
-### Detail — journal `ReadFrom` keyset pagination replaces O(N²) self-JOIN cursor
-
-- **`sql.JournalReader.ReadFrom` and `eventstore.ReadStreamFrom` now paginate
-  with keyset pagination** (`sql.ResolveCursorTimestamp` point lookup +
-  `sql.KeysetPositionQuery` timestamp-range scan) instead of a self-JOIN on the
-  cursor row (`e.ts > c.ts OR (e.ts = c.ts AND e.id > c.id)`). The self-JOIN
-  defeated `idx_events_occurred_at` in SQLite — `EXPLAIN QUERY PLAN` showed a
-  MULTI-INDEX OR plan plus a temp B-tree sort of the remaining tail on EVERY
-  batch, making a full journal drain O(N²) in batch count. Measured on a
-  200k-event SQLite journal drained in batches of 100: 62.9s before → 0.22s
-  after (~285x). Real-world impact: projectionhost workers with in-memory
-  checkpoint stores (full replay each start) burned ~4.5 min CPU per restart
-  on a production browser-history journal; drains are now single-digit
-  seconds. Dangling cursors (pruned journal rows) keep the former contract of
-  returning zero rows instead of silently replaying from the start. Verified
-  on SQLite (equivalence with tie-broken `(occurred_at, id)` ordering across
-  tie-groups, dangling-cursor, EXPLAIN QUERY PLAN regression pin, full-drain
-  benchmark: 5k events in 29ms) and real Postgres (placeholder numbering +
-  time.Time round-trip; `pg_integration_readfrom_test.go`).
-
-### Detail — packet-safe SQL batching + deserialize fast path
-
-- **Dialect-aware SQL batch chunking (33x fewer round-trips, now
-  packet-safe)**: `SharedBatchInsertEvents` and `view.BatchSet` chunk
-  multi-VALUES INSERTs by the dialect's bound-parameter limit (SQLite 999;
-  PostgreSQL/MySQL/DuckDB 32767 — 99 → 3276 rows per statement) AND by an
-  estimated statement-size cap (`sql.MaxStatementBytes`, 8 MiB = 50% of
-  MariaDB's default `max_allowed_packet`), so large payloads shrink chunks
-  instead of failing the whole batch write with a packet error. New exports:
-  `sql.MaxParametersForDialect`, `sql.MaxStatementBytes`,
-  `sql.RowsWithinByteCap`. Unknown custom dialects conservatively get the
-  SQLite limit; metadata is marshaled once per Save instead of per chunk.
-  Verified on real Postgres (ephemeral nix env) and MariaDB-in-VM (2000
-  events × 8 KiB regression test in `stack/mysql`).
-- **Pebble/bbolt read fast path via `event.ReconstructEventWithMetadata`**:
-  passing decoded metadata directly (no JSON round-trip) cut pebble
-  deserialize −46% ns/op and −53% allocs (5000→2680 ns/op, 2247→1205 B/op,
-  43→20 allocs/op); bbolt adopts the identical shape.
-
-## [2026-08-16 module releases]
-
-Coordinated 22-tag release cutting the actor-propagation + ADR-0126 (store
-transforms, metadata generic, WAL unification) era across the core modules,
-the metaengine tree, and watermill. Three broken versions were retracted and
-repaired the same day — `storage/v4.7.0` (see its section above) and
-`command/v4.7.0` / `query/v4.6.0` (entries below).
-
-### Added (id/v4.5.0)
-
-- **`ActorID` methods**: `Validate`, `MarshalBinary`, `UnmarshalBinary` on the
-  branded actor type introduced in v4.4.0.
-
-### Added (record/v4.3.0)
-
-- No source changes — re-cut so the core-module version set resolves
-  consistently (tree identical to v4.2.0).
-
-### Added (metadata/v4.5.0)
-
-- **Canonical `Metadata[K ~string]` generic** (ADR-0126): typed custom-data
-  map with `Clone`/`Merge`/`WithCustom`/`EnsureCustom`; `CustomData[K]` is
-  now a deprecated alias (removal at v5).
-
-### Added (schema/v4.3.0)
-
-- **`UpcastSourceTransform(upcasters ...Upcaster) event.SourceTransform`**:
-  source-side transform for upcasting. `VersionedStore` is now a
-  compatibility shell delegating to the transforms (ADR-0126; removal at v5).
-
-### Added (event/v4.7.0)
-
-- **Store transforms (ADR-0126)**: `SinkTransform`/`SourceTransform` types +
-  `DecorateStore` — capability-preserving store wrapping.
-  `RejectingPublishMiddleware`/`RejectingHandlerMiddleware` move to `event`
-  as the canonical home (`signing` wrappers deprecated).
-- **Actor context**: `WithActorContext`, `ActorFromContext`, `ActorEnricher`.
-- **`ReconstructEventWithMetadata`** deserialize fast path (pebble/bbolt
-  adopt it; see the storage/v4.7.0 detail above).
-
-### Added (command/v4.7.0 → v4.7.1) — ⚠ v4.7.0 RETRACTED
-
-- `command.Metadata` is now an alias of `metadata.Metadata[MetadataKey]`
-  (the v4.5.0 generic); `BasicCommand.ApplyOptions`; `AsRecord` actor
-  precedence; MemoryBus middleware-runs-once fix.
-- **v4.7.0 retracted** (directive in the v4.7.1 `go.mod`): the tag pinned
-  `metadata/v4 v4.4.0`, so the module did not compile standalone
-  (`GOWORK=off`: `undefined: metadata.Metadata` — the workspace build masked
-  it). **v4.7.1** re-pins `metadata/v4 v4.5.0`; no other change.
-
-### Added (query/v4.6.0 → v4.6.1) — ⚠ v4.6.0 RETRACTED
-
-- **`query.AsRecord(*PersistedQuery) record.Record`** adapter; `Metadata`
-  alias of the v4.5.0 generic; `BasicQuery.ApplyOptions`; AuditMiddleware
-  carries RequestID + metadata.
-- **v4.6.0 retracted** (same metadata-pin breakage; directive in the v4.6.1
-  `go.mod`). **v4.6.1** re-pins `metadata/v4 v4.5.0`; no other change.
-
-### Added (middleware/v4.5.0)
-
-- **`CommandActorContext()`** middleware: lifts an actor from the context
-  into command metadata (pairs with `event.ActorEnricher`).
-
-### Fixed (watermill/v4.5.0)
-
-- **`CatchUpSubscriber` no longer misses events published during replay**
-  (live-phase draining reworked); broker integration tests; event-to-message
-  actor roundtrip.
-
-### metaengine/v4.11.0 + engines
-
-- **metaengine/v4.11.0** ships the 2026-08-10 → 2026-08-15 metaengine work
-  detailed in the dated sections below: engine roles + shadow replication +
-  `PromoteEngine`/`DemoteEngine`, live-cost measurement, row/columnar layout
-  calibration, `ReplanLayout` convergence, MariaDB dialect + numeric-safe
-  sorts, native graph dispatch (PG/MySQL) + vector search on LSM engines,
-  five brutal-review defect fixes, SQL injection guards + DSN redaction, and
-  the `workloadMeter` cache-line pad (contended ops −46..51%: 6.3→3.4 ns/op
-  @4 procs, 6.6→3.2 @8).
-- **sqliteengine/pebbleengine/pgengine v4.1.0**: layout-roles support,
-  calibration embedded in engine structs, defect-sweep fixes; pgengine gains
-  `meta_graph_edges` + `WITH RECURSIVE` neighborhood resolution.
-- **badgerengine v4.0.2**: position-based journal resumption + dependency
-  refresh.
-- **mysqlengine / bboltengine / tursoengine / irohengine v4.0.0**: first
-  tagged releases of the previously untagged engine modules.
-
-## [Unreleased — earlier 2026-08-16 work]
-
-> **Scope note (2026-08-16):** the 2026-08-10 → 2026-08-15 sections below for
-> modules tagged in the [2026-08-16 module releases] chain (metaengine,
-> engine modules, storage, event, command, query, metadata, schema, record,
-> id, middleware, watermill) shipped in those tags. Sections for modules
-> outside the chain (projectionhost, stack/\*, storage/bbolt,
-> storage/pebble, storage/memory, benchkit, catalog, system, cmd/\*) and the
-> Wave-3/Wave-4 entries dated 2026-08-16 remain unreleased.
-
 ### Changed — metaengine KV/LSM layout constants re-derived from size-stable benches — 2026-08-16
 
 - **Both KV/LSM calibration benches were defective and are fixed.** The memory
@@ -1582,7 +888,8 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
   ALL journal capabilities (Journal, SeekableJournal, StreamingJournal,
   io.Closer) where the previous hand-written wrapper silently dropped
   StreamingJournal. Streaming reads apply the transform per 128-event chunk.
-  New sentinel `event.ErrInnerStoreNotStreaming`.
+  A not-streaming sentinel joined the `event` module's `ErrInnerStoreNot*`
+  family.
 - **`schema.NewVersionedSeekableJournal` deprecated**: now a compatibility
   shell delegating to `DecorateJournal` + `UpcastSourceTransform` (same
   pattern as the `VersionedStore` shell; removal at v5). Canonical form:
@@ -2068,8 +1375,10 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
   `EncryptSinkTransform` / `DecryptSourceTransform`; `schema` exposes
   `UpcastSourceTransform`. Wrapped stores now forward ALL optional capabilities
   (the old `encryptedStore` silently lacked `MultiSink`). Unsupported-capability
-  sentinels moved to `event.ErrInnerStoreNot*` (`encryption.ErrInnerStoreNot*`
-  are deprecated aliases — `errors.Is` unaffected).
+  sentinels moved to the `event` module's `ErrInnerStoreNot*` sentinel family
+  (the corresponding `encryption` aliases were deprecated and have since been
+  removed with the ADR-0126 shell sweep — `errors.Is` on the `event` family is
+  unaffected).
 - **`storage/memory.LogStore[T, ID]`** generic core replaces three forked
   store hierarchies; `LogStoreConfig` injects duplicate/not-found policy and
   missing-position semantics (events replay from start; commands/queries
@@ -2087,7 +1396,8 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
   `sqliteTestDSN` makes them unique.
 - **cqrs-lint**: S010 detection recognizes `EncryptSinkTransform` /
   `DecryptSourceTransform` and suggests the `DecorateStore` form (the old
-  suggestion referenced a nonexistent `signing.NewSignedStore`); F005 suggests
+  suggestion referenced a nonexistent signed-store constructor on `signing`);
+  F005 suggests
   `UpcastSourceTransform` over the deprecated `NewVersionedStore`.
 
 ### Added — Layout convergence, audit trail, operator-lever regression matrix, DSN keyword/value fix — 2026-08-11
@@ -2981,11 +2291,15 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 > critical doc/code drift). Updated 12 documentation files to remove stale
 > tombstone metadata references. API stability goldens regenerated (3992 exports).
 
-- **`listing.TombstonePolicy` → `listing.DeletePolicy`** (**BREAKING**):
+- **`listing.TombstonePolicy` renamed to a `DeletePolicy` spelling**
+  (**BREAKING**; **SUPERSEDED** — reverted before any release, see the
+  correction note above):
   constants renamed `TombstoneExclude`/`TombstoneInclude`/`TombstoneOnly` →
   `DeleteExclude`/`DeleteInclude`/`DeleteOnly`. `ListOptions.Tombstone` field →
   `ListOptions.DeletePolicy`. `applyTombstonePolicy` → `applyDeletePolicy`.
-- **`stack.TombstonePolicy` → `stack.DeletePolicy`** (**BREAKING**):
+- **`stack.TombstonePolicy` renamed to a `DeletePolicy` spelling**
+  (**BREAKING**; **SUPERSEDED** — reverted ahead of the v5 deletion wave,
+  ADR-0114's delete-as-domain-events direction replaces it):
   constants renamed `IncludeTombstoned`/`ExcludeTombstoned`/`OnlyTombstoned` →
   `IncludeDeleted`/`ExcludeDeleted`/`OnlyDeleted`. `FilterTombstoned` →
   `FilterDeleted`.
@@ -3283,11 +2597,13 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
   `record/go.mod`.
 - **`listing.Status` type**: local Active/Deleted enum replacing
   `event.TombstoneStatus`. `IsDeleted()` method.
-- **`listing.WithDeleteTypes(event.Type...)` option**: configures
+- A `WithDeleteTypes(event.Type...)`-spelled option (SUPERSEDED — reverted
+  before any release): configured
   `InMemoryStreamReader` to detect deletion from event types (ADR-0114 pattern).
   Deletion is detected by checking if the stream's last event type matches a
   configured delete type.
-- **`listing.Option` functional options**: `WithDeleteTypes` is the first
+- Functional options for `listing` (this reverted wave's first was the
+  delete-types one):
   `InMemoryStreamReader` option.
 - **`event.WithActor(id.ActorID)` option**: sets the actor directly.
 
@@ -3305,7 +2621,7 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 
 ### Removed — Phase 2 dead code cleanup — 2026-08-10
 
-- **`metaengine.GraphBackend` interface deleted** (ADR-0113, **BREAKING**): the
+- **The `GraphBackend` interface is deleted from `metaengine`** (ADR-0113, **BREAKING**): the
   exported 2-method graph interface (`GraphAddEdge`, `GraphNeighbors`) is removed
   from `metaengine/engine.go`. The memory engine's graph implementations
   (`GraphAddEdge`, `GraphNeighbors`, `memGraph` struct, `getGraphLocked`,
@@ -3325,8 +2641,9 @@ repaired the same day — `storage/v4.7.0` (see its section above) and
 
 ### Removed — Phase 3 self-registration cleanup — 2026-08-10
 
-- **`system.RegisterDriver`, `system.RegisteredDrivers`, `system.DriverFactory`
-  deleted** (ADR-0123, **BREAKING**): the backward-compat delegate shims in
+- **The `system` self-registration shims (`RegisterDriver`,
+  `RegisteredDrivers`, `DriverFactory`) are deleted** (ADR-0123,
+  **BREAKING**): the backward-compat delegate shims in
   `system/driver_registry.go` are removed. The driver registry lives entirely in
   `metaengine/` — consumers call `metaengine.RegisterDriver`,
   `metaengine.LookupDriver`, `metaengine.RegisteredDrivers` directly.
@@ -3375,13 +2692,14 @@ Resolved the follow-up items discovered during the Phase 2–3 status review:
 #### Follow-ups resolved — 2026-08-10
 
 - **`dgraphengine/README.md` broken code example fixed** — replaced
-  `eng.(metaengine.GraphBackend)` with a local `graphDispatch` interface
+  a `metaengine` graph-backend type assertion with a local `graphDispatch`
+  interface
   definition (matching the test-file pattern). Updated prose (lines 7, 119)
   from "GraphBackend" to "graph dispatch".
 - **4 stale `GraphBackend` comment references fixed** — `engine.go:5,7`,
   `graphrag_test.go:20`, `mixed_bench_test.go:14` reworded to "graph dispatch".
   `engine_test.go:13` left as historically accurate ("ADR-0113: the exported
-  metaengine.GraphBackend was deleted").
+  the graph backend interface was deleted").
 - **`doc-check` passed** — all 695 references valid across 42 packages. Fixed 4
   stale `event.MarkTombstone`/`event.DetectTombstone` references in skill docs
   (`core.md` §3.1 + anti-pattern table, `advanced.md` §6.1) — rewritten to the
@@ -3418,11 +2736,13 @@ files. All fixed to unblock `verify-fast`:
 
 ### Added — ADR-0114 tombstone migration APIs — 2026-08-10
 
-- **`storage.WithDeleteTypes(event.Type...)` option** for `StreamProjection`:
+- A `WithDeleteTypes(event.Type...)`-spelled option for the storage stream
+  projection (removed ahead of the v5 deletion wave):
   configures which event types signal stream deletion. Replaces metadata-based
   detection.
-- **`storage.StreamProjectionOption` type**: functional option type for
-  `NewStreamProjection`.
+- A `StreamProjectionOption`-spelled functional option type for the storage
+  stream projection constructor (removed ahead of the v5 deletion wave; that
+  constructor no longer exists).
 - **`stack.Materialize.DeleteTypes` / `RebirthTypes` fields**: `[]event.Type`
   slices that trigger `OnTombstone`/`OnRebirth` callbacks. Replace metadata-based
   tombstone detection.
@@ -3539,7 +2859,7 @@ files. All fixed to unblock `verify-fast`:
 
 ### Changed — v5 deprecation markers — 2026-08-10
 
-- **`metaengine.GraphBackend` deprecated** (ADR-0113): production dispatch
+- **The `metaengine` graph backend interface deprecated** (ADR-0113): production dispatch
   uses unexported `graphBackend` in `dispatch.go`. Exported interface retained
   for test infrastructure; will be removed at v5 cut.
 - **`metaengine.On` / `OnTyped` deprecated** (ADR-0116): use `OnRecord` /
@@ -3547,13 +2867,701 @@ files. All fixed to unblock `verify-fast`:
   metadata). On/OnTyped will be removed in v5.0.0.
 - **`metadata.Tracing` deleted** (ADR-0111 Phase 3): consolidated into
   `record.CommonMetadata` with branded types. Bridge methods removed.
-- **`system.RegisterDriver` deprecated**: use `metaengine.RegisterDriver`
-  directly. `system.DriverFactory` is now a type alias for
+- **The `system` registration shims deprecated**: use `metaengine`'s
+  registration directly. The `system` driver-factory type became an alias for
   `metaengine.DriverFactory`.
 - **`staticcheck` re-enabled for `system/`** in `.golangci.yml`: audit found
   zero violations. Fixed 3 pre-existing lint issues (`unconvert`, 2× `unparam`).
 - **Pebbleengine test boilerplate eliminated**: all test files now use
   `mustNewPebbleEngine(t)` / `newPebbleEngineOrSkip(t)` helpers.
+
+---
+
+## [snapshot/v4.4.0, decider/v4.5.0, storage/v4.8.1, storage/memory/v4.4.0, storage/pebble/v4.3.0, storage/bbolt/v4.1.0, storage/turso/v4.3.0, storage/backuptest/v4.1.0] — 2026-08-29
+
+### Added — snapshots are constructing-validated and self-describing (P10) — 2026-08-22
+
+- Added **`snapshot.NewSnapshot`** (ref, version, state, encoding): the
+  validating constructor for **`snapshot.Snapshot`**. It rejects a zero
+  stream ref, `version < 1`, and empty state (family Rejection, codes
+  `snapshot.invalid_ref` / `snapshot.zero_version` /
+  `snapshot.nil_state`), stamps `CreatedAt` in UTC, and defensively clones
+  the state bytes.
+- Added **`snapshot.Snapshot.Validate`** (same invariants, for values built
+  by other means), **`snapshot.Snapshot.Ref`** (pair-form identity), and
+  the **`snapshot.ErrInvalidSnapshot`** sentinel.
+- **`snapshot.Snapshot`** gained an **`Encoding`** field typed
+  **`record.Encoding`** (envelope pattern, ADR-0044 style): snapshots saved
+  through **`snapshot.TypedStore`** or the decider repository now carry the
+  codec stamp, making the struct self-describing. Legacy snapshots read as
+  the unknown constant; decode stays envelope-authoritative, so no stored
+  wire format changed.
+- **`snapshot.SaveSnapshot`** is Deprecated (removed in v5): it cannot know
+  the codec, so it stamps the unknown constant. The decider repository now
+  saves via the constructor with its real codec stamp.
+- The Pebble and bbolt snapshot stores persist the new stamp: their
+  CBOR wire structs gained an additive `encoding` field (old rows decode
+  as the unknown constant; roundtrip tests pin it). The SQL snapshot
+  schema has no encoding column — the ADR-0044 envelope inside State
+  remains authoritative there (see TODO_LIST §v5 Unification audit).
+
+### Changed — Durability tiers now de-escalate per-write sync on Pebble — 2026-08-17
+
+- **`stack/pebble` Normal tier maps to async WAL writes** (behavior change,
+  minor version): the preset now translates `stack.DurabilityNormal` (its
+  default) to async writes — WAL entries land in the page cache without a
+  per-write fsync (safe against app crash; a kernel/power crash may lose the
+  most recent writes) — instead of fsync-per-write. Every other backend
+  already de-escalated at Normal (SQLite `synchronous=NORMAL`, Postgres
+  `synchronous_commit=off`); Pebble was the outlier, and `stack/durability.go`
+  had documented this exact behavior all along while `stack/pebble/preset.go`
+  claimed "Normal → same as Strict" — the doc split brain is fixed, both now
+  tell the truth. Strict is unchanged (fsync per write) and remains what
+  write-critical consumers should opt into explicitly.
+- **`stack/pebble` Relaxed tier no longer forces a memtable flush per write** —
+  latent bug fixed as a side effect: Relaxed set `DisableWAL=true` but stores
+  still wrote with synchronous writes, which with the WAL disabled degrades to
+  a memtable flush per write — the slowest path Pebble has, in the tier that
+  exists for speed. Relaxed now also writes async (memtable only, data loss
+  on crash — as documented).
+- **bbolt is the documented exception**: it has no WAL, so its only async knob
+  (`NoSync`) skips the commit fsync entirely — a weaker guarantee than every
+  other backend's Normal and one bbolt upstream calls dangerous. bbolt
+  Normal therefore ≡ Strict (sync-on-commit), the exception is recorded in
+  `stack/durability.go`'s tier table, and the bbolt preset keeps defaulting
+  to Strict so the default tier name matches the actual guarantee.
+
+### Added — storage/pebble Backend async writes — 2026-08-17
+
+### Added — Backend + engine async-write options — 2026-08-17
+
+- **`pebble.WithBackendAsyncWrites`** (`storage/pebble`, with the new
+  `pebble.BackendOption` type) — constructs every Backend store (events,
+  commands, queries, snapshots, checkpoints, and the shared read-model KV
+  store) with async writes in one call; the per-store
+  `pebble.WithAsyncWrites` family unchanged. Default Backend behavior is
+
+- **`BenchmarkEventAppendSync`/`BenchmarkEventAppendAsync`**
+  (`storage/pebble/durability_bench_test.go`) — disk-backed append-throughput
+  comparison for the two tiers (writes under
+  `$HOME/.cache/pebble-durability-bench`, override
+  `PEBBLE_DURABILITY_BENCH_DIR`; skips when unavailable — tmpfs would erase
+  the fsync cost being measured). First measurement attempt (2026-08-17) was
+  inconclusive: ambient load 3–4 on a 96%-full btrfs had raw async `Set` at
+
+### Fixed
+
+- **`decider.WithWaitTimeout`** and **`decider.WithPollInterval`** now clamp
+  non-positive values to their defaults instead of reaching
+  `time.NewTicker`, which panics on non-positive intervals
+  (full-code-review).
+- The decider flight-recorder snapshot now runs on a detached context
+  (**`context.WithoutCancel`**): a cancelled request context no longer
+  discards the very error snapshot the recorder was configured to capture.
+- **`decider.NewTypedRepository`** rejects a nil typed Decide function up
+  front with the new **`decider.ErrNilDecide`** sentinel (family Rejection)
+  instead of panicking on the first dispatch.
+- bbolt persisted-command and persisted-query (de)serialization failures are
+  now classified Corruption via the error-family wrapper with
+  `bbolt.serialize_command` / `bbolt.reconstruct_command` /
+  `bbolt.serialize_query` / `bbolt.reconstruct_query` contexts, replacing
+  plain wrapped errors (extended review E3).
+- The Turso indexing-policy mutators (Exclude, MarkCritical,
+  MarkSkipAutoCreate) no longer panic on zero-value or nil policies: the
+  exclusion/criticality maps initialize lazily on first mutation and nil
+  receivers are a no-op (extended review E9).
+
+### Changed — storage stream reader surfaces type-driven status (with listing/v4.3.0) — 2026-08-27
+
+- **`storage`**: `SQLStreamReader` now surfaces `listing.Status` from the
+  existing `tombstone_status` column (same wire ints).
+
+### Fixed — Postgres integration tests share one database under explicit DSN — 2026-08-27
+
+- **`storage`**'s integration TestMain (and `storage/relational`'s
+  `openPostgresDB`) returned the shared `POSTGRES_TEST_DSN` database
+  directly when an explicit DSN was set, so every test — and every package
+  sharing the CI service container — wrote into ONE database
+  (cross-test/cross-package ghost rows, the `#integration-pg` contamination
+  class). Both now route through **`testutil/pgtestcontainer`**, which
+  provisions a per-test database even under an external DSN; storage's
+  local duplicate of the helper is deleted.
+
+### Fixed — deep-review gap wave: error-family truth at store boundaries — 2026-08-27
+
+- The memory, pebble, and SQL eventstore Save boundaries preserve the
+  optimistic-concurrency Conflict family; the pebble/bbolt scan helpers
+  and the SQL checkpoint load preserve Corruption (undecodable rows,
+  unparseable checkpoints) instead of flattening both to Infrastructure.
+- **`query.NewPaginatedResult`** returns zero TotalPages for a zero-value
+  **`query.Pagination`** instead of panicking on integer division by
+  zero; the query audit middleware persists its record with a detached
+  context so a client disconnect between handler completion and save can
+  no longer silently drop exactly the auditable queries.
+- storage/bbolt: KVAdapter Get returns **`kv.ErrNotFound`** unwrapped
+  (previously Infrastructure-wrapped, so every miss landed in infra
+  metrics); Save/AppendBatch return the module-standard bucket-missing
+  Infrastructure error instead of panicking on an uninitialized database;
+  DiskUsage is family-classified. storage/pebble: a failed batch Commit
+  no longer leaks the pebble batch. storage/sql: IsDuplicateKeyError
+  recognizes DuckDB 1.x PRIMARY KEY violations — duplicate command/query
+  inserts on DuckDB now surface as Conflict and trigger the Inserter
+  duplicate hook (command idempotency was silently broken on that
+  backend).
+### Added — memory WAL core + backup suite — 2026-08-29
+
+- **`storage/memory`** re-based its store family onto the shared generic
+  **`storage/memory.LogStore[T, ID]`** core (ADR-0126 WAL unification):
+  duplicate/missing-position policy and stream-scoping behavior now live in
+  **`storage/memory.LogStoreConfig`** config funcs instead of forked
+  per-store copies; adds **`storage/memory.ErrNoStreamScoping`**.
+- **`storage/backuptest.RunIncrementalCheckpoints`** (alongside the
+  **`storage/backuptest.Backend`** / **`storage/backuptest.Factory`**
+  seams): incremental checkpoint lifecycle coverage shared by the bbolt and
+  pebble backend test suites.
+
+## [command/v4.8.1, query/v4.7.1, middleware/v4.5.1, scheduling/v4.3.1, listing/v4.3.0, testutil/pgtestcontainer/v4.1.0] — 2026-08-29
+
+### Changed — listing status is type-driven (ADR-0114, v5 prep)
+
+- **`listing.Status`** (new type) + **`listing.StatusClassifier`** +
+  **`listing.NewStatusClassifier`** + **`listing.WithStatusClassifier`**
+  reader option: stream status is now derived from the LAST event's type
+  (delete types → tombstoned, rebirth types → active) instead of mutable
+  tombstone metadata. Wire values match the legacy
+  `event.TombstoneStatus` ints (active=0, tombstoned=1, undetermined=2);
+  JSON output is unchanged (verified against the stream-status golden).
+- **`listing.StreamStatus.Status`** is now `listing.Status` (was
+  `event.TombstoneStatus`) — BREAKING for v5, the metadata tombstone API it
+  depended on is removed in v5.
+- **`listing.NewInMemoryStreamReader`** accepts variadic
+  `ReaderOption`s (backward-compatible call sites). Without a classifier
+  every stream reports `StatusUndetermined` — same value the metadata
+  bridge returned for unmarked streams.
+- **`listing.StatusMiddleware`** is Deprecated (removed in v5): readers no
+  longer consult metadata marks; pass the same event-type sets to
+  `NewStatusClassifier` instead.
+
+### Added — per-test Postgres isolation
+
+- **`testutil/pgtestcontainer.AfterRun`** (added): registers a callback
+  that runs after `m.Run()` on every TestMain exit path, so packages can
+  keep post-run work such as `snaps.Clean(m)` while delegating TestMain to
+  the shared helper.
+
+### Fixed
+
+- **`command.TypedCommandStore`** (Save/AppendBatch) and
+  **`query.TypedQueryStore`** (SaveQuery) no longer blanket-wrap inner
+  errors as Infrastructure: duplicate command / duplicate query Conflicts
+  keep their Conflict family (matching bbolt), so family-aware retry
+  policies and HTTP mappers see 409-class instead of 503-class.
+- **`scheduling.WithMaxRetries`** clamps values below 1 to 1: a 0
+  previously meant zero dispatch attempts after which the timer was
+  marked fired — the deadline was permanently lost with no error and no
+  log.
+- The SQL timer store's Due skips undecodable (corrupt) timer rows and
+  returns the decodable timers alongside a joined Corruption error; the
+  Scheduler dispatches what decoded and re-reports the corruption each
+  poll. One rotten row previously blocked dispatch of every due timer
+  indefinitely.
+- **`scheduling.MemoryTimerStore`**'s `Due` now honors its documented
+  FireAt-ascending, ID-tiebreak ordering (it previously leaked random map
+  iteration order into dispatch order).
+- **`query.NewPaginatedResult`** returns zero TotalPages for a zero-value
+  **`query.Pagination`** instead of panicking on integer division by
+  zero; the query audit middleware persists its record with a detached
+  context so a client disconnect between handler completion and save can
+  no longer silently drop exactly the auditable queries.
+- The middleware flight-recorder snapshot runs on a detached context
+  (context.WithoutCancel), mirroring the decider-side fix: the request
+  context is typically cancelled exactly when error captures matter.
+
+## [event/v4.9.0, schema/v4.3.1, dedup/v4.2.1, dispatcher/v4.3.1] — 2026-08-29
+
+### Fixed
+
+- **`event.DecorateStore`** now forwards **StreamingSource** and
+  **StreamingJournal** reads (LoadStream, LoadStreamFromVersion,
+  ReadStream, ReadStreamFrom) to the inner store, applying the source
+  transform per chunk; previously a streaming-capable store wrapped
+  through DecorateStore silently lost streaming reads — consumers fell
+  back to full-materialization Load/ReadAll, the exact OOM risk the
+  streaming interfaces exist to prevent, despite the wrapper's
+  preserve-all-interfaces claim (ADR-0126). Inner stores without the
+  capability return ErrInnerStoreNotStreaming rejections like the other
+  optional caps; the delegation is shared with DecorateJournal via one
+  helper so store and journal decorators cannot drift.
+- **`event.Single`**, **`event.NewEvents`**, and
+  **`event.DecodePayloads`** pass constructor/validation errors through
+  unchanged instead of re-wrapping them under a blanket family (the trio
+  previously classified the same constructor failure three different
+  ways); **`event.ExtractCustomBytes`** classifies damaged persisted
+  metadata as Corruption (was Infrastructure).
+- **`dispatcher.RegisterWithWrapping`** no longer blanket-wraps inner
+  errors as Infrastructure: duplicate-handler Conflicts keep their
+  Conflict family (matching bbolt), so family-aware retry policies and
+  HTTP mappers see 409-class instead of 503-class.
+- **`dedup.Ring`**'s Add is a no-op on a nil receiver, matching
+  Has/Len/Capacity nil-safety, so the documented nil-ring replay pattern
+  cannot panic on the Add side of a Has-then-Add boundary loop.
+- **`schema.VersionedSeekableJournal`** is now a deprecated shell
+  embedding `event.DecorateJournal(raw, UpcastSourceTransform(...))`
+  (ADR-0126): existing call sites keep compiling AND gain forwarded
+  StreamingJournal reads (ReadStream, ReadStreamFrom) with upcasting
+  applied — the hand-written wrapper silently dropped them. New code
+  should use the transform directly.
+
+### Added
+
+- **`event.Orchestration`** compat alias completes the six-family block
+  (`errorfamily.Orchestration` re-exported under the legacy name).
+
+## [record/v4.4.0, metadata/v4.6.0, event/v4.8.0, command/v4.8.0, query/v4.7.0, scheduling/v4.3.0, decider/v4.4.0, storage/v4.8.0] — 2026-08-22
+
+### Added — WithActor hardening: scheduling actor propagation + coverage gates — 2026-08-17
+
+- **`scheduling.Timer.Actor`** — timer-initiated commands can now carry the
+  audit-trail actor through the timer lifecycle: `Timer[P]` gains an `Actor`
+  field holding the self-describing "kind:raw" ActorID wire format (e.g.
+  `"user:01JXYZ..."`, `"system:scheduler"`), delivered to the `DispatchFunc`
+  so dispatchers stamp `command.WithActor(id.ParseActorID(t.Actor))`. Plain
+  string (not `id.ActorID`) by design: scheduling is a
+  zero-production-dependency module, mirroring `record.CommonMetadata.ActorID`.
+  The SQL timer store now writes a versioned payload envelope
+  (`{"v":1,"actor":"...","payload":<P>}`, ADR-0044 pattern) so the actor
+  survives SQL persistence; legacy bare-payload rows (including non-object
+  payloads) still decode with an empty actor. Zero value = unspecified
+  (dispatcher decides attribution).
+- **WithActor coverage gates** — `TestMetadata_CBORRoundtrip_PreservesActor`
+  (event) locks ActorID through the CBOR binary codec; golden JSON snapshots
+  for full event metadata (`event/testdata/golden/event-metadata-actor.json`)
+  and full command metadata (`command/testdata/golden/command-metadata-actor.snap`)
+  pin the persisted JSON shapes incl. `actorId`; each golden doubles as a
+  round-trip test through the store load path
+  (`event.UnmarshalMetadataJSON` / `command.Metadata` scan).
+- **Verified already-shipped coverage** — watermill wire-format round-trips,
+  SQL `MarshalMetadata` scan, pebble/bbolt store metadata round-trip, the
+  e2e decider+projection propagation test, `TestQuery_AllMetadata`, json/v1
+  `omitzero` fallback, scenario DSL actor support, deriver/commandlifecycle
+  propagation, `middleware.CommandActorContext`, and `id.ActorID.Validate`
+  all re-run green after this wave.
+
+
+### Changed — record.Encoding is now a compact typed stamp — 2026-08-22
+
+- The **`record.Encoding`** field changed from a plain string
+  ("json"/"cbor"/"") to the new typed stamp with constants
+  **`record.EncodingUnknown`** / **`record.EncodingJSON`** /
+  **`record.EncodingCBOR`** — the zero value means absent, opaque, or
+  envelope-wrapped (owner decision 2026-08-22, closing the three-session
+  string-vs-compact window before the first record tag).
+- Added **`record.ParseEncoding`** (canonical codec name → stamp; unknown
+  names fail **`record.ErrUnknownEncoding`**) and `String()` mapping back,
+  so "json"/"cbor" round-trip. record stays zero-dep: the vocabulary lives
+  in record, bridges convert at their boundary.
+- `event.AsRecord` now stamps the compact form — codecs record does not
+  know stamp the unknown constant rather than guessing. command/query
+  bridges and zero-value Records carry the unknown constant. In-process
+  struct only: no stored wire format changed (the ADR-0044 envelope keeps
+  its own string stamp).
+
+### Changed — record.Type consolidation (ADR-0111) — 2026-08-22
+
+- **`event.Type`**, **`command.Type`**, and **`query.Type`** are now type
+  aliases of **`record.Type`** — one canonical definition shared by all three
+  domain-message kinds, so the triplicated per-module copies cannot drift.
+  Behavior unchanged: same underlying string, same String/IsZero method set
+  (inherited from the shared definition), same JSON and wire form. A
+  cross-type comparison test in each module pins the alias at compile time —
+  reverting to a standalone defined type fails the build.
+- The per-module Type methods (the module-local String and IsZero on the old
+  standalone types) are gone, superseded by the shared definition.
+- **`event.ParseType`**, **`command.ParseType`**, and **`query.ParseType`** are
+  Deprecated (removed in v5) one-line forwarders onto the canonical
+  `record.ParseType`. Each wrapper still returns its module's own empty-type
+  sentinel (ErrEmptyEventType, ErrEmptyCommandType, ErrEmptyQueryType), so
+  existing error handling is unchanged.
+- Added **`record.Type`** (with String/IsZero) and **`record.ParseType`** — the
+  parametrized validator taking the caller's empty-value sentinel, so each
+  module keeps its error identity while sharing one implementation.
+
+### Changed — scheduling: branded timer identity + typed actor — 2026-08-22
+
+- **`scheduling.TimerMarker`** + **`scheduling.TimerID`** — timer identity is
+  now a branded type (string-backed, the documented `id.StreamID` pattern)
+  instead of a bare `string` alias.
+  String-backed on purpose: timer IDs are semantic idempotency keys
+  ("cancel-order-...", "delay-test") that callers choose for stable
+  re-scheduling and cancellation; ULID backing would break every idempotent
+  scheduling flow. Deviation from the original plan sketch (`id.Of[TimerMarker]`,
+  ULID-backed) for exactly this reason. Wire form unchanged: IDs still
+  serialize as plain strings (SQL columns and JSON both unchanged).
+  NOTE: source-level breaking for callers that assigned raw strings to
+  Timer.ID — construct via `scheduling.ParseTimerID`.
+- **`scheduling.ParseTimerID`** / **`scheduling.MustParseTimerID`** /
+  **`scheduling.ErrEmptyTimerID`** — semantic-name constructors; the Must
+  form is for compile-time-known names.
+- **Timer.Actor** is now `id.ActorID` instead of `string` — the typed
+  attribution the doc comment previously told callers to round-trip by hand
+  via ParseActorID. Wire-compatible: zero marshals ""/omitted, non-zero
+  marshals the same self-describing "kind:raw" string; SQL stores keep the
+  envelope actor column a plain string and convert at the boundary, so
+  existing rows (including legacy bare-payload rows) decode unchanged.
+  `scheduling` gains `id/v4` + `go-branded-id` as direct production deps
+  (Tier 1 → Tier 0, budget raised 0→2; `#check-arch` green).
+
+### Added — decider *Ref identity forms — 2026-08-22
+
+- **`decider.Repository.ExecuteRef`** / **`decider.Repository.LoadRef`** /
+  **`decider.Repository.LoadAtVersionRef`** /
+  **`decider.Repository.LoadAtTimeRef`** /
+  **`decider.Repository.WaitForVersionRef`** — the ref forms are the real
+  implementations; the stream is addressed by a single `id.StreamRef`.
+  Every internal helper (store load, singleflight key, state cache,
+  snapshot) was already `id.StreamRef`-keyed, so the ref forms reach them
+  without constructing a pair intermediate on the hot path.
+- **`decider.TypedRepository.ExecuteCommandRef`** /
+  **`decider.TypedRepository.LoadRef`** — the typed wrapper's twins.
+- The `(streamID, streamType)` pair forms (`decider.Repository.Execute`,
+  `decider.Repository.Load`, `decider.Repository.LoadAtVersion`,
+  `decider.Repository.LoadAtTime`, `decider.Repository.WaitForVersion`,
+  `decider.TypedRepository.ExecuteCommand`) are Deprecated (removed in v5)
+  one-line forwarders onto the ref forms. `TestRefForms_MatchPairForms`
+  pins the lockstep: pair and ref forms address the same stream and produce
+  identical outcomes. `system/register.go` migrated to `ExecuteRef` (the
+  only production internal pair-form caller).
+
+### Added — metadata capability interfaces (Command/Query) — 2026-08-22
+
+- **`query.MetadataCarrier`** and **`query.PayloadCarrier`** — exported
+  capability interfaces for queries that carry `Metadata` or expose raw
+  payload bytes. Middleware type-asserts to the named capability instead of
+  inline duck-typed interfaces; `query.AuditMiddleware` now asserts the
+  exported types (the two inline `metadatable` declarations and the inline
+  payload assertion in `audit.go` are gone). Hand-rolled `Query`
+  implementations opt in by adding a `Metadata()` method — no interface
+  growth, zero consumer breakage (review P6; capability-now vs
+  interface-growth-at-v5 comparison in the plan's Appendix C).
+- **`command.MetadataCarrier`** — the command-side twin. `*BasicCommand`
+  and `*BasicQuery` satisfy their carriers via compile-time asserts;
+  growing the core `Command`/`Query` interfaces rides the v5 cut.
+
+### Added — Record.ID + Record.Encoding: identity and codec stamp survive the bridges — 2026-08-22
+
+- **`record.Record.ID`** (`string`) — the record instance's unique
+  identifier: `EventID` for events, `CommandID` for commands, `RequestID`
+  for queries. The AsRecord bridges dropped this identity on the floor
+  before the field existed (review P5). All three bridges now fill it.
+- **`record.Record.Encoding`** (`string`) — the payload's codec stamp in the
+  self-describing form used by the go-codec `Encoding` type and the
+  ADR-0044 envelope ("json" / "cbor"). The event bridge fills it from the
+  event's encoding, so
+  mixed JSON+CBOR event streams stay self-describing through Record-aware
+  folds. Empty for commands (no payload) and queries (envelope-wrapped
+  payloads carry their own stamp). Deviation from the review sketch, which
+  proposed `uint8`: a numeric mapping would exist nowhere else in the
+  ecosystem and drift — the string form matches the codec layer exactly.
+
+### Added — structural record.Actor (kind-discriminated producer) — 2026-08-22
+
+- **`record.Actor` + `record.ActorKind`** — the structural mirror of
+  `id.ActorID`: the kind-discriminated producer of a record (user / bot /
+  system / service) explicit at the type level, instead of smuggled through
+  the "kind:raw" stringly `ActorID` field every consumer had to parse
+  (review P3). `record/` stays zero-dep (ADR-0111) — the union is restated,
+  and `Actor.String()` emits the identical wire form as
+  `id.ActorID.PrefixedString`.
+- **`metadata.RecordActor`** — resolves a `Tracing` into the structural
+  actor: kind-discriminated `ActorID` wins; the legacy `UserID` fallback is
+  upgraded to `ActorUser` (a user ID is by definition a human user — the
+  kind it always implicitly had). Structural counterpart of `ActorString`.
+- **`CommonMetadata.Actor`** added; **`CommonMetadata.ActorID` (`string`)
+  is Deprecated (removed in v5)** — all three AsRecord bridges populate
+  both via `metadata.RecordActor` until the cut. `metadata` gains a
+  `record/v4` dependency (Tier 0 → Tier 0, `#check-arch` clean).
+
+### Added — record.Stamp: explicit timestamp presence — 2026-08-22
+
+- **`record.Stamp` + `record.NewStamp`** — a timestamp whose presence is
+  explicit: the zero Stamp means "not recorded"; a zero time.Time can no
+  longer masquerade as "stamped at epoch" (review P7). Unexported fields
+  (`at`, `known`) make an inconsistent state unconstructable; JSON is
+  lossless (`{"at":...}` / `null`, honored by both encoding/json v1 and v2).
+- **`CommonMetadata.Created` / `Received` / `Stored`** (`Stamp`) added;
+  **`ClientCreatedAt` / `ServerReceivedAt` / `ServerStoredAt` (`time.Time`)
+  are Deprecated (removed in v5)**.
+- **Bridge mapping**: `event.AsRecord` sets `Created` from the event's
+  `OccurredAt` (Received/Stored stay unknown — the store stamps them);
+  `query.AsRecord` sets `Received` from `PersistedQuery.ReceivedAt` — the
+  honest home for the server-receive clock the old field parked in
+  `ClientCreatedAt` (Created stays unknown: PersistedQuery carries no client
+  clock). Commands carry no timestamps.
+
+### Added — explicit record.Cause (kind-discriminated causation) — 2026-08-22
+
+- **`record.Cause` + `record.CauseKind`** — the single causation home that
+  replaces the stringly `CommonMetadata.CausationID` at v5: the causer's
+  kind (command / timer / event / unknown) is stated explicitly instead of
+  implied by ID format. Zero value = no cause recorded (review P4). Kinds:
+  `CauseNone` (zero), `CauseCommand` (typed event.Causation source),
+  `CauseTimer`, `CauseEvent`, `CauseUnknown` (bare tracing chain — the kind
+  honestly "not discriminated", mirroring `id.ActorUnknown`).
+- **`CommonMetadata.Cause`** added; **`CommonMetadata.CausationID` is
+  Deprecated (removed in v5)** — the three AsRecord bridges populate both
+  fields in lockstep until the cut.
+- **Bridge mapping**: `event.AsRecord` resolves typed
+  `Metadata.Causation.CommandID` → `{CauseCommand, id}` first (strongest
+  signal), falling back to `Tracing.CausationID` → `{CauseUnknown, id}`;
+  `command.AsRecord` / `query.AsRecord` map the tracing chain to
+  `{CauseUnknown, id}` (their only causation source).
+
+### Added — validated stream-ref population in the Record bridges — 2026-08-22
+
+- **`record.NewStreamRefOrZero`** — producer-side counterpart to the planned
+  v5 validating constructor (ADR-0123 Phase 8): returns the zero `StreamRef`
+  instead of a malformed one when the entity ID is empty, so adapters that
+  cannot return an error guarantee "a Record carries a well-formed stream
+  ref or none at all". Empty stream types remain legal (command/query
+  pattern).
+- **`event.AsRecord` / `command.AsRecord` / `query.AsRecord`** now populate
+  `Record.StreamID` via the validated constructor; invariant tests pin that
+  every populated ref passes `record.StreamRef.Validate` and round-trips
+  through `Split`. Closes the "Validate() call-site adoption" TODO for all
+  three bridges.
+
+## [metaengine/v4.12.0, sqliteengine/v4.2.0, pebbleengine/v4.2.0, badgerengine/v4.1.0, bboltengine/v4.1.0, pgengine/v4.2.0] — 2026-08-18
+
+Executing the routed follow-ups from
+`docs/reviews/2026-08-16_full-code-review-system.html` (proposals in
+`docs/adr/2026-08-17_system-v4-review-proposals.md`).
+
+### Added
+
+- **`metaengine`** — named query dispatch alongside type dispatch:
+  `metaengine.ExecuteQueryByName` and `metaengine.ExecuteTypedByName`
+  execute a declared query by name; unknown names fail with
+  `metaengine.ErrNoQueryForName`. Type dispatch (ExecuteCtx/ExecuteTyped)
+  resolves to the most recently registered query and therefore cannot
+  address two queries sharing one input type — which is exactly what a
+  second `system.Count` declaration does (all counters share
+  `system.CountInput`).
+- **`metaengine`** — durability tiers at the driver boundary:
+  `metaengine.DurabilityTier` (strict/normal/relaxed) travels on
+  `metaengine.DriverConfig`; `metaengine.ValidateDurabilityTier` and
+  `metaengine.RejectDurabilityTier` implement the fail-loudly contract
+  (invalid tiers fail with `metaengine.ErrUnsupportedDurability`). The
+  sqlite driver maps tiers to `PRAGMA synchronous` (FULL/NORMAL/OFF) and
+  errors when the operator also sets `synchronous` themselves; the memory
+  driver rejects strict (in-process storage cannot fsync); every other
+  driver (dgraph, duckdb, mysql, turso) rejects explicit tiers until it
+  implements real mappings.
+- **`metaengine/*engine`** — durability breadth: the pebble, postgres,
+  bbolt, and badger drivers map explicit tiers instead of rejecting them.
+  Pebble: strict = WAL + sync writes, normal = WAL + async writes
+  (`pebbleengine.WithAsyncWrites`), relaxed = DisableWAL + async writes
+  (`pebbleengine.WithDisableWAL`). Postgres: strict =
+  `synchronous_commit=on`, normal/relaxed = `off`, applied as a DSN runtime
+  parameter so every pooled connection inherits it — a DSN that already
+  sets `synchronous_commit` plus a tier is a configuration error. bbolt:
+  strict/normal = sync-on-commit (normal is an accepted alias — bbolt has
+  no WAL and therefore no app-crash-safe middle tier), relaxed = NoSync
+  (`bboltengine.WithNoSync`). Badger: strict = sync writes, normal/relaxed
+  = async writes (`badgerengine.WithAsyncWrites`) — async is badger's
+  floor because the value log is always written and replayed on open.
+
+## [system/v4.5.0] — 2026-08-18
+
+### Added
+
+- **`system`** — the second `system.Count` declaration no longer silently
+  shadows the first: GetCount dispatches by counter name.
+- **`system`** — dedicated role instances are wired: RoleCommands,
+  RoleQueries, and RoleSnapshots instances bind their stores from their own
+  engines (`system.CommandStore`, `system.QueryStore`), one engine may
+  serve multiple roles (collections are namespaced), duplicate roles fail
+  with `system.ErrDuplicateInstanceRole`, and a snapshots instance on an
+  engine without SnapshotBackend fails with `system.ErrNotSnapshotBackend`.
+- **`system`** — fan-out buses are bound by name, not position:
+  `system.AddNamedPublisher`, `system.PublisherByName`, `MultiBus.Names`,
+  and `system.PublisherFor` resolve buses by their YAML `publish:` target.
+- **`system`** — instance durability tiers now reach engine construction:
+  all instances sharing an engine must agree (a conflict fails with
+  `system.ErrDurabilityConflict`); an unset tier means engine defaults —
+  the config loader's silent "normal" defaulting was removed because it
+  would now push an explicit tier onto every engine.
+
+### Changed
+
+- **`system`** — every parsed-but-unread config field now says so:
+  `BusConfig.Mode` is documented introspection-only (publish is always
+  synchronous on the gochannel bus; the README's `mode: sync` example was
+  removed), `InstanceConfig.Subscribe` and `CacheConfig.Engine` are
+  documented reserved/not read (removal at v5), and
+  `InstanceConfig.Collections` is documented introspection-only. The
+  `system.Internal` evolution marker is documented as recorded but not yet
+  enforced. DECIDED 2026-08-18: `BusConfig.Mode` will be REMOVED at v5 —
+  it never gains sync/async publish semantics.
+- **`system`** — EventAdapter Save atomicity is now a documented contract
+  (`system/doc.go`): engines implementing `metaengine.AtomicAppender` (all
+  shipped engines) get all-or-nothing saves; Transactional engines get
+  transactional saves; engines with neither get a racy check-then-append
+  fallback that exists only so minimal third-party engines function.
+
+## [storage/v4.7.1] — 2026-08-16
+
+> Module-only patch release of `storage/v4`. Retracts the broken `v4.7.0`
+> (which did not compile: `sql/keyset.go:43` assigned an undeclared `err`)
+> and ships the one-line fix so `go get` resolves to a working version.
+
+- **Retracted `v4.7.0`** via a `retract` directive in `storage/go.mod`.
+  `go get` now skips the broken version by default; an explicit `@v4.7.0`
+  still resolves but warns. The version is permanent on `proxy.golang.org`
+  (immutable), so the retraction is advisory deprecation, not deletion.
+- **Fixed** `sql/keyset.go:43`: `err =` → `err :=`. The undeclared-variable
+  assignment made the whole `storage/v4` module fail to compile. This is
+  the only code change in this release.
+
+## [storage/v4.7.0] — 2026-08-16
+
+> Module-only release of the `storage/v4` module (sql, eventstore, view,
+> memory, bbolt, pebble trees). Cuts the wave-3 storage work + the journal
+> keyset-pagination fix so downstream consumers (browser-history et al.) can
+> pick up the O(N²) drain fix without waiting for the next full release.
+
+- Journal `ReadFrom`/`ReadStreamFrom` keyset pagination — full drains drop
+  from O(N²) to index-driven range scans (~285x on a 200k-event SQLite
+  journal; production browser-history restarts ~4.5 min → seconds).
+- Dialect-aware, packet-safe SQL batch INSERT chunking
+  (`sql.MaxParametersForDialect`, `sql.MaxStatementBytes`,
+  `sql.RowsWithinByteCap`); `view.BatchSet` INSERT…SELECT UNION ALL shuttle.
+- Pebble/bbolt deserialize fast path via `event.ReconstructEventWithMetadata`.
+
+### Detail — journal `ReadFrom` keyset pagination replaces O(N²) self-JOIN cursor
+
+- **`sql.JournalReader.ReadFrom` and `eventstore.ReadStreamFrom` now paginate
+  with keyset pagination** (`sql.ResolveCursorTimestamp` point lookup +
+  `sql.KeysetPositionQuery` timestamp-range scan) instead of a self-JOIN on the
+  cursor row (`e.ts > c.ts OR (e.ts = c.ts AND e.id > c.id)`). The self-JOIN
+  defeated `idx_events_occurred_at` in SQLite — `EXPLAIN QUERY PLAN` showed a
+  MULTI-INDEX OR plan plus a temp B-tree sort of the remaining tail on EVERY
+  batch, making a full journal drain O(N²) in batch count. Measured on a
+  200k-event SQLite journal drained in batches of 100: 62.9s before → 0.22s
+  after (~285x). Real-world impact: projectionhost workers with in-memory
+  checkpoint stores (full replay each start) burned ~4.5 min CPU per restart
+  on a production browser-history journal; drains are now single-digit
+  seconds. Dangling cursors (pruned journal rows) keep the former contract of
+  returning zero rows instead of silently replaying from the start. Verified
+  on SQLite (equivalence with tie-broken `(occurred_at, id)` ordering across
+  tie-groups, dangling-cursor, EXPLAIN QUERY PLAN regression pin, full-drain
+  benchmark: 5k events in 29ms) and real Postgres (placeholder numbering +
+  time.Time round-trip; `pg_integration_readfrom_test.go`).
+
+### Detail — packet-safe SQL batching + deserialize fast path
+
+- **Dialect-aware SQL batch chunking (33x fewer round-trips, now
+  packet-safe)**: `SharedBatchInsertEvents` and `view.BatchSet` chunk
+  multi-VALUES INSERTs by the dialect's bound-parameter limit (SQLite 999;
+  PostgreSQL/MySQL/DuckDB 32767 — 99 → 3276 rows per statement) AND by an
+  estimated statement-size cap (`sql.MaxStatementBytes`, 8 MiB = 50% of
+  MariaDB's default `max_allowed_packet`), so large payloads shrink chunks
+  instead of failing the whole batch write with a packet error. New exports:
+  `sql.MaxParametersForDialect`, `sql.MaxStatementBytes`,
+  `sql.RowsWithinByteCap`. Unknown custom dialects conservatively get the
+  SQLite limit; metadata is marshaled once per Save instead of per chunk.
+  Verified on real Postgres (ephemeral nix env) and MariaDB-in-VM (2000
+  events × 8 KiB regression test in `stack/mysql`).
+- **Pebble/bbolt read fast path via `event.ReconstructEventWithMetadata`**:
+  passing decoded metadata directly (no JSON round-trip) cut pebble
+  deserialize −46% ns/op and −53% allocs (5000→2680 ns/op, 2247→1205 B/op,
+  43→20 allocs/op); bbolt adopts the identical shape.
+
+## [2026-08-16 module releases]
+
+Coordinated 22-tag release cutting the actor-propagation + ADR-0126 (store
+transforms, metadata generic, WAL unification) era across the core modules,
+the metaengine tree, and watermill. Three broken versions were retracted and
+repaired the same day — `storage/v4.7.0` (see its section above) and
+`command/v4.7.0` / `query/v4.6.0` (entries below).
+
+### Added (id/v4.5.0)
+
+- **`ActorID` methods**: `Validate`, `MarshalBinary`, `UnmarshalBinary` on the
+  branded actor type introduced in v4.4.0.
+
+### Added (record/v4.3.0)
+
+- No source changes — re-cut so the core-module version set resolves
+  consistently (tree identical to v4.2.0).
+
+### Added (metadata/v4.5.0)
+
+- **Canonical `Metadata[K ~string]` generic** (ADR-0126): typed custom-data
+  map with `Clone`/`Merge`/`WithCustom`/`EnsureCustom`; `CustomData[K]` is
+  now a deprecated alias (removal at v5).
+
+### Added (schema/v4.3.0)
+
+- **`UpcastSourceTransform(upcasters ...Upcaster) event.SourceTransform`**:
+  source-side transform for upcasting. `VersionedStore` is now a
+  compatibility shell delegating to the transforms (ADR-0126; removal at v5).
+
+### Added (event/v4.7.0)
+
+- **Store transforms (ADR-0126)**: `SinkTransform`/`SourceTransform` types +
+  `DecorateStore` — capability-preserving store wrapping.
+  `RejectingPublishMiddleware`/`RejectingHandlerMiddleware` move to `event`
+  as the canonical home (`signing` wrappers deprecated).
+- **Actor context**: `WithActorContext`, `ActorFromContext`, `ActorEnricher`.
+- **`ReconstructEventWithMetadata`** deserialize fast path (pebble/bbolt
+  adopt it; see the storage/v4.7.0 detail above).
+
+### Added (command/v4.7.0 → v4.7.1) — ⚠ v4.7.0 RETRACTED
+
+- `command.Metadata` is now an alias of `metadata.Metadata[MetadataKey]`
+  (the v4.5.0 generic); `BasicCommand.ApplyOptions`; `AsRecord` actor
+  precedence; MemoryBus middleware-runs-once fix.
+- **v4.7.0 retracted** (directive in the v4.7.1 `go.mod`): the tag pinned
+  `metadata/v4 v4.4.0`, so the module did not compile standalone
+  (`GOWORK=off`: `undefined: metadata.Metadata` — the workspace build masked
+  it). **v4.7.1** re-pins `metadata/v4 v4.5.0`; no other change.
+
+### Added (query/v4.6.0 → v4.6.1) — ⚠ v4.6.0 RETRACTED
+
+- **`query.AsRecord(*PersistedQuery) record.Record`** adapter; `Metadata`
+  alias of the v4.5.0 generic; `BasicQuery.ApplyOptions`; AuditMiddleware
+  carries RequestID + metadata.
+- **v4.6.0 retracted** (same metadata-pin breakage; directive in the v4.6.1
+  `go.mod`). **v4.6.1** re-pins `metadata/v4 v4.5.0`; no other change.
+
+### Added (middleware/v4.5.0)
+
+- **`CommandActorContext()`** middleware: lifts an actor from the context
+  into command metadata (pairs with `event.ActorEnricher`).
+
+### Fixed (watermill/v4.5.0)
+
+- **`CatchUpSubscriber` no longer misses events published during replay**
+  (live-phase draining reworked); broker integration tests; event-to-message
+  actor roundtrip.
+
+### metaengine/v4.11.0 + engines
+
+- **metaengine/v4.11.0** ships the 2026-08-10 → 2026-08-15 metaengine work
+  detailed in the dated sections below: engine roles + shadow replication +
+  `PromoteEngine`/`DemoteEngine`, live-cost measurement, row/columnar layout
+  calibration, `ReplanLayout` convergence, MariaDB dialect + numeric-safe
+  sorts, native graph dispatch (PG/MySQL) + vector search on LSM engines,
+  five brutal-review defect fixes, SQL injection guards + DSN redaction, and
+  the `workloadMeter` cache-line pad (contended ops −46..51%: 6.3→3.4 ns/op
+  @4 procs, 6.6→3.2 @8).
+- **sqliteengine/pebbleengine/pgengine v4.1.0**: layout-roles support,
+  calibration embedded in engine structs, defect-sweep fixes; pgengine gains
+  `meta_graph_edges` + `WITH RECURSIVE` neighborhood resolution.
+- **badgerengine v4.0.2**: position-based journal resumption + dependency
+  refresh.
+- **mysqlengine / bboltengine / tursoengine / irohengine v4.0.0**: first
+  tagged releases of the previously untagged engine modules.
 
 ## [metadata/v4.4.0, event/v4.6.0, command/v4.6.0, query/v4.5.0] — 2026-08-13
 
@@ -3945,7 +3953,7 @@ adoption), built on go-finding + cmdguard. Key capabilities:
   host catch-up, MetaEngine query verification, HealthCheck, HealthCheckDetailed
   (both engines healthy), EngineNames (>=2), GracefulClose.
 - **`TestIntegration_PebbleSource_HealthCheck`** — Pebble driver registered via
-  `system.RegisterDriver("pebble", ...)` in test `init()`, command dispatch,
+  a `RegisterDriver("pebble", ...)` call in test `init()`, command dispatch,
   event persistence verified via `EventStore().Load()`, HealthCheck +
   HealthCheckDetailed (finds `pebble-store` by name), Close.
 - **`TestIntegration_GracefulClose_WatermillDrainer`** — real Watermill `EventBus`

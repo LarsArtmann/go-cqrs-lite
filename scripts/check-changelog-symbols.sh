@@ -37,7 +37,7 @@ GOLDEN="docs/api_surface.txt"
 # Aliases that are not repo packages: stdlib names and prose fragments that
 # survive the `lowercase.Uppercase` regex (e.g. "cqrs-lint.E005" yields
 # "lint.E005"). Extend, never narrow, without a matching golden entry.
-SKIP_ALIASES='^(fmt|os|time|sync|context|errors|strings|strconv|bytes|io|log|testing|json|database|sql|net|http|reflect|sort|math|filepath|regexp|slog|rand|slices|maps|atomic|url|tar|zip|tls|big|lint|runtime|pkg|t|e|g|go|api|cli|yaml|toml)$'
+SKIP_ALIASES='^(fmt|os|time|sync|context|errors|strings|strconv|bytes|io|log|testing|json|database|sql|net|http|reflect|sort|math|filepath|regexp|slog|rand|slices|maps|atomic|url|tar|zip|tls|big|lint|runtime|pkg|t|e|g|go|api|cli|yaml|toml|db|pebble|humanize|engine|bbolt)$'
 
 # exists_in_source_dir: true when any repo directory named `alias` declares
 # the exported `symbol` in a non-test .go file (func/type level; const/var
