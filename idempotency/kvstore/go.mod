@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4
 go 1.26.5
 
 require (
-	github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-idempotency v0.1.2
@@ -31,9 +31,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )
-
-// sqlstore's TTL validation (expiryFromTTL → ErrInvalidTTL) is unpublished;
-// the cross-store contract test (ttl_validation_test.go) needs it. The
-// relative replace is stripped by scripts/tag-release.sh once sqlstore is
-// tagged — the require above then re-resolves to the published version.
-replace github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4 => ../sqlstore
