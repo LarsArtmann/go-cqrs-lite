@@ -877,7 +877,7 @@ forbidden — see CONTRIBUTING.md → Release Process.
   SSTables before measuring, bbolt sized via page-accurate `Tx.Size()` since
   the file size is mmap-quantized). Finding: the JSON 3-projection model
   overstated normalize's storage advantage ~2x — real ratios are 0.89x
-  (Pebble) / 0.82x (bbolt) because every multimap child carries a ~41-byte
+  (Pebble) / 0.82x (bbolt) because every multimap child carries a 43–46-byte
   seq-suffixed key. `metaengine/bench` gains direct pebble/bbolt test-only
   deps (budget-exempt: imported exclusively from `_test.go` files).
 

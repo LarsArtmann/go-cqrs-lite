@@ -310,7 +310,7 @@ Findings:
   model fully neutralizes normalize's write advantage vs Pebble's 0.32x).
 - The JSON 3-projection model overstated normalize's LSM storage advantage ~2x:
   real bytes show 0.89x (Pebble) / 0.82x (bbolt), because every multimap child
-  carries a ~41-byte seq-suffixed key that eats most of the deduplication
+  carries a 43–46-byte seq-suffixed key that eats most of the deduplication
   saving. LSM StorageSpace remains Normalize by a deterministic 0.07 margin.
 - The LSM read constant is pinned at the lever-preserving floor (measured 1.59,
   floor 1.67; honest anchored 1.18 would flip Balanced/ReadSpeed to

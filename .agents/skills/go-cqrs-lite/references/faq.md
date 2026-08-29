@@ -240,3 +240,31 @@ What to do instead: fix the fold so increments and decrements pair up
 (replay the projection from zero if the rollups are already wrong), and
 monitor for `counter < 0` as a projection-health alert. See
 `storage/relational/sink.go` (`Increment` doc comment) for the rationale.
+
+## Will the v5 cut break my imports? What is going away?
+
+Everything scheduled for deletion at v5 (ADR-0123/0126/0127) already carries a
+`Deprecated:` doc marker in the code — `go build` succeeds, but linters that
+check deprecations (staticcheck SA1019, gopls) will flag uses. The big
+buckets, all deleted at the v5.0.0 cut:
+
+- **Tombstone metadata APIs** (`event.DetectTombstone`, `MarkTombstone`,
+  `MarkRebirth`, `TombstoneStatus`, `Metadata.Tombstone`): deletion is
+  expressed as a domain event type (`user.deleted`), read via
+  `listing.StatusMiddleware` / the classifier. See ADR-0114.
+- **`stack/` presets and `Materialize`/`RunProjections`/`GraphProjection`**:
+  one composition root (`system.New`) and one projection runner
+  (`projectionhost`) replace them. See ADR-0123.
+- **`storage/view` + `storage/relational`**: the metaengine auto-projection
+  and `storage/relational`'s sink replacement path cover the same ground.
+- **`transport/http` (SSE) + `transport/grpc`**: use `watermill/` brokers (or
+  go-sse directly). See ADR-0127.
+- **ADR-0126 compatibility shells** (`schema.VersionedStore`,
+  `schema.VersionedSeekableJournal`, `metadata.CustomData`, and friends):
+  compose `event.DecorateStore` / `event.DecorateJournal` with
+  `SinkTransform`/`SourceTransform` instead.
+
+Nothing in the tier-0/1 core (`id`, `record`, `event`, `command`, `query`,
+`decider`, `metaengine`) is removed at v5 beyond the tombstone metadata
+surface above; v5 renames (`StreamRef` → `StreamKey`, stricter constructors)
+are migration-guide items, not deletions.

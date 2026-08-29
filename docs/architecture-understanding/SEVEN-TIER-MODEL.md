@@ -39,23 +39,25 @@ placeholder). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
 ## Tier 0 — Primitives (leaf modules, no internal deps or same-tier only)
 
 These are foundational building blocks. Some depend on each other (e.g.
-`kv/` → `codec/`, `metaengine/` → `dedup/`) but never on higher tiers.
+`kv/` → external `go-codec`, `metaengine/` → `dedup/` + `record/`) but never
+on higher tiers.
 
 | Module            | Purpose                                                                      |
 | ----------------- | ---------------------------------------------------------------------------- |
 | `id/`             | Branded IDs: `id.Of[T]`, `AggregateID`, `StreamID`, etc.                     |
 | `dispatcher/`     | Generic `Dispatcher[H, M]` with lifecycle mixin                              |
-| `codec/`          | Payload encoding: JSON, CBOR, Raw                                            |
 | `kv/`             | KV store: `Store`, `MemStore`, `TypedStore[T,K]`                             |
 | `dedup/`          | Bounded dedup ring buffer                                                    |
 | `record/`         | Shared Record + CommonMetadata types (structural base for events + commands) |
 | `metaengine/`     | Cost-based storage planner (the strategic future of this project)            |
-| `flightrecorder/` | Go 1.25 runtime/trace flight recorder wrapper                                |
-| `retry/`          | Re-export of go-retry: `Do`, `Config`, `Backoff` (DEPRECATED)                |
 
-> **`metaengine/` is Tier 0 by design** (ADR-0062). The core planner has zero
-> internal deps (stdlib + `database/sql` + `dedup/` only). The bridge to the
+> **`metaengine/` is Tier 3 in the ADR-0046 model, with a Tier-0-style core**
+> (ADR-0062 amendment): its PLANNER core depends only on Tier-0 primitives
+> (`dedup/`, `record/`) plus `id/`, while the module as a whole also carries
+> the embedded default engine (`sqliteengine`) and `go-sse`. The bridge to the
 > CQRS event-sourcing world lives in `metaengine/projectionadapter/` (Tier 4).
+> `codec/`, `flightrecorder/`, and `retry/` were extracted to external repos
+> (ADR-0128) and are no longer in-repo tiers.
 
 > **`record/` is Tier 0** (ADR-0111). Zero deps. Structural base for both
 > events and commands. `event.AsRecord()` adapts the ES pipeline.

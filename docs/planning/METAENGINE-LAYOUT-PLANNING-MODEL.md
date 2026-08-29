@@ -57,7 +57,7 @@ read-modify-write, and embedding duplicates the aggregate across projections.
 
 On LSM the storage gap is much narrower than the JSON size model claimed
 (real Pebble/bbolt bytes: normalize ÷ embed = 0.89 / 0.82, geomean 0.86): every
-multimap child carries a ~41-byte seq-suffixed key, which eats most of the
+multimap child carries a 43–46-byte seq-suffixed key, which eats most of the
 deduplication saving. The LSM read constant is pinned at the lever-preserving
 floor (measured 1.59; honest 1.18 would flip Balanced/ReadSpeed to Normalize) —
 deliberate 2026-08-11 tradeoff, documented in `layout_scoring.go`.

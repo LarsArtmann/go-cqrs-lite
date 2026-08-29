@@ -43,7 +43,7 @@ type backendConfig struct {
 //
 // This is the per-store [WithAsyncWrites] / [WithCommandAsyncWrites] / ...
 // family applied to every store at once, typically driven by a durability
-// tier (see stack.DurabilityTier). The default Backend keeps synchronous
+// tier. The default Backend keeps synchronous
 // writes (pebble.Sync per write).
 func WithBackendAsyncWrites() BackendOption {
 	return func(cfg *backendConfig) { cfg.asyncWrites = true }

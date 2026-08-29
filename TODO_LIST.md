@@ -60,13 +60,13 @@ and is **never** duplicated here.
       _(Effort: S)_ — sources: status 2026-08-16_18-09/22-50
 - [ ] **CHANGELOG unreleased-block fold** — `[Unreleased — earlier 2026-08-16 work]` (CHANGELOG.md:1451) still separate from the top block.
       _(Effort: S)_ — source: status 2026-08-16_19-01
-- [ ] **v5 doc coverage** — faq.md has zero deprecation/v5 notes; README "SQL-backed read models" bullet sells SQLViewStore un-caveated (line 132); AGENTS Codec Defaults table lacks a v5 note; method-level `Deprecated:` marker decision unrecorded; **durability-tier re-home for storage/pebble** (imports `stack.DurabilityTier` — blocks P13 stack deletion); stack/bench deprecation decision.
+- [x] **v5 doc coverage** — DONE 2026-08-29 (plan V3 T30): faq.md gained a v5-deletion overview; AGENTS Codec Defaults carries the v5 note; method-level `Deprecated:` marker decision recorded as an ADR-0123 addendum; storage/pebble verified to have NO stack import (only a stale doc comment, fixed) — nothing blocks P13 stack deletion; stack/bench decision: DELETE with the rest of stack/ at the v5 cut (it benchmarks presets and has no reason to outlive them).
       _(Effort: M)_ — sources: status 2026-08-18_13-59, 2026-08-17_16-27
-- [ ] **Fix "~41-byte" figure** — measured 43-46 bytes; wrong in CHANGELOG (~:1483), docs/adr/0124:313, METAENGINE-LAYOUT-PLANNING-MODEL.md:60 (+ archived status 14-09:127).
+- [x] **Fix "~41-byte" figure** — DONE 2026-08-29 (plan V3 T31): all 3 active sites corrected to 43–46 bytes (archived status frozen as-is).
       _(Effort: XS)_ — source: status 2026-08-16_14-44
-- [ ] **AGENTS.md gotchas missing** — pebble Close() does not flush memtables; bbolt mmap file-size quantization; MySQL-VM trio (port-33070 probe via server client, GOWORK=off-tag default path, VM single-database isolation).
+- [x] **AGENTS.md gotchas missing** — DONE 2026-08-29 (plan V3 T32): one consolidated storage-engine/MySQL-VM gotcha added within budget.
       _(Effort: S)_ — sources: status 2026-08-16_14-44/04-00
-- [ ] **SEVEN-TIER-MODEL.md reconciliation** — line 56 still says metaengine "Tier 0 by design (ADR-0062)"; enforcement + ADR-0046 amendment say Tier 3.
+- [x] **SEVEN-TIER-MODEL.md reconciliation** — DONE 2026-08-29 (plan V3 T31): rewritten as Tier-3-with-Tier-0-core (planner deps dedup/record/id verified from go.mod); deleted flightrecorder/retry/codec rows removed.
       _(Effort: XS)_ — source: status 2026-08-08_08-23
 - [ ] **BENCHMARKS.md + skill refs** — durability bench cell still "measurement PENDING quiet window"; modules.md missing bboltengine row.
       _(Effort: S)_ — source: status 2026-08-17_15-17

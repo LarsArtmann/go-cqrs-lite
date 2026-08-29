@@ -239,3 +239,20 @@ Record consolidation (foundation)
                 → Delete v1 tiers + stack.Bundle
                   → Cut v5
 ```
+
+## Addendum (2026-08-29): method-level `Deprecated:` markers
+
+Decision: v5-deprecation uses Go's standard `// Deprecated:` doc-comment
+marker on METHODS exactly as on types and functions — godoc, staticcheck
+(SA1019), and gopls all honor method-level markers, so prose-only
+deprecation notes in markdown are never sufficient and are not part of the
+deprecation contract. Rules:
+
+1. The marker must start the comment paragraph with exactly `Deprecated:`
+   followed by the removal target and the replacement, e.g.
+   `// Deprecated: removed in v5 (ADR-0123): use system.New instead.`
+2. Internal callers that must keep using a deprecated surface are exempted
+   via a scoped `.golangci.yml` SA1019 exclusion keyed to the marker phrase,
+   never a blanket `//nolint`.
+3. Removal happens at the v5 cut; a deprecated symbol without a removal
+   target in its marker is a docs bug.
