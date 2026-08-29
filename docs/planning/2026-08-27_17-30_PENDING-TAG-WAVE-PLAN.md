@@ -2,8 +2,8 @@
 
 > **Date:** 2026-08-27 17:30 CEST · **Task:** T01/F01.4 of the
 > [goal-gap-closure Pareto plan](archived/2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md) ·
-> **Status: STAGED EXECUTION — B1+B2+B3 CUT 2026-08-29.** Sign-off (2026-08-29):
-> staged, B7 transport finals INCLUDED, dead eventtest tags DELETED.
+> **Status: WAVE COMPLETE — ALL BATCHES B1–B7 CUT 2026-08-29 (39 tags).** Sign-off
+> (2026-08-29): staged → upgraded to full authorization ("GET SHIT DONE").
 > B1: event/v4.9.0, schema/v4.3.1, dedup/v4.2.1, dispatcher/v4.3.1.
 > B2: command/v4.8.1, query/v4.7.1, middleware/v4.5.1, scheduling/v4.3.1,
 > listing/v4.3.0, pgtestcontainer/v4.1.0.
@@ -12,10 +12,25 @@
 > storage/v4.8.1, storage/memory/**v4.4.0** (LogStore core is new API),
 > storage/pebble/v4.3.0, storage/bbolt/**v4.1.0** (batch-commit option),
 > storage/turso/**v4.3.0** (quota classification), storage/backuptest/**v4.1.0**
-> (incremental suite). Snapshot/listing pins bumped + sibling replaces dropped
-> (decider, storage, storage/pebble, storage/bbolt, stack/pebble). Gates:
-> standalone tests ×8, govulncheck ×8, changelog-symbols, clean-room go get.
-> Remaining: B4–B7.
+> (incremental suite).
+> B4: kv/v4.2.1, commandlifecycle/v4.0.1, commandlifecycle/projections/v4.0.1,
+> idempotency/kvstore/v4.2.1, idempotency/sqlstore/**v4.3.0** (NewMySQLStore),
+> system/v4.6.0 (three new sentinels).
+> B5: watermill/v4.5.1, signing/v4.2.1 (plan guessed minor; diff is hygiene),
+> encryption/v4.3.0 (store transforms), projectionhost/**v4.4.0** (checkpoint
+> options are new API).
+> B6 (versions corrected): dgraphengine/duckdbengine/mysqlengine/irohengine/
+> quic **v4.1.0** each (durability tiers, vector/graph waves, MariaDB dialect —
+> plan's patch proposals were wrong), tursoengine/loopback v4.0.1,
+> projectionadapter v4.4.1, graph/v4.2.1.
+> B7: transport/http/**v4.3.0** (SSEEventID — plan's "notices only" missed the
+> new exports), transport/grpc/v4.2.1. Dead eventtest tags deleted.
+> **§4 sweep DONE:** zero local replaces remain repo-wide (26 files dropped,
+> every module standalone-builds; stack/pebble → storage/pebble v4.3.0 +
+> backuptest v4.1.0; duckdb/mysql/iroh engines → metaengine v4.12.0).
+> **§5 verification:** clean-room go get per batch ✓, clean-room system/v4.6.0
+> consumer build ✓, api-stability golden 4289 exports ✓, cqrs-lint suite ✓,
+> changelog-symbols ✓, verify-ci matrix (see session report for final state).
 > **Re-verified 2026-08-29:** the three post-plan code commits (5ec4b1b39
 > listing/pgtestcontainer, c9e464eda watermill/system, 9455f687a standalone-matrix
 > pin fixes) are folded into B2/B4/B5 below; the remaining post-plan commits are
