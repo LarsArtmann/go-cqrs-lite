@@ -51,16 +51,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   (`storage/sql/journal_reader_prealloc_test.go`); the three SQL stores'
   stream-load paths are unchanged in behavior.
 
-### Changed — system adapters: defensive metadata marshal + roundtrip pins — 2026-08-29
-
-- **`system` command/query adapters** no longer discard the metadata marshal
-  error in their serialization envelope encoders: on a failed marshal the
-  envelope persists a nil Metadata field (decodes to zero-value metadata)
-  instead of potentially partial JSON, mirroring the event adapter. Metadata
-  envelopes are now marshaled deterministically. With today's string-typed
-  metadata fields the error path is unreachable — this is hardening for
-  richer future values plus two new roundtrip tests pinning tracing+custom
-  metadata through the encode/decode path (previously untested).
 
 ### Changed — bbolt/pebble resolve published backuptest standalone — 2026-08-29
 
@@ -70,47 +60,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   module's go.mod and was unusable from the proxy — v4.1.0, cut with the
   B3 wave, is the first fetchable tag). Standalone `GOWORK=off` builds and
   tests for both modules are green against the published module.
-
-### Fixed — watermill catch-up is at-least-once; system accepts synthetic engine names — 2026-08-27
-
-- **`watermill.CatchUpSubscriber`** now advances the checkpoint only after
-  the consumer Acks a message — previously both replay and live phases
-  checkpointed at handoff, so a crash or Nack between delivery and
-  processing permanently skipped events (at-most-once). A Nack stops the
-  subscription with the checkpoint left behind the nacked event, so a
-  restart re-delivers it. The 1024-entry replay dedup ring (wrongly
-  invariant-bounded: the real overlap set is every event appended during
-  replay) is replaced by a last-replayed-ID watermark that suppresses live
-  duplicates of any replay length. Delivery is serialized per subscription
-  (forward, then wait for Ack/Nack).
-- **`system.New`** shutdown-dependency validation now checks edge names
-  against the POPULATED engine set including synthesized engines, so the
-  documented `{Before: "projections", After: "primary"}` /
-  `"default"` examples validate instead of failing with ErrUnknownEngine.
-  Empty Before/After names now return **`ErrShutdownDependencyInvalid`**
-  (was ErrUnknownEngine).
-
-### Fixed — kv/commandlifecycle/projectionhost hardening — 2026-08-27
-
-- **`kv.Cache.Set`** invalidates the cached entry when the post-write
-  copy-for-isolation fails: the store write succeeded, so the next Get must
-  reflect the store instead of a stale pre-Set value.
-- **`commandlifecycle.Recorder`** drops its cached stream version after a
-  failed lifecycle append: the counter was already past the failed write, so
-  every subsequent emit previously conflicted with the real stream forever
-  (silently dropped lifecycle events in best-effort mode).
-- projectionhost backoff growth caps its exponent: beyond 63 crashes (or
-  retries) the `1<<n` shift wrapped to zero, collapsing the restart backoff
-  to a zero-delay hot crash loop under unlimited-restart configs.
-
-### Added — system shutdown-dependency validation — 2026-08-27
-
-- **`system.New`** now validates **`system.ShutdownDependency`** edges at
-  construction: empty names, unknown engine names, and self-references are
-  rejected (family Rejection; **`system.ErrShutdownDependencyInvalid`** for
-  self-references, **`system.ErrUnknownEngine`** wraps empty/unknown names)
-  instead of being silently dropped by the shutdown topological sort at
-  Close() time (extended review E10).
 
 ### Deprecated — v1 read-model tiers + stack presets marked ahead of the v5 cut — 2026-08-17
 
@@ -152,22 +101,6 @@ scoped `.golangci.yml` SA1019 exclusion keyed to the uniform marker phrase;
 every other deprecation in the repo stays loud. The already-deprecated
 ADR-0126 shells, `storage/sql.BuildWhereClause`, and the ADR-0127 transport
 modules predate this wave and are unchanged.
-
-### Added — engine async-write options — 2026-08-17
-
-  unchanged (sync writes; the shared read-model KV store keeps its historical
-  synchronous mode). What the `stack/pebble` tier mapping drives internally.
-- **`pebbleengine.WithAsyncWrites`** (`metaengine/pebbleengine`, with the new
-  `pebbleengine.Option` type) — replaces 15 hardcoded synchronous write sites
-  with one seam; both `NewPebbleEngine` and `NewPebbleEngineFromDB`
-  accept options. Default (fsync per write) unchanged.
-- **`bboltengine.WithNoSync`** (`metaengine/bboltengine`, with the new
-  `bboltengine.Option` type) — opens the DB with bbolt's NoSync and
-  NoFreelistSync flags, set on a copy of bbolt's default options (the shared
-  global is never mutated). Named after the bbolt knob rather than "async
-  writes" because bbolt has no WAL: skipping the commit fsync is NOT
-  app-crash-safe the way Pebble's async WAL is, and the name must not imply
-  that equivalence. Default unchanged.
 
 ### Fixed — stale id/v4.4.0 pins silently dropped ActorID in CBOR — 2026-08-17
 
@@ -312,44 +245,6 @@ modules predate this wave and are unchanged.
   directed/undirected prologues, typed-field reflect extractors), and
   quickstart demo setup. Iterative to zero: suppressing the visible groups
   exposes masked ones — re-run `#check-duplication` until 0.
-
-### Added — MariaDB generated-column layouts + engine-correctness batch — 2026-08-16
-
-- **mysqlengine: MariaDB ApplyLayout is real now** — previously a recorded
-  no-op (graceful degradation). Each declared filter/sort field gains a
-  VIRTUAL TEXT generated column
-  (`JSON_UNQUOTE(JSON_EXTRACT(value, '$.<field>'))`) plus a composite
-  `(collection, gc(190))` prefix index: metadata-only ALTER (no table
-  rebuild, same mechanics as MySQL's hidden functional-index columns),
-  computed on read (no backfill gap), prefix recheck keeps long-value filter
-  semantics exact. `filterExpr` rewrites pushdown filters to the generated
-  column because MariaDB 11.4 does NOT substitute generated columns into raw
-  JSON expressions (empirically verified via EXPLAIN — the index would be
-  dead weight otherwise). EXPLAIN-verified `ref` access; pinned by
-  `TestMariaDBApplyLayout_GeneratedColumnFilter`.
-- **Shared-server test isolation** — `enginetest.ScopedCollection` scopes
-  every helper-built collection per run, and adttest `Scenarios()` suffixes
-  all 17 collection names with a per-RUN token (per-run, not per-call, so
-  cross-engine parity compares identical state within one RunMatrix).
-  `stack/mysql` derived multidb databases now DROP before CREATE. Together:
-  `-count>1` reruns against one persistent MySQL/MariaDB server are GREEN.
-- **pgengine degraded VectorBackend** (same batch, earlier session):
-  pgengine declared ADTVector but implemented nothing — vector queries
-  routed to a pg-only deployment would fail. Now a brute-force
-  `meta_vector` scan via the shared metaengine distance helpers
-  (semantics identical to bbolt's degraded path).
-- **CTE-vs-iterative and sort-dialect benchmarks** —
-  `mysqlengine/graph_bench_test.go` (depth 1-6 × 1k-100k edges, both
-  traversal modes) and `sort_bench_test.go` (dual-key vs single-key vs
-  JSON-typed ORDER BY). Crossover tables recorded in
-  `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md` §9: iterative BFS wins
-  depth-1 walks 2-4x, CTE wins depth ≥3 up to 6x; MariaDB's numeric-safety
-  dual-key sort costs +26%, and MySQL's JSON-typed sort is 2.5x faster than
-  MariaDB's dual form.
-- **mysqlengine graphWalk dedup** — the directed and undirected iterative
-  BFS fallbacks shared a 40-line skeleton; extracted `graphWalk` with an
-  adjacency callback, plus a new undirected iterative↔CTE parity test (the
-  fallback path had zero coverage).
 
 ### Changed — changelog consolidation: per-module CHANGELOGs folded into root — 2026-08-16
 
@@ -544,25 +439,6 @@ forbidden — see CONTRIBUTING.md → Release Process.
   `#verify`/`#verify-fast`. Generated `*_templ.go` files are excluded from
   formatters and the 350-line gate; depguard allow list covers templ-components.
   Maintainer contracts recorded in `catalog/AGENTS.md`.
-
-### Added — 9-engine conformance loop on real servers + DuckDB native graph — 2026-08-16
-
-- **9-engine capability conformance loop verified against real servers** —
-  PG (ephemeral nix), MySQL (8.4 container), Dgraph (ephemeral nix), plus
-  pebble/bbolt/badger/iroh/turso/duckdb local: ALL GREEN. Gotcha recorded:
-  `go test -C <dir>` must be the FIRST flag through the ephemeral scripts'
-  `go` passthrough, with `GOWORK=off` prefixed.
-- **DuckDB native graph via `WITH RECURSIVE`** (`duckdbengine/graph.go`):
-  `meta_graph_edges` table (PK collection,from,to) in init DDL,
-  `GraphAddEdge` (ON CONFLICT DO NOTHING — idempotent), `GraphNeighbors`
-  single-CTE traversal mirroring pgengine (DuckDB ≥0.8, no probe needed);
-  ADTGraph upgraded to native O(degree^depth) and removed from DegradedADTs.
-  Node-key encoding mirrors sqlite/pg/mysql (`art-dupl:accept` cross-module
-  pattern). Cycle-safety, depth 1-3, dedup, duplicate-edge idempotency,
-  integer-key, depth-0/empty honesty tests (cgo) green; api-stability golden
-  regenerated.
-- DuckDB aggregation pushdown TODO resolved STALE: the full AggregateReader
-  family + single-SELECT CounterGet already exist and are test-green.
 
 ### Added — CI + infra wave: backuptest wiring, drift/flake guards, reset-db, quickstart demos — 2026-08-16
 
@@ -2886,6 +2762,206 @@ files. All fixed to unblock `verify-fast`:
   `mustNewPebbleEngine(t)` / `newPebbleEngineOrSkip(t)` helpers.
 
 ---
+
+## [kv/v4.2.1, commandlifecycle/v4.0.1, commandlifecycle/projections/v4.0.1, idempotency/kvstore/v4.2.1, idempotency/sqlstore/v4.3.0, system/v4.6.0] — 2026-08-29
+
+### Changed — system adapters: defensive metadata marshal + roundtrip pins — 2026-08-29
+
+### Changed — system adapters: defensive metadata marshal + roundtrip pins — 2026-08-29
+
+- **`system` command/query adapters** no longer discard the metadata marshal
+  error in their serialization envelope encoders: on a failed marshal the
+  envelope persists a nil Metadata field (decodes to zero-value metadata)
+  instead of potentially partial JSON, mirroring the event adapter. Metadata
+  envelopes are now marshaled deterministically. With today's string-typed
+  metadata fields the error path is unreachable — this is hardening for
+  richer future values plus two new roundtrip tests pinning tracing+custom
+  metadata through the encode/decode path (previously untested).
+### Added — system shutdown-dependency validation — 2026-08-27
+
+- **`system.New`** now validates **`system.ShutdownDependency`** edges at
+  construction: empty names, unknown engine names, and self-references are
+  rejected (family Rejection; **`system.ErrShutdownDependencyInvalid`** for
+  self-references, **`system.ErrUnknownEngine`** wraps empty/unknown names)
+  instead of being silently dropped by the shutdown topological sort at
+  Close() time (extended review E10).
+
+### Added — idempotency SQL store: MySQL/MariaDB dialect — 2026-08-29
+
+- **`idempotency/sqlstore.NewMySQLStore`**: MySQL/MariaDB joins PostgreSQL
+  and SQLite as supported idempotency backends. The dialect uses the
+  MariaDB-safe JSON forms (`JSON_UNQUOTE(JSON_EXTRACT(...))` filters,
+  dual-key numeric-safe sort) verified against MySQL 8.4 and MariaDB 11.8.
+- The SQL idempotency store skips undecodable (corrupt) rows instead of
+  failing every lookup on one rotten row (deep-review).
+
+### Fixed
+
+- **`kv.Cache.Set`** invalidates the cached entry when the post-write
+  copy-for-isolation fails: the store write succeeded, so the next Get must
+  reflect the store instead of a stale pre-Set value.
+- **`commandlifecycle.Recorder`** drops its cached stream version after a
+  failed lifecycle append: the counter was already past the failed write, so
+  every subsequent emit previously conflicted with the real stream forever
+  (silently dropped lifecycle events in best-effort mode).
+- **`kv`** typed stores join the CBOR-as-default unification: the
+  ADR-0044 envelope stamps the codec on write and auto-detects it on read,
+  with the legacy-row cross-retry rescue keeping pre-envelope JSON rows
+  readable (behavior matches the command/query/snapshot typed stores).
+- **`system.New`** shutdown-dependency validation now checks edge names
+  against the POPULATED engine set including synthesized "default"/
+  "projections" engines — the documented examples validate instead of
+  failing with ErrUnknownEngine.
+
+## [watermill/v4.5.1, projectionhost/v4.4.0, encryption/v4.3.0, signing/v4.2.1] — 2026-08-29
+
+### Fixed — watermill catch-up is at-least-once — 2026-08-27
+
+- **`watermill.CatchUpSubscriber`** now advances the checkpoint only after
+  the consumer Acks a message — previously both replay and live phases
+  checkpointed at handoff, so a crash or Nack between delivery and
+  processing permanently skipped events (at-most-once). A Nack stops the
+  subscription with the checkpoint left behind the nacked event, so a
+  restart re-delivers it. The 1024-entry replay dedup ring (wrongly
+  invariant-bounded: the real overlap set is every event appended during
+  replay) is replaced by a last-replayed-ID watermark that suppresses live
+  duplicates of any replay length. Delivery is serialized per subscription
+  (forward, then wait for Ack/Nack).
+
+### Changed — projectionhost checkpoint tuning — 2026-08-29
+
+- **`projectionhost.WithCheckpointEvery`** / **`WithCheckpointInterval`**:
+  the host's checkpoint cadence is configurable (count- and time-based)
+  instead of hardcoded; the deep-review backoff fix caps the restart
+  exponent so unlimited-restart configs cannot collapse to a zero-delay
+  hot crash loop.
+
+### Added — encryption store transforms (ADR-0126) — 2026-08-29
+
+- **`encryption.EncryptSinkTransform`** / **`encryption.DecryptSourceTransform`**
+  replace the old hand-written wrapper store: compose them through
+  `event.DecorateStore`/`event.DecorateJournal` so optional capabilities
+  (MultiSink, StreamingJournal) are preserved instead of silently dropped.
+  **`encryption.NewEncryptedStore`** remains as the convenience constructor
+  built on the transforms.
+
+### Changed
+
+- **`signing`** aligns with the published event/metadata tags (no local
+  replaces, error-family alignment from the B1 wave); hygiene-only release
+  (lint config, test infra, dependency pins).
+
+## [metaengine/dgraphengine/v4.1.0, metaengine/duckdbengine/v4.1.0, metaengine/mysqlengine/v4.1.0, metaengine/irohengine/v4.1.0, metaengine/irohengine/quic/v4.1.0, metaengine/tursoengine/v4.0.1, metaengine/irohengine/loopback/v4.0.1, metaengine/projectionadapter/v4.4.1, graph/v4.2.1] — 2026-08-29
+
+### Added — engine async-write options — 2026-08-17
+
+  unchanged (sync writes; the shared read-model KV store keeps its historical
+  synchronous mode). What the `stack/pebble` tier mapping drives internally.
+- **`pebbleengine.WithAsyncWrites`** (`metaengine/pebbleengine`, with the new
+  `pebbleengine.Option` type) — replaces 15 hardcoded synchronous write sites
+  with one seam; both `NewPebbleEngine` and `NewPebbleEngineFromDB`
+  accept options. Default (fsync per write) unchanged.
+- **`bboltengine.WithNoSync`** (`metaengine/bboltengine`, with the new
+  `bboltengine.Option` type) — opens the DB with bbolt's NoSync and
+  NoFreelistSync flags, set on a copy of bbolt's default options (the shared
+  global is never mutated). Named after the bbolt knob rather than "async
+  writes" because bbolt has no WAL: skipping the commit fsync is NOT
+  app-crash-safe the way Pebble's async WAL is, and the name must not imply
+  that equivalence. Default unchanged.
+
+### Added — engine durability tiers, vector/graph waves — 2026-08-29
+
+- Durability tiers are wired to engine construction across the dgraph,
+  duckdb, mysql, and turso engines (instance tier drives the engine's
+  sync/pragma settings; see ADR-0130 for the per-engine mapping).
+- The iroh engine gains the vector search and graph completeness wave
+  (vector payloads, undirected traversal, edge removal) that the other
+  engines shipped in the metaengine v4.12.0 wave; the QUIC transport
+  normalizes CBOR-decoded `any` fields (uint64→int) the same way.
+- MariaDB-generated-column layouts and the engine-correctness batch land
+  in the MySQL engine (JSON_UNQUOTE/JSON_EXTRACT filters, numeric-safe
+  dual-key sort) plus the 9-engine conformance loop on real servers and
+  DuckDB native graph coverage.
+### Added — MariaDB generated-column layouts + engine-correctness batch — 2026-08-16
+
+- **mysqlengine: MariaDB ApplyLayout is real now** — previously a recorded
+  no-op (graceful degradation). Each declared filter/sort field gains a
+  VIRTUAL TEXT generated column
+  (`JSON_UNQUOTE(JSON_EXTRACT(value, '$.<field>'))`) plus a composite
+  `(collection, gc(190))` prefix index: metadata-only ALTER (no table
+  rebuild, same mechanics as MySQL's hidden functional-index columns),
+  computed on read (no backfill gap), prefix recheck keeps long-value filter
+  semantics exact. `filterExpr` rewrites pushdown filters to the generated
+  column because MariaDB 11.4 does NOT substitute generated columns into raw
+  JSON expressions (empirically verified via EXPLAIN — the index would be
+  dead weight otherwise). EXPLAIN-verified `ref` access; pinned by
+  `TestMariaDBApplyLayout_GeneratedColumnFilter`.
+- **Shared-server test isolation** — `enginetest.ScopedCollection` scopes
+  every helper-built collection per run, and adttest `Scenarios()` suffixes
+  all 17 collection names with a per-RUN token (per-run, not per-call, so
+  cross-engine parity compares identical state within one RunMatrix).
+  `stack/mysql` derived multidb databases now DROP before CREATE. Together:
+  `-count>1` reruns against one persistent MySQL/MariaDB server are GREEN.
+- **pgengine degraded VectorBackend** (same batch, earlier session):
+  pgengine declared ADTVector but implemented nothing — vector queries
+  routed to a pg-only deployment would fail. Now a brute-force
+  `meta_vector` scan via the shared metaengine distance helpers
+  (semantics identical to bbolt's degraded path).
+- **CTE-vs-iterative and sort-dialect benchmarks** —
+  `mysqlengine/graph_bench_test.go` (depth 1-6 × 1k-100k edges, both
+  traversal modes) and `sort_bench_test.go` (dual-key vs single-key vs
+  JSON-typed ORDER BY). Crossover tables recorded in
+  `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md` §9: iterative BFS wins
+  depth-1 walks 2-4x, CTE wins depth ≥3 up to 6x; MariaDB's numeric-safety
+  dual-key sort costs +26%, and MySQL's JSON-typed sort is 2.5x faster than
+  MariaDB's dual form.
+- **mysqlengine graphWalk dedup** — the directed and undirected iterative
+  BFS fallbacks shared a 40-line skeleton; extracted `graphWalk` with an
+  adjacency callback, plus a new undirected iterative↔CTE parity test (the
+  fallback path had zero coverage).
+
+### Added — 9-engine conformance loop on real servers + DuckDB native graph — 2026-08-16
+
+- **9-engine capability conformance loop verified against real servers** —
+  PG (ephemeral nix), MySQL (8.4 container), Dgraph (ephemeral nix), plus
+  pebble/bbolt/badger/iroh/turso/duckdb local: ALL GREEN. Gotcha recorded:
+  `go test -C <dir>` must be the FIRST flag through the ephemeral scripts'
+  `go` passthrough, with `GOWORK=off` prefixed.
+- **DuckDB native graph via `WITH RECURSIVE`** (`duckdbengine/graph.go`):
+  `meta_graph_edges` table (PK collection,from,to) in init DDL,
+  `GraphAddEdge` (ON CONFLICT DO NOTHING — idempotent), `GraphNeighbors`
+  single-CTE traversal mirroring pgengine (DuckDB ≥0.8, no probe needed);
+  ADTGraph upgraded to native O(degree^depth) and removed from DegradedADTs.
+  Node-key encoding mirrors sqlite/pg/mysql (`art-dupl:accept` cross-module
+  pattern). Cycle-safety, depth 1-3, dedup, duplicate-edge idempotency,
+  integer-key, depth-0/empty honesty tests (cgo) green; api-stability golden
+  regenerated.
+- DuckDB aggregation pushdown TODO resolved STALE: the full AggregateReader
+  family + single-SELECT CounterGet already exist and are test-green.
+
+### Fixed
+
+- **`metaengine/irohengine/quic`** decode path applies the CBOR
+  int→uint64 normalization to decoded `any` fields, matching the transport
+  contract (tests use gomega.Equal, not BeEquivalentTo).
+- Hygiene-only releases: **`metaengine/tursoengine` v4.0.1** (docs, deps),
+  **`metaengine/irohengine/loopback` v4.0.1** (dep bumps),
+  **`metaengine/projectionadapter` v4.4.1** (checkpoint test race fix,
+  deps), **`graph` v4.2.1** (dep bumps; no consumers pin it).
+
+## [transport/http/v4.3.0, transport/grpc/v4.2.1] — 2026-08-29
+
+### Added
+
+- **`transport/http.SSEEventID`** (alias of `sse.EventID`) and
+  **`transport/http.NewSSEEventID`**: last v4 additions before the module's
+  v5 removal (ADR-0127). Both transport modules remain Deprecated — use
+  go-sse or the watermill brokers; these are their final minor/patch tags.
+
+### Changed
+
+- **`transport/grpc` v4.2.1** is deprecation-notice + hygiene only
+  (benchmarks, dependency pins) — final v4 tag.
 
 ## [snapshot/v4.4.0, decider/v4.5.0, storage/v4.8.1, storage/memory/v4.4.0, storage/pebble/v4.3.0, storage/bbolt/v4.1.0, storage/turso/v4.3.0, storage/backuptest/v4.1.0] — 2026-08-29
 
