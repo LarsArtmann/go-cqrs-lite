@@ -223,7 +223,7 @@ type LivenessReporter interface {
 // dropped and Healthy reports ErrTransportClosed. Peer transports stay
 // individually closeable via Close.
 func (n *InProcessNetwork) Shutdown() {
-	n.mu.Lock()
+	n.mu.Lock() //art-dupl:accept mutex-guarded close across modules is idiomatic, not a clone
 	defer n.mu.Unlock()
 	n.closed = true
 }

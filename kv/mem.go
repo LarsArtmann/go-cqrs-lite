@@ -153,7 +153,7 @@ func (s *MemStore) NewIterator(_ context.Context, prefix []byte) (Iterator, erro
 }
 
 func (s *MemStore) Close() error {
-	s.mu.Lock()
+	s.mu.Lock() //art-dupl:accept mutex-guarded close across modules is idiomatic, not a clone
 	defer s.mu.Unlock()
 
 	s.closed = true

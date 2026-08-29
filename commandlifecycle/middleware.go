@@ -23,7 +23,7 @@ func newAttemptTracker() *attemptTracker {
 }
 
 func (t *attemptTracker) next(cmdID string) int {
-	t.mu.Lock()
+	t.mu.Lock() //art-dupl:accept tiny accessor guards; extracting a generic helper hides intent
 	defer t.mu.Unlock()
 
 	v, _ := t.attempts.get(cmdID)
@@ -33,7 +33,7 @@ func (t *attemptTracker) next(cmdID string) int {
 }
 
 func (t *attemptTracker) get(cmdID string) int {
-	t.mu.Lock()
+	t.mu.Lock() //art-dupl:accept tiny accessor guards; extracting a generic helper hides intent
 	defer t.mu.Unlock()
 
 	v, _ := t.attempts.get(cmdID)

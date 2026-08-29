@@ -172,7 +172,7 @@ func (e *dgraphEngine) CounterGet(ctx context.Context, col string) (map[string]i
 			cqrs.counter_key
 			cqrs.counter_value
 		}
-	}`
+	}` //art-dupl:accept per-facet DQL queries intentionally repeat the var/query shape
 
 	resp, err := e.readTx().QueryWithVars(ctx, q, map[string]string{"$col": col})
 	if err != nil {

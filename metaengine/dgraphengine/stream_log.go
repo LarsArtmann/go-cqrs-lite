@@ -136,7 +136,7 @@ func (e *dgraphEngine) JournalReadAll(
 		entries(func: eq(cqrs.stream_log_collection, $col), orderasc: cqrs.stream_log_seq) {
 			cqrs.stream_log_value
 		}
-	}`
+	}` //art-dupl:accept per-facet DQL queries intentionally repeat the var/query shape
 
 	resp, err := e.readTx().QueryWithVars(ctx, q,
 		map[string]string{"$col": col})
