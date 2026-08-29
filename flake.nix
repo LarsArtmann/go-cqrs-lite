@@ -85,24 +85,12 @@
       # public and served by proxy.golang.org during the vendor phase.
       version = self.rev or self.dirtyRev or "dev";
 
-      # Go toolchain for the whole flake. nixpkgs' go_1_26 currently ships
-      # 1.26.5 while the workspace (go.work) and sibling repos (go-codec et al)
-      # require >= 1.26.6; GOTOOLCHAIN=local forbids auto-download, so the patch
-      # version is pinned here until nixpkgs catches up. When bumping: update
-      # version, fetch the new src hash via
-      #   nix store prefetch-file --hash-type sha256 https://go.dev/dl/go<ver>.src.tar.gz
-      # and mirror the bump in go.work + .go-version.
-      goToolchain =
-        pkgs:
-        pkgs.go_1_26.overrideAttrs (
-          finalAttrs: _prevAttrs: {
-            version = "1.26.6";
-            src = pkgs.fetchurl {
-              url = "https://go.dev/dl/go${finalAttrs.version}.src.tar.gz";
-              hash = "sha256-oHIcVMaIkBRI13rZs+x+p8R0cwdV/4kTgukuy5P/LLE=";
-            };
-          }
-        );
+      # Go toolchain for the whole flake. Was a go.dev-tarball pin at 1.26.6
+      # while nixpkgs shipped 1.26.5 and the workspace floor was >= 1.26.6.
+      # nixpkgs' go_1_26 now ships 1.26.7 (>= every go.mod floor here), so the
+      # override is dropped — re-pin ONLY if a future floor outruns nixpkgs
+      # (GOTOOLCHAIN=local forbids sandbox toolchain downloads).
+      goToolchain = pkgs: pkgs.go_1_26;
 
       mkCqrsLintSource =
         pkgs:
