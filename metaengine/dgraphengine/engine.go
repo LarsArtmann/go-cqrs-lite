@@ -128,7 +128,6 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 	p := metaengine.EngineProfile{
 		Name:        "dgraph",
 		NsPerOp:     DG_NsPerOp,
-		NsPerRead:   DG_NsPerRead,
 		NsPerWrite:  DG_NsPerWrite,
 		Persistence: metaengine.PersistencePersistent,
 		Replication: metaengine.ReplicationSingleLeader,

@@ -138,7 +138,6 @@ func (e *duckdbEngine) Profile() metaengine.EngineProfile {
 	p := metaengine.EngineProfile{
 		Name:        "duckdb",
 		NsPerOp:     DuckDBNsPerOp,
-		NsPerRead:   DuckDBNsPerRead,
 		Persistence: e.persistence,
 		// Per-read-pattern calibrated costs (see calibration_bench_test.go).
 		// DuckDB's read operations span 4000x: a point lookup (full PK scan +

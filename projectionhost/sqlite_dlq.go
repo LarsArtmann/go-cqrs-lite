@@ -21,7 +21,7 @@ var (
 // intFromVersion converts an event.Version (uint64) to int for SQL storage.
 // Event versions are small sequential integers that never approach int32 max.
 func intFromVersion(v event.Version) int {
-	return int(v) //nolint:gosec // G115: versions are small sequential integers
+	return int(v)
 }
 
 // sqliteDLQSchema defines the projection dead-letter table and its indexes.

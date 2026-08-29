@@ -52,7 +52,6 @@ func StringSchema(props ...string) (*catalog.Schema, error) {
 		)
 	}
 
-	//nolint:mnd // key-value pairs = half the input length
 	m := make(map[string]catalog.Property, len(props)/2)
 	for i := 0; i < len(props); i += 2 {
 		m[props[i]] = catalog.Property{Type: catalog.TypeString}

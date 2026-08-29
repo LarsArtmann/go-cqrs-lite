@@ -162,7 +162,6 @@ func (e *pgEngine) Profile() metaengine.EngineProfile {
 	p := metaengine.EngineProfile{
 		Name:        "postgres",
 		NsPerOp:     PG_NsPerOp,
-		NsPerRead:   PG_NsPerRead,
 		Persistence: metaengine.PersistencePersistent, // remote server — always survives
 		// Postgres is a networked service. RequiresNetwork declares the structural
 		// fact; NetworkRTT is a same-datacenter PRIOR replaced by a live probe
