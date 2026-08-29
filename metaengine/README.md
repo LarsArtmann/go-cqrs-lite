@@ -554,6 +554,8 @@ so consumers can wire Kubernetes-style liveness/readiness probes:
 | -------- | --------------------------- | ------------------------------- |
 | Memory   | No                          | Always healthy (in-process)     |
 | SQLite   | Yes                         | `db.PingContext`                |
+| Turso    | Yes (via SQLite core)       | `db.PingContext` (remote RTT)   |
+| MySQL    | Yes                         | `db.PingContext`                |
 | Pebble   | Yes                         | Point read of non-existent key  |
 | Badger   | Yes                         | Read-only `db.View` transaction |
 | DuckDB   | Yes (CGo)                   | `db.PingContext`                |
@@ -696,6 +698,10 @@ a full re-plan.
 
 ## Related Modules
 
+- [**metaengine/sqliteengine**](sqliteengine/README.md) — SQLite-backed engine (widest capability set, pure Go)
+- [**metaengine/tursoengine**](tursoengine/README.md) — Turso/libSQL engine (SQLite core + remote-RTT priors)
+- [**metaengine/mysqlengine**](mysqlengine/README.md) — MySQL/MariaDB engine (JSON columns, MariaDB-safe dialect)
+- [**metaengine/badgerengine**](badgerengine/README.md) — BadgerDB engine (LSM with native multimap/log ADTs)
 - [**metaengine/pebbleengine**](pebbleengine/README.md) — Pebble-backed engine (LSM point reads)
 - [**metaengine/duckdbengine**](duckdbengine/README.md) — DuckDB-backed engine (columnar OLAP, CGo)
 - [**metaengine/pgengine**](pgengine/README.md) — Postgres-backed engine (JSONB + B-tree)

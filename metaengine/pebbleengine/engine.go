@@ -6,8 +6,10 @@
 //   - SortedMap scan: O(N) prefix scan + Go sort (degraded — no secondary indexes)
 //   - Graph: O(N^d) BFS via prefix scan
 //
-// This module exists OUTSIDE the zero-dependency metaengine core (ADR-0062)
-// because it requires the cockroachdb/pebble dependency.
+// This module is a dep-isolated engine: it lives OUTSIDE the metaengine
+// module because it requires the cockroachdb/pebble dependency, keeping the
+// planner core's dependency budget clean (ADR-0062, as amended by the
+// ADR-0046/0111 tier model).
 package pebbleengine
 
 import (
