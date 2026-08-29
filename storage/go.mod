@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.0
@@ -119,5 +119,3 @@ require (
 retract v4.7.0 // does not compile: sql/keyset.go:43 assigns undeclared err; use v4.7.1
 
 replace github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 => ../testutil/pgtestcontainer
-
-replace github.com/larsartmann/go-cqrs-lite/listing/v4 => ../listing

@@ -49,7 +49,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
@@ -85,5 +85,3 @@ require (
 replace github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 => ../../storage/pebble
 
 replace github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4 => ../../storage/backuptest
-
-replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../../snapshot
