@@ -10,7 +10,10 @@ preserved for audit trail and progress tracking.
 there once every item it raised is verified resolved, tracked in
 [TODO_LIST.md](../../TODO_LIST.md), or superseded — the 2026-08-29 docs-health
 audit classified and annotated ~450 August reports and archived ~380 of them,
-with 28 stale claims corrected inline.
+with 28 stale claims corrected inline. The July archive pass (2026-08-29,
+same session) moved all 2026-07 status (240 files) and planning (52 files)
+snapshots to `archived/` — July work is shipped or superseded by the August
+waves; inbound references from active docs were repointed.
 
 ## What this means
 

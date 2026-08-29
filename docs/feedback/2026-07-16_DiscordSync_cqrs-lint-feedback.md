@@ -20,9 +20,9 @@ prefixes` + in-source `//cqrs-lint:external-api` marker), plus fairness fixes
 > to the health score (confidence weighting + Info cap), C001 tx-use detection,
 > A005 widened broadcast signals, and C008 project-aware downgrade. See the
 > "Resolution Log" section at the end of this file, the round-1 triage
-> (`docs/status/2026-07-17_03-38_cqrs-lint-discordsync-feedback-triage.md`), and
+> (`docs/status/archived/2026-07-17_03-38_cqrs-lint-discordsync-feedback-triage.md`), and
 > the round-2 report
-> (`docs/status/2026-07-17_04-13_cqrs-lint-discordsync-feedback-round2.md`).
+> (`docs/status/archived/2026-07-17_04-13_cqrs-lint-discordsync-feedback-round2.md`).
 
 **Consumer:** [DiscordSync](https://github.com/LarsArtmann/DiscordSync) — Discord backup bot
 **Version used:** go-cqrs-lite v4.0.0 (flake pin at `c34dd604`)

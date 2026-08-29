@@ -107,7 +107,7 @@ The error family taxonomy itself (Rejection/Conflict/Transient/Infrastructure/Co
 
 ## Appendix: Session Response (2026-07-05)
 
-> Tracking which feedback items were addressed. See `docs/status/2026-07-05_05-14_consumer-feedback-execution.md`.
+> Tracking which feedback items were addressed. See `docs/status/archived/2026-07-05_05-14_consumer-feedback-execution.md`.
 
 | # | Feedback Item                                                             | Status             | What changed                                                                                                                                                                                                                 |
 | - | ------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -147,7 +147,7 @@ The library has clearly evolved through real-world use — the API shows evidenc
 
 ## Appendix: Session Response (2026-07-05)
 
-> Tracking which feedback items were addressed. See `docs/status/2026-07-05_05-14_consumer-feedback-execution.md`.
+> Tracking which feedback items were addressed. See `docs/status/archived/2026-07-05_05-14_consumer-feedback-execution.md`.
 
 ### Pain Points
 

@@ -186,7 +186,7 @@ The skill file (`/.agents/skills/go-cqrs-lite/SKILL.md`) is **the best skill fil
 
 ## Appendix: Session Response (2026-07-05)
 
-> Tracking which feedback items were addressed. See `docs/status/2026-07-05_05-14_consumer-feedback-execution.md`.
+> Tracking which feedback items were addressed. See `docs/status/archived/2026-07-05_05-14_consumer-feedback-execution.md`.
 
 ### What's Painful
 

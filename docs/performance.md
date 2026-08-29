@@ -109,7 +109,7 @@ Throughput is flat below ~256B (CPU-bound), declines linearly above 1KB (bandwid
 | 4 KB         | 20.4K/s    | 799µs     | 29.1 MB |
 | 16 KB        | 6.3K/s     | 2.83ms    | 40.9 MB |
 
-Full data: `docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md`
+Full data: `docs/status/archived/2026-07-24_19-30_event-size-scaling-benchmark.md`
 
 ### SQLite event store
 

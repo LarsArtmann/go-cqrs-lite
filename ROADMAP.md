@@ -228,7 +228,7 @@ hardened through multiple brutal review passes and 7 consumer feedback rounds.
 ### 4. Module Extraction
 
 Two modules extracted to standalone repos (see
-[extraction analysis](docs/planning/2026-07-23_extraction-analysis.md)):
+[extraction analysis](docs/planning/archived/2026-07-23_extraction-analysis.md)):
 
 - ✅ **Extract `retry/` → `go-retry`** — ADR-0064. Repo created, pushed, tagged
   (v0.1.0). go-cqrs-lite `retry/go.mod` uses real versioned require directives.

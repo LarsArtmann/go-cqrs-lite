@@ -3,7 +3,7 @@
 > **STATUS: DESIGN PROPOSAL** (2026-07-31). This document proposes an architectural
 > refinement to `metaengine/`. It does not describe shipped behavior. It is the
 > unifying lens that connects the [taxonomy](../research/database-architecture-taxonomy.md),
-> the [design](meta-engine-design.md), and the [DataFusion lessons](2026-07-31_datafusion-lessons-for-metaengine.md)
+> the [design](meta-engine-design.md), and the [DataFusion lessons](archived/2026-07-31_datafusion-lessons-for-metaengine.md)
 > into one coherent decomposition.
 
 ---
@@ -294,7 +294,7 @@ This is a deployment-time decision, surfaced by the planner.
 
 ### Relationship to the DataFusion Doc's TemporalAnchor
 
-The [DataFusion lessons](2026-07-31_datafusion-lessons-for-metaengine.md) doc already proposes
+The [DataFusion lessons](archived/2026-07-31_datafusion-lessons-for-metaengine.md) doc already proposes
 `TemporalAnchor` on the **logical plan** — the _query_ declares "I want state as-of version 42."
 That doc covers the **logical layer**: which replay strategy to use (snapshot+delta, full
 replay, cached projection).
@@ -883,7 +883,7 @@ them:
 | [meta-engine-project-definition.md](meta-engine-project-definition.md)                         | Vision: why cross-engine view selection is novel            | Provides the research framing. This doc provides the architectural decomposition that makes it implementable.                                                                                              |
 | [meta-engine-design.md](meta-engine-design.md)                                                 | Technical design: cost profiles, optimizer, deployments     | Provides the cost model and optimizer algorithm. This doc refines `EngineProfile` to separate the two axes the design doc conflates, and adds `Layouts` for hybrid engines.                                |
 | [meta-engine-assumptions-and-query-planning.md](meta-engine-assumptions-and-query-planning.md) | Scale thresholds: N → data structure                        | Provides the volume thresholds. This doc's cost matrix is the structural layer those thresholds operate on.                                                                                                |
-| [DataFusion lessons](2026-07-31_datafusion-lessons-for-metaengine.md)                          | Engineering patterns: rule pipeline, logical/physical split | Provides the logical/physical plan separation and tier classification. This doc adds the storage-engine axis and the temporal-storage capability that the DataFusion doc treats only at the logical layer. |
+| [DataFusion lessons](archived/2026-07-31_datafusion-lessons-for-metaengine.md)                          | Engineering patterns: rule pipeline, logical/physical split | Provides the logical/physical plan separation and tier classification. This doc adds the storage-engine axis and the temporal-storage capability that the DataFusion doc treats only at the logical layer. |
 
 ### The Single Sentence
 

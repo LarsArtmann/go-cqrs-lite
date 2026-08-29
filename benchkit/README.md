@@ -252,7 +252,7 @@ events with embedded collections. `NewMixedGenerator(seed, sizes, codec)` picks
 a size uniformly at random per event. CLI: `--payload-sizes 64,256,1024,4096`.
 The result reports the distribution mean in `PayloadBytes` and the full
 distribution in `PayloadSizes`. See
-[scaling report](../docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md).
+[scaling report](../docs/status/archived/2026-07-24_19-30_event-size-scaling-benchmark.md).
 
 ### Soak testing (`--soak`)
 

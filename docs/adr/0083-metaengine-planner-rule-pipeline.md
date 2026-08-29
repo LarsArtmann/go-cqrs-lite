@@ -12,7 +12,7 @@ detection, and scale-threshold checking. Each future planner capability
 require adding more inline logic to an already complex function.
 
 DataFusion's core architectural lesson (documented in
-`docs/planning/2026-07-31_datafusion-lessons-for-metaengine.md`) is that a
+`docs/planning/archived/2026-07-31_datafusion-lessons-for-metaengine.md`) is that a
 query planner should decompose its decisions into composable,
 independently-testable rules. This makes the planner extensible without
 modifying the core planning function.

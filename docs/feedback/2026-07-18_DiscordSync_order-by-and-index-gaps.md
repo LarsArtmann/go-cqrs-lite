@@ -324,7 +324,7 @@ The options are:
 2. Accept `USE TEMP B-TREE FOR ORDER BY` for author sorts — 7× slower than the index-served sorts.
 3. Stay with raw SQL and abandon the library for this query.
 
-DiscordSync chose option 2 for now (see status report `docs/status/2026-07-18_00-50_attachment-sort-feature-with-cqrs-denormalization.md`). The library cannot help with this tradeoff.
+DiscordSync chose option 2 for now (see status report `docs/status/archived/2026-07-18_00-50_attachment-sort-feature-with-cqrs-denormalization.md`). The library cannot help with this tradeoff.
 
 ### No proposed fix
 
@@ -383,7 +383,7 @@ DiscordSync's hand-written implementation that this feedback derives from:
 - `internal/db/schema.go` — 6 direction-specific composite indexes declared as raw DDL
 - `internal/db/migrate.go::backfillDenormalizedFields` — hand-written denormalization backfill
 - `internal/db/attachment_sort_bench_test.go::TestAttachmentSort_QueryPlans` — hand-written EXPLAIN harness
-- `docs/status/2026-07-18_00-50_attachment-sort-feature-with-cqrs-denormalization.md` — full session report with benchmark numbers
+- `docs/status/archived/2026-07-18_00-50_attachment-sort-feature-with-cqrs-denormalization.md` — full session report with benchmark numbers
 
 ---
 

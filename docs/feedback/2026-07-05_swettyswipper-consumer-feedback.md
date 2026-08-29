@@ -166,7 +166,7 @@ _This feedback is given with gratitude for an excellent CQRS library. The critiq
 
 ## Appendix: Session Response (2026-07-05)
 
-> Tracking which feedback items were addressed. See `docs/status/2026-07-05_05-14_consumer-feedback-execution.md`.
+> Tracking which feedback items were addressed. See `docs/status/archived/2026-07-05_05-14_consumer-feedback-execution.md`.
 
 ### Confusing or Hard to Discover
 

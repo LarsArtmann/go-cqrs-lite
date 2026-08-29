@@ -2,7 +2,7 @@
 
 > **Status:** ACCEPTED
 > **Date:** 2026-07-10
-> **Related:** `docs/status/2026-07-09_08-46` items e2, P1 #12-13
+> **Related:** `docs/status/archived/2026-07-09_08-46` items e2, P1 #12-13
 
 ## Context
 

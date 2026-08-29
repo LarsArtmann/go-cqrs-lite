@@ -463,4 +463,4 @@ What genuinely **remains** is smaller than this doc implies:
 | `cqrs-lint doctor` to print detected features                 | Property detectors (write-after-init) as primary | Auto-detection as "fallback"          |
 | Split the proposal into 3 independent PRs                     |                                                  |                                       |
 
-The proposal's _instincts_ are right; the _packaging_ and _vocabulary_ need this pivot. See `docs/planning/2026-07-17_01-45_feature-profile-and-detector-consolidation.md` for the execution plan.
+The proposal's _instincts_ are right; the _packaging_ and _vocabulary_ need this pivot. See `docs/planning/archived/2026-07-17_01-45_feature-profile-and-detector-consolidation.md` for the execution plan.

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TODO Execution Plan — go-cqrs-lite — 2026-08-29</title>
+<style>
+:root{--ink:#111;--paper:#f5f2ea;--red:#d43d2a;--yellow:#e8b820;--blue:#1d4ed8;--grid:rgba(17,17,17,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:ui-monospace,'JetBrains Mono',monospace;background:var(--paper);color:var(--ink);line-height:1.5;padding:2rem;max-width:1400px;margin:0 auto}
+h1{font-size:2rem;text-transform:uppercase;letter-spacing:-.02em;border-bottom:6px solid var(--ink);padding-bottom:.5rem;margin-bottom:.25rem}
+h2{font-size:1.2rem;text-transform:uppercase;letter-spacing:.06em;margin:2rem 0 .75rem;padding:.35rem .6rem;background:var(--ink);color:var(--paper);display:inline-block}
+h3{font-size:1rem;margin:1.25rem 0 .5rem}
+.sub{color:#555;margin-bottom:1.5rem}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.75rem;margin:1.5rem 0}
+.stat{border:3px solid var(--ink);padding:.8rem;background:#fff}
+.stat .n{font-size:1.9rem;font-weight:800;line-height:1}
+.stat .l{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:#555}
+.stat.t1{background:var(--red);color:#fff}.stat.t1 .l{color:#ffd9d2}
+.stat.t2{background:var(--yellow)}.stat.t2 .l{color:#6b5a10}
+.stat.t3{background:var(--blue);color:#fff}.stat.t3 .l{color:#cdd9ff}
+table{width:100%;border-collapse:collapse;background:#fff;border:3px solid var(--ink);margin:.75rem 0 2rem;font-size:.82rem}
+th{background:var(--ink);color:var(--paper);text-align:left;padding:.45rem .6rem;text-transform:uppercase;font-size:.7rem;letter-spacing:.08em}
+td{padding:.4rem .6rem;border-top:1px solid var(--grid);vertical-align:top}
+tr:nth-child(even) td{background:#faf8f2}
+.b{display:inline-block;padding:.05rem .45rem;border:2px solid var(--ink);font-size:.68rem;font-weight:700;text-transform:uppercase;white-space:nowrap}
+.b.s{background:#e7f0e7}.b.m{background:var(--yellow)}.b.l{background:var(--red);color:#fff}.b.xs{background:#fff}
+.b.done{background:var(--ink);color:#fff}.b.blk{background:repeating-linear-gradient(45deg,#ccc,#ccc 4px,#eee 4px,#eee 8px)}
+.card{border:3px solid var(--ink);background:#fff;padding:1rem;margin:.75rem 0}
+.card.problem{border-color:var(--red);background:#fdf3f1}
+.card h4{font-size:.85rem;text-transform:uppercase;margin-bottom:.35rem}
+ol,ul{margin:.5rem 0 .5rem 1.4rem}
+li{margin:.2rem 0}
+footer{margin-top:3rem;border-top:3px solid var(--ink);padding-top:.6rem;font-size:.72rem;color:#555}
+</style>
+</head>
+<body>
+<h1>TODO Execution Plan</h1>
+<p class="sub">go-cqrs-lite · 2026-08-29 15:20 · full-execution mode · 85 open items triaged → 42 actionable tasks + 12 blocked/reported · sorted by impact ÷ effort</p>
+
+<div class="stats">
+<div class="stat t1"><div class="n">10</div><div class="l">Tier 1% — real bugs &amp; leaks</div></div>
+<div class="stat t2"><div class="n">15</div><div class="l">Tier 4% — hardening</div></div>
+<div class="stat t3"><div class="n">17</div><div class="l">Tier 20% — docs &amp; tooling</div></div>
+<div class="stat"><div class="n">12</div><div class="l">Blocked / owner-gated</div></div>
+</div>
+
+<h2>Tier 1% — correctness bugs consumers hit (small, verified)</h2>
+<table>
+<tr><th>#</th><th>Task</th><th>Module</th><th>Effort</th><th>Why it matters</th></tr>
+<tr><td>T01</td><td>cqrs-lint C042 checks Args[2] instead of Args[3] — rule can never fire</td><td>cmd/cqrs-lint</td><td><span class="b xs">XS</span></td><td>Dead lint rule; expected-version misuse undetected</td></tr>
+<tr><td>T02</td><td>scenario DSL passes vacuously (no Then ⇒ zero assertions); stale doc.go</td><td>scenario</td><td><span class="b s">S</span></td><td>Consumers' tests lie green</td></tr>
+<tr><td>T03</td><td>eventtest fakes: sub-slice aliasing, map-order reads, publishChain race</td><td>event/v4/eventtest</td><td><span class="b s">S</span></td><td>Test infra corrupts/flakes consumers' suites</td></tr>
+<tr><td>T04</td><td>record.Stamp zero-time JSON presence flip (wire → *time.Time)</td><td>record</td><td><span class="b s">S</span></td><td>Wire round-trip silently changes semantics</td></tr>
+<tr><td>T05</td><td>commandlifecycle Recorder versions map unbounded</td><td>commandlifecycle</td><td><span class="b s">S</span></td><td>Memory leak in long-running dispatch loops</td></tr>
+<tr><td>T06</td><td>commandlifecycle AttemptMiddleware standalone leak</td><td>commandlifecycle</td><td><span class="b s">S</span></td><td>Memory leak when used without outer middleware</td></tr>
+<tr><td>T07</td><td>projectionhost applyWithRetry retries non-retryable families</td><td>projectionhost</td><td><span class="b s">S</span></td><td>Rejection/Corruption retried pointlessly before DLQ</td></tr>
+<tr><td>T08</td><td>snapshot.ReadPressure unbounded reads map (TODO inline)</td><td>snapshot</td><td><span class="b s">S</span></td><td>Unbounded growth with distinct streams</td></tr>
+<tr><td>T09</td><td>snapshot.TypedStore.Save bypasses NewSnapshot invariants</td><td>snapshot</td><td><span class="b s">S</span></td><td>Invalid snapshots (version 0) persist</td></tr>
+<tr><td>T10</td><td>command vs query constructor error-style drift</td><td>command, query</td><td><span class="b s">S</span></td><td>Inconsistent error contract across twins</td></tr>
+</table>
+
+<h2>Tier 4% — consumer-facing hardening</h2>
+<table>
+<tr><th>#</th><th>Task</th><th>Module</th><th>Effort</th><th>Why it matters</th></tr>
+<tr><td>T11</td><td>Adopt command.MetadataCarrier at middleware/actor, commandlifecycle/recorder, watermill/command_protocol</td><td>3 modules</td><td><span class="b s">S</span></td><td>ADR-0111(g) capability interfaces replace duck-typing</td></tr>
+<tr><td>T12</td><td>transport/http + grpc: machine-readable // Deprecated: markers</td><td>transport/*</td><td><span class="b xs">XS</span></td><td>SA1019 finally flags consumers pre-v5</td></tr>
+<tr><td>T13</td><td>mapUpdateReplicationRule covers FoldMultiInsert/FoldAppend</td><td>metaengine</td><td><span class="b xs">XS</span></td><td>Replication gap for 2 fold kinds</td></tr>
+<tr><td>T14</td><td>deriver: opt-in derivation depth guard (cycle hazard)</td><td>deriver</td><td><span class="b s">S</span></td><td>Unbounded derivation loops possible</td></tr>
+<tr><td>T15</td><td>kv.Cache: Invalidate/InvalidateAll + single-writer/TTL/DeleteAll docs</td><td>kv</td><td><span class="b m">M</span></td><td>Stale-read + blast-radius footguns</td></tr>
+<tr><td>T16</td><td>pebble command/query dup-check: shard lock + fail-open on read error</td><td>storage/pebble</td><td><span class="b m">M</span></td><td>Silent overwrite + wrong Conflict on infra errors</td></tr>
+<tr><td>T17</td><td>schema upcaster registry: nil guard, stable sort, version stamp verify, dup reject, honest docs</td><td>schema</td><td><span class="b m">M</span></td><td>Shared-event mutation + panic + double-transform</td></tr>
+<tr><td>T18</td><td>catalog SchemaFromType: recurse embedded fields + recursion guard</td><td>catalog</td><td><span class="b m">M</span></td><td>Generated clients disagree with wire payloads</td></tr>
+<tr><td>T19</td><td>projectionhost hardening set (ReplayDeadLetters lock, Reset order, BatchSize ≤0, staleness, DLQ families, corrupt row)</td><td>projectionhost</td><td><span class="b m">M</span></td><td>Crash windows + permanent silent gaps</td></tr>
+<tr><td>T20</td><td>metaengine graph BFS fmt.Sprint dedup collision + CheckRouting plan-version note</td><td>metaengine</td><td><span class="b s">S</span></td><td>int(1) collides with "1" on mixed nodes</td></tr>
+<tr><td>T21</td><td>DuckDB counter SQL pushdown + filter-helper unify</td><td>metaengine/duckdbengine</td><td><span class="b s">S</span></td><td>CounterGet loads all rows into Go map</td></tr>
+<tr><td>T22</td><td>irohengine HealthChecker (only engine without one)</td><td>metaengine/irohengine</td><td><span class="b s">S</span></td><td>Capability parity across engines</td></tr>
+<tr><td>T23</td><td>VectorCount optional capability + Doctor/EXPLAIN WARN</td><td>metaengine</td><td><span class="b s">S</span></td><td>Full-scan vector queries surprise users</td></tr>
+<tr><td>T24</td><td>SQL-injection tail: ValidateIdentifier on ORDER BY + fuzz corpus persistence</td><td>storage/sql</td><td><span class="b s">S</span></td><td>Identifier interpolation gap</td></tr>
+<tr><td>T25</td><td>kv.Cache.Get miss-path double round-trip</td><td>kv</td><td><span class="b s">S</span></td><td>Extra encode/decode per miss</td></tr>
+</table>
+
+<h2>Tier 20% — docs, tooling, engines</h2>
+<table>
+<tr><th>#</th><th>Task</th><th>Module</th><th>Effort</th><th>Why it matters</th></tr>
+<tr><td>T26</td><td>metaengine README capability rows + dispatcher/metadata README lies</td><td>docs</td><td><span class="b s">S</span></td><td>READMEs state falsehoods about the API</td></tr>
+<tr><td>T27</td><td>Contract docs: stream-not-found, scheduling multi-instance/retry, ActorID zero asymmetry, listing cursor ambiguity</td><td>docs/godoc</td><td><span class="b s">S</span></td><td>Undocumented divergence = consumer bugs</td></tr>
+<tr><td>T28</td><td>Engine READMEs (mysql/sqlite/turso/badger) + stale pebble comment</td><td>docs</td><td><span class="b s">S</span></td><td>4 engines invisible to consumers</td></tr>
+<tr><td>T29</td><td>BENCHMARKS.md durability cell + modules.md bboltengine row</td><td>docs</td><td><span class="b s">S</span></td><td>Stale claims, missing module row</td></tr>
+<tr><td>T30</td><td>CONTRIBUTING release pin-bump recipe + CHANGELOG unreleased-block fold</td><td>docs</td><td><span class="b s">S</span></td><td>Release procedure incomplete</td></tr>
+<tr><td>T31</td><td>cqrs-lint version const automation in tag-release.sh</td><td>scripts</td><td><span class="b s">S</span></td><td>Version const drifts from tag</td></tr>
+<tr><td>T32</td><td>iroh QUIC test hardening (normalizeAny tables, eviction stress, framing dedup, README option row)</td><td>iroh/{loopback,quic}</td><td><span class="b s">S</span></td><td>Untested edge paths</td></tr>
+<tr><td>T33</td><td>benchmark-regression gate: fixture test + regen runbook</td><td>scripts/docs</td><td><span class="b s">S</span></td><td>Gate itself untested</td></tr>
+<tr><td>T34</td><td>docserver follow-ups (CSS GET test, CHANGELOG note, README deps)</td><td>catalog</td><td><span class="b s">S</span></td><td>Small open tails</td></tr>
+<tr><td>T35</td><td>#verify-standalone nix app (GOWORK=off per module)</td><td>flake</td><td><span class="b m">M</span></td><td>Catches pin rot the workspace gate masks</td></tr>
+<tr><td>T36</td><td>Audit .golangci.yml exclusion blocks</td><td>lint config</td><td><span class="b m">M</span></td><td>20+ linters disabled per path</td></tr>
+<tr><td>T37</td><td>Test-suite consolidation: storage/sql onto commandtest/querytest</td><td>storage/sql</td><td><span class="b s">S</span></td><td>Duplicated store test logic</td></tr>
+<tr><td>T38</td><td>Watcher hardening: typed chan + reification hook</td><td>metaengine</td><td><span class="b m">M</span></td><td>chan any on watcher path</td></tr>
+<tr><td>T39</td><td>mysqlengine sort-path layout integration</td><td>metaengine/mysqlengine</td><td><span class="b m">M</span></td><td>Generated columns never read</td></tr>
+<tr><td>T40</td><td>pgEngine/mysqlEngine LayoutPlanApplier + schema evolution</td><td>metaengine/{pg,mysql}engine</td><td><span class="b m">M</span></td><td>Planned layouts mis-type columns</td></tr>
+<tr><td>T41</td><td>dgraphengine gaps: RunInTx + conformance tests + MapScan test</td><td>metaengine/dgraphengine</td><td><span class="b m">M</span></td><td>Missing Transactional capability</td></tr>
+<tr><td>T42</td><td>v5 non-breaking prep: kvstore SA1019 decision + migration guide outline</td><td>docs</td><td><span class="b s">S</span></td><td>Pre-reqs that don't need the v5 cut</td></tr>
+</table>
+
+<h2>Blocked / owner-gated (reported, not executed)</h2>
+<div class="card problem"><h4>Why these are NOT in this run</h4>
+<ul>
+<li><strong>Tag wave B4–B7, transport final tags, GitHub Releases</strong> — explicit user authorization required (never tag/push unprompted).</li>
+<li><strong>Dead eventtest tags, go-codec F46, GitHub billing, iroh P99 ratify</strong> — external repos / account settings / owner decisions.</li>
+<li><strong>Replace-drop sweep + indirect-dep consolidation</strong> — mechanically blocked until the tag wave ships.</li>
+<li><strong>macOS verification, integration-mysql-nspawn</strong> — hardware / root access unavailable here.</li>
+<li><strong>v5 breaking deletions (stack, view/relational, transport, tombstone API, wire-tag renames)</strong> — the breaking cut is owner-gated per ADR-0123 deprecation-first policy; this run ships only its non-breaking pre-reqs (T42).</li>
+<li><strong>ci.yml Billing / Benchmarks red job</strong> — same billing blocker.</li>
+</ul></div>
+
+<h2>Execution order</h2>
+<div class="card"><ol>
+<li><strong>Wave A (Tier 1%)</strong>: T01→T10 — every fix lands with a regression test, verified per-module (GOWORK=off).</li>
+<li><strong>Wave B (Tier 4%)</strong>: T11–T25 — smallest first, M-effort items (T15–T19) interleaved when a module is already open.</li>
+<li><strong>Wave C (Tier 20%)</strong>: T26–T42 — docs first (cheap, high reach), then tooling, then engine work.</li>
+<li><strong>Final gate</strong>: doc-check over skill refs, GOWORK=off test sweep over every touched module, commits per wave.</li>
+</ol></div>
+
+<h2>Execution graph</h2>
+<?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.8.1-HEAD" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1199 352"><svg class="d2-3370971940 d2-svg" width="1199" height="352" viewBox="-101 -101 1199 352"><rect x="-101.000000" y="-101.000000" width="1199.000000" height="352.000000" rx="0.000000" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
+.d2-3370971940 .text-bold {
+	font-family: "d2-3370971940-font-bold";
+}
+@font-face {
+	font-family: d2-3370971940-font-bold;
+	src: url("data:application/font-woff;base64,d09GRgABAAAAAA/UAAoAAAAAF+wAAguFAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAAA9AAAAGAAAABgXxHXrmNtYXAAAAFUAAAArgAAAPAEoAT0Z2x5ZgAAAgQAAAkJAAAMJDkVvcNoZWFkAAALEAAAADYAAAA2G38e1GhoZWEAAAtIAAAAJAAAACQKfwXqaG10eAAAC2wAAAClAAAArFRSBjZsb2NhAAAMFAAAAFgAAABYRfxJCG1heHAAAAxsAAAAIAAAACAAQwD3bmFtZQAADIwAAAMoAAAIKgjwVkFwb3N0AAAPtAAAAB0AAAAg/9EAMgADAioCvAAFAAACigJYAAAASwKKAlgAAAFeADIBKQAAAgsHAwMEAwICBGAAAvcAAAADAAAAAAAAAABBREJPACAAIP//Au7/BgAAA9gBESAAAZ8AAAAAAfAClAAAACAAA3ichM27K0UBAMfxz7n3eF/v9/u43ElKku2sDAYlZTbKIuVfwipSyj+jDIrVYPFTBtl85099UWgq0FJ6QVul1FDpWLdhy47ann0HDh05durcZcKv2bSttvvHnDhzkeQ5X/nMR97zltc85TEPuc9dbnOT61z9nP+rsGpN24JFS5ZVVnQ0NJW6dOvRq0+/AS2DhgwbMWrMuAmTpkybMWvOPN8AAAD//wEAAP//ol4teQAAeJyEVn1MG+cZf97X9l1iLoB9Pn9/H76zTTCxz2fzGWMwJiQ2X1mANA6kVpvQQCBNyKAttJPWD62l6jralW7a2kWNtHXdlqqblHZj0iZVW9RIlZZqnaZNa6v+0SpbhCqvizY4T+8ZSMj+2B93h8TL8/6e3/P7/R5ABwMAuIhfAA3shhowAgcgGXyGgCSKPJ2UkkneokmKyEAPYKNy6TUxpA2FtGHviufh8XGUH8MvbEwdyxeLX463tirff/sd5Vl0/h0ABHkA9Blegt1qPc7HSRzP5dF3lVuffIKXFl5a2AAg5yLlEs7gFfAA6PyCIMcTCSlmttCCwPspzmSWYomkzMuSgaLQmaPPHxn55kjPSW/e1hTOnSgcMwnM1E3/g0zuxTNTLw/GfWNm99nifWf1+rPzyge+SAUHnsJLwBAckkFiJQ3La2guv6z97cV3P//BKzm8pPwTVSnryjxi7/sZAFYxPYpXoAYcO1CZORNFibGEHN8Eh4ZHnzh06InRyrurr6+rq6+PGXr59OSL/f3fPn365aHHZovF6elicZbUJVgO4yWoBouKplKRZnmR5wxSpS6fv9F9LpOSX7i0OJhraW9vyeGlwGjfgeMW5T83bqAT0X37BMKbDQCzeAloUomXfRxvuPYW+vdbuHZhYWOtwm01gMaLl8AHIGkk1my2SIlEkr3jJw2vEQSRpyha89RDLzVQ1ZRWz+qzi1k9q9fSe+iGZ2ff7ti1R6el9uxqx0vK+9KpePyUhKLK+9EJWT4VQ9GNWRQU8nV1eUH5E2AIl0voA7QONuABLH5CXVKdJS2qHHIGntyXJGOlCIe/zgw8voz5kKejTm6cbBk/Oa/Xenp22QJsX5uHGUn1jdb4RCt3r6tu+pzyqeTkz1nYEX29y2oBwmm6XMJmvAqmTQWJPM0bJI6+a2C8n+bMZtTt63JpmfPLWlfG3zba2DY+KiSG94ZMQcbnlfHqGzm7a/+DuSMPpeazuScb3jNWqzzWlUtoFa2D/W6N3paohaKQrXsmfeCrmUiPs5v3yqnUPmuEbQkMM+0Xhg7Ptrst465cuiPP1ZzwOkDFLpZLaB2vAgveLa7UwqIs3cHSlhO+KMy0jsdDTTZqeV6vtWexVTSy9SY+0cg889Dghf1Oa+5HG11ROz9vsr1nrO7q6e0GrGL/GK2D9S6Hqcrzmc1SjGDXSKqkkafnXGfXVGvP8UYtVj7UZ6NyIiqMfectca8/weyfHRqcTaUmM2xgd0LyHbW7UUtIbqxozQqAZvFV8iV6TN5lZGJ/wz2dnXUDXZ54rWOPnXG4jx5Fi2d0Dnk4zlBTOp1PcJ9Xvg6gAX+5AdNoHRqhFQ6qzAhynBBBxCRvtWCROL4yYd4vqnMg8jJRlOYOh7KbrvIL6pEvWsaaeliH12oPtYzJe32/6Kd3x0eTLo/RHxoo3JtZOOgSRZdLFEOxDjEg2XyMo/26vWlvW1C7J+hxxGq1xkx9W3+Qmazym5oP1ulrzKyxtUsajKCr4ZAYCgZDYWW5zmap1WisNqerwk2aDFvVKHH9pjY5A29QUdKG9DLtPBQb7F12eZ1BK15946itfvK4cg35EkGbRXkTymVIAsBf8XUsgAAANIjw9HZtN17dzrekRPKE5tLPab/36k9/+crZFF5Vpt+9pvzlNz0Pk/PlEjLiVaipKM4gGbYF/Ptc67Jht46mjEyAOXYI8xsfWowIndHRlXs0LrSuZolBIvFBprujE3r7myYezkblNOs7GB04tOzyBvaRVyNa6/A01Af90a329ilvbn62eELrmzxt3nEnT/N6rTe/TRRaS7kbdvBU0buqnf+f3ebUTCYzk0pNZzLTqYZIpCHS0LDp1fbZw0MX2ufyHekcsWwlZw5gM1oHFtwAltvoVPkJooVjb8cMwenqFe+ZaBtPeNvsun4hMVwfNgWv4B9G7fw3zh+ZTzls/c+juu2QUXtHz6F1MO7gt+KeSueOnMA59dY9tlpnuwmtjcSiOt1jWm0opnwECLhyCb2C1kFU5yomibNJs4IYwXL8djHOZLa4MWeirkdPCZ3+lMfndkXs7tbgA0eaRzyd9ri9uVnwtocmGMFTsDksrMHM6pm65lD3sGgdNZlFq626im+OdB2vaNtQLqFpPEs2ms4vyDIvJ5OSuuxvByMU+jM5w8Nzc7yLsektbJI5PXz1DPX44+d/Fw5Q2kmKqdRqK5fQLbRG5r9Dm4bNOPzjYO+y2+sUzMvzVRrPQWbyOIorf5NDdhc6oNR2B/YChkC5hG7gp6Bqc/6V3jkTmb3KB+9X144Z7Tq5uHiSPLagxRK0WYNWa5B5/eLFS5cuXnz9XGBsZKTg9xdGRsYCBFsWAP0ZP6L6jMSznEgkiZmzT8/FD/in5ubQzDG907SxPlfpxQ2APsVPgZOc348rstvcgapqSApIXGBwMRsN+ZPWgcZiJjUmtxbi1jbz176SX3ygoTEq2vtjUuxYuzwzk9DoFogOWQB0Cz8CuwlLrEQSkaxvVvbJLMHDc68+qUNaxl4dU/7x2c97e9GuU55Btz3hUKZX7kePKs+eXSH4LOUS+gg/QrbCDr2oKFkfx9PbSP/VNyV0ujLBaEvTXmfA1WlEE59X+YTksab0aSYeOG4PxKL7YtXGMEovzNWERzLZ++LqfguVS+jv6iyCAMhP0VuXaP7nPz2K3rYTYm2SSd/k8zU2utunu3svdKUK7nxt0sm38Bpbr2tosmUcBVz+Q83RRCysvJ9+ZmZupbfBM2p0BEYOevnx+zvH4+oM6uEq8qEoaACSssTVf3l1YoJkqb1c0nTgFRBVXBSIEEKLaqoG0cdQmZ8fxtBNnIAq8re8LMkVUf/h8uWpy5fHrkxcuTJxhdTyw0V0E32BBQjDLFAQhqWtXIYP0Bq5m+RyehmtKbWAyj/BzXAYXyd1DXeoMxCJBAKRCG4O83yYPIQ/e7mExtG3oIq4y7JTy9s59qtsoZDtKRR6bDxvs/E8M10sTk0Vi9NDTdlsIpHNNhE85SPlEtLjFYKHRhL6MTpxRHmVwa9tFDb7RWZ0Ez1Kfs/KPs6PriHzxAQA/BcAAP//AQAA///zk5H5AAAAAAEAAAACC4XZZ1WdXw889QABA+gAAAAA2F2ghAAAAADdZi82/jf+xAhtA/EAAQADAAIAAAAAAAAAAQAAA9j+7wAACJj+N/43CG0AAQAAAAAAAAAAAAAAAAAAACt4nBzKL27CcBiH8ef9Nplatt+y7l9FRdNl2TpqIaEVr0HRBFNRh4EzoOAGnAQMlgvgOVBJEY958tGJBRfQI422lFrT6ECpFY3++YpGPOmZP9W4XclV86MHcmv51DuZprjFjJXjluJRh6vCVdyt2x63M2+240UTKgW+FZgpkCrwqsCHAr82p4g6EgWyIYtx6I+2IWHZt8O7AQAA//8BAAD//2kbFc4AAAAAAAAsACwAQABwAIoAtgDcAO4BKAFgAZIBvgHwAiQCSgKyAtQC4AL4AxQDRgNoA5QDxAPkBCAERgRoBJQErATYBPwFLgVuBXoFjAWgBawFuAXOBfQGBAYSAAEAAAArAJAADABjAAcAAQAAAAAAAAAAAAAAAAAEAAN4nJyUz24bVRTGf05s0wrBAkVVuonugkWR6NhUSdU2K4fUikUUB48LQkJIE8/4jzKeGXkmDuEJWPMWvEVXPATPgVij+Xzs2AXRJoqSfHfu+fOdc75zgR3+ZptK9SHwRz0xXGGvfm54iwf1E8PbtOtbhqs8qf1puEZYmxuu83mtZ/gj3lZ/M/yA/epPhh+yW20b/phn1R3Dn2w7/jL8Kfu8XeAKvOBXwxV2yQxvscOPhrd5hMWsVHlE03CNz9gzXGcP6DOhIGZCwgjHkAkjrpgRkeMTMWPCkIgQR4cWMYW+JgRCjtF/fg3wKZgRKOKYAkeMT0xAztgi/iKvlHNlHOo0s7sWBWMCLuRxSUCCI2VESkLEpeIUFGS8okGDnIH4ZhTkeORMiPFImTGiQZc2p/QZMyHH0VakkplPypCCawLld2ZRdmZAREJurK5ICMXTiV8k7w6nOLpksl2PfLoR4Usc38m75JbK9is8/bo1Zpt5l2wC5upnrK7EurnWBMe6LfO2+Fa44BXuXv3ZZPL+HoX6XyjyBVeaf6hJJWKS4NwuLXwpyHePcRzp3MFXR76nQ58Turyhr3OLHj1anNGnw2v5dunh+JouZxzLoyO8uGtLMWf8gOMbOrIpY0fWn8XEIn4mM3Xn4jhTHVMy9bxk7qnWSBXefcLlDqUb6sjlM9AelZZO80u0ZwEjU0UmhlP1cqmN3PoXmiKmqqWc7e19uQ1z273lFt+QaodLtS44lZNbMHrfVL13NHOtH4+AkJQLWQxImdKg4Ea8zwm4IsZxrO6daEsKWiufMs+NVBIxFYMOieLMyPQ3MN34xn2woXtnb0ko/5Lp5aqq+2Rx6tXtjN6oe8s737ocrU2gYVNN19Q0ENfEtB9pp9b5+/LN9bqlPOWIlJjwXy/AMzya7HPAIWNlGOhmbq9DUy9Ek5ccqvpLIlkNpefIIhzg8ZwDDnjJ83f6uGTijItbcVnP3eKYI7ocflAVC/suR7xeffv/rL+LaVO1OJ6uTi/uPcUnd1DrF9qz2/eyp4mVk5hbtNutOCNgWnJxu+s1ucd4/wAAAP//AQAA///0t09ReJxiYGYAg//nGIwYsAAAAAAA//8BAAD//y8BAgMAAAA=");
+}]]></style><style type="text/css"><![CDATA[.shape {
+  shape-rendering: geometricPrecision;
+  stroke-linejoin: round;
+}
+.connection {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.blend {
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+		.d2-3370971940 .fill-N1{fill:#0A0F25;}
+		.d2-3370971940 .fill-N2{fill:#676C7E;}
+		.d2-3370971940 .fill-N3{fill:#9499AB;}
+		.d2-3370971940 .fill-N4{fill:#CFD2DD;}
+		.d2-3370971940 .fill-N5{fill:#DEE1EB;}
+		.d2-3370971940 .fill-N6{fill:#EEF1F8;}
+		.d2-3370971940 .fill-N7{fill:#FFFFFF;}
+		.d2-3370971940 .fill-B1{fill:#0D32B2;}
+		.d2-3370971940 .fill-B2{fill:#0D32B2;}
+		.d2-3370971940 .fill-B3{fill:#E3E9FD;}
+		.d2-3370971940 .fill-B4{fill:#E3E9FD;}
+		.d2-3370971940 .fill-B5{fill:#EDF0FD;}
+		.d2-3370971940 .fill-B6{fill:#F7F8FE;}
+		.d2-3370971940 .fill-AA2{fill:#4A6FF3;}
+		.d2-3370971940 .fill-AA4{fill:#EDF0FD;}
+		.d2-3370971940 .fill-AA5{fill:#F7F8FE;}
+		.d2-3370971940 .fill-AB4{fill:#EDF0FD;}
+		.d2-3370971940 .fill-AB5{fill:#F7F8FE;}
+		.d2-3370971940 .stroke-N1{stroke:#0A0F25;}
+		.d2-3370971940 .stroke-N2{stroke:#676C7E;}
+		.d2-3370971940 .stroke-N3{stroke:#9499AB;}
+		.d2-3370971940 .stroke-N4{stroke:#CFD2DD;}
+		.d2-3370971940 .stroke-N5{stroke:#DEE1EB;}
+		.d2-3370971940 .stroke-N6{stroke:#EEF1F8;}
+		.d2-3370971940 .stroke-N7{stroke:#FFFFFF;}
+		.d2-3370971940 .stroke-B1{stroke:#0D32B2;}
+		.d2-3370971940 .stroke-B2{stroke:#0D32B2;}
+		.d2-3370971940 .stroke-B3{stroke:#E3E9FD;}
+		.d2-3370971940 .stroke-B4{stroke:#E3E9FD;}
+		.d2-3370971940 .stroke-B5{stroke:#EDF0FD;}
+		.d2-3370971940 .stroke-B6{stroke:#F7F8FE;}
+		.d2-3370971940 .stroke-AA2{stroke:#4A6FF3;}
+		.d2-3370971940 .stroke-AA4{stroke:#EDF0FD;}
+		.d2-3370971940 .stroke-AA5{stroke:#F7F8FE;}
+		.d2-3370971940 .stroke-AB4{stroke:#EDF0FD;}
+		.d2-3370971940 .stroke-AB5{stroke:#F7F8FE;}
+		.d2-3370971940 .background-color-N1{background-color:#0A0F25;}
+		.d2-3370971940 .background-color-N2{background-color:#676C7E;}
+		.d2-3370971940 .background-color-N3{background-color:#9499AB;}
+		.d2-3370971940 .background-color-N4{background-color:#CFD2DD;}
+		.d2-3370971940 .background-color-N5{background-color:#DEE1EB;}
+		.d2-3370971940 .background-color-N6{background-color:#EEF1F8;}
+		.d2-3370971940 .background-color-N7{background-color:#FFFFFF;}
+		.d2-3370971940 .background-color-B1{background-color:#0D32B2;}
+		.d2-3370971940 .background-color-B2{background-color:#0D32B2;}
+		.d2-3370971940 .background-color-B3{background-color:#E3E9FD;}
+		.d2-3370971940 .background-color-B4{background-color:#E3E9FD;}
+		.d2-3370971940 .background-color-B5{background-color:#EDF0FD;}
+		.d2-3370971940 .background-color-B6{background-color:#F7F8FE;}
+		.d2-3370971940 .background-color-AA2{background-color:#4A6FF3;}
+		.d2-3370971940 .background-color-AA4{background-color:#EDF0FD;}
+		.d2-3370971940 .background-color-AA5{background-color:#F7F8FE;}
+		.d2-3370971940 .background-color-AB4{background-color:#EDF0FD;}
+		.d2-3370971940 .background-color-AB5{background-color:#F7F8FE;}
+		.d2-3370971940 .color-N1{color:#0A0F25;}
+		.d2-3370971940 .color-N2{color:#676C7E;}
+		.d2-3370971940 .color-N3{color:#9499AB;}
+		.d2-3370971940 .color-N4{color:#CFD2DD;}
+		.d2-3370971940 .color-N5{color:#DEE1EB;}
+		.d2-3370971940 .color-N6{color:#EEF1F8;}
+		.d2-3370971940 .color-N7{color:#FFFFFF;}
+		.d2-3370971940 .color-B1{color:#0D32B2;}
+		.d2-3370971940 .color-B2{color:#0D32B2;}
+		.d2-3370971940 .color-B3{color:#E3E9FD;}
+		.d2-3370971940 .color-B4{color:#E3E9FD;}
+		.d2-3370971940 .color-B5{color:#EDF0FD;}
+		.d2-3370971940 .color-B6{color:#F7F8FE;}
+		.d2-3370971940 .color-AA2{color:#4A6FF3;}
+		.d2-3370971940 .color-AA4{color:#EDF0FD;}
+		.d2-3370971940 .color-AA5{color:#F7F8FE;}
+		.d2-3370971940 .color-AB4{color:#EDF0FD;}
+		.d2-3370971940 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-3370971940);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-3370971940);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-3370971940);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-3370971940);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-3370971940);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-3370971940);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-3370971940);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-3370971940);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-3370971940);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-3370971940);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-3370971940);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-3370971940);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-3370971940);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-3370971940);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-3370971940);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-3370971940);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-3370971940);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-3370971940);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]></style><g class="QQ=="><g class="shape" ><rect x="0.000000" y="26.000000" width="125.000000" height="98.000000" stroke="#0D32B2" fill="#d43d2a" class=" stroke-B1" style="stroke-width:2;" /></g><text x="62.500000" y="64.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="62.500000" dy="0.000000">Tier 1%</tspan><tspan x="62.500000" dy="17.666667">T01-T10</tspan><tspan x="62.500000" dy="17.666667">bugs+leaks</tspan></text></g><g class="Qg=="><g class="shape" ><rect x="225.000000" y="26.000000" width="119.000000" height="98.000000" stroke="#0D32B2" fill="#e8b820" class=" stroke-B1" style="stroke-width:2;" /></g><text x="284.500000" y="64.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="284.500000" dy="0.000000">Tier 4%</tspan><tspan x="284.500000" dy="17.666667">T11-T25</tspan><tspan x="284.500000" dy="17.666667">hardening</tspan></text></g><g class="Qw=="><g class="shape" ><rect x="444.000000" y="26.000000" width="200.000000" height="98.000000" stroke="#0D32B2" fill="#1d4ed8" class=" stroke-B1" style="stroke-width:2;" /></g><text x="544.000000" y="64.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="544.000000" dy="0.000000">Tier 20%</tspan><tspan x="544.000000" dy="17.666667">T26-T42</tspan><tspan x="544.000000" dy="17.666667">docs+tooling+engines</tspan></text></g><g class="RA=="><g class="shape" ><path d="M 744 24 C 744 0 858 0 871 0 C 883 0 997 0 997 24 V 126 C 997 150 883 150 871 150 C 858 150 744 150 744 126 V 24 Z" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-AA4" style="stroke-width:2;" /><path d="M 744 24 C 744 48 858 48 871 48 C 883 48 997 48 997 24" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-AA4" style="stroke-width:2;" /></g><text x="870.500000" y="76.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="870.500000" dy="0.000000">Final gate</tspan><tspan x="870.500000" dy="17.666667">doc-check + per-module</tspan><tspan x="870.500000" dy="17.666667">GOWORK=off tests + commits</tspan></text></g><g class="KEEgLSZndDsgQilbMF0="><marker id="mk-d2-3370971940-3488378134" markerWidth="10.000000" markerHeight="12.000000" refX="7.000000" refY="6.000000" viewBox="0.000000 0.000000 10.000000 12.000000" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000" fill="#0D32B2" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 127.000000 75.000000 C 165.000000 75.000000 185.000000 75.000000 221.000000 75.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3370971940-3488378134)" mask="url(#d2-3370971940)" /></g><g class="KEIgLSZndDsgQylbMF0="><path d="M 346.000000 75.000000 C 384.000000 75.000000 404.000000 75.000000 440.000000 75.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3370971940-3488378134)" mask="url(#d2-3370971940)" /></g><g class="KEMgLSZndDsgRClbMF0="><path d="M 646.000000 75.000000 C 684.000000 75.000000 704.000000 75.000000 740.000000 75.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3370971940-3488378134)" mask="url(#d2-3370971940)" /></g><mask id="d2-3370971940" maskUnits="userSpaceOnUse" x="-101" y="-101" width="1199" height="352">
+<rect x="-101" y="-101" width="1199" height="352" fill="white"></rect>
+
+</mask></svg></svg>
+
+
+<footer>Pareto plan · generated 2026-08-29 · point-in-time snapshot — TODO_LIST.md remains the living source · ambient load at planning time: 61 (timing assertions to be treated with suspicion)</footer>
+</body>
+</html>

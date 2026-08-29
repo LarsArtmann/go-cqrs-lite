@@ -5327,7 +5327,7 @@ ProjectionDecoder` field for typed event decoders.
 - **Self-lint suppression** — 181 inline suppressions across 83 files for
   library self-referential false positives. Suppression parser extended to
   handle space after `//` and comma-separated rule IDs.
-- **Pareto improvement backlog** (`docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md`)
+- **Pareto improvement backlog** (`docs/planning/archived/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md`)
   — 50 will-implement items triaged from 75 open ideas, with 25 pruned with
   rationale.
 
@@ -6101,7 +6101,7 @@ logger)`, `NewBackend(db, logger)`. EventStore, SnapshotStore,
   errorfamily error classification, SkipPhases, Config validation. 88 benchkit
   - 12 CLI test functions (`-race`). First real benchmark run executed across
     memory/pebble/sqlite — see
-    [benchmark results](docs/status/2026-07-24_17-54_benchmark-first-real-run.md).
+    [benchmark results](docs/status/archived/2026-07-24_17-54_benchmark-first-real-run.md).
     Full feature detail in [FEATURES.md](FEATURES.md).
 - **cqrs-bench CLI** (`cmd/cqrs-bench`) — benchmark any backend with named
   workload profiles. `run`, `compare`, `sweep`, and `--repeat N` subcommands.
@@ -6237,7 +6237,7 @@ logger)`, `NewBackend(db, logger)`. EventStore, SnapshotStore,
 - **Mixed payload-size distributions** — `NewMixedGenerator(seed, sizes, codec)`
   picks a size uniformly at random per event. CLI flag `--payload-sizes
 64,256,4096`. Result reports mean + full distribution. See
-  [scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md).
+  [scaling report](docs/status/archived/2026-07-24_19-30_event-size-scaling-benchmark.md).
 - **Projection benchmark phase** — Projection catch-up throughput now measured
   in default profiles (was always 0). Polls until all events processed before
   reporting.
