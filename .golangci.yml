@@ -337,6 +337,10 @@ linters:
               text: 'SA1019: .*EngineProfile\)\.NsPerRead is deprecated: in favor of ReadCosts'
               linters:
                 - staticcheck
+            - path: benchkit/phases_projection\.go$
+              text: 'Function `Stop` should pass the context parameter'
+              linters:
+                - contextcheck
             - path: (stack|storage|graph|benchkit|cmd/cqrs-bench|example|integration|record|metadata|event|command|query|metaengine|commandlifecycle|decider)/.*\.go$
               text: 'SA1019: .*removed in v5.*'
               linters:
