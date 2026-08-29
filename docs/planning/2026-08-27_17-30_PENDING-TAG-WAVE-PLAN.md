@@ -2,14 +2,20 @@
 
 > **Date:** 2026-08-27 17:30 CEST · **Task:** T01/F01.4 of the
 > [goal-gap-closure Pareto plan](2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md) ·
-> **Status: STAGED EXECUTION — B1+B2 CUT 2026-08-29.** Sign-off (2026-08-29):
-> staged (B1 first, report before B2), B7 transport finals INCLUDED, dead
-> eventtest tags DELETED (remote+local, verified gone). B1 cut: event/v4.9.0,
-> schema/v4.3.1, dedup/v4.2.1, dispatcher/v4.3.1. B2 cut: command/v4.8.1,
-> query/v4.7.1, middleware/v4.5.1, scheduling/v4.3.1, listing/v4.3.0,
-> pgtestcontainer/v4.1.0 — per-module gates green (standalone tests,
-> govulncheck, check-arch, api-stability golden, changelog-symbols),
-> clean-room `go get` verified per batch. Remaining: B3–B7.
+> **Status: STAGED EXECUTION — B1+B2+B3 CUT 2026-08-29.** Sign-off (2026-08-29):
+> staged, B7 transport finals INCLUDED, dead eventtest tags DELETED.
+> B1: event/v4.9.0, schema/v4.3.1, dedup/v4.2.1, dispatcher/v4.3.1.
+> B2: command/v4.8.1, query/v4.7.1, middleware/v4.5.1, scheduling/v4.3.1,
+> listing/v4.3.0, pgtestcontainer/v4.1.0.
+> B3 (versions corrected per Added⇒minor rule): snapshot/v4.4.0,
+> decider/**v4.5.0** (plan said v4.4.1; ErrNilDecide is new API),
+> storage/v4.8.1, storage/memory/**v4.4.0** (LogStore core is new API),
+> storage/pebble/v4.3.0, storage/bbolt/**v4.1.0** (batch-commit option),
+> storage/turso/**v4.3.0** (quota classification), storage/backuptest/**v4.1.0**
+> (incremental suite). Snapshot/listing pins bumped + sibling replaces dropped
+> (decider, storage, storage/pebble, storage/bbolt, stack/pebble). Gates:
+> standalone tests ×8, govulncheck ×8, changelog-symbols, clean-room go get.
+> Remaining: B4–B7.
 > **Re-verified 2026-08-29:** the three post-plan code commits (5ec4b1b39
 > listing/pgtestcontainer, c9e464eda watermill/system, 9455f687a standalone-matrix
 > pin fixes) are folded into B2/B4/B5 below; the remaining post-plan commits are
