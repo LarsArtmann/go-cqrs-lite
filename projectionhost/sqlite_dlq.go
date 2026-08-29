@@ -97,7 +97,10 @@ func NewSQLiteDeadLetterStore(
 		)
 	}
 
-	return &SQLiteDeadLetterStore{db: database}, nil
+	return &SQLiteDeadLetterStore{
+		db:      database,
+		skipped: atomic.Int64{},
+	}, nil
 }
 
 func (s *SQLiteDeadLetterStore) Store(ctx context.Context, entry DeadLetterEntry) error {
@@ -207,7 +210,7 @@ func (s *SQLiteDeadLetterStore) List(
 		entry, err := scanDLQRow(rows)
 		if err != nil {
 			// One corrupt row (hand-edited DB, partial write from an old
-			// bug) must not brick listing and replay for every healthy
+			// defect) must not brick listing and replay for every healthy
 			// entry. Skip it; the row stays in the table for inspection.
 			s.skipped.Add(1)
 

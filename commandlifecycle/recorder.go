@@ -82,12 +82,14 @@ func NewRecorder(store event.Store, opts ...RecorderOption) *Recorder {
 		logger:          slog.Default(),
 		strict:          false,
 		clock:           time.Now,
+		versions:        nil, // seeded below, after opts set the capacity
 		versionCapacity: defaultCacheCapacity,
 		mu:              sync.Mutex{},
 	}
 	for _, opt := range opts {
 		opt(r)
 	}
+
 	r.versions = newBoundedMap[event.Version](r.versionCapacity)
 
 	return r

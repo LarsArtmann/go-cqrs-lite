@@ -271,6 +271,7 @@ func (h *Host) awaitWorkers(ctx context.Context) error {
 		// Persist any staged live-phase checkpoints (WithCheckpointEvery /
 		// WithCheckpointInterval) so a graceful Stop does not widen the
 		// reprocessing window. No-op for workers without pending state.
+		//nolint:contextcheck // ctx may already be cancelled here; the flush must still run
 		for _, w := range h.workers {
 			w.flushPendingCheckpoint(context.Background())
 		}

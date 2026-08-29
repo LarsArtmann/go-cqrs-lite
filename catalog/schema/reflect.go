@@ -71,7 +71,6 @@ func ToAny(s *Schema) (any, error) {
 
 var (
 	schemaCache sync.Map //nolint:gochecknoglobals // package-level reflection cache
-	schemaMu    sync.Mutex
 	schemaBusy  sync.Map //nolint:gochecknoglobals // in-progress marker for cycle guard
 )
 
@@ -171,6 +170,7 @@ func structSchema(t reflect.Type) *Schema {
 	for field := range t.Fields() {
 		if flatten, ft := flattenedEmbedded(field); flatten {
 			flattenEmbedded(ft, props, &required, &params, 1)
+
 			continue
 		}
 

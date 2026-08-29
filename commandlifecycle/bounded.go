@@ -25,6 +25,8 @@ const compactStaleThreshold = 64
 func newBoundedMap[T any](capacity int) *boundedMap[T] {
 	return &boundedMap[T]{
 		entries: make(map[string]T),
+		order:   nil,
+		stale:   0,
 		cap:     capacity,
 	}
 }

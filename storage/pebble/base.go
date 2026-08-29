@@ -37,7 +37,7 @@ func shardIndex(key []byte) int {
 		h *= 16777619
 	}
 
-	return int(h & (shardCount - 1)) //nolint:gosec // masked to 6 bits
+	return int(h & (shardCount - 1))
 }
 
 // lockShards locks the shards for the given keys in ascending index order

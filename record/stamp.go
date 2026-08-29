@@ -52,6 +52,7 @@ func (s Stamp) MarshalJSON() ([]byte, error) {
 	}
 
 	at := s.at
+
 	data, err := json.Marshal(stampWire{At: &at})
 	if err != nil {
 		return nil, fmt.Errorf("record.Stamp: marshal: %w", err)

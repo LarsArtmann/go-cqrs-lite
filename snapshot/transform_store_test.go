@@ -110,7 +110,11 @@ func TestTransformedStore_RoundTripProtectsAndRestores(t *testing.T) {
 	}
 
 	if persisted.Encoding != snap.Encoding {
-		t.Errorf("inner Encoding = %s, want %s (routing metadata must survive)", persisted.Encoding, snap.Encoding)
+		t.Errorf(
+			"inner Encoding = %s, want %s (routing metadata must survive)",
+			persisted.Encoding,
+			snap.Encoding,
+		)
 	}
 
 	if persisted.Version != 5 {

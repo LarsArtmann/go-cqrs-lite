@@ -21,33 +21,33 @@ type embedNamed struct {
 }
 
 type embedExcluded struct {
-	embedBase
-	Hidden string `json:"-"`
+	embedBase        //nolint:embeddedstructfieldcheck // embedded-then-regular IS the promotion case under test
+	Hidden    string `json:"-"`
 }
 
 type embedTagExcluded struct {
-	embedBase `json:"-"`
-	Title     string `json:"title"`
+	embedBase `json:"-"` //nolint:embeddedstructfieldcheck // embedded-then-regular IS the promotion case under test
+	Title     string     `json:"title"`
 }
 
 type embedConflict struct {
-	embedBase
-	ID string `json:"id"`
+	embedBase        //nolint:embeddedstructfieldcheck // embedded-then-regular IS the promotion case under test
+	ID        string `json:"id"`
 }
 
 type embedSelfRef struct {
-	*embedSelfRef
-	Name string `json:"name"`
+	*embedSelfRef        //nolint:embeddedstructfieldcheck // embedded-then-regular IS the promotion case under test
+	Name          string `json:"name"`
 }
 
 type embedCycleA struct {
-	*embedCycleB
-	AField string `json:"a_field"`
+	*embedCycleB        //nolint:embeddedstructfieldcheck // embedded-then-regular IS the promotion case under test
+	AField       string `json:"a_field"`
 }
 
 type embedCycleB struct {
-	*embedCycleA
-	BField string `json:"b_field"`
+	*embedCycleA        //nolint:embeddedstructfieldcheck // embedded-then-regular IS the promotion case under test
+	BField       string `json:"b_field"`
 }
 
 type embedRecursiveField struct {

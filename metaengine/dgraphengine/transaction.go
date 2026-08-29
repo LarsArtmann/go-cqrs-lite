@@ -2,6 +2,7 @@ package dgraphengine
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/dgraph-io/dgo/v240"
@@ -22,7 +23,7 @@ func (e *dgraphEngine) RunInTx(ctx context.Context, fn func(context.Context) err
 	defer e.txMu.Unlock()
 
 	if e.activeTxn.Load() != nil {
-		return fmt.Errorf("dgraphengine.RunInTx: nested transactions are not supported")
+		return errors.New("dgraphengine.RunInTx: nested transactions are not supported")
 	}
 
 	txn := e.client.NewTxn()

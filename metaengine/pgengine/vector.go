@@ -205,7 +205,7 @@ func (e *pgEngine) VectorCollections(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.VectorCollections: %w", err)
 	}
-	defer rows.Close()
+	defer metaengine.DeferClose(rows)
 
 	var out []string
 

@@ -38,19 +38,19 @@ func newUpcasterRegistryFrom(upcasters []Upcaster) *upcasterRegistry {
 // register adds an upcaster. Duplicate (source type, source version)
 // registrations are ignored — the FIRST registration wins, keeping the
 // chain deterministic.
-func (r *upcasterRegistry) register(u Upcaster) {
+func (r *upcasterRegistry) register(upcaster Upcaster) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	eventType := u.SourceType()
+	eventType := upcaster.SourceType()
 
 	for _, existing := range r.upcasters[eventType] {
-		if existing.SourceVersion() == u.SourceVersion() {
+		if existing.SourceVersion() == upcaster.SourceVersion() {
 			return
 		}
 	}
 
-	r.upcasters[eventType] = append(r.upcasters[eventType], u)
+	r.upcasters[eventType] = append(r.upcasters[eventType], upcaster)
 
 	sort.SliceStable(r.upcasters[eventType], func(i, j int) bool {
 		return r.upcasters[eventType][i].SourceVersion() < r.upcasters[eventType][j].SourceVersion()

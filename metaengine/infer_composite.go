@@ -177,7 +177,8 @@ func compositeInsertFold(
 	createdType, valueType reflect.Type,
 	det keyDetection,
 ) Fold {
-	sample := reflect.Zero(createdType).Interface() //art-dupl:accept insert/update folds share the sample+mappings prologue by design
+	//art-dupl:accept insert/update folds share the sample+mappings prologue by design
+	sample := reflect.Zero(createdType).Interface()
 	mappings := matchFields(createdType, valueType)
 	stamps := computeRecordStamps(valueType, mappings)
 
@@ -211,7 +212,8 @@ func compositeUpdateFold(
 	updatedType, valueType reflect.Type,
 	det keyDetection,
 ) Fold {
-	sample := reflect.Zero(updatedType).Interface() //art-dupl:accept insert/update folds share the sample+mappings prologue by design
+	//art-dupl:accept insert/update folds share the sample+mappings prologue by design
+	sample := reflect.Zero(updatedType).Interface()
 	mappings := matchFields(updatedType, valueType)
 	stamps := computeRecordStamps(valueType, mappings)
 

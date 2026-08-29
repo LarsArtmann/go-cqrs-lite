@@ -150,3 +150,8 @@ cmd/cqrs-bench/cqrs-bench
 /cqrs-bench
 /getting-started
 /taskmanager
+
+# Foreign tool state: an external `t` task tool recreates t/tasks.buf (1 MiB
+# zero-filled buffer) whenever it runs with this repo as cwd; it was committed
+# by accident once (2b602b55e) and deleted (0a85573d2). Never track it.
+/t/

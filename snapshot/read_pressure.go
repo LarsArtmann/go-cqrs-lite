@@ -196,7 +196,11 @@ func (rp *ReadPressure) evictOldest() {
 		return
 	}
 
-	key := rp.lru.Remove(front).(string)
+	key, ok := rp.lru.Remove(front).(string)
+	if !ok {
+		return
+	}
+
 	delete(rp.reads, key)
 	delete(rp.lruElems, key)
 }
