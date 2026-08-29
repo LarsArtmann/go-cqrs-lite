@@ -16,7 +16,7 @@ import (
 // Caches the stream index and only rebuilds when the event count changes.
 // Suitable for testing, development, and single-process deployments.
 type InMemoryStreamReader struct {
-	journal   event.Journal
+	journal    event.Journal
 	classifier StatusClassifier
 
 	mu     sync.RWMutex
@@ -35,7 +35,7 @@ func NewInMemoryStreamReader(journal event.Journal, opts ...ReaderOption) *InMem
 	}
 
 	return &InMemoryStreamReader{ //nolint:exhaustruct // mu and cached zero-initialized
-		journal:   journal,
+		journal:    journal,
 		classifier: cfg.classifier,
 	}
 }

@@ -38,10 +38,10 @@ import (
 )
 
 var (
-	containerDSN string       //nolint:gochecknoglobals // test-framework cache
-	adminDB      *sql.DB      //nolint:gochecknoglobals // test-framework cache
-	dbCounter    atomic.Int64 //nolint:gochecknoglobals // test-framework cache
-	dbCache      sync.Map     //nolint:gochecknoglobals // test-framework cache
+	containerDSN string           //nolint:gochecknoglobals // test-framework cache
+	adminDB      *sql.DB          //nolint:gochecknoglobals // test-framework cache
+	dbCounter    atomic.Int64     //nolint:gochecknoglobals // test-framework cache
+	dbCache      sync.Map         //nolint:gochecknoglobals // test-framework cache
 	afterRunFn   func(*testing.M) //nolint:gochecknoglobals // test-framework hook
 )
 
@@ -73,6 +73,7 @@ func TestMain(m *testing.M) {
 		// Without this, all tests share one database and cross-test interference
 		// becomes a problem (especially under -race).
 		adminDB, _ = sql.Open("pgx", containerDSN)
+
 		finish(m, nil)
 
 		return
@@ -102,6 +103,7 @@ func TestMain(m *testing.M) {
 	dsn, err := ctr.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
 		_ = testcontainers.TerminateContainer(ctr)
+
 		finish(m, nil)
 
 		return

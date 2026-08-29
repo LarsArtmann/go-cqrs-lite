@@ -68,31 +68,31 @@ func newBenchJournalReader(b *testing.B, rows int) *benchJournalReader {
 	return &benchJournalReader{
 		db: db,
 		r: &sqlpkg.JournalReader[string]{
-			DB:               db,
-			Dialect:          sqlpkg.SQLiteDialect{},
-			CheckClosed:      func() error { return nil },
-			SpanNameAll:      "bench.read_all",
-			SpanNameFrom:     "bench.read_from",
-			CountAttr:        "bench.count",
-			ErrCodeAll:       "bench.read_all",
-			ErrCodeReadFrom:  "bench.read_from",
-			ErrCodeFromStart: "bench.from_start",
+			DB:                db,
+			Dialect:           sqlpkg.SQLiteDialect{},
+			CheckClosed:       func() error { return nil },
+			SpanNameAll:       "bench.read_all",
+			SpanNameFrom:      "bench.read_from",
+			CountAttr:         "bench.count",
+			ErrCodeAll:        "bench.read_all",
+			ErrCodeReadFrom:   "bench.read_from",
+			ErrCodeFromStart:  "bench.from_start",
 			ErrCodeQueryStart: "bench.query_start",
-			ErrCodeScan:      "bench.scan",
-			EntityNoun:       "event",
-			EntityNounPlural: "events",
-			Table:            "bench_events",
-			AllColumns:       "id",
-			TimestampColumn:  "ts",
-			Scan:             scan,
+			ErrCodeScan:       "bench.scan",
+			EntityNoun:        "event",
+			EntityNounPlural:  "events",
+			Table:             "bench_events",
+			AllColumns:        "id",
+			TimestampColumn:   "ts",
+			Scan:              scan,
 		},
 	}
 }
 
 // BenchmarkJournalReader_ScanPrealloc contrasts a capacity-hinted drain
 // (limit-bounded ReadFrom, hint = limit capped at maxScanPrealloc) against an
-// unbounded ReadAll (default growth from 64). Run: go test -bench
-// BenchmarkJournalReader_ScanPrealloc -run '^$' ./storage/sql/
+// unbounded ReadAll (default growth from 64).
+// Run: go test -bench BenchmarkJournalReader_ScanPrealloc -run '^$' ./storage/sql/.
 func BenchmarkJournalReader_ScanPrealloc(b *testing.B) {
 	const totalRows = 10_000
 

@@ -32,7 +32,8 @@ func TestStatus_String(t *testing.T) {
 func TestStatus_Predicates(t *testing.T) {
 	t.Parallel()
 
-	if !listing.StatusActive.IsActive() || listing.StatusActive.IsTombstoned() || listing.StatusActive.IsKnown() != true {
+	active := listing.StatusActive
+	if !active.IsActive() || active.IsTombstoned() || !active.IsKnown() {
 		t.Error("StatusActive predicates")
 	}
 
@@ -146,6 +147,7 @@ func TestStatusClassifier_ParityWithMetadataTombstones(t *testing.T) {
 
 			var err error
 
+			//nolint:exhaustive // undetermined is the empty-stream value
 			switch tc.want {
 			case listing.StatusTombstoned:
 				var marked *event.ImmutableEvent

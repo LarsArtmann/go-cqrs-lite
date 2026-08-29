@@ -307,11 +307,11 @@ func TestCatchUpSubscriber_NackStopsDelivery(t *testing.T) {
 
 	streamID := id.NewStreamID()
 
-	var events []event.Event
+	events := make([]event.Event, 0, 2)
 
 	for i := range 2 {
 		evt, _ := event.NewEvent(
-			"test.nack", streamID, "TestStream", event.Version(event.Version(i) + 1),
+			"test.nack", streamID, "TestStream", event.Version(i)+1,
 			[]byte(`{}`),
 		)
 		events = append(events, evt)
