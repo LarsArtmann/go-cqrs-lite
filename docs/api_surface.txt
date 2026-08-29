@@ -1813,6 +1813,7 @@ metaengine/interface Calibratable
 metaengine/interface Closer
 metaengine/interface CounterBackend
 metaengine/interface DistinctReader
+metaengine/interface DurabilityReporter
 metaengine/interface Engine
 metaengine/interface ExplainableAggregate
 metaengine/interface ExplainableScan
