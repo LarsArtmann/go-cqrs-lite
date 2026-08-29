@@ -15,6 +15,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.2.0
@@ -72,7 +73,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
@@ -116,15 +116,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../metaengine/sqliteengine
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 => ../metaengine/badgerengine
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 => ../metaengine/pebbleengine
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 => ../metaengine/pgengine
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../metaengine
-
-replace github.com/larsartmann/go-cqrs-lite/watermill/v4 => ../watermill

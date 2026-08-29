@@ -45,5 +45,3 @@ require (
 	golang.org/x/text v0.41.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../

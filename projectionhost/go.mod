@@ -108,5 +108,3 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-flightrecorder v0.2.0
 )
-
-replace github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 => ../testutil/pgtestcontainer

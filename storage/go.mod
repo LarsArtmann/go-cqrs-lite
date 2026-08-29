@@ -117,5 +117,3 @@ require (
 )
 
 retract v4.7.0 // does not compile: sql/keyset.go:43 assigns undeclared err; use v4.7.1
-
-replace github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 => ../testutil/pgtestcontainer

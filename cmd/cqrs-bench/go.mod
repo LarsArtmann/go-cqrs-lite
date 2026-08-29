@@ -194,7 +194,3 @@ require (
 	modernc.org/sqlite v1.56.0 // indirect
 	turso.tech/database/tursogo v0.7.2 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../metaengine
-
-replace github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 => ../../testutil/pgtestcontainer

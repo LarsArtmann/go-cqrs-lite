@@ -183,6 +183,8 @@ github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 h1:B76nf/qTJz6hQG5r0XuTqb
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0/go.mod h1:YdsEho4wKC4t3+5SVwJaxwvH5OlnhyxMUP6gEDjjTOU=
 github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.1.0 h1:DwU00N6wSJF66evU2pFwvZBdph5r/aXbpL84e0lBjt4=
 github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.1.0/go.mod h1:QChd/YLATTZ6bJ5L01Cbtamk/Z66LWCxLbGj/hOf5IA=
+github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.0.1 h1:UbXXzooKXFYDbfno7ldDMsAU5nXIY6jezlhkV6HnyvU=
+github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.0.1/go.mod h1:AaHIdrsgXxx+5A0Z1WzFUjyoiYDF6kAi2iBbc/6vTSE=
 github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.2.0 h1:MJ3R9JD6lIajYENVfsx49cU+xSpjtwBf2cLGDsaMuh4=
 github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.2.0/go.mod h1:ZM3p5h/umtzNleEo30O6ZvNUPBoRZD5AarbTLCpXMQI=
 github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.2.0 h1:Lv8zYbJrSk5dhpP3QIE873pRaa5VaFDwZYQhrhgXyr0=

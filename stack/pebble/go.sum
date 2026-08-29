@@ -120,8 +120,12 @@ github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.4.0 h1:1SoEc2ADxypYGc9pKF4q9J
 github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.4.0/go.mod h1:5nEmuL2Aa+sM9FV4/8rXGz8UJaiIwj3hklXx1/Lf9qM=
 github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0 h1:GsWwbfYOp70NTJEU7jZsIKXF7w9J5MdNPbmq5fKLvp4=
 github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0/go.mod h1:iAWjuGKdqhxpMieegIvoaVPKZpYTgPvNBjY0tQ1RqCE=
+github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4 v4.1.0 h1:hC8t3Nuidr5UvAaDSNwTy9dK+6xF5dYeoF4HC82tEyk=
+github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4 v4.1.0/go.mod h1:P+mmv4s/ENfGQ3iskAnzr95GGrBpy7H+AjL8RmZsynU=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0 h1:Rkc2Wn3QZUkFXhFR0LU1ZTTUKUg5k1TUE/XM2ZNYxqs=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0/go.mod h1:Brzk1RPFo/+2j0Xq+biSM0JWlStPcvlec84K4IZsvKo=
+github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.3.0 h1:ZFn5BEBG7Q2wi6+0q+YnAuBL/6CXTAQT1PGsrOAm+aM=
+github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.3.0/go.mod h1:I2ZSvZs/xMq3mfe5yH972jyUqgg95s8WU7J/x6M9L+8=
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.0 h1:Qp1ZDfYDGi9sWqFC+xlu2Z6prW8Yzfg+uaF/91iK28A=
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.0/go.mod h1:eeElN62hYOBD7oi+DJZ/YZrK4bS1obZ/+dvgpL+zkFQ=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=

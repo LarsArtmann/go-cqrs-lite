@@ -105,5 +105,3 @@ require (
 	golang.org/x/text v0.41.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 => ../../testutil/pgtestcontainer

@@ -76,14 +76,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )
-
-replace (
-	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 => ../duckdbengine
-	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 => ../pebbleengine
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../sqliteengine
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
-)
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 => ../pgengine
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4 => ../mysqlengine
