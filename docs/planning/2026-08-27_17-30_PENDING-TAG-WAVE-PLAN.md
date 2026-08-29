@@ -2,8 +2,13 @@
 
 > **Date:** 2026-08-27 17:30 CEST · **Task:** T01/F01.4 of the
 > [goal-gap-closure Pareto plan](2026-08-27_16-18_GOAL-GAP-CLOSURE-PARETO-PLAN.md) ·
-> **Status: NO TAGS CUT — awaits explicit user authorization.** This doc is the
-> proposed cut order for sign-off.
+> **Status: STAGED EXECUTION — B1 CUT 2026-08-29.** Sign-off (2026-08-29):
+> staged (B1 first, report before B2), B7 transport finals INCLUDED, dead
+> eventtest tags DELETED (remote+local, verified gone). B1 cut: event/v4.9.0,
+> schema/v4.3.1, dedup/v4.2.1, dispatcher/v4.3.1 — pre-tag gates green
+> (standalone tests, govulncheck, check-arch, api-stability golden
+> 4293 exports, changelog-symbols 57 citations), clean-room `go get` of all
+> four tags verified. Remaining: B2–B7.
 > **Re-verified 2026-08-29:** the three post-plan code commits (5ec4b1b39
 > listing/pgtestcontainer, c9e464eda watermill/system, 9455f687a standalone-matrix
 > pin fixes) are folded into B2/B4/B5 below; the remaining post-plan commits are
