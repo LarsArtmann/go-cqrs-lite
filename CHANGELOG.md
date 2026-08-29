@@ -62,25 +62,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   keep post-run work such as `snaps.Clean(m)` while delegating TestMain to
   the shared helper.
 
-### Fixed — deep-review gap wave: streaming capability + error-family truth — 2026-08-27
+### Fixed — deep-review gap wave: error-family truth at store boundaries — 2026-08-27
 
-- **`event.DecorateStore`** now forwards **StreamingSource** and
-  **StreamingJournal** reads (LoadStream, LoadStreamFromVersion,
-  ReadStream, ReadStreamFrom) to the inner store, applying the source
-  transform per chunk; previously a streaming-capable store wrapped
-  through DecorateStore silently lost streaming reads — consumers fell
-  back to full-materialization Load/ReadAll, the exact OOM risk the
-  streaming interfaces exist to prevent, despite the wrapper's
-  preserve-all-interfaces claim (ADR-0126). Inner stores without the
-  capability return ErrInnerStoreNotStreaming rejections like the other
-  optional caps; the delegation is shared with DecorateJournal via one
-  helper so store and journal decorators cannot drift.
-- **`dispatcher.RegisterWithWrapping`**, **`command.TypedCommandStore`**
-  (Save/AppendBatch), and **`query.TypedQueryStore`** (SaveQuery) no
-  longer blanket-wrap inner errors as Infrastructure: duplicate handler /
-  duplicate command / duplicate query Conflicts keep their Conflict
-  family (matching bbolt), so family-aware retry policies and HTTP
-  mappers see 409-class instead of 503-class.
+- **`command.TypedCommandStore`** (Save/AppendBatch) and
+  **`query.TypedQueryStore`** (SaveQuery) no longer blanket-wrap inner
+  errors as Infrastructure: duplicate command / duplicate query Conflicts
+  keep their Conflict family (matching bbolt), so family-aware retry
+  policies and HTTP mappers see 409-class instead of 503-class.
 - The memory, pebble, and SQL eventstore Save boundaries preserve the
   optimistic-concurrency Conflict family; the pebble/bbolt scan helpers
   and the SQL checkpoint load preserve Corruption (undecodable rows,
@@ -99,16 +87,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   zero; the query audit middleware persists its record with a detached
   context so a client disconnect between handler completion and save can
   no longer silently drop exactly the auditable queries.
-- **`dedup.Ring`**'s Add is a no-op on a nil receiver, matching
-  Has/Len/Capacity nil-safety, so the documented nil-ring replay pattern
-  cannot panic on the Add side of a Has-then-Add boundary loop.
-- **`event.Single`**, **`event.NewEvents`**, and
-  **`event.DecodePayloads`** pass constructor/validation errors through
-  unchanged instead of re-wrapping them under a blanket family (the trio
-  previously classified the same constructor failure three different
-  ways); **`event.ExtractCustomBytes`** classifies damaged persisted
-  metadata as Corruption (was Infrastructure); the new
-  **`event.Orchestration`** compat alias completes the six-family block.
 - storage/bbolt: KVAdapter Get returns **`kv.ErrNotFound`** unwrapped
   (previously Infrastructure-wrapped, so every miss landed in infra
   metrics); Save/AppendBatch return the module-standard bucket-missing
@@ -192,188 +170,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   as the unknown constant; roundtrip tests pin it). The SQL snapshot
   schema has no encoding column — the ADR-0044 envelope inside State
   remains authoritative there (see TODO_LIST §v5 Unification audit).
-
-### Changed — record.Encoding is now a compact typed stamp — 2026-08-22
-
-- The **`record.Encoding`** field changed from a plain string
-  ("json"/"cbor"/"") to the new typed stamp with constants
-  **`record.EncodingUnknown`** / **`record.EncodingJSON`** /
-  **`record.EncodingCBOR`** — the zero value means absent, opaque, or
-  envelope-wrapped (owner decision 2026-08-22, closing the three-session
-  string-vs-compact window before the first record tag).
-- Added **`record.ParseEncoding`** (canonical codec name → stamp; unknown
-  names fail **`record.ErrUnknownEncoding`**) and `String()` mapping back,
-  so "json"/"cbor" round-trip. record stays zero-dep: the vocabulary lives
-  in record, bridges convert at their boundary.
-- `event.AsRecord` now stamps the compact form — codecs record does not
-  know stamp the unknown constant rather than guessing. command/query
-  bridges and zero-value Records carry the unknown constant. In-process
-  struct only: no stored wire format changed (the ADR-0044 envelope keeps
-  its own string stamp).
-
-### Changed — record.Type consolidation (ADR-0111) — 2026-08-22
-
-- **`event.Type`**, **`command.Type`**, and **`query.Type`** are now type
-  aliases of **`record.Type`** — one canonical definition shared by all three
-  domain-message kinds, so the triplicated per-module copies cannot drift.
-  Behavior unchanged: same underlying string, same String/IsZero method set
-  (inherited from the shared definition), same JSON and wire form. A
-  cross-type comparison test in each module pins the alias at compile time —
-  reverting to a standalone defined type fails the build.
-- The per-module Type methods (the module-local String and IsZero on the old
-  standalone types) are gone, superseded by the shared definition.
-- **`event.ParseType`**, **`command.ParseType`**, and **`query.ParseType`** are
-  Deprecated (removed in v5) one-line forwarders onto the canonical
-  `record.ParseType`. Each wrapper still returns its module's own empty-type
-  sentinel (ErrEmptyEventType, ErrEmptyCommandType, ErrEmptyQueryType), so
-  existing error handling is unchanged.
-- Added **`record.Type`** (with String/IsZero) and **`record.ParseType`** — the
-  parametrized validator taking the caller's empty-value sentinel, so each
-  module keeps its error identity while sharing one implementation.
-
-### Changed — scheduling: branded timer identity + typed actor — 2026-08-22
-
-- **`scheduling.TimerMarker`** + **`scheduling.TimerID`** — timer identity is
-  now a branded type (string-backed, the documented `id.StreamID` pattern)
-  instead of a bare `string` alias.
-  String-backed on purpose: timer IDs are semantic idempotency keys
-  ("cancel-order-...", "delay-test") that callers choose for stable
-  re-scheduling and cancellation; ULID backing would break every idempotent
-  scheduling flow. Deviation from the original plan sketch (`id.Of[TimerMarker]`,
-  ULID-backed) for exactly this reason. Wire form unchanged: IDs still
-  serialize as plain strings (SQL columns and JSON both unchanged).
-  NOTE: source-level breaking for callers that assigned raw strings to
-  Timer.ID — construct via `scheduling.ParseTimerID`.
-- **`scheduling.ParseTimerID`** / **`scheduling.MustParseTimerID`** /
-  **`scheduling.ErrEmptyTimerID`** — semantic-name constructors; the Must
-  form is for compile-time-known names.
-- **Timer.Actor** is now `id.ActorID` instead of `string` — the typed
-  attribution the doc comment previously told callers to round-trip by hand
-  via ParseActorID. Wire-compatible: zero marshals ""/omitted, non-zero
-  marshals the same self-describing "kind:raw" string; SQL stores keep the
-  envelope actor column a plain string and convert at the boundary, so
-  existing rows (including legacy bare-payload rows) decode unchanged.
-  `scheduling` gains `id/v4` + `go-branded-id` as direct production deps
-  (Tier 1 → Tier 0, budget raised 0→2; `#check-arch` green).
-
-### Added — decider *Ref identity forms — 2026-08-22
-
-- **`decider.Repository.ExecuteRef`** / **`decider.Repository.LoadRef`** /
-  **`decider.Repository.LoadAtVersionRef`** /
-  **`decider.Repository.LoadAtTimeRef`** /
-  **`decider.Repository.WaitForVersionRef`** — the ref forms are the real
-  implementations; the stream is addressed by a single `id.StreamRef`.
-  Every internal helper (store load, singleflight key, state cache,
-  snapshot) was already `id.StreamRef`-keyed, so the ref forms reach them
-  without constructing a pair intermediate on the hot path.
-- **`decider.TypedRepository.ExecuteCommandRef`** /
-  **`decider.TypedRepository.LoadRef`** — the typed wrapper's twins.
-- The `(streamID, streamType)` pair forms (`decider.Repository.Execute`,
-  `decider.Repository.Load`, `decider.Repository.LoadAtVersion`,
-  `decider.Repository.LoadAtTime`, `decider.Repository.WaitForVersion`,
-  `decider.TypedRepository.ExecuteCommand`) are Deprecated (removed in v5)
-  one-line forwarders onto the ref forms. `TestRefForms_MatchPairForms`
-  pins the lockstep: pair and ref forms address the same stream and produce
-  identical outcomes. `system/register.go` migrated to `ExecuteRef` (the
-  only production internal pair-form caller).
-
-### Added — metadata capability interfaces (Command/Query) — 2026-08-22
-
-- **`query.MetadataCarrier`** and **`query.PayloadCarrier`** — exported
-  capability interfaces for queries that carry `Metadata` or expose raw
-  payload bytes. Middleware type-asserts to the named capability instead of
-  inline duck-typed interfaces; `query.AuditMiddleware` now asserts the
-  exported types (the two inline `metadatable` declarations and the inline
-  payload assertion in `audit.go` are gone). Hand-rolled `Query`
-  implementations opt in by adding a `Metadata()` method — no interface
-  growth, zero consumer breakage (review P6; capability-now vs
-  interface-growth-at-v5 comparison in the plan's Appendix C).
-- **`command.MetadataCarrier`** — the command-side twin. `*BasicCommand`
-  and `*BasicQuery` satisfy their carriers via compile-time asserts;
-  growing the core `Command`/`Query` interfaces rides the v5 cut.
-
-### Added — Record.ID + Record.Encoding: identity and codec stamp survive the bridges — 2026-08-22
-
-- **`record.Record.ID`** (`string`) — the record instance's unique
-  identifier: `EventID` for events, `CommandID` for commands, `RequestID`
-  for queries. The AsRecord bridges dropped this identity on the floor
-  before the field existed (review P5). All three bridges now fill it.
-- **`record.Record.Encoding`** (`string`) — the payload's codec stamp in the
-  self-describing form used by the go-codec `Encoding` type and the
-  ADR-0044 envelope ("json" / "cbor"). The event bridge fills it from the
-  event's encoding, so
-  mixed JSON+CBOR event streams stay self-describing through Record-aware
-  folds. Empty for commands (no payload) and queries (envelope-wrapped
-  payloads carry their own stamp). Deviation from the review sketch, which
-  proposed `uint8`: a numeric mapping would exist nowhere else in the
-  ecosystem and drift — the string form matches the codec layer exactly.
-
-### Added — structural record.Actor (kind-discriminated producer) — 2026-08-22
-
-- **`record.Actor` + `record.ActorKind`** — the structural mirror of
-  `id.ActorID`: the kind-discriminated producer of a record (user / bot /
-  system / service) explicit at the type level, instead of smuggled through
-  the "kind:raw" stringly `ActorID` field every consumer had to parse
-  (review P3). `record/` stays zero-dep (ADR-0111) — the union is restated,
-  and `Actor.String()` emits the identical wire form as
-  `id.ActorID.PrefixedString`.
-- **`metadata.RecordActor`** — resolves a `Tracing` into the structural
-  actor: kind-discriminated `ActorID` wins; the legacy `UserID` fallback is
-  upgraded to `ActorUser` (a user ID is by definition a human user — the
-  kind it always implicitly had). Structural counterpart of `ActorString`.
-- **`CommonMetadata.Actor`** added; **`CommonMetadata.ActorID` (`string`)
-  is Deprecated (removed in v5)** — all three AsRecord bridges populate
-  both via `metadata.RecordActor` until the cut. `metadata` gains a
-  `record/v4` dependency (Tier 0 → Tier 0, `#check-arch` clean).
-
-### Added — record.Stamp: explicit timestamp presence — 2026-08-22
-
-- **`record.Stamp` + `record.NewStamp`** — a timestamp whose presence is
-  explicit: the zero Stamp means "not recorded"; a zero time.Time can no
-  longer masquerade as "stamped at epoch" (review P7). Unexported fields
-  (`at`, `known`) make an inconsistent state unconstructable; JSON is
-  lossless (`{"at":...}` / `null`, honored by both encoding/json v1 and v2).
-- **`CommonMetadata.Created` / `Received` / `Stored`** (`Stamp`) added;
-  **`ClientCreatedAt` / `ServerReceivedAt` / `ServerStoredAt` (`time.Time`)
-  are Deprecated (removed in v5)**.
-- **Bridge mapping**: `event.AsRecord` sets `Created` from the event's
-  `OccurredAt` (Received/Stored stay unknown — the store stamps them);
-  `query.AsRecord` sets `Received` from `PersistedQuery.ReceivedAt` — the
-  honest home for the server-receive clock the old field parked in
-  `ClientCreatedAt` (Created stays unknown: PersistedQuery carries no client
-  clock). Commands carry no timestamps.
-
-### Added — explicit record.Cause (kind-discriminated causation) — 2026-08-22
-
-- **`record.Cause` + `record.CauseKind`** — the single causation home that
-  replaces the stringly `CommonMetadata.CausationID` at v5: the causer's
-  kind (command / timer / event / unknown) is stated explicitly instead of
-  implied by ID format. Zero value = no cause recorded (review P4). Kinds:
-  `CauseNone` (zero), `CauseCommand` (typed event.Causation source),
-  `CauseTimer`, `CauseEvent`, `CauseUnknown` (bare tracing chain — the kind
-  honestly "not discriminated", mirroring `id.ActorUnknown`).
-- **`CommonMetadata.Cause`** added; **`CommonMetadata.CausationID` is
-  Deprecated (removed in v5)** — the three AsRecord bridges populate both
-  fields in lockstep until the cut.
-- **Bridge mapping**: `event.AsRecord` resolves typed
-  `Metadata.Causation.CommandID` → `{CauseCommand, id}` first (strongest
-  signal), falling back to `Tracing.CausationID` → `{CauseUnknown, id}`;
-  `command.AsRecord` / `query.AsRecord` map the tracing chain to
-  `{CauseUnknown, id}` (their only causation source).
-
-### Added — validated stream-ref population in the Record bridges — 2026-08-22
-
-- **`record.NewStreamRefOrZero`** — producer-side counterpart to the planned
-  v5 validating constructor (ADR-0123 Phase 8): returns the zero `StreamRef`
-  instead of a malformed one when the entity ID is empty, so adapters that
-  cannot return an error guarantee "a Record carries a well-formed stream
-  ref or none at all". Empty stream types remain legal (command/query
-  pattern).
-- **`event.AsRecord` / `command.AsRecord` / `query.AsRecord`** now populate
-  `Record.StreamID` via the validated constructor; invariant tests pin that
-  every populated ref passes `record.StreamRef.Validate` and round-trips
-  through `Split`. Closes the "Validate() call-site adoption" TODO for all
-  three bridges.
 
 ### Deprecated — v1 read-model tiers + stack presets marked ahead of the v5 cut — 2026-08-17
 
@@ -1194,6 +990,230 @@ forbidden — see CONTRIBUTING.md → Release Process.
 - The new badgerengine/bboltengine `StreamLog` tail similarity is annotated
   `//art-dupl:accept` (dep-isolated engines implementing the same contract)
   rather than re-pinning the art-dupl baseline.
+
+## [event/v4.9.0, schema/v4.3.1, dedup/v4.2.1, dispatcher/v4.3.1] — 2026-08-29
+
+### Fixed
+
+- **`event.DecorateStore`** now forwards **StreamingSource** and
+  **StreamingJournal** reads (LoadStream, LoadStreamFromVersion,
+  ReadStream, ReadStreamFrom) to the inner store, applying the source
+  transform per chunk; previously a streaming-capable store wrapped
+  through DecorateStore silently lost streaming reads — consumers fell
+  back to full-materialization Load/ReadAll, the exact OOM risk the
+  streaming interfaces exist to prevent, despite the wrapper's
+  preserve-all-interfaces claim (ADR-0126). Inner stores without the
+  capability return ErrInnerStoreNotStreaming rejections like the other
+  optional caps; the delegation is shared with DecorateJournal via one
+  helper so store and journal decorators cannot drift.
+- **`event.Single`**, **`event.NewEvents`**, and
+  **`event.DecodePayloads`** pass constructor/validation errors through
+  unchanged instead of re-wrapping them under a blanket family (the trio
+  previously classified the same constructor failure three different
+  ways); **`event.ExtractCustomBytes`** classifies damaged persisted
+  metadata as Corruption (was Infrastructure).
+- **`dispatcher.RegisterWithWrapping`** no longer blanket-wraps inner
+  errors as Infrastructure: duplicate-handler Conflicts keep their
+  Conflict family (matching bbolt), so family-aware retry policies and
+  HTTP mappers see 409-class instead of 503-class.
+- **`dedup.Ring`**'s Add is a no-op on a nil receiver, matching
+  Has/Len/Capacity nil-safety, so the documented nil-ring replay pattern
+  cannot panic on the Add side of a Has-then-Add boundary loop.
+- **`schema.VersionedSeekableJournal`** is now a deprecated shell
+  embedding `event.DecorateJournal(raw, UpcastSourceTransform(...))`
+  (ADR-0126): existing call sites keep compiling AND gain forwarded
+  StreamingJournal reads (ReadStream, ReadStreamFrom) with upcasting
+  applied — the hand-written wrapper silently dropped them. New code
+  should use the transform directly.
+
+### Added
+
+- **`event.Orchestration`** compat alias completes the six-family block
+  (`errorfamily.Orchestration` re-exported under the legacy name).
+
+## [record/v4.4.0, metadata/v4.6.0, event/v4.8.0, command/v4.8.0, query/v4.7.0, scheduling/v4.3.0, decider/v4.4.0, storage/v4.8.0] — 2026-08-22
+
+### Changed — record.Encoding is now a compact typed stamp — 2026-08-22
+
+- The **`record.Encoding`** field changed from a plain string
+  ("json"/"cbor"/"") to the new typed stamp with constants
+  **`record.EncodingUnknown`** / **`record.EncodingJSON`** /
+  **`record.EncodingCBOR`** — the zero value means absent, opaque, or
+  envelope-wrapped (owner decision 2026-08-22, closing the three-session
+  string-vs-compact window before the first record tag).
+- Added **`record.ParseEncoding`** (canonical codec name → stamp; unknown
+  names fail **`record.ErrUnknownEncoding`**) and `String()` mapping back,
+  so "json"/"cbor" round-trip. record stays zero-dep: the vocabulary lives
+  in record, bridges convert at their boundary.
+- `event.AsRecord` now stamps the compact form — codecs record does not
+  know stamp the unknown constant rather than guessing. command/query
+  bridges and zero-value Records carry the unknown constant. In-process
+  struct only: no stored wire format changed (the ADR-0044 envelope keeps
+  its own string stamp).
+
+### Changed — record.Type consolidation (ADR-0111) — 2026-08-22
+
+- **`event.Type`**, **`command.Type`**, and **`query.Type`** are now type
+  aliases of **`record.Type`** — one canonical definition shared by all three
+  domain-message kinds, so the triplicated per-module copies cannot drift.
+  Behavior unchanged: same underlying string, same String/IsZero method set
+  (inherited from the shared definition), same JSON and wire form. A
+  cross-type comparison test in each module pins the alias at compile time —
+  reverting to a standalone defined type fails the build.
+- The per-module Type methods (the module-local String and IsZero on the old
+  standalone types) are gone, superseded by the shared definition.
+- **`event.ParseType`**, **`command.ParseType`**, and **`query.ParseType`** are
+  Deprecated (removed in v5) one-line forwarders onto the canonical
+  `record.ParseType`. Each wrapper still returns its module's own empty-type
+  sentinel (ErrEmptyEventType, ErrEmptyCommandType, ErrEmptyQueryType), so
+  existing error handling is unchanged.
+- Added **`record.Type`** (with String/IsZero) and **`record.ParseType`** — the
+  parametrized validator taking the caller's empty-value sentinel, so each
+  module keeps its error identity while sharing one implementation.
+
+### Changed — scheduling: branded timer identity + typed actor — 2026-08-22
+
+- **`scheduling.TimerMarker`** + **`scheduling.TimerID`** — timer identity is
+  now a branded type (string-backed, the documented `id.StreamID` pattern)
+  instead of a bare `string` alias.
+  String-backed on purpose: timer IDs are semantic idempotency keys
+  ("cancel-order-...", "delay-test") that callers choose for stable
+  re-scheduling and cancellation; ULID backing would break every idempotent
+  scheduling flow. Deviation from the original plan sketch (`id.Of[TimerMarker]`,
+  ULID-backed) for exactly this reason. Wire form unchanged: IDs still
+  serialize as plain strings (SQL columns and JSON both unchanged).
+  NOTE: source-level breaking for callers that assigned raw strings to
+  Timer.ID — construct via `scheduling.ParseTimerID`.
+- **`scheduling.ParseTimerID`** / **`scheduling.MustParseTimerID`** /
+  **`scheduling.ErrEmptyTimerID`** — semantic-name constructors; the Must
+  form is for compile-time-known names.
+- **Timer.Actor** is now `id.ActorID` instead of `string` — the typed
+  attribution the doc comment previously told callers to round-trip by hand
+  via ParseActorID. Wire-compatible: zero marshals ""/omitted, non-zero
+  marshals the same self-describing "kind:raw" string; SQL stores keep the
+  envelope actor column a plain string and convert at the boundary, so
+  existing rows (including legacy bare-payload rows) decode unchanged.
+  `scheduling` gains `id/v4` + `go-branded-id` as direct production deps
+  (Tier 1 → Tier 0, budget raised 0→2; `#check-arch` green).
+
+### Added — decider *Ref identity forms — 2026-08-22
+
+- **`decider.Repository.ExecuteRef`** / **`decider.Repository.LoadRef`** /
+  **`decider.Repository.LoadAtVersionRef`** /
+  **`decider.Repository.LoadAtTimeRef`** /
+  **`decider.Repository.WaitForVersionRef`** — the ref forms are the real
+  implementations; the stream is addressed by a single `id.StreamRef`.
+  Every internal helper (store load, singleflight key, state cache,
+  snapshot) was already `id.StreamRef`-keyed, so the ref forms reach them
+  without constructing a pair intermediate on the hot path.
+- **`decider.TypedRepository.ExecuteCommandRef`** /
+  **`decider.TypedRepository.LoadRef`** — the typed wrapper's twins.
+- The `(streamID, streamType)` pair forms (`decider.Repository.Execute`,
+  `decider.Repository.Load`, `decider.Repository.LoadAtVersion`,
+  `decider.Repository.LoadAtTime`, `decider.Repository.WaitForVersion`,
+  `decider.TypedRepository.ExecuteCommand`) are Deprecated (removed in v5)
+  one-line forwarders onto the ref forms. `TestRefForms_MatchPairForms`
+  pins the lockstep: pair and ref forms address the same stream and produce
+  identical outcomes. `system/register.go` migrated to `ExecuteRef` (the
+  only production internal pair-form caller).
+
+### Added — metadata capability interfaces (Command/Query) — 2026-08-22
+
+- **`query.MetadataCarrier`** and **`query.PayloadCarrier`** — exported
+  capability interfaces for queries that carry `Metadata` or expose raw
+  payload bytes. Middleware type-asserts to the named capability instead of
+  inline duck-typed interfaces; `query.AuditMiddleware` now asserts the
+  exported types (the two inline `metadatable` declarations and the inline
+  payload assertion in `audit.go` are gone). Hand-rolled `Query`
+  implementations opt in by adding a `Metadata()` method — no interface
+  growth, zero consumer breakage (review P6; capability-now vs
+  interface-growth-at-v5 comparison in the plan's Appendix C).
+- **`command.MetadataCarrier`** — the command-side twin. `*BasicCommand`
+  and `*BasicQuery` satisfy their carriers via compile-time asserts;
+  growing the core `Command`/`Query` interfaces rides the v5 cut.
+
+### Added — Record.ID + Record.Encoding: identity and codec stamp survive the bridges — 2026-08-22
+
+- **`record.Record.ID`** (`string`) — the record instance's unique
+  identifier: `EventID` for events, `CommandID` for commands, `RequestID`
+  for queries. The AsRecord bridges dropped this identity on the floor
+  before the field existed (review P5). All three bridges now fill it.
+- **`record.Record.Encoding`** (`string`) — the payload's codec stamp in the
+  self-describing form used by the go-codec `Encoding` type and the
+  ADR-0044 envelope ("json" / "cbor"). The event bridge fills it from the
+  event's encoding, so
+  mixed JSON+CBOR event streams stay self-describing through Record-aware
+  folds. Empty for commands (no payload) and queries (envelope-wrapped
+  payloads carry their own stamp). Deviation from the review sketch, which
+  proposed `uint8`: a numeric mapping would exist nowhere else in the
+  ecosystem and drift — the string form matches the codec layer exactly.
+
+### Added — structural record.Actor (kind-discriminated producer) — 2026-08-22
+
+- **`record.Actor` + `record.ActorKind`** — the structural mirror of
+  `id.ActorID`: the kind-discriminated producer of a record (user / bot /
+  system / service) explicit at the type level, instead of smuggled through
+  the "kind:raw" stringly `ActorID` field every consumer had to parse
+  (review P3). `record/` stays zero-dep (ADR-0111) — the union is restated,
+  and `Actor.String()` emits the identical wire form as
+  `id.ActorID.PrefixedString`.
+- **`metadata.RecordActor`** — resolves a `Tracing` into the structural
+  actor: kind-discriminated `ActorID` wins; the legacy `UserID` fallback is
+  upgraded to `ActorUser` (a user ID is by definition a human user — the
+  kind it always implicitly had). Structural counterpart of `ActorString`.
+- **`CommonMetadata.Actor`** added; **`CommonMetadata.ActorID` (`string`)
+  is Deprecated (removed in v5)** — all three AsRecord bridges populate
+  both via `metadata.RecordActor` until the cut. `metadata` gains a
+  `record/v4` dependency (Tier 0 → Tier 0, `#check-arch` clean).
+
+### Added — record.Stamp: explicit timestamp presence — 2026-08-22
+
+- **`record.Stamp` + `record.NewStamp`** — a timestamp whose presence is
+  explicit: the zero Stamp means "not recorded"; a zero time.Time can no
+  longer masquerade as "stamped at epoch" (review P7). Unexported fields
+  (`at`, `known`) make an inconsistent state unconstructable; JSON is
+  lossless (`{"at":...}` / `null`, honored by both encoding/json v1 and v2).
+- **`CommonMetadata.Created` / `Received` / `Stored`** (`Stamp`) added;
+  **`ClientCreatedAt` / `ServerReceivedAt` / `ServerStoredAt` (`time.Time`)
+  are Deprecated (removed in v5)**.
+- **Bridge mapping**: `event.AsRecord` sets `Created` from the event's
+  `OccurredAt` (Received/Stored stay unknown — the store stamps them);
+  `query.AsRecord` sets `Received` from `PersistedQuery.ReceivedAt` — the
+  honest home for the server-receive clock the old field parked in
+  `ClientCreatedAt` (Created stays unknown: PersistedQuery carries no client
+  clock). Commands carry no timestamps.
+
+### Added — explicit record.Cause (kind-discriminated causation) — 2026-08-22
+
+- **`record.Cause` + `record.CauseKind`** — the single causation home that
+  replaces the stringly `CommonMetadata.CausationID` at v5: the causer's
+  kind (command / timer / event / unknown) is stated explicitly instead of
+  implied by ID format. Zero value = no cause recorded (review P4). Kinds:
+  `CauseNone` (zero), `CauseCommand` (typed event.Causation source),
+  `CauseTimer`, `CauseEvent`, `CauseUnknown` (bare tracing chain — the kind
+  honestly "not discriminated", mirroring `id.ActorUnknown`).
+- **`CommonMetadata.Cause`** added; **`CommonMetadata.CausationID` is
+  Deprecated (removed in v5)** — the three AsRecord bridges populate both
+  fields in lockstep until the cut.
+- **Bridge mapping**: `event.AsRecord` resolves typed
+  `Metadata.Causation.CommandID` → `{CauseCommand, id}` first (strongest
+  signal), falling back to `Tracing.CausationID` → `{CauseUnknown, id}`;
+  `command.AsRecord` / `query.AsRecord` map the tracing chain to
+  `{CauseUnknown, id}` (their only causation source).
+
+### Added — validated stream-ref population in the Record bridges — 2026-08-22
+
+- **`record.NewStreamRefOrZero`** — producer-side counterpart to the planned
+  v5 validating constructor (ADR-0123 Phase 8): returns the zero `StreamRef`
+  instead of a malformed one when the entity ID is empty, so adapters that
+  cannot return an error guarantee "a Record carries a well-formed stream
+  ref or none at all". Empty stream types remain legal (command/query
+  pattern).
+- **`event.AsRecord` / `command.AsRecord` / `query.AsRecord`** now populate
+  `Record.StreamID` via the validated constructor; invariant tests pin that
+  every populated ref passes `record.StreamRef.Validate` and round-trips
+  through `Split`. Closes the "Validate() call-site adoption" TODO for all
+  three bridges.
 
 ## [metaengine/v4.12.0, sqliteengine/v4.2.0, pebbleengine/v4.2.0, badgerengine/v4.1.0, bboltengine/v4.1.0, pgengine/v4.2.0] — 2026-08-18
 
