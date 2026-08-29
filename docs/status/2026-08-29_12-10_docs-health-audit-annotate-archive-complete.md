@@ -308,3 +308,37 @@ archive; link repair; gates.
 *Point-in-time snapshot at `767545365`, 2026-08-29 12:10 CEST. Session changed
 docs only: 11 M / 1034 R / 26 RM uncommitted. Living state: TODO_LIST.md
 (94 open items, 0 done). Awaiting instructions.*
+
+---
+
+## ADDENDUM (2026-08-29 ~12:40 CEST) — T04 archive spot-verify (plan V3)
+
+Sample: `shuf -n 20` (deterministic via `--random-source=<(yes)`) over the
+866 status + 175 planning archived files. Each file re-judged against the
+archive rule (zero still-open-untracked items).
+
+**Result: 20/20 verdicts upheld, 0 files `git mv`-ed back.** Per-file:
+
+- Load-bearing open items found in 2 files are all live-tracked:
+  golangci exclusion-block audit → TODO_LIST:240; mapUpdateReplicationRule
+  FoldMultiInsert/FoldAppend → TODO_LIST:29.
+- Resolved-since-archive (verified against code): `CatalogMeta` copies in
+  command/query are gone (grep empty); benchkit `contextcheck` findings gone
+  (linter still enabled, CI lint green); the 08-06 report's single NOT-DONE
+  item (full `#verify`) was annotated done in the annotate pass.
+- Superseded: watermill + samber/do "decision pending" docs (both adopted —
+  `watermill/` module + `system/` composition root exist); dedup plan's
+  unchecked verification boxes (the `.art-dupl-baseline` gate exists and runs);
+  v3-breaking-changes "remaining minor" (tracked in TODO_LIST/ROADMAP by design).
+- **1 file with residue, left archived:** `2026-08-03_03-58_design-doc-review-
+  and-lint-gate-zero.md` — its replication-model polish list contains 3-4
+  minor untracked micro-proposals (`WithReplication()` plan option,
+  `ReplicationMode()` accessor, `SerializablePlan` replication field,
+  "extend `#verify` with the check-_ apps"). Primary work shipped; the
+  WithNetworkRTT proposal is superseded by the live-RTT calibration model.
+  Harvest these only if replication plan-time-override work resumes.
+- Echo-class assessment: 0 hallucinated verdicts found in the sample; the one
+  borderline case was caught by this check, which is the check working.
+
+Conclusion: archive layer is trustworthy at the sampled rate (est. 95% CI
+lower bound ≈ 83% at 20/20; no repair actions required).
