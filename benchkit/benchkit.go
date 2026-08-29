@@ -235,12 +235,12 @@ func (c *Config) validate() error {
 // JSON round-trip. The [codec.Codec] interface cannot round-trip through JSON
 // (there is no concrete type information on the wire), so Codec is excluded
 // (json:"-") and CodecName carries the encoding string.
-func (c Config) MarshalJSON() ([]byte, error) {
+func (c *Config) MarshalJSON() ([]byte, error) {
 	type alias Config
 
 	c.CodecName = codecEncodingName(c.Codec)
 
-	return json.Marshal(alias(c), json.WithMarshalers(durationMarshalers))
+	return json.Marshal(alias(*c), json.WithMarshalers(durationMarshalers))
 }
 
 // UnmarshalJSON deserializes Config, resolving CodecName back to a concrete

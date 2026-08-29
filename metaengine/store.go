@@ -668,7 +668,7 @@ func (s *Store) applyFoldRemove(
 	ctx context.Context,
 	q queryMeta,
 	fold *removeFold,
-	rec record.Record,
+	_ record.Record,
 	payload any,
 ) error {
 	key := fold.keyExtractor(payload)

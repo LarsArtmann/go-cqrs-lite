@@ -42,33 +42,31 @@ func OpenDBOrErr(driver, dsn, code string) (*sql.DB, error) {
 // nil; it receives a background context and the opened DB and should return
 // already-wrapped errors. On any setup or backend-creation failure the DB is
 // closed before the error is returned.
-func OpenPrimaryBackend( //nolint:nonamedreturns // db needed for deferred close
+func OpenPrimaryBackend(
 	openDB func() (*sql.DB, error),
 	setup func(ctx context.Context, db *sql.DB) error,
 	newBackend func(*sql.DB) (*storage.SQLBackend, error),
 	backendCode string,
-) (db *sql.DB, backend *storage.SQLBackend, err error) {
-	db, err = openDB()
+) (*sql.DB, *storage.SQLBackend, error) {
+	db, err := openDB()
 	if err != nil {
 		return nil, nil, err
 	}
-
-	defer func() {
-		if err != nil && db != nil {
-			_ = db.Close()
-		}
-	}()
 
 	ctx := context.Background()
 
 	if setup != nil {
 		if err = setup(ctx, db); err != nil {
+			_ = db.Close()
+
 			return nil, nil, err
 		}
 	}
 
-	backend, err = newBackend(db)
+	backend, err := newBackend(db)
 	if err != nil {
+		_ = db.Close()
+
 		return nil, nil, errorfamily.WrapInfrastructure(err, backendCode, "create SQL backend")
 	}
 

@@ -70,10 +70,12 @@ func protectState(cipher Encrypter, keyID KeyID) func([]byte) ([]byte, error) {
 			return nil, err
 		}
 
-		encoded, err := MarshalEnvelope(Envelope{ //nolint:exhaustruct // Version defaults inside MarshalEnvelope
-			Ciphertext: ciphertext,
-			KeyID:      keyID,
-		})
+		encoded, err := MarshalEnvelope(
+			Envelope{ //nolint:exhaustruct // Version defaults inside MarshalEnvelope
+				Ciphertext: ciphertext,
+				KeyID:      keyID,
+			},
+		)
 		if err != nil {
 			return nil, err
 		}

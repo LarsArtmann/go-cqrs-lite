@@ -119,12 +119,10 @@ func (s *CheckpointStore) Load(
 	defer span.End()
 
 	if projectionName == "" {
-		return event.Checkpoint{
-				EventID: id.EventID{},
-			}, errorfamily.NewRejection(
-				"pebble.empty_projection_name",
-				"projection name must not be empty",
-			)
+		return event.Checkpoint{}, errorfamily.NewRejection(
+			"pebble.empty_projection_name",
+			"projection name must not be empty",
+		)
 	}
 
 	key := s.checkpointKey(projectionName)
@@ -132,18 +130,16 @@ func (s *CheckpointStore) Load(
 	val, closer, err := s.db.Get(key)
 	if err != nil {
 		if errors.Is(err, pebble.ErrNotFound) {
-			return event.Checkpoint{EventID: id.EventID{}}, nil
+			return event.Checkpoint{}, nil
 		}
 
 		cqrsotel.RecordError(span, err)
 
-		return event.Checkpoint{
-				EventID: id.EventID{},
-			}, errorfamily.WrapInfrastructure(
-				err,
-				"pebble.read_checkpoint",
-				"read checkpoint for projection "+projectionName,
-			)
+		return event.Checkpoint{}, errorfamily.WrapInfrastructure(
+			err,
+			"pebble.read_checkpoint",
+			"read checkpoint for projection "+projectionName,
+		)
 	}
 
 	defer func() { _ = closer.Close() }()
@@ -155,7 +151,7 @@ func (s *CheckpointStore) Load(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.Checkpoint{EventID: id.EventID{}},
+		return event.Checkpoint{},
 			errorfamily.WrapCorruption(err, "pebble.deserialize_checkpoint",
 				"deserialize checkpoint for projection "+projectionName)
 	}
