@@ -25,9 +25,3 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260810153831-ec0a7760b754 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
-
-replace (
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../sqliteengine
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
-	github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record
-)
