@@ -30,6 +30,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   synthesized minimal record (additive; replay without a stored record
   keeps the old synthesized behavior).
 
+### Added — Doctor surfaces effective durability tiers — 2026-08-29
+
+- **`metaengine.Store.Doctor`** gained a `--- Durability ---` section: engines
+  implementing the new optional **`metaengine.DurabilityReporter`**
+  capability (`EffectiveDurability() DurabilityTier`) report the tier they
+  actually run with (engine-default when unconfigured); engines that do not
+  implement it are listed as not reporting. Per-engine adoption lands with
+  the engine modules' next tags. The tier-to-mechanism mapping per engine is
+  documented in ADR-0130.
+
 ### Changed — journal drains pre-size scan slices from their limit — 2026-08-29
 
 - **`storage/sql.ScanSlice`** accepts an optional capacity hint, and

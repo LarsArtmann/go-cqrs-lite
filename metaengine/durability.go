@@ -36,6 +36,15 @@ const (
 	DurabilityRelaxed DurabilityTier = "relaxed"
 )
 
+// DurabilityReporter is an optional engine capability: engines that honored
+// DriverConfig.Durability report the tier they actually run with, so
+// Store.Doctor can surface the effective durability per engine instead of
+// operators trusting config. Engines that did not accept a tier simply do not
+// implement the interface (Doctor then reports "not reported").
+type DurabilityReporter interface {
+	EffectiveDurability() DurabilityTier
+}
+
 // ValidateDurabilityTier reports whether tier is a valid DurabilityTier.
 // The empty string is valid: unspecified, meaning engine defaults.
 func ValidateDurabilityTier(tier DurabilityTier) error {

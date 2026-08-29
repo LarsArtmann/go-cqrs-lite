@@ -508,6 +508,44 @@ This prevents advertising a release in the CHANGELOG without actually
 publishing the code. Always tag at least one module at the version you
 document in CHANGELOG.md.
 
+### Pin-bump before tagging (multi-module waves)
+
+`go mod tidy` does NOT bump `require` pins — it resolves at package level, so
+a pin on an older tag that lacks new symbols only fails at BUILD time
+(GOWORK=off standalone builds of dependent modules). Before cutting a tag in
+a wave, pre-bump every dependent module's pin:
+
+```bash
+# 1. See who pins the module and at what version:
+grep -rn 'github.com/larsartmann/go-cqrs-lite/<module>/v4 v' --include=go.mod . | grep -v replace
+
+# 2. Pre-bump each dependent module's pin to the version you are about to cut:
+cd <dependent-module> && go mod edit   -require=github.com/larsartmann/go-cqrs-lite/<module>/v4@v<X.Y.Z> && go mod tidy
+
+# 3. Prove the standalone build BEFORE tagging (workspace greens hide pin gaps):
+GOWORK=off go build ./... && GOWORK=off go test ./... -count=1
+```
+
+Interleave cut → push → next: with `GOPRIVATE=github.com/larsartmann/*`,
+siblings resolve via DIRECT VCS fetch from origin, so a tag must be PUSHED
+before any dependent module's tag-time tidy can see it. After a wave, run the
+GOWORK=off build matrix over every swept module.
+
+### GOPRIVATE / private-fetch verification
+
+The devShell redirects `github.com/larsartmann/*` HTTPS to SSH via
+`GIT_CONFIG_*` env. Outside the devShell, a VCS fetch fails with
+`git ls-remote -q origin ... exit status 128` inside `~/go/pkg/mod/cache/vcs/`.
+Verify the fetch path BEFORE tagging:
+
+```bash
+# Does a clean module cache resolve the module from the (pushed) tag?
+GOWORK=off GOFLAGS=-mod=mod go mod download   github.com/larsartmann/go-cqrs-lite/<module>/v4@v<X.Y.Z> -x 2>&1 | tail -5
+
+# Or clean-room go get into a throwaway module — the strongest check:
+cd "$(mktemp -d)" && go mod init probe &&   go get github.com/larsartmann/go-cqrs-lite/<module>/v4@v<X.Y.Z>
+```
+
 ### Critical rules
 
 - **NEVER commit code that doesn't compile.** Run `go build ./...` before every commit.

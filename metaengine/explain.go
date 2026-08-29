@@ -236,6 +236,32 @@ func (s *Store) Doctor(ctx context.Context) string {
 		b.WriteString("  none\n")
 	}
 
+	b.WriteString("\n--- Durability ---\n")
+
+	s.mu.RLock()
+	engines := slices.Clone(s.engines)
+	s.mu.RUnlock()
+
+	reported := false
+	for _, eng := range engines {
+		dr, ok := eng.(DurabilityReporter)
+		if !ok {
+			continue
+		}
+
+		tier := dr.EffectiveDurability()
+		if tier == "" {
+			tier = "engine-default"
+		}
+
+		fmt.Fprintf(&b, "  %s: %s\n", eng.Profile().Name, tier)
+		reported = true
+	}
+
+	if !reported {
+		b.WriteString("  no engine reports an effective durability tier\n")
+	}
+
 	b.WriteString("\n--- Replication ---\n")
 
 	replicatedAny := false
