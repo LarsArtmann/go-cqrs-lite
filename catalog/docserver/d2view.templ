@@ -3,13 +3,14 @@ package docserver
 import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/layout"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // D2Page renders the generated D2 architecture diagram source with copy and
 // download affordances.
 templ D2Page(brand, docsPrefix, diagram string) {
 	{{
-		base := docsPageProps(brand+" — Architecture Diagram", "D2 architecture diagram generated from the catalog", docsPrefix)
+		base := docsPageProps(brand+" — Architecture Diagram", "D2 architecture diagram generated from the catalog", docsPrefix, templ.GetNonce(ctx))
 		headerProps := display.PageHeaderProps{
 			Title:    "Architecture diagram",
 			Subtitle: "D2 source generated from the catalog. Paste it into any D2 renderer, e.g. the D2 playground.",
@@ -19,13 +20,18 @@ templ D2Page(brand, docsPrefix, diagram string) {
 			Subtitle:     "Text · UTF-8",
 			HeaderAction: display.Button(display.ButtonProps{Text: "Download .d2", Href: docsPrefix + "/d2.txt"}),
 		}
+		copyProps := display.CopyButtonProps{
+			BaseProps: utils.BaseProps{Nonce: templ.GetNonce(ctx)},
+			Text:      diagram,
+			Label:     "Copy D2 source",
+		}
 	}}
 	@layout.Base(base) {
 		@docsNav(brand, docsPrefix, docsPrefix+"/d2")
 		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
 			@display.PageHeader(headerProps)
 			@display.Card(cardProps) {
-				@display.CopyButton(display.CopyButtonProps{Text: diagram, Label: "Copy D2 source"})
+				@display.CopyButton(copyProps)
 				<pre
 					aria-label="D2 diagram source"
 					class="mt-4 overflow-x-auto rounded-lg bg-gray-950 p-4 text-xs leading-relaxed text-gray-100 dark:bg-black dark:text-gray-200"

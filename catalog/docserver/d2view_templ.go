@@ -11,6 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/layout"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // D2Page renders the generated D2 architecture diagram source with copy and
@@ -36,7 +37,7 @@ func D2Page(brand, docsPrefix, diagram string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		base := docsPageProps(brand+" — Architecture Diagram", "D2 architecture diagram generated from the catalog", docsPrefix)
+		base := docsPageProps(brand+" — Architecture Diagram", "D2 architecture diagram generated from the catalog", docsPrefix, templ.GetNonce(ctx))
 		headerProps := display.PageHeaderProps{
 			Title:    "Architecture diagram",
 			Subtitle: "D2 source generated from the catalog. Paste it into any D2 renderer, e.g. the D2 playground.",
@@ -45,6 +46,11 @@ func D2Page(brand, docsPrefix, diagram string) templ.Component {
 			Title:        "D2 source",
 			Subtitle:     "Text · UTF-8",
 			HeaderAction: display.Button(display.ButtonProps{Text: "Download .d2", Href: docsPrefix + "/d2.txt"}),
+		}
+		copyProps := display.CopyButtonProps{
+			BaseProps: utils.BaseProps{Nonce: templ.GetNonce(ctx)},
+			Text:      diagram,
+			Label:     "Copy D2 source",
 		}
 		templ_7745c5c3_Var2 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -82,7 +88,7 @@ func D2Page(brand, docsPrefix, diagram string) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = display.CopyButton(display.CopyButtonProps{Text: diagram, Label: "Copy D2 source"}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = display.CopyButton(copyProps).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -93,7 +99,7 @@ func D2Page(brand, docsPrefix, diagram string) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(diagram)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/d2view.templ`, Line: 32, Col: 20}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `d2view.templ`, Line: 38, Col: 20}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {

@@ -905,6 +905,15 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-depguard.sh"
                 '';
 
+            # check-templ: templ codegen-drift gate — fails when a *_templ.go
+            # no longer matches its .templ source. The nixpkgs templ version
+            # is the pin recorded in the treefmt excludes (v0.3.1020).
+            check-templ = mkApp "check-templ" [ pkgs.templ goPkg pkgs.bash ] ''
+              echo "==> templ codegen drift (catalog/docserver)"
+              cd catalog/docserver
+              ${pkgs.templ}/bin/templ generate -check -log-level error
+            '';
+
             # verify-ci: mirror the GitHub Actions per-module job locally —
             # every module built AND tested under GOWORK=off (consumer
             # perspective). Catches replace-directive and pin drift that the

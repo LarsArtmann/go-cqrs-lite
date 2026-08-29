@@ -38,7 +38,7 @@ func IndexPage(data indexPageData) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		base := docsPageProps(data.CatalogTitle+" — API Documentation", data.Description, data.DocsPath)
+		base := docsPageProps(data.CatalogTitle+" — API Documentation", data.Description, data.DocsPath, templ.GetNonce(ctx))
 		headerProps := display.PageHeaderProps{
 			Title:    data.CatalogTitle,
 			Subtitle: data.Description,
@@ -263,7 +263,7 @@ func specCard(link specLink) templ.Component {
 			var templ_7745c5c3_Var9 templ.SafeURL
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(link.PageHref))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/index.templ`, Line: 60, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `index.templ`, Line: 60, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -276,7 +276,7 @@ func specCard(link specLink) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(link.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/index.templ`, Line: 62, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `index.templ`, Line: 62, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -305,7 +305,7 @@ func specCard(link specLink) templ.Component {
 					var templ_7745c5c3_Var11 templ.SafeURL
 					templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(raw.Href))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/index.templ`, Line: 71, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `index.templ`, Line: 71, Col: 36}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 					if templ_7745c5c3_Err != nil {
@@ -318,7 +318,7 @@ func specCard(link specLink) templ.Component {
 					var templ_7745c5c3_Var12 string
 					templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(raw.Label)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/index.templ`, Line: 73, Col: 17}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `index.templ`, Line: 73, Col: 17}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 					if templ_7745c5c3_Err != nil {
@@ -387,7 +387,7 @@ func serviceSummaryCard(svc serviceCard) templ.Component {
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(svc.Summary)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/index.templ`, Line: 85, Col: 68}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `index.templ`, Line: 85, Col: 68}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {

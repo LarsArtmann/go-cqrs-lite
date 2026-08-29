@@ -355,6 +355,7 @@ func TestDocsServer_RegisterRoutes_StaticFiles(t *testing.T) {
 		{"/docs/static/asyncapi-react.js", "text/javascript"},
 		{"/docs/static/asyncapi-react.css", "text/css"},
 		{"/docs/static/scalar.js", "text/javascript"},
+		{"/docs/static/docs-ui.css", "text/css"},
 	} {
 		req := newTestRequest(tc.path)
 		recorder := httptest.NewRecorder()

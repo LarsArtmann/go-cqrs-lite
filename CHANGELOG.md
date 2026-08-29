@@ -10,6 +10,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > inside a dated `[tags]` section is unreleased (the 2026-08-16-era block was
 > folded into this window on 2026-08-29).
 
+### Added — docserver CSP support, templ drift gate, EventCatalog cId semantics — 2026-08-29
+
+- **`catalog/docserver`** can now serve its pages under a strict
+  Content-Security-Policy: every script tag (SPA bundles, inline bootstrap,
+  copy-button, theme scripts) is stamped with a per-request nonce, and
+  `Config.EnableCSP` opts into sending the matching CSP header (off by
+  default — responses are byte-identical for existing deployments; styles
+  stay `unsafe-inline` because the embedded Scalar/AsyncAPI bundles inject
+  styles at runtime). A failing CSPRNG degrades to the old nonce-free
+  rendering instead of breaking the page. Tests assert header/nonce
+  consistency, default-off behavior, and per-request nonce freshness.
+- **New `nix run .#check-templ` gate** fails when generated `*_templ.go`
+  files drift from their `.templ` sources (`templ generate -check`,
+  nixpkgs templ pinned at v0.3.1020 — the same version noted in the
+  treefmt excludes).
+- **EventCatalog `cId` semantics**: the project `cId` the exporter writes
+  is a v5 UUID derived from the catalog TITLE. Renaming the catalog
+  therefore changes the project identity — EventCatalog renders the
+  regenerated output as a NEW project (its history/changelog views reset).
+  Consumers upgrading from pre-2026-08-16 exporters (which wrote no
+  `cId` at all) will get a fresh identity on first re-export; pin the
+  title, or hand-pin the previous `cId` in `eventcatalog.config.js`, if
+  that matters to you.
+
 ### Fixed — metaengine record context is no longer shared mutable state across Stores — 2026-08-29
 
 - **`metaengine`** passes the `record.Record` through fold invocations as a

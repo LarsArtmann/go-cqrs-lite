@@ -59,6 +59,12 @@ type Config struct {
 
 	// DocsPath is the URL prefix where docs are served (default "/docs").
 	DocsPath string
+
+	// EnableCSP sends a Content-Security-Policy header on the HTML pages,
+	// gating scripts to self-hosted bundles plus the per-request nonce that
+	// every docserver script tag already carries. Off by default so existing
+	// deployments see byte-identical responses until they opt in.
+	EnableCSP bool
 }
 
 // AsyncAPIServerConfig configures the AsyncAPI server entry.
@@ -211,6 +217,7 @@ func (ds *DocsServer) serveOpenAPIYAML(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (ds *DocsServer) serveOpenAPIHTML(w http.ResponseWriter, r *http.Request) {
+	r = ds.applyCSP(w, r)
 	ds.renderComponent(
 		w, r,
 		ScalarPage(ds.config.ServiceName, ds.config.DocsPath, ds.config.DocsPath+"/openapi.json"),
@@ -235,6 +242,7 @@ func (ds *DocsServer) serveAsyncAPIYAML(w http.ResponseWriter, _ *http.Request) 
 }
 
 func (ds *DocsServer) serveAsyncAPIHTML(w http.ResponseWriter, r *http.Request) {
+	r = ds.applyCSP(w, r)
 	ds.renderComponent(
 		w,
 		r,
@@ -247,6 +255,7 @@ func (ds *DocsServer) serveAsyncAPIHTML(w http.ResponseWriter, r *http.Request) 
 }
 
 func (ds *DocsServer) serveIndex(w http.ResponseWriter, r *http.Request) {
+	r = ds.applyCSP(w, r)
 	data := newIndexPageData(ds.config, ds.provider())
 	ds.renderComponent(w, r, IndexPage(data))
 }

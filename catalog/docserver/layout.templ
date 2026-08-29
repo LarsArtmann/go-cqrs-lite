@@ -8,8 +8,10 @@ import (
 // docsPageProps returns Base page props shared by all docserver pages: the
 // embedded stylesheet and favicon, both anchored at docsPrefix, and no
 // auto-injected htmx (docserver pages are static; interactivity comes from
-// the embedded SPAs and self-contained component scripts).
-func docsPageProps(title, description, docsPrefix string) layout.PageProps {
+// the embedded SPAs and self-contained component scripts). The nonce (may be
+// empty) is stamped onto Base's internal scripts so CSP-enabled deployments
+// can gate them.
+func docsPageProps(title, description, docsPrefix, nonce string) layout.PageProps {
 	props := layout.DefaultPageProps()
 	props.Title = title
 	props.Description = description
@@ -18,6 +20,7 @@ func docsPageProps(title, description, docsPrefix string) layout.PageProps {
 	props.HTMXVersion = ""
 	props.HTMXSrc = ""
 	props.HTMXResponseTargets = false
+	props.Nonce = nonce
 
 	return props
 }

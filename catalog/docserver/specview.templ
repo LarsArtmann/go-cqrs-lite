@@ -8,7 +8,7 @@ import (
 // are anchored at docsPrefix so the page works under any mount point.
 templ ScalarPage(brand, docsPrefix, specURL string) {
 	{{
-		props := docsPageProps(brand+" — OpenAPI Reference", "Interactive OpenAPI reference rendered by Scalar", docsPrefix)
+		props := docsPageProps(brand+" — OpenAPI Reference", "Interactive OpenAPI reference rendered by Scalar", docsPrefix, templ.GetNonce(ctx))
 		props.BodyClass = "bg-white dark:bg-gray-950"
 	}}
 	@layout.Base(props) {
@@ -20,8 +20,8 @@ templ ScalarPage(brand, docsPrefix, specURL string) {
 				<a href={ templ.SafeURL(specURL) } class="font-medium text-blue-600 hover:underline dark:text-blue-400">the JSON endpoint</a>.
 			</p>
 		</noscript>
-		<script src={ templ.SafeURL(docsPrefix + "/static/scalar.js") }></script>
-		<script>
+		<script nonce={ templ.GetNonce(ctx) } src={ templ.SafeURL(docsPrefix + "/static/scalar.js") }></script>
+		<script nonce={ templ.GetNonce(ctx) }>
 			Scalar.createApiReference('#app', {
 				spec: {
 					url: document.getElementById('app').dataset.specUrl,
@@ -40,7 +40,7 @@ templ asyncAPIExtraHead(docsPrefix string) {
 // AsyncAPIPage wraps the embedded AsyncAPI React SPA with a slim chrome.
 templ AsyncAPIPage(brand, docsPrefix, specURL string) {
 	{{
-		props := docsPageProps(brand+" — Event Reference", "Interactive AsyncAPI documentation rendered by AsyncAPI React", docsPrefix)
+		props := docsPageProps(brand+" — Event Reference", "Interactive AsyncAPI documentation rendered by AsyncAPI React", docsPrefix, templ.GetNonce(ctx))
 		props.BodyClass = "bg-white dark:bg-gray-950"
 		props.HeadContent = asyncAPIExtraHead(docsPrefix)
 	}}
@@ -53,8 +53,8 @@ templ AsyncAPIPage(brand, docsPrefix, specURL string) {
 				<a href={ templ.SafeURL(specURL) } class="font-medium text-blue-600 hover:underline dark:text-blue-400">the JSON endpoint</a>.
 			</p>
 		</noscript>
-		<script src={ templ.SafeURL(docsPrefix + "/static/asyncapi-react.js") }></script>
-		<script>
+		<script nonce={ templ.GetNonce(ctx) } src={ templ.SafeURL(docsPrefix + "/static/asyncapi-react.js") }></script>
+		<script nonce={ templ.GetNonce(ctx) }>
 			AsyncApiStandalone.render({
 				schema: {
 					url: document.getElementById('asyncapi').dataset.specUrl,

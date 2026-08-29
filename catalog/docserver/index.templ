@@ -11,7 +11,7 @@ import (
 // every generated artifact, and one card per service.
 templ IndexPage(data indexPageData) {
 	{{
-		base := docsPageProps(data.CatalogTitle+" — API Documentation", data.Description, data.DocsPath)
+		base := docsPageProps(data.CatalogTitle+" — API Documentation", data.Description, data.DocsPath, templ.GetNonce(ctx))
 		headerProps := display.PageHeaderProps{
 			Title:    data.CatalogTitle,
 			Subtitle: data.Description,

@@ -20,6 +20,21 @@ go get github.com/larsartmann/go-cqrs-lite/catalog/v4
 | `catalog/docserver`    | HTTP handlers for serving docs (index page, OpenAPI/AsyncAPI UI, D2 view) |
 | `catalog/simple`       | Single-service builder facade (streamlined API)                           |
 
+## Dependencies
+
+Production dependencies only — test-only packages (Ginkgo, Gomega, go-snaps)
+never reach your build:
+
+| Dependency                                                                             | Used by              | Role                                             |
+| -------------------------------------------------------------------------------------- | -------------------- | ------------------------------------------------ |
+| [`go-error-family`](https://github.com/larsartmann/go-error-family)                    | all packages         | Classified error taxonomy (Rejection/Conflict/…) |
+| [`go-faster/yaml`](https://github.com/go-faster/yaml)                                  | `asyncapi`, `openapi` | Fast YAML emission for specs                    |
+| [`a-h/templ`](https://github.com/a-h/templ)                                            | `docserver`          | Type-safe HTML component rendering               |
+| [`templ-components`](https://github.com/larsartmann/templ-components)                  | `docserver`          | Prebuilt docs UI components (layout, cards, nav) |
+
+If you only use the spec exporters (`asyncapi`, `openapi`, `eventcatalog`,
+`d2`) you do not link templ or templ-components at all.
+
 ## Quick Start
 
 ```go
