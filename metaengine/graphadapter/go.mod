@@ -4,7 +4,7 @@ go 1.26.6
 
 require (
 	github.com/larsartmann/go-cqrs-lite/graph/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0
 )
 

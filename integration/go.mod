@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0
-	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0
@@ -36,17 +36,14 @@ require (
 	go.opentelemetry.io/otel/trace v1.45.0
 )
 
-require (
-	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.0.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/retry/v4 v4.0.2 // indirect
-)
+require github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
 
 require (
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/bits-and-blooms/bitset v1.25.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/errors v1.14.0 // indirect
@@ -55,6 +52,7 @@ require (
 	github.com/cockroachdb/redact v1.1.8 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20250429170803-42689b6311bb // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/failsafe-go/failsafe-go v0.9.6 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/getsentry/sentry-go v0.48.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
@@ -78,6 +76,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
+	github.com/larsartmann/go-retry v0.3.1 // indirect
 	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect

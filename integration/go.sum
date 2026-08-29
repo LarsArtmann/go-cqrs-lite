@@ -18,6 +18,8 @@ github.com/ThreeDotsLabs/watermill-redisstream v1.4.5 h1:SCETqsAYo/CRBb7H3+zWCcS
 github.com/ThreeDotsLabs/watermill-redisstream v1.4.5/go.mod h1:Da3wqG1OcvHPODjuJcxSCY1O7D4loIZQpVbZ5u94xRo=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
+github.com/bits-and-blooms/bitset v1.25.0 h1:0Ro0qF4abCkM6SqWPVj29sFhAbMPAZpaDD7xhJ10beM=
+github.com/bits-and-blooms/bitset v1.25.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/cenkalti/backoff/v4 v4.3.0 h1:MyRJ/UdXutAwSAT+s3wNd7MfTIcy71VQueUuFK343L8=
 github.com/cenkalti/backoff/v4 v4.3.0/go.mod h1:Y3VNntkOUPxTVeUxJ/G5vcM//AlwfmyYozVcomhLiZE=
 github.com/cenkalti/backoff/v5 v5.0.3 h1:ZN+IMa753KfX5hd8vVaMixjnqRZ3y8CuJKRKj1xcsSM=
@@ -64,6 +66,8 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/ebitengine/purego v0.10.2 h1:W809HbnvzAxgdm+aOvlSekrM16wGCdT/e76+9tS7gzE=
 github.com/ebitengine/purego v0.10.2/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
+github.com/failsafe-go/failsafe-go v0.9.6 h1:vPSH2cry0Ee5cnR9wc9qshCDO6jdrMA9elBJNwyo4Uk=
+github.com/failsafe-go/failsafe-go v0.9.6/go.mod h1:IeRpglkcwzKagjDMh90ZhN2l4Ovt3+jemQBUbThag54=
 github.com/felixge/httpsnoop v1.1.0 h1:3YtUj32ZZkqZtt3sZZsClsymw/QDuVfpNhoA31zeORc=
 github.com/felixge/httpsnoop v1.1.0/go.mod h1:Zqxgdd+1Rkcz8euOqdr7lqgCRJztwr5hp9vDSi5UZCE=
 github.com/fxamacker/cbor/v2 v2.9.2 h1:X4Ksno9+x3cz0TZv69ec1hxP/+tymuR8PXQJyDwfh78=
@@ -100,6 +104,8 @@ github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3/go.mod h1:jl5iWTm0/hd
 github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/influxdata/tdigest v0.0.1 h1:XpFptwYmnEKUqmkcDjrzffswZ3nvNeevbUSLPP/ZzIY=
+github.com/influxdata/tdigest v0.0.1/go.mod h1:Z0kXnxzbTC2qrx4NaIzYkE1k66+6oEDQTvL95hQFh5Y=
 github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=
 github.com/jackc/pgpassfile v1.0.0/go.mod h1:CEx0iS5ambNFdcRtxPj5JhEz+xB6uRky5eyVu/W2HEg=
 github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=
@@ -144,8 +150,6 @@ github.com/larsartmann/go-cqrs-lite/graph/v4 v4.2.0 h1:EsfovSPJ+6OcxKYAuM09oUl4W
 github.com/larsartmann/go-cqrs-lite/graph/v4 v4.2.0/go.mod h1:NRzBFSzPXshvYVwj4HxHRa6ya+OQOYEDk0G/xPmuqFM=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0 h1:7bhIS1IjF8waY3WbhBG53es1/fLlunWx3rbI2y4+ZFg=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0/go.mod h1:JtyLB/TVaLDi5jydCst4x8ytMVvCqBFc9Nga4Yu4qi4=
-github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.0.2 h1:Igf+YmkFeMC+83UxR0xJGV8xL8GtC8J6HvMNTD0icx0=
-github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.0.2/go.mod h1:4dOjs/wMUyez1oG0Fdbaoe5NmMTXlKiVad37VmSMjcc=
 github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 h1:/6jCquRNzVdEI8sP4CwNu2K7CbRaF79lYD7ntMgLEhw=
 github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0/go.mod h1:rWowydIZvxaInMZzVuKSKb5RupT8f1QPkV3pWuL5rB4=
 github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 h1:XkQ74ekrRjPVjB778ilh4CQox72Ms6jeBLLmIsyvRfg=
@@ -158,8 +162,8 @@ github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0 h1:awLMBQw
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0/go.mod h1:c9y9FYHL6GW4dUOIMBR9HpMGeTYwD5u74M1nNCjlEWw=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0 h1:eUZJxVRFbwtA1zzVLwzUc1aZN/ba94/C9ffXUL9ZI1A=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0/go.mod h1:4ZSRF9/8v54YqetN80wWfPD12m/drXleSwn9q97pZ0I=
-github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.1.0 h1:E5dwpU9KY+/KrFGYIR7AOvLEFfBvFopperIegXI+bTM=
-github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.1.0/go.mod h1:2S4ojI8/rzp7jMHKiMZE3trV4SZpghs+rpLzyyBGD6g=
+github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.5.1 h1:VSqZ6a1a7dOqAoYLRJIIUaei27sh6cr8YcHNg7Yh74M=
+github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.5.1/go.mod h1:J5qdlxCO2VSBh9CwIlmwoPr0GsibewrGwRMQAR/rrlw=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 h1:s9XLaYa8jLAK3uBl6giJKStiQA+1ag9VmjQEU4AKZbg=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0/go.mod h1:KRlv3IxoiThNnX6vd7krsol84JJR3nZf9DWst8StbgM=
 github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 h1:jabGE+EiBqh0NkzdT6ZkmblEjCmn9XOKaw/C3ZHuwKE=
@@ -170,8 +174,6 @@ github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.0 h1:ugvEhqvdi+/sdShRmiBUktsxG
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.0/go.mod h1:6PCS9iKQc0qS6lp3wtd25bjfwc81aGR19FWfr/xuRJw=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 h1:SvhtPWYWTtV48+fgAaIDrJGTWgmNG/1RxZoQQmNTvN0=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0/go.mod h1:TB0o6rv8eIdLqV9ZxdIsRNTNQuALt/d5/MFtPZp5AjQ=
-github.com/larsartmann/go-cqrs-lite/retry/v4 v4.0.2 h1:Qj/y45v9ivFYJQsAMfnD9+T7ZKUpjvL5JDgrFinc5LU=
-github.com/larsartmann/go-cqrs-lite/retry/v4 v4.0.2/go.mod h1:iQaiGJdGE6kuceBm91ogb9R91Ie2dX3Phipcg7jdtds=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.3.0 h1:R/H/fGe5sButeL9eDBK1xCk8CoH8qktdV3JJo6PGsdI=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.3.0/go.mod h1:fKiFh3PI6TuF7svYjAOV5QlMtwaAxHcplk6MjRCyfs0=
 github.com/larsartmann/go-cqrs-lite/schema/v4 v4.2.0 h1:3yqc9JrbBanJFOjVdYLtUFKgPqjSXZM64D0QwN0bwV4=
@@ -198,6 +200,8 @@ github.com/larsartmann/go-flightrecorder v0.2.0 h1:vCyd+jXA5SsJxTS7zaOvlzJiNPqy+
 github.com/larsartmann/go-flightrecorder v0.2.0/go.mod h1:KOAVyRuxUX0eeKPc3mjAwOKsenSS1SjBqnJ0KKPxyhA=
 github.com/larsartmann/go-idempotency v0.1.2 h1:Uk0fQTD6j8IISIDnQoi8j1R92rYIwjyI0gKm1FOqDvo=
 github.com/larsartmann/go-idempotency v0.1.2/go.mod h1:ee9VieA/IrJBaZ47+lnbwR9l4Td9VpEnruNJfCjDpyU=
+github.com/larsartmann/go-retry v0.3.1 h1:PFCNacuGUQ8Io6hK6RFOiNQRwRCQ9vzfOguWnqof/+8=
+github.com/larsartmann/go-retry v0.3.1/go.mod h1:Lbi4UAbiRgM4BqfRtMFPW8umNF4qnIApNLw0RRoTqVg=
 github.com/larsartmann/go-sse v0.5.1 h1:WxTNZp+DfShA2yXPne4+Jp5sFKTDlng+VMOniCiFVu8=
 github.com/larsartmann/go-sse v0.5.1/go.mod h1:TJl45pMXjwZTdhGgyu6RZWmmXyr28XwpnNJ7rVyyUxU=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=
@@ -377,6 +381,10 @@ golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8T
 golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 google.golang.org/appengine v1.6.8 h1:IhEN5q69dyKagZPYMSdIjS2HqprW324FRQZJcGqPAsM=
 google.golang.org/appengine v1.6.8/go.mod h1:1jJ3jBArFh5pcgW8gCtRJnepW8FzD1V44FJffLiz/Ds=
+google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 h1:KpwkzHKEF7B9Zxg18WzOa7djJ+Ha5DzthMyZYQfEn2A=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20260810153831-ec0a7760b754 h1:k5CJw9e5ONCcA/u0webKt092npXuY+KeGh3Q8NAVf0g=
+google.golang.org/grpc v1.83.0 h1:JeNZEKJFbQxArAMl+hiytHauacDNqJUllNfmIMmpqnQ=
+google.golang.org/grpc v1.83.0/go.mod h1:kDyl6SKsiHKt0uylY5gtn5cEjkrIOhQOGDgIc4JGwzQ=
 google.golang.org/protobuf v1.36.12 h1:pJOKDDOyeXErUroCihFAd5LQuwXBSpVnKGrj5o/fwxc=
 google.golang.org/protobuf v1.36.12/go.mod h1:HTf+CrKn2C3g5S8VImy6tdcUvCska2kB7j23XfzDpco=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
