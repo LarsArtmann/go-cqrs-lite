@@ -116,6 +116,54 @@ ctx = cqrsotel.WithCorrelationID(ctx, traceID.String())
 // OTelCorrelationEnricher stamps the baggage correlation ID into event metadata
 ```
 
+## Exporter Lifecycle: Shutdown Flushes Your Telemetry
+
+Batch span processors export asynchronously — **telemetry produced without a
+`Shutdown` is silently dropped on process exit**. Batched spans sit in memory
+until the batch interval elapses; a server that finishes a request and exits
+before the next tick loses exactly the spans you were debugging. The
+`Provider` returned by `Setup` owns both providers, and its `Shutdown` flushes
+pending spans and metrics before releasing resources. Wire it into your
+server's shutdown sequence — not a bare `defer` after `os.Exit`, which never
+runs defers at all:
+
+```go
+provider, err := cqrsotel.Setup(
+    cqrsotel.WithStdoutExporter(os.Stdout),
+)
+if err != nil {
+    log.Fatal(err)
+}
+
+srv := &http.Server{Addr: ":8080"}
+go func() {
+    if serveErr := srv.ListenAndServe(); serveErr != http.ErrServerClosed {
+        log.Fatal(serveErr)
+    }
+}()
+
+// On SIGINT/SIGTERM: stop accepting first (new spans stop),
+// THEN flush what already exists.
+stop := make(chan os.Signal, 1)
+signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+<-stop
+
+shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+defer cancel()
+
+_ = srv.Shutdown(shutdownCtx)          // 1. stop accepting work
+if err := provider.Shutdown(shutdownCtx); err != nil { // 2. flush + release
+    log.Printf("otel shutdown incomplete: %v", err)
+}
+```
+
+Order matters: `srv.Shutdown` before `provider.Shutdown` — in-flight requests
+still produce spans, and shutting the exporter down first drops them. Give the
+flush its own bounded context (5s is a sane ceiling); a shutdown deadline
+shared with a hung server would eat the flush window. For tests, prefer
+`cqrsotel.WithStdoutExporter(buf)` against a `bytes.Buffer` and assert on the
+buffer — no provider-shutdown timing involved.
+
 ## Related Modules
 
 - [**middleware**](../middleware/README.md) — `OTelBundle` and tracing/metrics middleware

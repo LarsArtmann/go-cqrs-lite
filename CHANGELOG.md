@@ -10,6 +10,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > inside a dated `[tags]` section is unreleased (the 2026-08-16-era block was
 > folded into this window on 2026-08-29).
 
+### Added — first-class snapshot encryption, consumer asks — 2026-08-29
+
+- **`snapshot.NewTransformedStore`** wraps any snapshot store with state-level
+  protect/restore functions: encryption at rest without hand-writing a
+  decorator per backend. Takes two plain function values — providers in other
+  modules satisfy the shape structurally, so neither module gains a
+  dependency (the transform-composition stance of ADR-0126). Errors on a nil
+  store or missing transform directions instead of corrupting silently.
+- **`encryption.SnapshotStateCodec` / `encryption.RotatingSnapshotStateCodec`**
+  produce those transforms: every snapshot state is sealed into the
+  self-describing `Envelope` (version + ciphertext + key ID), and loads
+  resolve the decrypter by the envelope's key ID. With
+  `encryption.NewStaticKeyResolver` this gives key rotation without a
+  migration window: snapshots written under retired keys keep loading, new
+  writes go out under the active key, and re-saving migrates them.
+  `Corruption`-classified errors for tampered or non-envelope state.
+  Verified by an `integration/` compose test covering the full rotation
+  flow; this resolves the last consumer ask that only had a
+  codec-composition workaround (encryption/codec.go).
+- **`go-retry v0.4.x` gained `DoWithValue[T]`** (external repo, committed
+  there): retried calls that produce a value now return it directly instead
+  of the closure-plus-variable dance around `Do`.
+
 ### Fixed — EventCatalog exporter emits valid producer/consumer references — 2026-08-29
 
 - **`catalog/eventcatalog`** wrote message `producers`/`consumers` as

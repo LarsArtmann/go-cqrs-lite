@@ -638,6 +638,8 @@ encryption/func NewCodec
 encryption/func NewEncryptedStore
 encryption/func NewStaticKeyResolver
 encryption/func NewXChaCha20Poly1305
+encryption/func RotatingSnapshotStateCodec
+encryption/func SnapshotStateCodec
 encryption/func UnmarshalEnvelope
 encryption/func UnwrapCiphertext
 encryption/func WithCOSEEncryptExternalAAD
@@ -679,6 +681,7 @@ encryption/method String
 encryption/method String
 encryption/method UnmarshalJSON
 encryption/struct Envelope
+encryption/struct StateTransforms
 encryption/struct StaticKeyResolver
 encryption/type Algorithm
 encryption/type AttachOption
@@ -3144,6 +3147,7 @@ signing/var ErrNilVerifier
 snapshot/func EveryNEvents
 snapshot/func NewReadPressure
 snapshot/func NewSnapshot
+snapshot/func NewTransformedStore
 snapshot/func NewTypedStore
 snapshot/func SaveSnapshot
 snapshot/func ShouldSnapshot
@@ -3158,11 +3162,15 @@ snapshot/interface SnapshotStrategy
 snapshot/interface TypedSnapshotSink
 snapshot/interface TypedSnapshotSource
 snapshot/method Delete
+snapshot/method Delete
 snapshot/method Load
+snapshot/method Load
+snapshot/method LoadAtVersion
 snapshot/method LoadAtVersion
 snapshot/method ReadCount
 snapshot/method RecordRead
 snapshot/method Ref
+snapshot/method Save
 snapshot/method Save
 snapshot/method ShouldSnapshot
 snapshot/method ShouldSnapshot
@@ -3171,6 +3179,8 @@ snapshot/method Store
 snapshot/method Validate
 snapshot/struct ReadPressure
 snapshot/struct Snapshot
+snapshot/struct StateTransforms
+snapshot/struct TransformedStore
 snapshot/struct TypedSnapshot
 snapshot/struct TypedStore
 snapshot/type ReadPressureOption

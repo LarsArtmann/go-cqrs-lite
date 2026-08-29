@@ -81,7 +81,8 @@ and is **never** duplicated here.
       _(Effort: S)_ — source: status 2026-08-16_20-38
 - [x] **benchmark-regression gate hardening** — DONE 2026-08-29 (plan V3 T37): fixture tests pin median computation, thresholds, and the save-after-compare ordering (`nix run .#check-bench-gate`, 9 cases); baseline-regen runbook added to BENCHMARKS.md; actionlint added to devShell (workflows lint-clean after fixing the two shellcheck infos in the doc-assertions step); `nix run .#verify-module -- <path>` scoped mode shipped. Remaining: 25% threshold re-tune deferred until live CI accumulates per-run variance (noted in the runbook).
       _(Effort: S)_ — source: status 2026-08-16_18-06
-- [ ] **Consumer asks (feedback)** — first-class snapshot encryption (encrypted snapshot store + rotation; only codec-composition workaround today, encryption/codec.go:30); `retry.DoWithValue[T]` in external go-retry; OTel exporter-lifecycle/shutdown-flush doc example.
+- [x] **Consumer asks (feedback)** — DONE 2026-08-29 (plan V3 T39): first-class snapshot encryption shipped as `snapshot.NewTransformedStore` + `encryption.SnapshotStateCodec`/`RotatingSnapshotStateCodec` (envelope key IDs + StaticKeyResolver give rotation without a migration window; integration compose test included); `DoWithValue[T]` landed in the external go-retry repo; OTel README gained the exporter-lifecycle/shutdown-flush section with the stop-accepting-then-flush ordering.
+      _(Effort: S)_ — source: docs/feedback 2026-08
       _(Effort: S each)_ — sources: feedback 2026-07-17/2026-08-21
 - [x] **Design questions** — RESOLVED 2026-08-29 (plan V3 T40):
       (1) ULID entropy: already implemented as the lock-free epoch design —
