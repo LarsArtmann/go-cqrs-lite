@@ -112,7 +112,7 @@ func TestOnRecord_UpdateFold_ReifyMapPrev(t *testing.T) {
 	eventPayload := evt{ID: "order-42", Status: "shipped"}
 
 	// This must not panic — before the fix it did.
-	result := uf.invoke(eventPayload, sqlPrev)
+	result := uf.invoke(record.Record{Type: "evt"}, eventPayload, sqlPrev)
 
 	got, ok := result.(view)
 	if !ok {
@@ -148,7 +148,7 @@ func TestOnRecord_UpdateFold_NilPrev(t *testing.T) {
 		t.Fatalf("expected *updateFold, got %T", fold)
 	}
 
-	result := uf.invoke(evt{ID: "new-1"}, nil)
+	result := uf.invoke(record.Record{Type: "evt"}, evt{ID: "new-1"}, nil)
 
 	got, ok := result.(view)
 	if !ok {

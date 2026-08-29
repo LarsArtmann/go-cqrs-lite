@@ -7,6 +7,8 @@ import (
 	"maps"
 	"reflect"
 	"slices"
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ApplyEncoded processes a JSON-encoded event payload through all queries.
@@ -44,7 +46,7 @@ func (s *Store) ApplyEncoded(ctx context.Context, eventType string, payload []by
 			return fmt.Errorf("query %q decode %s: %w", q.QueryName(), eventType, err)
 		}
 
-		if err := s.applyFold(ctx, q, fold, decoded); err != nil {
+		if err := s.applyFold(ctx, q, fold, record.Record{Type: eventType}, decoded); err != nil {
 			return fmt.Errorf("query %q fold for %s: %w", q.QueryName(), eventType, err)
 		}
 	}

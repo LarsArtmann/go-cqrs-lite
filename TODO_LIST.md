@@ -484,19 +484,18 @@ and is **never** duplicated here.
 > flight-recorder detached context; bbolt bucket/NotFound guards; pebble
 > batch leak). Unfixed findings below, priority-ordered.
 
-- [ ] **metaengine Record context is shared mutable state across Stores** 🔥 —
-      `recHolder` lives on the Fold instance; `Store.Verify` builds a second
-      Store from the same declarations and replays into it, so concurrent
-      live `Apply` + Verify replay is a data race on `recHolder.rec` and can
-      cross-attribute Record context. Pass the Record through the invoke
-      closure as an argument instead of a shared cell.
+- [x] **metaengine Record context is shared mutable state across Stores** 🔥 — DONE
+      2026-08-29 (plan V3 T24): the Record is passed through the invoke closure
+      as a value (all 11 fold kinds); the recHolder cell, recordSetter fields,
+      and the internal SetCurrentRecord hooks are gone; `RecordAwareFold` kept
+      as a Deprecated source-compat interface. Regression race test added
+      (`TestOnRecordFolds_ConcurrentStoresNoRace`, red before / green after).
       _(Effort: M)_
-- [ ] **metaengine replay paths destroy Record context** 🔥 — `EventLog`
-      stores only (Type, Payload); `Backfill`, `DemoteEngine` catch-up, and
-      `Verify` replay with synthesized `record.Record{Type}`, so Record-aware
-      folds rebuilt via replay silently diverge from live-built ones (Verify
-      compares row counts only and cannot catch it). Add optional
-      `Record record.Record` to EventInput/log entries (additive).
+- [x] **metaengine replay paths destroy Record context** 🔥 — DONE 2026-08-29
+      (plan V3 T24): `EventInput.Record` added (additive); `EventLog.RecordEvent`
+      stores it on live applies; `Backfill`, `DemoteEngine` catch-up, and
+      `Verify` replay now carry the original record instead of a synthesized
+      `record.Record{Type}`.
       _(Effort: M)_
 - [ ] **pebble command/query duplicate check is check-then-commit + fail
       closed** — the existence check runs outside the write lock (concurrent

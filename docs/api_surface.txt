@@ -2174,6 +2174,7 @@ metaengine/method ReadNsPerOp
 metaengine/method Record
 metaengine/method Record
 metaengine/method Record
+metaengine/method RecordEvent
 metaengine/method RegisterQuery
 metaengine/method ReificationFailures
 metaengine/method RemoveEngine
@@ -2200,12 +2201,6 @@ metaengine/method SetAdd
 metaengine/method SetCalibration
 metaengine/method SetCalibration
 metaengine/method SetContains
-metaengine/method SetCurrentRecord
-metaengine/method SetCurrentRecord
-metaengine/method SetCurrentRecord
-metaengine/method SetCurrentRecord
-metaengine/method SetCurrentRecord
-metaengine/method SetCurrentRecord
 metaengine/method SetPriority
 metaengine/method SetRTTTracker
 metaengine/method SetReadTracker

@@ -20,8 +20,8 @@ import (
 //     not just the first or last.
 //
 // This complements TestSoak_MemoryBounded_10M, which exercises the legacy
-// Apply path. The ApplyRecord path has a different dispatch (SetCurrentRecord
-// on every event) that warrants its own soak.
+// Apply path. The ApplyRecord path passes the caller's Record through the
+// fold dispatch (instead of synthesizing one) and warrants its own soak.
 //
 // NOT parallel: asserts on the process-global heap (runtime.ReadMemStats),
 // which parallel tests would pollute with their own live allocations.

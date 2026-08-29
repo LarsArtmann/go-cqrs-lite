@@ -52,12 +52,11 @@ type Fold interface {
 
 // insertFold: func(E) (K, V) → MapSet(collection, K, V).
 type insertFold struct {
-	eventType    string
-	sample       any
-	keyType      reflect.Type
-	valueType    reflect.Type
-	invoke       func(event any) (key, val any)
-	recordSetter func(record.Record) // set by OnRecord; nil for plain On
+	eventType string
+	sample    any
+	keyType   reflect.Type
+	valueType reflect.Type
+	invoke    func(rec record.Record, event any) (key, val any)
 }
 
 func (f *insertFold) fold()             {}
@@ -65,34 +64,19 @@ func (f *insertFold) EventType() string { return f.eventType }
 func (f *insertFold) EventSample() any  { return f.sample }
 func (f *insertFold) Kind() FoldKind    { return FoldInsert }
 
-// SetCurrentRecord implements RecordAwareFold.
-func (f *insertFold) SetCurrentRecord(r record.Record) {
-	if f.recordSetter != nil {
-		f.recordSetter(r)
-	}
-}
-
 // updateFold: func(E, prev V) V → MapUpdate.
 type updateFold struct {
 	eventType    string
 	sample       any
 	valueType    reflect.Type
-	invoke       func(event, prev any) any
+	invoke       func(rec record.Record, event, prev any) any
 	keyExtractor func(event any) any
-	recordSetter func(record.Record) // set by OnRecord; nil for plain On
 }
 
 func (f *updateFold) fold()             {}
 func (f *updateFold) EventType() string { return f.eventType }
 func (f *updateFold) EventSample() any  { return f.sample }
 func (f *updateFold) Kind() FoldKind    { return FoldUpdate }
-
-// SetCurrentRecord implements RecordAwareFold.
-func (f *updateFold) SetCurrentRecord(r record.Record) {
-	if f.recordSetter != nil {
-		f.recordSetter(r)
-	}
-}
 
 // removeFold: key extraction from event → MapDelete.
 type removeFold struct {
@@ -109,10 +93,9 @@ func (f *removeFold) Kind() FoldKind    { return FoldRemove }
 
 // countFold: func(E) Delta → CounterIncrement.
 type countFold struct {
-	eventType    string
-	sample       any
-	invoke       func(event any) Delta
-	recordSetter func(record.Record) // set by OnRecord; nil for plain On
+	eventType string
+	sample    any
+	invoke    func(rec record.Record, event any) Delta
 }
 
 func (f *countFold) fold()             {}
@@ -120,19 +103,11 @@ func (f *countFold) EventType() string { return f.eventType }
 func (f *countFold) EventSample() any  { return f.sample }
 func (f *countFold) Kind() FoldKind    { return FoldCount }
 
-// SetCurrentRecord implements RecordAwareFold.
-func (f *countFold) SetCurrentRecord(r record.Record) {
-	if f.recordSetter != nil {
-		f.recordSetter(r)
-	}
-}
-
 // edgeFold: func(E) Edge → GraphAddEdge.
 type edgeFold struct {
-	eventType    string
-	sample       any
-	invoke       func(event any) Edge
-	recordSetter func(record.Record) // set by OnRecord; nil for plain On
+	eventType string
+	sample    any
+	invoke    func(rec record.Record, event any) Edge
 }
 
 func (f *edgeFold) fold()             {}
@@ -140,20 +115,12 @@ func (f *edgeFold) EventType() string { return f.eventType }
 func (f *edgeFold) EventSample() any  { return f.sample }
 func (f *edgeFold) Kind() FoldKind    { return FoldEdge }
 
-// SetCurrentRecord implements RecordAwareFold.
-func (f *edgeFold) SetCurrentRecord(r record.Record) {
-	if f.recordSetter != nil {
-		f.recordSetter(r)
-	}
-}
-
 // edgeRemoveFold: func(E) EdgeRemoval → GraphRemoveEdge (ADR-0114 style
 // tombstone: the event retracts a previously added edge).
 type edgeRemoveFold struct {
-	eventType    string
-	sample       any
-	invoke       func(event any) EdgeRemoval
-	recordSetter func(record.Record) // set by OnRecord; nil for plain On
+	eventType string
+	sample    any
+	invoke    func(rec record.Record, event any) EdgeRemoval
 }
 
 func (f *edgeRemoveFold) fold()             {}
@@ -161,20 +128,12 @@ func (f *edgeRemoveFold) EventType() string { return f.eventType }
 func (f *edgeRemoveFold) EventSample() any  { return f.sample }
 func (f *edgeRemoveFold) Kind() FoldKind    { return FoldEdgeRemove }
 
-// SetCurrentRecord implements RecordAwareFold.
-func (f *edgeRemoveFold) SetCurrentRecord(r record.Record) {
-	if f.recordSetter != nil {
-		f.recordSetter(r)
-	}
-}
-
 // setFold: func(E) K → SetAdd.
 type setFold struct {
-	eventType    string
-	sample       any
-	keyType      reflect.Type
-	invoke       func(event any) any
-	recordSetter func(record.Record) // set by OnRecord; nil for plain On
+	eventType string
+	sample    any
+	keyType   reflect.Type
+	invoke    func(rec record.Record, event any) any
 }
 
 func (f *setFold) fold()             {}
@@ -182,18 +141,11 @@ func (f *setFold) EventType() string { return f.eventType }
 func (f *setFold) EventSample() any  { return f.sample }
 func (f *setFold) Kind() FoldKind    { return FoldSet }
 
-// SetCurrentRecord implements RecordAwareFold.
-func (f *setFold) SetCurrentRecord(r record.Record) {
-	if f.recordSetter != nil {
-		f.recordSetter(r)
-	}
-}
-
 // multiInsertFold: func(E) MultiEntry → MultiAdd.
 type multiInsertFold struct {
 	eventType string
 	sample    any
-	invoke    func(event any) MultiEntry
+	invoke    func(rec record.Record, event any) MultiEntry
 }
 
 func (f *multiInsertFold) fold()             {}
@@ -205,7 +157,7 @@ func (f *multiInsertFold) Kind() FoldKind    { return FoldMultiInsert }
 type appendFold struct {
 	eventType string
 	sample    any
-	invoke    func(event any) Append
+	invoke    func(rec record.Record, event any) Append
 }
 
 func (f *appendFold) fold()             {}
@@ -217,7 +169,7 @@ func (f *appendFold) Kind() FoldKind    { return FoldAppend }
 type vectorFold struct {
 	eventType string
 	sample    any
-	invoke    func(event any) Embedding
+	invoke    func(rec record.Record, event any) Embedding
 }
 
 func (f *vectorFold) fold()             {}
@@ -229,7 +181,7 @@ func (f *vectorFold) Kind() FoldKind    { return FoldVector }
 type searchFold struct {
 	eventType string
 	sample    any
-	invoke    func(event any) IndexedText
+	invoke    func(rec record.Record, event any) IndexedText
 }
 
 func (f *searchFold) fold()             {}
@@ -241,7 +193,7 @@ func (f *searchFold) Kind() FoldKind    { return FoldSearch }
 type spatialFold struct {
 	eventType string
 	sample    any
-	invoke    func(event any) Point
+	invoke    func(rec record.Record, event any) Point
 }
 
 func (f *spatialFold) fold()             {}
@@ -321,9 +273,10 @@ func OnTyped[E any](eventType string, sample E, handler any) Fold {
 // reflectCall1 creates a pre-bound closure that calls a single-param,
 // single-return reflect.Value and type-asserts the result to T.
 // The reflect.Value is captured once at construction time; the hot path
-// does not call reflect.ValueOf(handler) per event.
-func reflectCall1[T any](hv reflect.Value) func(any) T {
-	return func(event any) T {
+// does not call reflect.ValueOf(handler) per event. Plain On handlers have
+// no Record parameter, so the closure discards it.
+func reflectCall1[T any](hv reflect.Value) func(record.Record, any) T {
+	return func(_ record.Record, event any) T {
 		return hv.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(T)
 	}
 }
@@ -355,7 +308,7 @@ func onFold[E any](eventType string, sample E, handler any) Fold {
 
 	switch {
 	case numIn == 1 && numOut == 2:
-		invoke := func(event any) (any, any) {
+		invoke := func(_ record.Record, event any) (any, any) {
 			results := hv.Call([]reflect.Value{reflect.ValueOf(event)})
 
 			return results[0].Interface(), results[1].Interface()
@@ -370,7 +323,7 @@ func onFold[E any](eventType string, sample E, handler any) Fold {
 		}
 
 	case numIn == 2 && numOut == 1:
-		invoke := func(event, prev any) any {
+		invoke := func(_ record.Record, event, prev any) any {
 			args := []reflect.Value{reflect.ValueOf(event)}
 			prevType := hv.Type().In(1)
 
@@ -456,7 +409,7 @@ func classifySingleReturn[E any](
 			eventType: eventType,
 			sample:    sample,
 			keyType:   outType,
-			invoke: func(event any) any {
+			invoke: func(_ record.Record, event any) any {
 				return hv.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface()
 			},
 		}

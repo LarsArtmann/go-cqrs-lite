@@ -374,9 +374,14 @@ func (s *Store) Apply(ctx context.Context, eventType string, payload any) error 
 }
 
 // EventInput pairs an event type with its payload for batch application.
+// Record optionally carries the full record context: when set, replay paths
+// (Backfill, Verify, DemoteEngine catch-up) rebuild Record-aware projections
+// with the original StreamID/Version/metadata instead of a synthesized
+// minimal record.
 type EventInput struct {
 	Type    string
 	Payload any
+	Record  record.Record
 }
 
 // ApplyBatch processes multiple events through all queries in one call.
@@ -442,7 +447,7 @@ func (s *Store) applyWithRecord(
 	s.mu.RLock()
 
 	if s.eventLog != nil {
-		s.eventLog.Record(eventType, payload)
+		s.eventLog.RecordEvent(eventType, rec, payload)
 	}
 
 	dispatchErr := s.dispatchFoldsLocked(ctx, eventType, rec, payload, nil)
@@ -517,7 +522,7 @@ func (s *Store) InTransaction(ctx context.Context, fn func(context.Context) erro
 	return fn(ctx)
 }
 
-func (s *Store) applyFold(ctx context.Context, q queryMeta, fold Fold, payload any) (err error) {
+func (s *Store) applyFold(ctx context.Context, q queryMeta, fold Fold, rec record.Record, payload any) (err error) {
 	start := time.Now()
 
 	// Wrap errors with structured context for debugging. Registered first so
@@ -549,31 +554,31 @@ func (s *Store) applyFold(ctx context.Context, q queryMeta, fold Fold, payload a
 
 	switch f := fold.(type) {
 	case *insertFold:
-		return s.applyFoldInsert(ctx, q, f, payload)
+		return s.applyFoldInsert(ctx, q, f, rec, payload)
 	case *updateFold:
-		return s.applyFoldUpdate(ctx, q, f, payload)
+		return s.applyFoldUpdate(ctx, q, f, rec, payload)
 	case *removeFold:
-		return s.applyFoldRemove(ctx, q, f, payload)
+		return s.applyFoldRemove(ctx, q, f, rec, payload)
 	case *countFold:
-		return s.applyFoldCount(ctx, q, f, payload)
+		return s.applyFoldCount(ctx, q, f, rec, payload)
 	case *edgeFold:
-		return s.applyFoldEdge(ctx, q, f, payload)
+		return s.applyFoldEdge(ctx, q, f, rec, payload)
 	case *edgeRemoveFold:
-		return s.applyFoldEdgeRemove(ctx, q, f, payload)
+		return s.applyFoldEdgeRemove(ctx, q, f, rec, payload)
 	case *setFold:
-		return s.applyFoldSet(ctx, q, f, payload)
+		return s.applyFoldSet(ctx, q, f, rec, payload)
 	case *skipFold:
 		return nil
 	case *multiInsertFold:
-		return s.applyFoldMultiInsert(ctx, q, f, payload)
+		return s.applyFoldMultiInsert(ctx, q, f, rec, payload)
 	case *appendFold:
-		return s.applyFoldAppend(ctx, q, f, payload)
+		return s.applyFoldAppend(ctx, q, f, rec, payload)
 	case *vectorFold:
-		return s.applyFoldVector(ctx, q, f, payload)
+		return s.applyFoldVector(ctx, q, f, rec, payload)
 	case *searchFold:
-		return s.applyFoldSearch(ctx, q, f, payload)
+		return s.applyFoldSearch(ctx, q, f, rec, payload)
 	case *spatialFold:
-		return s.applyFoldSpatial(ctx, q, f, payload)
+		return s.applyFoldSpatial(ctx, q, f, rec, payload)
 	default:
 		return fmt.Errorf("%w: %T", errUnknownFoldKind, fold)
 	}
@@ -583,9 +588,10 @@ func (s *Store) applyFoldInsert(
 	ctx context.Context,
 	q queryMeta,
 	fold *insertFold,
+	rec record.Record,
 	payload any,
 ) error {
-	key, value := fold.invoke(payload)
+	key, value := fold.invoke(rec, payload)
 	col := q.QueryName()
 
 	if mb, ok := q.QueryEngine().(MapBackend); ok {
@@ -605,6 +611,7 @@ func (s *Store) applyFoldUpdate(
 	ctx context.Context,
 	q queryMeta,
 	fold *updateFold,
+	rec record.Record,
 	payload any,
 ) error {
 	key := fold.keyExtractor(payload)
@@ -614,7 +621,7 @@ func (s *Store) applyFoldUpdate(
 		var updatedVal any
 
 		if err := mu.MapUpdate(ctx, col, key, func(prev any) any {
-			updatedVal = fold.invoke(payload, prev)
+			updatedVal = fold.invoke(rec, payload, prev)
 
 			return updatedVal
 		}); err != nil {
@@ -637,7 +644,7 @@ func (s *Store) applyFoldUpdate(
 			prevVal = prev
 		}
 
-		updated := fold.invoke(payload, prevVal)
+		updated := fold.invoke(rec, payload, prevVal)
 
 		if err := mapBackend.MapSet(ctx, col, key, updated); err != nil {
 			return fmt.Errorf("map set %s: %w", col, err)
@@ -655,6 +662,7 @@ func (s *Store) applyFoldRemove(
 	ctx context.Context,
 	q queryMeta,
 	fold *removeFold,
+	rec record.Record,
 	payload any,
 ) error {
 	key := fold.keyExtractor(payload)
@@ -677,10 +685,11 @@ func (s *Store) applyFoldCount(
 	ctx context.Context,
 	q queryMeta,
 	fold *countFold,
+	rec record.Record,
 	payload any,
 ) error {
 	col := q.QueryName()
-	delta := fold.invoke(payload)
+	delta := fold.invoke(rec, payload)
 
 	if cb, ok := q.QueryEngine().(CounterBackend); ok {
 		if err := cb.CounterIncrement(ctx, col, delta); err != nil {
@@ -697,10 +706,11 @@ func (s *Store) applyFoldEdge(
 	ctx context.Context,
 	q queryMeta,
 	fold *edgeFold,
+	rec record.Record,
 	payload any,
 ) error {
 	col := q.QueryName()
-	edge := fold.invoke(payload)
+	edge := fold.invoke(rec, payload)
 
 	if gb, ok := q.QueryEngine().(graphBackend); ok {
 		if err := gb.GraphAddEdge(ctx, col, edge); err != nil {
@@ -723,10 +733,11 @@ func (s *Store) applyFoldEdgeRemove(
 	ctx context.Context,
 	q queryMeta,
 	fold *edgeRemoveFold,
+	rec record.Record,
 	payload any,
 ) error {
 	col := q.QueryName()
-	removal := fold.invoke(payload)
+	removal := fold.invoke(rec, payload)
 	eng := q.QueryEngine()
 
 	rm, ok := eng.(graphEdgeRemover)
@@ -745,10 +756,11 @@ func (s *Store) applyFoldSet(
 	ctx context.Context,
 	q queryMeta,
 	fold *setFold,
+	rec record.Record,
 	payload any,
 ) error {
 	col := q.QueryName()
-	key := fold.invoke(payload)
+	key := fold.invoke(rec, payload)
 
 	if sb, ok := q.QueryEngine().(SetBackend); ok {
 		if err := sb.SetAdd(ctx, col, key); err != nil {
@@ -765,10 +777,11 @@ func (s *Store) applyFoldMultiInsert(
 	ctx context.Context,
 	q queryMeta,
 	fold *multiInsertFold,
+	rec record.Record,
 	payload any,
 ) error {
 	col := q.QueryName()
-	entry := fold.invoke(payload)
+	entry := fold.invoke(rec, payload)
 
 	if mb, ok := q.QueryEngine().(MultimapBackend); ok {
 		if err := mb.MultiAdd(ctx, col, entry.Key, entry.Value); err != nil {
@@ -785,10 +798,11 @@ func (s *Store) applyFoldAppend(
 	ctx context.Context,
 	q queryMeta,
 	fold *appendFold,
+	rec record.Record,
 	payload any,
 ) error {
 	col := q.QueryName()
-	app := fold.invoke(payload)
+	app := fold.invoke(rec, payload)
 
 	if lb, ok := q.QueryEngine().(LogBackend); ok {
 		if err := lb.LogAppend(ctx, col, app.Value); err != nil {
@@ -805,10 +819,11 @@ func (s *Store) applyFoldVector(
 	ctx context.Context,
 	q queryMeta,
 	fold *vectorFold,
+	rec record.Record,
 	payload any,
 ) error {
 	col := q.QueryName()
-	emb := fold.invoke(payload)
+	emb := fold.invoke(rec, payload)
 
 	if vb, ok := q.QueryEngine().(VectorBackend); ok {
 		if err := vb.VectorInsert(ctx, col, emb); err != nil {
@@ -825,10 +840,11 @@ func (s *Store) applyFoldSearch(
 	ctx context.Context,
 	q queryMeta,
 	fold *searchFold,
+	rec record.Record,
 	payload any,
 ) error {
 	col := q.QueryName()
-	doc := fold.invoke(payload)
+	doc := fold.invoke(rec, payload)
 
 	if sb, ok := q.QueryEngine().(SearchBackend); ok {
 		if err := sb.SearchInsert(ctx, col, doc); err != nil {
@@ -845,10 +861,11 @@ func (s *Store) applyFoldSpatial(
 	ctx context.Context,
 	q queryMeta,
 	fold *spatialFold,
+	rec record.Record,
 	payload any,
 ) error {
 	col := q.QueryName()
-	pt := fold.invoke(payload)
+	pt := fold.invoke(rec, payload)
 
 	if sb, ok := q.QueryEngine().(SpatialBackend); ok {
 		if err := sb.SpatialInsert(ctx, col, pt); err != nil {

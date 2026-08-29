@@ -207,7 +207,7 @@ func (s *Store) replayEvents(
 	}
 
 	for _, evt := range events {
-		if err := s.applyReplay(ctx, evt.Type, evt.Payload, queryFilter); err != nil {
+		if err := s.applyReplay(ctx, evt, queryFilter); err != nil {
 			return fmt.Errorf("metaengine: replay %s: %w", evt.Type, err)
 		}
 	}
@@ -234,9 +234,14 @@ func (s *Store) replayShadows(ctx context.Context, events []EventInput) error {
 
 	for _, rep := range reps {
 		for _, evt := range events {
+			rec := evt.Record
+			if rec.Type == "" {
+				rec = record.Record{Type: evt.Type}
+			}
+
 			job := repJob{
 				eventType: evt.Type,
-				rec:       record.Record{Type: evt.Type},
+				rec:       rec,
 				payload:   evt.Payload,
 			}
 			if err := rep.applyJob(ctx, job); err != nil {
@@ -304,11 +309,7 @@ func (s *Store) dispatchFoldsLocked(
 				l := s.foldLocks.get(t.q.QueryName())
 				l.Lock()
 
-				if ra, ok := t.fold.(RecordAwareFold); ok {
-					ra.SetCurrentRecord(rec)
-				}
-
-				applyErr := s.applyFold(ctx, t.q, t.fold, payload)
+				applyErr := s.applyFold(ctx, t.q, t.fold, rec, payload)
 
 				l.Unlock()
 
@@ -340,15 +341,20 @@ func (s *Store) dispatchFoldsLocked(
 }
 
 // applyReplay dispatches an event through matching folds WITHOUT recording to
-// the EventLog. When queryFilter is non-nil, only folds for the named queries
-// are applied.
+// the EventLog. The EventInput's Record context (when set) reaches Record-aware
+// handlers; otherwise a minimal record is synthesized. When queryFilter is
+// non-nil, only folds for the named queries are applied.
 func (s *Store) applyReplay(
 	ctx context.Context,
-	eventType string,
-	payload any,
+	evt EventInput,
 	queryFilter map[string]bool,
 ) error {
-	return s.dispatchFolds(ctx, eventType, record.Record{Type: eventType}, payload, queryFilter)
+	rec := evt.Record
+	if rec.Type == "" {
+		rec = record.Record{Type: evt.Type}
+	}
+
+	return s.dispatchFolds(ctx, evt.Type, rec, evt.Payload, queryFilter)
 }
 
 // BackfillOption configures Backfill behavior.

@@ -33,9 +33,7 @@ func autoInsertByType(eventType, resultType reflect.Type, keyField string) Fold 
 	mappings := matchFields(eventType, resultType)
 	stamps := computeRecordStamps(resultType, mappings)
 
-	recHolder := &struct{ rec record.Record }{}
-
-	invoke := func(event any) (key, val any) {
+	invoke := func(rec record.Record, event any) (key, val any) {
 		eVal := reflect.ValueOf(event)
 		k := eVal.Field(keyIdx).Interface()
 
@@ -45,7 +43,7 @@ func autoInsertByType(eventType, resultType reflect.Type, keyField string) Fold 
 			result.Field(m.dstIdx).Set(fieldValue(eVal, m.srcPath))
 		}
 
-		applyRecordStamps(result, stamps, recHolder.rec)
+		applyRecordStamps(result, stamps, rec)
 
 		return k, result.Interface()
 	}
@@ -57,7 +55,6 @@ func autoInsertByType(eventType, resultType reflect.Type, keyField string) Fold 
 		valueType: resultType,
 		invoke:    invoke,
 	}
-	f.recordSetter = func(r record.Record) { recHolder.rec = r }
 	return f
 }
 
@@ -68,9 +65,7 @@ func autoUpdateByType(eventType, resultType reflect.Type, keyField string) Fold 
 	mappings := matchFields(eventType, resultType)
 	stamps := computeRecordStamps(resultType, mappings)
 
-	recHolder := &struct{ rec record.Record }{}
-
-	invoke := func(event, prev any) any {
+	invoke := func(rec record.Record, event, prev any) any {
 		eVal := reflect.ValueOf(event)
 
 		result := reflect.New(resultType).Elem()
@@ -88,7 +83,7 @@ func autoUpdateByType(eventType, resultType reflect.Type, keyField string) Fold 
 			}
 		}
 
-		applyRecordStamps(result, stamps, recHolder.rec)
+		applyRecordStamps(result, stamps, rec)
 
 		return result.Interface()
 	}
@@ -102,7 +97,6 @@ func autoUpdateByType(eventType, resultType reflect.Type, keyField string) Fold 
 			return reflect.ValueOf(event).Field(keyIdx).Interface()
 		},
 	}
-	f.recordSetter = func(r record.Record) { recHolder.rec = r }
 	return f
 }
 

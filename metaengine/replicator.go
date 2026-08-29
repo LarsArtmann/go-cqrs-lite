@@ -161,11 +161,7 @@ func (r *replicator) applyJobFilter(
 			l := r.store.foldLocks.get(t.q.QueryName())
 			l.Lock()
 
-			if ra, ok := t.fold.(RecordAwareFold); ok {
-				ra.SetCurrentRecord(job.rec)
-			}
-
-			err := r.store.applyFold(tctx, sq, t.fold, job.payload)
+			err := r.store.applyFold(tctx, sq, t.fold, job.rec, job.payload)
 
 			l.Unlock()
 

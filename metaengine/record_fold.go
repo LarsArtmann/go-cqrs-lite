@@ -7,14 +7,18 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
-// RecordAwareFold is an optional interface implemented by folds that need
-// access to the full Record (Type, Payload, StreamID, StreamType, Version,
-// MetaData) rather than just the decoded payload (ADR-0112).
+// RecordAwareFold is a historical extension point: it allowed folds to receive
+// the full Record (Type, Payload, StreamID, StreamType, Version, MetaData)
+// via SetCurrentRecord before their invoke closure ran (ADR-0112).
 //
-// When store.ApplyRecord is called, Record-aware folds receive the Record via
-// SetCurrentRecord before their invoke closure runs. When store.Apply is called
-// (the legacy path), a minimal Record is synthesized — metadata fields are
-// zero-valued.
+// Since 2026-08-29 the Record is passed to fold invocations as a VALUE through
+// the invoke closure instead of a shared mutable cell, so the engine's own
+// folds no longer implement this interface — a fold-internal cell was shared
+// mutable state across Stores planned from the same declarations (data race
+// plus cross-attribution). Kept for source compatibility; removal in v5.
+//
+// Deprecated: OnRecord handlers receive record.Record as their first
+// parameter directly; do not implement this interface.
 type RecordAwareFold interface {
 	SetCurrentRecord(r record.Record)
 }
@@ -78,20 +82,17 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 	numIn := handlerType.NumIn()
 	numOut := handlerType.NumOut()
 
-	// currentRecord is captured by reference so closures see updates.
-	recHolder := &struct{ rec record.Record }{}
-
-	callWithRecord := func(payload any) []reflect.Value {
+	callWithRecord := func(rec record.Record, payload any) []reflect.Value {
 		return hv.Call([]reflect.Value{
-			reflect.ValueOf(recHolder.rec),
+			reflect.ValueOf(rec),
 			reflect.ValueOf(payload),
 		})
 	}
 
 	switch {
 	case numIn == 2 && numOut == 2:
-		invoke := func(event any) (any, any) {
-			results := callWithRecord(event)
+		invoke := func(rec record.Record, event any) (any, any) {
+			results := callWithRecord(rec, event)
 			return results[0].Interface(), results[1].Interface()
 		}
 		f := &insertFold{
@@ -101,13 +102,12 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			valueType: handlerType.Out(1),
 			invoke:    invoke,
 		}
-		f.recordSetter = func(r record.Record) { recHolder.rec = r }
 		return f
 
 	case numIn == 3 && numOut == 1:
-		invoke := func(event, prev any) any {
+		invoke := func(rec record.Record, event, prev any) any {
 			args := []reflect.Value{
-				reflect.ValueOf(recHolder.rec),
+				reflect.ValueOf(rec),
 				reflect.ValueOf(event),
 			}
 			prevType := hv.Type().In(2)
@@ -124,7 +124,6 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			valueType: handlerType.Out(0),
 			invoke:    invoke,
 		}
-		f.recordSetter = func(r record.Record) { recHolder.rec = r }
 		return f
 
 	case numIn == 2 && numOut == 1:
@@ -132,44 +131,40 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 
 		switch outType {
 		case reflect.TypeFor[Delta]():
-			invoke := func(event any) Delta {
-				return callWithRecord(event)[0].Interface().(Delta)
+			invoke := func(rec record.Record, event any) Delta {
+				return callWithRecord(rec, event)[0].Interface().(Delta)
 			}
-			f := &countFold{eventType: eventType, sample: sample, invoke: invoke}
-			f.recordSetter = func(r record.Record) { recHolder.rec = r }
-			return f
+			return &countFold{eventType: eventType, sample: sample, invoke: invoke}
 
 		case reflect.TypeFor[Edge]():
-			invoke := func(event any) Edge {
-				return callWithRecord(event)[0].Interface().(Edge)
+			invoke := func(rec record.Record, event any) Edge {
+				return callWithRecord(rec, event)[0].Interface().(Edge)
 			}
 			f := &edgeFold{eventType: eventType, sample: sample, invoke: invoke}
-			f.recordSetter = func(r record.Record) { recHolder.rec = r }
 			return f
 
 		case reflect.TypeFor[EdgeRemoval]():
-			invoke := func(event any) EdgeRemoval {
-				return callWithRecord(event)[0].Interface().(EdgeRemoval)
+			invoke := func(rec record.Record, event any) EdgeRemoval {
+				return callWithRecord(rec, event)[0].Interface().(EdgeRemoval)
 			}
 			f := &edgeRemoveFold{eventType: eventType, sample: sample, invoke: invoke}
-			f.recordSetter = func(r record.Record) { recHolder.rec = r }
 			return f
 
 		case reflect.TypeFor[Embedding]():
-			invoke := func(event any) Embedding {
-				return callWithRecord(event)[0].Interface().(Embedding)
+			invoke := func(rec record.Record, event any) Embedding {
+				return callWithRecord(rec, event)[0].Interface().(Embedding)
 			}
 			return &vectorFold{eventType: eventType, sample: sample, invoke: invoke}
 
 		case reflect.TypeFor[IndexedText]():
-			invoke := func(event any) IndexedText {
-				return callWithRecord(event)[0].Interface().(IndexedText)
+			invoke := func(rec record.Record, event any) IndexedText {
+				return callWithRecord(rec, event)[0].Interface().(IndexedText)
 			}
 			return &searchFold{eventType: eventType, sample: sample, invoke: invoke}
 
 		case reflect.TypeFor[Point]():
-			invoke := func(event any) Point {
-				return callWithRecord(event)[0].Interface().(Point)
+			invoke := func(rec record.Record, event any) Point {
+				return callWithRecord(rec, event)[0].Interface().(Point)
 			}
 			return &spatialFold{eventType: eventType, sample: sample, invoke: invoke}
 
@@ -177,23 +172,22 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			return &skipFold{eventType: eventType, sample: sample}
 
 		case reflect.TypeFor[MultiEntry]():
-			invoke := func(event any) MultiEntry {
-				return callWithRecord(event)[0].Interface().(MultiEntry)
+			invoke := func(rec record.Record, event any) MultiEntry {
+				return callWithRecord(rec, event)[0].Interface().(MultiEntry)
 			}
 			return &multiInsertFold{eventType: eventType, sample: sample, invoke: invoke}
 
 		case reflect.TypeFor[Append]():
-			invoke := func(event any) Append {
-				return callWithRecord(event)[0].Interface().(Append)
+			invoke := func(rec record.Record, event any) Append {
+				return callWithRecord(rec, event)[0].Interface().(Append)
 			}
 			return &appendFold{eventType: eventType, sample: sample, invoke: invoke}
 
 		default:
-			invoke := func(event any) any {
-				return callWithRecord(event)[0].Interface()
+			invoke := func(rec record.Record, event any) any {
+				return callWithRecord(rec, event)[0].Interface()
 			}
 			f := &setFold{eventType: eventType, sample: sample, keyType: outType, invoke: invoke}
-			f.recordSetter = func(r record.Record) { recHolder.rec = r }
 			return f
 		}
 	}

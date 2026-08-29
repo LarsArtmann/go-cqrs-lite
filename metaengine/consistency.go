@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"sync"
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // EventLog records all applied events for consistency checking and replay.
@@ -19,6 +21,16 @@ func (l *EventLog) Record(eventType string, payload any) {
 	defer l.mu.Unlock()
 
 	l.events = append(l.events, EventInput{Type: eventType, Payload: payload})
+}
+
+// RecordEvent records an event with its full record context so replay paths
+// (Backfill, Verify, DemoteEngine catch-up) can rebuild Record-aware
+// projections faithfully instead of from a synthesized minimal record.
+func (l *EventLog) RecordEvent(eventType string, rec record.Record, payload any) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	l.events = append(l.events, EventInput{Type: eventType, Payload: payload, Record: rec})
 }
 
 func (l *EventLog) Events() []EventInput {
@@ -70,6 +82,14 @@ func (s *Store) Verify(ctx context.Context, engines []Engine) error {
 	}
 
 	for _, evt := range events {
+		if evt.Record.Type != "" {
+			if err := freshStore.ApplyRecord(ctx, evt.Record, evt.Payload); err != nil {
+				return fmt.Errorf("metaengine.Verify: replay %s: %w", evt.Type, err)
+			}
+
+			continue
+		}
+
 		if err := freshStore.Apply(ctx, evt.Type, evt.Payload); err != nil {
 			return fmt.Errorf("metaengine.Verify: replay %s: %w", evt.Type, err)
 		}

@@ -172,7 +172,7 @@ func (s *Store) DemoteEngine(ctx context.Context, name string, opts ...DemoteOpt
 
 	if len(served) > 0 && len(events) > 0 {
 		for _, evt := range events {
-			if err := s.applyReplay(ctx, evt.Type, evt.Payload, served); err != nil {
+			if err := s.applyReplay(ctx, evt, served); err != nil {
 				for qname := range served {
 					s.poison.Poison(qname, err)
 				}

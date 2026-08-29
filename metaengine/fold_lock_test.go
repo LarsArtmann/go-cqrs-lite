@@ -20,8 +20,8 @@ func soakCounterQuery(name string) any {
 }
 
 // TestFoldLocks_ConcurrentApplySoak hammers one event type that feeds counter
-// folds in TWO queries concurrently. Any lost update or shared-fold-state race
-// (RecordAwareFold.SetCurrentRecord + invoke) corrupts the final counts.
+// folds in TWO queries concurrently. Any lost update or fold-dispatch race
+// corrupts the final counts.
 // Run with -race -count=3 (METAENGINE-LAYOUT-ROLES.md §7).
 func TestFoldLocks_ConcurrentApplySoak(t *testing.T) {
 	t.Parallel()

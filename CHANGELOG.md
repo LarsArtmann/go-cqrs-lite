@@ -9,6 +9,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > Rolling unreleased window. The `[Unreleased — earlier 2026-08-16 work]`
 > block further down is part of this same unreleased set (fold pending).
 
+### Fixed — metaengine record context is no longer shared mutable state across Stores — 2026-08-29
+
+- **`metaengine`** passes the `record.Record` through fold invocations as a
+  value instead of a shared cell on the fold instance. Folds are shared
+  between every Store planned from the same package-level declarations
+  (`Store.Verify` replays into exactly such a second Store), and each
+  Store's per-query locks do not serialize the others — so concurrent live
+  `Apply` and Verify replay raced the cell and could cross-attribute
+  Record context. A regression race test (`-race`) fails on the old code
+  and passes now. **`RecordAwareFold`** is kept as a Deprecated
+  source-compatibility interface; the engine's folds no longer implement
+  it (OnRecord handlers get the Record as their first parameter, as
+  before).
+- **`metaengine.EventInput`** gained an optional **`Record`** field, and
+  **`EventLog.RecordEvent`** stores it on live applies, so `Backfill`,
+  `DemoteEngine` catch-up, and `Verify` replay rebuild Record-aware
+  projections with the original StreamID/Version/metadata instead of a
+  synthesized minimal record (additive; replay without a stored record
+  keeps the old synthesized behavior).
+
 ### Changed — journal drains pre-size scan slices from their limit — 2026-08-29
 
 - **`storage/sql.ScanSlice`** accepts an optional capacity hint, and
