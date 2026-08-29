@@ -89,6 +89,7 @@ jobs:
           # No stale module counts in core docs (dynamic whitelist)
           actual_count=$(find . -name go.mod -not -path './vendor/*' | wc -l)
           # Check "N go.mod files" patterns (unambiguously total count)
+          # shellcheck disable=SC2016  # backticks are a regex, not command substitution
           grep -rnoE '\b[0-9]+\s*`?go\.mod`?\s*files?' --include='*.md' \
             README.md AGENTS.md FEATURES.md CONTRIBUTING.md docs/README.md \
             docs/v4-WISHLIST.md ROADMAP.md TODO_LIST.md 2>/dev/null \
@@ -96,9 +97,10 @@ jobs:
             | grep -vE ":${actual_count}:" \
             | grep -vE ":${actual_count} " \
             && { echo "::error::Stale go.mod file count (expected $actual_count)"; exit 1; } || true
-          # License must match
-          head -1 LICENSE | grep -qi proprietary && \
-            grep -qi proprietary README.md || { echo "::error::License mismatch"; exit 1; }
+          # License must match: both LICENSE and README claim proprietary
+          if ! head -1 LICENSE | grep -qi proprietary || ! grep -qi proprietary README.md; then
+            echo "::error::License mismatch"; exit 1
+          fi
           echo "All doc assertions passed"
 
       - name: Generate coverage

@@ -664,6 +664,8 @@
               pkgs.postgresql
               pkgs.mariadb.client
               pkgs.tailwindcss_4
+              pkgs.actionlint
+              pkgs.templ
             ];
 
             GOWORK = "off";
@@ -912,6 +914,36 @@
               echo "==> templ codegen drift (catalog/docserver)"
               cd catalog/docserver
               ${pkgs.templ}/bin/templ generate -check -log-level error
+            '';
+
+            # check-bench-gate: fixture tests for the benchmark regression
+            # gate — pins median computation, the save-after-compare
+            # ordering, and threshold behavior without running benchmarks.
+            check-bench-gate = mkApp "check-bench-gate" [ pkgs.bash ] ''
+              echo "==> benchmark regression gate fixture tests"
+              ${pkgs.bash}/bin/bash "$PWD/scripts/test-benchmark-regression.sh"
+            '';
+
+            # verify-module: scoped verification for ONE module — build, vet,
+            # test, race, and lint under GOWORK=off (the consumer
+            # perspective). Usage:
+            #   nix run .#verify-module -- <module-path> [extra go test flags...]
+            verify-module = mkApp "verify-module" [ goPkg pkgs.golangci-lint pkgs.bash ] ''
+              if [[ $# -lt 1 ]]; then
+                echo "usage: nix run .#verify-module -- <module-path> [extra go test flags...]" >&2
+                exit 1
+              fi
+              root="$PWD"
+              mod="$1"
+              shift
+              cd "$mod"
+              export CGO_ENABLED=1 GOWORK=off GOEXPERIMENT=jsonv2
+              echo "=== Build ($mod) ===" && ${goPkg}/bin/go build ./... \
+                && echo "=== Vet ===" && ${goPkg}/bin/go vet ./... \
+                && echo "=== Test ===" && ${goPkg}/bin/go test ./... -count=1 -timeout=10m "$@" \
+                && echo "=== Race ===" && ${goPkg}/bin/go test ./... -race -count=1 -timeout=12m "$@" \
+                && echo "=== Lint ===" && ${pkgs.golangci-lint}/bin/golangci-lint run --config "$root/.golangci.yml" ./... \
+                && echo "✅ $mod verified"
             '';
 
             # verify-ci: mirror the GitHub Actions per-module job locally —

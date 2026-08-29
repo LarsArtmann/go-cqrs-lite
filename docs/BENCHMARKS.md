@@ -66,6 +66,34 @@ express; their committed baselines and re-run commands live in
 once per machine: `go install golang.org/x/perf/cmd/benchstat@latest` (lands in
 `$(go env GOPATH)/bin`).
 
+### Baseline regeneration runbook
+
+Re-baseline only for intentional perf changes (a deliberate tradeoff, a fix
+that removes wasted work) or after hardware/runner changes. Never to "fix" a
+gate failure you cannot explain.
+
+1. **Quiet machine check** — `uptime` load below ~1× cores; stop builds, LSP
+   re-indexing, and soak tests (AGENTS: ambient load skewed a bench cell by
+   ±56% once). Record the load in the commit message.
+2. **Confirm the change is intentional** — cite the commit/PR that moved the
+   number. If nothing changed, treat the failure as a regression and fix it
+   instead.
+3. **Regenerate the committed (local) baseline:**
+   ```bash
+   ./scripts/benchmark-regression.sh --save benchmarks/benchmark-baseline.txt
+   ```
+   The script compares against the pre-save baseline BEFORE overwriting it, so
+   a genuine regression still reports — a save never masks what it replaced.
+4. **Commit the refreshed file with the reasoning** (what changed and why the
+   new numbers are the honest ones). CI's `benchmark-baseline` artifact
+   refreshes itself on the next master push; do not hand-edit it.
+5. **Gate self-test** — the gate's own behavior (medians, threshold, save
+   ordering) is pinned by fixture tests: `nix run .#check-bench-gate`.
+
+Threshold (25%) re-tuning is deferred until the live CI gate has accumulated
+real per-run variance on the runner class; adjust it from measured medians,
+not from local noise.
+
 ## How to add an entry
 
 1. Name the runnable benchmark (tests count when they assert perf budgets).

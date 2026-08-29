@@ -79,8 +79,8 @@ and is **never** duplicated here.
       _(Effort: S)_ — source: status 2026-08-18_20-39
 - [x] **catalog/docserver follow-ups** — DONE 2026-08-29 (plan V3 T36): docs-ui.css GET test added; go-snaps decision = stays counted in catalog's production dep budget (documented in check-module-layers.sh); cId-value-change CHANGELOG note written; README deps table added; templ drift gate shipped as `nix run .#check-templ`; CSP nonce support landed (Config.EnableCSP, per-request nonces on every script); EventCatalog CLI real-render validation executed against @eventcatalog/core ^4.6.3 — it caught a real exporter bug (producers/consumers now emit versioned reference strings).
       _(Effort: S)_ — source: status 2026-08-16_20-38
-- [ ] **benchmark-regression gate hardening** — fixture test pinning `--save`+compare; re-tune 25% threshold after first live CI run; baseline-regen runbook in BENCHMARKS.md; actionlint in devShell; `verify --module` scoped mode.
-      _(Effort: S)_ — source: status 2026-08-16_18-06 — **IN PROGRESS 2026-08-29 ~15:35 (second execution session, plan V3 T37; parallel triage-plan T33 = same work, do not duplicate)**
+- [x] **benchmark-regression gate hardening** — DONE 2026-08-29 (plan V3 T37): fixture tests pin median computation, thresholds, and the save-after-compare ordering (`nix run .#check-bench-gate`, 9 cases); baseline-regen runbook added to BENCHMARKS.md; actionlint added to devShell (workflows lint-clean after fixing the two shellcheck infos in the doc-assertions step); `nix run .#verify-module -- <path>` scoped mode shipped. Remaining: 25% threshold re-tune deferred until live CI accumulates per-run variance (noted in the runbook).
+      _(Effort: S)_ — source: status 2026-08-16_18-06
 - [ ] **Consumer asks (feedback)** — first-class snapshot encryption (encrypted snapshot store + rotation; only codec-composition workaround today, encryption/codec.go:30); `retry.DoWithValue[T]` in external go-retry; OTel exporter-lifecycle/shutdown-flush doc example.
       _(Effort: S each)_ — sources: feedback 2026-07-17/2026-08-21
 - [x] **Design questions** — RESOLVED 2026-08-29 (plan V3 T40):
