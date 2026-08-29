@@ -278,6 +278,14 @@ func (m *memoryEngine) VectorSearch(
 	return m.vectorIdx.Search(ctx, col, query, k, metric)
 }
 
+func (m *memoryEngine) VectorCount(ctx context.Context, col string) (int64, error) {
+	return m.vectorIdx.Count(ctx, col)
+}
+
+func (m *memoryEngine) VectorCollections(ctx context.Context) ([]string, error) {
+	return m.vectorIdx.Collections(ctx)
+}
+
 func (m *memoryEngine) VectorSearchFiltered(
 	ctx context.Context,
 	col string,

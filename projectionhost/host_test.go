@@ -15,6 +15,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/testutil/v4"
+
+	errorfamily "github.com/larsartmann/go-error-family"
+	"strings"
 )
 
 // --- Test fixtures ---
@@ -244,7 +247,7 @@ func TestHost_DeadLetterQueue_CapturesPoisonMessage(t *testing.T) {
 	proj := &countingProjection{
 		name:    "tasks",
 		failOn:  2,
-		failErr: errors.New("poison"),
+		failErr: errorfamily.NewRejection("test.poison", "poison"),
 	}
 
 	host, _ := projectionhost.New(
@@ -270,8 +273,8 @@ func TestHost_DeadLetterQueue_CapturesPoisonMessage(t *testing.T) {
 	if len(entries) != 1 {
 		t.Fatalf("expected 1 DLQ entry, got %d", len(entries))
 	}
-	if entries[0].Error != "poison" {
-		t.Fatalf("expected error 'poison', got %q", entries[0].Error)
+	if !strings.Contains(entries[0].Error, "poison") {
+		t.Fatalf("expected error to contain 'poison', got %q", entries[0].Error)
 	}
 }
 
@@ -553,7 +556,7 @@ func TestHost_WithLogger_RoutesLifecycleEvents(t *testing.T) {
 	proj := &countingProjection{
 		name:    "tasks",
 		failOn:  1,
-		failErr: errors.New("boom"),
+		failErr: errorfamily.NewRejection("test.poison", "boom"),
 	}
 
 	handler := testutil.NewCapturingSlogHandler(slog.LevelDebug)

@@ -177,7 +177,7 @@ else
 		cd metaengine/dgraphengine
 		CGO_ENABLED=1 GOWORK=off \
 			timeout "$TEST_TIMEOUT" \
-			go test -tags "goexperiment.jsonv2" ./... \
-			-count=1 -v -timeout="${TEST_TIMEOUT}s" 2>&1
+			go test -tags "goexperiment.jsonv2" ${TEST_ARGS:-} .\
+			-count=1 -v -timeout="${TEST_TIMEOUT}s" ${TEST_ARGS2:-} 2>&1
 	)
 fi

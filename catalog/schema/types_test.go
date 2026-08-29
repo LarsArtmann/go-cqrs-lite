@@ -163,7 +163,10 @@ func TestFromType_EmptyTag(t *testing.T) {
 	}
 }
 
-func TestFromType_SkipsAnonymousEmbeddedFields(t *testing.T) {
+// encoding/json promotes exported anonymous struct (and pointer-to-struct)
+// fields into the parent JSON object, so the schema must flatten them too —
+// otherwise generated clients reject payloads the wire format accepts.
+func TestFromType_PromotesAnonymousEmbeddedFields(t *testing.T) {
 	t.Parallel()
 
 	type Embed struct {
@@ -180,17 +183,17 @@ func TestFromType_SkipsAnonymousEmbeddedFields(t *testing.T) {
 	s := schema.FromType[WithEmbed]()
 
 	if _, ok := s.Properties["Embed"]; ok {
-		t.Error("anonymous embedded field 'Embed' should be skipped")
+		t.Error("anonymous embedded struct must not appear as its own property")
 	}
 
-	if _, ok := s.Properties["id"]; ok {
-		t.Error("promoted fields from anonymous embed should not appear")
+	if _, ok := s.Properties["id"]; !ok {
+		t.Error("promoted embedded field 'id' missing from schema")
 	}
 
-	assertPropertyCount(t, s, 2)
+	assertPropertyCount(t, s, 3)
 }
 
-func TestFromType_SkipsAnonymousPointerEmbeddedFields(t *testing.T) {
+func TestFromType_PromotesAnonymousPointerEmbeddedFields(t *testing.T) {
 	t.Parallel()
 
 	type Core struct {
@@ -206,10 +209,14 @@ func TestFromType_SkipsAnonymousPointerEmbeddedFields(t *testing.T) {
 	s := schema.FromType[WithPtrEmbed]()
 
 	if _, ok := s.Properties["Core"]; ok {
-		t.Error("anonymous embedded pointer field 'Core' should be skipped")
+		t.Error("anonymous embedded pointer must not appear as its own property")
 	}
 
-	assertPropertyCount(t, s, 1)
+	if _, ok := s.Properties["id"]; !ok {
+		t.Error("promoted embedded field 'id' missing from schema")
+	}
+
+	assertPropertyCount(t, s, 2)
 }
 
 func TestFromType_TimeTime(t *testing.T) {

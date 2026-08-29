@@ -614,23 +614,18 @@ func TestSQLiteDeadLetterStore_CorruptPayload(t *testing.T) {
 		t.Fatalf("insert corrupt row: %v", err)
 	}
 
+	// One corrupt row must NOT brick List: the row is skipped (kept in the
+	// table for inspection) and the skipped count exposes the problem.
 	entries, err := store.List(ctx, "corrupt-proj")
 	if err != nil {
-		t.Logf("List returned error on corrupt payload (acceptable): %v", err)
-
-		return
+		t.Fatalf("List returned error on corrupt payload: %v", err)
 	}
 
-	if len(entries) != 1 {
-		t.Fatalf("expected 1 entry, got %d", len(entries))
+	if len(entries) != 0 {
+		t.Fatalf("corrupt row must be skipped, got %d entries", len(entries))
 	}
 
-	got := entries[0]
-	if got.EventID != "evt-corrupt" {
-		t.Errorf("EventID = %q, want evt-corrupt", got.EventID)
-	}
-
-	if got.Error != "corruption error" {
-		t.Errorf("Error = %q, want corruption error", got.Error)
+	if got := store.SkippedCount(); got != 1 {
+		t.Fatalf("SkippedCount = %d, want 1", got)
 	}
 }

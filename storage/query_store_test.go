@@ -8,6 +8,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4/querytest"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 )
 
@@ -307,4 +308,16 @@ func TestSQLBackend_QueryStoreFacade(t *testing.T) {
 	if cs1 == nil {
 		t.Error("CommandStore() should return non-nil")
 	}
+}
+
+// TestSQLQueryStore_RunStoreSuite pins the shared querytest conformance
+// suite against the SQL backend (SQLite in-memory).
+func TestSQLQueryStore_RunStoreSuite(t *testing.T) {
+	t.Parallel()
+
+	querytest.RunStoreSuite(t, func(t *testing.T) querytest.StoreSuite {
+		store := newTestQueryStore(t)
+
+		return store
+	})
 }

@@ -21,32 +21,32 @@ and is **never** duplicated here.
 
 **Metaengine**
 
-- [ ] **pgEngine/mysqlEngine `LayoutPlanApplier` + planned-layout schema evolution** — planned-table paths silently mis-type columns via name heuristics; result-type changes (new fields) are dropped, no ALTER TABLE ADD COLUMN. SQLite/DuckDB appliers exist.
+- [ ] **pgEngine/mysqlEngine `LayoutPlanApplier` + planned-layout schema evolution** — SHARPENED 2026-08-29 (session 2): verified NEITHER engine has ANY planned-table support (no ApplyLayoutPlan/registerLayout/planned read-write paths at all) — this is not an evolution patch but a full port of sqliteengine/planned.go (302 lines) + duckdbengine/layout_planner.go (349 lines) to two dialects: CREATE TABLE from LayoutPlan.ColumnType, typed write path (no name heuristics), planned reads, information_schema-driven ALTER TABLE ADD COLUMN evolution, planned filter/sort pushdown. Effort: L (needs ephemeral PG + MariaDB matrix). SQLite/DuckDB appliers exist.
       _(Effort: M)_ — sources: status 2026-08-02_21-18/22-17
-- [ ] **DuckDB counter SQL pushdown** — `CounterGet` loads all rows into a Go map, `CounterIncrement` iterates deltas one-by-one; use SQL COUNT + batch INSERT. Unify `appendDuckDBFilter` vs `writeWhereOrAnd`.
+- [✓] **DuckDB counter SQL pushdown** — DONE 2026-08-29 (todo-execution session 2) — `CounterIncrement` batches deltas into chunked multi-row upserts (256/stmt) instead of one round trip per key; the filter builders were unified onto a single WHERE/AND-connector `appendDuckDBFilter` (layout_planner + explain now share it). `CounterGet`'s full map IS the CounterBackend contract — no cheaper shape exists; batch INSERT was the real win.
       _(Effort: S)_ — source: status 2026-08-08_01-33
-- [ ] **Watcher hardening** — `watcherEntry` still `chan any` (metaengine/store.go:330); no watcher-notification latency bench; no `WithReificationFailureHook` callback.
+- [✓] **Watcher hardening** — DONE 2026-08-29 (todo-execution session 2) — the internal `chan any` is now DOCUMENTED as the intentional type-erased hub transport (one collection can host Watcher[A] and Watcher[B]; the typed surface is Watcher[V]'s output), `WithReificationFailureHook` fires on any→V reification failure (alongside the meter counter), and `BenchmarkWatcherNotificationLatency` measures Apply→notification (~3.3µs/op memory).
       _(Effort: S/M)_ — sources: status 2026-08-02_21-19/22-17
 - [✓] **mapUpdateReplicationRule covers FoldUpdate only** — DONE 2026-08-29 (todo-execution session) — add FoldMultiInsert/FoldAppend.
       _(Effort: XS)_ — source: status 2026-08-03_08-26
-- [ ] **dgraphengine gaps** — no `Transactional`/RunInTx (+ ConcurrentTx tests); harness conformance tests (HealthCheck/Prober/TransactMeasurer/Calibratable); empty-collection MapScan test.
+- [PARTIAL ✓ 2026-08-29 session 2] **dgraphengine gaps** — DONE: `Transactional`/`RunInTx` (writes join one dgo txn, read-your-writes, serialized, nesting rejected; commit/rollback/concurrent/nesting tests green on Dgraph 25.4.0), capability conformance test (HealthCheck/Prober/TransactMeasurer/Calibratable + internal compile-time pins), empty-collection MapScan test. REMAINING (pre-existing, fails on pristine HEAD too): `TestDgraphADTMatrix/GraphDepthBound` + `/GraphDepth3Diamond` cross-engine parity — dgraph depth-bound traversal returns fewer nodes than memory (`dgraph="B"` vs `memory="B","C"` for A→B→C→D→E depth 2). Repro: `nix run .#integration-dgraph -run TestDgraphADTMatrix/GraphDepthBound`. Suspect `@recurse` depth/projection handling vs `extractNeighborIDs` in graph.go.
       _(Effort: M)_ — source: status 2026-08-11_19-14
-- [ ] **irohengine `HealthChecker`** — only engine without one; implement or delegate to local engine.
+- [✓] **irohengine `HealthChecker`** — DONE 2026-08-29 (todo-execution session 2) — `Replicated` composes local-engine health (metaengine.HealthChecker passthrough) with transport liveness via the new `LivenessReporter` capability (`InProcessNetwork.Healthy`/`Shutdown`, peer `Healthy`, `quic.QuicTransport.Healthy`); a closed transport surfaces as `ErrTransportClosed` through HealthCheck instead of silent drops. Note: quic/go.mod carries a `replace => ../` sibling for the unpublished symbol until the next tag wave (tag-release.sh strips it).
       _(Effort: S)_ — source: status 2026-08-08_02-24
 - [ ] **Engine per-pattern `ReadCosts` calibration** — badger/bbolt/pebble still carry only the legacy scalar `NsPerRead` prior (suppressed by a narrow SA1019 exclusion since 2026-08-29); pg/mysql/dgraph/duckdb set all four ReadCosts fields from calibration benches. Run the per-engine calibration benches in a quiet window (AGENTS: load skews numbers) and migrate the remaining three; then delete the exclusion.
       _(Effort: M)_ — source: lint-gate repair 2026-08-29 (436a9c9cb)
 - [ ] **iroh QUIC test hardening** — `normalizeAny` table tests; dedup.Ring >10K eviction regression; pooled eviction error-injection + 1K-op stress test; loopback/quic framing-constant dedup; `WithStreamPooling` in quic/README options table.
       _(Effort: S)_ — sources: status 2026-08-08_03-20/21-45
-- [ ] **`VectorCount` optional capability + Doctor/EXPLAIN WARN** for full-scan vector collections.
+- [✓] **`VectorCount` optional capability + Doctor/EXPLAIN WARN** — DONE 2026-08-29 (todo-execution session 2) — `metaengine.VectorCounter` (`VectorCount` + `VectorCollections`, no payload transfer); Memory and pg engines implement it (pg via SQL COUNT/DISTINCT); Doctor gained a `--- Vectors ---` section; Doctor/ExplainPlan WARN per engine serving k-NN by full scan without size introspection.
       _(Effort: S)_ — source: status 2026-08-17_14-25
-- [ ] **mysqlengine sort-path layout integration** — `applyMariaDBLayout` writes sort-field generated columns that no query path reads; verify full suite against real MySQL 8.4.
+- [✓] **mysqlengine sort-path layout integration** — DONE 2026-08-29 (todo-execution session 2) — sort fields now get a DECIMAL(65,10) numeric twin column (`gcn_<f>_<h>`) plus composite (collection, gcn, gc) index; ORDER BY and keyset cursor predicates render the twin columns (numeric cursor → gcn; text cursor → gc), keeping dual-key numeric/text semantics while letting the index drive the sort. Fields laid out earlier as filter-only fields gain the twin on a later sort-field request. Verified live on MariaDB 11.4: sort order, keyset pagination, index present (`idx_map_sort_gc_*`). MySQL 8.4 path uses functional key parts directly (unchanged).
       _(Effort: M)_ — source: status 2026-08-16_22-50
 - [✓] **metaengine README capability table** — DONE 2026-08-29 (todo-execution session) — missing GraphEdgeRemoval / UndirectedGraph / VectorFilterBackend rows.
       _(Effort: XS)_ — source: status 2026-08-16_21-22
 
 **Storage / SQL**
 
-- [ ] **SQL-injection hardening tail** — PARTIAL 2026-08-29 (todo-execution session): `ValidateJournalIdentifiers` now guards Table + TimestampColumn interpolation in `JournalReader.ReadAll`/`LoadFromStart`, `ResolveCursorTimestamp`, and `KeysetPositionQuery` (fail-fast Infrastructure rejection). REMAINING: extend fuzz to multi-condition ops; persist corpus; gosec + nightly fuzz CI.
+- [ ] **SQL-injection hardening tail** — PARTIAL 2026-08-29 (todo-execution session): `ValidateJournalIdentifiers` now guards Table + TimestampColumn interpolation in `JournalReader.ReadAll`/`LoadFromStart`, `ResolveCursorTimestamp`, and `KeysetPositionQuery` (fail-fast Infrastructure rejection). FOLLOW-UPS DONE 2026-08-29 (session 2): multi-condition fuzz target (`FuzzBuildWhereClauseChecked_MultiCondition`), persisted hostile corpus (`storage/sql/testdata/fuzz/...`, loaded by every CI run), nightly fuzz workflow (`.github/workflows/fuzz.yml`, 60s/target + failure-corpus upload); gosec already runs in golangci (G304/G115 excluded globally). KeysetPositionQuery "" shape fixed via `KeysetPositionQueryChecked` (Deprecated wrapper kept for v4).
       _(Effort: S)_ — source: status 2026-08-16_14-54
 - [x] **`ScanSlice` pre-size** — DONE 2026-08-29 (plan V3 T06): optional capacity hint on `ScanSlice`; `JournalReader` threads its bounded limit (capped 4096) into the drain-path scans; benchmark added.
       _(Effort: XS)_ — sources: status 2026-08-16_03-10/07-12
@@ -56,12 +56,12 @@ and is **never** duplicated here.
       _(Effort: M)_ — source: status 2026-08-16_03-10
 - [x] **backuptest tag + replace drop** — DONE 2026-08-29: `storage/backuptest/v4.1.0` cut with wave B3 (fetchable tag); bbolt/pebble pins bumped + sibling replaces dropped (plan V3 T07).
       _(Effort: XS)_ — source: status 2026-08-16_19-52
-- [ ] **Test-suite consolidation tail** — storage/sql command/query stores onto `commandtest`/`querytest.RunStoreSuite`; `querytest` self-test; LoadToTimestamp subtest in the shared suite.
+- [✓] **Test-suite consolidation tail** — DONE 2026-08-29 (todo-execution session 2) — storage/sql command/query stores run `commandtest`/`querytest.RunStoreSuite` against SQLite in-memory (LoadFromTimestamp subtest already existed in the commandtest suite); `querytest` gained its own self-test against the memory reference store, mirroring commandtest.
       _(Effort: S)_ — source: status 2026-08-08_01-39
 
 **Docs / tooling**
 
-- [ ] **Engine READMEs** — mysql/sqlite/turso/badger engines have none; pebble engine.go:7 stale "Graph: O(N^d) BFS" comment; pgengine meta_vector + mysqlengine LayoutPlanner rows missing.
+- [✓] **Engine READMEs** — DONE 2026-08-29 — mysql/sqlite/turso/badger READMEs already exist (filled by earlier waves; verified non-empty); pebble's stale "Graph: O(N^d) BFS" comment replaced with an explicit NOT-supported note (profile omits ADTGraph); pgengine README covers the vector path and mysqlengine README covers LayoutPlanner (verified). modules.md gained dgraphengine + irohengine rows (session 2).
       _(Effort: S)_ — sources: status 2026-08-16_18-09/22-50
 - [ ] **CHANGELOG unreleased-block fold** — `[Unreleased — earlier 2026-08-16 work]` (CHANGELOG.md:1451) still separate from the top block.
       _(Effort: S)_ — source: status 2026-08-16_19-01
@@ -73,7 +73,7 @@ and is **never** duplicated here.
       _(Effort: S)_ — sources: status 2026-08-16_14-44/04-00
 - [x] **SEVEN-TIER-MODEL.md reconciliation** — DONE 2026-08-29 (plan V3 T31): rewritten as Tier-3-with-Tier-0-core (planner deps dedup/record/id verified from go.mod); deleted flightrecorder/retry/codec rows removed.
       _(Effort: XS)_ — source: status 2026-08-08_08-23
-- [ ] **BENCHMARKS.md + skill refs** — durability bench cell still "measurement PENDING quiet window"; modules.md missing bboltengine row.
+- [✓] **BENCHMARKS.md + skill refs** — DONE 2026-08-29 — durability cells filled (pebble sync/async measured in a quiet window); modules.md bboltengine row present; session 2 added VectorCounter/HealthChecker/Transactional + projectionhost contract notes to modules.md (doc-check green, 931 refs).
       _(Effort: S)_ — source: status 2026-08-17_15-17
 - [ ] **Release docs** — CONTRIBUTING Release Process lacks the pin-bump-before-tag recipe + GOPRIVATE verification commands; durability-tier-mapping ADR never written; Introspection/Doctor don't surface effective durability tiers.
       _(Effort: S)_ — source: status 2026-08-18_20-39
@@ -252,7 +252,7 @@ and is **never** duplicated here.
 > workspace-global by design (low leakage risk). F030 (deprecated transport
 > imports) shipped 2026-08-14 — 203 rules total.
 
-- [ ] **Audit `.golangci.yml` exclusion blocks** — `system/` (20 linters
+- [ ] **Audit `.golangci.yml` exclusion blocks + RE-ENABLE depguard** — FOUND 2026-08-29 (session 2): depguard is DISABLED (`linters.disable`) and its settings block was dropped in the 2026-08-29 lint-config refactor, orphaning `check-depguard.sh` (now reports a loud SKIP instead of erroring). Per-module dependency-prefix enforcement is OFF until re-enabled; check-arch layer budgets still apply. Original audit item: `system/` (20 linters
       disabled), `cmd/cqrs-lint/` (17), `metaengine/` (24) have the broadest
       exclusions. Track which can be removed after migrations complete.
       _(Effort: M)_
@@ -399,10 +399,7 @@ and is **never** duplicated here.
       Before/after examples for each v1 tier, including
       `relational → metaengine` (consumer-pulled).
       _(Effort: L)_
-- [ ] **v5 decision: kvstore SA1019 exclusion** — keep the scoped
-      `.golangci.yml` exclusion (`(middleware|idempotency)/.*_test\.go$`) as
-      the permanent answer, or migrate the kvstore test matrices onto the
-      go-idempotency contract suite before the cut.
+- [✓] **v5 decision: kvstore SA1019 exclusion** — DECIDED 2026-08-29 (todo-execution session 2): the scoped exclusion is PERMANENT — the test matrices use go-idempotency's MemoryStore exactly as its deprecation prescribes ("development and testing") as the reference implementation in conformance matrices; production paths use the real stores. Rationale recorded in the .golangci.yml comment next to the exclusion. Migration-guide outline (v4→v5) written at docs/migration/V5-OUTLINE.md. go-idempotency already ships contract_test.go, so a parallel suite here would duplicate it.
       _(Effort: S)_
 - [ ] **Cut v5.0.0** — tag all modules. Update CHANGELOG, README, SKILL.md,
       examples. Run full verify gate.
@@ -480,10 +477,7 @@ and is **never** duplicated here.
       _(Effort: S)_
 - [✓] **kv.Cache.Get miss-path double round-trip** — DECLINED 2026-08-29 (todo-execution session): the suggested "cache the store-fresh value, copy only on hit" swap moves the same one encode+decode — under the copy-isolation contract the returned value must not alias the cached entry. A real reduction needs a raw-bytes TypedStore API (Get returning encoded bytes for a single decode copy); revisit if hot-path profiles demand it.
       _(Effort: S)_
-- [ ] **listing cursor cross-type ambiguity** — `ListOptions.After` matches
-      ID strings across stream types when no Type filter is set; same ULID
-      under two types can skip/repeat entries. Document or key cursor by
-      (type, id).
+- [✓] **listing cursor cross-type ambiguity** — DONE 2026-08-29 (todo-execution session 2) — `ListOptions.After` godoc documents the hazard (same ULID under two types can skip/repeat around the page boundary) and prescribes the mitigations: paginate with a concrete Type, or guarantee globally unique IDs. Cursor keyed by (type, id) stays the v5 option.
       _(Effort: S)_
 
 ### Deep-Review Gap Wave (2026-08-27, second session) — follow-ups
@@ -510,21 +504,14 @@ and is **never** duplicated here.
       `Verify` replay now carry the original record instead of a synthesized
       `record.Record{Type}`.
       _(Effort: M)_
-- [✓] **pebble command/query duplicate check is check-then-commit + fail (DONE 2026-08-29 (todo-execution session))
-      closed** — the existence check runs outside the write lock (concurrent
+- [✓] **pebble command/query duplicate check is check-then-commit + fail-open** — DONE 2026-08-29
+      (todo-execution session) — the existence check runs outside the write lock (concurrent
       duplicate Save silently overwrites instead of Conflict) and treats ANY
       Get error as "exists" (an Infrastructure read failure is reported as
       `ErrDuplicateCommand`). Take the per-ID shard lock around check+commit;
       return wrapped Infrastructure when the check itself fails.
       _(Effort: M)_
-- [ ] **stream-not-found contract diverges across backends** — pebble/bbolt
-      `Load`/`LoadFromVersion` return `(nil, nil)` for missing streams while
-      memory/SQL (and the same stores' LoadToVersion) return
-      ErrStreamNotFound; `event.EventSource` godoc is silent. Pin the
-      contract on the interface, align backends (store-side change is
-      v5-marked). Same class: SeekableJournal dangling-cursor behavior
-      diverges (memory replays from start; SQL/pebble/bbolt return empty and
-      stall) — pick the SQL contract, document on the interface.
+- [✓] **stream-not-found contract diverges across backends** — DOC-PINNED 2026-08-29 (todo-execution session 2) — `event.EventSource` godoc now pins (nil, ErrStreamNotFound) as the contract, names pebble/bbolt's (nil, nil) as a v5-marked divergence, and tells consumers to treat both shapes as "no events". `event.SeekableJournal` godoc pins the dangling-cursor contract (empty tail; memory's replay-from-start is the divergence). Store-side alignment waits for v5.
       _(Effort: S doc / v5 align)_
 - [✓] **schema upcaster registry hazards** — DONE 2026-08-29 (todo-execution session) — (a) upcaster returning the same
       pointer mutates the stored/shared event (README claims "original is
@@ -551,13 +538,15 @@ and is **never** duplicated here.
       deletes EVERY key in the backend — document the blast radius or gate
       behind an explicit opt-in.
       _(Effort: M)_
-- [ ] **catalog SchemaFromType silent-wrong schemas** — exported embedded
-      (anonymous) struct fields are skipped although encoding/json flattens
-      them onto the wire (generated docs/clients disagree with payloads;
-      enshrined by `TestFromType_SkipsAnonymousEmbeddedFields`); recursive
-      types (self-referential payloads) recurse to a stack overflow with no
-      in-progress guard. Recurse into exported anonymous fields honoring
-      their json tags; reserve a cache placeholder before recursing.
+- [✓] **catalog SchemaFromType silent-wrong schemas** — DONE 2026-08-29 (todo-execution session 2) — embedded
+      (anonymous) struct fields now FLATTEN into generated schemas, matching
+      encoding/json promotion (named embeds stay named, `json:"-"` embeds are
+      skipped, parent fields win conflicts, unexported-type embeds still
+      promote — the Go wire behavior the old tests missed); self-referential
+      types terminate via an in-progress cycle guard (opaque-object
+      placeholder, concurrent same-type builds retry on the completed cache
+      entry). The two tests that enshrined the skip behavior now pin
+      promotion; wire-parity and mutual-cycle tests added.
       _(Effort: M; goldens change)_
 - [✓] **cqrs-lint C042 inspects the wrong argument** — DONE 2026-08-29 (todo-execution session) — the zero-expected-
       version rule checks `call.Args[2]` but `event.Store.Save` is
@@ -572,7 +561,7 @@ and is **never** duplicated here.
       terminal assertion ran. Also `scenario/doc.go`'s example signature is
       stale (missing `t *testing.T`).
       _(Effort: S)_
-- [ ] **projectionhost hardening set** — `ReplayDeadLetters` calls
+- [✓] **projectionhost hardening set** — DONE 2026-08-29 (todo-execution session 2) — all seven findings fixed with regression tests (`hardening_test.go`): ReplayDeadLetters holds `handleMu`; Reset clears the checkpoint FIRST; `WithBatchSize` clamps <= 0; Start-after-Stop rebuilds workers (fresh stop channels) so the documented Stop→Reset→Start recipe works; CheckStaleness/CheckProjectionStaleness treat a FAILED worker as stale; retryable-family errors are NOT parked in the DLQ (restart path retries, loud WorkerFailed on exhaustion); corrupt SQLite DLQ rows are skipped + counted (`SkippedCount`). The original finding list read: `ReplayDeadLetters` calls
       `projection.Handle` outside `handleMu` (races a running worker);
       `Reset` clears read-model state BEFORE the checkpoint (crash window
       skips pre-checkpoint events; doc says checkpoint first);
@@ -602,14 +591,7 @@ and is **never** duplicated here.
       round). Opt-in depth guard via a hops counter in derived-command
       metadata, or document the hazard on AsHandler.
       _(Effort: S)_
-- [ ] **scheduling multi-instance + retry semantics undocumented** — no
-      claim/lease protocol: two Schedulers on one store double-fire every
-      timer (undocumented single-active-instance requirement);
-      dispatchWithRetry retries every family (Rejection retried 3× per poll
-      forever) and errors.Join keeps only the last attempt's error;
-      `MarkFired` deletes by ID with no epoch (a re-scheduled timer can be
-      deleted mid-flight). Document now; ClaimingTimerStore (SKIP LOCKED)
-      as additive follow-up.
+- [✓] **scheduling multi-instance + retry semantics undocumented** — DONE 2026-08-29 (todo-execution session 2) — Scheduler godoc now documents all three hazards: the single-active-instance requirement (no claim/lease; two Schedulers double-fire), dispatchWithRetry's family-blind retries (Rejection retried forever per poll; errors.Join keeps only the last attempt's error), and the MarkFired no-epoch race (use fresh timer IDs per logical deadline). ClaimingTimerStore (SKIP LOCKED) remains the additive follow-up.
       _(Effort: S doc / L claim protocol)_
 - [ ] **metaengine routing/lifecycle follow-ups** — `Calibration` setters
       race concurrent `Profile()` readers (documented Plan→Calibrate→Probe
@@ -642,11 +624,7 @@ and is **never** duplicated here.
       drops ActorID from its Tracing snippet and calls command/query
       Metadata "standalone structs" (they are aliases).
       _(Effort: S)_
-- [ ] **id.ActorID vs record.Actor zero-semantics asymmetry** —
-      `id.ActorID{User, ""}.IsZero() == true` but
-      `record.Actor{ActorUser, ""}.IsZero() == false`; `record.Actor{User,""}.String()`
-      ("user:") re-parses to an id-side zero, dropping the kind. Documented
-      mirrors, asymmetric zeros — document both sides now, unify at v5.
+- [✓] **id.ActorID vs record.Actor zero-semantics asymmetry** — DOC-PINNED 2026-08-29 (todo-execution session 2) — `ActorID.IsZero` godoc documents the asymmetry (record.Actor{user, ""} is NOT zero; "user:" re-parses to an id-side zero dropping the kind) and instructs consumers to treat IsZero as "no meaningful actor" until the v5 unification.
       _(Effort: S doc / v5 unify)_
 
 ---

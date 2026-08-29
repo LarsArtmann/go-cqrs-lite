@@ -10,6 +10,95 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > inside a dated `[tags]` section is unreleased (the 2026-08-16-era block was
 > folded into this window on 2026-08-29).
 
+### Added — TODO execution wave: correctness, hardening, capabilities — 2026-08-29 (session 2)
+
+- **`storage/sql.KeysetPositionQueryChecked`** returns the identifier-validation
+  error instead of an empty query: the deprecated `KeysetPositionQuery`
+  silently yielded `""` for invalid table/column names, which surfaced
+  downstream as a baffling SQL syntax error rather than a classified
+  Infrastructure rejection. All in-repo callers (event journal `ReadStreamFrom`,
+  `JournalReader.ReadFrom`) moved to the checked form; adversarial injection
+  tests + a persisted fuzz corpus (`storage/sql/testdata/fuzz/`) now guard the
+  keyset path, and a nightly fuzz workflow (`.github/workflows/fuzz.yml`)
+  mutates beyond the seeds. The multi-condition WHERE builder gained
+  `FuzzBuildWhereClauseChecked_MultiCondition`.
+- **`commandlifecycle.boundedMap` amortized compaction**: a delete-heavy
+  workload (attemptTracker clear-on-success) left stale keys in the FIFO
+  order slice forever — unbounded growth while the entry map stayed small. A
+  stale counter now triggers a compaction pass that reclaims both the dead
+  keys and the old backing array. Regression tests pin delete-heavy compaction
+  and that capacity <= 0 keeps every distinct entry (the old "unbounded" test
+  only exercised 26 re-used keys).
+- **`metaengine.HealthChecker` for `irohengine`**: the last engine without a
+  health check now reports local-engine health plus transport liveness via the
+  new `LivenessReporter` capability (`InProcessNetwork.Healthy`, peer
+  `Healthy`, QUIC `QuicTransport.Healthy`) and `InProcessNetwork.Shutdown` —
+  a closed transport surfaces as an unhealthy engine instead of silently
+  dropping replication traffic.
+- **`metaengine.VectorCounter`** optional capability (VectorCount +
+  VectorCollections): Doctor gains a `--- Vectors ---` section with real
+  collection sizes, and ExplainPlan/Doctor WARN when an engine serves k-NN
+  by full scan without size introspection. Memory and pg engines implement
+  it; the pg implementation is SQL COUNT/DISTINCT — no payload transfer.
+- **`projectionhost.Transactional`-grade hardening set** (T19, all seven
+  findings): `ReplayDeadLetters` now holds the worker's `handleMu` (was racing
+  a running worker's drain); `Reset` clears the checkpoint BEFORE the
+  read-model reset (crash window can no longer strand pre-checkpoint events);
+  `WithBatchSize` clamps non-positive values to the default (a zero batch
+  exited "caught up" processing nothing); `Start` after `Stop` rebuilds
+  workers with fresh stop channels, making the documented Stop→Reset→Start
+  rebuild recipe actually work; `CheckStaleness`/`CheckProjectionStaleness`
+  report stale for FAILED workers (a dead worker's lag==0 no longer reads as
+  "fresh"); retryable-family failures (Transient/Infrastructure/unclassified)
+  are no longer parked in the DLQ — they stay at the checkpoint and retry via
+  the restart path, failing the worker LOUDLY when the budget exhausts
+  instead of silently quarantining recoverable events; and one corrupt SQLite
+  DLQ row no longer bricks `List`/`ReplayDeadLetters` (skipped, counted via
+  the new `SQLiteDeadLetterStore.SkippedCount`).
+
+### Changed — TODO execution wave — 2026-08-29 (session 2)
+
+- **`catalog.SchemaFromType` flattens embedded structs** to match
+  encoding/json promotion: generated clients previously disagreed with wire
+  payloads (embedded fields absent from schemas but present in JSON). Named
+  embedded fields (`json:"name"` on an embed), `json:"-"` embeds, and
+  parent-field conflicts follow encoding/json rules; a self-referential type
+  (named `*T` field or `*T` embedding) now terminates with an opaque-object
+  placeholder instead of exhausting the stack. Two tests that pinned the old
+  skip behavior were updated to pin promotion.
+- **`mysqlengine` sort-path layout integration** (MariaDB): `ApplyLayout`
+  with sort fields now creates a DECIMAL(65,10) numeric twin generated column
+  plus a composite (collection, gcn, gc) index; `PushdownMapScan` renders
+  ORDER BY and cursor predicates against the twin columns — the index can
+  drive the sort while keeping the exact numeric/text dual-key ordering
+  semantics. Verified live against MariaDB 11.4 (sort order, keyset
+  pagination, index presence).
+- **`duckdbengine` CounterIncrement batches** deltas into chunked multi-row
+  upserts (256 rows per statement) instead of one round trip per key; the
+  DuckDB filter builders were unified onto a single WHERE/AND connector
+  helper shared by aggregations, layout planner, and the EXPLAIN renderer.
+- **`dgraphengine` implements `metaengine.Transactional`** (`RunInTx`): every
+  write op joins a shared dgo transaction (commit/discard at the end), reads
+  inside the transaction see their own writes, concurrent RunInTx calls are
+  serialized, nesting is rejected with a clear error. Verified against
+  Dgraph 25.4.0 (commit, rollback, concurrent serialization, nesting).
+- **projectionhost DLQ tests updated to the honest contract**: poison
+  fixtures now use Rejection-classified errors (unclassified errors are
+  retryable and would restart, not park).
+
+### Fixed — TODO execution wave — 2026-08-29 (session 2)
+
+- **`scripts/check-depguard.sh` failed on every run**: the lint-config
+  refactor that re-indented `linters.settings` also removed the
+  `depguard:` settings block while leaving depguard in `linters.disable`,
+  so the checker died with "could not extract depguard allow list". The
+  gate now reports the disabled state with restore instructions instead of
+  erroring. (Dependency-budget enforcement currently rests on check-arch
+  layer budgets until depguard is re-enabled — tracked in TODO_LIST.)
+- **`metaengine/pebbleengine` stale doc comment**: claimed "Graph: O(N^d)
+  BFS via prefix scan" — the engine has no graph dispatch and its profile
+  omits ADTGraph.
+
 ### Added — first-class snapshot encryption, consumer asks — 2026-08-29
 
 - **`snapshot.NewTransformedStore`** wraps any snapshot store with state-level

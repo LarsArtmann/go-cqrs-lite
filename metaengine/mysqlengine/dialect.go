@@ -98,6 +98,15 @@ func (e *mysqlEngine) jsonSortExprs(field string) []string {
 		return []string{e.jsonFieldExpr(field)}
 	}
 
+	// Laid-out sort field: render the (numeric twin, text) column pair.
+	// Same ordering semantics as the expression dual-key below, but the
+	// composite (collection, gcn, gc) index can drive the sort — MariaDB's
+	// optimizer does not substitute generated columns for raw
+	// JSON_EXTRACT expressions.
+	if numColumn, ok := e.gcNumColumnFor(field); ok {
+		return []string{numColumn, e.filterExpr(field)}
+	}
+
 	escaped := escapeJSONPath(field)
 
 	return []string{
@@ -116,9 +125,22 @@ func (e *mysqlEngine) jsonCursorExpr(field string, cursor any) string {
 		return e.jsonFieldExpr(field)
 	}
 
+	// Laid-out sort field: the cursor predicate must reference the SAME
+	// expressions the ORDER BY uses (the twin columns), or the results
+	// after the cursor break.
+	numColumn, hasTwin := e.gcNumColumnFor(field)
+
 	if isNativeNumber(cursor) {
+		if hasTwin {
+			return numColumn
+		}
+
 		return fmt.Sprintf(
 			"CAST(JSON_EXTRACT(value, '$.%s') AS DECIMAL(65,10))", escapeJSONPath(field))
+	}
+
+	if hasTwin {
+		return e.filterExpr(field)
 	}
 
 	return fmt.Sprintf("JSON_UNQUOTE(JSON_EXTRACT(value, '$.%s'))", escapeJSONPath(field))

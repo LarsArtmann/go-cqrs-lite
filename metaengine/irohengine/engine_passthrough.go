@@ -34,6 +34,10 @@ import (
 //     local-only. The system adapters type-assert StreamLogBackend and fall
 //     back to the replicated LogBackend (LogAppend/LogTail) path — the
 //     degraded route is the correct, converging one.
+//   - HealthChecker: FORWARDED (engine.go) — composes the local engine's
+//     health (when it implements metaengine.HealthChecker) with the
+//     transport's liveness (when it implements LivenessReporter). A closed
+//     transport must surface as an unhealthy engine, not silent drops.
 //   - Prober / TransactMeasurer: DELIBERATELY NOT FORWARDED. A forwarded
 //     probe measures local-engine RTT (~0), and live calibration would then
 //     override the honest replication-derived NetworkRTT from the wrapper's

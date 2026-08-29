@@ -1595,6 +1595,7 @@ metaengine/dgraphengine/method MultiAdd
 metaengine/dgraphengine/method MultiGet
 metaengine/dgraphengine/method Probe
 metaengine/dgraphengine/method Profile
+metaengine/dgraphengine/method RunInTx
 metaengine/dgraphengine/method SearchInsert
 metaengine/dgraphengine/method SearchQuery
 metaengine/dgraphengine/method SetAdd
@@ -1863,6 +1864,7 @@ metaengine/interface TrackerHost
 metaengine/interface TransactMeasurer
 metaengine/interface Transactional
 metaengine/interface VectorBackend
+metaengine/interface VectorCounter
 metaengine/interface VectorFilterBackend
 metaengine/interface VersionedStorage
 metaengine/irohengine/const FrameHeaderSize
@@ -1886,6 +1888,7 @@ metaengine/irohengine/func WithNetworkDropRate
 metaengine/irohengine/func WithTransport
 metaengine/irohengine/interface Clock
 metaengine/irohengine/interface LatencyProvider
+metaengine/irohengine/interface LivenessReporter
 metaengine/irohengine/interface Transport
 metaengine/irohengine/loopback/func New
 metaengine/irohengine/loopback/func WithAddr
@@ -1910,6 +1913,9 @@ metaengine/irohengine/method GraphAddEdge
 metaengine/irohengine/method GraphNeighbors
 metaengine/irohengine/method GraphNeighborsUndirected
 metaengine/irohengine/method GraphRemoveEdge
+metaengine/irohengine/method HealthCheck
+metaengine/irohengine/method Healthy
+metaengine/irohengine/method Healthy
 metaengine/irohengine/method Join
 metaengine/irohengine/method LatencySnapshot
 metaengine/irohengine/method LogAppend
@@ -1928,6 +1934,7 @@ metaengine/irohengine/method SearchInsert
 metaengine/irohengine/method SearchQuery
 metaengine/irohengine/method SetAdd
 metaengine/irohengine/method SetContains
+metaengine/irohengine/method Shutdown
 metaengine/irohengine/method Snapshot
 metaengine/irohengine/method SpatialInsert
 metaengine/irohengine/method SpatialRange
@@ -1943,6 +1950,7 @@ metaengine/irohengine/quic/func WithRelay
 metaengine/irohengine/quic/func WithStreamPooling
 metaengine/irohengine/quic/method Close
 metaengine/irohengine/quic/method Connect
+metaengine/irohengine/quic/method Healthy
 metaengine/irohengine/quic/method LatencySnapshot
 metaengine/irohengine/quic/method NodeID
 metaengine/irohengine/quic/method PeerCount
@@ -1968,6 +1976,7 @@ metaengine/irohengine/var ErrMapUpdaterNotImplemented
 metaengine/irohengine/var ErrScanBackendNotImplemented
 metaengine/irohengine/var ErrSearchBackendNotImplemented
 metaengine/irohengine/var ErrSpatialBackendNotImplemented
+metaengine/irohengine/var ErrTransportClosed
 metaengine/irohengine/var ErrVectorBackendNotImplemented
 metaengine/method AddEngine
 metaengine/method AliasOr
@@ -2003,8 +2012,10 @@ metaengine/method Close
 metaengine/method Close
 metaengine/method Close
 metaengine/method Collections
+metaengine/method Collections
 metaengine/method ColumnNames
 metaengine/method ConfirmRebuild
+metaengine/method Count
 metaengine/method Count
 metaengine/method CounterGet
 metaengine/method CounterIncrement
@@ -2251,6 +2262,8 @@ metaengine/method Valid
 metaengine/method Valid
 metaengine/method Valid
 metaengine/method Valid
+metaengine/method VectorCollections
+metaengine/method VectorCount
 metaengine/method VectorInsert
 metaengine/method VectorSearch
 metaengine/method VectorSearchFiltered
@@ -2263,6 +2276,7 @@ metaengine/method Where
 metaengine/method WhereIn
 metaengine/method WhereRange
 metaengine/method WithPrefetch
+metaengine/method WithReificationFailureHook
 metaengine/method WithReplay
 metaengine/method WithinBudget
 metaengine/method WriteNsPerOp
@@ -2380,6 +2394,8 @@ metaengine/pgengine/method StreamAppend
 metaengine/pgengine/method StreamAppendExpected
 metaengine/pgengine/method StreamRead
 metaengine/pgengine/method StreamVersion
+metaengine/pgengine/method VectorCollections
+metaengine/pgengine/method VectorCount
 metaengine/pgengine/method VectorInsert
 metaengine/pgengine/method VectorSearch
 metaengine/pgengine/method VectorSearchFiltered
@@ -2868,6 +2884,7 @@ projectionhost/method PurgeBefore
 projectionhost/method Register
 projectionhost/method ReplayDeadLetters
 projectionhost/method Reset
+projectionhost/method SkippedCount
 projectionhost/method Start
 projectionhost/method Status
 projectionhost/method Stop
@@ -3708,6 +3725,7 @@ storage/sql/func DeleteByStream
 storage/sql/func DuckDBSchemaEmbed
 storage/sql/func IsDuplicateKeyError
 storage/sql/func KeysetPositionQuery
+storage/sql/func KeysetPositionQueryChecked
 storage/sql/func LoadWithSpan
 storage/sql/func MarshalMetadata
 storage/sql/func MaxParametersForDialect

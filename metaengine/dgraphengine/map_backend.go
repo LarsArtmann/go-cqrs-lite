@@ -24,7 +24,7 @@ func (e *dgraphEngine) MapSet(ctx context.Context, col string, key any, value an
 
 	valueStr := string(data)
 
-	req := &api.Request{CommitNow: true}
+	req := &api.Request{}
 	req.Query = `query entry($col: string, $key: string) {
 		entry as var(func: eq(cqrs.map_collection, $col)) @filter(eq(cqrs.map_key, $key))
 	}`
@@ -48,7 +48,7 @@ func (e *dgraphEngine) MapSet(ctx context.Context, col string, key any, value an
 		{SetJson: updateJSON, Cond: "@if(eq(len(entry), 1))"},
 	}
 
-	if _, err := e.client.NewTxn().Do(ctx, req); err != nil {
+	if _, err := e.doWrite(ctx, req); err != nil {
 		return fmt.Errorf("dgraphengine.MapSet: %w", err)
 	}
 
@@ -64,7 +64,7 @@ func (e *dgraphEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 		}
 	}`
 
-	resp, err := e.client.NewReadOnlyTxn().
+	resp, err := e.readTx().
 		QueryWithVars(ctx, q, map[string]string{"$col": col, "$key": keyStr})
 	if err != nil {
 		return nil, false, fmt.Errorf("dgraphengine.MapGet: %w", err)
@@ -96,7 +96,7 @@ func (e *dgraphEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 func (e *dgraphEngine) MapDelete(ctx context.Context, col string, key any) error {
 	keyStr := fmt.Sprint(key) //art-dupl:accept dgraph key formatting idiom
 
-	req := &api.Request{CommitNow: true}
+	req := &api.Request{}
 	req.Query = `query entry($col: string, $key: string) {
 		entry as var(func: eq(cqrs.map_collection, $col)) @filter(eq(cqrs.map_key, $key))
 	}`
@@ -113,7 +113,7 @@ func (e *dgraphEngine) MapDelete(ctx context.Context, col string, key any) error
 		{DeleteJson: deleteJSON},
 	}
 
-	if _, err := e.client.NewTxn().Do(ctx, req); err != nil {
+	if _, err := e.doWrite(ctx, req); err != nil {
 		return fmt.Errorf("dgraphengine.MapDelete: %w", err)
 	}
 

@@ -81,9 +81,19 @@ func WithBackoff(initial, maxDur time.Duration) HostOption {
 	}
 }
 
-// WithBatchSize sets the number of events read per journal batch. Default: [defaultBatchSize].
+// WithBatchSize sets the number of events read per journal batch. Default:
+// [defaultBatchSize]. Non-positive values fall back to the default — a zero
+// batch would make the drain loop exit "caught up" without reading anything.
 func WithBatchSize(n int) HostOption {
-	return func(o *hostOptions) { o.batchSize = n }
+	return func(o *hostOptions) {
+		if n <= 0 {
+			o.batchSize = defaultBatchSize
+
+			return
+		}
+
+		o.batchSize = n
+	}
 }
 
 // WithDeadLetterStore enables poison-message capture. Events that fail more

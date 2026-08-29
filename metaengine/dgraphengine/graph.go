@@ -39,12 +39,19 @@ func (e *dgraphEngine) doWithAbortRetry(
 	var lastErr error
 
 	for attempt := range attempts {
-		_, err := e.client.NewTxn().Do(ctx, req)
+		_, err := e.doWrite(ctx, req)
 		if err == nil {
 			return nil
 		}
 
 		lastErr = err
+		// Inside RunInTx an aborted txn cannot be retried in place — the
+		// whole transaction must roll back and the CALLER retries. Surface
+		// the abort error immediately.
+		if e.inTx() {
+			return err
+		}
+
 		if !strings.Contains(err.Error(), "aborted") {
 			return err
 		}
@@ -75,7 +82,7 @@ func (e *dgraphEngine) GraphAddEdge(
 	pred := graphEdgePredicate(collection)
 
 	// Step 1: Upsert both nodes (create if they don't exist).
-	req := &api.Request{CommitNow: true}
+	req := &api.Request{}
 	req.Query = `query nodes($col: string, $from: string, $to: string) {
 		from_node as var(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $from))
 		to_node as var(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $to))
@@ -105,7 +112,7 @@ func (e *dgraphEngine) GraphAddEdge(
 	}
 
 	// Step 2: Add bidirectional edges (matches memory engine semantics).
-	req2 := &api.Request{CommitNow: true}
+	req2 := &api.Request{}
 	req2.Query = req.GetQuery()
 	req2.Vars = req.GetVars()
 
@@ -135,7 +142,7 @@ func (e *dgraphEngine) GraphRemoveEdge(
 
 	pred := graphEdgePredicate(collection)
 
-	req := &api.Request{CommitNow: true}
+	req := &api.Request{}
 	req.Query = `query nodes($col: string, $from: string, $to: string) {
 		from_node as var(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $from))
 		to_node as var(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $to))
@@ -195,7 +202,7 @@ func (e *dgraphEngine) GraphNeighbors(
 		}`, depth, pred)
 	}
 
-	resp, err := e.client.NewReadOnlyTxn().
+	resp, err := e.readTx().
 		QueryWithVars(ctx, query, map[string]string{"$col": collection, "$node": nodeStr})
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.GraphNeighbors: %w", err)

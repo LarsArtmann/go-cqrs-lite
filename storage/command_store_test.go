@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v4/commandtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
@@ -288,4 +289,16 @@ func TestSQLCommandStore_Close(t *testing.T) {
 	if !errors.Is(err, command.ErrStoreClosed) {
 		t.Errorf("expected ErrStoreClosed, got: %v", err)
 	}
+}
+
+// TestSQLCommandStore_RunStoreSuite pins the shared commandtest conformance
+// suite against the SQL backend (SQLite in-memory).
+func TestSQLCommandStore_RunStoreSuite(t *testing.T) {
+	t.Parallel()
+
+	commandtest.RunStoreSuite(t, func(t *testing.T) commandtest.StoreSuite {
+		store := newTestCommandStore(t)
+
+		return store
+	})
 }

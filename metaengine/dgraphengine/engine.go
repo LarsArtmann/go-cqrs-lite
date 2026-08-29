@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/dgraph-io/dgo/v240"
 	"github.com/dgraph-io/dgo/v240/protos/api"
@@ -58,6 +59,11 @@ type dgraphEngine struct {
 	done           bool
 	schemaMu       sync.Mutex
 	appliedSchemas map[string]bool
+
+	// txMu serializes RunInTx; activeTxn holds the shared transaction that
+	// every read/write op joins while it runs (see transaction.go).
+	txMu      sync.Mutex
+	activeTxn atomic.Pointer[dgo.Txn]
 }
 
 // New creates a Dgraph-backed metaengine Engine from a gRPC address.

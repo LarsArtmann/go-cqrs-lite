@@ -97,6 +97,23 @@ type VectorFilterBackend interface {
 	) ([]VectorResult, error)
 }
 
+// VectorCounter is an optional extension of VectorBackend for size
+// introspection: counting a collection's embeddings and enumerating vector
+// collections WITHOUT transferring payloads. Doctor uses it to report
+// collection sizes; its absence triggers the full-scan WARN — an engine
+// without it serves k-NN by scanning and cannot say how large the scan is.
+type VectorCounter interface {
+	VectorBackend
+
+	// VectorCount returns the number of embeddings stored for the
+	// collection (0 for an unknown collection).
+	VectorCount(ctx context.Context, collection string) (int64, error)
+
+	// VectorCollections returns the names of collections holding at least
+	// one embedding.
+	VectorCollections(ctx context.Context) ([]string, error)
+}
+
 // IndexedText is a text document with an ID and content. The fold input
 // type for search projections — an event carrying IndexedText adds it to
 // the full-text index.
@@ -183,6 +200,28 @@ func (m *MemoryVectorIndex) SearchFiltered(
 	filters []VectorFilter,
 ) ([]VectorResult, error) {
 	return m.search(collection, query, k, metric, filters), nil
+}
+
+// Count returns the number of embeddings stored for the collection.
+// Implements the count member of VectorCounter.
+func (m *MemoryVectorIndex) Count(_ context.Context, collection string) (int64, error) {
+	return int64(len(m.embeddings[collection])), nil
+}
+
+// Collections returns the collection names holding at least one embedding.
+// Implements the enumeration member of VectorCounter.
+func (m *MemoryVectorIndex) Collections(_ context.Context) ([]string, error) {
+	out := make([]string, 0, len(m.embeddings))
+
+	for col, entries := range m.embeddings {
+		if len(entries) > 0 {
+			out = append(out, col)
+		}
+	}
+
+	sort.Strings(out)
+
+	return out, nil
 }
 
 func (m *MemoryVectorIndex) search(

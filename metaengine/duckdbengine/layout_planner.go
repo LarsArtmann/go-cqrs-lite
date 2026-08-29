@@ -227,34 +227,7 @@ func buildPlannedSelectQuery(
 	argIdx := 1
 
 	for _, f := range filters {
-		if f.Op == metaengine.FilterIn {
-			values, ok := f.Value.([]any)
-			if !ok || len(values) == 0 {
-				continue
-			}
-
-			writeWhereOrAnd(&b, &whereStarted)
-
-			placeholders := make([]string, len(values))
-			for i, v := range values {
-				placeholders[i] = fmt.Sprintf("$%d", argIdx)
-				args = append(args, v)
-				argIdx++
-			}
-
-			fmt.Fprintf(
-				&b,
-				"%s IN (%s)",
-				metaengine.QuoteIdent(f.Column),
-				strings.Join(placeholders, ", "),
-			)
-		} else {
-			writeWhereOrAnd(&b, &whereStarted)
-
-			fmt.Fprintf(&b, "%s %s $%d", metaengine.QuoteIdent(f.Column), string(f.Op), argIdx)
-			args = append(args, f.Value)
-			argIdx++
-		}
+		appendDuckDBFilter(&b, &args, &argIdx, &whereStarted, f, plan)
 	}
 
 	if sort != nil && cursor != nil {

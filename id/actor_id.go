@@ -162,6 +162,18 @@ func (a ActorID) PrefixedString() string {
 }
 
 // IsZero reports whether the ActorID is the zero value (no actor set).
+// IsZero reports whether the actor is unset: the zero ActorID, OR a
+// non-empty User with an empty Kind — the parser yields that shape for a
+// bare "raw" string with no "kind:" prefix.
+//
+// # Zero-semantics asymmetry with record.Actor (documented, unify at v5)
+//
+// record.Actor{Kind: "user", Raw: ""} is NOT zero there (Kind != unknown),
+// while the equivalent ActorID{Kind: "user", User: ""} IS zero here. Also,
+// Actor.String()'s "user:" re-parses to an id-side zero, dropping the kind.
+// Both sides intentionally mirror their historic behavior; treat
+// id.ActorID.IsZero() as "no meaningful actor" and expect the asymmetry
+// until the v5 unification.
 func (a ActorID) IsZero() bool {
 	return a.raw == ""
 }

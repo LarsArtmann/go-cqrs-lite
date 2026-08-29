@@ -2,7 +2,6 @@ package projectionhost_test
 
 import (
 	"context"
-	"errors"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -12,6 +11,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // integrationProjection is a real read-model projection that counts
@@ -29,7 +30,9 @@ func (p *integrationProjection) EventTypes() []event.Type {
 
 func (p *integrationProjection) Handle(_ context.Context, evt event.Event) error {
 	if evt.Type() == "item.removed" {
-		return errors.New("transient handler bug on remove")
+		// Classified non-retryable: a handler bug will not succeed on
+		// retry, so the DLQ is the correct quarantine.
+		return errorfamily.NewRejection("test.poison_handler", "poison: handler bug on remove")
 	}
 	p.count.Add(1)
 

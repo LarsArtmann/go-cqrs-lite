@@ -128,3 +128,80 @@ func readParamLocation(field reflect.StructField) (string, string) {
 
 	return "", ""
 }
+
+// flattenedEmbedded reports whether the field is an exported anonymous
+// struct (or pointer-to-struct) WITHOUT a json name — the exact set
+// encoding/json promotes into the parent object. Such fields must be
+// flattened into the parent schema so generated clients agree with the
+// wire payload. An embedded field WITH a json name (json:"foo") is NOT
+// promoted by encoding/json; it marshals as a named field, so the schema
+// treats it as one too (reported via false + caller's normal path).
+func flattenedEmbedded(field reflect.StructField) (bool, reflect.Type) {
+	if !field.Anonymous {
+		return false, nil
+	}
+
+	// encoding/json promotes embedded struct fields even when the embedded
+	// TYPE name is unexported (field.IsExported() is then false); only the
+	// promoted fields' own exportedness matters, checked in fieldToProperty.
+
+	if field.Tag.Get("json") == "-" {
+		return false, nil
+	}
+
+	if name, _ := parseJSONTag(field.Tag.Get("json")); name != "" {
+		return false, nil
+	}
+
+	ft := field.Type
+	if ft.Kind() == reflect.Pointer {
+		ft = ft.Elem()
+	}
+
+	return ft.Kind() == reflect.Struct, ft
+}
+
+// flattenEmbedded inlines an embedded struct's fields into the parent schema,
+// mirroring encoding/json promotion: nested anonymous structs flatten
+// recursively (bounded by maxEmbeddedDepth and a visited-type set, so a
+// self-embedding pointer like `type A struct { *A }` terminates), and the
+// parent's own fields WIN — an embedded field never overwrites an existing
+// property name.
+func flattenEmbedded(
+	t reflect.Type,
+	props map[string]Property,
+	required *[]string,
+	params *[]Parameter,
+	depth int,
+) {
+	if depth > maxEmbeddedDepth {
+		return
+	}
+
+	for field := range t.Fields() {
+		if flatten, ft := flattenedEmbedded(field); flatten {
+			flattenEmbedded(ft, props, required, params, depth+1)
+
+			continue
+		}
+
+		name, prop, omit, include, param := fieldToProperty(field)
+		if param.In != "" {
+			*params = append(*params, param)
+		}
+
+		if !include {
+			continue
+		}
+
+		if _, exists := props[name]; exists {
+			continue
+		}
+
+		props[name] = prop
+
+		if !omit {
+			*required = append(*required, name)
+		}
+	}
+}

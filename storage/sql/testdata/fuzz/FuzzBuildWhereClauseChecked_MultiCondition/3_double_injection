@@ -1,0 +1,7 @@
+go test fuzz v1
+string("a--b")
+uint8(7)
+int64(0)
+string("c/*d*/e")
+uint8(3)
+int64(0)

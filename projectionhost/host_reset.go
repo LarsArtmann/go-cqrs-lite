@@ -78,13 +78,11 @@ func (h *Host) Reset(ctx context.Context, name string, opts ...ResetOption) erro
 
 	h.mu.Unlock()
 
-	if r, ok := w.projection.(Resettable); ok {
-		if err := r.Reset(ctx); err != nil {
-			return errorfamily.WrapInfrastructure(err, "projectionhost.reset_projection",
-				fmt.Sprintf("reset projection %q", name))
-		}
-	}
-
+	// Checkpoint first: if the process dies between the two writes, the
+	// next Start replays from zero ON TOP of stale read-model state, which
+	// idempotent handlers absorb. The reverse order is unsafe — read-model
+	// cleared but checkpoint alive means pre-checkpoint events are skipped
+	// and never re-projected.
 	if err := h.cpStore.Save(
 		ctx,
 		name,
@@ -92,6 +90,13 @@ func (h *Host) Reset(ctx context.Context, name string, opts ...ResetOption) erro
 	); err != nil {
 		return errorfamily.WrapInfrastructure(err, "projectionhost.reset_checkpoint",
 			fmt.Sprintf("clear checkpoint for %q", name))
+	}
+
+	if r, ok := w.projection.(Resettable); ok {
+		if err := r.Reset(ctx); err != nil {
+			return errorfamily.WrapInfrastructure(err, "projectionhost.reset_projection",
+				fmt.Sprintf("reset projection %q", name))
+		}
 	}
 
 	w.setCheckpoint("")

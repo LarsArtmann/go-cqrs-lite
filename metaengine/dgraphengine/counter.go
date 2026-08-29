@@ -38,8 +38,14 @@ func (e *dgraphEngine) counterIncrementBatch(
 	col string,
 	deltas metaengine.Delta,
 ) error {
-	txn := e.client.NewTxn()
-	defer func() { _ = txn.Discard(ctx) }()
+	// Inside RunInTx the read-modify-write joins the active transaction so
+	// concurrent serialized transactions cannot interleave; standalone it
+	// is its own txn (committed by the CommitNow mutation below).
+	txn := e.writeTx()
+	if txn == nil {
+		txn = e.client.NewTxn()
+		defer func() { _ = txn.Discard(ctx) }()
+	}
 
 	// Query only the delta keys (not the entire collection) to avoid over-reading.
 	// For small delta sets (≤20 keys), we build a DQL @filter with eq() per key
@@ -125,7 +131,7 @@ func (e *dgraphEngine) counterIncrementBatch(
 
 	if _, err := txn.Mutate(ctx, &api.Mutation{
 		SetJson:   data,
-		CommitNow: true,
+		CommitNow: !e.inTx(),
 	}); err != nil {
 		return fmt.Errorf("dgraphengine.CounterIncrement: mutate: %w", err)
 	}
@@ -168,7 +174,7 @@ func (e *dgraphEngine) CounterGet(ctx context.Context, col string) (map[string]i
 		}
 	}`
 
-	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q, map[string]string{"$col": col})
+	resp, err := e.readTx().QueryWithVars(ctx, q, map[string]string{"$col": col})
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.CounterGet: %w", err)
 	}

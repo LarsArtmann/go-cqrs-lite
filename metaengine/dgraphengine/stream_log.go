@@ -50,9 +50,8 @@ func (e *dgraphEngine) StreamAppend(
 		return fmt.Errorf("dgraphengine.StreamAppend: marshal: %w", err)
 	}
 
-	if _, err := e.client.NewTxn().Mutate(ctx, &api.Mutation{
+	if _, err := e.doMutate(ctx, &api.Mutation{
 		SetJson:   data,
-		CommitNow: true,
 	}); err != nil {
 		return fmt.Errorf("dgraphengine.StreamAppend: %w", err)
 	}
@@ -71,7 +70,7 @@ func (e *dgraphEngine) StreamRead(
 		}
 	}`
 
-	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q,
+	resp, err := e.readTx().QueryWithVars(ctx, q,
 		map[string]string{"$col": col, "$sid": sid})
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.StreamRead: %w", err)
@@ -106,7 +105,7 @@ func (e *dgraphEngine) StreamVersion(
 		}
 	}`
 
-	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q,
+	resp, err := e.readTx().QueryWithVars(ctx, q,
 		map[string]string{"$col": col, "$sid": sid})
 	if err != nil {
 		return 0, fmt.Errorf("dgraphengine.StreamVersion: %w", err)
@@ -139,7 +138,7 @@ func (e *dgraphEngine) JournalReadAll(
 		}
 	}`
 
-	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q,
+	resp, err := e.readTx().QueryWithVars(ctx, q,
 		map[string]string{"$col": col})
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.JournalReadAll: %w", err)
@@ -196,7 +195,7 @@ func (e *dgraphEngine) JournalReadFrom(
 		}
 	}`, firstClause)
 
-	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q,
+	resp, err := e.readTx().QueryWithVars(ctx, q,
 		map[string]string{"$col": col})
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.JournalReadFrom: %w", err)
@@ -268,7 +267,7 @@ func (e *dgraphEngine) StreamAppendExpected(
 		{SetJson: data, Cond: fmt.Sprintf("@if(eq(len(entry), %d))", expectedVersion)},
 	}
 
-	resp, err := e.client.NewTxn().Do(ctx, req)
+	resp, err := e.doWrite(ctx, req)
 	if err != nil {
 		return fmt.Errorf("dgraphengine.StreamAppendExpected: %w", err)
 	}

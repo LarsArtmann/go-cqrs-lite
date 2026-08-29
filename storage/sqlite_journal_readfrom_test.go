@@ -237,9 +237,12 @@ func TestSQLiteJournalReadFrom_UsesTimestampIndex(t *testing.T) {
 		t.Fatalf("seed cursor row: %v", err)
 	}
 
-	query := sqlpkg.KeysetPositionQuery(
+	query, err := sqlpkg.KeysetPositionQueryChecked(
 		sqlpkg.SQLiteDialect{}, "e.id, e.occurred_at", sqlpkg.TableEvents, "occurred_at",
 	)
+	if err != nil {
+		t.Fatalf("KeysetPositionQueryChecked: %v", err)
+	}
 
 	rows, err := db.QueryContext(
 		context.Background(),

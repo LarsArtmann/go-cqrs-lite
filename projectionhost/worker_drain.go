@@ -8,6 +8,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // process drains the journal from the last checkpoint. When caught up (ReadFrom
@@ -108,6 +110,17 @@ func (w *worker) handleProcessEventError(
 	err error,
 ) error {
 	if w.opts.dlq == nil {
+		return err
+	}
+
+	// Only non-retryable families (Rejection/Corruption) park in the DLQ.
+	// Parking a Transient/Infrastructure failure would quarantine an event
+	// that a later retry could succeed on — a permanent silent gap until
+	// someone replays by hand. Retryable failures return to the caller
+	// instead: the checkpoint stays put, the worker restarts with backoff,
+	// and the journal re-delivers the event. If restarts exhaust, the
+	// worker fails loudly (WorkerFailed + onFailed) instead of skipping.
+	if errorfamily.IsRetryable(err) {
 		return err
 	}
 

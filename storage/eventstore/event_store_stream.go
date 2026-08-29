@@ -182,12 +182,17 @@ func (s *SQLEventStore) ReadStreamFrom(
 		return &emptySQLEventIterator{}, nil
 	}
 
-	query := sqlpkg.KeysetPositionQuery(
+	query, err := sqlpkg.KeysetPositionQueryChecked(
 		s.Dialect,
 		sqlpkg.EventColumns,
 		sqlpkg.TableEvents,
 		"occurred_at",
 	)
+	if err != nil {
+		return nil, errorfamily.Wrapf(err, errorfamily.Infrastructure, "storage.stream_query_from",
+			"stream events from position (limit=%d)", limit)
+	}
+
 	args := []any{cursorTS, cursorTS, afterID}
 	if limit > 0 {
 		query += " LIMIT " + s.Dialect.Placeholder(4)

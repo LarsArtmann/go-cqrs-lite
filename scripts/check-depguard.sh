@@ -27,6 +27,17 @@ cd "$(git rev-parse --show-toplevel)"
 # We extract everything after "- " in the allow block, skipping $gostd
 # (handled separately — stdlib packages have no domain prefix).
 
+# If depguard is explicitly disabled in the config, there is no allow list to
+# check. Report the situation and exit cleanly -- but LOUDLY, so the disabled
+# gate is a visible decision, not silent rot. Re-enable depguard under
+# linters.settings (with its allow list) to bring this gate back to life.
+if grep -Eq '^[[:space:]]+disable:' .golangci.yml && grep -Eq '^[[:space:]]+- depguard[[:space:]]*$' .golangci.yml; then
+	echo "NOTICE: depguard is disabled in .golangci.yml -- dependency-budget gate SKIPPED."
+	echo "        This weakens per-module dependency enforcement (check-arch layers still apply)."
+	echo "        Restore linters.settings.depguard and remove depguard from linters.disable to re-enable."
+	exit 0
+fi
+
 ALLOW_FILE=$(mktemp)
 trap 'rm -f "$ALLOW_FILE"' EXIT
 

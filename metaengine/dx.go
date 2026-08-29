@@ -12,6 +12,12 @@ import (
 // watcherEntry is a registered watcher subscription stored on the Store.
 // A nil key means "all keys" (collection-level); a non-nil key means
 // notifications are filtered to that specific key only.
+//
+// ch is deliberately `chan any`: the hub is type-erased (one collection can
+// host Watcher[A] and Watcher[B]). Each Watcher[V]'s adapter goroutine
+// reifies `any` → V before delivering to the typed channel the consumer
+// sees; failures are counted on the workload meter and surfaced through
+// Watcher.WithReificationFailureHook.
 type watcherEntry struct {
 	ch     chan any
 	closed bool
@@ -21,11 +27,38 @@ type watcherEntry struct {
 // Watcher provides reactive read notifications. When a value changes, all
 // subscribers are notified.
 type Watcher[V any] struct {
-	mu      sync.Mutex
-	store   *Store
-	coll    string
-	entries []*watcherEntry
-	replay  *SSEReplay[V] // optional replay journal (nil = no reconnection)
+	mu               sync.Mutex
+	store            *Store
+	coll             string
+	entries          []*watcherEntry
+	replay           *SSEReplay[V] // optional replay journal (nil = no reconnection)
+	onReifyFailure   func(val any) // optional hook, fired when any→V reification fails
+}
+
+// WithReificationFailureHook registers a callback fired whenever a watcher
+// notification cannot be converted to V (engine/consumer type drift). The
+// hook runs on the adapter goroutine — keep it cheap and non-blocking.
+// Returns the watcher for chaining.
+func (w *Watcher[V]) WithReificationFailureHook(hook func(val any)) *Watcher[V] {
+	w.mu.Lock()
+	w.onReifyFailure = hook
+	w.mu.Unlock()
+
+	return w
+}
+
+// reportReificationFailure counts the failure on the workload meter and
+// invokes the configured hook, if any.
+func (w *Watcher[V]) reportReificationFailure(val any) {
+	w.store.meter.IncReificationFailure()
+
+	w.mu.Lock()
+	hook := w.onReifyFailure
+	w.mu.Unlock()
+
+	if hook != nil {
+		hook(val)
+	}
 }
 
 // NewWatcher creates a watcher for a collection.
@@ -134,7 +167,7 @@ func (w *Watcher[V]) Watch(ctx context.Context, key any) <-chan V {
 
 				v, ok := unwrapWatcherValue[V](val)
 				if !ok {
-					w.store.meter.IncReificationFailure()
+					w.reportReificationFailure(val)
 
 					continue
 				}
@@ -174,7 +207,7 @@ func (w *Watcher[V]) WatchWithSeq(ctx context.Context, key any) <-chan SeqValue[
 
 				sv, ok := unwrapWatcherSeqValue[V](val)
 				if !ok {
-					w.store.meter.IncReificationFailure()
+					w.reportReificationFailure(val)
 
 					continue
 				}

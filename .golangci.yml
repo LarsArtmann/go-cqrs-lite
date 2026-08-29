@@ -349,6 +349,12 @@ linters:
               text: 'SA1019: .*EnsureCustom.*is deprecated'
               linters:
                 - staticcheck
+            # v5 decision (2026-08-29, TODO "kvstore SA1019 exclusion"):
+            # PERMANENT. These test matrices use go-idempotency's MemoryStore
+            # exactly as its deprecation prescribes ("development and
+            # testing") — the reference implementation in store-conformance
+            # matrices. SA1019 firing on sanctioned test usage is noise;
+            # production paths in these modules use the real stores.
             - path: (middleware|idempotency)/.*_test\.go$
               text: 'SA1019: .*(NewMemoryStore|MemoryStore) is deprecated'
               linters:

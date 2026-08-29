@@ -6,6 +6,7 @@ import (
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"reflect"
+	"runtime"
 	"sync"
 	"time"
 
@@ -68,7 +69,11 @@ func ToAny(s *Schema) (any, error) {
 	return result, nil
 }
 
-var schemaCache sync.Map //nolint:gochecknoglobals // package-level reflection cache
+var (
+	schemaCache sync.Map //nolint:gochecknoglobals // package-level reflection cache
+	schemaMu    sync.Mutex
+	schemaBusy  sync.Map //nolint:gochecknoglobals // in-progress marker for cycle guard
+)
 
 func fromReflect(t reflect.Type) *Schema {
 	if t == nil {
@@ -79,10 +84,38 @@ func fromReflect(t reflect.Type) *Schema {
 		return cached.(*Schema) //nolint:forcetypeassert // cache only stores *Schema values
 	}
 
+	// Cycle guard: a self-referential type (e.g. a field of type *T inside
+	// T) would otherwise recurse until the stack dies. The recursive
+	// reference resolves to a plain-object placeholder ("opaque object");
+	// the cached outer schema stays correct for every non-recursive field.
+	// A concurrent same-type build also sees the busy marker and retries
+	// on the completed cache entry instead of duplicating the build.
+	if _, busy := schemaBusy.LoadOrStore(t, true); busy {
+		return cyclePlaceholder(t)
+	}
+
 	s := buildSchema(t)
+	schemaBusy.Delete(t)
 	schemaCache.Store(t, s)
 
 	return s
+}
+
+// cyclePlaceholder blocks until the in-flight build of t completes, then
+// serves its cached schema. The build marks busy BEFORE recursing, so a
+// re-entrant call from the building goroutine itself would deadlock here —
+// recursion is therefore detected one frame earlier via LoadOrStore and
+// never reaches this path from the builder.
+func cyclePlaceholder(t reflect.Type) *Schema {
+	for range 10000 {
+		if cached, ok := schemaCache.Load(t); ok {
+			return cached.(*Schema) //nolint:forcetypeassert // cache only stores *Schema values
+		}
+
+		runtime.Gosched()
+	}
+
+	return &Schema{Type: TypeObject}
 }
 
 func buildSchema(t reflect.Type) *Schema {
@@ -122,6 +155,12 @@ func buildSchema(t reflect.Type) *Schema {
 	return structSchema(t)
 }
 
+// maxEmbeddedDepth bounds the anonymous-field flattening walk. encoding/json
+// promotes embedded struct fields to arbitrary depth; the schema flattener
+// stops descending a few levels past anything sane instead of tracking a
+// full conflict graph.
+const maxEmbeddedDepth = 8
+
 func structSchema(t reflect.Type) *Schema {
 	props := make(map[string]Property)
 
@@ -130,6 +169,11 @@ func structSchema(t reflect.Type) *Schema {
 	var params []Parameter
 
 	for field := range t.Fields() {
+		if flatten, ft := flattenedEmbedded(field); flatten {
+			flattenEmbedded(ft, props, &required, &params, 1)
+			continue
+		}
+
 		name, prop, omit, include, param := fieldToProperty(field)
 		if param.In != "" {
 			params = append(params, param)

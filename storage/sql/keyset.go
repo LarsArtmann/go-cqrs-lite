@@ -59,8 +59,8 @@ func ResolveCursorTimestamp(
 	return ts, true, nil
 }
 
-// KeysetPositionQuery builds an index-usable keyset-pagination query that
-// returns journal rows strictly after the (timestampColumn, id) cursor,
+// KeysetPositionQueryChecked builds an index-usable keyset-pagination query
+// that returns journal rows strictly after the (timestampColumn, id) cursor,
 // ordered by timestamp then id. The caller binds [timestamp, timestamp, id]
 // (plus limit via AppendLimit) with placeholder indices 1-3 (4 for the limit).
 //
@@ -73,11 +73,27 @@ func ResolveCursorTimestamp(
 // SQLite (MULTI-INDEX OR plus a temp B-tree sort of the remaining tail per
 // batch), making batched journal drains O(N²): draining a 200k-event journal
 // in batches of 100 took ~63s with the self-JOIN vs 0.22s with this query.
+func KeysetPositionQueryChecked(dialect Dialect, columns, table, timestampColumn string) (string, error) {
+	if err := ValidateJournalIdentifiers(table, timestampColumn); err != nil {
+		return "", err
+	}
+
+	return keysetPositionQuery(dialect, columns, table, timestampColumn), nil
+}
+
+// Deprecated: Use KeysetPositionQueryChecked, which surfaces the
+// identifier-validation error instead of silently returning an empty string
+// when table or timestampColumn are invalid. KeysetPositionQuery returns ""
+// for invalid identifiers; removal at v5.
 func KeysetPositionQuery(dialect Dialect, columns, table, timestampColumn string) string {
 	if err := ValidateJournalIdentifiers(table, timestampColumn); err != nil {
 		return ""
 	}
 
+	return keysetPositionQuery(dialect, columns, table, timestampColumn)
+}
+
+func keysetPositionQuery(dialect Dialect, columns, table, timestampColumn string) string {
 	p1, p2, p3 := dialect.Placeholder(1), dialect.Placeholder(2), dialect.Placeholder(3)
 
 	return fmt.Sprintf(

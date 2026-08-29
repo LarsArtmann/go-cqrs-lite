@@ -19,10 +19,22 @@ const gcIndexPrefixLen = 190
 // suffix prevents two fields that sanitize identically (e.g. "a.b" and
 // "a_b") from silently sharing one column with a different expression.
 func gcColumnName(field string) string {
+	return gcColumnNamePrefixed("gc_", field)
+}
+
+// gcNumColumnName derives the numeric twin of a generated column: the
+// DECIMAL(65,10) cast of the field. Sort fields get both columns so ORDER BY
+// can render (gcn, gc) — the column-based equivalent of the dual-key
+// CAST/UNQUOTE sort — letting the composite index drive the sort.
+func gcNumColumnName(field string) string {
+	return gcColumnNamePrefixed("gcn_", field)
+}
+
+func gcColumnNamePrefixed(prefix, field string) string {
 	h := fnv.New64a()
 	_, _ = h.Write([]byte(field))
 
-	return fmt.Sprintf("gc_%s_%08x", sanitizeIndexName(field), h.Sum64()&0xFFFFFFFF)
+	return fmt.Sprintf("%s%s_%08x", prefix, sanitizeIndexName(field), h.Sum64()&0xFFFFFFFF)
 }
 
 // applyMariaDBLayout implements ApplyLayout for the MariaDB dialect.
@@ -46,6 +58,12 @@ func gcColumnName(field string) string {
 // art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func (e *mysqlEngine) applyMariaDBLayout(filterFields, sortFields []string) error {
 	seen := make(map[string]bool)
+
+	sortFieldsSet := make(map[string]bool, len(sortFields))
+	for _, f := range sortFields {
+		sortFieldsSet[f] = true
+	}
+
 	allFields := append(append([]string{}, filterFields...), sortFields...)
 
 	for _, field := range allFields {
@@ -55,39 +73,104 @@ func (e *mysqlEngine) applyMariaDBLayout(filterFields, sortFields []string) erro
 
 		seen[field] = true
 
-		column := gcColumnName(field)
-
 		if e.hasGcColumn(field) {
+			// Field laid out earlier as a FILTER field: it has the text
+			// column but no numeric twin. If it is now requested as a sort
+			// field, add just the twin.
+			if sortFieldsSet[field] && !e.hasGcNumColumn(field) {
+				if err := e.applyMariaDBSortTwin(field, gcColumnName(field)); err != nil {
+					return err
+				}
+			}
+
 			continue
 		}
 
-		ddl := fmt.Sprintf(
-			"ALTER TABLE meta_map ADD COLUMN IF NOT EXISTS %s TEXT "+
-				"GENERATED ALWAYS AS (JSON_UNQUOTE(JSON_EXTRACT(value, '$.%s'))) VIRTUAL",
-			column, escapeJSONPath(field),
-		)
-
-		if _, err := e.conn().ExecContext(context.Background(), ddl); err != nil {
-			return fmt.Errorf("mysqlengine.ApplyLayout: add generated column %s: %w", column, err)
+		if err := e.applyMariaDBFieldColumn(field, sortFieldsSet[field]); err != nil {
+			return err
 		}
-
-		idxName := "idx_map_" + column
-
-		idxDDL := fmt.Sprintf(
-			"CREATE INDEX %s ON meta_map (collection, %s(%d))",
-			idxName, column, gcIndexPrefixLen,
-		)
-
-		// MariaDB has no CREATE INDEX IF NOT EXISTS; a duplicate index name
-		// (1061) means a previous run already created it.
-		if _, err := e.conn().ExecContext(context.Background(), idxDDL); err != nil {
-			if !isDuplicateIndexErr(err) {
-				return fmt.Errorf("mysqlengine.ApplyLayout: create index %s: %w", idxName, err)
-			}
-		}
-
-		e.recordGcColumn(field, column)
 	}
+
+	return nil
+}
+
+// applyMariaDBFieldColumn adds the TEXT generated column for one field, plus
+// the numeric twin for sort fields, and their indexes.
+func (e *mysqlEngine) applyMariaDBFieldColumn(field string, isSortField bool) error {
+	column := gcColumnName(field)
+
+	ddl := fmt.Sprintf(
+		"ALTER TABLE meta_map ADD COLUMN IF NOT EXISTS %s TEXT "+
+			"GENERATED ALWAYS AS (JSON_UNQUOTE(JSON_EXTRACT(value, '$.%s'))) VIRTUAL",
+		column, escapeJSONPath(field),
+	)
+
+	if _, err := e.conn().ExecContext(context.Background(), ddl); err != nil {
+		return fmt.Errorf("mysqlengine.ApplyLayout: add generated column %s: %w", column, err)
+	}
+
+	if isSortField {
+		if err := e.applyMariaDBSortTwin(field, column); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	idxName := "idx_map_" + column
+
+	idxDDL := fmt.Sprintf(
+		"CREATE INDEX %s ON meta_map (collection, %s(%d))",
+		idxName, column, gcIndexPrefixLen,
+	)
+
+	// MariaDB has no CREATE INDEX IF NOT EXISTS; a duplicate index name
+	// (1061) means a previous run already created it.
+	if _, err := e.conn().ExecContext(context.Background(), idxDDL); err != nil {
+		if !isDuplicateIndexErr(err) {
+			return fmt.Errorf("mysqlengine.ApplyLayout: create index %s: %w", idxName, err)
+		}
+	}
+
+	e.recordGcColumn(field, column)
+
+	return nil
+}
+
+// applyMariaDBSortTwin adds the DECIMAL numeric twin column and the
+// composite (collection, gcn, gc) index. ORDER BY renders (gcn, gc): the
+// column-based equivalent of the expression dual-key (CAST DECIMAL,
+// JSON_UNQUOTE) — numerically for numbers, lexically for text — while the
+// composite index lets the optimizer drive the sort instead of re-extracting
+// JSON per row.
+func (e *mysqlEngine) applyMariaDBSortTwin(field, textColumn string) error {
+	numColumn := gcNumColumnName(field)
+
+	ddl := fmt.Sprintf(
+		"ALTER TABLE meta_map ADD COLUMN IF NOT EXISTS %s DECIMAL(65,10) "+
+			"GENERATED ALWAYS AS (CAST(JSON_EXTRACT(value, '$.%s') AS DECIMAL(65,10))) VIRTUAL",
+		numColumn, escapeJSONPath(field),
+	)
+
+	if _, err := e.conn().ExecContext(context.Background(), ddl); err != nil {
+		return fmt.Errorf("mysqlengine.ApplyLayout: add numeric twin column %s: %w", numColumn, err)
+	}
+
+	idxName := "idx_map_sort_" + textColumn
+
+	idxDDL := fmt.Sprintf(
+		"CREATE INDEX %s ON meta_map (collection, %s, %s(%d))",
+		idxName, numColumn, textColumn, gcIndexPrefixLen,
+	)
+
+	if _, err := e.conn().ExecContext(context.Background(), idxDDL); err != nil {
+		if !isDuplicateIndexErr(err) {
+			return fmt.Errorf("mysqlengine.ApplyLayout: create sort index %s: %w", idxName, err)
+		}
+	}
+
+	e.recordGcColumn(field, textColumn)
+	e.recordGcNumColumn(field, numColumn)
 
 	return nil
 }
@@ -110,6 +193,43 @@ func (e *mysqlEngine) filterExpr(field string) string {
 	}
 
 	return e.jsonCompareExpr(field)
+}
+
+// hasGcNumColumn reports whether a numeric twin column was recorded for the
+// field (sort fields only).
+func (e *mysqlEngine) hasGcNumColumn(field string) bool {
+	if m := e.gcnColumns.Load(); m != nil {
+		_, ok := (*m)[field]
+
+		return ok
+	}
+
+	return false
+}
+
+// recordGcNumColumn publishes the field→numeric-column map (copy-on-write,
+// lock-free reads). Callers must hold layoutMu.
+func (e *mysqlEngine) recordGcNumColumn(field, column string) {
+	next := make(map[string]string, 1)
+	if m := e.gcnColumns.Load(); m != nil {
+		for k, v := range *m {
+			next[k] = v
+		}
+	}
+
+	next[field] = column
+	e.gcnColumns.Store(&next)
+}
+
+// gcNumColumnFor returns the numeric twin column for the field, if any.
+func (e *mysqlEngine) gcNumColumnFor(field string) (string, bool) {
+	if m := e.gcnColumns.Load(); m != nil {
+		column, ok := (*m)[field]
+
+		return column, ok
+	}
+
+	return "", false
 }
 
 // hasGcColumn reports whether a generated column was already recorded for

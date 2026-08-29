@@ -13,7 +13,7 @@ import (
 func (e *dgraphEngine) SetAdd(ctx context.Context, col string, key any) error {
 	keyStr := fmt.Sprint(key)
 
-	req := &api.Request{CommitNow: true}
+	req := &api.Request{}
 	req.Query = `query entry($col: string, $key: string) {
 		entry as var(func: eq(cqrs.set_collection, $col)) @filter(eq(cqrs.set_key, $key))
 	}`
@@ -30,7 +30,7 @@ func (e *dgraphEngine) SetAdd(ctx context.Context, col string, key any) error {
 		{SetJson: createJSON, Cond: "@if(eq(len(entry), 0))"},
 	}
 
-	if _, err := e.client.NewTxn().Do(ctx, req); err != nil {
+	if _, err := e.doWrite(ctx, req); err != nil {
 		return fmt.Errorf("dgraphengine.SetAdd: %w", err)
 	}
 
@@ -46,7 +46,7 @@ func (e *dgraphEngine) SetContains(ctx context.Context, col string, key any) (bo
 		}
 	}`
 
-	resp, err := e.client.NewReadOnlyTxn().
+	resp, err := e.readTx().
 		QueryWithVars(ctx, q, map[string]string{"$col": col, "$key": keyStr})
 	if err != nil {
 		return false, fmt.Errorf("dgraphengine.SetContains: %w", err)

@@ -81,6 +81,11 @@ type ListOptions struct {
 
 	// After is the cursor for the next page.
 	// Pass the last StreamListing.ID from the previous Page.
+	//
+	// Caveat: After matches ID strings across stream types when Type is
+	// empty. Two streams of DIFFERENT types sharing one ID value can
+	// skip or repeat entries around the page boundary. Always paginate
+	// with a concrete Type, or guarantee IDs are globally unique.
 	After id.StreamID
 
 	// Limit is the maximum number of items per page.

@@ -153,16 +153,18 @@ func (e *duckdbEngine) ExplainAggregateQuery(
 		}
 	}
 
-	// WHERE / AND filters.
+	// WHERE / AND filters. The planned path's FROM has no WHERE, so the
+	// helper manages the WHERE/AND connector; the standard path's FROM
+	// already emitted WHERE collection = $1 (nil = always AND).
 	whereStarted := false
 
-	for _, f := range opts.Filters {
-		if plan.Table != "" && !whereStarted {
-			b.WriteString(" WHERE ")
-			whereStarted = true
-		}
+	var connector *bool
+	if plan.Table != "" {
+		connector = &whereStarted
+	}
 
-		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
+	for _, f := range opts.Filters {
+		appendDuckDBFilter(&b, &args, &argIdx, connector, f, plan)
 	}
 
 	// GROUP BY.

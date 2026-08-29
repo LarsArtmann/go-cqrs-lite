@@ -112,6 +112,20 @@ func New(opts ...Option) (*QuicTransport, error) {
 	return t, nil
 }
 
+// Healthy reports whether the transport can still accept publishes.
+// Implements [irohengine.LivenessReporter]; consulted by the replicated
+// engine's HealthCheck.
+func (t *QuicTransport) Healthy(_ context.Context) error {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+
+	if t.closed {
+		return irohengine.ErrTransportClosed
+	}
+
+	return nil
+}
+
 // Ticket returns the base32 connection ticket for this endpoint.
 // Share this string with other nodes so they can Connect().
 func (t *QuicTransport) Ticket() (string, error) {

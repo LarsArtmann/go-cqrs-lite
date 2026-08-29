@@ -6,6 +6,9 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -308,26 +311,62 @@ func (e *duckdbEngine) MapDelete(ctx context.Context, col string, key any) error
 // SELECT pass. DuckDB's columnar storage makes this efficient for
 // analytical workloads.
 
+// counterBatchRows caps the rows per INSERT statement: one round trip per
+// chunk instead of one per delta key. The chunk also keeps any single
+// statement well under DuckDB's parameter budget.
+const counterBatchRows = 256
+
 func (e *duckdbEngine) CounterIncrement(
 	ctx context.Context,
 	col string,
 	deltas metaengine.Delta,
 ) error {
-	// Increment each delta individually. DuckDB's ON CONFLICT requires
-	// per-row upsert — multi-row VALUES with ON CONFLICT is not supported
-	// in the same way as Postgres. Each upsert is still fast due to
-	// DuckDB's vectorized execution engine.
-	for key, delta := range deltas {
-		_, err := e.conn().ExecContext(
-			ctx,
-			`INSERT INTO meta_counter (collection, key, value)
-			 VALUES ($1, $2, $3)
-			 ON CONFLICT (collection, key) DO UPDATE SET value = meta_counter.value + excluded.value`,
-			col, key, delta,
-		)
-		if err != nil {
-			return fmt.Errorf("duckdbengine.CounterIncrement: %w", err)
+	if len(deltas) == 0 {
+		return nil
+	}
+
+	keys := slices.Collect(maps.Keys(deltas))
+	slices.Sort(keys)
+
+	for start := 0; start < len(keys); start += counterBatchRows {
+		end := min(start+counterBatchRows, len(keys))
+
+		if err := e.counterIncrementChunk(ctx, col, deltas, keys[start:end]); err != nil {
+			return err
 		}
+	}
+
+	return nil
+}
+
+func (e *duckdbEngine) counterIncrementChunk(
+	ctx context.Context,
+	col string,
+	deltas metaengine.Delta,
+	keys []string,
+) error {
+	placeholders := make([]string, len(keys))
+	args := make([]any, 0, 1+len(keys)*2)
+
+	args = append(args, col)
+
+	for i, key := range keys {
+		placeholders[i] = fmt.Sprintf("($1, $%d, $%d)", i*2+2, i*2+3)
+		args = append(args, key, deltas[key])
+	}
+
+	// A multi-row VALUES upsert relies on the caller's delta map having
+	// unique keys — a duplicate target row within one statement is a
+	// DuckDB ON CONFLICT error, not a second increment.
+	_, err := e.conn().ExecContext(
+		ctx,
+		`INSERT INTO meta_counter (collection, key, value)
+		 VALUES `+strings.Join(placeholders, ", ")+`
+		 ON CONFLICT (collection, key) DO UPDATE SET value = meta_counter.value + excluded.value`,
+		args...,
+	)
+	if err != nil {
+		return fmt.Errorf("duckdbengine.CounterIncrement: %w", err)
 	}
 
 	return nil

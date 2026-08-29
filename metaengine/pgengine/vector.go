@@ -176,3 +176,47 @@ func mustMarshalMetadata(meta map[string]any) []byte {
 
 	return data
 }
+
+// VectorCount returns the number of embeddings in the collection via SQL
+// COUNT — no payload transfer. Implements the count member of
+// [metaengine.VectorCounter].
+func (e *pgEngine) VectorCount(ctx context.Context, collection string) (int64, error) {
+	var n int64
+
+	err := e.conn().QueryRowContext(
+		ctx,
+		`SELECT count(*) FROM meta_vector WHERE collection = $1`,
+		collection,
+	).Scan(&n)
+	if err != nil {
+		return 0, fmt.Errorf("pgengine.VectorCount: %w", err)
+	}
+
+	return n, nil
+}
+
+// VectorCollections lists the collections holding at least one embedding.
+// Implements the enumeration member of [metaengine.VectorCounter].
+func (e *pgEngine) VectorCollections(ctx context.Context) ([]string, error) {
+	rows, err := e.conn().QueryContext(
+		ctx,
+		`SELECT DISTINCT collection FROM meta_vector ORDER BY collection`,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("pgengine.VectorCollections: %w", err)
+	}
+	defer rows.Close()
+
+	var out []string
+
+	for rows.Next() {
+		var col string
+		if err := rows.Scan(&col); err != nil {
+			return nil, fmt.Errorf("pgengine.VectorCollections: scan: %w", err)
+		}
+
+		out = append(out, col)
+	}
+
+	return out, rows.Err()
+}

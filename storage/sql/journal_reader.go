@@ -180,7 +180,14 @@ func (r *JournalReader[T]) ReadFrom(ctx context.Context, afterID string, limit i
 		return []T{}, nil
 	}
 
-	query := KeysetPositionQuery(r.Dialect, r.PositionColumns, r.Table, r.TimestampColumn)
+	query, err := KeysetPositionQueryChecked(r.Dialect, r.PositionColumns, r.Table, r.TimestampColumn)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return nil, errorfamily.Wrapf(err, errorfamily.Infrastructure, r.ErrCodeReadFrom,
+			"read from %s store (limit=%d, after=%s)", r.EntityNoun, limit, afterID)
+	}
+
 	args := []any{cursorTS, cursorTS, afterID}
 	query, args = AppendLimit(query, args, limit, r.Dialect.Placeholder(4))
 

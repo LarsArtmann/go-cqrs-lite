@@ -240,3 +240,69 @@ func FuzzBuildWhereClauseChecked_NeverPanics(f *testing.F) {
 		}
 	})
 }
+
+// fuzzOperators spans every kv.Operator plus out-of-range indices so the
+// multi-condition fuzz exercises both the accepted closed set and the
+// rejection path for unknown operators.
+var fuzzOperators = []kv.Operator{
+	kv.OpEq, kv.OpNeq, kv.OpLt, kv.OpLte, kv.OpGt, kv.OpGte,
+	kv.OpLike, kv.OpIn, kv.OpIsNull, kv.OpIsNotNull,
+	"~", "<>", "!LIKE", "", "IS NOT NULL",
+}
+
+// FuzzBuildWhereClauseChecked_MultiCondition fuzzes the builder with TWO
+// independently hostile conditions (column, operator, value each). Invariants:
+// never panic; on error the clause is empty; on success every placeholder in
+// the clause matches the argument count and each column token is a bare
+// identifier.
+func FuzzBuildWhereClauseChecked_MultiCondition(f *testing.F) {
+	ph := func(i int) string { return "?" }
+
+	// Valid seeds: both conditions well-formed across operator kinds.
+	f.Add("name", uint8(0), int64(1), "age", uint8(4), int64(30))
+	f.Add("status", uint8(7), int64(1), "guild_id", uint8(0), int64(2))
+	f.Add("created_at", uint8(9), int64(0), "updated_at", uint8(8), int64(0))
+	f.Add("a", uint8(1), int64(1), "b", uint8(2), int64(2))
+
+	// Hostile seeds: injection payloads in either or both columns.
+	f.Add("col; DROP TABLE x", uint8(0), int64(1), "age", uint8(0), int64(1))
+	f.Add("name", uint8(0), int64(1), "col UNION SELECT email", uint8(0), int64(1))
+	f.Add("' OR 1=1 --", uint8(6), int64(1), "col`x", uint8(4), int64(0))
+	f.Add("events--", uint8(10), int64(0), "occurred_at", uint8(0), int64(1))
+
+	// Out-of-range operator indices hit the rejection path.
+	f.Add("name", uint8(200), int64(1), "age", uint8(201), int64(1))
+
+	f.Fuzz(func(t *testing.T, col1 string, op1 uint8, val1 int64, col2 string, op2 uint8, val2 int64) {
+		if !utf8.ValidString(col1) || !utf8.ValidString(col2) {
+			t.Skip()
+		}
+
+		conditions := []kv.Condition{
+			{Column: col1, Op: fuzzOperators[int(op1)%len(fuzzOperators)], Value: val1},
+			{Column: col2, Op: fuzzOperators[int(op2)%len(fuzzOperators)], Value: val2},
+		}
+
+		clause, args, err := sqlpkg.BuildWhereClauseChecked(conditions, ph)
+		if err != nil {
+			if clause != "" {
+				t.Errorf("error case returned non-empty clause %q", clause)
+			}
+
+			return
+		}
+
+		for _, cond := range conditions {
+			if !sqlpkg.ValidateIdentifier(cond.Column) {
+				t.Errorf("accepted hostile column %q (clause=%q)", cond.Column, clause)
+			}
+		}
+
+		placeholders := strings.Count(clause, "?")
+
+		if placeholders != len(args) {
+			t.Errorf("placeholder/arg mismatch: %d placeholders vs %d args (clause=%q)",
+				placeholders, len(args), clause)
+		}
+	})
+}

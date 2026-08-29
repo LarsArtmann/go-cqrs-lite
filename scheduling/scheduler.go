@@ -11,6 +11,29 @@ import (
 
 // Scheduler polls a TimerStore for due timers and dispatches them.
 // The type parameter P is the timer payload, forwarded to DispatchFunc.
+//
+// # Single-active-instance requirement
+//
+// There is NO claim/lease protocol: two Schedulers polling one TimerStore
+// will BOTH see every due timer and dispatch it twice (the Schedule→Due→
+// MarkFired cycle is not atomic across processes). Run exactly one active
+// Scheduler per store — leader election or a SKIP LOCKED-based
+// ClaimingTimerStore (additive follow-up) is required before scaling out.
+//
+// # Retry semantics
+//
+// dispatchWithRetry retries dispatch errors regardless of error family, so
+// a Rejection (a permanent failure) is retried MaxRetries times per poll
+// cycle, every cycle, forever — and errors.Join keeps only the last
+// attempt's error in the log. Classify dispatch errors or wrap the dispatch
+// func if permanent failures must surface immediately.
+//
+// # MarkFired race
+//
+// MarkFired deletes by timer ID with no epoch check. A timer re-scheduled
+// under the same ID while a dispatch is still in flight can be deleted by
+// the in-flight dispatch's MarkFired, losing the NEW schedule. Use fresh
+// timer IDs per logical deadline to avoid the race.
 type Scheduler[P any] struct {
 	store    TimerStore[P]
 	dispatch DispatchFunc[P]

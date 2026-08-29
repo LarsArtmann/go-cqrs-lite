@@ -1,0 +1,7 @@
+go test fuzz v1
+string("col\u00e9")
+uint8(255)
+int64(1)
+string("col\u2028")
+uint8(9)
+int64(2)

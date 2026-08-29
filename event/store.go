@@ -57,6 +57,14 @@ type MultiSink interface {
 
 // EventSource is the read side of event persistence.
 // Loads events, never writes.
+//
+// # Missing-stream contract
+//
+// Load and LoadFromVersion return (nil, ErrStreamNotFound) when the stream
+// does not exist. In-memory and SQL stores do this today; pebble/bbolt
+// currently return (nil, nil) — a divergence scheduled for alignment at v5.
+// Consumers must treat both shapes as "no events" and must NOT rely on the
+// (nil, nil) shape.
 type EventSource interface {
 	// Load retrieves all events for a stream.
 	Load(
@@ -110,6 +118,14 @@ type Journal interface {
 // Position is based on event ID ordering. ULID-based IDs are time-sortable, making
 // them suitable for position-based loading. Using non-monotonic IDs may produce
 // incorrect results.
+//
+// # Dangling-cursor contract
+//
+// ReadFrom with an afterEventID that no longer exists (e.g. pruned journal)
+// returns zero events and a nil error — the drain ends. SQL/pebble/bbolt
+// implement this shape; memory replays from the start instead. The SQL shape
+// (empty tail) is the pinned contract: replaying the full journal from a
+// stale cursor would silently duplicate events into projections.
 type SeekableJournal interface {
 	Journal
 

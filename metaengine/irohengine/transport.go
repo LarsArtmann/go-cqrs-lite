@@ -210,3 +210,47 @@ func (pt *peerTransport) deliver(op WriteOp) {
 		s(op)
 	}
 }
+
+// LivenessReporter is an optional Transport capability: a transport that can
+// report whether it is still usable WITHOUT sending application data. The
+// replicated engine's HealthCheck consults it so a closed network surfaces as
+// an unhealthy engine instead of silently dropping replication traffic.
+type LivenessReporter interface {
+	Healthy(ctx context.Context) error
+}
+
+// Shutdown marks the whole network closed: every subsequent delivery is
+// dropped and Healthy reports ErrTransportClosed. Peer transports stay
+// individually closeable via Close.
+func (n *InProcessNetwork) Shutdown() {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+	n.closed = true
+}
+
+// Healthy reports whether the network can still deliver ops. Implements
+// [LivenessReporter].
+func (n *InProcessNetwork) Healthy(_ context.Context) error {
+	n.mu.RLock()
+	defer n.mu.RUnlock()
+
+	if n.closed {
+		return ErrTransportClosed
+	}
+
+	return nil
+}
+
+// Healthy reports whether this peer's transport (and its backing network) can
+// still deliver ops. Implements [LivenessReporter].
+func (p *peerTransport) Healthy(ctx context.Context) error {
+	p.mu.RLock()
+	closed := p.closed
+	p.mu.RUnlock()
+
+	if closed {
+		return ErrTransportClosed
+	}
+
+	return p.network.Healthy(ctx)
+}

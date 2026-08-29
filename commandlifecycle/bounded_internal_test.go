@@ -2,6 +2,7 @@ package commandlifecycle
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -41,12 +42,67 @@ func TestBoundedMap_UpdateDoesNotEvict(t *testing.T) {
 
 func TestBoundedMap_UnboundedWhenCapacityNonPositive(t *testing.T) {
 	m := newBoundedMap[int](0)
-	for i := range 100 {
-		m.put(string(rune('a'+i%26)), i)
+	const total = 1000
+
+	for i := range total {
+		m.put(fmt.Sprintf("key-%d", i), i)
 	}
 
-	if m.len() == 0 {
-		t.Fatal("expected unbounded map to keep entries")
+	if m.len() != total {
+		t.Fatalf("unbounded map must keep every distinct entry, got %d want %d", m.len(), total)
+	}
+
+	for i := range total {
+		if _, ok := m.get(fmt.Sprintf("key-%d", i)); !ok {
+			t.Fatalf("unbounded map lost key-%d", i)
+		}
+	}
+}
+
+func TestBoundedMap_DeleteHeavyWorkloadCompactsOrder(t *testing.T) {
+	m := newBoundedMap[int](0)
+	const rounds = 10000
+
+	for i := range rounds {
+		key := fmt.Sprintf("key-%d", i)
+		m.put(key, i)
+		m.delete(key)
+	}
+
+	if m.len() != 0 {
+		t.Fatalf("all entries deleted, got len %d", m.len())
+	}
+
+	m.put("survivor", 1)
+
+	if len(m.order) > compactStaleThreshold+2 {
+		t.Fatalf("order slice retained %d stale keys after delete-heavy workload (compaction failed)",
+			len(m.order))
+	}
+
+	if v, ok := m.get("survivor"); !ok || v != 1 {
+		t.Fatalf("post-compaction put broken, got %d ok=%v", v, ok)
+	}
+}
+
+func TestBoundedMap_CapacityBoundHoldsAcrossCompaction(t *testing.T) {
+	m := newBoundedMap[int](8)
+
+	for i := range 2000 {
+		m.put(fmt.Sprintf("key-%d", i), i)
+
+		if i%3 == 0 {
+			m.delete(fmt.Sprintf("key-%d", i))
+		}
+	}
+
+	if m.len() > 8 {
+		t.Fatalf("entries exceeded capacity after mixed put/delete: %d", m.len())
+	}
+
+	if len(m.order) > 8+compactStaleThreshold {
+		t.Fatalf("order slice not compacted: %d entries for %d live keys",
+			len(m.order), m.len())
 	}
 }
 

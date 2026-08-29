@@ -1,0 +1,52 @@
+name: Fuzz Nightly
+
+on:
+  # Nightly short-burst fuzzing of the SQL-injection gates. The seed corpus
+  # under storage/sql/testdata/fuzz runs on every CI push via `go test`;
+  # this workflow adds live mutation beyond the seeds.
+  schedule:
+    - cron: "30 3 * * *" # 03:30 UTC daily, after the benchmark nightly
+  # Manual trigger
+  workflow_dispatch:
+
+jobs:
+  fuzz:
+    name: Fuzz storage/sql injection gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: cachix/install-nix-action@ba0dd844c9180cbf77aa72a116d6fbc515d0e87b
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc
+        with:
+          name: larsartmann
+          skipPush: true
+
+      - name: Fuzz identifier + WHERE validation (60s per target)
+        working-directory: storage
+        run: |
+          export GOWORK=off
+          export GOCACHE=/tmp/gocache-fuzz GOMODCACHE=/tmp/gomod-fuzz
+          for target in \
+            FuzzValidateIdentifier_RejectsAllNonIdentifiers \
+            FuzzValidateIdentifier_MetacharacterCombinations \
+            FuzzBuildWhereClauseChecked_NeverPanics \
+            FuzzBuildWhereClauseChecked_MultiCondition; do
+            echo "::group::$target"
+            GOTOOLCHAIN=auto go test -tags "goexperiment.jsonv2" \
+              -run "^${target}$" -fuzz "^${target}$" -fuzztime 60s ./sql/
+            echo "::endgroup::"
+          done
+
+      - name: Upload failure corpus on crash
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fuzz-failure-corpus
+          path: storage/sql/testdata/fuzz/
+          if-no-files-found: ignore

@@ -13,3 +13,8 @@ var (
 	ErrSpatialBackendNotImplemented = errors.New("local engine does not implement SpatialBackend")
 	ErrVectorBackendNotImplemented  = errors.New("local engine does not implement VectorBackend")
 )
+
+// ErrTransportClosed reports a transport that can no longer deliver ops.
+// Returned by LivenessReporter implementations (and surfaced through
+// HealthCheck) after Close or network shutdown.
+var ErrTransportClosed = errors.New("transport closed")

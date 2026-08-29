@@ -72,14 +72,27 @@ func columnExpr(column string, plan metaengine.LayoutPlan) string {
 
 // appendDuckDBFilter adds one filter clause to the builder for DuckDB SQL.
 // On the standard path, uses json_extract + $N::json; on the planned path,
-// uses direct column + $N.
+// uses direct column + $N. The connector is " WHERE " on the first call when
+// whereStarted is non-nil (first call flips it true), and " AND " afterwards
+// or always when whereStarted is nil (standard paths whose FROM clause
+// already emitted WHERE collection = $1).
 func appendDuckDBFilter(
 	b *strings.Builder,
 	args *[]any,
 	argIdx *int,
+	whereStarted *bool,
 	f metaengine.FilterSpec,
 	plan metaengine.LayoutPlan,
 ) {
+	connector := " AND "
+	if whereStarted != nil {
+		if !*whereStarted {
+			b.WriteString(" WHERE ")
+			*whereStarted = true
+
+			connector = ""
+		}
+	}
 	if f.Op == metaengine.FilterIn {
 		values, ok := f.Value.([]any)
 		if !ok || len(values) == 0 {
@@ -102,7 +115,8 @@ func appendDuckDBFilter(
 
 		fmt.Fprintf(
 			b,
-			" AND %s IN (%s)",
+			"%s%s IN (%s)",
+			connector,
 			columnExpr(f.Column, plan),
 			strings.Join(placeholders, ", "),
 		)
@@ -111,17 +125,18 @@ func appendDuckDBFilter(
 			f.Op == metaengine.FilterGt || f.Op == metaengine.FilterGe
 
 		if plan.Table != "" {
-			fmt.Fprintf(b, " AND %s %s $%d", columnExpr(f.Column, plan), string(f.Op), *argIdx)
+			fmt.Fprintf(b, "%s%s %s $%d", connector, columnExpr(f.Column, plan), string(f.Op), *argIdx)
 			*args = append(*args, f.Value)
 		} else if isNumericOp {
-			fmt.Fprintf(b, " AND CAST(%s AS DOUBLE) %s $%d",
+			fmt.Fprintf(b, "%sCAST(%s AS DOUBLE) %s $%d", connector,
 				columnExpr(f.Column, plan), string(f.Op), *argIdx)
 			*args = append(*args, f.Value)
 		} else {
 			jb, _ := json.Marshal(f.Value)
 			fmt.Fprintf(
 				b,
-				" AND %s %s $%d::json",
+				"%s%s %s $%d::json",
+				connector,
 				columnExpr(f.Column, plan),
 				string(f.Op),
 				*argIdx,
@@ -209,7 +224,7 @@ func (e *duckdbEngine) aggregateStandard(
 	)
 
 	for _, f := range filters {
-		appendDuckDBFilter(&b, &args, &argIdx, f, metaengine.LayoutPlan{})
+		appendDuckDBFilter(&b, &args, &argIdx, nil, f, metaengine.LayoutPlan{})
 	}
 
 	return e.scanScalar(ctx, b.String(), args, col, fn, column)
@@ -232,12 +247,7 @@ func (e *duckdbEngine) aggregatePlanned(
 	whereStarted := false
 
 	for _, f := range filters {
-		if !whereStarted {
-			b.WriteString(" WHERE ")
-			whereStarted = true
-		}
-
-		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
+		appendDuckDBFilter(&b, &args, &argIdx, &whereStarted, f, plan)
 	}
 
 	return e.scanScalar(ctx, b.String(), args, plan.Collection, fn, column)
@@ -297,7 +307,7 @@ func (e *duckdbEngine) groupedAggregateStandard(
 		gExpr, aggExpr(fn, column, plan), fromClause(col, plan))
 
 	for _, f := range filters {
-		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
+		appendDuckDBFilter(&b, &args, &argIdx, nil, f, plan)
 	}
 
 	fmt.Fprintf(&b, " GROUP BY group_key")
@@ -326,12 +336,7 @@ func (e *duckdbEngine) groupedAggregatePlanned(
 	whereStarted := false
 
 	for _, f := range filters {
-		if !whereStarted {
-			b.WriteString(" WHERE ")
-			whereStarted = true
-		}
-
-		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
+		appendDuckDBFilter(&b, &args, &argIdx, &whereStarted, f, plan)
 	}
 
 	fmt.Fprintf(&b, " GROUP BY group_key")
@@ -420,7 +425,7 @@ func (e *duckdbEngine) multiAggregateStandard(
 	fmt.Fprintf(&b, "SELECT %s %s", strings.Join(selectCols, ", "), fromClause(col, plan))
 
 	for _, f := range filters {
-		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
+		appendDuckDBFilter(&b, &args, &argIdx, nil, f, plan)
 	}
 
 	return e.scanMulti(ctx, b.String(), args, specs)
@@ -456,12 +461,7 @@ func (e *duckdbEngine) multiAggregatePlanned(
 	whereStarted := false
 
 	for _, f := range filters {
-		if !whereStarted {
-			b.WriteString(" WHERE ")
-			whereStarted = true
-		}
-
-		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
+		appendDuckDBFilter(&b, &args, &argIdx, &whereStarted, f, plan)
 	}
 
 	return e.scanMulti(ctx, b.String(), args, specs)
@@ -533,7 +533,7 @@ func (e *duckdbEngine) multiGroupedAggregateStandard(
 	fmt.Fprintf(&b, "SELECT %s %s", strings.Join(selectCols, ", "), fromClause(col, plan))
 
 	for _, f := range filters {
-		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
+		appendDuckDBFilter(&b, &args, &argIdx, nil, f, plan)
 	}
 
 	fmt.Fprintf(&b, " GROUP BY group_key")
@@ -577,12 +577,7 @@ func (e *duckdbEngine) multiGroupedAggregatePlanned(
 	whereStarted := false
 
 	for _, f := range filters {
-		if !whereStarted {
-			b.WriteString(" WHERE ")
-			whereStarted = true
-		}
-
-		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
+		appendDuckDBFilter(&b, &args, &argIdx, &whereStarted, f, plan)
 	}
 
 	fmt.Fprintf(&b, " GROUP BY group_key")
@@ -674,7 +669,7 @@ func (e *duckdbEngine) distinctStandard(
 	fmt.Fprintf(&b, "SELECT DISTINCT %s AS dv %s", columnExpr(column, plan), fromClause(col, plan))
 
 	for _, f := range filters {
-		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
+		appendDuckDBFilter(&b, &args, &argIdx, nil, f, plan)
 	}
 
 	return metaengine.ScanDistinctValues(
@@ -707,12 +702,7 @@ func (e *duckdbEngine) distinctPlanned(
 	whereStarted := false
 
 	for _, f := range filters {
-		if !whereStarted {
-			b.WriteString(" WHERE ")
-			whereStarted = true
-		}
-
-		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
+		appendDuckDBFilter(&b, &args, &argIdx, &whereStarted, f, plan)
 	}
 
 	return metaengine.ScanDistinctValues(

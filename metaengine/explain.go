@@ -152,6 +152,7 @@ func (s *Store) ExplainPlan() string {
 	}
 
 	b.WriteString(explainCapabilityWarnings(s.engines))
+	b.WriteString(explainVectorWarnings(s.engines))
 
 	b.WriteString("\n--- Queries ---\n")
 
@@ -186,6 +187,91 @@ func (s *Store) ExplainPlan() string {
 		for _, d := range s.plan.Diagnostics {
 			fmt.Fprintf(&b, "  %s\n", d)
 		}
+	}
+
+	return b.String()
+}
+
+// explainVectorWarnings renders one WARN line per engine that serves vector
+// k-NN by full scan without size introspection (VectorBackend but no
+// VectorCounter). Empty when no engine is in that state.
+func explainVectorWarnings(engines []Engine) string {
+	var lines []string
+
+	for _, eng := range engines {
+		if _, isVB := eng.(VectorBackend); !isVB {
+			continue
+		}
+
+		if _, counts := eng.(VectorCounter); counts {
+			continue
+		}
+
+		lines = append(lines, fmt.Sprintf(
+			"  WARN vector: %s serves k-NN by full scan and cannot report "+
+				"collection sizes (no VectorCounter); latency grows linearly "+
+				"with collection size\n", eng.Profile().Name))
+	}
+
+	if len(lines) == 0 {
+		return ""
+	}
+
+	return "\n--- Vector Warnings ---\n" + strings.Join(lines, "")
+}
+
+// vectorDoctorSection renders per-collection embedding counts for engines
+// with size introspection, and the full-scan WARN for those without.
+func vectorDoctorSection(ctx context.Context, engines []Engine) string {
+	var b strings.Builder
+
+	b.WriteString("\n--- Vectors ---\n")
+
+	reported := false
+
+	for _, eng := range engines {
+		vc, counts := eng.(VectorCounter)
+		if !counts {
+			continue
+		}
+
+		cols, err := vc.VectorCollections(ctx)
+		if err != nil {
+			fmt.Fprintf(&b, "  %s: ERROR listing collections: %v\n", eng.Profile().Name, err)
+
+			continue
+		}
+
+		for _, col := range cols {
+			n, err := vc.VectorCount(ctx, col)
+			if err != nil {
+				fmt.Fprintf(&b, "  %s/%s: ERROR counting: %v\n", eng.Profile().Name, col, err)
+
+				continue
+			}
+
+			fmt.Fprintf(&b, "  %s/%s: %d vectors\n", eng.Profile().Name, col, n)
+		}
+
+		reported = true
+	}
+
+	for _, eng := range engines {
+		if _, isVB := eng.(VectorBackend); !isVB {
+			continue
+		}
+
+		if _, counts := eng.(VectorCounter); counts {
+			continue
+		}
+
+		fmt.Fprintf(&b, "  %s: WARN full-scan vector search (no VectorCounter)\n",
+			eng.Profile().Name)
+		reported = true
+	}
+
+	if !reported {
+		b.WriteString("  no engine serves vector search\n")
 	}
 
 	return b.String()
@@ -261,6 +347,8 @@ func (s *Store) Doctor(ctx context.Context) string {
 	if !reported {
 		b.WriteString("  no engine reports an effective durability tier\n")
 	}
+
+	b.WriteString(vectorDoctorSection(ctx, engines))
 
 	b.WriteString("\n--- Replication ---\n")
 

@@ -21,7 +21,7 @@ func (e *dgraphEngine) SearchInsert(
 	col string,
 	doc metaengine.IndexedText,
 ) error {
-	req := &api.Request{CommitNow: true}
+	req := &api.Request{}
 	req.Query = `query doc($col: string, $id: string) {
 		doc as var(func: eq(cqrs.search_collection, $col)) @filter(eq(cqrs.search_id, $id))
 	}`
@@ -45,7 +45,7 @@ func (e *dgraphEngine) SearchInsert(
 		{SetJson: updateJSON, Cond: "@if(eq(len(doc), 1))"},
 	}
 
-	if _, err := e.client.NewTxn().Do(ctx, req); err != nil {
+	if _, err := e.doWrite(ctx, req); err != nil {
 		return fmt.Errorf("dgraphengine.SearchInsert: %w", err)
 	}
 
@@ -68,7 +68,7 @@ func (e *dgraphEngine) SearchQuery(
 		}
 	}`, firstClause)
 
-	resp, err := e.client.NewReadOnlyTxn().
+	resp, err := e.readTx().
 		QueryWithVars(ctx, q, map[string]string{"$col": collection, "$query": query})
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.SearchQuery: %w", err)

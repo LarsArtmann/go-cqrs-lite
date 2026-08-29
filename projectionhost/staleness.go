@@ -2,6 +2,7 @@ package projectionhost
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -31,6 +32,14 @@ var ErrProjectionStale = errorfamily.NewTransient(
 func (h *Host) CheckStaleness(maxStaleness time.Duration) error {
 	if maxStaleness <= 0 {
 		return nil
+	}
+
+	if failed := h.failedWorkers(); failed != "" {
+		return errorfamily.Wrapf(
+			ErrProjectionStale, errorfamily.Transient,
+			"projectionhost.check_staleness",
+			"worker(s) failed, read model may be incomplete: %s", failed,
+		)
 	}
 
 	lag := h.LagDuration()
@@ -72,6 +81,14 @@ func (h *Host) CheckProjectionStaleness(name string, maxStaleness time.Duration)
 		)
 	}
 
+	if h.isWorkerFailed(name) {
+		return errorfamily.Wrapf(
+			ErrProjectionStale, errorfamily.Transient,
+			"projectionhost.check_projection_staleness",
+			"worker for %q failed, read model may be incomplete", name,
+		)
+	}
+
 	if lag == 0 {
 		return nil
 	}
@@ -85,4 +102,34 @@ func (h *Host) CheckProjectionStaleness(name string, maxStaleness time.Duration)
 	}
 
 	return nil
+}
+
+// failedWorkers returns the semicolon-separated names of failed workers,
+// or "" when none are. A failed worker stops consuming: its read model can
+// no longer be assumed fresh even when lag reads zero.
+func (h *Host) failedWorkers() string {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	var failed []string
+
+	for _, w := range h.workers {
+		if w.snapshot().Status == WorkerFailed {
+			failed = append(failed, w.name)
+		}
+	}
+
+	return strings.Join(failed, ";")
+}
+
+func (h *Host) isWorkerFailed(name string) bool {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	w, ok := h.workers[name]
+	if !ok {
+		return false
+	}
+
+	return w.snapshot().Status == WorkerFailed
 }

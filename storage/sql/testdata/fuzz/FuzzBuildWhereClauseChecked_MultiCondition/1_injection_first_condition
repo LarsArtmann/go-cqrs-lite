@@ -1,0 +1,7 @@
+go test fuzz v1
+string("events; DROP TABLE events")
+uint8(0)
+int64(1)
+string("occurred_at")
+uint8(0)
+int64(2)

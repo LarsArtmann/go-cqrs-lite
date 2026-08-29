@@ -204,3 +204,91 @@ func TestMariaDBApplyLayout_GeneratedColumnFilter(t *testing.T) {
 		t.Fatalf("ApplyLayout re-apply: %v", err)
 	}
 }
+
+// TestMariaDBApplyLayout_SortPathUsesGeneratedColumns verifies T39: after
+// ApplyLayout with a sort field, PushdownMapScan renders ORDER BY (and the
+// cursor predicate) against the generated twin columns — numeric order stays
+// correct, text order stays lexical, and keyset pagination keeps working.
+func TestMariaDBApplyLayout_SortPathUsesGeneratedColumns(t *testing.T) {
+	t.Parallel()
+
+	mariadbVersion(t)
+
+	collection := "layout_mariadb_sort"
+
+	eng := mustNewMySQLEngine(t)
+	ctx := context.Background()
+
+	mb := eng.(metaengine.MapBackend)
+	ps := eng.(metaengine.PushdownScan)
+
+	docs := map[string]map[string]any{
+		"n1": {"priority": float64(2), "title": "zeta"},
+		"n2": {"priority": float64(10), "title": "alpha"},
+		"n3": {"priority": float64(9), "title": "kilo"},
+		"n4": {"priority": float64(100), "title": "mike"},
+		"n5": {"priority": float64(3), "title": "delta"},
+	}
+	for k, v := range docs {
+		if err := mb.MapSet(ctx, collection, k, v); err != nil {
+			t.Fatalf("MapSet %s: %v", k, err)
+		}
+	}
+
+	if err := eng.(metaengine.LayoutPlanner).ApplyLayout(collection, nil, []string{"priority"}); err != nil {
+		t.Fatalf("ApplyLayout: %v", err)
+	}
+
+	// Numeric sort: 2 < 3 < 9 < 10 < 100 — the DECIMAL twin must keep
+	// numeric order (the TEXT column alone would text-sort "10" < "2").
+	results, err := ps.PushdownMapScan(ctx, collection, nil,
+		&metaengine.SortSpec{Column: "priority"}, nil, 0)
+	if err != nil {
+		t.Fatalf("PushdownMapScan sorted: %v", err)
+	}
+
+	got := extractFloatField(results.Items, "priority")
+	want := []float64{2, 3, 9, 10, 100}
+
+	if len(got) != len(want) {
+		t.Fatalf("sorted scan returned %d items, want %d: %v", len(got), len(want), got)
+	}
+
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("numeric order broken via generated columns: got %v", got)
+		}
+	}
+
+	// Keyset pagination through the same twin-column sort and cursor.
+	var pageVals []float64
+
+	var cursor any
+
+	for range 5 {
+		page, err := ps.PushdownMapScan(ctx, collection, nil,
+			&metaengine.SortSpec{Column: "priority"}, cursor, 2)
+		if err != nil {
+			t.Fatalf("paginated scan: %v", err)
+		}
+
+		vals := extractFloatField(page.Items, "priority")
+		pageVals = append(pageVals, vals...)
+
+		if !page.HasMore {
+			break
+		}
+
+		cursor = vals[len(vals)-1]
+	}
+
+	if len(pageVals) != len(want) {
+		t.Fatalf("paginated scan returned %d items, want %d: %v", len(pageVals), len(want), pageVals)
+	}
+
+	for i := range want {
+		if pageVals[i] != want[i] {
+			t.Fatalf("paginated numeric order broken: got %v", pageVals)
+		}
+	}
+}

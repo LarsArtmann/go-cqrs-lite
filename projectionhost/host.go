@@ -101,13 +101,28 @@ func (h *Host) Register(p projection.Projection) error {
 			fmt.Sprintf("projection %q already registered", name))
 	}
 
-	h.workers[name] = &worker{ //nolint:exhaustruct // counters start at zero
+	h.workers[name] = newWorker(name, p, h.journal, h.cpStore, h.opts)
+
+	return nil
+}
+
+// newWorker builds a worker with fresh stop/done channels and dedup state.
+// Used by Register and by the Stop→Start restart path, where the old
+// workers' stop channels are already closed and cannot be reused.
+func newWorker(
+	name string,
+	p projection.Projection,
+	journal event.SeekableJournal,
+	cpStore event.CheckpointStore,
+	opts hostOptions,
+) *worker {
+	return &worker{ //nolint:exhaustruct // counters start at zero
 		name:       name,
 		projection: p,
-		journal:    h.journal,
-		cpStore:    h.cpStore,
-		opts:       h.opts,
-		logger:     h.opts.logger,
+		journal:    journal,
+		cpStore:    cpStore,
+		opts:       opts,
+		logger:     opts.logger,
 		seenIDs:    dedup.NewRing(dedup.DefaultCapacity),
 		typeSet:    buildTypeSet(p.EventTypes()),
 		state: WorkerState{ //nolint:exhaustruct // zero-value counters
@@ -117,8 +132,6 @@ func (h *Host) Register(p projection.Projection) error {
 		stop: make(chan struct{}),
 		done: make(chan struct{}),
 	}
-
-	return nil
 }
 
 // Start launches a goroutine per registered projection and returns immediately.
@@ -133,7 +146,7 @@ func (h *Host) Register(p projection.Projection) error {
 // Returns an error if already started.
 func (h *Host) Start(ctx context.Context) error {
 	h.mu.Lock()
-	if h.started {
+	if h.started && !h.stopped {
 		h.mu.Unlock()
 
 		return errorfamily.NewRejection(
@@ -142,6 +155,17 @@ func (h *Host) Start(ctx context.Context) error {
 		)
 	}
 
+	// Restart path (after Stop): the previous workers are exited and their
+	// stop channels closed for good, so build fresh ones for the same
+	// projections. This makes the documented Stop→Reset→Start rebuild
+	// recipe actually work.
+	if h.started && h.stopped {
+		for name, w := range h.workers {
+			h.workers[name] = newWorker(name, w.projection, h.journal, h.cpStore, h.opts)
+		}
+	}
+
+	h.stopped = false
 	h.started = true
 	runCtx, cancel := context.WithCancel(ctx)
 	h.cancel = cancel

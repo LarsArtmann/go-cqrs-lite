@@ -84,7 +84,13 @@ func (h *Host) ReplayDeadLetters(ctx context.Context, projectionName string) (Re
 			continue
 		}
 
-		if err := w.projection.Handle(ctx, entry.Event); err != nil {
+		// handleMu serializes with a concurrently running worker's drain
+		// and live callback — the same lock the worker itself takes.
+		w.handleMu.Lock()
+		err := w.projection.Handle(ctx, entry.Event)
+		w.handleMu.Unlock()
+
+		if err != nil {
 			h.opts.logger.Warn("dead-letter replay still failing",
 				"projection", entry.ProjectionName,
 				"event_id", entry.EventID, "error", err)

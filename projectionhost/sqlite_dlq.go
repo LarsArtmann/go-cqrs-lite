@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/larsartmann/go-codec"
@@ -63,6 +64,17 @@ CREATE INDEX IF NOT EXISTS idx_pdl_failed_at ON projection_dead_letters(failed_a
 // The *sql.DB is NOT closed by Close — the caller owns it.
 type SQLiteDeadLetterStore struct {
 	db *sql.DB
+
+	// skipped counts rows List could not decode. One corrupt row must not
+	// brick List/ReplayDeadLetters for every healthy entry.
+	skipped atomic.Int64
+}
+
+// SkippedCount reports how many dead-letter rows List has skipped as
+// undecodable since the store was opened. A non-zero value means the table
+// contains corrupt rows worth inspecting.
+func (s *SQLiteDeadLetterStore) SkippedCount() int64 {
+	return s.skipped.Load()
 }
 
 // NewSQLiteDeadLetterStore creates a SQLite-backed dead-letter store.
@@ -194,7 +206,12 @@ func (s *SQLiteDeadLetterStore) List(
 	for rows.Next() {
 		entry, err := scanDLQRow(rows)
 		if err != nil {
-			return nil, err
+			// One corrupt row (hand-edited DB, partial write from an old
+			// bug) must not brick listing and replay for every healthy
+			// entry. Skip it; the row stays in the table for inspection.
+			s.skipped.Add(1)
+
+			continue
 		}
 
 		result = append(result, entry)

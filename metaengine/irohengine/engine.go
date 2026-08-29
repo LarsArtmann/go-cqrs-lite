@@ -66,6 +66,29 @@ func (e *replicatedEngine) Close() error {
 	return e.local.Close()
 }
 
+// HealthCheck verifies the replication stack is responsive: the local engine
+// (when it implements [metaengine.HealthChecker]) and the transport (when it
+// implements [LivenessReporter]). A transport with no liveness report is
+// assumed healthy — there is no application-data-free probe for it.
+// Implements [metaengine.HealthChecker].
+func (e *replicatedEngine) HealthCheck(ctx context.Context) error {
+	if hc, ok := e.local.(metaengine.HealthChecker); ok {
+		if err := hc.HealthCheck(ctx); err != nil {
+			return fmt.Errorf("iroh: local engine: %w", err)
+		}
+	}
+
+	if e.cfg.transport != nil {
+		if lr, ok := e.cfg.transport.(LivenessReporter); ok {
+			if err := lr.Healthy(ctx); err != nil {
+				return fmt.Errorf("iroh: transport: %w", err)
+			}
+		}
+	}
+
+	return nil
+}
+
 // publish sends a WriteOp to remote nodes. No re-entrancy guard needed:
 // applyRemote calls the local engine directly, never the wrapper methods,
 // so publish cannot be triggered from a remote-op application.
