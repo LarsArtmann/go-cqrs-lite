@@ -318,3 +318,35 @@ Findings:
   values are disclosed in the `scoreEmbed` doc comment.
 - All 16 matrix winners are unchanged; the fragile LSM × Balanced margin went
   0.01 → 0.28 (`layout_matrix_test.go`).
+
+## Addendum: planned extracted-column tables vs generated columns (2026-08-30)
+
+Two acceleration mechanisms coexist for map-heavy collections; they solve
+different problems and are not competing:
+
+**Generated twin columns (`gcn_<f>_<h>`, DuckDB/MySQL meta_map path)** —
+expression columns derived from the JSON value INSIDE meta_map, indexed.
+Choose when: the collection must stay single-table (no dual-write window),
+data predates the layout decision (generated columns backfill implicitly),
+or only 1-3 fields need acceleration. Cost: every write rewrites the JSON
+value and the generated columns; filters still decode JSON for non-covered
+predicates.
+
+**Planned extracted-column tables (`meta_planned_<collection>` via
+`LayoutPlanApplier.ApplyLayoutPlan`, pg + mysql; native tables on
+sqlite/duckdb/pebble)** — rows live in a dedicated table with typed columns
+and declared indexes; MapSet/MapGet/MapDelete/MapUpdate/PushdownMapScan/
+MapScan route through it. Choose when: the collection is new (or a
+no-backfill cutover is acceptable — pre-registration rows stay in meta_map
+and are NOT visible to planned reads), write volume matters (no JSON
+rewrite per column), or numeric ordering must be native (REAL/INTEGER
+columns; the meta_map path needs DECIMAL twin columns for numeric-safe
+sorts on MySQL). Counters, graph, and aggregate operations deliberately
+STAY on their native meta_map paths for planned collections.
+
+Decision rule: new collections with known query fields → planned tables via
+`BuildLayoutPlanFromType[R]` (reflection-derived column types). Existing
+data needing acceleration without migration → generated columns via
+`ApplyLayout`. Mis-typed filter/sort/cursor values against planned columns
+fail at query-build time as `ErrPlannedColumnTypeMismatch` (Rejection); the
+meta_map path keeps runtime JSONB semantics.
