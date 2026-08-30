@@ -21,7 +21,7 @@ and is **never** duplicated here.
 
 **Metaengine**
 
-- [ ] **pgEngine/mysqlEngine `LayoutPlanApplier` + planned-layout schema evolution** — SHARPENED 2026-08-29 (session 2): verified NEITHER engine has ANY planned-table support (no ApplyLayoutPlan/registerLayout/planned read-write paths at all) — this is not an evolution patch but a full port of sqliteengine/planned.go (302 lines) + duckdbengine/layout_planner.go (349 lines) to two dialects: CREATE TABLE from LayoutPlan.ColumnType, typed write path (no name heuristics), planned reads, information_schema-driven ALTER TABLE ADD COLUMN evolution, planned filter/sort pushdown. Effort: L (needs ephemeral PG + MariaDB matrix). SQLite/DuckDB appliers exist.
+- [PARTIAL ✓ 2026-08-30 session 4] **pgEngine/mysqlEngine `LayoutPlanApplier` + planned-layout schema evolution** — DONE (D1/D2, commits `b8aa29d96` + `6c7e08f4a`): `metaengine.LayoutPlanApplier` implemented in BOTH engines (`metaengine/pgengine/planned.go`, `metaengine/mysqlengine/planned.go`) — per-collection extracted-column tables (PG: JSONB value + DOUBLE PRECISION/BIGINT/TEXT columns; MySQL: backtick identifiers, split DDL, ON DUPLICATE KEY upserts), MapSet/MapGet/MapDelete routed via the `planFor` seam; live PG + MariaDB roundtrip/conflict/mis-type-fail-loud tests green. REMAINING (tracked in the Session-4/5 forward ledger below): planned filter/sort/keyset pushdown (PushdownMapScan/MapScan/MapUpdate still read meta_map), information_schema evolution, reflection-derived LayoutPlanFromType, backfill helper.
       _(Effort: M)_ — sources: status 2026-08-02_21-18/22-17
 - [✓] **DuckDB counter SQL pushdown** — DONE 2026-08-29 (todo-execution session 2) — `CounterIncrement` batches deltas into chunked multi-row upserts (256/stmt) instead of one round trip per key; the filter builders were unified onto a single WHERE/AND-connector `appendDuckDBFilter` (layout_planner + explain now share it). `CounterGet`'s full map IS the CounterBackend contract — no cheaper shape exists; batch INSERT was the real win.
       _(Effort: S)_ — source: status 2026-08-08_01-33
@@ -75,7 +75,7 @@ and is **never** duplicated here.
       _(Effort: XS)_ — source: status 2026-08-08_08-23
 - [✓] **BENCHMARKS.md + skill refs** — DONE 2026-08-29 — durability cells filled (pebble sync/async measured in a quiet window); modules.md bboltengine row present; session 2 added VectorCounter/HealthChecker/Transactional + projectionhost contract notes to modules.md (doc-check green, 931 refs).
       _(Effort: S)_ — source: status 2026-08-17_15-17
-- [ ] **Release docs** — CONTRIBUTING Release Process lacks the pin-bump-before-tag recipe + GOPRIVATE verification commands; durability-tier-mapping ADR never written; Introspection/Doctor don't surface effective durability tiers.
+- [PARTIAL ✓ 2026-08-30 session 4] **Release docs** — DONE (C6/C7, `a6cefd34a`): CONTRIBUTING gained the multi-module pre-tag checklist, the GOPRIVATE/private-fetch verification section, and the Retract-and-republish policy; the durability-tier-mapping ADR exists (`docs/adr/0130-durability-tier-mapping.md`, C4/ADR-0130). REMAINING: Introspection/Doctor don't surface effective durability tiers (tracked in the forward ledger below).
       _(Effort: S)_ — source: status 2026-08-18_20-39
 - [x] **catalog/docserver follow-ups** — DONE 2026-08-29 (plan V3 T36): docs-ui.css GET test added; go-snaps decision = stays counted in catalog's production dep budget (documented in check-module-layers.sh); cId-value-change CHANGELOG note written; README deps table added; templ drift gate shipped as `nix run .#check-templ`; CSP nonce support landed (Config.EnableCSP, per-request nonces on every script); EventCatalog CLI real-render validation executed against @eventcatalog/core ^4.6.3 — it caught a real exporter bug (producers/consumers now emit versioned reference strings).
       _(Effort: S)_ — source: status 2026-08-16_20-38
@@ -91,8 +91,64 @@ and is **never** duplicated here.
       documented in ADR-0132 (bench comment figure also corrected to 43–46);
       (3) command.Bus/MemoryBus removal: DECLINED — see Declined section.
       _(Effort: S)_ — sources: status 2026-08-16_17-39/14-44, 2026-08-03_20-30
-- [ ] **Env**: /mnt/buildcache re-broken 2026-08-29 (golangci cache mkdir fails) — /tmp cache redirects required again until repaired.
+- [ ] **Env**: /mnt/buildcache re-broken 2026-08-29 (golangci cache mkdir fails) — /tmp cache redirects required again until repaired. (Still broken 2026-08-30 — the golangci LSP noise all session is this same root cause.)
       _(Effort: XS, environment)_
+
+---
+
+## Session-4/5 Forward Ledger (harvested 2026-08-30)
+
+> Pulled from
+> `docs/status/2026-08-30_14-57_session-4-retrospective-and-status.md`
+> (§b partial-done, §f next-list) into actionable items; the detailed
+> ≤12-min task breakdown lives in
+> `docs/planning/2026-08-30_15_04-pareto-session5-execution-plan.html`
+> (workstreams WS-A–WS-L). User-gated questions (tag-wave go/no-go,
+> unattended-job policy, DLQ semantics, D9 billing/root/macOS) are NOT
+> tasks — they gate the Release and v5 sections below and are collected
+> in the retrospective §g.
+
+**Metaengine — planned-table pushdown (the D3 train)**
+
+- [ ] 🔥 **D3 slice 1: route PushdownMapScan through planned tables** — native-column filters (DOUBLE PRECISION/BIGINT/TEXT predicates), sort, keyset cursor (no twin columns needed on extracted columns); planless collections keep the meta_map path. pgengine first, then mysqlengine (backtick/DESC lessons). Live PG + MariaDB tests. — source: retro §f 1
+- [ ] 🔥 **D3 slice 2: route MapScan + MapUpdate through planned tables** — closes the documented planned/meta_map visibility split (scans miss planned rows; updates write to the wrong store). — source: retro §f 2
+- [ ] **D3 slice 3: EXPLAIN-based index-usage proofs** for planned scans (pg `EXPLAIN (FORMAT JSON)` + mysql EXPLAIN); assert index, not seq scan. — source: retro §f 16
+- [ ] **D3 slice 4: cross-engine planned-table parity matrices** (sqlite vs pg vs mysql fixtures through adttest). — source: retro §f 17
+- [ ] **`LayoutPlanFromType` for pg/mysql** — reflection-derived column types replacing the name-heuristic `inferColumnType`. — source: retro §f 18
+- [ ] **information_schema-based column evolution** for planned tables (type-drift migration path; idempotent ALTER TABLE ADD COLUMN). — source: retro §f 19
+- [ ] **Opt-in planned-table backfill helper** (meta_map → planned copy) to soften the no-backfill contract where operators need it. — source: retro §f 20
+- [ ] **Mis-type error classification** — extracted-column type conflicts surface as raw Infrastructure today; decide Rejection-vs-Infrastructure and classify deliberately. — source: retro §f 10
+- [ ] **CounterIncrement/CounterGet routing decision** for planned collections — document "counters stay in meta_map" or route. — source: retro §f 13
+- [ ] **Graph/aggregate routing decision** for planned collections (same shape as counters). — source: retro §f 14
+- [ ] **pgengine README layout story** — one paragraph: ApplyLayout (partial JSONB indexes) vs ApplyLayoutPlan (extracted columns), when each applies. — source: retro §f 9
+- [ ] **ClaimingTimerStore in adttest/enginetest capability matrices** if a timer-store slot exists (else document why not). — source: retro §f 15
+
+**scheduling/sqlstore — claiming extensions (D8)**
+
+- [ ] **`RenewLease(ctx, id, extend)`** for dispatch handlers that outlive DefaultClaimLease. — source: retro §f 21 / §c 3
+- [ ] **Claiming metrics hooks** — claimed/expired/reclaimed counters via the existing scheduling metrics surface. — source: retro §f 22
+
+**Observability / lint**
+
+- [ ] **Doctor/Introspection: surface planned-table registration + per-collection row counts.** — source: retro §f 23
+- [ ] **Decision record: planned tables vs generated columns (gcn_ twins)** — one ADR addendum or README section. — source: retro §f 24
+- [ ] **cqrs-lint rule: ApplyLayout on engines that also implement LayoutPlanApplier → prefer the plan path.** — source: retro §f 25
+- [ ] **Introspection/Doctor: surface effective durability tiers** (last open part of the Release-docs item above). — source: status 2026-08-18_20-39
+
+**Honesty / process debt (session-4 §b/§e — do first next session)**
+
+- [ ] 🔥 **Strict GOWORK=off + live-DSN re-validation of the pgengine planned tests** (b.4) + one full strict 7-module PG loop entry for the record. — source: retro §b 4 / §f 3,12
+- [ ] **Run `nix run .#load-sweep` before the next `#verify`** — C5 touched latency/routing timing paths and the discipline was skipped. — source: retro §c 5 / §f 11
+- [ ] **Recipes 2.26 (ClaimingTimerStore: two-Scheduler setup, lease sizing) + 2.27 (planned tables: LayoutPlanApplier + no-backfill contract) + modules.md planned-capability rows.** — source: retro §f 7,8
+- [ ] **FEATURES.md rows: claiming timers, planned tables, ErrWorkerFailed** — deferred from this harvest: FEATURES.md carried uncommitted edits from a concurrent session; add the rows after those land. — source: retro §f 5
+- [ ] **AGENTS.md process rules from session-4 §e**: per-task gate discipline (api golden + lint + dupl at task end, not session end) + background-job rule (write to file, poll on a timer, `timeout -k`, never pipe through tail). — source: retro §f 41
+- [ ] **Fix the golangci-lint LSP's GOLANGCI_LINT_CACHE for the editor** — phantom /mnt/buildcache diagnostics noise every session. — source: retro §f 42
+- [ ] **ephemeral-dgraph.sh: health-endpoint wait with a real timeout** (self-dial connection-refused spam suggests the wait is loose). — source: retro §f 43
+- [ ] **Evaluate `-shuffle=on` for the dgraph/mysql live suites** to surface order dependence (contention flakes). — source: retro §f 44
+- [ ] **Document SOAK_SKIP_* interaction with the dgraph loop** (the 52s vs 15-min full-run discrepancy was never explained in the ledger). — source: retro §f 45
+- [ ] **ephemeral-pg.sh: make PG_MODULES env-overridable** (targeted loops without the 7-module sweep). — source: retro §f 46
+- [ ] **batch-release.sh: add `--dry-run`** (parity with tag-release.sh). — source: retro §f 47
+- [ ] **Retire or wire the untracked `t/tasks.buf` workflow; sweep dead `/home/lars/projects/.trash-*` + `a3-*.log` scratch files.** — source: retro §f 48,49
 
 ---
 
@@ -137,6 +193,11 @@ and is **never** duplicated here.
       cut→push interleave (GOPRIVATE resolves siblings via VCS fetch).
       Via `scripts/tag-release.sh` from a clean tree; full module-order plan:
       `docs/planning/2026-08-27_17-30_PENDING-TAG-WAVE-PLAN.md`.
+      2026-08-30 (session 4): dry-runs GREEN for `dgraphengine/v4.2.0`,
+      `sqliteengine/v4.3.0`, `projectionhost/v4.5.0`; extended wave enumerated
+      (pgengine, mysqlengine, scheduling/sqlstore, metaengine — the D1/D2/D8
+      surface moved prod code); go/no-go awaiting user (retro §g Q1,
+      docs/status/2026-08-30_14-57_session-4-retrospective-and-status.md).
       Do NOT tag `stack/*`, `storage/view`, `storage/relational` (v5 deletes
       them); `transport/*` gets final deprecation-only v4.x tags — separate
       item below.
@@ -169,15 +230,19 @@ and is **never** duplicated here.
       local `replace` directives exist only because wave-3/4 code is untagged;
       drop + tidy + GOWORK=off re-verify each module. Every one is documented
       droppable-on-tag; the sweep cost compounds until then.
+      2026-08-30 (session 4): also pending — middleware/encryption/signing
+      carry unpublished-symbol sibling replaces (`=> ../event` + cascading
+      `=> ../metadata`) that drop once metadata/event tags carrying those
+      symbols are cut; quic's `=> ../` drops at the same wave (retro §f 36).
       _(Effort: M)_
 - [ ] **Create GitHub Releases for the 2026-08-16 tags** — 20 tags, none have
       releases (only storage/v4.7.1 got one). `gh` auth never verified from
       this environment. Optionally curated notes for the 8 core modules.
+      2026-08-30 (C7): `scripts/create-github-releases.sh` now generates
+      changelog-extracted bodies — remaining work is `gh` auth verification +
+      the run per tag.
       _(Effort: S)_
-- [ ] **Document the retract-and-republish pattern** in CONTRIBUTING.md
-      Release Process (what happened to command/v4.7.0, query/v4.6.0,
-      storage/v4.7.0 and the exact remedy), and audit recently published tags
-      with the hardened script's standalone-build gate once `092b5e8a8` lands.
+- [x] **Document the retract-and-republish pattern** in CONTRIBUTING.md — DONE 2026-08-30 (C7, `a6cefd34a`): `#### Retract-and-republish policy` (CONTRIBUTING.md) covers the fix-forward remedy for the command/v4.7.0, query/v4.6.0, storage/v4.7.0 retractions; the standalone-build audit is covered by `nix run .#vulncheck` (0 findings across all modules, session 4).
       _(Effort: S)_
 - [ ] [BLOCKED] **Tag final v4.x patches of `transport/http` +
       `transport/grpc`** (deprecation notices included) — prerequisite for
@@ -193,7 +258,9 @@ and is **never** duplicated here.
 - [ ] **Run the pre-tag checklist** — `nix run .#vulncheck` +
       `#check-arch` (verify covered the rest) + GOWORK=off `go test ./...`
       on the module AND its test subpackages (the command/v4.6.0
-      commandtest failure class).
+      commandtest failure class). Checklist canonicalized 2026-08-30 in
+      CONTRIBUTING.md (pre-tag checklist section); execution happens at
+      wave time (see the Release item above).
       _(Effort: S)_
 - [ ] **Run calibration benchmarks against baseline** — verify
       `calibration-baseline.md` accuracy; add CI regression check.
@@ -208,13 +275,9 @@ and is **never** duplicated here.
 > it: `#verify` resolves local modules, CI runs GOWORK=off per-module — and
 > the CI "Benchmarks" job is currently RED.
 
-- [ ] **`#verify-standalone` nix app (GOWORK=off per module) or explicit
-      decision that CI owns that signal** — then CHECK CI after gates.
-      Investigate how long the CI Benchmarks job has been red (`gh run list`)
-      to size the blind window.
+- [x] **`#verify-standalone` nix app / CI-owned signal** — DONE 2026-08-30 (C6): `nix run .#verify-ci` exists (flake.nix — mirrors the GitHub Actions per-module GOWORK=off job locally) and `nix run .#vulncheck` doubles as the standalone-build proof (0 findings across all modules, session 4). The red CI Benchmarks job folds into the billing blocker below.
       _(Effort: M)_
-- [ ] **Add CI leg for GOWORK=off standalone builds of leaf modules**
-      (integration/, examples/, benchkit/) to catch pin rot early.
+- [x] **Add CI leg for GOWORK=off standalone builds of leaf modules** — DONE 2026-08-30 (C6): the ci.yml matrix already runs GOWORK=off per-module builds/tests (14 GOWORK=off references; covers integration/, examples/, benchkit/).
       _(Effort: S)_
 
 ---
@@ -252,9 +315,7 @@ and is **never** duplicated here.
 > workspace-global by design (low leakage risk). F030 (deprecated transport
 > imports) shipped 2026-08-14 — 203 rules total.
 
-- [ ] **Audit `.golangci.yml` exclusion blocks + RE-ENABLE depguard** — FOUND 2026-08-29 (session 2): depguard is DISABLED (`linters.disable`) and its settings block was dropped in the 2026-08-29 lint-config refactor, orphaning `check-depguard.sh` (now reports a loud SKIP instead of erroring). Per-module dependency-prefix enforcement is OFF until re-enabled; check-arch layer budgets still apply. Original audit item: `system/` (20 linters
-      disabled), `cmd/cqrs-lint/` (17), `metaengine/` (24) have the broadest
-      exclusions. Track which can be removed after migrations complete.
+- [PARTIAL ✓ 2026-08-30 session 4] **Audit `.golangci.yml` exclusion blocks + RE-ENABLE depguard** — DONE (B1, `3bcb7030e`): depguard restored on the v2 object rules schema (`linters.settings.depguard.rules` — a YAML list gives incomprehensible mapstructure errors), 84-entry allow list, all 119 requires covered, `check-depguard.sh` awk made indentation-tolerant, lint 76/76 clean. REMAINING (exclusion audit tail): `system/` (20 linters disabled), `cmd/cqrs-lint/` (17), `metaengine/` (24) have the broadest exclusions — track which can be removed after migrations complete.
       _(Effort: M)_
 
 ---
@@ -396,12 +457,7 @@ and is **never** duplicated here.
       scripts under `storage/sql/migrations/` + `nix run .#integration-pg`
       over the renamed schema.
       _(Effort: M)_
-- [ ] **Write v5 migration guide** — document the path from v4 (stack presets,
-      v1 tiers, transport/*, manual RelationalProjection/view reads) to v5
-      (`system.System`, auto-projection, watermill/go-sse delivery).
-      Before/after examples for each v1 tier, including
-      `relational → metaengine` (consumer-pulled).
-      _(Effort: L)_
+- [x] **Write v5 migration guide** — DONE 2026-08-30 (D7, `17fbdd3e4`): `docs/V5-MIGRATION-GUIDE.md` (stack presets → system.System, auto-projection, transport → watermill/go-sse, plus the v5.0.0 cut checklist). Expand with before/after examples per v1 tier (incl. `relational → metaengine`) at the cut.
 - [✓] **v5 decision: kvstore SA1019 exclusion** — DECIDED 2026-08-29 (todo-execution session 2): the scoped exclusion is PERMANENT — the test matrices use go-idempotency's MemoryStore exactly as its deprecation prescribes ("development and testing") as the reference implementation in conformance matrices; production paths use the real stores. Rationale recorded in the .golangci.yml comment next to the exclusion. Migration-guide outline (v4→v5) written at docs/migration/V5-OUTLINE.md. go-idempotency already ships contract_test.go, so a parallel suite here would duplicate it.
       _(Effort: S)_
 - [ ] **Cut v5.0.0** — tag all modules. Update CHANGELOG, README, SKILL.md,
@@ -594,18 +650,7 @@ and is **never** duplicated here.
       _(Effort: S)_
 - [✓] **scheduling multi-instance + retry semantics undocumented** — DONE 2026-08-29 (todo-execution session 2) — Scheduler godoc now documents all three hazards: the single-active-instance requirement (no claim/lease; two Schedulers double-fire), dispatchWithRetry's family-blind retries (Rejection retried forever per poll; errors.Join keeps only the last attempt's error), and the MarkFired no-epoch race (use fresh timer IDs per logical deadline). ClaimingTimerStore (SKIP LOCKED) remains the additive follow-up.
       _(Effort: S doc / L claim protocol)_
-- [ ] **metaengine routing/lifecycle follow-ups** — `Calibration` setters
-      race concurrent `Profile()` readers (documented Plan→Calibrate→Probe
-      ordering makes it likely); `CheckRouting`'s cache signature omits the
-      plan version (stale diagnostics after Replan) and live NsForRead;
-      reassignment is strict argmin so the hysteresis deadband only gates
-      suggestions (assignments flap under oscillation); engines over-
-      declaring `Supports` produce execution-time hard errors with no
-      plan-time diagnostic or routing penalty (CapabilityAudit renders a
-      banner but is not a rule); graph BFS fallback dedups nodes by
-      `fmt.Sprint` (int(1) collides with "1" on mixed-type nodes);
-      OnRecord folds returning Embedding/IndexedText/Point/MultiEntry/
-      Append receive an always-zero Record silently.
+- [PARTIAL ✓ 2026-08-30 session 4] **metaengine routing/lifecycle follow-ups** — DONE (C5, `1fddcfbb5`): `Calibration` setters mutex-guarded against concurrent `Profile()` readers; `routingSignature` now covers ReadCosts + plan version (stale-cache diagnostics fixed); incumbent-aware hysteresis kills Replan oscillation (complexity-class wins always pass) — race-clean. REMAINING: engines over-declaring `Supports` produce execution-time hard errors with no plan-time diagnostic or routing penalty (CapabilityAudit renders a banner but is not a rule); graph BFS fallback dedups nodes by `fmt.Sprint` (int(1) collides with "1" on mixed-type nodes); OnRecord folds returning Embedding/IndexedText/Point/MultiEntry/Append receive an always-zero Record silently.
       _(Effort: M-L, several independent)_
 - [✓] **eventtest fakes** — DONE 2026-08-29 (todo-execution session) — `LoadToVersion` returns a live sub-slice of the
       store's backing array (in-place sort corrupts the fake);
