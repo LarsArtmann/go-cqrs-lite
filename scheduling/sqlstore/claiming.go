@@ -24,7 +24,8 @@ const DefaultClaimLease = time.Minute
 // MySQL-only claiming path would silently behave differently under MariaDB —
 // the same dialect trap documented in AGENTS.md. Use Postgres or SQLite.
 var ErrClaimingUnsupported = errors.New(
-	"sqlstore: claiming store requires Postgres (FOR UPDATE SKIP LOCKED) or SQLite (single writer); MySQL/MariaDB is not supported")
+	"sqlstore: claiming store requires Postgres (FOR UPDATE SKIP LOCKED) or SQLite (single writer); MySQL/MariaDB is not supported",
+)
 
 // ClaimingTimerStore wraps a [SQLTimerStore] with atomic claiming so MULTIPLE
 // Scheduler instances can share one timers table without double-firing:
@@ -108,7 +109,10 @@ func newClaimingStore[P any](
 // Due atomically claims every timer whose fire_at has passed and whose lease
 // (if any) has expired, and returns only the claimed timers. Two concurrent
 // callers never receive the same timer while its lease is fresh.
-func (c *ClaimingTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling.Timer[P], error) {
+func (c *ClaimingTimerStore[P]) Due(
+	ctx context.Context,
+	now time.Time,
+) ([]scheduling.Timer[P], error) {
 	leaseUntil := now.Add(c.lease)
 
 	tx, err := c.db.BeginTx(ctx, nil)
@@ -232,6 +236,8 @@ func ensureLeaseColumn(ctx context.Context, db *sql.DB, d Dialect) error {
 		}
 
 		stmt = `ALTER TABLE timers ADD COLUMN lease_until TEXT`
+	case DialectMySQL:
+		return ErrClaimingUnsupported
 	default:
 		return ErrClaimingUnsupported
 	}

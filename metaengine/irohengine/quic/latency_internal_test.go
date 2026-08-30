@@ -28,12 +28,21 @@ func TestNormalizeAny(t *testing.T) {
 		{"bool untouched", true, true},
 		{"float untouched", 3.5, 3.5},
 		{"nil untouched", nil, nil},
-		{"nested slice", []any{uint64(1), int64(-2), []any{uint64(3)}},
-			[]any{int(1), int(-2), []any{int(3)}}},
-		{"nested map", map[string]any{"a": uint64(1), "b": map[string]any{"c": int64(-4)}},
-			map[string]any{"a": int(1), "b": map[string]any{"c": int(-4)}}},
-		{"slice of maps", []any{map[string]any{"k": uint64(6)}},
-			[]any{map[string]any{"k": int(6)}}},
+		{
+			"nested slice",
+			[]any{uint64(1), int64(-2), []any{uint64(3)}},
+			[]any{int(1), int(-2), []any{int(3)}},
+		},
+		{
+			"nested map",
+			map[string]any{"a": uint64(1), "b": map[string]any{"c": int64(-4)}},
+			map[string]any{"a": int(1), "b": map[string]any{"c": int(-4)}},
+		},
+		{
+			"slice of maps",
+			[]any{map[string]any{"k": uint64(6)}},
+			[]any{map[string]any{"k": int(6)}},
+		},
 	}
 
 	for _, tt := range tests {

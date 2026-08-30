@@ -17,7 +17,6 @@ import (
 // upserts, and ? placeholders. MariaDB's JSON type is LONGTEXT-backed, which
 // is fine — extracted columns carry the typed reads.
 
-
 // backtickIdent quotes a SQL identifier the MySQL/MariaDB way. The shared
 // metaengine.QuoteIdent emits SQL-standard double quotes, which default
 // MySQL/MariaDB sql_mode rejects for identifiers.

@@ -124,7 +124,7 @@ func TestClaimingSQLite_LeaseExpiryReclaims(t *testing.T) {
 // has no SKIP LOCKED, so a claiming store there would lie about its
 // guarantee — construction fails loudly instead.
 func TestNewClaimingMySQLStore_Rejects(t *testing.T) {
-	if _, err := sqlstore.NewClaimingMySQLStore[struct{}](nil, nil, 0); err == nil {
+	if _, err := sqlstore.NewClaimingMySQLStore[struct{}](context.TODO(), nil, 0); err == nil {
 		t.Fatal("NewClaimingMySQLStore succeeded, want rejection")
 	}
 }
