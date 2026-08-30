@@ -55,6 +55,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   instead of silently quarantining recoverable events; and one corrupt SQLite
   DLQ row no longer bricks `List`/`ReplayDeadLetters` (skipped, counted via
   the new `SQLiteDeadLetterStore.SkippedCount`).
+- **Wave-1 correctness API surface** (commit `ce98b2dda`, backfilled): the
+  bounded version cache option `commandlifecycle.WithVersionCacheCapacity`,
+  the opt-in event→command derivation depth guard `deriver.WithMaxDepth`
+  (applied via `deriver.Deriver.AsHandler`'s new `HandlerOption`s),
+  cache invalidation `kv.Cache.Invalidate`/`kv.Cache.InvalidateAll`,
+  the force-stop path `projectionhost.Host.ForceStop` (bypasses graceful
+  drain for wedged workers), bounded LRU read-pressure tracking via
+  `snapshot.WithReadTrackingLimit`, SQL journal identifier validation
+  (`storage/sql.ValidateJournalIdentifiers`, backing the checked keyset
+  queries above), and the `schema.ErrInvalidUpcastResult` corruption
+  sentinel rejected for nil/identity upcaster results.
 
 ### Changed — TODO execution wave — 2026-08-29 (session 2)
 
