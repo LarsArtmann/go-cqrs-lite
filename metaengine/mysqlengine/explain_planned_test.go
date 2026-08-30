@@ -19,6 +19,7 @@ import (
 // the planned pushdown scan is index-backed (EXPLAIN type != ALL, key set)
 // and the EXPLAIN reflects the planned table, not meta_map.
 func TestMySQLPlannedExplain_IndexUsageProofs(t *testing.T) {
+	//art-dupl:accept test prologue — capability-assert setup is intentionally uniform across planned-table tests
 	mariadbVersion(t)
 
 	g := gomega.NewWithT(t)

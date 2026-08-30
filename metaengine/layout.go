@@ -42,7 +42,22 @@ type PlannedIndex struct {
 //   - Only fields declared via FilterOnField or SortOnField get extracted columns
 //   - Duplicate fields (filtered + sorted) get ONE column, not two
 //   - Each unique column gets one index
+//
+// Column types come from the field-name heuristic [inferColumnType]. For
+// reflection-derived types from the stored struct, prefer
+// [BuildLayoutPlanFromType].
 func BuildLayoutPlan(collection string, filterFields, sortFields []string) LayoutPlan {
+	return buildLayoutPlan(collection, filterFields, sortFields, inferColumnType)
+}
+
+// buildLayoutPlan is the shared plan builder: dedup, deterministic column
+// order, one index per column. The typeFor callback decides each column's
+// declared SQL type.
+func buildLayoutPlan(
+	collection string,
+	filterFields, sortFields []string,
+	typeFor func(field string) string,
+) LayoutPlan {
 	table := "meta_planned_" + sanitize(collection)
 
 	// Collect unique fields (dedup across filter + sort).
@@ -53,14 +68,14 @@ func BuildLayoutPlan(collection string, filterFields, sortFields []string) Layou
 	for _, f := range filterFields {
 		if !seen[f] {
 			seen[f] = true
-			columns = append(columns, PlannedColumn{Name: f, Type: inferColumnType(f)})
+			columns = append(columns, PlannedColumn{Name: f, Type: typeFor(f)})
 		}
 	}
 
 	for _, f := range sortFields {
 		if !seen[f] {
 			seen[f] = true
-			columns = append(columns, PlannedColumn{Name: f, Type: inferColumnType(f)})
+			columns = append(columns, PlannedColumn{Name: f, Type: typeFor(f)})
 		}
 	}
 
@@ -196,6 +211,11 @@ func BuildLayoutPlanFromType[R any](
 		for f := range typeOf.Fields() {
 			if f.IsExported() {
 				fieldTypes[f.Name] = f.Type
+				// json-tag alias so filters on the wire name resolve to the
+				// Go type (same resolution ExtractFields uses).
+				if tag := JSONFieldName(f); tag != f.Name {
+					fieldTypes[tag] = f.Type
+				}
 			}
 		}
 	}
@@ -292,10 +312,8 @@ func sqlTypeOf(t reflect.Type) string {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return "INTEGER"
-	case reflect.Float32:
+	case reflect.Float32, reflect.Float64:
 		return "REAL"
-	case reflect.Float64:
-		return "DOUBLE"
 	case reflect.Bool:
 		return "INTEGER"
 	default:

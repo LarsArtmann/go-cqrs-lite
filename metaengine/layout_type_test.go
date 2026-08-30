@@ -29,7 +29,7 @@ func TestBuildLayoutPlanFromType_InfersColumnTypes(t *testing.T) {
 	cases := map[string]string{
 		"status":   "TEXT",    // string
 		"priority": "INTEGER", // int
-		"score":    "DOUBLE",  // float64
+		"score":    "REAL",    // float64 — canonical float name: pg maps REAL→DOUBLE PRECISION, mysql REAL→DOUBLE, duckdb accepts REAL
 		"name":     "TEXT",    // string
 	}
 

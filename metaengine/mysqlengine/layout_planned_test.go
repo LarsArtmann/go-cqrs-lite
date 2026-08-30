@@ -18,6 +18,7 @@ import (
 // TestMySQLPlannedTable_RoundTrip pins the Map routing through the planned
 // table: upsert, get, delete, and conflict rejection on live MariaDB.
 func TestMySQLPlannedTable_RoundTrip(t *testing.T) {
+	//art-dupl:accept test prologue — capability-assert setup is intentionally uniform across planned-table tests
 	mariadbVersion(t)
 
 	g := gomega.NewWithT(t)
@@ -55,6 +56,7 @@ func TestMySQLPlannedTable_RoundTrip(t *testing.T) {
 
 // TestMySQLPlannedTable_ConflictingPlanRejected pins the conflict guard.
 func TestMySQLPlannedTable_ConflictingPlanRejected(t *testing.T) {
+	//art-dupl:accept test prologue — capability-assert setup is intentionally uniform across planned-table tests
 	mariadbVersion(t)
 
 	g := gomega.NewWithT(t)
@@ -79,6 +81,7 @@ func TestMySQLPlannedTable_ConflictingPlanRejected(t *testing.T) {
 // has-more, build-time mis-type Rejection — while planless collections keep
 // the meta_map path.
 func TestMySQLPlannedPushdownScan_FilterSortKeyset(t *testing.T) {
+	//art-dupl:accept test prologue — capability-assert setup is intentionally uniform across planned-table tests
 	mariadbVersion(t)
 
 	g := gomega.NewWithT(t)
@@ -138,6 +141,7 @@ func TestMySQLPlannedPushdownScan_FilterSortKeyset(t *testing.T) {
 
 // TestMySQLPlannedMapScan_VisibilityParity pins D3 slice 2 (read side).
 func TestMySQLPlannedMapScan_VisibilityParity(t *testing.T) {
+	//art-dupl:accept test prologue — capability-assert setup is intentionally uniform across planned-table tests
 	mariadbVersion(t)
 
 	g := gomega.NewWithT(t)
@@ -170,6 +174,7 @@ func TestMySQLPlannedMapScan_VisibilityParity(t *testing.T) {
 // read-modify-write hits the planned table, recomputes extracted columns,
 // creates on a missing key (nil prev), and works inside RunInTx.
 func TestMySQLPlannedMapUpdate_RoundTrip(t *testing.T) {
+	//art-dupl:accept test prologue — capability-assert setup is intentionally uniform across planned-table tests
 	mariadbVersion(t)
 
 	g := gomega.NewWithT(t)
@@ -223,4 +228,41 @@ func TestMySQLPlannedMapUpdate_RoundTrip(t *testing.T) {
 	got, _, err = mb.MapGet(ctx, "planned_upd", "k1")
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(got).To(gomega.Equal(map[string]any{"count": float64(3), "name": "x"}))
+}
+
+// TestMySQLPlannedFromType_FloatColumnsAreNumeric pins the sqlTypeOf fix on
+// MariaDB: a float64 field produces a DOUBLE extracted column, so numeric
+// filters compare numerically.
+func TestMySQLPlannedFromType_FloatColumnsAreNumeric(t *testing.T) {
+	//art-dupl:accept test prologue — capability-assert setup is intentionally uniform across planned-table tests
+	mariadbVersion(t)
+
+	g := gomega.NewWithT(t)
+	ctx := context.Background()
+
+	eng := mustNewMySQLEngine(t)
+	mb := eng.(metaengine.MapBackend)
+	ps := eng.(metaengine.PushdownScan)
+	lpa := eng.(metaengine.LayoutPlanApplier)
+
+	type taskRow struct {
+		Score float64 `json:"score"`
+		State string  `json:"state"`
+	}
+
+	plan := metaengine.BuildLayoutPlanFromType[taskRow]("planned_float", []string{"state"}, []string{"score"})
+	g.Expect(lpa.ApplyLayoutPlan(plan)).To(gomega.Succeed())
+
+	for i, score := range []float64{0.25, 9.5, 3.75} {
+		g.Expect(mb.MapSet(ctx, "planned_float", fmt.Sprintf("k%d", i),
+			map[string]any{"score": score, "state": "open"})).To(gomega.Succeed())
+	}
+
+	res, err := ps.PushdownMapScan(ctx, "planned_float",
+		[]metaengine.FilterSpec{{Column: "score", Op: metaengine.FilterGt, Value: 3.0}},
+		&metaengine.SortSpec{Column: "score"}, nil, 0)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(res.Items).To(gomega.HaveLen(2))
+	g.Expect(res.Items[0].(map[string]any)["score"]).To(gomega.Equal(3.75))
+	g.Expect(res.Items[1].(map[string]any)["score"]).To(gomega.Equal(9.5))
 }
