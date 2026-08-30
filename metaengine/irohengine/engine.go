@@ -47,6 +47,14 @@ func (e *replicatedEngine) recordLWW(collection string, key any, ts time.Time) {
 // ReplicationLag = P99 of convergence time (last peer to apply).
 // NetworkRTT = 2 × P50 of one-way delivery latency.
 // Before any traffic, both are zero — no hardcoded guesses.
+//
+// Cost-model honesty (ADR-0133 sibling note): reads are a LOCAL passthrough
+// (documented divergence policy — see modules.md), so the local engine's
+// per-pattern ReadCosts remain the correct read prices and are inherited
+// unchanged. Replication cost surfaces as ReplicationLag/NetworkRTT above,
+// NOT as inflated read/write scalars: writes are async leaderless CRDT
+// applies, so a local write price plus observed convergence is the truthful
+// model, and a synchronous-write surcharge would misprice the planner.
 func (e *replicatedEngine) Profile() metaengine.EngineProfile {
 	p := e.local.Profile()
 	p.Name = "iroh(" + p.Name + ")"

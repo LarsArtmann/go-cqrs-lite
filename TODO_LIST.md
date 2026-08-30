@@ -49,19 +49,19 @@ and is **never** duplicated here.
       _(Effort: M)_ — source: status 2026-08-30_16-13
 - [ ] **Multi-engine routing regression test with REAL engine profiles** — no test pins planner engine selection against actual badger/bbolt/pebble `Profile()`s (core tests use synthetic profiles); the 2026-08-30 constant moves (bbolt point-lookup 2x) are unpinned behavior. — source: status 2026-08-30_16-13 §b2
       _(Effort: M)_ — source: status 2026-08-30_16-13
-- [ ] **Execute the iroh QUIC CGo suite** (Rust toolchain + iroh-go, Linux) — `TestQuicPooledThousandOps` / `TestEvictPooledStream_ReopenOnNextSend` / normalizeAny pins are inspection-verified only; convert to execution-verified. — source: status 2026-08-30_16-13 §b1/§g G3
+- [✓] **Execute the iroh QUIC CGo suite** — DONE 2026-08-30 — cargo+gcc present, iroh-go FFI builds: short suite GREEN (1.6s) and all hardening pins PASS against real QUIC endpoints — `TestNormalizeAny` (14 cases), `TestEvictPooledStream_ReopenOnNextSend`, `TestQuicPooledThousandOps` (1,000 ops / 1 stream), `TestReconnect*`. Verification upgraded inspection→execution. — source: status 2026-08-30_16-13 §b1/§g G3
       _(Effort: M)_ — source: status 2026-08-30_16-13
-- [ ] **Calibration bench protocol + baseline doc** — written protocol (discard-warmup run, `-count=5` medians, ambient load + commit recorded), `docs/benchmarks/calibration-2026-08-30.md` with the 2026-08-30 raw runs, and a bbolt FilteredScan re-run (its 620 constant carries a ~30% cold first-run outlier). — source: status 2026-08-30_16-13 §b3/§b5
+- [✓] **Calibration bench protocol + baseline doc** — DONE 2026-08-30 — `docs/benchmarks/calibration-2026-08-30.md` written: shipped-constants table, ALL raw runs (badger/bbolt/pebble/sqlite/duckdb), written protocol (discard run 1, median of rest, ambient load recorded, same-commit rule for constant+bench+pin), cross-checks section. bbolt re-run (count=5) under RISING load showed ±8% two-directional noise → constants correctly UNCHANGED; quiet-window re-run noted as pre-tag nicety. — source: status 2026-08-30_16-13 §b3/§b5
       _(Effort: S)_ — source: status 2026-08-30_16-13
 - [ ] **CI calibration drift job** — run the engines' calibration benches on a schedule and diff against shipped constants (warn >25%); extends the benchmark-regression gate. — source: status 2026-08-30_16-13 §f7
       _(Effort: M)_ — source: status 2026-08-30_16-13
-- [ ] **`TestEveryEngineSetsReadCosts` meta-test** — enumerate engine modules, assert `Profile().ReadCosts` fully set (documents the expected roster; expected-RED for sqlite until its calibration lands). — source: status 2026-08-30_16-13 §f38
+- [✓] **`TestEveryEngineSetsReadCosts` meta-test** — DONE 2026-08-30 — `cmd/api-stability/profile_readcosts_test.go` (source-scan pattern, core cannot import engines): asserts the 8-engine persistent roster sets ReadCosts; memory/turso/iroh exempt with recorded reasons. PLUS `metaengine/bench/routing_regression_test.go` pins bbolt/pebble constants end-to-end and point-lookup→memory routing against REAL profiles. — source: status 2026-08-30_16-13 §f38
       _(Effort: S)_ — source: status 2026-08-30_16-13
-- [ ] **dedup↔quic capacity coupling** — `quic/transport.go` hardcodes `dedup.NewRing(10000)`; `TestRing_ProductionCapacity10K` pins 10000 by comment only. Export a named constant or add a meta-test so the coupling can't rot. — source: status 2026-08-30_16-13 §b6
+- [✓] **dedup↔quic capacity coupling** — DONE 2026-08-30 — `quic.DefaultDedupCapacity = 10_000` exported in options.go (doc comment cross-references `TestRing_ProductionCapacity10K`: change one, change both); `QuicTransport` constructor uses it. — source: status 2026-08-30_16-13 §b6
       _(Effort: XS)_ — source: status 2026-08-30_16-13
 - [ ] **Engine README per-pattern cost tables** — badger/bbolt/pebble READMEs have capability tables but no cost table citing the calibration benches; add one per engine (consumer-facing honesty). — source: status 2026-08-30_16-13 §f10
       _(Effort: S)_ — source: status 2026-08-30_16-13
-- [ ] **iroh replicated `Profile()` cost honesty** — replication overhead is not reflected in the replicated engine's cost fields (old archived iroh review finding 9); document or adjust. — source: status 2026-08-30_16-13 §c6
+- [✓] **iroh replicated `Profile()` cost honesty** — DONE 2026-08-30 — resolved as documentation: the design is honest-by-construction (reads are local passthrough → inherited ReadCosts are correct; replication surfaces as MEASURED ReplicationLag/NetworkRTT, not inflated scalars — async leaderless applies would be mispriced by a sync-write surcharge). Cost-model honesty note added to `Profile()` godoc citing ADR-0133. — source: status 2026-08-30_16-13 §c6
       _(Effort: S)_ — source: status 2026-08-30_16-13
 
 
