@@ -301,3 +301,97 @@ func TestMariaDBApplyLayout_SortPathUsesGeneratedColumns(t *testing.T) {
 		}
 	}
 }
+
+// TestMariaDBApplyLayout_SortPathDESC pins the descending twin-column path:
+// ORDER BY renders DESC on BOTH twin columns and the keyset cursor
+// predicate flips from > to < — under the old text-only ORDER BY, DESC
+// would have text-sorted "9" > "100" > "10" > "2" > "3".
+func TestMariaDBApplyLayout_SortPathDESC(t *testing.T) {
+	t.Parallel()
+
+	mariadbVersion(t)
+
+	collection := "layout_mariadb_sort_desc"
+
+	eng := mustNewMySQLEngine(t)
+	ctx := context.Background()
+
+	mb := eng.(metaengine.MapBackend)
+	ps := eng.(metaengine.PushdownScan)
+
+	docs := map[string]map[string]any{
+		"n1": {"priority": float64(2), "title": "zeta"},
+		"n2": {"priority": float64(10), "title": "alpha"},
+		"n3": {"priority": float64(9), "title": "kilo"},
+		"n4": {"priority": float64(100), "title": "mike"},
+		"n5": {"priority": float64(3), "title": "delta"},
+	}
+	for k, v := range docs {
+		if err := mb.MapSet(ctx, collection, k, v); err != nil {
+			t.Fatalf("MapSet %s: %v", k, err)
+		}
+	}
+
+	if err := eng.(metaengine.LayoutPlanner).ApplyLayout(
+		collection,
+		nil,
+		[]string{"priority"},
+	); err != nil {
+		t.Fatalf("ApplyLayout: %v", err)
+	}
+
+	results, err := ps.PushdownMapScan(ctx, collection, nil,
+		&metaengine.SortSpec{Column: "priority", Desc: true}, nil, 0)
+	if err != nil {
+		t.Fatalf("PushdownMapScan sorted DESC: %v", err)
+	}
+
+	got := extractFloatField(results.Items, "priority")
+	want := []float64{100, 10, 9, 3, 2}
+
+	if len(got) != len(want) {
+		t.Fatalf("DESC scan returned %d items, want %d: %v", len(got), len(want), got)
+	}
+
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("DESC numeric order broken: got %v", got)
+		}
+	}
+
+	var pageVals []float64
+
+	var cursor any
+
+	for range 5 {
+		page, err := ps.PushdownMapScan(ctx, collection, nil,
+			&metaengine.SortSpec{Column: "priority", Desc: true}, cursor, 2)
+		if err != nil {
+			t.Fatalf("paginated DESC scan: %v", err)
+		}
+
+		vals := extractFloatField(page.Items, "priority")
+		pageVals = append(pageVals, vals...)
+
+		if !page.HasMore {
+			break
+		}
+
+		cursor = vals[len(vals)-1]
+	}
+
+	if len(pageVals) != len(want) {
+		t.Fatalf(
+			"paginated DESC scan returned %d items, want %d: %v",
+			len(pageVals),
+			len(want),
+			pageVals,
+		)
+	}
+
+	for i := range want {
+		if pageVals[i] != want[i] {
+			t.Fatalf("paginated DESC numeric order broken: got %v", pageVals)
+		}
+	}
+}
