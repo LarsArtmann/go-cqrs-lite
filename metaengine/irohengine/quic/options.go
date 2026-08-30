@@ -7,6 +7,12 @@ import (
 // Option configures a QuicTransport.
 type Option func(*config)
 
+// DefaultDedupCapacity is the op-dedup ring capacity used by QuicTransport
+// (10K recently-seen op IDs). The dedup regression test
+// TestRing_ProductionCapacity10K pins ring behavior at exactly this capacity
+// — if you change it here, update that test's capacity in the same commit.
+const DefaultDedupCapacity = 10_000
+
 type config struct {
 	alpn        []byte
 	presetFn    func() iroh_ffi.Preset

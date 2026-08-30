@@ -102,7 +102,7 @@ func New(opts ...Option) (*QuicTransport, error) {
 		alpn:      cfg.alpn,
 		cfg:       cfg,
 		conns:     make(map[string]*peerConn),
-		dedupRing: dedup.NewRing(10000),
+		dedupRing: dedup.NewRing(DefaultDedupCapacity),
 	}
 
 	// Start accept loop
