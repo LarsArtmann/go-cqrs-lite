@@ -94,7 +94,8 @@ func TestExplainScanQuery_PlannedUsesIndex(t *testing.T) {
 	bareScan := false
 
 	for _, detail := range details {
-		if strings.Contains(detail, "USING INDEX") || strings.Contains(detail, "USING COVERING INDEX") {
+		if strings.Contains(detail, "USING INDEX") ||
+			strings.Contains(detail, "USING COVERING INDEX") {
 			indexBacked = true
 		}
 

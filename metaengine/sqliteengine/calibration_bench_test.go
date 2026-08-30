@@ -161,7 +161,11 @@ func BenchmarkCalibration_SQLite_CounterGet(b *testing.B) {
 		}
 
 		if len(counts) != sqliteCalibrationCounters {
-			b.Fatalf("CounterGet: expected %d counters, got %d", sqliteCalibrationCounters, len(counts))
+			b.Fatalf(
+				"CounterGet: expected %d counters, got %d",
+				sqliteCalibrationCounters,
+				len(counts),
+			)
 		}
 	}
 

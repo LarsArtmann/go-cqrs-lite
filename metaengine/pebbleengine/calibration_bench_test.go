@@ -167,7 +167,11 @@ func BenchmarkCalibration_Pebble_CounterScan(b *testing.B) {
 		}
 
 		if len(counts) != pebbleCalibrationCounters {
-			b.Fatalf("CounterGet: expected %d counters, got %d", pebbleCalibrationCounters, len(counts))
+			b.Fatalf(
+				"CounterGet: expected %d counters, got %d",
+				pebbleCalibrationCounters,
+				len(counts),
+			)
 		}
 	}
 
@@ -193,7 +197,11 @@ func BenchmarkCalibration_Pebble_FullScan(b *testing.B) {
 		}
 
 		if len(result.Items) != pebbleCalibrationRows {
-			b.Fatalf("ScanRawValues: expected %d rows, got %d", pebbleCalibrationRows, len(result.Items))
+			b.Fatalf(
+				"ScanRawValues: expected %d rows, got %d",
+				pebbleCalibrationRows,
+				len(result.Items),
+			)
 		}
 	}
 

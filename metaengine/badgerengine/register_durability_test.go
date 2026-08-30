@@ -17,14 +17,32 @@ func TestRegisterDriver_DurabilityTiers(t *testing.T) {
 		t.Fatalf("LookupDriver: %v", err)
 	}
 
+	expected := map[metaengine.DurabilityTier]metaengine.DurabilityTier{
+		"":                           metaengine.DurabilityStrict,
+		metaengine.DurabilityStrict:  metaengine.DurabilityStrict,
+		metaengine.DurabilityNormal:  metaengine.DurabilityNormal,
+		metaengine.DurabilityRelaxed: metaengine.DurabilityNormal,
+	}
+
 	for _, tier := range []metaengine.DurabilityTier{
 		"", metaengine.DurabilityStrict, metaengine.DurabilityNormal, metaengine.DurabilityRelaxed,
 	} {
 		eng, err := factory(context.Background(), metaengine.DriverConfig{
+			DSN:        t.TempDir(),
 			Durability: tier,
 		})
 		if err != nil {
 			t.Fatalf("tier %q: %v", tier, err)
+		}
+
+		dr, ok := eng.(metaengine.DurabilityReporter)
+		if !ok {
+			t.Fatalf("tier %q: engine does not implement DurabilityReporter", tier)
+		}
+
+		want := expected[tier]
+		if got := dr.EffectiveDurability(); got != want {
+			t.Errorf("tier %q: EffectiveDurability() = %q, want %q", tier, got, want)
 		}
 
 		eng.Close()

@@ -112,8 +112,15 @@ func TestPgPlannedExplain_IndexUsageProofs(t *testing.T) {
 	// the index (a 500-row table with one matching row cannot rationally
 	// seq-scan when an index exists).
 	for i := 0; i < 500; i++ {
-		g.Expect(mb.MapSet(ctx, "planned_explain", fmt.Sprintf("k%d", i),
-			map[string]any{"priority": float64(i), "code": fmt.Sprintf("code-%03d", i%200)})).To(gomega.Succeed())
+		g.Expect(mb.MapSet(
+			ctx,
+			"planned_explain",
+			fmt.Sprintf("k%d", i),
+			map[string]any{
+				"priority": float64(i),
+				"code":     fmt.Sprintf("code-%03d", i%200),
+			},
+		)).To(gomega.Succeed())
 	}
 
 	assertNoSeqScan := func(sqlText string, args []any) []string {

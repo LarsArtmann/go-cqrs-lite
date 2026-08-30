@@ -166,7 +166,11 @@ func BenchmarkCalibration_Bbolt_CounterScan(b *testing.B) {
 		}
 
 		if len(counts) != bboltCalibrationCounters {
-			b.Fatalf("CounterGet: expected %d counters, got %d", bboltCalibrationCounters, len(counts))
+			b.Fatalf(
+				"CounterGet: expected %d counters, got %d",
+				bboltCalibrationCounters,
+				len(counts),
+			)
 		}
 	}
 

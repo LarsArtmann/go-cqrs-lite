@@ -78,6 +78,22 @@ func TestRegisterDriver_DurabilityTiers(t *testing.T) {
 			t.Fatalf("tier %q: %v", tier, err)
 		}
 
+		// The engine must report back the tier the factory applied: the
+		// synchronous pragma it was constructed with resolves to the same
+		// tier (FULL→strict, NORMAL→normal, OFF→relaxed); no pragma (empty
+		// tier) reports engine-default. In-memory tier echo is exact because
+		// the pragma, not the storage medium, decides here.
+		if tier != "" {
+			dr, ok := eng.(metaengine.DurabilityReporter)
+			if !ok {
+				t.Fatalf("tier %q: engine does not implement DurabilityReporter", tier)
+			}
+
+			if got := dr.EffectiveDurability(); got != tier {
+				t.Errorf("tier %q: EffectiveDurability() = %q, want %q", tier, got, tier)
+			}
+		}
+
 		eng.Close()
 	}
 

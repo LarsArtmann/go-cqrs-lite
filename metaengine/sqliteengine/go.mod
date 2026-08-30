@@ -43,3 +43,6 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )
+
+// Sibling replace for unpublished metaengine symbols (DurabilityReporter and later); stripped by scripts/tag-release.sh at cut time.
+replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../

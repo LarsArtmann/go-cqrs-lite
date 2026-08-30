@@ -53,6 +53,8 @@ type badgerEngine struct {
 
 	db          *badger.DB
 	ownsDB      bool
+	syncWrites  bool
+	inMemory    bool
 	persistence metaengine.Persistence
 	mu          sync.Mutex // guards MapUpdate, StreamAppend, StreamAppendExpected
 	logSeq      sync.Map   // collection → *atomic.Int64 (log sequence counter)
@@ -106,6 +108,8 @@ func NewBadgerEngine(dir string, engineOpts ...Option) (metaengine.Engine, error
 	eng := &badgerEngine{
 		db:          db,
 		ownsDB:      true,
+		syncWrites:  cfg.syncWrites,
+		inMemory:    dir == "",
 		persistence: persistence,
 	}
 

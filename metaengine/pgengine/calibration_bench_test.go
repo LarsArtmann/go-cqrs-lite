@@ -367,7 +367,12 @@ func BenchmarkCalibration_Postgres_CounterGet(b *testing.B) {
 		}
 
 		if len(counts) != pgCalibrationCounters {
-			b.Fatalf("CounterGet %d: expected %d counters, got %d", i, pgCalibrationCounters, len(counts))
+			b.Fatalf(
+				"CounterGet %d: expected %d counters, got %d",
+				i,
+				pgCalibrationCounters,
+				len(counts),
+			)
 		}
 	}
 

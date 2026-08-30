@@ -88,6 +88,7 @@ type bboltEngine struct {
 
 	db          *bolt.DB
 	ownsDB      bool
+	noSync      bool
 	tmpPath     string // non-empty when we created a temp file (volatile mode)
 	done        bool
 	persistence metaengine.Persistence
@@ -135,6 +136,7 @@ func NewBboltEngine(path string, opts ...Option) (metaengine.Engine, error) {
 	eng := &bboltEngine{
 		db:          db,
 		ownsDB:      true,
+		noSync:      cfg.noSync,
 		tmpPath:     tmpPath,
 		persistence: persistence,
 	}

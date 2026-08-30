@@ -16,7 +16,10 @@ import (
 // retyped (ALTER COLUMN TYPE). Idempotent — a matching schema applies nothing.
 // The registered plan is replaced with the given plan (evolution intent is a
 // schema change, so the conflict check from ApplyLayoutPlan does not apply).
-func (e *pgEngine) EvolveLayoutPlan(ctx context.Context, plan metaengine.LayoutPlan) ([]string, error) {
+func (e *pgEngine) EvolveLayoutPlan(
+	ctx context.Context,
+	plan metaengine.LayoutPlan,
+) ([]string, error) {
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	e.layoutMu.Lock()
 	defer e.layoutMu.Unlock()

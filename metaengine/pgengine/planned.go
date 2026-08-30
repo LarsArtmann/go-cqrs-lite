@@ -165,8 +165,14 @@ func execPlannedUpsert(
 	updates := make([]string, 0, 1+len(plan.Columns))
 	updates = append(updates, "value = excluded.value")
 	for _, c := range plan.Columns {
-		updates = append(updates,
-			fmt.Sprintf("%s = excluded.%s", metaengine.QuoteIdent(c.Name), metaengine.QuoteIdent(c.Name)))
+		updates = append(
+			updates,
+			fmt.Sprintf(
+				"%s = excluded.%s",
+				metaengine.QuoteIdent(c.Name),
+				metaengine.QuoteIdent(c.Name),
+			),
+		)
 	}
 
 	query := fmt.Sprintf(

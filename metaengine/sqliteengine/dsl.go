@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -91,10 +92,19 @@ func NewSQLiteEngineFromDSN(dsn string, pragmas ...string) (metaengine.Engine, e
 
 	db.SetMaxOpenConns(1)
 
+	var synchronousValue string
+
 	applied := append([]string{
 		"journal_mode=WAL",
 		"busy_timeout=5000",
 	}, pragmas...)
+
+	for _, pragma := range applied {
+		if name, value, isSync := strings.Cut(pragma, "="); isSync &&
+			strings.EqualFold(strings.TrimSpace(name), "synchronous") {
+			synchronousValue = strings.TrimSpace(value)
+		}
+	}
 
 	for _, pragma := range applied {
 		if _, err := db.ExecContext(context.Background(), "PRAGMA "+pragma); err != nil {
@@ -109,6 +119,10 @@ func NewSQLiteEngineFromDSN(dsn string, pragmas ...string) (metaengine.Engine, e
 		_ = db.Close()
 
 		return nil, err
+	}
+
+	if se, ok := eng.(*sqliteEngine); ok {
+		se.synchronousPragma = synchronousValue
 	}
 
 	OwnDB(eng)

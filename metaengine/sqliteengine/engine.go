@@ -28,9 +28,10 @@ type sqliteEngine struct {
 	// path via NewSQLiteEngineFromDSN): Close then also closes the database.
 	// Engines wrapping a caller-supplied pool leave it false — the caller
 	// keeps ownership.
-	ownsDB  bool
-	queries sqliteQuerySet
-	cache   *stmtCache
+	ownsDB            bool
+	synchronousPragma string
+	queries           sqliteQuerySet
+	cache             *stmtCache
 	// graphCTE enables the single-query recursive-CTE traversal when the
 	// driver/server supports WITH RECURSIVE (probed at construction).
 	graphCTE bool

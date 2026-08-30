@@ -166,7 +166,11 @@ func BenchmarkCalibration_Badger_CounterScan(b *testing.B) {
 		}
 
 		if len(counts) != badgerCalibrationCounters {
-			b.Fatalf("CounterGet: expected %d counters, got %d", badgerCalibrationCounters, len(counts))
+			b.Fatalf(
+				"CounterGet: expected %d counters, got %d",
+				badgerCalibrationCounters,
+				len(counts),
+			)
 		}
 	}
 

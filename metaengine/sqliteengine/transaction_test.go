@@ -7,8 +7,8 @@ import (
 
 	gomega "github.com/onsi/gomega"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // Behavioral pins for RunInTx. SQLite runs in-memory, so these execute in

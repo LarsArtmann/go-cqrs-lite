@@ -73,6 +73,7 @@ type pgEngine struct {
 	appliedLayouts map[string]bool
 	plans          map[string]metaengine.LayoutPlan // collection → planned-table layout (D1; guarded by layoutMu)
 	copyMin        int                              // WithCopyAppend: bulk StreamAppend threshold; 0 = off
+	durability     metaengine.DurabilityTier        // set by the driver factory (withDurabilityTier)
 }
 
 // New creates a Postgres-backed metaengine Engine from a DSN.

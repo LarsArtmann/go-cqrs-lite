@@ -41,7 +41,10 @@ func TestPgEvolveLayoutPlan(t *testing.T) {
 	}
 
 	if len(applied) != 0 {
-		t.Errorf("evolve v1 on a fresh table (created by evolve itself): applied = %v, want empty", applied)
+		t.Errorf(
+			"evolve v1 on a fresh table (created by evolve itself): applied = %v, want empty",
+			applied,
+		)
 	}
 
 	// v2: amount retyped to DOUBLE — the evolution this capability exists for.

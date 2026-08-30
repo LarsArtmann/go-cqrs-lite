@@ -16,7 +16,7 @@ func init() {
 				return nil, err
 			}
 
-			return New(dsn) //nolint:contextcheck // constructor doesn't take ctx
+			return New(dsn, withDurabilityTier(cfg.Durability)) //nolint:contextcheck // constructor takes no ctx
 		},
 	)
 }
