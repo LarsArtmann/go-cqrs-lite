@@ -21,7 +21,7 @@ func (e *pgEngine) EvolveLayoutPlan(ctx context.Context, plan metaengine.LayoutP
 	defer e.layoutMu.Unlock()
 
 	if _, exists := e.plans[plan.Collection]; !exists {
-		if err := e.registerPlannedLayout(plan); err != nil {
+		if err := e.registerPlannedLayout(ctx, plan); err != nil {
 			return nil, fmt.Errorf("pgengine.EvolveLayoutPlan: %w", err)
 		}
 	}
@@ -55,9 +55,14 @@ func (e *pgEngine) EvolveLayoutPlan(ctx context.Context, plan metaengine.LayoutP
 		case err != nil:
 			return nil, fmt.Errorf("pgengine.EvolveLayoutPlan: introspect %s: %w", c.Name, err)
 		case strings.ToLower(got) != want:
+			// USING cast: text→numeric conversions need an explicit expression
+			// (SQLSTATE 42804 otherwise). A value the target type cannot
+			// represent fails the ALTER loudly — the no-data-loss default.
 			if _, err := e.db.ExecContext(ctx, fmt.Sprintf(
-				"ALTER TABLE %s ALTER COLUMN %s TYPE %s",
+				"ALTER TABLE %s ALTER COLUMN %s TYPE %s USING %s::%s",
 				metaengine.QuoteIdent(plan.Table),
+				metaengine.QuoteIdent(c.Name),
+				pgPlannedColumn(c.Type),
 				metaengine.QuoteIdent(c.Name),
 				pgPlannedColumn(c.Type),
 			)); err != nil {

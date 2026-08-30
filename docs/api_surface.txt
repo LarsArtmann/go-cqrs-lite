@@ -1834,6 +1834,7 @@ metaengine/interface Fold
 metaengine/interface GroupedAggregateReader
 metaengine/interface HealthChecker
 metaengine/interface LayoutPlanApplier
+metaengine/interface LayoutPlanEvolver
 metaengine/interface LayoutPlanner
 metaengine/interface LogBackend
 metaengine/interface MapBackend
@@ -2294,6 +2295,7 @@ metaengine/mysqlengine/method Close
 metaengine/mysqlengine/method CounterGet
 metaengine/mysqlengine/method CounterIncrement
 metaengine/mysqlengine/method Dialect
+metaengine/mysqlengine/method EvolveLayoutPlan
 metaengine/mysqlengine/method ExplainAggregateQuery
 metaengine/mysqlengine/method ExplainScanQuery
 metaengine/mysqlengine/method GraphAddEdge
@@ -2373,6 +2375,7 @@ metaengine/pgengine/method Close
 metaengine/pgengine/method CounterGet
 metaengine/pgengine/method CounterIncrement
 metaengine/pgengine/method DistinctValues
+metaengine/pgengine/method EvolveLayoutPlan
 metaengine/pgengine/method ExplainAggregateQuery
 metaengine/pgengine/method ExplainScanQuery
 metaengine/pgengine/method GraphAddEdge

@@ -77,9 +77,9 @@ func (e *mysqlEngine) planFor(col string) (metaengine.LayoutPlan, bool) {
 
 // registerPlannedLayout creates the planned table + indexes and stores the
 // plan. Called with layoutMu held.
-func (e *mysqlEngine) registerPlannedLayout(plan metaengine.LayoutPlan) error {
+func (e *mysqlEngine) registerPlannedLayout(ctx context.Context, plan metaengine.LayoutPlan) error {
 	for _, stmt := range mysqlDDL(plan) {
-		if _, err := e.db.ExecContext(context.Background(), stmt); err != nil {
+		if _, err := e.db.ExecContext(ctx, stmt); err != nil {
 			return fmt.Errorf("mysqlengine.registerPlannedLayout: %w", err)
 		}
 	}
@@ -119,7 +119,7 @@ func (e *mysqlEngine) ApplyLayoutPlan(plan metaengine.LayoutPlan) error {
 		return nil
 	}
 
-	if err := e.registerPlannedLayout(plan); err != nil {
+	if err := e.registerPlannedLayout(context.Background(), plan); err != nil {
 		return fmt.Errorf("mysqlengine.ApplyLayoutPlan: %w", err)
 	}
 
