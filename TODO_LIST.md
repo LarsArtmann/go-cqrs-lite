@@ -46,7 +46,7 @@ and is **never** duplicated here.
 
 **Storage / SQL**
 
-- [ ] **SQL-injection hardening tail** — PARTIAL 2026-08-29 (todo-execution session): `ValidateJournalIdentifiers` now guards Table + TimestampColumn interpolation in `JournalReader.ReadAll`/`LoadFromStart`, `ResolveCursorTimestamp`, and `KeysetPositionQuery` (fail-fast Infrastructure rejection). FOLLOW-UPS DONE 2026-08-29 (session 2): multi-condition fuzz target (`FuzzBuildWhereClauseChecked_MultiCondition`), persisted hostile corpus (`storage/sql/testdata/fuzz/...`, loaded by every CI run), nightly fuzz workflow (`.github/workflows/fuzz.yml`, 60s/target + failure-corpus upload); gosec already runs in golangci (G304/G115 excluded globally). KeysetPositionQuery "" shape fixed via `KeysetPositionQueryChecked` (Deprecated wrapper kept for v4).
+- [x] **SQL-injection hardening tail** — DONE 2026-08-29/30: `ValidateJournalIdentifiers` guards Table + TimestampColumn interpolation in `JournalReader.ReadAll`/`LoadFromStart`, `ResolveCursorTimestamp`, and `KeysetPositionQuery` (fail-fast Infrastructure rejection); multi-condition fuzz target (`FuzzBuildWhereClauseChecked_MultiCondition`), persisted hostile corpus (`storage/sql/testdata/fuzz/...`, loaded by every CI run), nightly fuzz workflow (`.github/workflows/fuzz.yml`); gosec runs in golangci (G304/G115 excluded globally); `KeysetPositionQuery` "" shape fixed via `KeysetPositionQueryChecked` (Deprecated wrapper kept for v4). Wave-1 CHANGELOG backfill landed 2026-08-30.
       _(Effort: S)_ — source: status 2026-08-16_14-54
 - [x] **`ScanSlice` pre-size** — DONE 2026-08-29 (plan V3 T06): optional capacity hint on `ScanSlice`; `JournalReader` threads its bounded limit (capped 4096) into the drain-path scans; benchmark added.
       _(Effort: XS)_ — sources: status 2026-08-16_03-10/07-12
@@ -63,7 +63,7 @@ and is **never** duplicated here.
 
 - [✓] **Engine READMEs** — DONE 2026-08-29 — mysql/sqlite/turso/badger READMEs already exist (filled by earlier waves; verified non-empty); pebble's stale "Graph: O(N^d) BFS" comment replaced with an explicit NOT-supported note (profile omits ADTGraph); pgengine README covers the vector path and mysqlengine README covers LayoutPlanner (verified). modules.md gained dgraphengine + irohengine rows (session 2).
       _(Effort: S)_ — sources: status 2026-08-16_18-09/22-50
-- [ ] **CHANGELOG unreleased-block fold** — `[Unreleased — earlier 2026-08-16 work]` (CHANGELOG.md:1451) still separate from the top block.
+- [x] **CHANGELOG unreleased-block fold** — DONE 2026-08-29: the 2026-08-16-era block was folded into the top `[Unreleased]` window (header note in CHANGELOG.md records it); no separate `[Unreleased — earlier …]` heading remains.
       _(Effort: S)_ — source: status 2026-08-16_19-01
 - [x] **v5 doc coverage** — DONE 2026-08-29 (plan V3 T30): faq.md gained a v5-deletion overview; AGENTS Codec Defaults carries the v5 note; method-level `Deprecated:` marker decision recorded as an ADR-0123 addendum; storage/pebble verified to have NO stack import (only a stale doc comment, fixed) — nothing blocks P13 stack deletion; stack/bench decision: DELETE with the rest of stack/ at the v5 cut (it benchmarks presets and has no reason to outlive them).
       _(Effort: M)_ — sources: status 2026-08-18_13-59, 2026-08-17_16-27
@@ -434,9 +434,7 @@ and is **never** duplicated here.
       doc-check over skill refs, consumer-pin sweep for `record/v4` consumers
       under GOWORK=off (plan T24; MarshalBinary lesson).
       _(Effort: M)_
-- [ ] **AGENTS.md memory: data-model conventions** — record T01 outcome +
-      new conventions (validating-population pattern, capability-interface
-      rule) once the PRs land (plan T25).
+- [x] **AGENTS.md memory: data-model conventions** — DONE: AGENTS.md internal-contract #21 records the ADR-0111 T04–T12 conventions (record.Type aliases, typed Encoding stamp, single StreamRef, string-backed caller-keyed IDs, typed ActorID, AsRecord populate-never-drop, capability interfaces).
       _(Effort: S)_
 
 ### Deep Full-Code Review (2026-08-27) — follow-ups

@@ -241,6 +241,20 @@ What to do instead: fix the fold so increments and decrements pair up
 monitor for `counter < 0` as a projection-health alert. See
 `storage/relational/sink.go` (`Increment` doc comment) for the rationale.
 
+### "Why does `storage/sql.KeysetPositionQuery` return an empty string for a bad table name?"
+
+It was a deprecated footgun: the pre-validation keyset builder silently
+yielded `""` when the table or timestamp column failed identifier
+validation, and the empty query surfaced downstream as a baffling SQL
+syntax error instead of a classified rejection. Use
+`storage/sql.KeysetPositionQueryChecked` — same result shape, but invalid
+identifiers return a fail-fast Infrastructure error. `KeysetPositionQuery`
+stays as a Deprecated wrapper until v5; every in-repo journal path
+(`ReadStreamFrom`, `JournalReader.ReadFrom`) already uses the checked form.
+The same `storage/sql.ValidateJournalIdentifiers` guard protects the
+`JournalReader` and cursor-timestamp interpolation paths, backed by
+adversarial injection tests and a persisted fuzz corpus.
+
 ## Will the v5 cut break my imports? What is going away?
 
 Everything scheduled for deletion at v5 (ADR-0123/0126/0127) already carries a

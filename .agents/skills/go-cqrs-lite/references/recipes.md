@@ -1578,3 +1578,64 @@ Two invariants make this safe:
 Prefer `projectionhost.Host` over hand-rolling: it ships this ordering,
 crash-restart, checkpoints, and a DLQ. Regression tests live in
 `projectionhost/catchup_drain_test.go`.
+
+### 2.24 Atomic Read-Modify-Write: Engine RunInTx (metaengine.Transactional)
+
+Engines that support explicit transactions expose the optional
+`metaengine.Transactional` capability (`metaengine/transaction.go`):
+
+```go
+tx, ok := eng.(metaengine.Transactional)
+if !ok {
+    // engine has no transactional capability — fall back to per-op writes
+}
+
+err := tx.RunInTx(ctx, func(ctx context.Context) error {
+    if err := mb.MapSet(ctx, col, "k", map[string]any{"v": 1}); err != nil {
+        return err // any error → every write in fn is rolled back
+    }
+
+    // Reads inside fn see the transaction's own uncommitted writes
+    // (read-your-writes) — safe read-modify-write cycles.
+    _, found, err := mb.MapGet(ctx, col, "k")
+
+    return err
+}) // nil error → committed; error → rolled back, engine stays usable
+```
+
+Contract details that are easy to get wrong:
+
+1. **Propagate fn's ctx into nested calls.** A nested `RunInTx` inside fn is
+   REJECTED (detected via a marker in the ctx that RunInTx passes to fn).
+   Calling nested with a FRESH context instead deadlocks on the engine's
+   serialization mutex. (Fixed 2026-08-30 — before, the nested-rejection
+   check sat behind the mutex and deadlocked the caller.)
+2. **Concurrent RunInTx calls serialize** (one active transaction per
+   engine); both succeed, ordering is arrival order.
+3. **Writes outside fn issued between RunInTx calls** are independent —
+   there is no ambient transaction to fall into.
+
+Capability-tested in `metaengine/dgraphengine/transaction_capability_test.go`
+and `metaengine/sqliteengine/transaction_test.go` (commit/rollback,
+nested-rejection, read-your-writes, retry-after-abort).
+
+### 2.25 Vector Size Introspection: VectorCounter (metaengine)
+
+`metaengine.VectorCounter` (`metaengine/vector_search.go`) extends
+`VectorBackend` with `VectorCount(ctx, collection)` and
+`VectorCollections(ctx)`. It answers "how big is my vector collection"
+WITHOUT transferring payloads; the `memory` and `pg` engines implement it
+(pg via SQL COUNT/DISTINCT).
+
+```go
+if vc, ok := eng.(metaengine.VectorCounter); ok {
+    n, err := vc.VectorCount(ctx, "docs") // 0 for unknown collections
+    cols, err := vc.VectorCollections(ctx)
+}
+```
+
+Doctor prints a `--- Vectors ---` section with real collection sizes when
+the engine has the capability; ExplainPlan/Doctor WARN when it does not —
+an engine without size introspection serves k-NN by full scan and cannot
+bound the scan. If you add an engine with VectorBackend support, implement
+VectorCounter too or that WARN is permanent.
