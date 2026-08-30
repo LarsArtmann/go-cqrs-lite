@@ -133,6 +133,18 @@ consumer-visible observability change; batch at v5 with a changelog note):**
 - `listing.aggregate_projection` (projection name, not an error code —
   consumer-visible in metaengine collections)
 
+**Snapshot wire-tag v5 design note (C9, 2026-08-30):** the `snapshot`
+JSON/CBOR tags rename to `stream_id`/`stream_type` (and pebble's CBOR tags
+to `stream_id`/`stream_type`) with a DECODE-ONLY legacy fallback: the v5
+readers accept BOTH spellings, writers emit only the new ones. No data
+migration is required and pre-v5 snapshots stay readable — the fallback
+shims are themselves scheduled for deletion at v6 once one release cycle
+has passed. The SQL `snapshots` columns do NOT get the reader trick:
+renaming those columns is a schema migration (ALTER TABLE ... RENAME) in
+`storage/migrations`, released in the same wave as the tag rename so
+binary and schema move together. Error-code strings rename in the same
+batch (rule 3).
+
 ## 5. Deprecated modules deleted wholesale at v5
 
 From TODO_LIST §v5 + ADRs 0123/0126/0127: `stack` Bundle/Materialize/
@@ -140,6 +152,25 @@ RunProjections + 8 presets, `storage/view`, `storage/relational`,
 `graph.GraphProjection`, `transport/http`, `transport/grpc`,
 `schema.VersionedStore`/`VersionedSeekableJournal`, `signing.Rejecting*`,
 `encryption.ErrInnerStoreNot*`, `storage/sql.BuildWhereClause`.
+
+## 6. Consumer scans confirming wholesale deletion is safe (2026-08-30)
+
+Verified per the plan's C9 quick-win scans; re-run these greps at the cut —
+the conclusion holds only for the CURRENT tree.
+
+- **`storage/sql.BuildWhereClause`**: the only non-test consumers of the
+  Deprecated shell are IN-REPO (`storage/relational/store.go:91,180`,
+  `storage/view/count.go:28`, `storage/view/query.go:49`) and all four
+  call sites already use `BuildWhereClauseChecked`. Deleting the shell at
+  v5 requires zero call-site migrations.
+- **`transport/http` + `transport/grpc`**: zero in-repo imports outside the
+  modules themselves (the only reference is cqrs-lint's
+  `feature_profile.go` analyzer, which FLAGS the import — it survives the
+  deletion as a stale-import detector).
+- **`stack.Materialize` / `Bundle` / `RunProjections` presets**: consumer
+  scan pending the D4 wave; the presets are self-contained composition
+  sugar, so the expected outcome is "examples only" (example/ is a demo,
+  not a deployment).
 
 ## Execution rules
 

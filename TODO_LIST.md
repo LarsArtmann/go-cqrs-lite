@@ -52,7 +52,7 @@ and is **never** duplicated here.
       _(Effort: XS)_ — sources: status 2026-08-16_03-10/07-12
 - [x] **system Command/QueryAdapter `metaJSON, _ :=`** — DONE 2026-08-29 (plan V3 T05): defensive nil-on-failure + deterministic marshal mirroring the event adapter; note: today's string-typed metadata makes the error path unreachable, so the honest fix is hardening + the first metadata roundtrip tests.
       _(Effort: XS)_ — source: status 2026-08-16_17-38
-- [ ] **storage/relational one-tx-per-event** projection writes.
+- [x] **storage/relational one-tx-per-event** projection writes — ALREADY IMPLEMENTED, verified 2026-08-30: `RelationalProjection.Handle` (storage/relational/projection.go:134-155) begins one `BeginTx` per event, constructs the SINGLE `sqlSink` on that tx, commits on success, deferred-Rollback on error — every sink write and any raw SQL the handler runs share the event's transaction. Pinned by `storage/relational/tx_test.go` (sink exposes the active tx, raw SQL commits with sink writes, raw SQL rolls back on handler error).
       _(Effort: M)_ — source: status 2026-08-16_03-10
 - [x] **backuptest tag + replace drop** — DONE 2026-08-29: `storage/backuptest/v4.1.0` cut with wave B3 (fetchable tag); bbolt/pebble pins bumped + sibling replaces dropped (plan V3 T07).
       _(Effort: XS)_ — source: status 2026-08-16_19-52
@@ -269,6 +269,9 @@ and is **never** duplicated here.
       _(Effort: M)_ — 2026-08-16: static review done (portability note added
       to the script header; no Linux-isms found, /dev/kvm check
       uname-guarded); hardware verification on a real Mac remains open.
+      2026-08-30 (C10): header now says the claim is static-review-only and
+      names the verification route — a GitHub Actions macOS runner leg
+      (blocked on macOS CI runner, same hardware constraint as D9).
 
 ---
 
