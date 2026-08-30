@@ -10,6 +10,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > inside a dated `[tags]` section is unreleased (the 2026-08-16-era block was
 > folded into this window on 2026-08-29).
 
+### Added — session-4 wave: claiming timers, planned tables (pg+mysql) — 2026-08-30
+
+- **`scheduling/sqlstore.ClaimingTimerStore`**: lease-based timer claiming for
+  multi-instance dispatch — Postgres claims via a CTE with
+  `FOR UPDATE SKIP LOCKED` + `UPDATE..RETURNING`, SQLite via single-writer
+  `UPDATE..RETURNING`, both behind an idempotent `lease_until` migration;
+  MySQL/MariaDB are rejected loudly (`ErrClaimingUnsupported`) instead of
+  silently double-firing without a SKIP LOCKED primitive. A live
+  two-claimer contention test pins the claim fence (lease deadline compared
+  against now, not against the new lease).
+- **`metaengine/pgengine.ApplyLayoutPlan` + `metaengine/mysqlengine.ApplyLayoutPlan`**
+  (the `metaengine.LayoutPlanApplier` capability): registers a
+  `metaengine.LayoutPlan` and materializes per-collection extracted-column
+  tables (PG: JSONB value + DOUBLE PRECISION/BIGINT/TEXT columns, `$N`
+  placeholders; MySQL: backtick identifiers, split DDL statements,
+  `ON DUPLICATE KEY UPDATE` upserts). `MapSet`/`MapGet`/`MapDelete` route
+  through the planned table via the `planFor` seam once a plan is registered;
+  planless collections keep the meta_map path. Live roundtrip,
+  conflict-guard, and mis-type fail-loud tests green on ephemeral PG and
+  userspace MariaDB. (Planned filter/sort/keyset pushdown for
+  PushdownMapScan/MapScan/MapUpdate is the next slice — see TODO_LIST.)
+
+### Changed — projectionhost failed-worker classification — 2026-08-30
+
+- **`projectionhost.ErrWorkerFailed`** (errorfamily Infrastructure) is the
+  new sentinel for the failed-worker branch of `CheckStaleness` /
+  `CheckProjectionStaleness`, which previously returned
+  `projectionhost.ErrProjectionStale` (Transient). A worker that exhausted
+  its restart budget never recovers on its own — restarting the host or
+  widening the budget is an operator action — so retry-until-fresh loops
+  classified as Transient would spin forever. Consumer-visible
+  reclassification: match `ErrWorkerFailed` where you matched
+  `ErrProjectionStale` for dead workers.
+
 ### Added — quiet-window ReadCosts calibration, dedup production-capacity regression — 2026-08-30
 
 - **Per-pattern calibration benches for the three embedded engines**: new
