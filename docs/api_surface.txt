@@ -1410,6 +1410,7 @@ metaengine/badgerengine/func WithAsyncWrites
 metaengine/badgerengine/method Close
 metaengine/badgerengine/method CounterGet
 metaengine/badgerengine/method CounterIncrement
+metaengine/badgerengine/method EffectiveDurability
 metaengine/badgerengine/method GraphAddEdge
 metaengine/badgerengine/method GraphNeighbors
 metaengine/badgerengine/method GraphNeighborsUndirected
@@ -1449,6 +1450,7 @@ metaengine/bboltengine/func WithNoSync
 metaengine/bboltengine/method Close
 metaengine/bboltengine/method CounterGet
 metaengine/bboltengine/method CounterIncrement
+metaengine/bboltengine/method EffectiveDurability
 metaengine/bboltengine/method HealthCheck
 metaengine/bboltengine/method JournalReadAll
 metaengine/bboltengine/method JournalReadAllWithSeq
@@ -1846,6 +1848,7 @@ metaengine/interface MultiAggregateReader
 metaengine/interface MultiGroupedAggregateReader
 metaengine/interface MultimapBackend
 metaengine/interface PlanRule
+metaengine/interface PlannedTablesReporter
 metaengine/interface Prober
 metaengine/interface PushdownScan
 metaengine/interface RawScanReader
@@ -2177,6 +2180,7 @@ metaengine/method ObservedWorkloadStats
 metaengine/method Persistence
 metaengine/method Plan
 metaengine/method PlanHistory
+metaengine/method PlannedTablesDoctorSection
 metaengine/method Poison
 metaengine/method Primary
 metaengine/method Profile
@@ -2316,6 +2320,7 @@ metaengine/mysqlengine/method MapScanKeyValues
 metaengine/mysqlengine/method MapSet
 metaengine/mysqlengine/method MapUpdate
 metaengine/mysqlengine/method MeasureTransact
+metaengine/mysqlengine/method PlannedTables
 metaengine/mysqlengine/method Probe
 metaengine/mysqlengine/method Profile
 metaengine/mysqlengine/method PushdownMapScan
@@ -2336,6 +2341,7 @@ metaengine/pebbleengine/method ApplyLayout
 metaengine/pebbleengine/method Close
 metaengine/pebbleengine/method CounterGet
 metaengine/pebbleengine/method CounterIncrement
+metaengine/pebbleengine/method EffectiveDurability
 metaengine/pebbleengine/method GetRawValue
 metaengine/pebbleengine/method HealthCheck
 metaengine/pebbleengine/method JournalReadAll
@@ -2378,6 +2384,7 @@ metaengine/pgengine/method Close
 metaengine/pgengine/method CounterGet
 metaengine/pgengine/method CounterIncrement
 metaengine/pgengine/method DistinctValues
+metaengine/pgengine/method EffectiveDurability
 metaengine/pgengine/method EvolveLayoutPlan
 metaengine/pgengine/method ExplainAggregateQuery
 metaengine/pgengine/method ExplainScanQuery
@@ -2400,6 +2407,7 @@ metaengine/pgengine/method MapUpdate
 metaengine/pgengine/method MeasureTransact
 metaengine/pgengine/method MultiAggregate
 metaengine/pgengine/method MultiGroupedAggregate
+metaengine/pgengine/method PlannedTables
 metaengine/pgengine/method Probe
 metaengine/pgengine/method Profile
 metaengine/pgengine/method PushdownMapScan
@@ -2448,6 +2456,7 @@ metaengine/sqliteengine/method Close
 metaengine/sqliteengine/method CounterGet
 metaengine/sqliteengine/method CounterIncrement
 metaengine/sqliteengine/method DistinctValues
+metaengine/sqliteengine/method EffectiveDurability
 metaengine/sqliteengine/method ExplainAggregateQuery
 metaengine/sqliteengine/method ExplainScanQuery
 metaengine/sqliteengine/method GetRawValue
@@ -2547,6 +2556,7 @@ metaengine/struct PlanDiffResult
 metaengine/struct PlanResult
 metaengine/struct PlannedColumn
 metaengine/struct PlannedIndex
+metaengine/struct PlannedTableInfo
 metaengine/struct Point
 metaengine/struct PrefetchCache
 metaengine/struct PriorityConfig

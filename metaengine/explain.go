@@ -470,6 +470,7 @@ func (s *Store) Doctor(ctx context.Context) string {
 
 	b.WriteString(s.capabilityDoctorSection())
 	b.WriteString(s.LayoutDoctorSection())
+	b.WriteString(s.PlannedTablesDoctorSection(ctx))
 
 	return b.String()
 }

@@ -18,7 +18,7 @@ func (e *mysqlEngine) MapScanKeyValues(
 	cursor any,
 	limit int,
 ) ([]any, []any, bool, error) {
-if limit <= 0 {
+	if limit <= 0 {
 		limit = 500
 	}
 
