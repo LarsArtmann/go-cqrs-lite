@@ -68,6 +68,38 @@ func TestDuckDBEngine_PushdownFilter(t *testing.T) {
 		})
 }
 
+func TestDuckDBEngine_PushdownFloatFilter(t *testing.T) {
+	t.Parallel()
+
+	eng := mustNewDuckEngine(t)
+
+	enginetest.RunPushdownTest(t, eng, "push_ffilter", seedDuckDBProducts,
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan, col string) {
+			results, err := ps.PushdownMapScan(
+				ctx,
+				col,
+				[]metaengine.FilterSpec{
+					{Column: "Price", Op: metaengine.FilterGt, Value: 1.0},
+				},
+				&metaengine.SortSpec{Column: "Price", Desc: false},
+				nil,
+				0,
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if len(results.Items) != 3 {
+				t.Fatalf("filter price>1.0: expected 3, got %d", len(results.Items))
+			}
+
+			first := results.Items[0].(map[string]any)
+			if first["Name"] != "eggplant" {
+				t.Errorf("numeric order broken: first = %v, want eggplant (price 1.25)", first["Name"])
+			}
+		})
+}
+
 func TestDuckDBEngine_PushdownSort(t *testing.T) {
 	t.Parallel()
 
