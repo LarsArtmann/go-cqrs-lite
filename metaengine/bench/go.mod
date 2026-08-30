@@ -76,3 +76,12 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )
+
+// Local siblings for UNPUBLISHED symbols (ReadCosts calibration constants,
+// ADR-0133) — tag-release.sh strips these at cut time. Remove once the
+// engine modules carrying the calibration are tagged.
+replace github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 => ../bboltengine
+
+replace github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 => ../pebbleengine
+
+replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
