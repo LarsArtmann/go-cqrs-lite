@@ -312,8 +312,10 @@ func sqlTypeOf(t reflect.Type) string {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return "INTEGER"
-	case reflect.Float32, reflect.Float64:
+	case reflect.Float32:
 		return "REAL"
+	case reflect.Float64:
+		return "DOUBLE"
 	case reflect.Bool:
 		return "INTEGER"
 	default:

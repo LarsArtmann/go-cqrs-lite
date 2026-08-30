@@ -25,7 +25,7 @@ import (
 // REAL→DOUBLE PRECISION keeps float64 lossless; INTEGER and TEXT pass through.
 func pgPlannedColumn(sqliteType string) string {
 	switch strings.ToUpper(sqliteType) {
-	case "REAL":
+	case "REAL", "DOUBLE", "FLOAT":
 		return "DOUBLE PRECISION"
 	case "INTEGER":
 		return "BIGINT"

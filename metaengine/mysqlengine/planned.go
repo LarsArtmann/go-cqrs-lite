@@ -27,7 +27,7 @@ func backtickIdent(name string) string {
 // mysqlPlannedColumn maps a plan's SQLite-ish inferred type to MySQL.
 func mysqlPlannedColumn(sqliteType string) string {
 	switch strings.ToUpper(sqliteType) {
-	case "REAL":
+	case "REAL", "DOUBLE", "FLOAT":
 		return "DOUBLE"
 	case "INTEGER":
 		return "BIGINT"

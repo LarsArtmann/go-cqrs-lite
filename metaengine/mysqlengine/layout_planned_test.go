@@ -7,6 +7,7 @@ package mysqlengine_test
 import (
 	"context"
 	"errors"
+	"database/sql"
 	"fmt"
 	"testing"
 
@@ -14,6 +15,50 @@ import (
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
+
+// cleanupPlannedCollection removes a planned table and its meta_map rows so
+// re-runs against the persistent cqrs_test database start clean.
+func cleanupPlannedCollection(t *testing.T, dsn, collection string) {
+	t.Helper()
+
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		t.Fatalf("cleanup open: %v", err)
+	}
+
+	defer db.Close()
+
+	table := "meta_planned_" + sanitizeCollectionName(collection)
+	for _, stmt := range []string{
+		"DROP TABLE IF EXISTS `" + table + "`",
+		"DELETE FROM meta_map WHERE collection = ?",
+	} {
+		if stmt == "DELETE FROM meta_map WHERE collection = ?" {
+			if _, err := db.Exec(stmt, collection); err != nil {
+				t.Fatalf("cleanup meta_map: %v", err)
+			}
+
+			return
+		}
+
+		if _, err := db.Exec(stmt); err != nil {
+			t.Fatalf("cleanup drop: %v", err)
+		}
+	}
+}
+
+func sanitizeCollectionName(c string) string {
+	out := make([]rune, 0, len(c))
+	for _, r := range c {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_' {
+			out = append(out, r)
+		} else {
+			out = append(out, '_')
+		}
+	}
+
+	return string(out)
+}
 
 // TestMySQLPlannedTable_RoundTrip pins the Map routing through the planned
 // table: upsert, get, delete, and conflict rejection on live MariaDB.
@@ -25,6 +70,8 @@ func TestMySQLPlannedTable_RoundTrip(t *testing.T) {
 	ctx := context.Background()
 
 	eng := mustNewMySQLEngine(t)
+	cleanupPlannedCollection(t, mysqlTestDSN(), "planned_roundtrip")
+	t.Cleanup(func() { cleanupPlannedCollection(t, mysqlTestDSN(), "planned_roundtrip") })
 	mb := eng.(metaengine.MapBackend)
 	lpa, ok := eng.(metaengine.LayoutPlanApplier)
 	g.Expect(ok).To(gomega.BeTrue(), "mysqlEngine must implement LayoutPlanApplier")
@@ -88,6 +135,9 @@ func TestMySQLPlannedPushdownScan_FilterSortKeyset(t *testing.T) {
 	ctx := context.Background()
 
 	eng := mustNewMySQLEngine(t)
+	cleanupPlannedCollection(t, mysqlTestDSN(), "planned_scan")
+	cleanupPlannedCollection(t, mysqlTestDSN(), "plain_scan")
+	t.Cleanup(func() { cleanupPlannedCollection(t, mysqlTestDSN(), "plain_scan") })
 	mb := eng.(metaengine.MapBackend)
 	ps, ok := eng.(metaengine.PushdownScan)
 	g.Expect(ok).To(gomega.BeTrue(), "mysqlEngine must implement PushdownScan")
@@ -148,6 +198,8 @@ func TestMySQLPlannedMapScan_VisibilityParity(t *testing.T) {
 	ctx := context.Background()
 
 	eng := mustNewMySQLEngine(t)
+	cleanupPlannedCollection(t, mysqlTestDSN(), "planned_vis")
+	t.Cleanup(func() { cleanupPlannedCollection(t, mysqlTestDSN(), "planned_vis") })
 	mb := eng.(metaengine.MapBackend)
 	sb := eng.(metaengine.ScanBackend)
 	lpa := eng.(metaengine.LayoutPlanApplier)
@@ -181,6 +233,8 @@ func TestMySQLPlannedMapUpdate_RoundTrip(t *testing.T) {
 	ctx := context.Background()
 
 	eng := mustNewMySQLEngine(t)
+	cleanupPlannedCollection(t, mysqlTestDSN(), "planned_upd")
+	t.Cleanup(func() { cleanupPlannedCollection(t, mysqlTestDSN(), "planned_upd") })
 	mb := eng.(metaengine.MapBackend)
 	mu, ok := eng.(metaengine.MapUpdater)
 	g.Expect(ok).To(gomega.BeTrue(), "mysqlEngine must implement MapUpdater")
@@ -241,6 +295,8 @@ func TestMySQLPlannedFromType_FloatColumnsAreNumeric(t *testing.T) {
 	ctx := context.Background()
 
 	eng := mustNewMySQLEngine(t)
+	cleanupPlannedCollection(t, mysqlTestDSN(), "planned_float")
+	t.Cleanup(func() { cleanupPlannedCollection(t, mysqlTestDSN(), "planned_float") })
 	mb := eng.(metaengine.MapBackend)
 	ps := eng.(metaengine.PushdownScan)
 	lpa := eng.(metaengine.LayoutPlanApplier)

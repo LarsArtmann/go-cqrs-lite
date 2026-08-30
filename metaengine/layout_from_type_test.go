@@ -33,8 +33,8 @@ func TestBuildLayoutPlanFromType_ReflectionDerivedColumns(t *testing.T) {
 		t.Errorf("priority = %q, want INTEGER (name heuristic would lie here)", types["priority"])
 	}
 
-	if types["score"] != "REAL" {
-		t.Errorf("score = %q, want REAL", types["score"])
+	if types["score"] != "DOUBLE" {
+		t.Errorf("score = %q, want DOUBLE", types["score"])
 	}
 
 	if types["status"] != "TEXT" {
