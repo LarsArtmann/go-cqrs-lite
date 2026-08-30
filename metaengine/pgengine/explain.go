@@ -18,6 +18,17 @@ func (e *pgEngine) ExplainScanQuery(
 	collection string,
 	opts metaengine.ExplainOptions,
 ) (string, []any) { //art-dupl:accept cross-module SQL builder pattern — separate go.mod
+	// Planned collections explain the extracted-column query (D3 slice 3):
+	// EXPLAIN must reflect what actually executes.
+	if plan, ok := e.planFor(collection); ok {
+		q, args, qerr := buildPGPlannedScanQuery(plan, opts.Filters, opts.Sort, opts.Cursor, opts.Limit)
+		if qerr != nil {
+			return "", nil
+		}
+
+		return q, args
+	}
+
 	var b strings.Builder
 
 	args := []any{collection}
