@@ -483,6 +483,64 @@ would be tagged, then restores the working tree without committing):
 ./scripts/tag-release.sh metaengine v4.0.0 "First release" --dry-run
 ```
 
+#### Pre-tag checklist (multi-module wave)
+
+Run through this before a tag wave — each item exists because a wave tripped
+on it (2026-08-22: 8-tag wave, 66-module pin sweep):
+
+1. `nix run .#verify` + `nix run .#vulncheck` green (vulncheck doubles as the
+   per-module `GOWORK=off` build matrix — a pin missing a symbol fails here,
+   like storage's `pgtestcontainer.AfterRun` gap did).
+2. `go mod edit -require=...@<new-tag>` every dependent module's pin BEFORE
+   cutting the next tag in the wave — `go mod tidy` resolves at package level
+   and does NOT bump pins; missing symbols only surface at build time.
+3. `GOPRIVATE=github.com/larsartmann/*` resolves siblings by direct VCS
+   fetch: a tag must be PUSHED before any dependent module's tag-time tidy
+   can see it — interleave cut → push → next cut.
+4. Never reuse or reorder versions: `git tag -l '<module>/v4*' | sort -V |
+   tail -1` and go strictly above it (semver AND ancestry must both increase).
+5. After the wave: run the `GOWORK=off` build matrix over ALL swept modules;
+   refresh the cqrs-lint taskmanager golden if the version set changed.
+6. Drop local `replace` directives whose target now has a published tag:
+   `grep -rn "=> \.\./\|=> /" --include=go.mod .`
+
+#### GitHub Releases with CHANGELOG bodies
+
+`release.yml` creates auto-generated (PR-based) notes. For changelog-accurate
+bodies, use `scripts/create-github-releases.sh` after pushing tags — it
+extracts the matching `## [version]` section from the root CHANGELOG and
+creates (or updates) each GitHub Release:
+
+```bash
+git push origin "event/v4.0.1" "metaengine/v4.2.0"
+./scripts/create-github-releases.sh event/v4.0.1 metaengine/v4.2.0
+```
+
+#### Retract-and-republish policy
+
+A published Go module version is IMMUTABLE — the proxy caches it forever and
+`go get` will keep resolving it. When a tag is broken (does not build,
+wrong content, poisoned by a bad replace):
+
+1. Fix forward: cut the NEXT semver above it with the fix. This is the
+   default and usually the only step needed.
+2. If the version is actively harmful (consumers may resolve it before
+   noticing), ALSO retract it: add a `retract` block to the module's
+   `go.mod` in the fix-forward version, then re-tag:
+
+   ```go
+   retract (
+       // Broken standalone build — use v4.2.1.
+       v4.2.0 // regression: undefined pgtestcontainer.AfterRun
+   )
+   ```
+
+3. NEVER delete a tag and re-push the same version: proxies keep the old
+   content, checksums diverge per client, and every cached copy becomes a
+   different module than the one the tag now points at.
+4. Record the retraction in the root CHANGELOG under the fix-forward
+   version.
+
 #### Manual tagging (fallback)
 
 If `tag-release.sh` is unavailable, manual tags work but you must verify the
