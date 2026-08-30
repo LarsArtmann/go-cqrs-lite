@@ -29,7 +29,7 @@ func TestBuildLayoutPlanFromType_InfersColumnTypes(t *testing.T) {
 	cases := map[string]string{
 		"status":   "TEXT",    // string
 		"priority": "INTEGER", // int
-		"score":    "DOUBLE", // float64 — duckdb-exact; pg/mysql translators map DOUBLE → float8
+		"score":    "DOUBLE",  // float64 — duckdb-exact; pg/mysql translators map DOUBLE → float8
 		"name":     "TEXT",    // string
 	}
 
