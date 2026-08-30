@@ -47,13 +47,13 @@ and is **never** duplicated here.
       _(Effort: M)_ — source: status 2026-08-30_16-13
 - [✓] **`sqliteengine` ReadCosts calibration** — DONE 2026-08-30 — 4 per-pattern benches added (`BenchmarkCalibration_SQLite_{PointLookup,FilteredScan,CounterGet,FullScan}` in metaengine/sqliteengine; the profile factory `metaengine.SQLiteEngineProfile()` lives core-side), measured medians of 3: point lookup ~3,102ns, json_extract filtered scan ~1,075ns/row, CounterGet ~531ns/row (ADR-0133 — the ReadAggregate path, NOT SQL SUM), full scan ~1,238ns/row; ReadCosts set in `SQLiteEngineProfile()`. Core + sqliteengine suites GREEN, lint clean. — source: status 2026-08-30_16-13 §b4
       _(Effort: M)_ — source: status 2026-08-30_16-13
-- [ ] **Multi-engine routing regression test with REAL engine profiles** — no test pins planner engine selection against actual badger/bbolt/pebble `Profile()`s (core tests use synthetic profiles); the 2026-08-30 constant moves (bbolt point-lookup 2x) are unpinned behavior. — source: status 2026-08-30_16-13 §b2
+- [x] **Multi-engine routing regression test with REAL engine profiles** — DONE 2026-08-30: `metaengine/bench/routing_regression_test.go` pins bbolt/pebble constants end-to-end and point-lookup→memory routing against the REAL `Profile()`s (not synthetic). — source: status 2026-08-30_16-13 §b2
       _(Effort: M)_ — source: status 2026-08-30_16-13
 - [✓] **Execute the iroh QUIC CGo suite** — DONE 2026-08-30 — cargo+gcc present, iroh-go FFI builds: short suite GREEN (1.6s) and all hardening pins PASS against real QUIC endpoints — `TestNormalizeAny` (14 cases), `TestEvictPooledStream_ReopenOnNextSend`, `TestQuicPooledThousandOps` (1,000 ops / 1 stream), `TestReconnect*`. Verification upgraded inspection→execution. — source: status 2026-08-30_16-13 §b1/§g G3
       _(Effort: M)_ — source: status 2026-08-30_16-13
 - [✓] **Calibration bench protocol + baseline doc** — DONE 2026-08-30 — `docs/benchmarks/calibration-2026-08-30.md` written: shipped-constants table, ALL raw runs (badger/bbolt/pebble/sqlite/duckdb), written protocol (discard run 1, median of rest, ambient load recorded, same-commit rule for constant+bench+pin), cross-checks section. bbolt re-run (count=5) under RISING load showed ±8% two-directional noise → constants correctly UNCHANGED; quiet-window re-run noted as pre-tag nicety. — source: status 2026-08-30_16-13 §b3/§b5
       _(Effort: S)_ — source: status 2026-08-30_16-13
-- [ ] **CI calibration drift job** — run the engines' calibration benches on a schedule and diff against shipped constants (warn >25%); extends the benchmark-regression gate. — source: status 2026-08-30_16-13 §f7
+- [x] **CI calibration drift job** — DONE 2026-08-30 (`d5f402d26`): nightly `benchmarks.yml` job runs the engines' calibration benches and diffs against the shipped ReadCosts constants (warn >25%), extending the benchmark-regression gate. — source: status 2026-08-30_16-13 §f7
       _(Effort: M)_ — source: status 2026-08-30_16-13
 - [✓] **`TestEveryEngineSetsReadCosts` meta-test** — DONE 2026-08-30 — `cmd/api-stability/profile_readcosts_test.go` (source-scan pattern, core cannot import engines): asserts the 8-engine persistent roster sets ReadCosts; memory/turso/iroh exempt with recorded reasons. PLUS `metaengine/bench/routing_regression_test.go` pins bbolt/pebble constants end-to-end and point-lookup→memory routing against REAL profiles. — source: status 2026-08-30_16-13 §f38
       _(Effort: S)_ — source: status 2026-08-30_16-13
@@ -152,7 +152,7 @@ and is **never** duplicated here.
 **Observability / lint**
 
 - [ ] **Doctor/Introspection: surface planned-table registration + per-collection row counts.** — source: retro §f 23
-- [ ] **Decision record: planned tables vs generated columns (gcn_ twins)** — one ADR addendum or README section. — source: retro §f 24
+- [x] **Decision record: planned tables vs generated columns (gcn_ twins)** — DONE 2026-08-30 (`c266c51b9`): ADR-0124 addendum records the decision rule for operators. — source: retro §f 24
 - [ ] **cqrs-lint rule: ApplyLayout on engines that also implement LayoutPlanApplier → prefer the plan path.** — SCOPED 2026-08-30 (session 6): the analyzer is source-based (BuildContextFromSource + registry), so reliably knowing whether a call receiver implements LayoutPlanApplier needs type info the current context does not carry; a name-heuristic version would false-positive on same-named methods/unrelated receivers. Needs a design pass (type-impl detection in the analyzer, or a module-level capability registry fed from api-stability's module scan) before implementation. — source: retro §f 25
 - [ ] **Introspection/Doctor: surface effective durability tiers** (last open part of the Release-docs item above). — source: status 2026-08-18_20-39
 
@@ -160,8 +160,8 @@ and is **never** duplicated here.
 
 - [x] ~~Strict GOWORK=off + live-DSN re-validation of the pgengine planned tests~~ DONE 2026-08-30: full strict 7-module PG loop EXIT=0 (ephemeral-pg.sh runs GOWORK=off per module, ephemeral-pg.sh:111); plus the new D3 planned pushdown/MapUpdate tests pass strict on both PG and MariaDB (`ce61e4080`). — source: retro §b 4 / §f 3,12
 - [ ] **Run `nix run .#load-sweep` before the next `#verify`** — C5 touched latency/routing timing paths and the discipline was skipped. — source: retro §c 5 / §f 11
-- [ ] **Recipes 2.26 (ClaimingTimerStore: two-Scheduler setup, lease sizing) + 2.27 (planned tables: LayoutPlanApplier + no-backfill contract) + modules.md planned-capability rows.** — source: retro §f 7,8
-- [ ] **FEATURES.md rows: claiming timers, planned tables, ErrWorkerFailed** — deferred from this harvest: FEATURES.md carried uncommitted edits from a concurrent session; add the rows after those land. — source: retro §f 5
+- [x] **Recipes 2.26 (ClaimingTimerStore) + 2.27 (planned tables) + modules.md planned-capability rows** — DONE 2026-08-30 (`c7743144e`): recipes.md 2.26/2.27 landed (doc-check green); modules.md mysqlengine row carries the `LayoutPlanApplier` planned-tables capability; pgengine row updated. — source: retro §f 7,8
+- [x] **FEATURES.md rows: claiming timers, planned tables, ErrWorkerFailed** — DONE 2026-08-30 (`5bcc1ab20`): rows landed once the concurrent session's FEATURES edits were committed. — source: retro §f 5
 - [x] ~~AGENTS.md process rules from session-4 §e~~ DONE 2026-08-30 (`5bcc1ab20`): per-task gate discipline + background-job rules + LSP env-bleed diagnosis encoded in AGENTS.md Tooling & Build gotchas. — source: retro §f 41
 - [ ] **Fix the golangci-lint LSP's GOLANGCI_LINT_CACHE for the editor** — phantom /mnt/buildcache diagnostics noise every session. — source: retro §f 42
 - [ ] **ephemeral-dgraph.sh: health-endpoint wait with a real timeout** (self-dial connection-refused spam suggests the wait is loose). — source: retro §f 43
@@ -169,7 +169,7 @@ and is **never** duplicated here.
 - [ ] **Document SOAK_SKIP_* interaction with the dgraph loop** (the 52s vs 15-min full-run discrepancy was never explained in the ledger). — source: retro §f 45
 - [✓] **ephemeral-pg.sh: make PG_MODULES env-overridable** — DONE 2026-08-30: `PG_MODULES="metaengine/pgengine" ./scripts/ephemeral-pg.sh …` runs a targeted loop; default unchanged. — source: retro §f 46
 - [✓] **batch-release.sh: add `--dry-run`** — DONE 2026-08-30: flag filters before parsing, prints would-be tags + semver/ancestry sequence reminder, exits 0 without touching go.mod/tree/tags; existing-tag and go.mod guards still fire. Verified end-to-end. — source: retro §f 47
-- [x] ~~Retire/wire t/tasks.buf + scratch sweep~~ DONE 2026-08-30: t/tasks.buf (1MB binary buffer) and a3-*.log trashed; .trash-* dirs already gone. — source: retro §f 48,49
+- [x] ~~Retire/wire t/tasks.buf + scratch sweep~~ DONE 2026-08-30: t/tasks.buf (1MB binary buffer) and a3-*.log trashed; .trash-* dirs already gone. `.gitignore` line 157 ignores `/t/` (verified). `.gotmp` log sweep: no logs older than 7 days remain (verified 2026-08-30 evening). — source: retro §f 48,49,36,37
 
 ---
 
@@ -283,9 +283,7 @@ and is **never** duplicated here.
       CONTRIBUTING.md (pre-tag checklist section); execution happens at
       wave time (see the Release item above).
       _(Effort: S)_
-- [ ] **Run calibration benchmarks against baseline** — verify
-      `calibration-baseline.md` accuracy; add CI regression check.
-      _(Effort: M)_
+- [x] **Run calibration benchmarks against baseline** — DONE 2026-08-30: `docs/benchmarks/calibration-2026-08-30.md` records shipped constants + raw runs + protocol (`3804e0f02`); the nightly CI drift job now does the regression check (`d5f402d26`). — source: status 2026-08-30_16-13
 
 ---
 

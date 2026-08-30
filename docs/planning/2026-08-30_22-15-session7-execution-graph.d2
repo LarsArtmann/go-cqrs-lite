@@ -1,0 +1,47 @@
+direction: down
+
+green: "Tier 1 — GREEN the gate (1% → 51%)" {
+  shape: rectangle
+  lint-fix: "Format 2 calibration test files ✅"
+  ledger: "TODO stale-row closes (6 verified)"
+  changelog: "CHANGELOG RenewLease + float64 + gate"
+}
+d3: "Tier 2 — D3 train completion (4% → 64%)" {
+  shape: rectangle
+  duckdb: "duckdb REAL/DOUBLE/FLOAT planned path"
+  sqliteexp: "sqliteengine EXPLAIN proof"
+  idxpin: "index-name pin test"
+  bench: "planned vs meta_map bench"
+  evo: "information_schema evolution pg+mysql+tests"
+  backfill: "opt-in backfill helper + tests"
+  doctor: "Doctor planned-tables + durability tiers"
+  matrix: "adttest planned parity + timer slot"
+}
+d8: "Tier 3 — D8 continuation (20% → 80%)" {
+  shape: rectangle
+  metrics: "zero-dep claiming metrics hooks + tests"
+  race: "RenewLease contention race test"
+  adr: "claim-token ADR stub"
+}
+docs: "Tier 4 — Docs + hygiene + sweeps" {
+  shape: rectangle
+  recipe: "recipe 2.28 + modules + faq + SKILL + ADR-0124 + READMEs"
+  infra: "dgraph wait + shuffle + SOAK doc + LSP wrapper + lint-module app + AGENTS"
+  sweep: "post-landing sweep + turso CTE + golangci audit"
+}
+gates: "Final gates" {
+  shape: rectangle
+  loadsweep: "load-sweep GREEN"
+  verify: "full #verify GREEN"
+  push: "push origin"
+  releases: "GitHub Releases (gh auth ✅)"
+}
+
+green.duckdb -> d3.duckdb
+green -> d8.metrics
+d3 -> docs.recipe
+d8 -> docs.infra
+docs -> gates.loadsweep: "exclusive run"
+gates.loadsweep -> gates.verify
+gates.verify -> gates.push
+gates.push -> gates.releases
