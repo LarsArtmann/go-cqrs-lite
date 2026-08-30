@@ -278,9 +278,9 @@ func TestCheckStaleness_FailedWorkerIsStale(t *testing.T) {
 		5 * time.Second,
 	); !errors.Is(
 		err,
-		projectionhost.ErrProjectionStale,
+		projectionhost.ErrWorkerFailed,
 	) {
-		t.Fatalf("failed worker must surface as stale, got %v", err)
+		t.Fatalf("failed worker must surface as worker-failed, got %v", err)
 	}
 
 	if err := host.CheckProjectionStaleness(
@@ -288,9 +288,9 @@ func TestCheckStaleness_FailedWorkerIsStale(t *testing.T) {
 		5*time.Second,
 	); !errors.Is(
 		err,
-		projectionhost.ErrProjectionStale,
+		projectionhost.ErrWorkerFailed,
 	) {
-		t.Fatalf("failed named worker must surface as stale, got %v", err)
+		t.Fatalf("failed named worker must surface as worker-failed, got %v", err)
 	}
 }
 

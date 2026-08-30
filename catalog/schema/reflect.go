@@ -158,6 +158,12 @@ func buildSchema(t reflect.Type) *Schema {
 // promotes embedded struct fields to arbitrary depth; the schema flattener
 // stops descending a few levels past anything sane instead of tracking a
 // full conflict graph.
+//
+// Multi-embed name conflicts: if two embedded (or sibling) structs produce
+// the same property name, the LAST field wins here — a plain map write.
+// encoding/json instead DROPS all conflicting fields at equal depth. If a
+// consumer relies on json's conflict-drop semantics, hand-write the schema
+// (RegisterType with an explicit Schema) instead of relying on reflection.
 const maxEmbeddedDepth = 8
 
 func structSchema(t reflect.Type) *Schema {

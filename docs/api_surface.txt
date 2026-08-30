@@ -2901,6 +2901,7 @@ projectionhost/type HostOption
 projectionhost/type ResetOption
 projectionhost/type WorkerStatus
 projectionhost/var ErrProjectionStale
+projectionhost/var ErrWorkerFailed
 prometheus/func Setup
 prometheus/func WithHandlerOptions
 prometheus/func WithRegistry

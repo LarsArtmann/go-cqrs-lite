@@ -17,6 +17,20 @@ var ErrProjectionStale = errorfamily.NewTransient(
 	"projection lag exceeds staleness threshold",
 )
 
+// ErrWorkerFailed is returned by [Host.CheckStaleness] and
+// [Host.CheckProjectionStaleness] when a worker has exhausted its restart
+// budget and STOPPED consuming. It is classified as Infrastructure, not
+// Transient: a failed worker never recovers on its own — restarting the host
+// (or widening the restart budget) is an operator action, so retry-until-
+// fresh loops would spin forever on a Transient classification.
+//
+// Behavior change (2026-08-30): the failed-worker branch previously returned
+// [ErrProjectionStale]; match this sentinel instead.
+var ErrWorkerFailed = errorfamily.NewInfrastructure(
+	"projectionhost.worker_failed",
+	"worker(s) exhausted their restart budget and stopped consuming",
+)
+
 // CheckStaleness returns nil if the maximum projection lag across all workers
 // is within maxStaleness, or [ErrProjectionStale] if it exceeds the threshold.
 //
@@ -36,7 +50,7 @@ func (h *Host) CheckStaleness(maxStaleness time.Duration) error {
 
 	if failed := h.failedWorkers(); failed != "" {
 		return errorfamily.Wrapf(
-			ErrProjectionStale, errorfamily.Transient,
+			ErrWorkerFailed, errorfamily.Infrastructure,
 			"projectionhost.check_staleness",
 			"worker(s) failed, read model may be incomplete: %s", failed,
 		)
@@ -83,7 +97,7 @@ func (h *Host) CheckProjectionStaleness(name string, maxStaleness time.Duration)
 
 	if h.isWorkerFailed(name) {
 		return errorfamily.Wrapf(
-			ErrProjectionStale, errorfamily.Transient,
+			ErrWorkerFailed, errorfamily.Infrastructure,
 			"projectionhost.check_projection_staleness",
 			"worker for %q failed, read model may be incomplete", name,
 		)

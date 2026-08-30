@@ -76,6 +76,12 @@ func (m *boundedMap[T]) evictOldest() {
 			return
 		}
 
+		// A stale key was evicted from the order slice: the stale count
+		// temporarily DIPS NEGATIVE here. That is correct, not a bug — the
+		// key was already deleted from entries (counting it stale) but
+		// never compacted out of order, and evictOldest is now doing the
+		// compaction. Len(entries) is the authoritative size; stale is a
+		// compaction heuristic only and recovers on the next delete.
 		m.stale--
 	}
 }
