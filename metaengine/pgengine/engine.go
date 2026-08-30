@@ -71,7 +71,8 @@ type pgEngine struct {
 	done           bool
 	layoutMu       sync.Mutex
 	appliedLayouts map[string]bool
-	copyMin        int // WithCopyAppend: bulk StreamAppend threshold; 0 = off
+	plans          map[string]metaengine.LayoutPlan // collection → planned-table layout (D1; guarded by layoutMu)
+	copyMin        int                              // WithCopyAppend: bulk StreamAppend threshold; 0 = off
 }
 
 // New creates a Postgres-backed metaengine Engine from a DSN.
@@ -245,6 +246,10 @@ func (e *pgEngine) HealthCheck(ctx context.Context) error {
 // --- MapBackend ---
 
 func (e *pgEngine) MapSet(ctx context.Context, col string, key any, value any) error {
+	if plan, ok := e.planFor(col); ok {
+		return e.mapSetPlanned(ctx, plan, key, value)
+	}
+
 	data, err := json.Marshal(value)
 	if err != nil {
 		return fmt.Errorf("pgengine.MapSet: marshal: %w", err)
@@ -265,6 +270,10 @@ func (e *pgEngine) MapSet(ctx context.Context, col string, key any, value any) e
 }
 
 func (e *pgEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
+	if plan, ok := e.planFor(col); ok {
+		return e.mapGetPlanned(ctx, plan, key)
+	}
+
 	var raw []byte
 
 	err := e.conn().QueryRowContext(
@@ -289,6 +298,10 @@ func (e *pgEngine) MapGet(ctx context.Context, col string, key any) (any, bool, 
 }
 
 func (e *pgEngine) MapDelete(ctx context.Context, col string, key any) error {
+	if plan, ok := e.planFor(col); ok {
+		return e.mapDeletePlanned(ctx, plan, key)
+	}
+
 	_, err := e.conn().ExecContext(
 		ctx,
 		`DELETE FROM meta_map WHERE collection = $1 AND key = $2`,
