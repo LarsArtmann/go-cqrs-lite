@@ -30,6 +30,19 @@ engine, err := pebbleengine.NewPebbleEngine("")
 | Log      | O(1) append, O(N) tail | Prefix scan for tail reads                     |
 | Vector   | O(N·D) search          | Brute-force scan (degraded, no ANN index)      |
 
+### Calibrated per-pattern read costs (2026-08-30)
+
+Measured by `calibration_bench_test.go` (medians of 3; baseline:
+`docs/benchmarks/calibration-2026-08-30.md`). The planner prices each query
+by its read pattern:
+
+| Pattern | Cost | Bench |
+| ------- | ---- | ----- |
+| Point lookup | ~700 ns/query | `BenchmarkCalibration_PebbleGet` |
+| Filtered scan | ~830 ns/row | `BenchmarkCalibration_Pebble_FilteredScan` (`ScanRawValues` + Go-side filter — no SQL pushdown) |
+| Aggregate | ~125 ns/row | `BenchmarkCalibration_Pebble_CounterScan` (`CounterGet` prefix scan — the `ReadAggregate` path, ADR-0133) |
+| Full scan | ~700 ns/row | `BenchmarkCalibration_Pebble_FullScan` (`ScanRawValues`, JSON decode per row) |
+
 ## Backends
 
 MapBackend, ScanBackend, SetBackend, CounterBackend, MultimapBackend,

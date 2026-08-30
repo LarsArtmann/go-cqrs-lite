@@ -59,7 +59,7 @@ and is **never** duplicated here.
       _(Effort: S)_ — source: status 2026-08-30_16-13
 - [✓] **dedup↔quic capacity coupling** — DONE 2026-08-30 — `quic.DefaultDedupCapacity = 10_000` exported in options.go (doc comment cross-references `TestRing_ProductionCapacity10K`: change one, change both); `QuicTransport` constructor uses it. — source: status 2026-08-30_16-13 §b6
       _(Effort: XS)_ — source: status 2026-08-30_16-13
-- [ ] **Engine README per-pattern cost tables** — badger/bbolt/pebble READMEs have capability tables but no cost table citing the calibration benches; add one per engine (consumer-facing honesty). — source: status 2026-08-30_16-13 §f10
+- [✓] **Engine README per-pattern cost tables** — DONE 2026-08-30 — badger/bbolt/pebble READMEs each gained a "Calibrated per-pattern read costs" table (pattern → cost → bench name), pointing at `docs/benchmarks/calibration-2026-08-30.md` and ADR-0133. — source: status 2026-08-30_16-13 §f10
       _(Effort: S)_ — source: status 2026-08-30_16-13
 - [✓] **iroh replicated `Profile()` cost honesty** — DONE 2026-08-30 — resolved as documentation: the design is honest-by-construction (reads are local passthrough → inherited ReadCosts are correct; replication surfaces as MEASURED ReplicationLag/NetworkRTT, not inflated scalars — async leaderless applies would be mispriced by a sync-write surcharge). Cost-model honesty note added to `Profile()` godoc citing ADR-0133. — source: status 2026-08-30_16-13 §c6
       _(Effort: S)_ — source: status 2026-08-30_16-13

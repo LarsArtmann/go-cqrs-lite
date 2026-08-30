@@ -22,6 +22,21 @@ engine, err := badgerengine.NewBadgerEngine("path/to/dir")
 `NewBadgerEngineFromDB` wraps an existing `*badger.DB` (ownership transfers:
 `Close` closes it).
 
+## Cost Profile
+
+### Calibrated per-pattern read costs (2026-08-30)
+
+Measured by `calibration_bench_test.go` (medians of 3; baseline:
+`docs/benchmarks/calibration-2026-08-30.md`). The planner prices each query
+by its read pattern:
+
+| Pattern | Cost | Bench |
+| ------- | ---- | ----- |
+| Point lookup | ~1,100 ns/query | `BenchmarkCalibration_BadgerGet` (LSM point lookup + JSON decode) |
+| Filtered scan | ~650 ns/row | `BenchmarkCalibration_Badger_FilteredScan` (full scan + Go-side predicate — no SQL pushdown on a KV engine) |
+| Aggregate | ~165 ns/row | `BenchmarkCalibration_Badger_CounterScan` (`CounterGet` prefix scan — the `ReadAggregate` path, ADR-0133) |
+| Full scan | ~630 ns/row | `BenchmarkCalibration_Badger_FullScan` |
+
 ## Backends
 
 MapBackend, MapUpdater, SetBackend, CounterBackend, MultimapBackend,
