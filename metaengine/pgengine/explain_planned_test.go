@@ -58,6 +58,10 @@ func explainPlannedScan(
 		t.Fatalf("unmarshal plan: %v", err)
 	}
 
+	if err := rows.Err(); err != nil {
+		t.Fatalf("rows: %v", err)
+	}
+
 	return plan
 }
 
