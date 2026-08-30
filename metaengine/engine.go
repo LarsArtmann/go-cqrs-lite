@@ -619,6 +619,28 @@ func SQLiteEngineProfile() EngineProfile {
 	return EngineProfile{
 		Name:    "sqlite",
 		NsPerOp: SQLiteNsPerOp,
+		// Per-read-pattern calibrated costs (measured 2026-08-30, medians of
+		// 3 runs; benches live in metaengine/sqliteengine — the engine
+		// constructor is module-side, the profile factory is core-side).
+		// SQLite is the only embedded SQL engine: point lookups hit the PK
+		// index; filtered scans push json_extract() WHERE down (still ~3.5x
+		// the point-lookup cost because a 10K-row pushdown scan pays row
+		// materialization per row); the aggregate price is CounterGet
+		// (ADR-0133), NOT SQL SUM — typed Sum/Avg bypasses the planner.
+		ReadCosts: ReadCosts{
+			// ~3,102 ns (BenchmarkCalibration_SQLite_PointLookup): PK index
+			// lookup + JSON decode via database/sql.
+			NsPerPointLookup: 3_100,
+			// ~1,075 ns/row (BenchmarkCalibration_SQLite_FilteredScan):
+			// json_extract WHERE pushdown over 10K rows, ~50% match.
+			NsPerFilteredScan: 1_080,
+			// ~531 ns/row (BenchmarkCalibration_SQLite_CounterGet):
+			// CounterGet over 1K counters — the ReadAggregate path.
+			NsPerAggregate: 530,
+			// ~1,238 ns/row (BenchmarkCalibration_SQLite_FullScan): full
+			// MapScan, JSON decode of every row.
+			NsPerScan: 1_240,
+		},
 		Supports: map[ADT]Complexity{
 			ADTMap:     ComplexityOLogN,
 			ADTSet:     ComplexityOLogN,
