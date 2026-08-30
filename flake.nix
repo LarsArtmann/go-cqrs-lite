@@ -968,6 +968,20 @@
               echo "✅ verify-ci passed (GOWORK=off per-module build+test)"
             '';
 
+            # lint-module: per-task lint gate for ONE module —
+            #   nix run .#lint-module -- metaengine/pgengine
+            # Runs the same GOWORK=off golangci-lint invocation the AGENTS
+            # per-task gate rule prescribes, without the manual env dance.
+            lint-module = mkApp "lint-module" [ goPkg pkgs.golangci-lint pkgs.bash ] ''
+              mod="''${1:-}"
+              if [ -z "$mod" ] || [ ! -f "$mod/go.mod" ]; then
+                echo "usage: nix run .#lint-module -- <module-dir-with-go.mod>"
+                exit 1
+              fi
+              cd "$mod"
+              exec ${pkgs.golangci-lint}/bin/golangci-lint run                 --build-tags goexperiment.jsonv2 ./...
+            '';
+
             # load-sweep: run timing-assertion tests under deliberate CPU load
             # BEFORE #verify — front-loads discovery of load-sensitive flakes
             # (the 12:39 session burned two ~20min gate cycles on these).

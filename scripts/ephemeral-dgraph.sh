@@ -144,8 +144,13 @@ done
 # Wait for Alpha to become fully ready (not just port open — Dgraph needs
 # to sync with Zero and load posting lists). Poll the HTTP health endpoint.
 ALPHA_HTTP=$((8080 + ALPHA_OFFSET))
-echo "==> Waiting for Alpha health endpoint (HTTP $ALPHA_HTTP)..."
-for i in $(seq 1 120); do
+# Total health-wait budget in seconds (each poll is 2s HTTP timeout + 0.5s
+# sleep, so 120 iterations = 60s). Override for slow cold starts:
+#   DGRAPH_HEALTH_TIMEOUT=120 ./scripts/ephemeral-dgraph.sh ...
+HEALTH_TIMEOUT="${DGRAPH_HEALTH_TIMEOUT:-60}"
+HEALTH_ITERS=$((HEALTH_TIMEOUT * 2))
+echo "==> Waiting for Alpha health endpoint (HTTP $ALPHA_HTTP, budget ${HEALTH_TIMEOUT}s)..."
+for i in $(seq 1 "$HEALTH_ITERS"); do
 	HEALTH=$(python3 -c "
 import urllib.request, sys
 try:
@@ -158,8 +163,8 @@ except Exception as e:
 		echo "==> Alpha healthy"
 		break
 	fi
-	if [ "$i" -eq 120 ]; then
-		echo "ERROR: Alpha did not become healthy within 60s"
+	if [ "$i" -eq "$HEALTH_ITERS" ]; then
+		echo "ERROR: Alpha did not become healthy within ${HEALTH_TIMEOUT}s"
 		echo "--- alpha.log (last 30 lines) ---"
 		tail -30 "$DGRAPH_DIR/alpha.log" 2>/dev/null || true
 		echo "--- zero.log (last 30 lines) ---"

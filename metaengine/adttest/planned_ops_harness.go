@@ -43,6 +43,13 @@ func RunPlannedOpsMatrix(t *testing.T, factories []Factory) {
 			eng := factory.Create(t)
 			defer metaengine.DeferClose(eng)
 
+			// Persistent databases need leftover state from earlier runs
+			// removed, or the no-backfill assertion below fails on rows a
+			// previous run left behind (caught by -shuffle=on on MariaDB).
+			if factory.PreClean != nil {
+				factory.PreClean(t, collection)
+			}
+
 			applier, ok := eng.(metaengine.LayoutPlanApplier)
 			if !ok {
 				t.Skipf("%s does not implement LayoutPlanApplier", factory.Name)

@@ -30,6 +30,11 @@ func TestMySQLPlannedOpsMatrix(t *testing.T) {
 
 				return eng
 			},
+			PreClean: func(t *testing.T, collection string) {
+				t.Helper()
+				cleanupPlannedCollection(t, mysqlTestDSN(), collection)
+				t.Cleanup(func() { cleanupPlannedCollection(t, mysqlTestDSN(), collection) })
+			},
 		},
 	})
 }

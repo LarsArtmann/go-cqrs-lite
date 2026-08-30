@@ -65,6 +65,12 @@ type Factory struct {
 	Name     string
 	Create   func(t *testing.T) metaengine.Engine
 	Supports func(metaengine.Engine) bool // nil = supports all ADTs
+
+	// PreClean optionally removes persistent state for a collection name
+	// before the matrix starts (drop the planned table, delete meta_map
+	// rows). Persistent databases (userspace MariaDB cqrs_test) need this
+	// for fixed collection names; fresh-container/memory engines pass nil.
+	PreClean func(t *testing.T, collection string)
 }
 
 // Scenario describes a single ADT's setup + read + parity check.
