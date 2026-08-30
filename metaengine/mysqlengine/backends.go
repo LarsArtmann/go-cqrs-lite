@@ -33,6 +33,10 @@ const keyCol = "`key`"
 //     favor of row aliases, but MariaDB does not support the alias form, so
 //     VALUES() is the portable choice for this dual-dialect engine.
 func (e *mysqlEngine) MapSet(ctx context.Context, col string, key any, value any) error {
+	if plan, ok := e.planFor(col); ok {
+		return e.mapSetPlanned(ctx, plan, key, value)
+	}
+
 	data, err := json.Marshal(value)
 	if err != nil {
 		return fmt.Errorf("mysqlengine.MapSet: marshal: %w", err)
@@ -53,6 +57,10 @@ func (e *mysqlEngine) MapSet(ctx context.Context, col string, key any, value any
 }
 
 func (e *mysqlEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
+	if plan, ok := e.planFor(col); ok {
+		return e.mapGetPlanned(ctx, plan, key)
+	}
+
 	var raw []byte
 
 	err := e.conn().QueryRowContext(
@@ -78,6 +86,10 @@ func (e *mysqlEngine) MapGet(ctx context.Context, col string, key any) (any, boo
 }
 
 func (e *mysqlEngine) MapDelete(ctx context.Context, col string, key any) error {
+	if plan, ok := e.planFor(col); ok {
+		return e.mapDeletePlanned(ctx, plan, key)
+	}
+
 	_, err := e.conn().ExecContext(
 		ctx,
 		`DELETE FROM meta_map WHERE collection = ? AND `+keyCol+` = ?`,

@@ -53,6 +53,7 @@ type mysqlEngine struct {
 	done           bool
 	layoutMu       sync.Mutex
 	appliedLayouts map[string]bool
+	plans          map[string]metaengine.LayoutPlan // collection → planned-table layout (D2; guarded by layoutMu)
 	gcColumns      atomic.Pointer[map[string]string] // MariaDB generated columns (field→name)
 	gcnColumns     atomic.Pointer[map[string]string] // MariaDB numeric twin columns for sort fields
 }
