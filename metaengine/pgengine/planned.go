@@ -60,6 +60,7 @@ func pgDDL(plan metaengine.LayoutPlan) string {
 
 // planFor returns the registered plan for a collection, if any.
 func (e *pgEngine) planFor(col string) (metaengine.LayoutPlan, bool) {
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	e.layoutMu.Lock()
 	defer e.layoutMu.Unlock()
 
@@ -75,6 +76,7 @@ func (e *pgEngine) registerPlannedLayout(plan metaengine.LayoutPlan) error {
 		return fmt.Errorf("pgengine.registerPlannedLayout: %w", err)
 	}
 
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	if e.plans == nil {
 		e.plans = make(map[string]metaengine.LayoutPlan)
 	}
@@ -84,6 +86,7 @@ func (e *pgEngine) registerPlannedLayout(plan metaengine.LayoutPlan) error {
 	return nil
 }
 
+// art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 // ApplyLayoutPlan implements metaengine.LayoutPlanApplier: registers a full
 // LayoutPlan (with reflection-derived column types) post-construction and
 // creates the planned table. Conflicting re-registrations are rejected.
@@ -119,6 +122,7 @@ func (e *pgEngine) mapSetPlanned(
 	key any,
 	value any,
 ) error {
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	data, err := json.Marshal(value)
 	if err != nil {
 		return fmt.Errorf("pgengine.mapSetPlanned: marshal: %w", err)
@@ -170,6 +174,7 @@ func (e *pgEngine) mapGetPlanned(
 ) (any, bool, error) {
 	var raw []byte
 
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	err := e.conn().QueryRowContext(
 		ctx,
 		fmt.Sprintf("SELECT value::text FROM %s WHERE key = $1",
@@ -198,6 +203,7 @@ func (e *pgEngine) mapDeletePlanned(
 	plan metaengine.LayoutPlan,
 	key any,
 ) error {
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	_, err := e.conn().ExecContext(
 		ctx,
 		fmt.Sprintf("DELETE FROM %s WHERE key = $1", metaengine.QuoteIdent(plan.Table)),

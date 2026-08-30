@@ -72,6 +72,7 @@ type txExecutor struct {
 // fn's ctx into nested calls); a nested call that breaks ctx propagation
 // deadlocks on the serialization mutex instead — don't do that.
 func (e *sqliteEngine) RunInTx(ctx context.Context, fn func(context.Context) error) error {
+	//art-dupl:accept same ctx-marker nested-tx rejection as dgraphengine — separate go.mod
 	if ctx.Value(txMarker{}) != nil {
 		return errors.New("sqliteengine.RunInTx: nested transactions are not supported")
 	}
