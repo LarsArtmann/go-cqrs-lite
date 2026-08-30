@@ -48,6 +48,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   userspace MariaDB. (Planned filter/sort/keyset pushdown for
   PushdownMapScan/MapScan/MapUpdate is the next slice — see TODO_LIST.)
 
+### Added — session-5/7 wave: planned pushdown completion, RenewLease — 2026-08-30
+
+- **Planned-table pushdown completed on pg+mysql** (D3, commits `ce61e4080`,
+  `11a7ef8a7`): `PushdownMapScan`, `MapScan`, and the NEW `MapUpdate`
+  (SELECT FOR UPDATE read-modify-write with nil-prev create and RunInTx
+  participation) all route through the planned extracted-column table via the
+  `planFor` seam — closing the planned/meta_map visibility split. Filter/sort/
+  keyset predicates run as native SQL against DOUBLE PRECISION/BIGINT/TEXT
+  (PG) and DOUBLE/BIGINT/TEXT (MySQL) columns; mis-typed filter/sort/cursor
+  values fail `metaengine.ErrPlannedColumnTypeMismatch` (Rejection) at
+  query-build time while the write path stays fail-loud driver Infrastructure.
+  `ExplainScanQuery` routes through the planned builders; live EXPLAIN proofs
+  pin index-backed plans on both engines (PG FORMAT JSON node walk: index/
+  bitmap node, no Seq Scan, meta_planned_* target; MariaDB: type != ALL with
+  a named key). The session-4 note above is superseded: pushdown is DONE, not
+  "the next slice".
+- **`scheduling/sqlstore.ClaimingTimerStore.RenewLease(ctx, id, extend)`**:
+  extends a live lease without releasing the claim; expired, fired, cancelled,
+  or unknown timers return the new `scheduling/sqlstore.ErrLeaseNotHeld`
+  (Orchestration family) — renewal never resurrects. Claims carry no
+  per-poller tokens: renewal extends whichever live claim exists (safe — only
+  extends the fence); token-based ownership is future work (see the ADR stub).
+
+### Fixed — float64 planned columns silently became TEXT (pg/mysql) — 2026-08-30
+
+- `metaengine.BuildLayoutPlanFromType` maps float64 to the canonical
+  `sqlTypeOf` "DOUBLE", but the pgengine/mysqlengine planned DDL translators
+  only recognized REAL/INTEGER — float64 fields materialized as TEXT columns,
+  degenerating numeric filter/sort predicates to string comparison. Both
+  translators now map REAL/DOUBLE/FLOAT → DOUBLE PRECISION (PG) / DOUBLE
+  (MySQL); json-tag aliases are indexed; live numeric filter/sort proofs green
+  on ephemeral PG and userspace MariaDB (`986c631bf`).
+
 ### Changed — projectionhost failed-worker classification — 2026-08-30
 
 - **`projectionhost.ErrWorkerFailed`** (errorfamily Infrastructure) is the
