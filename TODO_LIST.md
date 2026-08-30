@@ -43,6 +43,27 @@ and is **never** duplicated here.
       _(Effort: M)_ — source: status 2026-08-16_22-50
 - [✓] **metaengine README capability table** — DONE 2026-08-29 (todo-execution session) — missing GraphEdgeRemoval / UndirectedGraph / VectorFilterBackend rows.
       _(Effort: XS)_ — source: status 2026-08-16_21-22
+- [ ] 🔥 **ReadAggregate calibration reconciliation (decision G1)** — `execute.go` routes `ReadAggregate` → `CounterGet` on EVERY engine, but pg/mysql/duckdb calibrate `NsPerAggregate` against SQL SUM-over-map-rows (AggregateReader workloads), not CounterGet. Either recalibrate those three onto CounterGet (KV-engine precedent) or document SQL SUM as the intentional model — then align constants + bench comments + AGENTS wording. — source: status 2026-08-30_16-13 §c1/§g G1
+      _(Effort: M)_ — source: status 2026-08-30_16-13
+- [ ] **`sqliteengine` ReadCosts calibration** — the highest-traffic embedded SQL engine still falls back to the scalar: add point-lookup (PK), PushdownMapScan-filtered, SQL-SUM-aggregate, and full-scan benches + set the 4-field `ReadCosts` (mirrors the 2026-08-30 badger/bbolt/pebble wave). — source: status 2026-08-30_16-13 §b4
+      _(Effort: M)_ — source: status 2026-08-30_16-13
+- [ ] **Multi-engine routing regression test with REAL engine profiles** — no test pins planner engine selection against actual badger/bbolt/pebble `Profile()`s (core tests use synthetic profiles); the 2026-08-30 constant moves (bbolt point-lookup 2x) are unpinned behavior. — source: status 2026-08-30_16-13 §b2
+      _(Effort: M)_ — source: status 2026-08-30_16-13
+- [ ] **Execute the iroh QUIC CGo suite** (Rust toolchain + iroh-go, Linux) — `TestQuicPooledThousandOps` / `TestEvictPooledStream_ReopenOnNextSend` / normalizeAny pins are inspection-verified only; convert to execution-verified. — source: status 2026-08-30_16-13 §b1/§g G3
+      _(Effort: M)_ — source: status 2026-08-30_16-13
+- [ ] **Calibration bench protocol + baseline doc** — written protocol (discard-warmup run, `-count=5` medians, ambient load + commit recorded), `docs/benchmarks/calibration-2026-08-30.md` with the 2026-08-30 raw runs, and a bbolt FilteredScan re-run (its 620 constant carries a ~30% cold first-run outlier). — source: status 2026-08-30_16-13 §b3/§b5
+      _(Effort: S)_ — source: status 2026-08-30_16-13
+- [ ] **CI calibration drift job** — run the engines' calibration benches on a schedule and diff against shipped constants (warn >25%); extends the benchmark-regression gate. — source: status 2026-08-30_16-13 §f7
+      _(Effort: M)_ — source: status 2026-08-30_16-13
+- [ ] **`TestEveryEngineSetsReadCosts` meta-test** — enumerate engine modules, assert `Profile().ReadCosts` fully set (documents the expected roster; expected-RED for sqlite until its calibration lands). — source: status 2026-08-30_16-13 §f38
+      _(Effort: S)_ — source: status 2026-08-30_16-13
+- [ ] **dedup↔quic capacity coupling** — `quic/transport.go` hardcodes `dedup.NewRing(10000)`; `TestRing_ProductionCapacity10K` pins 10000 by comment only. Export a named constant or add a meta-test so the coupling can't rot. — source: status 2026-08-30_16-13 §b6
+      _(Effort: XS)_ — source: status 2026-08-30_16-13
+- [ ] **Engine README per-pattern cost tables** — badger/bbolt/pebble READMEs have capability tables but no cost table citing the calibration benches; add one per engine (consumer-facing honesty). — source: status 2026-08-30_16-13 §f10
+      _(Effort: S)_ — source: status 2026-08-30_16-13
+- [ ] **iroh replicated `Profile()` cost honesty** — replication overhead is not reflected in the replicated engine's cost fields (old archived iroh review finding 9); document or adjust. — source: status 2026-08-30_16-13 §c6
+      _(Effort: S)_ — source: status 2026-08-30_16-13
+
 
 **Storage / SQL**
 
