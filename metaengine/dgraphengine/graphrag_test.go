@@ -121,8 +121,7 @@ func TestGraphRAG_SearchThenGraphTraverse(t *testing.T) {
 	// "golang" matched alice + henry.
 	// alice's 2-hop neighborhood includes bob, henry, carol, dave, eve, frank.
 	// henry's 2-hop neighborhood includes alice, dave, bob, eve, frank.
-	// Combined context should include at least: alice, bob, henry, dave.
-	// (The exact set depends on bidirectional dedup, but these are guaranteed.)
+	// Combined context should include at least: alice, bob, henry.
 	for _, expected := range []string{"alice", "bob", "henry"} {
 		if !contextWindow[expected] {
 			t.Errorf("GraphRAG context: expected %s in expanded context window (got %d entities)",
@@ -130,11 +129,15 @@ func TestGraphRAG_SearchThenGraphTraverse(t *testing.T) {
 		}
 	}
 
-	// grace and frank are NOT in the golang graph neighborhood at 2 hops
-	// (grace has no path from alice/henry within 2 hops; frank IS reachable
-	// from alice at 2 hops via the management edge, so we don't assert him).
-	if contextWindow["grace"] {
-		t.Error("GraphRAG context: grace should NOT be in golang context (no graph path)")
+	// Edges are stored bidirectionally, so a 2-hop walk from alice reaches
+	// carol (alice→bob→carol) AND grace (grace→bob, reversed: alice→bob→grace).
+	// Under the old @recurse off-by-one (2 hops requested, 1 traversed), carol
+	// and grace were absent — asserting their PRESENCE pins hop-accurate depth.
+	for _, twoHop := range []string{"carol", "grace"} {
+		if !contextWindow[twoHop] {
+			t.Errorf("GraphRAG context: expected %s in expanded context window at 2 hops (got %d entities)",
+				twoHop, len(contextWindow))
+		}
 	}
 
 	t.Logf("GraphRAG pipeline: search 'golang' → %d hits → expanded to %d context entities",

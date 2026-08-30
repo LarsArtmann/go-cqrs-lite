@@ -154,7 +154,8 @@ func TestDgraphGraph_RecurseDepthCountsHops(t *testing.T) {
 	for depth, want := range map[int][]string{
 		1: {"B"},
 		2: {"B", "C"},
-		3: {"B", "C", "D", "E"},
+		3: {"B", "C", "D"},
+		4: {"B", "C", "D", "E"},
 	} {
 		got, err := gb.GraphNeighbors(ctx, col, "A", depth)
 		if err != nil {

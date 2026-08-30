@@ -65,16 +65,28 @@ reap_stale_dgraph() {
 reap_stale_dgraph
 
 cleanup() {
-	if [ -n "$ALPHA_PID" ] && kill -0 "$ALPHA_PID" 2>/dev/null; then
-		kill "$ALPHA_PID" 2>/dev/null || true
-		wait "$ALPHA_PID" 2>/dev/null || true
-	fi
-	if [ -n "$ZERO_PID" ] && kill -0 "$ZERO_PID" 2>/dev/null; then
-		kill "$ZERO_PID" 2>/dev/null || true
-		wait "$ZERO_PID" 2>/dev/null || true
-	fi
+	stop_pid "$ALPHA_PID"
+	stop_pid "$ZERO_PID"
 	rm -rf "$DGRAPH_DIR"
 	rm -f "$PID_FILE"
+}
+
+# stop_pid terminates a dgraph process WITHOUT hanging: dgraph ignores
+# SIGTERM during drain, so an unconditional `wait` wedges the whole script
+# (observed: 4h45m hang after a green test run). Give SIGTERM a bounded
+# grace, then SIGKILL; after SIGKILL, `wait` returns immediately.
+stop_pid() {
+	pid="$1"
+	[ -n "$pid" ] && kill -0 "$pid" 2>/dev/null || return 0
+	kill "$pid" 2>/dev/null || true
+	for _ in $(seq 1 10); do
+		kill -0 "$pid" 2>/dev/null || break
+		sleep 0.5
+	done
+	if kill -0 "$pid" 2>/dev/null; then
+		kill -9 "$pid" 2>/dev/null || true
+	fi
+	wait "$pid" 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
@@ -176,7 +188,7 @@ else
 	(
 		cd metaengine/dgraphengine
 		CGO_ENABLED=1 GOWORK=off \
-			timeout "$TEST_TIMEOUT" \
+			timeout -k 15 "$TEST_TIMEOUT" \
 			go test -tags "goexperiment.jsonv2" ${TEST_ARGS:-} .\
 			-count=1 -v -timeout="${TEST_TIMEOUT}s" ${TEST_ARGS2:-} 2>&1
 	)
