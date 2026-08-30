@@ -1,0 +1,62 @@
+direction: right
+
+ready: "Session-4 GREEN baseline (commit 96e78044e, verify EXIT=0)" {
+  shape: rectangle
+}
+
+A: "WS-A Honesty Debt (20 tasks, 1% tier)" {
+  style.fill: "#f4d35e"
+}
+B: "WS-B D3 Slice 1 PushdownMapScan (11 tasks, 1% tier)" {
+  style.fill: "#f4d35e"
+}
+C: "WS-C D3 Slice 2 MapScan+MapUpdate (7 tasks, 1% tier)" {
+  style.fill: "#f4d35e"
+}
+D: "WS-D EXPLAIN Proofs (4 tasks, 4% tier)" {
+  style.fill: "#6eb5ff"
+}
+E: "WS-E Cross-Engine Parity (4 tasks, 4% tier)" {
+  style.fill: "#6eb5ff"
+}
+F: "WS-F Evolution + Backfill (8 tasks, 4% tier)" {
+  style.fill: "#6eb5ff"
+}
+G: "WS-G D8 RenewLease + Metrics (6 tasks, 4% tier)" {
+  style.fill: "#6eb5ff"
+}
+H: "WS-H Doctor/ADR/Lint Rule (5 tasks, 20% tier)" {
+  style.fill: "#1d3557"
+  style.font-color: "#f4f4f0"
+}
+I: "WS-I Process + Infra Hygiene (10 tasks, 20% tier)" {
+  style.fill: "#1d3557"
+  style.font-color: "#f4f4f0"
+}
+
+gate: "USER GATE (Q1 tag wave, Q2 job policy, Q3 DLQ, D9 billing/root/mac)" {
+  shape: hexagon
+  style.fill: "#e63946"
+  style.font-color: "#f4f4f0"
+}
+J: "WS-J v4 Tag Wave (13 tasks, gated)" {
+  style.fill: "#555555"
+  style.font-color: "#f4f4f0"
+}
+K: "WS-K v5.0.0 Cut Waves D4-D6 (18 tasks, gated)" {
+  style.fill: "#555555"
+  style.font-color: "#f4f4f0"
+}
+
+ready -> A
+A -> B: planFor seam proven strict
+B -> C
+C -> D
+D -> E
+C -> F
+C -> G
+G -> H
+ready -> I: parallel track
+A -> gate: honesty closed
+gate -> J
+J -> K
