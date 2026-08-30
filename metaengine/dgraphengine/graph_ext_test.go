@@ -2,6 +2,7 @@ package dgraphengine_test
 
 import (
 	"context"
+	"slices"
 	"sort"
 	"testing"
 
@@ -123,5 +124,45 @@ func TestDgraphGraph_OptionalCapabilityChecks(t *testing.T) {
 
 	if !metaengine.HasUndirectedGraphSupport(eng) {
 		t.Error("dgraphEngine should implement GraphNeighborsUndirected")
+	}
+}
+
+// Serial (no t.Parallel): writes the depth chain then traverses it; runs in
+// the serial phase with the other semantics tests to avoid write contention.
+//
+// Pins Dgraph @recurse depth semantics after the off-by-one fix: Dgraph's
+// @recurse(depth: N) counts node LEVELS (root = level 1) and traverses only
+// N-1 hops, so GraphNeighbors requests depth+1 to match every other engine's
+// hop-counting depth. Without the fix, depth 2 returned [B] instead of
+// [B C] — see the matrix GraphDepthBound fixture.
+func TestDgraphGraph_RecurseDepthCountsHops(t *testing.T) {
+	gb := mustNewDgraphEngine(t).(graphBackend)
+	ctx := context.Background()
+	col := "test_graph_dgraph_recurse_depth"
+
+	for _, e := range []metaengine.Edge{
+		{From: "A", To: "B"},
+		{From: "B", To: "C"},
+		{From: "C", To: "D"},
+		{From: "D", To: "E"},
+	} {
+		if err := gb.GraphAddEdge(ctx, col, e); err != nil {
+			t.Fatalf("GraphAddEdge %v: %v", e, err)
+		}
+	}
+
+	for depth, want := range map[int][]string{
+		1: {"B"},
+		2: {"B", "C"},
+		3: {"B", "C", "D", "E"},
+	} {
+		got, err := gb.GraphNeighbors(ctx, col, "A", depth)
+		if err != nil {
+			t.Fatalf("GraphNeighbors(A, %d): %v", depth, err)
+		}
+
+		if have := sortedExtNeighbors(got); !slices.Equal(have, want) {
+			t.Errorf("depth %d = %v, want %v", depth, have, want)
+		}
 	}
 }

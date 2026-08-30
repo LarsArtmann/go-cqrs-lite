@@ -205,6 +205,7 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 
 ### Tooling & Build
 
+- **Repo is PUBLIC (2026-08-30) with an INTENTIONALLY PROPRIETARY license — do not "fix" either** — user decision: public visibility, no OSS license grant ("Keep unlicensed"). Consequence: pkg.go.dev shows "License: UNKNOWN" and hides documentation — that is EXPECTED, not a bug to fix. GOPRIVATE/VCS-auth gotchas below are largely obsolete for this repo and all sibling modules (all public). Secret-scan baseline: gitleaks full-history (5998 commits) + working tree clean as of 2026-08-30; the two hits were false positives (`maypok86/otter/v2` module path in an archived status doc; the intentional `sk-1234...` fixture in `cmd/cqrs-lint/pkg/rules/security/new_rules_test.go` — keep that fixture, it feeds the secret-detector test).
 - **Always `nix fmt` BEFORE placing `//nolint` directives** — golines (max-len: 120) reformats long lines and moves nolint comments to wrong positions. Keep nolint comments under ~40 chars.
 - **Scoped formatting**: `nix fmt` runs treefmt on the whole repo. For a single module, use `gofumpt -w <path>` + `goimports -w <path>` directly.
 - **gosec G115** (integer overflow): extract a helper that isolates the `uint64()`/`uint32()` call on a short single line.

@@ -194,12 +194,15 @@ func (e *dgraphEngine) GraphNeighbors(
 			}
 		}`, pred)
 	} else {
+		// Dgraph's @recurse(depth: N) counts node LEVELS (the root is level
+		// 1), so it traverses only N-1 hops. Every other engine's depth
+		// counts hops; request depth+1 to keep cross-engine parity.
 		query = fmt.Sprintf(`query root($col: string, $node: string) {
 			root(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $node)) @recurse(depth: %d, loop: false) {
 				cqrs.node_id
 				%s
 			}
-		}`, depth, pred)
+		}`, depth+1, pred)
 	}
 
 	resp, err := e.readTx().
