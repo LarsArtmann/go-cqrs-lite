@@ -15,21 +15,25 @@ import (
 //
 // Concurrency: RunInTx calls are serialized (one active transaction per
 // engine). Nested RunInTx is rejected — Dgraph has no nested transactions.
+// Rejection detects nesting via a marker in the context RunInTx passes to fn:
+// propagate fn's ctx into any nested call (standard Go practice). A nested
+// call that breaks ctx propagation deadlocks on the serialization mutex
+// instead of being rejected — don't do that.
 //
 // Reads inside fn route through the active transaction too, so read-modify-
 // write cycles see their own writes.
 func (e *dgraphEngine) RunInTx(ctx context.Context, fn func(context.Context) error) error {
-	e.txMu.Lock()
-	defer e.txMu.Unlock()
-
-	if e.activeTxn.Load() != nil {
+	if ctx.Value(txMarker{}) != nil {
 		return errors.New("dgraphengine.RunInTx: nested transactions are not supported")
 	}
+
+	e.txMu.Lock()
+	defer e.txMu.Unlock()
 
 	txn := e.client.NewTxn()
 	e.activeTxn.Store(txn)
 
-	fnErr := fn(ctx)
+	fnErr := fn(context.WithValue(ctx, txMarker{}, txActive{}))
 
 	e.activeTxn.Store(nil)
 
@@ -49,6 +53,12 @@ func (e *dgraphEngine) RunInTx(ctx context.Context, fn func(context.Context) err
 
 	return nil
 }
+
+// txMarker keys the context value that marks a RunInTx-managed context.
+type txMarker struct{}
+
+// txActive is the marker value stored under txMarker.
+type txActive struct{}
 
 // writeTx returns the transaction a write op must use: the active RunInTx
 // transaction, or nil meaning "own standalone txn" (the op commits itself

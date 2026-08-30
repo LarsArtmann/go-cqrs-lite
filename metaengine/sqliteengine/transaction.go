@@ -67,8 +67,15 @@ type txExecutor struct {
 
 // RunInTx executes fn within a database transaction. If fn returns nil, the
 // transaction is committed; otherwise rolled back. Concurrent RunInTx calls
-// are serialized via txMu — only one transaction active at a time.
+// are serialized via txMu — only one transaction active at a time. Nested
+// RunInTx is rejected via a marker in the context passed to fn (propagate
+// fn's ctx into nested calls); a nested call that breaks ctx propagation
+// deadlocks on the serialization mutex instead — don't do that.
 func (e *sqliteEngine) RunInTx(ctx context.Context, fn func(context.Context) error) error {
+	if ctx.Value(txMarker{}) != nil {
+		return errors.New("sqliteengine.RunInTx: nested transactions are not supported")
+	}
+
 	e.txMu.Lock()
 	defer e.txMu.Unlock()
 
@@ -84,7 +91,7 @@ func (e *sqliteEngine) RunInTx(ctx context.Context, fn func(context.Context) err
 
 	e.activeTx.Store(txC)
 
-	fnErr := fn(ctx)
+	fnErr := fn(context.WithValue(ctx, txMarker{}, txActive{}))
 
 	e.activeTx.Store(nil)
 
@@ -102,6 +109,12 @@ func (e *sqliteEngine) RunInTx(ctx context.Context, fn func(context.Context) err
 func (e *sqliteEngine) txExec() *txExecutor {
 	return e.activeTx.Load()
 }
+
+// txMarker keys the context value that marks a RunInTx-managed context.
+type txMarker struct{}
+
+// txActive is the marker value stored under txMarker.
+type txActive struct{}
 
 // readModifyWriteCached performs a read-modify-write cycle using the cached
 // statement executor (xc). Used when an outer transaction is already active —
