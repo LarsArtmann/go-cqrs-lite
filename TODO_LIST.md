@@ -142,12 +142,12 @@ and is **never** duplicated here.
 - [x] ~~CounterIncrement/CounterGet routing decision~~ DONE 2026-08-30: DECIDED — counters stay on meta_map for planned collections (documented in the pgengine README "Planned tables" section + the ADR-0124 addendum). — source: retro §f 13
 - [x] ~~Graph/aggregate routing decision~~ DONE 2026-08-30: DECIDED — graph/aggregates stay on their native meta_map paths (pgengine README + ADR-0124 addendum). — source: retro §f 14
 - [x] ~~pgengine README layout story~~ DONE 2026-08-30: "Planned tables: ApplyLayout vs ApplyLayoutPlan" section in metaengine/pgengine/README.md (partial indexes vs extracted-column tables, no-backfill contract, mis-type classification, routing decisions). — source: retro §f 9
-- [ ] **ClaimingTimerStore in adttest/enginetest capability matrices** if a timer-store slot exists (else document why not). — source: retro §f 15
+- [x] ~~ClaimingTimerStore in adttest/enginetest capability matrices~~ RESOLVED 2026-08-30 (session 7): no timer-store slot exists — adttest/enginetest harnesses test metaengine `Engine` implementations (ADT capabilities), and ClaimingTimerStore is a scheduling-side DECORATOR over a SQL store, not an engine. The contract lives in scheduling/sqlstore tests (SQLite suite + live-PG integration incl. the renew-vs-claim race) which is the right home; documented here to close the question. — source: retro §f 15
 
 **scheduling/sqlstore — claiming extensions (D8)**
 
 - [x] ~~`RenewLease(ctx, id, extend)`~~ DONE 2026-08-30 (`6f5fb66a0`): grants only while the lease is live (no resurrection); expired/fire/cancel → `ErrLeaseNotHeld` (Orchestration). Claims carry no per-poller tokens — renewal extends whichever live claim exists (safe: only extends the fence); token-based ownership is future work. Live PG + SQLite tests green.
-- [ ] **Claiming metrics hooks** — PREMISE RE-VERIFIED 2026-08-30: scheduling has NO existing metrics surface (no otel dep in scheduling or scheduling/sqlstore — the retro's "existing surface" does not exist). Building one is a dep-budget decision (otel/ import in a lean-budget module). Options: opt-in callback counters on ClaimingTimerStore (zero-dep) or a scheduling-otel side module. — source: retro §f 22
+- [x] ~~Claiming metrics hooks~~ DONE 2026-08-30 (session 7): option (a) shipped — zero-dep opt-in `ClaimMetrics` hooks (`Claimed`/`Renewed`/`RenewRejected`) via a variadic `ClaimOption` on the constructors; no OTel dep enters the lean-budget scheduling module. Race-checked renew-vs-claim on live PG under `-race` (ephemeral-pg loop). — source: retro §f 22
 
 **Observability / lint**
 

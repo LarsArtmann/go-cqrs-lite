@@ -453,3 +453,129 @@ func TestClaimingPostgres_RenewLease(t *testing.T) {
 		t.Fatal("renewing a missing timer must fail")
 	}
 }
+
+// TestClaimingPostgres_RenewVsClaimRace pins the concurrent renew-vs-claim
+// contract under -race on live Postgres: a holder renewing its lease while
+// other pollers claim must never let a second claimer take the timer while
+// the lease is live, and once the holder stops renewing (lease lapses),
+// exactly one of the competing claimers gets the timer.
+func TestClaimingPostgres_RenewVsClaimRace(t *testing.T) {
+	db := pgOpen(t)
+	defer func() { _ = db.Close() }()
+
+	ctx := context.Background()
+
+	store, err := sqlstore.NewClaimingPostgresStore[struct{}](ctx, db, 300*time.Millisecond)
+	if err != nil {
+		t.Fatalf("NewClaimingPostgresStore: %v", err)
+	}
+
+	now := time.Now().UTC()
+
+	if err := store.Schedule(ctx, scheduling.Timer[struct{}]{
+		ID:     scheduling.MustParseTimerID("renew-race"),
+		FireAt: now.Add(-time.Second),
+	}); err != nil {
+		t.Fatalf("Schedule: %v", err)
+	}
+
+	// Phase 1: the holder claims and keeps renewing while two other pollers
+	// hammer Due. Nobody else may see the timer while renewals hold.
+	holder, err := store.Due(ctx, now)
+	if err != nil {
+		t.Fatalf("holder claim: %v", err)
+	}
+
+	if len(holder) != 1 {
+		t.Fatalf("holder claimed %d timers, want 1", len(holder))
+	}
+
+	stop := make(chan struct{})
+
+	renewErrs := make(chan error, 1)
+
+	go func() {
+		for {
+			select {
+			case <-stop:
+				return
+			default:
+			}
+
+			if err := store.RenewLease(ctx, holder[0].ID, 300*time.Millisecond); err != nil {
+				renewErrs <- err
+
+				return
+			}
+
+			time.Sleep(50 * time.Millisecond)
+		}
+	}()
+
+	var wg sync.WaitGroup
+
+	for poller := range 2 {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			for range 10 {
+				timers, err := store.Due(ctx, time.Now().UTC())
+				if err != nil {
+					t.Errorf("poller %d Due: %v", poller, err)
+
+					return
+				}
+
+				for _, timer := range timers {
+					if timer.ID == holder[0].ID {
+						t.Errorf("timer stolen from live lease by poller %d", poller)
+					}
+				}
+
+				time.Sleep(20 * time.Millisecond)
+			}
+		}()
+	}
+
+	wg.Wait()
+	close(stop)
+
+	select {
+	case err := <-renewErrs:
+		t.Fatalf("holder renewal failed mid-race: %v", err)
+	default:
+	}
+
+	// Phase 2: the holder walks away. After the lease lapses, competing
+	// claimers converge on the timer again — at least one claim succeeds.
+	time.Sleep(400 * time.Millisecond)
+
+	var reclaims int
+
+	for poller := range 2 {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			timers, err := store.Due(ctx, time.Now().UTC())
+			if err != nil {
+				t.Errorf("reclaimer %d Due: %v", poller, err)
+
+				return
+			}
+
+			if len(timers) > 0 {
+				reclaims++
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	if reclaims == 0 {
+		t.Error("no reclaimer claimed the timer after the lease lapsed")
+	}
+}

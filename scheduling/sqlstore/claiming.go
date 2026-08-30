@@ -45,7 +45,8 @@ var ErrClaimingUnsupported = errors.New(
 type ClaimingTimerStore[P any] struct {
 	*SQLTimerStore[P]
 
-	lease time.Duration
+	lease   time.Duration
+	metrics ClaimMetrics
 }
 
 // NewClaimingPostgresStore creates a Postgres-backed claiming timer store.
@@ -55,8 +56,9 @@ func NewClaimingPostgresStore[P any](
 	ctx context.Context,
 	db *sql.DB,
 	lease time.Duration,
+	opts ...ClaimOption[P],
 ) (*ClaimingTimerStore[P], error) {
-	return newClaimingStore[P](ctx, db, DialectPostgres, lease)
+	return newClaimingStore[P](ctx, db, DialectPostgres, lease, opts...)
 }
 
 // NewClaimingSQLiteStore creates a SQLite-backed claiming timer store. SQLite
@@ -66,8 +68,9 @@ func NewClaimingSQLiteStore[P any](
 	ctx context.Context,
 	db *sql.DB,
 	lease time.Duration,
+	opts ...ClaimOption[P],
 ) (*ClaimingTimerStore[P], error) {
-	return newClaimingStore[P](ctx, db, DialectSQLite, lease)
+	return newClaimingStore[P](ctx, db, DialectSQLite, lease, opts...)
 }
 
 // NewClaimingMySQLStore always fails: MySQL/MariaDB lacks SKIP LOCKED (MariaDB
@@ -85,6 +88,7 @@ func newClaimingStore[P any](
 	db *sql.DB,
 	d Dialect,
 	lease time.Duration,
+	opts ...ClaimOption[P],
 ) (*ClaimingTimerStore[P], error) {
 	if d != DialectPostgres && d != DialectSQLite {
 		return nil, ErrClaimingUnsupported
@@ -103,7 +107,17 @@ func newClaimingStore[P any](
 		lease = DefaultClaimLease
 	}
 
-	return &ClaimingTimerStore[P]{SQLTimerStore: base, lease: lease}, nil
+	c := &ClaimingTimerStore[P]{
+		SQLTimerStore: base,
+		lease:         lease,
+		metrics:       ClaimMetrics{Claimed: nil, Renewed: nil, RenewRejected: nil},
+	}
+
+	for _, opt := range opts {
+		opt(c)
+	}
+
+	return c, nil
 }
 
 // Due atomically claims every timer whose fire_at has passed and whose lease
@@ -136,6 +150,10 @@ func (c *ClaimingTimerStore[P]) Due(
 	if err := tx.Commit(); err != nil {
 		return nil, errorfamily.WrapInfrastructure(
 			err, "scheduling.sqlstore.claim_commit", "commit claim transaction")
+	}
+
+	if c.metrics.Claimed != nil {
+		c.metrics.Claimed(len(timers))
 	}
 
 	return timers, joinErr
@@ -310,7 +328,15 @@ func (c *ClaimingTimerStore[P]) RenewLease(
 	}
 
 	if n == 0 {
+		if c.metrics.RenewRejected != nil {
+			c.metrics.RenewRejected()
+		}
+
 		return fmt.Errorf("sqlstore: renew %s: %w", id.String(), ErrLeaseNotHeld)
+	}
+
+	if c.metrics.Renewed != nil {
+		c.metrics.Renewed()
 	}
 
 	return nil

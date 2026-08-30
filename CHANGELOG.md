@@ -71,6 +71,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   per-poller tokens: renewal extends whichever live claim exists (safe — only
   extends the fence); token-based ownership is future work (see the ADR stub).
 
+### Added — session-7 wave: claiming metrics hooks — 2026-08-30
+
+- **`scheduling/sqlstore.ClaimMetrics` + `WithClaimMetrics[P]`**: the
+  zero-dependency observability surface for ClaimingTimerStore (decision on
+  the deferred metrics question — option (a), no OTel dependency in the
+  lean-budget scheduling module). Hooks: `Claimed(count)` after each Due
+  claim commits, `Renewed()` on successful lease extension,
+  `RenewRejected()` when renewal fails ErrLeaseNotHeld. Hooks run unlocked
+  on the polling goroutine; nil hooks keep the store unobserved. The
+  constructors gain a variadic `ClaimOption` (additive, source-compatible).
+
 ### Fixed — float64 planned columns silently became TEXT (pg/mysql) — 2026-08-30
 
 - `metaengine.BuildLayoutPlanFromType` maps float64 to the canonical

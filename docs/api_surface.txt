@@ -3101,6 +3101,7 @@ scheduling/sqlstore/func NewClaimingSQLiteStore
 scheduling/sqlstore/func NewMySQLStore
 scheduling/sqlstore/func NewPostgresStore
 scheduling/sqlstore/func NewSQLiteStore
+scheduling/sqlstore/func WithClaimMetrics
 scheduling/sqlstore/method Cancel
 scheduling/sqlstore/method Close
 scheduling/sqlstore/method Due
@@ -3109,8 +3110,10 @@ scheduling/sqlstore/method MarkFired
 scheduling/sqlstore/method MarkFired
 scheduling/sqlstore/method RenewLease
 scheduling/sqlstore/method Schedule
+scheduling/sqlstore/struct ClaimMetrics
 scheduling/sqlstore/struct ClaimingTimerStore
 scheduling/sqlstore/struct SQLTimerStore
+scheduling/sqlstore/type ClaimOption
 scheduling/sqlstore/type Dialect
 scheduling/sqlstore/var ErrClaimingUnsupported
 scheduling/sqlstore/var ErrLeaseNotHeld
