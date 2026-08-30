@@ -108,11 +108,14 @@ func (s *Store) CheckRouting(ctx context.Context) []Diagnostic {
 	return diags
 }
 
-// routingSignature computes a string fingerprint of all engines' current
-// NetworkRTT values. If this signature hasn't changed since the last
-// CheckRouting call, the routing result is identical and can be served from
-// cache. Only NetworkRTT varies at runtime (via live trackers); all other
-// profile fields are static after construction.
+// routingSignature computes a string fingerprint of everything CheckRouting's
+// re-scoring reads: each engine's live NetworkRTT AND its ReadCosts (which
+// NsForRead derives per read pattern), plus the current plan version. The
+// original version fingerprinted NetworkRTT only — a read-tracker EWMA shift
+// or a Replan with unchanged RTTs left the signature unchanged, so CheckRouting
+// served a stale cached verdict and never noticed the drift. Only NetworkRTT
+// and the calibrated ReadCosts vary at runtime; the other profile fields are
+// static after construction.
 func (s *Store) routingSignature() string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -120,7 +123,16 @@ func (s *Store) routingSignature() string {
 	var sb strings.Builder
 	for _, eng := range s.engines {
 		p := eng.Profile()
-		fmt.Fprintf(&sb, "%s=%d|", p.Name, p.NetworkRTT.Nanoseconds())
+		fmt.Fprintf(&sb, "%s=rtt:%d,pl:%d,fs:%d,ag:%d,sc:%d|",
+			p.Name, p.NetworkRTT.Nanoseconds(),
+			int64(p.ReadCosts.NsPerPointLookup),
+			int64(p.ReadCosts.NsPerFilteredScan),
+			int64(p.ReadCosts.NsPerAggregate),
+			int64(p.ReadCosts.NsPerScan))
+	}
+
+	if s.plan != nil {
+		fmt.Fprintf(&sb, "plan=%d", s.plan.Version)
 	}
 
 	return sb.String()

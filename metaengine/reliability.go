@@ -42,6 +42,15 @@ type CalibrationCosts struct {
 // pointer-receiver tracker methods are promoted to *Engine, so ProbeEngine can
 // wire live measurement into Profile() with zero per-engine code.
 type Calibration struct {
+	// mu guards every field below: setters (SetCalibration, SetRTTTracker,
+	// SetReadTracker) run on the ProbeEngine background goroutine while
+	// readers (ApplyCalibration inside Profile, LiveLatency for stats) run
+	// on request/diagnostic goroutines. Without the lock this is a data race
+	// the race detector catches under concurrent GetEngineStats.
+	// Calibration is embedded BY VALUE in each engine; engines are used via
+	// pointers, so the lock never copies.
+	mu sync.Mutex
+
 	nsPerOp    float64
 	nsPerRead  float64
 	nsPerWrite float64
@@ -58,6 +67,9 @@ type Calibration struct {
 // SetCalibration stores measured cost values. CalibrateEngine calls this
 // via the Calibratable interface.
 func (c *Calibration) SetCalibration(costs CalibrationCosts) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	c.nsPerOp = costs.NsPerOp
 	c.nsPerRead = costs.NsPerRead
 	c.nsPerWrite = costs.NsPerWrite
@@ -68,11 +80,21 @@ func (c *Calibration) SetCalibration(costs CalibrationCosts) {
 // SetRTTTracker installs a live RTT tracker. ProbeEngine calls this on engines
 // that embed Calibration. Once installed, ApplyCalibration replaces the declared
 // NetworkRTT prior with the tracker's EWMA whenever fresh samples exist.
-func (c *Calibration) SetRTTTracker(t *LatencyTracker) { c.rtt = t }
+func (c *Calibration) SetRTTTracker(t *LatencyTracker) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.rtt = t
+}
 
 // SetReadTracker installs a live per-read-operation latency tracker. When fresh,
 // ApplyCalibration uses its EWMA (in nanoseconds) as NsPerRead.
-func (c *Calibration) SetReadTracker(t *LatencyTracker) { c.read = t }
+func (c *Calibration) SetReadTracker(t *LatencyTracker) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.read = t
+}
 
 // LiveLatency reports the engine's live measurement state for diagnostics
 // (GetEngineStats, Doctor, EXPLAIN). HasRTT/HasRead indicate whether a tracker
@@ -98,6 +120,9 @@ type LiveLatency struct {
 // tracker is fresh — this prevents a read-only tracker from suppressing the
 // "routing on prior RTT" WARN.
 func (c *Calibration) LiveLatency() LiveLatency {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	out := LiveLatency{}
 	if c.rtt != nil {
 		out.HasRTT = true
@@ -125,6 +150,9 @@ func (c *Calibration) LiveLatency() LiveLatency {
 //
 // Engines call this inside their Profile() method.
 func (c *Calibration) ApplyCalibration(p *EngineProfile) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	if c.nsPerOp > 0 {
 		p.NsPerOp = c.nsPerOp
 	}

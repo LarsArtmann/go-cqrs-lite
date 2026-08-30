@@ -95,6 +95,8 @@ func (s *Store) replanWithTransition(
 		writeAmplificationBudget: DefaultWriteAmplificationBudget,
 		priority:                 s.priorityConfig,
 		sharedCollections:        s.sharedCollections,
+		routingHysteresis:        s.routingHysteresis,
+		routingMinDeltaMs:        s.routingMinDelta,
 	}
 
 	// Phase 1: re-assign engines under the write lock (mutates QueryDecl).
@@ -112,6 +114,17 @@ func (s *Store) replanWithTransition(
 	}
 
 	routable := s.routableLocked()
+
+	// Incumbent awareness (C5.3): without it, Replan re-assigns to the argmin
+	// even for sub-hysteresis improvements, so two near-parity engines
+	// oscillate A→B→A across successive auto-replan ticks.
+	if s.plan != nil {
+		incumbents := make(map[string]string, len(s.plan.Queries))
+		for _, qa := range s.plan.Queries {
+			incumbents[qa.QueryName] = qa.EngineName
+		}
+		cfg.incumbents = incumbents
+	}
 
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
 		q := s.queries[name]

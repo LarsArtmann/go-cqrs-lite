@@ -127,6 +127,46 @@ func TestStore_StartAutoReplan_StopsCleanly(t *testing.T) {
 	stop()
 }
 
+// TestStore_Replan_HysteresisPreventsOscillation pins the C5.3 fix: Replan
+// keeps the incumbent engine when the cheaper alternative wins by LESS than
+// the deadband, and flips only when the improvement is decisive. Without
+// incumbent-aware assignment, Replan re-assigned to the argmin on every tick,
+// so two near-parity engines oscillated A→B→A as live measurements jittered
+// around the tie point.
+func TestStore_Replan_HysteresisPreventsOscillation(t *testing.T) {
+	a := newFakeLocal("parity_a", 1_000_000)
+	b := newFakeLocal("parity_b", 1_000_000)
+
+	store := planWith(t, a, b)
+	if w := winnerEngine(store); w != "parity_a" {
+		t.Fatalf("initial winner = %q, want parity_a (stable tie)", w)
+	}
+
+	// Sub-deadband jitter: parity_b becomes 10% cheaper. Argmin would flip;
+	// the 20% hysteresis (and the 0.5ms absolute floor) must keep parity_a.
+	b.SetCalibration(metaengine.CalibrationCosts{NsPerOp: 900_000})
+
+	if err := store.Replan(context.Background()); err != nil {
+		t.Fatalf("Replan (sub-deadband): %v", err)
+	}
+
+	if w := winnerEngine(store); w != "parity_a" {
+		t.Fatalf("sub-deadband jitter flipped assignment to %q — oscillation", w)
+	}
+
+	// Decisive shift: parity_b 60% cheaper — beyond BOTH deadbands. The flip
+	// must happen now.
+	b.SetCalibration(metaengine.CalibrationCosts{NsPerOp: 400_000})
+
+	if err := store.Replan(context.Background()); err != nil {
+		t.Fatalf("Replan (decisive): %v", err)
+	}
+
+	if w := winnerEngine(store); w != "parity_b" {
+		t.Fatalf("decisive shift did not flip: winner = %q, want parity_b", w)
+	}
+}
+
 // TestLiveLatency_FreshIsRTTSpecific proves the OR-semantics fix: a
 // read-only tracker does not make LiveLatency.Fresh true.
 func TestLiveLatency_FreshIsRTTSpecific(t *testing.T) {

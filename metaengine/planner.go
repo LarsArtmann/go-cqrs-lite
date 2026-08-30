@@ -33,6 +33,7 @@ type planConfig struct {
 	networkRTTOverride       *time.Duration  // overrides all engines' declared NetworkRTT for cost estimation
 	routingHysteresis        float64         // min fractional improvement for re-routing suggestions
 	routingMinDeltaMs        float64         // min absolute improvement (ms) for re-routing suggestions
+	incumbents               map[string]string // query → currently-assigned engine (Replan only); enables hysteresis-gated re-assignment
 	priority                 *PriorityConfig // operator-driven layout priorities (ADR-0124)
 	sharedCollections        map[string]bool // child Go types shared across collections (ADR-0124 aggregate boundaries)
 	idempotencyCapacity      int             // dedup ring capacity for ApplyIdempotent; <=0 → unbounded legacy mode
@@ -307,6 +308,45 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 	})
 
 	best := ranked[0]
+
+	// Hysteresis-gated re-assignment: when re-planning (Replan), keep the
+	// incumbent engine unless the cheaper alternative beats it beyond BOTH
+	// deadbands — the same rule checkQueryRouting applies to suggestions.
+	// Pure argmin assignment flips near-parity engines back and forth on
+	// every auto-replan tick (A→B→A oscillation) whenever live latency
+	// jitters around the tie point.
+	if incumbentName, ok := pc.incumbents[meta.QueryName()]; ok && incumbentName != best.engine.Profile().Name {
+		for i := range ranked {
+			if ranked[i].engine.Profile().Name != incumbentName {
+				continue
+			}
+
+			incumbent := ranked[i]
+
+			// A strictly better complexity class is a structural win, not
+			// measurement jitter — hysteresis never keeps the asymptotically
+			// worse engine.
+			if complexityRank(best.complexity) < complexityRank(incumbent.complexity) {
+				break
+			}
+
+			improvement := incumbent.weightedLatencyMs - best.weightedLatencyMs
+
+			fraction := 0.0
+			if incumbent.weightedLatencyMs > 0 {
+				fraction = improvement / incumbent.weightedLatencyMs
+			}
+
+			if improvement <= 0 ||
+				fraction <= pc.routingHysteresis ||
+				improvement < pc.routingMinDeltaMs {
+				best = incumbent
+			}
+
+			break
+		}
+	}
+
 	assignment.EngineName = best.engine.Profile().Name
 	assignment.Complexity = best.complexity
 	assignment.Cost = best.cost
