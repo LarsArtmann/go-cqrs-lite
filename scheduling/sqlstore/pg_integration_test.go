@@ -14,6 +14,8 @@ package sqlstore_test
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -316,5 +318,87 @@ func TestIntegration_PostgresTimerStore_SchedulerIntegration_Recovery(t *testing
 
 	if len(due) != 0 {
 		t.Fatalf("expected 0 remaining timers, got %d", len(due))
+	}
+}
+
+// TestClaimingPostgres_TwoClaimersNoDoubleFire proves the D8 claiming store's
+// core guarantee against live Postgres SKIP LOCKED: 20 concurrent claim rounds
+// across two claimers partition the timers — every timer is claimed exactly
+// once while its lease is fresh, and the union covers all scheduled timers.
+func TestClaimingPostgres_TwoClaimersNoDoubleFire(t *testing.T) {
+	db := pgOpen(t)
+	defer func() { _ = db.Close() }()
+
+	ctx := context.Background()
+
+	store, err := sqlstore.NewClaimingPostgresStore[struct{}](ctx, db, time.Minute)
+	if err != nil {
+		t.Fatalf("NewClaimingPostgresStore: %v", err)
+	}
+
+	now := time.Now().UTC()
+
+	const total = 20
+
+	for i := range total {
+		timer := scheduling.Timer[struct{}]{
+			ID:     scheduling.MustParseTimerID(fmt.Sprintf("claim-%02d", i)),
+			FireAt: now.Add(-time.Second),
+		}
+
+		if err := store.Schedule(ctx, timer); err != nil {
+			t.Fatalf("Schedule %d: %v", i, err)
+		}
+	}
+
+	// Two claimers poll concurrently. SKIP LOCKED (and the row locks the
+	// claim UPDATE takes) must partition the timers between them.
+	var mu sync.Mutex
+
+	claimed := make([][]string, 2)
+
+	var wg sync.WaitGroup
+
+	for worker := range 2 {
+		wg.Add(1)
+
+		go func(worker int) {
+			defer wg.Done()
+
+			for range 5 {
+				timers, err := store.Due(ctx, now)
+				if err != nil {
+					t.Errorf("claimer %d Due: %v", worker, err)
+
+					return
+				}
+
+				mu.Lock()
+				for _, timer := range timers {
+					claimed[worker] = append(claimed[worker], timer.ID.String())
+				}
+				mu.Unlock()
+			}
+		}(worker)
+	}
+
+	wg.Wait()
+
+	seen := make(map[string]int, total)
+
+	for _, ids := range claimed {
+		for _, id := range ids {
+			seen[id]++
+		}
+	}
+
+	if len(seen) != total {
+		t.Fatalf("%d distinct timers claimed, want %d", len(seen), total)
+	}
+
+	for id, count := range seen {
+		if count != 1 {
+			t.Fatalf("timer %s claimed %d times — double fire", id, count)
+		}
 	}
 }
