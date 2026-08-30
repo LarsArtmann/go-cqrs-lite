@@ -405,6 +405,21 @@ type LayoutPlanApplier interface {
 	ApplyLayoutPlan(plan LayoutPlan) error
 }
 
+// LayoutPlanEvolver is an optional extension of LayoutPlanApplier for engines
+// whose planned tables live in a SQL catalog they can introspect
+// (information_schema). EvolveLayoutPlan reconciles a registered planned
+// table's physical columns with the plan: missing columns are added, columns
+// whose physical type drifted from the declared type are retyped. It is
+// idempotent — a table already matching the plan yields zero applied actions.
+// Applied lists the actions taken (e.g. "add:amount", "retype:amount"); it is
+// empty when the schema already matches. Retyping a column that holds data the
+// new type cannot represent fails at the driver level (Infrastructure) — the
+// no-data-loss default; pre-clean or re-key such tables manually.
+type LayoutPlanEvolver interface {
+	LayoutPlanApplier
+	EvolveLayoutPlan(ctx context.Context, plan LayoutPlan) (applied []string, err error)
+}
+
 // RawValueReader is an optional capability: engines that can read a value's raw
 // JSON bytes without decoding to any. ExecuteTyped prefers this path for point
 // lookups, avoiding the double-decode tax (any → reify → R becomes raw → R,
