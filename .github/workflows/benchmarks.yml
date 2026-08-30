@@ -232,3 +232,33 @@ jobs:
         with:
           name: benchmark-baseline
           path: baseline/
+
+  # Calibration drift: fresh per-pattern benches vs shipped ReadCosts
+  # constants (docs/benchmarks/calibration-2026-08-30.md). Warns >25%,
+  # fails >=100% (2x). Nightly + manual; dedicated runner assumed.
+  calibration-drift:
+    name: Calibration Drift (ReadCosts)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: cachix/install-nix-action@ba0dd844c9180cbf77aa72a116d6fbc515d0e87b
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Run calibration drift check
+        run: |
+          bash scripts/calibration-drift.sh
+
+      - name: Upload drift log on failure
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: calibration-drift
+          path: |
+            /tmp/calibration-drift-*.log
+          if-no-files-found: ignore
+          retention-days: 30
