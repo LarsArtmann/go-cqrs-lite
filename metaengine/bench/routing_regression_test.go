@@ -53,8 +53,12 @@ func TestRealProfiles_ReadCostsPinned(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.profile.NsForRead(tt.pattern); got != tt.want {
-				t.Errorf("NsForRead(%s) = %.0f, want %.0f — a recalibration moved this constant; update this pin in the same commit with fresh bench medians",
-					tt.pattern, got, tt.want)
+				t.Errorf(
+					"NsForRead(%s) = %.0f, want %.0f — a recalibration moved this constant; update this pin in the same commit with fresh bench medians",
+					tt.pattern,
+					got,
+					tt.want,
+				)
 			}
 		})
 	}
@@ -133,6 +137,9 @@ func TestRealProfiles_PointLookupRoutesToMemory(t *testing.T) {
 	}
 
 	if assigned != "memory" {
-		t.Errorf("point lookup routed to %q, want \"memory\" — KV point-lookup constants or memory profile drifted; re-run the calibration benches before updating this pin", assigned)
+		t.Errorf(
+			"point lookup routed to %q, want \"memory\" — KV point-lookup constants or memory profile drifted; re-run the calibration benches before updating this pin",
+			assigned,
+		)
 	}
 }

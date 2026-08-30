@@ -48,11 +48,16 @@ func TestEngineProfilesSetReadCosts(t *testing.T) {
 		data, err := os.ReadFile(path)
 		if err != nil {
 			t.Errorf("engine %s: read %s: %v", dir, path, err)
+
 			continue
 		}
 
 		if !strings.Contains(string(data), "ReadCosts:") {
-			t.Errorf("engine %s: no ReadCosts block found in %s — every persistent engine must set per-pattern ReadCosts (ADR-0133; see the badger/bbolt/pebble 2026-08-30 wave for the bench pattern)", dir, file)
+			t.Errorf(
+				"engine %s: no ReadCosts block found in %s — every persistent engine must set per-pattern ReadCosts (ADR-0133; see the badger/bbolt/pebble 2026-08-30 wave for the bench pattern)",
+				dir,
+				file,
+			)
 		}
 	}
 
