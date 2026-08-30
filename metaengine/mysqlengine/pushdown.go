@@ -25,6 +25,12 @@ func (e *mysqlEngine) PushdownMapScan(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
+	// Planned collections scan the extracted-column table (D3 slice 1),
+	// not meta_map.
+	if plan, ok := e.planFor(collection); ok {
+		return e.pushdownMapScanPlanned(ctx, plan, filters, sort, cursor, limit)
+	}
+
 	var b strings.Builder
 	args := []any{collection}
 
@@ -79,6 +85,7 @@ func (e *mysqlEngine) PushdownMapScan(
 	}
 
 	rows, err := scanMySQLJSONValues(ctx, e.conn(), b.String(), args...)
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	if err != nil {
 		return metaengine.ScanResult{}, err
 	}

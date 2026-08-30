@@ -23,11 +23,22 @@ func (e *mysqlEngine) MapScan(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
-	rows, err := e.conn().QueryContext(
-		ctx,
-		`SELECT `+keyCol+`, CAST(value AS CHAR) FROM meta_map WHERE collection = ?`,
-		collection,
-	)
+	// Planned collections store rows in a dedicated table; MapScan (the
+	// closure-based fallback) must read from it, not meta_map (D3 slice 2 —
+	// closes the planned/meta_map visibility split).
+	query := `SELECT ` + keyCol + `, CAST(value AS CHAR) FROM meta_map WHERE collection = ?`
+
+	var args []any
+
+	if plan, ok := e.planFor(collection); ok {
+		query = fmt.Sprintf("SELECT %s, CAST(value AS CHAR) FROM %s",
+			keyCol, backtickIdent(plan.Table))
+	} else {
+		args = append(args, collection)
+	}
+
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
+	rows, err := e.conn().QueryContext(ctx, query, args...)
 	if err != nil {
 		return metaengine.ScanResult{}, fmt.Errorf("mysqlengine.MapScan: %w", err)
 	}

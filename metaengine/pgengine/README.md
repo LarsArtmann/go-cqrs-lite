@@ -62,6 +62,33 @@ Calibrated from benchmark measurements (see `calibration_bench_test.go`).
 - **Cross-engine parity**: Verified via `adttest.RunMatrix`.
 - **Pure Go**: Uses `pgx` driver via `database/sql` — no CGo required.
 
+## Planned tables: ApplyLayout vs ApplyLayoutPlan
+
+Two layout mechanisms exist; they are NOT interchangeable:
+
+- **`ApplyLayout(collection, filterFields, sortFields)`** (metaengine.LayoutPlanner)
+  keeps all rows in `meta_map` and creates PARTIAL EXPRESSION INDEXES on
+  `value->'field'` paths. Cheapest option: no second table, no backfill — but
+  reads still extract JSONB at query time and only declared fields are indexed.
+- **`ApplyLayoutPlan(metaengine.LayoutPlan)`** (metaengine.LayoutPlanApplier) creates a
+  dedicated per-collection extracted-column table (`meta_planned_<collection>`:
+  JSONB value + DOUBLE PRECISION/BIGINT/TEXT columns + declared indexes) and routes
+  `MapSet`/`MapGet`/`MapDelete`, `MapUpdate`, `PushdownMapScan`, and `MapScan` through it.
+  No backfill: rows written before registration stay in `meta_map` and are NOT visible
+  to planned reads (opt-in per collection, choose at deployment time).
+
+Mis-typed filter/sort/cursor values are validated against the declared column
+types BEFORE SQL executes and fail as
+`metaengine.ErrPlannedColumnTypeMismatch` (Rejection family — fix the query or
+the plan; retrying cannot succeed). The write path keeps its fail-loud
+driver-level Infrastructure behavior (Postgres rejects a row whose extracted
+value contradicts the column type).
+
+Routing decision: counters, graph, and aggregate operations stay on
+`meta_map` even for planned collections — planned tables optimize map reads;
+the other ADTs keep their native paths. `MapUpdate` serializes concurrent
+read-modify-writes with `SELECT ... FOR UPDATE` (PG is multi-writer).
+
 ## Related Modules
 
 - [**metaengine**](../README.md) — Core planner and `Engine` interface

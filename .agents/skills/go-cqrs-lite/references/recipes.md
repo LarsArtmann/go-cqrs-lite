@@ -1639,3 +1639,58 @@ the engine has the capability; ExplainPlan/Doctor WARN when it does not —
 an engine without size introspection serves k-NN by full scan and cannot
 bound the scan. If you add an engine with VectorBackend support, implement
 VectorCounter too or that WARN is permanent.
+
+### 2.26 Multi-Instance Timers: ClaimingTimerStore (scheduling/sqlstore)
+
+`scheduling/sqlstore.ClaimingTimerStore` wraps a SQL `TimerStore` with
+lease-based claiming so MULTIPLE Scheduler instances can share one timer
+table without double-firing (plain `Due()` + `MarkFired` assumes a single
+active instance).
+
+```go
+base, _ := sqlstore.NewTimerStore(db) // PG / SQLite
+claiming := sqlstore.NewClaimingTimerStore(base, sqlstore.DefaultClaimLease)
+
+scheduler := scheduling.New(claiming, dispatch)
+scheduler.Start(ctx)
+```
+
+- Postgres claims via a CTE with `FOR UPDATE SKIP LOCKED` +
+  `UPDATE..RETURNING`; SQLite via single-writer `UPDATE..RETURNING`; an
+  idempotent migration adds the `lease_until` column.
+- MySQL/MariaDB have no SKIP LOCKED: the constructor rejects loudly with
+  `ErrClaimingUnsupported` rather than silently double-firing.
+- Lease sizing: set the lease comfortably ABOVE your worst-case
+  dispatch-handler duration (the claim fence compares `lease_until` against
+  now). Sizing it below makes another instance re-claim a timer whose
+  handler is still running.
+- Handlers that can outlive `DefaultClaimLease` need the renewal API
+  (RenewLease, planned — see TODO_LIST) or a longer per-store lease.
+
+### 2.27 Planned Tables: LayoutPlanApplier (pgengine/mysqlengine)
+
+`ApplyLayoutPlan` materializes a per-collection extracted-column table and
+routes map reads/writes through it — native columns and native indexes
+instead of JSONB/JSON path extraction at query time.
+
+```go
+lpa := eng.(metaengine.LayoutPlanApplier)
+plan := metaengine.BuildLayoutPlan("tasks",
+    []string{"status"},          // filter fields → TEXT column
+    []string{"priority"})        // sort fields    → BIGINT column
+if err := lpa.ApplyLayoutPlan(plan); err != nil { ... }
+```
+
+After registration, `MapSet`/`MapGet`/`MapDelete`, `MapUpdate`,
+`PushdownMapScan`, and `MapScan` for `"tasks"` hit
+`meta_planned_tasks` (typed columns + declared indexes). No backfill:
+rows written BEFORE registration stay in `meta_map` and are not visible to
+planned reads — pick planned tables at deployment time, not retroactively
+(see the pgengine README "ApplyLayout vs ApplyLayoutPlan" section for the
+partial-index alternative that works on pre-existing data).
+
+Mis-typed filter/sort/cursor values (e.g. a string filter on a BIGINT
+column) fail as `metaengine.ErrPlannedColumnTypeMismatch` (Rejection) at
+query-build time — deterministic, before any SQL runs. Counters, graph, and
+aggregates deliberately stay on their native paths (meta_map), not the
+planned table.

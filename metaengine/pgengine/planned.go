@@ -123,9 +123,27 @@ func (e *pgEngine) mapSetPlanned(
 	value any,
 ) error {
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
+	if err := execPlannedUpsert(ctx, e.conn(), plan, fmt.Sprint(key), value); err != nil {
+		return fmt.Errorf("pgengine.mapSetPlanned: %w", err)
+	}
+
+	return nil
+}
+
+// execPlannedUpsert writes the value + re-extracted columns to the planned
+// table on the given executor (e.conn() for normal paths, a transaction for
+// MapUpdate). Shared by MapSet and the MapUpdate read-modify-write so the
+// extracted columns stay consistent with the JSONB value on every write.
+func execPlannedUpsert(
+	ctx context.Context,
+	q metaengine.SQLExec,
+	plan metaengine.LayoutPlan,
+	keyStr string,
+	value any,
+) error {
 	data, err := json.Marshal(value)
 	if err != nil {
-		return fmt.Errorf("pgengine.mapSetPlanned: marshal: %w", err)
+		return fmt.Errorf("marshal: %w", err)
 	}
 
 	extracted := metaengine.ExtractFields(value, plan.Columns)
@@ -136,7 +154,7 @@ func (e *pgEngine) mapSetPlanned(
 
 	cols = append(cols, "key", "value")
 	placeholders = append(placeholders, "$1", "$2::jsonb")
-	args = append(args, fmt.Sprint(key), string(data))
+	args = append(args, keyStr, string(data))
 
 	for i, c := range plan.Columns {
 		cols = append(cols, metaengine.QuoteIdent(c.Name))
@@ -159,8 +177,8 @@ func (e *pgEngine) mapSetPlanned(
 		strings.Join(updates, ", "),
 	)
 
-	if _, err := e.conn().ExecContext(ctx, query, args...); err != nil {
-		return fmt.Errorf("pgengine.mapSetPlanned: %w", err)
+	if _, err := q.ExecContext(ctx, query, args...); err != nil {
+		return fmt.Errorf("exec: %w", err)
 	}
 
 	return nil

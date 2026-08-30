@@ -22,3 +22,7 @@ require (
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 )
+
+// Unpublished sibling symbols (ErrPlannedColumnTypeMismatch, PlannedColumnType*) —
+// stripped by scripts/tag-release.sh when metaengine is tagged.
+replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ..

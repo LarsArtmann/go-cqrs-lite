@@ -7,6 +7,7 @@ package mysqlengine_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/onsi/gomega"
@@ -70,4 +71,156 @@ func TestMySQLPlannedTable_ConflictingPlanRejected(t *testing.T) {
 	)
 	g.Expect(err).To(gomega.HaveOccurred())
 	g.Expect(errors.Is(err, metaengine.ErrLayoutConflict)).To(gomega.BeTrue())
+}
+
+// TestMySQLPlannedPushdownScan_FilterSortKeyset pins D3 slice 1 on
+// MariaDB: after ApplyLayoutPlan, PushdownMapScan reads the extracted-column
+// table — native-column filters, ASC/DESC sort, keyset cursor pagination,
+// has-more, build-time mis-type Rejection — while planless collections keep
+// the meta_map path.
+func TestMySQLPlannedPushdownScan_FilterSortKeyset(t *testing.T) {
+	mariadbVersion(t)
+
+	g := gomega.NewWithT(t)
+	ctx := context.Background()
+
+	eng := mustNewMySQLEngine(t)
+	mb := eng.(metaengine.MapBackend)
+	ps, ok := eng.(metaengine.PushdownScan)
+	g.Expect(ok).To(gomega.BeTrue(), "mysqlEngine must implement PushdownScan")
+	lpa := eng.(metaengine.LayoutPlanApplier)
+
+	g.Expect(lpa.ApplyLayoutPlan(
+		metaengine.BuildLayoutPlan("planned_scan", []string{"status"}, []string{"priority"}),
+	)).To(gomega.Succeed())
+
+	for i := 1; i <= 5; i++ {
+		status := "open"
+		if i%2 == 0 {
+			status = "done"
+		}
+
+		g.Expect(mb.MapSet(ctx, "planned_scan", fmt.Sprintf("k%d", i),
+			map[string]any{"priority": float64(i), "status": status, "title": "t"})).To(gomega.Succeed())
+	}
+
+	res, err := ps.PushdownMapScan(ctx, "planned_scan",
+		[]metaengine.FilterSpec{{Column: "status", Op: metaengine.FilterEq, Value: "open"}},
+		&metaengine.SortSpec{Column: "priority"}, nil, 0)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(res.Items).To(gomega.HaveLen(3))
+	g.Expect(res.Items[0].(map[string]any)["priority"]).To(gomega.Equal(float64(1)))
+
+	page1, err := ps.PushdownMapScan(ctx, "planned_scan", nil,
+		&metaengine.SortSpec{Column: "priority", Desc: true}, nil, 2)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(page1.Items).To(gomega.HaveLen(2))
+	g.Expect(page1.HasMore).To(gomega.BeTrue())
+
+	lastPrio := page1.Items[1].(map[string]any)["priority"]
+
+	page2, err := ps.PushdownMapScan(ctx, "planned_scan", nil,
+		&metaengine.SortSpec{Column: "priority", Desc: true}, lastPrio, 2)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(page2.Items).NotTo(gomega.BeEmpty())
+	g.Expect(page2.Items[0].(map[string]any)["priority"]).To(gomega.Equal(float64(3)))
+
+	_, err = ps.PushdownMapScan(ctx, "planned_scan",
+		[]metaengine.FilterSpec{{Column: "priority", Op: metaengine.FilterEq, Value: "high"}},
+		nil, nil, 0)
+	g.Expect(errors.Is(err, metaengine.ErrPlannedColumnTypeMismatch)).To(gomega.BeTrue())
+
+	g.Expect(mb.MapSet(ctx, "plain_scan", "a", map[string]any{"v": float64(1)})).To(gomega.Succeed())
+	plain, err := ps.PushdownMapScan(ctx, "plain_scan", nil, nil, nil, 0)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(plain.Items).To(gomega.HaveLen(1))
+}
+
+// TestMySQLPlannedMapScan_VisibilityParity pins D3 slice 2 (read side).
+func TestMySQLPlannedMapScan_VisibilityParity(t *testing.T) {
+	mariadbVersion(t)
+
+	g := gomega.NewWithT(t)
+	ctx := context.Background()
+
+	eng := mustNewMySQLEngine(t)
+	mb := eng.(metaengine.MapBackend)
+	sb := eng.(metaengine.ScanBackend)
+	lpa := eng.(metaengine.LayoutPlanApplier)
+
+	g.Expect(lpa.ApplyLayoutPlan(
+		metaengine.BuildLayoutPlan("planned_vis", []string{"kind"}, nil),
+	)).To(gomega.Succeed())
+
+	g.Expect(mb.MapSet(ctx, "planned_vis", "k1", map[string]any{"kind": "a"})).To(gomega.Succeed())
+	g.Expect(mb.MapSet(ctx, "planned_vis", "k2", map[string]any{"kind": "b"})).To(gomega.Succeed())
+
+	res, err := sb.MapScan(ctx, "planned_vis", nil, nil, nil, 0)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(res.Items).To(gomega.HaveLen(2))
+
+	g.Expect(mb.MapDelete(ctx, "planned_vis", "k1")).To(gomega.Succeed())
+
+	res, err = sb.MapScan(ctx, "planned_vis", nil, nil, nil, 0)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(res.Items).To(gomega.HaveLen(1))
+}
+
+// TestMySQLPlannedMapUpdate_RoundTrip pins D3 slice 2 (write side): the
+// read-modify-write hits the planned table, recomputes extracted columns,
+// creates on a missing key (nil prev), and works inside RunInTx.
+func TestMySQLPlannedMapUpdate_RoundTrip(t *testing.T) {
+	mariadbVersion(t)
+
+	g := gomega.NewWithT(t)
+	ctx := context.Background()
+
+	eng := mustNewMySQLEngine(t)
+	mb := eng.(metaengine.MapBackend)
+	mu, ok := eng.(metaengine.MapUpdater)
+	g.Expect(ok).To(gomega.BeTrue(), "mysqlEngine must implement MapUpdater")
+	lpa := eng.(metaengine.LayoutPlanApplier)
+
+	g.Expect(lpa.ApplyLayoutPlan(
+		metaengine.BuildLayoutPlan("planned_upd", []string{"count"}, nil),
+	)).To(gomega.Succeed())
+
+	g.Expect(mb.MapSet(ctx, "planned_upd", "k1",
+		map[string]any{"count": float64(1), "name": "x"})).To(gomega.Succeed())
+
+	g.Expect(mu.MapUpdate(ctx, "planned_upd", "k1", func(prev any) any {
+		p := prev.(map[string]any)
+		p["count"] = p["count"].(float64) + 1
+
+		return p
+	})).To(gomega.Succeed())
+
+	got, found, err := mb.MapGet(ctx, "planned_upd", "k1")
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(found).To(gomega.BeTrue())
+	g.Expect(got).To(gomega.Equal(map[string]any{"count": float64(2), "name": "x"}))
+
+	g.Expect(mu.MapUpdate(ctx, "planned_upd", "new", func(prev any) any {
+		g.Expect(prev).To(gomega.BeNil())
+
+		return map[string]any{"count": float64(10)}
+	})).To(gomega.Succeed())
+
+	got, found, err = mb.MapGet(ctx, "planned_upd", "new")
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(found).To(gomega.BeTrue())
+	g.Expect(got).To(gomega.Equal(map[string]any{"count": float64(10)}))
+
+	g.Expect(eng.(metaengine.Transactional).RunInTx(ctx, func(ctx context.Context) error {
+		return mu.MapUpdate(ctx, "planned_upd", "k1", func(prev any) any {
+			p := prev.(map[string]any)
+			p["count"] = p["count"].(float64) + 1
+
+			return p
+		})
+	})).To(gomega.Succeed())
+
+	got, _, err = mb.MapGet(ctx, "planned_upd", "k1")
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(got).To(gomega.Equal(map[string]any{"count": float64(3), "name": "x"}))
 }

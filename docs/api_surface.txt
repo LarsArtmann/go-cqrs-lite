@@ -1722,6 +1722,8 @@ metaengine/func Plan
 metaengine/func PlanDiff
 metaengine/func PlanFingerprint
 metaengine/func PlanFromMemory
+metaengine/func PlannedColumnType
+metaengine/func PlannedColumnTypeCompatible
 metaengine/func PlansColumnCompatible
 metaengine/func ProbeEngine
 metaengine/func Query
@@ -2306,6 +2308,7 @@ metaengine/mysqlengine/method MapDelete
 metaengine/mysqlengine/method MapGet
 metaengine/mysqlengine/method MapScan
 metaengine/mysqlengine/method MapSet
+metaengine/mysqlengine/method MapUpdate
 metaengine/mysqlengine/method MeasureTransact
 metaengine/mysqlengine/method Probe
 metaengine/mysqlengine/method Profile
@@ -2385,6 +2388,7 @@ metaengine/pgengine/method MapDelete
 metaengine/pgengine/method MapGet
 metaengine/pgengine/method MapScan
 metaengine/pgengine/method MapSet
+metaengine/pgengine/method MapUpdate
 metaengine/pgengine/method MeasureTransact
 metaengine/pgengine/method MultiAggregate
 metaengine/pgengine/method MultiGroupedAggregate
@@ -2621,6 +2625,7 @@ metaengine/var ErrLayoutConflict
 metaengine/var ErrNoQueryForInputType
 metaengine/var ErrNoQueryForName
 metaengine/var ErrNotFound
+metaengine/var ErrPlannedColumnTypeMismatch
 metaengine/var ErrPoisoned
 metaengine/var ErrUnknownDriver
 metaengine/var ErrUnknownFoldKind
