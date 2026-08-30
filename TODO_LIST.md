@@ -131,14 +131,14 @@ and is **never** duplicated here.
 
 **Metaengine — planned-table pushdown (the D3 train)**
 
-- [ ] 🔥 **D3 slice 1: route PushdownMapScan through planned tables** — native-column filters (DOUBLE PRECISION/BIGINT/TEXT predicates), sort, keyset cursor (no twin columns needed on extracted columns); planless collections keep the meta_map path. pgengine first, then mysqlengine (backtick/DESC lessons). Live PG + MariaDB tests. — source: retro §f 1
-- [ ] 🔥 **D3 slice 2: route MapScan + MapUpdate through planned tables** — closes the documented planned/meta_map visibility split (scans miss planned rows; updates write to the wrong store). — source: retro §f 2
+- [x] ~~D3 slice 1: route PushdownMapScan through planned tables~~ DONE 2026-08-30 (`ce61e4080`): native-column filters/sort/keyset on pg+mysql, planless fallback intact, live strict tests green. — native-column filters (DOUBLE PRECISION/BIGINT/TEXT predicates), sort, keyset cursor (no twin columns needed on extracted columns); planless collections keep the meta_map path. pgengine first, then mysqlengine (backtick/DESC lessons). Live PG + MariaDB tests. — source: retro §f 1
+- [x] ~~D3 slice 2: route MapScan + MapUpdate through planned tables~~ DONE 2026-08-30 (`ce61e4080`): visibility split closed (MapScan reads the planned table); MapUpdate is NEW on both engines (FOR UPDATE RMW, nil-prev create, RunInTx participation); live strict tests green on PG + MariaDB. — closes the documented planned/meta_map visibility split (scans miss planned rows; updates write to the wrong store). — source: retro §f 2
 - [ ] **D3 slice 3: EXPLAIN-based index-usage proofs** for planned scans (pg `EXPLAIN (FORMAT JSON)` + mysql EXPLAIN); assert index, not seq scan. — source: retro §f 16
 - [ ] **D3 slice 4: cross-engine planned-table parity matrices** (sqlite vs pg vs mysql fixtures through adttest). — source: retro §f 17
 - [ ] **`LayoutPlanFromType` for pg/mysql** — reflection-derived column types replacing the name-heuristic `inferColumnType`. — source: retro §f 18
 - [ ] **information_schema-based column evolution** for planned tables (type-drift migration path; idempotent ALTER TABLE ADD COLUMN). — source: retro §f 19
 - [ ] **Opt-in planned-table backfill helper** (meta_map → planned copy) to soften the no-backfill contract where operators need it. — source: retro §f 20
-- [ ] **Mis-type error classification** — extracted-column type conflicts surface as raw Infrastructure today; decide Rejection-vs-Infrastructure and classify deliberately. — source: retro §f 10
+- [x] ~~Mis-type error classification~~ DONE 2026-08-30 (`ce61e4080`): decision recorded — filter/sort/cursor values validated against declared column types at QUERY-BUILD time and classified `metaengine.ErrPlannedColumnTypeMismatch` (Rejection: fix query or plan, retry cannot succeed); the write path keeps fail-loud driver-level Infrastructure (pinned). Documented in the pgengine README + FEATURES.
 - [ ] **CounterIncrement/CounterGet routing decision** for planned collections — document "counters stay in meta_map" or route. — source: retro §f 13
 - [ ] **Graph/aggregate routing decision** for planned collections (same shape as counters). — source: retro §f 14
 - [ ] **pgengine README layout story** — one paragraph: ApplyLayout (partial JSONB indexes) vs ApplyLayoutPlan (extracted columns), when each applies. — source: retro §f 9
@@ -158,7 +158,7 @@ and is **never** duplicated here.
 
 **Honesty / process debt (session-4 §b/§e — do first next session)**
 
-- [ ] 🔥 **Strict GOWORK=off + live-DSN re-validation of the pgengine planned tests** (b.4) + one full strict 7-module PG loop entry for the record. — source: retro §b 4 / §f 3,12
+- [x] ~~Strict GOWORK=off + live-DSN re-validation of the pgengine planned tests~~ DONE 2026-08-30: full strict 7-module PG loop EXIT=0 (ephemeral-pg.sh runs GOWORK=off per module, ephemeral-pg.sh:111); plus the new D3 planned pushdown/MapUpdate tests pass strict on both PG and MariaDB (`ce61e4080`). — source: retro §b 4 / §f 3,12
 - [ ] **Run `nix run .#load-sweep` before the next `#verify`** — C5 touched latency/routing timing paths and the discipline was skipped. — source: retro §c 5 / §f 11
 - [ ] **Recipes 2.26 (ClaimingTimerStore: two-Scheduler setup, lease sizing) + 2.27 (planned tables: LayoutPlanApplier + no-backfill contract) + modules.md planned-capability rows.** — source: retro §f 7,8
 - [ ] **FEATURES.md rows: claiming timers, planned tables, ErrWorkerFailed** — deferred from this harvest: FEATURES.md carried uncommitted edits from a concurrent session; add the rows after those land. — source: retro §f 5

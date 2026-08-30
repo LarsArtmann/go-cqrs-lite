@@ -1648,8 +1648,12 @@ table without double-firing (plain `Due()` + `MarkFired` assumes a single
 active instance).
 
 ```go
-base, _ := sqlstore.NewTimerStore(db) // PG / SQLite
-claiming := sqlstore.NewClaimingTimerStore(base, sqlstore.DefaultClaimLease)
+import "github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4"
+
+db, _ := sql.Open("pgx", dsn) // or a SQLite handle
+claiming, err := sqlstore.NewClaimingPostgresStore[MyPayload](ctx, db, sqlstore.DefaultClaimLease)
+// SQLite: sqlstore.NewClaimingSQLiteStore[P](ctx, db, time.Minute)
+// MySQL/MariaDB: sqlstore.NewClaimingMySQLStore[P] always fails ErrClaimingUnsupported
 
 scheduler := scheduling.New(claiming, dispatch)
 scheduler.Start(ctx)
