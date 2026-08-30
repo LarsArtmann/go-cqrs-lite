@@ -6,8 +6,8 @@ package mysqlengine_test
 
 import (
 	"context"
-	"errors"
 	"database/sql"
+	"errors"
 	"fmt"
 	"testing"
 
