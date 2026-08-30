@@ -6,7 +6,10 @@
 # restores the originals. This is the batch equivalent of tag-release.sh.
 #
 # Usage:
-#   ./scripts/batch-release.sh "<module> <version> <description>" ...
+#   ./scripts/batch-release.sh [--dry-run] "<module> <version> <description>" ...
+#
+# --dry-run prints the tags that WOULD be created (module, version, tag,
+# sequence checks) without touching go.mod files, the tree, or the repo.
 #
 # Each argument is a space-separated triple: module-path, version, description.
 # Description may contain spaces if quoted as part of the triple.
@@ -21,8 +24,14 @@ set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
 
-if [ $# -eq 0 ]; then
-	echo "Usage: $0 \"<module> <version> <description>\" ..."
+DRY_RUN=0
+ARGS=()
+for a in "$@"; do
+	if [ "$a" = "--dry-run" ]; then DRY_RUN=1; else ARGS+=("$a"); fi
+done
+
+if [ ${#ARGS[@]} -eq 0 ]; then
+	echo "Usage: $0 [--dry-run] \"<module> <version> <description>\" ..."
 	exit 1
 fi
 
@@ -32,7 +41,7 @@ versions=()
 descriptions=()
 tags=()
 
-for arg in "$@"; do
+for arg in "${ARGS[@]}"; do
 	module=$(echo "$arg" | awk '{print $1}')
 	version=$(echo "$arg" | awk '{print $2}')
 	description=$(echo "$arg" | cut -d' ' -f3-)
@@ -59,6 +68,15 @@ for i in "${!tags[@]}"; do
 	echo "  ${tags[$i]}: ${descriptions[$i]}"
 done
 echo ""
+
+if [ "$DRY_RUN" -eq 1 ]; then
+	echo "--dry-run: no tags created, no files touched."
+	oldest_sort=$(printf '%s\n' "${tags[@]}" | sort -V | head -1)
+	echo "  would create ${#tags[@]} tags; first (sort -V): ${oldest_sort}"
+	echo "  remember: tags must be monotonically increasing in BOTH semver and"
+	echo "  commit ancestry (git tag -l '<module>/v4*' | sort -V | tail -1)."
+	exit 0
+fi
 
 # Verify clean working tree
 if ! git diff-index --quiet HEAD --; then

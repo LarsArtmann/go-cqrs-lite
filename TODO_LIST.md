@@ -133,20 +133,20 @@ and is **never** duplicated here.
 
 - [x] ~~D3 slice 1: route PushdownMapScan through planned tables~~ DONE 2026-08-30 (`ce61e4080`): native-column filters/sort/keyset on pg+mysql, planless fallback intact, live strict tests green. — native-column filters (DOUBLE PRECISION/BIGINT/TEXT predicates), sort, keyset cursor (no twin columns needed on extracted columns); planless collections keep the meta_map path. pgengine first, then mysqlengine (backtick/DESC lessons). Live PG + MariaDB tests. — source: retro §f 1
 - [x] ~~D3 slice 2: route MapScan + MapUpdate through planned tables~~ DONE 2026-08-30 (`ce61e4080`): visibility split closed (MapScan reads the planned table); MapUpdate is NEW on both engines (FOR UPDATE RMW, nil-prev create, RunInTx participation); live strict tests green on PG + MariaDB. — closes the documented planned/meta_map visibility split (scans miss planned rows; updates write to the wrong store). — source: retro §f 2
-- [ ] **D3 slice 3: EXPLAIN-based index-usage proofs** for planned scans (pg `EXPLAIN (FORMAT JSON)` + mysql EXPLAIN); assert index, not seq scan. — source: retro §f 16
+- [x] ~~D3 slice 3: EXPLAIN-based index-usage proofs~~ DONE 2026-08-30 (`11a7ef8a7`): ExplainScanQuery routes through the planned-scan builder on both engines; live proofs assert index-backed nodes / type != ALL with named key, no seq scan, planned table (never meta_map). — source: retro §f 16
 - [ ] **D3 slice 4: cross-engine planned-table parity matrices** (sqlite vs pg vs mysql fixtures through adttest). — source: retro §f 17
-- [ ] **`LayoutPlanFromType` for pg/mysql** — reflection-derived column types replacing the name-heuristic `inferColumnType`. — source: retro §f 18
+- [x] ~~`LayoutPlanFromType` for pg/mysql~~ DONE 2026-08-30 (`986c631bf`) — was ALREADY in core (`metaengine.BuildLayoutPlanFromType[R]`); this session FIXED its real bug: float64 mapped to "DOUBLE" which pg/mysql planned DDL translated to TEXT (numeric filters degenerated); now canonical "REAL" (pg → DOUBLE PRECISION, mysql → DOUBLE), json-tag aliases indexed, live numeric filter/sort proofs on PG + MariaDB. — source: retro §f 18
 - [ ] **information_schema-based column evolution** for planned tables (type-drift migration path; idempotent ALTER TABLE ADD COLUMN). — source: retro §f 19
 - [ ] **Opt-in planned-table backfill helper** (meta_map → planned copy) to soften the no-backfill contract where operators need it. — source: retro §f 20
 - [x] ~~Mis-type error classification~~ DONE 2026-08-30 (`ce61e4080`): decision recorded — filter/sort/cursor values validated against declared column types at QUERY-BUILD time and classified `metaengine.ErrPlannedColumnTypeMismatch` (Rejection: fix query or plan, retry cannot succeed); the write path keeps fail-loud driver-level Infrastructure (pinned). Documented in the pgengine README + FEATURES.
-- [ ] **CounterIncrement/CounterGet routing decision** for planned collections — document "counters stay in meta_map" or route. — source: retro §f 13
-- [ ] **Graph/aggregate routing decision** for planned collections (same shape as counters). — source: retro §f 14
-- [ ] **pgengine README layout story** — one paragraph: ApplyLayout (partial JSONB indexes) vs ApplyLayoutPlan (extracted columns), when each applies. — source: retro §f 9
+- [x] ~~CounterIncrement/CounterGet routing decision~~ DONE 2026-08-30: DECIDED — counters stay on meta_map for planned collections (documented in the pgengine README "Planned tables" section + the ADR-0124 addendum). — source: retro §f 13
+- [x] ~~Graph/aggregate routing decision~~ DONE 2026-08-30: DECIDED — graph/aggregates stay on their native meta_map paths (pgengine README + ADR-0124 addendum). — source: retro §f 14
+- [x] ~~pgengine README layout story~~ DONE 2026-08-30: "Planned tables: ApplyLayout vs ApplyLayoutPlan" section in metaengine/pgengine/README.md (partial indexes vs extracted-column tables, no-backfill contract, mis-type classification, routing decisions). — source: retro §f 9
 - [ ] **ClaimingTimerStore in adttest/enginetest capability matrices** if a timer-store slot exists (else document why not). — source: retro §f 15
 
 **scheduling/sqlstore — claiming extensions (D8)**
 
-- [ ] **`RenewLease(ctx, id, extend)`** for dispatch handlers that outlive DefaultClaimLease. — source: retro §f 21 / §c 3
+- [x] ~~`RenewLease(ctx, id, extend)`~~ DONE 2026-08-30 (`6f5fb66a0`): grants only while the lease is live (no resurrection); expired/fire/cancel → `ErrLeaseNotHeld` (Orchestration). Claims carry no per-poller tokens — renewal extends whichever live claim exists (safe: only extends the fence); token-based ownership is future work. Live PG + SQLite tests green.
 - [ ] **Claiming metrics hooks** — PREMISE RE-VERIFIED 2026-08-30: scheduling has NO existing metrics surface (no otel dep in scheduling or scheduling/sqlstore — the retro's "existing surface" does not exist). Building one is a dep-budget decision (otel/ import in a lean-budget module). Options: opt-in callback counters on ClaimingTimerStore (zero-dep) or a scheduling-otel side module. — source: retro §f 22
 
 **Observability / lint**
@@ -162,14 +162,14 @@ and is **never** duplicated here.
 - [ ] **Run `nix run .#load-sweep` before the next `#verify`** — C5 touched latency/routing timing paths and the discipline was skipped. — source: retro §c 5 / §f 11
 - [ ] **Recipes 2.26 (ClaimingTimerStore: two-Scheduler setup, lease sizing) + 2.27 (planned tables: LayoutPlanApplier + no-backfill contract) + modules.md planned-capability rows.** — source: retro §f 7,8
 - [ ] **FEATURES.md rows: claiming timers, planned tables, ErrWorkerFailed** — deferred from this harvest: FEATURES.md carried uncommitted edits from a concurrent session; add the rows after those land. — source: retro §f 5
-- [ ] **AGENTS.md process rules from session-4 §e**: per-task gate discipline (api golden + lint + dupl at task end, not session end) + background-job rule (write to file, poll on a timer, `timeout -k`, never pipe through tail). — source: retro §f 41
+- [x] ~~AGENTS.md process rules from session-4 §e~~ DONE 2026-08-30 (`5bcc1ab20`): per-task gate discipline + background-job rules + LSP env-bleed diagnosis encoded in AGENTS.md Tooling & Build gotchas. — source: retro §f 41
 - [ ] **Fix the golangci-lint LSP's GOLANGCI_LINT_CACHE for the editor** — phantom /mnt/buildcache diagnostics noise every session. — source: retro §f 42
 - [ ] **ephemeral-dgraph.sh: health-endpoint wait with a real timeout** (self-dial connection-refused spam suggests the wait is loose). — source: retro §f 43
 - [ ] **Evaluate `-shuffle=on` for the dgraph/mysql live suites** to surface order dependence (contention flakes). — source: retro §f 44
 - [ ] **Document SOAK_SKIP_* interaction with the dgraph loop** (the 52s vs 15-min full-run discrepancy was never explained in the ledger). — source: retro §f 45
-- [ ] **ephemeral-pg.sh: make PG_MODULES env-overridable** (targeted loops without the 7-module sweep). — source: retro §f 46
-- [ ] **batch-release.sh: add `--dry-run`** (parity with tag-release.sh). — source: retro §f 47
-- [ ] **Retire or wire the untracked `t/tasks.buf` workflow; sweep dead `/home/lars/projects/.trash-*` + `a3-*.log` scratch files.** — source: retro §f 48,49
+- [✓] **ephemeral-pg.sh: make PG_MODULES env-overridable** — DONE 2026-08-30: `PG_MODULES="metaengine/pgengine" ./scripts/ephemeral-pg.sh …` runs a targeted loop; default unchanged. — source: retro §f 46
+- [✓] **batch-release.sh: add `--dry-run`** — DONE 2026-08-30: flag filters before parsing, prints would-be tags + semver/ancestry sequence reminder, exits 0 without touching go.mod/tree/tags; existing-tag and go.mod guards still fire. Verified end-to-end. — source: retro §f 47
+- [x] ~~Retire/wire t/tasks.buf + scratch sweep~~ DONE 2026-08-30: t/tasks.buf (1MB binary buffer) and a3-*.log trashed; .trash-* dirs already gone. — source: retro §f 48,49
 
 ---
 

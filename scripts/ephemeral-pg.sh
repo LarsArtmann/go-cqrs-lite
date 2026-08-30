@@ -93,7 +93,9 @@ echo "==> PostgreSQL ready: $POSTGRES_TEST_DSN"
 # Determine what to run.
 # Per-module GOWORK=off is required because the multi-module workspace
 # doesn't resolve integration build tags correctly in workspace mode.
-PG_MODULES="storage stack/postgres metaengine/pgengine projectionhost scheduling/sqlstore idempotency/sqlstore benchkit"
+# PG_MODULES is env-overridable for targeted loops without the 7-module
+# sweep:  PG_MODULES="metaengine/pgengine" ./scripts/ephemeral-pg.sh go test ...
+PG_MODULES="${PG_MODULES:-storage stack/postgres metaengine/pgengine projectionhost scheduling/sqlstore idempotency/sqlstore benchkit}"
 
 if [ $# -gt 0 ] && [ "$1" = "go" ]; then
 	shift
