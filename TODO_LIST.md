@@ -153,7 +153,7 @@ and is **never** duplicated here.
 
 - [ ] **Doctor/Introspection: surface planned-table registration + per-collection row counts.** — source: retro §f 23
 - [ ] **Decision record: planned tables vs generated columns (gcn_ twins)** — one ADR addendum or README section. — source: retro §f 24
-- [ ] **cqrs-lint rule: ApplyLayout on engines that also implement LayoutPlanApplier → prefer the plan path.** — source: retro §f 25
+- [ ] **cqrs-lint rule: ApplyLayout on engines that also implement LayoutPlanApplier → prefer the plan path.** — SCOPED 2026-08-30 (session 6): the analyzer is source-based (BuildContextFromSource + registry), so reliably knowing whether a call receiver implements LayoutPlanApplier needs type info the current context does not carry; a name-heuristic version would false-positive on same-named methods/unrelated receivers. Needs a design pass (type-impl detection in the analyzer, or a module-level capability registry fed from api-stability's module scan) before implementation. — source: retro §f 25
 - [ ] **Introspection/Doctor: surface effective durability tiers** (last open part of the Release-docs item above). — source: status 2026-08-18_20-39
 
 **Honesty / process debt (session-4 §b/§e — do first next session)**
