@@ -37,9 +37,11 @@ const sep = "\x00"
 // (2026-08-06: ~4300 ns/op median).
 const BadgerNsPerOp = 4300.0
 
-// BadgerNsPerRead is the measured per-READ-operation cost.
-// Calibrated via BenchmarkCalibration_BadgerGet (2026-08-06: ~1200 ns/op median).
-const BadgerNsPerRead = 1200.0
+// BadgerNsPerRead is the measured per-READ-operation cost (LSM point lookup +
+// JSON decode). It feeds ReadCosts.NsPerPointLookup in Profile.
+// Re-calibrated 2026-08-30 via BenchmarkCalibration_BadgerGet (~1085 ns/op
+// median of 3; prior 2026-08-06 measurement was ~1200).
+const BadgerNsPerRead = 1100.0
 
 // BadgerNsPerWrite is the measured per-WRITE-operation cost.
 // Calibrated via BenchmarkCalibration_BadgerSet (2026-08-06: ~4300 ns/op median).
@@ -135,9 +137,26 @@ func (e *badgerEngine) Profile() metaengine.EngineProfile {
 	p := metaengine.EngineProfile{
 		Name:        "badger",
 		NsPerOp:     BadgerNsPerOp,
-		NsPerRead:   BadgerNsPerRead,
 		NsPerWrite:  BadgerNsPerWrite,
 		Persistence: e.persistence,
+		// Per-read-pattern calibrated costs (see calibration_bench_test.go;
+		// measured 2026-08-30, medians of 3 runs on 32 threads, load ~3.8).
+		// Badger is a KV engine: filtered scans and aggregations have no SQL
+		// pushdown, so they degrade to a full scan with Go-side work — hence
+		// per-row scan costs (~630-650ns) far above the point-lookup cost.
+		ReadCosts: metaengine.ReadCosts{
+			// Indexed LSM point lookup (BenchmarkCalibration_BadgerGet).
+			NsPerPointLookup: BadgerNsPerRead,
+			// ~639 ns/row (BenchmarkCalibration_Badger_FilteredScan): full
+			// MapScan + Go-side predicate over 10K rows, ~50% match.
+			NsPerFilteredScan: 650,
+			// ~164 ns/row (BenchmarkCalibration_Badger_CounterScan):
+			// CounterGet prefix scan over 1K counters — the ReadAggregate path.
+			NsPerAggregate: 165,
+			// ~629 ns/row (BenchmarkCalibration_Badger_FullScan): full MapScan,
+			// JSON decode of every row.
+			NsPerScan: 630,
+		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityO1,
 			metaengine.ADTSet:       metaengine.ComplexityO1,

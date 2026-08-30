@@ -420,10 +420,6 @@ linters:
               text: 'SA1019: .*event/v4\.(MarkTombstone|TombstoneStatus|TombstoneMark|DetectTombstone|MarkRebirth|MetadataKeyTombstone|MetadataKeyRebirth) is deprecated'
               linters:
                 - staticcheck
-            - path: metaengine/(badger|bbolt|pebble)engine/.*\.go$
-              text: 'SA1019: .*EngineProfile\)\.NsPerRead is deprecated: in favor of ReadCosts'
-              linters:
-                - staticcheck
             - path: benchkit/phases_projection\.go$
               text: 'Function `Stop` should pass the context parameter'
               linters:

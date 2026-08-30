@@ -42,9 +42,11 @@ const sep = "\x00"
 // use SetCalibration to override with measured values.
 const BboltNsPerOp = 5000.0
 
-// BboltNsPerRead is the estimated per-READ-operation cost.
-// B+tree point reads benefit from mmap page caching.
-const BboltNsPerRead = 1500.0
+// BboltNsPerRead is the measured per-READ-operation cost (B+tree point lookup
+// + JSON decode, mmap page cache). It feeds ReadCosts.NsPerPointLookup in
+// Profile. Re-calibrated 2026-08-30 via BenchmarkCalibration_BboltGet (~742
+// ns/op median of 3; the prior 1500 estimate was ~2x conservative).
+const BboltNsPerRead = 750.0
 
 // BboltNsPerWrite is the estimated per-WRITE-operation cost.
 // Write transactions involve page allocation and an optional fsync.
@@ -189,9 +191,26 @@ func (e *bboltEngine) Profile() metaengine.EngineProfile {
 	p := metaengine.EngineProfile{
 		Name:        "bbolt",
 		NsPerOp:     BboltNsPerOp,
-		NsPerRead:   BboltNsPerRead,
 		NsPerWrite:  BboltNsPerWrite,
 		Persistence: e.persistence,
+		// Per-read-pattern calibrated costs (see calibration_bench_test.go;
+		// measured 2026-08-30, medians of 3 runs on 32 threads, load ~3.8).
+		// bbolt is a KV engine: filtered scans and aggregations have no SQL
+		// pushdown, so they degrade to a full scan with Go-side work — hence
+		// per-row scan costs (~620-660ns) far above the point-lookup cost.
+		ReadCosts: metaengine.ReadCosts{
+			// B+tree point lookup (BenchmarkCalibration_BboltGet).
+			NsPerPointLookup: BboltNsPerRead,
+			// ~614 ns/row (BenchmarkCalibration_Bbolt_FilteredScan): full
+			// MapScan + Go-side predicate over 10K rows, ~50% match.
+			NsPerFilteredScan: 620,
+			// ~98 ns/row (BenchmarkCalibration_Bbolt_CounterScan): CounterGet
+			// prefix scan over 1K counters — the ReadAggregate path.
+			NsPerAggregate: 100,
+			// ~656 ns/row (BenchmarkCalibration_Bbolt_FullScan): full MapScan,
+			// JSON decode of every row.
+			NsPerScan: 660,
+		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityOLogN, // B+tree lookup
 			metaengine.ADTSet:       metaengine.ComplexityOLogN,

@@ -49,9 +49,11 @@ const sep = "\x00"
 const PebbleNsPerOp = 2000.0
 
 // PebbleNsPerRead is the calibrated per-READ-operation cost (LSM point read +
-// JSON decode). Measured 2026-08-03 via BenchmarkCalibration_PebbleGet (~1,328 ns/op).
-// Used by the planner's read-cost path (EngineProfile.ReadNsPerOp).
-const PebbleNsPerRead = 1300.0
+// JSON decode). It feeds ReadCosts.NsPerPointLookup in Profile.
+// Re-calibrated 2026-08-30 via BenchmarkCalibration_PebbleGet (~684 ns/op
+// median of 3; the 2026-08-03 measurement was ~1328 on a different value
+// shape — the int-payload Get path is cheaper than first measured).
+const PebbleNsPerRead = 700.0
 
 // PebbleNsPerWrite is the calibrated per-WRITE-operation cost (LSM insert +
 // JSON encode). Measured 2026-08-03 via BenchmarkCalibration_PebbleSet (~2,526 ns/op).
@@ -181,9 +183,26 @@ func (e *pebbleEngine) Profile() metaengine.EngineProfile {
 	p := metaengine.EngineProfile{
 		Name:        "pebble",
 		NsPerOp:     PebbleNsPerOp,
-		NsPerRead:   PebbleNsPerRead,
 		NsPerWrite:  PebbleNsPerWrite,
 		Persistence: e.persistence,
+		// Per-read-pattern calibrated costs (see calibration_bench_test.go;
+		// measured 2026-08-30, medians of 3 runs on 32 threads, load ~3.8).
+		// Pebble is a KV engine: filtered scans and aggregations have no SQL
+		// pushdown, so they degrade to ScanRawValues with Go-side work — hence
+		// per-row scan costs (~700-830ns) far above the point-lookup cost.
+		ReadCosts: metaengine.ReadCosts{
+			// Indexed LSM point lookup (BenchmarkCalibration_PebbleGet).
+			NsPerPointLookup: PebbleNsPerRead,
+			// ~833 ns/row (BenchmarkCalibration_Pebble_FilteredScan):
+			// ScanRawValues + Go-side PassesFilterSpecs over 10K rows, ~50% match.
+			NsPerFilteredScan: 830,
+			// ~125 ns/row (BenchmarkCalibration_Pebble_CounterScan): CounterGet
+			// prefix scan over 1K counters — the ReadAggregate path.
+			NsPerAggregate: 125,
+			// ~695 ns/row (BenchmarkCalibration_Pebble_FullScan): full
+			// ScanRawValues, JSON decode of every row.
+			NsPerScan: 700,
+		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityO1, // LSM point read
 			metaengine.ADTSet:       metaengine.ComplexityO1,

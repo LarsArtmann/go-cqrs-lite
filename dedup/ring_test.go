@@ -1,6 +1,7 @@
 package dedup_test
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
@@ -135,6 +136,65 @@ func TestRing_DefaultCapacityFallback(t *testing.T) {
 	rNegative := dedup.NewRing(-5)
 	if rNegative.Capacity() != dedup.DefaultCapacity {
 		t.Errorf("Capacity: got %d, want default %d", rNegative.Capacity(), dedup.DefaultCapacity)
+	}
+}
+
+// TestRing_ProductionCapacity10K drives a ring at the QUIC transport's
+// production capacity (irohengine/quic constructs NewRing(10000) for op-level
+// dedup) past the 10K boundary. The smaller-capacity tests above prove the
+// eviction math in principle; this one pins it at the scale where the head
+// index wraps many times and where an off-by-one in the eviction window would
+// silently widen the reapplication window for redelivered ops.
+func TestRing_ProductionCapacity10K(t *testing.T) {
+	t.Parallel()
+
+	const capacity = 10_000
+	const total = 3 * capacity
+
+	r := dedup.NewRing(capacity)
+
+	for i := range total {
+		r.Add(strconv.Itoa(i))
+
+		if r.Len() > capacity {
+			t.Fatalf("iteration %d: Len %d exceeded capacity %d", i, r.Len(), capacity)
+		}
+	}
+
+	if r.Len() != capacity {
+		t.Fatalf("after %d adds: Len %d, want %d", total, r.Len(), capacity)
+	}
+
+	// The oldest entries fell out of the window (evicted range [0, 2*capacity)).
+	for _, id := range []string{"0", "1", strconv.Itoa(capacity - 1), strconv.Itoa(2*capacity - 1)} {
+		if r.Has(id) {
+			t.Errorf("evicted op %q still present", id)
+		}
+	}
+
+	// The most recent capacity entries are all still deduped.
+	for i := total - capacity; i < total; i++ {
+		if !r.Has(strconv.Itoa(i)) {
+			t.Fatalf("in-window op %d missing after %d adds", i, total)
+		}
+	}
+
+	// Re-adding an evicted op re-inserts it (graceful eviction, no reset gap):
+	// the ring accepts it and evicts the current oldest entry in its place.
+	oldest := strconv.Itoa(total - capacity)
+
+	r.Add("0")
+
+	if !r.Has("0") {
+		t.Fatal("re-added op 0 not present")
+	}
+
+	if r.Has(oldest) {
+		t.Errorf("oldest in-window op %q survived an add that should have evicted it", oldest)
+	}
+
+	if r.Len() != capacity {
+		t.Errorf("Len after re-add: %d, want %d", r.Len(), capacity)
 	}
 }
 

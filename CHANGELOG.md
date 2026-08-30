@@ -10,6 +10,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > inside a dated `[tags]` section is unreleased (the 2026-08-16-era block was
 > folded into this window on 2026-08-29).
 
+### Added — quiet-window ReadCosts calibration, dedup production-capacity regression — 2026-08-30
+
+- **Per-pattern calibration benches for the three embedded engines**: new
+  `BenchmarkCalibration_<Badger|Bbolt|Pebble>_FilteredScan/_CounterScan/_FullScan`
+  in each engine module measure the workloads the planner's `ReadCosts` fields
+  model on KV engines — a Go-side filtered scan over 10K rows (~50% match), a
+  `CounterGet` prefix scan over 1K counters (the actual `ReadAggregate`
+  execution path on KV engines), and a full collection scan. All report a
+  `rows-scanned` metric for per-row conversion.
+- **`TestRing_ProductionCapacity10K`** (dedup): drives a ring at the QUIC
+  transport's production capacity (`dedup.NewRing(10000)` in
+  `metaengine/irohengine/quic`) through 30K adds, pinning bounded `Len`, the
+  exact eviction window, and graceful re-add of an evicted op. Prior ring
+  tests topped out at a 1024 wraparound.
+
+### Changed — badger/bbolt/pebble profiles calibrated onto ReadCosts — 2026-08-30
+
+- **badger/bbolt/pebble `EngineProfile`s now set all four `ReadCosts` fields**
+  from the new benches (medians of 3 runs, 2026-08-30): badger
+  1100/650/165/630 ns (point-lookup/filtered-scan/aggregate/scan), bbolt
+  750/620/100/660, pebble 700/830/125/700. The deprecated `NsPerRead` scalar
+  is no longer assigned — the planner now prices a full scan on these engines
+  at ~630-830 ns/row instead of paying the point-lookup scalar per row, and
+  prices KV-engine aggregates at the `CounterGet` prefix scan (~100-165
+  ns/row). The exported constants remain the single source of truth for the
+  point-lookup cost and were re-anchored to the fresh medians (bbolt 1500→750
+  — the old estimate was ~2x conservative; pebble 1300→700; badger 1200→1100).
+  The `.golangci.yml` SA1019 exclusion for `EngineProfile).NsPerRead` is
+  deleted (zero internal uses remain).
+
 ### Added — TODO execution wave: correctness, hardening, capabilities — 2026-08-29 (session 2)
 
 - **`storage/sql.KeysetPositionQueryChecked`** returns the identifier-validation
