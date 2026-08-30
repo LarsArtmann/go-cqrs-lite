@@ -282,3 +282,20 @@ Nothing in the tier-0/1 core (`id`, `record`, `event`, `command`, `query`,
 `decider`, `metaengine`) is removed at v5 beyond the tombstone metadata
 surface above; v5 renames (`StreamRef` → `StreamKey`, stricter constructors)
 are migration-guide items, not deletions.
+
+### "My planned-collection scan doesn't see rows that exist in meta_map"
+
+That is the no-backfill contract working as designed: after
+`ApplyLayoutPlan`, `MapScan`/`PushdownMapScan`/`MapUpdate` read ONLY the
+planned table (visibility split closed on pg, mysql, sqlite, and duckdb).
+Rows written before registration stay in `meta_map`. Remedies, in order of
+preference: (1) register planned tables at deployment time before data
+flows; (2) run the opt-in
+`metaengine.BackfillPlannedCollection(ctx, eng, collection, batchSize)` —
+idempotent, requires the `KeyScanBackend` capability (pgengine,
+mysqlengine); (3) for acceleration of EXISTING data without migration, use
+`ApplyLayout` generated columns instead. If a planned table is empty when it
+should have data, check `Doctor`'s `--- Planned tables ---` section: it
+lists every registered planned table with a live row count, so you can see
+at a glance whether the collection you queried is registered — and on which
+engine.

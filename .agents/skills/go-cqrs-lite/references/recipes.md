@@ -1698,3 +1698,63 @@ column) fail as `metaengine.ErrPlannedColumnTypeMismatch` (Rejection) at
 query-build time — deterministic, before any SQL runs. Counters, graph, and
 aggregates deliberately stay on their native paths (meta_map), not the
 planned table.
+
+### 2.28 Planned Tables: Pushdown, Evolution, Backfill, and the EXPLAIN Proof
+
+The D3 completion set on top of recipe 2.27 — everything here is live on
+pgengine + mysqlengine, and the parity is pinned by
+`adttest.RunPlannedOpsMatrix` (see each engine's `planned_ops_matrix_test`).
+
+**Visibility contract.** After `ApplyLayoutPlan`, `MapScan`,
+`PushdownMapScan`, and `MapUpdate` read ONLY the planned table — pre-
+registration `meta_map` rows are invisible (no-backfill). Counters, graph,
+and aggregates keep their meta_map paths.
+
+**Opt-in backfill.** To soften no-backfill, copy the base rows through the
+planned write path so every extracted column is recomputed:
+
+```go
+n, err := metaengine.BackfillPlannedCollection(ctx, eng, "tasks", 500)
+```
+
+Idempotent (MapSet upserts), deterministic keyset paging, batch-sized round
+trips. Requires `metaengine.KeyScanBackend` (pgengine, mysqlengine). Values
+round-trip through JSON decode, so integers beyond float64 precision lose
+exactness — backfill such payloads with a domain-specific copy.
+
+**Column evolution.** When the plan grows (or a legacy table declares a
+column as TEXT that should be DOUBLE), reconcile the physical schema:
+
+```go
+evolver := eng.(metaengine.LayoutPlanEvolver) // pg + mysql
+applied, err := evolver.EvolveLayoutPlan(ctx, grownPlan)
+// applied lists actions, e.g. ["add:qty", "retype:amount"]; empty = matched
+```
+
+Idempotent; retypes fail loudly (Infrastructure) when existing values cannot
+cast — the no-data-loss default. PG uses `ALTER COLUMN TYPE .. USING` (the
+explicit cast is required for text→numeric); MySQL uses `MODIFY COLUMN`.
+
+**The EXPLAIN proof.** Planned pushdown is only real if the index is used.
+`ExplainScanQuery` routes through the planned builders, so the proof is:
+
+```go
+query, args := eng.(metaengine.ExplainableScan).
+    ExplainScanQuery(ctx, "tasks", metaengine.ExplainOptions{
+        Filters: []metaengine.FilterSpec{
+            {Column: "status", Op: metaengine.FilterEq, Value: "open"}},
+        Sort:  &metaengine.SortSpec{Column: "priority"},
+        Limit: 10,
+    })
+
+rows, _ := db.QueryContext(ctx, "EXPLAIN (FORMAT JSON) "+query, args...)
+```
+
+Pin: an index node appears, no bare Seq Scan/ALL remains, and the target is
+`meta_planned_tasks` (never `meta_map`). The live proofs live in each
+engine's EXPLAIN test; the sqliteengine pins the same contract via
+`EXPLAIN QUERY PLAN` (`explain_planned_test.go`).
+
+**Measured (2K rows, ephemeral PG testcontainer, 2026-08-30):** planned
+filtered scan 779 µs vs meta_map 874 µs; CounterGet equal within noise
+(287 vs 260 µs) — the evidence behind "counters stay on meta_map".

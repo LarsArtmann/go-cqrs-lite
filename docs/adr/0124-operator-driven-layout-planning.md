@@ -344,6 +344,15 @@ columns; the meta_map path needs DECIMAL twin columns for numeric-safe
 sorts on MySQL). Counters, graph, and aggregate operations deliberately
 STAY on their native meta_map paths for planned collections.
 
+Proof requirement: a planned-table adoption claim carries an EXPLAIN proof
+— `ExplainScanQuery` routes through the planned builders, and the proof
+asserts an index-backed plan node targeting `meta_planned_*` with no bare
+sequential scan (pg FORMAT JSON walk; MySQL `type != ALL` with a named key;
+SQLite `EXPLAIN QUERY PLAN` shows `USING INDEX`). Index-name drift between
+`plan.Indexes` and the created DDL silently degrades scans to full-table
+reads — the proof is the regression gate (see the pgengine/mysqlengine
+EXPLAIN tests and the sqliteengine `explain_planned_test.go`).
+
 Decision rule: new collections with known query fields → planned tables via
 `BuildLayoutPlanFromType[R]` (reflection-derived column types). Existing
 data needing acceleration without migration → generated columns via
