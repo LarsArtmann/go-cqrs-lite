@@ -18,6 +18,7 @@ import (
 // The registered plan is replaced with the given plan (evolution intent is a
 // schema change, so the conflict check from ApplyLayoutPlan does not apply).
 func (e *mysqlEngine) EvolveLayoutPlan(ctx context.Context, plan metaengine.LayoutPlan) ([]string, error) {
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	e.layoutMu.Lock()
 	defer e.layoutMu.Unlock()
 

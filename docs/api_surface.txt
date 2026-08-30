@@ -1650,6 +1650,7 @@ metaengine/func AutoCRUDByNamedEvents
 metaengine/func AutoDelete
 metaengine/func AutoInsert
 metaengine/func AutoUpdate
+metaengine/func BackfillPlannedCollection
 metaengine/func BenchmarkPlan
 metaengine/func BuildColumnarLayoutPlan
 metaengine/func BuildLayoutPlan
@@ -1833,6 +1834,7 @@ metaengine/interface ExplainableScan
 metaengine/interface Fold
 metaengine/interface GroupedAggregateReader
 metaengine/interface HealthChecker
+metaengine/interface KeyScanBackend
 metaengine/interface LayoutPlanApplier
 metaengine/interface LayoutPlanEvolver
 metaengine/interface LayoutPlanner
@@ -2310,6 +2312,7 @@ metaengine/mysqlengine/method JournalReadFromSeq
 metaengine/mysqlengine/method MapDelete
 metaengine/mysqlengine/method MapGet
 metaengine/mysqlengine/method MapScan
+metaengine/mysqlengine/method MapScanKeyValues
 metaengine/mysqlengine/method MapSet
 metaengine/mysqlengine/method MapUpdate
 metaengine/mysqlengine/method MeasureTransact
@@ -2391,6 +2394,7 @@ metaengine/pgengine/method JournalReadFromSeq
 metaengine/pgengine/method MapDelete
 metaengine/pgengine/method MapGet
 metaengine/pgengine/method MapScan
+metaengine/pgengine/method MapScanKeyValues
 metaengine/pgengine/method MapSet
 metaengine/pgengine/method MapUpdate
 metaengine/pgengine/method MeasureTransact
@@ -2622,6 +2626,7 @@ metaengine/type StorageLayout
 metaengine/type StoreHooks
 metaengine/type TrackerOption
 metaengine/var ErrAmbiguousKey
+metaengine/var ErrBackfillUnsupported
 metaengine/var ErrDuplicateEvent
 metaengine/var ErrExecuteTypeMismatch
 metaengine/var ErrKeyTypeMismatch
