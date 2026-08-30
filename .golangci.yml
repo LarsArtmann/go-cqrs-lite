@@ -124,12 +124,99 @@ linters:
         - wrapcheck
         - wsl_v5
         - zerologlint
-    disable:
-        - depguard
     default: none
     settings:
         cyclop:
             max-complexity: 25
+        depguard:
+            rules:
+                main-allow-list:
+                    allow:
+                        - $gostd
+                        - github.com/larsartmann/go-cqrs-lite
+                        - github.com/larsartmann/go-retry
+                        - github.com/larsartmann/go-idempotency
+                        - github.com/larsartmann/go-codec
+                        - github.com/larsartmann/go-composable-business-types
+                        - github.com/larsartmann/go-branded-id
+                        - github.com/larsartmann/go-sse
+                        - github.com/google/uuid
+                        - github.com/cockroachdb/errors
+                        - github.com/go-json-experiment/json
+                        - github.com/go-faster/yaml
+                        - gopkg.in/yaml
+                        - github.com/oklog/ulid
+                        - github.com/DATA-DOG/go-sqlmock
+                        - github.com/stretchr/testify
+                        - github.com/onsi/ginkgo
+                        - github.com/onsi/gomega
+                        - go.opentelemetry.io/otel
+                        - github.com/cockroachdb/pebble
+                        - github.com/larsartmann/go-error-family
+                        - github.com/larsartmann/go-flightrecorder
+                        - github.com/larsartmann/go-must
+                        - modernc.org/sqlite
+                        - github.com/mattn/go-sqlite3
+                        - turso.tech/database/tursogo
+                        - github.com/ThreeDotsLabs/watermill
+                        - github.com/redis/go-redis/v9
+                        - github.com/samber/ro
+                        - github.com/samber/lo
+                        - github.com/fxamacker/cbor
+                        - github.com/gkampitakis/go-snaps
+                        - pgregory.net/rapid
+                        - github.com/testcontainers/testcontainers-go
+                        - go/ast
+                        - go/format
+                        - go/parser
+                        - go/token
+                        - go/types
+                        - golang.org/x/tools
+                        - golang.org/x/crypto
+                        - golang.org/x/sync
+                        - github.com/prometheus/client_golang
+                        - github.com/prometheus/client_model
+                        - github.com/maypok86/otter
+                        - github.com/failsafe-go/failsafe-go
+                        - github.com/jackc/pgx
+                        - github.com/go-sql-driver/mysql
+                        - github.com/duckdb/duckdb-go
+                        - github.com/dustin/go-humanize
+                        - google.golang.org/grpc
+                        - google.golang.org/protobuf
+                        - github.com/larsartmann/go-finding
+                        - github.com/larsartmann/cmdguard
+                        - github.com/spf13/cobra
+                        - github.com/spf13/pflag
+                        - charm.land
+                        - github.com/charmbracelet
+                        - github.com/samber/do
+                        - github.com/samber/go-type-to-string
+                        - github.com/knadh/koanf
+                        - github.com/larsartmann/go-output
+                        - github.com/LarsArtmann/gogenfilter
+                        - github.com/larsartmann/templ-components
+                        - github.com/a-h/templ
+                        - github.com/bmatcuk/doublestar
+                        - github.com/clipperhouse
+                        - github.com/lucasb-eyer/go-colorful
+                        - github.com/mattn/go-runewidth
+                        - github.com/muesli
+                        - github.com/pelletier/go-toml
+                        - github.com/rivo/uniseg
+                        - github.com/segmentio/asm
+                        - github.com/xo/terminfo
+                        - go.uber.org/multierr
+                        - github.com/inconshreveable/mousetrap
+                        - git.coopcloud.tech/decentral1se/iroh-go
+                        - github.com/dgraph-io/dgo/v240
+                        - github.com/dgraph-io/badger/v4
+                        - go.etcd.io/bbolt
+                        - golang.org/x/mod
+                        - golang.org/x/term
+                        - golang.org/x/text
+                        - golang.org/x/sys
+
         errcheck:
             exclude-functions:
                 - (*os.File).Close

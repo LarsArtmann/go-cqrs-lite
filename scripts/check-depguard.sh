@@ -41,18 +41,25 @@ fi
 ALLOW_FILE=$(mktemp)
 trap 'rm -f "$ALLOW_FILE"' EXIT
 
-# Extract the depguard allow list. Use awk to grab lines between
-# "allow:" and the next dedented line, stripping the "- " prefix.
+# Extract the depguard allow list. Indentation-tolerant awk (the 2026-08
+# reformat moved items from 12 to 20+ spaces; hard-coded columns kept
+# silently breaking). Understands both the v1 map form (rules.Main.allow)
+# and the v2 list form (- name: ... / allow:). Skips $gostd (stdlib has no
+# domain prefix), blank lines, and comments; stops at the dedent.
 awk '
-  /depguard:/ { in_depguard = 1 }
-  in_depguard && /allow:/ { in_allow = 1; next }
+  {
+    match($0, /[^ \t]/)
+    ind = (RSTART == 0) ? 99999 : RSTART - 1
+  }
+  !in_depguard && /^[\t ]*depguard:/ { in_depguard = 1; next }
+  in_depguard && !in_allow && /^[\t ]*allow:/ { in_allow = 1; allow_ind = ind; next }
   in_allow {
-    if (/^            - /) {
-      gsub(/^            - /, "")
-      if ($0 != "$gostd") print $0
-    } else if (/^          [^ ]/) {
-      in_allow = 0
-    }
+    if (ind == 99999) next
+    if ($0 ~ /^[\t ]*#/) next
+    if (ind <= allow_ind) exit
+    line = $0
+    sub(/^[\t ]*- /, "", line)
+    if (line != "$gostd") print line
   }
 ' .golangci.yml >"$ALLOW_FILE"
 
