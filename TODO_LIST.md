@@ -147,7 +147,7 @@ and is **never** duplicated here.
 **scheduling/sqlstore — claiming extensions (D8)**
 
 - [ ] **`RenewLease(ctx, id, extend)`** for dispatch handlers that outlive DefaultClaimLease. — source: retro §f 21 / §c 3
-- [ ] **Claiming metrics hooks** — claimed/expired/reclaimed counters via the existing scheduling metrics surface. — source: retro §f 22
+- [ ] **Claiming metrics hooks** — PREMISE RE-VERIFIED 2026-08-30: scheduling has NO existing metrics surface (no otel dep in scheduling or scheduling/sqlstore — the retro's "existing surface" does not exist). Building one is a dep-budget decision (otel/ import in a lean-budget module). Options: opt-in callback counters on ClaimingTimerStore (zero-dep) or a scheduling-otel side module. — source: retro §f 22
 
 **Observability / lint**
 

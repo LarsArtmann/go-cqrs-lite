@@ -1944,6 +1944,7 @@ metaengine/irohengine/method Subscribe
 metaengine/irohengine/method VectorInsert
 metaengine/irohengine/method VectorSearch
 metaengine/irohengine/method VectorSearchFiltered
+metaengine/irohengine/quic/const DefaultDedupCapacity
 metaengine/irohengine/quic/func New
 metaengine/irohengine/quic/func WithALPN
 metaengine/irohengine/quic/func WithBindAddr
@@ -3088,11 +3089,13 @@ scheduling/sqlstore/method Due
 scheduling/sqlstore/method Due
 scheduling/sqlstore/method MarkFired
 scheduling/sqlstore/method MarkFired
+scheduling/sqlstore/method RenewLease
 scheduling/sqlstore/method Schedule
 scheduling/sqlstore/struct ClaimingTimerStore
 scheduling/sqlstore/struct SQLTimerStore
 scheduling/sqlstore/type Dialect
 scheduling/sqlstore/var ErrClaimingUnsupported
+scheduling/sqlstore/var ErrLeaseNotHeld
 scheduling/sqlstore/var ErrUnknownDialect
 scheduling/struct MemoryTimerStore
 scheduling/struct Scheduler

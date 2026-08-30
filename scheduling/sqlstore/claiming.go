@@ -248,3 +248,70 @@ func ensureLeaseColumn(ctx context.Context, db *sql.DB, d Dialect) error {
 
 	return nil
 }
+
+// ErrLeaseNotHeld is returned by RenewLease when the caller no longer owns
+// the timer's claim: either the timer was fired/canceled (row gone) or the
+// lease expired and another poller may have re-claimed it. Classified as
+// Orchestration — a distributed-coordination race, not a caller bug.
+var ErrLeaseNotHeld = errorfamily.NewOrchestration(
+	"scheduling.sqlstore.lease_not_held",
+	"no live claim for this timer (fired, canceled, or lease expired)",
+)
+
+// RenewLease extends the live claim on a timer whose dispatch handler is
+// still running, for handlers that can outlive the lease. The new deadline
+// is now+extension, granted only when the lease has NOT yet expired — an
+// expired claim cannot be resurrected (another poller may already be
+// dispatching), so renewal after expiry returns [ErrLeaseNotHeld] and the
+// handler must stop work: at-least-once semantics mean its result may be
+// duplicated by whoever re-claimed the timer.
+//
+// Ownership note: claims are not attributed to a poller (the TimerStore
+// interface has no claim tokens), so renewal extends WHICHEVER live claim
+// exists. This is the safe direction — a stale owner can only EXTEND the
+// fence, which delays re-claiming; it can never cause a double fire.
+// Per-poller ownership proof would need claim tokens and is future work.
+//
+// extension <= 0 means DefaultClaimLease.
+func (c *ClaimingTimerStore[P]) RenewLease(
+	ctx context.Context,
+	id scheduling.TimerID,
+	extension time.Duration,
+) error {
+	if extension <= 0 {
+		extension = DefaultClaimLease
+	}
+
+	now := time.Now().UTC()
+	newUntil := now.Add(extension)
+
+	var query string
+
+	var args []any
+
+	if c.dialect == DialectPostgres {
+		query = `UPDATE timers SET lease_until = $1 WHERE id = $2 AND lease_until > $3`
+		args = []any{c.formatTime(newUntil), id.String(), c.formatTime(now)}
+	} else {
+		query = `UPDATE timers SET lease_until = ?1 WHERE id = ?2 AND lease_until > ?3`
+		args = []any{c.formatTime(newUntil), id.String(), c.formatTime(now)}
+	}
+
+	res, err := c.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return errorfamily.WrapInfrastructure(
+			err, "scheduling.sqlstore.renew_lease", "renew lease for timer "+id.String())
+	}
+
+	n, err := res.RowsAffected()
+	if err != nil {
+		return errorfamily.WrapInfrastructure(
+			err, "scheduling.sqlstore.renew_lease_rows", "count renewed rows")
+	}
+
+	if n == 0 {
+		return fmt.Errorf("sqlstore: renew %s: %w", id.String(), ErrLeaseNotHeld)
+	}
+
+	return nil
+}

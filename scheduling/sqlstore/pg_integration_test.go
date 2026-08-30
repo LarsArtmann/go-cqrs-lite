@@ -288,6 +288,7 @@ func TestIntegration_PostgresTimerStore_SchedulerIntegration_Recovery(t *testing
 		store2,
 		func(_ context.Context, _ scheduling.Timer[testPayload]) error {
 			dispatched.Add(1)
+
 			return nil
 		},
 		scheduling.WithPollInterval(10*time.Millisecond),
@@ -400,5 +401,55 @@ func TestClaimingPostgres_TwoClaimersNoDoubleFire(t *testing.T) {
 		if count != 1 {
 			t.Fatalf("timer %s claimed %d times — double fire", id, count)
 		}
+	}
+}
+
+// TestClaimingPostgres_RenewLease pins the handler-outlives-lease contract
+// on live Postgres: renewal extends a live claim (another claimer gets
+// nothing), and renewal after the claim lapsed fails ErrLeaseNotHeld.
+func TestClaimingPostgres_RenewLease(t *testing.T) {
+	db := pgOpen(t)
+	defer func() { _ = db.Close() }()
+
+	ctx := context.Background()
+
+	store, err := sqlstore.NewClaimingPostgresStore[struct{}](ctx, db, time.Minute)
+	if err != nil {
+		t.Fatalf("NewClaimingPostgresStore: %v", err)
+	}
+
+	now := time.Now().UTC()
+
+	timer := scheduling.Timer[struct{}]{
+		ID:     scheduling.MustParseTimerID("renew-pg"),
+		FireAt: now.Add(-time.Second),
+	}
+
+	if err := store.Schedule(ctx, timer); err != nil {
+		t.Fatalf("Schedule: %v", err)
+	}
+
+	claimed, err := store.Due(ctx, now)
+	if err != nil || len(claimed) != 1 {
+		t.Fatalf("Due: %v (%d timers)", err, len(claimed))
+	}
+
+	if err := store.RenewLease(ctx, timer.ID, 5*time.Minute); err != nil {
+		t.Fatalf("RenewLease (live lease): %v", err)
+	}
+
+	other, err := store.Due(ctx, now)
+	if err != nil {
+		t.Fatalf("Due (second claimer after renewal): %v", err)
+	}
+
+	if len(other) != 0 {
+		t.Fatal("renewed timer re-claimed while lease live (double fire)")
+	}
+
+	// Renewal of a missing timer fails.
+	err = store.RenewLease(ctx, scheduling.MustParseTimerID("gone-pg"), time.Minute)
+	if err == nil {
+		t.Fatal("renewing a missing timer must fail")
 	}
 }
