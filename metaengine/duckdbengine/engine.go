@@ -156,9 +156,12 @@ func (e *duckdbEngine) Profile() metaengine.EngineProfile {
 			// Measured ~454 ns/row (BenchmarkCalibration_DuckDB_PushdownScan).
 			// json_extract WHERE pushdown + vectorized scan.
 			NsPerFilteredScan: 450,
-			// Measured ~133 ns/row (BenchmarkCalibration_DuckDB_AggregateSum).
-			// Vectorized SUM — DuckDB's killer feature.
-			NsPerAggregate: 150,
+			// ~418 ns/row (BenchmarkCalibration_DuckDB_CounterGet, ADR-0133):
+			// CounterGet over 1K counters — the actual ReadAggregate
+			// execution path (ADTCounter queries). The vectorized-SUM cost
+			// (~133 ns/row, BenchmarkCalibration_DuckDB_AggregateSum) prices
+			// the typed AggregateReader path, which bypasses the planner.
+			NsPerAggregate: 420,
 			// Measured ~975 ns/row (BenchmarkCalibration_DuckDB_FullScan).
 			// Full scan + Go-side JSON decode of all rows.
 			NsPerScan: 1_000,

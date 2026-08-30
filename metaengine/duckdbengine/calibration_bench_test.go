@@ -226,6 +226,53 @@ func BenchmarkCalibration_DuckDB_AggregateSum(b *testing.B) {
 	b.ReportMetric(float64(calibrationRows), "rows-aggregated")
 }
 
+// calibrationCounters is the counter-map size for the CounterGet bench
+// (matches the planner's ADTCounter scale threshold of ~1K distinct keys).
+const calibrationCounters = 1_000
+
+// BenchmarkCalibration_DuckDB_CounterGet measures CounterGet over a 1K-key
+// counter map — the actual ReadAggregate execution path (ADR-0133: the
+// planner's NsPerAggregate prices ADTCounter queries, which execute
+// CounterBackend.CounterGet; the SUM bench above documents the typed
+// AggregateReader path that bypasses the planner). Feeds
+// ReadCosts.NsPerAggregate (per-ROW: divide ns/op by calibrationCounters).
+func BenchmarkCalibration_DuckDB_CounterGet(b *testing.B) {
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		b.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
+
+	cb, ok := eng.(metaengine.CounterBackend)
+	if !ok {
+		b.Fatal("duckdb engine does not implement CounterBackend")
+	}
+
+	ctx := context.Background()
+
+	for i := range calibrationCounters {
+		if err := cb.CounterIncrement(ctx, "aggr", metaengine.Delta{fmt.Sprintf("c%d", i): 1}); err != nil {
+			b.Fatalf("seed CounterIncrement %d: %v", i, err)
+		}
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		counts, err := cb.CounterGet(ctx, "aggr")
+		if err != nil {
+			b.Fatalf("CounterGet %d: %v", i, err)
+		}
+
+		if len(counts) != calibrationCounters {
+			b.Fatalf("CounterGet %d: expected %d counters, got %d", i, calibrationCounters, len(counts))
+		}
+	}
+
+	b.StopTimer()
+	b.ReportMetric(float64(calibrationCounters), "rows-scanned")
+}
+
 // BenchmarkCalibration_DuckDB_FullScan measures an unfiltered full collection
 // scan via ScanBackend.MapScan (Go-side decode of all rows). This captures the
 // baseline read cost before pushdown optimizations.

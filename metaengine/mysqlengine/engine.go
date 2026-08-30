@@ -161,8 +161,11 @@ func (e *mysqlEngine) Profile() metaengine.EngineProfile {
 		ReadCosts: metaengine.ReadCosts{
 			NsPerPointLookup:  5_000,
 			NsPerFilteredScan: 400,
-			NsPerAggregate:    150,
-			NsPerScan:         800,
+			// DIVERGENCE (ADR-0133): models SQL SUM-over-map-rows, NOT the
+			// ReadAggregate execution path (CounterGet over the counter map).
+			// Recalibrate onto CounterGet in a live MySQL/MariaDB window.
+			NsPerAggregate: 150,
+			NsPerScan:      800,
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityOLogN,

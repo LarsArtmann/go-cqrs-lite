@@ -10,6 +10,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > inside a dated `[tags]` section is unreleased (the 2026-08-16-era block was
 > folded into this window on 2026-08-29).
 
+### Changed — ReadAggregate cost prices CounterGet on every engine (ADR-0133) — 2026-08-30
+
+- **`ReadCosts.NsPerAggregate` is now defined as the per-row cost of
+  `CounterGet`** (ADR-0133): the `ReadAggregate` read pattern is declared only
+  for ADTCounter queries and executes `CounterBackend.CounterGet`; the typed
+  `Sum/Avg` path (`AggregateReader`) dispatches directly on the collection's
+  engine and never consults the planner. duckdb recalibrated from the
+  SQL-SUM model (150 ns/row) onto the measured CounterGet cost
+  (~418 ns/row over 1K counters, `BenchmarkCalibration_DuckDB_CounterGet`);
+  a matching Postgres bench
+  (`BenchmarkCalibration_Postgres_CounterGet`) awaits a live-PG window.
+  mysql (SQL SUM) and dgraph (GraphNeighbors depth-3) keep their legacy
+  numbers behind explicit DIVERGENCE comments until live recalibration —
+  their counter-query prices are currently understated relative to the
+  CounterGet contract.
+
 ### Added — session-4 wave: claiming timers, planned tables (pg+mysql) — 2026-08-30
 
 - **`scheduling/sqlstore.ClaimingTimerStore`**: lease-based timer claiming for

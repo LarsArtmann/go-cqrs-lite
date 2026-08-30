@@ -325,3 +325,52 @@ func BenchmarkCalibration_Postgres_FullScan(b *testing.B) {
 	b.StopTimer()
 	b.ReportMetric(float64(pgCalibrationRows), "rows-scanned")
 }
+
+// pgCalibrationCounters is the counter-map size for the CounterGet bench
+// (matches the planner's ADTCounter scale threshold of ~1K distinct keys).
+const pgCalibrationCounters = 1_000
+
+// BenchmarkCalibration_Postgres_CounterGet measures CounterGet over a 1K-key
+// counter map — the actual ReadAggregate execution path (ADR-0133: the
+// planner's NsPerAggregate prices ADTCounter queries, which execute
+// CounterBackend.CounterGet; the SUM bench above documents the typed
+// AggregateReader path that bypasses the planner). Feeds
+// ReadCosts.NsPerAggregate (per-ROW: divide ns/op by pgCalibrationCounters).
+func BenchmarkCalibration_Postgres_CounterGet(b *testing.B) {
+	dsn := pgDSN(b)
+
+	eng, err := pgengine.New(dsn)
+	if err != nil {
+		b.Skipf("Postgres not available: %v", err)
+	}
+	defer eng.Close()
+
+	cb, ok := eng.(metaengine.CounterBackend)
+	if !ok {
+		b.Fatal("postgres engine does not implement CounterBackend")
+	}
+
+	ctx := context.Background()
+
+	for i := range pgCalibrationCounters {
+		if err := cb.CounterIncrement(ctx, "aggr", metaengine.Delta{fmt.Sprintf("c%d", i): 1}); err != nil {
+			b.Fatalf("seed CounterIncrement %d: %v", i, err)
+		}
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		counts, err := cb.CounterGet(ctx, "aggr")
+		if err != nil {
+			b.Fatalf("CounterGet %d: %v", i, err)
+		}
+
+		if len(counts) != pgCalibrationCounters {
+			b.Fatalf("CounterGet %d: expected %d counters, got %d", i, pgCalibrationCounters, len(counts))
+		}
+	}
+
+	b.StopTimer()
+	b.ReportMetric(float64(pgCalibrationCounters), "rows-scanned")
+}

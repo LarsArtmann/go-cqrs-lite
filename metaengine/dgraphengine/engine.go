@@ -145,8 +145,11 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 		ReadCosts: metaengine.ReadCosts{
 			NsPerPointLookup:  350_000, // MapGet ~344µs
 			NsPerFilteredScan: 900_000, // SearchQuery anyofterms ~882µs
-			NsPerAggregate:    950_000, // GraphNeighbors depth-3 ~963µs
-			NsPerScan:         450_000, // GraphNeighbors depth-1 ~420µs
+			// DIVERGENCE (ADR-0133): models GraphNeighbors depth-3, NOT the
+			// ReadAggregate execution path (CounterGet over the counter map).
+			// Recalibrate onto CounterGet in a live Dgraph window.
+			NsPerAggregate: 950_000,
+			NsPerScan:      450_000, // GraphNeighbors depth-1 ~420µs
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityOLogN,
