@@ -1,6 +1,8 @@
 package dgraphengine_test
 
 import (
+	"os"
+
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
@@ -14,6 +16,10 @@ import (
 //
 // NOT parallel: RunAutoCRUDSoak asserts on the process-global heap.
 func TestSoak_AutoCRUD_Dgraph(t *testing.T) {
+	if os.Getenv("SOAK_SKIP_DGRAPH") == "1" {
+		t.Skip("dgraph soak: skipped by SOAK_SKIP_DGRAPH=1 (~115s over the RAFT write path; this is why a plain #integration-dgraph run costs minutes while a -run filtered one is ~52s)")
+	}
+
 	eng := mustNewDgraphEngine(t)
 
 	enginetest.RunAutoCRUDSoak(t, eng)

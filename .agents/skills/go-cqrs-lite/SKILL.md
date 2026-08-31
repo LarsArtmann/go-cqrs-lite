@@ -75,6 +75,7 @@ go-cqrs-lite has **two SSE implementations** (ADR-0091: kept separate — differ
 | Multi-table, joins, relations              | SQL WHERE/ORDER BY/LIMIT | `storage.RelationalProjection` (deprecated, v5)             |
 | Variable-depth traversal, adjacency, paths | N-hop queries            | `graph.GraphProjection` (deprecated, v5)                    |
 | Event-folded aggregations, counters        | Cost-planned queries     | `metaengine` Store + `projectionadapter`   |
+| Large map collections with known filters/sorts | Filter+sort scans     | `metaengine` planned tables (`LayoutPlanApplier` + `BuildLayoutPlanFromType[R]`; recipes §2.27/2.28) |
 
 #### Dead-letter handling: Which layer?
 
