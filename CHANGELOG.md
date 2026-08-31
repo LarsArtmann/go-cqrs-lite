@@ -10,6 +10,51 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > inside a dated `[tags]` section is unreleased (the 2026-08-16-era block was
 > folded into this window on 2026-08-29).
 
+### Added — session-7 wave: layout evolution, planned backfill, planned-tables observability — 2026-08-31
+
+- **`metaengine.LayoutPlanEvolver`** (`EvolveLayoutPlan(ctx, plan)
+  (actions []string, err error)`): opt-in layout EVOLUTION for planned
+  tables — introspects information_schema, adds missing extracted columns
+  and retypes changed ones idempotently, returns the applied actions
+  (`add:col`, `retype:col`), and REPLACES the registered plan. Implemented
+  by `metaengine/pgengine.EvolveLayoutPlan` (retypes carry `USING col::type`
+  — SQLSTATE 42804 otherwise) and `metaengine/mysqlengine.EvolveLayoutPlan`
+  (existence-checked ADD COLUMN, then MODIFY COLUMN; Oracle-MySQL-safe).
+- **`metaengine.KeyScanBackend` + `metaengine.BackfillPlannedCollection` +
+  `metaengine.ErrBackfillUnsupported`**: the backfill primitive for existing
+  data. `MapScanKeyValues` (pgengine, mysqlengine) reads the BASE meta_map
+  rows directly (never the planned table), and
+  `BackfillPlannedCollection` re-issues them through `MapSet` in bounded
+  batches so pre-plan rows land in the planned table. Engines without key
+  scan support fail loud `ErrBackfillUnsupported` (Rejection).
+- **`metaengine.PlannedTablesReporter` + `metaengine.PlannedTableInfo` +
+  `metaengine.PlannedTablesDoctorSection`**: `Store.Doctor` gains a
+  `--- Planned tables ---` section listing every registered planned
+  collection with its physical table, extracted columns, and live row count
+  (`Rows` is -1 when the count is unreadable), plus an explicit "none" line
+  when no engine reports planned tables. `pgengine.PlannedTables` and
+  `mysqlengine.PlannedTables` implement the reporter.
+- **`EffectiveDurability` landed on badgerengine, bboltengine,
+  pebbleengine, sqliteengine, and pgengine** (completes the 2026-08-29
+  `metaengine.DurabilityReporter` capability adoption). Tiers are
+  STATE-DERIVED, not config-echoed: badger/pebble derive from `syncWrites`,
+  bbolt from `noSync`, sqlite from the active synchronous PRAGMA, pg from
+  the factory's DSN durability tier.
+- **`metaengine/adttest.RunPlannedOpsMatrix`** (plus
+  `adttest.Factory.PreClean`): cross-engine parity harness for planned ops
+  with interface-gated sub-capabilities so engines adopt incrementally;
+  `Factory.PreClean` clears persistent-DB state between runs (the
+  order-dependence it fixes was caught by `-shuffle=on`). Live on
+  sqlite/pg/mysql/duckdb.
+
+### Fixed — duckdb MapScan leaked meta_map rows into planned scans — 2026-08-31
+
+- `metaengine/duckdbengine.MapScan` ignored planned-table routing and always
+  read meta_map, so collections with a registered `LayoutPlan` could return
+  rows the planned table no longer contained — a visibility divergence
+  vs pg/mysql/sqlite. Found by `RunPlannedOpsMatrix`; `MapScan` now routes
+  through the planned table like every other engine.
+
 ### Changed — ReadAggregate cost prices CounterGet on every engine (ADR-0133) — 2026-08-30
 
 - **`ReadCosts.NsPerAggregate` is now defined as the per-row cost of

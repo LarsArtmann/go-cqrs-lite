@@ -21,7 +21,7 @@ and is **never** duplicated here.
 
 **Metaengine**
 
-- [PARTIAL ✓ 2026-08-30 session 4] **pgEngine/mysqlEngine `LayoutPlanApplier` + planned-layout schema evolution** — DONE (D1/D2, commits `b8aa29d96` + `6c7e08f4a`): `metaengine.LayoutPlanApplier` implemented in BOTH engines (`metaengine/pgengine/planned.go`, `metaengine/mysqlengine/planned.go`) — per-collection extracted-column tables (PG: JSONB value + DOUBLE PRECISION/BIGINT/TEXT columns; MySQL: backtick identifiers, split DDL, ON DUPLICATE KEY upserts), MapSet/MapGet/MapDelete routed via the `planFor` seam; live PG + MariaDB roundtrip/conflict/mis-type-fail-loud tests green. REMAINING (tracked in the Session-4/5 forward ledger below): planned filter/sort/keyset pushdown (PushdownMapScan/MapScan/MapUpdate still read meta_map), information_schema evolution, reflection-derived LayoutPlanFromType, backfill helper.
+- [✓] **pgEngine/mysqlEngine `LayoutPlanApplier` + planned-layout schema evolution** — DONE (D1/D2, commits `b8aa29d96` + `6c7e08f4a`): `metaengine.LayoutPlanApplier` implemented in BOTH engines (`metaengine/pgengine/planned.go`, `metaengine/mysqlengine/planned.go`) — per-collection extracted-column tables (PG: JSONB value + DOUBLE PRECISION/BIGINT/TEXT columns; MySQL: backtick identifiers, split DDL, ON DUPLICATE KEY upserts), MapSet/MapGet/MapDelete routed via the `planFor` seam; live PG + MariaDB roundtrip/conflict/mis-type-fail-loud tests green. REMAINING items ALL CLOSED 2026-08-31 (session 5/7 waves): pushdown (session-5/7 CHANGELOG entry), information_schema evolution + backfill helper (rows below), reflection-derived LayoutPlanFromType (fixed `986c631bf`).
       _(Effort: M)_ — sources: status 2026-08-02_21-18/22-17
 - [✓] **DuckDB counter SQL pushdown** — DONE 2026-08-29 (todo-execution session 2) — `CounterIncrement` batches deltas into chunked multi-row upserts (256/stmt) instead of one round trip per key; the filter builders were unified onto a single WHERE/AND-connector `appendDuckDBFilter` (layout_planner + explain now share it). `CounterGet`'s full map IS the CounterBackend contract — no cheaper shape exists; batch INSERT was the real win.
       _(Effort: S)_ — source: status 2026-08-08_01-33
@@ -134,10 +134,10 @@ and is **never** duplicated here.
 - [x] ~~D3 slice 1: route PushdownMapScan through planned tables~~ DONE 2026-08-30 (`ce61e4080`): native-column filters/sort/keyset on pg+mysql, planless fallback intact, live strict tests green. — native-column filters (DOUBLE PRECISION/BIGINT/TEXT predicates), sort, keyset cursor (no twin columns needed on extracted columns); planless collections keep the meta_map path. pgengine first, then mysqlengine (backtick/DESC lessons). Live PG + MariaDB tests. — source: retro §f 1
 - [x] ~~D3 slice 2: route MapScan + MapUpdate through planned tables~~ DONE 2026-08-30 (`ce61e4080`): visibility split closed (MapScan reads the planned table); MapUpdate is NEW on both engines (FOR UPDATE RMW, nil-prev create, RunInTx participation); live strict tests green on PG + MariaDB. — closes the documented planned/meta_map visibility split (scans miss planned rows; updates write to the wrong store). — source: retro §f 2
 - [x] ~~D3 slice 3: EXPLAIN-based index-usage proofs~~ DONE 2026-08-30 (`11a7ef8a7`): ExplainScanQuery routes through the planned-scan builder on both engines; live proofs assert index-backed nodes / type != ALL with named key, no seq scan, planned table (never meta_map). — source: retro §f 16
-- [ ] **D3 slice 4: cross-engine planned-table parity matrices** (sqlite vs pg vs mysql fixtures through adttest). — source: retro §f 17
+- [x] **D3 slice 4: cross-engine planned-table parity matrices** — DONE 2026-08-31 session 7 (`140409aec`): `metaengine/adttest.RunPlannedOpsMatrix` runs sqlite/pg/mysql/duckdb fixtures through one harness (interface-gated sub-capabilities, `Factory.PreClean` for persistent DBs — the order dependence PreClean fixes was caught by `-shuffle=on`). First run caught a REAL bug: duckdb `MapScan` ignored planned routing and read meta_map (visibility divergence); fixed in the same commit. — source: retro §f 17
 - [x] ~~`LayoutPlanFromType` for pg/mysql~~ DONE 2026-08-30 (`986c631bf`) — was ALREADY in core (`metaengine.BuildLayoutPlanFromType[R]`); this session FIXED its real bug: float64 mapped to "DOUBLE" which pg/mysql planned DDL translated to TEXT (numeric filters degenerated); now canonical "REAL" (pg → DOUBLE PRECISION, mysql → DOUBLE), json-tag aliases indexed, live numeric filter/sort proofs on PG + MariaDB. — source: retro §f 18
-- [ ] **information_schema-based column evolution** for planned tables (type-drift migration path; idempotent ALTER TABLE ADD COLUMN). — source: retro §f 19
-- [ ] **Opt-in planned-table backfill helper** (meta_map → planned copy) to soften the no-backfill contract where operators need it. — source: retro §f 20
+- [x] **information_schema-based column evolution** for planned tables — DONE 2026-08-31 session 7 (`558b2d121` + `396b2639e`): `metaengine.LayoutPlanEvolver` + `pgengine`/`mysqlengine` `EvolveLayoutPlan` — idempotent add-column/retype (PG retypes need `USING col::type`), returns applied actions, replaces the registered plan. — source: retro §f 19
+- [x] **Opt-in planned-table backfill helper** — DONE 2026-08-31 session 7 (`6c710e478`): `metaengine.KeyScanBackend` (`MapScanKeyValues` on pg/mysql reads the BASE meta_map) + `metaengine.BackfillPlannedCollection` (re-issues rows through `MapSet` in bounded batches) + `ErrBackfillUnsupported` fail-loud for engines without key scan. — source: retro §f 20
 - [x] ~~Mis-type error classification~~ DONE 2026-08-30 (`ce61e4080`): decision recorded — filter/sort/cursor values validated against declared column types at QUERY-BUILD time and classified `metaengine.ErrPlannedColumnTypeMismatch` (Rejection: fix query or plan, retry cannot succeed); the write path keeps fail-loud driver-level Infrastructure (pinned). Documented in the pgengine README + FEATURES.
 - [x] ~~CounterIncrement/CounterGet routing decision~~ DONE 2026-08-30: DECIDED — counters stay on meta_map for planned collections (documented in the pgengine README "Planned tables" section + the ADR-0124 addendum). — source: retro §f 13
 - [x] ~~Graph/aggregate routing decision~~ DONE 2026-08-30: DECIDED — graph/aggregates stay on their native meta_map paths (pgengine README + ADR-0124 addendum). — source: retro §f 14
@@ -151,10 +151,10 @@ and is **never** duplicated here.
 
 **Observability / lint**
 
-- [ ] **Doctor/Introspection: surface planned-table registration + per-collection row counts.** — source: retro §f 23
+- [x] **Doctor/Introspection: surface planned-table registration + per-collection row counts** — DONE 2026-08-31 session 7 (`ad09ec75d`): `metaengine.PlannedTablesReporter` + `PlannedTableInfo` (collection/table/columns/rows) + `Store.PlannedTablesDoctorSection` wired into Doctor; pg/mysql implement `PlannedTables`. — source: retro §f 23
 - [x] **Decision record: planned tables vs generated columns (gcn_ twins)** — DONE 2026-08-30 (`c266c51b9`): ADR-0124 addendum records the decision rule for operators. — source: retro §f 24
 - [ ] **cqrs-lint rule: ApplyLayout on engines that also implement LayoutPlanApplier → prefer the plan path.** — SCOPED 2026-08-30 (session 6): the analyzer is source-based (BuildContextFromSource + registry), so reliably knowing whether a call receiver implements LayoutPlanApplier needs type info the current context does not carry; a name-heuristic version would false-positive on same-named methods/unrelated receivers. Needs a design pass (type-impl detection in the analyzer, or a module-level capability registry fed from api-stability's module scan) before implementation. — source: retro §f 25
-- [ ] **Introspection/Doctor: surface effective durability tiers** (last open part of the Release-docs item above). — source: status 2026-08-18_20-39
+- [x] **Introspection/Doctor: surface effective durability tiers** — DONE 2026-08-31 session 7 (`9c32ccce2`): `EffectiveDurability` on badger/bbolt/pebble/sqlite/pg, STATE-DERIVED (badger/pebble ← syncWrites, bbolt ← noSync, sqlite ← synchronous PRAGMA, pg ← factory DSN tier), asserted by register_durability_test × 5. — source: status 2026-08-18_20-39
 
 **Honesty / process debt (session-4 §b/§e — do first next session)**
 
@@ -165,8 +165,8 @@ and is **never** duplicated here.
 - [x] ~~AGENTS.md process rules from session-4 §e~~ DONE 2026-08-30 (`5bcc1ab20`): per-task gate discipline + background-job rules + LSP env-bleed diagnosis encoded in AGENTS.md Tooling & Build gotchas. — source: retro §f 41
 - [ ] **Fix the golangci-lint LSP's GOLANGCI_LINT_CACHE for the editor** — phantom /mnt/buildcache diagnostics noise every session. — source: retro §f 42
 - [ ] **ephemeral-dgraph.sh: health-endpoint wait with a real timeout** (self-dial connection-refused spam suggests the wait is loose). — source: retro §f 43
-- [ ] **Evaluate `-shuffle=on` for the dgraph/mysql live suites** to surface order dependence (contention flakes). — source: retro §f 44
-- [ ] **Document SOAK_SKIP_* interaction with the dgraph loop** (the 52s vs 15-min full-run discrepancy was never explained in the ledger). — source: retro §f 45
+- [x] **Evaluate `-shuffle=on` for the dgraph/mysql live suites** — VERDICT 2026-08-31 session 7 (`8e7dcddfe`): ADOPT for live-engine suites — the very first shuffled MariaDB run caught a real order dependence (planned-ops matrix leaked state on the persistent cqrs_test DB; fixed with `adttest.Factory.PreClean`). Verified green over 2 shuffle seeds each on mysqlengine + targeted sqliteengine/duckdbengine; roll into the ephemeral-pg/mysql/dgraph app invocations at the next tag wave. REMAINING (dgraph only): its own shuffled evaluation. — source: retro §f 44
+- [x] **Document SOAK_SKIP_* interaction with the dgraph loop** — DONE 2026-08-31 session 7 (`8e7dcddfe` + `f9aad87bc`): AGENTS Testing section explains the 52s-vs-minutes discrepancy (the dgraphengine package includes its AutoCRUD soak; -run-filtered invocations skip it) and `SOAK_SKIP_DGRAPH=1` now gives unfiltered runs the same escape hatch as the other soaks. — source: retro §f 45
 - [✓] **ephemeral-pg.sh: make PG_MODULES env-overridable** — DONE 2026-08-30: `PG_MODULES="metaengine/pgengine" ./scripts/ephemeral-pg.sh …` runs a targeted loop; default unchanged. — source: retro §f 46
 - [✓] **batch-release.sh: add `--dry-run`** — DONE 2026-08-30: flag filters before parsing, prints would-be tags + semver/ancestry sequence reminder, exits 0 without touching go.mod/tree/tags; existing-tag and go.mod guards still fire. Verified end-to-end. — source: retro §f 47
 - [x] ~~Retire/wire t/tasks.buf + scratch sweep~~ DONE 2026-08-30: t/tasks.buf (1MB binary buffer) and a3-*.log trashed; .trash-* dirs already gone. `.gitignore` line 157 ignores `/t/` (verified). `.gotmp` log sweep: no logs older than 7 days remain (verified 2026-08-30 evening). — source: retro §f 48,49,36,37
@@ -313,10 +313,14 @@ and is **never** duplicated here.
 > Follow-ups below harvested from
 > `docs/status/archived/2026-08-15_22-04_metaengine-followup-closeout.md` §f.
 
-- [ ] **Turso explicit CTE-probe test** — the sqliteengine probe covers
-      local drivers; add a tursoengine test confirming it holds over the
-      remote protocol.
-      _(Effort: S)_
+- [x] **Turso explicit CTE-probe test** — DONE 2026-08-31 session 7 (`f9aad87bc`):
+      `metaengine/tursoengine/cte_probe_test.go` pins the finding: the turso
+      (libSQL) remote driver REJECTS recursive CTEs ("Recursive CTEs are not
+      yet supported"), so the construction-time `probeRecursiveCTE` probe
+      correctly degrades graph traversal to iterative BFS; the degraded test
+      proves depth-3 neighborhoods answer exactly (A→B→C→D→E from A =
+      {B,C,D}). If the driver ever gains recursive CTEs the pin fails loudly
+      so the native path can be adopted.
 - [ ] [BLOCKED] **Run `nix run .#integration-mysql-nspawn`** (needs root) — real-env
       verification incl. `stack/mysql`; live verification so far used docker
       probes only. Partially covered 2026-08-16: userspace MariaDB 11.4
