@@ -3,9 +3,9 @@ package architecture_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/architecture"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/architecture"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/ruletest"
 )
 
 // --- E012: Dual-write without completion ---

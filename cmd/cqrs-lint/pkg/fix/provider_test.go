@@ -7,7 +7,7 @@ import (
 	"github.com/larsartmann/go-finding"
 	"github.com/larsartmann/go-finding/pipeline"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/fix"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/fix"
 )
 
 func TestCQRSFixProvider_C006(t *testing.T) {

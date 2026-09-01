@@ -7,18 +7,18 @@ import (
 
 	"github.com/larsartmann/go-finding"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/adoption"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/api"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/architecture"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/boilerplate"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/consistency"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/correctness"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/performance"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/resilience"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/security"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/testrules"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/version"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/adoption"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/api"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/architecture"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/boilerplate"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/consistency"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/correctness"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/performance"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/resilience"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/security"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/testrules"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/version"
 )
 
 func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {

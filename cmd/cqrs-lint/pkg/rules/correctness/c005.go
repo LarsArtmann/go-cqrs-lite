@@ -6,7 +6,7 @@ import (
 
 	"github.com/larsartmann/go-finding"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // Detects json.Unmarshal(evt.Payload(), ...) instead of event.DecodePayloadAuto[T](evt).

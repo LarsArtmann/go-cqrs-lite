@@ -4,7 +4,7 @@ import (
 	"go/ast"
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // callHasOption returns true if any argument to call is a function call

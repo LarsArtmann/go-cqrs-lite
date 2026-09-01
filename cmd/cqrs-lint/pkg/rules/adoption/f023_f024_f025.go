@@ -7,7 +7,7 @@ import (
 
 	"github.com/larsartmann/go-finding"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // F023 detects CQRS projects with a SQL store that perform manual in-memory

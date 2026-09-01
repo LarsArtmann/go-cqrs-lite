@@ -1,4 +1,4 @@
-module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint
+module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4
 
 go 1.26.5
 

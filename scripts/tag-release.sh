@@ -76,6 +76,37 @@ if [ ! -f "$gomod" ]; then
 	exit 1
 fi
 
+# --- Verify the module path's major version matches the tag ---
+#
+# The proxy refuses any tag whose major version does not match the module
+# path declared in the go.mod at that tag. A v4 tag over a suffix-less
+# module path is INVISIBLE to the proxy: @latest silently resolves to the
+# newest pre-suffix version instead (cmd/cqrs-lint shipped v4.2.0-v4.7.0
+# this way; `go install ...@latest` served v0.2.0 for years). v0/v1 tags
+# require the opposite: no /vN suffix at all.
+module_path="$(awk '/^module /{print $2; exit}' "$gomod")"
+tag_major="${version#v}"
+tag_major="${tag_major%%.*}"
+path_major=""
+case "$module_path" in
+*/v[0-9]*)
+	path_major="${module_path##*/v}"
+	;;
+esac
+if [ "$path_major" != "$tag_major" ]; then
+	echo "ERROR: tag ${tag} is inconsistent with the module path in ${gomod}:"
+	echo "    module ${module_path}"
+	if [ -z "$tag_major" ] || [ "$tag_major" = "0" ] || [ "$tag_major" = "1" ]; then
+		echo "v${tag_major} tags require a module path WITHOUT a /vN suffix."
+	else
+		echo "v${tag_major} tags require the module path to end in /v${tag_major}."
+	fi
+	echo "The proxy cannot serve mismatched tags, so this release would be"
+	echo "invisible to 'go install'/'go get' @latest resolution. Fix the"
+	echo "module path (or pick the matching major version), then re-run."
+	exit 1
+fi
+
 # Verify tag doesn't already exist
 if git tag -l "$tag" | grep -q .; then
 	echo "ERROR: tag ${tag} already exists"

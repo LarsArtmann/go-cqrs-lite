@@ -7,7 +7,7 @@ import (
 
 	"github.com/larsartmann/go-finding"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // Detects manual retry loops that should use retry.Do. Flags hand-rolled

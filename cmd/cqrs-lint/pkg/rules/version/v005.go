@@ -6,7 +6,7 @@ import (
 
 	"github.com/larsartmann/go-finding"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // V005: Vendored eventtest alongside go-cqrs-lite imports.

@@ -10,7 +10,7 @@ It finds bugs, API misuse, and boilerplate that generic linters cannot detect â€
 
 ```bash
 # Install
-go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint@latest
+go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4@latest
 
 # Or build from source
 go build -o cqrs-lint ./cmd/cqrs-lint
@@ -659,7 +659,7 @@ jobs:
         with:
           go-version: stable
       - name: Install cqrs-lint
-        run: go install -tags "goexperiment.jsonv2" github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint@latest
+        run: go install -tags "goexperiment.jsonv2" github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4@latest
       - name: Run cqrs-lint
         run: cqrs-lint --format sarif --path ./... > results.sarif
       - uses: github/codeql-action/upload-sarif@v3

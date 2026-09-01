@@ -11,8 +11,8 @@ import (
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 )
 
 // doctorFlags adds subcommand-level flags to the doctor command.

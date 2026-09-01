@@ -3095,6 +3095,30 @@ files. All fixed to unblock `verify-fast`:
 
 ---
 
+## [cmd/cqrs-lint/v4.8.0, cmd/cqrs-bench/v4.3.0] — 2026-09-01
+
+### Fixed — cmd binaries were invisible to the module proxy under v4 tags — 2026-09-01
+
+- **`cmd/cqrs-lint` and `cmd/cqrs-bench` go.mod module paths now carry the
+  required `/v4` major-version suffix.** Both modules shipped v4.x tags over
+  suffix-less module paths; the proxy refuses such tags, so they never
+  appeared in `@v/list` and `go install ...@latest` silently resolved to the
+  ancient pre-suffix releases (cqrs-lint v0.2.0, 60 rules instead of 203;
+  cqrs-bench v0.1.0). Install commands change accordingly:
+  `go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4@latest`
+  and `.../cmd/cqrs-bench/v4@latest` (the binary names stay `cqrs-lint` /
+  `cqrs-bench`; Go strips the major-version suffix when naming a
+  module-root main package). Internal `pkg/*` import paths inside
+  `cmd/cqrs-lint` moved to the `/v4` path with the module. The binary's
+  self-reported version was bumped in lockstep (`cqrs-lint version` now
+  reports 4.8.0). `cmd/cqrs-lint/v0.2.1` is a deprecation stub on the dead
+  suffix-less path: installing it fails loudly with a pointer to the new
+  install path instead of silently shipping the 60-rule binary.
+- **`scripts/tag-release.sh` now rejects tags whose major version does not
+  match the module path declared at the tag** (v2+ tags require the
+  `/vN`-suffixed module path, v0/v1 require no suffix) — the missing gate
+  that let this class of broken tag ship four times for cqrs-lint.
+
 ## [kv/v4.2.1, commandlifecycle/v4.0.1, commandlifecycle/projections/v4.0.1, idempotency/kvstore/v4.2.1, idempotency/sqlstore/v4.3.0, system/v4.6.0] — 2026-08-29
 
 ### Changed — system adapters: defensive metadata marshal + roundtrip pins — 2026-08-29

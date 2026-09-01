@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // renderDoctorSuppressions counts and displays inline //cqrs-lint:ignore comments.

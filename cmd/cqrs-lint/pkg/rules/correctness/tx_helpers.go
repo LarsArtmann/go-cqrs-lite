@@ -5,7 +5,7 @@ import (
 	"go/token"
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 func returnsError(fn *ast.FuncDecl) bool {

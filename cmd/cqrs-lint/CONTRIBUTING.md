@@ -241,7 +241,7 @@ git push origin cmd/cqrs-lint/v4.4.0
 
 ```bash
 # From a temp project:
-go get github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint@v4.4.0
+go get github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4@v4.8.0
 ```
 
 ### Tag conventions

@@ -3,7 +3,7 @@ package api
 import (
 	"go/ast"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // hasMethod checks if a command type has a method with the given name.

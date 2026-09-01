@@ -9,7 +9,7 @@ Benchmark any go-cqrs-lite backend with named workload profiles. Thin CLI front-
 ## Install
 
 ```bash
-go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-bench@latest
+go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-bench/v4@latest
 ```
 
 ## Usage

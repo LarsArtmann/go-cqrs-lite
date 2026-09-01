@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // moduleScope bundles the feature profile and file set for a single Go module

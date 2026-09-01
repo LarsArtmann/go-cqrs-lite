@@ -9,7 +9,7 @@ import (
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 var errConfigExists = errors.New(".cqrs-lint.json already exists")

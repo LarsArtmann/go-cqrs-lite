@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // sqliteOpenSite records a sql.Open call with a SQLite driver and the

@@ -5,7 +5,7 @@ import (
 	"go/token"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
 )
 
 func TestQualifierToImportPath_NoAlias(t *testing.T) {

@@ -3,7 +3,7 @@ package main
 import (
 	"sort"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // ScorecardSummary is the headline math for the scorecard.

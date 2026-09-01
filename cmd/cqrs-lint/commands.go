@@ -79,7 +79,7 @@ func versionVerbose() string {
 	b.WriteString(runtime.Version())
 	b.WriteString("\n  arch:    ")
 	b.WriteString(runtime.GOOS + "/" + runtime.GOARCH)
-	b.WriteString("\n  module:  github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint")
+	b.WriteString("\n  module:  github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4")
 	return b.String()
 }
 
