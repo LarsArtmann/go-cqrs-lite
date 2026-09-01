@@ -232,6 +232,33 @@ if grep -q "00010101000000" "$gomod"; then
 	exit 1
 fi
 
+# --- Keep cmd/cqrs-lint's version constant in lockstep with its tag ---
+#
+# The lint CLI prints this constant as its version. Tagging cmd/cqrs-lint
+# without bumping the constant ships a binary that reports the PREVIOUS
+# version (drifted to 4.6.0 while v4.7.0 was live). This runs BEFORE the
+# standalone build check so a mangled bump fails the gate instead of
+# shipping: v4.8.0 shipped `const version = 4.8.0` (unquoted, a syntax
+# error) because embedded quotes in the old grep/sed closed the shell
+# string. Fixed-string grep and escaped quoting plus the post-bump
+# assertion below guard that; the build gate is the last line of defense.
+if [ "$module" = "cmd/cqrs-lint" ]; then
+	const_file="cmd/cqrs-lint/main.go"
+	const_version="${version#v}"
+	if grep -qF "const version = \"${const_version}\"" "$const_file"; then
+		echo "cmd/cqrs-lint version constant already ${const_version}"
+	else
+		sed -i "s|const version = \"[0-9][0-9.]*\"|const version = \"${const_version}\"|" "$const_file"
+		if ! grep -qF "const version = \"${const_version}\"" "$const_file"; then
+			echo "ERROR: version-constant bump to ${const_version} did not land in ${const_file}."
+			restore_working_tree
+			exit 1
+		fi
+		git add "$const_file"
+		echo "Bumped ${const_file} version constant to ${const_version}"
+	fi
+fi
+
 # --- Verify the stripped module actually COMPILES standalone ---
 #
 # `go mod tidy` resolves the import graph but does not typecheck: a module
@@ -272,25 +299,6 @@ if $dry_run; then
 	echo ""
 	echo "Dry run complete. Working tree restored; no commit or tag created."
 	exit 0
-fi
-
-# --- Keep cmd/cqrs-lint's version constant in lockstep with its tag ---
-#
-# The lint CLI prints this constant as its version. Tagging cmd/cqrs-lint
-# without bumping the constant ships a binary that reports the PREVIOUS
-# version (drifted to 4.6.0 while v4.7.0 was live). Bump it in the same
-# temp commit that carries the stripped go.mod.
-if [ "$module" = "cmd/cqrs-lint" ]; then
-	const_file="cmd/cqrs-lint/main.go"
-	const_version="${version#v}"
-	if grep -q "const version = "${const_version}"" "$const_file"; then
-		echo "cmd/cqrs-lint version constant already ${const_version}"
-	else
-		pattern='const version = ".*"'
-		sed -i "s|${pattern}|const version = "${const_version}"|" "$const_file"
-		git add "$const_file"
-		echo "Bumped ${const_file} version constant to ${const_version}"
-	fi
 fi
 
 # --- Create temp commit + annotated tag ---
