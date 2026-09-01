@@ -2,6 +2,19 @@
 
 > Read this first. It holds the decision-making material you need on every task: the mental model, the module decision matrix, the non-negotiable conventions, the anti-patterns, and the API cheat sheet. For long copy-paste recipes, jump to [`recipes.md`](recipes.md); for read-model patterns see [`readmodels.md`](readmodels.md); for pitfalls see [`faq.md`](faq.md).
 
+> **Contents** — jump to the section you need:
+>
+> - [§0 Mental Model](#0-mental-model-read-this-first) — library, not framework; what composes into what
+> - [§1 Module Decision Matrix](#1-module-decision-matrix--i-want-to) — "I want to…" → which modules
+> - [§3 Critical Conventions](#3-critical-conventions-ai-gets-these-wrong) — the non-negotiables
+> - [§4 Anti-Patterns to Avoid](#4-anti-patterns-to-avoid)
+> - [§7 Testing Patterns](#7-testing-patterns)
+> - [§8 Dependency Layering](#8-dependency-layering-module-graph) — the module graph
+> - [§9 Examples in the Repo](#9-examples-in-the-repo)
+> - [§10 Where to Find More](#10-where-to-find-more)
+> - [§11 Quick API Cheat Sheet](#11-quick-api-cheat-sheet)
+> - [About This Skill](#about-this-skill)
+
 ---
 
 ## 0. Mental Model (read this first)

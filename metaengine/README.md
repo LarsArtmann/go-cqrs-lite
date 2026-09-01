@@ -49,16 +49,21 @@ result, _ := metaengine.ExecuteTyped[FindUser, FindUserResult](
 // → FindUserResult{ID: "u1", Name: "Alice", ...}
 ```
 
-## Quick Setup (SQLite, One-Liner)
+## Quick Setup (SQLite)
 
 For the most common setup — Memory + SQLite engines, plan, log:
 
 ```go
 // 1. Declare queries (same as above)
-// 2. One-shot: open SQLite, create Memory engine, plan queries
-store, db, err := metaengine.PlanFromSQLite("app.db", findUser, statsQuery)
+// 2. Open a SQLite engine, add the Memory engine, plan the queries
+sqliteEng, err := sqliteengine.NewSQLiteEngineFromDSN("app.db")
+defer sqliteEng.Close()
+
+store, err := metaengine.Plan(
+    []metaengine.Engine{metaengine.NewMemoryEngine(), sqliteEng},
+    findUser, statsQuery,
+)
 defer store.Close()
-defer db.Close()
 
 // 3. Log the planner's decisions (which engine for which query)
 store.LogPlan(logger)
@@ -93,8 +98,9 @@ dec := projectionadapter.NewTypeDecoder(
     projectionadapter.Register(event.Type("user.deleted"), UserDeleted{}),
 )
 
-// 3. Create adapter + register with projection host
-store, db, _ := metaengine.PlanFromSQLite("app.db", findUser)
+// 3. Open a SQLite engine, build the Store, create adapter, register with host
+eng, _ := sqliteengine.NewSQLiteEngineFromDSN("app.db")
+store, _ := metaengine.Plan([]metaengine.Engine{eng}, findUser)
 adapter := projectionadapter.NewWithDecoder("users", store, dec)
 host.Register(adapter)
 ```
@@ -317,13 +323,14 @@ SQLite for persistence):
 import (
     "database/sql"
     "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+    "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
     _ "modernc.org/sqlite"
 )
 
 db, _ := sql.Open("sqlite", "file:app.db")
 defer db.Close()
 
-sqliteEng, _ := metaengine.NewSQLiteEngine(db)
+sqliteEng, _ := sqliteengine.NewSQLiteEngine(db)
 // The caller owns the *sql.DB — sqliteEng.Close() is a no-op.
 store, _ := metaengine.Plan(
     []metaengine.Engine{metaengine.NewMemoryEngine(), sqliteEng},

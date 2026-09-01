@@ -68,13 +68,20 @@ Inject any Watermill-compatible backend via `WithBackend` (events) and
 plugin:
 
 ```go
+// pub and sub come from the watermill-redisstream plugin (constructed below).
+eventBus := watermill.NewEventBus(watermill.WithBackend(pub, sub, client))
+cmdBus := watermill.NewCommandBus(watermill.WithCommandBackend(pub, sub, client))
+```
+
+The plugin side is plain Watermill API from the external module — a Redis
+client plus publisher/subscriber, constructed with `watermill.NopLogger{}`
+as the logger:
+
+```
 client := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
 
 pub, _ := redisstream.NewPublisher(redisstream.PublisherConfig{Client: client}, watermill.NopLogger{})
 sub, _ := redisstream.NewSubscriber(redisstream.SubscriberConfig{Client: client}, watermill.NopLogger{})
-
-eventBus := watermill.NewEventBus(watermill.WithBackend(pub, sub, client))
-cmdBus := watermill.NewCommandBus(watermill.WithCommandBackend(pub, sub, client))
 ```
 
 The full roundtrip (publish → broker → typed subscribe, events + commands) is

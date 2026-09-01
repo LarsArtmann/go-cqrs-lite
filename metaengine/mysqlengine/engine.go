@@ -161,10 +161,11 @@ func (e *mysqlEngine) Profile() metaengine.EngineProfile {
 		ReadCosts: metaengine.ReadCosts{
 			NsPerPointLookup:  5_000,
 			NsPerFilteredScan: 400,
-			// DIVERGENCE (ADR-0133): models SQL SUM-over-map-rows, NOT the
-			// ReadAggregate execution path (CounterGet over the counter map).
-			// Recalibrate onto CounterGet in a live MySQL/MariaDB window.
-			NsPerAggregate: 150,
+			// Measured ~321 ns/row (BenchmarkCalibration_MySQL_CounterGet,
+			// userspace MariaDB 11.4 2026-09-01). ADR-0133: ReadAggregate executes
+			// CounterGet over meta_counter — SQL SUM over meta_map is the typed
+			// AggregateReader path that bypasses the planner, not the priced one.
+			NsPerAggregate: 320,
 			NsPerScan:      800,
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{

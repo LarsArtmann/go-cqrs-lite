@@ -43,7 +43,7 @@ and is **never** duplicated here.
       _(Effort: M)_ — source: status 2026-08-16_22-50
 - [✓] **metaengine README capability table** — DONE 2026-08-29 (todo-execution session) — missing GraphEdgeRemoval / UndirectedGraph / VectorFilterBackend rows.
       _(Effort: XS)_ — source: status 2026-08-16_21-22
-- [ ] 🔥 **ReadAggregate calibration reconciliation (decision G1)** — `execute.go` routes `ReadAggregate` → `CounterGet` on EVERY engine, but pg/mysql/duckdb calibrate `NsPerAggregate` against SQL SUM-over-map-rows (AggregateReader workloads), not CounterGet. Either recalibrate those three onto CounterGet (KV-engine precedent) or document SQL SUM as the intentional model — then align constants + bench comments + AGENTS wording. — source: status 2026-08-30_16-13 §c1/§g G1
+- [✓] 🔥 **ReadAggregate calibration reconciliation (decision G1)** — DONE 2026-09-01: every engine's `NsPerAggregate` now prices the actual execution path (ADR-0133). Live-window medians over 1K-key counter maps (count=5, run 1 discarded): pg 150→250 ns/row (ephemeral PG, `BenchmarkCalibration_Postgres_CounterGet`), mysql 150→320 (userspace MariaDB, NEW `BenchmarkCalibration_MySQL_CounterGet`), dgraph 950_000→2_700 (ephemeral Dgraph, `BenchmarkDgraph_CounterGet` — the old value misused GraphNeighbors depth-3 per-OP as per-ROW, ~350x high). Constants + bench comments + raw runs in docs/benchmarks/calibration-2026-08-30.md + AGENTS wording + CHANGELOG aligned; last aggregate DIVERGENCE marker gone. Flagged follow-up (out of G1 scope, in that doc): dgraph `NsPerFilteredScan`/`NsPerScan` carry per-OP numbers in per-ROW fields — recalibrate only with result-size-scaled benches. — source: status 2026-08-30_16-13 §c1/§g G1
       _(Effort: M)_ — source: status 2026-08-30_16-13
 - [✓] **`sqliteengine` ReadCosts calibration** — DONE 2026-08-30 — 4 per-pattern benches added (`BenchmarkCalibration_SQLite_{PointLookup,FilteredScan,CounterGet,FullScan}` in metaengine/sqliteengine; the profile factory `metaengine.SQLiteEngineProfile()` lives core-side), measured medians of 3: point lookup ~3,102ns, json_extract filtered scan ~1,075ns/row, CounterGet ~531ns/row (ADR-0133 — the ReadAggregate path, NOT SQL SUM), full scan ~1,238ns/row; ReadCosts set in `SQLiteEngineProfile()`. Core + sqliteengine suites GREEN, lint clean. — source: status 2026-08-30_16-13 §b4
       _(Effort: M)_ — source: status 2026-08-30_16-13
@@ -112,7 +112,7 @@ and is **never** duplicated here.
       documented in ADR-0132 (bench comment figure also corrected to 43–46);
       (3) command.Bus/MemoryBus removal: DECLINED — see Declined section.
       _(Effort: S)_ — sources: status 2026-08-16_17-39/14-44, 2026-08-03_20-30
-- [ ] **Env**: /mnt/buildcache re-broken 2026-08-29 (golangci cache mkdir fails) — /tmp cache redirects required again until repaired. (Still broken 2026-08-30 — the golangci LSP noise all session is this same root cause.)
+- [✓] **Env**: /mnt/buildcache re-broken 2026-08-29 — CLOSED 2026-09-01: resolved by policy, not repair — the disk-backed cache chain (AGENTS Tooling & Build) is the permanent state since 2026-08-30, and the editor-side noise ended with the LSP wrapper below. Nothing actionable remains.
       _(Effort: XS, environment)_
 
 ---
@@ -159,12 +159,12 @@ and is **never** duplicated here.
 **Honesty / process debt (session-4 §b/§e — do first next session)**
 
 - [x] ~~Strict GOWORK=off + live-DSN re-validation of the pgengine planned tests~~ DONE 2026-08-30: full strict 7-module PG loop EXIT=0 (ephemeral-pg.sh runs GOWORK=off per module, ephemeral-pg.sh:111); plus the new D3 planned pushdown/MapUpdate tests pass strict on both PG and MariaDB (`ce61e4080`). — source: retro §b 4 / §f 3,12
-- [ ] **Run `nix run .#load-sweep` before the next `#verify`** — C5 touched latency/routing timing paths and the discipline was skipped. — source: retro §c 5 / §f 11
+- [✓] **Run `nix run .#load-sweep` before the next `#verify`** — DONE 2026-09-01: GREEN under load avg ~9-12 (all middleware/scheduling/storage timing-assertion suites survived CPU soakers; log `.gotmp/load-sweep.log`). The discipline is paid; C5's timing paths are covered. — source: retro §c 5 / §f 11
 - [x] **Recipes 2.26 (ClaimingTimerStore) + 2.27 (planned tables) + modules.md planned-capability rows** — DONE 2026-08-30 (`c7743144e`): recipes.md 2.26/2.27 landed (doc-check green); modules.md mysqlengine row carries the `LayoutPlanApplier` planned-tables capability; pgengine row updated. — source: retro §f 7,8
 - [x] **FEATURES.md rows: claiming timers, planned tables, ErrWorkerFailed** — DONE 2026-08-30 (`5bcc1ab20`): rows landed once the concurrent session's FEATURES edits were committed. — source: retro §f 5
 - [x] ~~AGENTS.md process rules from session-4 §e~~ DONE 2026-08-30 (`5bcc1ab20`): per-task gate discipline + background-job rules + LSP env-bleed diagnosis encoded in AGENTS.md Tooling & Build gotchas. — source: retro §f 41
-- [ ] **Fix the golangci-lint LSP's GOLANGCI_LINT_CACHE for the editor** — phantom /mnt/buildcache diagnostics noise every session. — source: retro §f 42
-- [ ] **ephemeral-dgraph.sh: health-endpoint wait with a real timeout** (self-dial connection-refused spam suggests the wait is loose). — source: retro §f 43
+- [✓] **Fix the golangci-lint LSP's GOLANGCI_LINT_CACHE for the editor** — DONE 2026-08-30 (`8e7dcddfe`): `golangci-lint-lsp-wrapper` (~/.local/bin, home-managed) unconditionally pins the disk cache; verified installed 2026-09-01. — source: retro §f 42
+- [✓] **ephemeral-dgraph.sh: health-endpoint wait with a real timeout** — DONE 2026-08-30 (`8e7dcddfe`): bounded `HEALTH_TIMEOUT` budget (default 60s, `DGRAPH_HEALTH_TIMEOUT` override) + fail-loud log dump; verified in the shipped script 2026-09-01. — source: retro §f 43
 - [x] **Evaluate `-shuffle=on` for the dgraph/mysql live suites** — VERDICT 2026-08-31 session 7 (`8e7dcddfe`): ADOPT for live-engine suites — the very first shuffled MariaDB run caught a real order dependence (planned-ops matrix leaked state on the persistent cqrs_test DB; fixed with `adttest.Factory.PreClean`). Verified green over 2 shuffle seeds each on mysqlengine + targeted sqliteengine/duckdbengine; roll into the ephemeral-pg/mysql/dgraph app invocations at the next tag wave. REMAINING (dgraph only): its own shuffled evaluation. — source: retro §f 44
 - [x] **Document SOAK_SKIP_* interaction with the dgraph loop** — DONE 2026-08-31 session 7 (`8e7dcddfe` + `f9aad87bc`): AGENTS Testing section explains the 52s-vs-minutes discrepancy (the dgraphengine package includes its AutoCRUD soak; -run-filtered invocations skip it) and `SOAK_SKIP_DGRAPH=1` now gives unfiltered runs the same escape hatch as the other soaks. — source: retro §f 45
 - [✓] **ephemeral-pg.sh: make PG_MODULES env-overridable** — DONE 2026-08-30: `PG_MODULES="metaengine/pgengine" ./scripts/ephemeral-pg.sh …` runs a targeted loop; default unchanged. — source: retro §f 46
@@ -177,21 +177,32 @@ and is **never** duplicated here.
 
 > Blocked on user authorization (never tag/push without explicit instruction).
 
-- [ ] **Repair master CI (11 red jobs on the 2026-09-01 run, ALL pre-existing —
-      surfaced by the #20 push; main CI has not completed green since
-      2026-07-17)**: (a) infra: FlakeHub unauthenticated + magic-nix-cache HTTP
-      418 kills CGo Build / Nix Flake Check / Minimum Coverage / integration
-      jobs; (b) workflow bug: API Stability runs `go run main.go` on a
-      multi-file package (`undefined: collectExports`) — should be `go run .`;
-      (c) auth: cqrs-lint Self-Lint needs go-finding credentials under
-      GOWORK=off (`git ls-remote ... exit 128`); (d) real drift to fix:
-      shfmt on `scripts/calibration-drift.sh` + `scripts/ephemeral-dgraph.sh`,
-      >350-line files (25 incl. benchkit/runner.go, catalog_extra.go),
-      skill-doc TOC/length gates, version-drift report (listing/middleware/
-      sqliteengine/...). None of these blocks the 2026-09-01 cmd tags — the
-      tagged content was verified green locally (build+test GOWORK=off,
-      golden, doc-check, shfmt-clean on the touched script) and via clean
-      `go install @latest` from the proxy.
+- [PARTIAL ✓ 2026-09-01] **Repair master CI (11 red jobs on the 2026-09-01 run,
+      ALL pre-existing — surfaced by the #20 push; main CI has not completed
+      green since 2026-07-17)**: (a) BLOCKED infra/user: FlakeHub
+      unauthenticated + magic-nix-cache HTTP 418 kills CGo Build / Nix Flake
+      Check / Minimum Coverage / integration jobs; (b) FIXED 2026-09-01: API
+      Stability job now runs `go run -tags "goexperiment.jsonv2" .` (the
+      multi-file `go run main.go` → `undefined: collectExports` bug); verified
+      locally green (4368 exports); (c) BLOCKED user: cqrs-lint Self-Lint
+      needs go-finding credentials under GOWORK=off (`git ls-remote ...
+      exit 128`); (d) drift — FIXED 2026-09-01 except file lengths: shfmt
+      drift (calibration-drift.sh + ephemeral-dgraph.sh reformatted, `shfmt -d
+      scripts/` clean), skill-doc TOC gates (core.md + faq.md gained
+      house-style **Contents** blocks; doc-check 956 refs + check-doc-links
+      627 targets green), version-drift (consumer-pin sweep: 8 drifted
+      siblings aligned to latest tags — 131 pin bumps — plus storage pins
+      raised to v4.8.1 after the listing-v4.3.0 stranding surfaced (published
+      storage ≤v4.8.0 does not compile against listing v4.3.0; v4.8.1 is the
+      listing-compatible re-tag); 48 touched modules GOWORK=off
+      `go test -run ZZNONE` green, `check-version-drift.sh` green), go.work↔
+      flake sync (external `../go-*` use-entries no longer substring-leak
+      into check-workspace-sync.sh). REMAINING: >350-line production files —
+      29 files by the CI job's own find (catalog_extra.go 1207,
+      typed_reader.go 1127, adttest/harness.go 967, enginetest.go 935,
+      store.go 898, …) — a standalone multi-session refactor wave, kept open
+      here. Also NOTE: CI billing (separate item) gates actually re-running
+      these jobs.
 > **2026-08-29 13:18: full `nix run .#verify` GREEN (plan V3 T02)** — build +
 > vet + test + race + lint 76/76 + check-arch + depguard + doc-check (1154
 > refs) at commit `50a9a212d`; this replaces the 2026-08-16 release-checkpoint

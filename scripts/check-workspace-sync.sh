@@ -18,8 +18,11 @@ is_excluded() {
 	return 1
 }
 
-# Extract modules from go.work (strip leading ./, trailing comments)
-go_work_modules=$(grep -oE '\./[a-zA-Z0-9/_-]+' go.work | sed 's|^\./||' | sort -u)
+# Extract modules from go.work (strip leading ./, trailing comments).
+# Only lines starting with ./ are repo-local modules: the `use` block also
+# lists EXTERNAL sibling checkouts (../go-codec, ../go-retry, ...) whose
+# substring ./name must NOT leak into this repo's sync check.
+go_work_modules=$(grep -E '^[[:space:]]*\./' go.work | grep -oE '\./[a-zA-Z0-9/_-]+' | sed 's|^\./||' | sort -u)
 
 # Extract modules from flake.nix testModules array
 flake_modules=$(awk '/testModules = \[/,/\]/' flake.nix |

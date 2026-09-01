@@ -10,6 +10,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > inside a dated `[tags]` section is unreleased (the 2026-08-16-era block was
 > folded into this window on 2026-08-29).
 
+### Fixed — README overhaul: public-launch polish, broken import paths and dead links — 2026-09-01
+
+- **Root README rebuilt for the public launch**: centered header + full badge
+  row (Go Reference, CI, License), documentation link bar, new "Who is this
+  for?" personas, new "When NOT to use this" exclusions, a rewritten
+  comparison table (the old one cited `go-cqrs`/`cqrs-go`, repos that no
+  longer exist — replaced with verified `looplab/eventhorizon` +
+  `ThreeDotsLabs/watermill` cells), a key-dependencies table, and removal of
+  the unverified "Apache-2.0 planned" license claim. Quick Start code
+  unchanged and verified against `example/readme-quickstart`.
+- **Copy-paste-broken import paths fixed in 8 module READMEs**: missing
+  `/v4` major-version suffixes (signing multisig, catalog + asyncapi +
+  eventcatalog, listing, storage pebble/turso mentions, irohengine quic) and
+  wrong `storage/turso` paths (turso + indexing READMEs used
+  `go-cqrs-lite/turso/v4`; the module is `storage/turso/v4`).
+- **9 dead links repaired**: 6 `codec/README.md` links (module extracted to
+  the external `go-codec` repo, ADR-0128) and 3 idempotency parent links
+  (core moved to external `go-idempotency`), relabeled to the external
+  module names.
+- **8 doc-check broken symbol references fixed**: nonexistent
+  `metaengine.PlanFromSQLite` replaced with the real
+  `sqliteengine.NewSQLiteEngineFromDSN` + `metaengine.Plan` flow,
+  `metaengine.NewSQLiteEngine` → `sqliteengine.NewSQLiteEngine`, nonexistent
+  `storage.EventSchema`/`SQLiteEventSchema` dropped in favor of the real
+  `SnapshotSchema`/`CheckpointSchema` re-exports, and external-package
+  symbols (`watermill.NopLogger`, `bbolt.Options`) disambiguated so doc-check
+  passes: 1123 references valid across 52 packages, zero warnings.
+
 ### Added — session-7 wave: layout evolution, planned backfill, planned-tables observability — 2026-08-31
 
 - **`metaengine.LayoutPlanEvolver`** (`EvolveLayoutPlan(ctx, plan)
@@ -63,12 +91,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `Sum/Avg` path (`AggregateReader`) dispatches directly on the collection's
   engine and never consults the planner. duckdb recalibrated from the
   SQL-SUM model (150 ns/row) onto the measured CounterGet cost
-  (~418 ns/row over 1K counters, `BenchmarkCalibration_DuckDB_CounterGet`);
-  a matching Postgres bench
-  (`BenchmarkCalibration_Postgres_CounterGet`) awaits a live-PG window.
-  mysql (SQL SUM) and dgraph (GraphNeighbors depth-3) keep their legacy
-  numbers behind explicit DIVERGENCE comments until live recalibration —
-  their counter-query prices are currently understated relative to the
+  (~418 ns/row over 1K counters, `BenchmarkCalibration_DuckDB_CounterGet`).
+  Completed 2026-09-01 (G1 closed): pg 150→250, mysql 150→320, dgraph
+  950_000→2_700 ns/row, all measured live over 1K-key counter maps
+  (`BenchmarkCalibration_Postgres_CounterGet`,
+  `BenchmarkCalibration_MySQL_CounterGet` — new,
+  `BenchmarkDgraph_CounterGet`; raw runs in
+  `docs/benchmarks/calibration-2026-08-30.md`). The last DIVERGENCE marker on
+  the aggregate field is gone; every engine now prices the same
   CounterGet contract.
 
 ### Added — session-4 wave: claiming timers, planned tables (pg+mysql) — 2026-08-30

@@ -17,7 +17,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.4.0
 	github.com/larsartmann/go-error-family v0.10.0
 	modernc.org/sqlite v1.56.0
 )

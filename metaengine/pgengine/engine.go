@@ -182,9 +182,11 @@ func (e *pgEngine) Profile() metaengine.EngineProfile {
 			// Measured ~402 ns/row via Docker (BenchmarkCalibration_Postgres_PushdownScan).
 			// JSONB WHERE pushdown + row decode.
 			NsPerFilteredScan: 400,
-			// Measured ~149 ns/row via Docker (BenchmarkCalibration_Postgres_AggregateSum).
-			// SQL-level SUM with JSONB cast.
-			NsPerAggregate: 150,
+			// Measured ~246 ns/row (BenchmarkCalibration_Postgres_CounterGet,
+			// ephemeral local PG 2026-09-01). ADR-0133: ReadAggregate executes
+			// CounterGet over meta_counter — SQL SUM (AggregateSum bench) documents
+			// the typed AggregateReader path that bypasses the planner.
+			NsPerAggregate: 250,
 			// Measured ~805 ns/row via Docker (BenchmarkCalibration_Postgres_FullScan).
 			// Full scan + Go-side JSON decode.
 			NsPerScan: 800,

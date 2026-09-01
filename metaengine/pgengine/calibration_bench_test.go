@@ -247,9 +247,10 @@ func BenchmarkCalibration_Postgres_PushdownScan(b *testing.B) {
 }
 
 // BenchmarkCalibration_Postgres_AggregateSum measures SQL-level aggregation:
-// SUM(amount) over pgCalibrationRows via JSONB extraction. This calibrates
-// PG_NsPerRead for the analytical aggregation workload. The "ns/row" metric is
-// the per-read cost.
+// SUM(amount) over pgCalibrationRows via JSONB extraction. This documents the
+// typed AggregateReader workload, which bypasses the planner — it does NOT
+// feed ReadCosts.NsPerAggregate; see BenchmarkCalibration_Postgres_CounterGet
+// below (ADR-0133). The "ns/row" metric is the per-read cost.
 func BenchmarkCalibration_Postgres_AggregateSum(b *testing.B) {
 	db := openPGForBench(b)
 	defer metaengine.DeferClose(db)

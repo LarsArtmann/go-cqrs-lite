@@ -2,6 +2,31 @@
 
 > The mistakes AI assistants and new users make most often. Check here when something won't compile, won't decode, or returns an unexpected error.
 
+> **Contents** — jump to your symptom:
+>
+> - [Payload won't decode](#my-event-payload-wont-decode)
+> - [Decider Repository type-parameter error](#my-decider-repository-wont-load--type-parameter-error)
+> - [EveryNEvents returns an error](#snapshoteverynevents-returns-an-error)
+> - [Projection Builder `.On()` doesn't exist](#projection-builder--on-doesnt-exist-as-a-method)
+> - [Pebble `NewKVAdapter` not found](#pebble-kv--newkvadapter-not-found)
+> - [SQL backend dialect parameter](#my-sql-backend-needs-a-dialect-parameter)
+> - [MySQL `parseTime=true` required](#mysql-parsetimetrue-is-required)
+> - [catalog.NewRegistry needs arguments](#catalognewregistry-needs-arguments)
+> - [eventtest pseudo-version tidy errors](#local-go-mod-tidy-fails-with-eventtest-pseudo-version-errors)
+> - [event.New vs event.NewEvent payloads](#eventnew-rejects-nil-payload-but-eventnewevent-accepts-byte)
+> - [WithEnricher type inference](#withenricher-cant-infer-the-type-parameter)
+> - [go-error-family vs event constructors](#go-error-family-vs-eventv4-error-constructors--which-should-i-use)
+> - [eventtest.FakeBus in production?](#iseventtestfakebus-production-safe)
+> - [Sharing one \*sql.DB](#can-i-share-one-sqldb-for-events-and-read-models)
+> - [When to use snapshots](#when-should-i-use-snapshots)
+> - [Storage package restructure](#storage-package-restructure--where-did-types-move)
+> - [Integrating metaengine](#how-do-i-integrate-metaengine-with-my-stack)
+> - [Circuit breaker: middleware vs failsafe-go](#should-i-use-the-circuit-breaker-from-middleware-or-failsafe-go-directly)
+> - [ProjectionSink.Increment went negative](#projectionsinkincrement-went-negative--shouldnt-it-clamp-to-zero)
+> - [KeysetPositionQuery empty string](#why-does-storagesqlkeysetpositionquery-return-an-empty-string-for-a-bad-table-name)
+> - [Planned-collection scan misses meta_map rows](#my-planned-collection-scan-doesnt-see-rows-that-exist-in-meta_map)
+> - [Will the v5 cut break my imports?](#will-the-v5-cut-break-my-imports-what-is-going-away)
+
 ### "My event payload won't decode"
 
 **Cause:** `event.NewEvent` takes `[]byte`, not a struct. You must encode the payload before passing it.

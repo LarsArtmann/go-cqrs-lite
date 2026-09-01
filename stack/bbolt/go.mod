@@ -5,7 +5,7 @@ go 1.26.6
 require (
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.1
 	github.com/larsartmann/go-error-family v0.10.0
 	go.etcd.io/bbolt v1.5.0
 )
@@ -36,7 +36,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect

@@ -145,10 +145,12 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 		ReadCosts: metaengine.ReadCosts{
 			NsPerPointLookup:  350_000, // MapGet ~344µs
 			NsPerFilteredScan: 900_000, // SearchQuery anyofterms ~882µs
-			// DIVERGENCE (ADR-0133): models GraphNeighbors depth-3, NOT the
-			// ReadAggregate execution path (CounterGet over the counter map).
-			// Recalibrate onto CounterGet in a live Dgraph window.
-			NsPerAggregate: 950_000,
+			// Measured ~2663 ns/row (BenchmarkDgraph_CounterGet, ephemeral
+			// Dgraph 25.4.0 2026-09-01). ADR-0133: ReadAggregate executes
+			// CounterGet over the counter map — one gRPC round trip + JSON map
+			// decode, amortized over the counter-map size. Graph traversal is a
+			// different pattern and does not price this field.
+			NsPerAggregate: 2_700,
 			NsPerScan:      450_000, // GraphNeighbors depth-1 ~420µs
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{

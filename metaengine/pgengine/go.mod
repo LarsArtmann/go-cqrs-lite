@@ -6,7 +6,7 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.1.0
 	github.com/onsi/gomega v1.42.1
 )
 

@@ -87,8 +87,8 @@ github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 h1:6751shB8+f6PX4ogTOBArJpd
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0/go.mod h1:TB0o6rv8eIdLqV9ZxdIsRNTNQuALt/d5/MFtPZp5AjQ=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.3.0 h1:R/H/fGe5sButeL9eDBK1xCk8CoH8qktdV3JJo6PGsdI=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.3.0/go.mod h1:fKiFh3PI6TuF7svYjAOV5QlMtwaAxHcplk6MjRCyfs0=
-github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0 h1:QwJEMIav0UVqcoQHSGBPWQgZcO/rFjFl7akwuruIhTc=
-github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0/go.mod h1:e9SZtNrJIcWygwQqxZuvKFIqnq50na/ZCWN1dGeCXA0=
+github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.1.0 h1:UDjeWuUmScwWpAsu7XFz68TaCKtawbL5DZ7w3nQ7lhY=
+github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.1.0/go.mod h1:U2GpwCi1+/yAx7fPbp+bTRDZ4RKT4LaV0QWS62Iksuk=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0 h1:Quk6HrTJU/cvGezrkSl/mSTULraGvNd3kSoaRTf3hHc=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0/go.mod h1:mLyJ2JYRDO56bfoSDNYlGy25fA2fiteiVr53hFmnMFE=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=

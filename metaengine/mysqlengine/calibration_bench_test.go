@@ -62,3 +62,46 @@ func BenchmarkCalibration_MySQLCounterIncrement(b *testing.B) {
 		i++
 	}
 }
+
+// mysqlCalibrationCounters is the counter-map size for the CounterGet bench
+// (matches the planner's ADTCounter scale threshold of ~1K distinct keys and
+// the pgengine/sqliteengine/KV-engine calibration benches).
+const mysqlCalibrationCounters = 1_000
+
+// BenchmarkCalibration_MySQL_CounterGet measures CounterGet over a 1K-key
+// counter map — the actual ReadAggregate execution path (ADR-0133: the
+// planner's NsPerAggregate prices ADTCounter queries, which execute
+// CounterBackend.CounterGet; a SQL SUM bench would document the typed
+// AggregateReader path that bypasses the planner). Feeds
+// ReadCosts.NsPerAggregate (per-ROW: divide ns/op by
+// mysqlCalibrationCounters). Run live with MYSQL_TEST_DSN set:
+// GOWORK=off go test -run '^$' -bench '^BenchmarkCalibration_MySQL_CounterGet$'
+// -benchmem -count=5.
+func BenchmarkCalibration_MySQL_CounterGet(b *testing.B) {
+	eng := mustNewMySQLEngine(b)
+	cb := eng.(metaengine.CounterBackend)
+
+	ctx := context.Background()
+
+	for i := range mysqlCalibrationCounters {
+		if err := cb.CounterIncrement(ctx, "aggr", metaengine.Delta{fmt.Sprintf("c%d", i): 1}); err != nil {
+			b.Fatalf("seed CounterIncrement %d: %v", i, err)
+		}
+	}
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		counts, err := cb.CounterGet(ctx, "aggr")
+		if err != nil {
+			b.Fatalf("CounterGet: %v", err)
+		}
+
+		if len(counts) != mysqlCalibrationCounters {
+			b.Fatalf("CounterGet: expected %d counters, got %d", mysqlCalibrationCounters, len(counts))
+		}
+	}
+
+	b.StopTimer()
+	b.ReportMetric(float64(mysqlCalibrationCounters), "rows-scanned")
+}

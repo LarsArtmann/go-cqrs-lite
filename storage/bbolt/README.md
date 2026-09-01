@@ -43,7 +43,15 @@ queryStore := backend.QueryStore()
 ### Custom Options
 
 ```go
-backend, err := cqrsbbolt.OpenWith("myapp.db", &bbolt.Options{
+import (
+    "log/slog"
+    "time"
+
+    cqrsbbolt "github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4"
+    bolt "go.etcd.io/bbolt"
+)
+
+backend, err := cqrsbbolt.OpenWith("myapp.db", &bolt.Options{
     Timeout: 10 * time.Second,
     NoSync:  false,
 }, slog.Default())

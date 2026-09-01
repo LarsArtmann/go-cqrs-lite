@@ -15,13 +15,16 @@
 | pebble | 700 | 830 | 125 | 700 | `BenchmarkCalibration_Pebble_*` (scan paths via ScanRawValues) |
 | sqlite | 3100 | 1080 | 530 | 1240 | `BenchmarkCalibration_SQLite_*` (in-memory modernc) |
 | duckdb (aggregate) | 50_000 (prior) | 450 (prior) | **420** | 1000 (prior) | `BenchmarkCalibration_DuckDB_CounterGet` (ADR-0133) |
+| pg (aggregate) | 5_000 (prior) | 400 (prior) | **250** | 800 (prior) | `BenchmarkCalibration_Postgres_CounterGet` (ADR-0133, 2026-09-01) |
+| mysql (aggregate) | 5_000 (prior) | 400 (prior) | **320** | 800 (prior) | `BenchmarkCalibration_MySQL_CounterGet` (ADR-0133, 2026-09-01) |
+| dgraph (aggregate) | 350_000 (prior) | 900_000 (prior) | **2_700** | 450_000 (prior) | `BenchmarkDgraph_CounterGet` (ADR-0133, 2026-09-01) |
 
 Aggregate semantics on every engine: per-row cost of `CounterGet` over a
 1K-key counter map (ADR-0133 — the `ReadAggregate` pattern executes
 CounterGet; typed `Sum/Avg` bypasses the planner and is deliberately not
-priced). pg pending live-window recalibration (`BenchmarkCalibration_Postgres_CounterGet`
-is committed, unmeasured). mysql/dgraph keep legacy numbers with DIVERGENCE
-comments in engine.go.
+priced). The G1 reconciliation completed 2026-09-01: pg/mysql/dgraph were
+recalibrated onto CounterGet in live windows (raw runs below) — no engine
+carries a legacy aggregate number or DIVERGENCE marker anymore.
 
 ## Raw runs (ns/op; medians underlined in committed constant comments)
 
@@ -76,6 +79,33 @@ in both directions is the load signature, not a constant error.
 Constants UNCHANGED. A re-run on a genuinely quiet window (no concurrent
 builds) remains worthwhile before tagging the engine modules.
 
+### G1 reconciliation: pg/mysql/dgraph CounterGet (count=5, 2026-09-01 21:49–21:52)
+
+Closes decision G1 (ADR-0133) end-to-end: every engine's `NsPerAggregate`
+now prices the actual `ReadAggregate` execution path. Windows: ephemeral
+nixpkgs Postgres (scripts/ephemeral-pg.sh), userspace MariaDB 11.4.12 on
+:33061, ephemeral Dgraph 25.4.0 (nix run .#integration-dgraph).
+Ambient load ~4.8–7.0 (17-18 users, no compile storms); these are ms-scale
+remote-engine benches, so spread stayed ±2% (pg/mysql) and ±4% (dgraph,
+excluding the cold first run).
+
+```
+pg      CounterGet  240130 / 242070 / 245802 / 246217 / 248165 (1K rows) → discard first; median 245.9µs → 246 ns/row → 250
+mysql   CounterGet  325880 / 322848 / 323088 / 318659 / 315368 (1K rows) → discard first; median 320.8µs → 321 ns/row → 320
+dgraph  CounterGet  3837756 / 2666601 / 2744322 / 2549433 / 2659298 (1K rows) → discard cold 3.8ms; median 2.663ms → 2663 ns/row → 2_700
+```
+
+Superseded: pg/mysql 150 (SQL-SUM-era, AggregateSum benches — those now
+document the planner-bypassing typed path only) and dgraph 950_000
+(GraphNeighbors depth-3 per-op misused as a per-row constant, ~350x high).
+
+Known remaining divergence (OUT of G1 scope, flagged not silently changed):
+dgraph `NsPerFilteredScan` (900_000) and `NsPerScan` (450_000) carry
+per-OP measurements (SearchQuery anyofterms / GraphNeighbors depth-1) in
+per-ROW fields — a k-row result is one RPC, so per-row pricing overstates
+by ~k×. Honest recalibration needs result-size-scaled benches (cost as a
+function of k); the point-lookup and aggregate fields are already correct.
+
 ## Protocol
 
 1. Run per module, `GOWORK=off`, tags `goexperiment.jsonv2` (add `cgo` for
@@ -93,5 +123,6 @@ builds) remains worthwhile before tagging the engine modules.
 - `TestRealProfiles_ReadCostsPinned` (metaengine/bench) pins bbolt/pebble
   constants end-to-end against real engines.
 - `TestEngineProfilesSetReadCosts` (cmd/api-stability) enforces the roster.
-- Planned: scheduled CI job diffing fresh benches against this baseline
-  (warn >25%).
+- Shipped: nightly `benchmarks.yml` calibration-drift job diffs fresh benches
+  against this baseline (warn >25%, fail >100%) — local engines only;
+  pg/mysql/dgraph need live-DSN windows and are re-anchored by hand.

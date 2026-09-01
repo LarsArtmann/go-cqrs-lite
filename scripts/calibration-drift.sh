@@ -12,13 +12,14 @@
 # no DSN needed). count=3 per bench, run 1 discarded, median of the rest.
 set -euo pipefail
 
-THRESHOLD_WARN=25   # percent
-THRESHOLD_FAIL=100  # percent
+THRESHOLD_WARN=25  # percent
+THRESHOLD_FAIL=100 # percent
 COUNT=3
 
 # expected: engine_module|bench_suffix|pattern_label|expected_ns_per_unit|units_per_op
 # Constants mirror the committed Profile() values (ADR-0133; 2026-08-30 baseline).
-EXPECTED=$(cat <<'EOT'
+EXPECTED=$(
+	cat <<'EOT'
 badgerengine|Get|point_lookup|1100|1
 badgerengine|_FilteredScan|filtered_scan|650|10000
 badgerengine|_CounterScan|aggregate|165|1000
@@ -45,7 +46,7 @@ FAILED=0
 median() {
 	local -a vals=("$@")
 	local n=${#vals[@]}
-	if (( n % 2 == 1 )); then
+	if ((n % 2 == 1)); then
 		echo "${vals[n / 2]}"
 	else
 		awk -v a="${vals[n / 2 - 1]}" -v b="${vals[n / 2]}" 'BEGIN { printf "%.0f", (a + b) / 2 }'
@@ -58,10 +59,10 @@ while IFS='|' read -r mod suffix label expected units; do
 	dir="$REPO_ROOT/metaengine/$mod"
 	# Engine-name casing fixups (Badger/Bbolt/Pebble/SQLite bench prefixes).
 	case "$mod" in
-		badgerengine) bench="BenchmarkCalibration_Badger" ;;
-		bboltengine) bench="BenchmarkCalibration_Bbolt" ;;
-		pebbleengine) bench="BenchmarkCalibration_Pebble" ;;
-		sqliteengine) bench="BenchmarkCalibration_SQLite" ;;
+	badgerengine) bench="BenchmarkCalibration_Badger" ;;
+	bboltengine) bench="BenchmarkCalibration_Bbolt" ;;
+	pebbleengine) bench="BenchmarkCalibration_Pebble" ;;
+	sqliteengine) bench="BenchmarkCalibration_SQLite" ;;
 	esac
 
 	if [ "$suffix" != "Get" ] && [ -n "$suffix" ]; then
@@ -74,7 +75,7 @@ while IFS='|' read -r mod suffix label expected units; do
 	log="$(mktemp)"
 
 	if ! (cd "$dir" && GOWORK=off go test -tags "goexperiment.jsonv2" \
-		-run '^$' -bench "^${bench}" -benchmem -count "$COUNT" -timeout 20m ./... > "$log" 2>&1); then
+		-run '^$' -bench "^${bench}" -benchmem -count "$COUNT" -timeout 20m ./... >"$log" 2>&1); then
 		echo "::error::calibration bench failed for $mod $label (see $log)"
 		FAILED=1
 		continue
@@ -97,14 +98,14 @@ while IFS='|' read -r mod suffix label expected units; do
 	printf '  fresh median: %s ns/op -> %s ns/unit | expected %s | drift %s%%\n' \
 		"$med_ns" "$med_units" "$expected" "$drift"
 
-	if (( abs_drift >= THRESHOLD_FAIL )); then
+	if ((abs_drift >= THRESHOLD_FAIL)); then
 		echo "::error::$mod $label drifted ${drift}% (>${THRESHOLD_FAIL}%): recalibrate or fix the regression"
 		FAILED=1
-	elif (( abs_drift > THRESHOLD_WARN )); then
+	elif ((abs_drift > THRESHOLD_WARN)); then
 		echo "::warning::$mod $label drifted ${drift}% (>${THRESHOLD_WARN}%): consider a quiet-window recalibration"
 	fi
 
 	rm -f "$log"
-done <<< "$EXPECTED"
+done <<<"$EXPECTED"
 
 exit "$FAILED"

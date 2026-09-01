@@ -116,14 +116,15 @@ storage.PostgresInitSchema(ctx, db) // creates all tables
 
 ### DDL Functions
 
-Get DDL strings for custom schema management:
+Get DDL strings for custom schema management (event tables come from the
+`InitSchema` auto-migrations above, or the `Dialect` implementations in
+`storage/sql` — `PostgresDialect{}.EventSchema()`):
 
 ```go
-storage.EventSchema()          // PostgreSQL events DDL
 storage.SnapshotSchema()       // PostgreSQL snapshots DDL
 storage.CheckpointSchema()     // PostgreSQL checkpoints DDL
-
-storage.SQLiteEventSchema()    // SQLite variants...
+storage.SQLiteSnapshotSchema() // SQLite variants...
+storage.SQLiteCheckpointSchema()
 ```
 
 ## Dialect
