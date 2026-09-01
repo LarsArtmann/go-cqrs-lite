@@ -93,7 +93,18 @@ case "$module_path" in
 	path_major="${module_path##*/v}"
 	;;
 esac
-if [ "$path_major" != "$tag_major" ]; then
+guard_ok=false
+case "$tag_major" in
+0 | 1)
+	# v0/v1 tags require a module path WITHOUT any /vN suffix.
+	[ -z "$path_major" ] && guard_ok=true
+	;;
+*)
+	# v2+ tags require the module path to end in the matching /vN.
+	[ "$path_major" = "$tag_major" ] && guard_ok=true
+	;;
+esac
+if ! $guard_ok; then
 	echo "ERROR: tag ${tag} is inconsistent with the module path in ${gomod}:"
 	echo "    module ${module_path}"
 	if [ -z "$tag_major" ] || [ "$tag_major" = "0" ] || [ "$tag_major" = "1" ]; then
