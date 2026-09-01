@@ -38,8 +38,8 @@ This module is **read-only**. It never writes events. It queries via `event.Jour
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/memory"
-    "github.com/larsartmann/go-cqrs-lite/listing"
+    "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+    "github.com/larsartmann/go-cqrs-lite/listing/v4"
 )
 
 store := memory.NewMemoryStore()

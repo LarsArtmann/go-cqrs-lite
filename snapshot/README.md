@@ -92,4 +92,4 @@ ts, _ := typedStore.Load(ctx, ref)
 
 - [**decider**](../decider/README.md) — `WithSnapshotStore` + `WithSnapshotStrategy` for aggregate loading
 - [**event**](../event/README.md) — `event.Version` type used in snapshots
-- [**codec**](../codec/README.md) — Serialization of snapshot state
+- [**go-codec**](https://github.com/larsartmann/go-codec) — Serialization of snapshot state

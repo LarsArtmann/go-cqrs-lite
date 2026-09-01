@@ -41,9 +41,9 @@ If you only use the spec exporters (`asyncapi`, `openapi`, `eventcatalog`,
 package main
 
 import (
-    "github.com/larsartmann/go-cqrs-lite/catalog"
-    "github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
-    "github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4/asyncapi"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
 )
 
 type CreateOrder struct {

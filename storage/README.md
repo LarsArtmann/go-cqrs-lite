@@ -4,7 +4,7 @@
 
 Persistent event store implementations for PostgreSQL, SQLite, and SQLite-compatible backends. Implements the `event.Store`, `snapshot.SnapshotStore`, and `event.CheckpointStore` interfaces.
 
-> **Pebble and Turso are now separate modules.** See `github.com/larsartmann/go-cqrs-lite/pebble` and `github.com/larsartmann/go-cqrs-lite/turso` for those backends.
+> **Pebble and Turso are now separate modules.** See `github.com/larsartmann/go-cqrs-lite/storage/pebble/v4` and `github.com/larsartmann/go-cqrs-lite/storage/turso/v4` for those backends.
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/storage/v4
@@ -91,10 +91,10 @@ checkpoint, _ := cpStore.Load(ctx, "user-projection")
 
 ### PebbleEventStore
 
-Moved to separate module: `github.com/larsartmann/go-cqrs-lite/pebble`
+Moved to separate module: `github.com/larsartmann/go-cqrs-lite/storage/pebble/v4`
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/pebble"
+import "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
 
 db, _ := pebble.Open("data", &pebble.Options{})
 store := pebble.NewPebbleStore(db, slog.Default())
@@ -110,7 +110,7 @@ storage.SQLiteEnableWAL(ctx, db)   // write-ahead logging for performance
 // PostgreSQL
 storage.PostgresInitSchema(ctx, db) // creates all tables
 
-// Turso is a separate module: github.com/larsartmann/go-cqrs-lite/turso
+// Turso is a separate module: github.com/larsartmann/go-cqrs-lite/storage/turso/v4
 // See the Turso section below
 ```
 
@@ -163,10 +163,10 @@ The subpackage also defines all SQL-level sentinel errors: `ErrNilDB`, `ErrStrea
 
 ## Turso
 
-Turso is a separate module. See `github.com/larsartmann/go-cqrs-lite/turso`.
+Turso is a separate module. See `github.com/larsartmann/go-cqrs-lite/storage/turso/v4`.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/turso/v4"
+import "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
 
 db, _ := turso.OpenInMemory()
 turso.InitSchema(ctx, db)

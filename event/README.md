@@ -144,7 +144,7 @@ type CheckinSubmitted struct {
 - [**query**](../query/README.md) — Query dispatch, typed results, pagination
 - [**decider**](../decider/README.md) — Pure-function aggregate pattern (recommended)
 - [**id**](../id/README.md) — Branded IDs: `id.Of[T]` backed by ULID
-- [**codec**](../codec/README.md) — Payload encoding (JSON, CBOR, Raw) for `DecodePayload`
+- [**go-codec**](https://github.com/larsartmann/go-codec) — Payload encoding (JSON, CBOR, Raw) for `DecodePayload`
 - [**schema**](../schema/README.md) — Upcasting and schema evolution
 - [**snapshot**](../snapshot/README.md) — Snapshot persistence
 - [**signing**](../signing/README.md) — Event signing (HMAC, Ed25519)

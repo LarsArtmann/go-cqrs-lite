@@ -77,7 +77,7 @@ cmds.Use(middleware.CommandRetry(3, 100*time.Millisecond))
 - [**command**](../command/README.md) — `command.Dispatcher.Use()` applies command middleware
 - [**event**](../event/README.md) — `event.Bus.Use()` / `UsePublish()` applies event middleware
 - [**query**](../query/README.md) — `query.Dispatcher.Use()` applies query middleware
-- [**idempotency**](../idempotency/README.md) — `Store`, `MemoryStore`, `KVStore`, `ErrDuplicate` (used by idempotency middleware)
+- [**go-idempotency**](https://github.com/larsartmann/go-idempotency) — `Store`, `MemoryStore`, `KVStore`, `ErrDuplicate` (used by idempotency middleware)
 - [**signing**](../signing/README.md) — `EventSignMiddleware` / `EventVerifyMiddleware` live here
 - [**encryption**](../encryption/README.md) — `EncryptMiddleware` / `DecryptMiddleware` live here
 - [**otel**](../otel/README.md) — Tracing middleware uses OTel tracers from this module

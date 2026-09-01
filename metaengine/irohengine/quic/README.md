@@ -48,9 +48,9 @@ Both processes will show all 10 keys (5 from each side) with real QUIC measureme
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic"
-    "github.com/larsartmann/go-cqrs-lite/metaengine/irohengine"
-    "github.com/larsartmann/go-cqrs-lite/metaengine"
+    "github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic/v4"
+    "github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
+    "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // Node A: bind, create engine, print ticket

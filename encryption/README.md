@@ -154,6 +154,6 @@ XChaCha20Poly1305_Decrypt      ~600ns/op    2 allocs/op
 ## Related Modules
 
 - [**signing**](../signing/README.md) — Sign then encrypt for tamper-proof + confidential streams
-- [**codec**](../codec/README.md) — `encryption.NewCodec` wraps a codec with transparent encryption
+- [**go-codec**](https://github.com/larsartmann/go-codec) — `encryption.NewCodec` wraps a codec with transparent encryption
 - [**event**](../event/README.md) — Encrypts event payloads via `bus.UsePublish` / `bus.Use`
 - [**middleware**](../middleware/README.md) — `EncryptMiddleware` / `DecryptMiddleware` re-exported here

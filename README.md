@@ -1,15 +1,69 @@
-# go-cqrs-lite
+<h1 align="center">go-cqrs-lite</h1>
 
-[![CI](https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml)
-|[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/event/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4)
+<p align="center"><strong>CQRS and Event Sourcing for Go — without the framework tax.</strong></p>
 
-**CQRS and Event Sourcing for Go — without the framework tax.**
+<p align="center">
+<a href="https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4"><img src="https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/event/v4.svg" alt="Go Reference"></a>
+<a href="https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml"><img src="https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-Proprietary-red.svg" alt="License: Proprietary"></a>
+</p>
 
-A composable library of 82 independently-versioned modules. Import exactly what you need: nothing is forced on you — no transport, no broker, no database driver. Wire your own stack, or grab a zero-config preset.
+<p align="center">
+<a href="SKILL.md">Guide (SKILL.md)</a> · <a href="https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4">API Reference</a> · <a href="example/getting-started/">Getting Started</a> · <a href="docs/">Docs</a>
+</p>
+
+---
+
+A composable library of 80+ independently-versioned modules. Import exactly what you need: nothing is forced on you — no transport, no broker, no database driver. Wire your own stack, or grab a zero-config preset.
 
 > Using this library with an AI assistant? [`SKILL.md`](SKILL.md) is the single-source guide — module decision matrix, copy-paste recipes, and conventions.
 
----
+## Why go-cqrs-lite?
+
+Most Go CQRS libraries are **frameworks** — they own your transport, your broker, your SQL driver, and your project layout. go-cqrs-lite is a **library**. You import only what you need and compose your own stack. Nothing is hidden behind magic.
+
+- **Event Sourcing is first-class** — immutable events, branded IDs, optimistic concurrency, time-travel queries, and schema evolution via upcasters. Not an afterthought bolted onto a CRUD layer.
+- **Library, not framework** — no transport, broker, or driver is forced on you. Use standard `net/http`, gRPC, Watermill, NATS — your choice. The `stack/` presets wire sensible defaults when you want zero-config.
+- **Pure-Go by default** — SQLite, Pebble, and bbolt engines need no C compiler. CGo is quarantined inside the single DuckDB module; everyone else never notices.
+- **Multi-module isolation** — each module has its own `go.mod` with minimal deps. Import `event` alone (3 dependencies) or the full `stack/sqlite` preset. Your dependency tree stays clean.
+- **Production primitives, not stubs** — event signing (HMAC-SHA256, Ed25519, multisig), payload encryption (XChaCha20-Poly1305, AES-256-GCM, key rotation), OTel tracing and metrics, and a Prometheus bridge.
+- **Honest error taxonomy** — a 6-family classification (Rejection / Conflict / Transient / Infrastructure / Orchestration / Corruption) with sentinel errors and `%w` wrapping. No panics in production paths.
+- **Strong types throughout** — branded IDs make it impossible to mix up an `OrderID` with a `UserID`. The type system catches mistakes the compiler can express.
+- **SQL-backed read models** — `SQLViewStore` gives each projection its own table with real, queryable columns: server-side `WHERE`, `ORDER BY`, pagination, indexes, and `COUNT`. Opaque KV-blob read models cannot do this. (Deprecated in v5 — metaengine auto-projection replaces it.)
+
+## Who is this for?
+
+- **Go backend engineers adopting event sourcing** who want proven primitives — stores, buses, upcasters, snapshots — without surrendering their project layout to a framework.
+- **DDD practitioners** who model behavior as pure functions (the Decider pattern) and want optimistic concurrency and branded IDs out of the box.
+- **Platform engineers embedding CQRS into existing services** — import the 3-dependency `event` module alone, or compose upward as needs grow.
+- **Teams that choose storage at deployment time** — swap SQLite, Postgres, MySQL, Pebble, bbolt, Dgraph, or DuckDB behind the same domain code.
+- **AI-assisted development teams** — [`SKILL.md`](SKILL.md) gives coding agents a verified, single-source API guide instead of hallucinated APIs.
+
+## How it compares
+
+| Capability                                    | go-cqrs-lite            | Hand-rolled (stdlib) | [looplab/eventhorizon](https://github.com/looplab/eventhorizon) | [ThreeDotsLabs/watermill](https://github.com/ThreeDotsLabs/watermill) |
+| --------------------------------------------- | :---------------------: | :------------------: | :-------------------------------------------------------------: | :-------------------------------------------------------------------: |
+| **Library (not framework)**                   | ✓                       | ✓                    | Partial                                                         | Partial                                                               |
+| **Event sourcing**                            | ✓                       |                      | ✓                                                               | Via plugins                                                           |
+| **Per-module go.mod**                         | ✓                       |                      | ✗                                                               | ✗                                                                     |
+| **Branded, mix-up-proof IDs**                 | ✓                       |                      | ✗                                                               | ✗                                                                     |
+| **Event signing** (HMAC, Ed25519, multisig)   | ✓                       |                      | ✗                                                               | ✗                                                                     |
+| **Payload encryption** (XChaCha20, AES-GCM)   | ✓                       |                      | ✗                                                               | ✗                                                                     |
+| **Schema evolution** (upcasters)              | ✓                       |                      | ✗                                                               | ✗                                                                     |
+| **Auto-docs** (AsyncAPI, OpenAPI, D2)         | ✓                       |                      | ✗                                                               | ✗                                                                     |
+| **Managed projection host** (crash-restart)   | ✓                       |                      | Partial                                                         | ✗                                                                     |
+| **One-call storage presets**                  | ✓                       |                      | ✗                                                               | ✗                                                                     |
+
+An empty cell means "you build it yourself." Claims verified against each project's repository (August 2026) — the links are there so you can check the cells.
+
+## When NOT to use this
+
+Skip this library if:
+
+- **Your app is plain CRUD without domain events** — `database/sql`, sqlc, GORM, or ent is simpler. Event sourcing adds ceremony that CRUD does not need.
+- **You want a framework that owns transport and project layout** — application frameworks in the go-zero/Kratos style do that; go-cqrs-lite deliberately owns neither.
+- **You need an ops-heavy event store** — server-side projections, persistent subscriptions, a query UI, multi-node clustering. [KurrentDB](https://github.com/EventStore/EventStore) (EventStoreDB) is a purpose-built server; this is an embedded library.
+- **Your problem is messaging, not domain aggregates** — plain [Watermill](https://github.com/ThreeDotsLabs/watermill) is lighter. You can adopt our `watermill/` adapter later if domain events join the picture.
 
 ## Install
 
@@ -119,25 +173,11 @@ Seven presets cover every deployment shape (all deprecated in v5 — `system.Sys
 > auto-projection serves read models. Everything above works unchanged
 > through v4.x; new projects can already adopt `system/` + `metaengine`.
 
-See [`example/getting-started/`](example/getting-started/) for a minimal 80-line tour of the core loop (event sourcing + projection + materialized view), and [`example/taskmanager/`](example/taskmanager/) for a complete HTTP service (CQRS/ES, projections, signing, SSE, snapshots).
-
----
-
-## Why go-cqrs-lite?
-
-Most Go CQRS libraries are **frameworks** — they own your transport, your broker, your SQL driver, and your project layout. go-cqrs-lite is a **library**. You import only what you need and compose your own stack. Nothing is hidden behind magic.
-
-- **Event Sourcing is first-class** — immutable events, branded IDs, optimistic concurrency, time-travel queries, and schema evolution via upcasters. Not an afterthought bolted onto a CRUD layer.
-- **Library, not framework** — no transport, broker, or driver is forced on you. Use standard `net/http`, gRPC, Watermill, NATS — your choice. The `stack/` presets wire sensible defaults when you want zero-config.
-- **SQL-backed read models** — `SQLViewStore` gives each projection its own table with real, queryable columns: server-side `WHERE`, `ORDER BY`, pagination, indexes, and `COUNT`. Opaque KV-blob read models cannot do this. (Deprecated in v5 — metaengine auto-projection replaces it.)
-- **Multi-module isolation** — each module has its own `go.mod` with minimal deps. Import `event` alone (3 dependencies) or the full `stack/sqlite` preset. Your dependency tree stays clean.
-- **Production primitives, not stubs** — event signing (HMAC-SHA256, Ed25519, multisig), payload encryption (XChaCha20-Poly1305, AES-256-GCM, key rotation), OTel tracing and metrics, and a Prometheus bridge.
-- **Honest error taxonomy** — a 6-family classification (Rejection / Conflict / Transient / Infrastructure / Orchestration / Corruption) with sentinel errors and `%w` wrapping. No panics in production paths.
-- **Strong types throughout** — branded IDs make it impossible to mix up an `OrderID` with a `UserID`. The type system catches mistakes the compiler can express.
+See [`example/getting-started/`](example/getting-started/) for a single-file tour of the core loop (event sourcing + projection + materialized view), and [`example/taskmanager/`](example/taskmanager/) for a complete HTTP service (CQRS/ES, projections, signing, SSE, snapshots).
 
 ## Key modules
 
-Every module is independently importable and has its own `go.mod`. Here are the most important ones — see [AGENTS.md](AGENTS.md) for the full module catalog.
+Every module is independently importable and has its own `go.mod`. Here are the most important ones — see [AGENTS.md](AGENTS.md) for the full module catalog and [FEATURES.md](FEATURES.md) for the feature inventory.
 
 | Module             | Purpose                                                               |
 | ------------------ | --------------------------------------------------------------------- |
@@ -154,21 +194,18 @@ Every module is independently importable and has its own `go.mod`. Here are the 
 | **catalog**        | Auto-generate AsyncAPI 3.0, EventCatalog, OpenAPI, D2 from Go types   |
 | **stack/sqlite**   | One-call preset: SQLite + event bus + read models + projections       |
 
-## How it compares
+## Key dependencies
 
-| Capability                          | go-cqrs-lite | go-cqrs | Watermill  | cqrs-go |
-| ----------------------------------- | :----------: | :-----: | :--------: | :-----: |
-| **Library (not framework)**         |      ✅      |   ❌    |  Partial   |   ❌    |
-| **Event Sourcing**                  |      ✅      |   ✅    | Via plugin |   ✅    |
-| **Per-module go.mod**               |      ✅      |   ❌    |     ❌     |   ❌    |
-| **Branded IDs**                     |      ✅      |   ❌    |     ❌     |   ❌    |
-| **Event signing**                   |      ✅      |   ❌    |     ❌     |   ❌    |
-| **Event encryption**                |      ✅      |   ❌    |     ❌     |   ❌    |
-| **Schema evolution**                |      ✅      |   ❌    |     ❌     |   ❌    |
-| **Auto-docs (AsyncAPI/OpenAPI/D2)** |      ✅      |   ❌    |     ❌     |   ❌    |
-| **SQL-backed read models**          |      ✅      |   ❌    |     ❌     |   ❌    |
-| **Managed projection host**         |      ✅      |   ❌    |     ❌     |   ❌    |
-| **Bundle presets**                  |      ✅      |   ❌    |     ❌     |   ❌    |
+Each module declares its own `go.mod`; this is the greatest-hits across the library:
+
+| Dependency                                                                        | Where                    | Purpose                              |
+| --------------------------------------------------------------------------------- | ------------------------ | ------------------------------------ |
+| [`ThreeDotsLabs/watermill`](https://github.com/ThreeDotsLabs/watermill)           | `watermill/`, presets    | In-process and broker pub/sub        |
+| [`failsafe-go/failsafe-go`](https://github.com/failsafe-go/failsafe-go)           | `middleware/`            | Circuit breaker                      |
+| [`maypok86/otter/v2`](https://github.com/maypok86/otter)                          | `decider/`               | TinyLFU state cache                  |
+| `golang.org/x/crypto`                                                             | `encryption/`            | XChaCha20-Poly1305 payload encryption |
+| `modernc.org/sqlite`                                                              | SQLite engines           | CGo-free SQLite driver               |
+| [`larsartmann/go-error-family`](https://github.com/larsartmann/go-error-family)   | all core modules         | 6-family error taxonomy              |
 
 ## Maturity
 
@@ -180,4 +217,4 @@ For the full feature inventory see [FEATURES.md](FEATURES.md), for direction see
 
 ## License
 
-PROPRIETARY — see [LICENSE](LICENSE). Public release under Apache-2.0 is planned (see [ROADMAP.md](ROADMAP.md)).
+PROPRIETARY — see [LICENSE](LICENSE).

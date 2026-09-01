@@ -68,6 +68,6 @@ func main() {
 
 ## Related Modules
 
-- [**idempotency**](../README.md) — Core `Store` interface, `MemoryStore`, `ErrDuplicate`
+- [**go-idempotency**](https://github.com/larsartmann/go-idempotency) — Core `Store` interface, `MemoryStore`, `ErrDuplicate`
 - [**kv**](../../kv/README.md) — The `Store`, `MemStore`, `ConditionalWriter` interfaces
 - [**middleware**](../../middleware/README.md) — `CommandIdempotency`, `EventIdempotency`, `QueryIdempotency` middleware that consume idempotency stores

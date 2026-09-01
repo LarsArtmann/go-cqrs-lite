@@ -13,8 +13,8 @@ go get github.com/larsartmann/go-cqrs-lite/storage/turso/v4
 ## Quick Start
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/turso/v4"
-import "github.com/larsartmann/go-cqrs-lite/turso/v4/indexing"
+import "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
+import "github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing"
 
 // One-shot: schema + indexes + performance PRAGMAs
 db, _ := turso.OpenInMemory()

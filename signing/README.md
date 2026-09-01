@@ -82,7 +82,7 @@ When events travel through multiple actors (e.g., end-user device → server), e
 Import the multisig sub-package:
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/signing/multisig"
+import "github.com/larsartmann/go-cqrs-lite/signing/v4/multisig"
 ```
 
 ### Device → Server Chain
@@ -136,6 +136,6 @@ bus.UsePublish(multisig.MultiSignMiddleware(serverMulti))
 ## Related Modules
 
 - [**event**](../event/README.md) — Signs events; integrates via `bus.UsePublish` / `bus.Use`
-- [**codec**](../codec/README.md) — CBOR deterministic encoding for reproducible signatures
+- [**go-codec**](https://github.com/larsartmann/go-codec) — CBOR deterministic encoding for reproducible signatures
 - [**encryption**](../encryption/README.md) — Companion security module for confidential payloads
 - [**middleware**](../middleware/README.md) — `EventSignMiddleware` / `EventVerifyMiddleware` re-exported here

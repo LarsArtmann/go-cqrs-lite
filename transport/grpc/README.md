@@ -92,5 +92,5 @@ qryClient := cqrsgrpc.NewQueryClient(conn,
 
 - [**command**](../../command/README.md) — `command.Dispatcher` is the dispatch target
 - [**query**](../../query/README.md) — `query.Dispatcher` is the dispatch target
-- [**codec**](../../codec/README.md) — JSON and CBOR codecs for wire encoding
+- [**go-codec**](https://github.com/larsartmann/go-codec) — JSON and CBOR codecs for wire encoding
 - [**transport/http**](../http/README.md) — SSE for unidirectional event streaming

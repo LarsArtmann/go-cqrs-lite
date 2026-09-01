@@ -113,4 +113,4 @@ Zero external dependencies — uses only the Go standard library
 - [command](../../command/README.md) — Command dispatch and typed handlers
 - [query](../../query/README.md) — Query dispatch and typed results
 - [event](../../event/README.md) — Event bus, `DecodePayload`, `Subscriber`
-- [codec](../../codec/README.md) — Payload codecs used by event handlers
+- [go-codec](https://github.com/larsartmann/go-codec) — Payload codecs used by event handlers
