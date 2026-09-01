@@ -176,6 +176,22 @@ and is **never** duplicated here.
 ## Release / Tagging 🔥
 
 > Blocked on user authorization (never tag/push without explicit instruction).
+
+- [ ] **Repair master CI (11 red jobs on the 2026-09-01 run, ALL pre-existing —
+      surfaced by the #20 push; main CI has not completed green since
+      2026-07-17)**: (a) infra: FlakeHub unauthenticated + magic-nix-cache HTTP
+      418 kills CGo Build / Nix Flake Check / Minimum Coverage / integration
+      jobs; (b) workflow bug: API Stability runs `go run main.go` on a
+      multi-file package (`undefined: collectExports`) — should be `go run .`;
+      (c) auth: cqrs-lint Self-Lint needs go-finding credentials under
+      GOWORK=off (`git ls-remote ... exit 128`); (d) real drift to fix:
+      shfmt on `scripts/calibration-drift.sh` + `scripts/ephemeral-dgraph.sh`,
+      >350-line files (25 incl. benchkit/runner.go, catalog_extra.go),
+      skill-doc TOC/length gates, version-drift report (listing/middleware/
+      sqliteengine/...). None of these blocks the 2026-09-01 cmd tags — the
+      tagged content was verified green locally (build+test GOWORK=off,
+      golden, doc-check, shfmt-clean on the touched script) and via clean
+      `go install @latest` from the proxy.
 > **2026-08-29 13:18: full `nix run .#verify` GREEN (plan V3 T02)** — build +
 > vet + test + race + lint 76/76 + check-arch + depguard + doc-check (1154
 > refs) at commit `50a9a212d`; this replaces the 2026-08-16 release-checkpoint
